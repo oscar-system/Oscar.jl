@@ -2048,12 +2048,12 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   done = false
   d = 0
   while !done
-    inc = [m for m in all_monomials(R, d) if !(m in lead_I)]
+    inc = [m for m in monomials_of_degree(R, d) if !(m in lead_I)]
     if iszero(length(inc))
       done = true
       break
     end
-    V_gens = vcat(V_gens, [m for m in all_monomials(R, d) if !(m in lead_I)])
+    V_gens = vcat(V_gens, [m for m in monomials_of_degree(R, d) if !(m in lead_I)])
     d = d + 1
   end
 
