@@ -8850,7 +8850,7 @@ function vector_space_dimension(M::SubquoModule,d::Int64)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  return count(t->!(t[1]*t[2] in LM), Iterators.product(all_monomials(R, d), gens(F)))
+  return count(t->!(t[1]*t[2] in LM), Iterators.product(monomials_of_degree(R, d), gens(F)))
 end
   
 function vector_space_dimension(M::SubquoModule{T}
@@ -8962,7 +8962,7 @@ function vector_space_basis(M::SubquoModule,d::Int64)
   o = default_ordering(M)
   LM = leading_module(Mq,o)
 
-  return [x*e for x in all_monomials(R, d) for e in gens(F) if !(x*e in LM)]
+  return [x*e for x in monomials_of_degree(R, d) for e in gens(F) if !(x*e in LM)]
 end
 
 function vector_space_basis(M::SubquoModule{T}
