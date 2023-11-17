@@ -194,22 +194,38 @@ function encode_type(::Type{T}) where T
   error("unsupported type '$T' for encoding")
 end
 
-function decode_type(input::String)
-  get(reverse_type_map, input) do
-    error("unsupported type '$input' for decoding")
-  end
-end
-
-function decode_type(input::JSON3.Object)
-  return decode_type(input[:name])
-end
-
 function decode_type(s::DeserializerState)
-  if type_key in keys(s.obj)
-    return decode_type(s.obj[type_key])
+  if s.obj isa String
+    if !isnothing(tryparse(UUID, s.obj))
+      id = s.obj
+      obj = deepcopy(s.obj)
+      s.obj = s.refs[Symbol(id)]
+      T = decode_type(s)
+      s.obj = obj
+      return T
+    end
+
+    return get(reverse_type_map, s.obj) do
+      unsupported_type = s.obj
+      error("unsupported type '$unsupported_type' for decoding")
+    end
   end
+  
+  if type_key in keys(s.obj)
+    return load_node(s, type_key) do _
+      decode_type(s)
+    end
+  end
+
+  if :name in keys(s.obj)
+    return load_node(s, :name) do _
+      decode_type(s)
+    end
+  end
+
   return decode_type(s.obj)
 end
+
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
@@ -291,29 +307,29 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
     if node isa String && !isnothing(tryparse(UUID, node))
       return load_ref(s)
     end
-    return load_typed_object
+    return load_typed_object(s; override_params=override_params)
   end
 end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
-    T = decode_type(s)
-    if Base.issingletontype(T) && return T()
-    elseif serialize_with_params(T)
-      if !isnothing(override_params)
-        params = override_params
-      else
-        # depending on the type, :params is either an object to be loaded or a
-        # dict with keys and object values to be loaded
-        # dict[type_key][:params] this can be found from state
+  T = decode_type(s)
+  if Base.issingletontype(T) && return T()
+  elseif serialize_with_params(T)
+    if !isnothing(override_params)
+      params = override_params
+    else
+      # depending on the type, :params is either an object to be loaded or a
+      # dict with keys and object values to be loaded
+      load_node(s, type_key) do _
         params = load_params_node(s)
       end
-      load_node(s, :data) do _
-        return load_object(s, T, params)
-      end
-    else
-      load_node(s, :data) do _
-        return load_object(s, T)
-      end
+    end
+    load_node(s, :data) do _
+      return load_object(s, T, params)
+    end
+  else
+    load_node(s, :data) do _
+      return load_object(s, T)
     end
   end
 end
@@ -641,8 +657,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
       if serialize_with_params(type)
-        if isnothing(params) 
-          params = load_type_params(s, type)
+        if isnothing(params)
+          params = load_node(s, type_key) do _
+            load_params_node(s)
+          end
         end
 
         load_node(s, :data) do _

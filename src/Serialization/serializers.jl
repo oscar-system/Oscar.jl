@@ -144,6 +144,10 @@ end
 
 function load_node(f::Function, s::DeserializerState,
                    key::Union{Symbol, Int, Nothing} = nothing)
+  if s.obj isa String && !isnothing(tryparse(UUID, s.obj))
+    return load_ref(s)
+  end
+
   !isnothing(key) && set_key(s, key)
   obj = deepcopy(s.obj)
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
@@ -166,11 +170,12 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function load_params_node(f::Function, s::DeserializerState)
+function load_params_node(s::DeserializerState)
   T = decode_type(s)
-  load_node(s, :params) do params
-    
+  params = load_node(s, :params) do _
+    return load_type_params(s, T)
   end
+  return params
 end
 
 ################################################################################

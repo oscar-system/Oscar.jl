@@ -12,19 +12,14 @@ function save_type_params(s::SerializerState, x::TropicalSemiringElem)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
-  return load_typed_object(s, dict)
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem})
+  return load_typed_object(s)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem},
-                          parent::TropicalSemiring)
-  return load_typed_object(s, dict)
-end
-
-function load_object(s::DeserializerState,
-                                 ::Type{<:TropicalSemiringElem},
-                                 str::String, params::TropicalSemiring)
-  return params(load_object(s, QQFieldElem, str))
+function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem}, params::TropicalSemiring)
+  load_node(s) do str
+    params(load_object(s, QQFieldElem))
+  end
 end
 
 # Tropical Hypersurfaces

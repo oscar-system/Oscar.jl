@@ -31,13 +31,9 @@ function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::Strin
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
-  load_node(s, :params) do params
-    T = decode_type(s)
-    load_node(s, :params) do _
-      params = load_type_params(s, T)
-    end
-    return (T, params)
-  end
+  T = decode_type(s)
+  params = load_params_node(s)
+  return (T, params)
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
