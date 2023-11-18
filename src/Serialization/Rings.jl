@@ -292,7 +292,7 @@ function save_object(s::SerializerState, I::T) where T <: IdealUnionType
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
-  gens = []
+  gens = elem_type(parent_ring)[]
   load_node(s) do gens_data
     for i in 1:length(gens_data)
       gen = load_node(s, i) do _
@@ -317,10 +317,10 @@ function save_object(s::SerializerState, obj::MatSpace)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatSpace}, dict::Dict)
-  base_ring = load_typed_object(s, dict[:base_ring])
-  ncols = parse(Int, dict[:ncols])
-  nrows = parse(Int, dict[:nrows])
+function load_object(s::DeserializerState, ::Type{<:MatSpace})
+  base_ring = load_typed_object(s, :base_ring)
+  ncols = load_object(s, Int, :ncols)
+  nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)
 end
 
@@ -328,8 +328,7 @@ function save_object(s::SerializerState, obj::MatElem)
   save_object(s, Array(obj))
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatElem},
-                     entries::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:MatElem}, parents::Vector)
   parent = parents[end]
   T = elem_type(base_ring(parent))
   if serialize_with_params(T)
@@ -338,9 +337,9 @@ function load_object(s::DeserializerState, ::Type{<:MatElem},
     else
       params = parents[1:end - 1]
     end
-    m = load_object(s, Matrix, entries, (T, params))
+    m = load_object(s, Matrix, (T, params))
   else
-    m = load_object(s, Matrix, entries, T)
+    m = load_object(s, Matrix, T)
   end
   return parent(m)
 end

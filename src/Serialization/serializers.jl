@@ -137,6 +137,19 @@ mutable struct DeserializerState
   refs::Union{JSON3.Object, Nothing}
 end
 
+# general loading of a reference
+function load_ref(s::DeserializerState)
+  id = s.obj
+  if haskey(global_serializer_state.id_to_obj, UUID(id))
+    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
+  else
+    s.obj = s.refs[Symbol(id)]
+    loaded_ref = load_typed_object(s)
+    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+  end
+  return loaded_ref
+end
+
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."
   s.key = key
@@ -157,17 +170,17 @@ function load_node(f::Function, s::DeserializerState,
   return result
 end
 
-# general loading of a reference
-function load_ref(s::DeserializerState)
-  id = s.obj
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
-  else
-    s.obj = s.refs[Symbol(id)]
-    loaded_ref = load_typed_object(s)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+function load_array_node(f::Function, s::DeserializerState,
+                         key::Union{Symbol, Int, Nothing} = nothing)
+  load_node(s, key) do array
+    loaded_array = []
+    for index in 1:length(array)
+      load_node(s, index) do entry
+        push!(loaded_array, f(entry))
+      end
+    end
+    return loaded_array
   end
-  return loaded_ref
 end
 
 function load_params_node(s::DeserializerState)

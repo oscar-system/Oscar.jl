@@ -53,7 +53,22 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
+# this should eventually become deprecated
 function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
+  load_node(s) do v
+    if serialize_with_id(params)
+      loaded_v = params[load_ref(s, x) for x in v]
+    else
+      loaded_v = params[]
+      for (i, entry) in enumerate(v)
+        push!(loaded_v, load_object(s, params, i))
+      end
+    end
+    return loaded_v
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
       loaded_v = params[load_ref(s, x) for x in v]
@@ -246,22 +261,23 @@ function save_object(s::SerializerState, mat::Matrix)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:Matrix},
-                     entries::Vector, params::Type)
-  if isempty(entries)
-    return zero_matrix(parent_type(params)(), 0, 0)
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
+  load_node(s) do entries
+    if isempty(entries)
+      return zero_matrix(parent_type(params)(), 0, 0)
+    end
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+        ])
+    return Matrix{params}(m)
   end
-  m = reduce(vcat, [
-    permutedims(load_object(s, Vector, v, params)) for v in entries
-      ])
-
-  return Matrix{params}(m)
 end
 
-function load_object(s::DeserializerState, ::Type{<:Matrix},
-                     entries::Vector, params::Tuple)
-  m = reduce(vcat, [
-    permutedims(load_object(s, Vector, v, params)) for v in entries
-      ])
-  return Matrix{params[1]}(m)
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
+  load_node(s) do entries
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+        ])
+    return Matrix{params[1]}(m)
+  end
 end
