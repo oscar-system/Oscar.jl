@@ -11,38 +11,37 @@ mutable struct ReductiveGroup
     reynolds_operator::Function
     canonical_representation::AbstractAlgebra.Generic.MatSpaceElem
     
+    # function ReductiveGroup(sym::Symbol, m::Int, fld::Field) 
+    #     G = new()
+    #     if sym != :SL
+    #         error("Only implemented for SLm")
+    #     end
+    #     G.field = fld
+    #     G.group = (sym,m)
+    #     G.reynolds_operator = reynolds_slm
+    #     R, M0 = polynomial_ring(fld, :z => (1:m,1:m))
+    #     M = matrix(M0)
+    #     G.canonical_representation = M
+    #     G.group_ideal = ideal([det(M) - 1])
+    #     #base ring of M has to be the same as the representation matrix when that is created later.
+    #     return G
+    # end
+
     function ReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
-        G = new()
-        if sym != :SL
-            error("Only implemented for SLm")
-        end
-        G.field = fld
-        G.group = (sym,m)
-        G.reynolds_operator = reynolds_slm
-        R,_ = PolynomialRing(fld,"z"=> 1:m^2)
-        M = matrix(R,m,m,[0 for i in 1:m^2])
-        for i in 1:m
-            M[1:m,i] = gens(R)[m*(i-1)+1:i*m]
-        end
-        G.canonical_representation = M
-        G.group_ideal = ideal([det(M) - 1])
-        #base ring of M has to be the same as the representation matrix when that is created later.
-        return G
+        R, _ = polynomial_ring(fld, :z => (1:m,1:m))
+        return ReductiveGroup(sym, m, R)
     end
     
-    function ReductiveGroup(sym::Symbol, m::Int, ring::MPolyRing) #have not decided the representation yet
+    function ReductiveGroup(sym::Symbol, m::Int, ring::MPolyRing) #the ring input is the group ring
         G = new()
         if sym != :SL
             error("Only implemented for SLm")
         end
         G.field = base_ring(ring)
-        m = Int(sqrt(ngens(ring)))
+        @assert m^2  == ngens(ring)
         G.group = (sym,m)
         G.reynolds_operator = reynolds__
-        M = matrix(ring,m,m,[0 for i in 1:m^2])
-        for i in 1:m
-            M[1:m,i] = gens(ring)[m*(i-1)+1:i*m]
-        end
+        M = matrix(ring, m, m, gens(R))
         G.canonical_representation = M
         G.group_ideal = ideal([det(M) - 1])
         #base ring of M has to be the same as the representation matrix when that is created later.
@@ -82,7 +81,7 @@ mutable struct RepresentationReductiveGroup
     function RepresentationReductiveGroup(G::ReductiveGroup, d::Int)
         R = new()
         R.group = G
-        R.rep_mat = rep_mat_(G, d, G.field)
+        R.rep_mat = rep_mat_(G, d)
         R.sym_deg = (true, d)
         R.reynolds_v = reynolds_v_slm
         return R
@@ -90,7 +89,7 @@ mutable struct RepresentationReductiveGroup
     
     #does not check the given matrix.
     function RepresentationReductiveGroup(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem)
-        base_ring(M) == base_ring(G.group_ideal) || error("Group ideal and representation matrix must have same parent ring")
+        @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
         R = new()
         R.group = G
         R.rep_mat = M
@@ -122,67 +121,53 @@ end
 
 ###############
 
-#for the representation matrices
-
-function rep_mat_(G::ReductiveGroup, sym_deg::Int, F::Field)
+#computes the representation matrices of SL_m acting over m-forms of symmetric degree sym_deg
+function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     G.group[1] == :SL || error("Only implemented for SLm")
     m = G.group[2]
     n = binomial(m + sym_deg - 1, m - 1)
-    mixed_ring, t, z, a = PolynomialRing(F, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
-    group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
-    vars = [t[i] for i in 1:m]
-    new_vars = group_mat*vars
+    mixed_ring, t, z = PolynomialRing(G.field, "t"=> 1:m, "z"=> (1:m, 1:m))
+    group_mat = matrix(mixed_ring, z)
+    new_vars = group_mat*t
 
-    degree_basiss = reverse(degree_basis(mixed_ring,m, sym_deg))
+    b = reverse(degree_basis(mixed_ring,m, sym_deg))
     
-    # transform the degree_basiss elements
+    # transform the b elements
     new_vars_plus_rest = vcat(new_vars, gens(mixed_ring)[m+1:nvars(mixed_ring)])
-    images_of_degree_basiss = [evaluate(f, new_vars_plus_rest) for f in degree_basiss]
+    images_of_b = [evaluate(f, new_vars_plus_rest) for f in b]
 
     mat = zero_matrix(mixed_ring, n, n)
     for i in 1:n
-        f = images_of_degree_basiss[i]
+        f = images_of_b[i]
         # express f as a linear combination of degree_basis
         for t in terms(f)
             for j in 1:n
-                if divides(t, degree_basiss[j])[1]
-                    c = leading_coefficient(degree_basiss[j])
-                    mat[i,j] += t / degree_basiss[j] * c
-                    #mat[i,j] += t / degree_basiss[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
+                if divides(t, b[j])[1]
+                    c = leading_coefficient(b[j])
+                    mat[i,j] += t / b[j] * c
+                    #mat[i,j] += t / b[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
                 end
             end
         end
     end
     #we have to return mat in a different ring! 
     group_ring = base_ring(G.group_ideal)
-    mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
+    mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring)))
     Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
     return Mat            
 end
 
-
-function degree_basis(R::MPolyRing,m::Int, t::Int)
-    v = R(1)
-    genss = gens(R)
-    n = length(gens(R)[1:m])
-    C = zero_matrix(Int,n,n)
-    for i in 1:n
+function degree_basis(R::MPolyRing, m::Int, t::Int)
+    C = zero_matrix(Int, m, m)
+    for i in 1:m
       C[i,i] = -1 #find a better way to write this TODO
     end
-    d = [0 for i in 1:n]
-    A = [1 for i in 1:n]
+    d = zeros(n)
+    A = ones(n)
     b = [t]
-    P = Polyhedron((C,d),(A,b))
+    P = Polyhedron((C, d), (A, b))
     L = lattice_points(P)
-    W = Vector{MPolyRingElem}(undef,0)
-    for l in L
-        for i in 1:n
-            v = v*genss[i]^l[i]
-        end
-        v = v*multinomial(t,l)
-        push!(W,v)
-        v = R(1)
-    end
+    W = [ R([multinomial(t,l)], [l]) for l in L ]
     return W
 end
 
@@ -192,73 +177,73 @@ function multinomial(n::Int, v::Union{Vector{Int64},PointVector{ZZRingElem}})
     for i in 1:l
         x = x*factorial(v[i])
     end
-    return Int(factorial(n)//x)
+    return Int(factorial(n)/x)
 end
 
 #############################
 #DIRECT SUM
 
-#TODO
-function rep_mat_(m::Int, v::Vector{Int}, dir_sum::Bool)
-    if dir_sum
-        n = num_of_as(m,v)
-        mixed_ring, t, z, a = PolynomialRing(QQ, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
-        group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
-        vars = [t[i] for i in 1:m]
-        new_vars = vars*group_mat
-        big_matrix = matrix(mixed_ring, 0,0,[])
-        for sym_deg in v
-            degree_basiss = degree_basis(mixed_ring,m, sym_deg)
-            sum_ = mixed_ring()
-            for j in 1:length(degree_basiss)
-                prod_ = mixed_ring(1)
-                factors_ = factorise(degree_basiss[j])
-                for i in 1:length((factors_)[1:m])
-                    prod_ = prod_*new_vars[i]^(factors_[i][2])
-                end
-                prod_ = prod_*a[j]
-                sum_ += prod_
-            end
-            mons = collect(monomials(sum_))
-            coeffs = collect(coefficients(sum_))
-            N = binomial(m + sym_deg - 1, m - 1)
-            mat = matrix(mixed_ring, N,N,[0 for i in 1:N^2])
-            for i in 1:N
-                for j in 1:N
-                    for k in 1:length(mons)
-                        if divides(mons[k], a[i])[1] && divides(mons[k], degree_basiss[j])[1]
-                            mat[i,j] += coeffs[k]*numerator((mons[k]//degree_basiss[j])//a[i])
-                        end
-                    end
-                end
-            end
-            big_matrix = direct_sum(big_matrix,mat)
-        end
-        #we have to return mat in a different ring! 
-        group_ring, Z = PolynomialRing(QQ, "Z"=>(1:m, 1:m))
-        mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
-        Mat = matrix(group_ring, nrows(big_matrix), nrows(big_matrix), [mapp(big_matrix[i,j]) for i in 1:nrows(big_matrix), j in 1:nrows(big_matrix)])
-        return Mat
-    else
-        l = length(v)
-        #there are l*m^2 z's
-        ringg,Z = PolynomialRing(QQ,"Z"=>1:l*m^2)
-        prod_mat = matrix(ringg,1,1,[1])
-        for i in 1:l
-            mat = rep_mat_(m,v[i])
-            R = base_ring(mat)
-            mapp = hom(R,ringg, gens(ringg)[((i-1)*m^2)+1:i*m^2])
-            mat_ = matrix(ringg, nrows(mat), ncols(mat), [0 for i in 1:nrows(mat)*ncols(mat)])
-            for i in 1:nrows(mat)
-                for j in 1:ncols(mat)
-                    mat_[i,j] = mapp(mat[i,j])
-                end
-            end
-            prod_mat = kronecker_product(prod_mat, mat_)
-        end
-        return prod_mat
-    end
-end
+# #TODO
+# function rep_mat_(m::Int, v::Vector{Int}, dir_sum::Bool)
+#     if dir_sum
+#         n = num_of_as(m,v)
+#         mixed_ring, t, z, a = PolynomialRing(QQ, "t"=> 1:m, "z"=> (1:m, 1:m), "a" => 1:n)
+#         group_mat = matrix(mixed_ring, m,m,[z[i,j] for i in 1:m, j in 1:m])
+#         vars = [t[i] for i in 1:m]
+#         new_vars = vars*group_mat
+#         big_matrix = matrix(mixed_ring, 0,0,[])
+#         for sym_deg in v
+#             b = degree_basis(mixed_ring,m, sym_deg)
+#             sum_ = mixed_ring()
+#             for j in 1:length(b)
+#                 prod_ = mixed_ring(1)
+#                 factors_ = factorise(b[j])
+#                 for i in 1:length((factors_)[1:m])
+#                     prod_ = prod_*new_vars[i]^(factors_[i][2])
+#                 end
+#                 prod_ = prod_*a[j]
+#                 sum_ += prod_
+#             end
+#             mons = collect(monomials(sum_))
+#             coeffs = collect(coefficients(sum_))
+#             N = binomial(m + sym_deg - 1, m - 1)
+#             mat = matrix(mixed_ring, N,N,[0 for i in 1:N^2])
+#             for i in 1:N
+#                 for j in 1:N
+#                     for k in 1:length(mons)
+#                         if divides(mons[k], a[i])[1] && divides(mons[k], b[j])[1]
+#                             mat[i,j] += coeffs[k]*numerator((mons[k]//b[j])//a[i])
+#                         end
+#                     end
+#                 end
+#             end
+#             big_matrix = direct_sum(big_matrix,mat)
+#         end
+#         #we have to return mat in a different ring! 
+#         group_ring, Z = PolynomialRing(QQ, "Z"=>(1:m, 1:m))
+#         mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring), [0 for i in 1:n]))
+#         Mat = matrix(group_ring, nrows(big_matrix), nrows(big_matrix), [mapp(big_matrix[i,j]) for i in 1:nrows(big_matrix), j in 1:nrows(big_matrix)])
+#         return Mat
+#     else
+#         l = length(v)
+#         #there are l*m^2 z's
+#         ringg,Z = PolynomialRing(QQ,"Z"=>1:l*m^2)
+#         prod_mat = matrix(ringg,1,1,[1])
+#         for i in 1:l
+#             mat = rep_mat_(m,v[i])
+#             R = base_ring(mat)
+#             mapp = hom(R,ringg, gens(ringg)[((i-1)*m^2)+1:i*m^2])
+#             mat_ = matrix(ringg, nrows(mat), ncols(mat), [0 for i in 1:nrows(mat)*ncols(mat)])
+#             for i in 1:nrows(mat)
+#                 for j in 1:ncols(mat)
+#                     mat_[i,j] = mapp(mat[i,j])
+#                 end
+#             end
+#             prod_mat = kronecker_product(prod_mat, mat_)
+#         end
+#         return prod_mat
+#     end
+# end
 
 function direct_sum(M::AbstractAlgebra.Generic.MatSpaceElem, N::AbstractAlgebra.Generic.MatSpaceElem)
     #parent(M[1,1]) == parent(N[1,1]) || @error("not same ring")
@@ -266,7 +251,7 @@ function direct_sum(M::AbstractAlgebra.Generic.MatSpaceElem, N::AbstractAlgebra.
     mc = ncols(M)
     nr = nrows(N)
     nc = ncols(N)
-    mat_ = matrix(base_ring(M), mr+nr, mc+nc, [0 for i in 1:(mr+nr)*(mc+nc)])
+    mat_ = zero_matrix(base_ring(M), mr+nr, mc+nc)
     mat_[1:mr, 1:mc] = M
     mat_[mr+1:mr+nr, mc+1:mc+nc] = N
     return mat_
@@ -274,8 +259,7 @@ end
 
 function num_of_as(m::Int, v::Vector{Int})
     max = maximum(v)
-    sum_ = binomial(m + max - 1, m - 1)
-    return sum_
+    return binomial(m + max - 1, m - 1)
 end
 
 ##########################
@@ -302,7 +286,7 @@ mutable struct InvariantRing
         z.group = R.group
         G = z.group
         z.field = G.field
-        z.poly_ring, __ = grade(PolynomialRing(G.field, "X" => 1:n)[1])
+        z.poly_ring, __ = graded_polynomial_ring(G.field, "X" => 1:n)
         z.reynolds_operator = reynolds_v_slm
         I, M = proj_of_image_ideal(G, R.rep_mat)
         z.NullConeIdeal = ideal(generators(G, I, R.rep_mat))
@@ -319,7 +303,7 @@ mutable struct InvariantRing
         G = R.group
         z.field = G.field
         if is_graded(ring)
-            z.poly_ring = ring
+            z.poly_ring = ring[1]
         else
             z.poly_ring = grade(ring)
         end
@@ -359,12 +343,11 @@ function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpac
     #for determinant - 
     #M1 = matrix(mixed_ring_xy,m,m,[zz[i,j] for i in 1:m for j in 1:m])
     ztozz = hom(R,mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
-    genss_ = gens(G.group_ideal)
-    genss = [ztozz(genss_[i]) for i in 1:length(genss_)]
+    genss = [ztozz(f) for f in gens(G.group_ideal)]
     #rep_mat in the new ring
     new_rep_mat = matrix(mixed_ring_xy,n,n,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
-    new_vars = new_rep_mat*[x[i] for i in 1:n] 
-    ideal_vect = [y[i] - new_vars[i] for i in 1:n] 
+    new_vars = new_rep_mat*x
+    ideal_vect = y - new_vars 
     ideal_vect = vcat(ideal_vect,genss)
     return ideal(mixed_ring_xy, ideal_vect), new_rep_mat
 end
@@ -402,14 +385,12 @@ function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::AbstractAlgebra.G
     mixed_ring_xy = parent(gbasis[1])
     
     #to evaluate gbasis at y = 0
-    ev_gbasis = Vector{Union{AbstractAlgebra.Generic.MPoly{nf_elem}, MPolyRingElem}}(undef,0)
+    ev_gbasis = elem_type(mixed_ring_xy)[]
     for elem in gbasis
         b = mixed_ring_xy()
-        mons = collect(monomials(elem))
-        coeffs = collect(coefficients(elem))
-        for i in 1:length(mons)
-            if (exponent_vector(mons[i],1)[n+1:2*n] == [0 for i in 1:n])
-                b += coeffs[i]*mons[i]
+        for t in terms(elem)
+            if exponent_vector(t,1)[n+1:2*n] == [0 for i in 1:n]
+                b += t
             end
         end
         b != 0 && push!(ev_gbasis, b)
@@ -464,7 +445,7 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::A
     new_gens = Vector{MPolyDecRingElem}(undef,0)
     for elemm in new_gens_wrong_ring
         if elemm != 0
-        push!(new_gens, mixed_to_ring(elemm))
+            push!(new_gens, mixed_to_ring(elemm))
         end
     end
     if length(new_gens) == 0
@@ -563,7 +544,8 @@ function omegap(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
         x = f
         for i in 1:length(exp_vect)
             for j in 1:exp_vect[i]
-                x = derivative(x, gens(action_ring)[i])
+                @show derivative(x, gen(action_ring,i)) == derivative(x,i)
+                x = derivative(x, gen(action_ring,i))
                 if x == 0
                     break
                 end
