@@ -506,8 +506,6 @@ function save_object(s::SerializerState, obj::padic)
 end
 
 function load_object(s::DeserializerState, ::Type{padic}, parent_field::FlintPadicField)
-  rational_rep = load_node(s) do _
-    load_object(s, QQFieldElem)
-  end
+  rational_rep = load_object(s, QQFieldElem)
   return parent_field(rational_rep)
 end

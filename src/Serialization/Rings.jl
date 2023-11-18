@@ -72,17 +72,13 @@ function save_object(s::SerializerState, R::T) where T <: ModRingUnion
 end
 
 function load_object(s::DeserializerState, ::Type{Nemo.zzModRing})
-  load_node(s) do str
-    modulus = parse(UInt64, str)
-    return Nemo.zzModRing(modulus)
-  end
+  modulus = load_object(s, UInt64)
+  return Nemo.zzModRing(modulus)
 end
 
 function load_object(s::DeserializerState, ::Type{Nemo.ZZModRing})
-  load_node(s) do str
-    modulus = ZZRingElem(str)
-    return Nemo.ZZModRing(modulus)
-  end
+  modulus = load_object(s, ZZRingElem)
+  return Nemo.ZZModRing(modulus)
 end
 
 #elements
@@ -96,9 +92,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
                      parent_ring::T) where T <: ModRingUnion
-  load_node(s) do str
-    return parent_ring(ZZRingElem(str))
-  end
+  return parent_ring(load_object(s, ZZRingElem))
 end
 
 ################################################################################
@@ -120,7 +114,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}})
   base_ring = load_typed_object(s, :base_ring)
-  symbols = map(Symbol, s.obj[:symbols])
+  symbols = load_object(s, Vector, Symbol, :symbols)
 
   if T <: PolyRing
     return polynomial_ring(base_ring, symbols..., cached=false)[1]
@@ -203,7 +197,13 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem}, parents::Vec
       return parent_ring(0)
     end
     # load exponents and account for shift
-    exponents = [parse(Int, term[1]) + 1 for term in terms]
+    exponents = []
+    for i in 1:length(terms)
+      e = load_node(s, i) do _
+        load_object(s, Int, 1) + 1
+      end
+      push!(exponents, e)
+    end
     degree = max(exponents...)
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
@@ -289,11 +289,6 @@ end
 
 function save_object(s::SerializerState, I::T) where T <: IdealUnionType
   save_object(s, gens(I))
-end
-
-function load_object(s::DeserializerState, T::Type{<: IdealUnionType},
-                     gen_terms::Vector, params::Vector)
-  return load_object(s, T, gen_terms, params[end])
 end
 
 function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
@@ -385,11 +380,11 @@ function save_object(s::SerializerState, R::Union{
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SeriesRing}, dict::Dict)
-  base_ring = load_typed_object(s, dict[:base_ring])
-  var = load_object(s, Symbol, dict[:var])
-  max_precision = load_object(s, Int, dict[:max_precision])
-  model = load_object(s, Symbol, dict[:model])
+function load_object(s::DeserializerState, ::Type{<: SeriesRing})
+  base_ring = load_typed_object(s, :base_ring)
+  var = load_object(s, Symbol, :var)
+  max_precision = load_object(s, Int, :max_precision)
+  model = load_object(s, Symbol, :model)
   
   return power_series_ring(base_ring, max_precision, var; cached=false, model=model)[1]
 end
@@ -447,57 +442,63 @@ function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: RelPowerSeriesRingElem},
-                     dict::Dict, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem}, parents::Vector)
   parent_ring = parents[end]
-  valuation = parse(Int, dict[:valuation])
-  pol_length = parse(Int, dict[:pol_length])
-  precision = parse(Int, dict[:precision])
+  valuation = load_object(s, Int, :valuation)
+  pol_length = load_object(s, Int, :pol_length)
+  precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
-  for (exponent, coeff) in dict[:terms]
-    if serialize_with_params(coeff_type)
-      if length(parents) == 1
-        params = base
-      else
-        params = parents[1:end - 1]
-      end
-      c = load_object(s, coeff_type, coeff, params)
-    else
-      c = load_object(s, coeff_type, coeff)
-    end
-    e = parse(Int, exponent)
-    loaded_terms[e] = c
-  end
   
+  load_node(s, :terms) do terms
+    for i in 1:length(terms)
+      load_node(s, i) do (exponent, _)
+        if serialize_with_params(coeff_type)
+          if length(parents) == 1
+            params = base
+          else
+            params = parents[1:end - 1]
+          end
+          c = load_object(s, coeff_type, params, 2)
+        else
+          c = load_object(s, coeff_type, 2)
+        end
+        e = parse(Int, exponent)
+        loaded_terms[e] = c
+      end
+    end
+  end
   return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
-function load_object(s::DeserializerState, ::Type{<: AbsPowerSeriesRingElem},
-                     dict::Dict, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem}, parents::Vector)
   parent_ring = parents[end]
-  pol_length = parse(Int, dict[:pol_length])
-  precision = parse(Int, dict[:precision])
+  pol_length = load_object(s, Int, :pol_length)
+  precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
-  for (exponent, coeff) in dict[:terms]
-    if serialize_with_params(coeff_type)
-      if length(parents) == 1
-        params = base
-      else
-        params = parents[1:end - 1]
+
+  load_node(s, :terms) do terms
+    for i in 1:length(terms)
+      load_node(s, i) do (exponent, _)
+        if serialize_with_params(coeff_type)
+          if length(parents) == 1
+            params = base
+          else
+            params = parents[1:end - 1]
+          end
+          c = load_object(s, coeff_type, params, 2)
+        else
+          c = load_object(s, coeff_type, 2)
+        end
+        e = parse(Int, exponent)
+        e += 1
+        loaded_terms[e] = c
       end
-      c = load_object(s, coeff_type, coeff, params)
-    else
-      c = load_object(s, coeff_type, coeff)
     end
-    e = parse(Int, exponent)
-    e += 1
-    loaded_terms[e] = c
   end
-  
   return parent_ring(loaded_terms, pol_length, precision)
 end
 
@@ -522,11 +523,10 @@ function load_object(s::DeserializerState,
                      ::Type{<: Union{
                        Generic.LaurentSeriesRing,
                        Generic.LaurentSeriesField,
-                       ZZLaurentSeriesRing}},
-                     dict::Dict)
-  base_ring = load_typed_object(s, dict[:base_ring])
-  var = Symbol(dict[:var])
-  max_precision = parse(Int, dict[:max_precision])
+                       ZZLaurentSeriesRing}})
+  base_ring = load_typed_object(s, :base_ring)
+  var = load_object(s, Symbol, :var)
+  max_precision = load_object(s, Int, :max_precision)
 
   return laurent_series_ring(base_ring, max_precision, var; cached=false)[1]
 end
@@ -562,36 +562,48 @@ function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZ
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
-                     dict::Dict, parents::Vector)
+function load_object(s::DeserializerState,
+                     ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
+                     parents::Vector)
   parent_ring = parents[end]
-  terms = dict[:terms]
-  highest_degree = max(map(x->parse(Int, x[1]), terms)...)
-  lowest_degree = min(map(x->parse(Int, x[1]), terms)...)
-  base = base_ring(parent_ring)
-  coeff_type = elem_type(base)
-  # account for index shift
-  loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
-  for (exponent, coeff) in terms
-    e = parse(Int, exponent)
-    e -= lowest_degree - 1
-    if serialize_with_params(coeff_type)
-      if length(parents) == 1
-        params = base
-      else
-        params = parents[1:end - 1]
+
+  terms = load_node(s, :terms) do terms_data
+    exponents = []
+    for i in 1:length(terms_data)
+      load_node(s, i) do _
+        push!(exponents, load_object(s, Int, 1))
       end
-      c = load_object(s, coeff_type, coeff, params)
-    else
-      c = load_object(s, coeff_type, coeff)
     end
-    loaded_terms[e] = c
+    
+    highest_degree = max(exponents...)
+    lowest_degree = min(exponents...)
+    base = base_ring(parent_ring)
+    coeff_type = elem_type(base)
+    # account for index shift
+    loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
+    for (i, e) in enumerate(exponents)
+      load_node(s, i) do _
+        e -= lowest_degree - 1
+        if serialize_with_params(coeff_type)
+          if length(parents) == 1
+            params = base
+          else
+            params = parents[1:end - 1]
+          end
+          c = load_object(s, coeff_type, params, 2)
+        else
+          c = load_object(s, coeff_type, 2)
+        end
+        loaded_terms[e] = c
+      end
+    end
+    return loaded_terms
   end
-  valuation = parse(Int, dict[:valuation])
-  pol_length = parse(Int, dict[:pol_length])
-  precision = parse(Int, dict[:precision])
-  scale = parse(Int, dict[:scale])
-  return parent_ring(loaded_terms, pol_length, precision, valuation, scale)
+  valuation = load_object(s, Int, :valuation)
+  pol_length = load_object(s, Int, :pol_length)
+  precision = load_object(s, Int, :precision)
+  scale = load_object(s, Int, :scale)
+  return parent_ring(terms, pol_length, precision, valuation, scale)
 end
 
 ### Affine algebras
@@ -607,9 +619,9 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
 end
 
 function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, dict::Dict)
-  I = load_typed_object(s, dict[:modulus]) 
+  I = load_typed_object(s, :modulus) 
   R = base_ring(I)
-  o = load_typed_object(s, dict[:ordering])
+  o = load_typed_object(s, :ordering)
   return MPolyQuoRing(R, I, o)
 end
 
@@ -626,10 +638,12 @@ function save_object(s::SerializerState, o::MonomialOrdering)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MonomialOrdering}, dict::Dict)
-  the_ring = load_typed_object(s, dict[:ring])
-  the_ordering = load_typed_object(s, dict[:internal_ordering])
+function load_object(s::DeserializerState, ::Type{MonomialOrdering})
+  the_ring = load_typed_object(s, :ring)
+  the_ordering = load_typed_object(s, :internal_ordering)
   result = MonomialOrdering(the_ring, the_ordering)
+
+  println("need to come back to this")
   if haskey(dict, :is_total)
     result.is_total = load_typed_object(s, dict[:is_total])
   end

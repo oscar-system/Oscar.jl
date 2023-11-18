@@ -334,8 +334,16 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   end
 end
 
-function load_typed_object(s::DeserializerState, id::String)
-  return load_ref(s, id)
+function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T, params)
+  end
 end
 
 ################################################################################

@@ -58,7 +58,10 @@ function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
     if serialize_with_id(params)
       loaded_v = params[load_ref(s, x) for x in v]
     else
-      loaded_v = params[load_object(s, params, x) for x in v]
+      loaded_v = params[]
+      for (i, entry) in enumerate(v)
+        push!(loaded_v, load_object(s, params, i))
+      end
     end
     return loaded_v
   end
