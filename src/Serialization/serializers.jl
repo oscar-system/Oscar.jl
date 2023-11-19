@@ -176,7 +176,7 @@ function load_array_node(f::Function, s::DeserializerState,
     loaded_array = []
     for index in 1:length(array)
       load_node(s, index) do entry
-        push!(loaded_array, f(entry))
+        push!(loaded_array, f((index, entry)))
       end
     end
     return loaded_array
