@@ -1,84 +1,84 @@
 @doc raw"""
-    dynkin_diagram(S::Symbol, n::Int)
+    show_dynkin_diagram(fam::Symbol, rk::Int) -> String
 
-Return the Dynkin diagram of the root system of type `Sn`.
-For the semantics of the arguments, refer to [root_system(S::Symbol, n::Int)` ref.
+Return a string representation of the Dynkin diagram of the root system of
+the given type.
 """
-function dynkin_diagram(S::Symbol, n::Int)
-  @req _root_system_type_supported_by_GAP(S, n) "Unknown Dynkin type or not supported by GAP"
+function show_dynkin_diagram(fam::Symbol, rk::Int)
+  @req _root_system_type_supported_by_GAP(fam, rk) "Unknown Dynkin type"
   D = ""
 
-  if S == :A
-    for i in 1:(n - 1)
+  if fam == :A
+    for i in 1:(rk - 1)
       D = D * string(i) * " - "
     end
-    D = D * string(n)
+    D = D * string(rk)
 
-  elseif S == :B
-    if n == 1
-      D = string(n)
+  elseif fam == :B
+    if rk == 1
+      D = string(rk)
     else
-      for i in 1:(n - 2)
+      for i in 1:(rk - 2)
         D = D * string(i) * " - "
       end
-      D = D * string(n - 1) * " >=> " * string(n)
+      D = D * string(rk - 1) * " >=> " * string(rk)
     end
 
-  elseif S == :C
-    if n == 1
-      D = string(n)
+  elseif fam == :C
+    if rk == 1
+      D = string(rk)
     else
-      for i in 1:(n - 2)
+      for i in 1:(rk - 2)
         D = D * string(i) * " - "
       end
-      D = D * string(n - 1) * " <=< " * string(n)
+      D = D * string(rk - 1) * " <=< " * string(rk)
     end
 
-  elseif S == :D
-    if n >= 4
-      for i in 1:(4 * n - 10)
+  elseif fam == :D
+    if rk >= 4
+      for i in 1:(4 * rk - 10)
         D = D * " "
       end
-      D = D * string(n - 1) * "\n"
-      for i in 1:(4 * n - 11)
+      D = D * string(rk - 1) * "\n"
+      for i in 1:(4 * rk - 11)
         D = D * " "
       end
       D = D * "/\n"
-      for i in 1:(n - 3)
+      for i in 1:(rk - 3)
         D = D * string(i) * " - "
       end
-      D = D * string(n - 2) * "\n"
-      for i in 1:(4 * n - 12)
+      D = D * string(rk - 2) * "\n"
+      for i in 1:(4 * rk - 12)
         D = D * " "
       end
       D = D * " \\ \n"
-      for i in 1:(4 * n - 10)
+      for i in 1:(4 * rk - 10)
         D = D * " "
       end
-      D = D * string(n)
+      D = D * string(rk)
     else
       error("This root system doesn't exist.")
     end
 
-  elseif S == :E
-    if n == 6
+  elseif fam == :E
+    if rk == 6
       D = "1 - 3 - 4 - 5 - 6\n        |\n        2"
-    elseif n == 7
+    elseif rk == 7
       D = "1 - 3 - 4 - 5 - 6 - 7\n        |\n        2"
-    elseif n == 8
+    elseif rk == 8
       D = "1 - 3 - 4 - 5 - 6 - 7 - 8\n        |\n        2"
     else
       error("This root system doesn't exist.")
     end
 
-  elseif S == :F
-    if n == 4
+  elseif fam == :F
+    if rk == 4
       D = "1 - 2 >=> 3 - 4"
     else
       error("This root system doesn't exist.")
     end
-  elseif S == :G
-    if n == 2
+  elseif fam == :G
+    if rk == 2
       D = "1 >>> 2"
     else
       error("This root system doesn't exist.")

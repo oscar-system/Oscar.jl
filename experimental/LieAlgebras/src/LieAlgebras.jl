@@ -105,7 +105,6 @@ export combinations
 export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
-export dynkin_diagram
 export exterior_power
 export fundamental_weight
 export fundamental_weights
@@ -143,6 +142,7 @@ export reduced_expressions
 export reflect, reflect!
 export root_system_type, has_root_system_type
 export root_system, has_root_system
+export show_dynkin_diagram
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
@@ -208,7 +208,6 @@ export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
-export dynkin_diagram
 export exterior_power
 export fundamental_weight
 export fundamental_weights
@@ -247,6 +246,7 @@ export root
 export root_system_type, has_root_system_type
 export root_system, has_root_system
 export roots
+export show_dynkin_diagram
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
