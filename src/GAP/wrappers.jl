@@ -64,6 +64,7 @@ GAP.@wrap DenominatorRat(x::Any)::GapInt
 GAP.@wrap DescriptionOfRootOfUnity(x::Any)::GapObj
 GAP.@wrap DeterminantOfCharacter(x::GapObj)::GapObj
 GAP.@wrap Dimension(x::GapObj)::Int
+GAP.@wrap DimensionOfHighestWeightModule(x::GapObj, y::GapObj)::GapInt
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap EigenvaluesChar(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ElementOfFpGroup(x::GapObj, y::GapObj)::GapObj

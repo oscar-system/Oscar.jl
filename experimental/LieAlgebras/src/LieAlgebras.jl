@@ -105,6 +105,7 @@ export combinations
 export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
+export dim_of_simple_module
 export exterior_power
 export fundamental_weight
 export fundamental_weights
@@ -209,6 +210,7 @@ export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
+export dim_of_simple_module
 export exterior_power
 export fundamental_weight
 export fundamental_weights

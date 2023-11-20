@@ -581,4 +581,25 @@
     @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 3)) ==
       struct_const_V
   end
+
+  @testset "dim_of_simple_module" begin
+    # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    @test (@inferred dim_of_simple_module(
+      Int, lie_algebra(QQ, :A, 6), [1, 3, 5, 0, 1, 0]
+    )) == ZZ(393513120)
+    @test (@inferred dim_of_simple_module(
+      ZZRingElem, lie_algebra(QQ, :B, 7), [7, 2, 5, 1, 0, 2, 6]
+    )) == ZZ(307689492858882008424585750)
+    @test (@inferred dim_of_simple_module(lie_algebra(QQ, :C, 3), [3, 3, 3])) == 262144
+    @test (@inferred dim_of_simple_module(
+      Int128, lie_algebra(QQ, :D, 5), [1, 2, 3, 4, 5]
+    )) == Int128(591080490000)
+    @test (@inferred dim_of_simple_module(
+      ZZRingElem, lie_algebra(QQ, :E, 6), [6, 5, 4, 3, 2, 1]
+    )) == ZZ(53947263633682628459250)
+    @test_broken (@inferred dim_of_simple_module(
+      ZZRingElem, lie_algebra(QQ, :F, 4), [2, 4, 1, 2]
+    )) == ZZ(5989283015625)
+    @test (@inferred dim_of_simple_module(lie_algebra(QQ, :G, 2), [2, 2])) == 729
+  end
 end
