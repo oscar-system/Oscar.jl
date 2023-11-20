@@ -15,6 +15,7 @@ export induce
 export induced_ring_ordering
 export deginvlex
 export invlex
+export revlex
 export is_elimination_ordering
 export is_global
 export is_local
@@ -28,6 +29,7 @@ export negdeglex
 export negdegrevlex
 export neglex
 export neginvlex
+export negrevlex
 export negwdeglex
 export negwdegrevlex
 export opposite_ordering
@@ -47,8 +49,8 @@ abstract type AbsModOrdering <: AbsOrdering end
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   function SymbOrdering(S::Symbol, v)
-    S in (:lex, :deglex, :degrevlex, :invlex, :deginvlex,
-          :neglex, :negdeglex, :negdegrevlex, :neginvlex) ||
+    S in (:lex, :deglex, :degrevlex, :invlex, :revlex, :deginvlex,
+          :neglex, :negdeglex, :negdegrevlex, :neginvlex, :negrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     return new{S}(v)
   end
@@ -479,6 +481,8 @@ function invlex(v::AbstractVector{<:MPolyRingElem})
   return MonomialOrdering(parent(first(v)), SymbOrdering(:invlex, i))
 end
 
+const revlex = invlex
+
 function _matrix(nvars::Int, o::SymbOrdering{:invlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = length(o.vars)
@@ -693,6 +697,8 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   end
   return 0
 end
+
+const negrevlex = neginvlex
 
 #### negdegrevlex ####
 
