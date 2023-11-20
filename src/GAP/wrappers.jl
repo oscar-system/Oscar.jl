@@ -65,6 +65,7 @@ GAP.@wrap DescriptionOfRootOfUnity(x::Any)::GapObj
 GAP.@wrap DeterminantOfCharacter(x::GapObj)::GapObj
 GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap DimensionOfHighestWeightModule(x::GapObj, y::GapObj)::GapInt
+GAP.@wrap DominantCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap EigenvaluesChar(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ElementOfFpGroup(x::GapObj, y::GapObj)::GapObj
@@ -258,6 +259,7 @@ GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap RootSystem(x::GapObj)::GapObj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
@@ -282,6 +284,8 @@ GAP.@wrap Value(x::GapObj, y::Any, z::Any)::Any
 GAP.@wrap Value(x::GapObj, y::GapObj, z::GapObj, a::Any)::Any
 GAP.@wrap ValueGlobal(x::GapObj)::GAP.Obj
 GAP.@wrap ValuesOfClassFunction(x::GapObj)::GapObj
+GAP.@wrap WeylGroup(x::GapObj)::GapObj
+GAP.@wrap WeylOrbitIterator(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Z(x::Any)::GAP.Obj
 GAP.@wrap Zero(x::Any)::GAP.Obj
 

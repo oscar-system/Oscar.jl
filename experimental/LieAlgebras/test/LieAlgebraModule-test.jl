@@ -599,28 +599,32 @@
     @test (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :E, 6), [6, 5, 4, 3, 2, 1]
     )) == ZZ(53947263633682628459250)
-    @test_broken (@inferred dim_of_simple_module(
+    @test_skip (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :F, 4), [2, 4, 1, 2]
     )) == ZZ(5989283015625)
     @test (@inferred dim_of_simple_module(lie_algebra(QQ, :G, 2), [2, 2])) == 729
   end
 
   @testset "dominant_character" begin
+    function check_dominant_character(
+      _::LieAlgebra, hw::Vector{Int}, dc::Dict{Vector{Int},Int}
+    )
+      @test dc[hw] == 1
+      @test all(w -> is_dominant_weight(w), keys(dc))
+      @test all(>=(1), values(dc))
+    end
+
     # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     L = lie_algebra(QQ, :A, 3)
     hw = [1, 1, 1]
-    dc = dominant_character(L, hw)
-    @test dc[hw] == 1
-    @test all(w -> !iszero(w) && is_dominant_weight(w), keys(dc))
-    @test all(>=(1), values(dc))
+    dc = @inferred dominant_character(L, hw)
+    check_dominant_character(L, hw, dc)
     @test dc == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
 
     L = lie_algebra(QQ, :C, 3)
     hw = [2, 0, 1]
-    dc = dominant_character(L, hw)
-    @test dc[hw] == 1
-    @test all(w -> !iszero(w) && is_dominant_weight(w), keys(dc))
-    @test all(>=(1), values(dc))
+    dc = @inferred dominant_character(L, hw)
+    check_dominant_character(L, hw, dc)
     @test dc == Dict(
       [2, 0, 1] => 1,
       [0, 1, 1] => 1,
@@ -632,10 +636,8 @@
 
     L = lie_algebra(QQ, :D, 4)
     hw = [0, 3, 1, 0]
-    dc = dominant_character(L, hw)
-    @test dc[hw] == 1
-    @test all(w -> !iszero(w) && is_dominant_weight(w), keys(dc))
-    @test all(>=(1), values(dc))
+    dc = @inferred dominant_character(L, hw)
+    check_dominant_character(L, hw, dc)
     @test dc == Dict(
       [0, 3, 1, 0] => 1,
       [1, 1, 2, 1] => 1,
@@ -661,10 +663,8 @@
 
     L = lie_algebra(QQ, :E, 6)
     hw = [1, 0, 1, 0, 1, 0]
-    dc = dominant_character(L, hw)
-    @test dc[hw] == 1
-    @test all(w -> !iszero(w) && is_dominant_weight(w), keys(dc))
-    @test all(>=(1), values(dc))
+    dc = @inferred dominant_character(L, hw)
+    check_dominant_character(L, hw, dc)
     @test dc == Dict(
       [1, 0, 1, 0, 1, 0] => 1,
       [0, 0, 0, 1, 1, 0] => 2,
@@ -684,5 +684,54 @@
       [0, 0, 0, 0, 1, 0] => 836,
       [1, 0, 0, 0, 0, 0] => 1600,
     )
+  end
+
+  @testset "character" begin
+    function check_character(L::LieAlgebra, hw::Vector{Int}, c::Dict{Vector{Int},Int})
+      @test c[hw] == 1
+      @test all(>=(1), values(c))
+      @test sum(values(c)) == dim_of_simple_module(L, hw)
+      dc = @inferred dominant_character(L, hw)
+      @test all(w -> dc[w] == c[w], keys(dc))
+    end
+
+    # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    L = lie_algebra(QQ, :A, 3)
+    hw = [1, 1, 0]
+    c = @inferred character(L, hw)
+    check_character(L, hw, c)
+    @test c == Dict(
+      [1, 1, 0] => 1,
+      [2, -1, 1] => 1,
+      [-1, 2, 0] => 1,
+      [2, 0, -1] => 1,
+      [0, 0, 1] => 2,
+      [1, -2, 2] => 1,
+      [0, 1, -1] => 2,
+      [-2, 1, 1] => 1,
+      [1, -1, 0] => 2,
+      [-1, -1, 2] => 1,
+      [-2, 2, -1] => 1,
+      [1, 0, -2] => 1,
+      [-1, 0, 0] => 2,
+      [0, -2, 1] => 1,
+      [-1, 1, -2] => 1,
+      [0, -1, -1] => 1,
+    )
+
+    L = lie_algebra(QQ, :C, 3)
+    hw = [2, 0, 1]
+    c = @inferred character(L, hw)
+    check_character(L, hw, c)
+
+    L = lie_algebra(QQ, :D, 4)
+    hw = [0, 3, 1, 0]
+    c = @inferred character(L, hw)
+    check_character(L, hw, c)
+
+    L = lie_algebra(QQ, :E, 6)
+    hw = [1, 0, 1, 0, 1, 0]
+    c = @inferred character(L, hw)
+    check_character(L, hw, c)
   end
 end

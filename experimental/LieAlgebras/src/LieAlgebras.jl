@@ -24,6 +24,7 @@ import ..Oscar:
   canonical_projections,
   center,
   centralizer,
+  character,
   characteristic,
   coeff,
   coefficient_ring,
