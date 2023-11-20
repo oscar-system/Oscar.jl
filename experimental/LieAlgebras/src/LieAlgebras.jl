@@ -106,6 +106,7 @@ export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
+export dominant_character
 export exterior_power
 export fundamental_weight
 export fundamental_weights
@@ -211,6 +212,7 @@ export conjugate_dominant_weight
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
+export dominant_character
 export exterior_power
 export fundamental_weight
 export fundamental_weights
