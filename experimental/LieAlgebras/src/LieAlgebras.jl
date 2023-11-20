@@ -159,7 +159,7 @@ include("Combinatorics.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
-include("root_systems.jl")
+include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
 include("Util.jl")
