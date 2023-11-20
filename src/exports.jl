@@ -739,6 +739,7 @@ export invert
 export invert_birational_map
 export inverted_set
 export invlex
+export revlex # to be removed
 export irreducible_components
 export irreducible_secondary_invariants
 export irreducibles
@@ -1068,6 +1069,7 @@ export negdeglex
 export negdegrevlex
 export neglex
 export neginvlex
+export negrevlex # to be removed
 export negwdeglex
 export negwdegrevlex
 export neighbor_patches
