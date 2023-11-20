@@ -1,11 +1,11 @@
 @doc raw"""
-    show_dynkin_diagram(fam::Symbol, rk::Int) -> String
+    show_dynkin_diagram(fam::Symbol, rk::Int) -> Nothing
 
-Return a string representation of the Dynkin diagram of the root system of
-the given type.
+Prints a string representation of the Dynkin diagram of the root system of
+the given cartan type.
 """
 function show_dynkin_diagram(fam::Symbol, rk::Int)
-  @req _root_system_type_supported_by_GAP(fam, rk) "Unknown Dynkin type"
+  @req is_cartan_type(fam, rk) "Invalid cartan type"
   D = ""
 
   if fam == :A
@@ -87,14 +87,4 @@ function show_dynkin_diagram(fam::Symbol, rk::Int)
     error("This root system doesn't exist.")
   end
   print(D)
-end
-
-function _root_system_type_supported_by_GAP(S, n)
-  S in [:A, :B, :C, :D, :E, :F, :G] || return false
-  n >= 1 || return false
-  S == :D && n < 4 && return false
-  S == :E && !(n in [6, 7, 8]) && return false
-  S == :F && n != 4 && return false
-  S == :G && n != 2 && return false
-  return true
 end

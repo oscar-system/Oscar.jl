@@ -24,32 +24,25 @@ julia> cartan_matrix(:C, 2)
 ```
 """
 function cartan_matrix(fam::Symbol, rk::Int)
+  @req is_cartan_type(fam, rk) "Invalid cartan type"
   if fam == :A
-    @req rk >= 1 "Type An requires rank rk to be at least 1"
-
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
       mat[i + 1, i], mat[i, i + 1] = -1, -1
     end
   elseif fam == :B
-    @req rk >= 2 "Type Bn requires rank rk to be at least  2"
-
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
       mat[i + 1, i], mat[i, i + 1] = -1, -1
     end
     mat[rk, rk - 1] = -2
   elseif fam == :C
-    @req rk >= 2 "Type Cn requires rank rk to be at least 2"
-
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 1)
       mat[i + 1, i], mat[i, i + 1] = -1, -1
     end
     mat[rk - 1, rk] = -2
   elseif fam == :D
-    @req rk >= 4 "Type Dn requires rank to be at least 4"
-
     mat = diagonal_matrix(ZZ(2), rk)
     for i in 1:(rk - 2)
       mat[i + 1, i], mat[i, i + 1] = -1, -1
@@ -57,7 +50,6 @@ function cartan_matrix(fam::Symbol, rk::Int)
     mat[rk - 2, rk] = -1
     mat[rk, rk - 2] = -1
   elseif fam == :E
-    @req rk in 6:8 "Type En requires rank to be one of 6, 7, 8"
     mat = matrix(
       ZZ,
       [
@@ -71,20 +63,17 @@ function cartan_matrix(fam::Symbol, rk::Int)
         0 0 0 0 0 0 -1 2
       ],
     )
-
     if rk == 6
       mat = mat[1:6, 1:6]
     elseif rk == 7
       mat = mat[1:7, 1:7]
     end
   elseif fam == :F
-    @req rk == 4 "Type Fn requires rank to be 4"
     mat = matrix(ZZ, [2 -1 0 0; -1 2 -1 0; 0 -2 2 -1; 0 0 -1 2])
   elseif fam == :G
-    @req rk == 2 "Type Gn requires rank to be 2"
     mat = matrix(ZZ, [2 -3; -1 2])
   else
-    throw(ArgumentError("unknown family"))
+    error("Unreachable")
   end
 
   return mat
@@ -441,4 +430,16 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
   end
 
   return type, ord
+end
+
+function is_cartan_type(S, n)
+  S in [:A, :B, :C, :D, :E, :F, :G] || return false
+  S == :A && n >= 1 && return true
+  S == :B && n >= 2 && return true
+  S == :C && n >= 2 && return true
+  S == :D && n >= 4 && return true
+  S == :E && n in [6, 7, 8] && return true
+  S == :F && n == 4 && return true
+  S == :G && n == 2 && return true
+  return false
 end

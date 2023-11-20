@@ -112,6 +112,7 @@ export general_linear_lie_algebra
 export hom_direct_sum
 export hom_power
 export is_cartan_matrix
+export is_cartan_type
 export is_direct_sum
 export is_dual
 export is_negative_root_with_index
@@ -215,6 +216,7 @@ export general_linear_lie_algebra
 export hom_direct_sum
 export hom_power
 export is_cartan_matrix
+export is_cartan_type
 export is_direct_sum
 export is_dual
 export is_negative_root_with_index
