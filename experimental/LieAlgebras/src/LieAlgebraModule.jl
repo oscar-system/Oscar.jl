@@ -659,16 +659,16 @@ function abstract_module(
 end
 
 @doc raw"""
-    highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) -> LieAlgebraModule{C}
+    simple_module(L::LieAlgebra{C}, weight::Vector{Int}) -> LieAlgebraModule{C}
 
 Construct the highest weight module of the Lie algebra `L` with highest weight `weight`.
 The actual construction is done in GAP.
 """
-function highest_weight_module(L::LieAlgebra, weight::Vector{Int})
-  struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
+function simple_module(L::LieAlgebra, weight::Vector{Int})
+  struct_consts = lie_algebra_simple_module_struct_consts_gap(L, weight)
   dimV = size(struct_consts, 2)
   V = abstract_module(L, dimV, struct_consts; check=false)
-  set_attribute!(V, :highest_weight => weight)
+  set_attribute!(V, :is_simple => true, :highest_weight => weight)
   return V
 end
 

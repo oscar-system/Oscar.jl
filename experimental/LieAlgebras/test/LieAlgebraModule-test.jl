@@ -29,25 +29,25 @@
 
     @testset "λ = [1,1,0] of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
-      V = highest_weight_module(L, [1, 1, 0])
+      V = simple_module(L, [1, 1, 0])
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [1,1,0,0] of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
-      V = highest_weight_module(L, [1, 1, 0, 0])
+      V = simple_module(L, [1, 1, 0, 0])
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
       L = lie_algebra(QQ, :A, 2)
-      V = highest_weight_module(L, [0, 1])
+      V = simple_module(L, [0, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "λ = [0,1,1] of B_3(QQ)" begin
       L = lie_algebra(QQ, :B, 3)
-      V = highest_weight_module(L, [0, 1, 1])
+      V = simple_module(L, [0, 1, 1])
       lie_algebra_module_conformance_test(L, V)
     end
 

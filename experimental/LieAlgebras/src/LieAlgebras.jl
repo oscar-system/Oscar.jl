@@ -109,7 +109,6 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export highest_weight_module
 export hom_direct_sum
 export hom_power
 export is_cartan_matrix
@@ -143,6 +142,7 @@ export reflect, reflect!
 export root_system_type, has_root_system_type
 export root_system, has_root_system
 export show_dynkin_diagram
+export simple_module
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
@@ -212,7 +212,6 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export highest_weight_module
 export hom_direct_sum
 export hom_power
 export is_cartan_matrix
@@ -247,6 +246,7 @@ export root_system_type, has_root_system_type
 export root_system, has_root_system
 export roots
 export show_dynkin_diagram
+export simple_module
 export simple_root
 export simple_roots
 export special_linear_lie_algebra

@@ -4,9 +4,7 @@
 #
 ################################################################################
 
-function lie_algebra_highest_weight_module_struct_consts_gap(
-  L::LieAlgebra, weight::Vector{Int}
-)
+function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra, weight::Vector{Int})
   R = coefficient_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 
