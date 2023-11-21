@@ -521,6 +521,12 @@ function load_object(s::DeserializerState, ::Type{<:EmbeddedElem},
   return parent_field(loaded_alg_elem)
 end
 
+function load_object(s::DeserializerState, T::Type{<:EmbeddedElem},
+                     terms::Vector{Any}, params::Tuple)
+  parents = get_parents(params[1])
+  return load_object(s, T, terms, parents)
+end
+
 ################################################################################
 # Padic Field
 @register_serialization_type FlintPadicField
