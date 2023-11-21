@@ -1231,9 +1231,11 @@ end
 
 ###############################################################################
 #
-#   Simple modules (via highest weight)
+#   Simple modules (via highest weight) of semisimple Lie algebras
 #
 ###############################################################################
+
+# TODO: check semisimplicity check once that is available
 
 function is_dominant_weight(hw::Vector{Int})
   return all(>=(0), hw)
