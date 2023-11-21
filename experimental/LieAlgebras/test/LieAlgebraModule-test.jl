@@ -585,7 +585,7 @@
   is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
 
   @testset "dim_of_simple_module" begin
-    # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     @test (@inferred dim_of_simple_module(
       Int, lie_algebra(QQ, :A, 6), [1, 3, 5, 0, 1, 0]
     )) == ZZ(393513120)
@@ -606,26 +606,24 @@
   end
 
   @testset "dominant_character" begin
-    function check_dominant_character(
-      _::LieAlgebra, hw::Vector{Int}, dc::Dict{Vector{Int},Int}
-    )
-      @test dc[hw] == 1
-      @test all(w -> is_dominant_weight(w), keys(dc))
-      @test all(>=(1), values(dc))
+    function check_dominant_character(L::LieAlgebra, hw::Vector{Int})
+      domchar = @inferred dominant_character(L, hw)
+      @test domchar[hw] == 1
+      @test all(w -> is_dominant_weight(w), keys(domchar))
+      @test all(>=(1), values(domchar))
+      return domchar
     end
 
-    # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     L = lie_algebra(QQ, :A, 3)
     hw = [1, 1, 1]
-    dc = @inferred dominant_character(L, hw)
-    check_dominant_character(L, hw, dc)
-    @test dc == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
+    domchar = check_dominant_character(L, hw)
+    @test domchar == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
 
     L = lie_algebra(QQ, :C, 3)
     hw = [2, 0, 1]
-    dc = @inferred dominant_character(L, hw)
-    check_dominant_character(L, hw, dc)
-    @test dc == Dict(
+    domchar = check_dominant_character(L, hw)
+    @test domchar == Dict(
       [2, 0, 1] => 1,
       [0, 1, 1] => 1,
       [3, 0, 0] => 1,
@@ -636,9 +634,8 @@
 
     L = lie_algebra(QQ, :D, 4)
     hw = [0, 3, 1, 0]
-    dc = @inferred dominant_character(L, hw)
-    check_dominant_character(L, hw, dc)
-    @test dc == Dict(
+    domchar = check_dominant_character(L, hw)
+    @test domchar == Dict(
       [0, 3, 1, 0] => 1,
       [1, 1, 2, 1] => 1,
       [1, 2, 0, 1] => 2,
@@ -663,9 +660,8 @@
 
     L = lie_algebra(QQ, :E, 6)
     hw = [1, 0, 1, 0, 1, 0]
-    dc = @inferred dominant_character(L, hw)
-    check_dominant_character(L, hw, dc)
-    @test dc == Dict(
+    domchar = check_dominant_character(L, hw)
+    @test domchar == Dict(
       [1, 0, 1, 0, 1, 0] => 1,
       [0, 0, 0, 1, 1, 0] => 2,
       [2, 1, 0, 0, 0, 1] => 3,
@@ -684,23 +680,40 @@
       [0, 0, 0, 0, 1, 0] => 836,
       [1, 0, 0, 0, 0, 0] => 1600,
     )
+
+    L = lie_algebra(QQ, :G, 2)
+    hw = [1, 2]
+    domchar = check_dominant_character(L, hw)
+    @test domchar == Dict(
+      [1, 2] => 1,
+      [4, 0] => 1,
+      [2, 1] => 2,
+      [0, 2] => 2,
+      [3, 0] => 3,
+      [1, 1] => 5,
+      [2, 0] => 7,
+      [0, 1] => 7,
+      [1, 0] => 10,
+      [0, 0] => 10,
+    )
   end
 
   @testset "character" begin
-    function check_character(L::LieAlgebra, hw::Vector{Int}, c::Dict{Vector{Int},Int})
-      @test c[hw] == 1
-      @test all(>=(1), values(c))
-      @test sum(values(c)) == dim_of_simple_module(L, hw)
-      dc = @inferred dominant_character(L, hw)
-      @test all(w -> dc[w] == c[w], keys(dc))
+    function check_character(L::LieAlgebra, hw::Vector{Int})
+      char = @inferred character(L, hw)
+      @test char[hw] == 1
+      @test all(>=(1), values(char))
+      @test sum(values(char)) == dim_of_simple_module(L, hw)
+      domchar = @inferred dominant_character(L, hw)
+      @test all(w -> domchar[w] == char[w], keys(domchar))
+      return char
     end
 
-    # All test cases are computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     L = lie_algebra(QQ, :A, 3)
     hw = [1, 1, 0]
-    c = @inferred character(L, hw)
-    check_character(L, hw, c)
-    @test c == Dict(
+    char = check_character(L, hw)
+    @test char == Dict(
       [1, 1, 0] => 1,
       [2, -1, 1] => 1,
       [-1, 2, 0] => 1,
@@ -721,17 +734,111 @@
 
     L = lie_algebra(QQ, :C, 3)
     hw = [2, 0, 1]
-    c = @inferred character(L, hw)
-    check_character(L, hw, c)
+    char = check_character(L, hw)
 
     L = lie_algebra(QQ, :D, 4)
     hw = [0, 3, 1, 0]
-    c = @inferred character(L, hw)
-    check_character(L, hw, c)
+    char = check_character(L, hw)
 
     L = lie_algebra(QQ, :E, 6)
     hw = [1, 0, 1, 0, 1, 0]
-    c = @inferred character(L, hw)
-    check_character(L, hw, c)
+    char = check_character(L, hw)
+
+    L = lie_algebra(QQ, :G, 2)
+    hw = [3, 2]
+    char = check_character(L, hw)
+  end
+
+  @testset "tensor_product_decomposition" begin
+    function test_tensor_product_decomposition(
+      L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}
+    )
+      dec = @inferred tensor_product_decomposition(L, hw1, hw2)
+      @test dec == @inferred tensor_product_decomposition(L, hw2, hw1)
+      @test multiplicity(dec, hw1 + hw2) == 1
+      dim_prod = dim_of_simple_module(L, hw1) * dim_of_simple_module(L, hw2)
+      dim_dec = sum(multiplicity(dec, w) * dim_of_simple_module(L, w) for w in unique(dec))
+      @test dim_prod == dim_dec
+      return dec
+    end
+
+    # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    L = lie_algebra(QQ, :A, 3)
+    hw1 = [2, 1, 2]
+    hw2 = [1, 0, 1]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    @test dec == multiset(
+      Dict(
+        [3, 1, 3] => 1,
+        [3, 2, 1] => 1,
+        [1, 2, 3] => 1,
+        [4, 0, 2] => 1,
+        [2, 0, 4] => 1,
+        [1, 3, 1] => 1,
+        [2, 1, 2] => 3,
+        [2, 2, 0] => 1,
+        [0, 2, 2] => 1,
+        [3, 0, 1] => 1,
+        [1, 0, 3] => 1,
+        [1, 1, 1] => 1,
+      ),
+    )
+
+    L = lie_algebra(QQ, :B, 4)
+    hw1 = [1, 1, 0, 0]
+    hw2 = [0, 1, 0, 1]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    @test dec == multiset(
+      Dict(
+        [1, 2, 0, 1] => 1,
+        [2, 0, 1, 1] => 1,
+        [0, 1, 1, 1] => 1,
+        [2, 1, 0, 1] => 1,
+        [1, 0, 0, 3] => 1,
+        [0, 2, 0, 1] => 1,
+        [1, 0, 1, 1] => 2,
+        [3, 0, 0, 1] => 1,
+        [1, 1, 0, 1] => 3,
+        [0, 0, 0, 3] => 1,
+        [0, 0, 1, 1] => 2,
+        [2, 0, 0, 1] => 2,
+        [0, 1, 0, 1] => 2,
+        [1, 0, 0, 1] => 2,
+        [0, 0, 0, 1] => 1,
+      ),
+    )
+
+    L = lie_algebra(QQ, :C, 2)
+    hw1 = [2, 2]
+    hw2 = [2, 0]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    @test dec == multiset(
+      Dict(
+        [4, 2] => 1,
+        [2, 3] => 1,
+        [4, 1] => 1,
+        [0, 4] => 1,
+        [2, 2] => 2,
+        [4, 0] => 1,
+        [0, 3] => 1,
+        [2, 1] => 1,
+        [0, 2] => 1,
+      ),
+    )
+
+    L = lie_algebra(QQ, :D, 5)
+    hw1 = [1, 1, 3, 0, 2]
+    hw2 = [2, 1, 0, 2, 0]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
+
+    L = lie_algebra(QQ, :E, 6)
+    hw1 = [1, 1, 0, 0, 1, 2]
+    hw2 = [2, 0, 1, 1, 0, 0]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
+
+    L = lie_algebra(QQ, :G, 2)
+    hw1 = [1, 3]
+    hw2 = [5, 2]
+    dec = test_tensor_product_decomposition(L, hw1, hw2)
   end
 end

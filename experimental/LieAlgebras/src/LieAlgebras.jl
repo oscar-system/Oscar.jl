@@ -154,6 +154,7 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group
@@ -261,6 +262,7 @@ export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
 export tensor_power
+export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group

@@ -1342,3 +1342,38 @@ function character(L::LieAlgebra, hw::Vector{Int})
   end
   return c
 end
+
+@doc raw"""
+    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}) -> MSet{Vector{Int}}
+
+Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
+into simple modules with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 2);
+
+julia> tensor_product_decomposition(L, [1, 0], [0, 1])
+MSet{Vector{Int64}} with 2 elements:
+  [0, 0]
+  [1, 1]
+
+julia> tensor_product_decomposition(L, [1, 1], [1, 1])
+MSet{Vector{Int64}} with 6 elements:
+  [0, 0]
+  [1, 1] : 2
+  [2, 2]
+  [3, 0]
+  [0, 3]
+```
+"""
+function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
+  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Not a dominant weight."
+  return multiset(
+    Tuple{Vector{Vector{Int}},Vector{Int}}(
+      GAPWrap.DecomposeTensorProduct(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1), GAP.Obj(hw2)
+      ),
+    )...,
+  )
+end

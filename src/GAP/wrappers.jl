@@ -53,6 +53,7 @@ GAP.@wrap CycleFromList(x::GapObj)::GapObj
 GAP.@wrap CycleStructurePerm(x::GapObj)::GapObj
 GAP.@wrap CycList(x::GapObj)::GapInt
 GAP.@wrap CyclotomicPol(x::Int)::GapObj
+GAP.@wrap DecomposeTensorProduct(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Decomposition(x::GapObj, y::GapObj, z::GAP.Obj)::GapObj
 GAP.@wrap DecompositionMatrix(x::GapObj)::GapObj
 GAP.@wrap DefiningPolynomial(x::GapObj)::GapObj
