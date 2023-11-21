@@ -53,7 +53,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      field::Field) where S <: FieldElem
-  return load_from_polymake(T)
+  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
 ##############################################################################
@@ -109,21 +109,24 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
-                                 dict::Dict, field::Field) 
-  fr = load_object(s, Polyhedron, dict[:feasible_region], field)
-  conv = dict[:convention]
-  milp_coeffs = Polymake.call_function(
-    :common,
-    :deserialize_json_string,
-    json(dict[:milp_coeffs])
-  )
-  int_vars = Polymake.call_function(
-    :common,
-    :deserialize_json_string,
-    json(dict[:int_vars])
-  )
-
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::Field) 
+  fr = load_object(s, Polyhedron, field, :feasible_region)
+  conv = load_object(s, String, :convention)
+  milp_coeffs = load_node(s, :milp_coeffs) do coeffs
+    Polymake.call_function(
+      :common,
+      :deserialize_json_string,
+      json(coeffs)
+    )
+  end
+  int_vars = load_node(s, :int_vars) do vars
+    Polymake.call_function(
+      :common,
+      :deserialize_json_string,
+      json(vars)
+    )
+  end
+  
   all = Polymake._lookup_multi(pm_object(fr), "MILP")
   index = 0
   for i in 1:length(all)
