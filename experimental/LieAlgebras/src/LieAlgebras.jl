@@ -92,7 +92,11 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export cartan_bilinear_form
 export cartan_matrix
+export cartan_symmetrizer
+export cartan_type
+export cartan_type_with_ordering
 export chevalley_basis
 export coefficient_vector
 export coerce_to_lie_algebra_elem
@@ -190,8 +194,11 @@ export base_lie_algebra
 export base_module
 export base_modules
 export bracket
+export cartan_bilinear_form
 export cartan_matrix
-export cartan_matrix
+export cartan_symmetrizer
+export cartan_type
+export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight

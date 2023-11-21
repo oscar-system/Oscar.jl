@@ -356,10 +356,6 @@ function prime_ideal(S::MPolyComplementOfKPointIdeal)
   return S.m
 end
 
-function is_prime(P::Hecke.ZZIdl) 
-  return is_prime(first(gens(P)))
-end
-
 dim(kk::Field) = 0
 
 maximal_ideal(S::MPolyComplementOfKPointIdeal{<:Field}) = prime_ideal(S)

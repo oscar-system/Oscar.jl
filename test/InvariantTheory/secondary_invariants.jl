@@ -109,9 +109,9 @@
 
   R, x = polynomial_ring(QQ, "x" => 1:3)
   C = Oscar.PowerProductCache(R, x)
-  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(Oscar.all_monomials(R, 3)))
+  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(monomials_of_degree(R, 3)))
   mons = Oscar.all_power_products_of_degree!(C, 3, true)
-  @test Set(mons) == Set(collect(Oscar.all_monomials(R, 3)))
+  @test Set(mons) == Set(collect(monomials_of_degree(R, 3)))
   for m in mons
     @test haskey(C.exponent_vectors, m)
     @test set_exponent_vector!(one(R), 1, C.exponent_vectors[m]) == m

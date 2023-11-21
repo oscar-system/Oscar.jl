@@ -1,23 +1,87 @@
-
 ################################################################################
 #
 #  All Monomials
 #
 ################################################################################
 
-# Return an iterator over all monomials of R of degree d
-all_monomials(R::MPolyRing, d::Int) = AllMonomials(R, d)
+@doc raw"""
+    monomials_of_degree(R::MPolyRing, d::Int)
+    monomials_of_degree(R::MPolyRing, d::Int, vars::Vector{Int})
+    monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int})
+
+Return an iterator over all monomials in `R` of degree `d`.
+An additional vector or range of integers may be given to specify a subset of
+variables of `R` to be used.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = QQ["x", "y", "z"];
+
+julia> collect(monomials_of_degree(R, 3))
+10-element Vector{QQMPolyRingElem}:
+ x^3
+ x^2*y
+ x^2*z
+ x*y^2
+ x*y*z
+ x*z^2
+ y^3
+ y^2*z
+ y*z^2
+ z^3
+
+julia> sum(monomials_of_degree(R, 4, 1:2))
+x^4 + x^3*y + x^2*y^2 + x*y^3 + y^4
+
+julia> sum(monomials_of_degree(R, 4, [1, 3]))
+x^4 + x^3*z + x^2*z^2 + x*z^3 + z^4
+```
+"""
+monomials_of_degree
+
+monomials_of_degree(R::MPolyRing, d::Int) = AllMonomials(R, d)
+monomials_of_degree(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials(R, d, vars)
+monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int}) = AllMonomials(R, d, collect(r))
 
 AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
+AllMonomials(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials{typeof(R)}(R, d, vars)
+
+function AllMonomials(R::MPolyDecRing, d::Int)
+  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
+  return AllMonomials{typeof(R)}(R, d)
+end
+
+function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
+  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
+  return AllMonomials{typeof(R)}(R, d, vars)
+end
 
 Base.eltype(AM::AllMonomials) = elem_type(AM.R)
 
 # We are basically doing d-multicombinations of n here and those are "the same"
 # as d-combinations of n + d - 1 (according to Knuth).
-Base.length(AM::AllMonomials) = binomial(nvars(AM.R) + AM.d - 1, AM.d)
+Base.length(AM::AllMonomials) = binomial(AM.n_vars + AM.d - 1, AM.d)
+
+function _build_monomial(AM::AllMonomials, c::Vector{Int})
+  if AM.on_all_vars
+    return set_exponent_vector!(one(AM.R), 1, c)
+  end
+
+  for i in 1:AM.n_vars
+    AM.tmp[AM.used_vars[i]] = c[i]
+  end
+  f = set_exponent_vector!(one(AM.R), 1, AM.tmp)
+  for i in 1:AM.n_vars
+    AM.tmp[AM.used_vars[i]] = 0
+  end
+  return f
+end
 
 function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
-  n = nvars(AM.R)
+  n = AM.n_vars
+  if n == 0
+    return nothing
+  end
   if AM.d == 0
     s = zeros(Int, n)
     s[n] = AM.d + 1
@@ -29,16 +93,16 @@ function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
   s = zeros(Int, n)
   if isone(n)
     s[1] = AM.d + 1
-    return (set_exponent_vector!(one(AM.R), 1, c), s)
+    return (_build_monomial(AM, c), s)
   end
 
   s[1] = AM.d - 1
   s[2] = 1
-  return (set_exponent_vector!(one(AM.R), 1, c), s)
+  return (_build_monomial(AM, c), s)
 end
 
 function Base.iterate(AM::AllMonomials, s::Vector{Int})
-  n = nvars(AM.R)
+  n = AM.n_vars
   d = AM.d
   if s[n] == d + 1
     return nothing
@@ -46,7 +110,7 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
   c = copy(s)
   if s[n] == d
     s[n] += 1
-    return (set_exponent_vector!(one(AM.R), 1, c), s)
+    return (_build_monomial(AM, c), s)
   end
 
   for i = n - 1:-1:1
@@ -61,7 +125,7 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
           s[n] = 0
         end
       end
-      return (set_exponent_vector!(one(AM.R), 1, c), s)
+      return (_build_monomial(AM, c), s)
     end
   end
 end
@@ -290,7 +354,7 @@ function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunc
     reynolds = nothing
   end
 
-  monomials = all_monomials(polynomial_ring(R), d)
+  monomials = monomials_of_degree(polynomial_ring(R), d)
 
   k = dimension_via_molien_series(Int, R, d, chi)
   @assert k != -1
@@ -310,15 +374,15 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if k == 0
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
-    dummy_mons = all_monomials(R, 0)
+    dummy_mons = monomials_of_degree(R, 0)
     return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
   end
 
-  mons_iterator = all_monomials(R, d)
+  mons_iterator = monomials_of_degree(R, d)
   mons = collect(mons_iterator)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
-    dummy_mons = all_monomials(R, 0)
+    dummy_mons = monomials_of_degree(R, 0)
     return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
   end
 
