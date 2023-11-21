@@ -14,7 +14,8 @@ function save_object(s::SerializerState, p::Polymake.BigObject)
   save_json(s, bigobject_to_jsonstr(p))
 end
 
-function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated})
+  dict = Dict{Symbol, Any}(s.obj)
   return load_from_polymake(dict)
 end
 
@@ -41,18 +42,17 @@ function save_object(s::SerializerState, obj::PolyhedralObject)
   save_object(s, pm_object(obj))
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject}, dict)
-  return load_typed_object(s, dict)
+function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
+  return load_typed_object(s)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
-                     dict::Dict, field::Field) 
-  return  load_from_polymake(T{elem_type(field)}, dict)
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field) 
+  return  load_from_polymake(T{elem_type(field)}, Dict{Symbol, Any}(s.obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     dict::Dict, field::Field) where S <: FieldElem
-  return load_from_polymake(T, dict)
+                     field::Field) where S <: FieldElem
+  return load_from_polymake(T)
 end
 
 ##############################################################################
@@ -69,12 +69,13 @@ function save_object(s::SerializerState, lp::LinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearProgram},
-                                 dict::Dict, field::Field)
+function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::Field)
   coeff_type = elem_type(field)
-  fr = load_object(s, Polyhedron, dict[:feasible_region], field)
-  conv = dict[:convention]
-  lpcoeffs = Polymake.call_function(:common, :deserialize_json_string, json(dict[:lpcoeffs]))
+  fr = load_object(s, Polyhedron, field, :feasible_region)
+  conv = load_object(s, String, :convention)
+  lpcoeffs = load_node(s, :lpcoeffs) do lpcoeffs
+    Polymake.call_function(:common, :deserialize_json_string, json(lpcoeffs))
+  end
   all = Polymake._lookup_multi(pm_object(fr), "LP")
   index = 0
   for i in 1:length(all)

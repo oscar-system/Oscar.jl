@@ -25,7 +25,7 @@ function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
   T = decode_type(s)
   if serialize_with_params(T)
     params = load_params_node(s)
-    return params
+    return (T, params)
   end
   return T
 end
@@ -85,28 +85,25 @@ function load_object(s::DeserializerState, ::Type{<: Vector}, params::Tuple)
     else
       loaded_v = []
       for i in 1:length(v)
-        entry = load_node(s, i) do _
-          load_object(s, T, params[2])
+        load_node(s, i) do _
+          push!(loaded_v, load_object(s, T, params[2]))
         end
-        push!(loaded_v, entry)
       end
-      return loaded_v
+      return Vector{typeof(loaded_v[1])}(loaded_v)
     end
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<: Vector}, params::Ring)
   T = elem_type(params)
-  loaded_v = T[]
-  load_node(s) do v
-    for i in 1:length(v)
-      entry = load_node(s, i) do _
-        load_object(s, T, params)
-      end
-      push!(loaded_v, entry)
+  loaded_entries = load_array_node(s) do _
+    if serialize_with_params(T)
+      return load_object(s, T, params)
+    else
+      return  load_object(s, T)
     end
-    return loaded_v
   end
+  return Vector{T}(loaded_entries)
 end
 
 ################################################################################
@@ -135,7 +132,7 @@ function load_type_params(s::DeserializerState, ::Type{Tuple})
   load_array_node(s) do (_, param)
     T = decode_type(s)
     if serialize_with_params(T)
-      push!(loaded_params, (T, load_type_params(s, T)))
+      push!(loaded_params, (T, load_params_node(s)))
     else
       push!(loaded_params, T)
     end
@@ -205,7 +202,8 @@ function load_type_params(s::DeserializerState, ::Type{<:NamedTuple})
       push!(loaded_params, decode_type(s))
     else
       T = decode_type(s)
-      push!(loaded_params, (T, load_type_params(s, T)))
+      params = load_params_node(s)
+      push!(loaded_params, (T, params))
     end
   end
   load_node(s, :names) do names
