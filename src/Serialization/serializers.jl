@@ -27,7 +27,7 @@ mutable struct SerializerState
   new_level_entry::Bool
   # UUIDs that point to the objs in the global state,
   # ideally this would be an ordered set
-  refs::Vector{UUID} 
+  refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
 end
@@ -63,7 +63,7 @@ function end_array_node(s::SerializerState)
   write(s.io, "]")
 
   if s.new_level_entry
-    # makes sure that entries after empty arrays add comma 
+    # makes sure that entries after empty arrays add comma
     s.new_level_entry = false
   end
 end
@@ -96,7 +96,7 @@ function save_data_dict(f::Function, s::SerializerState,
     f()
   end
 end
-                        
+
 function save_data_array(f::Function, s::SerializerState,
                          key::Union{Symbol, Nothing} = nothing)
   !isnothing(key) && set_key(s, key)
@@ -124,7 +124,7 @@ end
 function serializer_close(s::SerializerState)
   finish_writing(s)
 end
-  
+
 function finish_writing(s::SerializerState)
   # nothing to do here
 end
@@ -216,6 +216,6 @@ function deserializer_open(io::IO, T::Type{<: OscarSerializer})
   if refs_key in keys(obj)
     refs = obj[refs_key]
   end
-  
+
   return T(DeserializerState(obj, nothing, refs))
 end

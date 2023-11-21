@@ -13,12 +13,6 @@ function load_type_params(s::DeserializerState, ::Type{<: Hecke.QuadSpace})
   return load_params_node(s)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:Hecke.QuadSpace}, dict::Dict)
-  load_node(s, :params) do _
-    return load_type_params(s, MatElem)
-  end
-end
-
 function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))
 end
