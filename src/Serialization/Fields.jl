@@ -41,12 +41,8 @@ end
 
 ################################################################################
 # abstract Field load
-function load_object(s::DeserializerState, ::Type{Field}, id::String)
-  return load_ref(s, id)
-end
-
-function load_object(s:: DeserializerState, ::Type{Field}, dict::Dict{Symbol, Any})
-  return load_typed_object(s, dict)
+function load_object(s:: DeserializerState, ::Type{Field})
+  return load_typed_object(s)
 end
 
 ################################################################################
@@ -383,8 +379,8 @@ function save_object(s::SerializerState, RR::Nemo.ArbField)
   save_object(s, precision(RR))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.ArbField}, dict::Dict)
-  prec = parse(Int64, dict[:precision])
+function load_object(s::DeserializerState, ::Type{Nemo.ArbField})
+  prec = load_object(s, Int64, :precision)
   return Nemo.ArbField(prec)
 end
 
@@ -397,10 +393,12 @@ function save_object(s::SerializerState, r::arb)
   ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 end
 
-function load_object(s::DeserializerState, ::Type{arb}, str::String, parent::ArbField)
+function load_object(s::DeserializerState, ::Type{arb}, parent::ArbField)
   r = Nemo.arb()
-  ccall((:arb_load_str, Nemo.Arb_jll.libarb),
-        Int32, (Ref{arb}, Ptr{UInt8}), r, str)
+  load_node(s) do str
+    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+          Int32, (Ref{arb}, Ptr{UInt8}), r, str)
+  end
   r.parent = parent
   return r
 end
@@ -414,8 +412,8 @@ function save_object(s::SerializerState, CC::AcbField)
   save_object(s, precision(CC))
 end
 
-function load_object(s::DeserializerState, ::Type{AcbField}, str::String)
-  prec = parse(Int, str)
+function load_object(s::DeserializerState, ::Type{AcbField})
+  prec = load_object(s, Int)
   return AcbField(prec)
 end
 
@@ -427,10 +425,10 @@ function save_object(s::SerializerState, c::acb)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{acb}, vec::Vector{Any}, parent::AcbField)
-  real_part = load_object(s, arb, vec[1], ArbField(precision(parent)))
-  imag_part = load_object(s, arb, vec[2], ArbField(precision(parent)))
-  
+function load_object(s::DeserializerState, ::Type{acb}, parent::AcbField)
+  (real_part, imag_part) = load_array_node(s) do _
+    load_object(s, arb, ArbField(precision(parent)))
+  end
   return parent(real_part, imag_part)
 end
 
@@ -450,9 +448,9 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbs)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs}, dict::Dict)
-  K = load_typed_object(s, dict[:num_field])
-  gen_ball = load_typed_object(s, dict[:gen_ball])
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbs})
+  K = load_typed_object(s, :num_field)
+  gen_ball = load_typed_object(s, :gen_ball)
 
   return complex_embedding(K, gen_ball)
 end
@@ -469,9 +467,9 @@ function save_object(s::SerializerState, E::Hecke.NumFieldEmbNfAbsNS)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS}, dict::Dict)
-  K = load_typed_object(s, dict[:num_field])
-  gen_balls = load_typed_object(s, dict[:gen_balls])
+function load_object(s::DeserializerState, ::Type{Hecke.NumFieldEmbNfAbsNS})
+  K = load_typed_object(s, :num_field)
+  gen_balls = load_typed_object(s, :gen_balls)
 
   return complex_embedding(K, gen_balls)
 end
