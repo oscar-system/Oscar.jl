@@ -40,8 +40,8 @@ mutable struct ReductiveGroup
         G.field = base_ring(ring)
         @assert m^2  == ngens(ring)
         G.group = (sym,m)
-        G.reynolds_operator = reynolds__
-        M = matrix(ring, m, m, gens(R))
+        G.reynolds_operator = reynolds_slm
+        M = matrix(ring, m, m, gens(ring))
         G.canonical_representation = M
         G.group_ideal = ideal([det(M) - 1])
         #base ring of M has to be the same as the representation matrix when that is created later.
@@ -144,8 +144,8 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
             for j in 1:n
                 if divides(t, b[j])[1]
                     c = leading_coefficient(b[j])
-                    mat[i,j] += t / b[j] * c
-                    #mat[i,j] += t / b[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
+                    #mat[i,j] += t / b[j] * c
+                    mat[i,j] += t / b[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
                 end
             end
         end
@@ -162,12 +162,21 @@ function degree_basis(R::MPolyRing, m::Int, t::Int)
     for i in 1:m
       C[i,i] = -1 #find a better way to write this TODO
     end
-    d = zeros(n)
-    A = ones(n)
+    d = zeros(m)
+    A = ones(m)
     b = [t]
     P = Polyhedron((C, d), (A, b))
     L = lattice_points(P)
-    W = [ R([multinomial(t,l)], [l]) for l in L ]
+    W = Vector{MPolyRingElem}(undef,0)
+    for l in L
+        v = R(1)
+        for i in 1:m
+            v = v*gen(R,i)^l[i]
+        end
+        v = v*multinomial(t,l)
+        push!(W,v)
+    end
+    #W = [ R([multinomial(t,l)], [l]) for l in L ]
     return W
 end
 
@@ -305,7 +314,7 @@ mutable struct InvariantRing
         if is_graded(ring)
             z.poly_ring = ring[1]
         else
-            z.poly_ring = grade(ring)
+            z.poly_ring = grade(ring)[1]
         end
         z.reynolds_operator = reynolds_v_slm
         I, M = proj_of_image_ideal(G, R.rep_mat)
@@ -531,56 +540,30 @@ function needed_degree(elem::MPolyDecRingElem, m::Int)
     return total_degree(mapp(elem))
 end
 
-#works #Unused.
-function omegap(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
-    parent(det_) == parent(f) || error("Omega process ring error")
-    action_ring = parent(det_)
-    detp = (det_)^p
-    monos = collect(monomials(detp))
-    coeffs = collect(coefficients(detp))
-    h = action_ring()
-    for i in 1:length(monos)
-        exp_vect = exponent_vector(monos[i], 1)
-        x = f
-        for i in 1:length(exp_vect)
-            for j in 1:exp_vect[i]
-                @show derivative(x, gen(action_ring,i)) == derivative(x,i)
-                x = derivative(x, gen(action_ring,i))
-                if x == 0
-                    break
-                end
-            end
-        end
-        h += coeffs[i]*x
-    end
-    return h
-end
-
-#alternate function for omegap. Works the same.
-function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
-    parent(det_) == parent(f) || error("Omega process ring error")
-    action_ring = parent(det_)
-    monos = collect(monomials(det_))
-    coeffs = collect(coefficients(det_))
-    for i in 1:p
-    h = action_ring()
-    for i in 1:length(monos)
-        exp_vect = exponent_vector(monos[i], 1)
-        x = f
-        for i in 1:length(exp_vect)
-            for j in 1:exp_vect[i]
-                x = derivative(x, gens(action_ring)[i])
-                if x == 0
-                    break
-                end
-            end
-        end
-        h += coeffs[i]*x
-    end
-        f = h
-    end
-    return f
-end
+ function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
+     parent(det_) == parent(f) || error("Omega process ring error")
+     action_ring = parent(det_)
+     monos = collect(monomials(det_))
+     coeffs = collect(coefficients(det_))
+     for i in 1:p
+     h = action_ring()
+     for i in 1:length(monos)
+         exp_vect = exponent_vector(monos[i], 1)
+         x = f
+         for i in 1:length(exp_vect)
+             for j in 1:exp_vect[i]
+                 x = derivative(x, i)
+                 if x == 0
+                     break
+                 end
+             end
+         end
+         h += coeffs[i]*x
+     end
+         f = h
+     end
+     return f
+ end
 
 #####################callable reynold's operator
 
