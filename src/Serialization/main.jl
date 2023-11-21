@@ -685,8 +685,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
 
     if :id in keys(s.obj)
-      global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
-      global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+      load_node(s, :id) do id
+        global_serializer_state.obj_to_id[loaded] = UUID(id)
+        global_serializer_state.id_to_obj[UUID(id)] = loaded
+      end
     end
     return loaded
   catch e

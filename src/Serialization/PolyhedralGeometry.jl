@@ -19,7 +19,8 @@ function load_object(s::DeserializerState, ::Type{Polymake.BigObjectAllocated})
   return load_from_polymake(dict)
 end
 
-function load_object(s::DeserializerState, ::Type{Polymake.BigObject}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
+  dict = Dict{Symbol, Any}(s.obj)
   bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
   return bigobject
 end
