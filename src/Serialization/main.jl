@@ -630,12 +630,18 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   # handle different namespaces
-  @req :_ns in keys(s.obj) "Namespace is missing"
-  _ns = s.obj[:_ns]
-  if haskey(_ns, :polymake)
-    # If this is a polymake file
-    return load_from_polymake(jsondict)
+  polymake_obj = load_node(s) do d
+    @req :_ns in keys(d) "Namespace is missing"
+    load_node(s, :_ns) do _ns
+      if :polymake in keys(_ns)
+        return load_from_polymake(Dict(d))
+      end
+    end
   end
+  if !isnothing(polymake_obj)
+    return polymake_obj
+  end
+
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades

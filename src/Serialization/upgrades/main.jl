@@ -4,6 +4,8 @@
 # successive order as determined by their version until finally the file has
 # been upgraded to the latest format.
 
+# Warning: The object is not saved to the new format, that is left to the user
+
 struct UpgradeScript
   version::VersionNumber # version to be upgraded to
   script::Function
