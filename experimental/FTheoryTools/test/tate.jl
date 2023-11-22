@@ -29,19 +29,6 @@ t = global_tate_model(base; completeness_check = false)
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
-
-  mktempdir() do path
-    test_save_load_roundtrip(path, t) do loaded
-      @test tate_polynomial(t) == tate_polynomial(loaded)
-      @test tate_section_a1(t) == tate_section_a1(loaded)
-      @test tate_section_a2(t) == tate_section_a2(loaded)
-      @test tate_section_a3(t) == tate_section_a3(loaded)
-      @test tate_section_a4(t) == tate_section_a4(loaded)
-      @test tate_section_a6(t) == tate_section_a6(loaded)
-      @test base_space(t) == base_space(loaded)
-      @test ambient_space(t) == ambient_space(loaded)
-    end
-  end
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
@@ -49,6 +36,25 @@ end
   @test_throws ArgumentError global_tate_model(base, [sec_a1, sec_a2, sec_a3, sec_a4, sec_a6]; completeness_check = false)
 end
 
+# construct and test one tate model from literature
+B3 = projective_space(NormalToricVariety, 3)
+w = torusinvariant_prime_divisors(B3)[1]
+t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+
+@testset "Saving and loading global Tate models over concrete base space" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, t2) do loaded
+      @test tate_polynomial(t2) == tate_polynomial(loaded)
+      @test tate_section_a1(t2) == tate_section_a1(loaded)
+      @test tate_section_a2(t2) == tate_section_a2(loaded)
+      @test tate_section_a3(t2) == tate_section_a3(loaded)
+      @test tate_section_a4(t2) == tate_section_a4(loaded)
+      @test tate_section_a6(t2) == tate_section_a6(loaded)
+      @test base_space(t2) == base_space(loaded)
+      @test ambient_space(t2) == ambient_space(loaded)
+    end
+  end
+end
 
 #############################################################
 # 2: Global Tate models over arbitrary base space
