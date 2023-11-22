@@ -1,3 +1,7 @@
+#######################################################
+# 1. User interface for literature models
+#######################################################
+
 @doc raw"""
     literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 
@@ -73,13 +77,86 @@ julia> length(singular_loci(t2))
 ```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  # Try to find the file with the desired model
+  
+  # (1) Find the model
+  model_dict = _find_model(doi, arxiv_id, version, equation)
+  
+  
+  # (2) Deal with model parameters
+  if haskey(model_dict, "model_parameters")
+    needed_model_parameters = string.(model_dict["model_parameters"])
+    
+    # Make sure the user has provided values for all the model parameters
+    for param in needed_model_parameters
+      @req (param in keys(model_parameters)) "Some model parameters not provided; the given model requires these parameters:\n  $(join(needed_model_parameters, "\n  "))"
+    end
+    
+    # Function to map a function of strings over arbitrarily nested Vectors of strings
+    nested_string_map(f, s::String) = f(s)
+    nested_string_map(f, v::Vector) = map(x -> nested_string_map(f, x), v)
+    nested_string_map(f, a::Any) = a
+    
+    for (key, val) in model_parameters
+      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
+    end
+  end
+  
+  
+  # (3a) Construct the model over concrete base
+  if dim(base_space) > 0
+    
+    # Currently, support only for toric bases
+    @req typeof(base_space) == NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
+    for (key, value) in model_sections
+      @req typeof(value) == ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
+    end
+    
+    # Are all model sections specified?
+    needed_model_sections = model_dict["model_data"]["model_sections"]
+    @req all(k->haskey(model_sections, k), needed_model_sections) "Not all model sections are specified"
+    
+    # Is the model specific for a base dimension? If so, make consistency check
+    if haskey(model_dict["model_data"], "base_dim")
+      @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
+    end
+    
+    # Appropriately construct the model
+    if model_dict["model_descriptors"]["type"] == "tate"
+      model = _construct_literature_tate_model(model_dict, base_space, model_sections, completeness_check)
+    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+      @req false "Weierstrass literature models can currently not be created over a concrete base space"
+    else
+      @req false "Model is not a Tate or Weierstrass model"
+    end
+    
+  # (3b) Construct the model over a generic base
+  else
+    if model_dict["model_descriptors"]["type"] == "tate"
+      model = _construct_literature_tate_model(model_dict)
+    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+      model = _construct_literature_weierstrass_model(model_dict)
+    else
+      @req false "Model is not a Tate or Weierstrass model"
+    end
+  end
+
+  # Return the model
+  _set_all_attributes(model, model_dict, model_parameters)
+  return model
+end
+
+
+#######################################################
+# 2. Helper function to find the specified model
+#######################################################
+
+function _find_model(doi::String, arxiv_id::String, version::String, equation::String)
+
+  # Check that we have at least some information...
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
 
-  # Read index file
-  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
-
   # Create list of possible candidate files
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
   for k in 1:length(file_index)
     if all([doi == "" || get(file_index[k], "journal_doi", nothing) == doi,
@@ -103,192 +180,20 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
 
-  # We were able to find a unique model, so read that model)
+  # Create dictionary
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
+  # Add literature identifier. For this, remove 'model' from the front and '.json' from the end of the file name.
+  model_dict["literature_identifier"] = candidate_files[1][6:end - 5]
 
-  # Deal with any model parameters
-  if haskey(model_dict, "model_parameters")
-    needed_model_parameters = string.(model_dict["model_parameters"])
-
-    # Make sure the user has provided values for all the model parameters
-    for param in needed_model_parameters
-      @req (param in keys(model_parameters)) "Some model parameters not provided; the given model requires these parameters:\n  $(join(needed_model_parameters, "\n  "))"
-    end
-
-    # Function to map a function of strings over arbitrarily nested Vectors of strings
-    nested_string_map(f, s::String) = f(s)
-    nested_string_map(f, v::Vector) = map(x -> nested_string_map(f, x), v)
-    nested_string_map(f, a::Any) = a
-
-    for (key, val) in model_parameters
-      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
-    end
-  end
-
-  if dim(base_space) > 0
-    # User wants model over particular base...
-
-    # Currently, support only for toric bases
-    @req typeof(base_space) == NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
-    for (key, value) in model_sections
-      @req typeof(value) == ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
-    end
-
-    # Are all model sections specified?
-    needed_model_sections = model_dict["model_data"]["model_sections"]
-    @req all(k->haskey(model_sections, k), needed_model_sections) "Not all model sections are specified"
-    
-    # Is the model specific for a base dimension? If so, make consistency check
-    if haskey(model_dict["model_data"], "base_dim")
-      @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
-    end
-
-    # Appropriately construct the model
-    if model_dict["model_descriptors"]["type"] == "tate"
-      model = _construct_literature_tate_model(model_dict, base_space, model_sections, completeness_check)
-    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
-      @req false "Weierstrass literature models can currently not be created over a concrete base space"
-    else
-      @req false "Model is not a Tate or Weierstrass model"
-    end
-
-  else
-    # User does NOT want model over particular base...
-
-    # Appropriately construct each possible type of model
-    if model_dict["model_descriptors"]["type"] == "tate"
-      model = _construct_literature_tate_model(model_dict)
-    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
-      model = _construct_literature_weierstrass_model(model_dict)
-    else
-      @req false "Model is not a Tate or Weierstrass model"
-    end
-    
-  end
-
-  # Set attributes that are currently special for toric bases (Does this further assume the auxiliary base space?)
-  if typeof(model.base_space) == NormalToricVariety
-    base_ring = cox_ring(model.base_space) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
-    if haskey(model_dict["model_data"], "zero_section")
-      set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
-    end
-    if haskey(model_dict["model_data"], "generating_sections")
-      set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-    end
-  end
-
-  # Remember saved attributes of this model
-  if haskey(model_dict["arxiv_data"], "id")
-    set_attribute!(model, :arxiv_id => model_dict["arxiv_data"]["id"])
-  end
-  if haskey(model_dict["arxiv_data"], "doi")
-    set_attribute!(model, :arxiv_doi => model_dict["arxiv_data"]["doi"])
-  end
-  if haskey(model_dict["arxiv_data"], "link")
-    set_attribute!(model, :arxiv_link => model_dict["arxiv_data"]["link"])
-  end
-  if haskey(model_dict["arxiv_data"]["model_location"], "equation")
-    set_attribute!(model, :arxiv_model_equation_number => model_dict["arxiv_data"]["model_location"]["equation"])
-  end
-  if haskey(model_dict["arxiv_data"]["model_location"], "page")
-    set_attribute!(model, :arxiv_model_page => model_dict["arxiv_data"]["model_location"]["page"])
-  end
-  if haskey(model_dict["arxiv_data"]["model_location"], "section")
-    set_attribute!(model, :arxiv_model_section => model_dict["arxiv_data"]["model_location"]["section"])
-  end
-  if haskey(model_dict["arxiv_data"], "version")
-    set_attribute!(model, :arxiv_version => model_dict["arxiv_data"]["version"])
-  end
-  if haskey(model_dict, "associated_models")
-    # This removes 'model' from the front and '.json' from the end of the file name
-    set_attribute!(model, :associated_literature_models => [str[6:end - 5] for str in model_dict["associated_models"]])
-  end
-  if haskey(model_dict["journal_data"], "doi")
-    set_attribute!(model, :journal_doi => model_dict["journal_data"]["doi"])
-  end
-  if haskey(model_dict["journal_data"], "link")
-    set_attribute!(model, :journal_link => model_dict["journal_data"]["link"])
-  end
-  if haskey(model_dict["journal_data"]["model_location"], "equation")
-    set_attribute!(model, :journal_model_equation_number => model_dict["journal_data"]["model_location"]["equation"])
-  end
-  if haskey(model_dict["journal_data"]["model_location"], "page")
-    set_attribute!(model, :journal_model_page => model_dict["journal_data"]["model_location"]["page"])
-  end
-  if haskey(model_dict["journal_data"]["model_location"], "section")
-    set_attribute!(model, :journal_model_section => model_dict["journal_data"]["model_location"]["section"])
-  end
-  if haskey(model_dict["journal_data"], "pages")
-    set_attribute!(model, :journal_pages => model_dict["journal_data"]["pages"])
-  end
-  if haskey(model_dict["journal_data"], "report_numbers")
-    set_attribute!(model, :journal_report_numbers => string.(model_dict["journal_data"]["report_numbers"]))
-  end
-  if haskey(model_dict["journal_data"], "volume")
-    set_attribute!(model, :journal_volume => model_dict["journal_data"]["volume"])
-  end
-  if haskey(model_dict["journal_data"], "year")
-    set_attribute!(model, :journal_year => model_dict["journal_data"]["year"])
-  end
-  # This removes 'model' from the front and '.json' from the end of the file name
-  set_attribute!(model, :literature_identifier => candidate_files[1][6:end - 5])
-  if haskey(model_dict["model_descriptors"], "description")
-    set_attribute!(model, :model_description => model_dict["model_descriptors"]["description"])
-  end
-  if haskey(model_dict, "model_parameters")
-    set_attribute!(model, :model_parameters => model_parameters)
-  end
-  if haskey(model_dict["paper_metadata"], "authors")
-    set_attribute!(model, :paper_authors => string.(model_dict["paper_metadata"]["authors"]))
-  end
-  if haskey(model_dict["paper_metadata"], "buzzwords")
-    set_attribute!(model, :paper_buzzwords => string.(model_dict["paper_metadata"]["buzzwords"]))
-  end
-  if haskey(model_dict["paper_metadata"], "description")
-    set_attribute!(model, :paper_description => model_dict["paper_metadata"]["description"])
-  end
-  if haskey(model_dict["paper_metadata"], "title")
-    set_attribute!(model, :paper_title => model_dict["paper_metadata"]["title"])
-  end
-  if haskey(model_dict, "related_models")
-    # This removes 'model' from the front and '.json' from the end of the file name
-    set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
-  end
-  if haskey(model_dict["model_data"], "resolutions")
-    resolutions_data = model_dict["model_data"]["resolutions"]
-    resolutions = [[[string.(center) for center in res[1]], string.(res[2])] for res in resolutions_data]
-    set_attribute!(model, :resolutions => resolutions)
-  end
-  if haskey(model_dict["model_data"], "resolution_generating_sections")
-    resolution_generating_sections_data = model_dict["model_data"]["resolution_generating_sections"]
-    resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in resolution_generating_sections_data]
-    set_attribute!(model, :resolution_generating_sections => resolution_generating_sections)
-  end
-  if haskey(model_dict["model_data"], "resolution_zero_sections")
-    resolution_zero_sections_data = model_dict["model_data"]["resolution_zero_sections"]
-    resolution_zero_sections = [[string.(factor) for factor in res] for res in resolution_zero_sections_data]
-    set_attribute!(model, :resolution_zero_sections => resolution_zero_sections)
-  end
-  if haskey(model_dict["model_data"], "weighted_resolutions")
-    weighted_resolutions_data = model_dict["model_data"]["weighted_resolutions"]
-    weighted_resolutions = [[[[string.(center[1]), center[2]] for center in res[1]], string.(res[2])] for res in weighted_resolutions_data]
-    set_attribute!(model, :weighted_resolutions => weighted_resolutions)
-  end
-  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
-    weighted_resolution_generating_sections_data = model_dict["model_data"]["weighted_resolution_generating_sections"]
-    weighted_resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in weighted_resolution_generating_sections_data]
-    set_attribute!(model, :weighted_resolution_generating_sections => weighted_resolution_generating_sections)
-  end
-  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
-    weighted_resolution_zero_sections_data = model_dict["model_data"]["weighted_resolution_zero_sections"]
-    weighted_resolution_zero_sections = [[string.(factor) for factor in res] for res in weighted_resolution_zero_sections_data]
-    set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
-  end
-
-  # Return the model
-  set_attribute!(model, :partially_resolved, false)
-  return model
+  # Return the dictionary
+  return model_dict
 end
+
+
+
+#######################################################
+# 3. Constructing models over concrete bases
+#######################################################
 
 # Constructs Tate model over concrete base from given Tate literature model
 function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
@@ -298,9 +203,7 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_spa
   for (key, value) in model_sections
     # Lead to an error when trying to compute the singular loci.
     # Likely, the current implementation assumes that the singular locus is given by the vanishing of a single monom?
-
     explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
-    
     #explicit_model_sections[key] = sum([rand(Int) * b for b in basis_of_global_sections(toric_line_bundle(value))]);
   end
 
@@ -416,6 +319,12 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_spa
   return model
 end
 
+
+
+#######################################################
+# 4. Constructing models over arbitrary bases
+#######################################################
+
 # Constructs Tate model from given Tate literature model
 function _construct_literature_tate_model(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
@@ -449,4 +358,120 @@ function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
+end
+
+
+
+
+#######################################################
+# 5. Functions for settings attributes of models
+#######################################################
+
+function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{String, Any}, model_parameters::Dict{String,<:Any})
+  set_attribute!(model, :literature_identifier => model_dict["literature_identifier"])
+  set_attribute!(model, :partially_resolved, false)
+  
+  _set_model_attribute(model, model_dict, "model_descriptors", "description", "model_description")
+  
+  _set_model_attribute(model, model_dict, "paper_metadata", "authors", "paper_authors")
+  _set_model_attribute(model, model_dict, "paper_metadata", "buzzwords", "paper_buzzwords")
+  _set_model_attribute(model, model_dict, "paper_metadata", "description", "paper_description")
+  _set_model_attribute(model, model_dict, "paper_metadata", "title", "paper_title")
+  
+  _set_model_attribute(model, model_dict, "arxiv_data", "doi", "arxiv_doi")
+  _set_model_attribute(model, model_dict, "arxiv_data", "link", "arxiv_link")
+  _set_model_attribute(model, model_dict, "arxiv_data", "id", "arxiv_id")
+  _set_model_attribute(model, model_dict, "arxiv_data", "version", "arxiv_version")  
+  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "equation", "arxiv_model_equation_number")
+  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "page", "arxiv_model_page")
+  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "section", "arxiv_model_section")
+  
+  _set_model_attribute(model, model_dict, "journal_data", "doi", "journal_doi")
+  _set_model_attribute(model, model_dict, "journal_data", "link", "journal_link")
+  _set_model_attribute(model, model_dict, "journal_data", "year", "journal_year")
+  _set_model_attribute(model, model_dict, "journal_data", "volume", "journal_volume")
+  _set_model_attribute(model, model_dict, "journal_data", "report_numbers", "journal_report_numbers")
+  _set_model_attribute(model, model_dict, "journal_data", "pages", "journal_pages")
+  _set_model_attribute(model, model_dict, "journal_data", "model_location", "equation", "journal_model_equation_number")
+  _set_model_attribute(model, model_dict, "journal_data", "model_location", "page", "journal_model_page")
+  _set_model_attribute(model, model_dict, "journal_data", "model_location", "section", "journal_model_section")
+  
+  if haskey(model_dict, "related_models")
+    set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
+  end
+  
+  if haskey(model_dict, "associated_models")
+    set_attribute!(model, :associated_literature_models => [str[6:end - 5] for str in model_dict["associated_models"]])
+  end
+  
+  if haskey(model_dict, "model_parameters")
+    set_attribute!(model, :model_parameters => model_parameters)
+  end
+  
+  if haskey(model_dict["model_data"], "resolutions")
+    resolutions_data = model_dict["model_data"]["resolutions"]
+    resolutions = [[[string.(center) for center in res[1]], string.(res[2])] for res in resolutions_data]
+    set_attribute!(model, :resolutions => resolutions)
+  end
+  
+  if haskey(model_dict["model_data"], "resolution_generating_sections")
+    resolution_generating_sections_data = model_dict["model_data"]["resolution_generating_sections"]
+    resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in resolution_generating_sections_data]
+    set_attribute!(model, :resolution_generating_sections => resolution_generating_sections)
+  end
+  
+  if haskey(model_dict["model_data"], "resolution_zero_sections")
+    resolution_zero_sections_data = model_dict["model_data"]["resolution_zero_sections"]
+    resolution_zero_sections = [[string.(factor) for factor in res] for res in resolution_zero_sections_data]
+    set_attribute!(model, :resolution_zero_sections => resolution_zero_sections)
+  end
+  
+  if haskey(model_dict["model_data"], "weighted_resolutions")
+    weighted_resolutions_data = model_dict["model_data"]["weighted_resolutions"]
+    weighted_resolutions = [[[[string.(center[1]), center[2]] for center in res[1]], string.(res[2])] for res in weighted_resolutions_data]
+    set_attribute!(model, :weighted_resolutions => weighted_resolutions)
+  end
+  
+  if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
+    weighted_resolution_generating_sections_data = model_dict["model_data"]["weighted_resolution_generating_sections"]
+    weighted_resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in weighted_resolution_generating_sections_data]
+    set_attribute!(model, :weighted_resolution_generating_sections => weighted_resolution_generating_sections)
+  end
+  
+  if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
+    weighted_resolution_zero_sections_data = model_dict["model_data"]["weighted_resolution_zero_sections"]
+    weighted_resolution_zero_sections = [[string.(factor) for factor in res] for res in weighted_resolution_zero_sections_data]
+    set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
+  end
+  
+  if typeof(model.base_space) == NormalToricVariety
+    base_ring = cox_ring(model.base_space) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
+    if haskey(model_dict["model_data"], "zero_section")
+      set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+    end
+    if haskey(model_dict["model_data"], "generating_sections")
+      set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+    end
+  end
+  
+end
+
+function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}, l::String, t::String, t_name::String)
+  if haskey(m_dict[l], t)
+    if typeof(m_dict[l][t]) <: Vector{Any}
+      set_attribute!(m, Symbol(t_name) => [String(k) for k in m_dict[l][t]])
+    else
+      set_attribute!(m, Symbol(t_name) => m_dict[l][t])
+    end
+  end
+end
+
+function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}, l1::String, l2::String, t::String, t_name::String)
+  if haskey(m_dict[l1][l2], t)
+    if typeof(m_dict[l1][l2][t]) <: Vector{Any}
+      set_attribute!(m, Symbol(t_name) => [String(k) for k in m_dict[l1][l2][t]])
+    else
+      set_attribute!(m, Symbol(t_name) => m_dict[l1][l2][t])
+    end
+  end
 end
