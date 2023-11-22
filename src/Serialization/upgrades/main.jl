@@ -72,18 +72,17 @@ const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
-function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
-  upgraded_dict = dict
+function upgrade(s::DeserializerState, format_version::VersionNumber)
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
 
-    if dict_version < script_version
+    if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
       @info("upgrading serialized data....", maxlog=1)
 
-      s = UpgradeState()
-      upgraded_dict = upgrade_script(s, upgraded_dict)
+      upgrade_state = UpgradeState()
+      upgraded_dict = upgrade_script(upgrade_state, s)
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

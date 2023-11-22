@@ -645,19 +645,15 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades
-  file_version = serialization_version_info(s.obj)
+  file_version = load_node(s) do obj
+    serialization_version_info(obj)
+  end
 
-  #if file_version < VERSION_NUMBER
-  #  jsondict = upgrade(jsondict, file_version)
-  #end
-  @warn "skipped upgraded"
+  if file_version < VERSION_NUMBER
+    upgrade(s, file_version)
+  end
 
   try
-    # add refs to state for referencing during recursion
-    #if haskey(jsondict, refs_key)
-    #  merge!(s.refs, jsondict[refs_key])
-    #end
-
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
       # If they are identical, just proceed. If not, then we assume that either
