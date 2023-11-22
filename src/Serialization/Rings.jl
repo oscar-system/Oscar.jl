@@ -617,7 +617,7 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
   I = load_typed_object(s, :modulus) 
   R = base_ring(I)
   o = load_typed_object(s, :ordering)
@@ -658,9 +658,9 @@ function save_object(s::SerializerState, o::Orderings.SymbOrdering{S}) where {S}
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering}, dict::Dict)
-  S = load_typed_object(s, dict[:ordering_symbol_as_type])
-  vars = load_typed_object(s, dict[:vars])
+function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering})
+  S = load_typed_object(s, :ordering_symbol_as_type)
+  vars = load_typed_object(s, :vars)
   return Orderings.SymbOrdering(S, vars)
 end
 

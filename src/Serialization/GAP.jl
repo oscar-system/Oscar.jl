@@ -137,7 +137,7 @@ install_GAP_deserialization(
       else
         # Create a new full free group.
         wfilt = getproperty(GAP.Globals, load_object(s, Symbol, :wfilt))
-        if :nameprefix keys(d)
+        if :nameprefix in keys(d)
           # infinite rank
           prefix = load_node(s, :nameprefix) do nameprefix
             GapObj(nameprefix)
@@ -149,10 +149,9 @@ install_GAP_deserialization(
           G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)
         else
           init = load_node(s, :names) do names
-            GapObj(names, true)
+            GapObj([GapObj(x) for x in names], true)
           end
-          names = GapObj(init, true)
-          G = GAP.Globals.FreeGroup(wfilt, names)
+          G = GAP.Globals.FreeGroup(wfilt, init)
         end
       end
       return G

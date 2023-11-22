@@ -39,12 +39,12 @@ function save_type_params(s::SerializerState, gtm::GlobalTateModel)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel}, dict::Dict)
+function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel})
   return (
-    load_typed_object(s, dict[:base_space]),
-    load_typed_object(s, dict[:ambient_space]),
-    load_typed_object(s, dict[:global_poly_parent]),
-    load_typed_object(s, dict[:sections_poly_parent])
+    load_typed_object(s, :base_space),
+    load_typed_object(s, :ambient_space),
+    load_typed_object(s, :global_poly_parent),
+    load_typed_object(s, :sections_poly_parent)
   )
 end
 
@@ -61,13 +61,13 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, dict::Dict,
+function load_object(s::DeserializerState, ::Type{<: GlobalTateModel},
                      params::Tuple{NormalToricVariety,
                                    NormalToricVariety,
                                    MPolyDecRing,
                                    MPolyDecRing})
-  p = load_object(s, MPolyDecRingElem, dict[:tate_polynomial], params[3])
-  section_polys = load_object(s, Vector, dict[:section_polys], params[4])
+  p = load_object(s, MPolyDecRingElem, params[3], :tate_polynomial)
+  section_polys = load_object(s, Vector, params[4], :section_polys)
 
   model = GlobalTateModel(section_polys..., p, params[1], params[2])
 
