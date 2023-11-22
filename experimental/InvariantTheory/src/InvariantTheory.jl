@@ -130,22 +130,20 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     group_mat = matrix(mixed_ring, z)
     new_vars = group_mat*t
 
-    b = reverse(degree_basis(mixed_ring,m, sym_deg))
+    b = degree_basis(mixed_ring,m, sym_deg)
     
     # transform the b elements
     new_vars_plus_rest = vcat(new_vars, gens(mixed_ring)[m+1:nvars(mixed_ring)])
     images_of_b = [evaluate(f, new_vars_plus_rest) for f in b]
 
     mat = zero_matrix(mixed_ring, n, n)
-    for i in 1:n
-        f = images_of_b[i]
+    for j in 1:n
+        f = images_of_b[j]
         # express f as a linear combination of degree_basis
         for t in terms(f)
-            for j in 1:n
-                if divides(t, b[j])[1]
-                    c = leading_coefficient(b[j])
-                    #mat[i,j] += t / b[j] * c
-                    mat[i,j] += t / b[j]  # FIXME: this is the natural thing but gives "wrong" (?) results
+            for i in 1:n
+                if divides(t, b[i])[1]
+                    mat[i,j] += t / b[i] 
                 end
             end
         end
@@ -154,7 +152,7 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     group_ring = base_ring(G.group_ideal)
     mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring)))
     Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
-    return Mat            
+    return Mat    
 end
 
 function degree_basis(R::MPolyRing, m::Int, t::Int)
@@ -176,7 +174,7 @@ function degree_basis(R::MPolyRing, m::Int, t::Int)
         v = v*multinomial(t,l)
         push!(W,v)
     end
-    #W = [ R([multinomial(t,l)], [l]) for l in L ]
+    #@show W == [ R([multinomial(t,l)], [l]) for l in L ]
     return W
 end
 
@@ -295,7 +293,8 @@ mutable struct InvariantRing
         z.group = R.group
         G = z.group
         z.field = G.field
-        z.poly_ring, __ = graded_polynomial_ring(G.field, "X" => 1:n)
+        z.poly_ring, __ = grade(PolynomialRing(G.field, "X" => 1:n)[1])
+        #z.poly_ring, __ = graded_polynomial_ring(G.field, "X" => 1:n)
         z.reynolds_operator = reynolds_v_slm
         I, M = proj_of_image_ideal(G, R.rep_mat)
         z.NullConeIdeal = ideal(generators(G, I, R.rep_mat))
@@ -481,8 +480,8 @@ end
 function mu_star(new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
     mixed_ring_xy = parent(new_rep_mat[1,1])
     n = ncols(new_rep_mat)
-    vars = matrix(mixed_ring_xy,1,n,[gens(mixed_ring_xy)[i] for i in 1:n])
-    new_vars = vars*transpose(new_rep_mat)
+    vars = matrix(mixed_ring_xy,n,1,[gens(mixed_ring_xy)[i] for i in 1:n])
+    new_vars = new_rep_mat*vars
     D = Dict([])
     for i in 1:n
         push!(D, gens(mixed_ring_xy)[i]=>new_vars[i])
@@ -532,11 +531,12 @@ function reynolds_slm(elem::MPolyElem, det_::MPolyElem, p::Int)
     return numerator(num//den)
 end
 
-function needed_degree(elem::MPolyDecRingElem, m::Int)
+function needed_degree(elem_::MPolyDecRingElem, m::Int)
+    elem = leading_monomial(elem_)
     R = parent(elem)
-    n = numerator((ngens(R) - m^2)//2)
+    n = ngens(R) - m^2
     extra_ring, _= PolynomialRing(base_ring(R), "z"=>1:m^2)
-    mapp = hom(R,extra_ring, vcat([1 for i in 1:2*n], gens(extra_ring)))
+    mapp = hom(R,extra_ring, vcat([1 for i in 1:n], gens(extra_ring)))
     return total_degree(mapp(elem))
 end
 
