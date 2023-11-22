@@ -6,11 +6,11 @@
 base = sample_toric_variety()
 
 # sections, used to test error messages
-sec_a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3)))])
-sec_a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
-sec_a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
-sec_a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
-sec_a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
+sec_a1 = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3)))
+sec_a2 = generic_section(anticanonical_bundle(base)^2)
+sec_a3 = generic_section(anticanonical_bundle(base)^3)
+sec_a4 = generic_section(anticanonical_bundle(base)^4)
+sec_a6 = generic_section(anticanonical_bundle(base)^6)
 
 # construct and test one tate model
 t = global_tate_model(base; completeness_check = false)

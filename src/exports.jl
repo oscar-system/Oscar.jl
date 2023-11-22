@@ -588,6 +588,7 @@ export generating_system
 export generator_matrix
 export generic_fraction
 export generic_fractions
+export generic_section
 export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
