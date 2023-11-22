@@ -488,3 +488,7 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::Stri
   Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
   return blow_up(v, I, coordinate_name)
 end
+
+# Deprecated after 0.14.0
+@deprecate :reglex reglex
+@deprecate :negreglex negreglex
