@@ -490,5 +490,7 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::Stri
 end
 
 # Deprecated after 0.14.0
-@deprecate :reglex reglex
-@deprecate :negreglex negreglex
+@deprecate revlex(R::MPolyRing) invlex(R::MPolyRing)
+@deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
+@deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
+@deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})
