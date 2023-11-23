@@ -42,7 +42,7 @@ end
 Return a rational parametrization of  `C`. 
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
@@ -71,7 +71,7 @@ end
 Return the Gorenstein adjoint ideal of `C`. 
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2)
@@ -96,7 +96,7 @@ If the conic `D` contains a rational point, return the homogeneous coordinates o
 If no such point exists, return a point on `D` defined over a quadratic field extension of $\mathbb Q$.
  
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> D = ProjPlaneCurve(x^2 + 2*y^2 + 5*z^2 - 4*x*y + 3*x*z + 17*y*z);
@@ -153,7 +153,7 @@ end
 Return a rational normal curve of degree $\deg C-2$ which `C` is mapped.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> C = ProjPlaneCurve(y^4-2*x^3*z+3*x^2*z^2-2*y^2*z^2);
@@ -184,7 +184,7 @@ entries of `V` should be considered as representatives of elements in R/I,
 where R is the basering.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"])
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[v, w, x, y, z])
 
@@ -228,7 +228,7 @@ Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
@@ -281,7 +281,7 @@ Note that the entries of `PHI` should be considered as
 representatives of elements in `R/I`, where `R` is the basering.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, ["v", "w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 4, [v w x y; w x y z])

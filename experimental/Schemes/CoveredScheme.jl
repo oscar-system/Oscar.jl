@@ -100,116 +100,66 @@ affine_refinements(C::Covering) = C.affine_refinements
 # Constructors for standard schemes (Projective space, etc.)           #
 ########################################################################
 
-@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
+@doc raw"""
+    _generate_affine_charts(X::Scheme) -> Dict{Int, AbsSpec}
+
+Helper to generate the affine charts of projective space for `standard_covering`.
+This should be overwritten if you want your charts to be of a type different from `Spec`,
+for instance `AffinePlaneCurve`.
+"""
+_generate_affine_charts(X::Scheme)
+
+# The case of a non-trivial homogeneous modulus
+function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
+  chart_dict = Dict{Int, Spec}()
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
-  U = Vector{AbsSpec}()
-  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
-  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
-    push!(U, Spec(quo(R, I)[1]))
-    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
-  end
-  result = Covering(U)
-  set_decomposition_info!(result, decomp_info)
-  for i in 1:r
-    for j in i+1:r+1
-      x = gens(base_ring(OO(U[i])))
-      y = gens(base_ring(OO(U[j])))
-      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
-      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
-      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
-                  [1//x[j-1]],
-                  [x[k-1]//x[j-1] for k in i+1:j-1],
-                  [x[k]//x[j-1] for k in j:r],
-                  x[r+1:end])
-      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
-      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
-                    [y[k+1]//y[i] for k in i:j-2],
-                    [1//y[i]],
-                    [y[k]//y[i] for k in j:r],
-                    y[r+1:end])
-      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
-      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+    if !isone(I) # return the non-empty charts only
+      chart_dict[i+1] = Spec(quo(R, I)[1])
     end
   end
-  return result
+  return chart_dict
 end
 
-
-@attr function standard_covering(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+# The case of a trivial homogeneous modulus
+function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+  chart_dict = Dict{Int, Spec}()
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
-  U = Vector{AbsSpec}()
-  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
-  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    push!(U, Spec(R))
-    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
+    chart_dict[i+1] = Spec(R)
   end
-  result = Covering(U)
-  set_decomposition_info!(result, decomp_info)
-  for i in 1:r
-    for j in i+1:r+1
-      x = gens(OO(U[i]))
-      y = gens(OO(U[j]))
-      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
-      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
-      f = SpecMor(Ui, Uj,
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecMor(Uj, Ui,
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
-    end
-  end
-  return result
+  return chart_dict
 end
 
+# The case of projective plane curves which wraps the result in the corresponding type
+function _generate_affine_charts(X::ProjectivePlaneCurve)
+  prelim_dict = _generate_affine_charts(underlying_scheme(X))
+  # TODO: Do we want to do this manually and also set the defining_equation?
+  return Dict{Int, AffinePlaneCurve}(i => AffinePlaneCurve(U; check=false) for (i, U) in prelim_dict)
+end
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyQuoRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+# The two cases for non-trivial base rings
+function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyQuoRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+
+  chart_dict = Dict{Int, AbsSpec}()
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_coordinate_ring(X)
-  r = relative_ambient_dimension(X)
-  U = Vector{AbsSpec}()
+  s = symbols(S)
   pU = IdDict{AbsSpec, AbsSpecMor}()
 
-  # The case of ℙ⁰-bundles appears frequently in blowups when the 
-  # ideal sheaf is trivial on some affine open part. 
-  if r == 0
-    result = Covering(Y)
-    set_decomposition_info!(result, Y, elem_type(OO(Y))[])
-    pU[Y] = identity_map(Y)
-    covered_projection = CoveringMorphism(result, result, pU, check=false)
-    set_attribute!(X, :covering_projection_to_base, covered_projection)
-    return result
-  end
-
-  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
-  s = symbols(S)
-  # for each homogeneous variable, set up the chart 
-  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  r = relative_ambient_dimension(X)
   for i in 0:r
     R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
     F = Spec(R_fiber)
@@ -217,18 +167,61 @@ end
     fiber_vars = pullback(pF).(gens(R_fiber))
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
     patch = subscheme(ambient_space, elem_type(OO(ambient_space))[evaluate(f, vcat(fiber_vars[1:i], [one(OO(ambient_space))], fiber_vars[i+1:end])) for f in mapped_polys])
-    push!(U, patch)
+    chart_dict[i+1] = patch
     pU[patch] = restrict(pY, patch, Y, check=false)
-    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
   end
-  result = Covering(U)
+
+  return chart_dict, pU
+end
+
+function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+
+  chart_dict = Dict{Int, AbsSpec}()
+  Y = base_scheme(X)
+  R = ambient_coordinate_ring(Y)
+  kk = coefficient_ring(R)
+  S = ambient_coordinate_ring(X)
+  s = symbols(S)
+  pU = IdDict{AbsSpec, AbsSpecMor}()
+
+  r = relative_ambient_dimension(X)
+  for i in 0:r
+    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
+    F = Spec(R_fiber)
+    ambient_space, pF, pY = product(F, Y)
+    fiber_vars = pullback(pF).(gens(R_fiber))
+    chart_dict[i+1] = ambient_space
+    pU[ambient_space] = pY
+  end
+
+  return chart_dict, pU
+end
+
+# coefficient ring a field, the integers, or similar
+@attr Covering function standard_covering(X::AbsProjectiveScheme{<:Ring, <:Union{<:MPolyQuoRing, <:MPolyDecRing}})
+  kk = base_ring(X)
+  S = ambient_coordinate_ring(X)
+  r = relative_ambient_dimension(X)
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
+  s = symbols(S)
+  chart_dict = _generate_affine_charts(X)
+  iszero(length(chart_dict)) && return empty_covering(base_ring(X))
+  @assert all(k->!isempty(chart_dict[k]), keys(chart_dict)) "empty chart created"
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  for (i, U) in chart_dict
+    decomp_info[U] = gens(OO(U))[1:i-1]
+    _dehomogenization_cache(X)[U] = _dehomogenization_map(X, U, i)
+    _homogenization_cache(X)[U] = _homogenization_map(X, U, i)
+  end
+  result = Covering([chart_dict[i] for i in sort(collect(keys(chart_dict)))])
   set_decomposition_info!(result, decomp_info)
-  for i in 1:r
-    for j in i+1:r+1
-      x = gens(base_ring(OO(U[i])))
-      y = gens(base_ring(OO(U[j])))
-      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
-      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
+  for (i, U) in chart_dict
+    for (j, V) in chart_dict
+      j <= i && continue # TODO: Is there a better way to go through this?
+      x = gens(ambient_coordinate_ring(U))
+      y = gens(ambient_coordinate_ring(V))
+      Ui = PrincipalOpenSubset(U, OO(U)(x[j-1]))
+      Uj = PrincipalOpenSubset(V, OO(V)(y[i]))
       imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
                   [1//x[j-1]],
                   [x[k-1]//x[j-1] for k in i+1:j-1],
@@ -241,73 +234,74 @@ end
                     [y[k]//y[i] for k in j:r],
                     y[r+1:end])
       g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
-      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+      add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
     end
   end
-  covered_projection = CoveringMorphism(result, Covering(Y), pU, check=false)
-  set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end
 
-@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:MPolyDecRing}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+# coefficient ring an MPolyAnyRing
+@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:Union{<:MPolyDecRing, <:MPolyQuoRing}}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
   U = Vector{AbsSpec}()
-  pU = IdDict{AbsSpec, AbsSpecMor}()
 
-  # The case of ℙ⁰-bundles appears frequently in blowups when the
-  # ideal sheaf is trivial on some affine open part.
+  # The case of ℙ⁰-bundles appears frequently in blowups when the 
+  # ideal sheaf is trivial on some affine open part. 
   if r == 0
     result = Covering(Y)
     set_decomposition_info!(result, Y, elem_type(OO(Y))[])
+    pU = IdDict{AbsSpec, AbsSpecMor}()
     pU[Y] = identity_map(Y)
     covered_projection = CoveringMorphism(result, result, pU, check=false)
     set_attribute!(X, :covering_projection_to_base, covered_projection)
+    _dehomogenization_cache(X)[Y] = _dehomogenization_map(X, Y, 1)
+    _homogenization_cache(X)[Y] = _homogenization_map(X, Y, 1)
     return result
   end
 
-  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  # TODO: Check that all weights are equal to one. Otherwise the routine is not implemented.
   s = symbols(S)
-  # for each homogeneous variable, set up the chart
-  for i in 0:r
-    R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    F = Spec(R_fiber)
-    ambient_space, pF, pY = product(F, Y)
-    push!(U, ambient_space)
-    decomp_info[last(U)] = gens(OO(last(U)))[1:i]
-    pU[ambient_space] = pY
+  # for each homogeneous variable, set up the chart 
+  chart_dict, projection_dict = _generate_affine_charts(X)
+  isempty(chart_dict) && return empty_covering(base_ring(Y))
+
+  decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+  for (i, U) in chart_dict
+    decomp_info[U] = gens(OO(U))[1:i-1]
+    _dehomogenization_cache(X)[U] = _dehomogenization_map(X, U, i)
+    _homogenization_cache(X)[U] = _homogenization_map(X, U, i)
   end
-  result = Covering(U)
+  result = Covering([chart_dict[i] for i in sort(collect(keys(chart_dict)))])
   set_decomposition_info!(result, decomp_info)
-  for i in 1:r
-    for j in i+1:r+1
-      x = ambient_coordinates(U[i])
-      y = ambient_coordinates(U[j])
-      Ui = PrincipalOpenSubset(U[i], OO(U[i])(x[j-1]))
-      Uj = PrincipalOpenSubset(U[j], OO(U[j])(y[i]))
-      f = SpecMor(Ui, Uj,
-                      vcat([x[k]//x[j-1] for k in 1:i-1],
-                           [1//x[j-1]],
-                           [x[k-1]//x[j-1] for k in i+1:j-1],
-                           [x[k]//x[j-1] for k in j:r],
-                           x[r+1:end]),
-                      check=false
-                     )
-      g = SpecMor(Uj, Ui,
-                      vcat([y[k]//y[i] for k in 1:i-1],
-                           [y[k+1]//y[i] for k in i:j-2],
-                           [1//y[i]],
-                           [y[k]//y[i] for k in j:r],
-                           y[r+1:end]),
-                      check=false
-                     )
-      add_glueing!(result, SimpleGlueing(U[i], U[j], f, g, check=false))
+
+  for (i, U) in chart_dict
+    for (j, V) in chart_dict
+      j <= i && continue
+
+      x = gens(ambient_coordinate_ring(U))
+      y = gens(ambient_coordinate_ring(V))
+      Ui = PrincipalOpenSubset(U, OO(U)(x[j-1]))
+      Uj = PrincipalOpenSubset(V, OO(V)(y[i]))
+      imgs_f = vcat([x[k]//x[j-1] for k in 1:i-1],
+                  [1//x[j-1]],
+                  [x[k-1]//x[j-1] for k in i+1:j-1],
+                  [x[k]//x[j-1] for k in j:r],
+                  x[r+1:end])
+      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
+                    [y[k+1]//y[i] for k in i:j-2],
+                    [1//y[i]],
+                    [y[k]//y[i] for k in j:r],
+                    y[r+1:end])
+      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
+      add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
     end
   end
-  covered_projection = CoveringMorphism(result, Covering(Y), pU, check=false)
+  covered_projection = CoveringMorphism(result, Covering(Y), projection_dict, check=false)
   set_attribute!(X, :covering_projection_to_base, covered_projection)
   return result
 end

@@ -124,8 +124,8 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> flats(M)
-16-element Vector{Vector}:
- Any[]
+16-element Vector{Vector{Int64}}:
+ []
  [1]
  [2]
  [3]
@@ -143,7 +143,7 @@ julia> flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -167,6 +167,9 @@ function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
         end
         matroid_flats = filter(flat -> rank(M,flat)==r, matroid_flats)
     end
+    gs = matroid_groundset(M)
+    elt = eltype(gs)
+    matroid_flats = Vector{Vector{elt}}(matroid_flats)
     return matroid_flats
 end
 
@@ -187,8 +190,8 @@ julia> M = fano_matroid()
 Matroid of rank 3 on 7 elements
 
 julia> cyclic_flats(M)
-9-element Vector{Vector}:
- Any[]
+9-element Vector{Vector{Int64}}:
+ []
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -199,7 +202,7 @@ julia> cyclic_flats(M)
  [1, 2, 3, 4, 5, 6, 7]
 
 julia> cyclic_flats(M, 2)
-7-element Vector{Vector}:
+7-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [1, 4, 5]
  [1, 6, 7]
@@ -970,19 +973,37 @@ end
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
-Computes the revlex basis encoding and the minimal revlex basis encoding among isomorphic matroids 
+Computes the revlex basis encoding of the matroid M.
 
 # Examples
-To get the revlex basis encoding of the fano matroid and to preduce a matrod form the encoding write:
+To get the revlex basis encoding of the fano matroid and to produce a matrod form the encoding write:
 ```jldoctest
-julia> string1, string2 = revlex_basis_encoding(fano_matroid())
-("0******0******0***0******0*0**0****", "0******0******0***0******0*0**0****")
+julia> str = revlex_basis_encoding(fano_matroid())
+"0******0******0***0******0*0**0****"
 
-julia> matroid_from_revlex_basis_encoding(string2, 3, 7)
+julia> matroid_from_revlex_basis_encoding(str, 3, 7)
 Matroid of rank 3 on 7 elements
+
 ```
 """
 function revlex_basis_encoding(M::Matroid)
+    return String(M.pm_matroid.REVLEX_BASIS_ENCODING)
+end
+
+@doc raw"""
+    min_revlex_basis_encoding(M::Matroid)
+
+Computes the minimal revlex basis encoding among isomorphic matroids.
+
+# Examples
+To get the minimal revlex basis encoding of the fano matroid write:
+```jldoctest
+julia> str = min_revlex_basis_encoding(fano_matroid())
+"0******0******0***0******0*0**0****"
+
+```
+"""
+function min_revlex_basis_encoding(M::Matroid)
     rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
     indices = findall(x->x=='*', rvlx)
     v = zeros(Int,length(rvlx))
@@ -997,7 +1018,7 @@ function revlex_basis_encoding(M::Matroid)
     poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
     Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
     Polymake.shell_execute(raw"""$min_v = $pair->first;""")
-    return  rvlx, String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+    return  String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
 end
 
 @doc raw"""
@@ -1064,4 +1085,35 @@ function is_minor(Minor::Matroid, M::Matroid)
         end
     end
     return false
+end
+
+@doc raw"""
+    matroid_base_polytope(M::Matroid) 
+
+The base polytope of the matroid `M`.  
+
+# Examples
+```jldoctest
+julia> D = matroid_base_polytope(uniform_matroid(2,4));
+
+julia> vertices(D)
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 1, 0, 0]
+ [1, 0, 1, 0]
+ [1, 0, 0, 1]
+ [0, 1, 1, 0]
+ [0, 1, 0, 1]
+ [0, 0, 1, 1]
+```
+"""
+function matroid_base_polytope(M::Matroid)
+    n = length(matroid_groundset(M))
+    M = isomorphic_matroid(M, [i for i in 1:n])
+    Delta_verts = hcat([indicator_vector(x, n) for x in bases(M)]...)
+    return convex_hull(Delta_verts') 
+end
+
+
+function indicator_vector(S::Vector{Int}, n::Int)
+    return map(x -> x in S ? 1 : 0 , 1:n)
 end

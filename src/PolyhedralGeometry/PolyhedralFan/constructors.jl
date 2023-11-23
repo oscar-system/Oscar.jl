@@ -101,15 +101,19 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(PF::PolyhedralFan) = PF.pm_fan
 
-function polyhedral_fan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
-  @req length(itr) > 0 "list of cones must be non-empty"
-  pmfan = Polymake.fan.check_fan_objects(pm_object.(itr)...)
-  if pmfan.N_MAXIMAL_CONES == 0
-    # if check fan returns no cones then the rays are empty and we have just one trivial cone (maybe with lineality)
-    C = itr[1]
-    return polyhedral_fan(coefficient_field(C), rays(C), lineality_space(C), IncidenceMatrix(1,0); non_redundant=true)
+@doc raw"""
+    polyhedral_fan(cones::AbstractVector{Cone{T}}) where T<:scalar_types
+
+Assemble a polyhedral fan from a non-empty list of cones.
+"""
+function polyhedral_fan(cones::AbstractVector{Cone{T}}; non_redundant::Bool=false) where T<:scalar_types
+  @req length(cones) > 0 "list of cones must be non-empty"
+  if non_redundant
+    pmfan = Polymake.fan.fan_from_cones(pm_object.(cones)...)
+  else
+    pmfan = Polymake.fan.check_fan_objects(pm_object.(cones)...)
   end
-  return PolyhedralFan{T}(pmfan, coefficient_field(iterate(itr)[1]))
+  return PolyhedralFan{T}(pmfan, coefficient_field(iterate(cones)[1]))
 end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
@@ -119,6 +123,14 @@ polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Inc
   polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 
 polyhedral_fan(C::Cone{T}) where T<:scalar_types = polyhedral_fan([C])
+
+# shortcut for maximal cones of an existing fan
+function polyhedral_fan(iter::SubObjectIterator{Cone{T}}) where T<:scalar_types
+  if iter.Acc == _maximal_cone && iter.Obj isa PolyhedralFan
+    return deepcopy(iter.Obj)
+  end
+  return polyhedral_fan(collect(iter))
+end
 
 ###############################################################################
 ###############################################################################

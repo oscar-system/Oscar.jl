@@ -16,6 +16,13 @@ cases = [
 
 @testset "Matrices" begin
   mktempdir() do path
+    @testset "Empty Matrix" begin
+      m = zero_matrix(ZZ, 0, 2)
+      test_save_load_roundtrip(path, m) do loaded
+        @test test_equality(m, loaded)
+      end
+    end
+    
     for case in cases
       @testset "Matrices over $(case[1])" begin
         m = matrix(case[1], case[2])

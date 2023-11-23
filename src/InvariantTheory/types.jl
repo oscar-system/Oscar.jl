@@ -101,13 +101,33 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
   end
 end
 
+# Produces all monomials in R of degree d
 struct AllMonomials{PolyRingT}
   R::PolyRingT
-  d::Int
+  d::Int # the degree
+
+  on_all_vars::Bool # whether we work on all variables or a subset
+  n_vars::Int # the number of variables we work on
+  used_vars::Vector{Int} # indices of the variables we work on
+  tmp::Vector{Int} # of length ngens(R), should be put back to zero after use
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int) where PolyRingT
     @assert d >= 0
-    return new{PolyRingT}(R, d)
+    return new{PolyRingT}(R, d, true, ngens(R))
+  end
+
+  function AllMonomials{PolyRingT}(R::PolyRingT, d::Int, vars::Vector{Int}) where PolyRingT
+    @assert d >= 0
+    vars = sort!(unique(vars))
+    @assert minimum(vars, init = 1) >= 1
+    @assert maximum(vars, init = 1) <= nvars(R)
+    n_vars = length(vars)
+    if n_vars == ngens(R)
+      return AllMonomials{PolyRingT}(R, d)
+    end
+
+    tmp = zeros(Int, ngens(R))
+    return new{PolyRingT}(R, d, false, n_vars, vars, tmp)
   end
 end
 

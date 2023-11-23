@@ -32,7 +32,9 @@ export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
+export AffinePlaneCurve
 export AffineVariety
+export arithmetic_genus
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BettiTable
@@ -138,6 +140,8 @@ export Polyhedron
 export Polymake
 export PrincipalOpenSubset
 export ProjectiveAlgebraicSet
+export ProjectiveCurve
+export ProjectivePlaneCurve
 export ProjectiveScheme
 export ProjectiveSchemeMor
 export ProjectiveVariety
@@ -199,6 +203,7 @@ export add_glueing!
 export add_vertex!
 export add_vertices!
 export adjacent_chamber
+export adjoint_ideal
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -329,6 +334,7 @@ export class_parameters
 export class_positions_of_center
 export class_positions_of_derived_subgroup
 export class_positions_of_kernel
+export class_positions_of_normal_subgroups
 export class_positions_of_pcore
 export class_positions_of_solvable_residuum
 export closed_subvariety_of_toric_variety
@@ -358,6 +364,7 @@ export column
 export combinatorial_symmetries
 export comm
 export comm!
+export common_components
 export common_denominator
 export common_refinement
 export complement
@@ -432,6 +439,8 @@ export decoration
 export default_covering
 export default_ordering
 export defines_automorphism
+export defining_equation
+export defining_ideal
 export defining_ring_element
 export defining_ring_elements
 export deglex
@@ -580,6 +589,7 @@ export generic_fraction
 export generic_fractions
 export gens, has_gens
 export gens_of_rational_equivalence_classes
+export geometric_genus
 export geometric_irreducible_components
 export germ_at_point
 export girth
@@ -698,6 +708,8 @@ export induced_automorphism
 export induced_map_on_exterior_power
 export induced_cyclic
 export induced_ring_ordering
+export induce_shift
+export inequations
 export initial
 export inneighbors
 export inner_automorphism
@@ -710,6 +722,7 @@ export integrate
 export interior_lattice_points
 export intersect
 export intersection_form
+export intersection_multiplicity
 export intersections
 export inv
 export inv!
@@ -722,6 +735,7 @@ export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
 export invert
+export invert_birational_map
 export inverted_set
 export irreducible_components
 export irreducible_secondary_invariants
@@ -843,6 +857,7 @@ export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
+export is_realizable
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -865,6 +880,7 @@ export is_surjective
 export is_ternary
 export is_total
 export is_transitive
+export is_transverse_intersection
 export is_trivial
 export is_two_sided
 export is_unipotent
@@ -960,6 +976,7 @@ export mathieu_group
 export matrix_group
 export matrix_kernel
 export matrix_ordering
+export matroid_base_polytope
 export matroid_from_bases
 export matroid_from_circuits
 export matroid_from_hyperplanes
@@ -968,8 +985,6 @@ export matroid_from_matrix_rows
 export matroid_from_nonbases
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
-export matroid_realization_space
-export matroid_stratum_matrix_coordinates
 export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
@@ -985,6 +1000,7 @@ export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export metadata
 export milnor_algebra
 export milnor_number
+export min_revlex_basis_encoding
 export min_weights
 export minimal_betti_table
 export minimal_block_reps
@@ -1000,11 +1016,13 @@ export minkowski_sum
 export minor
 export module_syzygies
 export modulus
+export moebius_kantor_matroid
 export moebius_mu
 export molien_series
 export monomial_basis
 export monomial_ordering
 export monomials
+export monomials_of_degree
 export mori_cone
 export morphism_from_cox_variety
 export MorphismFromRationalFunctions
@@ -1029,6 +1047,7 @@ export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
 export multiplicities_eigenvalues
+export multiplicity
 export n_cones
 export n_connected_components
 export n_gon
@@ -1126,6 +1145,8 @@ export outneighbors
 export p_central_series
 export pappus_matroid
 export parallel_extension
+export parametrization
+export parametrization_conic
 export parent
 export patches
 export pbw_algebra
@@ -1133,6 +1154,7 @@ export pc_group
 export pcore
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
+export perles_matroid
 export perles_nonrational_8_polytope
 export perm
 export permutahedron
@@ -1146,6 +1168,7 @@ export picard_group
 export picard_index
 export pile_polytope
 export pitman_stanley_polytope
+export plane_curve
 export platonic_solid
 export point_coordinates
 export point_matrix
@@ -1190,6 +1213,8 @@ export projective_general_linear_group
 export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
+export projective_closure
+export projective_curve
 export projective_plane
 export projective_scheme
 export projective_space
@@ -1207,6 +1232,7 @@ export quaternion_group
 export quo
 export quotient
 export quotient_ring_as_module
+export R10_matroid
 export radical
 export radical_membership
 export rand
@@ -1223,6 +1249,7 @@ export random_affine_linear_polynomials
 export rank
 export rank_action
 export rational_equivalence_class
+export rational_point_conic
 export rational_point_coordinates
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
@@ -1233,6 +1260,9 @@ export rays
 export rays_modulo_lineality
 export real_projective_plane
 export real_solutions
+export realization
+export realization_matrix
+export realization_space
 export recession_cone
 export reduce
 export reduce_fraction
@@ -1392,6 +1422,7 @@ export syz
 export syzygy_generators
 export tail
 export tangent_space
+export tangent_lines
 export tensor_product
 export terms
 export tetrahedron

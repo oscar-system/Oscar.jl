@@ -818,6 +818,7 @@ end
   @test ncols(t) == 5
   @test_throws ErrorException t[6]
   tr = trivial_character(t)
+  @test parent(tr) === t
   @test tr in t
   @test tr != t[1]
   @test tr == t[5]

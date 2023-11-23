@@ -205,10 +205,13 @@ with default covering
 ```
 """
 @attr AbsCoveredScheme function covered_scheme(P::AbsProjectiveScheme)
-    C = standard_covering(P)
-    X = CoveredScheme(C)
-    return X
+  #is_empty(P) && return empty_covered_scheme(base_ring(P))
+  C = standard_covering(P)
+  is_empty(C) && return empty_covered_scheme(base_ring(P))
+  X = CoveredScheme(C)
+  return X
 end
+
 
 @attr function covered_projection_to_base(X::AbsProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyQuoRing, <:MPolyRing}})
   if !has_attribute(X, :covering_projection_to_base)
@@ -460,14 +463,14 @@ end
 
 function _dehomogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict()
+    X.dehomogenization_cache = IdDict{AbsSpec, Map}()
   end
   return X.dehomogenization_cache
 end
 
 function _homogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :homogenization_cache)
-    X.homogenization_cache = IdDict()
+    X.homogenization_cache = IdDict{AbsSpec, Function}()
   end
   return X.homogenization_cache
 end
