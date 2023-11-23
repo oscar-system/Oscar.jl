@@ -160,8 +160,8 @@ function version_number(v_number::String)
 end
 
 # needed for older versions 
-function version_number(dict::Dict)
-  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+function version_number(obj::JSON3.Object)
+  return VersionNumber(obj[:major], obj[:minor], obj[:patch])
 end
 
 const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
@@ -642,7 +642,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     return polymake_obj
   end
 
-  @req haskey(_ns, :Oscar) "Not an Oscar object"
+  load_node(s, :_ns) do ns
+    @req :Oscar in keys(ns) "Not an Oscar object"
+  end
 
   # deal with upgrades
   file_version = load_node(s) do obj
