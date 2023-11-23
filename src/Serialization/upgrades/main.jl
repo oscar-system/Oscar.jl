@@ -37,7 +37,7 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
-  upgraded_dict = dict
+  upgraded_dict = Dict{Symbol, Any}()
   for (key, dict_value) in dict
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
@@ -72,7 +72,7 @@ const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
-function upgrade(s::DeserializerState, format_version::VersionNumber, dict::Dict)
+function upgrade(format_version::VersionNumber, dict::Dict)
   upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
@@ -85,7 +85,7 @@ function upgrade(s::DeserializerState, format_version::VersionNumber, dict::Dict
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load
       # uses JSON3 which is read only 
-      upgraded_dict = upgrade_script(upgrade_state, dict)
+      upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

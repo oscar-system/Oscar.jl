@@ -652,7 +652,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
   if file_version < VERSION_NUMBER
     jsondict = JSON.parse(json(s.obj), dicttype=Dict{Symbol, Any})
-    jsondict = upgrade(s, file_version, jsondict)
+    jsondict = upgrade(file_version, jsondict)
     s.obj = JSON3.read(json(jsondict))
   end
 
