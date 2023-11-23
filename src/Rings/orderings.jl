@@ -27,8 +27,8 @@ export matrix_ordering
 export monomial_ordering
 export negdeglex
 export negdegrevlex
-export neglex
 export neginvlex
+export neglex
 export negrevlex
 export negwdeglex
 export negwdegrevlex
