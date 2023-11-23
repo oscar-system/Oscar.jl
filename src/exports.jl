@@ -1068,8 +1068,6 @@ export negdeglex
 export negdegrevlex
 export neginvlex
 export neglex
-export neginvlex
-export negrevlex # to be removed
 export negwdeglex
 export negwdegrevlex
 export neighbor_patches
