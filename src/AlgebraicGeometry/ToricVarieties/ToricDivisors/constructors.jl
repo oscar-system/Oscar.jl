@@ -97,6 +97,8 @@ end
 Base.:-(td :: ToricDivisor) = toric_divisor(toric_variety(td), -coefficients(td))
 
 Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [ZZRingElem(c)*x for x in coefficients(td)])
+# method ambiguity requires the implementation of the following method
+Base.:*(c::ZZRingElem, td::ToricDivisor) = toric_divisor(toric_variety(td), [c*x for x in coefficients(td)])
 
 
 ######################
