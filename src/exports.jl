@@ -739,7 +739,6 @@ export invert
 export invert_birational_map
 export inverted_set
 export invlex
-export revlex # to be removed
 export irreducible_components
 export irreducible_secondary_invariants
 export irreducibles
