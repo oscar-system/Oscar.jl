@@ -150,11 +150,11 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function haskey(s::DeserializerState, key::Symbol)
-  load_node(s) do obj
-    key in keys(obj)
-  end
-end
+#function haskey(s::DeserializerState, key::Symbol)
+#  load_node(s) do obj
+#    key in keys(obj)
+#  end
+#end
 
 function set_key(s::DeserializerState, key::Union{Symbol, Int})
   @req isnothing(s.key) "Object at Key :$(s.key) hasn't been deserialized yet."

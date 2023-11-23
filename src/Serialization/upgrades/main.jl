@@ -72,17 +72,21 @@ const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
-function upgrade(s::DeserializerState, format_version::VersionNumber)
+function upgrade(s::DeserializerState, format_version::VersionNumber, dict::Dict)
+  upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
 
     if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
-      @info("upgrading serialized data....", maxlog=1)
+      @info("upgrading serialized data, consider saving loaded object to new format....",
+            maxlog=1)
 
       upgrade_state = UpgradeState()
-      upgraded_dict = upgrade_script(upgrade_state, s)
+      # upgrading large files needs a work around since the new load
+      # uses JSON3 which is read only 
+      upgraded_dict = upgrade_script(upgrade_state, dict)
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

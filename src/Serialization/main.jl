@@ -152,7 +152,7 @@ end
 function serialization_version_info(obj::JSON3.Object)
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  return version_number(version_info)
+  return version_number(Dict(version_info))
 end
 
 function version_number(v_number::String)
@@ -642,7 +642,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     return polymake_obj
   end
 
-  @req haskey(_ns, :Oscar) "Not an Oscar object"
+  load_node(s, :_ns) do _ns
+    @req haskey(_ns, :Oscar) "Not an Oscar object"
+  end
 
   # deal with upgrades
   file_version = load_node(s) do obj
@@ -650,7 +652,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   if file_version < VERSION_NUMBER
-    upgrade(s, file_version)
+    upgrade(s, file_version, JSON.parse(io; dicttype=Dict, inttype=Int64))
   end
 
   try
