@@ -1998,7 +1998,7 @@ function _try_singular_easy(Q::order_conversion_ctx, o::SymbOrdering{S}) where S
          S == :degrevlex    ? (true, Singular.ordering_dp(n)) :
          S == :deginvlex    ? (true, Singular.ordering_Ip(n)) :
          S == :neglex       ? (true, Singular.ordering_ls(n)) :
-         S == :neginvlex    ? (true, Singular.ordering_rs(n)) :
+         S == :neginvlex    ? (true, Singular.ordering_is(n)) :
          S == :negdeglex    ? (true, Singular.ordering_Ds(n)) :
          S == :negdegrevlex ? (true, Singular.ordering_ds(n)) :
                               (false, Q.def)
