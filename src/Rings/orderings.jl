@@ -481,7 +481,6 @@ function invlex(v::AbstractVector{<:MPolyRingElem})
   return MonomialOrdering(parent(first(v)), SymbOrdering(:invlex, i))
 end
 
-const revlex = invlex
 
 function _matrix(nvars::Int, o::SymbOrdering{:invlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
