@@ -56,9 +56,20 @@ function root_system(types::Tuple{Symbol,Int}...)
   return R
 end
 
-function Base.show(io::IO, R::RootSystem)
+function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
+  io = pretty(io)
   println(io, "Root system defined by Cartan matrix")
-  show(io, cartan_matrix(R))
+  print(io, Indent())
+  show(io, MIME"text/plain"(), cartan_matrix(R))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, R::RootSystem)
+  if get(io, :supercompact, false)
+    print(io, "Root system")
+  else
+    print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
+  end
 end
 
 @doc raw"""
