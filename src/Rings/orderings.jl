@@ -642,7 +642,7 @@ Return the negative inverse lexicographical ordering on the set of monomials in 
 
     neginvlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
-Given a vector `V` of variables, return the negative reverse lexicographical ordering on the set of monomials in these variables.
+Given a vector `V` of variables, return the negative inverse lexicographical ordering on the set of monomials in these variables.
 
 # Examples
 ```jldoctest
