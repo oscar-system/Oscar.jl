@@ -68,7 +68,7 @@ canonical_representation(G::ReductiveGroup) = G.canonical_representation
 natural_representation(G::ReductiveGroup) = G.canonical_representation
 
 #####################
-#Representation
+#Representation of Reductive Groups. Embeds SLm in GLn. 
 #####################
 
 mutable struct RepresentationReductiveGroup
@@ -87,7 +87,7 @@ mutable struct RepresentationReductiveGroup
         return R
     end
     
-    #does not check the given matrix.
+    #matrix M is the representation matrix. does not check M.
     function RepresentationReductiveGroup(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem)
         @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
         R = new()
@@ -105,6 +105,8 @@ end
 
 representation_matrix(R::RepresentationReductiveGroup) = R.rep_mat
 reductive_group(R::RepresentationReductiveGroup) = R.group
+
+#returns dimension n
 function vector_space_dimension(R::RepresentationReductiveGroup)
     return ncols(R.rep_mat)
 end
@@ -126,7 +128,7 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     G.group[1] == :SL || error("Only implemented for SLm")
     m = G.group[2]
     n = binomial(m + sym_deg - 1, m - 1)
-    mixed_ring, t, z = PolynomialRing(G.field, "t"=> 1:m, "z"=> (1:m, 1:m))
+    mixed_ring, t, z = polynomial_ring(G.field, "t"=> 1:m, "z"=> (1:m, 1:m))
     group_mat = matrix(mixed_ring, z)
     new_vars = group_mat*t
 
@@ -155,6 +157,7 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     return Mat    
 end
 
+#computes symmetric degree basis (of the first m variables) WITH multinomial coefficients!
 function degree_basis(R::MPolyRing, m::Int, t::Int)
     C = zero_matrix(Int, m, m)
     for i in 1:m
@@ -178,6 +181,7 @@ function degree_basis(R::MPolyRing, m::Int, t::Int)
     return W
 end
 
+#used to compute multinomial expansion coefficients (used in degree_basis)
 function multinomial(n::Int, v::Union{Vector{Int64},PointVector{ZZRingElem}})
     l = length(v)
     x = 1
@@ -252,6 +256,7 @@ end
 #     end
 # end
 
+#will be used in the future. Computes the direct sum of two matrices.
 function direct_sum(M::AbstractAlgebra.Generic.MatSpaceElem, N::AbstractAlgebra.Generic.MatSpaceElem)
     #parent(M[1,1]) == parent(N[1,1]) || @error("not same ring")
     mr = nrows(M)
@@ -264,10 +269,10 @@ function direct_sum(M::AbstractAlgebra.Generic.MatSpaceElem, N::AbstractAlgebra.
     return mat_
 end
 
-function num_of_as(m::Int, v::Vector{Int})
-    max = maximum(v)
-    return binomial(m + max - 1, m - 1)
-end
+# function num_of_as(m::Int, v::Vector{Int})
+#     max = maximum(v)
+#     return binomial(m + max - 1, m - 1)
+# end
 
 ##########################
 #Invariant Rings of Reductive groups
@@ -285,7 +290,7 @@ mutable struct InvariantRing
     
     NullConeIdeal::MPolyIdeal
     
-    #This should be the only one that is used
+    #Invariant ring of reductive group G (in representation R), no other input.
     function InvariantRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
         z = new()
         n = ncols(R.rep_mat)
@@ -296,12 +301,10 @@ mutable struct InvariantRing
         z.poly_ring, __ = grade(PolynomialRing(G.field, "X" => 1:n)[1])
         #z.poly_ring, __ = graded_polynomial_ring(G.field, "X" => 1:n)
         z.reynolds_operator = reynolds_v_slm
-        I, M = proj_of_image_ideal(G, R.rep_mat)
-        z.NullConeIdeal = ideal(generators(G, I, R.rep_mat))
-        z.fundamental = inv_generators(z.NullConeIdeal, G, z.poly_ring, M, I, z.reynolds_operator)
         return z
     end
     
+    #to compute invariant ring ring^G where G is the reductive group of R. 
     function InvariantRing(R::RepresentationReductiveGroup, ring::MPolyRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
@@ -316,9 +319,9 @@ mutable struct InvariantRing
             z.poly_ring = grade(ring)[1]
         end
         z.reynolds_operator = reynolds_v_slm
-        I, M = proj_of_image_ideal(G, R.rep_mat)
-        z.NullConeIdeal = ideal(generators(G, I, R.rep_mat))
-        z.fundamental = inv_generators(z.NullConeIdeal, G, z.poly_ring, M, I, z.reynolds_operator)
+        # I, M = proj_of_image_ideal(G, R.rep_mat)
+        # z.NullConeIdeal = ideal(generators(G, I, R.rep_mat))
+        # z.fundamental = inv_generators(z.NullConeIdeal, G, z.poly_ring, M, I, z.reynolds_operator)
         return z
     end
 end
@@ -327,12 +330,20 @@ invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
 fundamental_invariants(R::InvariantRing) = R.fundamental
 null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
 
+function fundamental_invariants(z::InvariantRing)
+    R = z.representation
+    I, M = proj_of_image_ideal(R.group, R.rep_mat)
+    z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
+    z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
+    return z.fundamental
+end
+
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
     #if get(io, :supercompact, false)
-        print(io, "Invariant Ring of", "\n")
-        show(io, R.poly_ring)
-        print(io, " under group action of ", R.group.group[1], R.group.group[2], "\n", "\n")
-        print(io, "Generated by ", "\n")
+    println(io, "Invariant Ring of")
+    show(io, R.poly_ring)
+    print(io, " under group action of ", R.group.group[1], R.group.group[2], "\n", "\n")
+    println(io, "Generated by ")
     join(io, R.fundamental, "\n")
     #else
      #   print(io, "Invariant Ring under ")
@@ -340,7 +351,7 @@ function Base.show(io::IO, R::InvariantRing) #TODO compact printing
     #end
 end
 
-#I think this should work for everyone except tensor products.
+#computing the graph Gamma from Derksens paper
 function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
     R = base_ring(rep_mat)
     n = ncols(rep_mat)
@@ -372,7 +383,7 @@ function factorise(x::MPolyRingElem)
     return Factorisation
 end
 
-
+#computing I_{\Bar{B}}
 function proj_of_image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
     W = image_ideal(G, rep_mat)
     mixed_ring_xy = base_ring(W[2])
@@ -404,19 +415,7 @@ function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::AbstractAlgebra.G
         b != 0 && push!(ev_gbasis, b)
     end
     
-    #find representatives mod (det_ -1)
-    #Did not make a difference. 
-    #map_z_to_zz = hom(parent(det_), mixed_ring_xy, gens(mixed_ring_xy)[2*n+1:(2*n)+m^2])
-    #new_det_ = map_z_to_zz(det_)
-    #R,projection_ = quo(mixed_ring_xy, ideal(mixed_ring_xy, new_det_ -1))
-    #V = Vector{MPolyRingElem}(undef,0)
-    #for elem in ev_gbasis
-    #    push!(V,lift(projection_(elem)))
-    #end
-    #@show V
-    
-    
-    #grading starts here. 
+    #grading starts here. In the end, our invariant ring is graded.
     mixed_ring_graded, (x,y,zz) = grade(mixed_ring_xy)
     mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
     ev_gbasis_new = [mapp(ev_gbasis[i]) for i in 1:length(ev_gbasis)]
@@ -426,6 +425,7 @@ function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::AbstractAlgebra.G
     return minimal_generating_set(ideal(ev_gbasis_new))
 end
 
+#computing the invariant generators.
 #now we have to perform reynolds operation. This will happen in mixed_ring_xy. 
 #the elements returned will be in the polynomial ring K[X]
 function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::AbstractAlgebra.Generic.MatSpaceElem, X::MPolyIdeal, reynolds_function::Function)
@@ -476,15 +476,15 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::A
     return new_gens_
 end
 
-
+#used in reynolds operator. returns a dictionary storing the images of the vector space basis under the map mu_star
 function mu_star(new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
     mixed_ring_xy = parent(new_rep_mat[1,1])
     n = ncols(new_rep_mat)
-    vars = matrix(mixed_ring_xy,n,1,[gens(mixed_ring_xy)[i] for i in 1:n])
+    vars = matrix(mixed_ring_xy,n,1,[gen(mixed_ring_xy,i) for i in 1:n])
     new_vars = new_rep_mat*vars
     D = Dict([])
     for i in 1:n
-        push!(D, gens(mixed_ring_xy)[i]=>new_vars[i])
+        push!(D, gen(mixed_ring_xy,i)=>new_vars[i])
     end
     return D
 end
@@ -531,6 +531,7 @@ function reynolds_slm(elem::MPolyElem, det_::MPolyElem, p::Int)
     return numerator(num//den)
 end
 
+#used to compute the degree p of omega_p 
 function needed_degree(elem_::MPolyDecRingElem, m::Int)
     elem = leading_monomial(elem_)
     R = parent(elem)
@@ -567,27 +568,29 @@ end
 
 #####################callable reynold's operator
 
-function reynolds_operator(elem::MPolyElem, X::RepresentationReductiveGroup)
+#this function returns the image of elem under the reynolds operator of group with representation X
+function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyElem)
     X.group.group[1] == :SL || error("Only implemented for SLm")
     vector_ring = parent(elem)
     G = X.group
-    n = Int(ngens(vector_ring))
+    n = ngens(vector_ring)
     n == ncols(X.rep_mat) || error("group not compatible with element")
     m = G.group[2]
-    R, _ = grade(PolynomialRing(G.field,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m))[1])
+    R, _ = graded_polynomial_ring(PolynomialRing(G.field,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m)))
     map1 = hom(vector_ring, R, gens(R)[1:n])
     new_elem = map1(elem)
     group_ring = base_ring(X.rep_mat)
-    map = hom(group_ring, R, gens(R)[2*n+1:2*n+m^2])
-    new_rep_mat = matrix(R,n,n,[map(X.rep_mat[i,j]) for i in 1:n, j in 1:n])
-    new_det = map(det(G.canonical_representation))
+    map2 = hom(group_ring, R, gens(R)[2*n+1:2*n+m^2])
+    new_rep_mat = map_entries(X.rep_mat, map2)
+    new_det = map2(det(G.canonical_representation))
     f = X.reynolds_v(new_elem, new_rep_mat, new_det, m)
     reverse_map = hom(R, vector_ring, vcat(gens(vector_ring), [0 for i in 1:n+m^2]))
     return reverse_map(f)
 end
 
-#TODO
-function mu_star(elem_::MPolyElem, R::RepresentationReductiveGroup)
+#Unsure if this is needed. 
+#Computes the image of elem under map mu_star of group with representation R.
+function mu_star( R::RepresentationReductiveGroup, elem_::MPolyElem)
     G = R.group
     n = ncols(R.rep_mat)
     ngens(parent(elem_)) == n || error("group not compatible with element")
