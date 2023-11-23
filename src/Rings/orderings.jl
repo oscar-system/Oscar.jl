@@ -449,7 +449,7 @@ Return the inverse lexicographical ordering on the set of monomials in the varia
 
     invlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
-Given a vector `V` of variables, return the reverse lexicographical ordering on the set of monomials in these variables.
+Given a vector `V` of variables, return the inverse lexicographical ordering on the set of monomials in these variables.
 
 # Examples
 ```jldoctest
