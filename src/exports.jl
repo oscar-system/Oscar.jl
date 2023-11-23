@@ -1066,6 +1066,7 @@ export nef_cone
 export negbias
 export negdeglex
 export negdegrevlex
+export neginvlex
 export neglex
 export neginvlex
 export negrevlex # to be removed
