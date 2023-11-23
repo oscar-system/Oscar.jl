@@ -300,6 +300,10 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+function Base.iszero(r::RootSpaceElem)
+  return iszero(r.vec)
+end
+
 function reflect!(r::RootSpaceElem, s::Int)
   addmul!(
     r.vec,
