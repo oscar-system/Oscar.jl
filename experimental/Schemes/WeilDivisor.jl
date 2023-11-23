@@ -825,4 +825,8 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
   return result
 end
 
+# User facing version to get the underlying Weil divisor
+function forget_toric_structure(td::ToricDivisor)
+  return underlying_divisor(td)::WeilDivisor
+end
 
