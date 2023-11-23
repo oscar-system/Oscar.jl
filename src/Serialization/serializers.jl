@@ -150,7 +150,7 @@ function load_ref(s::DeserializerState)
   return loaded_ref
 end
 
-function has_key(s::DeserializerState, key::Symbol)
+function haskey(s::DeserializerState, key::Symbol)
   load_node(s) do obj
     key in keys(obj)
   end
