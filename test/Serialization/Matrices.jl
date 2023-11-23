@@ -19,7 +19,7 @@ cases = [
     @testset "Empty Matrix" begin
       m = zero_matrix(ZZ, 0, 2)
       test_save_load_roundtrip(path, m) do loaded
-        @test test_equality(m, loaded)
+        @test m == loaded
       end
     end
     
