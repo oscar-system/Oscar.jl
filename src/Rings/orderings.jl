@@ -445,7 +445,7 @@ end
 @doc raw"""
     invlex(R::MPolyRing) -> MonomialOrdering
 
-Return the reverse lexicographical ordering on the set of monomials in the variables of `R`.
+Return the inverse lexicographical ordering on the set of monomials in the variables of `R`.
 
     invlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
