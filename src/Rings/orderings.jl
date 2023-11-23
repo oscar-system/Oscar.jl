@@ -510,7 +510,7 @@ end
 @doc raw"""
     deginvlex(R::MPolyRing) -> MonomialOrdering
 
-Return the reverse lexicographical ordering on the set of monomials in the variables of `R`.
+Return the degree inverse lexicographical ordering on the set of monomials in the variables of `R`.
 
     deginvlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
