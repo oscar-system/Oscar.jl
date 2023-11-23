@@ -37,7 +37,7 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
-  upgraded_dict = Dict{Symbol, Any}()
+  upgraded_dict = dict
   for (key, dict_value) in dict
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
