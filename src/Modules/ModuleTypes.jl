@@ -570,10 +570,11 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert h(one(base_ring(F))) == one(base_ring(G))
     r = new{typeof(F), T2, RingMapType}()
     function im_func(x::AbstractFreeModElem)
+      iszero(x) && return zero(codomain(r))
       if r.generators_map_to_generators === nothing
         r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
       end
-      r.generators_map_to_generators && return codomain(r)(map(h, coordinates(x)))
+      r.generators_map_to_generators && return codomain(r)(map_entries(h, coordinates(x)))
       v = images_of_generators(r)
       return sum(h(a)*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
     end
