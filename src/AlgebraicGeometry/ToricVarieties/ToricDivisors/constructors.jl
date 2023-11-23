@@ -119,7 +119,7 @@ end
 # 6: Display
 ######################s
 
-function Base.show(io::IO, td::ToricDivisor)
+function Base.show(io::IO, ::MIME"text/plain", td::ToricDivisor)
     # initiate properties string
     properties_string = ["Torus-invariant"]
     
