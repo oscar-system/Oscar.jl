@@ -402,7 +402,7 @@ Alternatively, we may wish to use $i < j$ instead of $i > j$ in this definition.
 
 In other words, these orderings are obtained by concatenating a monomial ordering on the monomials of $R$
 with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i < j$ ordering on the
-basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the `*` operator for concatenation. 
+basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the `*` operator for concatenation. 
 
 ##### Examples
 
@@ -412,11 +412,11 @@ julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
-julia> o1 = degrevlex(R)*revlex(gens(F))
-degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])
+julia> o1 = degrevlex(R)*invlex(gens(F))
+degrevlex([w, x, y, z])*invlex([gen(1), gen(2), gen(3)])
 
-julia> o2 = revlex(gens(F))*degrevlex(R)
-revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+julia> o2 = invlex(gens(F))*degrevlex(R)
+invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
 
 ```
 

@@ -15,7 +15,6 @@ export induce
 export induced_ring_ordering
 export deginvlex
 export invlex
-export revlex
 export is_elimination_ordering
 export is_global
 export is_local
@@ -29,7 +28,6 @@ export negdeglex
 export negdegrevlex
 export neginvlex
 export neglex
-export negrevlex
 export negwdeglex
 export negwdegrevlex
 export opposite_ordering
@@ -1535,7 +1533,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 julia> F = free_module(R, 2)
 Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
-julia> cmp(lex(R)*revlex(F), F[1], F[2])
+julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1
 ```
 """
@@ -1820,8 +1818,8 @@ julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
-julia> o = revlex(gens(F))*degrevlex(R)
-revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+julia> o = invlex(gens(F))*degrevlex(R)
+invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
 
 julia> induced_ring_ordering(o)
 degrevlex([w, x, y, z])
