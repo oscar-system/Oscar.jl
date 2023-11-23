@@ -52,7 +52,7 @@ end
 function root_system(types::Tuple{Symbol,Int}...)
   cartan = cartan_matrix(types...)
   R = root_system(cartan)
-  R.type = types
+  R.type = collect(types)
   return R
 end
 
