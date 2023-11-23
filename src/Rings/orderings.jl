@@ -697,8 +697,6 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   return 0
 end
 
-const negrevlex = neginvlex
-
 #### negdegrevlex ####
 
 @doc raw"""
