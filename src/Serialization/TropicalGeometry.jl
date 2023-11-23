@@ -31,8 +31,8 @@ function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurf
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
-  polynomial = load_typed_object(s, dict[:polynomial])
+function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface})
+  polynomial = load_typed_object(s, :polynomial)
   return TropicalHypersurface(polynomial)
 end
 
@@ -51,15 +51,15 @@ function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, dict::Dict)
-  EMB = parse(Bool, dict[:is_embedded])
+function load_object(s::DeserializerState, ::Type{<: TropicalCurve})
+  EMB = load_object(s, Bool, :is_embedded)
   if EMB
     return TropicalCurve(
-      load_typed_object(s, dict[:polyhedral_complex])
+      load_typed_object(s, :polyhedral_complex)
     )
   else
     return TropicalCurve(
-      load_typed_object(s, dict[:graph])
+      load_typed_object(s, :graph)
     )
   end
 end
