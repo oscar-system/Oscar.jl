@@ -152,7 +152,7 @@ end
 function serialization_version_info(obj::JSON3.Object)
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
-  return version_number(Dict(version_info))
+  return version_number(version_info)
 end
 
 function version_number(v_number::String)
