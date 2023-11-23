@@ -222,7 +222,6 @@ function decode_type(s::DeserializerState)
       decode_type(s)
     end
   end
-
   return decode_type(s.obj)
 end
 
@@ -652,7 +651,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   if file_version < VERSION_NUMBER
-    upgrade(s, file_version, JSON.parse(io; dicttype=Dict, inttype=Int64))
+    jsondict = JSON.parse(json(s.obj), dicttype=Dict{Symbol, Any})
+    jsondict = upgrade(s, file_version, jsondict)
+    s.obj = JSON3.read(json(jsondict))
   end
 
   try

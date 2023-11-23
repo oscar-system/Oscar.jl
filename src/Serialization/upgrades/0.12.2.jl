@@ -121,7 +121,7 @@ push!(upgrade_scripts_set, UpgradeScript(
           elseif haskey(coeff[:data], :polynomial)
             upgraded_coeff = upgrade_0_12_2(s, coeff[:data][:polynomial])[:data][:terms]
           else
-            upgraded_coeff = coeff[:data][:data]
+            upgraded_coeff = coeff[:data]
           end
           term = (exponent, upgraded_coeff)
           push!(terms, term)
