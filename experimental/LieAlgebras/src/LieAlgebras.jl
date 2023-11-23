@@ -61,6 +61,7 @@ import ..Oscar:
   parent_type,
   rank,
   root,
+  roots,
   sub,
   symbols,
   symmetric_power,
