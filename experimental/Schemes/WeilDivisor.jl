@@ -281,52 +281,57 @@ function Base.show(io::IO, ::MIME"text/plain", D::AbsWeilDivisor)
   end
 end
 
-function +(D::AbsWeilDivisor, E::AbsWeilDivisor) 
+function Base.:+(D::AbsWeilDivisor, E::AbsWeilDivisor) 
   return underlying_divisor(D) + underlying_divisor(E)
 end
 
-function +(D::WeilDivisor, E::AbsWeilDivisor) 
+function Base.:+(D::WeilDivisor, E::AbsWeilDivisor) 
   return D + underlying_divisor(E)
 end
 
-function +(D::AbsWeilDivisor, E::WeilDivisor) 
+function Base.:+(D::AbsWeilDivisor, E::WeilDivisor) 
   return underlying_divisor(D) + E
 end
 
-function +(D::WeilDivisor, E::WeilDivisor) 
+function Base.:+(D::WeilDivisor, E::WeilDivisor) 
   return WeilDivisor(underlying_cycle(D) + underlying_cycle(E), check=false)
 end
 
 
 
-function -(D::AbsWeilDivisor)
+function Base.:-(D::AbsWeilDivisor)
   return -underlying_divisor(D)
 end
 
-function -(D::WeilDivisor)
+function Base.:-(D::WeilDivisor)
   return WeilDivisor(-underlying_cycle(D), check=false)
 end
 
 
 -(D::AbsWeilDivisor, E::AbsWeilDivisor) = D + (-E)
 
-function *(a::RingElem, E::AbsWeilDivisor)
+function Base.:*(a::RingElem, E::AbsWeilDivisor)
   return a*underlying_divisor(E)
 end
 
-function *(a::RingElem, E::WeilDivisor)
+# Method ambiguity requires the following two methods:
+function Base.:*(a::ZZRingElem, E::AbsWeilDivisor)
+  return a*underlying_divisor(E)
+end
+
+function Base.:*(a::ZZRingElem, E::WeilDivisor)
   return WeilDivisor(a*underlying_cycle(E), check=false)
 end
 
-*(a::Int, E::AbsWeilDivisor) = coefficient_ring(E)(a)*E
-*(a::Integer, E::AbsWeilDivisor) = coefficient_ring(E)(a)*E
+function Base.:*(a::RingElem, E::WeilDivisor)
+  return WeilDivisor(a*underlying_cycle(E), check=false)
+end
 
-# For some reason it seems, we need to overwrite this manually for every concrete type.
-*(a::Int, E::ToricDivisor) = coefficient_ring(E)(a)*E
-*(a::Integer, E::ToricDivisor) = coefficient_ring(E)(a)*E
+Base.:*(a::T, E::AbsWeilDivisor) where {T<:IntegerUnion} = coefficient_ring(E)(a)*E
+# method ambiguity requires us to also implement the following:
+Base.:*(a::Int, E::AbsWeilDivisor) = coefficient_ring(E)(a)*E
 
-
-+(D::AbsWeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
+Base.:+(D::AbsWeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
 
 function ==(D::AbsWeilDivisor, E::AbsWeilDivisor) 
   return underlying_divisor(D) == underlying_divisor(E)
@@ -727,10 +732,15 @@ end
 scheme(td::ToricDivisor) = toric_variety(td)
 
 ### Construct the Weil divisor associated to `td`.
-@attr WeilDivisor function underlying_divisor(td::ToricDivisor)
+function underlying_divisor(td::ToricDivisor; check::Bool=false)
+  if has_attribute(td, :underlying_divisor)
+    return get_attribute(td, :underlying_divisor)::WeilDivisor
+  end
   X = scheme(td)
-  generating_divisors = _torus_invariant_weil_divisors(X)
-  return sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
+  generating_divisors = _torusinvariant_weil_divisors(X; check)
+  result = sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
+  set_attribute!(td, :underlying_divisor=>result)
+  return result
 end
 
 # Compute the ideal sheaves and Weil divisors of the rays of `fan(X)` 
@@ -752,7 +762,7 @@ end
 #
 #   (*) When {v₁,…,vᵣ} is a Hilbert basis of σ ̌∩ M, then in case 2) 
 #       above the elements in σ ̌∩ M ∖ τ⟂  are precisely those in 
-#         Σ vⱼ + σ ̌∩ M 
+#         Σ (vⱼ + σ ̌∩ M)
 #       for those vⱼ which are not in τ⟂. Hence, we can use the 
 #       monomials corresponding to those vⱼ as generators of the 
 #       ideal.
@@ -760,7 +770,38 @@ end
 # Edit: It turned out to be a misprint in the online version of the 
 # CLS book. In the printed version, which might not be accessible to 
 # all of us, the formula says exactly what we say in 2). 
-@attr Vector{<:WeilDivisor} function _torus_invariant_weil_divisors(X::NormalToricVariety)
+#
+# What we do above is also supported by the description of divisors 
+# in CLS, Formula (4.3.2): For a ray ρ ∈ Σ(1) the divisor -D with 
+# linear system consisting of the rational functions f which vanish 
+# on D is then locally given by 
+#
+#   P_D = { m ∈ M_ℝ : ⟨m,u_r⟩ ≥ -a_r for all r ∈ Σ(1) } 
+#
+# where a_ρ = 1 and a_r = 0 for r ≠ ρ. When we view σ ̌∩ M_ℝ as the 
+# monomials of the coordinate ring of that affine variety, its 
+# intersection with P_D should be precisely what we compute. 
+#
+# proof of (*): Without loss of generality we may assume that 
+# v₁,…,vₛ ∈ τ⟂ and vⱼ ∉ τ⟂ for s < j ≤ r. Let w ∈ σ ̌∩ M be arbitrary 
+# and let w = a₁⋅v₁ + a₂⋅v₂ + … + aᵣ⋅vᵣ be a representation of w 
+# in the Hilbert basis. We claim: 
+#
+#   w ∈ τ⟂  ⇔  ∃ (a₁,…, aₛ) ∈ ℤ_≥0 : w = a₁⋅v₁ + a₂⋅v₂ + … + aₛ⋅vₛ
+#
+# The direction "⇐ " is trivial. For "⇒ " write w as a full linear 
+# combination 
+#    w = a₁⋅v₁ + a₂⋅v₂ + … + aᵣ⋅vᵣ = w⟂ + w'
+# with w⟂ = a₁⋅v₁ + a₂⋅v₂ + … + aₛ⋅vₛ ∈ τ⟂ and w' the remainder. 
+# But then, since τ⟂ is a linear subspace, 
+#    w' = aₛ₊₁⋅vₛ₊₁ + … + aᵣ⋅vᵣ ∈ τ⟂, 
+# too. On the other hand, none of the vⱼ was in τ⟂ for j > s, 
+# so neither can be any convex combination, but the trivial one. 
+# This proves the claim. Now (*) follows directly.
+function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
+  if has_attribute(X, :_torusinvariant_weil_divisors)
+    return get_attribute(X, :_torusinvariant_weil_divisors)::Vector{<:AbsWeilDivisor}
+  end
   ray_list = rays(fan(X))
   ideal_sheaves = Vector{IdealSheaf}()
   for tau in ray_list
@@ -773,14 +814,15 @@ end
       end
       sigma_dual = weight_cone(U)
       hb = hilbert_basis(sigma_dual)
-      selection = [v for v in hb if !(-v in tau_dual)]
       x = gens(OO(U))
       ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
     end
-    push!(ideal_sheaves, IdealSheaf(X, ideal_dict, check=false))
+    push!(ideal_sheaves, IdealSheaf(X, ideal_dict; check))
   end
   generating_divisors = [WeilDivisor(X, ZZ, IdDict{IdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
-  return generating_divisors
+  result = generating_divisors
+  set_attribute!(X, :_torusinvariant_weil_divisors=>result)
+  return result
 end
 
 
