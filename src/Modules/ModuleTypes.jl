@@ -333,6 +333,7 @@ mutable struct SubQuoHom{
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
   d::GrpAbFinGenElem
+  generators_map_to_generators::Union{Bool, Nothing}
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector;
@@ -347,6 +348,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -362,6 +364,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -377,6 +380,7 @@ mutable struct SubQuoHom{
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -398,6 +402,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -418,6 +423,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -438,6 +444,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -524,6 +531,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
+  generators_map_to_generators::Union{Bool, Nothing}
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
@@ -535,11 +543,12 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
     function im_func(x::AbstractFreeModElem)
-      b = zero(G)
-      for (i,v) = x.coords
-        b += v*a[i]
+      if r.generators_map_to_generators === nothing
+        r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
       end
-      return b
+      r.generators_map_to_generators && return codomain(r)(coordinates(x))
+      v = images_of_generators(r)
+      return sum(a*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -548,6 +557,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
     r.imgs_of_gens = Vector{elem_type(G)}(a)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -560,11 +570,12 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert h(one(base_ring(F))) == one(base_ring(G))
     r = new{typeof(F), T2, RingMapType}()
     function im_func(x::AbstractFreeModElem)
-      b = zero(G)
-      for (i,v) = x.coords
-        b += h(v)*a[i]
+      if r.generators_map_to_generators === nothing
+        r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
       end
-      return b
+      r.generators_map_to_generators && return codomain(r)(map(h, coordinates(x)))
+      v = images_of_generators(r)
+      return sum(h(a)*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -575,6 +586,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
     r.imgs_of_gens = Vector{elem_type(G)}(a)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 

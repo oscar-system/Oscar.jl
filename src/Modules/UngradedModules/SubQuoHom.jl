@@ -452,8 +452,12 @@ end
 Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubquoModuleElem)
-  # TODO matrix vector multiplication
   @assert a.parent === domain(f)
+  if f.generators_map_to_generators === nothing
+    f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
+  end
+  f.generators_map_to_generators && return codomain(f)(map(base_ring_map(f), coordinates(a)))
+  # TODO matrix vector multiplication
   i = zero(codomain(f))
   b = coordinates(a)
   for (p,v) = b
@@ -465,12 +469,12 @@ end
 function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
-  i = zero(codomain(f))
-  b = coordinates(a)
-  for (p,v) = b
-    i += v*f.im[p]
+  if f.generators_map_to_generators === nothing
+    f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
   end
-  return i
+  f.generators_map_to_generators && return codomain(f)(coordinates(a))
+  v = images_of_generators(f)
+  return sum(c*v[i] for (i, c) in coordinates(a); init=zero(codomain(f)))
 end
 
 @doc raw"""
