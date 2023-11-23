@@ -7,22 +7,22 @@
 
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.11.3", # version this script upgrades to
-  function upgrade_0_11_3(s::DeserializerState)
+  function upgrade_0_11_3(s::UpgradeState, dict::Dict)
     # moves down tree to point where type exists in dict
     # since we are only doing updates based on certain types
     # no :type key implies the dict is data
-    if !haskey(s, :type)
-      return upgrade_data(upgrade_0_11_3, s)
+    if !haskey(dict, :type)
+      return upgrade_data(upgrade_0_11_3, s, dict)
     end
 
-    if s.obj[:type] == string(backref_sym)
-      backrefed_object = s.refs[Symbol(s.obj[:id])]
+    if dict[:type] == string(backref_sym)
+      backrefed_object = s.id_to_dict[Symbol(dict[:id])]
 
       # if the backref points to a string, just use that string
       # instead of the backref
-      if backrefed_object isa String
-        s.obj = backrefed_object
-      end
+      backrefed_object isa String && return backrefed_object
+
+      return dict
     end
 
     # this handles types like QQField that have no associated data

@@ -33,13 +33,9 @@ end
 # The list of all available upgrade scripts
 upgrade_scripts_set = Set{UpgradeScript}()
 
-function upgrade_data(upgrade::Function, s::DeserializerState)
-  # subtree comes from polymake
-  if :_ns in keys(s.obj)
-    is_polymake = load_node(s, :_ns) do ns
-      return :polymake in keys(ns)
-    end && return 
-  end
+function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
+  # file comes from polymake
+  haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
   upgraded_dict = Dict{Symbol, Any}()
   for (key, dict_value) in dict
@@ -84,10 +80,11 @@ function upgrade(s::DeserializerState, format_version::VersionNumber)
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
       @info("upgrading serialized data....", maxlog=1)
-      upgrade_script(s)
+
+      upgrade_state = UpgradeState()
+      upgraded_dict = upgrade_script(upgrade_state, s)
     end
   end
-  load_node(s, :_ns) do ns
-    ns = get_oscar_serialization_version()
-  end
+  upgraded_dict[:_ns] = get_oscar_serialization_version()
+  return upgraded_dict
 end
