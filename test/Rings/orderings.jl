@@ -23,7 +23,7 @@
 
    @test collect(monomials(g; ordering = lex(R))) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
    @test collect(monomials(g; ordering = invlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # ip
-   @test collect(monomials(g; ordering = deginvlex(R))) == [x3^2, x2*x3, x1*x3, x3, x2^2, x1*x2, x2, x1^2, x1, 1] # Ip
+   @test collect(monomials(g; ordering = deginvlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # Ip
    @test collect(monomials(g; ordering = deglex(R))) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
    @test collect(monomials(g; ordering = degrevlex(R))) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
    @test collect(monomials(g; ordering = neglex(R))) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
