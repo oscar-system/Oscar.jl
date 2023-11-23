@@ -142,6 +142,8 @@ export reduced_expressions
 export reflect, reflect!
 export root_system_type, has_root_system_type
 export root_system, has_root_system
+export simple_root
+export simple_roots
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
@@ -243,6 +245,8 @@ export root
 export root_system_type, has_root_system_type
 export root_system, has_root_system
 export roots
+export simple_root
+export simple_roots
 export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module

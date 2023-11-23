@@ -175,6 +175,15 @@ function roots(R::RootSystem)
   return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
+function simple_root(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_root(R, i)
+end
+
+function simple_roots(R::RootSystem)
+  return [positive_root(R, i) for i in 1:num_simple_roots(R)]
+end
+
 @doc raw"""
     weyl_group(R::RootSystem) -> WeylGroup
 
