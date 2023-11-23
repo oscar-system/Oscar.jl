@@ -503,4 +503,4 @@ function reduce(v::AbstractFreeModElem, N::SubModuleOfFreeModule)
   return reduce(v, groebner_basis(N))
 end
 
-
+zero(M::SubModuleOfFreeModule) = zero(ambient_free_module(M))
