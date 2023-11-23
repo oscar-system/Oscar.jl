@@ -514,7 +514,7 @@ Return the degree inverse lexicographical ordering on the set of monomials in th
 
     deginvlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
-Given a vector `V` of variables, return the reverse lexicographical ordering on the set of monomials in these variables.
+Given a vector `V` of variables, return the degree inverse lexicographical ordering on the set of monomials in these variables.
 
 # Examples
 ```jldoctest
