@@ -300,6 +300,15 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+function is_simple_root_with_index(r::RootSpaceElem)
+  i = findfirst(==(r), simple_roots(r.root_system))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
 function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
 end

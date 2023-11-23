@@ -120,6 +120,7 @@ export is_negative_root_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
@@ -222,6 +223,7 @@ export is_negative_root_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
