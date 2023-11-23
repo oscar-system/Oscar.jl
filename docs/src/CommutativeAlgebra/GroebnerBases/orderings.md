@@ -153,7 +153,7 @@ lex(R::MPolyRing)
 
 The *degree lexicographical ordering* `deglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\; (\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i).$
 
 ```@docs
 deglex(R::MPolyRing)
@@ -173,7 +173,7 @@ invlex(R::MPolyRing)
 
 The *degree inverse lexicographical ordering* `deginvlex` is defined by setting
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or } \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i).$
 
 ```@docs
 deginvlex(R::MPolyRing)
@@ -183,7 +183,7 @@ deginvlex(R::MPolyRing)
 
 The *degree reverse lexicographical ordering* `degrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i).$
 
 ```@docs
 degrevlex(R::MPolyRing)
@@ -229,7 +229,7 @@ neglex(R::MPolyRing)
 
 The *negative degree lexicographical ordering* `negdeglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\; (\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\;  \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i).$
 
 ```@docs
 negdeglex(R::MPolyRing)
@@ -249,7 +249,7 @@ neginvlex(R::MPolyRing)
 
 The *negative degree reverse lexicographical ordering* `negdegrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i).$
 
 ```@docs
 negdegrevlex(R::MPolyRing)
