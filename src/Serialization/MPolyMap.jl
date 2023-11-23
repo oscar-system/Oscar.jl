@@ -37,5 +37,5 @@ function load_object(s::DeserializerState, ::Type{MPolyAnyMap},
   if haskey(s, :coeff_map)
     throw("MPolyAnyMap with coefficient map serialization unimplemented")
   end
-  return MPolyAnyMap(c, d, nothing, imgs)
+  return MPolyAnyMap(d, c, nothing, imgs)
 end
