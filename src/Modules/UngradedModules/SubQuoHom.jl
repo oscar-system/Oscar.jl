@@ -1,0 +1,1334 @@
+###############################################################################
+# SubQuoHom constructors
+###############################################################################
+
+@doc raw"""
+    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where T
+
+Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
+In particular, `length(im) == ngens(D)` must hold.
+"""
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
+
+@doc raw"""
+    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
+
+Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a subquotient.
+`mat` must have `ngens(D)` many rows and `ngens(C)` many columns.
+"""
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if C isa FreeMod
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    return hom
+  end
+end
+
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+  @assert nrows(mat) == ngens(D)
+  @assert ncols(mat) == ngens(C)
+  if C isa FreeMod
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  else
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    return hom
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  # HACK
+  show(io, fmh)
+end
+
+function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  compact = get(io, :compact, false)
+  io_compact = IOContext(io, :compact => true)
+  domain_gens = gens(domain(fmh))
+  if is_graded(fmh)
+    print(io_compact, domain(fmh))
+    print(io, " -> ")
+    print(io_compact, codomain(fmh))
+    if !compact
+      print(io, "\n")
+      for i in 1:length(domain_gens)
+        print(io, domain_gens[i], " -> ")
+        print(io_compact, fmh(domain_gens[i]))
+        print(io, "\n")
+      end
+      A = grading_group(fmh)
+      if degree(fmh) == A[0]
+        print(io, "Homogeneous module homomorphism")
+      else
+        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
+        print(io, "\n")
+      end
+    end
+  else
+    println(io, "Map with following data")
+    println(io, "Domain:")
+    println(io, "=======")
+    println(io, domain(fmh))
+    println(io, "Codomain:")
+    println(io, "=========")
+    print(io, codomain(fmh))
+  end
+end
+
+
+###################################################################
+
+@doc raw"""
+    hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+
+Given a vector `V` of `ngens(M)` elements of `N`, 
+return the homomorphism `M` $\to$ `N` which sends the `i`-th
+generator `M[i]` of `M` to the `i`-th entry of `V`.
+
+    hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T})) where T
+
+Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
+
+!!! note
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
+!!! warning
+    The functions do not check whether the resulting homomorphism is well-defined,
+    that is, whether it sends the relations of `M` into the relations of `N`. 
+
+If you are uncertain with regard to well-definedness, use the function below.
+Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
+
+    is_welldefined(a::ModuleFPHom)
+
+Return `true` if `a` is well-defined, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> a = hom(M, N, V)
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> is_welldefined(a)
+true
+
+julia> W = R[y^2 0; 0 x]
+[y^2   0]
+[  0   x]
+
+julia> b = hom(M, N, W);
+
+julia> a == b
+true
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> A = R[x; y];
+
+julia> B = R[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B);
+
+julia> N = M;
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> c = hom(M, N, W);
+
+julia> is_welldefined(c)
+false
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> is_welldefined(a)
+true
+
+julia> W = Rg[y^2 0; 0 x^2]
+[y^2     0]
+[  0   x^2]
+
+julia> b = hom(M, N, W)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> a == b
+true
+
+julia> W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia> c = hom(M, N, W)
+M -> M
+x*e[1] -> x*y*e[1]
+y*e[1] -> x*y*e[1]
+Graded module homomorphism of degree [1]
+
+julia> is_welldefined(c)
+false
+```
+"""
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
+hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+
+
+@doc raw"""
+    hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
+
+Given a vector `V` of `ngens(M)` elements of `N`, 
+return the homomorphism `M` $\to$ `N` which sends the `i`-th
+generator `M[i]` of `M` to the `i`-th entry of `V`, and the 
+scalars in `base_ring(M)` to their images under `h`.
+
+    hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
+
+Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`,
+and the scalars in `base_ring(M)` to their images under `h`.
+
+!!! note
+    The module `N` may be of type `FreeMod` or `SubquoMod`. If both modules
+    `M` and `N` are graded, the data must define a graded module homomorphism of some degree.
+    If this degree is the zero element of the (common) grading group, we refer to
+    the homomorphism under consideration as a *homogeneous module homomorphism*.
+
+!!! warning
+    The functions do not check whether the resulting homomorphism is well-defined,
+    that is, whether it sends the relations of `M` into the relations of `N`. 
+
+If you are uncertain with regard to well-definedness, use the function below.
+Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
+
+    is_welldefined(a::ModuleFPHom)
+
+Return `true` if `a` is well-defined, and `false` otherwise.
+
+"""
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h)
+hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
+
+function is_welldefined(H::ModuleFPHom)
+  if H isa Union{FreeModuleHom,FreeModuleHom_dec}
+    return true
+  end
+  M = domain(H)
+  C = present_as_cokernel(M).quo
+  n = ngens(C)
+  m = rank(C.F)
+  ImH = map(x -> H(x), gens(M))
+  for i=1:n
+    if !iszero(sum([C[i][j]*ImH[j] for j=1:m]; init=zero(codomain(H))))
+      return false
+    end
+  end
+  return true
+end
+
+function (==)(f::ModuleFPHom, g::ModuleFPHom)
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  M = domain(f)
+  for v in gens(M)
+    f(v) == g(v) || return false
+  end
+  return true
+end
+
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  return xor(h, b)
+end
+
+###################################################################
+
+@doc raw"""
+    matrix(a::SubQuoHom)
+
+Given a homomorphism `a` of type  `SubQuoHom` with domain `M`
+and codomain `N`, return a matrix `A` with `ngens(M)` rows and 
+`ngens(N)` columns such that `a == hom(M, N, A)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]];
+
+julia> a = hom(M, N, V);
+
+julia> A = matrix(a)
+[y^2   0]
+[  0   x]
+
+julia> a(M[1])
+x*y^2*e[1]
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> matrix(a)
+[y^2     0]
+[  0   x^2]
+
+```
+"""
+function matrix(f::SubQuoHom)
+  if !isdefined(f, :matrix)
+    D = domain(f)
+    C = codomain(f)
+    R = base_ring(D)
+    matrix = zero_matrix(R, ngens(D), ngens(C))
+    for i=1:ngens(D), j=1:ngens(C)
+      matrix[i,j] = f.im[i][j]
+    end
+    f.matrix = matrix
+  end
+  return f.matrix
+end
+
+function show_morphism(f::ModuleFPHom)
+  show(stdout, "text/plain", matrix(f))
+end
+
+
+@doc raw"""
+    image(a::SubQuoHom, m::SubquoModuleElem)
+
+Return the image $a(m)$.
+"""
+function image(f::SubQuoHom, a::SubquoModuleElem)
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coordinates(a)
+  for (p,v) = b
+    i += base_ring_map(f)(v)*f.im[p]
+  end
+  return i
+end
+
+function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
+  # TODO matrix vector multiplication
+  @assert a.parent === domain(f)
+  i = zero(codomain(f))
+  b = coordinates(a)
+  for (p,v) = b
+    i += v*f.im[p]
+  end
+  return i
+end
+
+@doc raw"""
+    image(f::SubQuoHom, a::FreeModElem)
+
+Return $f(a)$. `a` must represent an element in the domain of `f`.
+"""
+function image(f::SubQuoHom, a::FreeModElem)
+  return image(f, SubquoModuleElem(a, domain(f)))
+end
+
+function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::FreeModElem)
+  return image(f, SubquoModuleElem(a, domain(f)))
+end
+
+@doc raw"""
+    preimage(f::SubQuoHom, a::Union{SubquoModuleElem,FreeModElem})
+
+Compute a preimage of `a` under `f`.
+"""
+function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP}, a::Union{SubquoModuleElem,FreeModElem})
+  @assert parent(a) === codomain(f)
+  phi = base_ring_map(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  bb = map_entries(x->(preimage(phi, x)), b)
+  for (p,v) = bb
+    i += v*gen(D, p)
+  end
+  return i
+end
+
+function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, 
+        a::Union{SubquoModuleElem,FreeModElem})
+  @assert parent(a) === codomain(f)
+  D = domain(f)
+  i = zero(D)
+  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  for (p,v) = b
+    i += v*gen(D, p)
+  end
+  return i
+end
+
+(f::SubQuoHom)(a::FreeModElem) = image(f, SubquoModuleElem(a, domain(f)))
+(f::SubQuoHom)(a::SubquoModuleElem) = image(f, a)
+
+@doc raw"""
+    image(a::SubQuoHom)
+
+Return the image of `a` as an object of type `SubquoModule`.
+
+Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
+"""
+function image(h::SubQuoHom)
+  h_image_vector::Vector{elem_type(codomain(h))} = h.im
+  s = sub(codomain(h), h_image_vector, :module)
+  return s, hom(s, codomain(h), h_image_vector)
+end
+
+@doc raw"""
+    image(a::ModuleFPHom)
+
+Return the image of `a` as an object of type `SubquoModule`.
+
+Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 3);
+
+julia> G = free_module(R, 2);
+
+julia> W = R[y 0; x y; 0 z]
+[y   0]
+[x   y]
+[0   z]
+
+julia> a = hom(F, G, W);
+
+julia> I, incl = image(a);
+
+julia> I
+Submodule with 3 generators
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations.
+
+julia> incl
+Map with following data
+Domain:
+=======
+Submodule with 3 generators
+1 -> y*e[1]
+2 -> x*e[1] + y*e[2]
+3 -> z*e[2]
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 1);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> a = hom(M, N, V);
+
+julia> I, incl = image(a);
+
+julia> I
+Subquotient of Submodule with 2 generators
+1 -> x*y^2*e[1]
+2 -> x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> incl
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -> x*y^2*e[1]
+2 -> x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> image(a)
+(Graded subquotient of submodule of F generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of F generated by
+1 -> x*y^2*e[1]
+2 -> x^2*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> M
+x*y^2*e[1] -> x*y^2*e[1]
+x^2*y*e[1] -> x^2*y*e[1]
+Homogeneous module homomorphism)
+```
+"""
+function image(a::ModuleFPHom)
+ error("image is not implemented for the given types.")
+end
+
+@doc raw"""
+    kernel(a::SubQuoHom)
+
+Return the kernel of `a` as an object of type `SubquoModule`.
+
+Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
+"""
+function kernel(h::SubQuoHom)
+  D = domain(h)
+  R = base_ring(D)
+  is_graded(h) ? F = graded_free_module(R, degrees_of_generators(D)) : F = FreeMod(R, ngens(D))
+  hh = hom(F, codomain(h), Vector{elem_type(codomain(h))}(map(h, gens(D))))
+  k = kernel(hh)
+  @assert domain(k[2]) === k[1]
+  @assert codomain(k[2]) === F
+  hh = hom(F, D, gens(D))
+  im::Vector{elem_type(D)} = filter(x -> !iszero(x), map(x->hh(k[2](x)), gens(k[1])))
+  k = sub(D, im, :module)
+  return k, hom(k, D, im)
+end
+
+@doc raw"""
+    kernel(a::ModuleFPHom)
+
+Return the kernel of `a` as an object of type `SubquoModule`.
+
+Additionally, if `K` denotes this object, return the inclusion map `K` $\to$ `domain(a)`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 3);
+
+julia> G = free_module(R, 2);
+
+julia> W = R[y 0; x y; 0 z]
+[y   0]
+[x   y]
+[0   z]
+
+julia> a = hom(F, G, W);
+
+julia> K, incl = kernel(a);
+
+julia> K
+Submodule with 1 generator
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations.
+
+julia> incl
+Map with following data
+Domain:
+=======
+Submodule with 1 generator
+1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+```
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = free_module(R, 1);
+
+julia> A = R[x; y]
+[x]
+[y]
+
+julia> B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia> M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia> a = hom(M, N, V);
+
+julia> K, incl = kernel(a);
+
+julia> K
+Subquotient of Submodule with 3 generators
+1 -> (-x + y^2)*e[1]
+2 -> x*y*e[1]
+3 -> -x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> incl
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 3 generators
+1 -> (-x + y^2)*e[1]
+2 -> x*y*e[1]
+3 -> -x*y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -> x*e[1]
+2 -> y*e[1]
+by Submodule with 3 generators
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F = graded_free_module(Rg, 1);
+
+julia> A = Rg[x; y];
+
+julia> B = Rg[x^2; y^3; z^4];
+
+julia> M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -> x*e[1]
+2 -> y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1]
+
+julia> N = M;
+
+julia> V = [y^2*N[1], x^2*N[2]];
+
+julia> a = hom(M, N, V)
+M -> M
+x*e[1] -> x*y^2*e[1]
+y*e[1] -> x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia> kernel(a)
+(Graded subquotient of submodule of F generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1], Graded subquotient of submodule of F generated by
+1 -> -y*e[1]
+2 -> (x^2 - y^2)*e[1]
+3 -> -x*y*e[1]
+by submodule of F generated by
+1 -> x^2*e[1]
+2 -> y^3*e[1]
+3 -> z^4*e[1] -> M
+-y*e[1] -> -y*e[1]
+(x^2 - y^2)*e[1] -> (x^2 - y^2)*e[1]
+-x*y*e[1] -> -x*y*e[1]
+Homogeneous module homomorphism)
+
+```
+"""
+function kernel(a::ModuleFPHom)
+ error("kernel is not implemented for the given types.")
+end
+
+#TODO
+#  replace the +/- for the homs by proper constructors for homs and direct sums
+#  relshp to store the maps elsewhere
+
+@doc raw"""
+    *(a::ModuleFPHom, b::ModuleFPHom)
+
+Return the composition `b` $\circ$ `a`.
+"""
+function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
+end
+
+function *(h::ModuleFPHom{T1, T2, <:Map}, g::ModuleFPHom{T2, T3, <:Map}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
+end
+
+function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), 
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
+             MapFromFunc(base_ring(domain(h)), 
+                         base_ring(codomain(g)),
+                         x->(base_ring_map(g)(base_ring_map(h)(x))))
+            )
+
+end
+
+compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
+
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h))
+
+function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
+end
+
+function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  @assert base_ring_map(h) === base_ring_map(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h))
+end
+
+function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+  @assert domain(h) === domain(g)
+  @assert codomain(h) === codomain(g)
+  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
+end
+
+function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+end
+
+function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+  @assert base_ring(codomain(g)) === parent(a)
+  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g))
+end
+
+
+@doc raw"""
+    restrict_codomain(H::ModuleFPHom, M::SubquoModule)
+
+Return, if possible, a homomorphism, which is mathematically identical to `H`,
+but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
+"""
+function restrict_codomain(H::ModuleFPHom, M::SubquoModule)
+  D = domain(H)
+  return hom(D, M, map(v -> SubquoModuleElem(v, M), map(x -> repres(H(x)), gens(D))))
+end
+
+@doc raw"""
+    restrict_domain(H::SubQuoHom, M::SubquoModule)
+
+Restrict the morphism `H` to `M`. For this `M` has to be a submodule
+of the domain of `H`. The relations of `M` must be the relations of 
+the domain of `H`.
+"""
+function restrict_domain(H::SubQuoHom, M::SubquoModule)
+  for i in M.outgoing_morphisms
+    if codomain(i) === domain(H)
+      return i*H
+    end
+  end
+  # else there is no cached map
+  if ngens(M) > 0
+    @assert M.quo == domain(H).quo
+  end
+  i = sub(domain(H), map(m -> SubquoModuleElem(repres(m), domain(H)), gens(M)), :cache_morphism)[2]
+  return i*H
+end
+
+@doc raw"""
+    induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
+
+Return the map which sends an element `v` of `M` to `f(repres(v))`.
+If `check` is set to true the well-definedness of the map is checked.
+"""
+function induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
+  @assert ambient_free_module(M) === domain(f)
+  ind_f = hom(M, codomain(f), [f(repres(v)) for v in gens(M)])
+  if check
+    @assert is_welldefined(ind_f)
+  end
+  return ind_f
+end
+
+@doc raw"""
+    inv(a::ModuleFPHom)
+
+If `a` is bijective, return its inverse.
+"""
+function inv(H::ModuleFPHom)
+  if isdefined(H, :inverse_isomorphism)
+    return H.inverse_isomorphism
+  end
+  @assert is_bijective(H)
+  N = domain(H)
+  M = codomain(H)
+
+  Hinv = hom(M,N, Vector{elem_type(N)}([preimage(H,m) for m in gens(M)]))
+  Hinv.inverse_isomorphism = H
+  H.inverse_isomorphism = Hinv
+
+  return Hinv
+end
+
+######################################
+# Migrating test
+######################################
+@doc raw"""
+    projection(F::FreeMod, indices::AbstractArray)
+
+Return the canonical projection from $F = R^I$ to $R^(\texttt{indices})$ where $\texttt{indices} \subset I$.
+"""
+function projection(F::FreeMod, indices::AbstractArray)
+  @assert all(x -> x <= ngens(F), indices)
+  @assert length(Set(indices)) == length(indices) # unique indices
+  R = base_ring(F)
+  G = FreeMod(R, length(indices))
+  return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)]))
+end
+
+@doc raw"""
+    preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
+
+Return the preimage of the submodule `N` under the morphism `H` 
+as a subquotient, as well as the injection homomorphism into the domain of $H$.
+"""
+function preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
+  inclusion = get_attribute(N, :canonical_inclusion)
+  if inclusion !== nothing && codomain(inclusion) === codomain(H)
+    elems = [inclusion(v) for v in gens(N)]
+  else
+    elems = [SubquoModuleElem(repres(v),codomain(H)) for v in gens(N)]
+  end
+  return preimage(H,elems,task)
+end
+
+@doc raw"""
+    preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol = :none) where {T}
+
+Return the preimage of the submodule generated by the Elements `elems` under $H$
+as a subquotient, as well as the injection homomorphism into the domain of $H$.
+"""
+function preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol = :none) where {T}
+  if length(elems)==0
+      k,emb = kernel(H)
+      if task == :none
+        return k
+      else
+        return k,emb
+      end
+  end
+  @assert all(x->parent(x)===codomain(H),elems)
+  cod_coker,i_cod_coker_inv = present_as_cokernel(codomain(H), :with_morphism)
+  i_cod_coker = inv(i_cod_coker_inv) # this is cheap
+  elems_in_coker = map(x->i_cod_coker(x),elems)
+  cokernel_modulo_elmes,projection = quo(cod_coker,elems_in_coker,:with_morphism)
+  preimage, emb = kernel(H*i_cod_coker*projection)
+  
+  if task != :none
+    return preimage, emb
+  else
+    return preimage
+  end
+end
+
+@doc raw"""
+    matrix_kernel(A::MatElem)
+
+Compute the kernel of `A` where `A` is considered as the corresponding morphism
+between free modules.
+"""
+function matrix_kernel(A::MatElem)
+  R = base_ring(A)
+  F_domain = FreeMod(R, nrows(A))
+  F_codomain = FreeMod(R, ncols(A))
+
+  phi = FreeModuleHom(F_domain, F_codomain, A)
+  _, inclusion = kernel(phi)
+  return matrix(inclusion)
+end
+
+@doc raw"""
+    simplify_light(M::SubquoModule)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms.
+The only simplifications which are done are the following: 
+- Remove all generators which are represented by the zero element in the ambient 
+free module.
+- Remove all generators which are in the generating set of the relations.
+- Remove all duplicates in the generators and relations sets.
+"""
+function simplify_light(M::SubquoModule)
+  M_gens = ambient_representatives_generators(M)
+  M_rels = relations(M)
+
+  N_rels = unique(filter(x -> !iszero(x), M_rels))
+  N_gens = unique(setdiff(filter(x -> !iszero(x), M_gens), N_rels))
+
+  N = length(N_rels) == 0 ? SubquoModule(ambient_free_module(M), N_gens) : SubquoModule(ambient_free_module(M), N_gens, N_rels)
+
+  index_of_N_in_M = indexin(N_gens, M_gens)
+  inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]))
+
+  index_of_M_in_N = indexin(M_gens, N_gens)
+  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]))
+
+  return N, inj, proj
+end
+
+@doc raw"""
+    simplify_with_same_ambient_free_module(M::SubquoModule)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms. The ambient free module of `N` is the same as that of `M`.
+"""
+function simplify_with_same_ambient_free_module(M::SubquoModule)
+  _, to_M, from_M = simplify(M)
+  N, N_to_M = image(to_M)
+  return N, N_to_M, hom(M, N, [N(coordinates(from_M(g))) for g in gens(M)])
+  #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
+end
+
+@doc raw"""
+    simplify(M::SubquoModule)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+isomorphisms. 
+The simplifcation is heuristical and includes steps like for example removing
+zero-generators or removing the i-th component of all vectors if those are 
+reduced by a relation.
+"""
+function simplify(M::SubquoModule)
+  respect_grading = is_graded(M)
+  function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
+    F = ambient_free_module(M)
+    return in(F[i], M.quo)
+  end
+
+  function delete_rows(A::MatElem, to_delete::Vector{Int})
+    Mat = A[setdiff(1:nrows(A),to_delete),:]
+    return Mat
+  end
+  function delete_columns(A::MatElem, to_delete::Vector{Int})
+    return transpose(delete_rows(transpose(A), to_delete))
+  end
+
+  function assign_row!(A::MatElem, v::Vector, row_index::Int)
+    if length(v) != size(A)[2]
+      throw(DimensionMismatch("Different row lengths"))
+    end
+    for i=1:length(v)
+      A[row_index,i] = v[i]
+    end
+    return A
+  end
+
+  function assign_row!(A::MatElem, v::MatElem, row_index::Int)
+    if size(v)[1] > 1
+      throw(DimensionMismatch("Expected row vector"))
+    end
+    if length(v) != size(A)[2]
+      throw(DimensionMismatch("Different row lengths"))
+    end
+    for i=1:length(v)
+      A[row_index,i] = v[1,i]
+    end
+    return A
+  end
+
+  function rows_to_delete(A::MatElem, max_index::Int, M::SubquoModule, respect_grading::Bool=false)
+    to_delete_indices::Vector{Int} = []
+    corresponding_row_index::Vector{Int} = []
+    if max_index < nrows(A)
+      A = vcat(A[(max_index+1):nrows(A),:],A[1:max_index,:])
+    end
+    K = matrix_kernel(A)
+    if max_index < nrows(A)
+      K = hcat(K[:,(ncols(K)-max_index+1):ncols(K)],K[:,1:(ncols(K)-max_index)])
+    end
+    for i=1:size(K)[1], j=1:max_index
+      #if is_unit(K[i,j]) && (!respect_grading || degree(M.sub.O[j]) == degree(M.quo.O[i]))
+      if is_unit(K[i,j])
+        deletion_possible = true
+        for k in to_delete_indices
+          if !iszero(K[i,k])
+            deletion_possible = false
+            break
+          end
+        end
+        if deletion_possible
+          push!(to_delete_indices, j)
+          push!(corresponding_row_index, i)
+        end
+      end
+    end
+    return to_delete_indices, corresponding_row_index, K
+  end
+
+  R = base_ring(M)
+  #remove columns
+
+  M_generators = generator_matrix(M.sub)
+  M_relations = isdefined(M, :quo) ? generator_matrix(M.quo) : zero_matrix(R, 1,ncols(M_generators))
+
+  to_delete::Vector{Int} = []
+  for i=1:size(M_relations)[2]
+    if standard_unit_vector_in_relations(i, M)
+      push!(to_delete, i)
+    end
+  end
+
+  new_generators = delete_columns(M_generators, to_delete)
+  new_relations = delete_columns(M_relations, to_delete)
+
+  to_delete,_,_ = rows_to_delete(transpose(vcat(new_generators, new_relations)), size(new_relations)[2], M, respect_grading)
+
+  new_generators = delete_columns(new_generators, to_delete)
+  new_relations = delete_columns(new_relations, to_delete)
+
+  #remove rows
+  #simplify relations
+  to_delete,_,_ = rows_to_delete(new_relations, size(new_relations)[1], M, respect_grading)
+
+  new_relations = delete_rows(new_relations, to_delete)
+
+  #simplify generators
+  to_delete, corresponding_row, K_gen = rows_to_delete(vcat(new_generators, new_relations), size(new_generators)[1], M, respect_grading)
+
+  injection_matrix = delete_rows(identity_matrix(R, size(M_generators)[1]), to_delete)
+  projection_matrix = zero_matrix(R, size(M_generators)[1], size(K_gen)[2]-length(to_delete))
+  for i=1:size(M_generators)[1]
+    if i in to_delete
+      index = findfirst(x -> x==i, to_delete)
+      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
+    else
+      standard_unit_vector_index = i-length(filter(x -> x < i, to_delete))
+      standard_unit_vector = [j == standard_unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
+      assign_row!(projection_matrix, standard_unit_vector, i)
+    end
+  end
+
+  new_generators = delete_rows(new_generators, to_delete)
+
+  if length(new_generators)==0
+    zero_module = FreeMod(R,0)
+    injection = FreeModuleHom(zero_module, M, Vector{elem_type(M)}())
+    projection = SubQuoHom(M, zero_module, [zero(zero_module) for i=1:ngens(M)])
+    # TODO early return or register morphisms?
+    return zero_module,injection,projection
+  else
+    SQ = iszero(new_relations) ? SubquoModule(SubModuleOfFreeModule(new_generators)) : SubquoModule(new_generators, new_relations)
+    injection = SubQuoHom(SQ, M, injection_matrix)
+    projection = SubQuoHom(M, SQ, projection_matrix[:,1:size(projection_matrix)[2]-size(new_relations)[1]])
+  end
+  register_morphism!(injection)
+  register_morphism!(projection)
+  injection.inverse_isomorphism = projection
+  projection.inverse_isomorphism = injection
+
+  return SQ,injection,projection
+end
+
+######################################
+# Matrix to morphism
+######################################
+@doc raw"""
+    map(F::FreeMod{T}, A::MatrixElem{T}) where T
+
+Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
+with `rank(F) == m`.
+"""
+function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+  if is_graded(F) 
+    return graded_map(F,A)
+  end
+  R = base_ring(F)
+  F_domain = FreeMod(R, nrows(A))
+
+  phi = FreeModuleHom(F_domain, F, A)
+  return phi
+end
+
+@doc raw"""
+    map(A::MatElem)
+
+Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to R^m$.
+"""
+function map(A::MatElem)
+  R = base_ring(A)
+  F_codomain = FreeMod(R, ncols(A))
+  return map(F_codomain,A)
+end
+
+@doc raw"""
+    is_injective(f::ModuleFPHom)
+
+Test if `f` is injective.
+"""
+function is_injective(f::ModuleFPHom)
+  return iszero(kernel(f)[1])
+end
+
+@doc raw"""
+    is_surjective(f::ModuleFPHom)
+
+Test if `f` is surjective.
+"""
+function is_surjective(f::ModuleFPHom)
+  return image(f)[1] == codomain(f)
+end
+
+@doc raw"""
+    is_bijective(f::ModuleFPHom)
+
+Test if `f` is bijective.
+"""
+function is_bijective(f::ModuleFPHom)
+  return is_injective(f) && is_surjective(f)
+end
+
