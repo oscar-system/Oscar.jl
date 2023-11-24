@@ -81,6 +81,7 @@ function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: Abs
 end
 
 images_of_generators(phi::SubQuoHom) = phi.im::Vector{elem_type(codomain(phi))}
+image_of_generator(phi::SubQuoHom, i::Int) = phi.im[i]::elem_type(codomain(phi))
 
 ###################################################################
 
@@ -344,6 +345,15 @@ function Base.hash(f::ModuleFPHom{T}, h::UInt) where {S<:MPolyElem, T<:ModuleFP{
   return xor(h, b)
 end
 
+function Base.hash(f::ModuleFPHom, h::UInt)
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  # We can not assume that the images of generators 
+  # have a hash in general
+  return xor(h, b)
+end
 ###################################################################
 
 @doc raw"""
@@ -458,24 +468,17 @@ function image(f::SubQuoHom, a::SubquoModuleElem)
  #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
  #end
   f.generators_map_to_generators === true && return codomain(f)(map_entries(base_ring_map(f), coordinates(a)))
-  # TODO matrix vector multiplication
-  i = zero(codomain(f))
-  b = coordinates(a)
-  for (p,v) = b
-    i += base_ring_map(f)(v)*f.im[p]
-  end
-  return i
+  return sum(b*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
 end
 
 function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
-  if f.generators_map_to_generators === nothing
-    f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
-  end
-  f.generators_map_to_generators && return codomain(f)(coordinates(a))
-  v = images_of_generators(f)
-  return sum(c*v[i] for (i, c) in coordinates(a); init=zero(codomain(f)))
+ #if f.generators_map_to_generators === nothing
+ #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
+ #end
+  f.generators_map_to_generators === true && return codomain(f)(coordinates(a))
+  return sum(c*image_of_generator(f, i) for (i, c) in coordinates(a); init=zero(codomain(f)))
 end
 
 @doc raw"""
@@ -533,7 +536,9 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 """
 function image(h::SubQuoHom)
   s = sub(codomain(h), images_of_generators(h), :module)
-  return s, hom(s, codomain(h), images_of_generators(h), check=false)
+  inc = hom(s, codomain(h), images_of_generators(h), check=false)
+  inc.generators_map_to_generators = true
+  return s, inc
 end
 
 @doc raw"""

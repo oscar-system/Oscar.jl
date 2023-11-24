@@ -545,13 +545,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
+    a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
      #if r.generators_map_to_generators === nothing
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
-      v = images_of_generators(r)
-      return sum(a*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
+      return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -572,14 +572,14 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))
     r = new{typeof(F), T2, RingMapType}()
+    a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
       iszero(x) && return zero(codomain(r))
      #if r.generators_map_to_generators === nothing
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
       r.generators_map_to_generators === true && return codomain(r)(map_entries(h, coordinates(x)))
-      v = images_of_generators(r)
-      return sum(h(a)*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
+      return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G

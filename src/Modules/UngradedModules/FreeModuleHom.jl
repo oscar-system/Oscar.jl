@@ -19,6 +19,7 @@ FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeMo
 
 img_gens(f::FreeModuleHom) = images_of_generators(f)
 images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
+image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
 @attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
@@ -239,7 +240,9 @@ hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true)
 Return the identity map $id_M$.
 """
 function identity_map(M::ModuleFP)
-  return hom(M, M, gens(M), check=false)
+  phi = hom(M, M, gens(M), check=false)
+  phi.generators_map_to_generators = true
+  return phi
 end
 
 ### type getters in accordance with the `hom`-constructors
@@ -460,7 +463,9 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   R = base_ring(G)
   if ngens(G) == 0
     s = sub(G, gens(G), :module)
-    return s, hom(s, G, gens(G), check=false)
+    help = hom(s, G, gens(G), check=false)
+    help.generators_map_to_generators = true
+    return s, help
   end
   g = map(h, basis(G))
   if isa(codomain(h), SubquoModule)

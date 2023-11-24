@@ -216,13 +216,25 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
   return a.coords == b.coords
 end
 
-function hash(a::AbstractFreeModElem, h::UInt)
+function hash(a::AbstractFreeModElem{<:MPolyElem}, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)
   h = hash(coordinates(a), h)
   return xor(h, b)
 end
+
+function hash(a::AbstractFreeModElem{<:MPolyQuoRingElem}, h::UInt)
+  simplify!(a)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  h = hash(coordinates(a), h)
+  return xor(h, b)
+end
+
+simplify(a::AbstractFreeModElem{<:MPolyQuoRingElem}) = return parent(a)(map_entries(simplify, coordinates(a)))
+simplify!(a::AbstractFreeModElem{<:MPolyQuoRingElem}) = simplify(a)
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
   return parent(a)(deepcopy_internal(coordinates(a), dict))
