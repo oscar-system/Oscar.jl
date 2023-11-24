@@ -468,7 +468,8 @@ function image(f::SubQuoHom, a::SubquoModuleElem)
  #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
  #end
   f.generators_map_to_generators === true && return codomain(f)(map_entries(base_ring_map(f), coordinates(a)))
-  return sum(b*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
+  h = base_ring_map(f)
+  return sum(h(b)*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
 end
 
 function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
