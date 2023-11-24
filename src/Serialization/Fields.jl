@@ -435,19 +435,27 @@ const FieldEmbeddingTypes = Union{Hecke.NumFieldEmbNfAbs, Hecke.NumFieldEmbNfRel
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
-  ind = Hecke._absolute_index(E)
 
   save_data_dict(s) do
     save_typed_object(s, K, :num_field)
-    save_typed_object(s, ind, :absolute_index)
+    if !(base_field(K) isa QQField)
+      save_typed_object(s, restrict(E, base_field(K)), :base_field_emb)
+    end
+    save_typed_object(s, is_simple(K) ? E(gen(K)) : tuple((E.(gens(K)))...), :data)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, dict::Dict)
   K = load_typed_object(s, dict[:num_field])
-  ind = load_typed_object(s, dict[:absolute_index])
-
-  return complex_embeddings(K)[ind]
+  data = load_typed_object(s, dict[:data])
+  if data isa Tuple
+    data = collect(data)
+  end
+  if base_field(K) isa QQField
+    return complex_embedding(K, data)
+  else
+    return complex_embedding(K, load_typed_object(s, dict[:base_field_emb]), data)
+  end
 end
 
 @register_serialization_type Hecke.EmbeddedField uses_id
