@@ -140,10 +140,18 @@ const refs_key = :_refs
 @Base.kwdef struct MetaData
   author_orcid::Union{String, Nothing} = nothing
   name::Union{String, Nothing} = nothing
+  description::Union{String, Nothing} = nothing
 end
 
 function metadata(;args...)
   return MetaData(;args...)
+end
+
+function read_metadata(filename::String)
+  open(filename) do io
+    obj = JSON3.read(io)
+    println(json(obj[:meta], 2))
+  end
 end
 
 ################################################################################
@@ -503,10 +511,17 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="the meaning of life the universe and everything")
-Oscar.MetaData("0000-0000-0000-0042", "the meaning of life the universe and everything")
+julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
+meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
 
 julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
+
+julia> read_metadata("/tmp/fourtitwo.json")
+{
+  "author_orcid": "0000-0000-0000-0042",
+  "name": "42",
+  "description": "The meaning of life, the universe and everything"
+}
 
 julia> load("/tmp/fourtitwo.json")
 42
@@ -713,3 +728,4 @@ function load(filename::String; params::Any = nothing, type::Any = nothing)
     return load(file; params=params, type=type)
   end
 end
+
