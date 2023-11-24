@@ -352,9 +352,10 @@ end
   I0 = ideal(R,[]);
   Ih_std = homogenization(I0, "h")
   @test is_zero(Ih_std)
-  Ih = homogenization(I0, W1, "h")
+  S = base_ring(Ih_std)
+  Ih = homogenization(I0, W1, "h", parent=S)
   @test is_zero(Ih)
-  @test_broken  base_ring(Ih_std) == base_ring(Ih)
+  @test base_ring(Ih_std) == base_ring(Ih)
   Ih = homogenization(I0, W2, "h")
   @test is_zero(Ih)
   Ih = homogenization(I0, W3, "h")
@@ -378,9 +379,9 @@ end
   I0 = ideal(R, [zero(R)]);
   Ih_std = homogenization(I0, "h")
   @test is_zero(Ih_std)
-  Ih = homogenization(I0, W1, "h")
+  Ih = homogenization(I0, W1, "h", parent=base_ring(Ih_std))
   @test is_zero(Ih)
-  @test_broken  base_ring(Ih_std) == base_ring(Ih)
+  @test  base_ring(Ih_std) === base_ring(Ih)
   Ih = homogenization(I0, W2, "h")
   @test is_zero(Ih)
   Ih = homogenization(I0, W3, "h")
@@ -404,9 +405,9 @@ end
   I1 = ideal(R, [one(R)]);
   Ih_std = homogenization(I1, "h")
   @test is_one(Ih_std)
-  Ih = homogenization(I1, W1, "h")
+  Ih = homogenization(I1, W1, "h", parent=base_ring(Ih_std))
   @test is_one(Ih)
-  @test_broken  base_ring(Ih_std) == base_ring(Ih)
+  @test base_ring(Ih_std) === base_ring(Ih)
   Ih = homogenization(I1, W2, "h")
   @test is_one(Ih)
   Ih = homogenization(I1, W3, "h")
@@ -435,9 +436,9 @@ end
   Iprinc = ideal(Rbig, [f]);
   Ih_std = homogenization(Iprinc, "h")
   @test length(gens(Ih_std)) == 1
-  Ih = homogenization(Iprinc, WW1, "h")
+  Ih = homogenization(Iprinc, WW1, "h", parent=base_ring(Ih_std))
   @test length(gens(Ih)) == 1
-  @test_broken  base_ring(Ih_std) == base_ring(Ih)
+  @test base_ring(Ih_std) === base_ring(Ih)
   Ih = homogenization(Iprinc, WW2, "h")
   @test length(gens(Ih)) == 1
   Ih = homogenization(Iprinc, WW3, "h")

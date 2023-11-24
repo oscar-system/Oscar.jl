@@ -1603,9 +1603,12 @@ function _homogenization(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int)
    return finish(F)
 end
 
-function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int)
+function _homogenization(
+    f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int;
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  )
     # ASSUME pos is in 1:1+ngens(parent(f))
-  R = parent(f)
+  R = Oscar.parent(f)
   A = copy(symbols(R))
   l = length(A)
   @req pos in 1:l+1 "Index out of range."
@@ -1618,13 +1621,16 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int)
   end
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
-  S, _ = graded_polynomial_ring(base_ring(R), A; weights = [G(WH[:, i]) for i = 1:size(WH, 2)])
+  S = (parent === nothing ? graded_polynomial_ring(base_ring(R), A; weights = [G(WH[:, i]) for i = 1:size(WH, 2)])[1] : parent)
   return _homogenization(f, S, pos)
 end
 
-function _homogenization(f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int)
-   W = matrix(ZZ, W)
-   return _homogenization(f, W, var, pos)
+function _homogenization(
+    f::MPolyRingElem, W::Matrix{<:IntegerUnion}, var::VarName, pos::Int;
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  )
+  W = matrix(ZZ, W)
+  return _homogenization(f, W, var, pos; parent=parent)
 end
 
 @doc raw"""
@@ -1682,13 +1688,18 @@ Multivariate polynomial ring in 4 variables over QQ graded by
   z[2] -> [0 1]
 ```
 """
-function homogenization(f::MPolyRingElem, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing} = nothing)
+function homogenization(
+        f::MPolyRingElem, 
+        W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, 
+        var::VarName; 
+        pos::Union{Int,Nothing} = nothing, 
+        parent::Union{Nothing, <:MPolyDecRing}=nothing)
   if pos === nothing
-    pos = 1+ngens(parent(f))
+    pos = 1+ngens(Oscar.parent(f))
   else
-      @req  pos in 1:1+ngens(parent(f))  "Homog var index out of range."
+      @req  pos in 1:1+ngens(Oscar.parent(f))  "Homog var index out of range."
   end
-  return _homogenization(f, W, var, pos)
+  return _homogenization(f, W, var, pos; parent=parent)
 end
 
 # # pos: default value is 1+ngens(parent(f))
@@ -1702,10 +1713,16 @@ end
 #     # NB: call below checks that all elements of V are in the same ring
 #     return homogenization(V, W, var, 1+ngens(parent(V[1])))
 # end
-function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing} = nothing) where {T <: MPolyRingElem}
+function homogenization(
+        V::Vector{T}, 
+        W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, 
+        var::VarName; 
+        pos::Union{Int,Nothing} = nothing,
+        parent::Union{<:MPolyDecRing, Nothing} = nothing
+    ) where {T <: MPolyRingElem}
     @assert !isempty(V) # OR ALLOW EMPTY V???   if isempty(V) return V end
-  @assert all(x->parent(x) == parent(V[1]), V)
-  R = parent(V[1])
+  @assert all(x->Oscar.parent(x) == Oscar.parent(V[1]), V)
+  R = Oscar.parent(V[1])
   if pos === nothing
     pos = 1+ngens(R)
   end
@@ -1721,7 +1738,7 @@ function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}
   end
   G = abelian_group(zeros(Int, size(W, 1)))
   WH = hcat(Matrix(W[:, 1:(pos-1)]), Matrix(identity_matrix(ZZ, size(W, 1))[:, 1:size(W, 1)]), Matrix(W[:, pos:l]))
-  S, _ = graded_polynomial_ring(base_ring(R), A, [G(WH[:, i]) for i = 1:size(WH, 2)])
+  S = (parent === nothing ? graded_polynomial_ring(base_ring(R), A, [G(WH[:, i]) for i = 1:size(WH, 2)])[1] : parent)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
@@ -1768,7 +1785,11 @@ end
 # Optional kwargs:
 #   pos where to insert the homogenizing variables (default is after all other vars)
 #   extra_gens_flag: if false, inhibits computing grobner basis speculatively in _gens_for_homog_via_sat
-function _homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; pos::Union{Int,Nothing} = nothing, extra_gens_flag::Bool = false) where {T <: MPolyRingElem}
+function _homogenization_via_saturation(
+    I::MPolyIdeal{T},  W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, var::VarName; 
+    pos::Union{Int,Nothing} = nothing, extra_gens_flag::Bool = false,
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  ) where {T <: MPolyRingElem}
   P = base_ring(I)
   if pos === nothing
     pos = 1+ngens(P)
@@ -1776,12 +1797,12 @@ function _homogenization_via_saturation(I::MPolyIdeal{T},  W::Union{ZZMatrix, Ma
     @req  pos in 1:1+ngens(P)  "Homog var index out of range."
   end
   if is_zero(I)  # special handling for ideal(0) incl. when there are no gens (?is there a cleaner way?)
-    tmp = homogenization(zero(P), W, var; pos=pos)
-    R = parent(tmp)
+    tmp = homogenization(zero(P), W, var; pos=pos, parent=parent)
+    R = Oscar.parent(tmp)
     return ideal(R) # no gens, so it is the zero ideal
   end # of special handling for zero ideal
-  Hgens = homogenization(_gens_for_homog_via_sat(I, extra_gens_flag), W, var; pos=pos)
-  R = parent(Hgens[1])
+  Hgens = homogenization(_gens_for_homog_via_sat(I, extra_gens_flag), W, var; pos=pos, parent=parent)
+  R = Oscar.parent(Hgens[1])
   if length(Hgens) == 1  # short-cut for principal ideal
     return ideal(R, Hgens)
   end
@@ -1868,7 +1889,13 @@ end
 # (*) pos where to insert the homogenizing vars (default is right after the normal vars)
 # (*) extra_gens_flag (relevant only for non-positive gradings); default is false, but if true
 #     it triggers computation of a "needless" groebner basis in _gens_for_homog_via_sat which can speed up homogenization
-function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName; pos::Union{Int,Nothing} = nothing, extra_gens_flag::Bool = false) where {T <: MPolyRingElem}
+function homogenization(
+    I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, 
+    h::VarName; 
+    pos::Union{Int,Nothing} = nothing, 
+    extra_gens_flag::Bool = false,
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  ) where {T <: MPolyRingElem}
   ## ASSUME NumCols(W) = nvars(P)
   P = base_ring(I) # initial polynomial ring
   if pos === nothing
@@ -1878,11 +1905,11 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   end
   # Handle zero ideal as special case: (quick and easy)
   if  is_zero(I)
-    return ideal([homogenization(zero(P), W, h; pos=pos)])  # ideal(0) in correct ring
+    return ideal([homogenization(zero(P), W, h; pos=pos, parent=parent)])  # ideal(0) in correct ring
   end
   # # The fast method below is valid only for positive gradings; otherwise delegate to _homogenization_via_saturation
   if !is_positive_grading_matrix(W)
-    return _homogenization_via_saturation(I, W, h; pos=pos, extra_gens_flag=extra_gens_flag)
+    return _homogenization_via_saturation(I, W, h; pos=pos, extra_gens_flag=extra_gens_flag, parent=parent)
   end
   # Henceforth we know that W defines a positive grading
   if size(W,1) == 1
@@ -1894,18 +1921,18 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
       W_ordering = wdegrevlex(P, W[1,:])
     end
     GB = groebner_basis(I; ordering=W_ordering)
-    return ideal(homogenization(elements(GB), W, h; pos=pos))
+    return ideal(homogenization(elements(GB), W, h; pos=pos, parent=parent))
   end
   # Handle one ideal as special case (NB is_one might be costly!)
   if  is_one(I)
-    return ideal([homogenization(one(P), W, h; pos=pos)])  # ideal(1) in correct ring
+    return ideal([homogenization(one(P), W, h; pos=pos, parent=parent)])  # ideal(1) in correct ring
   end
   # Case: grading is over ZZ^k with k > 1 and is positive
   # >>> JUSTIFICATION <<<  from book Kreuzer+Robbiano "Computational Commutative Algebra"
   # Combination of Cor 4.3.8(a) [main algorithm],  Cor 4.4.9 [saturation by indet], and
   # Tutorial 37(g) [compute saturation by product via "cascade"]
-  G = homogenization(gens(I), W, h; pos=1+ngens(P))  # h vars come last -- deliberately ignore pos here!
-  Ph = parent(G[1])  # Ph is graded ring, "homog-extn" of P.
+  G = homogenization(gens(I), W, h; pos=1+ngens(P), parent=parent)  # h vars come last -- deliberately ignore pos here!
+  Ph = Oscar.parent(G[1])  # Ph is graded ring, "homog-extn" of P.
   if length(G) == 1  # short-cut for principal ideal
     return ideal(Ph, G);
   end
@@ -1936,8 +1963,8 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   if pos != 1+num_x
     # Caller wants the homogenizing variables in a non-standard place,
     # so permute the variables appropriately.  Is there a cleaner way to do this?
-    junk = homogenization(gen(I,1), W, h; pos=pos)  # I just want the ring
-    Ph2 = parent(junk)  # the desired graded ring
+    junk = homogenization(gen(I,1), W, h; pos=pos, parent=parent)  # I just want the ring
+    Ph2 = Oscar.parent(junk)  # the desired graded ring
     images = [zero(Ph2)  for i in 1:N]
     for i in 1:pos-1
       images[i] = gen(Ph2,i)
@@ -2025,8 +2052,11 @@ julia> homogenization(I, "w"; ordering = deglex(gens(base_ring(I))))
 ideal(x*z - y^2, x*y - z*w, x^2 - y*w, y^3 - z^2*w)
 ```
 """
-function homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing} = nothing)
-  R = parent(f)
+function homogenization(f::MPolyRingElem, var::VarName; 
+    pos::Union{Int,Nothing} = nothing, 
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  )
+  R = Oscar.parent(f)
   if pos === nothing
     pos = 1+ngens(R)
   else
@@ -2035,7 +2065,7 @@ function homogenization(f::MPolyRingElem, var::VarName; pos::Union{Int,Nothing} 
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  S, _ = graded_polynomial_ring(base_ring(R), A)
+  S = (parent === nothing ? graded_polynomial_ring(base_ring(R), A)[1] : parent)
   return _homogenization(f, S, pos)
 end
 # function homogenization(f::MPolyRingElem, var::VarName)
@@ -2046,10 +2076,14 @@ end
 #     @assert !isempty(V)
 #     return homogenization(V, var, 1+ngens(parent(V[1])))
 # end
-function homogenization(V::Vector{T}, var::VarName; pos::Union{Int,Nothing} = nothing) where {T <: MPolyRingElem}
+function homogenization(
+    V::Vector{T}, var::VarName; 
+    pos::Union{Int,Nothing} = nothing,
+    parent::Union{Nothing, <:MPolyDecRing} = nothing
+  ) where {T <: MPolyRingElem}
   @req !isempty(V)  "homogenization of vector: vector must be non-empty"
-  @assert all(x->parent(x) == parent(V[1]), V)
-  R = parent(V[1])
+  @assert all(x->Oscar.parent(x) == Oscar.parent(V[1]), V)
+  R = Oscar.parent(V[1])
   if pos === nothing
     pos = 1+ngens(R)
   else
@@ -2058,12 +2092,17 @@ function homogenization(V::Vector{T}, var::VarName; pos::Union{Int,Nothing} = no
   A = copy(symbols(R))
   l = length(A)
   insert!(A, pos, Symbol(var))
-  S, _ = graded_polynomial_ring(base_ring(R), A)
+  S = (parent === nothing ? graded_polynomial_ring(base_ring(R), A)[1] : parent)
   l = length(V)
   return [_homogenization(V[i], S, pos) for i=1:l]
 end
 
-function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} = nothing, ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
+function homogenization(
+    I::MPolyIdeal{T}, var::VarName; 
+    pos::Union{Int,Nothing} = nothing, 
+    ordering::MonomialOrdering = default_ordering(base_ring(I)),
+    parent::Union{Nothing, <:MPolyDecRing}=nothing
+  ) where {T <: MPolyRingElem}
   R = base_ring(I)
   if pos === nothing
     pos = 1+ngens(R)
@@ -2072,10 +2111,10 @@ function homogenization(I::MPolyIdeal{T}, var::VarName; pos::Union{Int,Nothing} 
   end
   # Handle zero ideal as special case: (quick and easy)
   if  is_zero(I)
-    return ideal([homogenization(zero(R), var; pos=pos)])  # zero ideal in correct ring
+    return ideal([homogenization(zero(R), var; pos=pos, parent=parent)])  # zero ideal in correct ring
   end
   # TODO: Adjust as soon as new GB concept is implemented   [[@wdecker: delete this comment?]]
-  return ideal(homogenization(gens(groebner_basis(I; ordering)), var; pos=pos))
+  return ideal(homogenization(gens(groebner_basis(I; ordering)), var; pos=pos, parent=parent))
 end
 # function homogenization(I::MPolyIdeal{T}, var::VarName,; ordering::MonomialOrdering = default_ordering(base_ring(I))) where {T <: MPolyRingElem}
 #   # TODO: Adjust as soon as new GB concept is implemented
