@@ -547,7 +547,7 @@ See [`load`](@ref).
 
 ```jldoctest
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
-meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
+Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
 julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
 
