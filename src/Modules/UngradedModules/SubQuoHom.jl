@@ -919,43 +919,43 @@ end
 
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
--(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], check=false)
--(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h), check=false)
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], check=false)
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 
 function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h), check=false)
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
 function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), check=false)
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], check=false)
 end
 
 function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h), check=false)
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
 function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), check=false)
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
 function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
-  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), check=false)
+  return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
 function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
-  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g), check=false)
+  return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end
 
 
