@@ -7,42 +7,20 @@
 
 import DocumenterCitations
 
-# we use some (undocumented) internal helper functions for formatting...
-using DocumenterCitations: format_names, tex2unicode
-
 const oscar_style = :oscar
 
 # The long reference string in the bibliography
-function DocumenterCitations.format_bibliography_reference(::Val{oscar_style}, entry)
-  if entry.id in ["OEIS", "Stacks"]
-    # patch DocumenterCitations.format_bibliography_reference(:numeric, entry) for corporate authors (https://github.com/JuliaDocs/DocumenterCitations.jl/issues/44)
-    authors = tex2unicode(format_names(entry; names=:full))
-    title = DocumenterCitations.xtitle(entry)
-    if !isempty(title)
-      title = "<i>" * tex2unicode(title) * "</i>"
-    end
-    linked_title = DocumenterCitations.linkify(title, entry.access.url)
-    published_in = DocumenterCitations.linkify(
-      tex2unicode(DocumenterCitations.format_published_in(entry)),
-      DocumenterCitations._doi_link(entry),
-    )
-    eprint = DocumenterCitations.format_eprint(entry)
-    note = DocumenterCitations.format_note(entry)
-    parts = String[]
-    for part in (authors, linked_title, published_in, eprint, note)
-      if !isempty(part)
-        push!(parts, part)
-      end
-    end
-    html = DocumenterCitations._join_bib_parts(parts)
-    return html
-  end
-  return DocumenterCitations.format_bibliography_reference(:numeric, entry)
+function DocumenterCitations.format_bibliography_reference(style::Val{oscar_style}, entry)
+  return DocumenterCitations.format_labeled_bibliography_reference(style, entry)
 end
 
 # The label in the bibliography
 function DocumenterCitations.format_bibliography_label(::Val{oscar_style}, entry, citations)
   return "[$(entry.id)]"
+end
+
+function DocumenterCitations.citation_label(style::Val{oscar_style}, entry, citations; _...)
+  return entry.id
 end
 
 # The order of entries in the bibliography
@@ -52,21 +30,9 @@ DocumenterCitations.bib_sorting(::Val{oscar_style}) = :key  # sort by citation k
 DocumenterCitations.bib_html_list_style(::Val{oscar_style}) = :dl
 
 function DocumenterCitations.format_citation(
-  ::Val{oscar_style}, entry, citations; note, cite_cmd, capitalize, starred
+  style::Val{oscar_style}, cit, entries, citations
 )
-  link_text = isnothing(note) ? "[$(entry.id)]" : "[$(entry.id), $note]"
-  if cite_cmd == :citet
-    et_al = starred ? 0 : 1  # 0: no "et al."; 1: "et al." after 1st author
-    if entry.id in ["OEIS", "Stacks"]
-      # patch for corporate authors (https://github.com/JuliaDocs/DocumenterCitations.jl/issues/44)
-      names = tex2unicode(format_names(entry; names=:full))
-    else
-      names = tex2unicode(
-        format_names(entry; names=:lastonly, and=true, et_al, et_al_text="*et al.*")
-      )
-    end
-    capitalize && (names = uppercasefirst(names))
-    link_text = "$names $link_text"
-  end
-  return link_text
+  # The only difference compared to `:alpha` is the citation label, which is
+  # picked up automatically by redefining `citation_label` above.
+  return DocumenterCitations.format_labeled_citation(style, cit, entries, citations)
 end

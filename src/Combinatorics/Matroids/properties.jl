@@ -19,7 +19,7 @@ function isomorphic_matroid(M::Matroid, gs::GroundsetType)
         error("Sets of different size")
     end
     gs2num = create_gs2num(gs)
-    return Matroid(M.pm_matroid,gs,gs2num)
+    return Matroid(pm_object(M),gs,gs2num)
 end
 
 
@@ -38,9 +38,11 @@ length(M::Matroid) = length(M.groundset)
 
 
 @doc raw"""
-    bases(M::Matroid)
+    bases([::Type{Int},] M::Matroid)
 
 Return the list of bases of the matroid `M`.
+If `Int` is passed as a first argument then the bases will be returned as
+indices instead of ground set elements.
 
 # Examples
 ```jldoctest
@@ -51,7 +53,9 @@ julia> bases(uniform_matroid(2, 3))
  [2, 3]
 ```
 """
-bases(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.BASES)]
+bases(M::Matroid) = _indices_to_gs(bases(Int, M), M.groundset)
+
+bases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).BASES)
 
 @doc raw"""
     nonbases(M::Matroid)
@@ -71,7 +75,9 @@ julia> nonbases(fano_matroid())
  [3, 5, 6]
 ```
 """
-nonbases(M::Matroid) = [[M.groundset[i+1] for i in N] for N in M.pm_matroid.NON_BASES] 
+nonbases(M::Matroid) = _indices_to_gs(nonbases(Int, M), M.groundset)
+
+nonbases(::Type{Int}, M::Matroid) = _pmset_to_indices(pm_object(M).NON_BASES)
 
 
 @doc raw"""
@@ -89,7 +95,7 @@ julia> circuits(uniform_matroid(2, 4))
  [2, 3, 4]
 ```
 """
-circuits(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.CIRCUITS)]
+circuits(M::Matroid) = _property_to_gs(M, :CIRCUITS)
 
 @doc raw"""
     hyperplanes(M::Matroid)
@@ -109,7 +115,7 @@ julia> hyperplanes(fano_matroid())
  [1, 2, 3]
 ```
 """
-hyperplanes(M::Matroid) = [[M.groundset[i+1] for i in sort(collect(C))] for C in Vector{Set{Int}}(M.pm_matroid.MATROID_HYPERPLANES)]
+hyperplanes(M::Matroid) = _property_to_gs(M, :MATROID_HYPERPLANES)
 
 @doc raw"""
     flats(M::Matroid, [r::Int])
@@ -153,14 +159,14 @@ julia> flats(M, 2)
  [3, 4, 7]
 ```
 """
-flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, M.pm_matroid.LATTICE_OF_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_FLATS.FACES)
+flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M::Matroid, r::Union{Int,Nothing}, pm_object(M).LATTICE_OF_FLATS.N_NODES,  pm_object(M).LATTICE_OF_FLATS.FACES)
 
 function flats_impl(M::Matroid, r::Union{Int,Nothing}, num_flats::Int, pm_flats)
     jl_flats = [Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(pm_flats, i))) for i in 0:(num_flats-1)]
-    if M.pm_matroid.LATTICE_OF_FLATS.TOP_NODE==0
+    if pm_object(M).LATTICE_OF_FLATS.TOP_NODE==0
         jl_flats = reverse(jl_flats)
     end
-    matroid_flats = [[M.groundset[i] for i in flat] for flat in jl_flats]
+    matroid_flats = _indices_to_gs(jl_flats, M.groundset)
     if r !== nothing
         if r<0 || r>rank(M)
             error("The specified rank needs to be between 0 and the rank of the matroid.")
@@ -212,7 +218,7 @@ julia> cyclic_flats(M, 2)
  [3, 4, 7]
 ```
 """
-cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.N_NODES,  M.pm_matroid.LATTICE_OF_CYCLIC_FLATS.FACES)
+cyclic_flats(M::Matroid, r::Union{Int,Nothing}=nothing) = flats_impl(M, r, pm_object(M).LATTICE_OF_CYCLIC_FLATS.N_NODES,  pm_object(M).LATTICE_OF_CYCLIC_FLATS.FACES)
 
 @doc raw"""
     closure(M::Matroid, set::GroundsetType)
@@ -249,7 +255,7 @@ julia> rank(fano_matroid())
 3
 ```
 """
-rank(M::Matroid) = M.pm_matroid.RANK::Int
+rank(M::Matroid) = pm_object(M).RANK::Int
 
 @doc raw"""
     rank(M::Matroid, set::GroundsetType)
@@ -268,7 +274,7 @@ function rank(M::Matroid, set::GroundsetType)
     if length(set)==0
         return 0
     else
-        return Polymake.matroid.rank(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))::Int
+        return Polymake.matroid.rank(pm_object(M), _gs_to_pmindices(set, M.gs2num; type=Set))::Int
     end
 end
 
@@ -286,7 +292,7 @@ julia> nullity(M, [1,2,3])
 1
 ```
 """
-nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(M.pm_matroid, Set{Int}([M.gs2num[i]-1 for i in set]))::Int
+nullity(M::Matroid, set::GroundsetType) = length(set)-Polymake.matroid.rank(pm_object(M), _gs_to_pmindices(set, M.gs2num; type=Set))::Int
 
 
 @doc raw"""
@@ -316,7 +322,7 @@ julia> fundamental_circuit(M, [1,2,4], 3)
 ```
 """
 function fundamental_circuit(M::Matroid, basis::GroundsetType, elem::ElementType)
-    if !(Set(basis) in [Set(B) for B in bases(M)])
+    if !(Set(basis) in Set.(bases(M)))
         error("The set is not a basis of M")
     end
     if !(elem in M.groundset)
@@ -357,7 +363,7 @@ These are all subsets of the bases.
 # Examples
 ```jldoctest
 julia> independent_sets(uniform_matroid(2, 3))
-7-element Vector{Vector{Integer}}:
+7-element Vector{Vector{Int64}}:
  []
  [1]
  [2]
@@ -368,17 +374,17 @@ julia> independent_sets(uniform_matroid(2, 3))
 ```
 """
 function independent_sets(M::Matroid)
-    pm_bases = Vector{Set{Int}}(M.pm_matroid.BASES)
+    pm_bases = bases(Int, M)
     gs = matroid_groundset(M)
     elt = eltype(gs)
     n = length(gs)
     sets = Vector{Vector{elt}}()
     push!(sets,elt[])
     for k in 1:rank(M)
-        for set in Oscar.Hecke.subsets(Vector(0:n-1),k)
+        for set in Oscar.Hecke.subsets(Vector(1:n),k)
             for B in pm_bases
                 if issubset(set,B)
-                    push!( sets, [gs[i+1] for i in set])
+                    push!(sets, gs[collect(set)])
                     break
                 end
             end
@@ -396,7 +402,7 @@ These are all sets containing a basis.
 # Examples
 ```jldoctest
 julia> spanning_sets(uniform_matroid(2, 3))
-4-element Vector{Vector{Integer}}:
+4-element Vector{Vector{Int64}}:
  [1, 2]
  [1, 3]
  [2, 3]
@@ -534,7 +540,7 @@ function is_regular(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.REGULAR::Bool
+    return pm_object(M).REGULAR::Bool
 end
 
 @doc raw"""
@@ -552,7 +558,7 @@ julia> is_binary(fano_matroid())
 true
 ```
 """
-is_binary(M::Matroid) = M.pm_matroid.BINARY::Bool
+is_binary(M::Matroid) = pm_object(M).BINARY::Bool
 
 @doc raw"""
     is_ternary(M::Matroid)
@@ -574,7 +580,7 @@ function is_ternary(M::Matroid)
     if rank(M)==length(M)
         return true
     end
-    return M.pm_matroid.TERNARY::Bool
+    return pm_object(M).TERNARY::Bool
 end
 
 @doc raw"""
@@ -592,7 +598,7 @@ julia> n_connected_components(uniform_matroid(3, 3))
 3
 ```
 """
-n_connected_components(M::Matroid) = length(M.pm_matroid.CONNECTED_COMPONENTS)
+n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
 
 @doc raw"""
     connected_components(M::Matroid)
@@ -613,7 +619,7 @@ julia> connected_components(uniform_matroid(3, 3))
  [3]
 ```
 """
-connected_components(M::Matroid) = [[M.groundset[i+1] for i in comp] for comp in M.pm_matroid.CONNECTED_COMPONENTS]
+connected_components(M::Matroid) = _property_to_gs(M, :CONNECTED_COMPONENTS)
 
 @doc raw"""
     is_connected(M::Matroid)
@@ -630,7 +636,7 @@ julia> is_connected(uniform_matroid(3, 3))
 false
 ```
 """
-is_connected(M::Matroid) = M.pm_matroid.CONNECTED::Bool
+is_connected(M::Matroid) = pm_object(M).CONNECTED::Bool
 
 @doc raw"""
     loops(M::Matroid)
@@ -645,10 +651,10 @@ julia> loops(matroid_from_bases([[1,2]], 4))
  4
 
 julia> loops(fano_matroid())
-Any[]
+Int64[]
 ```
 """
-loops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.LOOPS]
+loops(M::Matroid) = _property_to_gs(M, :LOOPS)
 
 @doc raw"""
     coloops(M::Matroid)
@@ -663,10 +669,10 @@ julia> coloops(matroid_from_bases([[1,2]], 4))
  2
 
 julia> coloops(fano_matroid())
-Any[]
+Int64[]
 ```
 """
-coloops(M::Matroid) = [M.groundset[i+1] for i in M.pm_matroid.DUAL.LOOPS]
+coloops(M::Matroid) = _property_to_gs(M, Symbol("DUAL.LOOPS"))
 
 @doc raw"""
     is_loopless(M::Matroid)
@@ -683,7 +689,7 @@ julia> is_loopless(fano_matroid())
 true
 ```
 """
-is_loopless(M::Matroid) = length(M.pm_matroid.LOOPS)==0 ? true : false
+is_loopless(M::Matroid) = length(pm_object(M).LOOPS)==0 ? true : false
 
 @doc raw"""
     is_coloopless(M::Matroid)
@@ -700,7 +706,7 @@ julia> is_coloopless(fano_matroid())
 true
 ```
 """
-is_coloopless(M::Matroid) = length(M.pm_matroid.DUAL.LOOPS)==0 ? true : false
+is_coloopless(M::Matroid) = length(pm_object(M).DUAL.LOOPS)==0 ? true : false
 
 @doc raw"""
     is_simple(M::Matroid)
@@ -718,7 +724,7 @@ julia> is_simple(fano_matroid())
 true
 ```
 """
-is_simple(M::Matroid) = M.pm_matroid.SIMPLE::Bool
+is_simple(M::Matroid) = pm_object(M).SIMPLE::Bool
 
 @doc raw"""
     direct_sum_components(M::Matroid)
@@ -862,10 +868,10 @@ infinity
 ```
 """
 function tutte_connectivity(M::Matroid)
-    r = M.pm_matroid.RANK
-    n = M.pm_matroid.N_ELEMENTS
+    r = rank(M)
+    n = length(M)
     #if M is uniform, apply Cor. 8.6.3 otherwise Thm. 8.6.4
-    if M.pm_matroid.N_BASES==binomial(n,r)
+    if pm_object(M).N_BASES==binomial(n,r)
         if n>=2r+2 
             return r+1 
         elseif n<=2r-2 
@@ -892,7 +898,7 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 """
 function tutte_polynomial(M::Matroid)
     R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-    poly = M.pm_matroid.TUTTE_POLYNOMIAL
+    poly = pm_object(M).TUTTE_POLYNOMIAL
     exp = Polymake.monomials_as_matrix(poly)
     return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
 end
@@ -913,7 +919,7 @@ q^3 - 7*q^2 + 14*q - 8
 """
 function characteristic_polynomial(M::Matroid)
     R, q = polynomial_ring(ZZ, 'q')
-    return (-1)^M.pm_matroid.RANK*tutte_polynomial(M)(1-q,0)
+    return (-1)^rank(M)*tutte_polynomial(M)(1-q,0)
 end
 
 @doc raw"""
@@ -970,6 +976,9 @@ function revlex_bases_matrix(r::Int64,n::Int64)
     return M
 end
 
+_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in collect(s)]
+_revlex_basis_from_vector(v::AbstractVector{<:Integer}) = join(isone(x) ? '*' : '0' for x in v)
+
 @doc raw"""
     revlex_basis_encoding(M::Matroid)
 
@@ -987,7 +996,7 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function revlex_basis_encoding(M::Matroid)
-    return String(M.pm_matroid.REVLEX_BASIS_ENCODING)
+    return String(pm_object(M).REVLEX_BASIS_ENCODING)
 end
 
 @doc raw"""
@@ -1004,21 +1013,21 @@ julia> str = min_revlex_basis_encoding(fano_matroid())
 ```
 """
 function min_revlex_basis_encoding(M::Matroid)
-    rvlx = M.pm_matroid.REVLEX_BASIS_ENCODING
-    indices = findall(x->x=='*', rvlx)
-    v = zeros(Int,length(rvlx))
-    [v[i]=1 for i in indices]
-    n = M.pm_matroid.N_ELEMENTS;
+    rvlx = pm_object(M).REVLEX_BASIS_ENCODING
+    v = _revlex_basis_to_vector(rvlx)
+    n = length(M)
     A = revlex_bases_matrix(rank(M),n)
-    P = Polymake.group.PermutationAction(GENERATORS=[[[1,0];Vector(2:n-1)],[[n-1];Vector(0:n-2)]])
     if n<2
-        P = Polymake.group.PermutationAction(GENERATORS=[Vector{Int}(0:n-1)])
+      gens = [collect(0:n-1)]
+    else
+      gens = [[[1, 0]; collect(2:n-1)], [[n-1]; collect(0:n-2)]]
     end
-    G = Polymake.group.Group(HOMOGENEOUS_COORDINATE_ACTION=P)
-    poly = Polymake.polytope.Polytope(VERTICES=A,GROUP=G)
-    Polymake.Shell.pair = Polymake.group.lex_minimal(poly.GROUP.VERTICES_ACTION, v)
-    Polymake.shell_execute(raw"""$min_v = $pair->first;""")
-    return  String( [Polymake.Shell.min_v[i]==1 ? '*' : '0' for i in 1:length(rvlx)] )
+    vertperm = Polymake.group.induced_permutations(gens, A)
+    action = Polymake.group.PermutationAction(GENERATORS=vertperm)
+    all_elem = Polymake.group.all_group_elements(action)
+    st = Polymake.SwitchTable(all_elem)
+    min_rvlx = first(Polymake.lex_minimize_vector(st, convert(Polymake.PolymakeType, v)))
+    return _revlex_basis_from_vector(min_rvlx)
 end
 
 @doc raw"""
@@ -1067,17 +1076,16 @@ function is_minor(Minor::Matroid, M::Matroid)
     if(c<0 || d<0 || length(bases(M))< nB)
         return false
     end
-    basesM = [[M.gs2num[i] for i in B] for B in bases(M)]
-    basesMinor = [[Minor.gs2num[i] for i in B] for B in bases(Minor)]
+    basesM = bases(Int, M)
+    basesMinor = bases(Int, Minor)
 
     for set_C in Oscar.Hecke.subsets(Vector(1:n), c) # set to contract
         bases_C = filter(B->issubset(set_C,B), basesM)
         for set_R in Oscar.Hecke.subsets(setdiff(Set(1:n), set_C), n-c-d) # set t restrict on
             bases_R = filter(B->issubset(B,union(set_R, set_C)), bases_C)
             if length(bases_R) == nB
-                # push a large element to guarantee the correct size of the matrix
-                I = Polymake.IncidenceMatrix(push!(bases_R,[n+1]))[1:nB, collect(set_R)]
-                Iminor = Polymake.IncidenceMatrix(push!(basesMinor,[length(Minor)+1]))[1:nB, 1:length(Minor)]
+                I = Polymake.IncidenceMatrix(nB, n, bases_R)[1:nB, collect(set_R)]
+                Iminor = Polymake.IncidenceMatrix(nB, length(Minor), basesMinor)
                 if !isnothing(Polymake.graph.find_row_col_permutation(I,Iminor))
                     return true
                 end
