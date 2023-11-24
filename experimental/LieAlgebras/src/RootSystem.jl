@@ -206,7 +206,7 @@ end
 ###############################################################################
 # RootSpaceElem
 
-struct RootSpaceElem
+mutable struct RootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
 end
@@ -314,11 +314,9 @@ function Base.iszero(r::RootSpaceElem)
 end
 
 function reflect!(r::RootSpaceElem, s::Int)
-  addmul!(
-    r.vec,
-    root_system(r).positive_roots[s],
-    dot(view(cartan_matrix(r.root_system), s, :), r.vec),
-  )
+  r.vec -=
+    dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
+    positive_root(root_system(r), s).vec
   return r
 end
 
@@ -329,7 +327,7 @@ end
 ###############################################################################
 # WeightLatticeElem
 
-struct WeightLatticeElem
+mutable struct WeightLatticeElem
   root_system::RootSystem
   vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
 end
