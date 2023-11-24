@@ -57,6 +57,23 @@
 #    }
 #  ]
 
+# function load_object(s::DeserializerState, ::Type{<:NewType})
+#   (obj1, obj2, obj3_4) = load_array_node(s) do (i, entry)
+#     if entry isa JSON3.Object
+#       obj3 = load_object(s, Obj3Type, :key1)
+#       obj4 = load_object(s, Obj3Type, :key2)
+#       return OtherType(obj3, obj4)
+#     else
+#       if p(entry) == c
+#         load_object(s, Obj1Type)
+#       else
+#         load_object(s, Obj2Type)
+#       end
+#     end
+#   end
+#   return NewType(obj1, obj2, obj3_4)
+# end
+
 #  function save_object(s::SerializerState, obj::NewType)
 #    save_data_dict(s) do
 #      save_object(s, obj.1, :key1)
@@ -78,6 +95,20 @@
 #      }
 #    ]
 #  }
+
+# function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
+#    obj1 = load_object(s, Obj1Type, params[1], :key1)
+#  
+#    (obj3, obj4) = load_array_node(s, :key2) do (i, entry)
+#      if i == 1
+#        load_object(s, Obj3Type, params[2])
+#      else
+#        load_typed_object(s)
+#      end
+#    end
+#    return NewType(obj1, OtherType(obj3, obj4))
+#  end
+
 #
 # This is ok
 # function save_object(s::SerializerState, obj:NewType)
@@ -98,16 +129,20 @@
 # end
 #
 
-# note for now save_typed_object must be wrapped in either a save_data_array or
-# save_data_dict. Otherwise you will get a key override error.
-
-# function save_object(s::SerializerState, obj:NewType)
-#   save_data_dict(s) do
-#     save_typed_object(s, obj.1, :key)
+# function load_object(s::SerializerState, ::Type{<:NewType})
+#   load_node(s, :key) do x
+#     info = do_something(x)
+# 
+#     if info
+#       load_object(s, OtherType)
+#     else
+#       load_object(s, AnotherType)
+#     end
 #   end
 # end
-#
 
+# note for now save_typed_object must be wrapped in either a save_data_array or
+# save_data_dict. Otherwise you will get a key override error.
 
 ################################################################################
 # save_type_params / load_type_params
