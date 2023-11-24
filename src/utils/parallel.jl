@@ -1,11 +1,19 @@
 using Distributed
 
+mutable struct OscarWorkerPool <: AbstractWorkerPool
+    channel::Channel
+    workers::Set{Int}
+    ref::RemoteChannel
+
+    WorkerPool(c::Channel, ref::RemoteChannel) = new(c, Set{Int}(), ref)
+end
+
 function set_channels(input::Type{S}, output::Type{T}, params::Type{U};
                       channel_size::Tuple{Int, Int, Int} = (10, 10, 10)) where {S, T, U}
   return (
-    Distributed.RemoteChannel(() -> Channel{S}(channel_size[1])),
-    Distributed.RemoteChannel(() -> Channel{T}(channel_size[2])),
-    Distributed.RemoteChannel(() -> Channel{U}(channel_size[3]))
+    Channel{S}(channel_size[1]),
+    RemoteChannel(() -> Channel{T}(channel_size[2])),
+    RemoteChannel(() -> Channel{U}(channel_size[3]))
   )
 end
 
