@@ -79,7 +79,7 @@ function show_dynkin_diagram(fam::Symbol, rk::Int)
     end
   elseif fam == :G
     if rk == 2
-      D = "1 >>> 2"
+      D = "1 <<< 2"
     else
       error("This root system doesn't exist.")
     end

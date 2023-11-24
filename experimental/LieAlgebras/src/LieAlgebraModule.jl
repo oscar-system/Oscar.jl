@@ -1369,7 +1369,7 @@ MSet{Vector{Int64}} with 6 elements:
 ```
 """
 function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
-  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Not a dominant weight."
+  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
   return multiset(
     Tuple{Vector{Vector{Int}},Vector{Int}}(
       GAPWrap.DecomposeTensorProduct(
