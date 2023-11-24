@@ -192,7 +192,7 @@ end
 ################################################################################
 # Serialization info
 
-function serialization_version_info(obj::JSON3.Object)
+function serialization_version_info(obj::Union{JSON3.Object, Dict})
   ns = obj[:_ns]
   version_info = ns[:Oscar][2]
   if version_info isa JSON3.Object
@@ -245,6 +245,10 @@ function decode_type(s::DeserializerState)
     if !isnothing(tryparse(UUID, s.obj))
       id = s.obj
       obj = deepcopy(s.obj)
+
+      if isnothing(s.refs)
+        return typeof(global_serializer_state.id_to_obj[UUID(id)])
+      end
       s.obj = s.refs[Symbol(id)]
       T = decode_type(s)
       s.obj = obj
@@ -548,7 +552,7 @@ See [`load`](@ref).
 
 ```jldoctest
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
-meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
+Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
 julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
 
@@ -671,9 +675,6 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer)
   s = state(deserializer_open(io, serializer_type))
-
-  # this should be moved to the serializer at some point
-  #jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
   
   if haskey(s.obj, :id)
     id = s.obj[:id]
