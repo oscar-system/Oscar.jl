@@ -956,9 +956,6 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G,mi,ma, ZZRingElem)
   result = QQMatrix[]
   # treat the special case of the zero vector by copy paste.
-
-
-
   if QQ(0) in bounds
     (rN,sqrN) = (zeros(Int64,rank(Ndual)),0)
     rN1 = zero_matrix(ZZ,1,degree(Ndual))
