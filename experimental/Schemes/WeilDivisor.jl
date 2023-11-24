@@ -743,7 +743,7 @@ function underlying_divisor(td::ToricDivisor; check::Bool=false)
   return result
 end
 
-# Compute the ideal sheaves and Weil divisors of the rays of `fan(X)` 
+# Compute the ideal sheaves and Weil divisors of the rays of `polyhedral_fan(X)` 
 # according to the "orbit-cone-correspondence", Theorem 3.2.6 in 
 # Cox-Little-Schenk.
 #
@@ -802,7 +802,7 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
   if has_attribute(X, :_torusinvariant_weil_divisors)
     return get_attribute(X, :_torusinvariant_weil_divisors)::Vector{<:AbsWeilDivisor}
   end
-  ray_list = rays(fan(X))
+  ray_list = rays(polyhedral_fan(X))
   ideal_sheaves = Vector{IdealSheaf}()
   for tau in ray_list
     tau_dual = polarize(cone(tau))
