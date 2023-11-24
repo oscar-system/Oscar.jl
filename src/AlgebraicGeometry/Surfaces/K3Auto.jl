@@ -931,7 +931,6 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   N = orthogonal_submodule(S, W)
   # W + N + R < L of finite index
   svp_input = Tuple{QQFieldElem,QQMatrix,QQFieldElem,Int}[]
-
   for (rR, rRsq) in data.prRdelta
     if rRsq == 2
       continue
