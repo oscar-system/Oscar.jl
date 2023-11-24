@@ -646,8 +646,8 @@ function load_object(s::DeserializerState, ::Type{MonomialOrdering})
   result = MonomialOrdering(the_ring, the_ordering)
 
   println("need to come back to this")
-  if haskey(dict, :is_total)
-    result.is_total = load_typed_object(s, dict[:is_total])
+  if haskey(s, :is_total)
+    result.is_total = load_typed_object(s, :is_total)
   end
   return result
 end
