@@ -1,4 +1,4 @@
-import JSON3
+using JSON3
 import Base.haskey
 
 ################################################################################
@@ -133,9 +133,9 @@ end
 mutable struct DeserializerState
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
-  obj::Union{JSON3.Object, JSON3.Array, BasicTypeUnion}
+  obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
-  refs::Union{JSON3.Object, Nothing}
+  refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
 end
 
 # general loading of a reference
@@ -217,12 +217,17 @@ function serializer_open(io::IO, T::Type{<: OscarSerializer})
   return T(SerializerState(true, UUID[], io, nothing))
 end
 
-function deserializer_open(io::IO, T::Type{<: OscarSerializer})
+function deserializer_open(io::IO, T::Type{JSONSerializer})
   obj = JSON3.read(io)
   refs = nothing
-  if refs_key in keys(obj)
+  if haskey(obj, refs_key)
     refs = obj[refs_key]
   end
 
   return T(DeserializerState(obj, nothing, refs))
+end
+
+function deserializer_open(io::IO, T::Type{IPCSerializer})
+  obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
+  return T(DeserializerState(obj, nothing, nothing))
 end
