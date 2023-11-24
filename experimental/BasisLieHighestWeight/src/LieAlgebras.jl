@@ -1,0 +1,83 @@
+@attributes mutable struct LieAlgebraStructure
+  lie_type::Symbol
+  rank::Int
+  lie_algebra_gap::GAP.Obj
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}}
+
+  function LieAlgebraStructure(lie_type::Symbol, rank::Int)
+    lie_algebra_gap = GAP.Globals.SimpleLieAlgebra(
+      GAP.Obj(lie_type), rank, GAP.Globals.Rationals
+    )
+    chevalley_basis = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(lie_algebra_gap))
+    return new(lie_type, rank, lie_algebra_gap, chevalley_basis)
+  end
+end
+
+rank(L::LieAlgebraStructure) = L.rank
+
+@attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
+  R = GAP.Globals.RootSystem(L.lie_algebra_gap)
+  C = matrix(QQ, GAP.Globals.CartanMatrix(R))
+  return C
+end
+
+@attr QQMatrix function inv_cartan_matrix(L::LieAlgebraStructure)
+  return inv(cartan_matrix(L))
+end
+
+function Base.show(io::IO, L::LieAlgebraStructure)
+  io = pretty(io)
+  print(io, LowercaseOff(), "Lie algebra of type $(L.lie_type)$(L.rank)")
+end
+
+function lie_algebra(type::Symbol, rk::Int)
+  return LieAlgebraStructure(type, rk)
+end
+
+function chevalley_basis_gap(L::LieAlgebraStructure)
+  return L.chevalley_basis
+end
+
+function cartan_sub_basis(L::LieAlgebraStructure)
+  return L.chevalley_basis[3]
+end
+
+function root_system_gap(L::LieAlgebraStructure)
+  return GAP.Globals.RootSystem(L.lie_algebra_gap)
+end
+
+function num_positive_roots(L::LieAlgebraStructure)
+  return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
+end
+
+function matrices_of_operators_gap(
+  L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
+)
+  """
+  used to create action_matrices_of_operators
+  """
+  M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
+  matrices_of_operators = [
+    sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))) # TODO: remove transpose?
+    for o in operators
+  ]
+  denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))
+  common_denominator = lcm(denominators)# // 1
+  matrices_of_operators =
+    (A -> change_base_ring(ZZ, common_denominator * A)).(matrices_of_operators)
+  return matrices_of_operators
+end
+
+function weight(L::LieAlgebraStructure, operator::GAP.Obj)
+  """
+  Calculates the weight in w_i for operator
+  """
+  @req !iszero(operator) "Operators should be non-zero"
+  basis = GAP.Globals.Basis(L.lie_algebra_gap)
+  basis_ind = GAP.Globals.Position(basis, operator)
+  denom = GAP.Globals.Coefficients(basis, operator)[basis_ind]
+  return [
+    ZZ(GAP.Globals.Coefficients(basis, h * operator)[basis_ind]//denom) for
+    h in cartan_sub_basis(L)
+  ]
+end
