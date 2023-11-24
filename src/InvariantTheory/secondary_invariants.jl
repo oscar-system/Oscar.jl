@@ -134,6 +134,8 @@ function secondary_invariants_modular(RG::InvRing)
         end
         f += N[j, c]*forget_grading(Bd.monomials_collected[j])
       end
+      # Cancelling the leading coefficient is not mathematically necessary and
+      # should be done with the ordering that is used for the printing
       f = inv(AbstractAlgebra.leading_coefficient(f))*f
       push!(s_invars, f)
       add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
@@ -181,7 +183,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = Vector{Int}()
 
   # The Groebner basis should already be cached
-  gbI = [ forget_grading(f) for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
+  gbI = [ forget_grading(f) for f in groebner_basis(I, ordering = degrevlex(Rgraded)) ]
 
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
@@ -253,6 +255,8 @@ function secondary_invariants_nonmodular(RG::InvRing)
       end
       _, r = divrem(f, gb)  # degrevlex from assert ordering(R) == :degrevlex
       if !is_zero(r)
+        # Cancelling the leading coefficient is not mathematically necessary and
+        # should be done with the ordering that is used for the printing
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
         push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
@@ -468,6 +472,8 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
       end
       nf = forget_grading(normal_form(f, I))
       if add_to_basis!(B, nf)
+        # Cancelling the leading coefficient is not mathematically necessary and
+        # should be done with the ordering that is used for the printing
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         push!(semi_invars, Rgraded(f))
         invars_found += 1

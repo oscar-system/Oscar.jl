@@ -84,7 +84,9 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
         continue
       end
 
-      push!(S, inv(leading_coefficient(f))*f)
+      # Cancelling the leading coefficient is not mathematically necessary and
+      # should be done with the ordering that is used for the printing
+      push!(S, inv(AbstractAlgebra.leading_coefficient(f))*f)
       push!(GO, g)
     end
 
