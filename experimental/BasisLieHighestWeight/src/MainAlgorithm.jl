@@ -206,6 +206,7 @@ function add_new_monomials!(
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
   monomial_ordering::MonomialOrdering,
+  weightspaces::Dict{Vector{ZZRingElem},Int},
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
@@ -244,6 +245,24 @@ function add_new_monomials!(
 
     mon = poss_mon_in_weightspace[i]
     if mon in set_mon
+      continue
+    end
+
+    # check if the weight ob each suffix is a weight of the module
+    cancel = false
+    for i in 1:(nvars(ZZx) - 1)
+      if !haskey(
+        weightspaces,
+        sum(
+          exp * weight for (exp, weight) in
+          Iterators.drop(zip(degrees(mon), birational_sequence.weights_w), i)
+        ),
+      )
+        cancel = true
+        break
+      end
+    end
+    if cancel
       continue
     end
 
