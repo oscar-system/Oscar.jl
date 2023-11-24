@@ -319,30 +319,31 @@ function add_by_hand(
   end
 
   # only inspect weightspaces with missing monomials
-  weights_with_full_weightspace = Set{Vector{ZZRingElem}}()
+  weights_with_non_full_weightspace = Set{Vector{ZZRingElem}}()
   for (weight_w, dim_weightspace) in weightspaces
-    if (length(set_mon_in_weightspace[weight_w]) == dim_weightspace)
-      push!(weights_with_full_weightspace, weight_w)
+    if length(set_mon_in_weightspace[weight_w]) != dim_weightspace
+      push!(weights_with_non_full_weightspace, weight_w)
     end
   end
-  delete!(weightspaces, weights_with_full_weightspace)
 
   # The weightspaces could be calculated completely indepent (except for
   # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
   # Oscar dependencies. But I plan to reimplement this. 
   # insert known monomials into basis
-  for (weight_w, _) in weightspaces
+  for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
   # calculate new monomials
-  for (weight_w, dim_weightspace) in weightspaces
+  for weight_w in weights_with_non_full_weightspace
+    dim_weightspace = weightspaces[weight_w]
     add_new_monomials!(
       L,
       birational_sequence,
       ZZx,
       matrices_of_operators,
       monomial_ordering,
+      weightspaces,
       dim_weightspace,
       weight_w,
       set_mon_in_weightspace,
