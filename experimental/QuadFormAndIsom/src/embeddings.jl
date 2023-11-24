@@ -591,6 +591,12 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
 
   !is_divisible_by(order(q), ordH) && return res
 
+  if order(q) == 1
+    ordH == 1 || return res
+    push!(res, (id_hom(q), O))
+    return res
+  end
+
   # Trivial case: we look for subgroups in a given primary part of q
   ok, e, p = is_prime_power_with_data(ordH)
   if ok
@@ -1136,6 +1142,329 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
     end
   end
   return (length(results) > 0), results
+end
+
+@doc raw"""
+    equivariant_primitive_extensions(M::ZZLatWithIsom,
+                                     N::ZZLatWithIsom,
+                                     H::TorQuadModule;
+                                     classification::Symbol = :sublat
+                                     compute_bar_Gf::Bool = true)
+                                          -> Vector{Tuple{ZZLatWithIsom,
+                                                          ZZLatWithIsom,
+                                                          ZZLatWithIsom}}
+
+Given two even integer lattices with isometry $(M, f_M)$ and $(N, f_N)$, return
+a list $V$ of representatives of isomorphism classes of equivariant primitive
+extensions $(M, fM) \oplus (N, fN) \subseteq (L, fL)$ whose associated equivariant
+glue map is defined between two stable subgroups $D_M \geq H_M \simeq H$ and
+$D_N \geq H_N \simeq H(-1)$.
+
+If no such equivariant primitive extensions exist, then $V$ is empty. Otherwise,
+$V$ consists of triples $((L, f_L), (M', f_M'), (N', f_N'))$ such that $(M', f_M')$
+is isomorphic to $(M, f_M)$, $(N', f_N')$ is isomorphic to $(N, f_N)$ and $(L, f_L)$
+is an equivariant primitive extension of $(M', f_M')\oplus (N', f_N')$ of the
+previous form.
+
+The content of $V$ depends on the value of the symbol `classification`. There
+are 3 possibilities:
+  - `classification == :first`: $V$ consists of the first equivariant primitive extension computed;
+  - `classification == :sublat`: $V$ consists of representatives for all isomorphism classes of equivariant primitive extensions of $(M, f_M)\oplus (N, f_N)$ of the wanted form, up to the actions of $\bar{O(M, f_M)} and $\bar{O(N, f_N)};
+  - `classification == :emb`: $V$ consists of representatives for all isomorphism classes of equivariant primitive extensions of $(M, f_M)\oplus (N, f_N)$ of the wanted form, up to the action $\bar{O(N, f_N)};
+
+Note that the possible values for `classification` are similar to those used for the
+function [`equivariant_primitive_embeddings(::ZZLat, ::ZZLatWithIsom)`](@ref):
+the classification methods correspond to the different classes of equivariant
+primitive embeddings defined by Nikulin in [Nik79](@cite).
+
+Indeed, by fixing $H$, $M$ and $N$, one fixes a unique genus $G$ of even
+primitive extensions of $M\oplus N$ with a glue map described as above. We can
+then see the classes computed as isomorphism classes of $f_L$-equivariant primitive
+embeddings of $M$ into a lattice $L$ in $G$ endowed with an isometry `$f_L$
+which restrict to $f_N$ on the orthogonal complement $N$ of $M$ in $L$.
+
+For the classifications of type `:emb`, if one wants to classified up to the
+action of $\bar{O(M, f_M)}$ only, one can call instead
+``primitive_extensions(N, M, rescale(H, -1)); classification = :emb)``.
+
+If `compute_bar_Gf` is set to `true`, then for each pair $(L, L_f)$ of
+an output triple in $V$, the algorithm compute the image of the natural
+map $O(L, f_L) \to O(D_L, D_{f_L})$ (see [`image_centralizer_in_Oq`](@ref)).
+"""
+function equivariant_primitive_extensions(M::ZZLatWithIsom, N::ZZLatWithIsom; x::Union{IntegerUnion, Nothing} = nothing,
+                                                                              q::Union{TorQuadModule, Nothing} = nothing,
+                                                                              classification::Symbol = :sublat,
+                                                                              compute_bar_Gf::Bool = true)
+  @req classification in [:first, :emb, :sublat] "Wrong symbol for classification"
+
+  results = Tuple{ZZLatWithIsom, ZZLatWithIsom, ZZLatWithIsom}[]
+
+  @req is_even(M) && is_even(N) "Only implemented for pairs of even integer lattices"
+
+    # We check the initial conditions to make sense for having a primitive
+  # extensions with the potential given requirements
+  if !isnothing(x)
+    !is_divisible_by(numerator(gcd(det(M), det(N))), x) && return results
+    if !isnothing(q)
+      @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
+      @req x^2*order(q) == det(M)*det(N) "Wrong requirements: the square of the index `x` should be equal to (det(M)*det(N)/order(q))"
+      aM, _, bM = signature_tuple(M)
+      aN, _, bN = signature_tuple(N)
+      !is_genus(q, (aM+aN, bM+bN)) && return results
+      G = genus(q, (aM+aN, bM+bN))
+    end
+  elseif !isnothing(q)
+    @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
+    aM, _, bM = signature_tuple(M)
+    aN, _, bN = signature_tuple(N)
+    !is_genus(q, (aM+aN, bM+bN)) && return results
+    G = genus(q, (aM+aN, bM+bN))
+    ok, x = divides(numerator(det(M)*det(N)), order(q))
+    !ok && return results
+    ok, x = is_square_with_sqrt(x)
+    !ok && return results
+  end
+
+  same_ambient = ambient_space(lattice(M)) === ambient_space(lattice(N))
+
+  qM, fqM = discriminant_group(M)
+  if classification == :emb
+    GM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check = false)
+  else
+    GM, _ = image_centralizer_in_Oq(M)
+  end
+
+  qN, fqN = discriminant_group(N)
+  GN, _ = image_centralizer_in_Oq(N)
+
+  if compute_bar_Gf
+    if same_ambient
+      D, qMinD, qNinD, OD, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
+    else
+      D, qMinD, qNinD, OD, OqMinOD, OqNinOD = _direct_sum_with_embeddings_orthogonal_groups(qM, qN)
+    end
+  else
+    if same_ambient
+      D = qM+qN
+      qMinD = hom(qM, D, TorQuadModuleElem[D(lift(x)) for x in gens(qM)])
+      qNinD = hom(qN, D, TorQuadModuleElem[D(lift(x)) for x in gens(qN)])
+    else
+      D, inj = direct_sum(qM, qN)
+      qMinD, qNinD = inj
+    end
+    OD = orthogonal_group(D)
+  end
+
+  if !isnothing(x)
+    # First case: we know the order of the subgroup along which we glue!
+    # We first enumerate respective of isometry classes of subgroups of qN of
+    # order x
+    subsN = _classes_isomorphic_subgroups(qN, GN, x, hom(fqN))
+    isempty(subsN) && return results
+
+    for H2 in subsN
+      # Then for each class, we look for representative of isometry classes of
+      # subgroups of M anti-isometric to them
+      subsM = _classes_isomorphic_subgroups(qM, GM, rescale(domain(H2[1]), -1), hom(fqM))
+      isempty(subsM) && continue
+
+      for H1 in subsM
+        ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
+        @hassert :ZZLatWithIsom 1 ok
+
+        HMinqM, stabM = H1
+        HMinD = compose(HMinqM, qMinD)
+        HM = domain(HMinqM)
+        OHM = orthogonal_group(HM)
+        fHM = restrict_automorphism(fqM, HMinqM; check = false)
+
+        HNinqN, stabN = H2
+        HNinD = compose(HNinqN, qNinD)
+        HN = domain(HNinqN)
+        OHN = orthogonal_group(HN)
+        fHN = restrict_automorphism(fqN, HNinqN; check = false)
+
+        fHMinOHN = OHN(compose(inv(phi), compose(fHM, phi)); check = false)
+        bool, g0 = is_conjugate_with_data(OHN, fHMinOHN, OHN(fHN))
+        bool || continue
+
+        phi = compose(phi, hom(OHN(g0)))
+        @hassert :ZZLatWithIsom OHN(compose(inv(phi), compose(fHM, phi))) == OHN(fHN)
+
+        actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(stabM)])
+        actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(stabN)])
+        imN, _ = image(actN)
+
+        stabMphi = AutomorphismGroupElem{TorQuadModule}[OHN(compose(inv(phi), compose(hom(actM(g)), phi))) for g in gens(stabM)]
+        stabMphi, _ = sub(OHN, stabMphi)
+
+        if is_elementary_with_prime(HN)[1]
+          iso = isomorphism(PermGroup, OHN)
+        else
+          iso = id_hom(OHN)
+        end
+        reps = double_cosets(codomain(iso), iso(stabMphi)[1], iso(imN)[1])
+        @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
+
+        for g in reps
+          g = iso\(representative(g))
+          phig = compose(phi, hom(g))
+          L, fL, graph = _overlattice(phig, HMinD, HNinD, isometry(M), isometry(N); same_ambient)
+         
+          if !isnothing(q)
+            genus(L) == G || continue
+          end
+          Lf = integer_lattice_with_isometry(L, fL; ambient_representation = false)
+
+          if same_ambient
+            M2 = lattice_in_same_ambient_space(Lf, basis_matrix(M))
+            N2 = lattice_in_same_ambient_space(Lf, basis_matrix(N))
+            @hassert :ZZLatWithIsom 1 M == M2
+            @hassert :ZZLatWithIsom 1 N == N2
+          else
+            M2 = lattice_in_same_ambient_space(Lf, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L)- degree(M))))
+            N2 = lattice_in_same_ambient_space(Lf, hcat(zero_matrix(QQ, rank(N), degree(L)-degree(N)), basis_matrix(N)))
+            @hassert :ZZLatWithIsom 1 is_of_same_type(M, M2)
+            @hassert :ZZLatWithIsom 1 is_of_same_type(N, N2)
+          end
+
+          if compute_bar_Gf
+            disc, stab = _glue_stabilizers(phig, actM, actN, OqMinOD, OqNinOD, graph)
+            qL, fqL = discriminant_group(Lf)
+            OqL = orthogonal_group(qL)
+            phi2 = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
+            @hassert :ZZLatWithIsom 1 is_isometry(phi2)
+
+            stab = sub(OqL, elem_type(OqL)[OqL(compose(phi2, compose(g, inv(phi2))); check = false) for g in stab])
+
+            @hassert :ZZLatWithIsom 1 fqL in stab[1]
+
+            set_attribute!(Lf, :image_centralizer_in_Oq, stab)
+          end
+
+          push!(results, (Lf, M2, N2))
+          classification == :first && return results
+        end
+      end
+    end
+  else
+    # second case: we do not know the order of the glue so we basically go on
+    # with every possible orders.
+    
+    # In the primary and elementary cases, we can simplify many things.
+    prN, pN = is_primary_with_prime(N)
+    elN = is_elementary(N, pN)
+
+    prM, pM = is_primary_with_prime(M)
+    elM = is_elementary(M, pM)
+
+    for k in divisors(gcd(order(qM), order(qN)))
+      ok, ek, pk = is_prime_power_with_data(k)
+      @vprintln :ZZLatWithIsom 1 "Glue order: $(k)"
+
+      if elN || elM
+        _, VNinqN = _get_V(id_hom(qN), minimal_polynomial(identity_matrix(QQ, 1)), max(pN, pM))
+        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k, fqN; compute_stab = compute_bar_Gf)
+      elseif ok && (ek == 1)
+        _, VNinqN = _get_V(id_hom(qN), minimal_polynomial(identity_matrix(QQ, 1)), k)
+        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k, fqN; compute_stab = compute_bar_Gf)
+      else
+        if prN || prM
+          _, VNinqN = primary_part(qN, max(pN, pM))
+        elseif ok
+          _, VNinqN = primary_part(qN, pk)
+        else
+          VNinqN = id_hom(qN)
+        end
+        subsN = _subgroups_orbit_representatives_and_stabilizers(VNinqN, GN, k, fqN; compute_stab = compute_bar_Gf)
+      end
+      isempty(subsN) && continue
+
+      for H2 in subsN
+        subsM = _classes_isomorphic_subgroups(qM, GM, rescale(domain(H2[1]), -1), fqM, compute_bar_Gf)
+        isempty(subsM) && continue
+        for H1 in subsM
+          ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
+          @hassert :ZZLatWithIsom 1 ok
+
+          HMinqM, stabM = H1
+          HMinD = compose(HMinqM, qMinD)
+          HM = domain(HMinqM)
+          OHM = orthogonal_group(HM)
+          fHM = restrict_automorphism(fqM, HMinqM; check = false)
+
+          HNinqN, stabN = H2
+          HNinD = compose(HNinqN, qNinD)
+          HN = domain(HNinqN)
+          OHN = orthogonal_group(HN)
+          fHN = restrict_automorphism(fqN, HNinqN; check = false)
+
+          fHMinOHN = OHN(compose(inv(phi), compose(fHM, phi)); check = false)
+          bool, g0 = is_conjugate_with_data(OHN, fHMinOHN, fHN)
+          bool || continue
+
+          phi = compose(phi, hom(OHN(g0)))
+          @hassert :ZZLatWithIsom compose(inv(phi), compose(fHM, phi)); check = false == fHN
+
+          actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(stabM)])
+          actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(stabN)])
+          imN, _ = image(actN)
+
+          stabMphi = AutomorphismGroupElem{TorQuadModule}[OHN(compose(inv(phi), compose(hom(actM(g)), phi))) for g in gens(stabM)]
+          stabMphi, _ = sub(OHN, stabMphi)
+
+          if is_elementary_with_prime(HN)[1]
+            iso = isomorphism(PermGroup, OHN)
+          else
+            iso = id_hom(OHN)
+          end
+          reps = double_cosets(codomain(iso), iso(stabMphi)[1], iso(imN)[1])
+          @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
+
+          for g in reps
+            g = iso\(representative(g))
+            phig = compose(phi, hom(g))
+            L, fL, graph = _overlattice(phig, HMinD, HNinD, isometry(M), isometry(N); same_ambient)
+         
+            if !isnothing(q)
+              genus(L) == G || continue
+            end
+            Lf = integer_lattice_with_isometry(L, fL; ambient_representation = false)
+
+            if same_ambient
+              M2 = lattice_in_same_ambient_space(Lf, basis_matrix(M))
+              N2 = lattice_in_same_ambient_space(Lf, basis_matrix(N))
+              @hassert :ZZLatWithIsom 1 M == M2
+              @hassert :ZZLatWithIsom 1 N == N2
+            else
+              M2 = lattice_in_same_ambient_space(Lf, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(L)- degree(M))))
+              N2 = lattice_in_same_ambient_space(Lf, hcat(zero_matrix(QQ, rank(N), degree(L)-degree(N)), basis_matrix(N)))
+              @hassert :ZZLatWithIsom 1 is_of_same_type(M, M2)
+              @hassert :ZZLatWithIsom 1 is_of_same_type(N, N2)
+            end
+
+            if compute_bar_Gf
+              disc, stab = _glue_stabilizers(phig, actM, actN, OqMinOD, OqNinOD, graph)
+              qL, fqL = discriminant_group(Lf)
+              OqL = orthogonal_group(qL)
+              phi2 = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
+              @hassert :ZZLatWithIsom 1 is_isometry(phi2)
+
+              stab = sub(OqL, elem_type(OqL)[OqL(compose(phi2, compose(g, inv(phi2))); check = false) for g in stab])
+
+              @hassert :ZZLatWithIsom 1 fqL in stab[1]
+
+              set_attribute!(Lf, :image_centralizer_in_Oq, stab)
+            end
+
+            push!(results, (Lf, M2, N2))
+            classification == :first && return results
+          end
+        end
+      end
+    end
+  end
+  return results
 end
 
 ###############################################################################

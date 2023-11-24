@@ -378,7 +378,7 @@ end
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
 
-function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)
+function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
   @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
   ok, q = Hecke.is_cyclotomic_type(E)
   @hassert :ZZLatWithIsom 1 ok
@@ -390,7 +390,9 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
   s = length(inf)
   signs = Dict{typeof(inf[1]), Int}[]
   parts = Vector{Int}[]
-  perm = AllPerms(s)
+  if !fix_root
+    perm = AllPerms(s)
+  end
   for v in AllParts(l)
     if any(i -> i > rk, v)
       continue
@@ -401,9 +403,12 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
     while length(v) != s
       push!(v, 0)
     end
-    for vv in perm
-      v2 = v[vv.d]
-      v2 in parts ? continue : push!(parts, v2)
+    push!(parts, copy(v))
+    if !fix_root
+      for vv in perm
+        v2 = v[vv.d]
+        v2 in parts ? continue : push!(parts, v2)
+      end
     end
   end
   for v in parts
@@ -438,7 +443,7 @@ julia> is_of_hermitian_type(reps[1])
 true
 ```
 """
-function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
+function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   @req m >= 1 "m must be a positive integer"
@@ -482,7 +487,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
 
   @vprintln :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
-  signatures = _possible_signatures(s1, s2, E, rk)
+  signatures = _possible_signatures(s1, s2, E, rk, fix_root)
 
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
