@@ -2,9 +2,7 @@ using Distributed
 
 process_ids = addprocs(1)
 
-@everywhere begin
-    using Oscar
-end
+@everywhere using Oscar
 
 @testset "Interprocess Serialization" begin
 
