@@ -52,13 +52,24 @@ end
 function root_system(types::Tuple{Symbol,Int}...)
   cartan = cartan_matrix(types...)
   R = root_system(cartan)
-  R.type = types
+  R.type = collect(types)
   return R
 end
 
-function Base.show(io::IO, R::RootSystem)
+function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
+  io = pretty(io)
   println(io, "Root system defined by Cartan matrix")
-  show(io, cartan_matrix(R))
+  print(io, Indent())
+  show(io, MIME"text/plain"(), cartan_matrix(R))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, R::RootSystem)
+  if get(io, :supercompact, false)
+    print(io, "Root system")
+  else
+    print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
+  end
 end
 
 @doc raw"""
@@ -164,6 +175,15 @@ function roots(R::RootSystem)
   return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
+function simple_root(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_root(R, i)
+end
+
+function simple_roots(R::RootSystem)
+  return [positive_root(R, i) for i in 1:num_simple_roots(R)]
+end
+
 @doc raw"""
     weyl_group(R::RootSystem) -> WeylGroup
 
@@ -186,7 +206,7 @@ end
 ###############################################################################
 # RootSpaceElem
 
-struct RootSpaceElem
+mutable struct RootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
 end
@@ -280,12 +300,23 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+function is_simple_root_with_index(r::RootSpaceElem)
+  i = findfirst(==(r), simple_roots(r.root_system))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function Base.iszero(r::RootSpaceElem)
+  return iszero(r.vec)
+end
+
 function reflect!(r::RootSpaceElem, s::Int)
-  addmul!(
-    r.vec,
-    root_system(r).positive_roots[s],
-    dot(view(cartan_matrix(r.root_system), s, :), r.vec),
-  )
+  r.vec -=
+    dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
+    positive_root(root_system(r), s).vec
   return r
 end
 
@@ -296,7 +327,7 @@ end
 ###############################################################################
 # WeightLatticeElem
 
-struct WeightLatticeElem
+mutable struct WeightLatticeElem
   root_system::RootSystem
   vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
 end

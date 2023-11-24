@@ -141,6 +141,24 @@ function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
   return w2
 end
 
+# to be removed once GroupCore is supported
+function Base.:(^)(x::WeylGroupElem, n::Int)
+  if n == 0
+    return one(parent(x))
+  elseif n < 0
+    return inv(x)^(-n)
+  end
+
+  word = deepcopy(x.word)
+  for _ in 2:n
+    for s in Iterators.reverse(x.word)
+      _lmul!(x.parent.refl, word, s)
+    end
+  end
+
+  return WeylGroupElem(x.parent, word)
+end
+
 function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
   return x.parent === y.parent && x.word == y.word
 end
