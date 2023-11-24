@@ -1,6 +1,5 @@
 @testset "Projective Algebraic Set" begin
-  P,_ = polynomial_ring(QQ, [:x, :y, :z])
-  G, (x,y,z) = grade(P)
+  G, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z])
 
   A = algebraic_set(x^2 - y^2)
   @test is_reduced(A)

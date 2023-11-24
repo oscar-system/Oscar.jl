@@ -1,6 +1,27 @@
 ```@meta
 CurrentModule = Oscar
 ```
+# Projective Plane Curves
+```@docs
+ProjectivePlaneCurve
+```
+
+Projective plane curves are modeled in Oscar as projective
+algebraic sets. See `AbsProjectiveAlgebraicSet`(@ref).
+In addition to the methods for algebraic sets
+the following methods special to plane curves are available.
+
+```@docs
+defining_equation(C::ProjectivePlaneCurve{S,MPolyQuoRing{T}}) where {S,T}
+degree(C::ProjectivePlaneCurve)
+common_components(C::S, D::S) where {S<:ProjectivePlaneCurve}
+multiplicity(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
+tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
+intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+arithmetic_genus(C::ProjectivePlaneCurve)
+geometric_genus(C::AbsProjectiveCurve)
+```
 
 # Rational Parametrizations of Rational Plane Curves
 
@@ -48,36 +69,24 @@ curves only once. Its individual steps are interesting in their own right:
 
 See [Bhm99](@cite) and [BDLP17](@cite) for details and further references.
 
-## Creating Projective Plane Curves
 
-The data structures for algebraic curves in OSCAR are still under development
-and subject to change. Here is the current constructor for projective plane curves:
 
-```@docs
-ProjPlaneCurve(f::MPolyRingElem{T}) where {T <: FieldElem}
-```
-
-## The Genus of a Plane Curve
-
-```@docs
- geometric_genus(C::ProjectivePlaneCurve{T}) where T <: FieldElem
-```
 
 ## Adjoint Ideals of Plane Curves
 
 ```@docs
-adjoint_ideal(C::ProjPlaneCurve{QQFieldElem})
+adjoint_ideal(C::ProjectivePlaneCurve{QQField})
 ```
 
 ## Rational Points on Conics
 
 ```@docs
-rational_point_conic(D::ProjPlaneCurve{QQFieldElem})
+rational_point_conic(D::ProjectivePlaneCurve{QQField})
 ```
 ## Parametrizing Rational Plane Curves
 
 ```@docs
- parametrization_plane_curve(C::ProjPlaneCurve{QQFieldElem})
+parametrization(C::ProjectivePlaneCurve{QQField})
 ```
 
 

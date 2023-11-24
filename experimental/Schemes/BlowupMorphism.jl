@@ -543,7 +543,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
                        # sanity check -- we are on a trivializing covering after all!
     h_orig = C(V)[1]
     h_total = pullback(pr_refined[U]).(h_orig)
-    if isunit(h_total)
+    if is_unit(h_total)
       ID[U] = one(OO(U))
       continue
     end
@@ -552,7 +552,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
     length(E(U)) == 1 || error("exceptional divisor is not principal")
                        # sanity check -- default covering of Y is already trivializing for E!
     e = E(U)[1]
-    if isunit(e)
+    if is_unit(e)
       ID[U] = h_total
       continue
     end

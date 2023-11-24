@@ -135,16 +135,22 @@ function __init__()
 
     add_assertion_scope(:ZZLatWithIsom)
     add_verbosity_scope(:ZZLatWithIsom)
+
+    # Pkg.is_manifest_current() returns false if the manifest might be out of date
+    # (but might return nothing when there is no project_hash)
+    if is_dev && VERSION >= v"1.8" && Pkg.is_manifest_current() === false
+      @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+    end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
+const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
 
 const is_dev = (function()
-        uuid = PROJECT_TOML["uuid"]
         deps = Pkg.dependencies()
-        if Base.haskey(deps, uuid)
-          if deps[uuid].is_tracking_path
+        if Base.haskey(deps, PROJECT_UUID)
+          if deps[PROJECT_UUID].is_tracking_path
             return true
           end
         end
@@ -224,7 +230,6 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
-include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

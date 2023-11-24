@@ -131,3 +131,6 @@ This is expensive and involves taking field extensions.
 function geometric_irreducible_components(X::AbsProjectiveAlgebraicSet)
   throw(NotImplementedError(:geometric_irreducible_components, X))
 end
+
+Base.union(X::AbsProjectiveAlgebraicSet, Y::AbsProjectiveAlgebraicSet) = ProjectiveAlgebraicSet(union(fat_scheme(X), fat_scheme(Y)))
+

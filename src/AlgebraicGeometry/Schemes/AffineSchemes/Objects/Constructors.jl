@@ -838,3 +838,27 @@ end
 Return the closure of `X` in its ambient affine space.
 """
 closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)
+
+
+
+######################################################################
+# Unions
+######################################################################
+
+function union(X::AbsSpec{BRT,RT}, Y::AbsSpec{BRT,RT}) where {BRT, RT<:MPolyQuoRing}
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
+  IX = modulus(OO(X))
+  IY = modulus(OO(Y))
+  return Spec(R, intersect(IX, IY))
+end
+
+function union(X::AbsSpec{BRT,<:MPolyQuoRing}, Y::AbsSpec{BRT,<:MPolyRing}) where {BRT}
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
+  return X
+end
+
+function union(X::AbsSpec{BRT,<:MPolyRing}, Y::AbsSpec{BRT,<:MPolyQuoRing}) where {BRT}
+  return union(Y,X)
+end

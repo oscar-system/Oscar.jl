@@ -21,22 +21,20 @@ end
 function Base.show(io::IO, P::ProjSpc)
   w = weights(P)
   if all(isone, w)
-    print(io, "Projective space of dim $(P.n) over $(P.R)\n")
+    print(io, "Projective space of dim $(P.n) over $(P.R)")
   else
-    print(io, "Weighted projective space of dim $(P.n) over $(P.R) and weights $(w)\n")
+    print(io, "Weighted projective space of dim $(P.n) over $(P.R) and weights $(w)")
   end
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Int, name::Symbol=:x)
-  Sx = polynomial_ring(R, name => 0:n)[1]
-  Rx = grade(Sx, [1 for i=0:n])[1]
-  return ProjSpc(R, n, Rx), gens(Rx)
+  Rx, x = graded_polynomial_ring(R, name => 0:n)
+  return ProjSpc(R, n, Rx), x
 end
 
 function proj_space(R::AbstractAlgebra.Ring, n::Vector{<:Integer}, name::Symbol = :x)
-  Sx = polynomial_ring(R, name => 0:length(n)-1)[1]
-  Rx = grade(Sx, n)[1]
-  return ProjSpc(R, length(n)-1, Rx), gens(Rx)
+  Rx, x = graded_polynomial_ring(R, name => 0:length(n)-1, n)
+  return ProjSpc(R, length(n)-1, Rx), x
 end
 
 function coordinate_ring(P::ProjSpc)
@@ -47,7 +45,7 @@ function weights(P::ProjSpc)
   return Int[x[1] for x = P.Rx.d]
 end
 
-function isweighted(P::ProjSpc)
+function is_weighted(P::ProjSpc)
   return !all(x->isone(x[1]), P.Rx.d)
 end
 
@@ -175,7 +173,7 @@ function normalize!(a::ProjSpcElem{ZZRingElem})
 end
 
 function Base.hash(a::ProjSpcElem, u::UInt=UInt(123432))
-  if isweighted(parent(a))
+  if is_weighted(parent(a))
     return u
   end
   normalize!(a)

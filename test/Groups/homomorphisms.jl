@@ -284,7 +284,7 @@ end
 
       G  = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
       H = small_group(64, 14)
-      @test isisomorphic(G, H)
+      @test is_isomorphic(G, H)
       f = isomorphism(G, H)
       for x in gens(G), y in gens(G)
          @test f(x) * f(y) == f(x * y)
@@ -299,7 +299,7 @@ end
          @test preimage(f, f(y)) == y
       end
 
-      @test isisomorphic(H, G)
+      @test is_isomorphic(H, G)
       f = isomorphism(H, G)
       for x in gens(H), y in gens(H)
          @test f(x) * f(y) == f(x * y)
@@ -315,11 +315,11 @@ end
       end
 
       H = cyclic_group(2)
-      @test !isisomorphic(G, H)
+      @test !is_isomorphic(G, H)
       @test_throws ArgumentError isomorphism(G, H)
       fl, _ = is_isomorphic_with_map(G, H)
       @test !fl
-      @test !isisomorphic(H, G)
+      @test !is_isomorphic(H, G)
       @test_throws ArgumentError isomorphism(H, G)
       fl, _ = is_isomorphic_with_map(H, G)
       @test !fl

@@ -234,7 +234,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
     # We have to find more invariants of this degree not coming from power products
     # of smaller degree ones.
-    mons = all_monomials(Rgraded, d)
+    mons = monomials_of_degree(Rgraded, d)
     for m in mons
 
       # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
@@ -449,7 +449,7 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
     end
     invars_found = 0
 
-    mons = all_monomials(Rgraded, d)
+    mons = monomials_of_degree(Rgraded, d)
     for m in mons
 
       # Can exclude some monomials, see DK15, Remark 3.7.3 (b)

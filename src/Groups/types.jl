@@ -374,7 +374,7 @@ end
 const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
 
 function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
-    println(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+    print(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
 end
 
 

@@ -10,11 +10,8 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
   filename = joinpath(path, "original.json")
   save(filename, original)
   loaded = load(filename; params=params)
-  if T <: Vector
-    @test loaded isa Vector
-  else
-    @test loaded isa T
-  end
+
+  @test loaded isa T
   func(loaded)
 
   # save and load from an IO buffer
@@ -23,11 +20,7 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
   seekstart(io)
   loaded = load(io; params=params)
 
-  if T <: Vector
-    @test loaded isa Vector
-  else
-    @test loaded isa T
-  end
+  @test loaded isa T
   func(loaded)
 
   # save and load from an IO buffer, with prescribed type
@@ -35,11 +28,8 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
   save(io, original)
   seekstart(io)
   loaded = load(io; type=T, params=params)
-  if T <: Vector
-    @test loaded isa Vector
-  else
-    @test loaded isa T
-  end
+
+  @test loaded isa T
   func(loaded)
 
   # test loading on a empty state

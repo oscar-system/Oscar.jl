@@ -330,6 +330,7 @@ function add_by_hand(
   # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
   # Oscar dependencies. But I plan to reimplement this. 
   # insert known monomials into basis
+
   for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end

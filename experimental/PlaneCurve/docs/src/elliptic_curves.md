@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.PlaneCurveModule
 DocTestSetup = quote
   using Oscar
 end
@@ -43,14 +43,11 @@ Addition and multiplication by an integer of a point on an elliptic curve can be
 
 #### Example
 
-```jldoctest
-julia> S, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
-
-julia> T, _ = grade(S)
+```julia
+julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
-julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 + 2*x*z^2))
+julia> E = Oscar.ProjEllipticCurve(y^2*z - x^3 + 2*x*z^2)
 Projective elliptic curve defined by -x^3 + 2*x*z^2 + y^2*z
 
 julia> PP = Oscar.proj_space(E)
@@ -110,25 +107,21 @@ rand_pair_EllCurve_Point(R::Oscar.MPolyDecRing{S}, PP::Oscar.Geometry.ProjSpc{S}
 
 Projective elliptic curves over a ring are for example used in the Elliptic Curve Method. We give here an example (see Example 7.1 of [Was08](@cite)) on how to use the previous functions to apply it. 
 
-```jldoctest
+```julia
 julia> n = 4453
 4453
 
 julia> A = residue_ring(ZZ, ZZ(n))
 Integers modulo 4453
 
-julia> S, (x,y,z) = polynomial_ring(A, ["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over ZZ/(4453), AbstractAlgebra.Generic.MPoly{ZZModRingElem}[x, y, z])
-
-julia> T, _ = grade(S)
+julia> T, (x,y,z) = graded_polynomial_ring(A, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over ZZ/(4453), MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x, y, z])
 
-julia> E = Oscar.ProjEllipticCurve(T(y^2*z - x^3 - 10*x*z^2 + 2*z^3))
+julia> E = Oscar.ProjEllipticCurve(y^2*z - x^3 - 10*x*z^2 + 2*z^3)
 Projective elliptic curve defined by 4452*x^3 + 4443*x*z^2 + y^2*z + 2*z^3
 
 julia> PP = proj_space(A, 2)
-(Projective space of dim 2 over Integers modulo 4453
-, MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x[0], x[1], x[2]])
+(Projective space of dim 2 over Integers modulo 4453, MPolyDecRingElem{ZZModRingElem, AbstractAlgebra.Generic.MPoly{ZZModRingElem}}[x[0], x[1], x[2]])
 
 julia> Q = Oscar.Geometry.ProjSpcElem(PP[1], [A(1), A(3), A(1)])
 (1 : 3 : 1)

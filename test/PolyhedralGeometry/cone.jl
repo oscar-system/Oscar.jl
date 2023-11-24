@@ -78,6 +78,9 @@
     @test is_fulldimensional(Cone2)
     @test Cone2 == Cone3
     @test Cone4 != Cone2
+
+    @test length(unique([Cone2, Cone3, Cone4])) == 2
+
     @test dim(Cone4) == 2
     @test dim(Cone2) == 3
     @test ambient_dim(Cone2) == 3

@@ -203,6 +203,18 @@ singular_loci(t::GlobalTateModel)
 
 ## Methods
 
+### Blowup
+
+We can blow up a global Tate model:
+```@docs
+blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+```
+Consequently, the model will thereafter be partially resolved.
+```@docs
+is_partially_resolved(t::GlobalTateModel)
+```
+
+
 ### Fiber study
 
 In F-theory, it is standard to not work with the singular space directly.

@@ -167,7 +167,7 @@ end
 # try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
-isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
+is_unit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 
 ########################################################################
 # Conversion of rational functions on arbitrary patches                #

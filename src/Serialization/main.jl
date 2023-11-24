@@ -127,7 +127,6 @@
 # the only parameter needed for such types is their parent.
 
 using JSON
-using UUIDs
 
 include("serializers.jl")
 
@@ -146,15 +145,42 @@ function metadata(;args...)
 end
 
 ################################################################################
-# Version info
+# Serialization info
 
-function get_version_info()
-  result = Dict{Symbol, Any}(
-    :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
-  )
-  return result
+function serialization_version_info(dict::Dict{Symbol, Any})
+  ns = dict[:_ns]
+  version_info = ns[:Oscar][2]
+  return version_number(version_info)
 end
-const oscar_serialization_version = get_version_info()
+
+function version_number(v_number::String)
+  return VersionNumber(v_number)
+end
+
+# needed for older versions 
+function version_number(dict::Dict)
+  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
+end
+
+const oscar_serialization_version = Ref{Dict{Symbol, Any}}()
+
+function get_oscar_serialization_version()
+  if isassigned(oscar_serialization_version)
+    return oscar_serialization_version[]
+  end
+  if is_dev
+    commit_hash = get(_get_oscar_git_info(), :commit, "unknown")
+    version_info = "$VERSION_NUMBER-$commit_hash"
+    result = Dict{Symbol, Any}(
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", version_info]
+    )
+  else
+    result = Dict{Symbol, Any}(
+      :Oscar => ["https://github.com/oscar-system/Oscar.jl", VERSION_NUMBER]
+    )
+  end
+  return oscar_serialization_version[] = result
+end
 
 ################################################################################
 # (De|En)coding types
@@ -354,6 +380,8 @@ import Serialization.deserialize
 import Serialization.serialize_type
 import Distributed.AbstractSerializer
 
+serialize_with_id(::Type) = false
+
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
     quote
@@ -424,26 +452,10 @@ include("Algebras.jl")
 include("polymake.jl")
 include("TropicalGeometry.jl")
 include("QuadForm.jl")
-
-################################################################################
-# Include upgrade scripts
+include("GAP.jl")
+include("Groups.jl")
 
 include("upgrades/main.jl")
-
-function get_file_version(dict::Dict{Symbol, Any})
-  ns = dict[:_ns]
-  version_info = ns[:Oscar][2]
-  return get_version_number(version_info)
-end
-
-function get_version_number(v_number::String)
-  return VersionNumber(v_number)
-end
-
-# needed for older versions 
-function get_version_number(dict::Dict)
-  return VersionNumber(dict[:major], dict[:minor], dict[:patch])
-end
 
 ################################################################################
 # Interacting with IO streams and files
@@ -474,7 +486,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   s = state(serializer_open(io, serializer_type))
   save_data_dict(s) do
     # write out the namespace first
-    save_header(s, oscar_serialization_version, :_ns)
+    save_header(s, get_oscar_serialization_version(), :_ns)
 
     save_typed_object(s, obj)
 
@@ -542,7 +554,7 @@ See [`save`](@ref).
 
 ```jldoctest
 julia> save("/tmp/fourtitwo.json", 42);
-
+  
 julia> load("/tmp/fourtitwo.json")
 42
 
@@ -598,46 +610,54 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   @req haskey(_ns, :Oscar) "Not an Oscar object"
 
   # deal with upgrades
-  file_version = get_file_version(jsondict)
+  file_version = serialization_version_info(jsondict)
 
   if file_version < VERSION_NUMBER
     jsondict = upgrade(jsondict, file_version)
   end
 
-  # add refs to state for referencing during recursion
-  if haskey(jsondict, refs_key)
-    merge!(s.refs, jsondict[refs_key])
-  end
-
-  if type !== nothing
-    # Decode the stored type, and compare it to the type `T` supplied by the caller.
-    # If they are identical, just proceed. If not, then we assume that either
-    # `T` is concrete, in which case `T <: U` should hold; or else `U` is
-    # concrete, and `U <: T` should hold.
-    #
-    # This check should maybe change to a check on the whole type tree?
-    U = decode_type(jsondict[type_key])
-    U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
-
-    if serialize_with_params(type)
-      if isnothing(params) 
-        params = load_type_params(s, type, jsondict[type_key][:params])
-      end
-
-      loaded = load_object(s, type, jsondict[:data], params)
-    else
-      Base.issingletontype(type) && return type()
-      loaded = load_object(s, type, jsondict[:data])
+  try
+    # add refs to state for referencing during recursion
+    if haskey(jsondict, refs_key)
+      merge!(s.refs, jsondict[refs_key])
     end
-  else
-    loaded = load_typed_object(s, jsondict; override_params=params)
-  end
 
-  if haskey(jsondict, :id)
-    global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
-    global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+    if type !== nothing
+      # Decode the stored type, and compare it to the type `T` supplied by the caller.
+      # If they are identical, just proceed. If not, then we assume that either
+      # `T` is concrete, in which case `T <: U` should hold; or else `U` is
+      # concrete, and `U <: T` should hold.
+      #
+      # This check should maybe change to a check on the whole type tree?
+      U = decode_type(jsondict[type_key])
+      U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
+
+      if serialize_with_params(type)
+        if isnothing(params) 
+          params = load_type_params(s, type, jsondict[type_key][:params])
+        end
+
+        loaded = load_object(s, type, jsondict[:data], params)
+      else
+        Base.issingletontype(type) && return type()
+        loaded = load_object(s, type, jsondict[:data])
+      end
+    else
+      loaded = load_typed_object(s, jsondict; override_params=params)
+    end
+
+    if haskey(jsondict, :id)
+      global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
+      global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+    end
+    return loaded
+  catch e
+    if contains(string(file_version), "DEV")
+      commit = split(string(file_version), "-")[end]
+      @warn "Attempting to load file stored using a DEV version with commit $commit"
+    end
+    rethrow(e)
   end
-  return loaded
 end
 
 function load(filename::String; params::Any = nothing, type::Any = nothing)

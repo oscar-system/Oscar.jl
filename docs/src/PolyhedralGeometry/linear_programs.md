@@ -101,6 +101,7 @@ julia> V = optimal_vertex(LP)
 
 ```@docs
 feasible_region(lp::LinearProgram)
+ambient_dim(lp::LinearProgram)
 objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
 solve_lp(LP::LinearProgram)
 optimal_value(lp::LinearProgram{T}) where T<:scalar_types

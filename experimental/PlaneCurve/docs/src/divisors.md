@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.PlaneCurveModule
 ```
 
 # Divisors

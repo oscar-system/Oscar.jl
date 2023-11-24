@@ -82,6 +82,3 @@ check.error.rule { doi "\://" "\@ \$: doi field should not be a URL" }
 
 # Check that the url field is not a DOI
 check.error.rule { url "doi\.org/" "\@ \$: url field should not contain a doi. Use the doi field instead" }
-
-# Check that no field contains a LaTeX url command, as DocumenterCitations.jl prints them ugly
-check.error.rule { "\\url" "\@ \$: LaTeX's `\\url` commands are not supported" }

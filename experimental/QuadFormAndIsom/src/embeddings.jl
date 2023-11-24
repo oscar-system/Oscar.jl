@@ -424,7 +424,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   GVtoMGp = hom(GV, MGp, MGp.(act_GV); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
 
-  @hassert :ZZLatWithIsom g-ngens(snf(abelian_group(H0))[1]) < dim(Qp)
+  g-ngens(snf(abelian_group(H0))[1]) >= dim(Qp) && return res
   
   F = base_ring(Qp)
   # K is H0 but seen a subvector space of Vp (which is V)
@@ -738,13 +738,18 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing
   if !isnothing(x)
     !is_divisible_by(numerator(gcd(det(M), det(N))), x) && return results
     if !isnothing(q)
+      @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
       @req x^2*order(q) == det(M)*det(N) "Wrong requirements: the square of the index `x` should be equal to (det(M)*det(N)/order(q))"
+      aM, _, bM = signature_tuple(M)
+      aN, _, bN = signature_tuple(N)
+      !is_genus(q, (aM+aN, bM+bN)) && return results
+      G = genus(q, (aM+aN, bM+bN))
     end
   elseif !isnothing(q)
+    @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
     aM, _, bM = signature_tuple(M)
     aN, _, bN = signature_tuple(N)
     !is_genus(q, (aM+aN, bM+bN)) && return results
-    @req modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
     G = genus(q, (aM+aN, bM+bN))
     ok, x = divides(numerator(det(M)*det(N)), order(q))
     !ok && return results
@@ -1482,7 +1487,7 @@ function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
   phiHA, _ = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
   G = GSetByElements(OSB, _on_subgroups, TorQuadModule[HB])
-  ok, g = representative_action(G, phiHA, HB)
+  ok, g = is_conjugate_with_data(G, phiHA, HB)
   @hassert :ZZLatWithIsom 1 ok
   phi_1 = compose(phi, hom(g))
   @hassert :ZZLatWithIsom 1 sub(SB, elem_type(SB)[phi_1(SA(lift(a))) for a in gens(HA)])[1] == HB

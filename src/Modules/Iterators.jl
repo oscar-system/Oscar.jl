@@ -29,7 +29,7 @@ function Base.length(amm::AllModuleMonomials)
   for i in 1:r
     d_loc = d - Int(degree(F[i])[1])
     d_loc < 0 && continue
-    result = result + length(all_monomials(R, d_loc))
+    result = result + length(monomials_of_degree(R, d_loc))
   end
   return result
 end
@@ -44,7 +44,7 @@ function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
   i === nothing && return nothing
   d_loc = d - Int(degree(F[i])[1])
 
-  mon_it = all_monomials(R, d_loc)
+  mon_it = monomials_of_degree(R, d_loc)
   res = iterate(mon_it, nothing)
   res === nothing && i == ngens(F) && return nothing
 
@@ -64,7 +64,7 @@ function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, V
     i === nothing && return nothing
     d_loc = d - Int(degree(F[i])[1])
 
-    mon_it = all_monomials(R, d_loc)
+    mon_it = monomials_of_degree(R, d_loc)
     res_loc = iterate(mon_it, nothing)
     res_loc === nothing && i == ngens(F) && return nothing
 
