@@ -1338,6 +1338,7 @@ export semidirect_product
 export separating_hyperplanes
 export series_extension
 export set_base_scheme!
+export set_channels
 export set_commutator!
 export set_conjugate!
 export set_coordinate_names
