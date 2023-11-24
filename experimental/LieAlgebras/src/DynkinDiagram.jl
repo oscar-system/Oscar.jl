@@ -35,30 +35,27 @@ function show_dynkin_diagram(fam::Symbol, rk::Int)
     end
 
   elseif fam == :D
-    if rk >= 4
-      for i in 1:(4 * rk - 10)
-        D = D * " "
-      end
-      D = D * string(rk - 1) * "\n"
-      for i in 1:(4 * rk - 11)
-        D = D * " "
-      end
-      D = D * "/\n"
-      for i in 1:(rk - 3)
-        D = D * string(i) * " - "
-      end
-      D = D * string(rk - 2) * "\n"
-      for i in 1:(4 * rk - 12)
-        D = D * " "
-      end
-      D = D * " \\ \n"
-      for i in 1:(4 * rk - 10)
-        D = D * " "
-      end
-      D = D * string(rk)
-    else
-      error("This root system doesn't exist.")
+    D = "."
+    for i in 1:(sum(ndigits(i) + 3 for i in 1:(rk - 2)) - 3)
+      D = D * " "
     end
+    D = D * string(rk - 1) * "\n"
+    for i in 1:(sum(ndigits(i) + 3 for i in 1:(rk - 2)) - 3)
+      D = D * " "
+    end
+    D = D * "/\n"
+    for i in 1:(rk - 3)
+      D = D * string(i) * " - "
+    end
+    D = D * string(rk - 2) * "\n"
+    for i in 1:(sum(ndigits(i) + 3 for i in 1:(rk - 2)) - 4)
+      D = D * " "
+    end
+    D = D * " \\ \n"
+    for i in 1:(sum(ndigits(i) + 3 for i in 1:(rk - 2)) - 2)
+      D = D * " "
+    end
+    D = D * string(rk)
 
   elseif fam == :E
     if rk == 6
@@ -67,24 +64,17 @@ function show_dynkin_diagram(fam::Symbol, rk::Int)
       D = "1 - 3 - 4 - 5 - 6 - 7\n        |\n        2"
     elseif rk == 8
       D = "1 - 3 - 4 - 5 - 6 - 7 - 8\n        |\n        2"
-    else
-      error("This root system doesn't exist.")
     end
 
   elseif fam == :F
     if rk == 4
       D = "1 - 2 >=> 3 - 4"
-    else
-      error("This root system doesn't exist.")
     end
   elseif fam == :G
     if rk == 2
       D = "1 <<< 2"
-    else
-      error("This root system doesn't exist.")
     end
-  else
-    error("This root system doesn't exist.")
   end
+  isempty(D) && error("Unreachable")
   print(D)
 end
