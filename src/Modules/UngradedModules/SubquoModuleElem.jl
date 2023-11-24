@@ -775,6 +775,7 @@ function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
     return Q
   else
     pro = hom(M, Q, gens(Q); check=false)
+    pro.generators_map_to_generators = true # Makes evaluation of the inclusion easier
     task == :cache_morphism && register_morphism!(pro)
     task == :only_morphism && return pro
     return Q, pro

@@ -296,9 +296,9 @@ true
 """
 mutable struct SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
   parent::SubquoModule{T}
-  coeffs::SRow{T}
-  repres::FreeModElem{T} # only filled out on request
-  is_reduced::Bool
+  coeffs::SRow{T} # Need not be defined! Use `coordinates` as getter
+  repres::FreeModElem{T} # Need not be defined! Use `repres` as getter
+  is_reduced::Bool # `false` by default. Will be set by `simplify` and `simplify!`.
 
   function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R}
     @assert length(v) <= ngens(SQ.sub)
@@ -329,11 +329,12 @@ mutable struct SubQuoHom{
   } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
   header::Hecke.MapHeader
-  im::Vector
+  im::Vector # The images of the generators; use `images_of_generators` as a getter.
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
   d::GrpAbFinGenElem
-  generators_map_to_generators::Union{Bool, Nothing}
+  generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation;
+                                                     # value `nothing` by default and to be set manually.
 
   # Constructors for maps without change of base ring
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector;
@@ -527,11 +528,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   header::MapHeader
   ring_map::RingMapType
   d::GrpAbFinGenElem
-  imgs_of_gens::Vector # stored here for easy evaluation
+  imgs_of_gens::Vector # stored here for easy evaluation; use `images_of_generators` as getter
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
-  generators_map_to_generators::Union{Bool, Nothing}
+  generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation
+                                                     # of the map; `nothing` by default and to be 
+                                                     # set manually.
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
@@ -543,10 +546,10 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
     function im_func(x::AbstractFreeModElem)
-      if r.generators_map_to_generators === nothing
-        r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
-      end
-      r.generators_map_to_generators && return codomain(r)(coordinates(x))
+     #if r.generators_map_to_generators === nothing
+     #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
+     #end
+      r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
       v = images_of_generators(r)
       return sum(a*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
     end
@@ -571,10 +574,10 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     r = new{typeof(F), T2, RingMapType}()
     function im_func(x::AbstractFreeModElem)
       iszero(x) && return zero(codomain(r))
-      if r.generators_map_to_generators === nothing
-        r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
-      end
-      r.generators_map_to_generators && return codomain(r)(map_entries(h, coordinates(x)))
+     #if r.generators_map_to_generators === nothing
+     #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
+     #end
+      r.generators_map_to_generators === true && return codomain(r)(map_entries(h, coordinates(x)))
       v = images_of_generators(r)
       return sum(h(a)*v[i] for (i, a) in coordinates(x); init=zero(codomain(r)))
     end
