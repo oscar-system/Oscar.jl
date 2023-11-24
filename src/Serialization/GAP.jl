@@ -39,7 +39,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{GapObj})
   load_node(s) do d
-    @req :GapType in keys(d) "cannot deserialize GapObj without key :GapType"
+    @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
     GAP_T = load_node(s, :GapType) do gap_type_data
       return GapObj(gap_type_data)
     end
@@ -125,7 +125,7 @@ install_GAP_deserialization(
   :IsFreeGroup,
   function(filt::GapObj, s::DeserializerState, T)
     load_node(s) do d
-      if :freeGroup in keys(d) && :gens in keys(d)
+      if haskey(s, :freeGroup) && haskey(s, :gens)
         # Deserialize the full free group.
         F = load_typed_object(s, :freeGroup)
         # Deserialize the generators.
@@ -137,7 +137,7 @@ install_GAP_deserialization(
       else
         # Create a new full free group.
         wfilt = getproperty(GAP.Globals, load_object(s, Symbol, :wfilt))
-        if :nameprefix in keys(d)
+        if haskey(s, :nameprefix)
           # infinite rank
           prefix = load_node(s, :nameprefix) do nameprefix
             GapObj(nameprefix)
@@ -191,7 +191,7 @@ install_GAP_deserialization(
   :IsSubgroupFpGroup,
   function(filt::GapObj, s::DeserializerState, T)
     load_node(s) do d 
-      if :wholeGroup in keys(d) && :gens in keys(d)
+      if haskey(s, :wholeGroup) && haskey(s, :gens)
         # Deserialize the full f.p. group.
         F = load_typed_object(s, :wholeGroup)
         Ffam = GAPWrap.FamilyObj(F)
@@ -293,7 +293,7 @@ install_GAP_deserialization(
   :IsPcGroup,
   function(filt::GapObj, s::DeserializerState, T)
     load_node(s) do d
-      if :relord in keys(d)
+      if haskey(s, :relord)
         # full pc group
         relord = load_object(s, Vector, Int, :relord)
         F = GAP.Globals.FreeGroup(GAP.Globals.IsSyllableWordsFamily,
