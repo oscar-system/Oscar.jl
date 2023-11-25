@@ -435,13 +435,28 @@ const FieldEmbeddingTypes = Union{Hecke.NumFieldEmbNfAbs, Hecke.NumFieldEmbNfRel
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
+  k = base_field(K)
 
   save_data_dict(s) do
     save_typed_object(s, K, :num_field)
     if !(base_field(K) isa QQField)
-      save_typed_object(s, restrict(E, base_field(K)), :base_field_emb)
+      save_typed_object(s, restrict(E, k), :base_field_emb)
     end
-    save_typed_object(s, is_simple(K) ? E(gen(K)) : tuple((E.(gens(K)))...), :data)
+    if is_simple(K)
+      a = gen(K)
+      data = E(a)
+      if any(overlaps(data, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, k) == restrict(e, k))
+        error("Internal error in internal serialization.")
+      end
+    else
+      a = gens(K)
+      data = E.(a)
+      if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, k) == restrict(e, k))
+        error("Internal error in internal serialization.")
+      end
+      data = tuple(data...)
+    end
+    save_typed_object(s, data, :data)
   end
 end
 
