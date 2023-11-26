@@ -149,14 +149,14 @@ function Base.:(^)(x::WeylGroupElem, n::Int)
     return inv(x)^(-n)
   end
 
-  word = deepcopy(x.word)
+  px = deepcopy(x)
   for _ in 2:n
     for s in Iterators.reverse(x.word)
-      _lmul!(x.parent.refl, word, s)
+      lmul!(px, Int(s)) # make lmul! more general to make casting unnecessary
     end
   end
 
-  return WeylGroupElem(x.parent, word)
+  return px
 end
 
 function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
