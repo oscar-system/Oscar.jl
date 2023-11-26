@@ -1,50 +1,43 @@
 using Distributed
 
-process_ids = addprocs(1)
+process_ids = addprocs(5)
 
 @everywhere using Oscar
 
 @testset "Interprocess Serialization" begin
 
-  @everywhere function do_work(rings, jobs, results) # define work function everywhere
-    Qx, F, MR = take!(rings)
-    
-    for i in 1:10
-      m = take!(jobs)
-      put!(results, det(m))
-    end
-  end
-
-  rings = Distributed.RemoteChannel(() -> Channel{Tuple{Ring, Field, MatSpace}}(10));
-  jobs = Distributed.RemoteChannel(() -> Channel{MatElem}(10));
-  results = Distributed.RemoteChannel(() -> Channel{FieldElem}(32));
+  chnnls = set_channels(MatElem, FieldElem, Tuple{Ring, Field, MatSpace})
 
   Qx, x = QQ["x"]
   F, a = number_field(x^2 + x + 1)
   MR = matrix_space(F, 2, 2)
+
+  put_params(chnnls[3], (Qx, F, MR))
+  w_pool = WorkerPool(workers())
+  c = [[a^i F(1); a a + 1] for i in 1:10]
+
+  function t1()
+    for m in c
+      put!(chnnls[1], MR(m))
+    end
+  end
+      
+  errormonitor(@async t1)
   
-  for p in workers()
-    put!(rings, (Qx, F, MR))
+  for m in c
+    w = take!(w_pool)
+    remote_do(det, w, chnnls[1], chnnls[2])
   end
-
-  n = 3
-  for i in 1:n
-    put!(jobs, MR([a^i F(1); F(0) F(1)]))
-  end
-
-  for p in workers() # start tasks on the workers to process requests in parallel
-    remote_do(do_work, p, rings, jobs, results)
-  end
+  errormonitor(task2)
 
   total = F(1)
-  
-  while n > 0
-    determinant = take!(results)
-    n = n - 1
+  task3 = @async for m in c
+    determinant = take!(chnnls[2])
     total *= determinant
   end
 
-  @test total == a^6
+  errormonitor(task3)
+  @test total == 
 
 end
 

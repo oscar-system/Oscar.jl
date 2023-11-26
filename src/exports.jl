@@ -1141,6 +1141,7 @@ export ordinary_table
 export orthogonal_components
 export orthogonal_group
 export orthogonal_sign
+export oscar_worker_pool
 export outneighbors
 export p_central_series
 export pappus_matroid
@@ -1226,6 +1227,7 @@ export projective_unitary_group
 export pseudo_del_pezzo_polytope
 export pullback
 export pullback_type
+export put_params
 export pyramid
 export quadratic_form
 export quaternion_group
