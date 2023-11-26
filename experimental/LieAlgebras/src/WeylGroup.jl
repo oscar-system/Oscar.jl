@@ -152,7 +152,7 @@ function Base.:(^)(x::WeylGroupElem, n::Int)
   px = deepcopy(x)
   for _ in 2:n
     for s in Iterators.reverse(x.word)
-      lmul!(px, Int(s)) # make lmul! more general to make casting unnecessary
+      lmul!(px, s)
     end
   end
 
@@ -210,7 +210,12 @@ function Base.show(io::IO, x::WeylGroupElem)
   end
 end
 
-function lmul!(x::WeylGroupElem, i::Int)
+function lmul(x::WeylGroupElem, i::Integer)
+  return lmul!(deepcopy(x), i)
+end
+
+function lmul!(x::WeylGroupElem, i::Integer)
+  @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
   _lmul!(parent(x).refl, word(x), UInt8(i))
   return x
 end
