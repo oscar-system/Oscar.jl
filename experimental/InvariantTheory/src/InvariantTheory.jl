@@ -84,9 +84,8 @@ mutable struct RepresentationReductiveGroup
     end
 end
 
-function representation_reductive_group(G::ReductiveGroup, d::Int)
-    return RepresentationReductiveGroup(G, d)
-end
+representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReductiveGroup(G, d)
+representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem) = RepresentationReductiveGroup(G,M)
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
     return RepresentationReductiveGroup(G, d)
@@ -244,6 +243,7 @@ mutable struct InvariantRing
 end
 
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
+invariant_ring(R::RepresentationReductiveGroup, ring::MPolyRing) = InvariantRing(R, ring)
 fundamental_invariants(R::InvariantRing) = R.fundamental
 null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
 
