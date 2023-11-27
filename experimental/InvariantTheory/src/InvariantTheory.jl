@@ -1,6 +1,7 @@
 import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
-export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation, vector_space_dimension 
-export InvariantRing, invariant_ring, gens, hilbert_ideal, derksen_ideal
+export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
+export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
+export InvariantRing, invariant_ring, fundamental_invariants, null_cone_ideal
 ##########################
 #Reductive Groups
 ##########################
@@ -84,6 +85,10 @@ mutable struct RepresentationReductiveGroup
 end
 
 function representation_reductive_group(G::ReductiveGroup, d::Int)
+    return RepresentationReductiveGroup(G, d)
+end
+
+function representation_on_forms(G::ReductiveGroup, d::Int)
     return RepresentationReductiveGroup(G, d)
 end
 
@@ -199,6 +204,8 @@ mutable struct InvariantRing
     representation::RepresentationReductiveGroup
     
     fundamental::Vector{MPolyDecRingElem}
+    primary::Vector{MPolyDecRingElem}
+    secondary::Vector{MPolyDecRingElem}
     
     reynolds_operator::Function
     
