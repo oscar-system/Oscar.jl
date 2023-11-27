@@ -196,3 +196,7 @@ import Hecke:
   QQBar
 
 import cohomCalg_jll
+
+abstract type CyclotomicField end
+export CyclotomicField
+
