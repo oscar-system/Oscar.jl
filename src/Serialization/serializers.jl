@@ -228,6 +228,10 @@ function deserializer_open(io::IO, T::Type{JSONSerializer})
 end
 
 function deserializer_open(io::IO, T::Type{IPCSerializer})
+  # Using a JSON3.Object causes
+  # @everywhere using Oscar
+  # to hang when using more than one process in a julia session
+  
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
   return T(DeserializerState(obj, nothing, nothing))
 end
