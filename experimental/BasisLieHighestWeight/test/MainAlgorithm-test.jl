@@ -553,7 +553,7 @@ end
 
   @testset "Check dimension" begin
     @testset "Monomial order $monomial_ordering" for monomial_ordering in
-                                                     (:lex, :revlex, :degrevlex)
+                                                     (:lex, :invlex, :degrevlex)
       check_dimension(:A, 3, [1, 1, 1], monomial_ordering)
       #check_dimension(:B, 3, [2,1,0], monomial_ordering)
       #check_dimension(:C, 3, [1,1,1], monomial_ordering)

@@ -1912,7 +1912,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   N = ngens(Ph)
   num_x = ngens(P)
   num_h = ngens(Ph) - num_x
-  # Build ordering matrix: weights matrix followed by identity mat, underneath is a revlex matrix
+  # Build ordering matrix: weights matrix followed by identity mat, underneath is a invlex matrix
   Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h])
   RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)])
   M = hcat(W, Id)

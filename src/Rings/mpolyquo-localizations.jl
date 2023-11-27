@@ -2197,7 +2197,7 @@ Note: This is only available for localizations at rational points.
   F = free_module(R, length(Jlist))
   Imax = ideal(R,gens(R))
   M = sub(F,[F(syz_mod[i]) for i=1:Singular.ngens(syz_mod)])[1] + (Imax*F)[1]
-  oF =  negdegrevlex(R)*revlex(F)
+  oF =  negdegrevlex(R)*invlex(F)
   res_vec = typeof(gen(I,1))[]
 
   ## select by Nakayama

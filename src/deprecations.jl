@@ -488,3 +488,9 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::Stri
   Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
   return blow_up(v, I, coordinate_name)
 end
+
+# Deprecated after 0.14.0
+@deprecate revlex(R::MPolyRing) invlex(R::MPolyRing)
+@deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
+@deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
+@deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})

@@ -443,6 +443,7 @@ export defining_equation
 export defining_ideal
 export defining_ring_element
 export defining_ring_elements
+export deginvlex
 export deglex
 export degree
 export degrees_of_generators
@@ -737,6 +738,7 @@ export inverse
 export invert
 export invert_birational_map
 export inverted_set
+export invlex
 export irreducible_components
 export irreducible_secondary_invariants
 export irreducibles
@@ -1064,8 +1066,8 @@ export nef_cone
 export negbias
 export negdeglex
 export negdegrevlex
+export neginvlex
 export neglex
-export negrevlex
 export negwdeglex
 export negwdegrevlex
 export neighbor_patches
@@ -1304,7 +1306,6 @@ export restriction_map
 export restrictions
 export reverse
 export reverse_direction!
-export revlex
 export revlex_basis_encoding
 export reynolds_operator
 export right_acting_group
