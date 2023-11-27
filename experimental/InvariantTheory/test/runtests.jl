@@ -15,6 +15,12 @@
     R_rep2 = invariant_ring(rep2,poly_ring_rep2)
     FI_rep2 = fundamental_invariants(R_rep2) 
     @test FI_rep2 == -4*x[1]*x[3] + x[2]^2
-    
 
+    #ternary cubics
+    T, X = polynomial_ring(QQ, "X"=>1:10)
+    g = reductive_group(:SL, 3, QQ)
+    rep3 = representation_on_forms(g, 3)
+    R_rep3 = invariant_ring(rep3, T)
+    f = X[1]*X[4]*X[8]*X[10] - X[1]*X[4]*X[9]^2 - X[1]*X[5]*X[7]*X[10] + X[1]*X[5]*X[8]*X[9] + X[1]*X[6]*X[7]*X[9] - X[1]*X[6]*X[8]^2 - X[2]^2*X[8]*X[10] + X[2]^2*X[9]^2 + X[2]*X[3]*X[7]*X[10] - X[2]*X[3]*X[8]*X[9] + X[2]*X[4]*X[5]*X[10] - X[2]*X[4]*X[6]*X[9] - 2*X[2]*X[5]^2*X[9] + 3*X[2]*X[5]*X[6]*X[8] - X[2]*X[6]^2*X[7] - X[3]^2*X[7]*X[9] + X[3]^2*X[8]^2 - X[3]*X[4]^2*X[10] + 3*X[3]*X[4]*X[5]*X[9] - X[3]*X[4]*X[6]*X[8] - 2*X[3]*X[5]^2*X[8] + X[3]*X[5]*X[6]*X[7] + X[4]^2*X[6]^2 - 2*X[4]*X[5]^2*X[6] + X[5]^4
+    @test reynolds_operator(R_rep3, f) == f
 end
