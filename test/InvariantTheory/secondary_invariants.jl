@@ -1,8 +1,10 @@
 @testset "Secondary invariants (for matrix groups)" begin
   K, a = cyclotomic_field(3, "a")
+  # Force use of internal polynomial_ring with ordering = :lex
+  R, _ = graded_polynomial_ring(K, 3, ordering = :lex)
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
-  RG0 = invariant_ring(M1, M2)
+  RG0 = invariant_ring(R, matrix_group(M1, M2))
 
   # Should fail if the wrong monomial ordering is used in
   # secondary_invariants_nonmodular

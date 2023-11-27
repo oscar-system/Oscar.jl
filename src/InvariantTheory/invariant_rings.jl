@@ -1,4 +1,3 @@
-
 ################################################################################
 #
 #  Field access
@@ -14,6 +13,46 @@ action(I::InvRing) = I.action
 group(I::InvRing) = I.group
 
 is_modular(I::InvRing) = I.modular
+
+function _internal_polynomial_ring(I::InvRing)
+  if isdefined(I, :poly_ring_internal)
+    return I.poly_ring_internal
+  end
+  return I.poly_ring
+end
+
+# Return f as an element of R. Assumes that ngens(R) == ngens(parent(f))
+# and coefficient_ring(R) === coefficient_ring(parent(f)). This is not checked.
+function __cast_forced(R::MPolyRing{T}, f::MPolyRingElem{T}) where T
+  F = MPolyBuildCtx(R)
+  for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    push_term!(F, c, e)
+  end
+  return finish(F)
+end
+
+# Assumes that parent(f) === I.poly_ring
+function _cast_in_internal_poly_ring(I::InvRing, f::MPolyRingElem)
+  if !isdefined(I, :poly_ring_internal)
+    return f
+  end
+  return __cast_forced(_internal_polynomial_ring(I), f)
+end
+
+# Assumes that parent(f) === I.poly_ring_internal, if this is assigned,
+# and parent(f) === I.poly_ring otherwise
+function _cast_in_external_poly_ring(I::InvRing, f::MPolyRingElem)
+  if !isdefined(I, :poly_ring_internal)
+    return f
+  end
+  return __cast_forced(polynomial_ring(I), f)
+end
+
+################################################################################
+#
+#  Constructors
+#
+################################################################################
 
 function invariant_ring(M::Vector{<: MatrixElem})
   return invariant_ring(base_ring(M[1]), M)
