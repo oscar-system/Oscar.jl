@@ -558,6 +558,13 @@ function _matrix(nvars::Int, o::SymbOrdering{:deginvlex})
 end
 
 function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:deginvlex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
+  if tdk > tdl
+    return 1
+  elseif tdk < tdl
+    return -1
+  end
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
     el = exponent(g, l, i)
