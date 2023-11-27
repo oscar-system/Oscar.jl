@@ -545,8 +545,11 @@ function deginvlex(v::AbstractVector{<:MPolyRingElem})
 end
 
 function _matrix(nvars::Int, o::SymbOrdering{:deginvlex})
-  m = zero_matrix(ZZ, length(o.vars), nvars)
-  i = length(o.vars)
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  for j in o.vars
+    m[1, j] = 1
+  end
+  i = 1 + length(o.vars)
   for j in o.vars
     m[i, j] = 1
     i -= 1
