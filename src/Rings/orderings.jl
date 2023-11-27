@@ -523,10 +523,10 @@ julia> o1 = deginvlex(R)
 deginvlex([w, x, y, z])
 
 julia> canonical_matrix(o1)
+[1   1   1   1]
 [0   0   0   1]
 [0   0   1   0]
 [0   1   0   0]
-[1   0   0   0]
 
 julia> o2 = deginvlex([w, x])
 deginvlex([w, x])
