@@ -181,7 +181,7 @@ function simple_root(R::RootSystem, i::Int)
 end
 
 function simple_roots(R::RootSystem)
-  return [positive_root(R, i) for i in 1:num_simple_roots(R)]
+  return positive_roots(R)[1:rank(R)]
 end
 
 @doc raw"""
