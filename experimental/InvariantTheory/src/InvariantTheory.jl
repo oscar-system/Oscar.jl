@@ -258,7 +258,7 @@ end
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
     println(io, "Invariant Ring of")
     show(io, R.poly_ring)
-    print(io, " under group action of ", R.group.group[1], R.group.group[2], "\n", "\n")
+    print(io, " under group action of ", R.group.group[1], R.group.group[2])
 end
 
 #computing the graph Gamma from Derksens paper
