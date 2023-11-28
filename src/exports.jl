@@ -51,7 +51,6 @@ export CoveringMorphism
 export CyclicQuotientSingularity
 export DirectProductGroup
 export Directed
-export DivisorOnTropicalCurve
 export Edge
 export EmptyScheme
 export FPGroup
@@ -180,11 +179,11 @@ export ToricDivisorClass
 export ToricLineBundle
 export ToricMorphism
 export ToricVanishingSet
-export TropicalCurve
-export TropicalHypersurface
-export TropicalLinearSpace
-export TropicalSemiring
-export TropicalSemiringMap
+export TropicalCurve, tropical_curve
+export TropicalHypersurface, tropical_hypersurface
+export TropicalLinearSpace, tropical_linear_space
+export TropicalSemiring, TropicalSemiringElem, tropical_semiring
+export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
 export WreathProductGroup
@@ -219,6 +218,10 @@ export affine_patch
 export affine_patches
 export affine_space
 export alexander_dual
+export algebraic_ideal
+export algebraic_matrix
+export algebraic_polynomial
+export algebraic_pluecker_vector
 export algebraic_set
 export all_atlas_group_infos
 export all_blocks
@@ -247,7 +250,6 @@ export ambient_ring
 export ambient_scheme
 export ambient_space
 export ambient_type
-export anchor_point
 export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
@@ -266,7 +268,6 @@ export atlas_subgroup
 export augmented_chow_ring
 export aut
 export automorphism_group
-export base_curve
 export base_ring
 export base_ring_elem_type
 export base_ring_module
@@ -323,7 +324,6 @@ export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
 export chief_series, has_chief_series, set_chief_series
-export chip_firing_move
 export chow_ring
 export circuits
 export class_group
@@ -528,7 +528,6 @@ export face_fan
 export faces
 export facet_degrees
 export facet_indices
-export facet_points
 export facet_sizes
 export facets
 export factor_of_direct_product
@@ -621,7 +620,6 @@ export groebner_basis_hilbert_driven
 export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
-export groebner_polyhedron
 export group
 export gset
 export h_star_polynomial
@@ -824,7 +822,6 @@ export is_isomorphism
 export is_k_separation
 export is_lattice_polytope
 export is_left
-export is_linearly_equivalent
 export is_local
 export is_loopless
 export is_maximal_subgroup
@@ -997,7 +994,7 @@ export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
-export maximal_polyhedra
+export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export metadata
@@ -1049,6 +1046,7 @@ export multi_hilbert_series_reduced
 export multiplication_induced_morphism
 export multiplication_morphism
 export multiplicative_jordan_decomposition
+export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
 export n_cones
@@ -1057,7 +1055,6 @@ export n_gon
 export n_maximal_cells
 export n_maximal_cones
 export n_maximal_polyhedra
-export n_nodes
 export name
 export names_of_fusion_sources
 export natural_character
@@ -1173,6 +1170,7 @@ export pile_polytope
 export pitman_stanley_polytope
 export plane_curve
 export platonic_solid
+export pluecker_indices
 export point_coordinates
 export point_matrix
 export point_vector
@@ -1248,7 +1246,6 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
-export random_affine_linear_polynomials
 export rank
 export rank_action
 export rational_equivalence_class
@@ -1389,6 +1386,7 @@ export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
 export src
+export stable_intersection
 export stable_set_polytope
 export standard_basis
 export standard_basis_with_transformation_matrix
@@ -1401,7 +1399,6 @@ export star_subdivision
 export star_triangulations
 export strongly_connected_components
 export structure_sheaf
-export structure_tropical_jacobian
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
@@ -1458,8 +1455,9 @@ export trivial_divisor
 export trivial_divisor_class
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
-export tropical_points
+export tropical_matrix
 export tropical_polynomial
+export tropical_pluecker_vector
 export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
@@ -1470,7 +1468,6 @@ export two_neighbor_step
 export two_sided_ideal
 export underlying_glueing
 export underlying_morphism
-export underlying_polyhedral_complex
 export underlying_quotient
 export underlying_scheme
 export uniform_matroid
@@ -1484,9 +1481,7 @@ export upper_bound_g_vector
 export upper_bound_h_vector
 export upper_central_series, has_upper_central_series, set_upper_central_series
 export upper_triangular_matrix
-export v_reduced
 export valuation_of_roots
-export valued_weighted_degree
 export vamos_matroid
 export vanishing_ideal
 export vanishing_sets
