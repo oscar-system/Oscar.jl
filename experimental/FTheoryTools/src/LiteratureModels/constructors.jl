@@ -204,7 +204,7 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_spa
     # Lead to an error when trying to compute the singular loci.
     # Likely, the current implementation assumes that the singular locus is given by the vanishing of a single monom?
     explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
-    #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    #explicit_model_sections[key] = sum([rand(Int) * b for b in basis_of_global_sections(toric_line_bundle(value))]);
   end
 
   # For a Tate model we need to create a1, a2, a3, a4, a6 with ai a section of Kbar^i.
@@ -278,7 +278,7 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_spa
 
   # Compute random internal model sections
   for (key, value) in internal_model_sections
-    explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    explicit_model_sections[key] = sum([rand(Int) * b for b in basis_of_global_sections(toric_line_bundle(value))]);
   end
 
   # Finally, let us create the actual Tate sections
