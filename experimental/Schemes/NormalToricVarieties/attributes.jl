@@ -79,6 +79,3 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
   set_attribute!(X, :_torusinvariant_weil_divisors=>result)
   return result
 end
-
-# Method ambiguity requires the following
-Base.:*(c::Int, td::ToricDivisor) = toric_divisor(toric_variety(td), [ZZRingElem(c)*x for x in coefficients(td)])
