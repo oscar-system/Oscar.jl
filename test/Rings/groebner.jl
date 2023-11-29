@@ -24,7 +24,9 @@
     units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
+    @test reduce(y^3, elem_type(R)[]) == y^3
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
+    @test reduce([y^3], elem_type(R)[]) == [y^3]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     f = x+y^3
     g = x
@@ -34,12 +36,20 @@
     F = [x*y^2-x,x^3-2*x*y^2]
     q, r = reduce_with_quotients(f, F)
     @test q * F + [r] == [f]
+    q, r = reduce_with_quotients(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == [f]
     q, r = reduce_with_quotients([f], F)
     @test q * F + r == [f]
+    q, r = reduce_with_quotients([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == [f]
     u, q, r = reduce_with_quotients_and_unit(f, F)
     @test q * F + [r] == u * [f]
+    u, q, r = reduce_with_quotients_and_unit(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], F)
     @test q * F + r == u * [f]
+    u, q, r = reduce_with_quotients_and_unit([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == u * [f]
     f = x
     F = [1-x]
     q, r = reduce_with_quotients(f, F, ordering=neglex(R))

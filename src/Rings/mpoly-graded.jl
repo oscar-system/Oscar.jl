@@ -2315,10 +2315,7 @@ Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 
-### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
-# TODO: This still seems to be not resolved!!!
-Generic.ordering(S::MPolyDecRing) = :degrevlex
-
+Generic.ordering(S::MPolyDecRing) = ordering(S.R)
 
 #############truncation#############
 
