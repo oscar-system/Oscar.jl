@@ -1,5 +1,5 @@
 @testset "LieAlgebras.WeylGroup" begin
-  @testset "weyl_group(cartan_matrix::ZZMatrix)" begin
+  @testset "weyl_group(::ZZMatrix)" begin
     W = weyl_group(cartan_matrix(:A, 2))
     @test isfinite(W) == true
     @test ngens(W) == 2
@@ -16,10 +16,29 @@
     @test isfinite(W) == false
   end
 
-  @testset "accessors" begin
-    W = weyl_group(:A, 2)
-    @test isfinite(W) === W.finite
-    @test root_system(W) === W.root_system
+  @testset "weyl_group(::Symbol, ::Int)" begin
+    @test weyl_group(:A, 2) isa WeylGroup
+    @test weyl_group(:B, 4) isa WeylGroup
+    @test weyl_group(:C, 3) isa WeylGroup
+    @test weyl_group(:D, 5) isa WeylGroup
+    @test weyl_group(:E, 7) isa WeylGroup
+    @test weyl_group(:F, 4) isa WeylGroup
+    @test weyl_group(:G, 2) isa WeylGroup
+
+    @test_throws ArgumentError weyl_group(:F, 2)
+  end
+
+  @testset "weyl_group(::Tuple{Symbol, Int}...)" begin
+    @test weyl_group((:A, 2), (:B, 4)) isa WeylGroup
+    @test weyl_group((:C, 3), (:D, 5)) isa WeylGroup
+    @test weyl_group((:E, 7)) isa WeylGroup
+    @test weyl_group((:F, 4), (:G, 2)) isa WeylGroup
+
+    @test_throws ArgumentError weyl_group((:F, 2), (:B, 4))
+    @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
+  end
+
+  @testset "(::WeylGroup)(::Vector{<:Integer})" begin
   end
 
   @testset "longest_element(W::WeylGroup)" begin
@@ -47,6 +66,20 @@
     # G2
     W = weyl_group(:G, 2)
     @test word(longest_element(W)) == UInt8[2, 1, 2, 1, 2, 1]
+  end
+
+  @testset "ngens(W::WeylGroup)" begin
+    @test ngens(weyl_group(:A, 2)) == 2
+    @test ngens(weyl_group(:B, 4)) == 4
+    @test ngens(weyl_group(:C, 3)) == 3
+    @test ngens(weyl_group(:D, 5)) == 5
+    @test ngens(weyl_group(:E, 7)) == 7
+    @test ngens(weyl_group(:F, 4)) == 4
+    @test ngens(weyl_group(:G, 2)) == 2
+
+    @test ngens(weyl_group((:A, 2), (:B, 4))) == 6
+    @test ngens(weyl_group((:C, 3), (:E, 7))) == 10
+    @test ngens(weyl_group((:F, 4), (:G, 2))) == 6
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
@@ -147,5 +180,76 @@
     @test length(re) == 8
     @test re[1] == word(w0)
     @test re[8] == UInt8[3, 2, 3, 1, 2, 3]
+  end
+
+  @testset "WeylOrbitIterator" begin
+    @testset for ((fam, rk), vec) in [
+      ((:A, 1), [-42]),
+      ((:A, 3), [0, 0, 1]),
+      ((:A, 3), [1, 0, 0]),
+      ((:A, 5), [1, -1, 2, 0, 2]),
+      ((:B, 3), [1, 1, 1]),
+      ((:C, 4), [2, 1, 0, 1]),
+      ((:D, 5), [-1, 2, 2, -1, -1]),
+      ((:E, 6), [1, 2, 0, 0, 2, 1]),
+      ((:F, 4), [1, 2, 3, 4]),
+      ((:G, 2), [-1, -1]),
+    ]
+      R = root_system(fam, rk)
+      wt = WeightLatticeElem(R, vec)
+      orb = collect(WeylOrbitIterator(wt))
+
+      @test !isnothing(findfirst(==((wt, one(weyl_group(R)))), orb))
+      @test allunique(first.(orb))
+      for (ow, x) in orb
+        @test x * wt == ow
+      end
+
+      gap_num = 0
+      gap_W = GAPWrap.WeylGroup(
+        GAPWrap.RootSystem(
+          GAP.Globals.SimpleLieAlgebra(GAP.Obj(fam), rk, GAP.Globals.Rationals)
+        ),
+      )
+      it = GAPWrap.WeylOrbitIterator(gap_W, GAP.Obj(vec))
+      while !GAPWrap.IsDoneIterator(it)
+        _ = GAPWrap.NextIterator(it)
+        gap_num += 1
+      end
+      @test length(orb) == gap_num
+    end
+
+    @testset for (type, vec) in [
+      ([(:A, 1), (:A, 3), (:A, 3)], [-3, 0, 0, 1, 1, 0, 0]),
+      ([(:A, 5), (:B, 3)], [1, -1, 2, 0, 2, 1, 1, 1]),
+      ([(:C, 2), (:D, 5)], [0, 1, -1, 2, 2, -1, -1]),
+      ([(:E, 6)], [1, 2, 0, 0, 2, 1]),
+      ([(:F, 4), (:G, 2)], [1, 2, 3, 4, -1, -1]),
+    ]
+      R = root_system(type...)
+      wt = WeightLatticeElem(R, vec)
+      orb = collect(WeylOrbitIterator(wt))
+
+      @test !isnothing(findfirst(==((wt, one(weyl_group(R)))), orb))
+      @test allunique(first.(orb))
+      for (ow, x) in orb
+        @test x * wt == ow
+      end
+
+      gap_num = 0
+      gap_L = GAP.Globals.DirectSumOfAlgebras(
+        GAP.Obj([
+          GAP.Globals.SimpleLieAlgebra(GAP.Obj(fam), rk, GAP.Globals.Rationals) for
+          (fam, rk) in type
+        ]),
+      )
+      gap_W = GAPWrap.WeylGroup(GAPWrap.RootSystem(gap_L))
+      it = GAPWrap.WeylOrbitIterator(gap_W, GAP.Obj(vec))
+      while !GAPWrap.IsDoneIterator(it)
+        _ = GAPWrap.NextIterator(it)
+        gap_num += 1
+      end
+      @test length(orb) == gap_num
+    end
   end
 end

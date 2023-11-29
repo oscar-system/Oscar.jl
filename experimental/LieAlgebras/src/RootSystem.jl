@@ -344,6 +344,10 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
+function type(R::RootSystem)
+  return R.type
+end
+
 @doc raw"""
     simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -756,6 +760,28 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
   return conj
 end
 
+function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
+  R = root_system(w)
+  wt = deepcopy(w)
+
+  # determine the Weyl group element taking w to the fundamental chamber
+  word = sizehint!(UInt8[], count(<(0), coefficients(wt))^2)
+  s = 1
+  while s <= rank(R)
+    if wt[s] < 0
+      push!(word, UInt8(s))
+      reflect!(wt, s)
+      s = 1
+    else
+      s += 1
+    end
+  end
+
+  # reversing word means it is in short revlex normal form
+  # and it is the element taking w to wt
+  return wt, WeylGroupElem(R, reverse!(word))
+end
+
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
@@ -764,6 +790,10 @@ function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   return sum
 end
 @enable_all_show_via_expressify WeightLatticeElem
+
+function is_dominant(w::WeightLatticeElem)
+  return all(>=(0), coefficients(w))
+end
 
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
