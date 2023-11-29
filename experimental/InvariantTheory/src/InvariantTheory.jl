@@ -179,19 +179,6 @@ function multinomial(n::Int, v::Union{Vector{Int64},PointVector{ZZRingElem}})
     return Int(factorial(n)/x)
 end
 
-#will be used in the future. Computes the direct sum of two matrices.
-function direct_sum(M::AbstractAlgebra.Generic.MatSpaceElem, N::AbstractAlgebra.Generic.MatSpaceElem)
-    #parent(M[1,1]) == parent(N[1,1]) || @error("not same ring")
-    mr = nrows(M)
-    mc = ncols(M)
-    nr = nrows(N)
-    nc = ncols(N)
-    mat_ = zero_matrix(base_ring(M), mr+nr, mc+nc)
-    mat_[1:mr, 1:mc] = M
-    mat_[mr+1:mr+nr, mc+1:mc+nc] = N
-    return mat_
-end
-
 ##########################
 #Invariant Rings of Reductive groups
 ##########################
@@ -233,7 +220,7 @@ mutable struct InvariantRing
         G = R.group
         z.field = G.field
         if is_graded(ring)
-            z.poly_ring = ring[1]
+            z.poly_ring = ring
         else
             z.poly_ring = grade(ring)[1]
         end
@@ -275,18 +262,6 @@ function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpac
     ideal_vect = y - new_vars 
     ideal_vect = vcat(ideal_vect,genss)
     return ideal(mixed_ring_xy, ideal_vect), new_rep_mat
-end
-
-#tested
-function factorise(x::MPolyRingElem)
-    #x has to be a monomial. No check implemented. 
-    R = parent(x)
-    V = exponent_vector(x,1)
-    Factorisation = Vector{Tuple{elem_type(R), Int}}()
-    for i in 1:length(V)
-        push!(Factorisation, (gens(R)[i], V[i]))
-    end
-    return Factorisation
 end
 
 #computing I_{\Bar{B}}
@@ -383,6 +358,7 @@ end
 
 function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyDecRingElem, m::Int)
     mixed_ring_xy = parent(elem)
+    n = ncols(new_rep_mat)
     new_vars = new_rep_mat*gens(mixed_ring_xy)[1:n]
     sum_ = mixed_ring_xy()
     phi = hom(mixed_ring_xy, mixed_ring_xy, vcat(new_vars, [0 for i in 1:ncols(new_rep_mat)+m^2]))

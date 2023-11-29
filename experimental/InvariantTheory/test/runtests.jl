@@ -9,12 +9,12 @@
     @test length(FI_rep1) == 1
 
     #same rep mat as in rep1, only without multinomial coefficients.
-    M = matrix(S,3,3,[z[1,1]^2 z[1,1]*z[2,1] z_[2,1^2] ; 2*z[1,1]*z[1,2] z[1,1]*z[2,2] + z[2,1]*z[1,2] 2*z[2,1]*z[2,2]; z[1,2]^2 z[1,2]*z[2,2] z[2,2]^2])
+    M = matrix(S,3,3,[z[1,1]^2 z[1,1]*z[2,1] z[2,1]^2 ; 2*z[1,1]*z[1,2] z[1,1]*z[2,2] + z[2,1]*z[1,2] 2*z[2,1]*z[2,2]; z[1,2]^2 z[1,2]*z[2,2] z[2,2]^2])
     rep2 = representation_reductive_group(G, M)
-    poly_ring_rep2,x = polynomial_ring(QQ, "x"=>1:3)
-    R_rep2 = invariant_ring(rep2,poly_ring_rep2)
+    R_rep2 = invariant_ring(rep2,R_rep1.poly_ring)
     FI_rep2 = fundamental_invariants(R_rep2) 
-    @test FI_rep2 == -4*x[1]*x[3] + x[2]^2
+    x = gens(R_rep1.poly_ring)
+    @test FI_rep2 == [-4*x[1]*x[3] + x[2]^2]
 
     #ternary cubics
     T, X = polynomial_ring(QQ, "X"=>1:10)
