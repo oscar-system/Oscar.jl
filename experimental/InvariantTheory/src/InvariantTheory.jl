@@ -120,7 +120,7 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     group_mat = natural_representation(G)
     new_vars = group_mat*t
     
-    b = degree_basis(mixed_ring,m, sym_deg)
+    b = degree_basis(mixed_ring,sym_deg)
     n = length(b)
     
     # transform the b elements
@@ -140,7 +140,8 @@ function rep_mat_(G::ReductiveGroup, sym_deg::Int)
 end
 
 #computes symmetric degree basis (of the first m variables) WITH multinomial coefficients!
-function degree_basis(R::MPolyRing, m::Int, t::Int)
+function degree_basis(R::MPolyRing, t::Int)
+    m = ngens(R)
     C = zero_matrix(Int, m, m)
     for i in 1:m
       C[i,i] = -1 
