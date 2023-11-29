@@ -383,10 +383,16 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
 end
 
 function Base.hash(a::SubquoModuleElem)
-  error("hash not implemented for elements of type $(typeof(a))")
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  return xor(h, b)
 end
 
 function Base.hash(a::SubquoModuleElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
   simplify!(a)
   return hash(a.repres, h)
 end

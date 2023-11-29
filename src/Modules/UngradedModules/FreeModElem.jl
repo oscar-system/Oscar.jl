@@ -217,7 +217,10 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
-  error("hash not implemented for elements of type $(typeof(a))")
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  return xor(h, b)
 end
 
 # A special method for the case where we can safely assume 
