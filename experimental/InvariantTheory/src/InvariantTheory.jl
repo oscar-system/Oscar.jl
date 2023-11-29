@@ -100,12 +100,15 @@ function vector_space_dimension(R::RepresentationReductiveGroup)
 end
 
 function Base.show(io::IO, R::RepresentationReductiveGroup)
+    io = AbstractAlgebra.pretty(io)
     println(io, "Representation of ", R.group.group[1], R.group.group[2])
     if R.sym_deg[1]
-        print(io, "over symmetric forms of degree ", R.sym_deg[2])
+        print(io, AbstractAlgebra.Indent(), "over symmetric forms of degree ", R.sym_deg[2])
+        print(io, AbstractAlgebra.Dedent())
     else
-        println(io, "with representation matrix")
+        println(io, AbstractAlgebra.Indent(), "with representation matrix")
         show(io, R.rep_mat)
+        print(io, AbstractAlgebra.Dedent())
     end
 end
 
@@ -240,10 +243,12 @@ function fundamental_invariants(z::InvariantRing)
     end
 end
 
-function Base.show(io::IO, R::InvariantRing) #TODO compact printing
+function Base.show(io::IO, R::InvariantRing) 
+    io = AbstractAlgebra.pretty(io)
     println(io, "Invariant Ring of")
     show(io, R.poly_ring)
-    print(io, " under group action of ", R.group.group[1], R.group.group[2])
+    print(io, AbstractAlgebra.Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
+    print(io, AbstractAlgebra.Dedent())
 end
 
 #computing the graph Gamma from Derksens paper
