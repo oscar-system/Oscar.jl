@@ -1,5 +1,3 @@
-import Oscar: is_effective, is_linearly_equivalent
-
 export AffineCurveDivisor
 export ProjCurveDivisor
 export curve
