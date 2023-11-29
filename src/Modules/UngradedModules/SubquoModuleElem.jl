@@ -382,7 +382,7 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
-function Base.hash(a::SubquoModuleElem{<:MPolyElem}, h::UInt)
+function Base.hash(a::SubquoModuleElem{<:MPolyElem{<:FieldElem}}, h::UInt)
   simplify!(a)
   return hash(a.repres, h)
 end
@@ -467,7 +467,8 @@ If `task` is set to `:only_morphism` return only the morphism.
 function sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) where T
   @assert !isdefined(s, :quo)
   @assert s.F === F
-  emb = hom(s, F, Vector{elem_type(F)}([repres(x) for x in gens(s)]); check=false)
+  emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
+  emb.generators_map_to_generators = true
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   return return_sub_wrt_task(s, emb, task)

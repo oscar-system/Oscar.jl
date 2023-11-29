@@ -547,6 +547,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     r = new{typeof(F), typeof(G), Nothing}()
     a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
+     # The lines below were an attempt to speed up mapping. 
+     # However, it turns out that checking the equality is more 
+     # expensive in average than the gain for actual mappings. 
+     # Apparently, maps are likely to be used just once, or only 
+     # few times. 
+     # But the flag can (and probably should) be set by the constructors
+     # of maps whenever applicable.
      #if r.generators_map_to_generators === nothing
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end
@@ -575,6 +582,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
       iszero(x) && return zero(codomain(r))
+      # See the above comment
      #if r.generators_map_to_generators === nothing
      #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
      #end

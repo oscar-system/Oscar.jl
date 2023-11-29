@@ -464,9 +464,14 @@ Return the image $a(m)$.
 function image(f::SubQuoHom, a::SubquoModuleElem)
   @assert a.parent === domain(f)
   iszero(a) && return zero(codomain(f))
- #if f.generators_map_to_generators === nothing
- #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
- #end
+  # The code in the comment below was an attempt to make 
+  # evaluation of maps faster. However, it turned out that 
+  # for the average use case the comparison was more expensive 
+  # than the gain for mappings. The flag should be set by constructors
+  # nevertheless when applicable.
+  #if f.generators_map_to_generators === nothing
+  #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
+  #end
   f.generators_map_to_generators === true && return codomain(f)(map_entries(base_ring_map(f), coordinates(a)))
   h = base_ring_map(f)
   return sum(h(b)*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
