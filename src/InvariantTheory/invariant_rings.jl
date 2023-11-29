@@ -101,12 +101,19 @@ function Base.show(io::IO, IR::InvRing)
   print(io, Indent(), action(IR))
 end
 
-# Return a map performing the right action of M on the ring R
+# Return a map performing the right action of M on the ring R.
 function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
   @assert nvars(R) == ncols(M)
   @assert nrows(M) == ncols(M)
   n = nvars(R)
 
+  # We consider gens(R) as the basis of a vector space given as row vectors
+  # on which M acts by multiplication from the right.
+  # That is, we identify gen(R, i) with the vector (0 ... 0 1 0 ... 0)
+  # with 1 in position i. Then M acts on gen(R, i) via
+  #   gen(R, i)^M = (0 ... 0 1 0 ... 0)*M = (M[i, 1] ... M[i, n])
+  #               = M[i, 1]*gen(R, 1) + ... + M[i, n]*gen(R, n)
+  # We now compute these actions of M on the variables of R.
   vars = zeros(R, n)
   x = gens(R)
   for i = 1:n
@@ -118,6 +125,8 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where T
     end
   end
 
+  # The action of M on an arbitrary polynomial is given by evaluating the
+  # polynomial at gen(R, 1)^M, ..., gen(R, n)^M.
   right_action_by_M = (f::MPolyRingElem{T}) -> evaluate(f, vars)
 
   return MapFromFunc(R, R, right_action_by_M)
