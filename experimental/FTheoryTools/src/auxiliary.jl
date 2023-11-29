@@ -126,9 +126,7 @@ end
 ################################################################
 
 function _weierstrass_sections(base::NormalToricVariety)
-  f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
-  g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
-  return [f, g]
+  return [generic_section(anticanonical_bundle(base)^4), generic_section(anticanonical_bundle(base)^6)]
 end
 
 function _weierstrass_polynomial(base::NormalToricVariety, S::MPolyRing)
@@ -148,11 +146,11 @@ end
 ################################################################
 
 function _tate_sections(base::NormalToricVariety)
-  a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))])
-  a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)])
-  a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)])
-  a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)])
-  a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
+  a1 = generic_section(anticanonical_bundle(base))
+  a2 = generic_section(anticanonical_bundle(base)^2)
+  a3 = generic_section(anticanonical_bundle(base)^3)
+  a4 = generic_section(anticanonical_bundle(base)^4)
+  a6 = generic_section(anticanonical_bundle(base)^6)
   return [a1, a2, a3, a4, a6]
 end
 

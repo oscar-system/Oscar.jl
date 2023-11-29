@@ -1912,7 +1912,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   N = ngens(Ph)
   num_x = ngens(P)
   num_h = ngens(Ph) - num_x
-  # Build ordering matrix: weights matrix followed by identity mat, underneath is a revlex matrix
+  # Build ordering matrix: weights matrix followed by identity mat, underneath is a invlex matrix
   Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h])
   RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)])
   M = hcat(W, Id)
@@ -2315,10 +2315,7 @@ Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 
-### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
-# TODO: This still seems to be not resolved!!!
-Generic.ordering(S::MPolyDecRing) = :degrevlex
-
+Generic.ordering(S::MPolyDecRing) = ordering(S.R)
 
 #############truncation#############
 

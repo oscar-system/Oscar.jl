@@ -134,7 +134,7 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
      ],
      "CommutativeAlgebra/homological_algebra.md",
-     
+
      "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
@@ -196,10 +196,6 @@
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
         "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
      ],
-     "Tropical Geometry" => [
-        "AlgebraicGeometry/TropicalGeometry/intro.md",
-        "AlgebraicGeometry/TropicalGeometry/curve.md",
-     ],
      "Curves" => [
          "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
          "AlgebraicGeometry/Curves/ProjectiveCurves.md",
@@ -239,6 +235,19 @@
       "StraightLinePrograms/gapslps.md",
       "StraightLinePrograms/abstractalgebra.md",
    ],
+
+
+  "Tropical Geometry" => [
+     "TropicalGeometry/intro.md",
+     "TropicalGeometry/semiring.md",
+     "TropicalGeometry/semiring_map.md",
+     "TropicalGeometry/variety.md",
+     "TropicalGeometry/hypersurface.md",
+     "TropicalGeometry/curve.md",
+     "TropicalGeometry/linear_space.md",
+     "TropicalGeometry/groebner_theory.md",
+     "TropicalGeometry/tropicalization.md",
+  ],
 
 
   "References" => "references.md",

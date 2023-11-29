@@ -263,7 +263,7 @@ end
 @testset "divides hack" begin
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, 1-x*y)
-  o = revlex([x, y])
+  o = invlex([x, y])
   Q = MPolyQuoRing(R, I, o)
   @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end

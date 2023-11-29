@@ -181,7 +181,7 @@ julia> rays_modulo_lineality(maximal_groebner_cone(G))
 ```
 """
 function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
-    @assert is_groebner_basis(G)
+    @req is_groebner_basis(G) "input not a Groebner basis"
     ord = ordering(G)
     G = collect(G)
     homogeneityWeight = homogeneity_vector(G)
@@ -189,7 +189,7 @@ function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem})
 end
 
 function maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}, homogeneityWeight::Union{Vector{ZZRingElem},Nothing})
-    @assert is_groebner_basis(G)
+    @req is_groebner_basis(G) "input not a Groebner basis"
     ord = ordering(G)
     G = collect(G)
     return maximal_groebner_cone(G,ord,homogeneityWeight)
@@ -349,7 +349,7 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
     return weight_ordering(Int.(homogeneityVector),
                            weight_ordering(Int.(interior_facet_point),
                                            weight_ordering(Int.(outer_normal_vector),
-                                                           revlex(R))))
+                                                           invlex(R))))
 end
 
 function groebner_flip_adjacent_ordering(R::MPolyRing,
@@ -358,7 +358,7 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
                                          outer_normal_vector::Vector{ZZRingElem})
     return weight_ordering(Int.(interior_facet_point),
                            weight_ordering(Int.(outer_normal_vector),
-                                           revlex(R)))
+                                           invlex(R)))
 end
 
 
@@ -407,7 +407,7 @@ If `I` is not weighted homogeneous with respect to a positive weight vector, the
 
 If `return_groebner_bases==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the Groebner bases for those cones.  Their union will be a universal Groebner basis.
 
-If `return_orderings==true`, returns a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+If `return_orderings==true`, also return a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
 
 # Examples
 ```jldoctest
@@ -424,7 +424,7 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 3-element Vector{Any}:
  Polyhedral fan in ambient dimension 3
  Dict{Vector{ZZRingElem}, Vector{QQMPolyRingElem}}([0, -1, 0] => [x1, x2 + x3], [0, 0, -1] => [x2 + x3, x1])
- Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*revlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
+ Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
 
 ```
 """

@@ -87,6 +87,26 @@
     @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
   end
 
+  @testset "Base.:(^)(x::WeylGroupElem, n::Int)" begin
+    # test A3
+    W = weyl_group(:A, 3)
+    s = gens(W)
+
+    w = s[1] * s[2] * s[3] * s[2] * s[3]
+
+    @test w^0 == one(W)
+    @test w^1 == w
+    @test w^2 == w * w
+    @test w^3 == w * w * w
+    @test w^4 == w * w * w * w
+    @test w^5 == w * w * w * w * w
+    @test w^6 == w * w * w * w * w * w
+    @test w^-1 == inv(w)
+    @test w^-2 == inv(w) * inv(w)
+    @test w^-3 == inv(w) * inv(w) * inv(w)
+    @test w^-4 == inv(w) * inv(w) * inv(w) * inv(w)
+  end
+
   @testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
     R = root_system(:A, 2)
     W = weyl_group(R)

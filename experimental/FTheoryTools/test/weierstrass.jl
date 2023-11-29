@@ -3,8 +3,8 @@
 #############################################################
 
 base = sample_toric_variety()
-sec_f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)])
-sec_g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)])
+sec_f = generic_section(anticanonical_bundle(projective_space(NormalToricVariety,3))^4)
+sec_g = generic_section(anticanonical_bundle(base)^6)
 w = weierstrass_model(base; completeness_check = false)
 
 @testset "Attributes of Weierstrass models over concrete base spaces" begin

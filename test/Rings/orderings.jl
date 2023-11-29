@@ -4,11 +4,12 @@
    g = (1 + x + y + z)^2
  
    @test isa(lex([x, y]), MonomialOrdering)
-   @test isa(revlex([x, y, z]), MonomialOrdering)
+   @test isa(invlex([x, y, z]), MonomialOrdering)
+   @test isa(deginvlex([x, y, z]), MonomialOrdering)
    @test isa(degrevlex([x, z]), MonomialOrdering)
    @test isa(deglex([x, y, z]), MonomialOrdering)
    @test isa(neglex([x, y, z]), MonomialOrdering)
-   @test isa(negrevlex([x, y, z]), MonomialOrdering)
+   @test isa(neginvlex([x, y, z]), MonomialOrdering)
    @test isa(negdeglex([x, y, z]), MonomialOrdering)
    @test isa(negdegrevlex([x, y, z]), MonomialOrdering)
    @test isa(matrix_ordering([x, y, z], matrix(ZZ, [1 1 1; 1 0 0; 0 1 0])), MonomialOrdering)
@@ -18,23 +19,24 @@
    @test isa(negwdeglex([x, y], [1, 2]), MonomialOrdering)
    @test isa(negwdegrevlex([x, y], [1, 2]), MonomialOrdering)
  
-   @test isa(revlex([x, y])*neglex([z]), MonomialOrdering)
+   @test isa(invlex([x, y])*neglex([z]), MonomialOrdering)
 
    @test collect(monomials(g; ordering = lex(R))) == [x^2, x*y, x*z, x, y^2, y*z, y, z^2, z, 1] # lp
-   @test collect(monomials(g; ordering = revlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # rp
+   @test collect(monomials(g; ordering = invlex(R))) == [z^2, y*z, x*z, z, y^2, x*y, y, x^2, x, 1] # ip
+   @test collect(monomials(g; ordering = deginvlex(R))) == [z^2, y*z, x*z, y^2, x*y, x^2, z, y, x, 1] # Ip
    @test collect(monomials(g; ordering = deglex(R))) == [x^2, x*y, x*z, y^2, y*z, z^2, x, y, z, 1] # Dp
    @test collect(monomials(g; ordering = degrevlex(R))) == [x^2, x*y, y^2, x*z, y*z, z^2, x, y, z, 1] # dp
    @test collect(monomials(g; ordering = neglex(R))) == [1, z, z^2, y, y*z, y^2, x, x*z, x*y, x^2] # ls
-   @test collect(monomials(g; ordering = negrevlex(R))) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
+   @test collect(monomials(g; ordering = neginvlex(R))) == [1, x, x^2, y, x*y, y^2, z, x*z, y*z, z^2] # rs not documented ?
    @test collect(monomials(g; ordering = negdeglex(R))) == [1, x, y, z, x^2, x*y, x*z, y^2, y*z, z^2] # Ds
    @test collect(monomials(g; ordering = negdegrevlex(R))) == [1, x, y, z, x^2, x*y, y^2, x*z, y*z, z^2] # ds
 
    @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
-   @test collect(monomials(f; ordering = revlex(R))) == [ z^3, x*y ]
+   @test collect(monomials(f; ordering = invlex(R))) == [ z^3, x*y ]
    @test collect(monomials(f; ordering = deglex(R))) == [ z^3, x*y ]
    @test collect(monomials(f; ordering = degrevlex(R))) == [ z^3, x*y ]
    @test collect(monomials(f; ordering = neglex(R))) == [ z^3, x*y ]
-   @test collect(monomials(f; ordering = negrevlex(R))) == [ x*y, z^3 ]
+   @test collect(monomials(f; ordering = neginvlex(R))) == [ x*y, z^3 ]
    @test collect(monomials(f; ordering = negdeglex(R))) == [ x*y, z^3 ]
    @test collect(monomials(f; ordering = negdegrevlex(R))) == [ x*y, z^3 ]
  
@@ -94,9 +96,10 @@
    @test lex(R) == lex(gens(R))
    @test deglex(R) == deglex(gens(R))
    @test degrevlex(R) == degrevlex(gens(R))
-   @test revlex(R) == revlex(gens(R))
+   @test invlex(R) == invlex(gens(R))
+   @test deginvlex(R) == deginvlex(gens(R))
    @test neglex(R) == neglex(gens(R))
-   @test negrevlex(R) == negrevlex(gens(R))
+   @test neginvlex(R) == neginvlex(gens(R))
    @test negdegrevlex(R) == negdegrevlex(gens(R))
    @test negdeglex(R) == negdeglex(gens(R))
    @test wdeglex(R, [1,2,3]) == wdeglex(gens(R), [1,2,3])
@@ -115,13 +118,13 @@ end
    a = lex([x, t])*deglex([y, z])
    @test is_total(a) && is_total(a)
 
-   a = degrevlex([x, z, t])*revlex([y, t])
+   a = degrevlex([x, z, t])*invlex([y, t])
    @test is_total(a) && is_total(a)
 
    a = neglex([y, z, t])
    @test !is_total(a) && !is_total(a)
 
-   a = negdegrevlex([x])*negrevlex([y, z, t])
+   a = negdegrevlex([x])*neginvlex([y, z, t])
    @test is_total(a) && is_total(a)
 
    a = negdeglex([x, t, z])
@@ -189,14 +192,14 @@ end
    R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
-   @test lex([z])*lex([y])*lex([x]) == revlex([x, y, z])
-   @test degrevlex([x, y, z])*revlex([y]) == degrevlex([x, y, z])
+   @test lex([z])*lex([y])*lex([x]) == invlex([x, y, z])
+   @test degrevlex([x, y, z])*invlex([y]) == degrevlex([x, y, z])
    @test deglex([z])*deglex([x])*deglex([y]) == lex([z])*lex([x, y])
    @test neglex([x, y])*neglex([z]) == neglex([x, y, z])
    @test deglex([x, y, z]) == wdeglex([x, y, z], [1, 1, 1])
    @test negdeglex([x, y, z]) == negwdeglex([x, y, z], [1, 1, 1])
    @test negdegrevlex([x, y, z]) == negwdegrevlex([x, y, z], [1, 1, 1])
-   @test neglex([z])*neglex([y])*neglex([x]) == negrevlex([x, y, z])
+   @test neglex([z])*neglex([y])*neglex([x]) == neginvlex([x, y, z])
 
    m = matrix(ZZ, [-1 -1 -1; 1 0 0; 0 1 0; 0 0 1])
    @test negdeglex(gens(R)) == matrix_ordering(gens(R), m)
@@ -223,7 +226,7 @@ end
         x1, x4^3, x3*x4^2, x4^2, x3^2*x4, x3*x4, x4, x3^3, x3^2, x3, one(R)]
 
    f = sum(M)
-   o = wdeglex([x1, x2], [1, 2])*revlex([x3, x4])
+   o = wdeglex([x1, x2], [1, 2])*invlex([x3, x4])
    test_opposite_ordering(o)
    @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
@@ -236,7 +239,7 @@ end
         x1*x2*x3, x1*x2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1*x2^2, x2^3]
 
    f = sum(M)
-   o = negrevlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
+   o = neginvlex([x1, x2])*wdegrevlex([x3, x4], [1, 2])
    test_opposite_ordering(o)
    @test collect(monomials(f; ordering = o)) == M
    for i in 2:length(M)
@@ -304,7 +307,7 @@ end
              wdegrevlex([x1, x2], [1, 2]),
              negdeglex([x1, x2]),
              negdegrevlex([x1, x2]),
-             revlex([x1, x2]),
+             invlex([x1, x2]),
              lex([x1, x2]))
       test_opposite_ordering(a*lex([x3, x4]))
       @test collect(monomials(x3 + x4; ordering = a*lex([x3, x4]))) == [x3, x4]
@@ -314,8 +317,8 @@ end
 @testset "Polynomial Ordering internal conversion to Singular" begin
    R, (x, y, s, t, u) = polynomial_ring(QQ, ["x", "y", "s", "t", "u"])
 
-   for O in (wdegrevlex([x,y,s],[1,2,3])*revlex([t,u]),
-             neglex([x,y,s])*negrevlex([t,u]),
+   for O in (wdegrevlex([x,y,s],[1,2,3])*invlex([t,u]),
+             neglex([x,y,s])*neginvlex([t,u]),
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, singular(O))
@@ -353,7 +356,7 @@ end
 
    K = FreeModule(R, 4)
 
-   O5 = revlex(gens(K))*degrevlex(gens(R))
+   O5 = invlex(gens(K))*degrevlex(gens(R))
    @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
    @test length(string(O5)) > 2
    @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
@@ -410,11 +413,11 @@ end
    S, (a, b, c) = polynomial_ring(GF(5), 3)
 
    @test lex([a, b]) == induce([a, b], lex([x, y]))
-   @test revlex([a, b, c]) == induce([a, b, c], revlex([x, y, z]))
+   @test invlex([a, b, c]) == induce([a, b, c], invlex([x, y, z]))
    @test degrevlex([a, c]) == induce([a, c], degrevlex([x, z]))
    M = matrix(ZZ, [1 1 1; 1 0 0; 0 1 0])
    @test matrix_ordering([a, b, c], M) == induce([a, b, c], matrix_ordering([x, y, z], M))
    @test wdeglex([a, b], [1, 2]) == induce([a, b], wdeglex([x, y], [1, 2]))
-   @test revlex([a, b])*neglex([c]) == induce([a, b, c], revlex([x, y])*neglex([z]))
+   @test invlex([a, b])*neglex([c]) == induce([a, b, c], invlex([x, y])*neglex([z]))
    @test lex([a])*lex([b])*lex([c]) == induce([a, b, c], lex([x])*lex([y])*lex([z]))
 end

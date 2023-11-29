@@ -1,60 +1,92 @@
-import Base.string
-# module Tropical
-
-# import Oscar: expressify, Ring, @enable_all_show_via_expressify, zero, one, iszero, isone, polynomial_ring
-
 ################################################################################
 #
-#  Types
+#  Tropical semirings and tropical semiring elements (= tropical numbers)
 #
 ################################################################################
 
-# We use T to record whether we are in the min/max case
-# T is either typeof(min) or typeof(max)
-struct TropicalSemiring{T} <: Field
+# minOrMax distinguishes between the min-plus and max-plus semiring
+struct TropicalSemiring{minOrMax<:Union{typeof(min),typeof(max)}} <: Field
 end
 
-# We use the flag isinf to denote +/- infinity
-# todo: should this be called TropicalNumber instead?
-#   I have no preference, except that it should be consistent with the other libraries,
-#   e.g. what are elements of p-adic number rings called?
-mutable struct TropicalSemiringElem{T} <: FieldElem
-  parent::TropicalSemiring{T}
-  isinf::Bool
-  data::QQFieldElem
+mutable struct TropicalSemiringElem{minOrMax<:Union{typeof(min),typeof(max)}} <: FieldElem
+    parent::TropicalSemiring{minOrMax}
+    isinf::Bool        # distinguishes between ±∞ and other tropical numbers
+    data::QQFieldElem
 
-  function rational_value(t::TropicalSemiringElem)
-    return t.data
-  end
+    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, isinf::Bool) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        @assert isinf
+        return new{minOrMax}(R, true)
+    end
 
-  function TropicalSemiringElem(R::TropicalSemiring{T}, isinf::Bool) where {T}
-    @assert isinf
-    z = new{T}()
-    z.isinf = true
-    z.parent = R
-    return z
-  end
-
-  function TropicalSemiringElem(R::TropicalSemiring{T}, x::RingElem) where {T}
-    return new{T}(R, false, x)
-  end
+    function TropicalSemiringElem(R::TropicalSemiring{minOrMax}, x::RingElem) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        return new{minOrMax}(R, false, x)
+    end
 end
 
 # Type gymnastics
+elem_type(::Type{TropicalSemiring{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}} = TropicalSemiringElem{minOrMax}
 
-Oscar.elem_type(::Type{TropicalSemiring{T}}) where {T} = TropicalSemiringElem{T}
+parent_type(::Type{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}} = TropicalSemiring{minOrMax}
 
-Oscar.parent_type(::Type{TropicalSemiringElem{T}}) where {T} = TropicalSemiring{T}
+
 
 ################################################################################
 #
-#  Constructors for the tropical semiring
+#  Basic access for tropical numbers
+#
+################################################################################
+
+parent(x::TropicalSemiringElem) = x.parent
+
+data(x::TropicalSemiringElem) = x.data    # undefined if x==±∞
+
+isinf(x::TropicalSemiringElem) = x.isinf  # also serves as test if x==±∞
+
+@doc raw"""
+    convention(T::TropicalSemiring)
+
+Return `min` if `T` is the min tropical semiring,
+return `max` if `T` is the max tropical semiring.
+Works similarly for tropical numbers,
+tropical vectors and matrices, and tropical polynomials.
+
+# Examples
+```jldoctest; filter = r"\(generic function with .* methods\)"
+julia> T = tropical_semiring(min)
+Min tropical semiring
+
+julia> convention(T)
+min (generic function with 27 methods)
+
+julia> T = tropical_semiring(max)
+Max tropical semiring
+
+julia> convention(T)
+max (generic function with 27 methods)
+```
+"""
+convention(T::TropicalSemiring{typeof(min)}) = min
+convention(T::TropicalSemiring{typeof(max)}) = max
+convention(a::TropicalSemiringElem{typeof(min)}) = min
+convention(a::TropicalSemiringElem{typeof(max)}) = max
+convention(v::Vector{TropicalSemiringElem{typeof(min)}}) = min
+convention(v::Vector{TropicalSemiringElem{typeof(max)}}) = max
+convention(M::Vector{Vector{TropicalSemiringElem{typeof(min)}}}) = min
+convention(M::Vector{Vector{TropicalSemiringElem{typeof(max)}}}) = max
+convention(M::Generic.MatSpaceElem{TropicalSemiringElem{typeof(min)}}) = min
+convention(M::Generic.MatSpaceElem{TropicalSemiringElem{typeof(max)}}) = max
+convention(f::Generic.MPoly{TropicalSemiringElem{typeof(min)}}) = min
+convention(f::Generic.MPoly{TropicalSemiringElem{typeof(max)}}) = max
+
+
+################################################################################
+#
+#  Constructors for tropical semirings
 #
 ################################################################################
 
 @doc raw"""
-
-    TropicalSemiring(M::Union{typeof(min),typeof(max)}=min)
+    tropical_semiring(M::Union{typeof(min),typeof(max)}=min)
 
 The tropical semiring with min (default) or max.
 
@@ -63,13 +95,13 @@ The tropical semiring with min (default) or max.
 
 # Examples (basic arithmetic)
 ```jldoctest
-julia> T = TropicalSemiring() # = TropicalSemiring(min)
-Tropical semiring (min)
+julia> T = tropical_semiring() # = tropical_semiring(min)
+Min tropical semiring
 
-julia> T = TropicalSemiring(max)
-Tropical semiring (max)
+julia> T = tropical_semiring(max)
+Max tropical semiring
 
-julia> 0*T(3) + 1*T(1)^2 + inf(T) # = max(0+3,1+2*1,-∞)
+julia> 0*T(3) + 1*T(1)^2 + zero(T) # = max(0+3,1+2*1,-∞)
 (3)
 
 julia> T(0) == 0    # checks whether the tropical number is 0
@@ -81,122 +113,137 @@ false
 
 # Examples (polynomials)
 ```jldoctest
-julia> T = TropicalSemiring()
-Tropical semiring (min)
+julia> T = tropical_semiring()
+Min tropical semiring
 
-julia> Tx,(x1,x2) = polynomial_ring(T,3)
-(Multivariate polynomial ring in 3 variables over tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x1, x2, x3])
+julia> Tx,(x1,x2) = polynomial_ring(T,2)
+(Multivariate polynomial ring in 2 variables over min tropical semiring, AbstractAlgebra.Generic.MPoly{TropicalSemiringElem{typeof(min)}}[x1, x2])
 
 julia> f = x1 + -1*x2 + 0
 x1 + (-1)*x2 + (0)
 
-julia> evaluate(f,[T(-1//2),T(1//2)]) # warning: omitting T(0) gives an error
+julia> evaluate(f,T.([-1//2,1//2])) # warning: omitting T() gives an error
 (-1//2)
 ```
 
 # Examples (matrices)
 ```jldoctest
-julia> T = TropicalSemiring()
-Tropical semiring (min)
+julia> T = tropical_semiring()
+Min tropical semiring
 
-julia> A = [T(0) inf(T); inf(T) T(0)] # = tropical identity matrix
-2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
- (0)  ∞
- ∞    (0)
+julia> A = identity_matrix(T, 2) # = tropical identity matrix
+[  (0)   infty]
+[infty     (0)]
 
 julia> 2*A
-2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
- (2)  ∞
- ∞    (2)
+[  (2)   infty]
+[infty     (2)]
 
 julia> A*A
-2×2 Matrix{Oscar.TropicalSemiringElem{typeof(min)}}:
- (0)  ∞
- ∞    (0)
+[  (0)   infty]
+[infty     (0)]
 
 julia> det(A)
 (0)
+
+julia> minors(A,1)
+4-element Vector{TropicalSemiringElem{typeof(min)}}:
+ (0)
+ infty
+ infty
+ (0)
 ```
 """
-TropicalSemiring() = TropicalSemiring{typeof(min)}()
-TropicalSemiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
-TropicalSemiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
+tropical_semiring() = TropicalSemiring{typeof(min)}()
+tropical_semiring(::typeof(max)) = TropicalSemiring{typeof(max)}()
+tropical_semiring(::typeof(min)) = TropicalSemiring{typeof(min)}()
+
+
 
 ################################################################################
 #
-#  Constructors for elements
+#  Constructors for tropical numbers
 #
 ################################################################################
 
-function (R::TropicalSemiring)(u::TropicalSemiringElem)
-  @assert parent(u) === R
+function (T::TropicalSemiring)(u::TropicalSemiringElem)
+  @req parent(u)==T "incompatible conventions"
   return u
 end
 
-function (R::TropicalSemiring)(u::RingElem)
-  v = QQ(u)
-  @assert parent(v) === QQ
-  return TropicalSemiringElem(R, v)
-end
+zero(T::TropicalSemiring) = TropicalSemiringElem(T, true)    # neutral element w.r.t. +
 
-function (R::TropicalSemiring)(u::Union{Integer, Rational})
-  return TropicalSemiringElem(R, QQ(u))
-end
+one(T::TropicalSemiring) = TropicalSemiringElem(T, zero(QQ)) # neutral element w.r.t. *
 
-inf(R::TropicalSemiring) = TropicalSemiringElem(R, true)
+inf(T::TropicalSemiring) = zero(T)
 
-Oscar.zero(T::TropicalSemiring) = inf(T)
+(T::TropicalSemiring)() = zero(T)
 
-Oscar.one(R::TropicalSemiring) = R(zero(QQ))
 
-Oscar.zero(x::TropicalSemiringElem) = zero(parent(x))
-
-(R::TropicalSemiring)() = zero(R)
 
 ################################################################################
 #
-#  Basic access
+#  Conversion between tropical numbers and rational numbers.
+#  If preserve_ordering==true and minOrMax==typeof(max), flip signs
+#  (for info on tropical semiring ordering see comparison below).
 #
 ################################################################################
 
-# The underlying rational number. This is undefined for inf.
-data(x::TropicalSemiringElem) = x.data
-
-function string(x::TropicalSemiringElem)
-    if isinf(x)
-        return "infinity"
-    end
-    return string(data(x))
+function (R::TropicalSemiring{typeof(min)})(x::QQFieldElem; preserve_ordering::Bool=false)
+  return TropicalSemiringElem(R,x)
 end
 
-# Test if something is inf.
-isinf(x::TropicalSemiringElem) = x.isinf
+function (R::TropicalSemiring{typeof(max)})(x::QQFieldElem; preserve_ordering::Bool=false)
+  return (preserve_ordering ? TropicalSemiringElem(R,-x) : TropicalSemiringElem(R,x))
+end
 
-Oscar.parent(x::TropicalSemiringElem{T}) where T = TropicalSemiring{T}()
+function (R::TropicalSemiring)(x::Union{Integer, Rational}; preserve_ordering::Bool=false)
+  return R(QQ(x),preserve_ordering=preserve_ordering)
+end
 
-@doc raw"""
-    convention(T::TropicalSemiring)
+function (R::TropicalSemiring)(x::RingElem; preserve_ordering::Bool=false)
+  x = QQ(x)
+  @req parent(x)==QQ "cannot convert object of type $(repr(typeof(x)))"
+  return R(x, preserve_ordering=preserve_ordering)
+end
 
-Return `min` if `T` is the min tropical semiring,
-return `max` if `T` is the max tropical semiring.
+function (::QQField)(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)
+    @req !iszero(x) "cannot convert $(repr(x))"
+    return data(x)
+end
 
-# Examples
-```jldoctest; filter = r"\(generic function with [0-9]+ methods\)"
-julia> T = TropicalSemiring(min)
-Tropical semiring (min)
+function (::QQField)(x::TropicalSemiringElem{typeof(max)}; preserve_ordering::Bool=false)
+    @req !iszero(x) "cannot convert $(repr(x))"
+    return (preserve_ordering ? -data(x) : data(x))
+end
 
-julia> convention(T)
-min (generic function with 12 methods)
+function (::ZZRing)(x::TropicalSemiringElem; preserve_ordering::Bool=false)
+    return ZZ(QQ(x,preserve_ordering=preserve_ordering))
+end
 
-julia> T = TropicalSemiring(max)
-Tropical semiring (max)
+function (::Type{Int})(x::TropicalSemiringElem; preserve_ordering::Bool=false)
+    return Int(QQ(x,preserve_ordering=preserve_ordering))
+end
 
-julia> convention(T)
-max (generic function with 14 methods)
-```
-"""
-convention(x::TropicalSemiring{typeof(min)}) = min
-convention(x::TropicalSemiring{typeof(max)}) = max
+function (::Type{Rational})(x::TropicalSemiringElem; preserve_ordering::Bool=false)
+    return Rational(QQ(x,preserve_ordering=preserve_ordering))
+end
+
+
+
+################################################################################
+#
+#  Copying
+#
+################################################################################
+
+Base.copy(a::TropicalSemiringElem) = a
+
+function Base.deepcopy_internal(x::TropicalSemiringElem, dict::IdDict)
+  isinf(x) ? (return inf(parent(x))) : (return TropicalSemiringElem(x.parent, Base.deepcopy_internal(data(x), dict)))
+end
+
+
 
 ################################################################################
 #
@@ -204,34 +251,24 @@ convention(x::TropicalSemiring{typeof(max)}) = max
 #
 ################################################################################
 
-# Hook into the fancy printing
-
-# We use (x) for finite values and ±∞ for infinity.
-function AbstractAlgebra.expressify(x::TropicalSemiringElem{T}; context = nothing) where {T}
-  if isinf(x)
-    return T === typeof(min) ? "∞" : "-∞"
-  end
-  return Expr(:call, "", expressify(data(x), context = context))
+# Hook into the fancy printing, we use (x) for finite values and ±∞ for infinity.
+function AbstractAlgebra.expressify(x::TropicalSemiringElem{minOrMax}; context = nothing) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    if isinf(x)
+        if Oscar.is_unicode_allowed()
+            return minOrMax==typeof(min) ? "∞" : "-∞"
+        else
+            return minOrMax==typeof(min) ? "infty" : "-infty"
+        end
+    end
+    return Expr(:call, "", expressify(data(x), context = context))
 end
 
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Tropical semiring (min)"
-
-AbstractAlgebra.expressify(R::TropicalSemiring{typeof(max)}; context = nothing) = "Tropical semiring (max)"
-
+AbstractAlgebra.expressify(R::TropicalSemiring{typeof(min)}; context = nothing) = "Min tropical semiring"
+AbstractAlgebra.expressify(R::TropicalSemiring{typeof(max)}; context = nothing) = "Max tropical semiring"
 @enable_all_show_via_expressify TropicalSemiringElem
-
 @enable_all_show_via_expressify TropicalSemiring
 
 
-################################################################################
-#
-#  Predicates
-#
-################################################################################
-
-Oscar.iszero(x::TropicalSemiringElem) = isinf(x)
-
-Oscar.isone(x::TropicalSemiringElem) = !isinf(x) && iszero(data(x))
 
 ################################################################################
 #
@@ -247,140 +284,121 @@ end
 
 function Base.hash(x::TropicalSemiringElem, h::UInt)
   b = 0x4df38853cc07aa27   % UInt
-  h = hash(isinf(x), h)
-  if !isinf(x)
-    h = hash(data(x), h)
-  end
+  h = (isinf(x) ? hash(isinf(x), h) : hash(data(x), h))
   return xor(h, b)
 end
+
+
+
+################################################################################
+#
+#  Predicates
+#  (see also isinf in basic access)
+#
+################################################################################
+
+iszero(x::TropicalSemiringElem) = isinf(x)
+
+isone(x::TropicalSemiringElem) = !isinf(x) && iszero(data(x))
+
+
 
 ################################################################################
 #
 #  Comparison
-#    * min is ordered as usual: -inf < ... < -1 < 0 < 1 < ...
-#    * max is ordered reversely:       ... > -1 > 0 > 1 > ... > inf
-#    (see Section 2.7 in Joswig: "Essentials of Tropical Combinatorics"
+#  * min-plus semiring is ordered as usual: -inf < ... < -1 < 0 < 1 < ...
+#  * max-plax semiring is ordered in reverse:       ... > -1 > 0 > 1 > ... > inf
+#  (see Section 2.7 in Joswig: "Essentials of Tropical Combinatorics")
 #
 ################################################################################
 
 function isless(x::TropicalSemiringElem{typeof(min)}, y::TropicalSemiringElem{typeof(min)})
-  if isinf(x)
-    return false # x=-inf, no y is smaller
-  end
-  if isinf(y)
-    return true # y=-inf, smaller than all x except x=-inf, which was handled above
-  end
+  iszero(x) && return false # x=-inf, no y is smaller
+  iszero(y) && return true  # y=-inf, smaller than all x except x=-inf, which was handled above
   return data(x) < data(y)
 end
 
 function isless(x::TropicalSemiringElem{typeof(max)}, y::TropicalSemiringElem{typeof(max)})
-  if isinf(x)
-    return false # x=inf, no y is smaller
-  end
-  if isinf(y)
-    return true # y=inf, smaller than all x except x=inf, which was handled above
-  end
+  iszero(x) && return false # x=inf, no y is smaller
+  iszero(y) && return true  # y=inf, smaller than all x except x=inf, which was handled above
   return data(x) > data(y)
 end
 
+
+
 ################################################################################
 #
-#  Copying
+#  Arithmetics
 #
 ################################################################################
 
-Base.copy(a::TropicalSemiringElem) = a
-
-function Base.deepcopy_internal(x::TropicalSemiringElem, dict::IdDict)
-  if !isinf(x)
-    return TropicalSemiringElem(x.parent, Base.deepcopy_internal(data(x), dict))
-  else
-    return inf(parent(x))
-  end
+function Base.:(+)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    iszero(x) && return deepcopy(y)                           # if x is zero, return y
+    iszero(y) && return deepcopy(x)                           # if y is zero, return x
+    return parent(x)(convention(parent(x))(data(x), data(y))) # otherwise, return their min / max
 end
-
-################################################################################
-#
-#  Addition
-#
-################################################################################
-
-function Base.:(+)(x::TropicalSemiringElem{T}, y::TropicalSemiringElem{T}) where {T}
-  isinf(x) && return deepcopy(y)
-  isinf(y) && return deepcopy(x)
-  return parent(x)(convention(parent(x))(data(x), data(y)))
-end
-
-################################################################################
-#
-#  Multiplication
-#
-################################################################################
-
-function Base.:(*)(x::TropicalSemiringElem{T}, y::TropicalSemiringElem{T}) where {T}
-  if isinf(x)
-    return x
-  else
-    if isinf(y)
-      return y
-    else
-      return parent(x)(data(x) + data(y))
-    end
-  end
-end
-
-################################################################################
-#
-#  Division / Inversion
-#
-################################################################################
-
-function divexact(a::TropicalSemiringElem{T}, b::TropicalSemiringElem{T}) where T <: FieldElement
-    if iszero(b)
-        error("dividing by (tropical) zero")
-    end
-    if iszero(a)
-        return a
-    end
-    return parent(a)(data(a)-data(b))
-end
-
-function inv(a::TropicalSemiringElem{T}) where T <: FieldElem
-    if iszero(a)
-        error("inverting (tropical) zero")
-    end
-    return parent(a)(-data(a))
-end
-
-function Base.:(//)(a::TropicalSemiringElem{T}, b::TropicalSemiringElem{T}) where {T}
-    if iszero(b)
-        error("dividing by (tropical) zero")
-    end
-    if iszero(a)
-        return a
-    end
-    return parent(a)(data(a)-data(b))
-end
-
-################################################################################
-#
-#  Powering
-#
-################################################################################
-
-function Base.:(^)(a::TropicalSemiringElem, n::Int)
-  return Base.power_by_squaring(a, n)
-end
-
-################################################################################
-#
-#  Disable subtraction
-#
-################################################################################
 
 function Base.:(-)(x::TropicalSemiringElem, y::TropicalSemiringElem...)
   error("Tropical subtraction not defined (use tropical division for classical subtraction)")
 end
+
+function Base.:(*)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    iszero(x) && return x # if x is zero, return it
+    iszero(y) && return y # if y is zero, return it
+    return parent(x)(data(x) + data(y)) # otherwise, return their sum
+end
+
+function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    @req !iszero(y) "dividing by (tropical) zero"
+    return (iszero(x) ? x : parent(x)(data(x)-data(y)))
+end
+
+function Base.:(//)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    return divexact(x,y)
+end
+
+function Base.:(/)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    return divexact(x,y)
+end
+
+function inv(a::TropicalSemiringElem)
+    @req !iszero(a) "inverting (tropical) zero"
+    return parent(a)(-data(a))
+end
+
+function Base.:(^)(a::TropicalSemiringElem, n::QQFieldElem)
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
+end
+
+function Base.:(^)(a::TropicalSemiringElem, n::ZZRingElem)
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
+end
+
+function Base.:(^)(a::TropicalSemiringElem, n::Rational)
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
+end
+
+function Base.:(^)(a::TropicalSemiringElem, n::Integer)
+    if iszero(a)
+        @req n>0 "dividing by (tropical) zero"
+        return zero(parent(a))  # if a is zero, return zero
+    end
+    return parent(a)(data(a)*n) # otherwise (rational) multiply a by n
+end
+
+
 
 ################################################################################
 #
@@ -389,234 +407,4 @@ end
 ################################################################################
 
 Oscar.mul!(x::TropicalSemiringElem, y::TropicalSemiringElem, z::TropicalSemiringElem) = y * z
-
 Oscar.addeq!(y::TropicalSemiringElem, z::TropicalSemiringElem) = y + z
-
-################################################################################
-#
-#  Conversions
-#
-################################################################################
-
-# converts an element x of the tropical semiring to Int
-#   throws an error if x is infinity / -infinity
-#   preserves ordering if preserve_ordering==true (default: false),
-#   meaning that given x in the max-plus semiring returns -x
-#   meaning that the actual valuation of x is returned
-function (::Type{Int})(x::TropicalSemiringElem{typeof(min)}; preserve_ordering::Bool=false)
-  @assert !iszero(x)
-  return Int(ZZ(data(x)))
-end
-function (::Type{Int})(x::TropicalSemiringElem{typeof(max)}; preserve_ordering::Bool=false)
-  @assert !iszero(x)
-  if preserve_ordering
-    return -Int(ZZ(data(x)))
-  end
-  return Int(ZZ(data(x)))
-end
-
-################################################################################
-#
-#  Determinant
-#
-################################################################################
-
-function det(x::AbstractAlgebra.Generic.MatSpaceElem{Oscar.TropicalSemiringElem{T}}) where {T}
-  R = base_ring(x)
-  S = AbstractAlgebra.SymmetricGroup(nrows(x))
-  res = zero(R)
-  for s in S
-    o = one(R)
-    for i in 1:nrows(x)
-      o = o * x[i, s[i]]
-    end
-    res = res + o
-  end
-  return res
-end
-
-function det(x::Matrix{Oscar.TropicalSemiringElem{T}}) where {T}
-  if length(x)==0
-    if T == typeof(min)
-      return TropicalSemiring(min)(1)
-    else
-      return TropicalSemiring(max)(1)
-    end
-  end
-
-  return det(matrix(parent(x[1,1]),x))
-end
-
-
-
-################################################################################
-#
-#  Tropical Minors
-#
-################################################################################
-@doc raw"""
-    tropical_minors(A::MatElem, k::Int)
-
-Return an array consisting of the k-minors of a tropical matrix `A`.
-"""
-function tropical_minors(A::MatElem, k::Int)
-   row_indices = AbstractAlgebra.combinations(nrows(A), k)
-   col_indices = AbstractAlgebra.combinations(ncols(A), k)
-   mins = Vector{elem_type(base_ring(A))}(undef, 0)
-   for ri in row_indices
-      for ci in col_indices
-         push!(mins, determinant(A[ri, ci]))
-      end
-   end
-   return(mins)
-end
-
-
-
-################################################################################
-#
-#  Polynomials
-#
-################################################################################
-
-# The generic functions use R(1) and R(0), which is bad.
-one(R::AbstractAlgebra.Generic.PolyRing{<:TropicalSemiringElem}) = R(one(base_ring(R)))
-
-zero(R::AbstractAlgebra.Generic.PolyRing{TropicalSemiringElem{S}}) where {S} = R(zero(base_ring(R)))
-
-function Oscar.polynomial_ring(R::TropicalSemiring, s::Symbol; cached::Bool = true)
-   T = elem_type(R)
-   parent_obj = Oscar.Generic.PolyRing{T}(R, s, cached)
-
-   return parent_obj, parent_obj([zero(R), one(R)])
-end
-
-# Oscar will print zero sums as 0, which we do not want.
-# So we have to adjust the printing code for polynomials
-function AbstractAlgebra.expressify(@nospecialize(a::PolyRingElem{<:TropicalSemiringElem}),
-                                    x = var(parent(a)); context = nothing)
-  if iszero(a)
-    return expressify(zero(base_ring(a)), context = context)
-  end
-  sum = Expr(:call, :+)
-  for k in degree(a):-1:0
-    c = coeff(a, k)
-    if !iszero(c)
-      xk = k < 1 ? expressify(one(base_ring(a)), context = context) : k == 1 ? x : Expr(:call, :^, x, k)
-      if isone(c)
-        push!(sum.args, Expr(:call, :*, xk))
-      else
-        push!(sum.args, Expr(:call, :*, expressify(c, context = context), xk))
-      end
-    end
-  end
-  return sum
-end
-
-# As above, now for multivariate polynomials
-function AbstractAlgebra.expressify(a::MPolyRingElem{<:TropicalSemiringElem}, x = symbols(parent(a)); context = nothing)
-  if iszero(a)
-    return expressify(zero(base_ring(a)), context = context)
-  end
-  sum = Expr(:call, :+)
-  n = nvars(parent(a))
-  for (c, v) in zip(AbstractAlgebra.coefficients(a), AbstractAlgebra.exponent_vectors(a))
-    prod = Expr(:call, :*)
-    if !isone(c)
-      push!(prod.args, expressify(c, context = context))
-    end
-    for i in 1:n
-      if v[i] > 1
-        push!(prod.args, Expr(:call, :^, x[i], v[i]))
-      elseif v[i] == 1
-        push!(prod.args, x[i])
-      end
-    end
-    # Capture empty products
-    if length(prod.args) == 1
-      prod = expressify(one(base_ring(a)), context = context)
-    end
-    push!(sum.args, prod)
-  end
-  return sum
-end
-
-one(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalSemiringElem}) = R(one(base_ring(R)))
-
-zero(R::AbstractAlgebra.Generic.MPolyRing{<:TropicalSemiringElem}) = R(zero(base_ring(R)))
-
-################################################################################
-#
-#  @tropical macro
-#
-################################################################################
-
-"""
-    @tropical(expr)
-
-Translate the expression in the tropical world.
-
-# Examples
-
-```jlexample
-julia> T = TropicalSemiring(min);
-
-julia> Tx, x = Tropical.polynomial_ring(T, "x" => 1:3);
-
-julia> @tropical min(1, x[1], x[2], 2*x[3])
-x[1] + x[2] + x[3]^2 + (1)
-```
-"""
-macro tropical(expr)
-  e = _tropicalize(expr)
-  return quote
-    $(esc(e))
-  end
-end
-
-_tropicalize(x::Symbol) = x
-
-_tropicalize(x::Int) = x
-
-function _tropicalize(x::Expr)
-  if x.head == :call
-    if x.args[1] == :min
-      x.args[1] = :(+)
-    elseif x.args[1] == :(*)
-      length(x.args) <= 3 || error("Cannot convert")
-      x.args[1] = :(Tropical._tropical_mul)
-    elseif x.args[1] == :(+)
-      x.args[1] = :*
-    else
-      error("Cannot convert")
-    end
-    for i in 2:length(x.args)
-      x.args[i] = _tropicalize(x.args[i])
-    end
-  else
-    return x
-  end
-  return x
-end
-
-function _tropical_mul(x, y)
-  if x isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
-    if x isa Rational || x isa QQFieldElem
-      _x = ZZ(x)
-      return y^_x
-    else
-      return y^x
-    end
-  elseif y isa Union{Integer, Rational, QQFieldElem, ZZRingElem}
-    if y isa Rational | y isa QQFieldElem
-      _y = ZZ(y)
-      return x^_y
-    else
-      return x^y
-    end
-  else
-    error("Cannot convert ", x, " * ", y)
-  end
-end
-
-# end # module

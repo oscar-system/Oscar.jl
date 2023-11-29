@@ -468,7 +468,9 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     if iszero(g)
       continue
     end
-    g = inv(leading_coefficient(g))*g
+    # Cancelling the leading coefficient is not mathematically necessary and
+    # should be done with the ordering that is used for the printing
+    g = inv(AbstractAlgebra.leading_coefficient(g))*g
     B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ])
     return g, (B, state)
   end
@@ -501,7 +503,9 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     end
 
     if add_to_basis!(B, g)
-      return inv(leading_coefficient(g))*g, (B, monomial_state)
+      # Cancelling the leading coefficient is not mathematically necessary and
+      # should be done with the ordering that is used for the printing
+      return inv(AbstractAlgebra.leading_coefficient(g))*g, (B, monomial_state)
     end
   end
 end
@@ -523,7 +527,9 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
   # Have to (should...) divide by the leading coefficient again:
   # The matrix was in echelon form, but the columns were not necessarily sorted
   # w.r.t. the monomial ordering.
-  return inv(leading_coefficient(f))*f, 2
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  return inv(AbstractAlgebra.leading_coefficient(f))*f, 2
 end
 
 function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
@@ -540,7 +546,9 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
     end
     f += N[i, state]*BI.monomials_collected[i]
   end
-  return inv(leading_coefficient(f))*f, state + 1
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  return inv(AbstractAlgebra.leading_coefficient(f))*f, state + 1
 end
 
 ################################################################################

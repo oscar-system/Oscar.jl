@@ -81,22 +81,38 @@ end
     doctest_fix(n::String; set_meta::Bool = false)
 
 Fixes all doctests for the file `n`, ie. all files in Oscar where
-  `n` occurs in the full pathname of.
+`n` occurs in the full pathname of.
 """
-function doctest_fix(n::String; set_meta::Bool = false)
+function doctest_fix(n::String; set_meta::Bool=false)
   doc, doctest = get_document(set_meta)
 
-  #essentially inspired by Documenter/src/DocTests.jl
-  bm = Base.Docs.meta(Oscar)
-  for (k, md) = bm
-    for s in md.order
-      if occursin(n, md.docs[s].data[:path])
-        doctest(md.docs[s], Oscar, doc)
+  walkmodules(Oscar) do m
+    #essentially inspired by Documenter/src/DocTests.jl
+    bm = Base.Docs.meta(m)
+    for (k, md) in bm
+      for s in md.order
+        if occursin(n, md.docs[s].data[:path])
+          doctest(md.docs[s], Oscar, doc)
+        end
       end
     end
   end
 end
 
+# copied from JuliaTesting/Aqua.jl
+function walkmodules(f, x::Module)
+  f(x)
+  for n in names(x; all=true)
+    # `isdefined` and `getproperty` can trigger deprecation warnings
+    if Base.isbindingresolved(x, n) && !Base.isdeprecated(x, n)
+      isdefined(x, n) || continue
+      y = getproperty(x, n)
+      if y isa Module && y !== x && parentmodule(y) === x
+        walkmodules(f, y)
+      end
+    end
+  end
+end
 
 #function doc_update_deps()
 #  Pkg.activate(Pkg.update, joinpath(oscardir, "docs"))
