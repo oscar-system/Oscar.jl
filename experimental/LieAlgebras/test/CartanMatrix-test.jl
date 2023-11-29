@@ -211,4 +211,17 @@
     _, ord = cartan_type_with_ordering(transpose(cartan_matrix(:G, 2)))
     @test ord == [2, 1]
   end
+
+  @testset "is_cartan_type" begin
+    for i in -1:10
+      @test is_cartan_type(:A, i) == (i >= 1)
+      @test is_cartan_type(:B, i) == (i >= 2)
+      @test is_cartan_type(:C, i) == (i >= 2)
+      @test is_cartan_type(:D, i) == (i >= 4)
+      @test is_cartan_type(:E, i) == (i in [6, 7, 8])
+      @test is_cartan_type(:F, i) == (i == 4)
+      @test is_cartan_type(:G, i) == (i == 2)
+      @test is_cartan_type(:X, i) == false
+    end
+  end
 end
