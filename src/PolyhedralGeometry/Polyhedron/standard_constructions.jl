@@ -321,12 +321,6 @@ function johnson_solid(index::Int)
     return convex_hull(parent_field, vertices; non_redundant = true)
   end
   pmp = Polymake.polytope.johnson_solid(index)
-  # work around bug in polymake which returns an QE polytope
-  # where it is not necessary, will be fixed in polymake 4.11
-  if index == 3
-    pmp = Polymake.common.convert_to{Polymake.Rational}(pmp)
-    Polymake.remove_attachment(pmp, "REVERSE_TRANSFORMATION")
-  end
   return polyhedron(pmp)
 end
 
