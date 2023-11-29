@@ -382,6 +382,10 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
+function Base.hash(a::SubquoModuleElem)
+  error("hash not implemented for elements of type $(typeof(a))")
+end
+
 function Base.hash(a::SubquoModuleElem{<:MPolyElem{<:FieldElem}}, h::UInt)
   simplify!(a)
   return hash(a.repres, h)
