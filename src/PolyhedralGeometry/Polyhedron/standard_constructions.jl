@@ -316,6 +316,8 @@ It is proper if it is not an Archimedean solid.  Up to scaling there are exactly
 """
 function johnson_solid(index::Int)
   if haskey(_johnson_names, index)
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/JohnsonSrc
     vertices = load(joinpath(oscardir, "data", "JohnsonMatrices", string("j", index, ".mat")))
     parent_field = base_ring(vertices)
     return convex_hull(parent_field, vertices; non_redundant = true)
