@@ -559,7 +559,7 @@ Homogeneous module homomorphism)
 ```
 """
 function image(h::FreeModuleHom)
-  si = filter(!iszero, copy(images_of_generators(h)))
+  si = filter(!iszero, images_of_generators(h))
   s = sub(codomain(h), si, :module)
   phi = hom(s, codomain(h), si, check=false)
   phi.generators_map_to_generators = true
