@@ -49,16 +49,17 @@ julia> v2 = domain(blow_up(v, I))
 Normal toric variety
 
 julia> cox_ring(v2)
-Multivariate polynomial ring in 9 variables over QQ graded by
+Multivariate polynomial ring in 10 variables over QQ graded by 
+  Kbar -> [1 0 0 0]
+  w -> [0 1 0 0]
   a1 -> [1 0 0 0]
-  a21 -> [0 1 0 0]
-  a32 -> [-1 2 0 0]
-  a43 -> [-2 3 0 0]
-  w -> [0 0 1 0]
-  x -> [0 1 1 2]
-  y -> [1 1 1 3]
-  z -> [0 0 0 1]
-  e -> [2 -1 -1 0]
+  a21 -> [2 -1 0 0]
+  a32 -> [0 0 1 0]
+  a43 -> [1 -1 1 0]
+  x -> [1 0 1 2]
+  y -> [6 -3 0 3]
+  z -> [1 -1 0 1]
+  e -> [3 -2 -1 0]
 ```
 It is also possible to construct a literature model over a particular base.
 Currently, this feature is only supported for toric base spaces.
@@ -198,124 +199,48 @@ end
 # Constructs Tate model over concrete base from given Tate literature model
 function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
 
-  # Generate random sections of the model sections
-  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-  for (key, value) in model_sections
-    # Lead to an error when trying to compute the singular loci.
-    # Likely, the current implementation assumes that the singular locus is given by the vanishing of a single monom?
-    explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
-    #explicit_model_sections[key] = sum([rand(Int) * b for b in basis_of_global_sections(toric_line_bundle(value))]);
-  end
-
-  # For a Tate model we need to create a1, a2, a3, a4, a6 with ai a section of Kbar^i.
-  # These are parametrized by the model sections above.
-  # We need to extract the parametrization from the model_dict and then identify the additional parameters' toric divisors.
-
+  # We first create a polynomial ring in which we can read the Tate sections as polynomials of the (internal) model sections
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-  a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
-  a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
-  a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
-  a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
-  a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+  vars = [string(g) for g in gens(auxiliary_base_ring)]
 
-  # Currently, we assume that Tate sections are monomial expressions in the model sections and remaining parameters
-  @req all(k->length(monomials(k)) == 1 || is_zero(k), [a1, a2, a3, a4, a6]) "Tate sections are assumed to be monomials in model sections and remaining parameters"
+  # Make list of divisor classes which express the internal model sections.
+  model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 2:1+length(model_sections)])
 
-  # Initialize necessary structures
-  divisor_list = Vector{ToricDivisor}()
-  coefficient_matrix = Vector{Vector{Int64}}()
-  Kbar = anticanonical_divisor(base_space)
-  cut_off = ngens(auxiliary_base_ring) - length(explicit_model_sections)
-  variables = gens(auxiliary_base_ring)
-  model_section_divisor_vector = Vector{ToricDivisor}()
-  for k in cut_off+1:length(variables)
-    push!(model_section_divisor_vector, model_sections[string(variables[k])])
-  end
-
-  # Fill divisor_list and coefficient_matrix
-  if is_zero(a1) == false
-    exp_vector = exponent_vector(a1,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a2) == false
-    exp_vector = exponent_vector(a2,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 2 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a3) == false
-    exp_vector = exponent_vector(a3,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 3 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a4) == false
-    exp_vector = exponent_vector(a4,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 4 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a6) == false
-    exp_vector = exponent_vector(a6,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 6 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-
-  # Find a left inverse of the coefficient matrix
-  inverse_matrix = solve_left(matrix(ZZ, coefficient_matrix), identity_matrix(ZZ, cut_off))
-
-  # Now we are in the position to tell the toric divisors for the internal parameters
+  # Find divisor classes of the internal model sections
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   internal_model_sections = Dict{String, ToricDivisor}()
-  for k in 1:cut_off
-    coeffs = inverse_matrix[k,:]
-    divisor = sum([coeffs[l] * divisor_list[l] for l in 1:length(coeffs)])
-    internal_model_sections[string(variables[k])] = divisor
+  for k in 2+length(model_sections):ngens(auxiliary_base_ring)
+    divisor = sum([auxiliary_base_grading[l,k] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
+    internal_model_sections[vars[k]] = divisor
   end
 
-  # Compute random internal model sections
+  # Next, generate random values for all involved sections.
+  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  for (key, value) in model_sections
+    #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    # Lead to error when computing singular loci - currently only monomials allowed...
+    explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+  end
   for (key, value) in internal_model_sections
-    explicit_model_sections[key] = sum([rand(Int) * b for b in basis_of_global_sections(toric_line_bundle(value))]);
+    explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
-  # Finally, let us create the actual Tate sections
-  explicit_a1 = zero(cox_ring(base_space))
-  if is_zero(a1) == false
-    exp_vector = exponent_vector(a1,1)
-    explicit_a1 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a2 = zero(cox_ring(base_space))
-  if is_zero(a2) == false
-    exp_vector = exponent_vector(a2,1)
-    explicit_a2 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a3 = zero(cox_ring(base_space))
-  if is_zero(a3) == false
-    exp_vector = exponent_vector(a3,1)
-    explicit_a3 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a4 = zero(cox_ring(base_space))
-  if is_zero(a4) == false
-    exp_vector = exponent_vector(a4,1)
-    explicit_a4 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a6 = zero(cox_ring(base_space))
-  if is_zero(a6) == false
-    exp_vector = exponent_vector(a6,1)
-    explicit_a6 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
+  # Use these, to create map from auxiliary_base_ring to the cox ring of the base_space.
+  images = vcat([zero(cox_ring(base_space))], [explicit_model_sections[vars[k]] for k in 2:length(vars)])
+  map = hom(auxiliary_base_ring, cox_ring(base_space), images)
+
+  # Thereby, map the ai to explicit Tate sections, i.e. polynomials in the cox ring of the base space.
+  a1 = map(eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring))
+  a2 = map(eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring))
+  a3 = map(eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring))
+  a4 = map(eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring))
+  a6 = map(eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring))
 
   # Construct the model
-  ais = [explicit_a1, explicit_a2, explicit_a3, explicit_a4, explicit_a6]
-  model = global_tate_model(base_space, ais; completeness_check = completeness_check)
-
-  # Remember the explicit model sections for autoresolution
+  model = global_tate_model(base_space, [a1, a2, a3, a4, a6]; completeness_check = completeness_check)
   set_attribute!(model, :explicit_model_sections => explicit_model_sections)
-
-  # Return the model
   return model
 end
 
