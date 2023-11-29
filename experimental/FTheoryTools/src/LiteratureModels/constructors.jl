@@ -71,6 +71,8 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> length(singular_loci(t2))
@@ -130,6 +132,9 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
       @req false "Model is not a Tate or Weierstrass model"
     end
     
+    # Warn that there may be unwanted enhancements
+    @vprint :FTheoryConstructorInformation 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
+
   # (3b) Construct the model over a generic base
   else
     if model_dict["model_descriptors"]["type"] == "tate"
