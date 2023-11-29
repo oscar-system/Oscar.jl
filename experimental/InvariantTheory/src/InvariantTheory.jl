@@ -115,34 +115,28 @@ end
 function rep_mat_(G::ReductiveGroup, sym_deg::Int)
     G.group[1] == :SL || error("Only implemented for SLm")
     m = G.group[2]
-    n = binomial(m + sym_deg - 1, m - 1)
-    mixed_ring, t, z = polynomial_ring(G.field, "t"=> 1:m, "z"=> (1:m, 1:m))
-    group_mat = matrix(mixed_ring, z)
+    R = base_ring(G.group_ideal) # TODO: probably should have a getter function for this
+    mixed_ring, t = polynomial_ring(R, "t" => 1:m)
+    group_mat = natural_representation(G)
     new_vars = group_mat*t
     
     b = degree_basis(mixed_ring,m, sym_deg)
+    n = length(b)
     
     # transform the b elements
-    new_vars_plus_rest = vcat(new_vars, gens(mixed_ring)[m+1:nvars(mixed_ring)])
-    images_of_b = [evaluate(f, new_vars_plus_rest) for f in b]
+    images_of_b = [evaluate(f, new_vars) for f in b]
 
-    mat = zero_matrix(mixed_ring, n, n)
+    mat = zero_matrix(R, n, n)
     for j in 1:n
         f = images_of_b[j]
+        x = mixed_ring()
         # express f as a linear combination of degree_basis
-        for t in terms(f)
-            for i in 1:n
-                if divides(t, b[i])[1]
-                    mat[i,j] += t / b[i] 
-                end
-            end
+        for i in 1:n
+            c = coeff(f, leading_exponent(b[i]))
+            mat[i,j] = c / leading_coefficient(b[i])
         end
     end
-    #we have to return mat in a different ring! 
-    group_ring = base_ring(G.group_ideal)
-    mapp = hom(mixed_ring, group_ring, vcat([0 for i in 1:m], gens(group_ring)))
-    Mat = matrix(group_ring, n, n, [mapp(mat[i,j]) for i in 1:n, j in 1:n])
-    return Mat    
+    return mat
 end
 
 #computes symmetric degree basis (of the first m variables) WITH multinomial coefficients!
@@ -231,15 +225,18 @@ end
 
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
 invariant_ring(R::RepresentationReductiveGroup, ring::MPolyRing) = InvariantRing(R, ring)
-fundamental_invariants(R::InvariantRing) = R.fundamental
 null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
 
 function fundamental_invariants(z::InvariantRing)
-    R = z.representation
-    I, M = proj_of_image_ideal(R.group, R.rep_mat)
-    z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
-    z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
-    return z.fundamental
+    if isdefined(z, :fundamental)
+        return z.fundamental
+    else
+        R = z.representation
+        I, M = proj_of_image_ideal(R.group, R.rep_mat)
+        z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
+        z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
+        return z.fundamental
+    end
 end
 
 function Base.show(io::IO, R::InvariantRing) #TODO compact printing
