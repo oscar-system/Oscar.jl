@@ -216,6 +216,10 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
   return a.coords == b.coords
 end
 
+function hash(a::AbstractFreeModElem, h::UInt)
+  error("hash not implemented for elements of type $(typeof(a))")
+end
+
 # A special method for the case where we can safely assume 
 # that the coordinates of elements allow hashing.
 function hash(a::AbstractFreeModElem{<:MPolyElem{<:FieldElem}}, h::UInt)

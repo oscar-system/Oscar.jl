@@ -97,7 +97,7 @@ end
 
 #######################################################
 
-function simplify(el::SubquoModuleElem{<:MPolyElem})
+function simplify(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
   el.is_reduced && return el
   !isdefined(parent(el), :quo) && return el
   iszero(parent(el).quo) && return el
@@ -107,7 +107,7 @@ function simplify(el::SubquoModuleElem{<:MPolyElem})
   return result
 end
 
-function simplify!(el::SubquoModuleElem{<:MPolyElem})
+function simplify!(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
   el.is_reduced && return el
   !isdefined(parent(el), :quo) && return el
   iszero(parent(el).quo) && return el
