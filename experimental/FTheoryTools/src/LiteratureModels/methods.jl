@@ -83,12 +83,13 @@ julia> t2 = resolve(t, 1)
 Partially resolved global Tate model over a concrete base
 
 julia> cox_ring(ambient_space(t2))
-Multivariate polynomial ring in 13 variables over QQ graded by 
+Multivariate polynomial ring in 14 variables over QQ graded by 
+  Kbar -> [1 0 0 0 0 0 0 0]
+  w -> [0 1 0 0 0 0 0 0]
   a1 -> [1 0 0 0 0 0 0 0]
-  a21 -> [0 1 0 0 0 0 0 0]
-  a32 -> [-1 2 0 0 0 0 0 0]
-  a43 -> [-2 3 0 0 0 0 0 0]
-  w -> [0 0 1 0 0 0 0 0]
+  a21 -> [0 0 1 0 0 0 0 0]
+  a32 -> [-1 0 2 0 0 0 0 0]
+  a43 -> [-2 0 3 0 0 0 0 0]
   x -> [0 0 0 1 0 0 0 0]
   y -> [0 0 0 0 1 0 0 0]
   z -> [0 0 0 0 0 1 0 0]
