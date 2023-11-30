@@ -220,9 +220,32 @@ function hash(a::AbstractFreeModElem, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)
+  return xor(h, b)
+end
+
+# A special method for the case where we can safely assume 
+# that the coordinates of elements allow hashing.
+function hash(a::AbstractFreeModElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
   h = hash(coordinates(a), h)
   return xor(h, b)
 end
+
+# Once we have a suitable implementation of an in-place version 
+# of simplify! for sparse vectors of quotient ring elements, we 
+# should probably enable the hash method below.
+# function hash(a::AbstractFreeModElem{<:MPolyQuoRingElem}, h::UInt)
+#   simplify!(a)
+#   b = 0xaa2ba4a32dd0b431 % UInt
+#   h = hash(typeof(a), h)
+#   h = hash(parent(a), h)
+#   h = hash(coordinates(a), h)
+#   return xor(h, b)
+# end
+
+simplify(a::AbstractFreeModElem{<:MPolyQuoRingElem}) = parent(a)(map_entries(simplify, coordinates(a)))
 
 function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
   return parent(a)(deepcopy_internal(coordinates(a), dict))

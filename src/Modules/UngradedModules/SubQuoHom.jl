@@ -8,8 +8,8 @@
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
 In particular, `length(im) == ngens(D)` must hold.
 """
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
 
 @doc raw"""
     SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
@@ -17,7 +17,7 @@ SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::Rin
 Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a subquotient.
 `mat` must have `ngens(D)` many rows and `ngens(C)` many columns.
 """
-function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool=true) where T
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
@@ -29,7 +29,7 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}) where T
   end
 end
 
-function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType) where {T, RingMapType}
+function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType}
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
@@ -80,6 +80,8 @@ function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: Abs
   end
 end
 
+images_of_generators(phi::SubQuoHom) = phi.im::Vector{elem_type(codomain(phi))}
+image_of_generator(phi::SubQuoHom, i::Int) = phi.im[i]::elem_type(codomain(phi))
 
 ###################################################################
 
@@ -265,8 +267,8 @@ julia> is_welldefined(c)
 false
 ```
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T = SubQuoHom(M, N, V) 
-hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}) where T = SubQuoHom(M, N, A)
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check) 
+hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
 
 
 @doc raw"""
@@ -302,8 +304,8 @@ Note, however, that the check performed by the function requires a Gröbner basi
 Return `true` if `a` is well-defined, and `false` otherwise.
 
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, V, h)
-hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = SubQuoHom(M, N, A, h)
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, V, h; check)
+hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, A, h; check)
 
 function is_welldefined(H::ModuleFPHom)
   if H isa Union{FreeModuleHom,FreeModuleHom_dec}
@@ -332,14 +334,26 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   return true
 end
 
+function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyElem{U}, T<:ModuleFP{S}}
+  b = 0x535bbdbb2bc54b46 % UInt
+  h = hash(typeof(f), h)
+  h = hash(domain(f), h)
+  h = hash(codomain(f), h)
+  for g in images_of_generators(f)
+    h = hash(g, h)
+  end
+  return xor(h, b)
+end
+
 function Base.hash(f::ModuleFPHom, h::UInt)
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
   h = hash(codomain(f), h)
+  # We can not assume that the images of generators 
+  # have a hash in general
   return xor(h, b)
 end
-
 ###################################################################
 
 @doc raw"""
@@ -448,25 +462,29 @@ end
 Return the image $a(m)$.
 """
 function image(f::SubQuoHom, a::SubquoModuleElem)
-  # TODO matrix vector multiplication
   @assert a.parent === domain(f)
-  i = zero(codomain(f))
-  b = coordinates(a)
-  for (p,v) = b
-    i += base_ring_map(f)(v)*f.im[p]
-  end
-  return i
+  iszero(a) && return zero(codomain(f))
+  # The code in the comment below was an attempt to make 
+  # evaluation of maps faster. However, it turned out that 
+  # for the average use case the comparison was more expensive 
+  # than the gain for mappings. The flag should be set by constructors
+  # nevertheless when applicable.
+  #if f.generators_map_to_generators === nothing
+  #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
+  #end
+  f.generators_map_to_generators === true && return codomain(f)(map_entries(base_ring_map(f), coordinates(a)))
+  h = base_ring_map(f)
+  return sum(h(b)*image_of_generator(f, i) for (i, b) in coordinates(a); init=zero(codomain(f)))
 end
 
 function image(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, a::SubquoModuleElem)
   # TODO matrix vector multiplication
   @assert a.parent === domain(f)
-  i = zero(codomain(f))
-  b = coordinates(a)
-  for (p,v) = b
-    i += v*f.im[p]
-  end
-  return i
+ #if f.generators_map_to_generators === nothing
+ #  f.generators_map_to_generators = images_of_generators(f) == gens(codomain(f))
+ #end
+  f.generators_map_to_generators === true && return codomain(f)(coordinates(a))
+  return sum(c*image_of_generator(f, i) for (i, c) in coordinates(a); init=zero(codomain(f)))
 end
 
 @doc raw"""
@@ -492,7 +510,7 @@ function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP}, a::Union{SubquoModul
   phi = base_ring_map(f)
   D = domain(f)
   i = zero(D)
-  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  b = coordinates(a isa FreeModElem ? a : repres(a), image(f)[1])
   bb = map_entries(x->(preimage(phi, x)), b)
   for (p,v) = bb
     i += v*gen(D, p)
@@ -505,7 +523,7 @@ function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing},
   @assert parent(a) === codomain(f)
   D = domain(f)
   i = zero(D)
-  b = coordinates(a isa FreeModElem ? a : a.repres, image(f)[1])
+  b = coordinates(a isa FreeModElem ? a : repres(a), image(f)[1])
   for (p,v) = b
     i += v*gen(D, p)
   end
@@ -523,9 +541,9 @@ Return the image of `a` as an object of type `SubquoModule`.
 Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
-  h_image_vector::Vector{elem_type(codomain(h))} = h.im
-  s = sub(codomain(h), h_image_vector, :module)
-  return s, hom(s, codomain(h), h_image_vector)
+  s = sub(codomain(h), images_of_generators(h), :module)
+  inc = hom(s, codomain(h), images_of_generators(h), check=false)
+  return s, inc
 end
 
 @doc raw"""
@@ -700,14 +718,14 @@ function kernel(h::SubQuoHom)
   D = domain(h)
   R = base_ring(D)
   is_graded(h) ? F = graded_free_module(R, degrees_of_generators(D)) : F = FreeMod(R, ngens(D))
-  hh = hom(F, codomain(h), Vector{elem_type(codomain(h))}(map(h, gens(D))))
-  k = kernel(hh)
-  @assert domain(k[2]) === k[1]
-  @assert codomain(k[2]) === F
-  hh = hom(F, D, gens(D))
-  im::Vector{elem_type(D)} = filter(x -> !iszero(x), map(x->hh(k[2](x)), gens(k[1])))
-  k = sub(D, im, :module)
-  return k, hom(k, D, im)
+  hh = hom(F, codomain(h), images_of_generators(h), check=false)
+  K, inc_K = kernel(hh)
+  @assert domain(inc_K) === K
+  @assert codomain(inc_K) === F
+  v = gens(D)
+  imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
+  k = sub(D, imgs, :module)
+  return k, hom(k, D, imgs, check=false)
 end
 
 @doc raw"""
@@ -884,12 +902,12 @@ Return the composition `b` $\circ$ `a`.
 """
 function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
-  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]))
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), check=false)
 end
 
 function *(h::ModuleFPHom{T1, T2, <:Map}, g::ModuleFPHom{T2, T3, <:Map}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
-  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)))
+  return hom(domain(h), codomain(g), Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), compose(base_ring_map(h), base_ring_map(g)), check=false)
 end
 
 function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
@@ -898,50 +916,51 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {
              Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
              MapFromFunc(base_ring(domain(h)), 
                          base_ring(codomain(g)),
-                         x->(base_ring_map(g)(base_ring_map(h)(x))))
+                         x->(base_ring_map(g)(base_ring_map(h)(x)))),
+             check=false
             )
 
 end
 
 compose(h::ModuleFPHom, g::ModuleFPHom) = h*g
 
--(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))])
--(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), [-h(x) for x in gens(domain(h))], base_ring_map(h))
+-(h::ModuleFPHom{D, C, Nothing}) where {D, C} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], check=false)
+-(h::ModuleFPHom{D, C, T}) where {D, C, T} = hom(domain(h), codomain(h), elem_type(codomain(h))[-h(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 
 function -(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]), base_ring_map(h))
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
 function -(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) - g(x) for x in gens(domain(h))]))
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) - g(x) for x in gens(domain(h))], check=false)
 end
 
 function +(h::ModuleFPHom{D, C, T}, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
   @assert base_ring_map(h) === base_ring_map(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]), base_ring_map(h))
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], base_ring_map(h), check=false)
 end
 
 function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert domain(h) === domain(g)
   @assert codomain(h) === codomain(g)
-  return hom(domain(h), codomain(h), Vector{elem_type(codomain(h))}([h(x) + g(x) for x in gens(domain(h))]))
+  return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
 function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
-  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]))
+  return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
 function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
-  return hom(domain(g), codomain(g), Vector{elem_type(codomain(g))}([a*g(x) for x in gens(domain(g))]), base_ring_map(g))
+  return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end
 
 
@@ -953,7 +972,7 @@ but has codomain `M`. `M` has to be a submodule of the codomain of `H`.
 """
 function restrict_codomain(H::ModuleFPHom, M::SubquoModule)
   D = domain(H)
-  return hom(D, M, map(v -> SubquoModuleElem(v, M), map(x -> repres(H(x)), gens(D))))
+  return hom(D, M, map(v -> SubquoModuleElem(v, M), map(x -> repres(H(x)), gens(D))), check=false)
 end
 
 @doc raw"""
@@ -985,7 +1004,7 @@ If `check` is set to true the well-definedness of the map is checked.
 """
 function induced_map(f::FreeModuleHom, M::SubquoModule, check::Bool = true)
   @assert ambient_free_module(M) === domain(f)
-  ind_f = hom(M, codomain(f), [f(repres(v)) for v in gens(M)])
+  ind_f = hom(M, codomain(f), [f(repres(v)) for v in gens(M)], check=false)
   if check
     @assert is_welldefined(ind_f)
   end
@@ -1005,7 +1024,7 @@ function inv(H::ModuleFPHom)
   N = domain(H)
   M = codomain(H)
 
-  Hinv = hom(M,N, Vector{elem_type(N)}([preimage(H,m) for m in gens(M)]))
+  Hinv = hom(M,N, Vector{elem_type(N)}([preimage(H,m) for m in gens(M)]), check=false)
   Hinv.inverse_isomorphism = H
   H.inverse_isomorphism = Hinv
 
@@ -1025,7 +1044,7 @@ function projection(F::FreeMod, indices::AbstractArray)
   @assert length(Set(indices)) == length(indices) # unique indices
   R = base_ring(F)
   G = FreeMod(R, length(indices))
-  return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)]))
+  return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)]), check=false)
 end
 
 @doc raw"""
@@ -1111,10 +1130,10 @@ function simplify_light(M::SubquoModule)
   N = length(N_rels) == 0 ? SubquoModule(ambient_free_module(M), N_gens) : SubquoModule(ambient_free_module(M), N_gens, N_rels)
 
   index_of_N_in_M = indexin(N_gens, M_gens)
-  inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]))
+  inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]), check=false)
 
   index_of_M_in_N = indexin(M_gens, N_gens)
-  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]))
+  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]), check=false)
 
   return N, inj, proj
 end
@@ -1129,7 +1148,7 @@ isomorphisms. The ambient free module of `N` is the same as that of `M`.
 function simplify_with_same_ambient_free_module(M::SubquoModule)
   _, to_M, from_M = simplify(M)
   N, N_to_M = image(to_M)
-  return N, N_to_M, hom(M, N, [N(coordinates(from_M(g))) for g in gens(M)])
+  return N, N_to_M, hom(M, N, [N(coordinates(from_M(g))) for g in gens(M)], check=false)
   #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 

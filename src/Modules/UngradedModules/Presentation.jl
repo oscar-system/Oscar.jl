@@ -44,7 +44,7 @@ function presentation(SQ::SubquoModule)
         if i>ngens(SQ)
           break
         end
-        e += v*gen(SQ, i).repres
+        e += v*repres(gen(SQ, i))
         push!(b.pos, i)
         push!(b.values, v)
       end
