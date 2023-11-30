@@ -1,4 +1,4 @@
-### Generic functionality
+## Generic functionality
 @doc raw"""
     total_complex(D::AbsDoubleComplexOfMorphisms)
 
@@ -16,27 +16,6 @@ function total_complex(D::AbsDoubleComplexOfMorphisms)
   else
     return _total_cochain_complex(D)
   end
-end
-
-@doc raw"""
-    _direct_sum(u::Vector{T}) where {T}
-
-Internal method to return a triple `(s, incs, prs)` consisting of an object 
-`s` representing the direct sum of the entries in `u`, together with vectors 
-of maps `incs` for the inclusion maps `u[i] → s` and `prs` for 
-the projections `s →  u[i]`.
-
-Generically this will default to `direct_sum(u)`. If that does not produce 
-a result with the required output format, you must overwrite this method 
-for your specific type `T`.
-"""
-function _direct_sum(u::Vector{T}) where {T}
-  return direct_sum(u...)
-end
-
-# overwriting the method for finitely generated modules
-function _direct_sum(u::Vector{T}) where {T<:ModuleFP}
-  return direct_sum(u...; task=:both)
 end
 
 function _total_chain_complex(dc::AbsDoubleComplexOfMorphisms{ChainType, MorphismType}) where {ChainType, MorphismType}
@@ -104,3 +83,67 @@ end
 typ(C::ComplexOfMorphisms) = C.typ
 is_complete(C::ComplexOfMorphisms) = C.complete
 
+
+### cached homology
+
+function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+  if !isdefined(c, :kernel_cache) 
+    c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.kernel_cache, (i, p))
+    inc = c.kernel_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  if !can_compute_map(c, p, i)
+    K, inc = sub(c[i], gens(c[i]))
+    c.kernel_cache[(i, p)] = inc
+    return K, inc
+  end
+
+  @assert domain(map(c, p, i)) === c[i]
+  K, inc = kernel(map(c, p, i))
+  c.kernel_cache[(i, p)] = inc
+  return K, inc
+end
+
+function boundary(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+  I = collect(i)
+  prev = I + (direction(c, p) == :chain ? 1 : -1)*[k==p ? 1 : 0 for k in 1:dim(c)]
+  Prev = Tuple(prev)
+
+  if !isdefined(c, :boundary_cache) 
+    c.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.boundary_cache, (i, p))
+    inc = c.boundary_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  if !can_compute_map(c, p, Prev) 
+    !can_compute_index(c, Prev) || error("map can not be computed")
+    Im, inc = sub(c[i], elem_type(c[i])[])
+    @assert codomain(inc) === c[i]
+    c.boundary_cache[(i, p)] = inc
+    return Im, inc
+  end
+
+  Im, inc = image(map(c, p, Prev))
+  @assert codomain(inc) === c[i]
+  c.boundary_cache[(i, p)] = inc
+  return Im, inc
+end
+
+function homology(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+  if !isdefined(c, :homology_cache) 
+    c.homology_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.homology_cache, (i, p))
+    pr = c.homology_cache[(i, p)]
+    return codomain(pr), pr
+  end
+
+  H, pr = quo(kernel(c, p, i)[1], boundary(c, p, i)[1])
+  c.homology_cache[(i, p)] = pr
+  return H, pr
+end

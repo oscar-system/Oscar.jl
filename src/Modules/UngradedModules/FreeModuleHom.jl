@@ -565,4 +565,21 @@ function image(h::FreeModuleHom)
   return s, phi
 end
 
+function *(h::ModuleFPHom{T1, T2, Nothing}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), 
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
+             base_ring_map(g)
+            )
+
+end
+
+function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, Nothing}) where {T1, T2, T3}
+  @assert codomain(h) === domain(g)
+  return hom(domain(h), codomain(g), 
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
+             base_ring_map(h)
+            )
+
+end
 
