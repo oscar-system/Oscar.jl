@@ -562,7 +562,6 @@ function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
   s = sub(codomain(h), si, :module)
   phi = hom(s, codomain(h), si, check=false)
-  phi.generators_map_to_generators = true
   return s, phi
 end
 

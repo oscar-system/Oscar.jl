@@ -543,7 +543,6 @@ Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `co
 function image(h::SubQuoHom)
   s = sub(codomain(h), images_of_generators(h), :module)
   inc = hom(s, codomain(h), images_of_generators(h), check=false)
-  inc.generators_map_to_generators = true
   return s, inc
 end
 

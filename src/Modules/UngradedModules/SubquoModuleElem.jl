@@ -478,7 +478,6 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) w
   @assert !isdefined(s, :quo)
   @assert s.F === F
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
-  emb.generators_map_to_generators = true
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   return return_sub_wrt_task(s, emb, task)
