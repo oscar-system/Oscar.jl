@@ -511,12 +511,12 @@ function Base.iterate(G::GroupDoubleCoset, state)
 end
 
 """
-    intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+    intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
 
 Return a vector containing all elements belonging to all groups and cosets
 in `V`.
 """
-function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+function intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
    if V[1] isa GAPGroup
       G = V[1]
    else
