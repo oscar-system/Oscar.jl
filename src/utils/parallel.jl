@@ -1,32 +1,28 @@
 using Distributed
+import Distributed.pmap
 
 function set_channels(input::Type{S}, output::Type{T}, params::Type{U};
-                      channel_size::Tuple{Int, Int, Int} = (100, 100, 100)) where {S, T, U}
+                      channel_size::Tuple{Int, Int, Int} = (32, 32, 32)) where {S, T, U}
   return (
-    RemoteChannel(() -> Channel{S}(channel_size[1])),
-    RemoteChannel(() -> Channel{T}(channel_size[2])),
-    RemoteChannel(() -> Channel{U}(channel_size[3]))
+    RemoteChannel(()->Channel{S}(channel_size[1])),
+    [RemoteChannel(() -> Channel{T}(channel_size[2]), w) for w in workers()],
+    [RemoteChannel(() -> Channel{U}(channel_size[3]), w) for w in workers()]
   )
 end
 
-function put_params(params_channel::RemoteChannel, params::Any)
-  for w in workers()
-    put!(params_channel, params)
+function put_params(params_channels::Vector{<: RemoteChannel}, params::Any)
+  for (i, w) in enumerate(workers())
+    put!(params_channels[i], params)
   end
 
-  for w in workers()
-    remote_do(w, params_channel) do chnnl
-      remote_params = take!(chnnl)
-    end
+  function take_params(chnnl)
+    params = take!(chnnl)
+  end
+
+  for (i, w) in enumerate(workers())
+    remotecall(take_params, w, params_channels[i]) 
   end
 end
 
-function parallel_do(f::Function, v::Vector, in_chnnl::RemoteChannel,
-                     out_chnnl::RemoteChannel)
   
-  n = length(v)
-  for x in v
-    put!(in_chnnl, x)
-  end
-  
-end
+

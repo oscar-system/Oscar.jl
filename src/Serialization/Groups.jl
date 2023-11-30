@@ -108,7 +108,6 @@ function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
   return load_typed_object(s)
 end
 
-
 ##############################################################################
 # PermGroup
 
@@ -241,7 +240,7 @@ function save_object(s::SerializerState, G::GrpAbFinGen)
 end
 
 function load_object(s::DeserializerState, ::Type{GrpAbFinGen})
-  return abelian_group(load_object(s, ZZMatrix))
+  return abelian_group(load_object(s, Matrix, ZZRingElem))
 end
 
 # elems

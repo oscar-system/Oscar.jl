@@ -50,13 +50,6 @@ function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_r
   return load_object(s, T, parents)
 end
 
-# fix for series and ideal cases
-function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, LaurentMPolyIdeal}},
-                     terms::JSON3.Object, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-  parents = get_parents(parent_ring)
-  return load_object(s, T, terms, parents)
-end
-
 ################################################################################
 # ring of integers (singleton type)
 @register_serialization_type ZZRing
@@ -122,13 +115,28 @@ function load_object(s::DeserializerState,
     poly_ring = UniversalPolynomialRing(base_ring, cached=false)
     gens(poly_ring, symbols)
     return poly_ring
-  elseif T <: MPolyDecRing
-    # the order in the symbols reflects the grading
-    return graded_polynomial_ring(base_ring, symbols)[1]
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
     return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
   end
   return polynomial_ring(base_ring, symbols, cached=false)[1]
+end
+
+# with grading
+
+function save_object(s::SerializerState, R::MPolyDecRing)
+  save_data_dict(s) do
+    save_typed_object(s, base_ring(R), :base_ring)
+    save_typed_object(s, grading(R), :grading)
+    save_object(s, symbols(R), :symbols)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRing})
+  base_ring = load_typed_object(s, :base_ring)
+  symbols = load_object(s, Vector, Symbol, :symbols)
+  grading = load_typed_object(s, :grading)
+  
+  return grade_polynomial_ring(base_ring, symbols, grading)[1]
 end
 
 ################################################################################
