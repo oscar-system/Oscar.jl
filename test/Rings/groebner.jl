@@ -24,7 +24,9 @@
     units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
+    @test reduce(y^3, elem_type(R)[]) == y^3
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
+    @test reduce([y^3], elem_type(R)[]) == [y^3]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     f = x+y^3
     g = x
@@ -34,12 +36,20 @@
     F = [x*y^2-x,x^3-2*x*y^2]
     q, r = reduce_with_quotients(f, F)
     @test q * F + [r] == [f]
+    q, r = reduce_with_quotients(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == [f]
     q, r = reduce_with_quotients([f], F)
     @test q * F + r == [f]
+    q, r = reduce_with_quotients([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == [f]
     u, q, r = reduce_with_quotients_and_unit(f, F)
     @test q * F + [r] == u * [f]
+    u, q, r = reduce_with_quotients_and_unit(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], F)
     @test q * F + r == u * [f]
+    u, q, r = reduce_with_quotients_and_unit([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == u * [f]
     f = x
     F = [1-x]
     q, r = reduce_with_quotients(f, F, ordering=neglex(R))
@@ -77,7 +87,7 @@ end
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
    @test leading_ideal(groebner_basis(I, ordering=degrevlex([t, x, y, z]))) == ideal(R, [t, x^3])
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, ordering=revlex([t, x, y, z]))) == ideal(R, [y^2, z])
+   @test leading_ideal(groebner_basis(I, ordering=invlex([t, x, y, z]))) == ideal(R, [y^2, z])
    @test leading_ideal(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]))) == ideal(R, [z, t^3])
    @test leading_ideal(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]))) == ideal(R, [t, x^3])
 end
@@ -88,8 +98,8 @@ end
    I = ideal(R, [x + y + z, x^2 + y^2 + z^3])
 
    @test groebner_basis(I, ordering=lex([x])*lex([y,z])) == groebner_basis(I, ordering=lex([x, y, z]))
-   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=revlex([x, y, z]))
-   @test groebner_basis(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
+   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=invlex([x, y, z]))
+   @test groebner_basis(I, ordering=degrevlex([x, y, z])*invlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis(I, ordering=deglex([x, y, z])) == groebner_basis(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
    M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
@@ -101,9 +111,9 @@ end
    H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x]))
-   H, V = groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=invlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
-   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y]))
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*invlex([y]))
    H, V = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y]))

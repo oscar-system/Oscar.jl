@@ -582,7 +582,7 @@ julia> related_literature_models(m)
 ```
 """
 function related_literature_models(m::AbstractFTheoryModel)
-  @req has_related_literature_models(m) "No associated models known for this model"
+  @req has_related_literature_models(m) "No related models known for this model"
   return get_attribute(m, :related_literature_models)
 end
 

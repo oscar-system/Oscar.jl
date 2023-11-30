@@ -11,7 +11,7 @@ Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
 Fin, d = finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
-T = TropicalSemiring()
+T = tropical_semiring()
 F, o  = Hecke.Nemo._FiniteField(4)
 Fs, s = F["s"]
 FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
@@ -56,8 +56,8 @@ cases = [
           end
         end
       end
-      
-      @testset "Multivariate Polynomial over $(case[4])"  begin 
+
+      @testset "Multivariate Polynomial over $(case[4])"  begin
         R, (z, w) = polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
