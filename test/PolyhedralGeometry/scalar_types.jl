@@ -54,7 +54,7 @@
             s = vertices(j)[1][1]
             @test s isa QQFieldElem
         end
-        let j = johnson_solid(64)
+        let j = polyhedron(Polymake.polytope.johnson_solid(64))
             @test j isa Polyhedron{Float64}
             s = vertices(j)[1][1]
             @test s isa Float64
