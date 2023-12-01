@@ -681,20 +681,39 @@ The transformations are represented with respect to the ambient space of `L`.
    return G
 end
 
-@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZZLat)
+"""
+    isometry_group(L::ZZLat; algorithm=:direct) -> MatrixGroup
+
+For integer lattices an algorithm can be specified.
+# Input
+- `algorithm` can be either `:direct` or `:decomposition`
+"""
+function isometry_group(L::ZZLat; algorithm=:PleskenSouvignier)
+  if has_attribute(L, :isometry_group)
+    return get_attribute(L, :isometry_group)::MatrixGroup{QQFieldElem,QQMatrix}
+  end
+
   # corner case
+  @req rank(L)<=2 || is_definite(L) "Lattice must be definite or of rank at most 2"
   if rank(L) == 0
-     return matrix_group(identity_matrix(QQ,degree(L)))
+     G = matrix_group(identity_matrix(QQ,degree(L)))
   end
 
   if !is_definite(L) && (rank(L) == 2)
     gene = automorphism_group_generators(L)
-    return matrix_group([change_base_ring(QQ, m) for m in gene])
+    G = matrix_group([change_base_ring(QQ, m) for m in gene])
   end
 
-  @req is_definite(L) "Lattice must be definite or of rank at most 2"
-  G, _ = _isometry_group_via_decomposition(L)
-  return G
+  if algorithm == :PleskenSouvignier
+    gens = Hecke.automorphism_group_generators(L)
+    G = matrix_group(gens)
+  elseif algorithm == :decomposition
+    G, _ = _isometry_group_via_decomposition(L)
+  else
+    error("Unknown algorithm. We support :PleskenSouvignier or :decomposition")
+  end
+  set_attribute!(L, :isometry_group, G)
+  return G::MatrixGroup{QQFieldElem,QQMatrix}
 end
 
 """
@@ -862,12 +881,12 @@ function _row_span!(L::Vector{ZZMatrix})
   return h[1:rank(h),:]
 end
 
-automorphism_group(L::Hecke.AbstractLat) = isometry_group(L)
+automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
 
-orthogonal_group(L::Hecke.ZZLat) = isometry_group(L)
+orthogonal_group(L::Hecke.ZZLat; kwargs...) = isometry_group(L; kwargs...)
 
-orthogonal_group(L::Hecke.QuadLat) = isometry_group(L)
+orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 
-unitary_group(L::Hecke.HermLat) = isometry_group(L)
+unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 
 
