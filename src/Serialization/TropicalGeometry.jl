@@ -5,14 +5,14 @@
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params
 
-function save_type_params(s::SerializerState, x::TropicalSemiringElem)
+function save_type_params(s::SerializerState, x::T) where {T <: TropicalSemiringElem}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_typed_object(s, parent(x), :params)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict)
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict{Symbol, Any})
   return load_typed_object(s, dict)
 end
 
@@ -24,7 +24,12 @@ end
 function load_object(s::DeserializerState,
                                  ::Type{<:TropicalSemiringElem},
                                  str::String, params::TropicalSemiring)
-  return params(load_object(s, QQFieldElem, str))
+  if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
+    return inf(params)
+  else
+    # looks like (q)
+    return params(load_object(s, QQFieldElem, String(strip(str, ['(', ')']))))
+  end
 end
 
 # Tropical Hypersurfaces
@@ -32,22 +37,22 @@ end
 
 function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
   save_data_dict(s) do
-    save_typed_object(s, polynomial(t_surf), :polynomial)
+    save_typed_object(s, tropical_polynomial(t_surf), :tropical_polynomial)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
-  polynomial = load_typed_object(s, dict[:polynomial])
-  return TropicalHypersurface(polynomial)
+  polynomial = load_typed_object(s, dict[:tropical_polynomial])
+  return tropical_hypersurface(polynomial)
 end
 
 # Tropical Curves
 @register_serialization_type TropicalCurve uses_id
 
 function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
-  save_data_dict(s) do 
+  save_data_dict(s) do
     if EMB
-      save_typed_object(s, underlying_polyhedral_complex(t_curve), :polyhedral_complex)
+      save_typed_object(s, polyhedral_complex(t_curve), :polyhedral_complex)
       save_object(s, true, :is_embedded)
     else
       save_typed_object(s, graph(t_curve), :graph)
@@ -59,11 +64,11 @@ end
 function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, dict::Dict)
   EMB = parse(Bool, dict[:is_embedded])
   if EMB
-    return TropicalCurve(
+    return tropical_curve(
       load_typed_object(s, dict[:polyhedral_complex])
     )
   else
-    return TropicalCurve(
+    return tropical_curve(
       load_typed_object(s, dict[:graph])
     )
   end

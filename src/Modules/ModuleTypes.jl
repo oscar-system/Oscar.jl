@@ -294,24 +294,29 @@ julia> f == g
 true
 ```
 """
-struct SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
-  coeffs::SRow{T}
-  repres::FreeModElem{T}
-  parent::SubquoModule
+mutable struct SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
+  parent::SubquoModule{T}
+  coeffs::SRow{T} # Need not be defined! Use `coordinates` as getter
+  repres::FreeModElem{T} # Need not be defined! Use `repres` as getter
+  is_reduced::Bool # `false` by default. Will be set by `simplify` and `simplify!`.
 
   function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R}
     @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
-      r = new{R}(v, zero(SQ.F), SQ)
+      r = new{R}(SQ, v, zero(SQ.F))
       return r
     end
-    r = new{R}(v, sum([v[i]*SQ.sub[i] for i=1:ngens(SQ.sub)]), SQ)
+    r = new{R}(SQ, v)
+    #, sum(a*SQ.sub[i] for (i, a) in v; init = zero(SQ.sub)), SQ)
+    r.is_reduced = false
     return r
   end
 
-  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule) where {R}
+  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R}
     @assert a.parent === SQ.F
-    r = new{R}(coordinates(a,SQ), a, SQ)
+    r = new{R}(SQ)
+    r.repres = a
+    r.is_reduced = is_reduced
     return r
   end
 end
@@ -324,13 +329,17 @@ mutable struct SubQuoHom{
   } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
   header::Hecke.MapHeader
-  im::Vector
+  im::Vector # The images of the generators; use `images_of_generators` as a getter.
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
   d::GrpAbFinGenElem
+  generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation;
+                                                     # value `nothing` by default and to be set manually.
 
   # Constructors for maps without change of base ring
-  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::FreeMod, im::Vector;
+                                        check::Bool=true
+                                       ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
@@ -339,11 +348,14 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{FreeModElem}(im)
+    r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
-  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector;
+                                        check::Bool=true
+                                       ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
@@ -352,11 +364,14 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{SubquoModuleElem}(im)
+    r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
-  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector) where {T1,T2,RingMapType}
+  function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector;
+                                        check::Bool=true
+                                       ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
@@ -365,7 +380,8 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = im
+    r.im = Vector{elem_type(C)}(im)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -374,7 +390,8 @@ mutable struct SubQuoHom{
       D::SubquoModule, 
       C::FreeMod, 
       im::Vector, 
-      h::RingMapType
+      h::RingMapType;
+      check::Bool=true
     ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
@@ -384,8 +401,9 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{FreeModElem}(im)
+    r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -393,7 +411,8 @@ mutable struct SubQuoHom{
       D::SubquoModule, 
       C::SubquoModule, 
       im::Vector, 
-      h::RingMapType
+      h::RingMapType;
+      check::Bool=true
     ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
@@ -403,8 +422,9 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = Vector{SubquoModuleElem}(im)
+    r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -412,7 +432,8 @@ mutable struct SubQuoHom{
       D::SubquoModule, 
       C::ModuleFP, 
       im::Vector, 
-      h::RingMapType
+      h::RingMapType;
+      check::Bool=true
     ) where {T1,T2,RingMapType}
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
@@ -422,8 +443,9 @@ mutable struct SubQuoHom{
     r.header = Hecke.MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
-    r.im = im
+    r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -506,9 +528,13 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   header::MapHeader
   ring_map::RingMapType
   d::GrpAbFinGenElem
+  imgs_of_gens::Vector # stored here for easy evaluation; use `images_of_generators` as getter
   
   matrix::MatElem
   inverse_isomorphism::ModuleFPHom
+  generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation
+                                                     # of the map; `nothing` by default and to be 
+                                                     # set manually.
 
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
@@ -519,12 +545,20 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert all(x->parent(x) === G, a)
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
+    a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
-      b = zero(G)
-      for (i,v) = x.coords
-        b += v*a[i]
-      end
-      return b
+     # The lines below were an attempt to speed up mapping. 
+     # However, it turns out that checking the equality is more 
+     # expensive in average than the gain for actual mappings. 
+     # Apparently, maps are likely to be used just once, or only 
+     # few times. 
+     # But the flag can (and probably should) be set by the constructors
+     # of maps whenever applicable.
+     #if r.generators_map_to_generators === nothing
+     #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
+     #end
+      r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
+      return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -532,6 +566,8 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
+    r.imgs_of_gens = Vector{elem_type(G)}(a)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
@@ -543,12 +579,15 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     @assert h(one(base_ring(F))) == one(base_ring(G))
     r = new{typeof(F), T2, RingMapType}()
+    a=Vector{elem_type(G)}(a)
     function im_func(x::AbstractFreeModElem)
-      b = zero(G)
-      for (i,v) = x.coords
-        b += h(v)*a[i]
-      end
-      return b
+      iszero(x) && return zero(codomain(r))
+      # See the above comment
+     #if r.generators_map_to_generators === nothing
+     #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
+     #end
+      r.generators_map_to_generators === true && return codomain(r)(map_entries(h, coordinates(x)))
+      return sum(h(b)*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
     end
     function pr_func(x)
       @assert parent(x) === G
@@ -558,6 +597,8 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     r.header = MapHeader{typeof(F), T2}(F, G, im_func, pr_func)
     r.ring_map = h
+    r.imgs_of_gens = Vector{elem_type(G)}(a)
+    r.generators_map_to_generators = nothing
     return set_grading(r)
   end
 
