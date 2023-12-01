@@ -297,7 +297,7 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   for i in 1:n
     li = ndigits(i)
     println(io)
-    print(io, " "^(l-li)*"$(i): ", Lowercase(), PU)
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), pp[i])
   end
   print(io, Dedent())
 end
