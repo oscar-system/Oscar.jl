@@ -67,6 +67,7 @@ include("Schemes/BlowupMorphism.jl")
 include("Schemes/duValSing.jl")
 include("Schemes/elliptic_surface.jl")
 include("Schemes/MorphismFromRationalFunctions.jl")
+include("Schemes/critical_locus.jl")
 
 include("Schemes/ToricIdealSheaves/auxiliary.jl")
 include("Schemes/ToricIdealSheaves/constructors.jl")

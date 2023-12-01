@@ -1230,7 +1230,8 @@ function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   ideal_dict = IdDict{AbsSpec, Ideal}()
   for V in cod_cov
     f_loc = maps_with_given_codomain(f_cov, V)
-    I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
+    @show pullback(first(f_loc))
+    I_loc = [preimage(pullback(g), II(domain(g))) for g in f_loc]
     ideal_dict[V] = intersect(I_loc...)
   end
   return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
