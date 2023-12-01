@@ -1520,6 +1520,20 @@ true
 """ 
 is_unit(f::MPolyLocRingElem) = numerator(f) in inverted_set(parent(f))
 
+function is_zero_divisor(f::MPolyLocRingElem)
+  iszero(f) && return true
+  if is_constant(f)
+    c = first(AbstractAlgebra.coefficients(numerator(f)))
+    return is_zero_divisor(c)
+  end
+  return is_zero_divisor(numerator(f))
+end
+
+
+function is_constant(a::MPolyLocRingElem)
+  reduce_fraction(a)
+  return is_constant(numerator(a)) && is_constant(denominator(a))
+end
 
 ########################################################################
 # implementation of Oscar's general ring interface                     #

@@ -374,6 +374,7 @@ export complement_equations
 export complement_ideal
 export complement_of_point_ideal
 export complement_of_prime_ideal
+export complement_scheme
 export complement_system, has_complement_system, set_complement_system
 export complete_bipartite_graph
 export complete_graph

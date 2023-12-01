@@ -48,7 +48,6 @@ include("GModule.jl")
 include("MatrixGroups/matrix.jl")
 
 include("Schemes/Types.jl")
-include("Schemes/SpecialTypes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
