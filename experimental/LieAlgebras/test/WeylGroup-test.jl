@@ -148,6 +148,17 @@
     @test longest_element(W) * rho == -rho
   end
 
+  @testset "parent(::WeylGroupElem)" begin
+    W = weyl_group(:A, 5)
+    x = one(W)
+    @test parent(x) === x.parent
+    @test parent(x) isa WeylGroup
+
+    x = W([1,3,5,4,2])
+    @test parent(x) === x.parent
+    @test parent(x) isa WeylGroup
+  end
+
   @testset "ReducedExpressionIterator" begin
     W = weyl_group(:A, 3)
     s = gens(W)

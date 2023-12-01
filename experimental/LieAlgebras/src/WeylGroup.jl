@@ -47,8 +47,8 @@ end
 @doc raw"""
     (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
 """
-function (W::WeylGroup)(word::Vector{Int})
-  return WeylGroupElem(W, word)
+function (W::WeylGroup)(word::Vector{Int}; normalize::Bool=true)
+  return weyl_group_elem(W, word; normalize=normalize)
 end
 
 function Base.IteratorSize(::Type{WeylGroup})
@@ -70,7 +70,7 @@ end
     one(W::WeylGroup) -> WeylGroupElem
 """
 function Base.one(W::WeylGroup)
-  return WeylGroupElem(W, UInt8[])
+  return W(UInt8[]; normalize=false)
 end
 
 function Base.show(io::IO, W::WeylGroup)
@@ -90,9 +90,9 @@ end
 
 Returns the `i`th simple reflection (with respect to the underlying root system) of `W`.
 """
-function gen(W::WeylGroup, i::Int)
+function gen(W::WeylGroup, i::Integer)
   @req 1 <= i <= ngens(W) "invalid index"
-  return WeylGroupElem(W, UInt8[i])
+  return W(UInt8[i]; normalize=false)
 end
 
 @doc raw"""
@@ -196,19 +196,22 @@ struct WeylGroupElem <: GroupsCore.GroupElement
   end
 end
 
-function WeylGroupElem(R::RootSystem, word::Vector{<:Integer})
-  return WeylGroupElem(weyl_group(R), word)
+function weyl_group_elem(R::RootSystem, word::Vector{<:Integer}; normalize::Bool=true)
+  return WeylGroupElem(weyl_group(R), word; normalize=normalize)
+end
+
+function weyl_group_elem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
+  return WeylGroupElem(W, word; normalize=normalize)
 end
 
 function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
 
-  word = deepcopy(y.word)
-  for s in Iterators.reverse(x.word)
-    _lmul!(x.parent.refl, word, s)
+  p = deepcopy(y)
+  for s in Iterators.reverse(word(x))
+    lmul!(p, s)
   end
-
-  return WeylGroupElem(x.parent, word)
+  return p
 end
 
 function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
@@ -276,7 +279,7 @@ function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
     return dict[x]
   end
 
-  y = WeylGroupElem(x.parent, deepcopy_internal(x.word, dict))
+  y = parent(x)(deepcopy_internal(word(x), dict); normalize=false)
   dict[x] = y
   return y
 end
@@ -304,12 +307,11 @@ end
 Returns the inverse of `x`.
 """
 function Base.inv(x::WeylGroupElem)
-  w = UInt8[]
-  sizehint!(w, length(word(x)))
+  y = parent(x)(sizehint!(UInt8[], length(x)); normalize=false)
   for s in word(x)
-    _lmul!(parent(x).refl, w, s)
+    lmul!(y, s)
   end
-  return WeylGroupElem(parent(x), w)
+  return y
 end
 
 @doc raw"""
@@ -327,7 +329,7 @@ end
 Returns the length of `x`.
 """
 function Base.length(x::WeylGroupElem)
-  return length(x.word)
+  return length(word(x))
 end
 
 @doc raw"""
@@ -346,7 +348,7 @@ Returns a random element of the Weyl group. The elements are not uniformally dis
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
-  return WeylGroupElem(W, Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
+  return W(Int.(Random.randsubseq(rng, word(longest_element(W)), 2 / 3)))
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
