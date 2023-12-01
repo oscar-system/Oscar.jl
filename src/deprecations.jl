@@ -494,3 +494,4 @@ end
 @deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
 @deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
 @deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})
+@deprecated components(X::AbsSpec) connected_components(X::AbsSpec)
