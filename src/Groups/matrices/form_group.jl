@@ -699,22 +699,23 @@ function isometry_group(L::ZZLat; algorithm = :direct)
     # corner case
     @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
     if rank(L) == 0
-      return matrix_group(identity_matrix(QQ,degree(L)))
+      G = matrix_group(identity_matrix(QQ,degree(L)))
     end
 
     if !is_definite(L) && (rank(L) == 2)
       gene = automorphism_group_generators(L)
-      return matrix_group([change_base_ring(QQ, m) for m in gene])
+      G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
     end
 
     if algorithm == :direct
       gens = Hecke.automorphism_group_generators(L)
-      return matrix_group(gens)
+      G = matrix_group(gens)
     elseif algorithm == :decomposition
-      return _isometry_group_via_decomposition(L)[1]
+      G, _ = _isometry_group_via_decomposition(L)
     else
       error("Unknown algorithm: for the moment, we support :direct or :decomposition")
     end
+    return G::MatrixGroup{QQFieldElem, QQMatrix}
   end
 end
 
@@ -817,7 +818,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
 
   T = _orthogonal_group(H1, ZZMatrix[matrix(phi * hom(g) * inv(phi)) for g in gens(G2q)]; check = false)
   S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(T.X, G1q.X))
-  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi); check = false) for g in gens(S)])
+  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi; check = false)) for g in gens(S)])
   G = matrix_group(matrix.(K))
   @hassert :Lattice 2 all(on_lattices(L, g) == L for g in gens(G))
   _set_nice_monomorphism!(G, sv; closed)

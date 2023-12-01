@@ -629,7 +629,7 @@ end
   N,_ = direct_sum(N1,N2)
   @test order(orthogonal_group(N))==144
 
-  L = integer_lattice(gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
+  L = integer_lattice(; gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34])
   G = orthogonal_group(L)
   @test order(G)==32
   @test order(Oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
@@ -637,10 +637,10 @@ end
   @test order(Oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
 
   gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
-  L = integer_lattice(gram=gram)
-  @test order(orthogonal_group(L)) == 267544166400
+  L = integer_lattice(; gram)
+  @test order(orthogonal_group(L; algorithm = :decomposition)) == 267544166400
 
   H = hyperbolic_plane_lattice()
-  G = @inferred orthogonal_group(H)
+  G = orthogonal_group(H)
   @test order(G) == 4
 end
