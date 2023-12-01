@@ -832,11 +832,11 @@ function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
 end
 
 """
-    on_matrix(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+    on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
 
 Return `x*g`.
 """
-function on_vector(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   return x*matrix(g)
 end
 
