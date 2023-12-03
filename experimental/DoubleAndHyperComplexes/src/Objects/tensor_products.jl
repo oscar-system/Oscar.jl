@@ -204,8 +204,9 @@ struct HCTensorProductChainFactory{ChainType} <: HyperComplexChainFactory{ChainT
   mult_map_cache::Dict{<:Tuple, <:Map}
 
   function HCTensorProductChainFactory(
-      factors::Vector{ComplexType}
-    ) where {CT, MT, ComplexType <: AbsHyperComplex{CT, MT}}
+      ::Type{CT},
+      factors::Vector{<:AbsHyperComplex}
+    ) where {CT}
     mult_map_cache = Dict{Tuple, Map}()
     return new{CT}(factors, mult_map_cache)
   end
@@ -274,8 +275,9 @@ struct HCTensorProductMapFactory{MorphismType} <: HyperComplexMapFactory{Morphis
   factors::Vector{<:AbsHyperComplex}
 
   function HCTensorProductMapFactory(
-      factors::Vector{ComplexType}
-    ) where {CT, MT, ComplexType <: AbsHyperComplex{CT, MT}}
+      ::Type{MT},
+      factors::Vector{<:AbsHyperComplex}
+    ) where {MT}
     return new{MT}(factors)
   end
 end
@@ -334,10 +336,12 @@ end
   factors::Vector{<:AbsHyperComplex}
 
   function HCTensorProductComplex(
-      factors::Vector{ComplexType}
-    ) where {CT, MT, ComplexType <: AbsHyperComplex{CT, MT}}
-    chain_fac = HCTensorProductChainFactory(factors)
-    map_fac = HCTensorProductMapFactory(factors)
+      factors::Vector{<:AbsHyperComplex}
+    )
+    CT = minimal_common_supertype(chain_type.(factors)...)
+    MT = minimal_common_supertype(morphism_type.(factors)...)
+    chain_fac = HCTensorProductChainFactory(CT, factors)
+    map_fac = HCTensorProductMapFactory(MT, factors)
 
     d = sum(dim(c) for c in factors; init=0)
     dir = vcat([Symbol[direction(c, p) for p in 1:dim(c)] for c in factors]...)
@@ -367,4 +371,11 @@ end
 function tensor_product(c::AbsHyperComplex...)
   return tensor_product(collect(c))
 end
+
+function tensor_product(M::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+  R = base_ring(first(M))
+  @assert all(N->base_ring(N)===R, M) "modules must be defined over the same ring"
+  return tensor_product([free_resolution(SimpleFreeResolution, N) for N in M]...)
+end
+
 
