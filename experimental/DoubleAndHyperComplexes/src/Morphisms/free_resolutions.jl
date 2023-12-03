@@ -98,5 +98,12 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
   return SimpleFreeResolution(M, internal_complex)
 end
 
-
-
+function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolution, RET}
+  R = base_ring(I)
+  F = (!is_graded(R) ? FreeMod(R, 1) : graded_free_module(R, [zero(grading_group(R))]))
+  M, _ = I*F
+  if is_graded(R)
+    @assert is_graded(M)
+  end
+  return free_resolution(T, M)
+end
