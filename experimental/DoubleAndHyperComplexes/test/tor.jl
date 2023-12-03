@@ -32,7 +32,9 @@
   N1 = cokernel(inc_i);
   N2 = cokernel(inc_Yp);
   H1, _ = tor(N1, N2, 0);
-  length(H1) == 6q = ideal(R, [x_0^2+x_0*x_1+x_1^2,x_2,x_3]);
+  @test length(H1) == 6
+
+  q = ideal(R, [x_0^2+x_0*x_1+x_1^2,x_2,x_3]);
   Rq, _ = localization(R, complement_of_prime_ideal(q););
   II = ideal(Rq, [x_0^2+x_0*x_1+x_1^2,x_2-x_3]);
   YYm = ideal(Rq, [x_0^3+(x_2^2-x_3^2)*x_0-x_1^3+x_2^3+x_3^3]);
