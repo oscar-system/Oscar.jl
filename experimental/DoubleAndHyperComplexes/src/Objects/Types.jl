@@ -36,6 +36,13 @@ lower_bound(HC::AbsHyperComplex, p::Int) = lower_bound(underlying_complex(HC), p
 chain_factory(HC::AbsHyperComplex) = chain_factory(underlying_complex(HC))
 map_factory(HC::AbsHyperComplex) = map_factory(underlying_complex(HC))
 
+### type gettes 
+chain_type(hc::AbsHyperComplex) = chain_type(typeof(hc))
+chain_type(::Type{T}) where {CT, T<:AbsHyperComplex{CT}} = CT
+
+morphism_type(hc::AbsHyperComplex) = morphism_type(typeof(hc))
+morphism_type(::Type{T}) where {CT, MT, T<:AbsHyperComplex{CT, MT}} = MT
+
 ### factories for the chains
 abstract type HyperComplexChainFactory{ChainType} end
 
@@ -615,3 +622,48 @@ end
 
 underlying_complex(c::TotalComplex) = c.complex
 
+### Some helper functionality
+function minimal_common_supertype(T::Type...)
+  n = length(T)
+  mid = div(n, 2)
+  v = collect(T)
+  return minimal_common_supertype(minimal_common_supertype(v[1:mid]...), 
+                                  minimal_common_supertype(v[mid+1:end]...)
+                                 )
+end
+
+function minimal_common_supertype(::Type{T1}) where {T1}
+  return T1
+end
+
+function minimal_common_supertype(::Type{T1}, ::Type{T2}) where {T1, T2}
+  s1 = Base.Main.InteractiveUtils.supertypes(T1)
+  s2 = Base.Main.InteractiveUtils.supertypes(T2)
+  n1 = length(s1)
+  n2 = length(s2)
+ 
+  res = Any
+  @assert res === s1[n1] === s2[n2]
+  while n1 > 1 && n2 > 1
+    if s1[n1-1] === s2[n2-1]
+      n1 = n1 - 1
+      n2 = n2 - 1
+      res = s1[n1]
+    elseif s1[n1-1] <: s2[n2-1]
+      res = s2[n2-1]
+      n1 = n1 - 1
+      n2 = n2 - 1
+    elseif s2[n2-1] <: s1[n1-1]
+      res = s1[n1-1]
+      n1 = n1 - 1
+      n2 = n2 - 1
+    else
+      break
+    end
+  end
+  return res
+end
+
+function minimal_common_supertype(u::Vector)
+  return minimal_common_supertype(u...)
+end
