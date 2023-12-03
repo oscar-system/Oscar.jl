@@ -338,8 +338,8 @@ end
   function HCTensorProductComplex(
       factors::Vector{<:AbsHyperComplex}
     )
-    CT = minimal_common_supertype(chain_type.(factors)...)
-    MT = minimal_common_supertype(morphism_type.(factors)...)
+    CT = reduce(typejoin, chain_type.(factors))
+    MT = reduce(typejoin, morphism_type.(factors))
     chain_fac = HCTensorProductChainFactory(CT, factors)
     map_fac = HCTensorProductMapFactory(MT, factors)
 
