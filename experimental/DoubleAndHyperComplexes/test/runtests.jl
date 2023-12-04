@@ -14,4 +14,5 @@ include("koszul_complexes.jl")
 include("tensor_products.jl")
 include("ReflectedHyperComplex.jl")
 include("tor.jl")
+include("degree_zero_complex.jl")
 
