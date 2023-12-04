@@ -234,3 +234,30 @@ end
   @test iszero(stsp[-2])
 end
 
+@testset "mild log singularities" begin
+  B, (t,) = polynomial_ring(QQ, [:t])
+
+  IP5 = projective_space(B, [:u, :v, :w, :x, :y, :z])
+  S = homogeneous_coordinate_ring(IP5)
+  (u, v, w, x, y, z) = gens(S)
+
+  f = x*y - t^2*v^2 - w^2
+  g = z*w - t*u*v
+
+  I = ideal(S, [f, g])
+
+  X, inc_X = sub(IP5, I)
+
+  M1, _ = pushforward(inc_X, Oscar.relative_cotangent_module(X))
+
+  C = simplify(Oscar._derived_pushforward(M1));
+
+  @test iszero(C[0])
+  @test rank(C[-1]) == 1
+  @test rank(C[-2]) == 2
+  @test iszero(C[-3])
+  @test iszero(C[-4])
+  @test iszero(C[-5])
+
+  @test iszero(map(C, 1, (-1,)))
+end
