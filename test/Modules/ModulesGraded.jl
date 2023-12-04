@@ -1114,5 +1114,8 @@ end
     amm = Oscar.all_monomials(F, d)
     @test d < -1 || !isempty(amm)
     @test all(x->degree(x) == grading_group(F)([d]), amm)
+    ae = Oscar.all_exponents(F, d)
+    @test d < -1 || !isempty(ae)
+    @test all(x->sum(x[1]) + Int(degree(F[x[2]])[1]) == d, ae)
   end
 end

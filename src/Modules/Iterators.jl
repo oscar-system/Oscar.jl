@@ -76,3 +76,84 @@ function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, V
   return x*F[i], (i, mon_it, s)
 end
 
+### The same for module exponents
+struct AllModuleExponents{ModuleType<:FreeMod}
+  F::ModuleType
+  d::Int
+
+  function AllModuleExponents(F::FreeMod{T}, d::Int) where {T <: MPolyDecRingElem}
+    is_graded(F) || error("module must be graded")
+    S = base_ring(F)
+    is_standard_graded(S) || error("iterator implemented only for the standard graded case")
+    return new{typeof(F)}(F, d)
+  end
+end
+
+underlying_module(amm::AllModuleExponents) = amm.F
+degree(amm::AllModuleExponents) = amm.d
+
+function all_exponents(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
+  return AllModuleExponents(F, d)
+end
+
+Base.eltype(amm::AllModuleExponents{T}) where {T} = Tuple{Vector{Int}, Int}
+
+function Base.length(amm::AllModuleExponents)
+  F = underlying_module(amm)
+  r = rank(F)
+  R = base_ring(F)
+  n = ngens(R)
+  d = degree(amm)
+  result = 0
+  for i in 1:r
+    d_loc = d - Int(degree(F[i])[1])
+    d_loc < 0 && continue
+    result = result + length(MultiIndicesOfDegree(n, d_loc))
+  end
+  return result
+end
+  
+function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
+  i = 1
+  F = underlying_module(amm)
+  d = degree(amm)
+  R = base_ring(F)
+  n = ngens(R)
+
+  i = findfirst(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F))
+  i === nothing && return nothing
+  d_loc = d - Int(degree(F[i])[1])
+
+  exp_it = MultiIndicesOfDegree(n, d_loc)
+  res = iterate(exp_it, nothing)
+  res === nothing && i == ngens(F) && return nothing
+
+  e, _ = res
+  return (e, i), (i, exp_it, e)
+end
+
+function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, MultiIndicesOfDegree, Vector{Int}})
+  F = underlying_module(amm)
+  d = degree(amm)
+  R = base_ring(F)
+  n = ngens(R)
+
+  i, exp_it, e = state
+  res = iterate(exp_it, e)
+  if res === nothing
+    i = findnext(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F), i + 1)
+    i === nothing && return nothing
+    d_loc = d - Int(degree(F[i])[1])
+
+    exp_it = MultiIndicesOfDegree(n, d_loc)
+    res_loc = iterate(exp_it, nothing)
+    res_loc === nothing && i == ngens(F) && return nothing
+
+    e, _ = res_loc
+    return (e, i), (i, exp_it, e)
+  end
+
+  e, _ = res
+  return (e, i), (i, exp_it, e)
+end
+
