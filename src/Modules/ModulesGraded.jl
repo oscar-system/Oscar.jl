@@ -1772,7 +1772,7 @@ function _weights_and_sing_mod(M::ModuleFP{T}) where {T <: MPolyDecRingElem}
     cokern_gens = [zero(ambient_free_module(cokern_repr))]
   end
   sing_mod = singular_generators(ModuleGens(cokern_gens))
-  weights = [Int(d[1]) for d in degrees_of_generators(free_mod)]
+  weights = [Int(d[1]) for d in degrees_of_generators(p[0])]
   return sing_mod, weights
 end
   
