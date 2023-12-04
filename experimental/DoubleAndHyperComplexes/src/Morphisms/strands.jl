@@ -29,7 +29,7 @@ function (fac::StrandChainFactory)(c::AbsHyperComplex, i::Tuple)
   R = base_ring(M)
   @assert is_standard_graded(R) "the base ring must be standard graded"
   kk = coefficient_ring(R)
-  return FreeMod(kk, length(all_monomials(fac.orig[i], fac.d)))
+  return FreeMod(kk, length(all_exponents(fac.orig[i], fac.d)))
 end
 
 function can_compute(fac::StrandChainFactory, c::AbsHyperComplex, i::Tuple)
@@ -61,9 +61,14 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
 
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
-  cod_dict = Dict{elem_type(orig_cod), elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_monomials(orig_cod, fac.d)))
+  cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d)))
+  #cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(first(exponents(m))=>cod[k] for (k, m) in enumerate(all_monomials(orig_cod, fac.d)))
+  # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
-  for m in all_monomials(orig_dom, fac.d) # iterate through the generators of `dom`
+  R = base_ring(orig_dom)
+  vv = gens(R)
+  for (e, i) in all_exponents(orig_dom, fac.d) # iterate through the generators of `dom`
+    m = prod(x^k for (x, k) in zip(vv, e); init=one(R))*orig_dom[i]
     v = orig_map(m) # map the monomial
     # take preimageof the result using the previously built dictionary.
     # TODO: Iteration over the terms of v is VERY slow due to its suboptimal implementation.
@@ -71,11 +76,9 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
     # it also runs three times as fast. 
     w = zero(cod)
     for (i, b) in coordinates(v)
-      g = orig_cod[i]
-      w += sum(c*cod_dict[n*g] for (c, n) in zip(coefficients(b), monomials(b)); init=zero(cod))
+      #g = orig_cod[i]
+      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(coefficients(b), exponents(b)); init=zero(cod))
     end
-    # Below is the original implementation which does not perform well.
-    #w = sum(c*cod_dict[n] for (c, n) in zip(coefficients(v), monomials(v)); init=zero(cod))
     push!(img_gens_res, w)
   end
   return hom(dom, cod, img_gens_res)
@@ -99,7 +102,7 @@ end
     map_fac = StrandMorphismFactory(orig, d)
 
     internal_complex = HyperComplex(dim(orig), 
-                                    chain_fac, map_fac, [direction(orig, i) for i in 1:dim(orig)],
+                                    chain_fac, map_fac, Symbol[direction(orig, i) for i in 1:dim(orig)],
                                     upper_bounds = [(has_upper_bound(orig, p) ? upper_bound(orig, p) : nothing) for p in 1:dim(orig)],
                                     lower_bounds = [(has_lower_bound(orig, p) ? lower_bound(orig, p) : nothing) for p in 1:dim(orig)],
                                    )
@@ -130,7 +133,7 @@ function (fac::StrandInclusionMorphismFactory)(self::AbsHyperComplexMorphism, i:
   dom = strand[i]
   cod = orig[i]
   R = base_ring(cod)
-  to = hom(dom, cod, Vector{elem_type(cod)}(collect(all_monomials(cod, degree(strand)))), R)
+  to = hom(dom, cod, elem_type(cod)[prod(x^k for (x, k) in zip(gens(R), e); init=one(R))*cod[i] for (e, i) in all_exponents(cod, degree(strand))])
   return to
 end
 
