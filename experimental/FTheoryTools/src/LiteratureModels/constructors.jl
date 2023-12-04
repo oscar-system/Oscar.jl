@@ -131,8 +131,7 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     end
     
     # Are all model sections specified?
-    needed_model_sections = model_dict["model_data"]["model_sections"]
-    @req all(k->haskey(model_sections, k), needed_model_sections) "Not all model sections are specified"
+    @req all(k->haskey(model_sections, k), model_dict["model_data"]["model_sections"]) "Not all model sections are specified"
     
     # Is the model specific for a base dimension? If so, make consistency check
     if haskey(model_dict["model_data"], "base_dim")
@@ -141,19 +140,11 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
-    
-    # Warn that there may be unwanted enhancements
     @vprint :FTheoryConstructorInformation 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
 
-  # (3b) Construct the model over a generic base
+  # (3b) Construct the model over generic base
   else
-    if model_dict["model_descriptors"]["type"] == "tate"
-      model = _construct_literature_tate_model(model_dict)
-    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
-      model = _construct_literature_weierstrass_model(model_dict)
-    else
-      @req false "Model is not a Tate or Weierstrass model"
-    end
+    model = _construct_literature_model_over_arbitrary_base(model_dict)
   end
 
   # Return the model
@@ -274,40 +265,33 @@ end
 #######################################################
 
 # Constructs Tate model from given Tate literature model
-function _construct_literature_tate_model(model_dict::Dict{String,Any})
+function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-  
-  base_dim = get(model_dict["model_data"], "base_dim", 3)
-  
-  a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
-  a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
-  a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
-  a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
-  a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
-  
+
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
-end
-
-# Constructs Weierstrass model from given Weierstrass literature model
-function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
-  @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
-  
-  f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
-  g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
-  
-  @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
-  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
-end
 
+  # Construct the model
+  if model_dict["model_descriptors"]["type"] == "tate"
+    a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
+    a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
+    a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
+    a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
+    a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+    model = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
+  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+    f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
+    g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
+    model = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
+  else
+    @req false "Model is not a Tate or Weierstrass model"
+  end
+  return model
+end
 
 
 
