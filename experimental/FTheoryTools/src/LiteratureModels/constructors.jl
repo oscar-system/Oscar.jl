@@ -240,11 +240,13 @@ function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_spa
   # Next, generate random values for all involved sections.
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   for (key, value) in model_sections
+    @req is_effective(value) "Encountered a non-effective model section"
     #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
     # Lead to error when computing singular loci - currently only monomials allowed...
     explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
   end
   for (key, value) in internal_model_sections
+    @req is_effective(value) "Encountered a non-effective (internal) model section"
     explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
@@ -288,11 +290,13 @@ function _construct_literature_weierstrass_model(model_dict::Dict{String,Any}, b
   # Next, generate random values for all involved sections.
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   for (key, value) in model_sections
+    @req is_effective(value) "Encountered a non-effective model section"
     #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
     # Lead to error when computing singular loci - currently only monomials allowed...
     explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
   end
   for (key, value) in internal_model_sections
+    @req is_effective(value) "Encountered a non-effective (internal) model section"
     explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
