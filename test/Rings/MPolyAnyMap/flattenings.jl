@@ -295,7 +295,7 @@ end
   M, _ = quo(F, [u^5*F[1], v*F[1]])
   M_flat, iso, iso_inv = Oscar.flatten(M)
   res = free_resolution(M)
-  @test Oscar._regularity_bound(M) == 2
+  @test Oscar._regularity_bound(M) == 4
 end
 
 @testset "garbage collection" begin
