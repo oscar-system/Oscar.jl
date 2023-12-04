@@ -102,7 +102,7 @@ underlying_morphism(phi::SimpleComplexMorphismWrapper) = phi.phi
 ### Simplified complexes
 @attributes mutable struct SimplifiedComplex{ChainType, MorphismType} <: AbsSimpleComplex{ChainType, MorphismType}
   complex::AbsHyperComplex{ChainType, MorphismType}
-  original_complex::AbsSimpleComplex{ChainType, MorphismType}
+  original_complex::AbsHyperComplex{ChainType, MorphismType}
   map_to_original::AbsHyperComplexMorphism
   map_from_original::AbsHyperComplexMorphism
   equalizing_homotopy::AbsHyperComplexMorphism
@@ -112,7 +112,7 @@ underlying_morphism(phi::SimpleComplexMorphismWrapper) = phi.phi
   # here. 
   function SimplifiedComplex(
       complex::AbsHyperComplex{ChainType, MorphismType},
-      original_complex::AbsSimpleComplex{ChainType, MorphismType}
+      original_complex::AbsHyperComplex{ChainType, MorphismType}
       ) where {ChainType, MorphismType}
     return new{ChainType, MorphismType}(complex, original_complex)
   end

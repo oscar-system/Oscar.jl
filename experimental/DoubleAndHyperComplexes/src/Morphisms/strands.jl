@@ -66,7 +66,16 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
   for m in all_monomials(orig_dom, fac.d) # iterate through the generators of `dom`
     v = orig_map(m) # map the monomial
     # take preimageof the result using the previously built dictionary.
-    w = sum(c*cod_dict[n] for (c, n) in zip(coefficients(v), monomials(v)); init=zero(cod))
+    # TODO: Iteration over the terms of v is VERY slow due to its suboptimal implementation.
+    # We have to iterate manually. This saves us roughly 2/3 of the memory consumption and 
+    # it also runs three times as fast. 
+    w = zero(cod)
+    for (i, b) in coordinates(v)
+      g = orig_cod[i]
+      w += sum(c*cod_dict[n*g] for (c, n) in zip(coefficients(b), monomials(b)); init=zero(cod))
+    end
+    # Below is the original implementation which does not perform well.
+    #w = sum(c*cod_dict[n] for (c, n) in zip(coefficients(v), monomials(v)); init=zero(cod))
     push!(img_gens_res, w)
   end
   return hom(dom, cod, img_gens_res)

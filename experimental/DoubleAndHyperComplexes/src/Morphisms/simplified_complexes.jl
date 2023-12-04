@@ -1,11 +1,11 @@
 struct SimplifiedChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
-  orig::AbsSimpleComplex
+  orig::AbsHyperComplex
 
   base_change_cache::Dict{Int, Tuple{<:SMat, <:SMat, <:SMat, <:SMat, Vector{Tuple{Int, Int}}}}
   maps_to_original::Dict{Int, <:Map}
   maps_from_original::Dict{Int, <:Map}
 
-  function SimplifiedChainFactory(orig::AbsSimpleComplex{ChainType}) where {ChainType}
+  function SimplifiedChainFactory(orig::AbsHyperComplex{ChainType}) where {ChainType}
     d = Dict{Int, Tuple{SMat, SMat}}()
     out_maps = Dict{Int, Map}()
     in_maps = Dict{Int, Map}()
@@ -107,8 +107,10 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w = Sinv[i]
       v = zero(new_dom)
       for j in 1:length(I)
-        a = w[I[j]]
-        !iszero(a) && (v += a*new_dom[j])
+        success, a = _has_index(w, I[j])
+        success && (v += a*new_dom[j])
+        # a = w[I[j]]
+        # !iszero(a) && (v += a*new_dom[j])
       end
       push!(img_gens_dom, v)
     end
@@ -267,9 +269,9 @@ original_complex(fac::SimplifiedChainFactory) = fac.orig
 ### Simplified maps 
 
 struct SimplifiedMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
-  orig::AbsSimpleComplex
+  orig::AbsHyperComplex
 
-  function SimplifiedMapFactory(orig::AbsSimpleComplex{<:Any, MorphismType}) where {MorphismType}
+  function SimplifiedMapFactory(orig::AbsHyperComplex{<:Any, MorphismType}) where {MorphismType}
     return new{MorphismType}(orig)
   end
 end
@@ -321,11 +323,12 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
 end
 
 
-function simplify(c::AbsSimpleComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
+function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
+  @assert dim(c) == 1 "complex must be one-dimensional"
   chain_fac = SimplifiedChainFactory(c)
   mor_fac = SimplifiedMapFactory(c)
-  upper_bounds = [has_upper_bound(c) ? upper_bound(c) : nothing]
-  lower_bounds = [has_lower_bound(c) ? lower_bound(c) : nothing]
+  upper_bounds = [has_upper_bound(c, 1) ? upper_bound(c, 1) : nothing]
+  lower_bounds = [has_lower_bound(c, 1) ? lower_bound(c, 1) : nothing]
   directions = [direction(c, 1)]
   internal_complex = HyperComplex(1, chain_fac, mor_fac, 
                                   directions, upper_bounds=upper_bounds, 
@@ -392,22 +395,43 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
 
   br = 0
   found_unit = true
+  i_start = 0
   while found_unit
     # Find any unit entry
     p = q = 0
 
     if find_pivot === nothing
       found_unit = false
-      for (i, v) in enumerate(A) # iterates over the rows
+      for i in i_start+1:nrows(A)
+        i in done_rows && continue
+        v = A[i]
         found_unit && break
         for (j, c) in v
+          j in done_columns && continue
           if isunit(c) 
             p = i
             q = j
-            (p, q) in done && continue
             found_unit = true
             break
           end
+        end
+        found_unit && break
+      end
+      if !found_unit
+        for i in 1:i_start
+          i in done_rows && continue
+          v = A[i]
+          found_unit && break
+          for (j, c) in v
+            j in done_columns && continue
+            if isunit(c) 
+              p = i
+              q = j
+              found_unit = true
+              break
+            end
+          end
+          found_unit && break
         end
       end
     else
@@ -422,10 +446,16 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
 
     !found_unit && break
 
+    i_start = p
+    if i_start == nrows(A) 
+      i_start = 0
+    end
+
     push!(done, (p, q))
     push!(done_rows, p)
     push!(done_columns, q)
-    u = A[p, q]
+    u = _get_index_fast(A, p, q)
+    #u = A[p, q]
 
     # We found a unit in the entry (p, q) of the matrix which has not yet 
     # been treated.
@@ -435,9 +465,10 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
 
     col_entries = Vector{Tuple{Int, elem_type(R)}}()
     for i in 1:m
-      c = A[i, q]
-      iszero(c) && continue
-      push!(col_entries, (i, c))
+      # c = A[i, q]
+      # !iszero(c) && push!(col_entries, (i, c))
+      success, c = _has_index(A, i, q)
+      success && push!(col_entries, (i, c::elem_type(R)))
     end
     a_col = sparse_row(R, col_entries)
     a_col_del = a_col - sparse_row(R, [(p, u)])
@@ -495,3 +526,55 @@ function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) wher
   end
   return result
 end
+
+@doc raw"""
+    _has_index(a::SRow, i::Int)
+
+Find out whether `a` has a non-zero entry in position `i` and return `true, a[i]` 
+if this is the case and `false, nothing` otherwise.
+"""
+function _has_index(a::SRow, i::Int)
+  isempty(a.pos) && return false, nothing
+  k0 = 1
+  k1 = length(a.pos)
+  while k0 <= k1
+    k = div(k0 + k1, 2)
+    j = a.pos[k]
+    if j > i
+      k1 = k - 1
+    elseif j < i
+      k0 = k + 1
+    else 
+      return true, a.values[k]
+    end
+  end
+  return false, nothing
+end
+
+# This addresses the TODO in Heckes src/Sparse/Row.jl:290
+function _get_index_fast(a::SRow, i::Int)
+  isempty(a.pos) && return zero(base_ring(a))
+  k0 = 1
+  k1 = length(a.pos)
+  while k0 <= k1
+    k = div(k0 + k1, 2)
+    j = a.pos[k]
+    if j > i
+      k1 = k - 1
+    elseif j < i
+      k0 = k + 1
+    else
+      return a.values[k]
+    end
+  end
+  return zero(base_ring(a))
+end
+
+function _get_index_fast(a::SMat, i::Int, j::Int)
+  return _get_index_fast(a[i], j)
+end
+
+function _has_index(a::SMat, i::Int, j::Int)
+  return _has_index(a[i], j)
+end
+

@@ -1166,6 +1166,7 @@ function simplify(M::SubquoModule)
   respect_grading = is_graded(M)
   function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
     F = ambient_free_module(M)
+    !isdefined(M, :quo) && return iszero(F[i])
     return in(F[i], M.quo)
   end
 

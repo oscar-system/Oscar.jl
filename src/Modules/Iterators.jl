@@ -49,7 +49,7 @@ function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
   res === nothing && i == ngens(F) && return nothing
 
   x, s = res
-  return x*F[1], (i, mon_it, s)
+  return x*F[i], (i, mon_it, s)
 end
 
 function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, Vector{Int}})

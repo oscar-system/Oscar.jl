@@ -98,3 +98,23 @@ function _change_base_ring_and_preserve_gradings(phi::Map{<:Ring, <:Ring}, F::Fr
   return FS, hom(F, FS, gens(FS), phi)
 end
 
+function _change_base_ring_and_preserve_gradings(phi::Map{<:Ring, <:Ring}, M::SubquoModule)
+  R = domain(phi)
+  S = codomain(phi)
+  F = ambient_free_module(M)
+  FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
+  MM = SubquoModule(FF, iso_F.(ambient_representatives_generators(M)), iso_F.(relations(M)))
+  return MM, hom(M, MM, gens(MM), phi)
+end
+
+function _change_base_ring_and_preserve_gradings(
+    phi::Map{<:Ring, <:Ring}, f::ModuleFPHom;
+    domain_change::Map = _change_base_ring_and_preserve_gradings(phi, domain(f))[2],
+    codomain_change::Map = _change_base_ring_and_preserve_gradings(phi, codomain(f))[2]
+  )
+  D = codomain(domain_change)
+  C = codomain(codomain_change)
+  result = hom(D, C, codomain_change.(f.(gens(domain(f)))))
+  return result
+end
+
