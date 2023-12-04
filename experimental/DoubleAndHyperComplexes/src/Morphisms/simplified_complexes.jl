@@ -103,15 +103,23 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     # Create the maps from the old complex
     img_gens_dom = elem_type(new_dom)[]
+    inv_map_dict = Dict{Int, Int}(I[j] => j for j in 1:length(I))
     for i in 1:m
       w = Sinv[i]
       v = zero(new_dom)
-      for j in 1:length(I)
-        success, a = _has_index(w, I[j])
-        success && (v += a*new_dom[j])
-        # a = w[I[j]]
-        # !iszero(a) && (v += a*new_dom[j])
+      for (real_j, a) in w
+        !haskey(inv_map_dict, real_j) && continue
+        j = inv_map_dict[real_j]
+        v += a*new_dom[j]
       end
+
+      # v = zero(new_dom)
+      # for j in 1:length(I)
+      #   success, a = _has_index(w, I[j])
+      #   success && (v += a*new_dom[j])
+      #   # a = w[I[j]]
+      #   # !iszero(a) && (v += a*new_dom[j])
+      # end
       push!(img_gens_dom, v)
     end
     dom_map_inv = hom(M, new_dom, img_gens_dom)
@@ -124,12 +132,13 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
 
     img_gens_cod = elem_type(new_cod)[]
+    inv_map_dict = Dict{Int, Int}(J[j]=>j for j in 1:length(J))
     for i in 1:n
       w = Tinv[i]
       new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
       for (real_j, b) in w
-        j = findfirst(k->k==real_j, J)
-        j === nothing && continue
+        !haskey(inv_map_dict, real_j) && continue
+        j = inv_map_dict[real_j]
         push!(new_entries, (j, b))
       end
       w_new = sparse_row(base_ring(w), new_entries)
