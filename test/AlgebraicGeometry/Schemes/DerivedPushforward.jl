@@ -129,7 +129,7 @@ end
   Sm4 = graded_free_module(S, [4])
 
   # Test the routine for free modules
-  st0 = Oscar._derived_pushforward(Sm4)
+  st0 = Oscar._derived_pushforward(Sm4);
 
   Z0, _ = kernel(map(st0, 1, (0,)))
   @test iszero(Z0)
@@ -248,6 +248,15 @@ end
 
   X, inc_X = sub(IP5, I)
 
+  # Testing the structure sheaf
+  M0, _ = pushforward(inc_X, graded_free_module(homogeneous_coordinate_ring(X), [0]))
+
+  C = simplify(Oscar._derived_pushforward(M0));
+
+  @test rank(C[0]) == 1 # Free of rank one
+  @test all(k->iszero(C[-k]), 1:5)
+
+  # Testing the Kaehler differentials
   M1, _ = pushforward(inc_X, Oscar.relative_cotangent_module(X))
 
   C = simplify(Oscar._derived_pushforward(M1));
