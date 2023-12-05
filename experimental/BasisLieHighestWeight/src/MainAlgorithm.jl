@@ -135,6 +135,11 @@ function compute_monomials(
       i += 1
       lambda_1 = sub_weights_w[i]
       lambda_2 = highest_weight .- lambda_1
+
+      if lambda_2 > lambda_1
+        continue
+      end
+
       mon_lambda_1 = compute_monomials(
         L,
         birational_sequence,
@@ -201,6 +206,7 @@ function add_new_monomials!(
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
   monomial_ordering::MonomialOrdering,
+  weightspaces::Dict{Vector{ZZRingElem},Int},
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
   set_mon_in_weightspace::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
@@ -239,6 +245,24 @@ function add_new_monomials!(
 
     mon = poss_mon_in_weightspace[i]
     if mon in set_mon
+      continue
+    end
+
+    # check if the weight ob each suffix is a weight of the module
+    cancel = false
+    for i in 1:(nvars(ZZx) - 1)
+      if !haskey(
+        weightspaces,
+        sum(
+          exp * weight for (exp, weight) in
+          Iterators.drop(zip(degrees(mon), birational_sequence.weights_w), i)
+        ),
+      )
+        cancel = true
+        break
+      end
+    end
+    if cancel
       continue
     end
 
@@ -295,30 +319,32 @@ function add_by_hand(
   end
 
   # only inspect weightspaces with missing monomials
-  weights_with_full_weightspace = Set{Vector{ZZRingElem}}()
+  weights_with_non_full_weightspace = Set{Vector{ZZRingElem}}()
   for (weight_w, dim_weightspace) in weightspaces
-    if (length(set_mon_in_weightspace[weight_w]) == dim_weightspace)
-      push!(weights_with_full_weightspace, weight_w)
+    if length(set_mon_in_weightspace[weight_w]) != dim_weightspace
+      push!(weights_with_non_full_weightspace, weight_w)
     end
   end
-  delete!(weightspaces, weights_with_full_weightspace)
 
   # The weightspaces could be calculated completely indepent (except for
   # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
   # Oscar dependencies. But I plan to reimplement this. 
   # insert known monomials into basis
-  for (weight_w, _) in weightspaces
+
+  for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
   # calculate new monomials
-  for (weight_w, dim_weightspace) in weightspaces
+  for weight_w in weights_with_non_full_weightspace
+    dim_weightspace = weightspaces[weight_w]
     add_new_monomials!(
       L,
       birational_sequence,
       ZZx,
       matrices_of_operators,
       monomial_ordering,
+      weightspaces,
       dim_weightspace,
       weight_w,
       set_mon_in_weightspace,

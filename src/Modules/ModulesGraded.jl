@@ -976,13 +976,13 @@ x*e[1] + (y - z)*e[2]
 ```
 """
 function is_homogeneous(el::SubquoModuleElem)
-  if iszero(el.coeffs)
+  if iszero(coordinates(el))
       return is_homogeneous(repres(el))
   else
-      degree = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+    degree = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
       if degree === nothing
           reduced_el = simplify(el)
-          degree_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          degree_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
           return degree_reduced !== nothing
       else
           return true
@@ -1040,11 +1040,11 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem)
-  if !iszero(el.coeffs)
-      result = determine_degree_from_SR(el.coeffs, degrees_of_generators(parent(el)))
+  if !iszero(coordinates(el))
+    result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
       if result === nothing
           reduced_el = simplify(el)
-          result_reduced = determine_degree_from_SR(reduced_el.coeffs, degrees_of_generators(parent(reduced_el)))
+          result_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
           @assert result_reduced !== nothing "The specified element is not homogeneous."
           return result_reduced
       else
@@ -1422,11 +1422,11 @@ function Base.show(io::IO, b::BettiTable)
     end
   else
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
-    print(io, "Betti Table for scalar product of grading with ", b.project.coeff, "\n")
+    print(io, "Betti Table for scalar product of grading with ", coordinates(b.project), "\n")
     print(io, "  ")
     L = Vector{ZZRingElem}(undef,0)
     for i in 1:length(x)
-        temp_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
+      temp_sum = (coordinates(b.project) * transpose(coordinates(x[i][2])))[1]
         Base.push!(L, temp_sum)
     end
     L1 = sort(unique(L))
@@ -1442,7 +1442,7 @@ function Base.show(io::IO, b::BettiTable)
         for h in min:step:max
             partial_sum = 0
             for i in 1:length(x)
-                current_sum = (b.project.coeff * transpose(x[i][2].coeff))[1]
+              current_sum = (coordinates(b.project) * transpose(coordinates(x[i][2])))[1]
                 if current_sum == L1[k] && x[i][1] == h
                     partial_sum += getindex(T, x[i])
                 end

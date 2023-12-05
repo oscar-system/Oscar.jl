@@ -32,9 +32,9 @@ The only difference is that the Weierstrass sections ``f`` and ``g`` can be spec
 julia> base = sample_toric_variety()
 Normal toric variety
 
-julia> f = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)]);
+julia> f = generic_section(anticanonical_bundle(base)^4);
 
-julia> g = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
+julia> g = generic_section(anticanonical_bundle(base)^6);
 
 julia> w = weierstrass_model(base, f, g; completeness_check = false)
 Weierstrass model over a concrete base

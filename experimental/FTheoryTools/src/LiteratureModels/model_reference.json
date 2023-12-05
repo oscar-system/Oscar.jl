@@ -42,6 +42,7 @@
     "model_parameters": [""],
     "model_data": {
         "base_dim": 3,
+        "model_sections": [""],
         "base_coordinates": [""],
         "a1": "",
         "a2": "",

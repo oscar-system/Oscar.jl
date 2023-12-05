@@ -70,7 +70,7 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
   
   # Construct the model
-  hypersurface_equation = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(ambient_space))])
+  hypersurface_equation = generic_section(anticanonical_bundle(ambient_space))
   model = HypersurfaceModel(base, ambient_space, fiber_ambient_space, hypersurface_equation)
   set_attribute!(model, :base_fully_specified, true)
   return model
