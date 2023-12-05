@@ -136,7 +136,7 @@ function load_object(s::DeserializerState, ::Type{<:MPolyDecRing})
   symbols = load_object(s, Vector, Symbol, :symbols)
   grading = load_typed_object(s, :grading)
   
-  return grade_polynomial_ring(base_ring, symbols, grading)[1]
+  return graded_polynomial_ring(base_ring, symbols, grading)[1]
 end
 
 ################################################################################
