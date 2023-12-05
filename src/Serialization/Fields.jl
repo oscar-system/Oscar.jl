@@ -507,9 +507,9 @@ function save_object(s::SerializerState, E::Hecke.EmbeddedField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.EmbeddedField}, dict::Dict)
-  K = load_typed_object(s, dict[:num_field])
-  e = load_typed_object(s, dict[:embedding])
+function load_object(s::DeserializerState, ::Type{Hecke.EmbeddedField})
+  K = load_typed_object(s, :num_field)
+  e = load_typed_object(s, :embedding)
 
   return Hecke.embedded_field(K, e)[1]
 end

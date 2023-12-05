@@ -42,7 +42,7 @@ function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurf
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
+function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface})
   polynomial = load_typed_object(s, :tropical_polynomial)
   return tropical_hypersurface(polynomial)
 end
