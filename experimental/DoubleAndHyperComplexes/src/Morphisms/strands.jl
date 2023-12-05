@@ -168,3 +168,27 @@ function strand(c::AbsHyperComplex{T}, d::Int) where {T<:ModuleFP}
   return result, inc
 end
 
+### Some missing methods
+function sparse_matrix(phi::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+  R = base_ring(domain(phi))
+  m = ngens(domain(phi))
+  n = ngens(codomain(phi))
+  result = sparse_matrix(R, m, n)
+  for (i, g) in enumerate(gens(domain(phi)))
+    result[i] = coordinates(phi(g))
+  end
+  return result
+end
+
+function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, SubquoModule{T}, Nothing}) where {T}
+  V = domain(phi)
+  W = codomain(phi)
+  kk = base_ring(V)
+  m = ngens(V)
+  n = ngens(W)
+  result = sparse_matrix(kk, m, n)
+  for (i, g) in enumerate(gens(V))
+    result[i] = coordinates(phi(g))
+  end
+  return result
+end
