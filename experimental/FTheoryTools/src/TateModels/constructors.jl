@@ -28,15 +28,15 @@ The only difference is that the Tate sections ``a_i`` can be specified with non-
 julia> base = sample_toric_variety()
 Normal toric variety
 
-julia> a1 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base))]);
+julia> a1 = generic_section(anticanonical_bundle(base));
 
-julia> a2 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^2)]);
+julia> a2 = generic_section(anticanonical_bundle(base)^2);
 
-julia> a3 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^3)]);
+julia> a3 = generic_section(anticanonical_bundle(base)^3);
 
-julia> a4 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^4)]);
+julia> a4 = generic_section(anticanonical_bundle(base)^4);
 
-julia> a6 = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base)^6)]);
+julia> a6 = generic_section(anticanonical_bundle(base)^6);
 
 julia> t = global_tate_model(base, [a1, a2, a3, a4, a6]; completeness_check = false)
 Global Tate model over a concrete base

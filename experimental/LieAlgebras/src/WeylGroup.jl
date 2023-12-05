@@ -141,6 +141,24 @@ function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
   return w2
 end
 
+# to be removed once GroupCore is supported
+function Base.:(^)(x::WeylGroupElem, n::Int)
+  if n == 0
+    return one(parent(x))
+  elseif n < 0
+    return inv(x)^(-n)
+  end
+
+  px = deepcopy(x)
+  for _ in 2:n
+    for s in Iterators.reverse(x.word)
+      lmul!(px, s)
+    end
+  end
+
+  return px
+end
+
 function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
   return x.parent === y.parent && x.word == y.word
 end
@@ -192,7 +210,12 @@ function Base.show(io::IO, x::WeylGroupElem)
   end
 end
 
-function lmul!(x::WeylGroupElem, i::Int)
+function lmul(x::WeylGroupElem, i::Integer)
+  return lmul!(deepcopy(x), i)
+end
+
+function lmul!(x::WeylGroupElem, i::Integer)
+  @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
   _lmul!(parent(x).refl, word(x), UInt8(i))
   return x
 end

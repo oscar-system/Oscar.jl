@@ -1,536 +1,539 @@
-###
-# Tropical curves in Oscar
-# ========================
-###
+###############################################################################
+#
+#  Tropical curves
+#  ===============
+#  concrete subtype of TropicalVarietySupertype in variety_supertype.jl
+#
+###############################################################################
 
-using RecipesBase
-###
-# 1. Definition
-# -------------
-# M = typeof(min) or typeof(max):
-#   min or max convention, affecting initial ideals
-# EMB = true or false:
-#   embedded or abstract tropical curves
-#   embedded tropical variety = graph embedded in euclidean space with weighted edges and vertices
-#   abstract tropical variety = graph with enumerated vertices with weighted edges and vertices
-###
+@attributes mutable struct TropicalCurve{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
+    polyhedralComplex::Union{PolyhedralComplex, Graph}
+    multiplicities::Vector{ZZRingElem}
 
-@attributes mutable struct TropicalCurve{M,EMB} <: TropicalVarietySupertype{M,EMB}
-    polyhedralComplex::PolyhedralComplex
-    function TropicalCurve{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
-        if EMB
-            if dim(Sigma)!=1
-                error("TropicalCurve: input polyhedral complex not one-dimensional")
-            end
-        end
-        return new{M,EMB}(Sigma)
+    # embedded tropical curves contain a PolyhedralComplex
+    function TropicalCurve{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        @req dim(Sigma)==1 "input not one-dimensional"
+        return new{minOrMax,true}(Sigma,multiplicities)
+    end
+
+    # abstract tropical curves contain a Graph
+    function TropicalCurve{minOrMax,false}(Sigma::Graph, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        return new{minOrMax,false}(Sigma,multiplicities)
     end
 end
 
-function pm_object(T::TropicalCurve{M, EMB}) where {M, EMB}
-    if has_attribute(T,:polymake_bigobject)
-        return get_attribute(T,:polymake_bigobject)
-    end
-    error("pm_object(T::TropicalCurve): no polymake bigobject attributed")
+
+
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, th::TropicalCurve{typeof(min),true})
+    print(io, "Embedded min tropical curve")
+end
+function Base.show(io::IO, th::TropicalCurve{typeof(max),true})
+    print(io, "Embedded max tropical curve")
+end
+function Base.show(io::IO, th::TropicalCurve{typeof(min),false})
+    print(io, "Abstract min tropical curve")
+end
+function Base.show(io::IO, th::TropicalCurve{typeof(max),false})
+    print(io, "Abstract max tropical curve")
 end
 
 
-###
-# 2. Basic constructors
-# ---------------------
-###
+###############################################################################
+#
+#  Constructors
+#
+###############################################################################
 
 @doc raw"""
-    TropicalCurve(PC::PolyhedralComplex)
+    tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Construct a tropical curve from a polyhedral complex.
-If the curve is embedded, vertices must are points in $\mathbb R^n$.
-If the curve is abstract, the polyhedral complex is empty, vertices must be 1, ..., n,
-and the graph is given as attribute.
+Return the embedded tropical curve consisting of the polyhedral complex `Sigma` and multiplicities `multiplicities`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]])
-3×4 IncidenceMatrix
-[1, 2]
-[1, 3]
-[1, 4]
+julia> verticesAndRays = [0 0; 1 0; 0 1; -1 -1];
 
+julia> incidenceMatrix = IncidenceMatrix([[1,2],[1,3],[1,4]]);
 
-julia> VR = [0 0; 1 0; -1 0; 0 1]
-4×2 Matrix{Int64}:
-  0  0
-  1  0
- -1  0
-  0  1
+julia> rayIndices = [2,3,4];
 
-julia> PC = polyhedral_complex(QQFieldElem, IM, VR)
+julia> Sigma = polyhedral_complex(incidenceMatrix, verticesAndRays, rayIndices)
 Polyhedral complex in ambient dimension 2
 
-julia> TC = TropicalCurve(PC)
-min tropical curve in 2-dimensional Euclidean space
+julia> multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+3-element Vector{ZZRingElem}:
+ 1
+ 1
+ 1
 
-julia> abs_TC = TropicalCurve(IM)
-Abstract min tropical curve
+julia> tropical_curve(Sigma,multiplicities)
+Embedded min tropical curve
+
 ```
 """
-function TropicalCurve(PC::PolyhedralComplex, M::Union{typeof(min),typeof(max)}=min)
-   @assert dim(PC)==1 "The polyhedral complex is not of dimension 1."
-   return TropicalCurve{M, true}(PC)
+function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
-
-function TropicalCurve(graph::IncidenceMatrix, M::Union{typeof(min),typeof(max)}=min)
-    # Columns correspond to nodes
-    # Rows correpons to edges
-    empty = polyhedral_complex(Polymake.fan.PolyhedralComplex())
-    result = TropicalCurve{M, false}(empty)
-    set_attribute!(result, :graph, graph)
-    return result
-end
-
-@doc raw"""
-    graph(tc::TropicalCurve)
-
-Return the graph of an abstract tropical curve `tc`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> graph(tc)
-6×4 IncidenceMatrix
-[1, 2]
-[1, 3]
-[1, 4]
-[2, 3]
-[2, 4]
-[3, 4]
-```
-"""
-function graph(tc::TropicalCurve)
-    @req has_attribute(tc, :graph) "No graph attached"
-    return get_attribute(tc, :graph)
-end
-
-@doc raw"""
-    n_nodes(tc::TropicalCurve)
-
-Return the number of nodes of an abstract tropical curve `tc`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> n_nodes(tc)
-4
-```
-"""
-function n_nodes(tc::TropicalCurve)
-    G = graph(tc)
-    return Polymake.ncols(G)
-end
-
-
-function Base.show(io::IO, tc::TropicalCurve{M,EMB}) where {M,EMB}
-    if EMB
-        print(io, string(M)*" tropical curve in $(ambient_dim(tc))-dimensional Euclidean space")
-    else
-        print(io, "Abstract "*string(M)*" tropical curve")
-    end
-end
-
-struct DivisorOnTropicalCurve{M, EMB}
-    base_curve::TropicalCurve{M, EMB}
-    coefficients::Vector{Int}
-
-    DivisorOnTropicalCurve{M, EMB}(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB} = new{M, EMB}(tc, coeffs)
+function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
 
 @doc raw"""
-    DivisorOnTropicalCurve(tc::TropicalCurve, coeffs::Vector{Int})
+    tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
+Return the abstract tropical curve consisting of the graph `Sigma` and multiplicities `multiplicities`.
 
 # Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+```jldoctest; filter = r"Edge\(.*\)"
+julia> Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
 
-julia> tc = TropicalCurve(IM)
+julia> multiplicities = ones(ZZRingElem, ne(Sigma))
+3-element Vector{ZZRingElem}:
+ 1
+ 1
+ 1
+
+julia> tropical_curve(Sigma,multiplicities)
 Abstract min tropical curve
 
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
 ```
 """
-function DivisorOnTropicalCurve(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB}
-    if EMB
-        error("Not implemented yet")
-    end
-    @req n_nodes(tc) == length(coeffs) "Wrong number coefficients"
-    return DivisorOnTropicalCurve{M, EMB}(tc, coeffs)
+function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+   return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
+end
+function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
+    multiplicities = ones(ZZRingElem, ne(Sigma))
+    return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
-base_curve(dtc::DivisorOnTropicalCurve) = dtc.base_curve
 
-###
-# 3.Basic properties
+function tropical_curve(TropV::TropicalVarietySupertype)
+    @req dim(TropV)<=1 "tropical variety dimension too high"
+    return tropical_curve(polyhedral_complex(TropV), multiplicities(TropV), convention(TropV))
+end
+
+
+
+################################################################################
 #
-@doc raw"""
-    coefficients(dtc::DivisorOnTropicalCurve)
-
-Construct a divisor `dtc` with coefficients `coeffs` on an abstract tropical curve.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> coefficients(dtc)
-4-element Vector{Int64}:
- 0
- 1
- 1
- 1
-```
-"""
-coefficients(dtc::DivisorOnTropicalCurve) = dtc.coefficients
+#  Properties
+#
+################################################################################
 
 @doc raw"""
-   degree(dtc::DivisorOnTropicalCurve)
+    graph(TropC::TropicalCurve{minOrMax,false})
 
-Compute the degree of  a divisor `dtc` on an abstract tropical curve.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> degree(dtc)
-3
-```
+Return the graph of an abstract tropical curve `TropC`.  Same as `polyhedral_complex(tc)`.
 """
-degree(dtc::DivisorOnTropicalCurve) = sum(coefficients(dtc))
-
-@doc raw"""
-    is_effective(dtc::DivisorOnTropicalCurve)
-
-Check whether a divisor `dtc` on an abstract tropical curve is effective.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> is_effective(dtc)
-true
-```
-"""
-is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
-
-
-@doc raw"""
-   chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
-
-Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> chip_firing_move(dtc,1)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [-3, 2, 2, 2])
-```
-"""
-function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
-    G = graph(base_curve(dtc))
-    newcoeffs = Vector{Int}(coefficients(dtc))
-    for i in 1:Polymake.nrows(G)
-        row = Polymake.row(G, i)
-        if position in row
-            newcoeffs[position] -= 1
-            for i in row
-                if i != position
-                    newcoeffs[i] += 1
-                end
-            end
-        end
-    end
-    return DivisorOnTropicalCurve(base_curve(dtc), newcoeffs)
-end
-
-### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices.
-### This is the number of vertices not in W adjacent to v. 1,
-function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
-    G = graph(tc)
-    m = Polymake.nrows(G) #number of edges of tc
-    @assert v in W "Vertex number $v not in $W"
-    deg = 0 #outdeg
-    for i in 1:m
-        row = Polymake.row(G,i)
-        if v in row
-            for j in row
-                if !(j in W)
-                    deg = deg +1
-                end
-            end
-        end
-    end
-    return deg
-end
-
-@doc raw"""
-   v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
-
-Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
-as defined in [BN07](@cite).
-The divisor `dtc` must have positive coefficients apart from `vertex`.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs = [0, 1, 1, 1];
-
-julia> dtc = DivisorOnTropicalCurve(tc,coeffs)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> v_reduced(dtc,1)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [3, 0, 0, 0])
-```
-"""
-function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
-    tc = base_curve(dtc)
-    G = graph(base_curve(dtc))
-    n = Polymake.ncols(G)
-    newcoeff = Vector{Int}(coefficients(dtc))
-    S = Set{Int}(1:n)
-    W = setdiff(S,vertex)
-    @assert all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
-    while !(isempty(W))
-    w0 = vertex
-    if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
-        coeffdelta = zeros(Int, n)
-        delta = DivisorOnTropicalCurve(tc,coeffdelta)
-        for j in W
-            delta = chip_firing_move(delta,j)
-        end
-        newcoeff = newcoeff + coefficients(delta)
-    else
-        for w in W
-            if newcoeff[w] < outdegree(tc,W,w)
-                w0 = w
-                break
-            end
-        end
-        W = setdiff(W,w0)
-        end
-    end
-    reduced = DivisorOnTropicalCurve(tc, newcoeff)
-    return reduced
-end
-
-@doc raw"""
-   is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
-
-Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
-
-# Examples
-```jldoctest
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
-
-julia> tc = TropicalCurve(IM)
-Abstract min tropical curve
-
-julia> coeffs1 = [0, 1, 1, 1];
-
-julia> dtc1 = DivisorOnTropicalCurve(tc,coeffs1)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
-
-julia> coeffs2 = [3,0,0,0];
-
-julia> dtc2 = DivisorOnTropicalCurve(tc,coeffs2)
-DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [3, 0, 0, 0])
-
-julia> is_linearly_equivalent(dtc1, dtc2)
-true
-```
-"""
-function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
-    @assert is_effective(dtc1) "The divisor $dtc1 is not effective"
-    @assert is_effective(dtc2) "The divisor $dtc2 is not effective"
-    @assert base_curve(dtc1) === base_curve(dtc2) "The input curve needs to be the same for both divisors"
-    v = 1
-    reduced1 = v_reduced(dtc1,v)
-    reduced2 = v_reduced(dtc2,v)
-    coeff1 = coefficients(reduced1)
-    coeff2 = coefficients(reduced2)
-    return coeff1 == coeff2
+function graph(TropC::TropicalCurve{minOrMax,false}) where minOrMax
+    return TropC.polyhedralComplex
 end
 
 
-###
-# 4. More properties
-# -------------------
-###
 
-@doc raw"""
-    structure_tropical_jacobian(TC::TropicalCurve)
+################################################################################
+#
+#  Outdated code (to be updated)
+#
+################################################################################
 
-Compute the elementary divisors $n_i$ of the Laplacian matrix of the tropical curve `TC`.
-The tropical Jacobian is then isomorphic to $\prod (Z/(n_i)Z)$.
+# @doc raw"""
+#     nv(tc::TropicalCurve)
 
-# Examples
-```jldoctest
-julia> cg = complete_graph(5);
+# Return the number of vertices of an abstract tropical curve `tc`.
+# """
+# function nv(tc::TropicalCurve)
+#     G = graph(tc)
+#     return nv(G)
+# end
 
-julia> IM1=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg)])
-10×5 IncidenceMatrix
-[1, 2]
-[1, 3]
-[2, 3]
-[1, 4]
-[2, 4]
-[3, 4]
-[1, 5]
-[2, 5]
-[3, 5]
-[4, 5]
 
-julia> TC1 = TropicalCurve(IM1)
-Abstract min tropical curve
+# struct DivisorOnTropicalCurve{M, EMB}
+#     base_curve::TropicalCurve{M, EMB}
+#     coefficients::Vector{Int}
 
-julia> structure_tropical_jacobian(TC1)
-(General) abelian group with relation matrix
-[1 0 0 0; 0 5 0 0; 0 0 5 0; 0 0 0 5]
+#     DivisorOnTropicalCurve{M, EMB}(tc::TropicalCurve{M, EMB}, coeffs::Vector{Int}) where {M,EMB} = new{M, EMB}(tc, coeffs)
+# end
 
-julia> cg2 = complete_graph(3);
 
-julia> IM2=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg2)])
-3×3 IncidenceMatrix
-[1, 2]
-[1, 3]
-[2, 3]
+# @doc raw"""
+#     divisor_on_tropical_curve(tc::TropicalCurve, coeffs::Vector{Int})
 
-julia> TC2 = TropicalCurve(IM2)
-Abstract min tropical curve
+# Construct a divisor with coefficients `coeffs` on an abstract tropical curve `tc`.
 
-julia> structure_tropical_jacobian(TC2)
-(General) abelian group with relation matrix
-[1 0; 0 3]
+# # Examples
+# ```jldoctest
+# julia> Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1 1; 1 0 1 1; 1 1 0 1; 1 1 1 0]);
 
-julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
-5×5 IncidenceMatrix
-[1, 2]
-[2, 3]
-[3, 4]
-[4, 5]
-[1, 5]
+# julia> tc = tropical_curve(Sigma)
+# Abstract min tropical curve
 
-julia> TC3=TropicalCurve(IM3)
-Abstract min tropical curve
+# julia> dtc = divisor_on_tropical_curve(tc,[0, 1, 1, 1])
+# DivisorOnTropicalCurve{min, false}(Abstract min tropical curve, [0, 1, 1, 1])
+# ```
+# """
+# function divisor_on_tropical_curve(tc::TropicalCurve{minOrMax, false}, coeffs::Vector{Int}) where minOrMax
+#     @req nv(tc)==length(coeffs) "Wrong number coefficients"
+#     return DivisorOnTropicalCurve{minOrMax, false}(tc, coeffs)
+# end
 
-julia> G = structure_tropical_jacobian(TC3)
-(General) abelian group with relation matrix
-[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 5]
-```
-"""
-function structure_tropical_jacobian(TC::TropicalCurve)
-    gg=Graph{Undirected}(n_nodes(TC))
-    IM = graph(TC)
-    for i in 1:Polymake.nrows(IM)
-        row = Vector{Int}(Polymake.row(IM,i))
-        add_edge!(gg, row[1],row[2])
-    end
-    lap = Polymake.graph.laplacian(Oscar.pm_object(gg))
-    L = Polymake.@convert_to Matrix{Int} lap
-    LL = matrix(ZZ, L)
-    ED = elementary_divisors(LL)[1:nrows(LL)-1]
-    G = abelian_group(ED)
-    return G
-end
+# base_curve(dtc::DivisorOnTropicalCurve) = dtc.base_curve
 
-"""
-This recipe allows to use `Plots` without having `Plots` as a dependency.
 
-Usage example:
-```julia
-julia> using Revise, Plots, Oscar, Test;
+# ###
+# # 3.Basic properties
+# ###
+# @doc raw"""
+#     coefficients(dtc::DivisorOnTropicalCurve)
 
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+# Return the coefficients of `dtc`.
+# """
+# coefficients(dtc::DivisorOnTropicalCurve) = dtc.coefficients
 
-julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> PC = PolyhedralComplex{QQFieldElem}(IM, VR);
+# @doc raw"""
+#    degree(dtc::DivisorOnTropicalCurve)
 
-julia> TC = TropicalCurve(PC);
+# Return the degree of `dtc`.
+# """
+# degree(dtc::DivisorOnTropicalCurve) = sum(coefficients(dtc))
 
-julia> plot(TC)
-```
-"""
-@recipe function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
-    @assert EMB "Tropical curve is abstract."
-    PC = tc.polyhedralComplex
-    MaxPoly= maximal_polyhedra(PC)
-    list_vertices = Vector{Complex{Float64}}()
-    for P in MaxPoly
-        V = vertices(P)
-        R = rays(P)
-        #V = [Vector{Rational{Int}}(x) for x in V]
-        V = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in V]
-        #R = [Vector{Rational{Int}}(x) for x in R]
-        R = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in R]
-        if length(V)==2
-            append!(list_vertices,V[1][1]+V[1][2]*im,V[2][1]+V[2][2]*im,Inf+0*im)
-        else
-            B = V[1]+R[1]
-            append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
-        end
-    end
-    # Set default options for plot
-    legend := false
-    axis := false
-    xlabel := ""
-    ylabel := ""
-    return list_vertices 
-end
+
+# @doc raw"""
+#     is_effective(dtc::DivisorOnTropicalCurve)
+
+# Return `true` if all coefficients of `dtc` are positive, `false` otherwise.
+# """
+# is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
+
+
+# @doc raw"""
+#    chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
+
+# Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
+
+# # Examples
+# ```jldoctest
+# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+# julia> tc = TropicalCurve(IM)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> coeffs = [0, 1, 1, 1];
+
+# julia> dtc = divisor_on_tropical_curve(tc,coeffs)
+# ERROR: UndefVarError: `tc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> chip_firing_move(dtc,1)
+# ERROR: UndefVarError: `dtc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+# ```
+# """
+# function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
+#     G = graph(base_curve(dtc))
+#     newcoeffs = Vector{Int}(coefficients(dtc))
+#     for i in 1:ne(G)
+#         row = Polymake.row(incidence_matrix(G), i-1)
+#         if position in row
+#             newcoeffs[position] -= 1
+#             for i in row
+#                 if i != position
+#                     newcoeffs[i] += 1
+#                 end
+#             end
+#         end
+#     end
+#     return divisor_on_tropical_curve(base_curve(dtc), newcoeffs)
+# end
+
+# ### The function computes the outdegree of a vertex v  with respect to a given subset W  of vertices.
+# ### This is the number of vertices not in W adjacent to v. 1,
+# function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
+#     G = graph(tc)
+#     m = ne(G) #number of edges of tc
+#     @req v in W "Vertex number $v not in $W"
+#     deg = 0 #outdeg
+#     for i in 1:m
+#         row = Polymake.row(incidence_matrix(G),i)
+#         if v in row
+#             for j in row
+#                 if !(j in W)
+#                     deg = deg +1
+#                 end
+#             end
+#         end
+#     end
+#     return deg
+# end
+
+# @doc raw"""
+#    v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
+
+# Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
+# as defined in [BN07](@cite).
+# The divisor `dtc` must have positive coefficients apart from `vertex`.
+
+# # Examples
+# ```jldoctest
+# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+# julia> tc = TropicalCurve(IM)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> coeffs = [0, 1, 1, 1];
+
+# julia> dtc = divisor_on_tropical_curve(tc,coeffs)
+# ERROR: UndefVarError: `tc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> v_reduced(dtc,1)
+# ERROR: UndefVarError: `dtc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+# ```
+# """
+# function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
+#     tc = base_curve(dtc)
+#     G = graph(base_curve(dtc))
+#     n = nv(G)
+#     newcoeff = Vector{Int}(coefficients(dtc))
+#     S = Set{Int}(1:n)
+#     W = setdiff(S,vertex)
+#     @req all(j -> newcoeff[j]>=0, W) "Divisor not effective outside the vertex number $vertex"
+#     while !(isempty(W))
+# 	      w0 = vertex
+# 	      if all(w -> newcoeff[w] >= outdegree(tc,W,w),W)
+# 	          coeffdelta = zeros(Int, n)
+# 	          delta = divisor_on_tropical_curve(tc,coeffdelta)
+# 	          for j in W
+# 	              delta = chip_firing_move(delta,j)
+# 	          end
+# 	          newcoeff = newcoeff + coefficients(delta)
+# 	      else
+# 	          for w in W
+# 	              if newcoeff[w] < outdegree(tc,W,w)
+# 		                w0 = w
+# 		                break
+# 	              end
+# 	          end
+# 	          W = setdiff(W,w0)
+#         end
+#     end
+#     reduced = divisor_on_tropical_curve(tc, newcoeff)
+#     return reduced
+# end
+
+# @doc raw"""
+#    is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
+
+# Given two effective divisors `dtc1` and `dtc2` on the same tropical curve, check whether they are linearly equivalent.
+
+# # Examples
+# ```jldoctest
+# julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]]);
+
+# julia> tc = TropicalCurve(IM)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> coeffs1 = [0, 1, 1, 1];
+
+# julia> dtc1 = divisor_on_tropical_curve(tc,coeffs1)
+# ERROR: UndefVarError: `tc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> coeffs2 = [3,0,0,0];
+
+# julia> dtc2 = divisor_on_tropical_curve(tc,coeffs2)
+# ERROR: UndefVarError: `tc` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> is_linearly_equivalent(dtc1, dtc2)
+# ERROR: UndefVarError: `dtc1` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+# ```
+# """
+# function is_linearly_equivalent(dtc1::DivisorOnTropicalCurve, dtc2::DivisorOnTropicalCurve)
+#     @req is_effective(dtc1) "The divisor $dtc1 is not effective"
+#     @req is_effective(dtc2) "The divisor $dtc2 is not effective"
+#     @req base_curve(dtc1) === base_curve(dtc2) "The input curve needs to be the same for both divisors"
+#     v = 1
+#     reduced1 = v_reduced(dtc1,v)
+#     reduced2 = v_reduced(dtc2,v)
+#     coeff1 = coefficients(reduced1)
+#     coeff2 = coefficients(reduced2)
+#     return coeff1 == coeff2
+# end
+
+
+# ###
+# # 4. More properties
+# # -------------------
+# ###
+
+# @doc raw"""
+#     structure_tropical_jacobian(TropC::TropicalCurve)
+
+# Compute the elementary divisors $n_i$ of the Laplacian matrix of the tropical curve `TropC`.
+# The tropical Jacobian is then isomorphic to $\prod (Z/(n_i)Z)$.
+
+# # Examples
+# ```jldoctest
+# julia> cg = complete_graph(5);
+
+# julia> IM1=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg)])
+# 10×5 IncidenceMatrix
+# [1, 2]
+# [1, 3]
+# [2, 3]
+# [1, 4]
+# [2, 4]
+# [3, 4]
+# [1, 5]
+# [2, 5]
+# [3, 5]
+# [4, 5]
+
+# julia> TropC1 = TropicalCurve(IM1)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> structure_tropical_jacobian(TropC1)
+# ERROR: UndefVarError: `TropC1` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> cg2 = complete_graph(3);
+
+# julia> IM2=IncidenceMatrix([[src(e), dst(e)] for e in edges(cg2)])
+# 3×3 IncidenceMatrix
+# [1, 2]
+# [1, 3]
+# [2, 3]
+
+# julia> TropC2 = TropicalCurve(IM2)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> structure_tropical_jacobian(TropC2)
+# ERROR: UndefVarError: `TropC2` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> IM3 = IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]])
+# 5×5 IncidenceMatrix
+# [1, 2]
+# [2, 3]
+# [3, 4]
+# [4, 5]
+# [1, 5]
+
+# julia> TropC3=TropicalCurve(IM3)
+# ERROR: MethodError: no method matching TropicalCurve(::Polymake.LibPolymake.IncidenceMatrixAllocated{Polymake.LibPolymake.NonSymmetric})
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+
+# julia> G = structure_tropical_jacobian(TropC3)
+# ERROR: UndefVarError: `TropC3` not defined
+# Stacktrace:
+#  [1] top-level scope
+#    @ none:1
+# ```
+# """
+# function structure_tropical_jacobian(TropC::TropicalCurve)
+#     gg=Graph{Undirected}(nv(TropC))
+#     IM = graph(TropC)
+#     for i in 1:ne(IM)
+#         row = Vector{Int}(Polymake.row(incidence_matrix(IM),i))
+#         add_edge!(gg, row[1],row[2])
+#     end
+#     lap = Polymake.graph.laplacian(Oscar.pm_object(gg))
+#     L = Polymake.@convert_to Matrix{Int} lap
+#     LL = matrix(ZZ, L)
+#     ED = elementary_divisors(LL)[1:nrows(LL)-1]
+#     G = abelian_group(ED)
+#     return G
+# end
+
+
+# # """
+# # This recipe allows to use `Plots` without having `Plots` as a dependency.
+
+# # Usage example:
+# # ```julia
+# # julia> using Revise, Plots, Oscar, Test;
+
+# # julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+
+# # julia> VR = [0 0; 1 0; -1 0; 0 1];
+
+# # julia> PC = PolyhedralComplex{QQFieldElem}(IM, VR);
+
+# # julia> TropC = TropicalCurve(PC);
+
+# # julia> plot(TropC)
+# # ```
+# # """
+# # @recipe function visualize(tc::TropicalCurve{M,EMB}) where {M,EMB}
+# #     @req EMB "Tropical curve is abstract."
+# #     PC = tc.polyhedralComplex
+# #     MaxPoly= maximal_polyhedra(PC)
+# #     list_vertices = Vector{Complex{Float64}}()
+# #     for P in MaxPoly
+# #         V = vertices(P)
+# #         R = rays(P)
+# #         #V = [Vector{Rational{Int}}(x) for x in V]
+# #         V = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in V]
+# #         #R = [Vector{Rational{Int}}(x) for x in R]
+# #         R = [Vector{Float64}(Vector{Rational}(Vector{Polymake.Rational}(x))) for x in R]
+# #         if length(V)==2
+# #             append!(list_vertices,V[1][1]+V[1][2]*im,V[2][1]+V[2][2]*im,Inf+0*im)
+# #         else
+# #             B = V[1]+R[1]
+# #             append!(list_vertices,V[1][1]+V[1][2]*im,B[1]+B[2]*im,Inf+0*im)
+# #         end
+# #     end
+# #     # Set default options for plot
+# #     legend := false
+# #     axis := false
+# #     xlabel := ""
+# #     ylabel := ""
+# #     return list_vertices
+# # end

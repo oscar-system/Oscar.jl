@@ -134,6 +134,8 @@ function secondary_invariants_modular(RG::InvRing)
         end
         f += N[j, c]*forget_grading(Bd.monomials_collected[j])
       end
+      # Cancelling the leading coefficient is not mathematically necessary and
+      # should be done with the ordering that is used for the printing
       f = inv(AbstractAlgebra.leading_coefficient(f))*f
       push!(s_invars, f)
       add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
@@ -154,16 +156,16 @@ end
 # DK15, Algorithm 3.7.2 and Kin07, Section 4 "Improved new algorithm"
 function secondary_invariants_nonmodular(RG::InvRing)
   @assert !is_modular(RG)
-  p_invars = primary_invariants(RG)
+  Rext = polynomial_ring(RG)
+  Rgraded = _internal_polynomial_ring(RG)
+  R = forget_grading(Rgraded)
+
+  p_invars = [ _cast_in_internal_poly_ring(RG, f) for f in primary_invariants(RG) ]
   I = ideal_of_primary_invariants(RG)
   LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
+  gensLI = [ _cast_in_internal_poly_ring(RG, f) for f in gens(LI) ]
 
   h = reduce_hilbert_series_by_primary_degrees(RG)
-
-  Rgraded = polynomial_ring(RG)
-  R = forget_grading(Rgraded)
-  # R needs to have the correct ordering for application of divrem
-  @assert ordering(R) == :degrevlex
 
   K = coefficient_ring(R)
   s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
@@ -181,7 +183,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = Vector{Int}()
 
   # The Groebner basis should already be cached
-  gbI = [ forget_grading(f) for f in groebner_basis(I, ordering = degrevlex(gens(base_ring(I)))) ]
+  gbI = [ forget_grading(_cast_in_internal_poly_ring(RG, f)) for f in groebner_basis(I, ordering = degrevlex(Rext)) ]
 
   for d = 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
@@ -215,7 +217,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
         # DK15 propose to check containment via linear algebra; this approach
         # from Kin07 using d-truncated Groebner bases appears to be faster.
-        _, r = divrem(fg, gb) # degrevlex from assert ordering(R) == :degrevlex
+        _, r = divrem(fg, gb) # via degrevlex
         if !is_zero(r)
           # fg is a product of monic polynomials, so monic itself
           exp = copy(s_invars_cache.sec_in_irred[j])
@@ -239,7 +241,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
       # Can exclude some monomials, see DK15, Remark 3.7.3 (b)
       skip = false
-      for g in gens(LI)
+      for g in gensLI
         if mod(forget_grading(m), forget_grading(g)) == 0
           skip = true
           break
@@ -247,11 +249,11 @@ function secondary_invariants_nonmodular(RG::InvRing)
       end
       skip && continue
 
-      f = forget_grading(reynolds_operator(RG, m))
+      f = forget_grading(_cast_in_internal_poly_ring(RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, m))))
       if iszero(f)
         continue
       end
-      _, r = divrem(f, gb)  # degrevlex from assert ordering(R) == :degrevlex
+      _, r = divrem(f, gb)  # via degrevlex
       if !is_zero(r)
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
@@ -262,6 +264,17 @@ function secondary_invariants_nonmodular(RG::InvRing)
         invars_found == k && break
       end
     end
+  end
+
+  if Rext !== Rgraded
+    ext_cache = SecondaryInvarsCache{elem_type(Rext)}()
+    ext = [ _cast_in_external_poly_ring(RG, f) for f in s_invars_cache.invars ]
+    # Cancelling the leading coefficient is not mathematically necessary and
+    # should be done with the ordering that is used for the printing
+    ext_cache.invars = [ inv(AbstractAlgebra.leading_coefficient(f))*f for f in ext ]
+    ext_cache.is_irreducible = s_invars_cache.is_irreducible
+    ext_cache.sec_in_irred = s_invars_cache.sec_in_irred
+    s_invars_cache = ext_cache
   end
 
   return s_invars_cache
@@ -468,6 +481,8 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
       end
       nf = forget_grading(normal_form(f, I))
       if add_to_basis!(B, nf)
+        # Cancelling the leading coefficient is not mathematically necessary and
+        # should be done with the ordering that is used for the printing
         f = inv(AbstractAlgebra.leading_coefficient(f))*f
         push!(semi_invars, Rgraded(f))
         invars_found += 1

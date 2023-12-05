@@ -1,140 +1,401 @@
-###
-# Tropical linear spaces in Oscar
-# ===============================
-###
+###############################################################################
+#
+#  Tropical linear spaces
+#  ======================
+#  concrete subtype of TropicalVarietySupertype in variety_supertype.jl
+#
+###############################################################################
 
-
-###
-# 1. Definition
-# -------------
-# M = typeof(min) or typeof(max):
-#   min or max convention, affecting initial ideals, Pluecker vector, etc.
-# EMB = true or false:
-#   embedded or abstract tropical linear space
-#   embedded tropical linear space = weighted polyhedral complex in euclidean space
-#   abstract tropical linear space = weighted hypergraph with enumerated vertices
-###
-
-@attributes mutable struct TropicalLinearSpace{M,T} <: TropicalVarietySupertype{M,T}
-    # GapTV::GapObj
+@attributes mutable struct TropicalLinearSpace{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
     polyhedralComplex::PolyhedralComplex
-    function TropicalLinearSpace{M,T}(Sigma::PolyhedralComplex) where {M,T}
-        return new{M,T}(Sigma)
+    multiplicities::Vector{ZZRingElem}
+
+    # tropical linear spaces need to be embedded
+    function TropicalLinearSpace{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
 
 
 
-###
-# 2. Basic constructors
-# ---------------------
-###
+###############################################################################
+#
+#  Printing
+#
+###############################################################################
+
+function Base.show(io::IO, th::TropicalLinearSpace{typeof(min), true})
+    print(io, "Min tropical linear space")
+end
+function Base.show(io::IO, th::TropicalLinearSpace{typeof(max), true})
+    print(io, "Max tropical linear space")
+end
+
+
+
+###############################################################################
+#
+#  Constructors
+#
+###############################################################################
+
+function tropical_linear_space(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    return TropicalLinearSpace{typeof(minOrMax),true}(Sigma,mult)
+end
+
+
+function tropical_linear_space(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+    mult = multiplicities(TropV)
+    @req isnothing(findfirst(!isequal(one(ZZ)),collect(values(mult)))) "tropical variety not all multiplicities one"
+    return tropical_linear_space(polyhedral_complex(TropV),mult,convention(TropV))
+end
+
+
+function shift_pluecker_indices_for_polymake(plueckerIndices::Vector{Vector{Int}})
+    # substract 1 fromt all entries of plueckerIndices
+    return (x -> x .-1).(plueckerIndices)
+end
+
+
+function add_missing_lineality_from_polymake(Sigma::PolyhedralComplex)
+    # Adding missing ones vector to lineality space
+    IM = maximal_polyhedra(IncidenceMatrix,Sigma)
+    VR = vertices_and_rays(Sigma)
+    rayIndices = findall(vr->(vr isa RayVector),VR)
+    VRmat = matrix(QQ,Vector{QQFieldElem}.(collect(VR)))
+    L = vcat(matrix(QQ,lineality_space(Sigma)),
+             matrix(QQ,ones(Int,1,ambient_dim(Sigma))))
+    return polyhedral_complex(IM,VRmat,rayIndices,L)
+end
+
 
 @doc raw"""
-    TropicalLinearSpace(I::MPolyIdeal, val::TropicalSemiringMap)
+    tropical_linear_space(Lambda::Vector{Vector{Int}}, p::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
 
-Construct a tropical linear space from a degree 1 polynomial ideal `I` and a map to the tropical semiring `val`.
+Return a tropical linear space from a tropical Pluecker vector with indices `Lambda` and values `p`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> T = tropical_semiring();
+
+julia> plueckerIndices = [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]];
+
+julia> plueckerVector = T.([0,0,0,0,0,0]);
+
+julia> tropical_linear_space(plueckerIndices,plueckerVector)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+
+    # read off convention and indices of finite entries
+    minOrMax = convention(plueckerVector)
+    plueckerSupport = findall(!iszero,plueckerVector)
+
+    # restrict plueckerVector and pluckerIndices,
+    # convert plueckerVector to QQ (for Polymake)
+    plueckerVectorForPolymake = QQ.(plueckerVector[plueckerSupport])
+    plueckerIndicesForPolymake = shift_pluecker_indices_for_polymake(plueckerIndices[plueckerSupport])
+
+    # find out ambient dimension from remaining indices
+    n = length(unique(Iterators.flatten(plueckerIndices)))
+
+    # construct tropical linear space
+    valuatedMatroid = Polymake.matroid.ValuatedMatroid{minOrMax}(
+        BASES = plueckerIndicesForPolymake,
+        N_ELEMENTS = n,
+        VALUATION_ON_BASES = plueckerVectorForPolymake)
+
+    Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{minOrMax}(valuatedMatroid))
+    Sigma = add_missing_lineality_from_polymake(Sigma)
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+
+    TropL = tropical_linear_space(Sigma,multiplicities,minOrMax)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:polymake_object,valuatedMatroid)
+        set_attribute!(TropL,:pluecker_indices,plueckerIndices)
+        set_attribute!(TropL,:tropical_pluecker_vector,plueckerVector)
+        set_attribute!(TropL,:valuated_matroid,valuatedMatroid)
+    end
+    return TropL
+end
+
+
+@doc raw"""
+    tropical_linear_space(k::Int, n::Int, p::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+
+Return a tropical linear space from a tropical Pluecker vector with indices `AbstractAlgebra.combinations(1:n,k)` and values `p`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> T = tropical_semiring();
+
+julia> plueckerVector = T.([0,0,0,0,0,0]);
+
+julia> tropical_linear_space(2,4,plueckerVector)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+    return tropical_linear_space(AbstractAlgebra.combinations(1:n,k), plueckerVector, weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+end
+
+
+@doc raw"""
+    tropical_linear_space(Lambda::Vector{Vector{Int}}, p::Vector, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+
+Return a tropical linear space from a tropical Pluecker vector with indices `Lambda` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> nu = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
+
+julia> plueckerIndices = [[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]];
+
+julia> plueckerVector = QQ.([1,3,5,5,3,1]);
+
+julia> tropical_linear_space(plueckerIndices,plueckerVector,nu)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    # if nu unspecified, initialise as the trivial valuation + min convention
+    isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
+
+    TropL = tropical_linear_space(plueckerIndices,
+                                  nu.(plueckerVector),
+                                  weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
+end
+
+
+@doc raw"""
+    tropical_linear_space(k::Int, n::Int, p::Vector, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+
+Return a tropical linear space from a tropical Pluecker vector with indices `AbstractAlgebra.combinations(1:n,k)` and values `nu(p)`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> nu = tropical_semiring_map(QQ);
+
+julia> plueckerVector = QQ.([1,3,5,5,3,1]);
+
+julia> tropical_linear_space(2,4,plueckerVector,nu)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    # if nu unspecified, initialise as the trivial valuation + min convention
+    isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
+
+    TropL = tropical_linear_space(AbstractAlgebra.combinations(1:n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_pluecker_vector,plueckerVector)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
+end
+
+
+@doc raw"""
+    tropical_linear_space(A::MatElem{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+
+Return a tropical linear space whose Pluecker vector are the tropical minors of `A`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> A = matrix(tropical_semiring(),[[1,2,4,8],[8,4,2,1]])
+[(1)   (2)   (4)   (8)]
+[(8)   (4)   (2)   (1)]
+
+julia> tropical_linear_space(A)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(A::Union{Matrix{T},MatElem{T}}; weighted_polyhedral_complex_only::Bool=false) where {T<:TropicalSemiringElem}
+    # convert to Oscar matrix (necessary for AbstractAlgebra.minors)
+    A isa Matrix && (A = matrix(parent(first(A)),A))
+
+    n = max(nrows(A), ncols(A))
+    k = min(nrows(A), ncols(A))
+    plueckerIndices = AbstractAlgebra.combinations(1:n,k)
+    plueckerVector = AbstractAlgebra.minors(A, k)
+    TropL = tropical_linear_space(plueckerIndices, plueckerVector,
+                                  weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:tropical_matrix,A)
+    end
+    return TropL
+end
+
+
+@doc raw"""
+    tropical_linear_space(A::MatElem,nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+
+Return a tropical linear space whose Pluecker vector is `nu` applied to the minors of `A`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> nu = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
+
+julia> A = matrix(QQ,[[1,2,4,8],[8,4,2,1]])
+[1   2   4   8]
+[8   4   2   1]
+
+julia> tropical_linear_space(A, nu)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(A::MatElem, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    # if nu unspecified, initialise as the trivial valuation + min convention
+    isnothing(nu) && (nu=tropical_semiring_map(base_ring(A)))
+
+    n = max(nrows(A), ncols(A))
+    k = min(nrows(A), ncols(A))
+    plueckerIndices = AbstractAlgebra.combinations(1:n,k)
+    plueckerVector = AbstractAlgebra.minors(A, k)
+    TropL = tropical_linear_space(plueckerIndices, plueckerVector, nu,
+                                  weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_matrix,A)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
+end
+
+
+@doc raw"""
+    tropical_linear_space(I::MPolyIdeal, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+
+Return the tropicalization of the vanishing set of `I` with respect to the tropical semiring map `nu`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 
 ```jldoctest
-julia> R,(x1,x2,x3,x4,x5,x6) = polynomial_ring(ZZ,6)
-(Multivariate polynomial ring in 6 variables over ZZ, ZZMPolyRingElem[x1, x2, x3, x4, x5, x6])
+julia> R,(x1,x2,x3,x4) = polynomial_ring(QQ,4);
 
-julia> I = ideal(R,[-x1+x3+x4,-x2+x3+x5,-x1+x2+x6])
-ideal(-x1 + x3 + x4, -x2 + x3 + x5, -x1 + x2 + x6)
+julia> I = ideal(R,[-x1+x3,-x2+x4])
+ideal(-x1 + x3, -x2 + x4)
 
-julia> val = TropicalSemiringMap(ZZ)
-The trivial valuation on Integer ring
+julia> nu = tropical_semiring_map(QQ)
+Map into Min tropical semiring encoding the trivial valuation on Rational field
 
-julia> TropicalLinearSpace(I,val)
-TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 6, #undef)
+julia> tropical_linear_space(I, nu)
+Min tropical linear space
+
 ```
 """
-function TropicalLinearSpace(I::MPolyIdeal, val)
-    R = base_ring(I)
-    n = ngens(R)
-    g = gens(I)
-    l = length(g)
-    id = [ v for v in identity_matrix(ZZ,n)]
-    A = [ [ coeff(p,Vector{Int}(v)) for v in [id[i,:] for i in 1:nrows(id)] ] for p in gens(I) ]
-    B = kernel_basis(matrix(QQ,A))
-    return TropicalLinearSpace(matrix(B),val)
+function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    # initialise nu as the trivial valuation if not specified by user
+    isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(I)))
+
+    x = gens(base_ring(I))
+    G = gens(I)
+    macaulayMatrix = matrix([[coeff(g,xi) for xi in x] for g in G])
+    A = matrix(kernel_basis(macaulayMatrix))
+    TropL = tropical_linear_space(A,nu,
+                                  weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropL,:algebraic_ideal,I)
+        set_attribute!(TropL,:tropical_semiring_map,nu)
+    end
+    return TropL
 end
+
+
+
+###############################################################################
+#
+#  Properties
+#
+###############################################################################
 
 @doc raw"""
-    TropicalLinearSpace(plv::Vector{TropicalSemiringElem}, rank::IntegerUnion, nElements::IntegerUnion)
+    pluecker_indices(TropL::TropicalLinearSpace)
 
-Construct a tropical linear space from a (tropical) Pluecker vector `plv`, rank `rank`, and size of the ground set `nElements`.
-
-#Examples
-```jldoctest
-julia> R = TropicalSemiring(min);
-
-julia> plv = [R(e) for e in [2,1,1,0,0,zero(R)]];
-
-julia> L = TropicalLinearSpace(plv, 2, 4)
-TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
-
-julia> f_vector(L)
-2-element Vector{Int64}:
- 1
- 3
-```
+Return the Pluecker indices used to construct `TropL`.  Raises an error, if it is not cached.
 """
-function TropicalLinearSpace_impl(plv, rank, nElements, M)
-    Zero = zero(TropicalSemiring(M))
-    indexSet = findall(i->i!=Zero, plv)
-    bases = [ sort(Hecke.subsets(Vector{Int}(0:nElements-1), rank))[i] for i in indexSet ]
-    val = Polymake.matroid.ValuatedMatroid{M}(BASES = bases, N_ELEMENTS = nElements,VALUATION_ON_BASES = [plv[i].data for i in indexSet])
-    #return Polymake.tropical.linear_space{min}(val)
-    P = Polymake.tropical.linear_space{M}(val)
-    P = PolyhedralComplex{QQFieldElem}(P, QQ)
-    return TropicalLinearSpace{M,true}(P)
+function pluecker_indices(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:pluecker_indices) "no pluecker indices cached"
+    return get_attribute(TropL,:pluecker_indices)
 end
-TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(min)}},rank::IntegerUnion, nElements::IntegerUnion) =
-TropicalLinearSpace_impl(plv, rank, nElements, min)
-TropicalLinearSpace(plv::Vector{TropicalSemiringElem{typeof(max)}},rank::IntegerUnion, nElements::IntegerUnion) =
-TropicalLinearSpace_impl(plv, rank, nElements, max)
 
 
 @doc raw"""
-    TropicalLinearSpace(A::MatElem,val::TropicalSemiringMap)
+    tropical_pluecker_vector(TropL::TropicalLinearSpace)
 
-Construct a tropical linear space from a matrix `A` and a map to the tropical semiring `val`.
-
-# Examples
-```jldoctest
-julia> Kt, t = rational_function_field(QQ,"t");
-
-julia> val = TropicalSemiringMap(Kt,t);
-
-julia> A = matrix(Kt,[[t,4*t,0,2],[1,4,1,t^2]]);
-
-julia> TropicalLinearSpace(A, val)
-TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
-
-julia> p = 3;
-
-julia> val = TropicalSemiringMap(QQ, p);
-
-julia> A = matrix(QQ, [[3,7,5,1], [9,7,1,2]])
-[3   7   5   1]
-[9   7   1   2]
-
-julia> TropicalLinearSpace(A,val)
-TropicalLinearSpace{min, true}(Polyhedral complex in ambient dimension 4, #undef)
-```
+Return the tropical Pluecker vector of `TropL`.  Raises an error, if it is not cached.
 """
-function TropicalLinearSpace(A::MatElem, val)
-  plv = [val(p) for p in Nemo.minors(A, min(nrows(A), ncols(A)))]
-  rk = rank(A)
-  nelement = max(nrows(A), ncols(A))
-  return TropicalLinearSpace(plv, rk, nelement)
+function tropical_pluecker_vector(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:tropical_pluecker_vector) "no tropical pluecker vector cached"
+    return get_attribute(TropL,:tropical_pluecker_vector)
 end
 
 
-###
-# 3. Basic properties
-# -------------------
-###
+@doc raw"""
+    algebraic_pluecker_vector(TropL::TropicalLinearSpace)
+
+Return the Pluecker vector over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
+"""
+function algebraic_pluecker_vector(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:algebraic_pluecker_vector) "no algebraic pluecker vector cached"
+    return get_attribute(TropL,:algebraic_pluecker_vector)
+end
+
+
+@doc raw"""
+    tropical_semiring_map(TropL::TropicalLinearSpace)
+
+Return the tropical semiring map used to construct `TropL`.  Raises an error, if it is not cached.
+"""
+function tropical_semiring_map(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:tropical_semiring_map) "no tropical semiring map cached"
+    return get_attribute(TropL,:tropical_semiring_map)
+end
+
+
+@doc raw"""
+    tropical_matrix(TropL::TropicalLinearSpace)
+
+Return the tropical matrix used to construct `TropL`.  Raises an error, if it is not cached.
+"""
+function tropical_matrix(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:tropical_matrix) "no tropical matrix cached"
+    return get_attribute(TropL,:tropical_matrix)
+end
+
+
+@doc raw"""
+    algebraic_matrix(TropL::TropicalLinearSpace)
+
+Return the matrix over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
+"""
+function algebraic_matrix(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:algebraic_matrix) "no algebraic matrix cached"
+    return get_attribute(TropL,:algebraic_matrix)
+end
+
+
+@doc raw"""
+    algebraic_ideal(TropL::TropicalLinearSpace)
+
+Return the polynomial ideal over a valued field used to construct `TropL`.  Raises an error, if it is not cached.
+"""
+function algebraic_ideal(TropL::TropicalLinearSpace)
+    @req has_attribute(TropL,:algebraic_ideal) "no algebraic ideal cached"
+    return get_attribute(TropL,:algebraic_ideal)
+end

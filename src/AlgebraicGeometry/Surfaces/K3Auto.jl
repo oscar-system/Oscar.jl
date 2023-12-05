@@ -57,19 +57,24 @@ end
 
 
 @doc raw"""
-    BorcherdsCtx(L::ZZLat, S::ZZLat, compute_OR::Bool=true) -> BorcherdsCtx
+    BorcherdsCtx(L::ZZLat, S::ZZLat; compute_OR::Bool=true) -> BorcherdsCtx, QQMatrix
 
 Return the context for Borcherds' method.
+And the basis matrix of the new `L` in the BorcherdsCtx.
 
 # Arguments
 - `L::ZZLat`: an even, hyperbolic, unimodular `Z`-lattice of rank 10, 18, or 26
+
 - `S::ZZLat`: a primitive sublattice of `L` in the same ambient space
+
+- `weyl::ZZMatrix`: a weyl vector with respect to the basis of `L`
+
 - if `compute_OR` is `false`, then `G` is the subgroup of the orthogonal group
   of `S` acting as $\pm 1$ on the discriminant group.
   If `compute_OR` is `true`, then `G` consists the subgroup consisting of
   isometries of `S` that can be extended to isometries of `L`.
 """
-function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl, compute_OR::Bool=true)
+function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   r = rank(L)
   lw = (weyl*gram_matrix(L)*transpose(weyl))[1,1]
   if  r == 26
@@ -161,8 +166,9 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl, compute_OR::Bool=true)
   gramS = change_base_ring(ZZ,gram_matrix(S))
   deltaR = [change_base_ring(ZZ, matrix(QQ, 1, rkR, v[1])*basis_matrix(R)) for v in short_vectors(rescale(R,-1),2)]
   dualDeltaR = [gramL*transpose(r) for r in deltaR]
-  return BorcherdsCtx(L, S, weyl, SS, R, deltaR, dualDeltaR, prRdelta, membership_test,
+  BCtx = BorcherdsCtx(L, S, weyl, SS, R, deltaR, dualDeltaR, prRdelta, membership_test,
                       gramL, gramS, prS, compute_OR)
+  return BCtx, basisL1
 end
 
 ################################################################################
@@ -863,7 +869,7 @@ Corresponds to Algorithm 5.8 in [Shi15](@cite)
 but this implementation is different.
 """
 # legacy function needed for precomputations
-function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, prRdelta, w)
+function _alg58(L::ZZLat, S::ZZLat, R::ZZLat, prRdelta, w::QQMatrix)
   V = ambient_space(L)
   d = exponent(discriminant_group(S))
   @hassert :K3Auto 1 V == ambient_space(S)
@@ -926,7 +932,7 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   # W + N + R < L of finite index
   svp_input = Tuple{QQFieldElem,QQMatrix,QQFieldElem,Int}[]
   for (rR, rRsq) in data.prRdelta
-    if rRsq==2
+    if rRsq == 2
       continue
     end
     @inbounds rwS = (rR*wL)[1,1]
@@ -946,7 +952,6 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
   bounds = [i for i in bounds if divides(d,denominator(i))[1]]
   mi = minimum(bounds)
   ma = maximum(bounds)
-
   svN = Hecke._short_vectors_gram(Hecke.LatEnumCtx, G,mi,ma, ZZRingElem)
   result = QQMatrix[]
   # treat the special case of the zero vector by copy paste.
@@ -995,13 +1000,11 @@ function _alg58_short_vector(data::BorcherdsCtx, w::ZZMatrix)
       if !found1 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         found1 = true
         push!(result, r*data.prS)
-        break
       end
       r = rr - rN1
       if !found2 && @inbounds all(denominator(r[1,i])==1 for i in 1:ncols(r))==1
         found2 = true
         push!(result, r*data.prS)
-        break
       end
       if found1 && found2
         break
@@ -1089,7 +1092,6 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
 
   #@show sum(length.(values(cvp_inputs)))
   tmp = zero_matrix(QQ,1,rank(SSdual))
-
 
   B = basis_matrix(SSdual)
   KB = K*B
@@ -1428,7 +1430,7 @@ Compute the symmetry group of a Weyl chamber up to finite index.
 - `entropy_abort` abort if an automorphism of positive entropy is found.
 """
 function borcherds_method(L::ZZLat, S::ZZLat, w::ZZMatrix; compute_OR=true, entropy_abort=false, max_nchambers=-1)
-  data = BorcherdsCtx(L, S, w, compute_OR)
+  data,_ = BorcherdsCtx(L, S, w; compute_OR=compute_OR)
   return borcherds_method(data, entropy_abort=entropy_abort, max_nchambers=max_nchambers)
 end
 
