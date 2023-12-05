@@ -22,7 +22,7 @@ function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, au
   if dim(auxiliary_base_space) != d
     integral_rays = matrix(ZZ, rays(variety))
     new_max_cones = IncidenceMatrix(cones(variety, d))
-    auxiliary_base_space = normal_toric_variety(integral_rays, new_max_cones; non_redundant = true)
+    auxiliary_base_space = normal_toric_variety(new_max_cones, integral_rays; non_redundant = true)
   end
 
   # Set attributes of this base space and return it
@@ -81,7 +81,7 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
   ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
   
   # Construct the ambient space
-  ambient_space = normal_toric_variety(ambient_space_rays, ambient_space_max_cones; non_redundant = true)
+  ambient_space = normal_toric_variety(ambient_space_max_cones, ambient_space_rays; non_redundant = true)
   
   # Compute torusinvariant weil divisor group and the class group
   ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
@@ -198,7 +198,7 @@ function sample_toric_variety()
           [5, 11, 12], [5, 6, 32], [5, 6, 12], [4, 31, 32], [4, 10, 11], [4, 5, 32],
           [4, 5, 11], [3, 30, 31], [3, 9, 10], [3, 4, 31], [3, 4, 10], [2, 29, 30],
           [2, 8, 9], [2, 3, 30], [2, 3, 9], [1, 8, 29], [1, 2, 29], [1, 2, 8]])
-  return normal_toric_variety(rays, cones)
+  return normal_toric_variety(cones, rays)
 end
 
 

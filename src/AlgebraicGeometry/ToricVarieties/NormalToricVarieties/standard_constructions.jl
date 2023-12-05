@@ -80,8 +80,8 @@ Normal toric variety
 """
 function hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
   fan_rays = [1 0; 0 1; -1 r; 0 -1]
-  cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
-  variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
+  cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
+  variety = normal_toric_variety(cones, fan_rays; non_redundant = true)
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(4))
   set_attribute!(variety, :class_group, free_abelian_group(2))
   weights = matrix(ZZ, [1 0; 0 1; 1 0; r 1])
@@ -126,7 +126,7 @@ function del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
     fan_rays = [1 0; 0 1; -1 -1; 1 1; 0 -1; -1 0]
     cones = IncidenceMatrix([[1, 4], [2, 4], [1, 5], [5, 3], [2, 6], [6, 3]])
   end
-  variety = normal_toric_variety(fan_rays, cones; non_redundant = true)
+  variety = normal_toric_variety(cones, fan_rays; non_redundant = true)
   set_attribute!(variety, :torusinvariant_weil_divisor_group, free_abelian_group(b+3))
   set_attribute!(variety, :class_group, free_abelian_group(b+1))
   if b == 1
@@ -245,7 +245,7 @@ function normal_toric_variety_from_star_triangulation(P::Polyhedron)
   integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
 
   # construct the variety
-  return normal_toric_variety(integral_rays, max_cones; non_redundant = true)
+  return normal_toric_variety(max_cones, integral_rays; non_redundant = true)
 end
 
 
@@ -298,7 +298,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron)
   max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in trias]
   
   # construct the varieties
-  return [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
+  return [normal_toric_variety(cones, integral_rays; non_redundant = true) for cones in max_cones]
 end
 
 
@@ -341,7 +341,7 @@ function normal_toric_variety_from_glsm(charges::ZZMatrix)
   # construct varieties
   triang = _find_full_star_triangulation(pts)
   max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in triang])
-  variety = normal_toric_variety(integral_rays, max_cones; non_redundant = true)
+  variety = normal_toric_variety(max_cones, integral_rays; non_redundant = true)
 
   # set the attributes and return the variety
   set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
@@ -408,7 +408,7 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix)
   # construct varieties
   integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
   max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
-  varieties = [normal_toric_variety(integral_rays, cones; non_redundant = true) for cones in max_cones]
+  varieties = [normal_toric_variety(cones, integral_rays; non_redundant = true) for cones in max_cones]
   
   # set the map from Div_T -> Cl to the desired matrix
   for v in varieties
