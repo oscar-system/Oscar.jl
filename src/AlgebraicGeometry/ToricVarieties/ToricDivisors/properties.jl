@@ -15,7 +15,7 @@ julia> is_cartier(td)
 true
 ```
 """
-@attr Bool is_cartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
+@attr Bool is_cartier(td::ToricDivisor) = pm_object(td).CARTIER
 
 
 @doc raw"""
@@ -35,7 +35,7 @@ julia> is_principal(td)
 false
 ```
 """
-@attr Bool is_principal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
+@attr Bool is_principal(td::ToricDivisor) = pm_object(td).PRINCIPAL
 
 @attr Bool is_trivial(td::ToricDivisor) = all([c == 0 for c in coefficients(td)])
 
@@ -57,7 +57,7 @@ julia> is_basepoint_free(td)
 true
 ```
 """
-@attr Bool is_basepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE
+@attr Bool is_basepoint_free(td::ToricDivisor) = pm_object(td).BASEPOINT_FREE
 
 
 @doc raw"""
@@ -103,7 +103,7 @@ julia> is_integral(td)
 true
 ```
 """
-@attr Bool is_integral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
+@attr Bool is_integral(td::ToricDivisor) = pm_object(td).INTEGRAL
 
 
 @doc raw"""
@@ -122,7 +122,7 @@ julia> is_ample(td)
 false
 ```
 """
-@attr Bool is_ample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
+@attr Bool is_ample(td::ToricDivisor) = pm_object(td).AMPLE
 
 
 @doc raw"""
@@ -141,7 +141,7 @@ julia> is_very_ample(td)
 false
 ```
 """
-@attr Bool is_very_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE
+@attr Bool is_very_ample(td::ToricDivisor) = pm_object(td).VERY_AMPLE
 
 
 @doc raw"""
@@ -160,7 +160,7 @@ julia> is_nef(td)
 true
 ```
 """
-@attr Bool is_nef(td::ToricDivisor) = pm_tdivisor(td).NEF
+@attr Bool is_nef(td::ToricDivisor) = pm_object(td).NEF
 
 
 @doc raw"""
@@ -179,7 +179,7 @@ julia> is_q_cartier(td)
 true
 ```
 """
-@attr Bool is_q_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER
+@attr Bool is_q_cartier(td::ToricDivisor) = pm_object(td).Q_CARTIER
 
 
 @doc raw"""
