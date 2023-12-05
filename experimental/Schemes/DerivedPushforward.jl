@@ -46,6 +46,34 @@ function _derived_pushforward(M::SubquoModule)
   return st[1]
 end
 
+# The code below is supposedly faster, because it does not need to pass 
+# through a double complex. 
+#
+# In practice, however, it is impossible to program the iterators for
+# monomials in quotient modules in a sufficiently efficient way for this 
+# to work. Hence, it's disabled for the time being.
+#=
+function _derived_pushforward(M::SubquoModule{T}) where {T <:MPolyRingElem{<:FieldElem}}
+  S = base_ring(M)
+  n = ngens(S)-1
+
+  d = _regularity_bound(M) - n
+  d = (d < 0 ? 0 : d)
+
+  Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
+  v = sum(x^d*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
+  kosz = koszul_complex(Oscar.KoszulComplex, v)
+  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+
+  pres = presentation(M)
+  N = cokernel(map(pres, 1))
+
+  KoM = hom(K, N)
+  st = strand(KoM, 0)
+  return st[1]
+end
+=#
+
 function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:FieldElem}
   return ngens(domain(phi)) - left_kernel(sparse_matrix(phi))[1]
 end
