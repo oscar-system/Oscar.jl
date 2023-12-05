@@ -93,7 +93,7 @@ Return the equivalent of the Stanley-Reisner ideal
 for the generic member of the family of spaces.
 
 ```jldoctest
-julia> coordinate_ring, (f, g, Kbar, u) = QQ["f", "g", "Kbar", "u"]
+julia> coord_ring, (f, g, Kbar, u) = QQ["f", "g", "Kbar", "u"]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
 julia> grading = [4 6 1 0]
@@ -103,17 +103,17 @@ julia> grading = [4 6 1 0]
 julia> d = 3
 3
 
-julia> f = family_of_spaces(coordinate_ring, grading, d)
+julia> f = family_of_spaces(coord_ring, grading, d)
 A family of spaces of dimension d = 3
 
 julia> stanley_reisner_ideal(f)
-ideal(f*g*Kbar, f*g*u, f*Kbar*u, g*Kbar*u)
+ideal(f*g*Kbar*u)
 ```
 """
 @attr MPolyIdeal{QQMPolyRingElem} function stanley_reisner_ideal(f::FamilyOfSpaces)
   ring = coordinate_ring(f)
   variables = gens(ring)
-  combis = Oscar.combinations(length(variables), dim(f))
+  combis = Oscar.combinations(length(variables), dim(f)+1)
   ideal_generators = [prod([variables[i] for i in c]) for c in combis]
   return ideal(ideal_generators)
 end
