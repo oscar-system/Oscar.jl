@@ -1168,7 +1168,7 @@ return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
 together with the embeddings of $K into $G_i$.
 """
 function intersect(G1::T, V::T...) where T<:GAPGroup
-   return intersect([G1; V...])
+   return intersect([G1, V...])
 end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup

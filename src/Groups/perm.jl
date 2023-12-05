@@ -286,7 +286,7 @@ function cperm()
 end
 
 function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1; L...]])
+  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
   #TODO: better create the product of GAP permutations?
 end
 
@@ -298,7 +298,7 @@ function cperm(g::PermGroup)
 end
 
 function cperm(g::PermGroup, L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1; L...])
+  x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1, L...])
   @req x in g.X "the element does not embed in the group"
   return PermGroupElem(g, x)
 end

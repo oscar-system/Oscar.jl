@@ -64,11 +64,11 @@ function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
 end
 
 function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
-  return invariant_ring([m; ms...])
+  return invariant_ring([m, ms...])
 end
 
 function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
-  return invariant_ring(R, [m; ms...])
+  return invariant_ring(R, [m, ms...])
 end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
