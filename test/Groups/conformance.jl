@@ -2,14 +2,12 @@ L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group
 
 import Oscar.AbstractAlgebra.GroupsCore
 
-#include(joinpath(dirname(pathof(GroupsCore)), "..", "test", "conformance_test.jl"))
+include(joinpath(dirname(pathof(GroupsCore)), "..", "test", "conformance_test.jl"))
 
 @testset "GAPGroups_interface_conformance for $(G)" for G in L
 
-   # TODO: enable GroupsCore conformance tests; this requires a new GroupsCore
-   # release with https://github.com/kalmarek/GroupsCore.jl/pull/41 merged.
-   #test_Group_interface(G)
-   #test_GroupElement_interface(rand(G, 2)...)
+   test_Group_interface(G)
+   test_GroupElement_interface(rand(G, 2)...)
 
    g, h = rand(G,2)
 

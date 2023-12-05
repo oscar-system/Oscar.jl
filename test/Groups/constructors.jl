@@ -1,5 +1,3 @@
-import Oscar.AbstractAlgebra.GroupsCore
-
 @testset "The groups Sym(n) and Alt(n)" begin
 
   for n = 5:8
@@ -45,13 +43,13 @@ import Oscar.AbstractAlgebra.GroupsCore
   @test_throws ArgumentError alternating_group(-1)
 
   @test is_natural_alternating_group(alternating_group(4))
-  @test ! is_natural_alternating_group(omega_group(3,3))
+  @test !is_natural_alternating_group(omega_group(3,3))
   @test is_isomorphic_with_alternating_group(alternating_group(4))
   @test is_isomorphic_with_alternating_group(omega_group(3,3))
   @test !is_isomorphic_with_alternating_group(symmetric_group(4))
 
   @test is_natural_symmetric_group(symmetric_group(4))
-  @test ! is_natural_symmetric_group(PcGroup(symmetric_group(4)))
+  @test !is_natural_symmetric_group(PcGroup(symmetric_group(4)))
   @test is_isomorphic_with_symmetric_group(symmetric_group(4))
   @test is_isomorphic_with_symmetric_group(PcGroup(symmetric_group(4)))
   @test !is_isomorphic_with_symmetric_group(alternating_group(4))
