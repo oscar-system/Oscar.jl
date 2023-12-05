@@ -161,7 +161,7 @@ function _is_projective(a::Vector{ZZRingElem})
   return isone(gcd(a))
 end
 
-Nemo.parent_type(::AbsProjectiveRationalPoint{S,T}) where {S,T} = T
+Nemo.parent_type(::Type{AbsProjectiveRationalPoint{S,T}}) where {S,T} = T
 
 function ==(a::AbsProjectiveRationalPoint{S, T}, b::AbsProjectiveRationalPoint{S, U}) where {S<:Union{FieldElem,ZZRingElem},T, U}
   ambient_space(a) == ambient_space(b) || return false

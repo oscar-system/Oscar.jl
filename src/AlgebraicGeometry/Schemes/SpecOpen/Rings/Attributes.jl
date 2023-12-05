@@ -46,7 +46,6 @@ domain(R::SpecOpenRing) = R.domain
 ########################################################################
 elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}}
 parent_type(::Type{SpecOpenRingElem{S}}) where {S} = S
-parent_type(f::SpecOpenRingElem) = parent_type(typeof(f))
 
 ########################################################################
 # Basic getters                                                        #

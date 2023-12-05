@@ -65,8 +65,6 @@ end
 
 elem_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = PBWAlgQuoElem{T, S}
 
-parent_type(::PBWAlgQuoElem{T, S}) where {T, S} = PBWAlgQuo{T, S}
-
 parent_type(::Type{PBWAlgQuoElem{T, S}}) where {T, S} = PBWAlgQuo{T, S}
 
 parent(a::PBWAlgQuoElem) = a.parent

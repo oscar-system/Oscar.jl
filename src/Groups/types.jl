@@ -457,8 +457,7 @@ elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 # `parent_type` is defined and documented in AbstractAlgebra.
-parent_type(::Type{T}) where T<:BasicGAPGroupElem{S} where S = S
-parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
+parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 
 #
 # The array _gap_group_types contains pairs (X,Y) where
