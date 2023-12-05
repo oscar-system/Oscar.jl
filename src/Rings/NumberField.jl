@@ -52,8 +52,6 @@ parent_type(::NfNSGenElem{T, S}) where {T, S} = NfNSGen{T, S}
 
 parent_type(::Type{NfNSGenElem{T, S}}) where {T, S} = NfNSGen{T, S}
 
-elem_type(::NfNSGen{T, S}) where {T, S} = NfNSGenElem{T, S}
-
 elem_type(::Type{NfNSGen{T, S}}) where {T, S} = NfNSGenElem{T, S}
 
 is_simple(::NfNSGen) = false

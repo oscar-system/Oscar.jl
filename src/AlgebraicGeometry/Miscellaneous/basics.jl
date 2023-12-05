@@ -79,7 +79,7 @@ function _isprojective(a::Vector{ZZRingElem})
 end
 
 parent(a::ProjSpcElem) = a.parent
-Nemo.elem_type(::ProjSpc{T}) where {T} = ProjSpcElem{T}
+Nemo.elem_type(::Type{ProjSpc{T}}) where {T} = ProjSpcElem{T}
 Nemo.parent_type(::ProjSpcElem{T}) where {T} = ProjSpc{T}
 Nemo.base_ring(P::ProjSpc) = P.R
 

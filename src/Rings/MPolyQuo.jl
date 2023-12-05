@@ -632,7 +632,6 @@ end
 
 parent_type(::MPolyQuoRingElem{S}) where S = MPolyQuoRing{S}
 parent_type(::Type{MPolyQuoRingElem{S}}) where S = MPolyQuoRing{S}
-elem_type(::MPolyQuoRing{S})  where S= MPolyQuoRingElem{S}
 elem_type(::Type{MPolyQuoRing{S}})  where S= MPolyQuoRingElem{S}
 
 canonical_unit(a::MPolyQuoRingElem) = one(parent(a))

@@ -80,7 +80,6 @@ mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
-elem_type(::MatrixGroup{S,T}) where {S,T} = MatrixGroupElem{S,T}
 Base.eltype(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
 
 # `parent_type` is defined and documented in AbstractAlgebra.
