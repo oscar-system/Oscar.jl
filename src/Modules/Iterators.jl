@@ -157,3 +157,178 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, MultiIndicesOfD
   return (e, i), (i, exp_it, e)
 end
 
+### Iteration over monomials in Subquos
+#
+# We need a Groebner basis over a field for this to work; hence the 
+# type restriction.
+mutable struct AllSubquoMonomials{ModuleType<:SubquoModule{<:MPolyDecRingElem{<:FieldElem}}}
+  M::ModuleType
+  d::Int
+  pres::ComplexOfMorphisms # A field for the presentation of M
+  lead::SubModuleOfFreeModule # The leading module of the modulus in the presentation
+
+  function AllSubquoMonomials(M::SubquoModule{T}, d::Int) where {U<:FieldElem, T <: MPolyDecRingElem{U}}
+    is_graded(M) || error("module must be graded")
+    S = base_ring(M)
+    is_standard_graded(S) || error("iterator implemented only for the standard graded case")
+    return new{typeof(M)}(M, d)
+  end
+end
+
+underlying_module(amm::AllSubquoMonomials) = amm.M
+degree(amm::AllSubquoMonomials) = amm.d
+
+function presentation(amm::AllSubquoMonomials)
+  !isdefined(amm, :pres) && (amm.pres = presentation(underlying_module(amm)))
+  return amm.pres
+end
+
+function leading_module_of_presentation(amm::AllSubquoMonomials)
+  if !isdefined(amm, :lead)
+    I, _ = image(map(presentation(amm), 1))
+    amm.lead = leading_module(I.sub)
+  end
+  return amm.lead
+end
+
+function all_monomials(M::SubquoModule{T}, d::Int) where {U<:FieldElem, T <: MPolyDecRingElem{U}}
+  return AllModuleMonomials(M, d)
+end
+
+Base.eltype(amm::AllSubquoMonomials{T}) where {T} = elem_type(T)
+
+function Base.length(amm::AllSubquoMonomials)
+  p = presentation(amm)
+  F = p[0]::FreeMod
+  result = 0
+  I = leading_module_of_presentation(amm)
+  for x in all_monomials(F, degree(amm))
+    x in I && continue
+    result += 1
+  end
+  return result
+end
+  
+function Base.iterate(amm::AllSubquoMonomials, state::Nothing = nothing)
+  F = presentation(amm)[0]
+  mon_it = all_monomials(F, degree(amm))
+  I = leading_module_of_presentation(amm)
+  next = zero(underlying_module(amm))
+  res = iterate(mon_it)
+  res === nothing && return nothing
+  m, s = res
+  while m in I
+    res = iterate(mon_it, s)
+    res === nothing && return nothing
+    m, s = res
+  end
+  next = map(presentation(amm), 0)(m)
+  return next, (mon_it, s)
+end
+
+function Base.iterate(amm::AllSubquoMonomials, state::Tuple)
+  mon_it, s = state
+  res = iterate(mon_it, s)
+  res === nothing && return nothing
+  m, s = res
+  I = leading_module_of_presentation(amm)
+  while m in I
+    res = iterate(mon_it, s)
+    res === nothing && return nothing
+    m, s = res
+  end
+  next = map(presentation(amm), 0)(m)
+  return next, (mon_it, s)
+end
+
+### Iteration over exponent vectors of SubquoModules
+mutable struct AllSubquoExponents{ModuleType<:SubquoModule{<:MPolyDecRingElem{<:FieldElem}}}
+  M::ModuleType
+  d::Int
+  pres::ComplexOfMorphisms # A field for the presentation of M
+  lead::SubModuleOfFreeModule # The leading module of the modulus in the presentation
+
+  function AllSubquoExponents(M::SubquoModule{T}, d::Int) where {U<:FieldElem, T <: MPolyDecRingElem{U}}
+    is_graded(M) || error("module must be graded")
+    S = base_ring(M)
+    is_standard_graded(S) || error("iterator implemented only for the standard graded case")
+    return new{typeof(M)}(M, d)
+  end
+end
+
+underlying_module(amm::AllSubquoExponents) = amm.M
+degree(amm::AllSubquoExponents) = amm.d
+
+function presentation(amm::AllSubquoExponents)
+  !isdefined(amm, :pres) && (amm.pres = presentation(underlying_module(amm)))
+  return amm.pres
+end
+
+function leading_module_of_presentation(amm::AllSubquoExponents)
+  if !isdefined(amm, :lead)
+    I, _ = image(map(presentation(amm), 1))
+    amm.lead = leading_module(I.sub)
+  end
+  return amm.lead
+end
+
+function all_exponents(M::SubquoModule{T}, d::Int) where {U<:FieldElem, T <: MPolyDecRingElem{U}}
+  return AllSubquoExponents(M, d)
+end
+
+Base.eltype(amm::AllSubquoExponents) = Tuple{Vector{Int}, Int}
+
+function Base.length(amm::AllSubquoExponents)
+  p = presentation(amm)
+  F = p[0]::FreeMod
+  R = base_ring(F)
+  v = gens(R)
+  result = 0
+  I = leading_module_of_presentation(amm)
+  for e in all_exponents(F, degree(amm))
+    m = prod(x^k for (x, k) in zip(v, e[1]); init=one(R))*F[e[2]]
+    m in I && continue
+    result += 1
+  end
+  return result
+end
+  
+function Base.iterate(amm::AllSubquoExponents, state::Nothing = nothing)
+  F = presentation(amm)[0]
+  R = base_ring(F)
+  v = gens(R)
+  mon_it = all_exponents(F, degree(amm))
+  I = leading_module_of_presentation(amm)
+  next = zero(underlying_module(amm))
+  res = iterate(mon_it)
+  res === nothing && return nothing
+  e, s = res
+  m = prod(x^k for (x, k) in zip(v, e[1]); init=one(R))*F[e[2]]
+  while m in I
+    res = iterate(mon_it, s)
+    res === nothing && return nothing
+    e, s = res
+    m = prod(x^k for (x, k) in zip(v, e[1]); init=one(R))*F[e[2]]
+  end
+  return e, (mon_it, s)
+end
+
+function Base.iterate(amm::AllSubquoExponents, state::Tuple)
+  R = base_ring(underlying_module(amm))
+  v = gens(R)
+  mon_it, s = state
+  res = iterate(mon_it, s)
+  res === nothing && return nothing
+  e, s = res
+  F = presentation(amm)[0]
+  m = prod(x^k for (x, k) in zip(v, e[1]); init=one(R))*F[e[2]]
+  I = leading_module_of_presentation(amm)
+  while m in I
+    res = iterate(mon_it, s)
+    res === nothing && return nothing
+    e, s = res
+    m = prod(x^k for (x, k) in zip(v, e[1]); init=one(R))*F[e[2]]
+  end
+  return e, (mon_it, s)
+end
+
