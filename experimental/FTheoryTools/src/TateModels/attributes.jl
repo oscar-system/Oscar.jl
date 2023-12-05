@@ -39,7 +39,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a2(t)
-a21*w
+w*a21
 ```
 """
 tate_section_a2(t::GlobalTateModel) = t.tate_a2
@@ -57,7 +57,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a3(t)
-a32*w^2
+w^2*a32
 ```
 """
 tate_section_a3(t::GlobalTateModel) = t.tate_a3
@@ -75,7 +75,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_section_a4(t)
-a43*w^3
+w^3*a43
 ```
 """
 tate_section_a4(t::GlobalTateModel) = t.tate_a4
@@ -115,7 +115,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> tate_polynomial(t)
--a1*x*y*z + a21*w*x^2*z^2 - a32*w^2*y*z^3 + a43*w^3*x*z^4 + x^3 - y^2
+w^3*a43*x*z^4 - w^2*a32*y*z^3 + w*a21*x^2*z^2 - a1*x*y*z + x^3 - y^2
 ```
 """
 tate_polynomial(t::GlobalTateModel) = t.tate_polynomial
@@ -137,7 +137,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Normal, 3-dimensional toric variety
+Normal toric variety
 ```
 """
 function base_space(t::GlobalTateModel)

@@ -17,7 +17,9 @@ Construct the morphism $F \to G$ corresponding to the matrix `mat`.
 """
 FreeModuleHom(F::AbstractFreeMod{T}, G::S, mat::MatElem{T}) where {T,S} = FreeModuleHom{T,S}(F, G, mat)=#
 
-img_gens(f::FreeModuleHom) = gens(image(f)[1])
+img_gens(f::FreeModuleHom) = images_of_generators(f)
+images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
+image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
 @attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
     return identity_map(base_ring(domain(f)))
@@ -197,11 +199,11 @@ julia> a2 == b
 true
 ```
 """
-function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
+function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
   return FreeModuleHom(F, M, V)
 end
-function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}) where T 
+function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}; check::Bool=true) where T 
   base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
   return FreeModuleHom(F, M, A)
 end
@@ -229,8 +231,8 @@ scalars in `base_ring(F)` to their images under `h`.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
-hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
 
 @doc raw"""
     identity_map(M::ModuleFP)
@@ -238,7 +240,9 @@ hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType) where {T, RingMap
 Return the identity map $id_M$.
 """
 function identity_map(M::ModuleFP)
-  return hom(M, M, gens(M))
+  phi = hom(M, M, gens(M), check=false)
+  phi.generators_map_to_generators = true
+  return phi
 end
 
 ### type getters in accordance with the `hom`-constructors
@@ -377,7 +381,7 @@ function hom(F::FreeMod, G::FreeMod)
   m = ngens(G)
   R = base_ring(F)
   function im(x::FreeModElem)
-    return hom(F, G, Vector{elem_type(G)}([FreeModElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n]))
+    return hom(F, G, Vector{elem_type(G)}([FreeModElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n]), check=false)
   end
   function pre(h::FreeModuleHom)
     s = sparse_row(F.R)
@@ -459,11 +463,13 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   R = base_ring(G)
   if ngens(G) == 0
     s = sub(G, gens(G), :module)
-    return s, hom(s, G, gens(G))
+    help = hom(s, G, gens(G), check=false)
+    help.generators_map_to_generators = true
+    return s, help
   end
   g = map(h, basis(G))
   if isa(codomain(h), SubquoModule)
-    g = [x.repres for x = g]
+    g = [repres(x) for x = g]
     if isdefined(codomain(h), :quo)
       append!(g, collect(codomain(h).quo.gens))
     end
@@ -481,7 +487,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   end
   @assert k.F === G
   c = collect(k.sub.gens)
-  return k, hom(k, parent(c[1]), c)
+  return k, hom(k, parent(c[1]), c, check=false)
 end
 
 @doc raw"""
@@ -553,9 +559,10 @@ Homogeneous module homomorphism)
 ```
 """
 function image(h::FreeModuleHom)
-  si = [x for x = map(h, basis(domain(h))) if !iszero(x)]
+  si = filter(!iszero, images_of_generators(h))
   s = sub(codomain(h), si, :module)
-  return s, hom(s, codomain(h), si)
+  phi = hom(s, codomain(h), si, check=false)
+  return s, phi
 end
 
 

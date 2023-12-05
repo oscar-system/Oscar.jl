@@ -14,7 +14,7 @@ SubquoModuleElem(v::SRow{R}, SQ::SubquoModule) where {R} = SubquoModuleElem{R}(v
 
 Construct an element $v \in SQ$ that is represented by $a$.
 """
-SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule) where {R} = SubquoModuleElem{R}(a, SQ) 
+SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced) 
 
 elem_type(::SubquoModule{T}) where {T} = SubquoModuleElem{T}
 parent_type(::SubquoModuleElem{T}) where {T} = SubquoModule{T}
@@ -73,7 +73,13 @@ julia> coordinates(m)
 Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 ```
 """
-coordinates(m::SubquoModuleElem) = m.coeffs
+function coordinates(m::SubquoModuleElem)
+  if !isdefined(m, :coeffs)
+    m.coeffs = coordinates(repres(m), parent(m))
+  end
+  return m.coeffs
+end
+
 #########################################################
 
 @doc raw"""
@@ -82,14 +88,33 @@ coordinates(m::SubquoModuleElem) = m.coeffs
 Return a free module element that is a representative of `v`.
 """
 function repres(v::SubquoModuleElem)
+  if !isdefined(v, :repres)
+    M = parent(v)
+    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+  end
   return v.repres
 end
 
 #######################################################
 
-function simplify(el::SubquoModuleElem)
-  reduced = reduce(repres(el), parent(el).quo)
-  return SubquoModuleElem(reduced, parent(el))
+function simplify(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
+  el.is_reduced && return el
+  !isdefined(parent(el), :quo) && return el
+  iszero(parent(el).quo) && return el
+  !isdefined(el, :repres) && repres(el) # Make sure the field is filled
+  reduced = reduce(el.repres, parent(el).quo)
+  result = SubquoModuleElem(reduced, parent(el), is_reduced=true)
+  return result
+end
+
+function simplify!(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
+  el.is_reduced && return el
+  !isdefined(parent(el), :quo) && return el
+  iszero(parent(el).quo) && return el
+  !isdefined(el, :repres) && repres(el) # Make sure the field is filled
+  el.repres = reduce(el.repres, parent(el).quo)
+  el.is_reduced = true
+  return el
 end
 
 #######################################################
@@ -216,7 +241,7 @@ function leading_monomials(F::ModuleGens)
 end
 
 function show(io::IO, b::SubquoModuleElem)
-  print(io, b.repres)
+  print(io, repres(b))
 end
 
 @doc raw"""
@@ -304,12 +329,20 @@ end
 
 function +(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
-  return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
+  if isdefined(a, :coeffs) && isdefined(b, :coeffs)
+    return SubquoModuleElem(coordinates(a)+coordinates(b), a.parent)
+  else
+    return SubquoModuleElem(repres(a) + repres(b), parent(a))
+  end
 end
 
 function -(a::SubquoModuleElem, b::SubquoModuleElem) 
   check_parent(a,b)
-  return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
+  if isdefined(a, :coeffs) && isdefined(b, :coeffs)
+    return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
+  else
+    return SubquoModuleElem(repres(a) - repres(b), parent(a))
+  end
 end
 
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
@@ -318,21 +351,24 @@ function *(a::MPolyDecRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubquoModuleElem(a*coordinates(b), b.parent)
+  isdefined(b, :coeffs) && return SubquoModuleElem(a*coordinates(b), b.parent)
+  return SubquoModuleElem(a*repres(b), b.parent)
 end
 
 function *(a::MPolyRingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubquoModuleElem(a*coordinates(b), b.parent)
+  isdefined(b, :coeffs) && return SubquoModuleElem(a*coordinates(b), b.parent)
+  return SubquoModuleElem(a*repres(b), b.parent)
 end
 
 function *(a::RingElem, b::SubquoModuleElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
-  return SubquoModuleElem(a*coordinates(b), b.parent)
+  isdefined(b, :coeffs) && return SubquoModuleElem(a*coordinates(b), b.parent)
+  return SubquoModuleElem(a*repres(b), b.parent)
 end
 
 *(a::Int, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
@@ -346,8 +382,19 @@ function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   return iszero(a-b)
 end
 
-function Base.hash(a::SubquoModuleElem, h::UInt)
-  error("not implemented")
+function Base.hash(a::SubquoModuleElem)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  return xor(h, b)
+end
+
+function Base.hash(a::SubquoModuleElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+  b = 0xaa2ba4a32dd0b431 % UInt
+  h = hash(typeof(a), h)
+  h = hash(parent(a), h)
+  simplify!(a)
+  return hash(a.repres, h)
 end
 
 function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
@@ -371,7 +418,7 @@ If `task = :only_morphism`, return only the inclusion map.
 """
 function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
   s = SubquoModule(F, V)
-  emb = hom(s, F, V)
+  emb = hom(s, F, V; check=false)
   set_attribute!(s, :canonical_inclusion => emb)
   return return_sub_wrt_task(s, emb, task)
 end
@@ -394,7 +441,7 @@ If `task = :only_morphism`, return only the inclusion map.
 function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
   #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
-  emb = hom(M, F, ambient_representatives_generators(M))
+  emb = hom(M, F, ambient_representatives_generators(M); check=false)
   emb.matrix = A
   set_attribute!(M, :canonical_inclusion => emb)
   return return_sub_wrt_task(M, emb, task)
@@ -412,7 +459,7 @@ If `task` is set to `:cache_morphism` the morphism is also cached.
 If `task` is set to `:only_morphism` return only the morphism.
 """
 function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
-  s = SubquoModule(F, [x.repres for x = O])
+  s = SubquoModule(F, [repres(x) for x = O])
   return sub(F, s, task)
 end
 
@@ -430,7 +477,7 @@ If `task` is set to `:only_morphism` return only the morphism.
 function sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) where T
   @assert !isdefined(s, :quo)
   @assert s.F === F
-  emb = hom(s, F, Vector{elem_type(F)}([repres(x) for x in gens(s)]))
+  emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   return return_sub_wrt_task(s, emb, task)
@@ -458,7 +505,7 @@ function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol 
     t.quo = M.quo
     t.sum = sum(t.sub, t.quo)
   end
-  emb = hom(t, M, V)
+  emb = hom(t, M, V; check=false)
   set_attribute!(t, :canonical_inclusion => emb)
   return return_sub_wrt_task(t, emb, task)
 end
@@ -585,7 +632,7 @@ If `task` is set to `:none` or `:module` return only the module.
 """
 function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
   S = SubquoModule(F, basis(F))
-  Q = SubquoModule(S, [x.repres for x = O])
+  Q = SubquoModule(S, [repres(x) for x = O])
   
   return return_quo_wrt_task(F, Q, task)
 end
@@ -632,7 +679,7 @@ Additionally, if `N` denotes this object,
 If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
-  return quo(M, [x.repres for x = V], task)
+  return quo(M, [repres(x) for x = V], task)
 end
 
 @doc raw"""
@@ -737,7 +784,8 @@ function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
   if task == :none || task == :module
     return Q
   else
-    pro = hom(M, Q, gens(Q))
+    pro = hom(M, Q, gens(Q); check=false)
+    pro.generators_map_to_generators = true # Makes evaluation of the inclusion easier
     task == :cache_morphism && register_morphism!(pro)
     task == :only_morphism && return pro
     return Q, pro
@@ -935,6 +983,7 @@ true
 """
 function is_zero(m::SubquoModuleElem)
   is_zero(ambient_representative(m)) && return true
+  m.is_reduced && return false
   isdefined(parent(m), :quo) || return false
   return (ambient_representative(m) in parent(m).quo)
 end
