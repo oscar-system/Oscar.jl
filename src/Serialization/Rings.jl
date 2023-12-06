@@ -50,13 +50,6 @@ function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_r
   return load_object(s, T, parents)
 end
 
-# fix for series and ideal cases
-function load_object(s::DeserializerState, T::Type{<:Union{RingElem, MPolyIdeal, LaurentMPolyIdeal}},
-                     terms::JSON3.Object, parent_ring::S) where S <: Union{Ring, AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-  parents = get_parents(parent_ring)
-  return load_object(s, T, terms, parents)
-end
-
 ################################################################################
 # ring of integers (singleton type)
 @register_serialization_type ZZRing
