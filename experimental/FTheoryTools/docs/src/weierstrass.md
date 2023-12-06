@@ -184,6 +184,13 @@ singular_loci(w::WeierstrassModel)
 
 ## Methods
 
-### Towards resolution of singularities
+### Blowup
 
-To come.
+We can blow up a Weierstrass model:
+```@docs
+blow_up(w::WeierstrassModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+```
+Consequently, the model will thereafter be partially resolved.
+```@docs
+is_partially_resolved(w::WeierstrassModel)
+```
