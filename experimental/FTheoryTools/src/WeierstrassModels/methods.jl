@@ -74,11 +74,13 @@ function blow_up(w::WeierstrassModel, I::MPolyIdeal; coordinate_name::String = "
   # Change/Fix? We may want to provide not only output that remains true forever but also output, while the internals may change?
   model = WeierstrassModel(f, g, new_pw, base_space(w), new_ambient_space)
 
-  # Set attributes
-  set_attribute!(model, :base_fully_specified, true)
-  set_attribute!(model, :partially_resolved, true)
-  if has_attribute(w, :explicit_model_sections)
-    set_attribute!(model, :explicit_model_sections => get_attribute(w, :explicit_model_sections))
+  # Copy known attributes from old model and overwrite as appropriate
+  model_attributes = w.__attrs
+  for (key, value) in model_attributes
+    set_attribute!(model, key, value)
   end
+  set_attribute!(model, :partially_resolved, true)
+
+  # Return the partially resolved model
   return model
 end
