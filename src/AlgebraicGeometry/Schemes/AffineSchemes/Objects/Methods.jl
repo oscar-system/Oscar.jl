@@ -178,7 +178,7 @@ end
 Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
-function connnected_components(X::AbsSpec)
+function connected_components(X::AbsSpec)
   I = saturated_ideal(modulus(OO(X)))
   l = primary_decomposition(I)
   comp = [subscheme(X, Q) for (Q, _) in l]
