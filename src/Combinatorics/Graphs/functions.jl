@@ -220,11 +220,7 @@ julia> nv(g)
 ```
 """
 function add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
-  result = 0
-  for i = 1:n
-    result += add_vertex!(g) ? 1 : 0
-  end
-  return result
+  return count(_->add_vertex!(g), 1:n)
 end
 
 
