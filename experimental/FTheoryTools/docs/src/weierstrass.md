@@ -110,13 +110,10 @@ useful to consider a polynomial ring whose variables are the sections
 used in the desired factorization of the Weierstrass sections ``f`` and ``g``.
 In theory, one can consider the indeterminates of this polynomial ring as local
 coordinate of an auxiliary base space. Indeed, for our computer implementation
-the polynomial ring with these indeterminates serve as the coordinate ring of
-an auxiliary *toric* base space. Despite this auxiliary base space being toric,
-the predictions from such an analysis are not limited to the world of toric varieties.
-
-For constructions along these lines, we support the following constructor:
+the polynomial ring with these indeterminates serves as the coordinate ring of
+a family of base spaces. We support the following constructor:
 ```@docs
-weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem; toric_sample = true)
+weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 ```
 
 ### Standard constructions

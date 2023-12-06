@@ -131,13 +131,10 @@ In this case, it is useful to consider the polynomial ring with indeterminates
 ``a_{10}``, ``a_{21}``, ``a_{32}``, ``a_{43}``, ``a_{65}`` and ``w``.
 In theory, one can consider these indeterminates as local coordinate of an
 auxiliary base space. Indeed, for our computer implementation the polynomial
-ring with these indeterminates serve as the coordinate ring of an auxiliary *toric*
-base space. Despite this auxiliary base space being toric, the predictions from
-such an analysis are not limited to the world of toric varieties.
-
-For constructions along these lines, we support the following constructor:
+ring with these indeterminates serves as coordinate ring for the family of base
+spaces. We support the following constructor:
 ```@docs
-global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 ```
 
 

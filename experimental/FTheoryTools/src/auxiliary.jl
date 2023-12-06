@@ -348,36 +348,9 @@ end
 _blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
 
 
-###########################################################################
-# 9: Constructing a toric sample for models over not-fully specified spaces
-###########################################################################
-
-function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
-  base_space = _auxiliary_base_space(base_vars, base_grading, d)
-  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-  D1 = [0 for i in 1:rank(class_group(base_space))]
-  D1[1] = 2
-  D1 = toric_divisor_class(base_space, D1)
-  D2 = [0 for i in 1:rank(class_group(base_space))]
-  D2[1] = 3
-  D2 = toric_divisor_class(base_space, D2)
-  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1, D2)
-  return [cox_ring(base_space), base_space, ambient_space]
-end
-
-
-function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
-  base_space = _auxiliary_base_space(base_vars, base_grading, d)
-  D1_class = toric_divisor_class(base_space, D1)
-  D2_class = toric_divisor_class(base_space, D2)
-  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1_class, D2_class)
-  return [cox_ring(ambient_space), base_space, ambient_space]
-end
-
 
 ###########################################################################
-# 10: Constructing a generic sample for models over not-fully specified spaces
+# 9: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)

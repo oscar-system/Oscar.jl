@@ -81,7 +81,7 @@ end
 #####################################################################
 
 @doc raw"""
-    weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem; toric_sample = true)
+    weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
 This method constructs a Weierstrass model over a base space that is not
 fully specified.
@@ -107,14 +107,9 @@ julia> w = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, 
 Assuming that the first row of the given grading is the grading under Kbar
 
 Weierstrass model over a not fully specified base
-
-julia> w2 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g; toric_sample = false)
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
 ```
 """
-function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem; toric_sample = true)
+function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
@@ -144,11 +139,6 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   # Execute consistency checks
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
-  if d == 1
-    @req length(gens_base_names) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
-  else
-    @req length(gens_base_names) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
-  end
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
@@ -157,16 +147,10 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the model
-  if toric_sample
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, gens_base_names, d)
-    R = cox_ring(auxiliary_ambient_space)
-  else
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
-    R = coordinate_ring(auxiliary_ambient_space)
-  end
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
   ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
-  pw = _weierstrass_polynomial(f, g, R)
+  pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
   model = WeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :base_fully_specified, false)
   return model

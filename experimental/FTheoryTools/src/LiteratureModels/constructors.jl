@@ -39,27 +39,11 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Normal toric variety
+A family of spaces of dimension d = 5
 
-julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
-
-julia> I = ideal([x,y,w]);
-
-julia> v2 = domain(blow_up(v, I))
-Normal toric variety
-
-julia> cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by 
-  Kbar -> [1 0 0 0]
-  w -> [0 1 0 0]
-  a1 -> [1 0 0 0]
-  a21 -> [2 -1 0 0]
-  a32 -> [0 0 1 0]
-  a43 -> [1 -1 1 0]
-  x -> [1 0 1 2]
-  y -> [6 -3 0 3]
-  z -> [1 -1 0 1]
-  e -> [3 -2 -1 0]
+julia> coordinate_ring(v)
+Multivariate polynomial ring in 9 variables Kbar, w, a1, a21..., z
+  over rational field
 ```
 It is also possible to construct a literature model over a particular base.
 Currently, this feature is only supported for toric base spaces.
@@ -376,16 +360,15 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
   end
   
-  if typeof(model.base_space) == NormalToricVariety
-    #base_ring = cox_ring(model.base_space) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
-    if haskey(model_dict["model_data"], "zero_section")
-      set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
-      #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
-    end
-    if haskey(model_dict["model_data"], "generating_sections")
-      set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-      #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-    end
+  # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
+  #base_ring = cox_ring(model.base_space)
+  if haskey(model_dict["model_data"], "zero_section")
+    set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
+    #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+  end
+  if haskey(model_dict["model_data"], "generating_sections")
+    set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+    #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
   end
   
 end
