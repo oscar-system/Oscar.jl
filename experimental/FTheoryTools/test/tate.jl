@@ -55,7 +55,6 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
     end
   end
 end
-
 #############################################################
 # 2: Global Tate models over arbitrary base space
 #############################################################

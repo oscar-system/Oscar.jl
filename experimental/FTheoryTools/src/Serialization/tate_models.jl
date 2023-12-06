@@ -53,8 +53,8 @@ function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel})
   return (
     load_typed_object(s, :base_space),
     load_typed_object(s, :ambient_space),
-    load_typed_object(s, :global_poly_parent),
-    load_typed_object(s, :sections_poly_parent)
+    load_typed_object(s, :tate_polynomial_ring),
+    load_typed_object(s, :tate_section_ring)
   )
 end
 
