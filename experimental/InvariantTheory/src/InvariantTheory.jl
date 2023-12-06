@@ -13,6 +13,9 @@ mutable struct ReductiveGroup
     canonical_representation::AbstractAlgebra.Generic.MatSpaceElem
 
     function ReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
+        if sym != :SL
+            error("Only implemented for SLm")
+        end
         R, _ = polynomial_ring(fld, :z => (1:m,1:m))
         return ReductiveGroup(sym, m, R)
     end
