@@ -494,6 +494,7 @@ end
 @deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
 @deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
 @deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})
+
 @deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(f, Incidence, Rays, nothing; non_redundant)
 @deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant)
 @deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant)
@@ -505,3 +506,5 @@ end
 @deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 @deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
 @deprecate normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false) normal_toric_variety(max_cones, rays; non_redundant)
+
+@deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
