@@ -141,9 +141,9 @@ julia&gt; m = 2;
 
 julia&gt; ray_generators = [e1, -e1, e2, e3, - e2 - e3 - m * e1];
 
-julia&gt; max_cones = [[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]];
+julia&gt; max_cones = IncidenceMatrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
 
-julia&gt; X = normal_toric_variety(ray_generators, max_cones; non_redundant = true)
+julia&gt; X = normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
 
 julia&gt; cox_ring(X)
@@ -182,4 +182,4 @@ julia&gt; polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
 Normal toric variety
 
 julia&gt; length(intersection_form(F3))
-10</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cohomCalg/">« Line bundle cohomology with cohomCalg</a><a class="docs-footer-nextpage" href="../Subvarieties/">Subvarieties »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.0 on <span class="colophon-date" title="Friday 1 December 2023 15:48">Friday 1 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+10</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../cohomCalg/">« Line bundle cohomology with cohomCalg</a><a class="docs-footer-nextpage" href="../Subvarieties/">Subvarieties »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Wednesday 6 December 2023 16:48">Wednesday 6 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

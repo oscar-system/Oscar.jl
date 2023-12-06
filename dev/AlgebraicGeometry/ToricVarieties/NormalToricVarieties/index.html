@@ -11,32 +11,36 @@ Normal toric variety</code></pre></div></section></article><article class="docst
 Normal toric variety
 
 julia&gt; affineVariety = affine_normal_toric_variety(v)
-Normal toric variety</code></pre></div></section></article><h3 id="Normal-Toric-Varieties-2"><a class="docs-heading-anchor" href="#Normal-Toric-Varieties-2">Normal Toric Varieties</a><a class="docs-heading-anchor-permalink" href="#Normal-Toric-Varieties-2" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="normal_toric_variety-Tuple{Union{MatElem, AbstractVecOrMat}, Vector{Vector{Int64}}}" href="#normal_toric_variety-Tuple{Union{MatElem, AbstractVecOrMat}, Vector{Vector{Int64}}}"><code>normal_toric_variety</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false)</code></pre><p>Construct a normal toric variety <span>$X$</span> by providing the rays and maximal cones as vector of vectors. By default, this method assumes that the input is not non-redundant (e.g. that a ray was entered twice by accident). If the user is certain that no redundancy exists in the entered information, one can pass <code>non_redundant = true</code> as third argument. This will bypass these consistency checks. In addition, this will ensure that the order of the rays is not altered by the constructor.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
+Normal toric variety</code></pre></div></section></article><h3 id="Normal-Toric-Varieties-2"><a class="docs-heading-anchor" href="#Normal-Toric-Varieties-2">Normal Toric Varieties</a><a class="docs-heading-anchor-permalink" href="#Normal-Toric-Varieties-2" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="normal_toric_variety" href="#normal_toric_variety"><code>normal_toric_variety</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">normal_toric_variety(C::Cone)</code></pre><p>Construct the (affine) normal toric variety <span>$X_{\Sigma}$</span> corresponding to a polyhedral fan <span>$\Sigma = C$</span> consisting only of the cone <code>C</code>.</p><p><strong>Examples</strong></p><p>Set <code>C</code> to be the positive orthant in two dimensions.</p><pre><code class="language-julia-repl hljs">julia&gt; C = positive_hull([1 0; 0 1])
+Polyhedral cone in ambient dimension 2
+
+julia&gt; ntv = normal_toric_variety(C)
+Normal toric variety</code></pre></div></section><section><div><pre><code class="language-julia hljs">normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)</code></pre><p>Construct a normal toric variety <span>$X$</span> by providing the rays and maximal cones as vector of vectors. By default, this method assumes that the input is not non-redundant (e.g. that a ray was entered twice by accident). If the user is certain that no redundancy exists in the entered information, one can pass <code>non_redundant = true</code> as third argument. This will bypass these consistency checks. In addition, this will ensure that the order of the rays is not altered by the constructor.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
 4-element Vector{Vector{Int64}}:
  [1, 0]
  [0, 1]
  [-1, 5]
  [0, -1]
 
-julia&gt; max_cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
-4-element Vector{Vector{Int64}}:
- [1, 2]
- [2, 3]
- [3, 4]
- [4, 1]
+julia&gt; max_cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
+4×4 IncidenceMatrix
+[1, 2]
+[2, 3]
+[3, 4]
+[1, 4]
 
-julia&gt; normal_toric_variety(ray_generators, max_cones)
+julia&gt; normal_toric_variety(max_cones, ray_generators)
 Normal toric variety
 
-julia&gt; normal_toric_variety(ray_generators, max_cones; non_redundant = true)
-Normal toric variety</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="normal_toric_variety-Tuple{PolyhedralFan}" href="#normal_toric_variety-Tuple{PolyhedralFan}"><code>normal_toric_variety</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normal_toric_variety(PF::PolyhedralFan)</code></pre><p>Construct the normal toric variety <span>$X_{PF}$</span> corresponding to a polyhedral fan <code>PF</code>.</p><p><strong>Examples</strong></p><p>Take <code>PF</code> to be the normal fan of the square.</p><pre><code class="language-julia-repl hljs">julia&gt; square = cube(2)
+julia&gt; normal_toric_variety(max_cones, ray_generators; non_redundant = true)
+Normal toric variety</code></pre></div></section><section><div><pre><code class="language-julia hljs">normal_toric_variety(PF::PolyhedralFan)</code></pre><p>Construct the normal toric variety <span>$X_{PF}$</span> corresponding to a polyhedral fan <code>PF</code>.</p><p><strong>Examples</strong></p><p>Take <code>PF</code> to be the normal fan of the square.</p><pre><code class="language-julia-repl hljs">julia&gt; square = cube(2)
 Polyhedron in ambient dimension 2
 
 julia&gt; nf = normal_fan(square)
 Polyhedral fan in ambient dimension 2
 
 julia&gt; ntv = normal_toric_variety(nf)
-Normal toric variety</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="normal_toric_variety-Tuple{Polyhedron}" href="#normal_toric_variety-Tuple{Polyhedron}"><code>normal_toric_variety</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">normal_toric_variety(P::Polyhedron)</code></pre><p>Construct the normal toric variety <span>$X_{\Sigma_P}$</span> corresponding to the normal fan <span>$\Sigma_P$</span> of the given polyhedron <code>P</code>.</p><p>Note that this only coincides with the projective variety associated to <code>P</code> from the affine relations of the lattice points in <code>P</code>, if <code>P</code> is very ample.</p><p><strong>Examples</strong></p><p>Set <code>P</code> to be a square.</p><pre><code class="language-julia-repl hljs">julia&gt; square = cube(2)
+Normal toric variety</code></pre></div></section><section><div><pre><code class="language-julia hljs">normal_toric_variety(P::Polyhedron)</code></pre><p>Construct the normal toric variety <span>$X_{\Sigma_P}$</span> corresponding to the normal fan <span>$\Sigma_P$</span> of the given polyhedron <code>P</code>.</p><p>Note that this only coincides with the projective variety associated to <code>P</code> from the affine relations of the lattice points in <code>P</code>, if <code>P</code> is very ample.</p><p><strong>Examples</strong></p><p>Set <code>P</code> to be a square.</p><pre><code class="language-julia-repl hljs">julia&gt; square = cube(2)
 Polyhedron in ambient dimension 2
 
 julia&gt; ntv = normal_toric_variety(square)
@@ -384,4 +388,4 @@ ideal(-x1*x2 + x4^2, x1^2*x2^3 - x3^2*x4)</code></pre></div></section></article>
 julia&gt; H = hilbert_basis(C);
 
 julia&gt; toric_ideal(H)
-ideal(x2*x3 - x4^2, -x1*x3 + x2^2*x4, -x1*x4 + x2^3, -x1*x3^2 + x2*x4^3, -x1*x3^3 + x4^5)</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../CyclicQuotientSingularities/">Cyclic Quotient Singularities »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 5 December 2023 17:43">Tuesday 5 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ideal(x2*x3 - x4^2, -x1*x3 + x2^2*x4, -x1*x4 + x2^3, -x1*x3^2 + x2*x4^3, -x1*x3^3 + x4^5)</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../CyclicQuotientSingularities/">Cyclic Quotient Singularities »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Wednesday 6 December 2023 13:17">Wednesday 6 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
