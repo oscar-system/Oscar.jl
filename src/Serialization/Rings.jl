@@ -142,6 +142,7 @@ end
 ################################################################################
 #  Polynomial Ring Elem Types
 @register_serialization_type MPolyRingElem uses_params
+@register_serialization_type MPolyDecRingElem uses_params
 @register_serialization_type UniversalPolyRingElem uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params
 const PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
@@ -250,7 +251,6 @@ function load_object(s::DeserializerState,
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(base)
-
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
         c = nothing
@@ -275,6 +275,14 @@ function load_object(s::DeserializerState,
     return finish(polynomial)
   end
 end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parents::Vector)
+  parent_ring = parents[end]
+  new_parents = push!(parents[1:end - 1], forget_grading(parent_ring))
+  poly = load_object(s, MPolyRingElem, new_parents)
+  return parent_ring(poly)
+end
+
 
 ################################################################################
 # Polynomial Ideals

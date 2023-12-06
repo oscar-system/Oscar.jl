@@ -28,7 +28,7 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyAnyMap},
+function load_object(s::DeserializerState, ::Type{<:MPolyAnyMap},
                      params::Tuple{MPolyRing, MPolyRing})
   d = params[1]
   c = params[2]

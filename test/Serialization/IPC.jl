@@ -16,12 +16,7 @@ process_ids = addprocs(1)
   put_params(params_channels, MR)
   
   c = [MR([a^i F(1); a a + 1]) for i in 1:5]
-  @everywhere function print_det(m)
-    w = myid()
-    println("working on worker $w")
-    return det(m)
-  end
-  dets = pmap(print_det, c)
+  dets = pmap(det, c)
   total = reduce(*, dets)
 
   @test total == F(4)
