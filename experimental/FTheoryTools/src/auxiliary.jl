@@ -60,8 +60,8 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
   fiber_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_ambient_space)))
   
   # Compute the u-matrix
-  base_weights = transpose(vcat([elem.coeff for elem in cox_ring(base).d]))
-  m1 = transpose(vcat([divisor_class(D1).coeff, divisor_class(D2).coeff]))
+  base_weights = transpose(reduce(vcat, [elem.coeff for elem in cox_ring(base).d]))
+  m1 = transpose(reduce(vcat, [divisor_class(D1).coeff, divisor_class(D2).coeff]))
   m2 = fiber_rays[1:2,:]
   u_matrix = solve(base_weights,(-1)*m1*m2)
   
@@ -69,7 +69,7 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
   new_base_rays = hcat(base_rays, u_matrix)
   new_fiber_rays = hcat(zero_matrix(ZZ, nrows(fiber_rays), ncols(base_rays)), fiber_rays)
   ambient_space_rays = vcat(new_base_rays, new_fiber_rays)
-  ambient_space_rays = vcat([[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)]...)
+  ambient_space_rays = reduce(vcat, [[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)])
   
   # Construct the incidence matrix for the maximal cones of the ambient space
   ambient_space_max_cones = []

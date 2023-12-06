@@ -333,7 +333,7 @@ false
   G = grading_group(R)
   is_free(G) || return false
   if ngens(G) == rank(G)
-    W = vcat([x.coeff for x = R.d])
+    W = reduce(vcat, [x.coeff for x = R.d])
     if is_positive_grading_matrix(transpose(W))
        return true
     end
@@ -1002,7 +1002,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   # First assemble the homogeneous components into the build contexts.
   # Afterwards compute the polynomials.
   hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
-  dmat = vcat([d[i].coeff for i in 1:length(d)])
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
   for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
@@ -1202,7 +1202,7 @@ function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
      #need the positive elements in there...
      #Ax = b, Cx >= 0
      C = identity_matrix(FlintZZ, ngens(W))
-     A = vcat([x.coeff for x = W.d])
+     A = reduce(vcat, [x.coeff for x = W.d])
      k = solve_mixed(transpose(A), transpose(d.coeff), C)    
      for ee = 1:nrows(k)
        e = k[ee, :]

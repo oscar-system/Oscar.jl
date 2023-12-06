@@ -189,7 +189,8 @@ end
 end
  
 @testset "Polynomial Orderings comparison" begin
-   R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
+   #R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
+   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
    @test lex([z])*lex([y])*lex([x]) == invlex([x, y, z])

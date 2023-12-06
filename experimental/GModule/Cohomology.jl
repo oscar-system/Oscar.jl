@@ -1672,7 +1672,7 @@ function Oscar.hom(V::Module, W::Module, v::Vector{<:ModuleElem}; check::Bool = 
   if ngens(V) == 0
     return Generic.ModuleHomomorphism(V, W, zero_matrix(base_ring(V), ngens(V), ngens(W)))
   end
-  return Generic.ModuleHomomorphism(V, W, vcat([x.v for x = v]))
+  return Generic.ModuleHomomorphism(V, W, reduce(vcat, [x.v for x = v]))
 end
 function Oscar.hom(V::Module, W::Module, v::MatElem; check::Bool = true)
   return Generic.ModuleHomomorphism(V, W, v)

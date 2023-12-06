@@ -223,7 +223,7 @@ end
 
 # A special method for the case where we can safely assume 
 # that the coordinates of elements allow hashing.
-function hash(a::AbstractFreeModElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+function hash(a::AbstractFreeModElem{<:MPolyRingElem{<:FieldElem}}, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)

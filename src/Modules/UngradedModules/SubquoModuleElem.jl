@@ -95,7 +95,7 @@ end
 
 #######################################################
 
-function simplify(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
+function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
   !isdefined(parent(el), :quo) && return el
   iszero(parent(el).quo) && return el
@@ -105,7 +105,7 @@ function simplify(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
   return result
 end
 
-function simplify!(el::SubquoModuleElem{<:MPolyElem{<:FieldElem}})
+function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
   !isdefined(parent(el), :quo) && return el
   iszero(parent(el).quo) && return el
@@ -387,7 +387,7 @@ function Base.hash(a::SubquoModuleElem)
   return xor(h, b)
 end
 
-function Base.hash(a::SubquoModuleElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+function Base.hash(a::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}}, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)
