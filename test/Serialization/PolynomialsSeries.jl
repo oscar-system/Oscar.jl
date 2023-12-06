@@ -46,9 +46,16 @@ cases = [
       R, (x, y) = QQ[:x, :y]
       A = [1 3; 2 1]
       M, (m1, m2) = grade(R, A)
+
       test_save_load_roundtrip(path, m1 * m2) do loaded
         @test loaded == m1 * m2
         @test grading_group(parent(loaded)) == grading_group(M)
+      end
+
+      GM, _ = grade(M, A)
+      test_save_load_roundtrip(path, GM) do loaded
+        @test grading(loaded) == grading(GM)
+        @test grading(forget_grading(loaded)) == grading(forget_grading(GM))
       end
     end
 

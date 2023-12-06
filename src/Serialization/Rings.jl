@@ -125,18 +125,15 @@ end
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(R), :base_ring)
     save_typed_object(s, grading(R), :grading)
-    save_object(s, symbols(R), :symbols)
+    save_typed_object(s, forget_grading(R), :ring)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRing})
-  base_ring = load_typed_object(s, :base_ring)
-  symbols = load_object(s, Vector, Symbol, :symbols)
+  ring = load_typed_object(s, :ring)
   grading = load_typed_object(s, :grading)
-  
-  return graded_polynomial_ring(base_ring, symbols, grading)[1]
+  return grade(ring, grading)[1]
 end
 
 ################################################################################
