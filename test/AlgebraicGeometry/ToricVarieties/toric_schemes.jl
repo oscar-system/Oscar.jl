@@ -97,7 +97,7 @@
 end
 
 @testset "Lazy glueings" begin
-  f = polyhedral_fan([0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1], IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]))
+  f = polyhedral_fan(IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
   n_maximal_cones(f)
   ntv = normal_toric_variety(f)
   X = underlying_scheme(ntv)

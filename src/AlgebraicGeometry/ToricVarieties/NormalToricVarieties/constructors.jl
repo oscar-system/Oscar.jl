@@ -63,7 +63,7 @@ end
 
 
 @doc raw"""
-    normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false)
+    normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
 
 Construct a normal toric variety $X$ by providing the rays and maximal cones
 as vector of vectors. By default, this method assumes that the input is not
@@ -82,23 +82,23 @@ julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
  [-1, 5]
  [0, -1]
 
-julia> max_cones = [[1, 2], [2, 3], [3, 4], [4, 1]]
-4-element Vector{Vector{Int64}}:
- [1, 2]
- [2, 3]
- [3, 4]
- [4, 1]
+julia> max_cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
+4×4 IncidenceMatrix
+[1, 2]
+[2, 3]
+[3, 4]
+[1, 4]
 
-julia> normal_toric_variety(ray_generators, max_cones)
+julia> normal_toric_variety(max_cones, ray_generators)
 Normal toric variety
 
-julia> normal_toric_variety(ray_generators, max_cones; non_redundant = true)
+julia> normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
 ```
 """
-normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false) = normal_toric_variety(rays, IncidenceMatrix(max_cones); non_redundant = non_redundant)
-function normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false)
-  fan = polyhedral_fan(rays, max_cones; non_redundant=non_redundant)
+normal_toric_variety(max_cones::Vector{Vector{Int64}}, rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = normal_toric_variety(IncidenceMatrix(max_cones), rays; non_redundant)
+function normal_toric_variety(max_cones::IncidenceMatrix, rays::AbstractCollection[RayVector]; non_redundant::Bool = false)
+  fan = polyhedral_fan(max_cones, rays; non_redundant)
   return normal_toric_variety(fan)
 end
 

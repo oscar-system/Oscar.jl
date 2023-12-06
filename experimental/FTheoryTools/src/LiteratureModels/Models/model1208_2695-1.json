@@ -38,6 +38,7 @@
     },
     "model_data": {
         "base_dim": 2,
+        "model_sections": ["b"],
         "base_coordinates": ["Kbar", "b", "c0", "c1", "c2", "c3"],
         "auxiliary_base_grading": [
             [1, 0, 4, 3, 2, 1],
