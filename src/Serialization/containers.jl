@@ -8,7 +8,7 @@ const MatVecType{T} = Union{Matrix{T}, Vector{T}}
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
   save_data_dict(s) do
     save_object(s, encode_type(S), :name)
-    if serialize_with_params(T)
+    if serialize_with_params(T) && !isempty(obj)
       if hasmethod(parent, (T,))
         parents = map(parent, obj)
         parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
@@ -23,7 +23,7 @@ end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
   T = decode_type(s)
-  if serialize_with_params(T)
+  if serialize_with_params(T) && haskey(s, :params)
     params = load_params_node(s)
     return (T, params)
   end
