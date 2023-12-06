@@ -17,6 +17,8 @@
         @test nv(g) == 5
         @test has_vertex(g, 1)
         @test !has_vertex(g, 6)
+        @test add_vertices!(g, 5) == 5
+        @test nv(g) == 10
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
