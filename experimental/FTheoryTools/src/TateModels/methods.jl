@@ -96,7 +96,7 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
-Partially resolved global Tate model over a concrete base
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
 function blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -148,11 +148,13 @@ function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e
   # Change/Fix? We may want to provide not only output that remains true forever but also output, while the internals may change?
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], new_pt, base_space(t), new_ambient_space)
 
-  # Set attributes
-  set_attribute!(model, :base_fully_specified, true)
-  set_attribute!(model, :partially_resolved, true)
-  if has_attribute(t, :explicit_model_sections)
-    set_attribute!(model, :explicit_model_sections => get_attribute(t, :explicit_model_sections))
+  # Copy known attributes from old model and overwrite as appropriate
+  model_attributes = t.__attrs
+  for (key, value) in model_attributes
+    set_attribute!(model, key, value)
   end
+  set_attribute!(model, :partially_resolved, true)
+
+  # Return the model
   return model
 end
