@@ -520,12 +520,11 @@ function save_object(s::SerializerState, f::EmbeddedElem)
   save_object(s, data(f))
 end
 
-function load_object(s::DeserializerState, ::Type{<:EmbeddedElem},
-                                 terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:EmbeddedElem}, parents::Vector)
   parent_field = parents[end]
   numfield_elem = terms
   coeff_type = elem_type(parents[end - 1])
-  loaded_alg_elem = load_object(s, coeff_type, terms, parents[1:end - 1])
+  loaded_alg_elem = load_object(s, coeff_type, parents[1:end - 1])
   return parent_field(loaded_alg_elem)
 end
 
