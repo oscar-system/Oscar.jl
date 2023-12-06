@@ -41,26 +41,41 @@ julia&gt; v2 = domain(blow_up(v, I))
 Normal toric variety
 
 julia&gt; cox_ring(v2)
-Multivariate polynomial ring in 9 variables over QQ graded by
+Multivariate polynomial ring in 10 variables over QQ graded by 
+  Kbar -&gt; [1 0 0 0]
+  w -&gt; [0 1 0 0]
   a1 -&gt; [1 0 0 0]
-  a21 -&gt; [0 1 0 0]
-  a32 -&gt; [-1 2 0 0]
-  a43 -&gt; [-2 3 0 0]
-  w -&gt; [0 0 1 0]
-  x -&gt; [0 1 1 2]
-  y -&gt; [1 1 1 3]
-  z -&gt; [0 0 0 1]
-  e -&gt; [2 -1 -1 0]</code></pre><p>It is also possible to construct a literature model over a particular base. Currently, this feature is only supported for toric base spaces.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
+  a21 -&gt; [2 -1 0 0]
+  a32 -&gt; [0 0 1 0]
+  a43 -&gt; [1 -1 1 0]
+  x -&gt; [1 0 1 2]
+  y -&gt; [6 -3 0 3]
+  z -&gt; [1 -1 0 1]
+  e -&gt; [3 -2 -1 0]</code></pre><p>It is also possible to construct a literature model over a particular base. Currently, this feature is only supported for toric base spaces.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia&gt; w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia&gt; t2 = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;, base_space = B3, model_sections = Dict(&quot;w&quot; =&gt; w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; length(singular_loci(t2))
-2</code></pre></div></section></article><h2 id="Attributes"><a class="docs-heading-anchor" href="#Attributes">Attributes</a><a id="Attributes-1"></a><a class="docs-heading-anchor-permalink" href="#Attributes" title="Permalink"></a></h2><p>For literature models, we provide the following attributes:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="arxiv_id-Tuple{AbstractFTheoryModel}" href="#arxiv_id-Tuple{AbstractFTheoryModel}"><code>arxiv_id</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arxiv_id(m::AbstractFTheoryModel)</code></pre><p>Return the <code>arxiv_id</code> of the preprint that introduced the given model. If no <code>arxiv_id</code> is known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; m = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
+2</code></pre><p>Of course, this is also possible for Weierstrass models.</p><pre><code class="language-julia-repl hljs">julia&gt; B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia&gt; b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia&gt; w = literature_model(arxiv_id = &quot;1208.2695&quot;, equation = &quot;B.19&quot;, base_space = B2, model_sections = Dict(&quot;b&quot; =&gt; b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia&gt; length(singular_loci(w))
+1</code></pre></div></section></article><h2 id="Attributes"><a class="docs-heading-anchor" href="#Attributes">Attributes</a><a id="Attributes-1"></a><a class="docs-heading-anchor-permalink" href="#Attributes" title="Permalink"></a></h2><p>For literature models, we provide the following attributes:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="arxiv_id-Tuple{AbstractFTheoryModel}" href="#arxiv_id-Tuple{AbstractFTheoryModel}"><code>arxiv_id</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">arxiv_id(m::AbstractFTheoryModel)</code></pre><p>Return the <code>arxiv_id</code> of the preprint that introduced the given model. If no <code>arxiv_id</code> is known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; m = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -115,8 +130,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; generating_sections(m)
-1-element Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- [0, 0, 1]</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="journal_doi-Tuple{AbstractFTheoryModel}" href="#journal_doi-Tuple{AbstractFTheoryModel}"><code>journal_doi</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">journal_doi(m::AbstractFTheoryModel)</code></pre><p>Return the <code>journal_doi</code> of the publication that introduced the given model. If no <code>journal_doi</code> is known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; m = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
+1-element Vector{Vector{String}}:
+ [&quot;0&quot;, &quot;0&quot;, &quot;1&quot;]</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="journal_doi-Tuple{AbstractFTheoryModel}" href="#journal_doi-Tuple{AbstractFTheoryModel}"><code>journal_doi</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">journal_doi(m::AbstractFTheoryModel)</code></pre><p>Return the <code>journal_doi</code> of the publication that introduced the given model. If no <code>journal_doi</code> is known, an error is raised.</p><pre><code class="language-julia-repl hljs">julia&gt; m = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -302,12 +317,13 @@ julia&gt; t2 = resolve(t, 1)
 Partially resolved global Tate model over a concrete base
 
 julia&gt; cox_ring(ambient_space(t2))
-Multivariate polynomial ring in 13 variables over QQ graded by 
+Multivariate polynomial ring in 14 variables over QQ graded by 
+  Kbar -&gt; [1 0 0 0 0 0 0 0]
+  w -&gt; [0 1 0 0 0 0 0 0]
   a1 -&gt; [1 0 0 0 0 0 0 0]
-  a21 -&gt; [0 1 0 0 0 0 0 0]
-  a32 -&gt; [-1 2 0 0 0 0 0 0]
-  a43 -&gt; [-2 3 0 0 0 0 0 0]
-  w -&gt; [0 0 1 0 0 0 0 0]
+  a21 -&gt; [0 0 1 0 0 0 0 0]
+  a32 -&gt; [-1 0 2 0 0 0 0 0]
+  a43 -&gt; [-2 0 3 0 0 0 0 0]
   x -&gt; [0 0 0 1 0 0 0 0]
   y -&gt; [0 0 0 0 1 0 0 0]
   z -&gt; [0 0 0 0 0 1 0 0]
@@ -315,4 +331,4 @@ Multivariate polynomial ring in 13 variables over QQ graded by
   e4 -&gt; [0 0 0 0 0 0 0 1]
   e2 -&gt; [1 -1 -1 -1 1 -1 -1 0]
   e3 -&gt; [1 0 0 1 -1 1 0 -1]
-  s -&gt; [-2 2 2 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LieAlgebras/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.0 on <span class="colophon-date" title="Thursday 30 November 2023 15:38">Thursday 30 November 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  s -&gt; [-2 2 2 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LieAlgebras/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 5 December 2023 17:43">Tuesday 5 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
