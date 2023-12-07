@@ -604,7 +604,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
   Rx, x = polynomial_ring(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
   # write f = cont*F, cont in Qt, F in Rx
-  F, cont = Oscar._remove_denominators(Rx, f)
+  F, cont = Oscar.AbstractAlgebra._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
   push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))

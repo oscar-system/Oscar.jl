@@ -242,7 +242,7 @@ function normal_toric_variety_from_star_triangulation(P::Polyhedron)
   max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
 
   # Rays are all but the zero vector at the first position of pts
-  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  integral_rays = reduce(vcat, [pts[k,:] for k in 2:nrows(pts)])
 
   # construct the variety
   return normal_toric_variety(max_cones, integral_rays; non_redundant = true)
@@ -290,7 +290,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron)
   trias = star_triangulations(pts; full = true)
   
   # rays are all but the zero vector at the first position of pts
-  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  integral_rays = reduce(vcat, [pts[k,:] for k in 2:nrows(pts)])
   
   # trias contains the max_cones as list of lists
   # (a) needs to be converted to incidence matrix
