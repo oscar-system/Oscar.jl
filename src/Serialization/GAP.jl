@@ -37,10 +37,14 @@ function save_object(s::SerializerState, X::GapObj)
   GAP.Globals.SerializeInOscar(X, s)
 end
 
-function load_object(s::DeserializerState, T::Type{GapObj}, d::Dict{Symbol, Any})
-  @req haskey(d, :GapType) "cannot deserialize GapObj without key :GapType"
-  GAP_T = GapObj(d[:GapType])
-  return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T, d)
+function load_object(s::DeserializerState, T::Type{GapObj})
+  load_node(s) do d
+    @req haskey(s, :GapType) "cannot deserialize GapObj without key :GapType"
+    GAP_T = load_node(s, :GapType) do gap_type_data
+      return GapObj(gap_type_data)
+    end
+    return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T)
+  end
 end
 
 #############################################################################
@@ -117,31 +121,40 @@ install_GAP_serialization(:IsFreeGroup,
     end
   end)
 
-install_GAP_deserialization(:IsFreeGroup,
-  function(filt::GapObj, s::DeserializerState, T, d::Dict)
-    if haskey(d, :freeGroup) && haskey(d, :gens)
-      # Deserialize the full free group.
-      F = load_typed_object(s, d[:freeGroup])
-      # Deserialize the generators.
-      generators = load_object(s, Vector, d[:gens], (Vector{Int}, Int))
-      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-      Ggens = [GAPWrap.ObjByExtRep(fam, GapObj(x, true)) for x in generators]
-      # Create the subgroup.
-      G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
-    else
-      # Create a new full free group.
-      wfilt = getproperty(GAP.Globals, Symbol(d[:wfilt]))
-      if haskey(d, :nameprefix)
-        # infinite rank
-        prefix = GapObj(d[:nameprefix])
-        init = GapObj(d[:names], true)
-        G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)
+install_GAP_deserialization(
+  :IsFreeGroup,
+  function(filt::GapObj, s::DeserializerState, T)
+    load_node(s) do d
+      if haskey(s, :freeGroup) && haskey(s, :gens)
+        # Deserialize the full free group.
+        F = load_typed_object(s, :freeGroup)
+        # Deserialize the generators.
+        generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
+        fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+        Ggens = [GAPWrap.ObjByExtRep(fam, GapObj(x, true)) for x in generators]
+        # Create the subgroup.
+        G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
       else
-        names = GapObj(d[:names], true)
-        G = GAP.Globals.FreeGroup(wfilt, names)
+        # Create a new full free group.
+        wfilt = getproperty(GAP.Globals, load_object(s, Symbol, :wfilt))
+        if haskey(s, :nameprefix)
+          # infinite rank
+          prefix = load_node(s, :nameprefix) do nameprefix
+            GapObj(nameprefix)
+          end
+          init = load_node(s, :names) do names
+            GapObj([GapObj(x) for x in names], true)
+          end
+          G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)
+        else
+          init = load_node(s, :names) do names
+            GapObj([GapObj(x) for x in names], true)
+          end
+          G = GAP.Globals.FreeGroup(wfilt, init)
+        end
       end
+      return G
     end
-    return G
   end)
 
 # - `IsSubgroupFpGroup`:
@@ -174,31 +187,34 @@ install_GAP_serialization(:IsSubgroupFpGroup,
     end
   end)
 
-install_GAP_deserialization(:IsSubgroupFpGroup,
-  function(filt::GapObj, s::DeserializerState, T, d::Dict)
-    if haskey(d, :wholeGroup) && haskey(d, :gens)
-      # Deserialize the full f.p. group.
-      F = load_typed_object(s, d[:wholeGroup])
-      Ffam = GAPWrap.FamilyObj(F)
-      elfam = GAPWrap.ElementsFamily(Ffam)
-      freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
-      freefam = GAPWrap.FamilyObj(freegroup)
-      elfreefam = GAPWrap.ElementsFamily(freefam)
-      # Deserialize the generators.
-      generators = load_object(s, Vector, d[:gens], (Vector{Int}, Int))
-      gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
-      Ggens = [GAPWrap.ElementOfFpGroup(elfam, x) for x in gens]
-      # Create the subgroup.
-      G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
-    else
-      # Create a new full f.p. group.
-      F = load_typed_object(s, d[:freeGroup])
-      relators = load_object(s, Vector, d[:relators], (Vector{Int}, Int))
-      elfreefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-      rels = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in relators]
-      G = F/GapObj(rels)
+install_GAP_deserialization(
+  :IsSubgroupFpGroup,
+  function(filt::GapObj, s::DeserializerState, T)
+    load_node(s) do d 
+      if haskey(s, :wholeGroup) && haskey(s, :gens)
+        # Deserialize the full f.p. group.
+        F = load_typed_object(s, :wholeGroup)
+        Ffam = GAPWrap.FamilyObj(F)
+        elfam = GAPWrap.ElementsFamily(Ffam)
+        freegroup = GAP.getbangproperty(elfam, :freeGroup)::GapObj
+        freefam = GAPWrap.FamilyObj(freegroup)
+        elfreefam = GAPWrap.ElementsFamily(freefam)
+        # Deserialize the generators.
+        generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
+        gens = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in generators]
+        Ggens = [GAPWrap.ElementOfFpGroup(elfam, x) for x in gens]
+        # Create the subgroup.
+        G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
+      else
+        # Create a new full f.p. group.
+        F = load_typed_object(s, :freeGroup)
+        relators = load_object(s, Vector,  (Vector{Int}, Int), :relators)
+        elfreefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+        rels = [GAPWrap.ObjByExtRep(elfreefam, GapObj(x, true)) for x in relators]
+        G = F/GapObj(rels)
+      end
+      return G
     end
-    return G
   end)
 
 
@@ -273,40 +289,43 @@ install_GAP_serialization(:IsPcGroup,
     end
   end)
 
-install_GAP_deserialization(:IsPcGroup,
-  function(filt::GapObj, s::DeserializerState, T, d::Dict)
-    if haskey(d, :relord)
-      # full pc group
-      relord = load_object(s, Vector, d[:relord], Int)
-      F = GAP.Globals.FreeGroup(GAP.Globals.IsSyllableWordsFamily,
-            length(relord))
-      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-      rws = GAP.Globals.SingleCollector(F, GapObj(relord))::GapObj
-      reli = load_object(s, Vector, d[:power_reli], Int)
-      rels = load_object(s, Vector, d[:power_rels], (Vector{Int}, Int))
-      for k in 1:length(reli)
-        GAP.Globals.SetPower(rws, reli[k],
-          GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
+install_GAP_deserialization(
+  :IsPcGroup,
+  function(filt::GapObj, s::DeserializerState, T)
+    load_node(s) do d
+      if haskey(s, :relord)
+        # full pc group
+        relord = load_object(s, Vector, Int, :relord)
+        F = GAP.Globals.FreeGroup(GAP.Globals.IsSyllableWordsFamily,
+                                  length(relord))
+        fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+        rws = GAP.Globals.SingleCollector(F, GapObj(relord))::GapObj
+        reli = load_object(s, Vector, Int, :power_reli)
+        rels = load_object(s, Vector, (Vector{Int}, Int), :power_rels)
+        for k in 1:length(reli)
+          GAP.Globals.SetPower(rws, reli[k],
+                               GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
+        end
+        reli = load_object(s, Vector, (Vector{Int}, Int), :comm_reli)
+        rels = load_object(s, Vector, (Vector{Int}, Int), :comm_rels)
+        for k in 1:length(reli)
+          (j, i) = reli[k]
+          GAP.Globals.SetCommutator(rws, j, i,
+                                    GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
+        end
+        G = GAP.Globals.GroupByRwsNC(rws)
+      else
+        # Deserialize the full pc group.
+        F = load_typed_object(s, :fullGroup)
+        elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+        fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+        # Deserialize the generators.
+        generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
+        Ggens = [GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(x, true))::GapObj
+                 for x in generators]
+        # Create the subgroup.
+        G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
       end
-      reli = load_object(s, Vector, d[:comm_reli], (Vector{Int}, Int))
-      rels = load_object(s, Vector, d[:comm_rels], (Vector{Int}, Int))
-      for k in 1:length(reli)
-        (j, i) = reli[k]
-        GAP.Globals.SetCommutator(rws, j, i,
-          GapObj(GAPWrap.ObjByExtRep(fam, GapObj(rels[k]))))
-      end
-      G = GAP.Globals.GroupByRwsNC(rws)
-    else
-      # Deserialize the full pc group.
-      F = load_typed_object(s, d[:fullGroup])
-      elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-      fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
-      # Deserialize the generators.
-      generators = load_object(s, Vector, d[:gens], (Vector{Int}, Int))
-      Ggens = [GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(x, true))::GapObj
-               for x in generators]
-      # Create the subgroup.
-      G = GAP.Globals.SubgroupNC(F, GapObj(Ggens))
+      return G
     end
-    return G
   end)

@@ -7,8 +7,8 @@ function save_object(s::SerializerState, ntv::NormalToricVarietyType)
   save_object(s, ntv.polymakeNTV)
 end
 
-function load_object(s::DeserializerState, ::Type{T}, dict::Dict) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
-  return T(load_object(s, Polymake.BigObject, dict))
+function load_object(s::DeserializerState, ::Type{T}) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
+  return T(load_object(s, Polymake.BigObject))
 end
 
 ################################################################################
@@ -22,17 +22,16 @@ function save_type_params(s::SerializerState, obj::ToricDivisor)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:ToricDivisor}, str::String)
-  return load_ref(s, str)
+function load_type_params(s::DeserializerState, ::Type{<:ToricDivisor})
+  return load_typed_object(s)
 end
 
 function save_object(s::SerializerState, td::ToricDivisor)
   save_object(s, td.coeffs)
 end
 
-function load_object(s::DeserializerState, ::Type{ToricDivisor},
-                     entries::Vector, tv::NormalToricVarietyType)
-  coeffs = load_object(s, Vector, entries, ZZRingElem)
+function load_object(s::DeserializerState, ::Type{ToricDivisor}, tv::NormalToricVarietyType)
+  coeffs = load_object(s, Vector, ZZRingElem)
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
   index = 0
   for i in 1:length(all)
