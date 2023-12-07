@@ -2,7 +2,7 @@
 # 1: The Julia type for ToricDivisors
 ######################
 
-@attributes mutable struct ToricDivisor
+@attributes mutable struct ToricDivisor <: AbsWeilDivisor{NormalToricVariety, ZZRing}
            polymake_divisor::Polymake.BigObject
            toric_variety::NormalToricVarietyType
            coeffs::Vector{ZZRingElem}
@@ -97,6 +97,8 @@ end
 Base.:-(td :: ToricDivisor) = toric_divisor(toric_variety(td), -coefficients(td))
 
 Base.:*(c::T, td::ToricDivisor) where {T <: IntegerUnion} = toric_divisor(toric_variety(td), [ZZRingElem(c)*x for x in coefficients(td)])
+# method ambiguity requires the implementation of the following method
+Base.:*(c::ZZRingElem, td::ToricDivisor) = toric_divisor(toric_variety(td), [c*x for x in coefficients(td)])
 
 
 ######################
@@ -119,7 +121,7 @@ end
 # 6: Display
 ######################s
 
-function Base.show(io::IO, td::ToricDivisor)
+function Base.show(io::IO, ::MIME"text/plain", td::ToricDivisor)
     # initiate properties string
     properties_string = ["Torus-invariant"]
     

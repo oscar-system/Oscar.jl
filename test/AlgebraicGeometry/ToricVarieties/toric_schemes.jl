@@ -113,3 +113,10 @@ end
   end
 end
 
+@testset "toric divisors to weil divisors" begin
+  IP = weighted_projective_space(NormalToricVariety, [3, 4, 23])
+  w = canonical_divisor(IP)
+  D = Oscar.underlying_divisor(w; check=true)
+  @test w == forget_toric_structure(w)
+  @test w + D == 2*w
+end

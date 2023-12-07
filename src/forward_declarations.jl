@@ -25,6 +25,17 @@ An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type
 """
 abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 
+### Algebraic cycles and divisors 
+# CAUTION: This has been moved here from experimental!!!
+abstract type AbsAlgebraicCycle{
+                                CoveredSchemeType<:AbsCoveredScheme, 
+                                CoefficientRingType<:AbstractAlgebra.Ring
+                               }
+end
+
+abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
+
+### END Algebraic cycles and divisors
 
 ###########################################
 # (2) Toric Varieties
