@@ -248,6 +248,7 @@ function load_object(s::DeserializerState,
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(base)
+
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
         c = nothing

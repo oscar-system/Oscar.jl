@@ -45,7 +45,7 @@
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
     nf = normal_fan(sd)
-    nfc =  polyhedral_fan(E, rays(nf), maximal_cones(IncidenceMatrix,nf))
+    nfc =  polyhedral_fan(E, maximal_cones(IncidenceMatrix,nf), rays(nf))
     @test is_regular(nfc)
 
     @testset "Scalar detection" begin

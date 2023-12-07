@@ -45,7 +45,7 @@ julia> R = [1 0; 1 1; 0 1; -1 0; 0 -1];
 
 julia> IM=IncidenceMatrix([[1,2],[2,3],[3,4],[4,5],[1,5]]);
 
-julia> PF=polyhedral_fan(R,IM)
+julia> PF=polyhedral_fan(IM, R)
 Polyhedral fan in ambient dimension 2
 ```
 
@@ -57,7 +57,7 @@ julia> L = [0 1 0];
 
 julia> IM = IncidenceMatrix([[1],[2]]);
 
-julia> PF=polyhedral_fan(R, L, IM)
+julia> PF=polyhedral_fan(IM, R, L)
 Polyhedral fan in ambient dimension 3
 
 julia> lineality_dim(PF)
@@ -65,9 +65,9 @@ julia> lineality_dim(PF)
 ```
 """
 function polyhedral_fan(f::scalar_type_or_field,
+                        Incidence::IncidenceMatrix,
                         Rays::AbstractCollection[RayVector], 
-                        LS::Union{AbstractCollection[RayVector], Nothing},
-                        Incidence::IncidenceMatrix; 
+                        LS::Union{AbstractCollection[RayVector], Nothing};
                         non_redundant::Bool = false)
   parent_field, scalar_type = _determine_parent_and_scalar(f, Rays, LS)
   RM = unhomogenized_matrix(Rays)
@@ -90,9 +90,9 @@ function polyhedral_fan(f::scalar_type_or_field,
     ), parent_field)
   end
 end
-polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(f, Rays, nothing, Incidence; non_redundant=non_redundant)
-polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
-polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
+polyhedral_fan(f::scalar_type_or_field, Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = polyhedral_fan(f, Incidence, Rays, nothing; non_redundant)
+polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant)
+polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant)
 
 """
     pm_object(PF::PolyhedralFan)
@@ -117,10 +117,10 @@ function polyhedral_fan(cones::AbstractVector{Cone{T}}; non_redundant::Bool=fals
 end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) =
-  polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
-polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) =
-  polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+polyhedral_fan(f::scalar_type_or_field, Incidence::Matrix{Bool}, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector]) =
+  polyhedral_fan(f, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)), Rays, LS)
+polyhedral_fan(f::scalar_type_or_field, Incidence::Matrix{Bool}, Rays::AbstractCollection[RayVector]) =
+  polyhedral_fan(f, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)), Rays)
 
 polyhedral_fan(C::Cone{T}) where T<:scalar_types = polyhedral_fan([C])
 
