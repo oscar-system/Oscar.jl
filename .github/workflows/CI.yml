@@ -43,6 +43,14 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: 'nightly'
             os: macOS-latest
+          # Add a job on the local runner
+          - julia-version: '1.9'
+            #os doesn't need to be a real OS. Its just the variable which is evaluated for runs-on
+            # right ?
+            os: rptu-1
+            group: long
+            env:
+              NUMPROCS: '6'
 
     steps:
       - uses: actions/checkout@v3
