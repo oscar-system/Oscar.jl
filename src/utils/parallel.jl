@@ -1,5 +1,4 @@
 using Distributed
-import Distributed.pmap
 
 function set_channels(input::Type{S}, output::Type{T}, params::Type{U};
                       channel_size::Tuple{Int, Int, Int} = (32, 32, 32)) where {S, T, U}
