@@ -355,7 +355,7 @@ function realization_space(
 
     if total_degree(col_det) <= 0
       if col_det != 0 && col in Bs
-        if isunit(col_det)
+        if is_unit(col_det)
           continue
         end
       elseif col_det != 0 # and col is not a basis
