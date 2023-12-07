@@ -91,7 +91,9 @@ representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReduct
 representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem) = RepresentationReductiveGroup(G,M)
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
-    return RepresentationReductiveGroup(G, d)
+    if G.group[1] == :SL
+        return RepresentationReductiveGroup(G, d)
+    end
 end
 
 representation_matrix(R::RepresentationReductiveGroup) = R.rep_mat
@@ -259,7 +261,7 @@ function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpac
     R = base_ring(rep_mat)
     n = ncols(rep_mat)
     m = G.group[2]
-    mixed_ring_xy, x, y, zz = PolynomialRing(G.field, "x"=>1:n, "y"=>1:n, "zz"=>1:m^2)
+    mixed_ring_xy, x, y, zz = polynomial_ring(G.field, "x"=>1:n, "y"=>1:n, "zz"=>1:m^2)
     ztozz = hom(R,mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
     genss = [ztozz(f) for f in gens(G.group_ideal)]
     #rep_mat in the new ring
@@ -288,19 +290,9 @@ function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::AbstractAlgebra.G
     gbasis = gens(X) 
     length(gbasis) == 0 && return gbasis,new_rep_mat
     mixed_ring_xy = parent(gbasis[1])
-    
-    #to evaluate gbasis at y = 0
-    ev_gbasis = elem_type(mixed_ring_xy)[]
-    for elem in gbasis
-        b = mixed_ring_xy()
-        for t in terms(elem)
-            if exponent_vector(t,1)[n+1:2*n] == [0 for i in 1:n]
-                b += t
-            end
-        end
-        b != 0 && push!(ev_gbasis, b)
-    end
-    
+    #evaluate at y=0
+    V = vcat(gens(mixed_ring_xy)[1:n], [0 for i in 1:n], gens(mixed_ring_xy)[2*n+1:2*n+m^2])
+    ev_gbasis = [evaluate(f,V)  for f in gbasis]
     #grading starts here. In the end, our invariant ring is graded.
     mixed_ring_graded, (x,y,zz) = grade(mixed_ring_xy)
     mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
@@ -399,7 +391,7 @@ function needed_degree(elem_::MPolyDecRingElem, m::Int)
     elem = leading_monomial(elem_)
     R = parent(elem)
     n = ngens(R) - m^2
-    extra_ring, _= PolynomialRing(base_ring(R), "z"=>1:m^2)
+    extra_ring, _= polynomial_ring(base_ring(R), "z"=>1:m^2)
     mapp = hom(R,extra_ring, vcat([1 for i in 1:n], gens(extra_ring)))
     return total_degree(mapp(elem))
 end
