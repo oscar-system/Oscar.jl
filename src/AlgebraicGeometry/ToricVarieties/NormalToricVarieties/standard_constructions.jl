@@ -406,7 +406,7 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix)
   pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
   
   # construct varieties
-  integral_rays = vcat([pts[k,:] for k in 2:nrows(pts)])
+  integral_rays = reduce(vcat, [pts[k,:] for k in 2:nrows(pts)])
   max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
   varieties = [normal_toric_variety(cones, integral_rays; non_redundant = true) for cones in max_cones]
   

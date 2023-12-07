@@ -645,7 +645,7 @@ end
 # v is replaced by t in f
 function sub_map(v::RingElem, t::RingElem, R::MPolyRing, xs::Vector{<:RingElem})
   xs_v = map(x -> x == v ? t : x, xs)
-  return hom(R, FractionField(R), a -> a, xs_v)
+  return hom(R, fraction_field(R), a -> a, xs_v)
 end
 
 # replace v by t in f, only return the numerator.
