@@ -117,8 +117,6 @@ end
 
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModElem{T}
 parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
-elem_type(::FreeMod{T}) where {T} = FreeModElem{T}
-parent_type(::FreeModElem{T}) where {T} = FreeMod{T}
 
 function generator_symbols(F::FreeMod)
   return F.S

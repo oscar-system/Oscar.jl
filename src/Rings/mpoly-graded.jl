@@ -562,7 +562,6 @@ parent(a::MPolyDecRingElem{T, S}) where {T, S} = a.parent::MPolyDecRing{T, paren
 Nemo.symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
 Nemo.nvars(R::MPolyDecRing) = nvars(forget_decoration(R))
 
-elem_type(::MPolyDecRing{T, S}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 elem_type(::Type{MPolyDecRing{T, S}}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, parent_type(S)}
 

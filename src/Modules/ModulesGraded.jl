@@ -2052,8 +2052,6 @@ end
 
 elem_type(::Type{FreeMod_dec{T}}) where {T} = FreeModElem_dec{T}
 parent_type(::Type{FreeModElem_dec{T}}) where {T} = FreeMod_dec{T}
-elem_type(::FreeMod_dec{T}) where {T} = FreeModElem_dec{T}
-parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
 
 @doc raw"""
 """

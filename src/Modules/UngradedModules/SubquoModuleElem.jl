@@ -16,8 +16,6 @@ Construct an element $v \in SQ$ that is represented by $a$.
 """
 SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced) 
 
-elem_type(::SubquoModule{T}) where {T} = SubquoModuleElem{T}
-parent_type(::SubquoModuleElem{T}) where {T} = SubquoModule{T}
 elem_type(::Type{SubquoModule{T}}) where {T} = SubquoModuleElem{T}
 parent_type(::Type{SubquoModuleElem{T}}) where {T} = SubquoModule{T}
 
