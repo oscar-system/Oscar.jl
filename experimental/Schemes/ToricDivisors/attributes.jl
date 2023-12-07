@@ -53,13 +53,24 @@ function forget_toric_structure(td::ToricDivisor)
 end
 
 # For method delegation.
-function underlying_divisor(td::ToricDivisor; check::Bool=false)
+function underlying_divisor(td::ToricDivisor; check::Bool=false, algorithm::Symbol=:direct)
   if has_attribute(td, :underlying_divisor)
     return get_attribute(td, :underlying_divisor)::WeilDivisor
   end
   X = scheme(td)
-  generating_divisors = _torusinvariant_weil_divisors(X; check)
-  result = sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
-  set_attribute!(td, :underlying_divisor=>result)
-  return result
+  if algorithm == :via_torus_invariant_prime_divisors
+    generating_divisors = _torusinvariant_weil_divisors(X; check)
+    result = sum(a*D for (a, D) in zip(coefficients(td), generating_divisors))
+    set_attribute!(td, :underlying_divisor=>result)
+    return result
+  elseif algorithm == :via_polymake_module_generators
+    a = coefficients(td)::Vector{ZZRingElem}
+    pos = [(c >= 0 ? c : zero(ZZ)) for c in a]
+    neg = [(c < 0 ? -c : zero(ZZ)) for c in a]
+    pos_div = _weil_divisor_via_polymake(X, pos)
+    neg_div = _weil_divisor_via_polymake(X, neg)
+    return pos_div - neg_div
+  else
+    error("algorithm not found")
+  end
 end

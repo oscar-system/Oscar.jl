@@ -77,3 +77,56 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
   set_attribute!(X, :_torusinvariant_weil_divisors=>result)
   return result
 end
+
+function _weil_divisor_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem}; check::Bool=false)
+  ray_list = rays(polyhedral_fan(X))
+  ideal_dict = IdDict{AbsSpec, Ideal}()
+  for U in affine_charts(X)
+
+    # Populate a dict for the mapping of the local rays of the cone of U
+    # to the rays of the fan
+    sigma = cone(U)
+    sigma_dual = weight_cone(U)
+    r_sigma = rays(sigma)
+    div_dict = Dict{RayVector, RayVector}()
+    index_dict = Vector{Int}()
+    for (i, r) in enumerate(r_sigma)
+      k = findfirst(s->s==r, ray_list)
+      k === nothing && error("ray not found")
+      div_dict[r] = ray_list[k]
+      push!(index_dict, k)
+    end
+    @show index_dict
+    if isempty(index_dict)
+      ideal_dict[U] = ideal(OO(U), one(OO(U)))
+      continue
+    end
+    loc_c = c[index_dict]
+    loc_div = toric_divisor(U, loc_c)
+    # A is a matrix and its rows are the coordinates of the lattice 
+    # points generating the local ideal. 
+    A = pm_object(loc_div).MODULE_GENERATORS
+    @show A
+    g = [A[i, :] for i in 1:nrows(A)]
+    # We need to convert them to their representations in the 
+    # hilbert basis for this chart.
+    hb = hilbert_basis(U)::ZZMatrix
+    for i in 1:nrows(A)
+      @show i
+      # Manually convert the rows of A to a ZZMatrix so that solve_mixed will take it
+      # Why don't we do A all at once? Because `solve_mixed` won't accept real matrices 
+      # as second argument. Duh. 
+      b = zero_matrix(ZZ, ncols(A), 1)
+      for j in 1:ncols(A)
+        b[j, 1] = ZZ(A[i, j])
+      end
+      @show transpose(hb)
+      @show b
+      c_in_hb = solve_mixed(ZZMatrix, transpose(hb), b, identity_matrix(ZZ, nrows(hb)), zero_matrix(ZZ, nrows(hb), 1))
+      @show c_in_hb
+      #TODO: form the monomial in OO(U) and collect these to local generators of the ideal.
+    end
+  end
+  #TODO: Form the ideal sheaf and the associated Weil divisor.
+end
+
