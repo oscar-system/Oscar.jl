@@ -1503,7 +1503,7 @@ function Base.show(io::IO, table::sheafCohTable)
   # row labels
   row_label_length = max(_ndigits(nrows - 1), 3) + 3
   for i in 1:nrows
-    pushfirst!(print_rows[i], rpad("$(i-1): ", row_label_length, " "))
+    pushfirst!(print_rows[i], rpad("$(nrows-i): ", row_label_length, " "))
   end
   pushfirst!(chi_print, rpad("chi: ", row_label_length, " "))  
 
