@@ -303,7 +303,7 @@ function realization_space(
   q::Union{Int,Nothing}=nothing,
   ground_ring::Ring=ZZ
 )::MatroidRealizationSpace
-  if char != nothing && !isprime(char) && char != 0
+  if char != nothing && !is_prime(char) && char != 0
     error("The characteristic has to be 0 or a prime number.")
   end
 
