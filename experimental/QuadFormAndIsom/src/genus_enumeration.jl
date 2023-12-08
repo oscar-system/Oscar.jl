@@ -52,6 +52,7 @@ function _neighbours_definite_ex(L::ZZLat, p::ZZRingElem; callback::Function,
                                                           missing_mass::Union{Nothing, Base.RefValue{QQFieldElem}} = nothing)
   K = GF(p)
   Tp = torsion_quadratic_module(L, p*L)
+  _, jp = radical_bilinear(Tp)
   form = map_entries(ZZ, gram_matrix(L))
 
   if use_mass
@@ -68,8 +69,8 @@ function _neighbours_definite_ex(L::ZZLat, p::ZZRingElem; callback::Function,
 
     w = lift(matrix(x))
     a = Tp(abelian_group(Tp)(w))
-    !iszero(quadratic_product(a)) && continue
-    all(b -> iszero(a*b), gens(Tp)) && continue
+    iszero(quadratic_product(a)) || continue
+    has_preimage(jp, a)[1] && continue
 
     make_admissible!(w, form, p, K)
     LL = lll(neighbour(L, w, p))
@@ -109,7 +110,7 @@ function _neighbours_definite_orbit(L::ZZLat, p::ZZRingElem; callback::Function,
   form = map_entries(ZZ, gram_matrix(L))
   B = basis_matrix(L)
   Tp = torsion_quadratic_module(L, p*L)
-  dmy = Oscar._orthogonal_group(Tp, ZZMatrix[])
+  _, jp = radical_bilinear(Tp)
 
   if use_mass
     __mass = missing_mass[]
@@ -127,11 +128,11 @@ function _neighbours_definite_orbit(L::ZZLat, p::ZZRingElem; callback::Function,
   @vprintln :ZZLatWithIsom 1 "$(length(LO)) orbits of lines to try"
 
   for x in LO
-   
+
     w = lift(matrix(x))
     a = Tp(abelian_group(Tp)(w))
-    !iszero(quadratic_product(a)) && continue
-    all(b -> iszero(a*b), gens(Tp)) && continue
+    iszero(quadratic_product(a)) || continue
+    has_preimage(jp, a)[1] && continue
 
     make_admissible!(w, form, p, K)
     LL = lll(neighbour(L, w, p))
@@ -170,6 +171,7 @@ function _neighbours_definite_rand(L::ZZLat, p::ZZRingElem; rand_neigh::Union{No
   K = GF(p)
   form = map_entries(ZZ, gram_matrix(L))
   Tp = torsion_quadratic_module(L, p*L)
+  _, jp = radical_bilinear(Tp)
 
   if use_mass
     __mass = missing_mass[]
@@ -187,12 +189,12 @@ function _neighbours_definite_rand(L::ZZLat, p::ZZRingElem; rand_neigh::Union{No
 
     w = lift(matrix(rand(P)))
     a = Tp(abelian_group(Tp)(w))
-    !iszero(quadratic_product(a)) && continue
-    all(b -> iszero(a*b), gens(Tp)) && continue
+    iszero(quadratic_product(a)) || continue
+    has_preimage(jp, a)[1] && continue
 
     make_admissible!(w, form, p, K)
     LL = lll(neighbour(L, w, p))
-
+    println("bla")
     @hassert :ZZLatWithIsom 1 is_locally_isometric(LL, L, p)
 
     keep = callback(LL)
@@ -336,8 +338,12 @@ function enumerate_definite_genus(
         push!(res, M)
       end
       use_mass && is_zero(missing_mass[]) && break
-      @v_do :ZZLatWithIsom perc = Float64(missing_mass[]//_mass) * 100
-      @vprintln :ZZLatWithIsom 1 "Lattices: $(length(res)), Target mass: $(_mass). missing: $(missing_mass[]) ($(perc)%)"
+      if use_mass
+        @v_do :ZZLatWithIsom perc = Float64(missing_mass[]//_mass) * 100
+        @vprintln :ZZLatWithIsom 1 "Lattices: $(length(res)), Target mass: $(_mass). missing: $(missing_mass[]) ($(perc)%)"
+      else
+        @vprintln :ZZLatWithIsom "Lattices: $(length(res))"
+      end
     end
   end
   return res, use_mass ? missing_mass[] : zero(QQ)
@@ -370,6 +376,10 @@ function enumerate_definite_genus(
                                                          save_path,
                                                          use_mass,
                                                          _missing_mass)
+
+  while alg_type != :exhaustive && use_mass && !iszero(mm)
+    edg, mm = enumerate_definite_genus(edg, alg_type; rand_neigh, invariant_func, save_partial, save_path, use_mass, _missing_mass = mm)
+  end
   if neg
     map!(LL -> rescale(LL, -1), edg, edg)
   end
@@ -402,6 +412,10 @@ function enumerate_definite_genus(
                                                          save_path,
                                                          use_mass,
                                                          _missing_mass)
+
+  while alg_type != :exhaustive && use_mass && !iszero(mm)
+    edg, mm = enumerate_definite_genus(edg, alg_type; rand_neigh, invariant_func, save_partial, save_path, use_mass, _missing_mass = mm)
+  end
   if neg
     map!(LL -> rescale(LL, -1), edg, edg)
   end
