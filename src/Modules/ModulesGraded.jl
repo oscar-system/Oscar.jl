@@ -1484,7 +1484,7 @@ mutable struct sheafCohTable
 end
 
 function Base.getindex(st::sheafCohTable, ind...)
-  row_ind = ind[1] + 1
+  row_ind = size(st.values, 1) - ind[1]
   col_ind = ind[2] - first(st.twist_range) + 1
   return st.values[row_ind, col_ind]
 end
@@ -1566,10 +1566,10 @@ twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 chi:     *   *   *   4   -   -   1   -   *
 
-julia> tbl[3, 2]
+julia> tbl[0, 2]
 6
 
-julia> tbl[2, 0]
+julia> tbl[1, 0]
 1
 
 julia> sheaf_cohomology(M, -9, 5)
@@ -1682,10 +1682,10 @@ twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 chi:    70  36  15   4   -   -   1   -   6
 
-julia> tbl[0, -6]
+julia> tbl[3, -6]
 70
 
-julia> tbl[2, 0]
+julia> tbl[1, 0]
 1
 ```
 """
@@ -1739,10 +1739,10 @@ twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 chi:    70  36  15   4   -   -   1   -   6
 
-julia> tbl[0, -6]
+julia> tbl[3, -6]
 70
 
-julia> tbl[2, 0]
+julia> tbl[1, 0]
 1
 
 julia> R, x = polynomial_ring(QQ, "x" => 1:5);
