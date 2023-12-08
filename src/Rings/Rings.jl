@@ -8,7 +8,6 @@ include("mpoly-ideals.jl")
 include("groebner.jl")
 include("solving.jl")
 include("MPolyQuo.jl")
-include("mpoly-nested.jl")
 include("FractionalIdeal.jl")
 
 include("mpoly-affine-algebras.jl")

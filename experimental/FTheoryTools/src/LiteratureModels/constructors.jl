@@ -42,7 +42,7 @@ julia> v = ambient_space(t)
 A family of spaces of dimension d = 5
 
 julia> coordinate_ring(v)
-Multivariate polynomial ring in 9 variables Kbar, w, a1, a21..., z
+Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
   over rational field
 ```
 It is also possible to construct a literature model over a particular base.

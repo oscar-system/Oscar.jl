@@ -51,7 +51,7 @@ function basis_lie_highest_weight_compute(
     operators, [asVec(v) for v in operators], weights_w, weights_alpha
   )
 
-  ZZx, _ = PolynomialRing(ZZ, length(operators)) # for our monomials
+  ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
   monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
 
   # save computations from recursions
