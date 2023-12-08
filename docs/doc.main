@@ -168,6 +168,9 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
      ],
+     "Sheaf Cohomology" => [
+        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
+     ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
         "AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet.md",

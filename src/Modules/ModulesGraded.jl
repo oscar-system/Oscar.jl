@@ -1524,18 +1524,22 @@ end
 @doc raw"""
     sheaf_cohomology(M::ModuleFP{T}, l::Int, h::Int; algorithm::Symbol = :bgg) where {T <: MPolyDecRingElem}
 
-Compute the cohomology of twists of of the coherent sheaf on projective
-space associated to `M`. The range of twists is between `l` and `h`.
-In the displayed result, '-' refers to a zero enty and '*' refers to a
-negative entry (= dimension not yet determined). To determine all values
-in the desired range between `l` and `h` use `sheafCoh_BGG_regul(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
-The values of the returned table can be accessed by indexing it
-with a cohomological index and a value between `l` and `h` as shown
-in the example below.
+If `M` is a graded module over a standard graded multivariate polynomial ring with coefficients in a field `K`, 
+say, and $\mathcal F = \widetilde{M}$ is the coherent sheaf associated to `M` on the corresponding projective 
+space $\mathbb P^n(K)$, consider the cohomology groups $H^i(\mathbb P^n(K), \mathcal F(d))$ as vector spaces 
+over $K$, and return their dimensions $h^i(\mathbb P^n(K), \mathcal F(d))$ in the range of twists $d$ 
+indicated by `l` and `h`. The result is presented as a table, where '-' indicates that
+$h^i(\mathbb P^n(K), \mathcal F(d)) = 0$. The line starting  with `chi` lists the Euler characteristic 
+of each twist under consideration. The values in the table can be accessed as shown in the 
+first example below. Note that this example addresses the cotangent bundle on projective 3-space, while the 
+second example is concerned with the structure sheaf of projective 4-space.
 
 The keyword `algorithm` can be set to
-- `:bgg` (uses the Bernstein-Gelfand-Gelfand correspondence),
-- `:loccoh` (uses local duality),
+- `:bgg` (use the Tate resolution via the Bernstein-Gelfand-Gelfand correspondence),
+- `:loccoh` (use local cohomology).
+
+!!! note 
+    Due to the shape of the Tate resolution, the algorithm addressed by `bgg` does not compute all values in the given range `l` $<$ `h`. The missing values are indicated by a `*`. To determine all values in the range `l` $<$ `h`, enter `sheaf_cohomology(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
 
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:4);
@@ -1562,28 +1566,40 @@ twist:  -6  -5  -4  -3  -2  -1   0   1   2
 ------------------------------------------
 chi:     *   *   *   4   -   -   1   -   *
 
-julia> tbl[0, -6]
-70
+julia> tbl[3, 2]
+6
 
 julia> tbl[2, 0]
 1
 
+julia> sheaf_cohomology(M, -9, 5)
+twist:   -9   -8   -7   -6   -5   -4   -3   -2   -1    0    1    2    3    4    5
+---------------------------------------------------------------------------------
+0:      280  189  120   70   36   15    4    -    -    -    -    -    *    *    *
+1:        *    -    -    -    -    -    -    -    -    -    -    -    -    *    *
+2:        *    *    -    -    -    -    -    -    -    1    -    -    -    -    *
+3:        *    *    *    -    -    -    -    -    -    -    -    6   20   45   84
+---------------------------------------------------------------------------------
+chi:      *    *    *   70   36   15    4    -    -    1    -    6    *    *    *
+```
+
+```jldoctest
 julia> R, x = polynomial_ring(QQ, "x" => 1:5);
 
-julia> R, x = grade(R);
+julia> S, _  = grade(R);
 
-julia> F = graded_free_module(R, 1);
+julia> F = graded_free_module(S, 1);
 
-julia> sheaf_cohomology(F, -7, 2, algorithm = :bgg)
-twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
-----------------------------------------------
-0:      15   5   1   -   -   -   *   *   *   *
-1:       *   -   -   -   -   -   -   *   *   *
-2:       *   *   -   -   -   -   -   -   *   *
-3:       *   *   *   -   -   -   -   -   -   *
-4:       *   *   *   *   -   -   -   1   5  15
-----------------------------------------------
-chi:     *   *   *   *   -   -   *   *   *   *
+julia> sheaf_cohomology(F, -8, 3, algorithm = :loccoh)
+twist:  -8  -7  -6  -5  -4  -3  -2  -1   0   1   2   3
+------------------------------------------------------
+0:      35  15   5   1   -   -   -   -   -   -   -   -
+1:       -   -   -   -   -   -   -   -   -   -   -   -
+2:       -   -   -   -   -   -   -   -   -   -   -   -
+3:       -   -   -   -   -   -   -   -   -   -   -   -
+4:       -   -   -   -   -   -   -   -   1   5  15  35
+------------------------------------------------------
+chi:    35  15   5   1   -   -   -   -   1   5  15  35
 ```
 """
 function sheaf_cohomology(M::ModuleFP{T},
@@ -1612,36 +1628,6 @@ with a cohomological index and a value between `l` and `h` as shown
 in the example below.
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:4);
-
-julia> S, _= grade(R);
-
-julia> I = ideal(S, gens(S))
-ideal(x[1], x[2], x[3], x[4])
-
-julia> FI = free_resolution(I)
-Free resolution of I
-S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
-0         1         2         3         4
-
-julia> M = cokernel(map(FI, 2));
-
-julia> tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
-twist:  -6  -5  -4  -3  -2  -1   0   1   2
-------------------------------------------
-0:      70  36  15   4   -   -   -   -   *
-1:       *   -   -   -   -   -   -   -   -
-2:       *   *   -   -   -   -   1   -   -
-3:       *   *   *   -   -   -   -   -   6
-------------------------------------------
-chi:     *   *   *   4   -   -   1   -   *
-
-julia> tbl[0, -6]
-70
-
-julia> tbl[2, 0]
-1
-
 julia> R, x = polynomial_ring(QQ, "x" => 1:5);
 
 julia> R, x = grade(R);
@@ -1658,6 +1644,49 @@ twist:  -7  -6  -5  -4  -3  -2  -1   0   1   2
 4:       *   *   *   *   -   -   -   1   5  15
 ----------------------------------------------
 chi:     *   *   *   *   -   -   *   *   *   *
+
+julia> sheaf_cohomology(F, -11, 6)
+twist:  -11  -10   -9   -8   -7   -6   -5   -4   -3   -2   -1    0    1    2    3    4    5    6
+------------------------------------------------------------------------------------------------
+0:      210  126   70   35   15    5    1    -    -    -    -    -    -    -    *    *    *    *
+1:        *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *    *    *
+2:        *    *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *    *
+3:        *    *    *    -    -    -    -    -    -    -    -    -    -    -    -    -    -    *
+4:        *    *    *    *    -    -    -    -    -    -    -    1    5   15   35   70  126  210
+------------------------------------------------------------------------------------------------
+chi:      *    *    *    *   15    5    1    -    -    -    -    1    5   15    *    *    *    *
+```
+
+```jldoctest
+julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+
+julia> S, _= grade(R);
+
+julia> I = ideal(S, gens(S))
+ideal(x[1], x[2], x[3], x[4])
+
+julia> FI = free_resolution(I)
+Free resolution of I
+S^4 <---- S^6 <---- S^4 <---- S^1 <---- 0
+0         1         2         3         4
+
+julia> M = cokernel(map(FI, 2));
+
+julia> tbl = sheaf_cohomology(M, -6, 2, algorithm = :loccoh)
+twist:  -6  -5  -4  -3  -2  -1   0   1   2
+------------------------------------------
+0:      70  36  15   4   -   -   -   -   -
+1:       -   -   -   -   -   -   -   -   -
+2:       -   -   -   -   -   -   1   -   -
+3:       -   -   -   -   -   -   -   -   6
+------------------------------------------
+chi:    70  36  15   4   -   -   1   -   6
+
+julia> tbl[0, -6]
+70
+
+julia> tbl[2, 0]
+1
 ```
 """
 function _sheaf_cohomology_bgg(M::ModuleFP{T},
@@ -2052,6 +2081,8 @@ end
 
 elem_type(::Type{FreeMod_dec{T}}) where {T} = FreeModElem_dec{T}
 parent_type(::Type{FreeModElem_dec{T}}) where {T} = FreeMod_dec{T}
+elem_type(::FreeMod_dec{T}) where {T} = FreeModElem_dec{T}
+parent_type(::FreeModElem_dec{T}) where {T} = FreeMod_dec{T}
 
 @doc raw"""
 """
