@@ -331,3 +331,40 @@ end
   @test hessian(f) == -24*x*z + 24*y^2*z
 end
 
+@testset "rerouting of primary decomposition over number fields" begin
+  P, t = QQ[:t]
+  kk = splitting_field(t^3 - 1)
+  kks, s = kk[:s]
+  kk2 = splitting_field(s^2 + 1)
+
+  R, (x, y) = kk[:x, :y]
+  alpha = first(gens(kk))
+  R_flat, iso, iso_inv = Oscar._flatten_ring(R)
+  theta = first(gens(R_flat))
+  @test iso_inv(R(alpha)) == theta
+  @test iso(theta) == alpha
+  id1 = compose(iso, iso_inv)
+  @test all(x->x==id1(x), gens(R_flat))
+  id2 = compose(iso_inv, iso)
+  @test all(x->x==id2(x), gens(R))
+
+  S, (u, v) = kk2[:u, :v]
+  S_flat, iso, iso_inv = Oscar._flatten_ring(S)
+  S_ff, iso2, iso_inv2 = Oscar._flatten_ring(S_flat)
+
+  iso_tot = compose(iso2, iso)
+  iso_inv_tot = compose(iso_inv, iso_inv2)
+
+  beta = first(gens(kk2))
+  @test iso_inv_tot(S(beta)) == S_ff[2]
+  @test iso_inv_tot(S(alpha)) == S_ff[1]
+
+  Sff, iso2, iso_inv2 = Oscar._flatten_to_QQ(S)
+  @test iso_inv_tot(S(beta)) == S_ff[2]
+  @test iso_inv_tot(S(alpha)) == S_ff[1]
+
+  I = ideal(S, [(u^2 + 1)^3])
+  dec = primary_decomposition(I)
+  @test length(dec) == 2
+end
+

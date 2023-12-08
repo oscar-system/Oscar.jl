@@ -531,6 +531,23 @@ function primary_decomposition(I::T; algorithm::Symbol=:GTZ, cache::Bool=true) w
   end::Vector{Tuple{T,T}}
 end
 
+function primary_decomposition(
+    I::MPolyIdeal{T}; 
+    algorithm::Symbol=:GTZ, cache::Bool=true
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  return get_attribute!(I, :primary_decomposition) do
+    R = base_ring(I)
+    R_flat, iso, iso_inv = _flatten_to_QQ(R)
+    I_flat = ideal(R_flat, iso_inv.(gens(I)))
+    dec = primary_decomposition(I_flat; algorithm)
+    result = Vector{Tuple{typeof(I), typeof(I)}}()
+    for (P, Q) in dec
+      push!(result, (ideal(R, iso.(gens(P))), ideal(R, iso.(gens(Q)))))
+    end
+    result
+  end::Vector{Tuple{typeof(I), typeof(I)}}
+end
+
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)

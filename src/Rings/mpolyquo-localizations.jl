@@ -1884,14 +1884,17 @@ end
 ############################################################################# 
 
 @doc raw"""
-     primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+    primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
 
 Return the primary decomposition of ``I``.
 """
-function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+function primary_decomposition(
+    I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal};
+    algorithm::Symbol=:GTZ, cache::Bool=true
+  )
   Q = base_ring(I)
   R = base_ring(Q)
-  decomp = primary_decomposition(saturated_ideal(I))
+  decomp = primary_decomposition(saturated_ideal(I); algorithm, cache)
   result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
   erase = Int[]
   for i in 1:length(result)
