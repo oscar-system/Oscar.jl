@@ -132,7 +132,7 @@ with default covering
     3: [(s0//s2), (s1//s2)]
 
 julia> affine_charts(Xcov)
-3-element Vector{AbsSpec}:
+3-element Vector{Spec{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
  V((s1//s0) - (s2//s0)^2)
  V((s0//s1) - (s2//s1)^2)
  V((s0//s2)*(s1//s2) - 1)

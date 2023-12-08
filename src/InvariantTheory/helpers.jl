@@ -87,8 +87,8 @@ end
 # This function is meant to be used in the case where one needs the result for
 # different degrees d as results for lower degrees are reused (and cached in C).
 # If one is only interested in all monomials of a certain degree, one should use
-# all_monomials. Note that however also for a single degree d a naive evaluation
-# of the result of all_monomials at the elements of C.base is in general slower.
+# monomials_of_degree. Note that however also for a single degree d a naive evaluation
+# of the result of monomials_of_degree at the elements of C.base is in general slower.
 # If remember_exponents is true, the exponent vectors of the computed power
 # products will be stored in the dictionary C.exponent_vectors, that is, if
 # C.base = [ f_1, ..., f_k ] and we compute f = f_1^e_1 \cdots f_k^e_k, then

@@ -1,12 +1,21 @@
 #######################################################################
 # Basic properties
 #######################################################################
-@attr Bool function is_empty(P::AbsProjectiveScheme{<:Field})
+@attr Bool function is_empty(P::AbsProjectiveScheme{<:Field, <:MPolyQuoRing})
   I = defining_ideal(P)
   R = base_ring(I)
   J = ideal(R, gens(R))
   return is_one(saturation(I, J))
 end
+
+@attr Bool function is_empty(P::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
+  return isone(zero(base_ring(P)))
+end
+
+@attr Bool function is_empty(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
+  return all(x->radical_membership(x, defining_ideal(P)), gens(ambient_coordinate_ring(P)))
+end
+
 
 # TODO: Jacobi criterion
 function is_smooth(P::AbsProjectiveScheme; algorithm=:covered)

@@ -68,3 +68,9 @@ coefficients(td::ToricDivisor)
 polyhedron(td::ToricDivisor)
 toric_variety(td::ToricDivisor)
 ```
+
+The following attributes are supported by experimental code:
+```@docs
+scheme(td::ToricDivisor)
+forget_toric_structure(td::ToricDivisor)
+```

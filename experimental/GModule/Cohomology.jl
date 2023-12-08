@@ -53,8 +53,8 @@ end
 (M::MultGrp{T})(a::T) where {T}  = MultGrpElem{T}(a, M)
 
 Oscar.parent(a::MultGrpElem) = a.parent
-Oscar.elem_type(::MultGrp{T}) where T = MultGrpElem{T}
 Oscar.elem_type(::Type{MultGrp{T}}) where T = MultGrpElem{T}
+Oscar.parent_type(::Type{MultGrpElem{T}}) where T = MultGrp{T}
 Oscar.zero(a::MultGrpElem) = parent(a)(one(a.data))
 
 import Base: ==, +, -, *
@@ -558,9 +558,8 @@ function Base.show(io::IO, C::CoChain{N}) where {N}
   print(io, "$N-cochain with values in ", C.C.M)
 end
 
-Oscar.Nemo.elem_type(::AllCoChains{N,G,M}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
-Oscar.Nemo.parent_type(::CoChain{N,G,M})  where {N,G,M}= AllCoChains{N,G,M}
+Oscar.Nemo.parent_type(::Type{CoChain{N,G,M}}) where {N,G,M} = AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
 function differential(C::CoChain{N, G, M}) where {N, G, M}

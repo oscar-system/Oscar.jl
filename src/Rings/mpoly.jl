@@ -233,9 +233,7 @@ mutable struct IdealGens{S}
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
     r = new{T}()
-    if isdefined(r, :isGB) # why can this even happen?
-      r.isGB = false
-    end
+    r.isGB = false
     r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
@@ -670,7 +668,7 @@ Fields:
     r.gens = B
     r.dim = -1
     r.gb = Dict()
-    if isdefined(B, :isGB) && B.isGB
+    if B.isGB
       r.gb[B.ord] = B
     end
     return r

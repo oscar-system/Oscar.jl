@@ -58,9 +58,9 @@ julia> m = 2;
 
 julia> ray_generators = [e1, -e1, e2, e3, - e2 - e3 - m * e1];
 
-julia> max_cones = [[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]];
+julia> max_cones = IncidenceMatrix([[1,3,4], [1,3,5], [1,4,5], [2,3,4], [2,3,5], [2,4,5]]);
 
-julia> X = normal_toric_variety(ray_generators, max_cones; non_redundant = true)
+julia> X = normal_toric_variety(max_cones, ray_generators; non_redundant = true)
 Normal toric variety
 
 julia> cox_ring(X)

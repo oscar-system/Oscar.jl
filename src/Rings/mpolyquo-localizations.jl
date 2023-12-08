@@ -606,6 +606,19 @@ function is_unit(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, f::MPolyQuoRingEle
   one(localized_ring(L)) in modulus(L) + ideal(localized_ring(L), localized_ring(L)(f))
 end
 
+function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
+  iszero(f) && return true
+  # The next block is basically useless when the coefficient ring is
+  # a field, because it is merely another `is_zero`-check. However,
+  # once more functionality is working, it will actually do stuff and
+  # the above signature can be widened.
+  if is_constant(lifted_numerator(f)) && is_constant(lifted_denominator(f))
+    c = first(coefficients(lift(numerator(f))))
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
+
 # WARNING: This routine runs forever if f is not a unit in L. 
 # So this needs to be checked first!
 function inv(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
@@ -854,12 +867,8 @@ end
 one(W::MPolyQuoLocRing) = W(one(base_ring(W)))
 zero(W::MPolyQuoLocRing)= W(zero(base_ring(W)))
 
-elem_type(W::MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-elem_type(T::Type{MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
-parent_type(W::MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-parent_type(T::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
+elem_type(::Type{MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(::Type{MPolyQuoLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyQuoLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
 
 @doc raw"""
@@ -2048,12 +2057,12 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
   done = false
   d = 0
   while !done
-    inc = [m for m in all_monomials(R, d) if !(m in lead_I)]
+    inc = [m for m in monomials_of_degree(R, d) if !(m in lead_I)]
     if iszero(length(inc))
       done = true
       break
     end
-    V_gens = vcat(V_gens, [m for m in all_monomials(R, d) if !(m in lead_I)])
+    V_gens = vcat(V_gens, [m for m in monomials_of_degree(R, d) if !(m in lead_I)])
     d = d + 1
   end
 
@@ -2197,7 +2206,7 @@ Note: This is only available for localizations at rational points.
   F = free_module(R, length(Jlist))
   Imax = ideal(R,gens(R))
   M = sub(F,[F(syz_mod[i]) for i=1:Singular.ngens(syz_mod)])[1] + (Imax*F)[1]
-  oF =  negdegrevlex(R)*revlex(F)
+  oF =  negdegrevlex(R)*invlex(F)
   res_vec = typeof(gen(I,1))[]
 
   ## select by Nakayama

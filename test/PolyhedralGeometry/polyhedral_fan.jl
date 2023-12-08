@@ -12,12 +12,17 @@
   I3 = [1 0 0; 0 1 0; 0 0 1]
   incidence1 = IncidenceMatrix([[1,2],[2,3]])
   incidence2 = IncidenceMatrix([[1,2]])
-  @test polyhedral_fan(f, I3, incidence1) isa PolyhedralFan{T}
-  F1 = polyhedral_fan(f, I3, incidence1)
-  F1NR = polyhedral_fan(f, I3, incidence1; non_redundant = true)
-  @test polyhedral_fan(f, I3, incidence1) isa PolyhedralFan{T}
-  F2 = polyhedral_fan(f, R, L, incidence2)
-  F2NR = polyhedral_fan(f, R, L, incidence2; non_redundant = true)
+  @test polyhedral_fan(f, incidence1, I3) isa PolyhedralFan{T}
+  F1 = polyhedral_fan(f, incidence1, I3)
+  F1NR = polyhedral_fan(f, incidence1, I3; non_redundant = true)
+  @test polyhedral_fan(f, incidence1, I3) isa PolyhedralFan{T}
+  F2 = polyhedral_fan(f, incidence2, R, L)
+  F2NR = polyhedral_fan(f, incidence2, R, L; non_redundant = true)
+
+  @test Polymake.exists(Oscar.pm_object(F2NR), "RAYS")
+  @test !Polymake.exists(Oscar.pm_object(F2NR), "INPUT_RAYS")
+  @test !Polymake.exists(Oscar.pm_object(F2), "RAYS")
+  @test Polymake.exists(Oscar.pm_object(F2), "INPUT_RAYS")
 
   @testset "core functionality" begin
     if T == QQFieldElem
@@ -61,7 +66,7 @@
     @test cones(IncidenceMatrix, F1, 2) == incidence1
 
     II = ray_indices(maximal_cones(NFsquare))
-    NF0 = polyhedral_fan(rays(NFsquare), II)
+    NF0 = polyhedral_fan(II, rays(NFsquare))
     @test nrays(NF0) == 4
     FF0 = face_fan(C0)
     @test nrays(FF0) == 4
@@ -91,11 +96,26 @@
     C = positive_hull(f, vcat(identity_matrix(ZZ, 4), -identity_matrix(ZZ,4)))
     pf = polyhedral_fan(C)
     @test n_maximal_cones(pf) == 1
+
+    @test polyhedral_fan(maximal_cones(F2NR)) isa PolyhedralFan
+    # this should just deepcopy the object
+    F2NRc = polyhedral_fan(maximal_cones(F2NR))
+    @test Polymake.list_properties(Oscar.pm_object(F2NR)) ==
+            Polymake.list_properties(Oscar.pm_object(F2NRc))
+
+    # construct from a generic list of cones
+    @test polyhedral_fan(cones(F1NR, 1)) isa PolyhedralFan
+    @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
+    @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
+
+    @test polyhedral_fan(cones(F1NR, 1); non_redundant=true) isa PolyhedralFan
+    @test f_vector(polyhedral_fan(cones(F1NR, 1))) == [3]
+    @test f_vector(polyhedral_fan(Cone5)) == [2, 1]
   end
 
 end
 
-@testset "Transform" for (f, T) in _prepare_scalar_types()
+@testset "Transform{$T}" for (f, T) in _prepare_scalar_types()
   square = cube(f, 2)
   nf_square = normal_fan(square)
   m_good = matrix(f, [1 0; 0 1])
@@ -121,7 +141,7 @@ end
 end
 
 @testset "Star Subdivision" begin
-  f = polyhedral_fan([1 0 0; 1 1 0; 1 1 1; 1 0 1], IncidenceMatrix([[1,2,3,4]]))
+  f = polyhedral_fan(IncidenceMatrix([[1,2,3,4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
   @test is_pure(f)
   @test is_fulldimensional(f)
   v0 = [1;0;0]
@@ -134,7 +154,7 @@ end
   @test n_maximal_cones(sf1) == 3
   @test n_maximal_cones(sf2) == 4
 
-  ff = polyhedral_fan([1 0 0; -1 0 0; 0 1 0], IncidenceMatrix([[1],[2,3]]))
+  ff = polyhedral_fan(IncidenceMatrix([[1],[2,3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
   @test !is_fulldimensional(ff)
   w0 = [1;0;0]

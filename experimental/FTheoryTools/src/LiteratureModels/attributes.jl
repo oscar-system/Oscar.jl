@@ -195,8 +195,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
-1-element Vector{Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- [0, 0, 1]
+1-element Vector{Vector{String}}:
+ ["0", "0", "1"]
 ```
 """
 function generating_sections(m::AbstractFTheoryModel)
@@ -582,7 +582,7 @@ julia> related_literature_models(m)
 ```
 """
 function related_literature_models(m::AbstractFTheoryModel)
-  @req has_related_literature_models(m) "No associated models known for this model"
+  @req has_related_literature_models(m) "No related models known for this model"
   return get_attribute(m, :related_literature_models)
 end
 

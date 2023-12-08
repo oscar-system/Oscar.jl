@@ -38,9 +38,12 @@ matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnio
 ```@docs
 uniform_matroid(r::IntegerUnion,n::IntegerUnion)
 fano_matroid()
+moebius_kantor_matroid()
 non_fano_matroid()
 non_pappus_matroid()
 pappus_matroid()
+perles_matroid()
+R10_matroid()
 vamos_matroid()
 all_subsets_matroid(r::Int)
 projective_plane(q::Int)
@@ -109,7 +112,10 @@ reduced_characteristic_polynomial(M::Matroid)
 revlex_basis_encoding(M::Matroid)
 is_isomorphic(M1::Matroid, M2::Matroid)
 is_minor(M::Matroid, N::Matroid)
+automorphism_group(M::Matroid)
+matroid_base_polytope(M::Matroid)
 ```
+
 
 ### Chow Rings
 ```@docs
@@ -117,38 +123,4 @@ chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=fal
 augmented_chow_ring(M::Matroid)
 ```
 
-## Matroid strata and realization spaces
 
-For a matroid ``M``, of rank ``d`` on a ground set ``E`` of size ``n`` realizable over a ring ``K``, 
-its *matroid realization space* ``\mathsf{Gr}(M)`` is the locally closed subscheme of the Grassmannian
-``\mathsf{Gr}(d,K^n)`` of ``d``-dimensional subspaces of ``K^n`` realizing ``M``. Precisely, 
-
-```math
-    \mathsf{Gr}(M) = \{F \in \mathsf{Gr}(d,K^n) \, : \, p_{I}(F) \neq 0 \text{ iff } I \in \mathcal{B}(M)\}
-```
-
-where ``\mathcal{B}(M)`` denotes the set of bases of ``M`` and  ``p_{I}(F)`` denotes the ``I``th Pl\"ucker 
-coordinate of the linear subspace ``F \subset K^n``. The coordinate ring of ``\mathsf{Gr}(M)`` can be computed
-using matrix coordinates, see Construction 2.2 of [Cor21](@cite). The following function computes this ring. 
-
-```@docs
-matroid_stratum_matrix_coordinates(M::Matroid, B::GroundsetType, F::AbstractAlgebra.Ring = ZZ)
-```
-
-When the matroid ``M`` is connected, the diagonal torus of ``\mathsf{PGL}(n)`` acts freely on 
-``\mathsf{Gr}(M)`` and its quotient is the *realization space* ``R(M)`` of ``M``. There are two main differences between the coordinate rings ``K[\mathsf{Gr}(M)]`` and ``K[R(M)]``.
- 
- - To comupte ``K[R(M)]``, we  assume that ``d+1`` columns ``A = \{a_1,\ldots,a_{d+1}\}``  of the reference matrix ``X`` are the unit vectors ``e_1,\ldots,e_n`` and ``e_1+ \cdots + e_n``. Note that every ``d`` element subset of ``A`` must be a basis of ``M``. Disconnected matroids do not satisfy this property.
- - The columns of the reference matrix ``X`` may be treated as projective coordinates.
-
-The coordinate ring of ``R(M)`` is computed in the following function. 
-
-
-```@docs
-matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
-```
-
-
-```@docs
-    automorphism_group(m::Matroid)
-```

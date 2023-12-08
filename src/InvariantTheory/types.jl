@@ -53,6 +53,12 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
 
+  # The underlying polynomial ring needs to be created with ordering = :degrevlex
+  # for the application of divrem in the secondary and fundamental invariants.
+  # If the user gave us a polynomial ring (which is stored in poly_ring), this
+  # might not be the case.
+  poly_ring_internal::PolyRingT
+
   group::GrpT
   action::Vector{ActionT}
 
@@ -70,8 +76,8 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
-    # We want to use divrem w.r.t. degrevlex e.g. for the computation of
-    # secondary invariants and fundamental invariants
+    # We want to use divrem w.r.t. degrevlex for the computation of secondary
+    # invariants and fundamental invariants
     R, = graded_polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)
     return InvRing(K, G, action, R)
   end
@@ -79,9 +85,6 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}, poly_ring::PolyRingT) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT, PolyRingT <: MPolyDecRing}
     @assert coefficient_ring(poly_ring) === K
     @assert ngens(poly_ring) == degree(G)
-    # We want to use divrem w.r.t. degrevlex e.g. for the computation of
-    # secondary invariants and fundamental invariants
-    @assert ordering(poly_ring) == :degrevlex
 
     PolyRingElemT = elem_type(poly_ring)
     z = new{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}()
@@ -97,17 +100,44 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
         z.modular = false
       end
     end
+
+    # We want to use divrem w.r.t. degrevlex for the computation of secondary
+    # invariants and fundamental invariants
+    if ordering(poly_ring) != :degrevlex
+      z.poly_ring_internal, _ = graded_polynomial_ring(K, ngens(poly_ring), cached = false, ordering = :degrevlex)
+    end
+
     return z
   end
 end
 
+# Produces all monomials in R of degree d
 struct AllMonomials{PolyRingT}
   R::PolyRingT
-  d::Int
+  d::Int # the degree
+
+  on_all_vars::Bool # whether we work on all variables or a subset
+  n_vars::Int # the number of variables we work on
+  used_vars::Vector{Int} # indices of the variables we work on
+  tmp::Vector{Int} # of length ngens(R), should be put back to zero after use
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int) where PolyRingT
     @assert d >= 0
-    return new{PolyRingT}(R, d)
+    return new{PolyRingT}(R, d, true, ngens(R))
+  end
+
+  function AllMonomials{PolyRingT}(R::PolyRingT, d::Int, vars::Vector{Int}) where PolyRingT
+    @assert d >= 0
+    vars = sort!(unique(vars))
+    @assert minimum(vars, init = 1) >= 1
+    @assert maximum(vars, init = 1) <= nvars(R)
+    n_vars = length(vars)
+    if n_vars == ngens(R)
+      return AllMonomials{PolyRingT}(R, d)
+    end
+
+    tmp = zeros(Int, ngens(R))
+    return new{PolyRingT}(R, d, false, n_vars, vars, tmp)
   end
 end
 

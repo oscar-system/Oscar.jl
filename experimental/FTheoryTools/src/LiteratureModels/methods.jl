@@ -74,29 +74,34 @@ Careful: Currently, this assumes that all blowups are toric blowups.
 We hope to remove this requirement in the near future.
 
 ```jldoctest
-julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> v = resolve(m, 1)
+julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> cox_ring(v)
-Multivariate polynomial ring in 13 variables over QQ graded by 
-  a1 -> [1 0 0 0 0 0 0 0]
-  a21 -> [0 1 0 0 0 0 0 0]
-  a32 -> [-1 2 0 0 0 0 0 0]
-  a43 -> [-2 3 0 0 0 0 0 0]
-  w -> [0 0 1 0 0 0 0 0]
-  x -> [0 0 0 1 0 0 0 0]
-  y -> [0 0 0 0 1 0 0 0]
-  z -> [0 0 0 0 0 1 0 0]
-  e1 -> [0 0 0 0 0 0 1 0]
-  e4 -> [0 0 0 0 0 0 0 1]
-  e2 -> [1 -1 -1 -1 1 -1 -1 0]
-  e3 -> [1 0 0 1 -1 1 0 -1]
-  s -> [-2 2 2 -1 0 2 1 1]
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> t2 = resolve(t, 1)
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> cox_ring(ambient_space(t2))
+Multivariate polynomial ring in 12 variables over QQ graded by 
+  x1 -> [1 0 0 0 0 0 0]
+  x2 -> [0 1 0 0 0 0 0]
+  x3 -> [0 1 0 0 0 0 0]
+  x4 -> [0 1 0 0 0 0 0]
+  x -> [0 0 1 0 0 0 0]
+  y -> [0 0 0 1 0 0 0]
+  z -> [0 0 0 0 1 0 0]
+  e1 -> [0 0 0 0 0 1 0]
+  e4 -> [0 0 0 0 0 0 1]
+  e2 -> [-1 -3 -1 1 -1 -1 0]
+  e3 -> [0 4 1 -1 1 0 -1]
+  s -> [2 6 -1 0 2 1 1]
 ```
 """
 function resolve(m::AbstractFTheoryModel, index::Int)
@@ -112,13 +117,44 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   resolved_ambient_space = ambient_space(m)
   R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
   for center in centers
-    @req all(x -> x in gR, [eval_poly(p, R) for p in center]) "Non-toric blowup currently not supported"
+    blow_up_center = center
+    if has_attribute(m, :explicit_model_sections)
+      explicit_model_sections = get_attribute(m, :explicit_model_sections)
+      for l in 1:length(blow_up_center)
+        if haskey(explicit_model_sections, blow_up_center[l])
+          new_locus = string(explicit_model_sections[blow_up_center[l]])
+          blow_up_center[l] = new_locus
+        end
+      end
+    end
+    @req all(x -> x in gR, [eval_poly(p, R) for p in blow_up_center]) "Non-toric blowup currently not supported"
   end
   
-  # Perform resolution
-  for k in 1:nr_blowups
-    S = cox_ring(resolved_ambient_space)
-    resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
+  # If Tate model, use the new resolve function
+  # FIXME: To be extended to Weierstrass and hypersurface models
+  if typeof(m) == GlobalTateModel
+    resolved_model = m
+    for k in 1:nr_blowups
+      # Center may involve base coordinates, subject to chosen base sections/variable names in the base. Adjust
+      blow_up_center = centers[k]
+      if has_attribute(resolved_model, :explicit_model_sections)
+        explicit_model_sections = get_attribute(resolved_model, :explicit_model_sections)
+        for l in 1:length(blow_up_center)
+          if haskey(explicit_model_sections, blow_up_center[l])
+            new_locus = string(explicit_model_sections[blow_up_center[l]])
+            blow_up_center[l] = new_locus
+          end
+        end
+      end
+      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+    end
+  else
+    # Perform resolution
+    for k in 1:nr_blowups
+      S = cox_ring(resolved_ambient_space)
+      resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
+    end
+    resolved_model = resolved_ambient_space
   end
-  return resolved_ambient_space
+  return resolved_model
 end

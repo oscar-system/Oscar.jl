@@ -13,6 +13,8 @@ export degrevlex
 export index_of_leading_term
 export induce
 export induced_ring_ordering
+export deginvlex
+export invlex
 export is_elimination_ordering
 export is_global
 export is_local
@@ -24,13 +26,12 @@ export matrix_ordering
 export monomial_ordering
 export negdeglex
 export negdegrevlex
+export neginvlex
 export neglex
-export negrevlex
 export negwdeglex
 export negwdegrevlex
 export opposite_ordering
 export permutation_of_terms
-export revlex
 export singular
 export wdeglex
 export wdegrevlex
@@ -46,8 +47,8 @@ abstract type AbsModOrdering <: AbsOrdering end
 struct SymbOrdering{S} <: AbsGenOrdering
   vars::Vector{Int}
   function SymbOrdering(S::Symbol, v)
-    S in (:lex, :deglex, :degrevlex, :revlex,
-          :neglex, :negdeglex, :negdegrevlex, :negrevlex) ||
+    S in (:lex, :deglex, :degrevlex, :invlex, :revlex, :deginvlex,
+          :neglex, :negdeglex, :negdegrevlex, :neginvlex, :negrevlex) ||
         throw(ArgumentError("unsupported ordering $S"))
     return new{S}(v)
   end
@@ -217,8 +218,8 @@ end
     monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol)
 
 Defines an ordering to be applied to the variables in `v`. The symbol `s`
-should be one of `:lex`, `:deglex`, `:degrevlex`, `:revlex`, `:neglex`,
-`:negdeglex`, `:negdegrevlex`, `:negrevlex`.
+should be one of `:lex`, `:deglex`, `:degrevlex`, `:invlex`, `:deginvlex`, `:neglex`,
+`:negdeglex`, `:negdegrevlex`, `:neginvlex`.
 """
 function monomial_ordering(v::AbstractVector{<:MPolyRingElem}, s::Symbol)
   i = _unique_var_indices(v)
@@ -437,24 +438,24 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   return 0
 end
 
-#### revlex ####
+#### invlex ####
 
 @doc raw"""
-    revlex(R::MPolyRing) -> MonomialOrdering
+    invlex(R::MPolyRing) -> MonomialOrdering
 
-Return the reverse lexicographical ordering on the set of monomials in the variables of `R`.
+Return the inverse lexicographical ordering on the set of monomials in the variables of `R`.
 
-    revlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
+    invlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
-Given a vector `V` of variables, return the reverse lexicographical ordering on the set of monomials in these variables.
+Given a vector `V` of variables, return the inverse lexicographical ordering on the set of monomials in these variables.
 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
-julia> o1 = revlex(R)
-revlex([w, x, y, z])
+julia> o1 = invlex(R)
+invlex([w, x, y, z])
 
 julia> canonical_matrix(o1)
 [0   0   0   1]
@@ -462,23 +463,24 @@ julia> canonical_matrix(o1)
 [0   1   0   0]
 [1   0   0   0]
 
-julia> o2 = revlex([w, x])
-revlex([w, x])
+julia> o2 = invlex([w, x])
+invlex([w, x])
 
-julia> o3 = revlex(gens(R)[3:4])
-revlex([y, z])
+julia> o3 = invlex(gens(R)[3:4])
+invlex([y, z])
 ```
 """
-function revlex(R::MPolyRing)
-  return MonomialOrdering(R, SymbOrdering(:revlex, 1:nvars(R)))
+function invlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:invlex, 1:nvars(R)))
 end
 
-function revlex(v::AbstractVector{<:MPolyRingElem})
+function invlex(v::AbstractVector{<:MPolyRingElem})
   i = _unique_var_indices(v)
-  return MonomialOrdering(parent(first(v)), SymbOrdering(:revlex, i))
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:invlex, i))
 end
 
-function _matrix(nvars::Int, o::SymbOrdering{:revlex})
+
+function _matrix(nvars::Int, o::SymbOrdering{:invlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = length(o.vars)
   for j in o.vars
@@ -488,7 +490,81 @@ function _matrix(nvars::Int, o::SymbOrdering{:revlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:revlex})
+function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:invlex})
+  for i in reverse(o.vars)
+    ek = exponent(f, k, i)
+    el = exponent(g, l, i)
+    if ek > el
+      return 1
+    elseif ek < el
+      return -1
+    end
+  end
+  return 0
+end
+
+#### deginvlex ####
+
+@doc raw"""
+    deginvlex(R::MPolyRing) -> MonomialOrdering
+
+Return the degree inverse lexicographical ordering on the set of monomials in the variables of `R`.
+
+    deginvlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
+
+Given a vector `V` of variables, return the degree inverse lexicographical ordering on the set of monomials in these variables.
+
+# Examples
+```jldoctest
+julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
+
+julia> o1 = deginvlex(R)
+deginvlex([w, x, y, z])
+
+julia> canonical_matrix(o1)
+[1   1   1   1]
+[0   0   0   1]
+[0   0   1   0]
+[0   1   0   0]
+
+julia> o2 = deginvlex([w, x])
+deginvlex([w, x])
+
+julia> o3 = deginvlex(gens(R)[3:4])
+deginvlex([y, z])
+```
+"""
+function deginvlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:deginvlex, 1:nvars(R)))
+end
+
+function deginvlex(v::AbstractVector{<:MPolyRingElem})
+  i = _unique_var_indices(v)
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:deginvlex, i))
+end
+
+function _matrix(nvars::Int, o::SymbOrdering{:deginvlex})
+  m = zero_matrix(ZZ, 1 + length(o.vars), nvars)
+  for j in o.vars
+    m[1, j] = 1
+  end
+  i = 1 + length(o.vars)
+  for j in o.vars
+    m[i, j] = 1
+    i -= 1
+  end
+  return m
+end
+
+function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:deginvlex})
+  tdk = sum(exponent(f, k, i) for i in o.vars)
+  tdl = sum(exponent(g, l, i) for i in o.vars)
+  if tdk > tdl
+    return 1
+  elseif tdk < tdl
+    return -1
+  end
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
     el = exponent(g, l, i)
@@ -565,24 +641,24 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   return 0
 end
 
-#### negrevlex ####
+#### neginvlex ####
 
 @doc raw"""
-    negrevlex(R::MPolyRing) -> MonomialOrdering
+    neginvlex(R::MPolyRing) -> MonomialOrdering
 
-Return the negative reverse lexicographical ordering  on the set of monomials in the variables of `R`.
+Return the negative inverse lexicographical ordering on the set of monomials in the variables of `R`.
 
-    negrevlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
+    neginvlex(V::AbstractVector{<:MPolyRingElem}) -> MonomialOrdering
 
-Given a vector `V` of variables, return the negative reverse lexicographical ordering on the set of monomials in these variables.
+Given a vector `V` of variables, return the negative inverse lexicographical ordering on the set of monomials in these variables.
 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
-julia> o1 = negrevlex(R)
-negrevlex([w, x, y, z])
+julia> o1 = neginvlex(R)
+neginvlex([w, x, y, z])
 
 julia> canonical_matrix(o1)
 [ 0    0    0   -1]
@@ -590,23 +666,23 @@ julia> canonical_matrix(o1)
 [ 0   -1    0    0]
 [-1    0    0    0]
 
-julia> o2 = negrevlex([w, x])
-negrevlex([w, x])
+julia> o2 = neginvlex([w, x])
+neginvlex([w, x])
 
-julia> o3 = negrevlex(gens(R)[3:4])
-negrevlex([y, z])
+julia> o3 = neginvlex(gens(R)[3:4])
+neginvlex([y, z])
 ```
 """
-function negrevlex(R::MPolyRing)
-  return MonomialOrdering(R, SymbOrdering(:negrevlex, 1:nvars(R)))
+function neginvlex(R::MPolyRing)
+  return MonomialOrdering(R, SymbOrdering(:neginvlex, 1:nvars(R)))
 end
 
-function negrevlex(v::AbstractVector{<:MPolyRingElem})
+function neginvlex(v::AbstractVector{<:MPolyRingElem})
   i = _unique_var_indices(v)
-  return MonomialOrdering(parent(first(v)), SymbOrdering(:negrevlex, i))
+  return MonomialOrdering(parent(first(v)), SymbOrdering(:neginvlex, i))
 end
 
-function _matrix(nvars::Int, o::SymbOrdering{:negrevlex})
+function _matrix(nvars::Int, o::SymbOrdering{:neginvlex})
   m = zero_matrix(ZZ, length(o.vars), nvars)
   i = length(o.vars)
   for j in o.vars
@@ -616,7 +692,7 @@ function _matrix(nvars::Int, o::SymbOrdering{:negrevlex})
   return m
 end
 
-function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:negrevlex})
+function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::SymbOrdering{:neginvlex})
   for i in reverse(o.vars)
     ek = exponent(f, k, i)
     el = exponent(g, l, i)
@@ -1467,7 +1543,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 julia> F = free_module(R, 2)
 Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
-julia> cmp(lex(R)*revlex(F), F[1], F[2])
+julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1
 ```
 """
@@ -1677,7 +1753,7 @@ function _cmp_vector_monomials(
 
   if o.ord == :lex
     return m < n ? 1 : m > n ? -1 : 0
-  elseif o.ord == :revlex
+  elseif o.ord == :invlex
     return m > n ? 1 : m < n ? -1 : 0
   else
     error("oops")
@@ -1726,8 +1802,8 @@ function lex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
    return ModuleOrdering(parent(first(v)), ordering(v, :lex))
 end
 
-function revlex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
-   return ModuleOrdering(parent(first(v)), ordering(v, :revlex))
+function invlex(v::AbstractVector{<:AbstractAlgebra.ModuleElem})
+   return ModuleOrdering(parent(first(v)), ordering(v, :invlex))
 end
 
 function Base.:*(M::ModuleOrdering, N::MonomialOrdering)
@@ -1752,8 +1828,8 @@ julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
-julia> o = revlex(gens(F))*degrevlex(R)
-revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+julia> o = invlex(gens(F))*degrevlex(R)
+invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
 
 julia> induced_ring_ordering(o)
 degrevlex([w, x, y, z])
@@ -1868,7 +1944,7 @@ function _opposite_ordering(nvars::Int, o::SymbOrdering{:deglex})
   n = length(o.vars)
   newvars = reverse(nvars+1 .- o.vars)
   return MatrixOrdering(newvars, ZZMatrix(1, n, ones(Int, n)), false)*
-         SymbOrdering(:revlex, newvars)
+         SymbOrdering(:invlex, newvars)
 end
 
 # TODO ditto
@@ -1922,10 +1998,13 @@ function _try_singular_easy(Q::order_conversion_ctx, o::SymbOrdering{S}) where S
   Q.last_var += n
   return S == :lex          ? (true, Singular.ordering_lp(n)) :
          S == :revlex       ? (true, Singular.ordering_rp(n)) :
+         S == :invlex       ? (true, Singular.ordering_ip(n)) :
+         S == :deginvlex    ? (true, Singular.ordering_Ip(n)) :
          S == :deglex       ? (true, Singular.ordering_Dp(n)) :
          S == :degrevlex    ? (true, Singular.ordering_dp(n)) :
+         S == :deginvlex    ? (true, Singular.ordering_Ip(n)) :
          S == :neglex       ? (true, Singular.ordering_ls(n)) :
-         S == :negrevlex    ? (true, Singular.ordering_rs(n)) :
+         S == :neginvlex    ? (true, Singular.ordering_is(n)) :
          S == :negdeglex    ? (true, Singular.ordering_Ds(n)) :
          S == :negdegrevlex ? (true, Singular.ordering_ds(n)) :
                               (false, Q.def)
@@ -1959,7 +2038,7 @@ function _try_singular_easy(Q::order_conversion_ctx, o::Orderings.ModOrdering)
   Q.has_c_or_C = true
   o.gens == 1:length(o.gens) || return (false, Q.def)
   return o.ord == :lex    ? (true, Singular.ordering_C(length(o.gens))) :
-         o.ord == :revlex ? (true, Singular.ordering_c(length(o.gens))) :
+         o.ord == :invlex ? (true, Singular.ordering_c(length(o.gens))) :
                             (false, Q.def)
 end
 
@@ -2001,16 +2080,18 @@ function _convert_sblock(nvars::Int, o::Singular.sorder_block, lastvar::Int)
   i = collect(lastvar+1:newlastvar)
   if o.order == Singular.ringorder_lp
     return SymbOrdering(:lex, i), newlastvar
-  elseif o.order == Singular.ringorder_rp
-    return SymbOrdering(:revlex, i), newlastvar
+  elseif o.order == Singular.ringorder_ip
+    return SymbOrdering(:invlex, i), newlastvar
   elseif o.order == Singular.ringorder_Dp
     return SymbOrdering(:deglex, i), newlastvar
+  elseif o.order == Singular.ringorder_Ip
+    return SymbOrdering(:deginvlex, i), newlastvar
   elseif o.order == Singular.ringorder_dp
     return SymbOrdering(:degrevlex, i), newlastvar
   elseif o.order == Singular.ringorder_ls
     return SymbOrdering(:neglex, i), newlastvar
-  elseif o.order == Singular.ringorder_rs
-    return SymbOrdering(:negrevlex, i), newlastvar
+  elseif o.order == Singular.ringorder_is
+    return SymbOrdering(:neginvlex, i), newlastvar
   elseif o.order == Singular.ringorder_Ds
     return SymbOrdering(:negdeglex, i), newlastvar
   elseif o.order == Singular.ringorder_ds

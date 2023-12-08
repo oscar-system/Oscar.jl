@@ -1,5 +1,5 @@
 ```@meta
-CurrentModule = Oscar
+CurrentModule = Oscar.PlaneCurveModule
 DocTestSetup = quote
   using Oscar
 end
@@ -72,7 +72,7 @@ in(P::Point{S}, C::AffinePlaneCurve{S}) where S <: FieldElem
 In order to define a point in the projective plane, one needs first to define
 the projective plane as follows, where `K` is the base ring:
 
-```jldoctest plane_curves
+```julia plane_curves
 julia> K = QQ
 Rational field
 
@@ -83,7 +83,7 @@ julia> PP = proj_space(K, 2)
 
 Then, one can define a projective point as follows:
 
-```jldoctest plane_curves
+```julia plane_curves
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(1), QQ(2), QQ(-5)])
 (1 : 2 : -5)
 

@@ -217,7 +217,7 @@ function matrices_over_field(gapmats::GapObj)
       # (This is more Oscar-like, but the reason why we use this field
       # is that subfields are not supported on the GAP side;
       # for example, already 'FieldOfMatrixList' would not work.)
-      gapF = GAP.getbangproperty(GAP.Globals.FamilyObj(gapmats[1][1,1]), :wholeField)
+      gapF = GAP.getbangproperty(GAPWrap.FamilyObj(gapmats[1][1,1]), :wholeField)
     else
       throw(ArgumentError("gapmats is not a GAP list of matrices over a finite field"))
     end
