@@ -26,7 +26,7 @@ export is_balanced
 export is_pair
 export is_noncrossing
 export construct_category
-export get_trace
+export print_trace
 export size
 export *
 export ⊗
@@ -57,7 +57,7 @@ export is_balanced
 export is_pair
 export is_noncrossing
 export construct_category
-export get_trace
+export print_trace
 export size
 export *
 export ⊗

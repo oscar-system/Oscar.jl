@@ -1,3 +1,12 @@
+"""
+This function is a helper function of `construct_category`, which applies unary operations
+(i.e. rotations, involutions, vertical reflections) on all partitions in 
+the set `to_unary`. When a new partition is created in the course of this process, 
+it is incorporated into `all_partitions`, `all_partitions_by_size`, and 
+`all_partitions_by_size_top_bottom`, simultaneously setting the `stop_whole` flag to true.
+
+The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
+"""
 function do_unary(
     to_unary::Set{T}, 
     all_partitions::Set{T}, 
@@ -13,9 +22,7 @@ function do_unary(
     while !stop
         stop = true
 
-        to_unary_copy = copy(to_unary)
-
-        for pp in to_unary_copy
+        for pp in to_unary
             
             pmod = copy(pp)
 
@@ -104,11 +111,20 @@ function do_unary(
         end
     end
 
-    return (stop_whole, all_partitions, already_u, all_partitions_by_size,
+    (stop_whole, all_partitions, already_u, all_partitions_by_size,
         all_partitions_by_size_top_bottom, trace)
 
 end
 
+"""
+This function is a helper function of `construct_category`, which applies 
+tensor products on all partitions in  the set `to_tens`. When a new partition 
+is created in the course of this process, it is incorporated into `all_partitions`, 
+`all_partitions_by_size`, `already_t` and `all_partitions_by_size_top_bottom`, 
+simultaneously setting the `stop_whole` flag to true.
+
+The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
+"""
 function do_tensor_products(
     all_partitions::Set{T}, 
     already_t::Set{Tuple}, 
@@ -201,10 +217,19 @@ function do_tensor_products(
             end
         end
     end
-    return (all_partitions, already_t, stop_whole, all_partitions_by_size, 
+    (all_partitions, already_t, stop_whole, all_partitions_by_size, 
         all_partitions_by_size_top_bottom, trace)
 end
 
+"""
+This function is a helper function of `construct_category`, which applies 
+compositions on all partitions in  the set `to_comp`. When a new partition 
+is created in the course of this process, it is incorporated into `all_partitions`, 
+`all_partitions_by_size`, `already_c` and `all_partitions_by_size_top_bottom`, 
+simultaneously setting the `stop_whole` flag to true.
+
+The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
+"""
 function do_composition(
     all_partitions::Set{T}, 
     already_c::Set{Tuple}, 
@@ -220,9 +245,12 @@ function do_composition(
 
     # new_comp stored in vector with a dict for top and bottom size 
     # (similar to the technique in the construct_category function)
-    new_comp_by_size_top_bottom = [Dict{Int, Set{AbstractPartition}}(), Dict{Int, Set{Int}}()]
-    new_comp_by_size_top_bottom[1] = Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
-    new_comp_by_size_top_bottom[2] = Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
+    new_comp_by_size_top_bottom = 
+        [Dict{Int, Set{AbstractPartition}}(), Dict{Int, Set{Int}}()]
+    new_comp_by_size_top_bottom[1] = 
+        Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
+    new_comp_by_size_top_bottom[2] = 
+        Dict{Int, Set{AbstractPartition}}(i => Set() for i in 0:max_length)
     
     # store for every i the ii's which are already used
     without = Dict{AbstractPartition, Set{AbstractPartition}}()
@@ -290,7 +318,7 @@ function do_composition(
             end
         end
     end
-    return (all_partitions, already_c, stop_whole, all_partitions_by_size, 
+    (all_partitions, already_c, stop_whole, all_partitions_by_size, 
         all_partitions_by_size_top_bottom, trace)
 end
 
@@ -298,7 +326,8 @@ end
     construct_category(p::Vector{AbstractPartition}, n::Int, tracing::Bool = false, 
         max_artifical::Int = 0, spatial_rotation::Union{Function,Nothing}=nothing)
 
-Return a list of all partitions of size `n` constructed from partitions in `p` without using partitions of size greater than max(`n`, maxsize(`p`), `max_artifical`)
+Return a list of all partitions of size `n` constructed from partitions in `p` without 
+using partitions of size greater than max(`n`, maxsize(`p`), `max_artifical`)
 
 # Arguments
 - `p`: list of partitions
@@ -429,7 +458,7 @@ function construct_category(
         # second phase: all possible tensor products which aren't redundant
         (all_partitions, already_t, stop_whole, all_partitions_by_size, 
             all_partitions_by_size_top_bottom, trace) = 
-            do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length, 
+            do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length,
             all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
 
         # add new variations produced by tensor product for composition
@@ -464,20 +493,19 @@ function construct_category(
     end
 
     if tracing
-        return all_partitions_of_size_n, trace
+        all_partitions_of_size_n, trace
     end
 
-    return all_partitions_of_size_n
+    all_partitions_of_size_n
 end
 
 """
-    get_trace(trace::Dict, start::Partition)
+    print_trace(trace::Dict, start::Partition)
 
 Print the trace of the partition `start` constructed with `construct_category`.
 (via breath first search)
-
 """
-function get_trace(trace::Dict{AbstractPartition, Tuple}, start)
+function print_trace(trace::Dict{AbstractPartition, Tuple}, start)
     # iterate through trace with breath first search and print it
 
     if !(start in keys(trace))

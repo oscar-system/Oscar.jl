@@ -38,8 +38,16 @@ function is_composable(p::SpatialPartition, q::SpatialPartition)
     p.dimension == q.dimension && is_composable(p.partition, q.partition)
 end
 
+"""
+    is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
+
+Return whether it is worth to compose `p` and `q` such that the result is less
+equal `max_length` and not equal to the empty partition.
+
+Note that this is a helper function for the `construct_category` algorithm.
+"""
 function is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
-    length(upper_points(p)) != 0 && length(upper_points(p)) != max_length && 
+    length(upper_points(p)) != max_length && 
         length(lower_points(p)) + length(upper_points(q)) <= max_length
 end
 
@@ -78,7 +86,7 @@ function is_pair(p::AbstractPartition)
             end
         end
     end
-    return all(i -> i == 2, values(block_to_size))
+    all(i -> i == 2, values(block_to_size))
 end
 
 """
@@ -118,7 +126,7 @@ function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
         end
     end
 
-    return all(i -> i == 0, values(block_to_size))
+    all(iszero, values(block_to_size))
 end
 
 """
@@ -142,11 +150,7 @@ function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
     # Initialize dictionary
     for i in p_vector
-        if !(i in keys(block_to_size))
-            block_to_size[i] = 1
-        else
-            block_to_size[i] = get(block_to_size, i, -1) + 1
-        end
+        block_to_size[i] = get(block_to_size, i, 0) + 1
     end
 
     # blocks we have already seen in the iteration process
@@ -161,8 +165,8 @@ function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
         end
         if !(n in already_seen)
             push!(already_seen, n)
-            block_to_size[n] = get(block_to_size, n, -1) - 1
-            if (get(block_to_size, n, -1) > 0 && 
+            block_size = block_to_size[n] = get(block_to_size, n, -1) - 1
+            if (block_size > 0 && 
                 (isempty(last_incompleted) ? -1 : last_incompleted[end]) != n)
                 push!(last_incompleted, n)
                 push!(incompleted, n)
@@ -170,21 +174,20 @@ function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
         else
             if p_vector[i-1] != n && get(block_to_size, p_vector[i-1], -1) != 0
                 return false
-            else
-                block_to_size[n] = get(block_to_size, n, -1) - 1
-                if get(block_to_size, n, -1) == 0 && !isempty(last_incompleted)
-                    if last_incompleted[end] == n
-                        pop!(last_incompleted)
-                    end
-                    delete!(incompleted, n)
+            end
+            block_size = block_to_size[n] = get(block_to_size, n, -1) - 1
+            if block_size == 0 && !isempty(last_incompleted)
+                if last_incompleted[end] == n
+                    pop!(last_incompleted)
                 end
-                if get(block_to_size, n, -1) > 0 && 
-                    (isempty(last_incompleted) ? -1 : last_incompleted[end]) != n
-                    push!(last_incompleted, n)
-                    push!(incompleted, n)
-                end
+                delete!(incompleted, n)
+            end
+            if block_size > 0 && 
+                (isempty(last_incompleted) ? -1 : last_incompleted[end]) != n
+                push!(last_incompleted, n)
+                push!(incompleted, n)
             end
         end
     end
-    return true
+    true
 end

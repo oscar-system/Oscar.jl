@@ -15,9 +15,9 @@ struct SetPartition <: AbstractPartition
 
     function SetPartition(_upper_points, _lower_points)
         (__upper_points, __lower_points) = 
-            normal_form_vector(copy([Int.(copy(_upper_points)), Int.(copy(_lower_points))]))
-        a = new(__upper_points, __lower_points)
-        return a
+            normal_form_vector(copy([Int.(copy(_upper_points)), 
+                Int.(copy(_lower_points))]))
+        new(__upper_points, __lower_points)
     end
 end
 
@@ -33,7 +33,7 @@ function ==(p::SetPartition, q::SetPartition)
 end
 
 function copy(p::SetPartition)
-    return SetPartition(copy(p.upper_points), copy(p.lower_points))
+    SetPartition(copy(p.upper_points), copy(p.lower_points))
 end
 
 """
@@ -49,7 +49,8 @@ SetPartition([1, 2, 3, 3], [2, 1, 3])
 """
 function tensor_product(p::SetPartition, q::SetPartition)
     
-    q_new = helper_new_point_values_vector([p.upper_points, p.lower_points], [q.upper_points, q.lower_points])
+    q_new = helper_new_point_values_vector([p.upper_points, p.lower_points], 
+        [q.upper_points, q.lower_points])
     SetPartition(vcat(p.upper_points, q_new[1]), vcat(p.lower_points, q_new[2]))
 end
 
@@ -66,7 +67,7 @@ SetPartition([1, 2], [2, 1, 3])
 """
 function involution(p::SetPartition)
     
-    SetPartition(copy(p.lower_points), copy(p.upper_points))
+    SetPartition(p.lower_points, p.upper_points)
 
 end
 
@@ -106,9 +107,9 @@ SetPartition([1, 2], [3, 1, 3])
 function rotation(p::SetPartition, lr::Bool, tb::Bool)
     
     if tb && isempty(p.upper_points)
-        error("SetPartition has no top part.")
+        error("SetPartition has no top part")
     elseif !tb && isempty(p.lower_points)
-        error("SetPartition has no bottom part.")
+        error("SetPartition has no bottom part")
     end
 
     ret = (copy(p.upper_points), copy(p.lower_points))
@@ -173,16 +174,13 @@ function composition_loops(p::SetPartition, q::SetPartition)
                 # together and the nodes we operate on are not a root or a leaf
                 for ii in [n]
                     path = [ii]
-                    already_in = Set()
-                    push!(already_in, get(new_ids, ii, -1))
                     z = get(new_ids, ii, -1)
+                    already_in = Set(z)
                     while z in keys(new_ids)
                         push!(path, z)
                         push!(already_in, z)
                         z = get(new_ids, z, -1)
-                        if z in already_in
-                            break
-                        end
+                        z in already_in && break
                     end
                     push!(path, z)
                     for nn in path[1:end-1]
@@ -201,18 +199,14 @@ function composition_loops(p::SetPartition, q::SetPartition)
     end
     
     # final path compression
-    for ii in keys(new_ids)
+    for (ii, z) in new_ids
         path = [ii]
-        already_in = Set()
-        push!(already_in, get(new_ids, ii, -1))
-        z = get(new_ids, ii, -1)
+        already_in = Set(z)
         while z in keys(new_ids)
             push!(path, z)
             push!(already_in, z)
             z = get(new_ids, z, -1)
-            if z in already_in
-                break
-            end
+            z in already_in && break
         end
         push!(path, z)
         for nn in path[1:end-1]
@@ -262,5 +256,5 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
     
-    return (ret, length(related_comp))
+    (ret, length(related_comp))
 end

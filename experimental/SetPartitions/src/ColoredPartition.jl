@@ -1,7 +1,8 @@
 """
     ColoredPartition
 
-Construct a colored partition from `partition` with colors `color_upper_points` and `color_lower_points`.
+Construct a colored partition from `partition` with 
+colors `color_upper_points` and `color_lower_points`.
 """
 struct ColoredPartition <: AbstractPartition
     partition::SetPartition
@@ -14,7 +15,7 @@ function colored_partition(
     color_upper::Vector{Int}, 
     color_lower::Vector{Int})
 
-    return ColoredPartition(partition, color_upper, color_lower)
+    ColoredPartition(partition, color_upper, color_lower)
 
 end
 
@@ -33,7 +34,7 @@ function ==(p::ColoredPartition, q::ColoredPartition)
 end
 
 function copy(p::ColoredPartition)
-    return ColoredPartition(copy(p.partition), 
+    ColoredPartition(copy(p.partition), 
         copy(p.color_upper_points), 
         copy(p.color_lower_points))
 end
@@ -92,9 +93,9 @@ Return the rotation of `p` in the direction given by `lr` and `tb`.
 function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
 
     if tb && isempty(upper_points(p))
-        error("Partition has no top part.")
+        error("Partition has no top part")
     elseif !tb && isempty(lower_points(p))
-        error("Partition has no bottom part.")
+        error("Partition has no bottom part")
     end
 
     ret = (copy(upper_points(p)), copy(lower_points(p)), 

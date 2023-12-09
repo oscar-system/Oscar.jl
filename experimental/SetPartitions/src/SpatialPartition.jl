@@ -9,15 +9,11 @@ struct SpatialPartition <: AbstractPartition
 end
 
 function spatial_partition(partition::SetPartition, dim::Int)
-
-    return SpatialPartition(partition, dim)
-
+    SpatialPartition(partition, dim)
 end
 
 function hash(p::SpatialPartition, h::UInt)
-
     hash(p.partition, hash(p.dimension, h))
-    
 end
 
 function ==(p::SpatialPartition, q::SpatialPartition)
@@ -27,7 +23,7 @@ function ==(p::SpatialPartition, q::SpatialPartition)
 end
 
 function copy(p::SpatialPartition)
-    return SpatialPartition(copy(p.partition), copy(p.dimension))
+    SpatialPartition(copy(p.partition), copy(p.dimension))
 end
 
 """
@@ -49,9 +45,7 @@ end
 Return the involution of `p`.
 """
 function involution(p::SpatialPartition)
-
     SpatialPartition(involution(p.partition), p.dimension)
-
 end
 
 """
