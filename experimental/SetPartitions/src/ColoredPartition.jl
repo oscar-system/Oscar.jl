@@ -18,26 +18,26 @@ function colored_partition(
     color_upper::Vector{Int}, 
     color_lower::Vector{Int})
 
-    ColoredPartition(partition, color_upper, color_lower)
+    return ColoredPartition(partition, color_upper, color_lower)
 
 end
 
 function hash(p::ColoredPartition, h::UInt)
 
-    hash(p.partition, hash(p.color_upper_points, hash(p.color_lower_points, h)))
+    return hash(p.partition, hash(p.color_upper_points, hash(p.color_lower_points, h)))
     
 end
 
 function ==(p::ColoredPartition, q::ColoredPartition)
 
-    p.partition == q.partition && 
+    return p.partition == q.partition && 
         p.color_upper_points == q.color_upper_points && 
         p.color_lower_points == q.color_lower_points
 
 end
 
 function copy(p::ColoredPartition)
-    ColoredPartition(copy(p.partition), 
+    return ColoredPartition(copy(p.partition), 
         copy(p.color_upper_points), 
         copy(p.color_lower_points))
 end
@@ -50,7 +50,7 @@ Return the tensor product of `p` and `q`.
 """
 function tensor_product(p::ColoredPartition, q::ColoredPartition)
 
-    ColoredPartition(tensor_product(p.partition, q.partition), 
+    return ColoredPartition(tensor_product(p.partition, q.partition), 
         vcat(p.color_upper_points, q.color_upper_points), 
         vcat(p.color_lower_points, q.color_lower_points))
 end
@@ -62,7 +62,8 @@ Return the involution of `p`.
 """
 function involution(p::ColoredPartition)
 
-    ColoredPartition(involution(p.partition), p.color_lower_points, p.color_upper_points)
+    return ColoredPartition(involution(p.partition), 
+        p.color_lower_points, p.color_upper_points)
 
 end
 
@@ -78,7 +79,7 @@ function composition_loops(p::ColoredPartition, q::ColoredPartition)
 
     comp_loops = composition_loops(p.partition, q.partition)
     
-    (ColoredPartition(comp_loops[1], q.color_upper_points, p.color_lower_points), 
+    return (ColoredPartition(comp_loops[1], q.color_upper_points, p.color_lower_points), 
         comp_loops[2])
 
 end
@@ -141,5 +142,5 @@ function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
             push!(ret[3], Int(!Bool(a)))
         end
     end
-    ColoredPartition(SetPartition(ret[1], ret[2]), ret[3], ret[4])
+    return ColoredPartition(SetPartition(ret[1], ret[2]), ret[3], ret[4])
 end

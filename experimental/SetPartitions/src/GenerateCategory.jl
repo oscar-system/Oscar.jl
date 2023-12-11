@@ -111,7 +111,7 @@ function do_unary(
         end
     end
 
-    (stop_whole, all_partitions, already_u, all_partitions_by_size,
+    return (stop_whole, all_partitions, already_u, all_partitions_by_size,
         all_partitions_by_size_top_bottom, trace)
 
 end
@@ -217,7 +217,7 @@ function do_tensor_products(
             end
         end
     end
-    (all_partitions, already_t, stop_whole, all_partitions_by_size, 
+    return (all_partitions, already_t, stop_whole, all_partitions_by_size, 
         all_partitions_by_size_top_bottom, trace)
 end
 
@@ -318,7 +318,7 @@ function do_composition(
             end
         end
     end
-    (all_partitions, already_c, stop_whole, all_partitions_by_size, 
+    return (all_partitions, already_c, stop_whole, all_partitions_by_size, 
         all_partitions_by_size_top_bottom, trace)
 end
 
@@ -496,7 +496,7 @@ function construct_category(
         all_partitions_of_size_n, trace
     end
 
-    all_partitions_of_size_n
+    return all_partitions_of_size_n
 end
 
 """

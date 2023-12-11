@@ -1,41 +1,42 @@
 function size(p::SetPartition)
-    length(p.lower_points) + length(p.upper_points)
+    return length(p.lower_points) + length(p.upper_points)
 end
 
 function is_composable(p::SetPartition, q::SetPartition)
-    length(p.upper_points) == length(q.lower_points)
+    return length(p.upper_points) == length(q.lower_points)
 end
 
 function upper_points(p::SetPartition)
-    p.upper_points
+    return p.upper_points
 end
 
 function lower_points(p::SetPartition)
-    p.lower_points
+    return p.lower_points
 end
 
 function size(p::ColoredPartition)
-    size(p.partition)
+    return size(p.partition)
 end
 
 function is_composable(p::ColoredPartition, q::ColoredPartition)
-    p.color_upper_points == q.color_lower_points && is_composable(p.partition, q.partition)
+    return p.color_upper_points == q.color_lower_points && 
+        is_composable(p.partition, q.partition)
 end
 
 function upper_points(p::ColoredPartition)
-    p.partition.upper_points
+    return p.partition.upper_points
 end
 
 function lower_points(p::ColoredPartition)
-    p.partition.lower_points
+    return p.partition.lower_points
 end
 
 function size(p::SpatialPartition)
-    size(p.partition)
+    return size(p.partition)
 end
 
 function is_composable(p::SpatialPartition, q::SpatialPartition)
-    p.dimension == q.dimension && is_composable(p.partition, q.partition)
+    return p.dimension == q.dimension && is_composable(p.partition, q.partition)
 end
 
 """
@@ -47,16 +48,16 @@ equal `max_length` and not equal to the empty partition.
 Note that this is a helper function for the `construct_category` algorithm.
 """
 function is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
-    length(upper_points(p)) != max_length && 
+    return length(upper_points(p)) != max_length && 
         length(lower_points(p)) + length(upper_points(q)) <= max_length
 end
 
 function upper_points(p::SpatialPartition)
-    p.partition.upper_points
+    return p.partition.upper_points
 end
 
 function lower_points(p::SpatialPartition)
-    p.partition.lower_points
+    return p.partition.lower_points
 end
 
 """
@@ -86,7 +87,7 @@ function is_pair(p::AbstractPartition)
             end
         end
     end
-    all(i -> i == 2, values(block_to_size))
+    return all(i -> i == 2, values(block_to_size))
 end
 
 """
@@ -126,7 +127,7 @@ function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
         end
     end
 
-    all(iszero, values(block_to_size))
+    return all(iszero, values(block_to_size))
 end
 
 """
@@ -189,5 +190,5 @@ function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
             end
         end
     end
-    true
+    return true
 end

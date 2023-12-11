@@ -22,21 +22,21 @@ struct SetPartition <: AbstractPartition
     function SetPartition(upper_points, lower_points)
         (new_upper, new_lower) = normal_form(convert(Vector{Int}, upper_points), 
                                              convert(Vector{Int}, lower_points))
-        new(new_upper, new_lower)
+        return new(new_upper, new_lower)
     end
 end
 
 
 function hash(p::SetPartition, h::UInt)
-    hash(p.upper_points, hash(p.lower_points, h))
+    return hash(p.upper_points, hash(p.lower_points, h))
 end
 
 function ==(p::SetPartition, q::SetPartition)
-    p.lower_points == q.lower_points && p.upper_points == q.upper_points
+    return p.lower_points == q.lower_points && p.upper_points == q.upper_points
 end
 
 function copy(p::SetPartition)
-    SetPartition(copy(p.upper_points), copy(p.lower_points))
+    return SetPartition(copy(p.upper_points), copy(p.lower_points))
 end
 
 """
@@ -57,7 +57,7 @@ function tensor_product(p::SetPartition, q::SetPartition)
     
     q_new = new_point_values(p.upper_points, p.lower_points, 
                              q.upper_points, q.lower_points)
-    SetPartition(vcat(p.upper_points, q_new[1]), vcat(p.lower_points, q_new[2]))
+    return SetPartition(vcat(p.upper_points, q_new[1]), vcat(p.lower_points, q_new[2]))
 end
 
 """
@@ -75,7 +75,7 @@ SetPartition([1, 2], [2, 1, 3])
 ```
 """
 function involution(p::SetPartition)
-    SetPartition(p.lower_points, p.upper_points)
+    return SetPartition(p.lower_points, p.upper_points)
 end
 
 """
@@ -93,7 +93,7 @@ SetPartition([1, 2, 3], [3, 2])
 ```
 """
 function vertical_reflection(p::SetPartition)
-    SetPartition(reverse(p.upper_points), reverse(p.lower_points))
+    return SetPartition(reverse(p.upper_points), reverse(p.lower_points))
 end
 
 """
@@ -156,7 +156,7 @@ function rotation(p::SetPartition, lr::Bool, tb::Bool)
         end
     end
     
-    SetPartition(ret[1], ret[2])
+    return SetPartition(ret[1], ret[2])
 end
 
 """
@@ -289,5 +289,5 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
     
-    (ret, length(related_comp))
+    return (ret, length(related_comp))
 end
