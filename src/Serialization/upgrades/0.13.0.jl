@@ -69,17 +69,22 @@ push!(upgrade_scripts_set, UpgradeScript(
     if dict[:type] == "Nemo.fpFieldElem"
       dict[:_type] = "fpFieldElem"
     end
-    T = reverse_type_map[dict[:type]]
+
+    if haskey(dict[:type], :name)
+      type_string = dict[:type][:name]
+    else
+      type_string = dict[:type]
+    end
 
     # type has already been updated
     if haskey(dict, :_type) && dict[:_type] isa Dict
       return dict
     end
-    if T <: Vector
+    if contains(type_string, "Vector")
       # this section wasn't necessary for upgrading the folder of surfaces
       # which was our primary focus, this may be updated upon request
       error("The upgrade script needs an update")
-    elseif T <: Union{PolyRingElem, MPolyRingElem}
+    elseif contains(type_string, "PolyRingElem")
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
         upgraded_parents = dict[:data][:parents][end]
         params = upgraded_parents
@@ -89,19 +94,19 @@ push!(upgrade_scripts_set, UpgradeScript(
         # which was our primary focus, this may be updated upon request
         error("The upgrade script needs an update")
       end
-
-      upgraded_dict[:_type] = Dict(:name => "PolyRingElem", :params => params)
-    elseif T <: NamedTuple
+      
+      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
+    elseif contains(type_string, "NamedTuple")
       upgraded_tuple = upgrade_0_13_0(s, dict[:data][:content])
 
       params = Dict(
         :tuple_params => upgraded_tuple[:_type][:params],
         :names => dict[:data][:keys][:data][:content]
       )
-      upgraded_dict[:_type] = Dict(:name => "NamedTuple", :params => params)
+      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
       upgraded_dict[:data] = upgraded_tuple[:data]
 
-    elseif T <: Nemo.fpField
+    elseif contains(type_string, "Nemo.fpField")
       if dict[:data] isa String
         return dict
       elseif dict[:data] isa Int
@@ -109,15 +114,15 @@ push!(upgrade_scripts_set, UpgradeScript(
         return upgraded_dict
       end
       upgraded_dict[:data] = string(dict[:data][:characteristic])
-    elseif T <: MPolyIdeal
+    elseif contains(type_string, "MPolyIdeal")
       upgraded_parent = upgrade_0_13_0(s, dict[:data][:parent])[:id]
-      upgraded_dict[:_type] = Dict(:name => "MPolyIdeal", :params => upgraded_parent)
+      upgraded_dict[:_type] = Dict(:name => type_string, :params => upgraded_parent)
       upgraded_gens = []
       for gen in dict[:data][:gens][:data][:vector]
         push!(upgraded_gens, upgrade_0_13_0(s, gen)[:data])
       end
       upgraded_dict[:data] = upgraded_gens
-    elseif T <: MPolyRing
+    elseif contains(type_string, "MPolyRing")
       if dict[:data][:base_ring] isa Dict
         if dict[:data][:base_ring][:type] == "#backref"
           upgraded_dict[:data][:base_ring] = dict[:data][:base_ring][:id]
@@ -128,7 +133,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         return dict
       end
       upgraded_dict[:data][:symbols] = dict[:data][:symbols][:data][:vector]
-    elseif T <: Tuple
+    elseif contains(type_string, "Tuple")
       params = []
       entry_data = []
       
@@ -143,9 +148,9 @@ push!(upgrade_scripts_set, UpgradeScript(
           push!(entry_data, dict[:data][:content][i])
         end
       end
-      upgraded_dict[:_type] = Dict(:name => "Tuple", :params => params)
+      upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
       upgraded_dict[:data] = entry_data
-    elseif  T <: Matrix
+    elseif  contains(type_string, Matrix)
       params = dict[:data][:matrix][1][:data][:entry_type]
       upgraded_dict[:_type] = Dict(:name => "Matrix", :params => params)
       matrix_data = []
@@ -156,11 +161,11 @@ push!(upgrade_scripts_set, UpgradeScript(
     end
 
     # update the data section for specific types
-    if T <: PolyRing
+    if contains(type_string, "PolyRing")
       upgraded_dict[:data] = upgrade_0_13_0(s, dict[:data])
     end
     
-    if T <: Field
+    if contains(type_string, "Field")
       if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
       end
