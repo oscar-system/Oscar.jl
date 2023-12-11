@@ -5,53 +5,17 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base
 
 julia&gt; v = ambient_space(tm)
-Normal toric variety
-
-julia&gt; a10,a21,a32,a43,a65,w,x,y,z = gens(cox_ring(v));
-
-julia&gt; I = ideal([x,y,w]);
-
-julia&gt; v2 = domain(blow_up(v,I))
-Normal toric variety
-
-julia&gt; cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by 
-  a10 -&gt; [1 0 0 0]
-  a21 -&gt; [0 1 0 0]
-  a32 -&gt; [-1 2 0 0]
-  a43 -&gt; [-2 3 0 0]
-  a65 -&gt; [-4 5 0 0]
-  w -&gt; [0 0 1 0]
-  x -&gt; [0 1 1 2]
-  y -&gt; [1 1 1 3]
-  z -&gt; [0 0 0 1]
-  e -&gt; [2 -1 -1 0]</code></pre></div></section></article><p>More generally, we support literature constructions.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="literature_model-Tuple{}" href="#literature_model-Tuple{}"><code>literature_model</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">literature_model(; doi::String=&quot;&quot;, arxiv_id::String=&quot;&quot;, version::String=&quot;&quot;, equation::String=&quot;&quot;, model_parameters::Dict{String,&lt;:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, &lt;:Any} = Dict{String,Any}(), completeness_check::Bool = true)</code></pre><p>Many models have been created in the F-theory literature. A significant number of them have even been given specific names, for instance the &quot;U(1)-restricted SU(5)-GUT model&quot;. This method has access to a database, from which it can look up such literature models.</p><p>Currently, you can provide any combination of the following optional arguments to the method <code>literature_model</code>:</p><ul><li><code>doi</code>: A string representing the DOI of the publication that</li></ul><p>introduced the model in question.</p><ul><li><code>equation</code>: A string representing the number of the equation that introduced</li></ul><p>the model in question. For papers, that were posted on the arXiv, we can instead of the <code>doi</code> also provide the following:</p><ul><li><code>arxiv_id</code>: A string that represents the arXiv identifier of the paper that</li></ul><p>introduced the model in question.</p><ul><li><code>version</code>: A string representing the version of the arXiv upload.</li></ul><p>The method <code>literature_model</code> attempts to find a model in our database for which the provided data matches the information in our record. If no such model can be found, or multiple models exist with information matching the provided information, then an error is raised.</p><p>Some literature models require additional parameters to specified to single out a model from a family of models. Such models can be provided using the optional argument <code>model_parameters</code>, which should be a dictionary such as <code>Dict(&quot;k&quot; =&gt; 5)</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
+A family of spaces of dimension d = 5</code></pre></div></section></article><p>More generally, we support literature constructions.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="literature_model-Tuple{}" href="#literature_model-Tuple{}"><code>literature_model</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">literature_model(; doi::String=&quot;&quot;, arxiv_id::String=&quot;&quot;, version::String=&quot;&quot;, equation::String=&quot;&quot;, model_parameters::Dict{String,&lt;:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, &lt;:Any} = Dict{String,Any}(), completeness_check::Bool = true)</code></pre><p>Many models have been created in the F-theory literature. A significant number of them have even been given specific names, for instance the &quot;U(1)-restricted SU(5)-GUT model&quot;. This method has access to a database, from which it can look up such literature models.</p><p>Currently, you can provide any combination of the following optional arguments to the method <code>literature_model</code>:</p><ul><li><code>doi</code>: A string representing the DOI of the publication that</li></ul><p>introduced the model in question.</p><ul><li><code>equation</code>: A string representing the number of the equation that introduced</li></ul><p>the model in question. For papers, that were posted on the arXiv, we can instead of the <code>doi</code> also provide the following:</p><ul><li><code>arxiv_id</code>: A string that represents the arXiv identifier of the paper that</li></ul><p>introduced the model in question.</p><ul><li><code>version</code>: A string representing the version of the arXiv upload.</li></ul><p>The method <code>literature_model</code> attempts to find a model in our database for which the provided data matches the information in our record. If no such model can be found, or multiple models exist with information matching the provided information, then an error is raised.</p><p>Some literature models require additional parameters to specified to single out a model from a family of models. Such models can be provided using the optional argument <code>model_parameters</code>, which should be a dictionary such as <code>Dict(&quot;k&quot; =&gt; 5)</code>.</p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; v = ambient_space(t)
-Normal toric variety
+A family of spaces of dimension d = 5
 
-julia&gt; a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
-
-julia&gt; I = ideal([x,y,w]);
-
-julia&gt; v2 = domain(blow_up(v, I))
-Normal toric variety
-
-julia&gt; cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by 
-  Kbar -&gt; [1 0 0 0]
-  w -&gt; [0 1 0 0]
-  a1 -&gt; [1 0 0 0]
-  a21 -&gt; [2 -1 0 0]
-  a32 -&gt; [0 0 1 0]
-  a43 -&gt; [1 -1 1 0]
-  x -&gt; [1 0 1 2]
-  y -&gt; [6 -3 0 3]
-  z -&gt; [1 -1 0 1]
-  e -&gt; [3 -2 -1 0]</code></pre><p>It is also possible to construct a literature model over a particular base. Currently, this feature is only supported for toric base spaces.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
+julia&gt; coordinate_ring(v)
+Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
+  over rational field</code></pre><p>It is also possible to construct a literature model over a particular base. Currently, this feature is only supported for toric base spaces.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia&gt; w = torusinvariant_prime_divisors(B3)[1]
@@ -308,27 +272,31 @@ Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 julia&gt; add_resolution(m, [[&quot;x&quot;, &quot;y&quot;], [&quot;y&quot;, &quot;s&quot;, &quot;w&quot;], [&quot;s&quot;, &quot;e4&quot;], [&quot;s&quot;, &quot;e3&quot;], [&quot;s&quot;, &quot;e1&quot;]], [&quot;s&quot;, &quot;w&quot;, &quot;e3&quot;, &quot;e1&quot;, &quot;e2&quot;])
 
 julia&gt; length(resolutions(m))
-2</code></pre></div></section></article><p>Provided that a resolution for a model is known, we can (attempt to) resolve the model.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="resolve-Tuple{AbstractFTheoryModel, Int64}" href="#resolve-Tuple{AbstractFTheoryModel, Int64}"><code>resolve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">resolve(m::AbstractFTheoryModel, index::Int)</code></pre><p>Resolve a model with the index-th resolution that is known.</p><p>Careful: Currently, this assumes that all blowups are toric blowups. We hope to remove this requirement in the near future.</p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
-Assuming that the first row of the given grading is the grading under Kbar
+2</code></pre></div></section></article><p>Provided that a resolution for a model is known, we can (attempt to) resolve the model.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="resolve-Tuple{AbstractFTheoryModel, Int64}" href="#resolve-Tuple{AbstractFTheoryModel, Int64}"><code>resolve</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">resolve(m::AbstractFTheoryModel, index::Int)</code></pre><p>Resolve a model with the index-th resolution that is known.</p><p>Careful: Currently, this assumes that all blowups are toric blowups. We hope to remove this requirement in the near future.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
 
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia&gt; w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;, base_space = B3, model_sections = Dict(&quot;w&quot; =&gt; w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; t2 = resolve(t, 1)
-Partially resolved global Tate model over a concrete base
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; cox_ring(ambient_space(t2))
-Multivariate polynomial ring in 14 variables over QQ graded by 
-  Kbar -&gt; [1 0 0 0 0 0 0 0]
-  w -&gt; [0 1 0 0 0 0 0 0]
-  a1 -&gt; [1 0 0 0 0 0 0 0]
-  a21 -&gt; [0 0 1 0 0 0 0 0]
-  a32 -&gt; [-1 0 2 0 0 0 0 0]
-  a43 -&gt; [-2 0 3 0 0 0 0 0]
-  x -&gt; [0 0 0 1 0 0 0 0]
-  y -&gt; [0 0 0 0 1 0 0 0]
-  z -&gt; [0 0 0 0 0 1 0 0]
-  e1 -&gt; [0 0 0 0 0 0 1 0]
-  e4 -&gt; [0 0 0 0 0 0 0 1]
-  e2 -&gt; [1 -1 -1 -1 1 -1 -1 0]
-  e3 -&gt; [1 0 0 1 -1 1 0 -1]
-  s -&gt; [-2 2 2 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LieAlgebras/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 7 December 2023 10:05">Thursday 7 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Multivariate polynomial ring in 12 variables over QQ graded by 
+  x1 -&gt; [1 0 0 0 0 0 0]
+  x2 -&gt; [0 1 0 0 0 0 0]
+  x3 -&gt; [0 1 0 0 0 0 0]
+  x4 -&gt; [0 1 0 0 0 0 0]
+  x -&gt; [0 0 1 0 0 0 0]
+  y -&gt; [0 0 0 1 0 0 0]
+  z -&gt; [0 0 0 0 1 0 0]
+  e1 -&gt; [0 0 0 0 0 1 0]
+  e4 -&gt; [0 0 0 0 0 0 1]
+  e2 -&gt; [-1 -3 -1 1 -1 -1 0]
+  e3 -&gt; [0 4 1 -1 1 0 -1]
+  s -&gt; [2 6 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LieAlgebras/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 8 December 2023 20:08">Friday 8 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
