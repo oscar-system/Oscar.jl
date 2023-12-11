@@ -169,7 +169,7 @@ function load_node(f::Function, s::DeserializerState,
   end
 
   !isnothing(key) && set_key(s, key)
-  obj = deepcopy(s.obj)
+  obj = s.obj
   s.obj = isnothing(s.key) ? s.obj : s.obj[s.key]
   s.key = nothing
   result = f(s.obj)
