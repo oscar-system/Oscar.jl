@@ -1,6 +1,8 @@
 # Add your new types, functions, and methods here.
 
-export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group, sum_of_lyapunov_exponents
+export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
+        sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
+        veech_group_is_even, are_equivalent
 
 module OrigamiHelper
 
@@ -83,7 +85,8 @@ function genus(o::Origami)
 end
 
 function veech_group(O::Origami)
-    GAP.Globals.VeechGroup(GapObj(O))
+    # TODO use hashtables or not? Implement modular subgroup?
+    GAP.Globals.ComputeVeechGroupWithHashTables(GapObj(O))
 end
 
 function index_monodromy_group(o::Origami)
@@ -93,4 +96,30 @@ end
 function sum_of_lyapunov_exponents(o::Origami)
     gap_obj = GAP.Globals.SumOfLyapunovExponents(GapObj(o))
     return GAP.gap_to_julia(gap_obj)
+end
+
+function translations(o::Origami)
+    return GAP.Globals.TranslationsOfOrigami(GapObj(o))
+end
+
+function is_hyperelliptic(o::Origami)
+    return GAP.Globals.IsHyperelliptic(GapObj(o))
+end
+
+function cylinder_structure(o::Origami)
+    # TODO returns Vector{Any}, maybe cast to Integer?
+    gap_obj = GAP.Globals.CylinderStructure(GapObj(o))
+    return GAP.gap_to_julia(gap_obj)
+end
+
+function veech_group_and_orbit(o::Origami)
+    return GAP.Globals.VeechGroupAndOrbit(GapObj(o))
+end
+
+function veech_group_is_even(o::Origami)
+    return GAP.Globals.VeechGroupIsEven(GapObj(o))
+end
+
+function are_equivalent(o1::Origami, o2::Origami)
+    return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))
 end
