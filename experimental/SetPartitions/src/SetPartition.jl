@@ -7,7 +7,7 @@ are connected by lines. See also Section 4.1.1 in [Gro20](@cite).
 
 `SetPartition` stores two vectors `upper_points` and `lower_points`
 where same numbers correspond to points in the same subset. Both vectors are 
-automatically converted into normal form as returned by [`normal_form_vector`](@ref).
+automatically converted into normal form as returned by [`normal_form`](@ref).
 
 # Examples
 ```jldoctest
@@ -19,11 +19,10 @@ struct SetPartition <: AbstractPartition
     upper_points::Vector{Int}
     lower_points::Vector{Int}
 
-    function SetPartition(_upper_points, _lower_points)
-        (__upper_points, __lower_points) = 
-            normal_form_vector(copy([Int.(copy(_upper_points)), 
-                Int.(copy(_lower_points))]))
-        new(__upper_points, __lower_points)
+    function SetPartition(upper_points, lower_points)
+        (new_upper, new_lower) = normal_form(convert(Vector{Int}, upper_points), 
+                                             convert(Vector{Int}, lower_points))
+        new(new_upper, new_lower)
     end
 end
 
@@ -56,8 +55,8 @@ SetPartition([1, 2, 3, 3], [2, 1, 3])
 """
 function tensor_product(p::SetPartition, q::SetPartition)
     
-    q_new = helper_new_point_values_vector([p.upper_points, p.lower_points], 
-        [q.upper_points, q.lower_points])
+    q_new = new_point_values(p.upper_points, p.lower_points, 
+                             q.upper_points, q.lower_points)
     SetPartition(vcat(p.upper_points, q_new[1]), vcat(p.lower_points, q_new[2]))
 end
 
@@ -193,8 +192,8 @@ function composition_loops(p::SetPartition, q::SetPartition)
 
     # new_ids dictionary stores the new value we need to assign to the partition,
     # in order to connect new segments
-    vector_q = helper_new_point_values_vector([p_copy.upper_points, p_copy.lower_points], 
-        [copy(q.upper_points), copy(q.lower_points)])
+    vector_q = new_point_values(p_copy.upper_points, p_copy.lower_points, 
+                                copy(q.upper_points), copy(q.lower_points))
     new_ids = Dict{Int, Int}()
     
     # mapping the second the lower points of the second partition 

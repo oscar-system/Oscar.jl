@@ -1,12 +1,14 @@
 """
-    helper_new_point_values_vector(p::Vector{Vector{Int}}, q::Vector{Vector{Int}})
+    new_point_values(p_upper::Vector{Int}, p_lower::Vector{Int}, 
+                     q_upper::Vector{Int}, q_lower::Vector{Int})
 
-Return a semantically identical partition in form of an vector, 
-which has new number values.
+Return two vectors which are semantically identical to `q_upper` and `q_lower`
+as set-partition and have no common values with `p_upper` and `p_lower`.
 """
-function helper_new_point_values_vector(p::Vector, q::Vector)
+function new_point_values(p_upper::Vector{Int}, p_lower::Vector{Int}, 
+                          q_upper::Vector{Int}, q_lower::Vector{Int})
 
-    p_points = vcat(p[1], p[2])
+    p_points = vcat(p_upper, p_lower)
 
     if !(isempty(p_points))
         new_id, index = findmax(p_points)
@@ -15,31 +17,31 @@ function helper_new_point_values_vector(p::Vector, q::Vector)
         new_id = 1 
     end
     
-    q_points = vcat(q[1], q[2])
-    new_ids = Dict()
+    q_points = vcat(q_upper, q_lower)
+    new_ids = Dict{Int, Int}()
 
     for n in q_points
         new_ids[n] = new_id
         new_id += 1
     end
-    upper = [get(new_ids, n, -1) for n in q[1]]
     
-    lower = [get(new_ids, n, -1) for n in q[2]]
+    upper = [get(new_ids, n, -1) for n in q_upper]
+    lower = [get(new_ids, n, -1) for n in q_lower]
     
-    [upper, lower]
+    return (upper, lower)
 end
 
 """
-    normal_form_vector(p::Vector)
+    normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 
-Return a semantically identical partition of vector form, 
-which has new number values from 1 to number of blocks of `p`.
+Return two vectors which are semantically identical to `p_upper` and `p_lower`
+as set-partition and are numbered from 1 to the number of subsets.
 """
-function normal_form_vector(p::Vector)
+function normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 
     new_id = 1
     new_ids = Dict{Int, Int}()
-    p_return = helper_new_point_values_vector([[length(p[1]) + length(p[2])], []], p)
+    p_return = new_point_values([length(p_upper) + length(p_lower)], Vector{Int}(), p_upper, p_lower)
 
     for (i, n) in enumerate(p_return[1])
         if !(n in keys(new_ids))
@@ -60,26 +62,24 @@ function normal_form_vector(p::Vector)
             p_return[2][i] = get(new_ids, n, -1)
         end
     end
-    p_return
+
+    return p_return
 end
 
 """
-    add_partition_to_dict(dict::Dict{Int, Set{AbstractPartition}}, 
-        p::AbstractPartition)
+    add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
 
-Return `dict` with `p` included as value and `size(p)` as
-corresponding key.
+Return `dict` with `p` included as value and `size(p)` as corresponding key.
 
 Note that this is a helper function of the `construct_category` algorithm.
 """
-function add_partition_to_dict(dict::Dict{Int, Set{AbstractPartition}}, 
-        p::AbstractPartition)
+function add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
 
     add_apbs = get(dict, size(p), -1)
     push!(add_apbs, p)
     dict[size(p)] = add_apbs
 
-    dict
+    return dict
 end
 
 """
@@ -104,5 +104,5 @@ function add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
     push!(add_apbs_bottom, p)
     (vector[2])[length(lower_points(p))] = add_apbs_bottom
 
-    vector
+    return vector
 end
