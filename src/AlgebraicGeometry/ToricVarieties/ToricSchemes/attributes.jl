@@ -302,3 +302,9 @@ function _compute_image_generators(AX::ZZMatrix, AY::ZZMatrix, vmat::ZZMatrix)
   Idext[l,l] = 0
   img_gens = [solve_mixed(AX, AY[:, k], Idext, zero(matrix_space(ZZ, ncols(Idext), 1))) for k in 1:ncols(AY)]
 end
+
+is_irreducible(X::NormalToricVariety) = true
+is_reduced(X::NormalToricVariety) = true
+is_empty(X::NormalToricVariety) = false 
+is_integral(X::NormalToricVariety) = true
+is_connected(X::NormalToricVariety) = true

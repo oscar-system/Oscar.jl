@@ -12,23 +12,24 @@ function save_type_params(s::SerializerState, x::T) where {T <: TropicalSemiring
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem}, dict::Dict{Symbol, Any})
-  return load_typed_object(s, dict)
+
+function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem})
+  return load_typed_object(s)
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem},
-                          parent::TropicalSemiring)
-  return load_typed_object(s, dict)
+function save_object(s::SerializerState, x::TropicalSemiringElem)
+  str = string(x)
+  save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState,
-                                 ::Type{<:TropicalSemiringElem},
-                                 str::String, params::TropicalSemiring)
-  if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
-    return inf(params)
-  else
-    # looks like (q)
-    return params(load_object(s, QQFieldElem, String(strip(str, ['(', ')']))))
+function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem}, params::TropicalSemiring)
+  load_node(s) do str
+    if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
+      return inf(params)
+    else
+      # looks like (q)
+      return params(load_object(s, QQFieldElem))
+    end
   end
 end
 
@@ -41,8 +42,8 @@ function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurf
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface}, dict::Dict)
-  polynomial = load_typed_object(s, dict[:tropical_polynomial])
+function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface})
+  polynomial = load_typed_object(s, :tropical_polynomial)
   return tropical_hypersurface(polynomial)
 end
 
@@ -61,15 +62,15 @@ function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, dict::Dict)
-  EMB = parse(Bool, dict[:is_embedded])
+function load_object(s::DeserializerState, ::Type{<: TropicalCurve})
+  EMB = load_object(s, Bool, :is_embedded)
   if EMB
     return tropical_curve(
-      load_typed_object(s, dict[:polyhedral_complex])
+      load_typed_object(s, :polyhedral_complex)
     )
   else
     return tropical_curve(
-      load_typed_object(s, dict[:graph])
+      load_typed_object(s, :graph)
     )
   end
 end

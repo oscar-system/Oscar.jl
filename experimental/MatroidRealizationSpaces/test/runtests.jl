@@ -101,14 +101,14 @@
         @test Oscar.n_new_Igens(y,t,[y^3-x-2, y+z^3], newSgens ,R,[x,y,z]) == [x^7 + 2*x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^2*z^3 + z^3 - 6]
     end
 
-    X = matrix(FractionField(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
+    X = matrix(fraction_field(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
 
     @testset "matrix_clear_den_in_col" begin
-        @test Oscar.matrix_clear_den_in_col(X, 2) == matrix(FractionField(R), [x//(z-1) y*z z; -y+1 x^2+x 2*x*y]) 
+        @test Oscar.matrix_clear_den_in_col(X, 2) == matrix(fraction_field(R), [x//(z-1) y*z z; -y+1 x^2+x 2*x*y]) 
     end
 
     @testset "matrix_clear_den" begin
-        @test Oscar.matrix_clear_den(X) == matrix(FractionField(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
+        @test Oscar.matrix_clear_den(X) == matrix(fraction_field(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
     end
 
 

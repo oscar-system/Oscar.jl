@@ -1,9 +1,4 @@
 ################################################################################
-# Helper functions
-get_nested_entry(x::Any) = x
-get_nested_entry(v::AbstractArray) = get_nested_entry(v[1])
-
-################################################################################
 # Saving and loading vectors
 
 @register_serialization_type Vector uses_params
@@ -26,14 +21,13 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, str::String)
-  return decode_type(str)
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, dict::Dict)
-  T = decode_type(dict[:name])
-  params = load_type_params(s, T, dict[:params])
-  return (T, params)
+function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
+  T = decode_type(s)
+  if serialize_with_params(T)
+    params = load_params_node(s)
+    return (T, params)
+  end
+  return T
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
@@ -53,31 +47,63 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                     v::Vector, params::Type)
-  if serialize_with_id(params)
-    loaded_v = params[load_ref(s, x) for x in v]
-  else
-    loaded_v = params[load_object(s, params, x) for x in v]
+# this should eventually become deprecated
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
+  load_node(s) do v
+    if serialize_with_id(params)
+      loaded_v = params[load_ref(s, x) for x in v]
+    else
+      loaded_v = params[]
+      for (i, entry) in enumerate(v)
+        push!(loaded_v, load_object(s, params, i))
+      end
+    end
+    return loaded_v
   end
-  return loaded_v
+end
+
+function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where params
+  load_node(s) do v
+    if serialize_with_id(params)
+      loaded_v = params[load_ref(s, x) for x in v]
+    else
+      loaded_v = params[]
+      for (i, entry) in enumerate(v)
+        push!(loaded_v, load_object(s, params, i))
+      end
+    end
+    return loaded_v
+  end
 end
 
 # handles nested Vectors
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                                 v::Vector, params::Tuple)
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Tuple)
   T = params[1]
-  if isempty(v)
-    return T[]
-  else
-    return [load_object(s, T, x, params[2]) for x in v]
+  load_node(s) do v
+    if isempty(v)
+      return T[]
+    else
+      loaded_v = []
+      for i in 1:length(v)
+        load_node(s, i) do _
+          push!(loaded_v, load_object(s, T, params[2]))
+        end
+      end
+      return Vector{typeof(loaded_v[1])}(loaded_v)
+    end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector},
-                     v::Vector, params::Ring)
+function load_object(s::DeserializerState, ::Type{<: Vector}, params::Ring)
   T = elem_type(params)
-  return T[load_object(s, T, x, params) for x in v]
+  loaded_entries = load_array_node(s) do _
+    if serialize_with_params(T)
+      return load_object(s, T, params)
+    else
+      return  load_object(s, T)
+    end
+  end
+  return Vector{T}(loaded_entries)
 end
 
 ################################################################################
@@ -101,14 +127,14 @@ function save_type_params(s::SerializerState, tup::T) where T <: Tuple
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
+function load_type_params(s::DeserializerState, ::Type{Tuple})
   loaded_params = Any[]
-  for param in params
-    if param isa String
-      push!(loaded_params, decode_type(param))
+  load_array_node(s) do (_, param)
+    T = decode_type(s)
+    if serialize_with_params(T)
+      push!(loaded_params, (T, load_params_node(s)))
     else
-      T = decode_type(param[:name])
-      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+      push!(loaded_params, T)
     end
   end
   return loaded_params
@@ -127,40 +153,17 @@ function save_object(s::SerializerState, obj::Tuple)
   end
 end
 
-function get_nested_type(params::Vector)
-  if params[2] isa Type
-    return params[1]{params[2]}
-  end
-  nested_type = get_nested_type(params[2])
-  return params[1]{nested_type}
-end
-
-function get_tuple_type(params::Vector)
-  type_vector = Type[]
-
-  for t in params
-    if t isa Type
-      push!(type_vector, t)
-    else
-      push!(type_vector, get_nested_type(t))
-    end
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{<:Tuple},
-                     v::Vector{Any}, params::Vector)
-  entries = []
-  for i in 1:length(v)
+function load_object(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
+  entries = load_array_node(s) do (i, entry)
     if params[i] isa Type
       if serialize_with_id(params[i])
-        loaded_obj = load_ref(s, v[i])
+        return load_ref(s)
       else
-        loaded_obj = load_object(s, params[i], v[i])
+        return load_object(s, params[i])
       end
     else
-      loaded_obj = load_object(s, params[i][1], v[i], params[i][2])
+      return load_object(s, params[i][1], params[i][2])
     end
-    push!(entries, loaded_obj)
   end
   return Tuple(entries)
 end
@@ -192,24 +195,26 @@ function save_object(s::SerializerState, obj::NamedTuple)
   save_object(s, values(obj))
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:NamedTuple}, params::Dict)
+function load_type_params(s::DeserializerState, ::Type{<:NamedTuple})
   loaded_params = Any[]
-  for param in params[:tuple_params]
+  load_array_node(s, :tuple_params) do (_, param)
     if param isa String
-      push!(loaded_params, decode_type(param))
+      push!(loaded_params, decode_type(s))
     else
-      T = decode_type(param[:name])
-      push!(loaded_params, (T, load_type_params(s, T, param[:params])))
+      T = decode_type(s)
+      params = load_params_node(s)
+      push!(loaded_params, (T, params))
     end
   end
-  return (params[:names], loaded_params)
+  load_node(s, :names) do names
+    return (names, loaded_params)
+  end
 end
 
-function load_object(s::DeserializerState, ::Type{<: NamedTuple},
-                                 v::Vector, params::Tuple)
+function load_object(s::DeserializerState, ::Type{<: NamedTuple}, params::Tuple)
   keys, tuple_params = params
-  tuple = load_object(s, Tuple, v, tuple_params)
-  keys = map(Symbol, keys)
+  tuple = load_object(s, Tuple, tuple_params)
+  keys = Symbol.(keys)
   return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
 end
 
@@ -226,22 +231,23 @@ function save_object(s::SerializerState, mat::Matrix)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:Matrix},
-                     entries::Vector, params::Type)
-  if isempty(entries)
-    return zero_matrix(parent_type(params)(), 0, 0)
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
+  load_node(s) do entries
+    if isempty(entries)
+      return zero_matrix(parent_type(params)(), 0, 0)
+    end
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+        ])
+    return Matrix{params}(m)
   end
-  m = reduce(vcat, [
-    permutedims(load_object(s, Vector, v, params)) for v in entries
-      ])
-
-  return Matrix{params}(m)
 end
 
-function load_object(s::DeserializerState, ::Type{<:Matrix},
-                     entries::Vector, params::Tuple)
-  m = reduce(vcat, [
-    permutedims(load_object(s, Vector, v, params)) for v in entries
-      ])
-  return Matrix{params[1]}(m)
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
+  load_node(s) do entries
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+        ])
+    return Matrix{params[1]}(m)
+  end
 end

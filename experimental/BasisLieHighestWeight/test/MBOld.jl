@@ -180,7 +180,7 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--
   hwv = sparse_row(ZZ, [(1, 1)])
 
   monomials = compute(hwv, mats, wts)
-  ZZx, x = PolynomialRing(ZZ, length(monomials[1]))
+  ZZx, x = polynomial_ring(ZZ, length(monomials[1]))
   monomials = [
     finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), Int.(mon))) for mon in monomials
   ]

@@ -303,7 +303,7 @@ function realization_space(
   q::Union{Int,Nothing}=nothing,
   ground_ring::Ring=ZZ
 )::MatroidRealizationSpace
-  if char != nothing && !isprime(char) && char != 0
+  if char != nothing && !is_prime(char) && char != 0
     error("The characteristic has to be 0 or a prime number.")
   end
 
@@ -355,7 +355,7 @@ function realization_space(
 
     if total_degree(col_det) <= 0
       if col_det != 0 && col in Bs
-        if isunit(col_det)
+        if is_unit(col_det)
           continue
         end
       elseif col_det != 0 # and col is not a basis
@@ -645,7 +645,7 @@ end
 # v is replaced by t in f
 function sub_map(v::RingElem, t::RingElem, R::MPolyRing, xs::Vector{<:RingElem})
   xs_v = map(x -> x == v ? t : x, xs)
-  return hom(R, FractionField(R), a -> a, xs_v)
+  return hom(R, fraction_field(R), a -> a, xs_v)
 end
 
 # replace v by t in f, only return the numerator.

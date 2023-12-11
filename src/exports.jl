@@ -1259,6 +1259,7 @@ export ray_indices
 export ray_vector
 export rays
 export rays_modulo_lineality
+export read_metadata
 export real_projective_plane
 export real_solutions
 export realization

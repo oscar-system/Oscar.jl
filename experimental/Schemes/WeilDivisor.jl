@@ -12,6 +12,11 @@ export scheme_type
 export subsystem
 export weil_divisor
 
+# The following has been moved to src/forward_declarations.jl
+#abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
+
+underlying_cycle(D::AbsWeilDivisor) = underlying_cycle(underlying_divisor(D))
+
 @doc raw"""
     WeilDivisor
 
@@ -23,7 +28,7 @@ stored as a formal linear combination over some ring ``R`` of
     CoveredSchemeType<:AbsCoveredScheme, 
     CoefficientRingType<:AbstractAlgebra.Ring, 
     CoefficientRingElemType<:AbstractAlgebra.RingElem
-   } <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType}
+   } <: AbsWeilDivisor{CoveredSchemeType, CoefficientRingType}
   C::AlgebraicCycle{CoveredSchemeType, CoefficientRingType, CoefficientRingElemType}
 
   function WeilDivisor(
@@ -155,7 +160,7 @@ end
 weil_divisor(I::IdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
 
 ### copy constructor
-function copy(D::WeilDivisor) 
+function copy(D::AbsWeilDivisor) 
   new_dict = IdDict{IdealSheaf, elem_type(coefficient_ring_type(D))}()
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
@@ -163,14 +168,14 @@ function copy(D::WeilDivisor)
   return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
-function irreducible_decomposition(D::WeilDivisor)
+function irreducible_decomposition(D::AbsWeilDivisor)
   decomp = irreducible_decomposition(underlying_cycle(D))
   return WeilDivisor(decomp, check=false)
 end
 
 # If we know something about the Weil divisor, we write it! Always good to have
 # relevant information for free
-function Base.show(io::IO, D::WeilDivisor)
+function Base.show(io::IO, D::AbsWeilDivisor)
   io = pretty(io)
   X = scheme(D)
   if get(io, :show_semi_compact, false)
@@ -178,7 +183,7 @@ function Base.show(io::IO, D::WeilDivisor)
     _show_semi_compact(io, D, cov)
   else
     C = underlying_cycle(D)
-    eff = all(i >= 0 for i in collect(values(C.coefficients)))
+    eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
     prim = eff && get_attribute(D, :is_prime, false)
     if has_name(D)
       print(io, name(D))
@@ -206,11 +211,11 @@ end
 # Used in nested printing, where we assume that the associated scheme is already
 # printed in the nest - we keep track of the good covering `cov` to describe
 # everything consistently.
-function _show_semi_compact(io::IO, D::WeilDivisor, cov::Covering)
+function _show_semi_compact(io::IO, D::AbsWeilDivisor, cov::Covering)
   io = pretty(io)
   X = scheme(D)
   C = underlying_cycle(D)
-  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
   prim = eff && get_attribute(D, :is_prime, false)
   if has_name(D)
     print(io, name(D))
@@ -230,12 +235,12 @@ end
 
 # Take care of some offsets to make sure that the coefficients are all aligned
 # on the right.
-function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor)
+function Base.show(io::IO, ::MIME"text/plain", D::AbsWeilDivisor)
   io = pretty(io)
   X = scheme(D)
   cov = Oscar._covering_for_printing(io, X)
   C = underlying_cycle(D)
-  eff = all(i >= 0 for i in collect(values(C.coefficients)))
+  eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
   prim = eff && get_attribute(D, :is_prime, false)
   if length(components(C)) == 0
     print(io, "Zero weil divisor")
@@ -276,36 +281,81 @@ function Base.show(io::IO, ::MIME"text/plain", D::WeilDivisor)
   end
 end
 
-function +(D::T, E::T) where {T<:WeilDivisor}
+function Base.:+(D::AbsWeilDivisor, E::AbsWeilDivisor) 
+  return underlying_divisor(D) + underlying_divisor(E)
+end
+
+function Base.:+(D::WeilDivisor, E::AbsWeilDivisor) 
+  return D + underlying_divisor(E)
+end
+
+function Base.:+(D::AbsWeilDivisor, E::WeilDivisor) 
+  return underlying_divisor(D) + E
+end
+
+function Base.:+(D::WeilDivisor, E::WeilDivisor) 
   return WeilDivisor(underlying_cycle(D) + underlying_cycle(E), check=false)
 end
 
-function -(D::T) where {T<:WeilDivisor}
+
+
+function Base.:-(D::AbsWeilDivisor)
+  return -underlying_divisor(D)
+end
+
+function Base.:-(D::WeilDivisor)
   return WeilDivisor(-underlying_cycle(D), check=false)
 end
 
--(D::T, E::T) where {T<:WeilDivisor} = D + (-E)
 
-function *(a::RingElem, E::WeilDivisor)
+-(D::AbsWeilDivisor, E::AbsWeilDivisor) = D + (-E)
+
+function Base.:*(a::RingElem, E::AbsWeilDivisor)
+  return a*underlying_divisor(E)
+end
+
+# Method ambiguity requires the following two methods:
+function Base.:*(a::ZZRingElem, E::AbsWeilDivisor)
+  return a*underlying_divisor(E)
+end
+
+function Base.:*(a::ZZRingElem, E::WeilDivisor)
   return WeilDivisor(a*underlying_cycle(E), check=false)
 end
 
-*(a::Int, E::WeilDivisor) = coefficient_ring(E)(a)*E
-*(a::Integer, E::WeilDivisor) = coefficient_ring(E)(a)*E
+function Base.:*(a::RingElem, E::WeilDivisor)
+  return WeilDivisor(a*underlying_cycle(E), check=false)
+end
 
-+(D::WeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
+Base.:*(a::T, E::AbsWeilDivisor) where {T<:IntegerUnion} = coefficient_ring(E)(a)*E
+# method ambiguity requires us to also implement the following:
+Base.:*(a::Int, E::AbsWeilDivisor) = coefficient_ring(E)(a)*E
+
+Base.:+(D::AbsWeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
+
+function ==(D::AbsWeilDivisor, E::AbsWeilDivisor) 
+  return underlying_divisor(D) == underlying_divisor(E)
+end
+
+function ==(D::WeilDivisor, E::AbsWeilDivisor) 
+  return D == underlying_divisor(E)
+end
+
+function ==(D::AbsWeilDivisor, E::WeilDivisor) 
+  return underlying_divisor(D) == E
+end
 
 function ==(D::WeilDivisor, E::WeilDivisor) 
   return underlying_cycle(D) == underlying_cycle(E)
 end
 
 @doc raw"""
-    intersect(D::WeilDivisor, E::WeilDivisor)
+    intersect(D::AbsWeilDivisor, E::AbsWeilDivisor)
 
 For two `WeilDivisor`s on a complete smooth surface the intersection number is defined 
 as in Hartshorne's "Algebraic Geometry". This computes this intersection number.
 """
-function intersect(D::WeilDivisor, E::WeilDivisor;
+function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
     covering::Covering=default_covering(scheme(D))
   )
   X = scheme(D)
@@ -423,7 +473,7 @@ end
 
 Check if the rational function `f` is in the linear system ``|D|``.
 """
-function in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
+function in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
   X = scheme(D) 
   X === variety(parent(f)) || error("schemes not compatible")
   C = simplified_covering(X)
@@ -448,11 +498,11 @@ end
 A linear system of a Weil divisor `D` on a variety `X`, 
 generated by rational functions ``f₁,…,fᵣ ∈ K(X)``.
 """
-@attributes mutable struct LinearSystem{DivisorType<:WeilDivisor}
+@attributes mutable struct LinearSystem{DivisorType<:AbsWeilDivisor}
   D::DivisorType
   f::Vector{<:VarietyFunctionFieldElem}
 
-  function LinearSystem(f::Vector, D::WeilDivisor; check::Bool=true)
+  function LinearSystem(f::Vector, D::AbsWeilDivisor; check::Bool=true)
     length(f) == 0 && return new{typeof(D)}(D, Vector{VarietyFunctionFieldElem}())
     KK = parent(f[1])
     all(g -> (parent(g) === KK), f[2:end]) || error("elements must have the same parent")
@@ -503,13 +553,13 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearSystem)
 end
 
 @doc raw"""
-    linear_system(f::Vector, D::WeilDivisor; check::Bool=true)
+    linear_system(f::Vector, D::AbsWeilDivisor; check::Bool=true)
 
 Return the linear system ``L`` generated by rational functions ``f₁,…,fᵣ ∈ K(X)``
 with $L \subseteq |D|$ for `D` on a variety `X`. If `check` is set,
 confirm that $L \subseteq |D|$.
 """
-linear_system(f::Vector, D::WeilDivisor; check::Bool=true) = LinearSystem(f, D, check=check)
+linear_system(f::Vector, D::AbsWeilDivisor; check::Bool=true) = LinearSystem(f, D, check=check)
 
 ### essential getters 
 @doc raw"""
@@ -534,13 +584,13 @@ variety(L::LinearSystem) = scheme(weil_divisor(L))
 scheme(L::LinearSystem) = variety(L)
 
 @doc raw"""
-    subsystem(L::LinearSystem, D::WeilDivisor) -> LinearSystem, MatElem
+    subsystem(L::LinearSystem, D::AbsWeilDivisor) -> LinearSystem, MatElem
 
 Given a linear system $L = |E|$ and a divisor $D \leq E$ compute $|D|$
 and the matrix representing the inclusion $|D| \hookrightarrow |E|$
 with respect to the given bases of both systems.
 """
-function subsystem(L::LinearSystem, D::WeilDivisor)
+function subsystem(L::LinearSystem, D::AbsWeilDivisor)
   E = weil_divisor(L)
   @req D <= E "input does not define a subsystem"
   Lnew = L
@@ -635,14 +685,14 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
   return LinearSystem(new_gens, D, check=false), K[1:r,:]
 end
 
-function subsystem(L::LinearSystem, P::WeilDivisor, n::Int; check::Bool=true)
+function subsystem(L::LinearSystem, P::AbsWeilDivisor, n::Int; check::Bool=true)
   @check is_prime(P) "P must be a prime divisor"
   I = components(P)[1]
   return subsystem(L, I, n)
 end
 
 # Prime Weil divisor are those written as 1*Sheaf of prime ideals
-@attr Bool function is_prime(D::WeilDivisor)
+@attr Bool function is_prime(D::AbsWeilDivisor)
   length(components(D)) == 0 && return false # Cannot be prime if there are no components
   # Two cases:
   # - D is a sum of at least 2 disinct sheaf of prime ideals -> not prime
@@ -659,15 +709,14 @@ end
   return coefficient_dict(D)[C] == 1
 end
 
-is_irreducible(D::WeilDivisor) = is_prime(D)
+is_irreducible(D::AbsWeilDivisor) = is_prime(D)
 
 function order_on_divisor(
     f::VarietyFunctionFieldElem,
-    D::WeilDivisor;
+    D::AbsWeilDivisor;
     check::Bool=true
   )
   @check is_prime(D) || error("divisor must be prime")
   I = components(D)[1]
   return order_on_divisor(f, I, check=false)
 end
-

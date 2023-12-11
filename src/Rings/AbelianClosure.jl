@@ -21,6 +21,10 @@
 # as a primitive n-th root. to change between these two options, use
 # PCharSaturateAll with allroots or allrootsNew (change this in the code)
 
+abstract type CyclotomicField end
+
+export CyclotomicField
+
 module AbelianClosure 
 
 using ..Oscar
@@ -136,15 +140,11 @@ end
 ################################################################################
 
 elem_type(::Type{QQAbField{AnticNumberField}}) = QQAbElem{nf_elem}
-elem_type(::QQAbField{AnticNumberField}) = QQAbElem{nf_elem}
 parent_type(::Type{QQAbElem{nf_elem}}) = QQAbField{AnticNumberField}
-parent_type(::QQAbElem{nf_elem}) = QQAbField{AnticNumberField}
 parent(::QQAbElem{nf_elem}) = _QQAb
 
 elem_type(::Type{QQAbField{NfAbsNS}}) = QQAbElem{NfAbsNSElem}
-elem_type(::QQAbField{NfAbsNS}) = QQAbElem{NfAbsNSElem}
 parent_type(::Type{QQAbElem{NfAbsNSElem}}) = QQAbField{NfAbsNS}
-parent_type(::QQAbElem{NfAbsNSElem}) = QQAbField{NfAbsNS}
 parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 
 ################################################################################

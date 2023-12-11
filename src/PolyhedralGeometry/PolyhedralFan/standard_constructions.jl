@@ -127,7 +127,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
     end
   end
   
-  return polyhedral_fan(coefficient_field(Sigma), new_rays, IncidenceMatrix([nc for nc in new_cones]); non_redundant=true)
+  return polyhedral_fan(coefficient_field(Sigma), IncidenceMatrix([nc for nc in new_cones]), new_rays; non_redundant=true)
 end
 
 function _get_refinable_facets(Sigma::_FanLikeType, new_ray::AbstractVector{<:IntegerUnion}, refinable_cones::Vector{Int}, facet_normals::AbstractMatrix, mc_old::IncidenceMatrix)

@@ -42,8 +42,6 @@ struct AlgClosureElem{T} <: FieldElem
 end
 
 elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
-elem_type(::AlgClosure{T}) where T = AlgClosureElem{T}
-parent_type(::AlgClosureElem{T}) where T = AlgClosure{T}
 parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
 
 function show(io::IO, a::AlgClosureElem)
