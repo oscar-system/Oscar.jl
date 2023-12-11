@@ -1,8 +1,11 @@
 """
     ColoredPartition
 
-Construct a colored partition from `partition` with 
-colors `color_upper_points` and `color_lower_points`.
+A colored partition is a set-partition where the points 
+can have different colors. See Section 1.1 in [TW18](@cite).
+
+It is represented by a set-partition `partition` and colors `color_upper_points` 
+and `color_lower_points` for the upper and lower points.
 """
 struct ColoredPartition <: AbstractPartition
     partition::SetPartition

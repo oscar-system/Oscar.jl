@@ -1,7 +1,12 @@
 """
     SpatialPartition
 
-Initialize SpatialPartition object
+A spatial partition is a set-partition where the points are 
+arranged in multiple layers along the third dimension. 
+See Section 2.2 in [CW16](@cite).
+
+It is represented by a set-partition `partition` where the 
+number of upper and lower points are a multiple of `dimension`.
 """
 struct SpatialPartition <: AbstractPartition
     partition::SetPartition
@@ -17,9 +22,7 @@ function hash(p::SpatialPartition, h::UInt)
 end
 
 function ==(p::SpatialPartition, q::SpatialPartition)
-
     p.partition == q.partition && p.dimension == q.dimension
-
 end
 
 function copy(p::SpatialPartition)

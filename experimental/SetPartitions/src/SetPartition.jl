@@ -1,7 +1,13 @@
 """
     SetPartition
 
-Initialize SetPartition object, while transforming object to "normal form". 
+A set-partition is a partition of a set of upper and lower points into disjoint subsets. 
+Such partitions are often depicted as string diagrams where points in the same subset 
+are connected by lines. See also Section 4.1.1 in [Gro20](@cite).
+
+`SetPartition` stores two vectors `upper_points` and `lower_points`
+where same numbers correspond to points in the same subset. Both vectors are 
+automatically converted into normal form as returned by [`normal_form_vector`](@ref).
 
 # Examples
 ```jldoctest
@@ -27,9 +33,7 @@ function hash(p::SetPartition, h::UInt)
 end
 
 function ==(p::SetPartition, q::SetPartition)
-
     p.lower_points == q.lower_points && p.upper_points == q.upper_points
-
 end
 
 function copy(p::SetPartition)
@@ -40,6 +44,9 @@ end
     tensor_product(p::SetPartition, q::SetPartition)
 
 Return tensor product of `p` and `q`.
+
+The tensor product of two partitions is given by their vertical concatenation.
+See also Section 4.1.1 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
@@ -59,6 +66,9 @@ end
 
 Return involution of `p`.
 
+The involution of a partition is obtained by swapping the upper and lower points.
+See also Section 4.1.1 in [Gro20](@cite).
+
 # Examples
 ```jldoctest
 julia> involution(SetPartition([1, 2, 3], [2, 1]))
@@ -66,15 +76,16 @@ SetPartition([1, 2], [2, 1, 3])
 ```
 """
 function involution(p::SetPartition)
-    
     SetPartition(p.lower_points, p.upper_points)
-
 end
 
 """
     vertical_reflection(p::SetPartition)
 
 Return vertical reflection of `p`.
+
+The vertical reflection of a partition is obtained by reversing the order of 
+the upper and lower points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
@@ -83,9 +94,7 @@ SetPartition([1, 2, 3], [3, 2])
 ```
 """
 function vertical_reflection(p::SetPartition)
-    
     SetPartition(reverse(p.upper_points), reverse(p.lower_points))
-
 end
 
 """
@@ -93,15 +102,27 @@ end
 
 Return the rotation of `p` in the direction given by `lr` and `tb`. 
 
+Rotating a partition moves the left- or right-most point of the upper points 
+to the lower points or vice verca. See also Section 4.1.2 in [Gro20](@cite).
+
 # Arguments
 - `p`: input partition
-- `lr`: whether left (true) or right (false)
-- `tb`: whether top (true) or bottom (false)
+- `lr`: rotating at the left (true) or at the right (false)
+- `tb`: rotating from top to bottom (true) or from bottom to top (false)
 
 # Examples
 ```jldoctest
 julia> rotation(SetPartition([1, 2, 3], [2, 1]), true, true)
 SetPartition([1, 2], [3, 1, 3])
+
+julia> rotation(SetPartition([1, 2, 3], [2, 1]), true, false)
+SetPartition([1, 2, 1, 3], [2])
+
+julia> rotation(SetPartition([1, 2, 3], [2, 1]), false, true)
+SetPartition([1, 2], [2, 1, 3])
+
+julia> rotation(SetPartition([1, 2, 3], [2, 1]), false, false)
+SetPartition([1, 2, 3, 1], [2])
 ```
 """
 function rotation(p::SetPartition, lr::Bool, tb::Bool)
@@ -144,10 +165,23 @@ end
 
 Return the composition of `p` and `q` as well as the number of removed loops.
 
+The composition of two partitions is obtained concatenating them horizontally
+and removing intermediate loops which are no longer connected to the top or bottom.
+See also Section 4.1.1 in [Gro20](@cite).
+
+The composition of `p` and `q` is only defined if the number of upper points of 
+`p` equals the number of lower points of `q`. See also [`is_composable`](@ref).
+
 # Examples
 ```jldoctest
 julia> composition_loops(SetPartition([1, 2], [2, 1]), SetPartition([1], [1, 1]))
 (SetPartition([1], [1, 1]), 0)
+
+julia> composition_loops(SetPartition([1, 1], [2]), SetPartition([1], [2, 2]))
+(SetPartition([1], [2]), 1)
+
+julia> composition_loops(SetPartition([1], [1, 2]), SetPartition([1], [2, 2]))
+ERROR: format not fitting
 ```
 """
 function composition_loops(p::SetPartition, q::SetPartition)
