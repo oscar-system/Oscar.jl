@@ -54,8 +54,8 @@ cases = [
 
       GM, _ = grade(M, A)
       test_save_load_roundtrip(path, GM) do loaded
-        @test grading(loaded) == grading(GM)
-        @test grading(forget_grading(loaded)) == grading(forget_grading(GM))
+        @test loaded == GM
+        @test forget_grading(loaded) == forget_grading(GM)
       end
     end
 

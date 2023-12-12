@@ -247,7 +247,7 @@ end
 @register_serialization_type GrpAbFinGenElem uses_params
 
 function save_object(s::SerializerState, g::GrpAbFinGenElem)
-  save_object(s, coeff(g))
+  save_object(s, _coeff(g))
 end
 
 function load_object(s::DeserializerState, ::Type{GrpAbFinGenElem}, G::GrpAbFinGen)

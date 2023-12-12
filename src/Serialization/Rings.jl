@@ -125,7 +125,7 @@ end
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
-    save_typed_object(s, grading(R), :grading)
+    save_typed_object(s, _grading(R), :grading)
     save_typed_object(s, forget_grading(R), :ring)
   end
 end

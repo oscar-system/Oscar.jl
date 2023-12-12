@@ -43,7 +43,7 @@ function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
 
-grading(R::MPolyDecRing) = R.d
+_grading(R::MPolyDecRing) = R.d
 
 @doc raw"""
     is_graded(R::MPolyRing)
