@@ -67,18 +67,18 @@ set_description(t1, "Testing...")
   @test model_description(t1) == "Testing..."
 end
 
-t2 = resolve(t, 1)
+t2 = resolve(t1, 1)
 
 @testset "Test resolving literature Tate model over concrete base" begin
   @test is_smooth(ambient_space(t2)) == false
-  @test is_partially_resolve(t2) == true
+  @test is_partially_resolved(t2) == true
   @test base_space(t1) == base_space(t2)
 end
 
 add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
 
 @testset "Test adding new resolution to literature Tate model over concrete base" begin
-  @test length(resolution(t1)) == 2
+  @test length(resolutions(t1)) == 2
 end
 
 
@@ -151,7 +151,7 @@ end
 
 t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 
-@testset "Basic tests for literature Tate model over concrete base" begin
+@testset "Basic tests for literature Tate model over arbitrary base" begin
   @test parent(tate_section_a1(t3)) == cox_ring(base_space(t3))
   @test parent(tate_section_a2(t3)) == cox_ring(base_space(t3))
   @test parent(tate_section_a3(t3)) == cox_ring(base_space(t3))
@@ -166,7 +166,7 @@ t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
   @test base_fully_specified(t3) == base_fully_specified(weierstrass_model(t3))
 end
 
-@testset "Test meta data for literature Tate model over concrete base" begin
+@testset "Test meta data for literature Tate model over arbitrary base" begin
   @test arxiv_id(t3) == "1109.3454"
   @test arxiv_doi(t3) == "10.48550/arXiv.1109.3454"
   @test arxiv_link(t3) == "https://arxiv.org/abs/1109.3454v2"
@@ -197,11 +197,32 @@ end
   @test weighted_resolution_zero_sections(t3) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]]
 end
 
-@testset "Test error messages for literature Tate model over concrete base" begin
+@testset "Test error messages for literature Tate model over arbitrary base" begin
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
   @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
+end
+
+
+t4 = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
+t5 = literature_model(arxiv_id = "1212.2949", equation = "3.42", model_parameters = Dict("k" => 4))
+t6 = literature_model(arxiv_id = "1212.2949", equation = "4.1", model_parameters = Dict("k" => 3))
+t7 = literature_model(arxiv_id = "1212.2949", equation = "4.23", model_parameters = Dict("k" => 4))
+t8  = literature_model(arxiv_id = "1212.2949", equation = "5.1")
+t9 = literature_model(arxiv_id = "1212.2949", equation = "5.7")
+t10 = literature_model(arxiv_id = "1212.2949", equation = "5.13")
+
+
+@testset "Test more Tate models (from paper Tate form on Steroids) in our database" begin
+  @test base_fully_specified(t4) == false
+  @test is_partially_resolved(t5) == false
+  @test length(resolutions(t6)) == 1
+  @test length(paper_authors(t7)) == 2
+  @test model_description(t8) == "E6 Tate model"
+  @test model_description(t9) == "E7 Tate model"
+  @test model_description(t10) == "E8 Tate model"
 end
 
 
@@ -260,4 +281,12 @@ end
   @test_throws ArgumentError weighted_resolutions(w2)
   @test_throws ArgumentError weighted_resolution_generating_sections(w2)
   @test_throws ArgumentError weighted_resolution_zero_sections(w2)
+end
+
+
+w3 = literature_model(arxiv_id = "1507.05954", equation = "A.1")
+
+
+@testset "Test more Weierstrass literature models in our database" begin
+  @test model_description(w3) == "U(1)xU(1) Weierstrass model"
 end
