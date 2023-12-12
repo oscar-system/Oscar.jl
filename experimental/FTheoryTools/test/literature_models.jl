@@ -1,0 +1,246 @@
+using Oscar
+using Test
+
+#############################################################
+# 1: Literature Tate model over concrete base
+#############################################################
+
+B3 = projective_space(NormalToricVariety, 3)
+w = torusinvariant_prime_divisors(B3)[1]
+t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+
+@testset "Test defining data for literature Tate model over concrete base" begin
+  @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
+  @test parent(tate_section_a2(t1)) == cox_ring(base_space(t1))
+  @test parent(tate_section_a3(t1)) == cox_ring(base_space(t1))
+  @test parent(tate_section_a4(t1)) == cox_ring(base_space(t1))
+  @test parent(tate_section_a6(t1)) == cox_ring(base_space(t1))
+  @test parent(tate_polynomial(t1)) == cox_ring(ambient_space(t1))
+  @test parent(discriminant(t1)) == cox_ring(base_space(t1))
+  @test length(singular_loci(t1)) == 2
+  @test dim(base_space(t1)) == 3
+  @test dim(ambient_space(t1)) == 5
+  @test base_fully_specified(t1) == true
+  @test base_fully_specified(t1) == base_fully_specified(weierstrass_model(t1))
+  @test is_smooth(ambient_space(t1)) == false
+  @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
+end
+
+@testset "Test meta data for literature Tate model over concrete base" begin
+  @test arxiv_id(t1) == "1109.3454"
+  @test arxiv_doi(t1) == "10.48550/arXiv.1109.3454"
+  @test arxiv_link(t1) == "https://arxiv.org/abs/1109.3454v2"
+  @test arxiv_model_equation_number(t1) ==  "3.1"
+  @test arxiv_model_page(t1) == "10"
+  @test arxiv_model_section(t1) == "3"
+  @test arxiv_version(t1) ==  "2"
+  @test generating_sections(t1) == [["0", "0", "1"]]
+  @test journal_doi(t1) == "10.1016/j.nuclphysb.2011.12.013"
+  @test journal_link(t1) == "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+  @test journal_model_equation_number(t1) == "3.1"
+  @test journal_model_page(t1) == "9"
+  @test journal_model_section(t1) == "3"
+  @test journal_pages(t1) == "1–47"
+  @test journal_volume(t1) == "858"
+  @test journal_year(t1) ==  "2012"
+  @test literature_identifier(t1) ==  "1109_3454"
+  @test model_description(t1) == "SU(5)xU(1) restricted Tate model"
+  @test paper_authors(t1) == ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"]
+  @test paper_buzzwords(t1) == ["GUT model", "Tate", "U(1)", "SU(5)"]
+  @test paper_description(t1) == "SU(5)xU(1) restricted Tate model"
+  @test paper_title(t1) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
+  @test resolutions(t1) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolution_generating_sections(t1) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "-a43"]]]]
+  @test resolution_zero_sections(t1) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]]]
+  @test weighted_resolutions(t1) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolution_generating_sections(t1) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["a32", "-a43"]]]]
+  @test weighted_resolution_zero_sections(t1) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]]
+end
+
+@testset "Test error messages for literature Tate model over concrete base" begin
+  @test_throws ArgumentError associated_literature_models(t1)
+  @test_throws ArgumentError journal_report_numbers(t1)
+  @test_throws ArgumentError model_parameters(t1)
+  @test_throws ArgumentError related_literature_models(t1)
+end
+
+
+
+#############################################################
+# 2: Literature Weierstrass model over concrete base
+#############################################################
+
+B2 = projective_space(NormalToricVariety, 2)
+b = torusinvariant_prime_divisors(B2)[1]
+w1 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+
+@testset "Test defining data for literature Weierstrass model over concrete base" begin
+  @test parent(weierstrass_section_f(w1)) == cox_ring(base_space(w1))
+  @test parent(weierstrass_section_g(w1)) == cox_ring(base_space(w1))
+  @test parent(weierstrass_polynomial(w1)) == cox_ring(ambient_space(w1))
+  @test parent(discriminant(w1)) == cox_ring(base_space(w1))
+  @test length(singular_loci(w1)) == 1
+  @test dim(base_space(w1)) == 2
+  @test dim(ambient_space(w1)) == 4
+  @test base_fully_specified(w1) == true
+  @test is_smooth(ambient_space(w1)) == false
+  @test toric_variety(calabi_yau_hypersurface(w1)) == ambient_space(w1)
+end
+
+@testset "Test meta data for literature Weierstrass model over concrete base" begin
+  @test arxiv_id(w1) == "1208.2695"
+  @test arxiv_doi(w1) == "10.48550/arXiv.1208.2695"
+  @test arxiv_link(w1) == "https://arxiv.org/abs/1208.2695v2"
+  @test arxiv_model_equation_number(w1) ==  "B.19"
+  @test arxiv_model_page(w1) == "34"
+  @test arxiv_model_section(w1) == "B"
+  @test arxiv_version(w1) == "2"
+  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test generating_sections(w1) == [["c3^2 - 2//3 * b^2 * c2", "-c3^3 + b^2 * c2 * c3 - 1//2 * b^4 * c1", "b"]]
+  @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
+  @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
+  # FIXME: Enter proper values into database!
+  #@test journal_model_equation_number(w1) == ""
+  #@test journal_model_page(w1) == ""
+  #@test journal_model_section(w1) == ""
+  #@test journal_pages(w1) == "128"
+  @test journal_report_numbers(w1) == ["UCSB-MATH-2012-27", "MIT-CTP-4388"]
+  @test journal_volume(w1) == "10"
+  @test journal_year(w1) == "2012"
+  @test literature_identifier(w1) == "1208_2695-2"
+  @test model_description(w1) == "U(1) Weierstrass model"
+  @test paper_authors(w1) == ["David R. Morrison", "Daniel S. Park"]
+  @test paper_buzzwords(w1) == ["U(1)", "Mordell–Weil", "rational sections"]
+  @test paper_description(w1) == "General construction of U(1) model"
+  @test paper_title(w1) ==  "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds"
+end
+
+@testset "Test error messages for literature Weierstrass model over concrete base" begin
+  @test_throws ArgumentError model_parameters(w1)
+  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError resolutions(w1)
+  @test_throws ArgumentError resolution_generating_sections(w1)
+  @test_throws ArgumentError resolution_zero_sections(w1)
+  @test_throws ArgumentError weighted_resolutions(w1)
+  @test_throws ArgumentError weighted_resolution_generating_sections(w1)
+  @test_throws ArgumentError weighted_resolution_zero_sections(w1)
+end
+
+
+
+#############################################################
+# 3: Literature Tate model over arbitrary base
+#############################################################
+
+t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+
+@testset "Basic tests for literature Tate model over concrete base" begin
+  @test parent(tate_section_a1(t2)) == cox_ring(base_space(t2))
+  @test parent(tate_section_a2(t2)) == cox_ring(base_space(t2))
+  @test parent(tate_section_a3(t2)) == cox_ring(base_space(t2))
+  @test parent(tate_section_a4(t2)) == cox_ring(base_space(t2))
+  @test parent(tate_section_a6(t2)) == cox_ring(base_space(t2))
+  @test parent(tate_polynomial(t2)) == cox_ring(ambient_space(t2))
+  @test parent(discriminant(t2)) == cox_ring(base_space(t2))
+  @test length(singular_loci(t2)) == 2
+  @test dim(base_space(t2)) == 3
+  @test dim(ambient_space(t2)) == 5
+  @test base_fully_specified(t2) == false
+  @test base_fully_specified(t2) == base_fully_specified(weierstrass_model(t2))
+end
+
+@testset "Test meta data for literature Tate model over concrete base" begin
+  @test arxiv_id(t2) == "1109.3454"
+  @test arxiv_doi(t2) == "10.48550/arXiv.1109.3454"
+  @test arxiv_link(t2) == "https://arxiv.org/abs/1109.3454v2"
+  @test arxiv_model_equation_number(t2) ==  "3.1"
+  @test arxiv_model_page(t2) == "10"
+  @test arxiv_model_section(t2) == "3"
+  @test arxiv_version(t2) ==  "2"
+  @test generating_sections(t2) == [["0", "0", "1"]]
+  @test journal_doi(t2) == "10.1016/j.nuclphysb.2011.12.013"
+  @test journal_link(t2) == "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+  @test journal_model_equation_number(t2) == "3.1"
+  @test journal_model_page(t2) == "9"
+  @test journal_model_section(t2) == "3"
+  @test journal_pages(t2) == "1–47"
+  @test journal_volume(t2) == "858"
+  @test journal_year(t2) ==  "2012"
+  @test literature_identifier(t2) ==  "1109_3454"
+  @test model_description(t2) == "SU(5)xU(1) restricted Tate model"
+  @test paper_authors(t2) == ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"]
+  @test paper_buzzwords(t2) == ["GUT model", "Tate", "U(1)", "SU(5)"]
+  @test paper_description(t2) == "SU(5)xU(1) restricted Tate model"
+  @test paper_title(t2) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
+  @test resolutions(t2) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolution_generating_sections(t2) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "-a43"]]]]
+  @test resolution_zero_sections(t2) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]]]
+  @test weighted_resolutions(t2) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolution_generating_sections(t2) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["a32", "-a43"]]]]
+  @test weighted_resolution_zero_sections(t2) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]]
+end
+
+@testset "Test error messages for literature Tate model over concrete base" begin
+  @test_throws ArgumentError associated_literature_models(t2)
+  @test_throws ArgumentError journal_report_numbers(t2)
+  @test_throws ArgumentError model_parameters(t2)
+  @test_throws ArgumentError related_literature_models(t2)
+end
+
+
+
+#############################################################
+# 4: Literature Weierstrass model over arbitrary base
+#############################################################
+
+w2 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false)
+
+@testset "Test defining data for literature Weierstrass model over concrete base" begin
+  @test parent(weierstrass_section_f(w2)) == cox_ring(base_space(w2))
+  @test parent(weierstrass_section_g(w2)) == cox_ring(base_space(w2))
+  @test parent(weierstrass_polynomial(w2)) == cox_ring(ambient_space(w2))
+  @test parent(discriminant(w2)) == cox_ring(base_space(w2))
+  @test length(singular_loci(w2)) == 1
+  @test dim(base_space(w2)) == 2
+  @test dim(ambient_space(w2)) == 4
+  @test base_fully_specified(w2) == false
+end
+
+@testset "Test meta data for literature Weierstrass model over concrete base" begin
+  @test arxiv_id(w2) == "1208.2695"
+  @test arxiv_doi(w2) == "10.48550/arXiv.1208.2695"
+  @test arxiv_link(w2) == "https://arxiv.org/abs/1208.2695v2"
+  @test arxiv_model_equation_number(w2) ==  "B.19"
+  @test arxiv_model_page(w2) == "34"
+  @test arxiv_model_section(w2) == "B"
+  @test arxiv_version(w2) == "2"
+  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test generating_sections(w2) == [["c3^2 - 2//3 * b^2 * c2", "-c3^3 + b^2 * c2 * c3 - 1//2 * b^4 * c1", "b"]]
+  @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
+  @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
+  # FIXME: Enter proper values into database!
+  #@test journal_model_equation_number(w2) == ""
+  #@test journal_model_page(w2) == ""
+  #@test journal_model_section(w2) == ""
+  #@test journal_pages(w2) == "128"
+  @test journal_report_numbers(w2) == ["UCSB-MATH-2012-27", "MIT-CTP-4388"]
+  @test journal_volume(w2) == "10"
+  @test journal_year(w2) == "2012"
+  @test literature_identifier(w2) == "1208_2695-2"
+  @test model_description(w2) == "U(1) Weierstrass model"
+  @test paper_authors(w2) == ["David R. Morrison", "Daniel S. Park"]
+  @test paper_buzzwords(w2) == ["U(1)", "Mordell–Weil", "rational sections"]
+  @test paper_description(w2) == "General construction of U(1) model"
+  @test paper_title(w2) ==  "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds"
+end
+
+@testset "Test error messages for literature Weierstrass model over concrete base" begin
+  @test_throws ArgumentError model_parameters(w2)
+  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError resolutions(w2)
+  @test_throws ArgumentError resolution_generating_sections(w2)
+  @test_throws ArgumentError resolution_zero_sections(w2)
+  @test_throws ArgumentError weighted_resolutions(w2)
+  @test_throws ArgumentError weighted_resolution_generating_sections(w2)
+  @test_throws ArgumentError weighted_resolution_zero_sections(w2)
+end
