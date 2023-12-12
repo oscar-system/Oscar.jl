@@ -33,27 +33,27 @@ As hinted by the filename, OSCAR writes a file in JSON format. The file looks
 as follow:
 ```
 {
-    "_ns": {
-        "Oscar": [
-            "https://github.com/oscar-system/Oscar.jl",
-            {
-                "major": 0,
-                "minor": 8,
-                "patch": 3,
-                "prerelease": [
-                    "DEV"
-                ],
-                "build": []
-            }
-        ]
-    },
-    "id": "-1",
-    "type": "Base.Int",
-    "data": "42"
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "0.14.0-DEV-8fe2abbe39890a7d3324adcba7f91812119c586a"
+    ]
+  },
+  "_type": "Base.Int",
+  "data": "42"
 }
 ```
 It contains the version of OSCAR it was written by, its type, and the actual
-content, in this case as a string.
+content, in this case as an `Int`.
+
+### Registering a Type for Serialization
+
+```@docs
+register_serialization_type
+```
+
+
+
 
 ### The `id`
 If you look at the file `src/Serialization/main.jl`, you will see that all

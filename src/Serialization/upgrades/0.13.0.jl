@@ -70,10 +70,10 @@ push!(upgrade_scripts_set, UpgradeScript(
       dict[:_type] = "fpFieldElem"
     end
 
-    if haskey(dict[:type], :name)
-      type_string = dict[:type][:name]
-    else
+    if dict[:type] isa String
       type_string = dict[:type]
+    else
+      type_string = dict[:type][:name]
     end
 
     # type has already been updated
@@ -133,6 +133,9 @@ push!(upgrade_scripts_set, UpgradeScript(
         return dict
       end
       upgraded_dict[:data][:symbols] = dict[:data][:symbols][:data][:vector]
+          # update the data section for specific types
+    elseif contains(type_string, "PolyRing")
+      upgraded_dict[:data] = upgrade_0_13_0(s, dict[:data])
     elseif contains(type_string, "Tuple")
       params = []
       entry_data = []
@@ -150,7 +153,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
       upgraded_dict[:data] = entry_data
-    elseif  contains(type_string, Matrix)
+    elseif contains(type_string, "Matrix")
       params = dict[:data][:matrix][1][:data][:entry_type]
       upgraded_dict[:_type] = Dict(:name => "Matrix", :params => params)
       matrix_data = []
@@ -160,10 +163,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = matrix_data
     end
 
-    # update the data section for specific types
-    if contains(type_string, "PolyRing")
-      upgraded_dict[:data] = upgrade_0_13_0(s, dict[:data])
-    end
     
     if contains(type_string, "Field")
       if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)

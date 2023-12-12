@@ -439,26 +439,32 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
   reverse_type_map[str] = T
 end
 
-# @register_serialization_type NewType "String Representation of type" uses_id uses_params
-
-# register_serialization_type is a macro to ensure that the string we generate
-# matches exactly the expression passed as first argument, and does not change
-# in unexpected ways when import/export statements are adjusted.
-# The last three arguments are optional and can arise in any order. Passing a string
-# argument will override how the type is stored as a string. The last two are boolean
-# flags. When setting uses_id the object will be stored as a reference and will be
-# referred to throughout the serialization using a UUID. This should typically only
-# be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
-# Using the uses_params flag will serialize the object with a more structured type
-# description which will make the serialization more efficient see the discussion on
-# save_type_params / load_type_params below.
-
 import Serialization.serialize
 import Serialization.deserialize
 import Serialization.serialize_type
 import Distributed.AbstractSerializer
 
+# add these here so throws the proper error when the type hasn't been registered
 serialize_with_id(::Type) = false
+serialize_with_params(::Type) = false
+
+"""
+
+```julia
+@register_serialization_type NewType "String Representation of type" uses_id uses_params
+```
+ register_serialization_type is a macro to ensure that the string we generate
+ matches exactly the expression passed as first argument, and does not change
+ in unexpected ways when import/export statements are adjusted.
+ The last three arguments are optional and can arise in any order. Passing a string
+ argument will override how the type is stored as a string. The last two are boolean
+ flags. When setting uses_id the object will be stored as a reference and will be
+ referred to throughout the serialization sessions using a UUID. This should typically only
+ be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
+ Using the uses_params flag will serialize the object with a more structured type
+ description which will make the serialization more efficient see the discussion on
+ save_type_params / load_type_params below.
+"""
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
