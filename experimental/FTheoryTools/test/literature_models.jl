@@ -99,11 +99,11 @@ end
   @test generating_sections(w1) == [["c3^2 - 2//3 * b^2 * c2", "-c3^3 + b^2 * c2 * c3 - 1//2 * b^4 * c1", "b"]]
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
-  # FIXME: Enter proper values into database!
-  #@test journal_model_equation_number(w1) == ""
-  #@test journal_model_page(w1) == ""
-  #@test journal_model_section(w1) == ""
-  #@test journal_pages(w1) == "128"
+  @test journal_model_equation_number(w1) == "B.19"
+  @test journal_model_page(w1) == "34"
+  @test journal_model_section(w1) == "B"
+  # FIXME: This should likely be a range? But then, maybe we do not care?
+  @test journal_pages(w1) == "128"
   @test journal_report_numbers(w1) == ["UCSB-MATH-2012-27", "MIT-CTP-4388"]
   @test journal_volume(w1) == "10"
   @test journal_year(w1) == "2012"
@@ -218,11 +218,11 @@ end
   @test generating_sections(w2) == [["c3^2 - 2//3 * b^2 * c2", "-c3^3 + b^2 * c2 * c3 - 1//2 * b^4 * c1", "b"]]
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
-  # FIXME: Enter proper values into database!
-  #@test journal_model_equation_number(w2) == ""
-  #@test journal_model_page(w2) == ""
-  #@test journal_model_section(w2) == ""
-  #@test journal_pages(w2) == "128"
+  @test journal_model_equation_number(w2) == "B.19"
+  @test journal_model_page(w2) == "34"
+  @test journal_model_section(w2) == "B"
+  # FIXME: This should likely be a range? But then, maybe we do not care?
+  @test journal_pages(w2) == "128"
   @test journal_report_numbers(w2) == ["UCSB-MATH-2012-27", "MIT-CTP-4388"]
   @test journal_volume(w2) == "10"
   @test journal_year(w2) == "2012"
