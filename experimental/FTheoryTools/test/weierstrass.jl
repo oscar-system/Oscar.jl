@@ -17,6 +17,8 @@ w = weierstrass_model(base; completeness_check = false)
   @test is_smooth(ambient_space(w)) == false
   @test toric_variety(calabi_yau_hypersurface(w)) == ambient_space(w)
   @test length(singular_loci(w)) == 1
+  @test base_fully_specified(w) == true
+  @test base_fully_specified(w) == base_fully_specified(weierstrass_model(w))
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin
