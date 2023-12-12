@@ -846,6 +846,17 @@ function Oscar.order(a::QQAbElem)
   return o
 end
 
+# Convenient sqrt and cbrt functions as simple wrappers around the roots function,
+# which is already implemented for QQAbElem directly
+
+function Oscar.sqrt(a::QQAbElem)
+  return Oscar.roots(a, 2)
+end
+
+function Oscar.cbrt(a::QQAbElem)
+  return Oscar.roots(a, 3)
+end
+
 
 ###############################################################################
 #
