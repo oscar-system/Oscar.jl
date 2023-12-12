@@ -29,6 +29,7 @@ t = global_tate_model(base; completeness_check = false)
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
+  @test is_partially_resolved(t) == false
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin

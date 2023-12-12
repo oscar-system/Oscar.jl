@@ -13,6 +13,7 @@ h1 = hypersurface_model(base; completeness_check = false)
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h1)))] == ["x", "y", "z"]
   @test toric_variety(calabi_yau_hypersurface(h1)) == ambient_space(h1)
   @test base_fully_specified(h1) == true
+  @test is_partially_resolved(h1) == false
 end
 
 
