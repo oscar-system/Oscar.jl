@@ -19,6 +19,7 @@ w = weierstrass_model(base; completeness_check = false)
   @test length(singular_loci(w)) == 1
   @test base_fully_specified(w) == true
   @test base_fully_specified(w) == base_fully_specified(weierstrass_model(w))
+  @test is_partially_resolved(w) == false
 end
 
 @testset "Error messages in Weierstrass models over concrete base spaces" begin

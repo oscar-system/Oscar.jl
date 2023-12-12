@@ -1,6 +1,3 @@
-using Oscar
-using Test
-
 #############################################################
 # 1: Literature Tate model over concrete base
 #############################################################
@@ -62,6 +59,26 @@ end
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
   @test_throws ArgumentError related_literature_models(t1)
+end
+
+set_description(t1, "Testing...")
+
+@testset "Test modifying the model description for literature Tate model over concrete base" begin
+  @test model_description(t1) == "Testing..."
+end
+
+t2 = resolve(t, 1)
+
+@testset "Test resolving literature Tate model over concrete base" begin
+  @test is_smooth(ambient_space(t2)) == false
+  @test is_partially_resolve(t2) == true
+  @test base_space(t1) == base_space(t2)
+end
+
+add_resolution(t1, [["x", "y"], ["y", "s", "w"], ["s", "e4"], ["s", "e3"], ["s", "e1"]], ["s", "w", "e3", "e1", "e2"])
+
+@testset "Test adding new resolution to literature Tate model over concrete base" begin
+  @test length(resolution(t1)) == 2
 end
 
 
@@ -132,59 +149,59 @@ end
 # 3: Literature Tate model over arbitrary base
 #############################################################
 
-t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 
 @testset "Basic tests for literature Tate model over concrete base" begin
-  @test parent(tate_section_a1(t2)) == cox_ring(base_space(t2))
-  @test parent(tate_section_a2(t2)) == cox_ring(base_space(t2))
-  @test parent(tate_section_a3(t2)) == cox_ring(base_space(t2))
-  @test parent(tate_section_a4(t2)) == cox_ring(base_space(t2))
-  @test parent(tate_section_a6(t2)) == cox_ring(base_space(t2))
-  @test parent(tate_polynomial(t2)) == cox_ring(ambient_space(t2))
-  @test parent(discriminant(t2)) == cox_ring(base_space(t2))
-  @test length(singular_loci(t2)) == 2
-  @test dim(base_space(t2)) == 3
-  @test dim(ambient_space(t2)) == 5
-  @test base_fully_specified(t2) == false
-  @test base_fully_specified(t2) == base_fully_specified(weierstrass_model(t2))
+  @test parent(tate_section_a1(t3)) == cox_ring(base_space(t3))
+  @test parent(tate_section_a2(t3)) == cox_ring(base_space(t3))
+  @test parent(tate_section_a3(t3)) == cox_ring(base_space(t3))
+  @test parent(tate_section_a4(t3)) == cox_ring(base_space(t3))
+  @test parent(tate_section_a6(t3)) == cox_ring(base_space(t3))
+  @test parent(tate_polynomial(t3)) == cox_ring(ambient_space(t3))
+  @test parent(discriminant(t3)) == cox_ring(base_space(t3))
+  @test length(singular_loci(t3)) == 2
+  @test dim(base_space(t3)) == 3
+  @test dim(ambient_space(t3)) == 5
+  @test base_fully_specified(t3) == false
+  @test base_fully_specified(t3) == base_fully_specified(weierstrass_model(t3))
 end
 
 @testset "Test meta data for literature Tate model over concrete base" begin
-  @test arxiv_id(t2) == "1109.3454"
-  @test arxiv_doi(t2) == "10.48550/arXiv.1109.3454"
-  @test arxiv_link(t2) == "https://arxiv.org/abs/1109.3454v2"
-  @test arxiv_model_equation_number(t2) ==  "3.1"
-  @test arxiv_model_page(t2) == "10"
-  @test arxiv_model_section(t2) == "3"
-  @test arxiv_version(t2) ==  "2"
-  @test generating_sections(t2) == [["0", "0", "1"]]
-  @test journal_doi(t2) == "10.1016/j.nuclphysb.2011.12.013"
-  @test journal_link(t2) == "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
-  @test journal_model_equation_number(t2) == "3.1"
-  @test journal_model_page(t2) == "9"
-  @test journal_model_section(t2) == "3"
-  @test journal_pages(t2) == "1–47"
-  @test journal_volume(t2) == "858"
-  @test journal_year(t2) ==  "2012"
-  @test literature_identifier(t2) ==  "1109_3454"
-  @test model_description(t2) == "SU(5)xU(1) restricted Tate model"
-  @test paper_authors(t2) == ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"]
-  @test paper_buzzwords(t2) == ["GUT model", "Tate", "U(1)", "SU(5)"]
-  @test paper_description(t2) == "SU(5)xU(1) restricted Tate model"
-  @test paper_title(t2) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
-  @test resolutions(t2) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
-  @test resolution_generating_sections(t2) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "-a43"]]]]
-  @test resolution_zero_sections(t2) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]]]
-  @test weighted_resolutions(t2) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
-  @test weighted_resolution_generating_sections(t2) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["a32", "-a43"]]]]
-  @test weighted_resolution_zero_sections(t2) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]]
+  @test arxiv_id(t3) == "1109.3454"
+  @test arxiv_doi(t3) == "10.48550/arXiv.1109.3454"
+  @test arxiv_link(t3) == "https://arxiv.org/abs/1109.3454v2"
+  @test arxiv_model_equation_number(t3) ==  "3.1"
+  @test arxiv_model_page(t3) == "10"
+  @test arxiv_model_section(t3) == "3"
+  @test arxiv_version(t3) ==  "2"
+  @test generating_sections(t3) == [["0", "0", "1"]]
+  @test journal_doi(t3) == "10.1016/j.nuclphysb.2011.12.013"
+  @test journal_link(t3) == "https://www.sciencedirect.com/science/article/pii/S0550321311007115"
+  @test journal_model_equation_number(t3) == "3.1"
+  @test journal_model_page(t3) == "9"
+  @test journal_model_section(t3) == "3"
+  @test journal_pages(t3) == "1–47"
+  @test journal_volume(t3) == "858"
+  @test journal_year(t3) ==  "2012"
+  @test literature_identifier(t3) ==  "1109_3454"
+  @test model_description(t3) == "SU(5)xU(1) restricted Tate model"
+  @test paper_authors(t3) == ["Sven Krause", "Christoph Mayrhofer", "Timo Weigand"]
+  @test paper_buzzwords(t3) == ["GUT model", "Tate", "U(1)", "SU(5)"]
+  @test paper_description(t3) == "SU(5)xU(1) restricted Tate model"
+  @test paper_title(t3) == "\$G_4\$ flux, chiral matter and singularity resolution in F-theory compactifications"
+  @test resolutions(t3) == [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test resolution_generating_sections(t3) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "-a43"]]]]
+  @test resolution_zero_sections(t3) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]]]
+  @test weighted_resolutions(t3) == [[[[["x", "y", "w"], [1, 1, 1]], [["x", "y", "w"], [1, 2, 1]], [["x", "y", "w"], [2, 2, 1]], [["x", "y", "w"], [2, 3, 1]], [["x", "y"], [1, 1]]], ["e1", "e4", "e2", "e3", "s"]]]
+  @test weighted_resolution_generating_sections(t3) ==  [[[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["a32", "-a43"]]]]
+  @test weighted_resolution_zero_sections(t3) == [[["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]]
 end
 
 @testset "Test error messages for literature Tate model over concrete base" begin
-  @test_throws ArgumentError associated_literature_models(t2)
-  @test_throws ArgumentError journal_report_numbers(t2)
-  @test_throws ArgumentError model_parameters(t2)
-  @test_throws ArgumentError related_literature_models(t2)
+  @test_throws ArgumentError associated_literature_models(t3)
+  @test_throws ArgumentError journal_report_numbers(t3)
+  @test_throws ArgumentError model_parameters(t3)
+  @test_throws ArgumentError related_literature_models(t3)
 end
 
 
