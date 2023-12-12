@@ -20,7 +20,7 @@
   end
 end
 
-function groebner_basis(r::MPolyQuoRing)
+function _groebner_basis(r::MPolyQuoRing)
   if isdefined(r, :SQRGB)
     return true
   end
@@ -62,10 +62,10 @@ Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
+oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
