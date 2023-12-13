@@ -17,9 +17,6 @@
 # Since these need the declaration of MPolyQuoRing, they have to come later here 
 # in an extra file.
 
-# TODO: So far this only concerns towers of simple number fields. 
-# In the long run we wish to also incorporate number fields of type 
-# `NFAbsNSElem` and of type `NfNSGen`.
 function _expand_coefficient_field(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
   return R, identity_map(R), identity_map(R)
 end
