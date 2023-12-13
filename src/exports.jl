@@ -1227,7 +1227,6 @@ export projective_unitary_group
 export pseudo_del_pezzo_polytope
 export pullback
 export pullback_type
-export put_params
 export pyramid
 export quadratic_form
 export quaternion_group
@@ -1338,7 +1337,6 @@ export semidirect_product
 export separating_hyperplanes
 export series_extension
 export set_base_scheme!
-export set_channels
 export set_commutator!
 export set_conjugate!
 export set_coordinate_names
