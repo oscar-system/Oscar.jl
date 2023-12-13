@@ -13,14 +13,20 @@ mutable struct ReductiveGroup
     canonical_representation::AbstractAlgebra.Generic.MatSpaceElem
 
     function ReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
-        if sym != :SL
-            error("Only implemented for SLm")
+        #check char(fld)
+        if sym == :SL 
+            R, _ = polynomial_ring(fld, :z => (1:m,1:m))
+            return ReductiveGroup(sym, m, R)
+        elseif sym == :torus
+            G = new()
+            G.group = (sym, m)
+            G.field = fld
+            return G
         end
-        R, _ = polynomial_ring(fld, :z => (1:m,1:m))
-        return ReductiveGroup(sym, m, R)
     end
-    
-    function ReductiveGroup(sym::Symbol, m::Int, ring::MPolyRing) #the ring input is the group ring
+
+    function ReductiveGroup_SLm(sym::Symbol, m::Int, ring::MPolyRing) #the ring input is the group ring
+        #check char(field)
         G = new()
         if sym != :SL
             error("Only implemented for SLm")
@@ -41,15 +47,10 @@ function Base.show(io::IO, G::ReductiveGroup)
     print(io, "Reductive group ", G.group[1], G.group[2])
 end
 
-function reductive_group(sym::Symbol, m::Int, F::Field)
-    return ReductiveGroup(sym,m,F)
-end
-
-function reductive_group(sym::Symbol, m::Int, R::MPolyRing)
-    return ReductiveGroup(sym,m,R)
-end
-
+reductive_group(sym::Symbol, m::Int, R::MPolyRing) = ReductiveGroup(sym,m,R)
+reductive_group(sym::Symbol, m::Int, F::Field) =  ReductiveGroup(sym,m,F)
 group(G::ReductiveGroup) = G.group
+field(G::ReductiveGroup) = G.field
 reynolds_operator(G::ReductiveGroup) = G.reynolds_operator
 group_ideal(G::ReductiveGroup) = G.group_ideal
 canonical_representation(G::ReductiveGroup) = G.canonical_representation
@@ -64,6 +65,8 @@ mutable struct RepresentationReductiveGroup
     rep_mat::AbstractAlgebra.Generic.MatSpaceElem
     sym_deg::Tuple{Bool, Int}
     reynolds_v::Function
+
+    weights::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Integer}}
     
     #representation of group G over symmetric degree d
     function RepresentationReductiveGroup(G::ReductiveGroup, d::Int)
@@ -73,6 +76,18 @@ mutable struct RepresentationReductiveGroup
         R.sym_deg = (true, d)
         R.reynolds_v = reynolds_v_slm
         return R
+    end
+
+    #function RepresentationReductiveGroup(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Integer}})
+    function RepresentationReductiveGroup(G::ReductiveGroup, W::Vector{Vector{Int}})
+        if !(G.group[1] == :torus)
+            return nothing
+        else
+            R = new()
+            R.group = G
+            R.weights = W
+            return R
+        end
     end
     
     #matrix M is the representation matrix. does not check M.
@@ -87,7 +102,7 @@ mutable struct RepresentationReductiveGroup
     end
 end
 
-representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReductiveGroup(G, d)
+#representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReductiveGroup(G, d)
 representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem) = RepresentationReductiveGroup(G,M)
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
@@ -96,23 +111,46 @@ function representation_on_forms(G::ReductiveGroup, d::Int)
     end
 end
 
-representation_matrix(R::RepresentationReductiveGroup) = R.rep_mat
+function representation_on_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+    if G.group[1] == :torus
+        return RepresentationReductiveGroup(G,W)
+    end
+end
+
+function representation_matrix(R::RepresentationReductiveGroup) 
+    if isdefined(R, :rep_mat) 
+        return R.rep_mat
+    else 
+        return nothing
+    end
+end
+
 reductive_group(R::RepresentationReductiveGroup) = R.group
 
 #returns dimension n
 function vector_space_dimension(R::RepresentationReductiveGroup)
-    return ncols(R.rep_mat)
+    if isdefined(R, :rep_mat)
+        return ncols(R.rep_mat)
+    elseif isdefined(R, :weights)
+        return ncols(R.weights) #check
+    end
 end
 
 function Base.show(io::IO, R::RepresentationReductiveGroup)
     io = AbstractAlgebra.pretty(io)
-    println(io, "Representation of ", R.group.group[1], R.group.group[2])
-    if R.sym_deg[1]
-        print(io, AbstractAlgebra.Indent(), "over symmetric forms of degree ", R.sym_deg[2])
-        print(io, AbstractAlgebra.Dedent())
+    if group(group(R))[1] == :SL
+        println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
+        if R.sym_deg[1]
+            print(io, AbstractAlgebra.Indent(), "over symmetric forms of degree ", R.sym_deg[2])
+            print(io, AbstractAlgebra.Dedent())
+        else
+            println(io, AbstractAlgebra.Indent(), "with representation matrix")
+            show(io, R.rep_mat)
+            print(io, AbstractAlgebra.Dedent())
+        end
     else
-        println(io, AbstractAlgebra.Indent(), "with representation matrix")
-        show(io, R.rep_mat)
+        println(io, "Torus of degree ", group(group(R))[2])
+        print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(group(R)))
         print(io, AbstractAlgebra.Dedent())
     end
 end
@@ -203,6 +241,9 @@ mutable struct InvariantRing
     #Invariant ring of reductive group G (in representation R), no other input.
     function InvariantRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
         z = new()
+        if isdefined(R, :weights)
+            #do something
+        end
         n = ncols(R.rep_mat)
         z.representation = R
         z.group = R.group
@@ -214,26 +255,25 @@ mutable struct InvariantRing
     end
     
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function InvariantRing(R::RepresentationReductiveGroup, ring::MPolyRing)
+    function InvariantRing(R::RepresentationReductiveGroup, ring::MPolyDecRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
         z = new()
+        if isdefined(R, :weights)
+            #dosomething
+        end
         z.representation = R
         z.group = R.group
         G = R.group
         z.field = G.field
-        if is_graded(ring)
-            z.poly_ring = ring
-        else
-            z.poly_ring = grade(ring)[1]
-        end
+        z.poly_ring = ring
         z.reynolds_operator = reynolds_v_slm
         return z
     end
 end
 
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
-invariant_ring(R::RepresentationReductiveGroup, ring::MPolyRing) = InvariantRing(R, ring)
+invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = InvariantRing(R, ring)
 null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
 
 function fundamental_invariants(z::InvariantRing)
@@ -328,7 +368,7 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::A
     end
     img_genss = vcat(gens(ringg), zeros(ringg, n+m^2))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
-    new_gens = Vector{MPolyDecRingElem}(undef,0)
+    new_gens = Vector{elem_type(ringg)}()
     for elemm in new_gens_wrong_ring
         if elemm != 0
             push!(new_gens, mixed_to_ring(elemm))
@@ -340,7 +380,7 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::A
     
     #remove ugly coefficients: 
     V= Vector{FieldElem}[]
-    new_gens_ = Vector{MPolyDecRingElem}(undef,0)
+    new_gens_ = Vector{elem_type(ringg)}()
     for elem in new_gens
         V = vcat(V,collect(coefficients(elem)))
         maxx = maximum([abs(denominator(V[i])) for i in 1:length(V)])
