@@ -69,7 +69,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     if dict[:type] == "Nemo.fpFieldElem"
       dict[:_type] = "fpFieldElem"
     end
-    T = decode_type(dict[:type])
+    T = reverse_type_map[dict[:type]]
 
     # type has already been updated
     if haskey(dict, :_type) && dict[:_type] isa Dict
@@ -133,7 +133,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       entry_data = []
       
       for (i, field_type) in enumerate(dict[:data][:field_types])
-        U = decode_type(field_type)
+        U = reverse_type_map[field_type]
         if serialize_with_params(U)
           upgraded_entry = upgrade_0_13_0(s, dict[:data][:content][i])
           push!(params, upgraded_entry[:_type])

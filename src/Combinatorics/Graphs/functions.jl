@@ -63,12 +63,12 @@ Undirected graph with 2 nodes and the following edges:
 """
 graph_from_adjacency_matrix(::Type, G::Union{MatElem, Matrix})
 
-function graph_from_adjacency_matrix(::Type{Undirected}, G::Union{MatElem, Matrix})
+function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where {T <: Union{Directed, Undirected}}
   n = nrows(G)
   @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{Undirected}(n)
+  g = Graph{T}(n)
   for i in 1:n
-    for j in 1:i-1
+    for j in 1:(T==Undirected ? i-1 : n)
       if isone(G[i,j])
         add_edge!(g, i, j)
       else
@@ -79,21 +79,6 @@ function graph_from_adjacency_matrix(::Type{Undirected}, G::Union{MatElem, Matri
   return g
 end
 
-function graph_from_adjacency_matrix(::Type{Directed}, G::Union{MatElem, Matrix})
-  n = nrows(G)
-  @req nrows(G)==ncols(G) "not a square matrix"
-  g = Graph{Directed}(n)
-  for i in 1:n
-    for j in 1:n
-      if isone(G[i,j])
-        add_edge!(g, i, j)
-      else
-        iszero(G[i,j]) || error("not an adjacency matrix")
-      end
-    end
-  end
-  return g
-end
 
 _has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
 
@@ -101,20 +86,27 @@ _has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 
 Add edge `(s,t)` to the graph `g`.
+Return `true` if a new edge `(s,t)` was added, `false` otherwise.
 
 # Examples
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> add_edge!(g, 1, 2);
+julia> add_edge!(g, 1, 2)
+true
+
+julia> add_edge!(g, 1, 2)
+false
 
 julia> ne(g)
 1
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
-    @req _has_node(g, source) && _has_node(g, target) "Nodes must be between 1 and $(nv(g)), but edge given is $source -- $target"
-    Polymake._add_edge(pm_object(g), source-1, target-1)
+  _has_node(g, source) && _has_node(g, target) || return false
+  old_nedges = nedges(g)
+  Polymake._add_edge(pm_object(g), source-1, target-1)
+  return nedges(g) == old_nedges + 1
 end
 
 
@@ -122,32 +114,39 @@ end
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 
 Remove edge `(s,t)` from the graph `g`.
+Return `true` if there was an edge from `s` to `t` and it got removed, `false`
+otherwise.
 
 # Examples
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> add_edge!(g, 1, 2);
+julia> add_edge!(g, 1, 2)
+true
 
 julia> ne(g)
 1
 
-julia> rem_edge!(g, 1, 2);
+julia> rem_edge!(g, 1, 2)
+true
 
 julia> ne(g)
 0
 ```
 """
 function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    return Polymake._rem_edge(pmg, s-1, t-1)
+  has_edge(g, s, t) || return false
+  old_nedges = nedges(g)
+  Polymake._rem_edge(pm_object(g), s-1, t-1)
+  return nedges(g) == old_nedges - 1
 end
 
 
 @doc raw"""
     add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Add a vertex to the graph `g`. The return value is the new vertex.
+Add a vertex to the graph `g`. Return `true` if there a new vertex was actually
+added.
 
 # Examples
 ```jldoctest
@@ -157,7 +156,7 @@ julia> nv(g)
 2
 
 julia> add_vertex!(g)
-3
+true
 
 julia> nv(g)
 3
@@ -165,14 +164,17 @@ julia> nv(g)
 """
 function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g)
-    return Polymake._add_vertex(pmg) + 1
+    old_nvertices = nv(g)
+    Polymake._add_vertex(pmg)
+    return nv(g) - 1 == old_nvertices
 end
 
 
 @doc raw"""
     rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 
-Remove the vertex `v` from the graph `g`.
+Remove the vertex `v` from the graph `g`. Return `true` if node `v` existed and
+was actually removed, `false` otherwise.
 
 # Examples
 ```jldoctest
@@ -182,23 +184,27 @@ julia> nv(g)
 2
 
 julia> rem_vertex!(g, 1)
+true
 
 julia> nv(g)
 1
 ```
 """
 function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-    pmg = pm_object(g)
-    result = Polymake._rem_vertex(pmg, v-1)
-    Polymake._squeeze(pmg)
-    return result
+  _has_node(g, v) || return false
+  pmg = pm_object(g)
+  old_nvertices = nv(g)
+  result = Polymake._rem_vertex(pmg, v-1)
+  Polymake._squeeze(pmg)
+  return nv(g) + 1 == old_nvertices
 end
 
 
 @doc raw"""
     add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 
-Add a `n` new vertices to the graph `g`.
+Add a `n` new vertices to the graph `g`. Return the number of vertices that
+were actually added to the graph `g`.
 
 # Examples
 ```jldoctest
@@ -214,9 +220,7 @@ julia> nv(g)
 ```
 """
 function add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
-    for i = 1:n
-        add_vertex!(g)
-    end
+  return count(_->add_vertex!(g), 1:n)
 end
 
 

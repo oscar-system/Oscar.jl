@@ -11,9 +11,9 @@ function save_object(s::SerializerState, A::FreeAssAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssAlgebra}, dict::Dict)
-  R = load_typed_object(s, dict[:base_ring])
-  gens = map(Symbol, dict[:symbols])
+function load_object(s::DeserializerState, ::Type{<:FreeAssAlgebra})
+  R = load_typed_object(s, :base_ring)
+  gens = load_object(s, Vector{Symbol}, :symbols)
   return free_associative_algebra(R, gens)[1]
 end
 
@@ -33,16 +33,16 @@ function save_object(s::SerializerState, f::FreeAssAlgElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem},
-                     terms::Vector, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Vector)
   parent_algebra = parents[end]
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = parent_algebra(0)
-  for term  in terms
-    loaded_coeff = load_object(s, coeff_type, term[2])
+
+  load_array_node(s) do _
+    loaded_coeff = load_object(s, coeff_type, 2)
     loaded_term = parent_algebra(loaded_coeff)
-    for word in term[1]
-      loaded_term *= parent_algebra[parse(Int, word)]
+    load_array_node(s, 1) do word
+      loaded_term *= parent_algebra[load_object(s, Int)]
     end
     elem += loaded_term
   end

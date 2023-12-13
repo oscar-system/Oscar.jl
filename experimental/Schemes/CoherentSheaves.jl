@@ -1576,7 +1576,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
     # 1. The sheaf is not locally trivial.
     # 2. We might have different disjoint components on which 
     #    the sheaf has different ranks.
-    Y = components(U) 
+    Y = connected_components(U)
     length(Y) == 1 && error("sheaf is not locally free")
 
     return_patches = AbsSpec[]

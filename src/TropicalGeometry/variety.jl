@@ -479,7 +479,7 @@ function _intersect(M::MatElem{T}, N::MatElem{T}) where T <: Hecke.FieldElem
     return transpose(rref(transpose(l))[2])
 end
 
-function valuation_of_roots(f::PolyElem{<:Hecke.NonArchLocalFieldElem})
+function valuation_of_roots(f::PolyRingElem{<:Hecke.NonArchLocalFieldElem})
     iszero(f) && error("polynomial must not be zero")
     return (valuation(constant_coefficient(f)) - valuation(leading_coefficient(f)))//degree(f)
 end

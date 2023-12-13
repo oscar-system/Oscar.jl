@@ -90,24 +90,26 @@ end
 
 
 @doc raw"""
-    hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
+    hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
 
 This method constructs a hypersurface model over a base space that is not
-fully specified. In the background, we construct an auxiliary toric base space.
-This method requires the following information:
-1. The names of the homogeneous coordinates of the auxiliary toric base space.
-2. The grading of the Cox ring of the auxiliary toric base space.
-3. The weights corresponding to the divisor class `D_1` of the auxiliary toric base space under which the first fiber coordinate transforms.
-4. The weights corresponding to the divisor class `D_2` of the auxiliary toric base space under which the first fiber coordinate transforms.
-5. The dimension of the auxiliary toric base space.
+fully specified. In the background, we construct a family of spaces to represent
+the base space. This method requires the following information:
+1. The names of the homogeneous coordinates of the coordinate ring of the generic member
+of the family of bsae spaces.
+2. The grading of the coordinate ring of the generic member of the family of base spaces.
+3. The weights corresponding to the divisor class `D_1` of the coordinate ring under which the first fiber coordinate transforms.
+4. The weights corresponding to the divisor class `D_2` of the coordinate ring under which the first fiber coordinate transforms.
+5. The dimension of the generic member of the family of base spaces.
 6. The fiber ambient space.
 7. The hypersurface equation.
 
 Note that many studies in the literature use the class of the anticanonical bundle
 in their analysis. We anticipate this by adding this class as a variable of the
-auxiliary base space, unless the user already provides this grading. Our convention
-is that the first grading refers to Kbar and that the homogeneous variable corresponding
-to this class carries the name "Kbar".
+coordinate ring of the generic member of the family of base space, unless the user
+already provides this grading. Our convention is that the first row of the grading
+matrix refers to Kbar and that the homogeneous variable corresponding to this class
+carries the name "Kbar".
 
 The following example exemplifies this constructor.
 
@@ -155,14 +157,9 @@ julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fi
 Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
-
-julia> h = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, fiber_ambient_space, D1, D2, p; toric_sample = false)
-Assuming that the first row of the given grading is the grading under Kbar
-
-Hypersurface model over a not fully specified base
 ```
 """
-function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem; toric_sample = true)
+function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
   
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
@@ -195,11 +192,6 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
-  if d == 1
-    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
-  else
-    @req length(auxiliary_base_vars) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
-  end
   @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
@@ -208,11 +200,7 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the spaces
-  if toric_sample
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
-  else
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
-  end
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
   
   # Map p to coordinate ring of ambient space
   gens_S = gens(S)

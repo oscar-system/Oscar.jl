@@ -630,9 +630,7 @@ function ideal(A::MPolyQuoRing{T}, x::MPolyQuoRingElem{T}) where T <: MPolyRingE
 end
 ##################################################################
 
-parent_type(::MPolyQuoRingElem{S}) where S = MPolyQuoRing{S}
 parent_type(::Type{MPolyQuoRingElem{S}}) where S = MPolyQuoRing{S}
-elem_type(::MPolyQuoRing{S})  where S= MPolyQuoRingElem{S}
 elem_type(::Type{MPolyQuoRing{S}})  where S= MPolyQuoRingElem{S}
 
 canonical_unit(a::MPolyQuoRingElem) = one(parent(a))
@@ -1081,6 +1079,22 @@ function inv(a::MPolyQuoRingElem)
   return b
 end
 
+### The following method is only implemented when the coefficient ring is a field.
+# The code should be valid generically, but the Singular backend needed for the
+# ideal quotient is probably buggy for non-fields.
+function is_zero_divisor(f::MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}})
+  iszero(f) && return true
+  b = simplify(f)
+  # The next block is basically useless when the coefficient ring is
+  # a field, because it is merely another `is_zero`-check. However,
+  # once more functionality is working, it will actually do stuff and
+  # the above signature can be widened.
+  if is_constant(lift(b))
+    c = first(AbstractAlgebra.coefficients(lift(b)))
+    return is_zero_divisor(c)
+  end
+  return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
+end
 
 """
 Converts a sparse-Singular vector of polynomials to an Oscar sparse row.

@@ -28,10 +28,10 @@ Homogeneous module homomorphism
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}
   @assert M == N
 
-  M_to_N = hom(M, N, Vector{elem_type(N)}([SubquoModuleElem(coordinates(m.repres, N), N) for m in gens(M)]))
+  M_to_N = hom(M, N, Vector{elem_type(N)}([SubquoModuleElem(coordinates(repres(m), N), N) for m in gens(M)]))
 
   if task == :cache_morphism || task == :inverse
-    N_to_M = hom(N, M, Vector{elem_type(M)}([SubquoModuleElem(coordinates(n.repres, M), M) for n in gens(N)]))
+    N_to_M = hom(N, M, Vector{elem_type(M)}([SubquoModuleElem(coordinates(repres(n), M), M) for n in gens(N)]))
     M_to_N.inverse_isomorphism = N_to_M
     N_to_M.inverse_isomorphism = M_to_N
 
@@ -330,7 +330,7 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
       throw(DomainError("v does not represent a homomorphism"))
     end
     R = base_ring(M)
-    A = copy_and_reshape(dense_row(v.repres.coords[R, 1:s0*t0], s0*t0), s0, t0)
+    A = copy_and_reshape(dense_row(repres(v).coords[R, 1:s0*t0], s0*t0), s0, t0)
     return A
   end
 

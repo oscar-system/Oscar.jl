@@ -1059,7 +1059,7 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   G_gap = G.X
   f_gap = GG.EpimorphismSchurCover(G_gap)
   H_gap = GG.Source(f_gap)
-  n, p = ispower(GG.Size(H_gap))
+  n, p = is_power(GG.Size(H_gap))
   if is_prime(p)
     fff_gap = GG.EpimorphismPGroup(H_gap, p)
     E_gap = fff_gap(H_gap)

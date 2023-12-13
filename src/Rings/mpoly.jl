@@ -10,20 +10,6 @@
 
 #TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
-#allows
-# polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
-# -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
-
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
-  w = (v1, v...)
-  str = _make_strings(w)
-  strings = vcat(str...)
-  Rx, c = polynomial_ring(R, strings, cached = cached, ordering = ordering)
-  # Now we need to collect the variables
-  # We do it recursively to make it type stable
-  Rx, _collect_variables(c, w)...
-end
-
 # To make a list of variables safe for Singular to use
 # Allowable schemes should be:
 # (:x), (:x, :y), (:x, :y, :z)

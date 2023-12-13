@@ -80,12 +80,10 @@ mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
-elem_type(::MatrixGroup{S,T}) where {S,T} = MatrixGroupElem{S,T}
 Base.eltype(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}
 
 # `parent_type` is defined and documented in AbstractAlgebra.
-parent_type(::Type{T}) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup{RE,S}
-parent_type(::T) where T<:MatrixGroupElem{RE,S} where {RE,S} = MatrixGroup{RE,S}
+parent_type(::Type{MatrixGroupElem{S,T}}) where {S,T} = MatrixGroup{S,T}
 
 
 function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)

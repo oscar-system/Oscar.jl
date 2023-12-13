@@ -659,20 +659,6 @@ function abstract_module(
 end
 
 @doc raw"""
-    highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) -> LieAlgebraModule{C}
-
-Construct the highest weight module of the Lie algebra `L` with highest weight `weight`.
-The actual construction is done in GAP.
-"""
-function highest_weight_module(L::LieAlgebra, weight::Vector{Int})
-  struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
-  dimV = size(struct_consts, 2)
-  V = abstract_module(L, dimV, struct_consts; check=false)
-  set_attribute!(V, :highest_weight => weight)
-  return V
-end
-
-@doc raw"""
     trivial_module(L::LieAlgebra{C}, d=1) -> LieAlgebraModule{C}
 
 Construct the `d`-dimensional module of the Lie algebra `L` with trivial action.
@@ -1241,4 +1227,154 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
     :tensor_pure_preimage_function => inv_pure,
   )
   return T
+end
+
+###############################################################################
+#
+#   Simple modules (via highest weight) of semisimple Lie algebras
+#
+###############################################################################
+
+# TODO: check semisimplicity check once that is available
+
+function is_dominant_weight(hw::Vector{Int})
+  return all(>=(0), hw)
+end
+
+@doc raw"""
+    simple_module(L::LieAlgebra{C}, hw::Vector{Int}) -> LieAlgebraModule{C}
+
+Construct the simple module of the Lie algebra `L` with highest weight `hw`.
+"""
+function simple_module(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
+  dimV = size(struct_consts, 2)
+  V = abstract_module(L, dimV, struct_consts; check=false)
+  # TODO: set appropriate attributes
+  return V
+end
+
+@doc raw"""
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{Int}) -> T
+
+Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
+The return value is of type `T`.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> dim_of_simple_module(L, [1, 1, 1])
+64
+```
+"""
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  return T(
+    GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))
+  )
+end
+
+function dim_of_simple_module(L::LieAlgebra, hw::Vector{Int})
+  return dim_of_simple_module(Int, L, hw)
+end
+
+@doc raw"""
+    dominant_character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+together with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> dominant_character(L, [2, 1, 0])
+Dict{Vector{Int64}, Int64} with 4 entries:
+  [2, 1, 0] => 1
+  [1, 0, 1] => 2
+  [0, 0, 0] => 3
+  [0, 2, 0] => 1
+```
+"""
+function dominant_character(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  return Dict{Vector{Int},Int}(
+    Vector{Int}(w) => d for (w, d) in
+    zip(GAPWrap.DominantCharacter(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))...)
+  )
+end
+
+@doc raw"""
+    character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+
+Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+together with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> character(L, [2, 0, 0])
+Dict{Vector{Int64}, Int64} with 10 entries:
+  [0, 1, 0]   => 1
+  [0, -2, 2]  => 1
+  [0, 0, -2]  => 1
+  [-1, 1, -1] => 1
+  [-2, 2, 0]  => 1
+  [1, -1, 1]  => 1
+  [-1, 0, 1]  => 1
+  [1, 0, -1]  => 1
+  [0, -1, 0]  => 1
+  [2, 0, 0]   => 1
+```
+"""
+function character(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  dc = dominant_character(L, hw)
+  c = Dict{Vector{Int},Int}()
+  W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
+  for (w, d) in dc
+    it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
+    while !GAPWrap.IsDoneIterator(it)
+      push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+    end
+  end
+  return c
+end
+
+@doc raw"""
+    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}) -> MSet{Vector{Int}}
+
+Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
+into simple modules with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 2);
+
+julia> tensor_product_decomposition(L, [1, 0], [0, 1])
+MSet{Vector{Int64}} with 2 elements:
+  [0, 0]
+  [1, 1]
+
+julia> tensor_product_decomposition(L, [1, 1], [1, 1])
+MSet{Vector{Int64}} with 6 elements:
+  [0, 0]
+  [1, 1] : 2
+  [2, 2]
+  [3, 0]
+  [0, 3]
+```
+"""
+function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
+  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
+  return multiset(
+    Tuple{Vector{Vector{Int}},Vector{Int}}(
+      GAPWrap.DecomposeTensorProduct(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1), GAP.Obj(hw2)
+      ),
+    )...,
+  )
 end
