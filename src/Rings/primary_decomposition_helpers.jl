@@ -95,3 +95,37 @@ end
 function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
   return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
 end
+
+@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_decomposition_weak(J)
+  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
+end
+
+
+@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_decomposition_radical(J)
+  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
+end
+
+@attr function equidimensional_hull(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_hull(J)
+  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
+end
+
+@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_hull_radical(J)
+  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
+end
+

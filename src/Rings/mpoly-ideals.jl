@@ -905,14 +905,6 @@ end
   return typeof(I)[ideal(R, unique!([x for x in iso.(gens(I)) if !iszero(x)])) for I in res]
 end
 
-@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
-  A = base_ring(I)::MPolyQuoRing
-  R = base_ring(A)::MPolyRing
-  J = saturated_ideal(I)
-  res = equidimensional_decomposition_weak(J)
-  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
-end
-
 
 
 @doc raw"""
@@ -969,13 +961,6 @@ end
   return [ideal(R, unique!(iso.(gens(I)))) for I in res]
 end
 
-@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
-  A = base_ring(I)::MPolyQuoRing
-  R = base_ring(A)::MPolyRing
-  J = saturated_ideal(I)
-  res = equidimensional_decomposition_radical(J)
-  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
-end
 #######################################################
 @doc raw"""
     equidimensional_hull(I::MPolyIdeal)
@@ -1049,14 +1034,6 @@ function equidimensional_hull(
   return ideal(R, unique!(iso.(gens(res))))
 end
 
-@attr function equidimensional_hull(I::MPolyQuoIdeal)
-  A = base_ring(I)::MPolyQuoRing
-  R = base_ring(A)::MPolyRing
-  J = saturated_ideal(I)
-  res = equidimensional_hull(J)
-  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
-end
-
 #######################################################
 @doc raw"""
     equidimensional_hull_radical(I::MPolyIdeal)
@@ -1104,14 +1081,6 @@ function equidimensional_hull_radical(
   I_ext = ideal(R_ext, iso_inv.(gens(I)))
   res = equidimensional_hull_radical(I_ext)
   return ideal(R, unique!(iso.(gens(res))))
-end
-
-@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
-  A = base_ring(I)::MPolyQuoRing
-  R = base_ring(A)::MPolyRing
-  J = saturated_ideal(I)
-  res = equidimensional_hull_radical(J)
-  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
 #######################################################
