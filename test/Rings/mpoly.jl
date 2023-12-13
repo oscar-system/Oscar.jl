@@ -401,7 +401,7 @@ end
 @testset "primary decomposition over number fields" begin
   Pt, t = QQ[:t]
   f = t^5 - 27*t^3 + t^2 - 5
-  K = number_field(f)
+  kk, _ = number_field(f)
 
   # primary_decomposition
   R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
