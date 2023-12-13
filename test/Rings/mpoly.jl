@@ -493,3 +493,13 @@ end
   I = ideal(R, [one(R)])
   @test is_prime(I) == false
 end
+
+@testset "primary decomposition over NfAbsNS" begin
+  _, x = QQ[:x]
+  K, a = number_field([x - 1, x - 2]);
+  Kt, t = K["t"];
+  L, b = number_field(t - 1, "b");
+  M, = number_field(t - 1, "b");
+  Mx, = polynomial_ring(M, 2);
+  primary_decomposition(ideal(Mx, [gen(Mx, 1)]))
+end

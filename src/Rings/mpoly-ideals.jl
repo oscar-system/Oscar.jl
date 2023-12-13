@@ -547,7 +547,8 @@ function primary_decomposition(
   dec = primary_decomposition(I_flat; algorithm, cache)
   result = Vector{Tuple{typeof(I), typeof(I)}}()
   for (P, Q) in dec
-    push!(result, (ideal(R, iso.(gens(P))), ideal(R, iso.(gens(Q)))))
+    push!(result, (ideal(R, unique!([x for x in iso.(gens(P)) if !iszero(x)])), 
+                   ideal(R, unique!([x for x in iso.(gens(Q)) if !iszero(x)]))))
   end
 
   cache && set_attribute!(I, :primary_decomposition=>result)
