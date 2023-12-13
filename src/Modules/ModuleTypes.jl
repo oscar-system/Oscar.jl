@@ -69,7 +69,7 @@ option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
 @attributes mutable struct FreeMod{T} <: AbstractFreeMod{T}
-  R::Ring
+  R::NCRing
   n::Int
   S::Vector{Symbol}
   d::Union{Vector{GrpAbFinGenElem}, Nothing}
