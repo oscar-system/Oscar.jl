@@ -475,6 +475,9 @@ Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cit
 !!! warning
     The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.
 
+!!! warning
+    If computations are done in a ring over a number field, then the output may contain redundant components.
+
 If `cache=false` is set, the primary decomposition is recomputed and not cached.
 
 # Examples
