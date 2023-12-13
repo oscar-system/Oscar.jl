@@ -1,14 +1,30 @@
+########################################################################
+# Expansion of coefficient fields
+#
+# For primary decomposition and related operations in a polynomial 
+# ring L[x₁,…,xₙ] over a number field L = ℚ[α₁,…,αᵣ] it is better to 
+# first translate the respective problem to one in a polynomial ring 
+# ℚ [θ₁,…,θᵣ,x₁,…,xₙ] over ℚ by adding further variables for the 
+# algebraic elemnts αᵢ and dividing by their minimum polynomials.
+#
+# This might seem counter intuitive, but it has proved to provide 
+# significant speedup in most cases. The reason is that Singular does 
+# not have a native data type for most algebraic extension fields 
+# used is Oscar and reducing a number field L as above via 
+# `absolute_simple_field` destroys sparseness. 
+########################################################################
+
 # Since these need the declaration of MPolyQuoRing, they have to come later here 
 # in an extra file.
-function _flatten_ring(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
+function _expand_coefficient_field(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
   return R, identity_map(R), identity_map(R)
 end
 
-function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
+function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
   return Q, identity_map(Q), identity_map(Q)
 end
 
-function _flatten_ring(R::MPolyRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
   K = coefficient_ring(R)
   alpha = first(gens(K))
   kk = base_field(K)
@@ -26,9 +42,30 @@ function _flatten_ring(R::MPolyRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:
   return R_flat, to_R, to_R_flat
 end
 
-function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+# Special dispatch for graded rings to preserve gradings
+function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+  RR = forget_grading(R)
+  # We have to do the expansion for RR and then rewrap everything as graded rings/algebras 
+  # with appropriate weights
+  G = grading_group(R)
+  RR_exp, iso, iso_inv = _expand_coefficient_field(RR; rec_depth)
+  # RR_exp is now an MPolyQuo because of the modulus given by the minimum polynomial
+  PP_exp = base_ring(RR_exp)::MPolyRing
+  # Grade the new variable with zero since it belongs to the coefficient field really.
+  P_exp, _ = grade(PP_exp, vcat([zero(G)], degree.(gens(R))))
+  # Add the modulus again
+  gr_mod = ideal(P_exp, P_exp.(gens(modulus(RR_exp))))
+  R_exp, _ = quo(P_exp, gr_mod)
+  iso_gr = hom(R_exp, R, R.(iso.(gens(RR_exp))))
+  coeff_map = coefficient_map(iso_inv)
+  @assert coeff_map(one(coefficient_ring(R))) == one(RR_exp)
+  iso_inv_gr = hom(R, R_exp, x->R_exp(lift(coeff_map(x))), R_exp.(lift.(iso_inv.(gens(RR)))))
+  return R_exp, iso_gr, iso_inv_gr
+end
+
+function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
   R = base_ring(Q)
-  R_flat, iso, iso_inv = _flatten_ring(R; rec_depth)
+  R_flat, iso, iso_inv = _expand_coefficient_field(R; rec_depth)
   I = modulus(Q)
   I_flat = ideal(R_flat, iso_inv.(gens(I)))
   Q_flat, pr = quo(R_flat, I_flat)
@@ -45,16 +82,16 @@ function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) wh
   return Q_flat, to_Q, to_Q_flat
 end
 
-function _flatten_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
-  R_flat, to_R, to_R_flat = _flatten_ring(R; rec_depth = rec_depth + 1)
-  res, a, b = _flatten_to_QQ(R_flat; rec_depth = rec_depth + 1)
+function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
+  R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+  res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
   return res, compose(a, to_R), compose(to_R_flat, b)
 end
 
-function _flatten_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
-  return _flatten_ring(R; rec_depth = rec_depth + 1)
+function _expand_coefficient_field_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
+  return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
 end
 
-function _flatten_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return _flatten_ring(R; rec_depth = rec_depth + 1)
+function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
+  return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
 end

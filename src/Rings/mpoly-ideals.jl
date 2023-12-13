@@ -539,7 +539,7 @@ function primary_decomposition(
     return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
   end
   R = base_ring(I)
-  R_flat, iso, iso_inv = _flatten_to_QQ(R)
+  R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
   I_flat = ideal(R_flat, iso_inv.(gens(I)))
   dec = primary_decomposition(I_flat; algorithm, cache)
   result = Vector{Tuple{typeof(I), typeof(I)}}()
@@ -771,7 +771,6 @@ julia> L = minimal_primes(I)
 ```
 """
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
-  @show gens(base_ring(I))
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
@@ -813,10 +812,8 @@ function minimal_primes(
   ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
 
-  @show "before flattening"
   R = base_ring(I)
-  @show gens(R)
-  R_flat, iso, iso_inv = _flatten_to_QQ(R)
+  R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
   I_flat = ideal(R_flat, iso_inv.(gens(I)))
   dec = minimal_primes(I_flat; algorithm)
   result = Vector{typeof(I)}()

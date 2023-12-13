@@ -339,7 +339,7 @@ end
 
   R, (x, y) = kk[:x, :y]
   alpha = first(gens(kk))
-  R_flat, iso, iso_inv = Oscar._flatten_ring(R)
+  R_flat, iso, iso_inv = Oscar._expand_coefficient_field(R)
   theta = first(gens(R_flat))
   @test iso_inv(R(alpha)) == theta
   @test iso(theta) == alpha
@@ -349,8 +349,8 @@ end
   @test all(x->x==id2(x), gens(R))
 
   S, (u, v) = kk2[:u, :v]
-  S_flat, iso, iso_inv = Oscar._flatten_ring(S)
-  S_ff, iso2, iso_inv2 = Oscar._flatten_ring(S_flat)
+  S_flat, iso, iso_inv = Oscar._expand_coefficient_field(S)
+  S_ff, iso2, iso_inv2 = Oscar._expand_coefficient_field(S_flat)
 
   iso_tot = compose(iso2, iso)
   iso_inv_tot = compose(iso_inv, iso_inv2)
@@ -359,7 +359,7 @@ end
   @test iso_inv_tot(S(beta)) == S_ff[2]
   @test iso_inv_tot(S(alpha)) == S_ff[1]
 
-  Sff, iso2, iso_inv2 = Oscar._flatten_to_QQ(S)
+  Sff, iso2, iso_inv2 = Oscar._expand_coefficient_field_to_QQ(S)
   @test iso_inv_tot(S(beta)) == S_ff[2]
   @test iso_inv_tot(S(alpha)) == S_ff[1]
 
@@ -368,3 +368,28 @@ end
   @test length(dec) == 2
 end
 
+@testset "primary decomposition in graded rings" begin
+  Pt, t = QQ["t"]
+  f = t^2 + 1
+  kk, i = number_field(f)
+  R, (x, y) = kk["x", "y"]
+
+  S, _ = grade(R)
+
+  S_exp, iso, iso_inv = Oscar._expand_coefficient_field(S)
+  @test is_graded(S_exp)
+  @test iszero(degree(S_exp[1]))
+  @test domain(iso) === S_exp
+  @test codomain(iso) === S
+  @test domain(iso_inv) === S
+  @test codomain(iso_inv) === S_exp
+  @test compose(iso, iso_inv).(gens(S_exp)) == gens(S_exp)
+
+  I = ideal(S, [x^2 + y^2])
+  dec = primary_decomposition(I)
+  @test length(dec) == 2
+
+  Q, _ = quo(S, I)
+  dec = primary_decomposition(ideal(Q, zero(Q)))
+  @test length(dec) == 2
+end
