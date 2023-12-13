@@ -706,7 +706,10 @@ end
     h = first([h for (h, _) in factor(f_kk)])
     kk_ext, zeta = extension_field(h)
     iso_kk_ext = hom(L, kk_ext, zeta)
-    P_prime_ext = map_coefficients(iso_kk_ext, P_prime)
+    br = base_ring(P_prime)
+    LoR, to_LoR = change_base_ring(kk_ext, R)
+    help_map = hom(br, LoR, iso_kk_ext, to_LoR.(iso.(gens(R_exp))))
+    P_prime_ext = ideal(LoR, help_map.(gens(P_prime)))
     push!(full_res, (P, Q, P_prime_ext, degree(h)))
   end
   return full_res

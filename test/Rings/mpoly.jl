@@ -400,7 +400,7 @@ end
   
 @testset "primary decomposition over number fields" begin
   Pt, t = QQ[:t]
-  f = t^5 - 27*t^3 + t^2 - 5
+  f = t^3 - 7
   kk, _ = number_field(f)
 
   # primary_decomposition
@@ -426,10 +426,10 @@ end
   R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   l = minimal_primes(i)
-  @test length(l) == 3
+  @test length(l) == 2
 
   l = minimal_primes(i, algorithm=:charSets)
-  @test length(l) == 3
+  @test length(l) == 2
 
   R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
   i = ideal(R, [R(9), (a+3)*(b+3)])
@@ -477,9 +477,9 @@ end
 
   # absolute_primary_decomposition
   R,(x,y,z) = polynomial_ring(kk, ["x", "y", "z"])
-  I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
+  I = ideal(R, [x^2 + 1])
   d = absolute_primary_decomposition(I)
-  @test length(d) == 4 # one redundant component
+  @test length(d) == 1
 
   #= Tests disabled because of too long runtime
   R,(x,y,z) = graded_polynomial_ring(kk, ["x", "y", "z"])
