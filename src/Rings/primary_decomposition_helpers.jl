@@ -1,18 +1,18 @@
 # Since these need the declaration of MPolyQuoRing, they have to come later here 
 # in an extra file.
-function _flatten_ring(R::MPolyRing{T}) where {T<:QQFieldElem}
+function _flatten_ring(R::MPolyRing{T}; rec_depth::Int=0) where {T<:QQFieldElem}
   return R, identity_map(R), identity_map(R)
 end
 
-function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:QQFieldElem}
+function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
   return Q, identity_map(Q), identity_map(Q)
 end
 
-function _flatten_ring(R::MPolyRing{T}) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+function _flatten_ring(R::MPolyRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
   K = coefficient_ring(R)
   alpha = first(gens(K))
   kk = base_field(K)
-  P, _ = polynomial_ring(kk, vcat([:theta], symbols(R)), cached=false)
+  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)")], symbols(R)), cached=false)
   theta = first(gens(P))
   f = defining_polynomial(K)
   d = degree(f)
@@ -26,9 +26,9 @@ function _flatten_ring(R::MPolyRing{T}) where {T<:Union{nf_elem, <:Hecke.NfRelEl
   return R_flat, to_R, to_R_flat
 end
 
-function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
   R = base_ring(Q)
-  R_flat, iso, iso_inv = _flatten_ring(R)
+  R_flat, iso, iso_inv = _flatten_ring(R; rec_depth)
   I = modulus(Q)
   I_flat = ideal(R_flat, iso_inv.(gens(I)))
   Q_flat, pr = quo(R_flat, I_flat)
@@ -45,16 +45,16 @@ function _flatten_ring(Q::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:Union{nf_e
   return Q_flat, to_Q, to_Q_flat
 end
 
-function _flatten_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing})
-  R_flat, to_R, to_R_flat = _flatten_ring(R)
-  res, a, b = _flatten_to_QQ(R_flat)
+function _flatten_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
+  R_flat, to_R, to_R_flat = _flatten_ring(R; rec_depth = rec_depth + 1)
+  res, a, b = _flatten_to_QQ(R_flat; rec_depth = rec_depth + 1)
   return res, compose(a, to_R), compose(to_R_flat, b)
 end
 
-function _flatten_to_QQ(R::MPolyRing{T}) where {T<:QQFieldElem}
-  return _flatten_ring(R)
+function _flatten_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
+  return _flatten_ring(R; rec_depth = rec_depth + 1)
 end
 
-function _flatten_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}) where {T<:QQFieldElem}
-  return _flatten_ring(R)
+function _flatten_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
+  return _flatten_ring(R; rec_depth = rec_depth + 1)
 end

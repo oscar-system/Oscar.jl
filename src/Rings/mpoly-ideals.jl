@@ -535,17 +535,20 @@ function primary_decomposition(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, cache::Bool=true
   ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
-  return get_attribute!(I, :primary_decomposition) do
-    R = base_ring(I)
-    R_flat, iso, iso_inv = _flatten_to_QQ(R)
-    I_flat = ideal(R_flat, iso_inv.(gens(I)))
-    dec = primary_decomposition(I_flat; algorithm)
-    result = Vector{Tuple{typeof(I), typeof(I)}}()
-    for (P, Q) in dec
-      push!(result, (ideal(R, iso.(gens(P))), ideal(R, iso.(gens(Q)))))
-    end
-    result
-  end::Vector{Tuple{typeof(I), typeof(I)}}
+  if has_attribute(I, :primary_decomposition)
+    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+  end
+  R = base_ring(I)
+  R_flat, iso, iso_inv = _flatten_to_QQ(R)
+  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  dec = primary_decomposition(I_flat; algorithm, cache)
+  result = Vector{Tuple{typeof(I), typeof(I)}}()
+  for (P, Q) in dec
+    push!(result, (ideal(R, iso.(gens(P))), ideal(R, iso.(gens(Q)))))
+  end
+
+  cache && set_attribute!(I, :primary_decomposition=>result)
+  return result
 end
 
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
@@ -767,12 +770,16 @@ julia> L = minimal_primes(I)
  ideal(17, a)
 ```
 """
-function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
+function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
+  @show gens(base_ring(I))
+  has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
     A, mA = absolute_simple_field(base_ring(R))
     mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
-    return typeof(I)[map_coefficients(mA, x) for x = mp]
+    result = typeof(I)[map_coefficients(mA, x) for x = mp]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
   end
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -789,10 +796,38 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   end
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
-    return typeof(I)[]
+    result = typeof(I)[]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
   end
   return V
 end
+
+# rerouting the procedure for minimal primes this way leads to 
+# much longer computations compared to the flattening of the coefficient
+# field implemented above.
+function minimal_primes(
+    I::MPolyIdeal{T}; 
+    algorithm::Symbol=:GTZ, 
+    cache::Bool=true
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
+
+  @show "before flattening"
+  R = base_ring(I)
+  @show gens(R)
+  R_flat, iso, iso_inv = _flatten_to_QQ(R)
+  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  dec = minimal_primes(I_flat; algorithm)
+  result = Vector{typeof(I)}()
+  for Q in dec
+    push!(result, ideal(R, iso.(gens(Q))))
+  end
+
+  cache && set_attribute!(I, :minimal_primes=>result)
+  return result
+end
+
 #######################################################
 @doc raw"""
     equidimensional_decomposition_weak(I::MPolyIdeal)
