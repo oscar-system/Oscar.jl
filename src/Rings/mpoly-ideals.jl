@@ -600,6 +600,9 @@ defined over a number field of degree $d_{ij}$ whose generator prints as `_a`.
 The implementation combines the algorithm of Gianni, Trager, and Zacharias for primary
 decomposition with absolute polynomial factorization.
 
+!!! warning
+    Over number fields this proceduce might return redundant output.
+
 # Examples
 ```jldoctest
 julia> R, (y, z) = polynomial_ring(QQ, ["y", "z"])
@@ -682,24 +685,32 @@ Multivariate polynomial ring in 2 variables over number field graded by
          for i in 1:length(decomp)]
 end
 
-#=
 @attr function absolute_primary_decomposition(
-    I::MPolyIdeal{T}; 
-    algorithm::Symbol=:GTZ, cache::Bool=true
+    I::MPolyIdeal{T}
   ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
+  kk = coefficient_ring(R)
   R_exp, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  iso_inv(one(R))
   I_exp = ideal(R_exp, iso_inv.(gens(I)))
   res = absolute_primary_decomposition(I_exp)
-  (P_ext, Q_ext, Q_prime, d) = res
-  P = [ideal(R, unique!(iso_inv.(gens(I)))) for I in P_ext]
-  Q = [ideal(R, unique!(iso_inv.(gens(I))))for I in Q_ext]
-  # TODO: The Q_prime lives in a ring with a coefficient field L
-  # which is a direct algebraic extension of QQ. Do we want to relate 
-  # L with the coefficient_ring K of R for the output? If yes, how?
-  return P, Q, Q_prime, d
+  full_res = []
+  for (P_ext, Q_ext, P_prime, d) in res
+    @assert base_ring(P_ext) === R_exp
+    P = ideal(R, unique!(iso.(gens(P_ext))))
+    Q = ideal(R, unique!(iso.(gens(Q_ext))))
+    RR = base_ring(P_prime)
+    L = coefficient_ring(RR)
+    f = defining_polynomial(L)
+    f_kk = map_coefficients(kk, f)
+    h = first([h for (h, _) in factor(f_kk)])
+    kk_ext, zeta = extension_field(h)
+    iso_kk_ext = hom(L, kk_ext, zeta)
+    P_prime_ext = map_coefficients(iso_kk_ext, P_prime)
+    push!(full_res, (P, Q, P_prime_ext, degree(h)))
+  end
+  return full_res
 end
-=#
 
 # the ideals in QQbar[x] come back in QQ[x,a] with an extra variable a added
 # and the minpoly of a prepended to the ideal generator list

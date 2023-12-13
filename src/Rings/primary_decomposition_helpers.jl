@@ -129,3 +129,37 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
+@attr function absolute_primary_decomposition(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = absolute_primary_decomposition(J)
+  result = []
+  for (P, Q, P_prime, d) in res
+    PP = ideal(A, A.(gens(P)))
+    QQ = ideal(A, A.(gens(Q)))
+    R_prime = base_ring(P_prime)
+    L = coefficient_ring(R_prime)
+    A_ext, ext_map = change_base_ring(L, R_prime)
+    PP_prime = ideal(A_ext, ext_map.(gens(P_prime)))
+    push!(result, (PP, QQ, PP_prime, d))
+  end
+  return result
+end
+
+function change_base_ring(phi::Any, A::MPolyQuoRing)
+  R = base_ring(A)
+  RR, map_R = change_base_ring(phi, R)
+  I = ideal(RR, map_R.(gens(modulus(A))))
+  AA, pr = quo(RR, I)
+  psi = hom(A, AA, phi, gens(AA), check=false)
+  return AA, psi
+end
+
+function change_base_ring(phi::Any, R::MPolyRing)
+  kk = coefficient_ring(R)
+  L = parent(phi(zero(kk)))
+  RR, _ = polynomial_ring(L, symbols(R))
+  psi = hom(R, RR, phi, gens(RR))
+  return RR, psi
+end

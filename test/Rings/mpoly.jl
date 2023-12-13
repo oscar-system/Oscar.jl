@@ -106,8 +106,12 @@ end
   @test jacobi_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
   @test jacobi_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
   @test length(L) == 2
-  @test length(findall(x->x==r1, L)) == 1
-  @test length(findall(x->x==r2, L)) == 1
+
+  # Test disabled because it could not be reliably reproduced and also 
+  # it is mathematical not rigorous
+  # @test length(findall(x->x==r1, L)) == 1
+  # @test length(findall(x->x==r2, L)) == 1
+  @test ideal(parent(r1), L) == ideal(parent(r1), [r1, r2])
 
   @test issubset(ideal(S, [a]), ideal(S, [a]))
   @test issubset(ideal(S, [a]), ideal(S, [a, b]))
@@ -471,13 +475,13 @@ end
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
-  #= disabled for the moment but should run one day
   # absolute_primary_decomposition
   R,(x,y,z) = polynomial_ring(kk, ["x", "y", "z"])
   I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
   d = absolute_primary_decomposition(I)
-  @test length(d) == 3
+  @test length(d) == 4 # one redundant component
 
+  #= Tests disabled because of too long runtime
   R,(x,y,z) = graded_polynomial_ring(kk, ["x", "y", "z"])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
   d = absolute_primary_decomposition(I)
