@@ -393,3 +393,99 @@ end
   dec = primary_decomposition(ideal(Q, zero(Q)))
   @test length(dec) == 2
 end
+  
+@testset "primary decomposition over number fields" begin
+  Pt, t = QQ[:t]
+  f = t^5 - 27*t^3 + t^2 - 5
+  K = number_field(f)
+
+  # primary_decomposition
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, algorithm=method)
+      j = intersect(j, q)
+      @test is_primary(q)
+      @test is_prime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
+
+  # minimal_primes
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = minimal_primes(i)
+  @test length(l) == 3
+
+  l = minimal_primes(i, algorithm=:charSets)
+  @test length(l) == 3
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [R(9), (a+3)*(b+3)])
+  i1 = ideal(R, [R(3), a])
+  i2 = ideal(R, [R(3), b])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  # equidimensional_decomposition_weak
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  l = equidimensional_decomposition_weak(i)
+  @test length(l) == 3
+  @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
+  @test l[2] == ideal(R, [y*z, x*z, x^2])
+  @test l[3] == ideal(R, [z])
+
+  # equidimensional_decomposition_radical
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = equidimensional_decomposition_radical(i)
+  @test length(l) == 1
+
+  # equidimensional_hull
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  @test equidimensional_hull(i) == ideal(R, [z])
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = intersect(ideal(R, [R(9), a, b]),
+                ideal(R, [R(3), c]),
+                ideal(R, [R(11), 2*a, 7*b]),
+                ideal(R, [13*a^2, 17*b^4]),
+                ideal(R, [9*c^5, 6*d^5]),
+                ideal(R, [R(17), a^15, b^15, c^15, d^15]))
+  @test equidimensional_hull(i) == ideal(R, [R(3)])
+
+  # equidimensional_hull_radical
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+
+  #= disabled for the moment but should run one day
+  # absolute_primary_decomposition
+  R,(x,y,z) = polynomial_ring(kk, ["x", "y", "z"])
+  I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 3
+
+  R,(x,y,z) = graded_polynomial_ring(kk, ["x", "y", "z"])
+  I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 5
+  =#
+
+  # is_prime
+  R, (x, y) = polynomial_ring(kk, ["x", "y"])
+  I = ideal(R, [one(R)])
+  @test is_prime(I) == false
+end

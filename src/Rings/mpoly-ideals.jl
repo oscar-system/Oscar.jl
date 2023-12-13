@@ -536,7 +536,7 @@ function primary_decomposition(
     algorithm::Symbol=:GTZ, cache::Bool=true
   ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
   if has_attribute(I, :primary_decomposition)
-    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+    return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
   end
   R = base_ring(I)
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
@@ -678,6 +678,25 @@ Multivariate polynomial ring in 2 variables over number field graded by
          absprimes[i][2]::Int)
          for i in 1:length(decomp)]
 end
+
+#=
+@attr function absolute_primary_decomposition(
+    I::MPolyIdeal{T}; 
+    algorithm::Symbol=:GTZ, cache::Bool=true
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_exp, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_exp = ideal(R_exp, iso_inv.(gens(I)))
+  res = absolute_primary_decomposition(I_exp)
+  (P_ext, Q_ext, Q_prime, d) = res
+  P = [ideal(R, unique!(iso_inv.(gens(I)))) for I in P_ext]
+  Q = [ideal(R, unique!(iso_inv.(gens(I))))for I in Q_ext]
+  # TODO: The Q_prime lives in a ring with a coefficient field L
+  # which is a direct algebraic extension of QQ. Do we want to relate 
+  # L with the coefficient_ring K of R for the output? If yes, how?
+  return P, Q, Q_prime, d
+end
+=#
 
 # the ideals in QQbar[x] come back in QQ[x,a] with an extra variable a added
 # and the minpoly of a prepended to the ideal generator list
@@ -873,6 +892,26 @@ julia> L = equidimensional_decomposition_weak(I)
   return V
 end
 
+@attr function equidimensional_decomposition_weak(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_decomposition_weak(I_ext)
+  return typeof(I)[ideal(R, unique!([x for x in iso.(gens(I)) if !iszero(x)])) for I in res]
+end
+
+@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_decomposition_weak(J)
+  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
+end
+
+
+
 @doc raw"""
     equidimensional_decomposition_radical(I::MPolyIdeal)
 
@@ -915,6 +954,24 @@ julia> L = equidimensional_decomposition_radical(I)
     return typeof(I)[]
   end
   return V
+end
+
+@attr function equidimensional_decomposition_radical(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_decomposition_weak(I_ext)
+  return [ideal(R, unique!(iso.(gens(I)))) for I in res]
+end
+
+@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_decomposition_radical(J)
+  return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
 end
 #######################################################
 @doc raw"""
@@ -978,6 +1035,25 @@ function equidimensional_hull(I::MPolyIdeal)
   end
   return ideal(R, i)
 end
+
+function equidimensional_hull(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_hull(I_ext)
+  return ideal(R, unique!(iso.(gens(res))))
+end
+
+@attr function equidimensional_hull(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_hull(J)
+  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
+end
+
 #######################################################
 @doc raw"""
     equidimensional_hull_radical(I::MPolyIdeal)
@@ -1015,6 +1091,24 @@ function equidimensional_hull_radical(I::MPolyIdeal)
   end
   i = Singular.LibPrimdec.equiRadical(singular_polynomial_ring(I), singular_generators(I))
   return ideal(R, i)
+end
+
+function equidimensional_hull_radical(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_hull_radical(I_ext)
+  return ideal(R, unique!(iso.(gens(res))))
+end
+
+@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
+  A = base_ring(I)::MPolyQuoRing
+  R = base_ring(A)::MPolyRing
+  J = saturated_ideal(I)
+  res = equidimensional_hull_radical(J)
+  return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
 #######################################################
