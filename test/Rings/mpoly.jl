@@ -503,3 +503,19 @@ end
   Mx, = polynomial_ring(M, 2);
   primary_decomposition(ideal(Mx, [gen(Mx, 1)]))
 end
+
+@testset "primary decomposition over NfRelNS" begin
+  Pt, t = QQ[:t]
+  f = t^2 + 1
+  kk, i = number_field(f)
+  _, T = kk[:T]
+  g = T^3 - 5
+  K, zeta = number_field([g], "zeta")
+  @test K isa Hecke.NfRelNS
+  _, s = K[:s]
+  h = s-1
+  L, xi = number_field(h)
+  R, (x, y) = L[:x, :y]
+  I = ideal(R, x^2 + y^2)
+  @test length(primary_decomposition(I)) == 2
+end

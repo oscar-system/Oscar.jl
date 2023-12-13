@@ -46,7 +46,9 @@ function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union
   return R_flat, to_R, to_R_flat
 end
 
-function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:NfAbsNSElem}
+function _expand_coefficient_field(
+    R::MPolyRing{T}; rec_depth=0
+  ) where {T<:Union{<:NfAbsNSElem, <:Hecke.NfRelNSElem}}
   K = coefficient_ring(R)
   alpha = gens(K)
   r = length(alpha)
@@ -63,7 +65,7 @@ end
 
 function _expand_coefficient_field(
     A::MPolyQuoRing{S}; rec_depth::Int=0
-  ) where {T<:NfAbsNSElem, S<:MPolyRingElem{T}}
+  ) where {T<:Union{<:NfAbsNSElem, <:Hecke.NfRelNSElem}, S<:MPolyRingElem{T}}
   R = base_ring(A)
   R_exp, iso, iso_inv = _expand_coefficient_field(R; rec_depth)
   I = ideal(R_exp, iso_inv.(gens(modulus(A))))
