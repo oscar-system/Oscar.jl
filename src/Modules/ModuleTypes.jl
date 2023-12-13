@@ -4,7 +4,7 @@
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T} <: AbstractAlgebra.Module{T} end
+abstract type ModuleFP{T <: NCRingElem} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
@@ -26,7 +26,7 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T} <: ModuleElem{T} end
+abstract type ModuleFPElem{T <: NCRingElem} <: ModuleElem{T} end
 
 @doc raw"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
@@ -68,7 +68,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
-@attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
+@attributes mutable struct FreeMod{T} <: AbstractFreeMod{T}
   R::Ring
   n::Int
   S::Vector{Symbol}
@@ -77,7 +77,7 @@ option is set in suitable functions.
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
 
-  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
+  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T 
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
