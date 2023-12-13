@@ -77,7 +77,7 @@ option is set in suitable functions.
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
 
-  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T 
+  function FreeMod{T}(n::Int,R::NCRing,S::Vector{Symbol}) where T 
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
