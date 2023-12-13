@@ -202,17 +202,17 @@ function composition_loops(p::SetPartition, q::SetPartition)
         if !(n in keys(new_ids))
             new_ids[n] = p.upper_points[i]
         else
-            if p.upper_points[i] in keys(new_ids) && get(new_ids, n, -1) in keys(new_ids)
+            if p.upper_points[i] in keys(new_ids) && new_ids[n] in keys(new_ids)
                 # Do path compression if we have the case that we need to merge two tree's 
                 # together and the nodes we operate on are not a root or a leaf
                 for ii in [n]
                     path = [ii]
-                    z = get(new_ids, ii, -1)
+                    z = new_ids[ii]
                     already_in = Set(z)
                     while z in keys(new_ids)
                         push!(path, z)
                         push!(already_in, z)
-                        z = get(new_ids, z, -1)
+                        z = new_ids[z]
                         z in already_in && break
                     end
                     push!(path, z)
@@ -220,12 +220,12 @@ function composition_loops(p::SetPartition, q::SetPartition)
                         new_ids[nn] = path[end]
                     end
                 end
-                new_ids[get(new_ids, n, -1)] = get(new_ids, p_copy.upper_points[i], -1)
+                new_ids[new_ids[n]] = new_ids[p_copy.upper_points[i]]
             else
-                if !(get(new_ids, n, -1) in keys(new_ids))
-                    new_ids[get(new_ids, n, -1)] = p_copy.upper_points[i]
+                if !(new_ids[n] in keys(new_ids))
+                    new_ids[new_ids[n]] = p_copy.upper_points[i]
                 else
-                    new_ids[p_copy.upper_points[i]] = get(new_ids, n, 1)
+                    new_ids[p_copy.upper_points[i]] = new_ids[n]
                 end
             end
         end
@@ -238,7 +238,7 @@ function composition_loops(p::SetPartition, q::SetPartition)
         while z in keys(new_ids)
             push!(path, z)
             push!(already_in, z)
-            z = get(new_ids, z, -1)
+            z = new_ids[z]
             z in already_in && break
         end
         push!(path, z)
@@ -250,14 +250,14 @@ function composition_loops(p::SetPartition, q::SetPartition)
     # giving the top part new values
     for (i, n) in enumerate(vector_q[1])
         if n in keys(new_ids)
-            vector_q[1][i] = get(new_ids, n, -1)
+            vector_q[1][i] = new_ids[n]
         end
     end
 
     # giving the top part new values
     for (i, n) in enumerate(p_copy.lower_points)
         if n in keys(new_ids)
-            p_copy.lower_points[i] = get(new_ids, n, -1)
+            p_copy.lower_points[i] = new_ids[n]
         end
     end
 
@@ -273,13 +273,13 @@ function composition_loops(p::SetPartition, q::SetPartition)
     # calculate new ids for middle nodes, which are under normal circumstances omitted
     for (i, n) in enumerate(vector_q[2])
         if n in keys(new_ids)
-            vector_q[2][i] = get(new_ids, n, -1)
+            vector_q[2][i] = new_ids[n]
         end
     end
 
     for (i, n) in enumerate(p_copy.upper_points)
         if n in keys(new_ids)
-            p_copy.upper_points[i] = get(new_ids, n, -1)
+            p_copy.upper_points[i] = new_ids[n]
         end
     end
 

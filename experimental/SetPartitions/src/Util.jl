@@ -25,8 +25,8 @@ function new_point_values(p_upper::Vector{Int}, p_lower::Vector{Int},
         new_id += 1
     end
     
-    upper = [get(new_ids, n, -1) for n in q_upper]
-    lower = [get(new_ids, n, -1) for n in q_lower]
+    upper = [new_ids[n] for n in q_upper]
+    lower = [new_ids[n] for n in q_lower]
     
     return (upper, lower)
 end
@@ -49,7 +49,7 @@ function normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
             p_return[1][i] = new_id
             new_id += 1
         else
-            p_return[1][i] = get(new_ids, n, -1)
+            p_return[1][i] = new_ids[n]
         end
     end
 
@@ -59,7 +59,7 @@ function normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
             p_return[2][i] = new_id
             new_id += 1
         else
-            p_return[2][i] = get(new_ids, n, -1)
+            p_return[2][i] = new_ids[n]
         end
     end
 
@@ -75,7 +75,7 @@ Note that this is a helper function of the `construct_category` algorithm.
 """
 function add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
 
-    add_apbs = get(dict, size(p), -1)
+    add_apbs = dict[size(p)]
     push!(add_apbs, p)
     dict[size(p)] = add_apbs
 
@@ -95,12 +95,12 @@ Note that this is a helper function of the `construct_category` algorithm.
 function add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
 
     # add right partition in first dict for top size
-    add_apbs_top = get(vector[1], length(upper_points(p)), -1)
+    add_apbs_top = (vector[1])[length(upper_points(p))]
     push!(add_apbs_top, p)
     (vector[1])[length(upper_points(p))] = add_apbs_top
 
     # add right partition in first dict for bottom size
-    add_apbs_bottom = get(vector[2], length(lower_points(p)), -1)
+    add_apbs_bottom = (vector[2])[length(upper_points(p))]
     push!(add_apbs_bottom, p)
     (vector[2])[length(lower_points(p))] = add_apbs_bottom
 

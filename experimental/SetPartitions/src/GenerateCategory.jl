@@ -169,11 +169,11 @@ function do_tensor_products(
                 for key in keys(new_tens_by_size)
                     if size(i) + Int(key) <= max_length
                         new_tens_temp_tensor = union(new_tens_temp_tensor, 
-                            get(new_tens_by_size, key, -1))
+                            new_tens_by_size[key])
                     end
                 end
                 if i in keys(without)
-                    operate_on = setdiff(new_tens_temp_tensor, get(without, i, -1))
+                    operate_on = setdiff(new_tens_temp_tensor, without[i])
                 else
                     operate_on = new_tens_temp_tensor
                 end
@@ -222,7 +222,7 @@ function do_tensor_products(
                 if !(i in keys(without))
                     without[i] = Set{T}([ii])
                 else
-                    push!(get(without, i, -1), ii)
+                    push!(without[i], ii)
                 end
             end
         end
@@ -277,11 +277,10 @@ function do_composition(
                 # get fitting partitions in advance (improve runtime)
                 new_comp_temp_comp = Set{T}()
                 if length(upper_points(i)) <= max_length
-                    new_comp_temp_comp = get(new_comp_by_size_top_bottom[2], 
-                        length(upper_points(i)), -1)
+                    new_comp_temp_comp = (new_comp_by_size_top_bottom[2])[length(upper_points(i))]
                 end
                 if i in keys(without)
-                    operate_on = setdiff(new_comp_temp_comp, get(without, i, -1))
+                    operate_on = setdiff(new_comp_temp_comp, without[i])
                 else
                     operate_on = new_comp_temp_comp
                 end
@@ -323,7 +322,7 @@ function do_composition(
                 if !(i in keys(without))
                     without[i] = Set{T}([ii])
                 else
-                    push!(get(without, i, -1), ii)
+                    push!(without[i], ii)
                 end
             end
         end
@@ -452,7 +451,7 @@ function construct_category(
             for key in keys(all_partitions_by_size)
                 if size(i) + Int(key) <= max_length
                     all_partitions_temp_tensor = union(all_partitions_temp_tensor, 
-                        get(all_partitions_by_size, key, -1))
+                        all_partitions_by_size[key])
                 end
             end
             for ii in all_partitions_temp_tensor
@@ -477,8 +476,7 @@ function construct_category(
         # get all candidates for
         for i in all_partitions
             # get in advance the right second candidate (regarding format)
-            all_partitions_temp_comp = get(all_partitions_by_size_top_bottom[2], 
-                length(upper_points(i)), -1)
+            all_partitions_temp_comp = (all_partitions_by_size_top_bottom[2])[length(upper_points(i))]
             for ii in all_partitions_temp_comp
                 if !((i, ii) in already_c) && is_composable(i, ii) && 
                         is_worth_composition(i, ii, max_length)
@@ -525,8 +523,8 @@ function print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
     track = [start]
     for p in track
         if p in keys(trace)
-            println(p, " : ", get(trace, p, -1))
-            for i in get(trace, p, -1)[1]
+            println(p, " : ", trace[p])
+            for i in (trance[p])[1]
                 if !(i in track)
                     push!(track, i)
                 end
