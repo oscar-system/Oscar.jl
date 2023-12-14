@@ -91,8 +91,10 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
   chain_fac = ResolutionModuleFactory(M)
   map_fac = ResolutionMapFactory{MorphismType}()
 
+  R = base_ring(M)
+  upper_bound = (R isa MPolyRing ? ngens(R) : nothing)
   internal_complex = HyperComplex(1, chain_fac, map_fac, [:chain],
-                                  upper_bounds = [nothing], 
+                                  upper_bounds = [upper_bound], 
                                   lower_bounds = [0]
                                  )
   result = SimpleFreeResolution(M, internal_complex)

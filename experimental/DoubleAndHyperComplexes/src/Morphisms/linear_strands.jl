@@ -24,13 +24,18 @@ end
 @attributes mutable struct LinearStrandComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
   internal_complex::HyperComplex{ChainType, MorphismType}
   original_complex::AbsHyperComplex{ChainType, MorphismType}
+  d::Int
   map_to_original::AbsHyperComplexMorphism
 
   function LinearStrandComplex(
-      orig::AbsHyperComplex{ChainType, MorphismType}
+      orig::AbsHyperComplex{ChainType, MorphismType};
+      degree::Int = 0
     ) where {ChainType, MorphismType}
     chain_fac = LinearStrandChainFactory(orig)
     map_fac = LinearStrandMapFactory(orig)
+    # TODO: Do we want to also allow higher dimensional complexes here?
+    @assert dim(orig) == 1 "complex must be 1-dimensional"
+    @assert all(k->direction(orig, k) == :chain, 1:dim(orig)) "complex must be a chain complex in all directions"
 
     upper_bounds = Union{Nothing, Int}[(has_upper_bound(orig, i) ? upper_bound(orig, i) : nothing) for i in 1:dim(orig)]
     lower_bounds = Union{Nothing, Int}[(has_lower_bound(orig, i) ? lower_bound(orig, i) : nothing) for i in 1:dim(orig)]
@@ -39,7 +44,7 @@ end
                                     upper_bounds = upper_bounds,
                                     lower_bounds = lower_bounds
                                    )
-    return new{ChainType, MorphismType}(internal_complex, orig)
+    return new{ChainType, MorphismType}(internal_complex, orig, degree)
   end
 end
 
@@ -67,9 +72,13 @@ end
 underlying_morphism(phi::LinearStrandInclusion) = phi.internal_morphism
 
 # User facing constructor
-function linear_strand(C::AbsHyperComplex)
-  result = LinearStrandComplex(C)
+function linear_strand(C::AbsHyperComplex; degree::Int=0)
+  result = LinearStrandComplex(C, degree=degree)
   result.map_to_original = LinearStrandInclusion(result)
   return result, result.map_to_original
+end
+
+function linear_strand(C::AbsHyperComplex, g::GrpAbFinGenElem)
+  return linear_strand(C, g[1])
 end
 

@@ -74,9 +74,9 @@
   c3 = tensor_product(res, c)
   @test dim(c3) == 3
   @test lower_bound(c3, 1) == lower_bound(c3, 2) == lower_bound(c3, 3) == 0
-  @test !Oscar.has_upper_bound(c3, 1) 
-  @test !Oscar.has_upper_bound(c3, 2)
-  @test !Oscar.has_upper_bound(c3, 3)
+  @test Oscar.has_upper_bound(c3, 1) 
+  @test Oscar.has_upper_bound(c3, 2)
+  @test Oscar.has_upper_bound(c3, 3)
   @test rank(c3[0, 0, 0]) == 1
   @test rank(c3[1, 0, 0]) == rank(c3[0, 1, 0]) == 3
   @test rank(c3[1, 1, 0]) == rank(c3[1, 1, 0]) == 9

@@ -23,7 +23,7 @@ function (fac::LinearStrandChainFactory)(self::AbsHyperComplex, i::Tuple)
   S = base_ring(F_full)
   @assert is_standard_graded(S) "module and ring must be standard graded"
   G = grading_group(S)
-  offset = zero(G) + sum(i)*G[1]
+  offset = zero(G) + sum(i)*G[1] + self.d
   min_ind = [k for k in 1:rank(F_full) if degree(F_full[k]) == offset]
   F = graded_free_module(S, [offset for i in 1:length(min_ind)])
   map = hom(F, F_full, elem_type(F_full)[F_full[i] for i in min_ind])
