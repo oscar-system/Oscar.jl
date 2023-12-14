@@ -401,7 +401,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
       for (i, v) in enumerate(A) # iterates over the rows
         found_unit && break
         for (j, c) in v
-          if isunit(c) 
+          if is_unit(c) 
             p = i
             q = j
             (p, q) in done && continue
