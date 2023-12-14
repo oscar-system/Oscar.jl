@@ -25,8 +25,8 @@ function ==(p::SpatialPartition, q::SpatialPartition)
     return p.partition == q.partition && p.dimension == q.dimension
 end
 
-function copy(p::SpatialPartition)
-    return SpatialPartition(copy(p.partition), copy(p.dimension))
+function deepcopy(p::SpatialPartition)
+    return SpatialPartition(deepcopy(p.partition), deepcopy(p.dimension))
 end
 
 
@@ -45,8 +45,7 @@ Return the tensor product of `p` and `q`.
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-    p.dimension != q.dimension ? 
-        error("p and q have different dimensions in tensor product") : 
+    @req p.dimension == q.dimension "p and q have different dimensions in tensor product"
 
     return SpatialPartition(tensor_product(p.partition, q.partition), p.dimension)
 end
@@ -71,7 +70,7 @@ Return the composition of `p` and `q` as well as the number of removed loops.
 """
 function composition_loops(p::SpatialPartition, q::SpatialPartition)
 
-    !is_composable(p, q) ? error("p and q have different dimensions in composition") : 
+    @req is_composable(p, q) "p and q have different dimensions in composition"
 
     comp_loops = composition_loops(p.partition, q.partition)
 

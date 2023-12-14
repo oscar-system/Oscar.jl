@@ -34,9 +34,9 @@ function do_unary(
 
         for pp in to_unary
             
-            pmod = copy(pp)
+            pmod = deepcopy(pp)
 
-            a = copy(pp)
+            a = deepcopy(pp)
 
             if pmod isa SetPartition || pmod isa ColoredPartition
                 # start with rotation
@@ -187,7 +187,7 @@ function do_tensor_products(
         end
 
         # do the tensor products
-        al = copy(to_tens)
+        al = deepcopy(to_tens)
         for (i, ii) in al
             a = tensor_product(i, ii)
             pop!(to_tens, (i, ii))
@@ -298,7 +298,7 @@ function do_composition(
         end
 
         # do the compositions
-        al = copy(to_comp)
+        al = deepcopy(to_comp)
         
         for (i, ii) in al
             a = composition(i, ii)
@@ -387,7 +387,7 @@ function construct_category(
     all_partitions_of_size_n = []
 
     # all candidates for unary operations
-    to_unary = Set{T}(copy(p))
+    to_unary = Set{T}(deepcopy(p))
 
     # trace for tracing
     trace = Trace{T}()

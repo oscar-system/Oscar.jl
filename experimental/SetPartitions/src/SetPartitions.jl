@@ -6,13 +6,14 @@ import Base:
     adjoint,
     copy,
     hash,
-    size
+    size,
+    deepcopy
     
 import Oscar:
     ⊗,
     involution,
-    tensor_product
-   
+    tensor_product,
+    @req
 
 export ColoredPartition
 export SetPartition

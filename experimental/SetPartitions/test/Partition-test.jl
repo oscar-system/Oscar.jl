@@ -15,14 +15,14 @@
         @test involution(SetPartition([2, 3], [4, 4])) == SetPartition([1, 1], [2, 3])
         @test tensor_product(SetPartition([1, 2, 3], [2, 1, 2]), 
                     SetPartition([3, 3], [])) == SetPartition([1, 2, 3, 4, 4], [2, 1, 2])
-        @test_throws ErrorException composition(SetPartition([1, 2, 3], [3]), 
+        @test_throws ArgumentError composition(SetPartition([1, 2, 3], [3]), 
                     SetPartition([1, 2], [1, 2]))
         @test composition(SetPartition([1, 2, 2, 2], [2, 3, 4]), 
                     SetPartition([1, 2], [3, 3, 1, 2])) == SetPartition([1, 1], [1, 2, 3])
         @test composition(SetPartition([1, 2, 3, 4, 1, 3], [3, 4]), 
                     SetPartition([1, 2, 3], [1, 1, 2, 2, 3, 1])) == 
                     SetPartition([1, 1, 1], [1, 1])
-        @test_throws ErrorException rotation(SetPartition([], [1]), true, true) 
+        @test_throws ArgumentError rotation(SetPartition([], [1]), true, true) 
         @test rotation(SetPartition([1, 2], [2, 1]), false, false) == 
                     SetPartition([1, 2, 1], [2]) 
         @test vertical_reflection(SetPartition([2, 3, 2, 2], [2, 3])) == 
@@ -40,7 +40,7 @@
         @test composition(ColoredPartition(SetPartition([1, 2], [2, 1]), [0, 1], [1, 0]), 
                     ColoredPartition(SetPartition([1, 2], [2, 1]), [1, 0], [0, 1])) == 
                     ColoredPartition(SetPartition([1, 2], [1, 2]), [1, 0], [1, 0])
-        @test_throws ErrorException composition(ColoredPartition(SetPartition([1, 2], 
+        @test_throws ArgumentError composition(ColoredPartition(SetPartition([1, 2], 
                     [2, 1]), [1, 1], [1, 0]), 
                     ColoredPartition(SetPartition([1, 2], [2, 1]), [1, 0], [0, 1]))
         @test rotation(ColoredPartition(SetPartition([1, 2], [3, 2]), 
@@ -53,13 +53,13 @@
         @test tensor_product(SpatialPartition(SetPartition([1, 2], [2, 1]), 1), 
                             SpatialPartition(SetPartition([1], [1, 1]), 1)) == 
                             SpatialPartition(SetPartition([1, 2, 3], [2, 1, 3, 3]), 1)
-        @test_throws ErrorException tensor_product(SpatialPartition(SetPartition([1, 2], 
+        @test_throws ArgumentError tensor_product(SpatialPartition(SetPartition([1, 2], 
         [2, 1]), 2), 
         SpatialPartition(SetPartition([1], [1, 1]), 1))
         @test composition(SpatialPartition(SetPartition([1, 2], [2, 1]), 2), 
         SpatialPartition(SetPartition([1, 2], [2, 1]), 2)) == 
         SpatialPartition(SetPartition([1, 2], [1, 2]), 2)
-        @test_throws ErrorException composition(SpatialPartition(SetPartition([1, 2], 
+        @test_throws ArgumentError composition(SpatialPartition(SetPartition([1, 2], 
         [2, 1]), 2), SpatialPartition(SetPartition([1, 2], [2, 1]), 1))
     end
 end

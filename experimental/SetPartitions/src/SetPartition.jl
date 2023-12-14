@@ -20,7 +20,7 @@ struct SetPartition <: AbstractPartition
     lower_points::Vector{Int}
 
     function SetPartition(upper_points, lower_points)
-        (new_upper, new_lower) = normal_form(convert(Vector{Int}, upper_points), 
+        (new_upper, new_lower) = _normal_form(convert(Vector{Int}, upper_points), 
                                              convert(Vector{Int}, lower_points))
         return new(new_upper, new_lower)
     end
@@ -35,8 +35,8 @@ function ==(p::SetPartition, q::SetPartition)
     return p.lower_points == q.lower_points && p.upper_points == q.upper_points
 end
 
-function copy(p::SetPartition)
-    return SetPartition(copy(p.upper_points), copy(p.lower_points))
+function deepcopy(p::SetPartition)
+    return SetPartition(deepcopy(p.upper_points), deepcopy(p.lower_points))
 end
 
 function upper_points(p::SetPartition)
@@ -63,9 +63,9 @@ SetPartition([1, 2, 3, 3], [2, 1, 3])
 """
 function tensor_product(p::SetPartition, q::SetPartition)
     
-    q_new = new_point_values(p.upper_points, p.lower_points, 
-                             q.upper_points, q.lower_points)
-    return SetPartition(vcat(p.upper_points, q_new[1]), vcat(p.lower_points, q_new[2]))
+    q_new = new_point_values(upper_points(p), lower_points(p), 
+            upper_points(q), lower_points(q))
+    return SetPartition(vcat(upper_points(p), q_new[1]), vcat(lower_points(p), q_new[2]))
 end
 
 """
@@ -83,7 +83,7 @@ SetPartition([1, 2], [2, 1, 3])
 ```
 """
 function involution(p::SetPartition)
-    return SetPartition(p.lower_points, p.upper_points)
+    return SetPartition(lower_points(p), upper_points(p))
 end
 
 """
@@ -101,7 +101,7 @@ SetPartition([1, 2, 3], [3, 2])
 ```
 """
 function vertical_reflection(p::SetPartition)
-    return SetPartition(reverse(p.upper_points), reverse(p.lower_points))
+    return SetPartition(reverse(upper_points(p)), reverse(lower_points(p)))
 end
 
 """
@@ -134,13 +134,13 @@ SetPartition([1, 2, 3, 1], [2])
 """
 function rotation(p::SetPartition, lr::Bool, tb::Bool)
     
-    if tb && isempty(p.upper_points)
-        error("SetPartition has no top part")
-    elseif !tb && isempty(p.lower_points)
-        error("SetPartition has no bottom part")
+    if tb
+        @req !isempty(upper_points(p)) "SetPartition has no top part"
+    elseif !tb
+        @req !isempty(lower_points(p)) "SetPartition has no bottom part"
     end
 
-    ret = (copy(p.upper_points), copy(p.lower_points))
+    ret = (deepcopy(upper_points(p)), deepcopy(lower_points(p)))
 
     if lr
         if tb
@@ -197,24 +197,24 @@ ERROR: format not fitting
 """
 function composition_loops(p::SetPartition, q::SetPartition)
     
-    !is_composable(p, q) ? error("format not fitting") : 
+    @req is_composable(p, q) "Number of points mismatch" 
 
     # Work with copies to not change the input partitions
-    p_copy = copy(p)
+    p_copy = deepcopy(p)
 
     # new_ids dictionary stores the new value we need to assign to the partition,
     # in order to connect new segments
-    vector_q = new_point_values(p_copy.upper_points, p_copy.lower_points, 
-                                copy(q.upper_points), copy(q.lower_points))
+    vector_q = new_point_values(upper_points(p_copy), lower_points(p_copy), 
+                deepcopy(upper_points(q)), deepcopy(lower_points(q)))
     new_ids = Dict{Int, Int}()
     
     # mapping the second the lower points of the second partition 
     # to the upper points of the first partition and merge if connection
     for (i, n) in enumerate(vector_q[2])
         if !(n in keys(new_ids))
-            new_ids[n] = p.upper_points[i]
+            new_ids[n] = upper_points(p)[i]
         else
-            if p.upper_points[i] in keys(new_ids) && new_ids[n] in keys(new_ids)
+            if upper_points(p)[i] in keys(new_ids) && new_ids[n] in keys(new_ids)
                 # Do path compression if we have the case that we need to merge two tree's 
                 # together and the nodes we operate on are not a root or a leaf
                 for ii in [n]
@@ -232,12 +232,12 @@ function composition_loops(p::SetPartition, q::SetPartition)
                         new_ids[nn] = path[end]
                     end
                 end
-                new_ids[new_ids[n]] = new_ids[p_copy.upper_points[i]]
+                new_ids[new_ids[n]] = new_ids[upper_points(p_copy)[i]]
             else
                 if !(new_ids[n] in keys(new_ids))
-                    new_ids[new_ids[n]] = p_copy.upper_points[i]
+                    new_ids[new_ids[n]] = upper_points(p_copy)[i]
                 else
-                    new_ids[p_copy.upper_points[i]] = new_ids[n]
+                    new_ids[upper_points(p_copy)[i]] = new_ids[n]
                 end
             end
         end
@@ -267,20 +267,20 @@ function composition_loops(p::SetPartition, q::SetPartition)
     end
 
     # giving the top part new values
-    for (i, n) in enumerate(p_copy.lower_points)
+    for (i, n) in enumerate(lower_points(p_copy))
         if n in keys(new_ids)
-            p_copy.lower_points[i] = new_ids[n]
+            lower_points(p_copy)[i] = new_ids[n]
         end
     end
 
     # removing the middle by just changing the top of our partition 
     # to the adjusted top of the second partition
-    ret = SetPartition(vector_q[1], p_copy.lower_points)
+    ret = SetPartition(vector_q[1], lower_points(p_copy))
 
     # calculating removed related components (loop)
         
     related_comp = Set()
-    return_partition_as_set = Set(vcat(vector_q[1], p_copy.lower_points))
+    return_partition_as_set = Set(vcat(vector_q[1], lower_points(p_copy)))
 
     # calculate new ids for middle nodes, which are under normal circumstances omitted
     for (i, n) in enumerate(vector_q[2])
@@ -289,13 +289,13 @@ function composition_loops(p::SetPartition, q::SetPartition)
         end
     end
 
-    for (i, n) in enumerate(p_copy.upper_points)
+    for (i, n) in enumerate(upper_points(p_copy))
         if n in keys(new_ids)
-            p_copy.upper_points[i] = new_ids[n]
+            upper_points(p_copy)[i] = new_ids[n]
         end
     end
 
-    for co in vcat(vector_q[2], p_copy.upper_points)
+    for co in vcat(vector_q[2], upper_points(p_copy))
         if !(co in return_partition_as_set)
             push!(related_comp, co)
         end

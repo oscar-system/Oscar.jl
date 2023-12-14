@@ -35,10 +35,10 @@ function ==(p::ColoredPartition, q::ColoredPartition)
 
 end
 
-function copy(p::ColoredPartition)
-    return ColoredPartition(copy(p.partition), 
-        copy(p.color_upper_points), 
-        copy(p.color_lower_points))
+function deepcopy(p::ColoredPartition)
+    return ColoredPartition(deepcopy(p.partition), 
+        deepcopy(p.color_upper_points), 
+        deepcopy(p.color_lower_points))
 end
 
 
@@ -95,8 +95,8 @@ Return the composition of `p` and `q` as well as the number of removed loops.
 """
 function composition_loops(p::ColoredPartition, q::ColoredPartition)
 
-    p.color_upper_points != q.color_lower_points ? 
-        error("p upper and q lower colors are different in composition") : 
+    @req p.color_upper_points == q.color_lower_points "p upper and q 
+        lower colors are different in composition"
 
     comp_loops = composition_loops(p.partition, q.partition)
     
@@ -117,14 +117,14 @@ Return the rotation of `p` in the direction given by `lr` and `tb`.
 """
 function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
 
-    if tb && isempty(upper_points(p))
-        error("Partition has no top part")
-    elseif !tb && isempty(lower_points(p))
-        error("Partition has no bottom part")
+    if tb
+        @req !isempty(upper_points(p)) "SetPartition has no top part"
+    elseif !tb
+        @req !isempty(lower_points(p)) "SetPartition has no bottom part"
     end
 
-    ret = (copy(upper_points(p)), copy(lower_points(p)), 
-        copy(p.color_upper_points), copy(p.color_lower_points))
+    ret = (deepcopy(upper_points(p)), deepcopy(lower_points(p)), 
+        deepcopy(p.color_upper_points), deepcopy(p.color_lower_points))
 
     if lr
         if tb

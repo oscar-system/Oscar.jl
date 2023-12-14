@@ -37,7 +37,7 @@ end
 Return two vectors which are semantically identical to `p_upper` and `p_lower`
 as set-partition and are numbered from 1 to the number of subsets.
 """
-function normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
+function _normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 
     new_id = 1
     new_ids = Dict{Int, Int}()
