@@ -169,7 +169,7 @@
   f = hom(Qix, Qi, x -> x, [i, 0])
 end
 
-@test "coefficient maps" begin
+@testset "coefficient maps" begin
   R, (x, y) = QQ[:x, :y]
   L, _ = QQ[:t]
   phi = hom(R, R, x->zero(L), [x, y])
