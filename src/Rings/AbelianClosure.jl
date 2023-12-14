@@ -850,11 +850,19 @@ end
 # which is already implemented for QQAbElem directly
 
 function Oscar.sqrt(a::QQAbElem)
-  return Oscar.roots(a, 2)
+  sqrt = Oscar.roots(a, 2)
+  if is_empty(sqrt)
+    error("Element $a does not have a square root")
+  end
+  return sqrt[1]
 end
 
 function Oscar.cbrt(a::QQAbElem)
-  return Oscar.roots(a, 3)
+  cbrt = Oscar.roots(a,3)
+  if is_empty(cbrt)
+    error("Element $a does not have a cube root")
+  end
+  return cbrt[1]
 end
 
 
