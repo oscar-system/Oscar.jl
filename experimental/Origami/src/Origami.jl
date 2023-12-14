@@ -1,8 +1,5 @@
 # Add your new types, functions, and methods here.
 
-export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
-        sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
-        veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections, automorphisms
 
 module OrigamiHelper
 
@@ -17,6 +14,7 @@ end
 end
 
 include("types.jl")
+include("deck_group.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -253,12 +251,12 @@ function point_reflections(o::Origami)
     f(i) = origami(i^-1 * h * i, i^-1 * v * i)
     f1(i) = origami(i^-1 * h1 * i, i^-1 * v1 * i)
 
-    #origamis derived from the permutations above
+    # origamis derived from the permutations above
     O = f.(G)
-    #we need to calculate these to test find k s.t. sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
+    # we need to calculate these to test find k s.t. sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
     O1 = f1.(G1)
 
-    #fitting the permuations together
+    # fitting the permuations together
     result::Vector{PermGroupElem} = []
 
     l = length(O)
@@ -274,3 +272,8 @@ end
 function automorphisms(o::Origami)
     return [[translations(o),1], [point_reflections(o),-1]]
 end
+
+export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
+        sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
+        veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections, automorphisms, in_deck_group,
+        deck_group, is_normal
