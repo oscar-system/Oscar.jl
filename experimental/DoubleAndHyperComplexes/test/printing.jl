@@ -9,11 +9,11 @@
   str4 = "$(aug)"
 
   strand, inc = Oscar.linear_strand(res)
-  "$(strand)"
-  "$(inc)"
+  str = "$(strand)"
+  str = "$(inc)"
   q, pr = cokernel(inc)
-  "$(q)"
-  "$(pr)"
+  str = "$(q)"
+  str = "$(pr)"
 
   t = tensor_product(res, res)
   str3 = "$(t)"
