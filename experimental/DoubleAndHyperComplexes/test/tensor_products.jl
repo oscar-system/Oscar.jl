@@ -7,7 +7,7 @@
   F = FreeMod(S, 1)
   IF, _ = I*F
   M, _ = quo(F, IF)
-  res = free_resolution(Oscar.SimpleFreeResolution, M)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
 
   c = tensor_product(res, res)
   @test dim(c) == 2

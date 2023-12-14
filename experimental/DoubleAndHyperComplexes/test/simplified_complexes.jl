@@ -49,7 +49,7 @@ end
 
   M = cokernel(inc)
 
-  c = free_resolution(Oscar.SimpleFreeResolution, M)
+  c, _ = free_resolution(Oscar.SimpleFreeResolution, M)
 
   cc = simplify(c) # Should be a Koszul complex of length 2.
 

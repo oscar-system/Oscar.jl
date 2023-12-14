@@ -7,7 +7,7 @@
   L1 = FreeMod(L, 1)
   IL1, inc = L(I)*L1
   M = cokernel(inc)
-  res = free_resolution(Oscar.SimpleFreeResolution, M);
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M);
 
   K = hom(res, res)
   KV = K[-1, 1:2]

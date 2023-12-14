@@ -58,7 +58,7 @@ codomain(phi::HyperComplexMorphism) = phi.codomain
 
 function getindex(phi::HyperComplexMorphism{<:Any, <:Any, MorphismType}, i::Tuple) where {MorphismType}
   # No caching deflects to production
-  !isdefined(phi, :map_cache) && return phi.fac[i]
+  !isdefined(phi, :map_cache) && return phi.fac(phi, i)::MorphismType
 
   # The case of cached results
   haskey(phi.map_cache, i) && return phi.map_cache[i]

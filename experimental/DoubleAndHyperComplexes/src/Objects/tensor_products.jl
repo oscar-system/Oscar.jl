@@ -375,7 +375,7 @@ end
 function tensor_product(M::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
   R = base_ring(first(M))
   @assert all(N->base_ring(N)===R, M) "modules must be defined over the same ring"
-  return tensor_product([free_resolution(SimpleFreeResolution, N) for N in M]...)
+  return tensor_product([free_resolution(SimpleFreeResolution, N)[1] for N in M]...)
 end
 
 

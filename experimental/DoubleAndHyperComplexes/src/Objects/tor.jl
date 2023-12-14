@@ -1,6 +1,6 @@
 function tor(M1::ModuleFP{T}, M2::ModuleFP{T}) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
-  f1 = free_resolution(SimpleFreeResolution, M1)
-  M1oM2 = tensor_product(free_resolution(SimpleFreeResolution, M1), ZeroDimensionalComplex(M2))
+  f1, _ = free_resolution(SimpleFreeResolution, M1)
+  M1oM2 = tensor_product(free_resolution(SimpleFreeResolution, M1)[1], ZeroDimensionalComplex(M2))
 end
 
 function homology(hc::AbsHyperComplex, i::Int)

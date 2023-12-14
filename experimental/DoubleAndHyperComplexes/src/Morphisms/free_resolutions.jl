@@ -95,7 +95,12 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
                                   upper_bounds = [nothing], 
                                   lower_bounds = [0]
                                  )
-  return SimpleFreeResolution(M, internal_complex)
+  result = SimpleFreeResolution(M, internal_complex)
+  MC = ZeroDimensionalComplex(M)[0:0] # Wrap MC as a 1-dimensional complex concentrated in degree 0
+  aug_map = hom(result[(0,)], M, gens(M)) # The actual augmentation map
+  aug_map_comp = MorphismFromDict(result, MC, Dict{Tuple, typeof(aug_map)}([(0,)=>aug_map]))
+  result.augmentation_map = aug_map_comp
+  return result, aug_map_comp
 end
 
 function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolution, RET}
@@ -107,3 +112,6 @@ function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolutio
   end
   return free_resolution(T, M)
 end
+
+### Additional getters
+augmentation_map(c::SimpleFreeResolution) = c.augmentation_map

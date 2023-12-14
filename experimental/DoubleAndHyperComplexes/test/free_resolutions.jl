@@ -2,7 +2,9 @@
   X = veronese();
   I = defining_ideal(X);
   Pn = base_ring(I)
-  FI = free_resolution(Oscar.SimpleFreeResolution, I);
+  FI, aug = free_resolution(Oscar.SimpleFreeResolution, I);
+  @test domain(aug) === FI
+  @test codomain(aug)[(0,)] isa SubquoModule
   F = graded_free_module(Pn, 1)
   dualFIC = hom(FI, F);
   # Duals invert the range from 0:10 to 0:-1:-10 etc. 

@@ -22,3 +22,4 @@ export vertical_map
 export map_to_original_complex
 export map_from_original_complex
 
+export augmentation_map
