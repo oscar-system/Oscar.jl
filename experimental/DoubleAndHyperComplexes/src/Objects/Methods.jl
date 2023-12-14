@@ -151,13 +151,34 @@ end
 #function Base.show(io::IO, ::MIME"text/plain", c::AbsHyperComplex)
 function Base.show(io::IO, c::AbsHyperComplex)
   if dim(c) == 1 
-    has_upper_bound(c, 1) && has_lower_bound(c, 1) && return _free_show(io, c)
     return _print_standard_complex(io, c)
   end
   print(io, "hyper complex of dimension $(dim(c))")
 end
 
+function Base.show(io::IO, c::HomComplex)
+  io = pretty(io)
+  println(io, "hom complex from")
+  print(io, Indent())
+  print(io, "$(domain(c))")
+  println(io, Dedent())
+  println(io, "to")
+  print(io, Indent())
+  print(io, "$(codomain(c))")
+end
+
+function Base.show(io::IO, c::HCTensorProductComplex)
+  io = pretty(io)
+  println(io, "tensor product of the complexes")
+  print(io, Indent())
+  for a in factors(c)
+    println(io, "$(a)")
+  end
+  print(io, Dedent())
+end
+
 function _print_standard_complex(io::IO, c::AbsHyperComplex)
+  io = IOContext(io, :compact => true)
   if has_lower_bound(c, 1) && has_upper_bound(c, 1)
     lb = lower_bound(c, 1)
     ub = upper_bound(c, 1)
@@ -207,8 +228,8 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
   end
   
   if has_upper_bound(c, 1)
-    ub = lower_bound(c, 1)
-    while !can_compute_index(c, lb)
+    ub = upper_bound(c, 1)
+    while !can_compute_index(c, ub)
       ub = ub-1
     end
     str = "$(c[ub])"
@@ -233,8 +254,16 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
     println(io, str)
     return
   end
+
+  # If no bounds are known, we do not know where to start printing, so we give up.
+  print(io, "hyper complex of dimension $(dim(c)) with no known bounds")
+  return 
 end
  
+function Base.show(io::IO, c::ZeroDimensionalComplex)
+  print(io, "zero-dimensional complex given by $(c[()])")
+end
+
 function Base.show(io::IO, c::SimpleFreeResolution)
   has_upper_bound(c) && return _free_show(io, c)
   return _print_standard_complex(io, c)
@@ -304,3 +333,4 @@ function _free_show(io::IO, C::AbsHyperComplex)
     len = length("$(reverse(rng)[i])")
   end
 end
+

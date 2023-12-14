@@ -6,7 +6,23 @@
   res, aug = free_resolution(Oscar.SimpleFreeResolution, M)
   str1 = "$(res)"
   str2 = "$(Oscar.underlying_complex(res))"
+  str4 = "$(aug)"
 
   t = tensor_product(res, res)
   str3 = "$(t)"
+
+  A, _ = quo(S, ideal(S, z))
+  A1 = FreeMod(A, 1)
+  I, inc = ideal(A, [x, y])*A1
+  M = cokernel(inc)
+  res, aug = free_resolution(Oscar.SimpleFreeResolution, M)
+  str = "$(res)"
+  str = "$(aug)"
+
+  d = hom(res, A1)
+  str = "$(d)"
+  str = "$(Oscar.underlying_complex(d))"
+
+  t = tensor_product(res, res, d)
+  str = "$(t)"
 end
