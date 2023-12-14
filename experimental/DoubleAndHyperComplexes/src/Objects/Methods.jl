@@ -147,3 +147,160 @@ function homology(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType
   c.homology_cache[(i, p)] = pr
   return H, pr
 end
+
+#function Base.show(io::IO, ::MIME"text/plain", c::AbsHyperComplex)
+function Base.show(io::IO, c::AbsHyperComplex)
+  if dim(c) == 1 
+    has_upper_bound(c, 1) && has_lower_bound(c, 1) && return _free_show(io, c)
+    return _print_standard_complex(io, c)
+  end
+  print(io, "hyper complex of dimension $(dim(c))")
+end
+
+function _print_standard_complex(io::IO, c::AbsHyperComplex)
+  if has_lower_bound(c, 1) && has_upper_bound(c, 1)
+    lb = lower_bound(c, 1)
+    ub = upper_bound(c, 1)
+    while !can_compute_index(c, lb)
+      lb = lb+1
+    end
+    str = "$(c[lb])" 
+    for i in lb+1:ub
+      !can_compute_index(c, i) && break
+      if direction(c, 1) == :chain
+        str = str * " <-- " 
+      else
+        str = str * " --> " 
+      end
+      str = str * "$(c[i])"
+    end
+    println(io, str)
+    return
+  end
+
+  if has_lower_bound(c, 1)
+    lb = lower_bound(c, 1)
+    while !can_compute_index(c, lb)
+      lb = lb+1
+    end
+    str = "$(c[lb])"
+    for i in lb+1:lb+3
+      if !can_compute_index(c, (i,))
+        println(io, str)
+        return
+      end
+
+      if direction(c, 1) == :chain
+        str = str * " <-- "
+      else
+        str = str * " --> "
+      end
+      str = str * "$(c[i])"
+    end
+    if direction(c, 1) == :chain
+      str = str * " <-- ..."
+    else
+      str = str * " --> ..."
+    end
+    println(io, str)
+    return
+  end
+  
+  if has_upper_bound(c, 1)
+    ub = lower_bound(c, 1)
+    while !can_compute_index(c, lb)
+      ub = ub-1
+    end
+    str = "$(c[ub])"
+    for i in ub-1:-1:ub-3
+      if !can_compute_index(c, (i,))
+        println(io, str)
+        return
+      end
+
+      if direction(c, 1) == :chain
+        str = " <-- " * str
+      else
+        str = " --> " * str
+      end
+      str = "$(c[i])" * str
+    end
+    if direction(c, 1) == :chain
+      str = "... <-- " * str
+    else
+      str = "... --> " * str
+    end
+    println(io, str)
+    return
+  end
+end
+ 
+function Base.show(io::IO, c::SimpleFreeResolution)
+  has_upper_bound(c) && return _free_show(io, c)
+  return _print_standard_complex(io, c)
+end
+
+function _free_show(io::IO, C::AbsHyperComplex)
+  # copied and adapted from src/Modules/UngradedModules/FreeResolutions.jl
+  Cn = get_attribute(C, :name)
+  if Cn === nothing
+    Cn = "F"
+  end
+
+  name_mod = String[]
+  rank_mod = Int[]
+
+  rng = upper_bound(C, 1):-1:lower_bound(C, 1)
+  arr = ("<--", "--")
+
+  R = Nemo.base_ring(C[first(rng)])
+  R_name = get_attribute(R, :name)
+  if R_name === nothing
+    R_name = AbstractAlgebra.find_name(R)
+    if R_name === nothing
+      R_name = "$R"
+    end
+  end
+ 
+  for i=reverse(rng)
+    M = C[i]
+    if get_attribute(M, :name) !== nothing
+      push!(name_mod, get_attribute(M, :name))
+    elseif AbstractAlgebra.find_name(M) !== nothing
+      push!(name_mod, AbstractAlgebra.find_name(M) )
+    else
+      push!(name_mod, "$R_name^$(rank(M))")
+    end
+    push!(rank_mod, rank(M))
+  end
+
+  io = IOContext(io, :compact => true)
+  if C isa SimpleFreeResolution
+    print(io, "Free resolution")
+    print(io, " of ", C.M)
+  end
+  print(io, "\n")
+
+  pos = 0
+  pos_mod = Int[]
+  
+  for i=1:length(name_mod)
+    print(io, name_mod[i])
+    push!(pos_mod, pos)
+    pos += length(name_mod[i])
+    if i < length(name_mod)
+      print(io, " ", arr[1], arr[2], " ")
+      pos += length(arr[1]) + length(arr[2]) + 2
+    end
+  end
+
+  print(io, "\n")
+  len = 0
+  for i=1:length(name_mod)
+    if i>1
+      print(io, " "^(pos_mod[i] - pos_mod[i-1]-len))
+    end
+    print(io, reverse(rng)[i])
+    len = length("$(reverse(rng)[i])")
+  end
+end
