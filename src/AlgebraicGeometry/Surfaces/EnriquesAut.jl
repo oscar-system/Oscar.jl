@@ -30,7 +30,7 @@ mutable struct EnriquesBorcherdsCtx
   Dplus::fpMatrix
   imgs_mod2::Set{fpMatrix}
   # w.r.t the basis given by Dplus
-  Gplus_bar_res_Dplus::MatrixGroup{fpFieldElem, fpMatrix}
+  Gplus_mat::MatrixGroup{fpFieldElem, fpMatrix}
   function EnriquesBorcherdsCtx()
     return new()
   end
@@ -79,68 +79,56 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   phiSm = hom(OSm, GSm, GSm.(gens(OSm)); check=false)
   DSm = discriminant_group(Sm)
   Dminus = domain(phi)
-  @vprint :K3Auto 2 "computing stabilizer\n"
+  @vprint :K3Auto 2 "computing stabilizer "
   stab_Dminus, inc_stab = stabilizer(GSm, Dminus, Oscar._on_subgroups)
   @vprint :K3Auto 2 "done\n"
   Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
   res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
   res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
-  @vprint :K3Auto 2 "computing kernel\n"
+  @vprint :K3Auto 2 "computing kernel "
   Gminus, inc_Gminus = kernel(inc)
+  @vprintln :K3Auto 2 "done"
   ECtx.orderGbar = order(Gminus)
 
-  #=
-  # slow membership test by explicit lifting
-  # we only care about the images on Dminus ... so take a transversal
-  Gminus_rep = [preimage(phiSm,preimage(inc_stab,preimage(inc2, i))) for i in  inc2(Gminus)[1]]
-  # with respect to the basis of Sm
-  Gminus_repSm = [change_base_ring(ZZ,solve_left(basis_matrix(Sm),basis_matrix(Sm)*f)) for f in Gminus_rep]
-  BSYSm = vcat(basis_matrix(SY), basis_matrix(Sm))
-  inc_SX_SYSm = solve_left(BSYSm, basis_matrix(SX))
+  # compute Gplus
+  Q = orthogonal_submodule(L26,SY)
+  DQ = discriminant_group(Q)
+  glue_SY_Q,inc1,inc2 = glue_map(L26,SY, Q)
+  DO = codomain(glue_SY_Q)
 
-  function membership_test(fS::ZZMatrix)
-    # check if there exists an fSm in Gminus_rep
-    # such that fS+fSm preserves SX
-    B = inc_SX_SYSm
-    Binv = inv(B)
-    for fSm in Gminus_repSm
-      fS_fSm = block_diagonal_matrix(QQMatrix[fS,fSm])
-      t = B*fS_fSm*inv(B)
-      if denominator(t) == 1
-        # @assert B*gram_matrix(SX)*transpose(B) == gram_matrix(SX)
-        return true, fS_fSm
-      end
-    end
-    return false, identity_matrix(QQ, rank(SX))
-  end
-
-  ECtx.membership_test = membership_test
-  =#
   @vprint :K3Auto 2 "preparing membership test\n"
   DSY = discriminant_group(SY)
+  ODSY = orthogonal_group(DSY)
+  tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
+  tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
+  gens_Gplus = [ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
+  Gplus,_ = sub(ODSY, gens_Gplus)
+  @assert order(Gplus) == order(Gminus)
+  # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
+
   Dplus = codomain(phi)
   ODplus = orthogonal_group(Dplus)
-  Gplus_resDplus,_ = sub(ODplus,[ODplus(inv(phi)*hom(inc2(g))*phi) for g in small_generating_set(Gminus)])
+  # turn this into a mod 2 matrix group
+  # with respect to the basis of SY mod 2
+  B = 1//2*basis_matrix(SY)
+  gens_Gplus_mat = fpMatrix[]
+  for g in gens(Gplus)
+    g2 = reduce(vcat,[change_base_ring(GF(2),solve_left(B,matrix(QQ,1,26, lift(g(DSY(vec(B[i,:])))))))  for i in 1:10])
+    push!(gens_Gplus_mat, g2)
+  end
+  Gplus_mat = matrix_group(gens_Gplus_mat)
+  ECtx.Gplus_mat = Gplus_mat
 
-  snf_Dplus,i_snf = snf(Dplus)
+  snf_Dplus, i_snf = snf(Dplus)
   gens_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(i_snf(i)))))) for i in gens(snf_Dplus)]
 
   gens_Dplus = reduce(vcat, gens_Dplus)
   ECtx.Dplus = gens_Dplus
-  # compute Dplus*g in SY/2SY where g is in Gplus
-  # this is kind of the restriction of g to Dplus
-  gens_Gplus_bar_res_Dplus = Vector{fpMatrix}()
-  for g in small_generating_set(Gplus_resDplus)
-    # ugly and inefficient
-    imgs_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(g(i_snf(i))))))) for i in gens(snf_Dplus)]
-    imgs_Dplus = reduce(vcat, imgs_Dplus)
-    f_res = solve_left(gens_Dplus, imgs_Dplus)
-    @assert det(f_res)!=0
-    push!(gens_Gplus_bar_res_Dplus,f_res)
-  end
-  ECtx.Gplus_bar_res_Dplus = matrix_group(gens_Gplus_bar_res_Dplus)
 
-  Dplus_perp, inc_Dplus_perp = orthogonal_submodule(DSY, Dplus)
+
+  Dplus_perp, _ = orthogonal_submodule(DSY, Dplus)
+  Dplus_perp,_ = snf(Dplus_perp)
+
   # needed for hash
   ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2),2*solve_left(basis_matrix(SY),matrix(QQ,1,26,lift(i)))) for i in gens(Dplus_perp)])
 
@@ -166,20 +154,17 @@ function membership_test_as_group(data::EnriquesBorcherdsCtx, f::fpMatrix)
   # test if f lies in Gplus
   # f must
   # act as identity on Dplus^perp
-  data.Dplus_perp*f == data.Dplus_perp || return false
-  # its restriction to Dplus
-  # must lie in in Gplus_res
-  f_res = solve_left(data.Dplus, data.Dplus*f)
-  return f_res in data.Gplus_bar_res_Dplus
+  b =  f in data.Gplus_mat
+  return b
 end
 
 function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
   if isdefined(ECtx,:imgs_mod2)
     return
   end
-  @vprint :K3Auto 2 "computing $(order(ECtx.Gplus_bar_res_Dplus)) images mod 2\n"
+  @vprint :K3Auto 2 "computing $(order(ECtx.Gplus_mat)) images mod 2\n"
   imgs_mod2 = Set{fpMatrix}()
-  for g in ECtx.Gplus_bar_res_Dplus
+  for g in ECtx.Gplus_mat
     h = matrix(g)
     push!(imgs_mod2, h*ECtx.Dplus)
   end
@@ -394,17 +379,25 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
     # we need the orbits of the walls only
     if length(autD) > 1
       # apparently computing the small generating set is very slow
-      autD = [matrix(g) for g in small_generating_set(matrix_group(autD))]
+      autD_grp = matrix_group(autD)
+      @vprint :K3Auto 4 "computing small generating set "
+      autD_mod2 = matrix_group([change_base_ring(GF(2),i) for i in autD])
+      iso = hom(autD_grp, autD_mod2, gens(autD_mod2),check=false)
+      autD = [matrix(preimage(iso,i)) for i in small_generating_set(autD_mod2)]
+      @vprintln :K3Auto 4 "done"
+      # the following was too slow
+      #order(autD_grp)  # somehow computing the order makes it faster
+      #autD = [matrix(g) for g in small_generating_set(autD_grp)]
       for f in autD
         push!(automorphisms, f)
       end
       # compute the orbits
-      @vprint :K3Auto 3 "computing orbits\n"
+      @vprint :K3Auto 3 "computing orbits"
       Omega = [F(v) for v in walls(D)]
       W = gset(matrix_group(autD),Omega)
       vv = F(D.parent_wall)
       wallsDmodAutD = [representative(w).v for w in orbits(W) if !(vv in w)]
-      @vprint :K3Auto 3 "done\n"
+      @vprintln :K3Auto 3 " done"
     else
       # the minus shouldn't be necessary ... but who knows?
       wallsDmodAutD = (v for v in walls(D) if !(v==D.parent_wall || -v==D.parent_wall))
@@ -445,7 +438,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :K3Auto 1 "$(length(automorphisms)) automorphism group generators\n"
   @vprint :K3Auto 1 "$(nchambers) congruence classes of chambers \n"
   @vprint :K3Auto 1 "$(length(rational_curves)) orbits of rational curves\n"
-  @vprint :K3Auto 1 "$mass: $(massY), mass explored: $(mass_explored)"
+  @assert massY == mass_explored
   return data, collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
 
