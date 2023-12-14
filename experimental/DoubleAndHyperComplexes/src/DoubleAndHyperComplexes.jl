@@ -8,6 +8,7 @@ include("Objects/Constructors.jl")
 include("Objects/total_complexes.jl")
 include("Objects/koszul_complexes.jl")
 include("Objects/new_complex_template.jl")
+include("Objects/linear_strands.jl")
 
 include("Morphisms/Types.jl")
 include("Morphisms/cartan_eilenberg_resolutions.jl")
