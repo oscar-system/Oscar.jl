@@ -502,6 +502,9 @@ end
   M, = number_field(t - 1, "b");
   Mx, = polynomial_ring(M, 2);
   primary_decomposition(ideal(Mx, [gen(Mx, 1)]))
+  S, _ = grade(Mx)
+  @test is_graded(Oscar._expand_coefficient_field_to_QQ(S)[1])
+  primary_decomposition(ideal(S, [gen(S, 1)]))
 end
 
 @testset "primary decomposition over NfRelNS" begin
@@ -518,4 +521,8 @@ end
   R, (x, y) = L[:x, :y]
   I = ideal(R, x^2 + y^2)
   @test length(primary_decomposition(I)) == 2
+  S, _ = grade(R)
+  @test is_graded(Oscar._expand_coefficient_field_to_QQ(S)[1])
+  IS = ideal(S, x^2 + y^2)
+  @test length(primary_decomposition(IS)) == 2
 end

@@ -76,7 +76,7 @@ function _expand_coefficient_field(
 end
 
 # Special dispatch for graded rings to preserve gradings
-function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem, <:NfAbsNSElem, <:Hecke.NfRelNSElem}}
   RR = forget_grading(R)
   # We have to do the expansion for RR and then rewrap everything as graded rings/algebras 
   # with appropriate weights
@@ -84,14 +84,15 @@ function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {
   RR_exp, iso, iso_inv = _expand_coefficient_field(RR; rec_depth)
   # RR_exp is now an MPolyQuo because of the modulus given by the minimum polynomial
   PP_exp = base_ring(RR_exp)::MPolyRing
+  r = ngens(PP_exp) - ngens(RR) # The number of variables added for the field extension
   # Grade the new variable with zero since it belongs to the coefficient field really.
-  P_exp, _ = grade(PP_exp, vcat([zero(G)], degree.(gens(R))))
+  P_exp, _ = grade(PP_exp, vcat([zero(G) for i in 1:r], degree.(gens(R))))
   # Add the modulus again
   gr_mod = ideal(P_exp, P_exp.(gens(modulus(RR_exp))))
   R_exp, _ = quo(P_exp, gr_mod)
   iso_gr = hom(R_exp, R, R.(iso.(gens(RR_exp))))
   coeff_map = coefficient_map(iso_inv)
-  @assert coeff_map(one(coefficient_ring(R))) == one(RR_exp)
+  @assert coeff_map(one(coefficient_ring(R))) == one(RR_exp) "coefficient map is incorrect"
   iso_inv_gr = hom(R, R_exp, x->R_exp(lift(coeff_map(x))), R_exp.(lift.(iso_inv.(gens(RR)))))
   return R_exp, iso_gr, iso_inv_gr
 end
