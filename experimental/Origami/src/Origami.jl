@@ -2,7 +2,7 @@
 
 export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
         sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
-        veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections
+        veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections, automorphisms
 
 module OrigamiHelper
 
@@ -129,7 +129,53 @@ function translations(o::Origami)
 end
 
 function is_hyperelliptic(o::Origami)
-    return GAP.Globals.IsHyperelliptic(GapObj(o))
+    # check whether -1 is in the veech group
+	if !veech_group_is_even(o) 
+        return false
+    end
+
+    n = 2
+    n_inv = 1 / 2
+	x = horizontal_perm(o)
+	y = vertical_perm(o)
+	g = genus(o)
+
+    L = point_reflections(o)
+	L = filter(i -> order(i) == 2, L)
+
+	if L == []
+        return false
+    end
+
+    # helper to find all elements in x that are not in y
+    function list_diff(x, y)
+        set_1 = Set(x)
+        set_2 = Set(y)
+        diff = setdiff(set_1, set_2)
+        return collect(diff)
+    end
+
+    degree_list = collect(1:degree(o))
+    for sigma in L
+        # fixpoints
+        b = 0
+        b = b + length(list_diff(degree_list, moved_points(sigma)))
+        b = b + length(list_diff(degree_list, moved_points(sigma*x)))
+        b = b + length(list_diff(degree_list, moved_points(sigma*y)))
+
+        for i in degree_list
+            if i^(sigma * x^-1 * y^-1) == i^(y*x*(x*y)^-1)
+                b = b + 1
+            end
+        end
+
+        # TODO can n_inv yields floating point errors?
+        if n_inv * (g - 1 - b * 0.5) + 1 == 0
+            return true
+        end
+    end
+
+    return false
 end
 
 function cylinder_structure(o::Origami)
@@ -213,14 +259,18 @@ function point_reflections(o::Origami)
     O1 = f1.(G1)
 
     #fitting the permuations together
-    list = []
+    result::Vector{PermGroupElem} = []
+
     l = length(O)
     for i in 1:l
         index = findfirst(item -> item == O[i], O1)
-        push!(list, [G[i], G1[index]])
-        list[i] = list[i][1] * (list[i][2])^-1
+        push!(result, G[i] * (G1[index])^-1)
     end
 
-    return collect(Set(list))
+    # Remove duplicates - TODO better solution?
+    return collect(Set(result))
 end
 
+function automorphisms(o::Origami)
+    return [[translations(o),1], [point_reflections(o),-1]]
+end
