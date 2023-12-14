@@ -29,6 +29,8 @@ mutable struct EnriquesBorcherdsCtx
   Dplus_perp::fpMatrix
   Dplus::fpMatrix
   imgs_mod2::Set{fpMatrix}
+  # w.r.t the basis given by Dplus
+  Gplus_bar_res_Dplus::MatrixGroup{fpFieldElem, fpMatrix}
   function EnriquesBorcherdsCtx()
     return new()
   end
@@ -36,6 +38,11 @@ mutable struct EnriquesBorcherdsCtx
   volume_index::ZZRingElem
   orderGbar::ZZRingElem
 end
+
+function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
+  print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX)).")
+end
+
 
 function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   # X K3 ---> Y Enriques
@@ -109,46 +116,87 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
 
   ECtx.membership_test = membership_test
   =#
-    @vprint :K3Auto 2 "preparing membership test\n"
+  @vprint :K3Auto 2 "preparing membership test\n"
   DSY = discriminant_group(SY)
   Dplus = codomain(phi)
   ODplus = orthogonal_group(Dplus)
   Gplus_resDplus,_ = sub(ODplus,[ODplus(inv(phi)*hom(inc2(g))*phi) for g in small_generating_set(Gminus)])
 
-  gens_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(i))))) for i in gens(Dplus)]
+  snf_Dplus,i_snf = snf(Dplus)
+  gens_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(i_snf(i)))))) for i in gens(snf_Dplus)]
+
   gens_Dplus = reduce(vcat, gens_Dplus)
   ECtx.Dplus = gens_Dplus
   # compute Dplus*g in SY/2SY where g is in Gplus
   # this is kind of the restriction of g to Dplus
-  imgs_mod2 = Set{fpMatrix}()
-  for g in Gplus_resDplus
-    imgs_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(g(i)))))) for i in gens(Dplus)]
+  gens_Gplus_bar_res_Dplus = Vector{fpMatrix}()
+  for g in small_generating_set(Gplus_resDplus)
+    # ugly and inefficient
+    imgs_Dplus = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(g(i_snf(i))))))) for i in gens(snf_Dplus)]
     imgs_Dplus = reduce(vcat, imgs_Dplus)
-    push!(imgs_mod2,imgs_Dplus)
+    f_res = solve_left(gens_Dplus, imgs_Dplus)
+    @assert det(f_res)!=0
+    push!(gens_Gplus_bar_res_Dplus,f_res)
   end
-  ECtx.imgs_mod2 = imgs_mod2
+  ECtx.Gplus_bar_res_Dplus = matrix_group(gens_Gplus_bar_res_Dplus)
 
   Dplus_perp, inc_Dplus_perp = orthogonal_submodule(DSY, Dplus)
-  gens_Dplus_perp = [change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus_perp(i))))) for i in gens(Dplus_perp)]
-  gens_Dplus_perp = reduce(vcat, gens_Dplus_perp)
-
   # needed for hash
   ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2),2*solve_left(basis_matrix(SY),matrix(QQ,1,26,lift(i)))) for i in gens(Dplus_perp)])
 
-  function membership_test(data::EnriquesBorcherdsCtx, f::fpMatrix)
-    # test if f lies in Gplus
-    # f must
-    # act as identity on Dplus^perp
-    data.Dplus_perp*f == data.Dplus_perp || return false
-    # its restriction to Dplus
-    # must lie in in Gplus_res
-    return data.Dplus*f in data.imgs_mod2
-  end
+
   @vprint :K3Auto 2 "done\n"
-  ECtx.membership_test = membership_test
+  ECtx.membership_test = membership_test_as_group
+  upper_bound = mass(ECtx)*length(ECtx.initial_automorphisms)
   return ECtx
 
 end
+
+@doc raw"""
+Let $V_0$ be a complete set of representatives of the $L_{26}|S_Y$ chambers
+making up $Nef(Y)/aut(Y)$. Then the mass is defined as
+$\sum_{D \in V_0} \# Aut_G(D)$.
+It can be computed as $volume_index(D0)/\#\bar G_{X-}$.
+"""
+function mass(ECtx::EnriquesBorcherdsCtx)
+  return volindex(ECtx)[1]//ECtx.orderGbar
+end
+
+function membership_test_as_group(data::EnriquesBorcherdsCtx, f::fpMatrix)
+  # test if f lies in Gplus
+  # f must
+  # act as identity on Dplus^perp
+  data.Dplus_perp*f == data.Dplus_perp || return false
+  # its restriction to Dplus
+  # must lie in in Gplus_res
+  f_res = solve_left(data.Dplus, data.Dplus*f)
+  return f_res in data.Gplus_bar_res_Dplus
+end
+
+function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
+  if isdefined(ECtx,:imgs_mod2)
+    return
+  end
+  @vprint :K3Auto 2 "computing $(order(ECtx.Gplus_bar_res_Dplus)) images mod 2\n"
+  imgs_mod2 = Set{fpMatrix}()
+  for g in ECtx.Gplus_bar_res_Dplus
+    h = matrix(g)
+    push!(imgs_mod2, h*ECtx.Dplus)
+  end
+  ECtx.imgs_mod2 = imgs_mod2
+end
+
+function membership_test_set(data::EnriquesBorcherdsCtx, f::fpMatrix)
+  # test if f lies in Gplus
+  # f must
+  # act as identity on Dplus^perp
+  data.Dplus_perp*f == data.Dplus_perp || return false
+  # its restriction to Dplus
+  # must lie in in Gplus_res
+  f_of_Dplus = data.Dplus*f
+  return f_of_Dplus in data.imgs_mod2
+end
+
 
 gens(L::ZZLat) = [vec(basis_matrix(L)[i,:]) for i in 1:rank(L)]
 basis(L::ZZLat) = gens(L)
@@ -308,7 +356,8 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   automorphisms = Set{ZZMatrix}()
   rational_curves = Set{ZZMatrix}()
 
-
+  massY = mass(data)
+  mass_explored = QQ(0)
   ntry = 0
   nchambers = 0
   while length(waiting_list) > 0
@@ -316,6 +365,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
     if mod(ntry, 5)==0
       @vprint :K3Auto 2 "largest bucket: $(maximum(length(i) for i in values(chambers))) "
       @vprint :K3Auto 1 "buckets: $(length(chambers)) explored: $(nchambers) unexplored: $(length(waiting_list)) gens: $(length(automorphisms)); rat. curv. $(length(rational_curves))\n"
+      @vprint :K3Auto 1 "mass left $(massY - mass_explored)"
     end
     D = popfirst!(waiting_list)
     # check G-congruence
@@ -340,6 +390,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
     nchambers = nchambers+1
 
     autD = aut(D)
+    mass_explored = mass_explored + inv(QQ(length(autD)))
     # we need the orbits of the walls only
     if length(autD) > 1
       # apparently computing the small generating set is very slow
@@ -394,6 +445,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :K3Auto 1 "$(length(automorphisms)) automorphism group generators\n"
   @vprint :K3Auto 1 "$(nchambers) congruence classes of chambers \n"
   @vprint :K3Auto 1 "$(length(rational_curves)) orbits of rational curves\n"
+  @vprint :K3Auto 1 "$mass: $(massY), mass explored: $(mass_explored)"
   return data, collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
 
