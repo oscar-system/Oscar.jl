@@ -51,8 +51,8 @@ function (fac::LinearStrandMapFactory)(self::AbsHyperComplex, p::Int, i::Tuple)
   dom = self[i]
   next = _codomain_index(self, p, i)
   cod = self[next]
-  to_orig_dom = fac.maps_to_orig[i]
-  to_orig_cod = fac.maps_to_orig[next]
+  to_orig_dom = chain_factory(self).maps_to_orig[i]
+  to_orig_cod = chain_factory(self).maps_to_orig[next]
   img_gens = [preimage(to_orig_cod, orig_map(to_orig_dom(v))) for v in gens(dom)]
   return hom(dom, cod, img_gens)
 end
@@ -68,31 +68,7 @@ function can_compute(fac::LinearStrandMapFactory, self::AbsHyperComplex, p::Int,
   return can_compute_map(fac.orig, p, i)
 end
 
-### The concrete struct
-@attributes mutable struct LinearStrandComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
-  internal_complex::HyperComplex{ChainType, MorphismType}
-  original_complex::AbsHyperComplex{ChainType, MorphismType}
+### The concrete struct has been postponed to ../Morphisms/linear_strands.jl
+# due to its dependency on various types of morphisms which are only introduced 
+# later.
 
-  function LinearStrandComplex(
-      orig::AbsHyperComplex{ChainType, MorphismType}
-    ) where {ChainType, MorphismType}
-    chain_fac = LinearStrandChainFactory(orig)
-    map_fac = LinearStrandMapFactory(orig)
-
-    upper_bounds = Union{Nothing, Int}[(has_upper_bound(orig, i) ? upper_bound(orig, i) : nothing) for i in 1:dim(orig)]
-    lower_bounds = Union{Nothing, Int}[(has_lower_bound(orig, i) ? lower_bound(orig, i) : nothing) for i in 1:dim(orig)]
-    internal_complex = HyperComplex(dim(orig), chain_fac, map_fac, 
-                                    [direction(orig, i) for i in 1:dim(orig)], 
-                                    upper_bounds = upper_bounds,
-                                    lower_bounds = lower_bounds
-                                   )
-    return new{ChainType, MorphismType}(internal_complex, orig)
-  end
-end
-
-### Implementing the AbsHyperComplex interface via `underlying_complex`
-underlying_complex(c::LinearStrandComplex) = c.internal_complex
-original_complex(c::LinearStrandComplex) = c.original_complex
-
-linear_strand(C::AbsHyperComplex) = LinearStrandComplex(C)
-#TODO: also construct the maps
