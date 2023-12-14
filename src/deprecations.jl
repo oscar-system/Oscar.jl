@@ -508,3 +508,6 @@ end
 @deprecate normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false) normal_toric_variety(max_cones, rays; non_redundant)
 
 @deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
+
+@deprecate SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}) simplicial_complex(generators)
+@deprecate SimplicialComplex(generators::IncidenceMatrix) simplicial_complex(generators)
