@@ -250,7 +250,14 @@ end
 # Julia functions in both maps
 function compose(F::MPolyAnyMap{D, C, <: Function}, G::MPolyAnyMap{C, E, <: Function}) where {D, C, E}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
-  return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)), check=false)
+  b = coefficient_map(F)(one(coefficient_ring(domain(F))))
+  if parent(b) === domain(G)
+    return hom(domain(F), codomain(G), x -> G(coefficient_map(F)(x)), G.(_images(F)), check=false)
+  elseif parent(b) === coefficient_ring(domain(G))
+    return hom(domain(F), codomain(G), x -> coefficient_map(G)(coefficient_map(F)(x)), G.(_images(F)), check=false)
+  else
+    error("coefficient map is not admissible")
+  end
 end
 
 # Now compose with arbitrary maps

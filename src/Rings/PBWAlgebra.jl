@@ -55,11 +55,7 @@ function is_exact_type(a::Type{U}) where {T, U <: PBWAlgElem{T}}
    return is_exact_type(T)
 end
 
-elem_type(::PBWAlgRing{T, S}) where {T, S} = PBWAlgElem{T, S}
-
 elem_type(::Type{PBWAlgRing{T, S}}) where {T, S} = PBWAlgElem{T, S}
-
-parent_type(::PBWAlgElem{T, S}) where {T, S} = PBWAlgRing{T, S}
 
 parent_type(::Type{PBWAlgElem{T, S}}) where {T, S} = PBWAlgRing{T, S}
 

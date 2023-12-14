@@ -687,6 +687,7 @@ x^5 - x^3 + y^6 + z^6
 
 """
 function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f)), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  isempty(F) && return f
   @assert parent(f) == parent(F[1])
   R = parent(f)
   I = IdealGens(R, [f], ordering)
@@ -696,6 +697,7 @@ function reduce(f::T, F::Vector{T}; ordering::MonomialOrdering = default_orderin
 end
 
 function reduce(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  (isempty(F) || isempty(G)) && return F
   @assert parent(F[1]) == parent(G[1])
   R = parent(F[1])
   I = IdealGens(R, F, ordering)
@@ -756,7 +758,10 @@ julia> U*G == Q*[f1, f2, f3]+H
 true
 ```
 """
-function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f)), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  if isempty(F)
+    return identity_matrix(parent(f), 1), zero_matrix(parent(f), 1, 0), f
+  end
   @assert parent(f) == parent(F[1])
   R = parent(f)
   I = IdealGens(R, [f], ordering)
@@ -766,6 +771,10 @@ function reduce_with_quotients_and_unit(f::T, F::Vector{T}; ordering::MonomialOr
 end
 
 function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  @assert !isempty(F)
+  if isempty(G)
+    return identity_matrix(parent(F[1]), length(F)), zero_matrix(parent(F[1]), length(F), 0), F
+  end
   @assert parent(F[1]) == parent(G[1])
   R = parent(F[1])
   I = IdealGens(R, F, ordering)
@@ -922,7 +931,8 @@ julia> g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
 true
 ```
 """
-function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(f)), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  isempty(F) && return zero_matrix(parent(f), 1, 0), f
   @assert parent(f) == parent(F[1])
   R = parent(f)
   I = IdealGens(R, [f], ordering)
@@ -932,6 +942,8 @@ function reduce_with_quotients(f::T, F::Vector{T}; ordering::MonomialOrdering = 
 end
 
 function reduce_with_quotients(F::Vector{T}, G::Vector{T}; ordering::MonomialOrdering = default_ordering(parent(F[1])), complete_reduction::Bool = false) where {T <: MPolyRingElem}
+  @assert !isempty(F)
+  isempty(G) && return zero_matrix(parent(F[1]), length(F), 0), F
   @assert parent(F[1]) == parent(G[1])
   R = parent(F[1])
   I = IdealGens(R, F, ordering)

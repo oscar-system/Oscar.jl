@@ -48,7 +48,6 @@ include("GModule.jl")
 include("MatrixGroups/matrix.jl")
 
 include("Schemes/Types.jl")
-include("Schemes/SpecialTypes.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
 include("Schemes/ProjectiveModules.jl")
@@ -72,9 +71,15 @@ include("Schemes/MorphismFromRationalFunctions.jl")
 include("Schemes/ToricIdealSheaves/auxiliary.jl")
 include("Schemes/ToricIdealSheaves/constructors.jl")
 
+include("Schemes/ToricDivisors/constructors.jl")
+include("Schemes/ToricDivisors/attributes.jl")
+
+include("Schemes/NormalToricVarieties/attributes.jl")
+
 include("Schemes/ToricBlowups/types.jl")
 include("Schemes/ToricBlowups/constructors.jl")
 include("Schemes/ToricBlowups/attributes.jl")
 include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
+

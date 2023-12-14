@@ -35,7 +35,7 @@ abstract type ProjectivePlaneCurve{S} <: PlaneCurve{S} end
 Return the point with the given coordinates.
 
 # Examples
-```jldoctest
+```julia
 julia> P = Point([QQ(1), QQ(2), QQ(2)])
 Point with coordinates QQFieldElem[1, 2, 2]
 ```
@@ -77,7 +77,7 @@ end
 Return the maximal ideal associated to the point `P` in the ring `R`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -102,7 +102,7 @@ end
 Return the Affine Plane Curve defined by the polynomial in two variables `eq`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -143,7 +143,7 @@ end
 Return the Projective Plane Curve defined by the homogeneous polynomial in three variables `eq`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
@@ -180,7 +180,7 @@ Given a homogeneous polynomial `f` in three variables with coefficients in a fie
 create the projective plane curve defined by `f`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
@@ -272,7 +272,7 @@ end
 Return the Jacobian ideal of the defining polynomial of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -296,7 +296,7 @@ end
 Return a dictionary containing the irreducible components of `C` and their multiplicity.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -328,7 +328,7 @@ end
 Return `true` if `C` is irreducible, and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -358,7 +358,7 @@ end
 Return `true` if `C` is reduced, and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -394,7 +394,7 @@ end
 Return the plane curve defined by the squarefree part of the equation of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -436,7 +436,7 @@ end
 Return the union of `C` and `D` (with multiplicity).
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -461,7 +461,7 @@ Base.union(C::T, D::T) where T <: PlaneCurve = T(C.eq*D.eq)
 Return the coordinate ring of the curve `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
@@ -490,6 +490,7 @@ include("ParaPlaneCurves.jl")
 
 ################################################################################
 end
+#=
 using .PlaneCurveModule
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
@@ -509,3 +510,4 @@ export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
        rat_normal_curve_anticanonical_map, rat_normal_curve_It_Proj_Odd,
        rat_normal_curve_It_Proj_Even, invert_birational_map
 
+=#

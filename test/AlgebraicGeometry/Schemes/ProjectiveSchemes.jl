@@ -342,3 +342,11 @@ end
   K = kernel(phi)
   @test K == I + ideal(S, S[1]*S[2] - S[3]^2)
 end
+
+@testset "empty charts" begin
+  P = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P)
+  X = subscheme(P, S[2])
+  Y = covered_scheme(X)
+  @test length(affine_charts(Y)) == 2
+end

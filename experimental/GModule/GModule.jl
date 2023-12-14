@@ -271,7 +271,7 @@ function trivial_gmodule(G::Oscar.GAPGroup, M::Union{GrpAbFinGen, AbstractAlgebr
 end
 
 function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{nf_elem}})
-  k, mk = Hecke.subfield(base_ring(M), vec(collect(vcat(map(matrix, M.ac)...))))
+  k, mk = Hecke.subfield(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
   if k != base_ring(M)
     F = free_module(k, dim(M))
     return gmodule(group(M), [hom(F, F, map_entries(pseudo_inv(mk), matrix(x))) for x = M.ac])
@@ -1287,7 +1287,7 @@ end
 function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}}
 
   h = hom_base(gmodule(QQ, C), gmodule(QQ, D))
-  H = vcat([integral_split(matrix(QQ, 1, dim(C)^2, vec(collect(x))), ZZ)[1] for x = h]...)
+  H = reduce(vcat, [integral_split(matrix(QQ, 1, dim(C)^2, vec(collect(x))), ZZ)[1] for x = h])
   H = Hecke.saturate(H)
   return [matrix(ZZ, dim(C), dim(C), vec(collect(H[i, :]))) for i=1:nrows(H)]
 end
@@ -1332,7 +1332,7 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(vcat([matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h]...)))
+  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 

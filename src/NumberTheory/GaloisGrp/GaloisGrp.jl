@@ -96,8 +96,6 @@ Oscar.parent(a::BoundRingElem) = a.p
 value(a::BoundRingElem) = a.val
 Base.isless(a::BoundRingElem, b::BoundRingElem) = check_parent(a, b) && isless(value(a), value(b))
 
-Oscar.parent_type(::BoundRingElem{T}) where T = BoundRing{T}
-Oscar.elem_type(::BoundRing{T}) where T = BoundRingElem{T}
 Oscar.parent_type(::Type{BoundRingElem{T}}) where T = BoundRing{T}
 Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
@@ -2314,8 +2312,8 @@ extension.
 """
 function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   G = GC.G
-  if index(G, U) == 1 # not type stable
-    return QQ
+  if index(G, U) == 1
+    return Hecke.rationals_as_number_field()[1]
   end
   #XXX: seems to be broken for reducible f, ie. intransitive groups
   a, T = relative_invariant(G, U)

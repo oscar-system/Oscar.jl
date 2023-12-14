@@ -333,7 +333,7 @@ false
   G = grading_group(R)
   is_free(G) || return false
   if ngens(G) == rank(G)
-    W = vcat([x.coeff for x = R.d])
+    W = reduce(vcat, [x.coeff for x = R.d])
     if is_positive_grading_matrix(transpose(W))
        return true
     end
@@ -562,7 +562,6 @@ parent(a::MPolyDecRingElem{T, S}) where {T, S} = a.parent::MPolyDecRing{T, paren
 Nemo.symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
 Nemo.nvars(R::MPolyDecRing) = nvars(forget_decoration(R))
 
-elem_type(::MPolyDecRing{T, S}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 elem_type(::Type{MPolyDecRing{T, S}}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, parent_type(S)}
 
@@ -1003,7 +1002,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   # First assemble the homogeneous components into the build contexts.
   # Afterwards compute the polynomials.
   hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
-  dmat = vcat([d[i].coeff for i in 1:length(d)])
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
   for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
@@ -1203,7 +1202,7 @@ function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
      #need the positive elements in there...
      #Ax = b, Cx >= 0
      C = identity_matrix(FlintZZ, ngens(W))
-     A = vcat([x.coeff for x = W.d])
+     A = reduce(vcat, [x.coeff for x = W.d])
      k = solve_mixed(transpose(A), transpose(d.coeff), C)    
      for ee = 1:nrows(k)
        e = k[ee, :]
@@ -1912,7 +1911,7 @@ function homogenization(I::MPolyIdeal{T}, W::Union{ZZMatrix, Matrix{<:IntegerUni
   N = ngens(Ph)
   num_x = ngens(P)
   num_h = ngens(Ph) - num_x
-  # Build ordering matrix: weights matrix followed by identity mat, underneath is a revlex matrix
+  # Build ordering matrix: weights matrix followed by identity mat, underneath is a invlex matrix
   Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:num_h]  for j in 1:num_h])
   RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+ngens(Ph))  for i in 1:ngens(Ph)]  for j in 1:ngens(Ph)])
   M = hcat(W, Id)
@@ -2315,10 +2314,7 @@ Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 
-### This is a temporary fix that needs to be addressed in AbstractAlgebra, issue #1105.
-# TODO: This still seems to be not resolved!!!
-Generic.ordering(S::MPolyDecRing) = :degrevlex
-
+Generic.ordering(S::MPolyDecRing) = ordering(S.R)
 
 #############truncation#############
 

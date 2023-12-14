@@ -134,7 +134,7 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
      ],
      "CommutativeAlgebra/homological_algebra.md",
-     
+
      "Gröbner/Standard Bases" => [
         "CommutativeAlgebra/GroebnerBases/orderings.md",
         "CommutativeAlgebra/GroebnerBases/groebner_bases.md",
@@ -168,6 +168,9 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
      ],
+     "Sheaf Cohomology" => [
+        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
+     ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
         "AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet.md",
@@ -196,12 +199,10 @@
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
         "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
      ],
-     "Tropical Geometry" => [
-        "AlgebraicGeometry/TropicalGeometry/intro.md",
-        "AlgebraicGeometry/TropicalGeometry/curve.md",
-     ],
      "Curves" => [
-         "AlgebraicGeometry/Curves/para_rational_curves.md",
+         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
+         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
+         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
@@ -237,6 +238,19 @@
       "StraightLinePrograms/gapslps.md",
       "StraightLinePrograms/abstractalgebra.md",
    ],
+
+
+  "Tropical Geometry" => [
+     "TropicalGeometry/intro.md",
+     "TropicalGeometry/semiring.md",
+     "TropicalGeometry/semiring_map.md",
+     "TropicalGeometry/variety.md",
+     "TropicalGeometry/hypersurface.md",
+     "TropicalGeometry/curve.md",
+     "TropicalGeometry/linear_space.md",
+     "TropicalGeometry/groebner_theory.md",
+     "TropicalGeometry/tropicalization.md",
+  ],
 
 
   "References" => "references.md",

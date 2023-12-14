@@ -97,7 +97,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       dict_type = "PolyRing"
     end
 
-    U = decode_type(dict_type)
+    U = reverse_type_map[dict_type]
 
     # Upgrades basic types
     if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, Nemo.zzModRing}
