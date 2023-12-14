@@ -8,6 +8,13 @@
   str2 = "$(Oscar.underlying_complex(res))"
   str4 = "$(aug)"
 
+  strand, inc = Oscar.linear_strand(res)
+  "$(strand)"
+  "$(inc)"
+  q, pr = cokernel(inc)
+  "$(q)"
+  "$(pr)"
+
   t = tensor_product(res, res)
   str3 = "$(t)"
 
@@ -25,4 +32,5 @@
 
   t = tensor_product(res, res, d)
   str = "$(t)"
+
 end

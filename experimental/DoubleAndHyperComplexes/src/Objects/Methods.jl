@@ -153,12 +153,12 @@ function Base.show(io::IO, c::AbsHyperComplex)
   if dim(c) == 1 
     return _print_standard_complex(io, c)
   end
-  print(io, "hyper complex of dimension $(dim(c))")
+  print(io, "Hyper complex of dimension $(dim(c))")
 end
 
 function Base.show(io::IO, c::HomComplex)
   io = pretty(io)
-  println(io, "hom complex from")
+  println(io, "Hom complex from")
   print(io, Indent())
   print(io, "$(domain(c))")
   println(io, Dedent())
@@ -169,12 +169,28 @@ end
 
 function Base.show(io::IO, c::HCTensorProductComplex)
   io = pretty(io)
-  println(io, "tensor product of the complexes")
+  println(io, "Tensor product of the complexes")
   print(io, Indent())
   for a in factors(c)
     println(io, "$(a)")
   end
   print(io, Dedent())
+end
+
+function Base.show(io::IO, c::LinearStrandComplex)
+  io = pretty(io)
+  io = IOContext(io, :compact => true)
+  println(io, "Linear strand of")
+  println(io, Indent(), "$(original_complex(c))")
+  print(io, Dedent(), "of degree $(degree(c))")
+end
+
+function Base.show(io::IO, c::LinearStrandComplementComplex)
+  io = pretty(io)
+  io = IOContext(io, :compact => true)
+  println(io, "Quotient of")
+  println(io, Indent(), "$(original_complex(c))")
+  print(io, Dedent(), "by its linear strand of degree $(degree(original_strand(c)))")
 end
 
 function _print_standard_complex(io::IO, c::AbsHyperComplex)
@@ -256,12 +272,12 @@ function _print_standard_complex(io::IO, c::AbsHyperComplex)
   end
 
   # If no bounds are known, we do not know where to start printing, so we give up.
-  print(io, "hyper complex of dimension $(dim(c)) with no known bounds")
+  print(io, "Hyper complex of dimension $(dim(c)) with no known bounds")
   return 
 end
  
 function Base.show(io::IO, c::ZeroDimensionalComplex)
-  print(io, "zero-dimensional complex given by $(c[()])")
+  print(io, "Zero-dimensional complex given by $(c[()])")
 end
 
 function Base.show(io::IO, c::SimpleFreeResolution)
