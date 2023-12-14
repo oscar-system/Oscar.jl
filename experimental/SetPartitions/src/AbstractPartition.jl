@@ -24,3 +24,15 @@ end
 function adjoint(p::AbstractPartition)
     return involution(p)
 end
+
+function num_upper_points(p::AbstractPartition)
+	return length(upper_points(p))
+end
+
+function num_lower_points(p::AbstractPartition)
+	return length(lower_points(p))
+end
+
+function size(p::AbstractPartition)
+    return num_upper_points(p) + num_lower_points(p)
+end

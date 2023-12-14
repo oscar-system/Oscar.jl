@@ -39,6 +39,14 @@ function copy(p::SetPartition)
     return SetPartition(copy(p.upper_points), copy(p.lower_points))
 end
 
+function upper_points(p::SetPartition)
+    return p.upper_points
+end
+
+function lower_points(p::SetPartition)
+    return p.lower_points
+end
+
 """
     tensor_product(p::SetPartition, q::SetPartition)
 
@@ -157,6 +165,10 @@ function rotation(p::SetPartition, lr::Bool, tb::Bool)
     end
     
     return SetPartition(ret[1], ret[2])
+end
+
+function is_composable(p::SetPartition, q::SetPartition)
+    return num_upper_points(p) == num_lower_points(q)
 end
 
 """

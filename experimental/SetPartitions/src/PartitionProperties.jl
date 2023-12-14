@@ -1,44 +1,3 @@
-function size(p::SetPartition)
-    return length(p.lower_points) + length(p.upper_points)
-end
-
-function is_composable(p::SetPartition, q::SetPartition)
-    return length(p.upper_points) == length(q.lower_points)
-end
-
-function upper_points(p::SetPartition)
-    return p.upper_points
-end
-
-function lower_points(p::SetPartition)
-    return p.lower_points
-end
-
-function size(p::ColoredPartition)
-    return size(p.partition)
-end
-
-function is_composable(p::ColoredPartition, q::ColoredPartition)
-    return p.color_upper_points == q.color_lower_points && 
-        is_composable(p.partition, q.partition)
-end
-
-function upper_points(p::ColoredPartition)
-    return p.partition.upper_points
-end
-
-function lower_points(p::ColoredPartition)
-    return p.partition.lower_points
-end
-
-function size(p::SpatialPartition)
-    return size(p.partition)
-end
-
-function is_composable(p::SpatialPartition, q::SpatialPartition)
-    return p.dimension == q.dimension && is_composable(p.partition, q.partition)
-end
-
 """
     is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
 
@@ -52,13 +11,6 @@ function is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_le
         length(lower_points(p)) + length(upper_points(q)) <= max_length
 end
 
-function upper_points(p::SpatialPartition)
-    return p.partition.upper_points
-end
-
-function lower_points(p::SpatialPartition)
-    return p.partition.lower_points
-end
 
 """
     is_pair(p::AbstractPartition)

@@ -24,8 +24,14 @@ export construct_category
 export is_balanced
 export is_noncrossing
 export is_pair
+export lower_colors
+export lower_points
+export num_lower_points
+export num_upper_points
 export print_trace
 export rotation
+export upper_colors
+export upper_points
 export vertical_reflection
 
 
@@ -50,6 +56,12 @@ export construct_category
 export is_balanced
 export is_noncrossing
 export is_pair
+export lower_colors
+export lower_points
+export num_lower_points
+export num_upper_points
 export print_trace
 export rotation
+export upper_colors
+export upper_points
 export vertical_reflection

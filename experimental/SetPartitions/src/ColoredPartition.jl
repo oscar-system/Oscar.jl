@@ -19,7 +19,6 @@ function colored_partition(
     color_lower::Vector{Int})
 
     return ColoredPartition(partition, color_upper, color_lower)
-
 end
 
 function hash(p::ColoredPartition, h::UInt)
@@ -40,6 +39,23 @@ function copy(p::ColoredPartition)
     return ColoredPartition(copy(p.partition), 
         copy(p.color_upper_points), 
         copy(p.color_lower_points))
+end
+
+
+function upper_points(p::ColoredPartition)
+    return upper_points(p.partition)
+end
+
+function lower_points(p::ColoredPartition)
+    return lower_points(p.partition)
+end
+
+function upper_colors(p::ColoredPartition)
+    return p.upper_colors
+end
+
+function lower_colors(p::ColoredPartition)
+    return p.lower_colors
 end
 
 
@@ -65,6 +81,11 @@ function involution(p::ColoredPartition)
     return ColoredPartition(involution(p.partition), 
         p.color_lower_points, p.color_upper_points)
 
+end
+
+function is_composable(p::ColoredPartition, q::ColoredPartition)
+    return p.color_upper_points == q.color_lower_points && 
+        is_composable(p.partition, q.partition)
 end
 
 """

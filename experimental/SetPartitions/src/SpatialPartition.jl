@@ -29,6 +29,15 @@ function copy(p::SpatialPartition)
     return SpatialPartition(copy(p.partition), copy(p.dimension))
 end
 
+
+function upper_points(p::SpatialPartition)
+    return upper_points(p.partition)
+end
+
+function lower_points(p::SpatialPartition)
+    return lower_points(p.partition)
+end
+
 """
     tensor_product(p::SpatialPartition, q::SpatialPartition)
 
@@ -49,6 +58,10 @@ Return the involution of `p`.
 """
 function involution(p::SpatialPartition)
     return SpatialPartition(involution(p.partition), p.dimension)
+end
+
+function is_composable(p::SpatialPartition, q::SpatialPartition)
+    return p.dimension == q.dimension && is_composable(p.partition, q.partition)
 end
 
 """
