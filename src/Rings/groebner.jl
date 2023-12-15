@@ -1006,20 +1006,18 @@ julia> A = [-1+c+b+a^3, -1+b+c*a+2*a^3, 5+c*b+c^2*a]
 
 julia> Oscar._normal_form_f4(A, J)
 3-element Vector{fpMPolyRingElem}:
- a^3 + c + 65520
- 2*a^3 + 65520
+ a^3
+ 2*a^3 + 2*a + 65519*c
  65519*c^2 + 4*a + 65520*c + 5
 ```
 """
 function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem }
   if !haskey(J.gb, degrevlex(base_ring(J)))
-    println("1")
     groebner_basis_f4(J, complete_reduction = true)
   end
 
   AJ = AlgebraicSolving.Ideal(J.gens.O)
   AJ.gb[0] = J.gb[degrevlex(base_ring(J))].gens.O
-    println("2")
   
   return AlgebraicSolving.normal_form(A, AJ)
 end
