@@ -1,7 +1,9 @@
 # see https://arxiv.org/pdf/1809.10327.pdf Lemma 5.4
 
 function action_s(o::Origami)
-    return origami_disconnected(vertical_perm(o)^-1, horizontal_perm(o), degree(o))
+    h = horizontal_perm(o)
+    v = vertical_perm(o)
+    return origami_disconnected(v^-1, h, degree(o))
 end
 
 function action_t(o::Origami)
@@ -11,11 +13,14 @@ end
 
 function action_t_inv(o::Origami)
     h = horizontal_perm(o)
-    return origami_disconnected(h, h * vertical_perm(o), degree(o))
+    v = vertical_perm(o)
+    return origami_disconnected(h, h * v, degree(o))
 end
 
 function action_s_inv(o::Origami)
-    return origami_disconnected(vertical_perm(o), horizontal_perm(o)^-1, degree(o))
+    h = horizontal_perm(o)
+    v = vertical_perm(o)
+    return origami_disconnected(v, h^-1, degree(o))
 end
 
 function action_sl2(A::ZZMatrix, o::Origami)
@@ -25,10 +30,12 @@ function action_sl2(A::ZZMatrix, o::Origami)
         throw("Matrix has to be an element of SL2(Z)!")
     end
 
-    # TODO implement this in Oscar when implementing the modular subgroup package
+    # TODO implement this in Oscar when implementing the modular subgroup pkg
     # because this is really slow and ugly
     gap_origami = GAP.Globals.ActionOfSL2(GAP.julia_to_gap(A), GapObj(o))
-    h = perm((i-> Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(GAP.Globals.HorizontalPerm(gap_origami)))))
-    v = perm((i->Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(GAP.Globals.VerticalPerm(gap_origami)))))
+    gap_h = GAP.Globals.HorizontalPerm(gap_origami)
+    gap_v = GAP.Globals.VerticalPerm(gap_origami)
+    h = perm((i-> Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(gap_h))))
+    v = perm((i->Integer(i)).(GAP.gap_to_julia(GAP.Globals.ListPerm(gap_v))))
     return origami_disconnected(h, v, degree(o))
 end
