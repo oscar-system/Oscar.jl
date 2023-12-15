@@ -21,11 +21,12 @@ function deck_group(o::Origami)
             v = vertical_perm(origami)
             for i in sheets_to_visit
                 for tau in [h, v]
-                    position_iterator = searchsorted(sheets_to_visit, i^(tau^-1))
-                    if first(position_iterator) > last(position_iterator)
+                    pos_iterator = searchsorted(sheets_to_visit, i^(tau^-1))
+                    if first(pos_iterator) > last(pos_iterator)
                         found_predecessor = true
                         sigma[i] = sigma[i^(tau^-1)]^tau
-                        deleteat!(sheets_to_visit, findfirst(item -> item == i, sheets_to_visit))
+                        deleteat!(sheets_to_visit, findfirst(item -> item == i,
+                                                            sheets_to_visit))
                         break;
                     end
                 end
@@ -41,7 +42,7 @@ function deck_group(o::Origami)
     degree_list = collect(1:degree(o))
     for i in degree_list
         candidate = candidate_for_deck(o, i)
-        if (GapObj(candidate) != GAP.Globals.fail) && in_deck_group(o, candidate)
+        if GapObj(candidate) != GAP.Globals.fail && in_deck_group(o, candidate)
             push!(deck, candidate)
         end
     end

@@ -9,7 +9,7 @@ function normal_form(o::Origami)
     end
 
     # Find points which minimize the lengths of the cycles in which they occur.
-    # In most cases, this greatly reduces the number of breadths-first searches below.
+    # This can greatly reduce the number of breadths-first searches below.
     minimal_cycle_lengths = [n, n]
     minimize_cycle_lengths = []
     degree_list = collect(1:n)

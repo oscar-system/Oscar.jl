@@ -6,8 +6,10 @@ module OrigamiHelper
 using ..GAP
 
 function __init__()
-    GAP.Packages.install("https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g")
-    GAP.Packages.install("https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g")
+    mod_p = "https://ag-weitze-schmithusen.github.io/ModularGroup/PackageInfo.g"
+    ori_p = "https://ag-weitze-schmithusen.github.io/Origami/PackageInfo.g"
+    GAP.Packages.install(mod_p)
+    GAP.Packages.install(ori_p)
     GAP.Packages.load("Origami")
 end
 
@@ -17,6 +19,7 @@ include("types.jl")
 include("canonical.jl")
 include("deck_group.jl")
 include("action.jl")
+include("special_origigami.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -37,11 +40,13 @@ Origami ((1,2),(1,2))
 """
 function origami(h::PermGroupElem, v::PermGroupElem)
     deg = max(degree(h), degree(v))
-    # TODO check for transitivity? GAP already does this
-    perm_group = permutation_group(deg, [h, v])
-    if transitivity(perm_group) > 0
-        return Origami(GAP.Globals.Origami(GapObj(h), GapObj(v)), h, v, deg)
-    end
+    return Origami(GAP.Globals.Origami(GapObj(h), GapObj(v)), h, v, deg)
+    # TODO check for transitivity? GAP already does this and this was so slow
+    # for huge origamis
+    #perm_group = permutation_group(deg, [h, v])
+    #if transitivity(perm_group) > 0
+        
+    #end
 end
 
 function origami_disconnected(h::PermGroupElem, v::PermGroupElem, d::Integer)
@@ -66,7 +71,10 @@ function degree(o::Origami)
 end
 
 function Base.show(io::IO, o::Origami)
-    print(io, "Origami ($(horizontal_perm(o)),$(vertical_perm(o)), $(degree(o)))")
+    h = horizontal_perm(o)
+    v = vertical_perm(o)
+    d = degree(o)
+    print(io, "Origami ($(h),$(v), $(d))")
 end
 
 GapObj(O::Origami) = O.o
@@ -211,8 +219,8 @@ function normalform_conjugators(o::Origami)
 	# and list the vertices in the order they appear.
 	# This defines a permutation l with which we conjugate x and y.
 	# From the resulting list of pairs of permutations (all of which are by
-	# definition simultaneously conjugated to (x,y)) we choose the lexicographically
-	# smallest one as the canonical form.
+	# definition simultaneously conjugated to (x,y)) we choose the
+	# lexicographically smallest one as the canonical form.
     for i in 1:n
         L = fill(0, n)
         seen = fill(false, n)
@@ -261,7 +269,8 @@ function point_reflections(o::Origami)
 
     # origamis derived from the permutations above
     O = f.(G)
-    # we need to calculate these to test find k s.t. sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
+    # we need to calculate these to test find k s.t.
+    # sigma_i *origami *sigma_i^-1=delta_k(i)*origami_1*delta_k(i)^-1
     O1 = f1.(G1)
 
     # fitting the permuations together
@@ -281,7 +290,10 @@ function automorphisms(o::Origami)
     return [[translations(o),1], [point_reflections(o),-1]]
 end
 
-export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
-        sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
-        veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections, automorphisms, in_deck_group,
-        deck_group, is_normal, origami_disconnected, action_s, action_t, action_s_inv, action_t_inv, action_sl2
+export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
+        index_monodromy_group, sum_of_lyapunov_exponents, translations,
+        is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
+        veech_group_is_even, are_equivalent, normalform_conjugators,
+        point_reflections, automorphisms, in_deck_group, deck_group, is_normal,
+        origami_disconnected, action_s, action_t, action_s_inv, action_t_inv,
+        action_sl2, random_origami, staircase_origami
