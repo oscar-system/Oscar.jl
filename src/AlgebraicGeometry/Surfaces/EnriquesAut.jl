@@ -258,7 +258,8 @@ end
 # inv(g)*h in G => fingerprint(g) == fingerprint(h)
 # So far no good idea?
 function fingerprint(D::EnriquesChamber)
-  fp = rref(D.data.Dplus_perp*change_base_ring(GF(2),inv(D.tau)))[2]
+  return 0
+  fp = rref(D.data.Dplus_perp*change_base_ring(GF(2),D.tau))[2]
   return fp
 end
 
@@ -394,7 +395,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
       end
       Dv = adjacent_chamber(D, v)
       # check G-congruence
-      @vprint :K3Auto 3 "checking G-congruence "
+      @vprint :K3Auto 5 "checking G-congruence "
       fp = hash(fingerprint(Dv))
       if !haskey(chambers, fp)
         chambers[fp] = EnriquesChamber[]
@@ -409,7 +410,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
           break
         end
       end
-      @vprintln :K3Auto 3 "done"
+      @vprintln :K3Auto 5 "done"
       if is_explored
         continue
       end
