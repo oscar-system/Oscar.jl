@@ -14,7 +14,9 @@ end
 end
 
 include("types.jl")
+include("canonical.jl")
 include("deck_group.jl")
+include("action.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -40,6 +42,10 @@ function origami(h::PermGroupElem, v::PermGroupElem)
     if transitivity(perm_group) > 0
         return Origami(GAP.Globals.Origami(GapObj(h), GapObj(v)), h, v, deg)
     end
+end
+
+function origami_disconnected(h::PermGroupElem, v::PermGroupElem, d::Integer)
+    return Origami(GAP.Globals.OrigamiNC(GapObj(h), GapObj(v), d), h, v, d)
 end
 
 function Base.:(==)(a::Origami, b::Origami)
@@ -194,6 +200,7 @@ function are_equivalent(o1::Origami, o2::Origami)
     return GAP.Globals.OrigamisEquivalent(GapObj(o1), GapObj(o2))
 end
 
+# TODO why is this not in canonical.jl?
 function normalform_conjugators(o::Origami)
     x = horizontal_perm(o)
     y = vertical_perm(o)
@@ -232,6 +239,7 @@ function normalform_conjugators(o::Origami)
         end
         push!(G, L)
     end
+
     return perm.(G)
 end
 
@@ -276,4 +284,4 @@ end
 export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum, index_monodromy_group,
         sum_of_lyapunov_exponents, translations, is_hyperelliptic, cylinder_structure, veech_group_and_orbit,
         veech_group_is_even, are_equivalent, normalform_conjugators, point_reflections, automorphisms, in_deck_group,
-        deck_group, is_normal
+        deck_group, is_normal, origami_disconnected, action_s, action_t, action_s_inv, action_t_inv, action_sl2
