@@ -1,11 +1,11 @@
 struct SimplifiedChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
-  orig::AbsSimpleComplex
+  orig::AbsHyperComplex
 
   base_change_cache::Dict{Int, Tuple{<:SMat, <:SMat, <:SMat, <:SMat, Vector{Tuple{Int, Int}}}}
   maps_to_original::Dict{Int, <:Map}
   maps_from_original::Dict{Int, <:Map}
 
-  function SimplifiedChainFactory(orig::AbsSimpleComplex{ChainType}) where {ChainType}
+  function SimplifiedChainFactory(orig::AbsHyperComplex{ChainType}) where {ChainType}
     d = Dict{Int, Tuple{SMat, SMat}}()
     out_maps = Dict{Int, Map}()
     in_maps = Dict{Int, Map}()
@@ -267,9 +267,9 @@ original_complex(fac::SimplifiedChainFactory) = fac.orig
 ### Simplified maps 
 
 struct SimplifiedMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
-  orig::AbsSimpleComplex
+  orig::AbsHyperComplex
 
-  function SimplifiedMapFactory(orig::AbsSimpleComplex{<:Any, MorphismType}) where {MorphismType}
+  function SimplifiedMapFactory(orig::AbsHyperComplex{<:Any, MorphismType}) where {MorphismType}
     return new{MorphismType}(orig)
   end
 end
@@ -321,7 +321,8 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
 end
 
 
-function simplify(c::AbsSimpleComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
+function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
+  @assert dim(c) == 1 "complex must be of dimension one"
   chain_fac = SimplifiedChainFactory(c)
   mor_fac = SimplifiedMapFactory(c)
   upper_bounds = [has_upper_bound(c) ? upper_bound(c) : nothing]
