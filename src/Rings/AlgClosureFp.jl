@@ -44,7 +44,7 @@ end
 elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
 parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
 
-Oscar.canonical_unit(a::AlgClosureElem) = a
+Oscar.canonical_unit(a::AlgClosureElem) = is_zero(a) ? one(a) : a
 
 function show(io::IO, a::AlgClosureElem)
   print(io, data(a))
