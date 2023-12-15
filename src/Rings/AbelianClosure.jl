@@ -21,6 +21,10 @@
 # as a primitive n-th root. to change between these two options, use
 # PCharSaturateAll with allroots or allrootsNew (change this in the code)
 
+abstract type CyclotomicField end
+
+export CyclotomicField
+
 module AbelianClosure 
 
 using ..Oscar

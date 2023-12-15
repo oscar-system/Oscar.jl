@@ -60,8 +60,8 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
   fiber_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_ambient_space)))
   
   # Compute the u-matrix
-  base_weights = transpose(vcat([elem.coeff for elem in cox_ring(base).d]))
-  m1 = transpose(vcat([divisor_class(D1).coeff, divisor_class(D2).coeff]))
+  base_weights = transpose(reduce(vcat, [elem.coeff for elem in cox_ring(base).d]))
+  m1 = transpose(reduce(vcat, [divisor_class(D1).coeff, divisor_class(D2).coeff]))
   m2 = fiber_rays[1:2,:]
   u_matrix = solve(base_weights,(-1)*m1*m2)
   
@@ -69,7 +69,7 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
   new_base_rays = hcat(base_rays, u_matrix)
   new_fiber_rays = hcat(zero_matrix(ZZ, nrows(fiber_rays), ncols(base_rays)), fiber_rays)
   ambient_space_rays = vcat(new_base_rays, new_fiber_rays)
-  ambient_space_rays = vcat([[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)]...)
+  ambient_space_rays = reduce(vcat, [[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)])
   
   # Construct the incidence matrix for the maximal cones of the ambient space
   ambient_space_max_cones = []
@@ -94,7 +94,7 @@ function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalTor
       ambient_space_grading[i,j] = base_weights[j,i]
     end
   end
-  fiber_weights = transpose(vcat([elem.coeff for elem in cox_ring(fiber_ambient_space).d]))
+  fiber_weights = transpose(reduce(vcat, [elem.coeff for elem in cox_ring(fiber_ambient_space).d]))
   for i in 1:ncols(fiber_weights)
     for j in 1:nrows(fiber_weights)
       ambient_space_grading[i + nrows(base_rays),j + nrows(base_weights)] = fiber_weights[j,i]
@@ -348,36 +348,9 @@ end
 _blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri::T, lin::T; index::Integer = 1) where {T<:MPolyIdeal{<:MPolyRingElem}} = _blowup_global_sequence(ideal(map(g -> g.f, gens(id))), centers, ideal(map(g -> g.f, gens(irr))), ideal(map(g -> g.f, gens(sri))), lin, index = index)
 
 
-###########################################################################
-# 9: Constructing a toric sample for models over not-fully specified spaces
-###########################################################################
-
-function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
-  base_space = _auxiliary_base_space(base_vars, base_grading, d)
-  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-  D1 = [0 for i in 1:rank(class_group(base_space))]
-  D1[1] = 2
-  D1 = toric_divisor_class(base_space, D1)
-  D2 = [0 for i in 1:rank(class_group(base_space))]
-  D2[1] = 3
-  D2 = toric_divisor_class(base_space, D2)
-  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1, D2)
-  return [cox_ring(base_space), base_space, ambient_space]
-end
-
-
-function _construct_toric_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
-  base_space = _auxiliary_base_space(base_vars, base_grading, d)
-  D1_class = toric_divisor_class(base_space, D1)
-  D2_class = toric_divisor_class(base_space, D2)
-  ambient_space = _ambient_space(base_space, fiber_ambient_space, D1_class, D2_class)
-  return [cox_ring(ambient_space), base_space, ambient_space]
-end
-
 
 ###########################################################################
-# 10: Constructing a generic sample for models over not-fully specified spaces
+# 9: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
@@ -404,7 +377,7 @@ function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vecto
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
-  w = Matrix{Int64}(vcat([k.coeff for k in cox_ring(fiber_ambient_space).d]))
+  w = Matrix{Int64}(reduce(vcat, [k.coeff for k in cox_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
   D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
   ambient_space_grading = [base_grading D_block; z_block w']

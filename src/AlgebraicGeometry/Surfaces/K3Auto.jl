@@ -631,7 +631,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   S = QQMatrix[]
   h = change_base_ring(QQ, h)
   rho = abs(d)*ch^-1
-  t,sqrtho = issquare_with_sqrt(rho)
+  t,sqrtho = is_square_with_sqrt(rho)
   if t
     r = sqrtho*h
     if denominator(r)==1 && (r*gram*transpose(h))[1,1]>0 && (r*gram*transpose(v))[1,1] < 0
@@ -641,7 +641,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   for (x,_) in short_vectors_iterator(LQ,  abs(d*denominator(Q)))
     rp = matrix(ZZ, 1, nrows(Q), x)*bW
     rho = abs(d - (rp*gram*transpose(rp))[1,1])*ch^-1
-    t,rho = issquare_with_sqrt(rho)
+    t,rho = is_square_with_sqrt(rho)
     if !t
       continue
     end

@@ -4,7 +4,7 @@
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T} end
+abstract type ModuleFP{T} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}

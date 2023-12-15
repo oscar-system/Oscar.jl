@@ -77,7 +77,7 @@ Map
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
-      m = vcat([Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
+      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))

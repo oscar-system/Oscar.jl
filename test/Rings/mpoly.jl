@@ -106,8 +106,12 @@ end
   @test jacobi_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
   @test jacobi_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
   @test length(L) == 2
-  @test length(findall(x->x==r1, L)) == 1
-  @test length(findall(x->x==r2, L)) == 1
+
+  # Test disabled because it could not be reliably reproduced and also 
+  # it is mathematical not rigorous
+  # @test length(findall(x->x==r1, L)) == 1
+  # @test length(findall(x->x==r2, L)) == 1
+  @test ideal(parent(r1), L) == ideal(parent(r1), [r1, r2])
 
   @test issubset(ideal(S, [a]), ideal(S, [a]))
   @test issubset(ideal(S, [a]), ideal(S, [a, b]))
@@ -331,3 +335,194 @@ end
   @test hessian(f) == -24*x*z + 24*y^2*z
 end
 
+@testset "rerouting of primary decomposition over number fields" begin
+  P, t = QQ[:t]
+  kk = splitting_field(t^3 - 1)
+  kks, s = kk[:s]
+  kk2 = splitting_field(s^2 + 1)
+
+  R, (x, y) = kk[:x, :y]
+  alpha = first(gens(kk))
+  R_flat, iso, iso_inv = Oscar._expand_coefficient_field(R)
+  theta = first(gens(R_flat))
+  @test iso_inv(R(alpha)) == theta
+  @test iso(theta) == alpha
+  id1 = compose(iso, iso_inv)
+  @test all(x->x==id1(x), gens(R_flat))
+  id2 = compose(iso_inv, iso)
+  @test all(x->x==id2(x), gens(R))
+
+  S, (u, v) = kk2[:u, :v]
+  S_flat, iso, iso_inv = Oscar._expand_coefficient_field(S)
+  S_ff, iso2, iso_inv2 = Oscar._expand_coefficient_field(S_flat)
+
+  iso_tot = compose(iso2, iso)
+  iso_inv_tot = compose(iso_inv, iso_inv2)
+
+  beta = first(gens(kk2))
+  @test iso_inv_tot(S(beta)) == S_ff[2]
+  @test iso_inv_tot(S(alpha)) == S_ff[1]
+
+  Sff, iso2, iso_inv2 = Oscar._expand_coefficient_field_to_QQ(S)
+  @test iso_inv_tot(S(beta)) == S_ff[2]
+  @test iso_inv_tot(S(alpha)) == S_ff[1]
+
+  I = ideal(S, [(u^2 + 1)^3])
+  dec = primary_decomposition(I)
+  @test length(dec) == 2
+end
+
+@testset "primary decomposition in graded rings" begin
+  Pt, t = QQ["t"]
+  f = t^2 + 1
+  kk, i = number_field(f)
+  R, (x, y) = kk["x", "y"]
+
+  S, _ = grade(R)
+
+  S_exp, iso, iso_inv = Oscar._expand_coefficient_field(S)
+  @test is_graded(S_exp)
+  @test iszero(degree(S_exp[1]))
+  @test domain(iso) === S_exp
+  @test codomain(iso) === S
+  @test domain(iso_inv) === S
+  @test codomain(iso_inv) === S_exp
+  @test compose(iso, iso_inv).(gens(S_exp)) == gens(S_exp)
+
+  I = ideal(S, [x^2 + y^2])
+  dec = primary_decomposition(I)
+  @test length(dec) == 2
+
+  Q, _ = quo(S, I)
+  dec = primary_decomposition(ideal(Q, zero(Q)))
+  @test length(dec) == 2
+end
+  
+@testset "primary decomposition over number fields" begin
+  Pt, t = QQ[:t]
+  f = t^3 - 7
+  kk, _ = number_field(f)
+
+  # primary_decomposition
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [x, y*z^2])
+  for method in (:GTZ, :SY)
+    j = ideal(R, [R(1)])
+    for (q, p) in primary_decomposition(i, algorithm=method)
+      j = intersect(j, q)
+      @test is_primary(q)
+      @test is_prime(p)
+      @test p == radical(q)
+    end
+    @test j == i
+  end
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [9, (a+3)*(b+3)])
+  l = primary_decomposition(i)
+  @test length(l) == 2
+
+  # minimal_primes
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = minimal_primes(i)
+  @test length(l) == 2
+
+  l = minimal_primes(i, algorithm=:charSets)
+  @test length(l) == 2
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = ideal(R, [R(9), (a+3)*(b+3)])
+  i1 = ideal(R, [R(3), a])
+  i2 = ideal(R, [R(3), b])
+  l = minimal_primes(i)
+  @test length(l) == 2
+  @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
+
+  # equidimensional_decomposition_weak
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  l = equidimensional_decomposition_weak(i)
+  @test length(l) == 3
+  @test l[1] == ideal(R, [z^4, y^5, x^5, x^3*z^3, x^4*y^4])
+  @test l[2] == ideal(R, [y*z, x*z, x^2])
+  @test l[3] == ideal(R, [z])
+
+  # equidimensional_decomposition_radical
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  l = equidimensional_decomposition_radical(i)
+  @test length(l) == 1
+
+  # equidimensional_hull
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = intersect(ideal(R, [z]), ideal(R, [x, y]),
+                ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
+  @test equidimensional_hull(i) == ideal(R, [z])
+
+  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  i = intersect(ideal(R, [R(9), a, b]),
+                ideal(R, [R(3), c]),
+                ideal(R, [R(11), 2*a, 7*b]),
+                ideal(R, [13*a^2, 17*b^4]),
+                ideal(R, [9*c^5, 6*d^5]),
+                ideal(R, [R(17), a^15, b^15, c^15, d^15]))
+  @test equidimensional_hull(i) == ideal(R, [R(3)])
+
+  # equidimensional_hull_radical
+  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
+  @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
+
+  # absolute_primary_decomposition
+  R,(x,y,z) = polynomial_ring(kk, ["x", "y", "z"])
+  I = ideal(R, [x^2 + 1])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 1
+
+  #= Tests disabled because of too long runtime
+  R,(x,y,z) = graded_polynomial_ring(kk, ["x", "y", "z"])
+  I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
+  d = absolute_primary_decomposition(I)
+  @test length(d) == 5
+  =#
+
+  # is_prime
+  R, (x, y) = polynomial_ring(kk, ["x", "y"])
+  I = ideal(R, [one(R)])
+  @test is_prime(I) == false
+end
+
+@testset "primary decomposition over NfAbsNS" begin
+  _, x = QQ[:x]
+  K, a = number_field([x - 1, x - 2]);
+  Kt, t = K["t"];
+  L, b = number_field(t - 1, "b");
+  M, = number_field(t - 1, "b");
+  Mx, = polynomial_ring(M, 2);
+  primary_decomposition(ideal(Mx, [gen(Mx, 1)]))
+  S, _ = grade(Mx)
+  @test is_graded(Oscar._expand_coefficient_field_to_QQ(S)[1])
+  primary_decomposition(ideal(S, [gen(S, 1)]))
+end
+
+@testset "primary decomposition over NfRelNS" begin
+  Pt, t = QQ[:t]
+  f = t^2 + 1
+  kk, i = number_field(f)
+  _, T = kk[:T]
+  g = T^3 - 5
+  K, zeta = number_field([g], "zeta")
+  @test K isa Hecke.NfRelNS
+  _, s = K[:s]
+  h = s-1
+  L, xi = number_field(h)
+  R, (x, y) = L[:x, :y]
+  I = ideal(R, x^2 + y^2)
+  @test length(primary_decomposition(I)) == 2
+  S, _ = grade(R)
+  @test is_graded(Oscar._expand_coefficient_field_to_QQ(S)[1])
+  IS = ideal(S, x^2 + y^2)
+  @test length(primary_decomposition(IS)) == 2
+end

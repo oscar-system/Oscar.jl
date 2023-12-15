@@ -16,8 +16,6 @@ function annihilator(M::SubquoModule)
   return I
 end
 
-iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
-
 @doc raw"""
     is_projective(M::SubquoModule)
 

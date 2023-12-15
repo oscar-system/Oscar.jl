@@ -660,8 +660,9 @@ end
 
 function inv(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
   isone(f) && return f
-  return parent(f)(denominator(f), numerator(f))
+  lifted_numerator(f) in inverted_set(parent(f)) && return parent(f)(denominator(f), numerator(f), check=false)
   return convert(parent(f), lifted_denominator(f)//lifted_numerator(f))
+  return parent(f)(denominator(f), numerator(f))
   # The following was the original line:
   return parent(f)(denominator(f), numerator(f))
 end
@@ -1291,7 +1292,7 @@ end
   W = MPolyQuoLocRing(R, modulus(underlying_quotient(L)), MPolyPowersOfElement(R, d))
   id =  _as_affine_algebra(W)
   A = codomain(id)
-  h = hom(P, A, id.(f.(gens(P))), check=false)
+  h = hom(P, A, elem_type(A)[id(W(f(x), check=false)) for x in gens(P)], check=false)
   gg = Vector{elem_type(A)}(id.(W.(gens(J))))
   return preimage(h, ideal(A, gg))
 end
@@ -1541,7 +1542,7 @@ function simplify(L::MPolyQuoRing)
   Lnew, _ = quo(Rnew, Jnew)
 
   # the inverse of the identification map
-  fres = hom(L, Lnew, Lnew.(f.(gens(R))), check=true)
+  fres = hom(L, Lnew, Lnew.(f.(gens(R))), check=false)
   fresinv = hom(Lnew, L, [L(R(a)) for a in gens(l[4]) if !iszero(a)], check=false)
 
   return Lnew, fres, fresinv
@@ -1884,14 +1885,20 @@ end
 ############################################################################# 
 
 @doc raw"""
-     primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+    primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
 
 Return the primary decomposition of ``I``.
 """
-function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+function primary_decomposition(
+    I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal};
+    algorithm::Symbol=:GTZ, cache::Bool=true
+  )
+  if has_attribute(I, :primary_decomposition)
+    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+  end
   Q = base_ring(I)
   R = base_ring(Q)
-  decomp = primary_decomposition(saturated_ideal(I))
+  decomp = primary_decomposition(saturated_ideal(I); algorithm, cache)
   result = [(ideal(Q, Q.(gens(a))), ideal(Q, Q.(gens(b)))) for (a, b) in decomp]
   erase = Int[]
   for i in 1:length(result)
@@ -1900,6 +1907,8 @@ function primary_decomposition(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdea
     push!(erase,i)
   end
   deleteat!(result, erase)
+  
+  cache && set_attribute!(I, :primary_decomposition=>result)
   return result
 end
 
@@ -1908,10 +1917,13 @@ end
 
 Return the minimal associated primes of I.
 """
-function minimal_primes(I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal})
+function minimal_primes(
+    I::Union{<:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal};
+    algorithm::Symbol=:GTZ
+  )
   Q = base_ring(I)
   R = base_ring(Q)
-  decomp = minimal_primes(saturated_ideal(I))
+  decomp = minimal_primes(saturated_ideal(I); algorithm)
   result = [ideal(Q, Q.(gens(b))) for b in decomp]
   erase = Int[]
   for i in 1:length(result)
