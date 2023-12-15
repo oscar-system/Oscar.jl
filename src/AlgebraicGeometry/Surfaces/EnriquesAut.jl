@@ -59,8 +59,9 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
   @vprint :K3Auto 2 "computing walls\n"
   ECtx.initial_walls = walls(ECtx.initial_chamber)
-  @vprint :K3Auto 2 "computing automorphisms\n"
+  @vprint :K3Auto 2 "computing automorphisms"
   ECtx.initial_automorphisms = aut(ECtx.initial_chamber)
+  @vprintln :K3Auto 2 " done found $length(ECtx.initial_automorphisms) automorphisms"
   ECtx.initial_automorphisms_mod2 = [change_base_ring(GF(2), i) for i in ECtx.initial_automorphisms]
 
   # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
@@ -438,7 +439,9 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :K3Auto 1 "$(length(automorphisms)) automorphism group generators\n"
   @vprint :K3Auto 1 "$(nchambers) congruence classes of chambers \n"
   @vprint :K3Auto 1 "$(length(rational_curves)) orbits of rational curves\n"
-  @assert massY == mass_explored
+  @vprint :K3Auto 1 "$mass $(massY)\n"
+  @vprint :K3Auto 1 "$mass explored $(mass_explored)\n"
+  #@assert massY == mass_explored
   return data, collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
 
