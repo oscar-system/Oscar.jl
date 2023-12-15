@@ -25,7 +25,7 @@ Many low level objects may be stored and these in turn allow serializing higher
 level objects. Such low level objects are various types of matrices, vectors
 and sets.
 
-### Types listed in alphabetical order
+### Combinatorics
 ```julia
 Graph
 SimplicialComplex

@@ -15,9 +15,9 @@
 This document summarises the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
-is the process of writing data to and reading data from files. There are many
-reasons for needing this feature in OSCAR, but the main reason is communication
-on mathematics by mathematicians.
+is the process of reading and writing data. There are many for needing this 
+feature in OSCAR, but the main reason is communication on mathematics by
+mathematicians.
 
 ## How it works
 The mechanism for saving and loading is very simple. It is implemented via two
@@ -49,9 +49,8 @@ content, in this case as an `Int`.
 ### Registering a Type for Serialization
 
 ```@docs
-register_serialization_type
+register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
 ```
-
 
 
 
