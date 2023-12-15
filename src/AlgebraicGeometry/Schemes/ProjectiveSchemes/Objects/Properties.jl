@@ -26,15 +26,15 @@ Check whether the scheme `X` is smooth.
 There are three possible algorithms for checking smoothness, determined
 by the value of the keyword argument `algorithm`:
   * `:covered` - converts to a covered scheme,
-  * `:jacobian` - uses the Jacobian criterion for projective varieties,
+  * `:jacobi` - uses the Jacobian criterion for projective varieties,
     see Exercise 4.2.10 of [Liu06](@cite),
   * `:affine_cone` - checks that the affine cone is smooth outside the origin.
 
-The `:jacobian` algorithm first checks that the scheme is integral,
+The `:jacobi` algorithm first checks that the scheme is integral,
 which can be expensive.
 
 By default, if the base ring is a field and the scheme has already been
-computed to be integral, then the `:jacobian` algorithm is used.
+computed to be integral, then the `:jacobi` algorithm is used.
 Otherwise, the `:affine_cone` algorithm is used.
 
 # Examples
@@ -51,7 +51,7 @@ defined by ideal(x^2 + y^2)
 julia> is_smooth(C)
 false
 
-julia> is_smooth(C; algorithm=:jacobian)
+julia> is_smooth(C; algorithm=:jacobi)
 false
 ```
 """
@@ -59,7 +59,7 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
   get_attribute!(P, :is_smooth) do
     if algorithm == :default
       if base_ring(P) isa Field && has_attribute(P, :is_integral) && is_integral(P)
-        algorithm = :jacobian
+        algorithm = :jacobi
       else
         algorithm = :affine_cone
       end
@@ -70,7 +70,7 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
       aff = affine_cone(P)[1]
       origin = subscheme(aff, coordinates(aff))
       return singular_locus_reduced(aff)[1] == origin
-    elseif algorithm == :jacobian
+    elseif algorithm == :jacobi
       if !(base_ring(P) isa Field)
         throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when base ring not a field"))
       end
