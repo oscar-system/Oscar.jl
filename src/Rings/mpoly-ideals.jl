@@ -1521,22 +1521,23 @@ ideal(x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3])
 
 """
 function grassmann_pluecker_ideal(ring::MPolyRing,
-                                 subspace_dimension::Int,
-                                 ambient_dimension::Int) 
-    pluecker_ideal = grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
-    converted_generators = elem_type(ring)[]
-    coeff_ring = base_ring(ring)
-    for g in gens(pluecker_ideal)
-        converted_coeffs = [coeff_ring(numerator(c)) for c in AbstractAlgebra.coefficients(g)]
-        polynomial = MPolyBuildCtx(ring)
+                                  subspace_dimension::Int,
+                                  ambient_dimension::Int) 
+  pluecker_ideal = grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
+  converted_generators = elem_type(ring)[]
+  coeff_ring = base_ring(ring)
+  for g in gens(pluecker_ideal)
+    converted_coeffs = [coeff_ring(numerator(c)) for c in AbstractAlgebra.coefficients(g)]
+    polynomial = MPolyBuildCtx(ring)
 
-        for (i, exponent) in enumerate(AbstractAlgebra.exponent_vectors(g))
-            c = converted_coeffs[i]
-            push_term!(polynomial, c, exponent)
-        end
-        converted_g = finish(polynomial)
-        push!(converted_generators, converted_g)
+    for (i, exponent) in enumerate(AbstractAlgebra.exponent_vectors(g))
+      
+      c = converted_coeffs[i]
+      push_term!(polynomial, c, exponent)
     end
-    return ideal(ring, converted_generators)
+    converted_g = finish(polynomial)
+    push!(converted_generators, converted_g)
+  end
+  return ideal(ring, converted_generators)
 end
 
