@@ -84,12 +84,12 @@ end
   groebner_basis(defining_ideal(line))
 end
 
-@testset "Issue #1580" begin 
+@testset "Issue #1580" begin
   R,(x,) = polynomial_ring(GF(3),["x"])
   Rx,i = localization(R, x)
   x = Rx(x)
   P2 = projective_space(Rx, 2)
-  affine_cone(P2) 
+  affine_cone(P2)
   @test covered_scheme(P2) isa CoveredScheme
 end
 
@@ -136,17 +136,17 @@ end
 #  @test projective_scheme_type(OO(Y)) == typeof(IP2_Y)
 #  @test projective_scheme_type(OO(U)) == typeof(IP2_U)
 #  @test projective_scheme_type(OO(UY)) == typeof(IP2_UY)
-# 
+#
 #  @test projective_scheme_type(X) == typeof(IP2_X)
 #  @test projective_scheme_type(Y) == typeof(IP2_Y)
 #  @test projective_scheme_type(U) == typeof(IP2_U)
 #  @test projective_scheme_type(UY) == typeof(IP2_UY)
-# 
+#
 #  @test base_ring_type(IP2_X) == typeof(OO(X))
 #  @test base_ring_type(IP2_Y) == typeof(OO(Y))
 #  @test base_ring_type(IP2_U) == typeof(OO(U))
 #  @test base_ring_type(IP2_UY) == typeof(OO(UY))
-# 
+#
 #  @test ring_type(IP2_X) == typeof(homogeneous_coordinate_ring(IP2_X))
 #  @test ring_type(IP2_Y) == typeof(homogeneous_coordinate_ring(IP2_Y))
 #  @test ring_type(IP2_U) == typeof(homogeneous_coordinate_ring(IP2_U))
@@ -202,8 +202,8 @@ end
 
   incYtoX = inclusion_morphism(Y, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_Y), pullback(incYtoX), gens(homogeneous_coordinate_ring(IP2_Y)))
-  YtoX = ProjectiveSchemeMor(IP2_Y, IP2_X, 
-                             h, 
+  YtoX = ProjectiveSchemeMor(IP2_Y, IP2_X,
+                             h,
                              incYtoX
                             );
   @test YtoX == inclusion_morphism(IP2_Y, IP2_X)
@@ -214,8 +214,8 @@ end
 
   incUtoX = inclusion_morphism(U, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_U), pullback(incUtoX), gens(homogeneous_coordinate_ring(IP2_U)))
-  UtoX = ProjectiveSchemeMor(IP2_U, IP2_X, 
-                             h, 
+  UtoX = ProjectiveSchemeMor(IP2_U, IP2_X,
+                             h,
                              incUtoX
                             );
   @test UtoX == inclusion_morphism(IP2_U, IP2_X)
@@ -226,8 +226,8 @@ end
 
   incUYtoY = inclusion_morphism(UY, Y)
   h = hom(homogeneous_coordinate_ring(IP2_Y), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoY), gens(homogeneous_coordinate_ring(IP2_UY)))
-  UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y, 
-                              h, 
+  UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y,
+                              h,
                               incUYtoY
                              );
   @test UYtoY == inclusion_morphism(IP2_UY, IP2_Y)
@@ -238,8 +238,8 @@ end
 
   incUYtoX = inclusion_morphism(UY, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoX), gens(homogeneous_coordinate_ring(IP2_UY)))
-  UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X, 
-                              h, 
+  UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X,
+                              h,
                               incUYtoX
                              );
   IP2_UY2, map = fiber_product(incUYtoX, IP2_X)
@@ -324,7 +324,7 @@ end
   inc2_cov = covered_scheme_morphism(inc2)
   j1, j2 = fiber_product(inc_cov, inc2_cov)
   @test pushforward(inc_cov)(image_ideal(j2)) == pushforward(inc2_cov)(image_ideal(j1))
-  
+
   @test X === domain(inc)
   @test IP2 === codomain(inc)
   T = homogeneous_coordinate_ring(X)
@@ -335,7 +335,7 @@ end
   map_on_affine_cones(inc_Y)
   inc_comp = compose(inc_Y, inc)
   @test inc_comp isa Oscar.ProjectiveClosedEmbedding
-  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)), 
+  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)),
             homogeneous_coordinate_ring(domain(inc_comp)),
             pullback(inc_comp).(gens(homogeneous_coordinate_ring(codomain(inc_comp))))
            )
