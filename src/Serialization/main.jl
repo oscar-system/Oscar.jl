@@ -449,25 +449,6 @@ import Distributed.AbstractSerializer
 serialize_with_id(::Type) = false
 serialize_with_params(::Type) = false
 
-"""
-  register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
-
-register_serialization_type is a macro to ensure that the string we generate
-matches exactly the expression passed as first argument, and does not change
-in unexpected ways when import/export statements are adjusted.
-The last three arguments are optional and can arise in any order. Passing a string
-argument will override how the type is stored as a string. The last two are boolean
-flags. When setting uses_id the object will be stored as a reference and will be
-referred to throughout the serialization sessions using a UUID. This should typically only
-be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
-Using the uses_params flag will serialize the object with a more structured type
-description which will make the serialization more efficient see the discussion on
-save_type_params / load_type_params below.
-
-```
-@register_serialization_type NewType "String Representation of type" uses_id uses_params
-```
-"""
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
     quote
@@ -504,6 +485,23 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
     end)
 end
 
+"""
+    @register_serialization_type NewType "String Representation of type" uses_id uses_params
+
+`@register_serialization_type` is a macro to ensure that the string we generate
+matches exactly the expression passed as first argument, and does not change
+in unexpected ways when import/export statements are adjusted.
+
+The last three arguments are optional and can arise in any order.
+Passing a string argument will override how the type is stored as a string.
+The last two are boolean flags. When setting `uses_id` the object will be
+ stored as a reference and will be referred to throughout the serialization
+sessions using a `UUID`. This should typically only be used for types that
+ do not have a fixed normal form for example `PolyRing` and `MPolyRing`.
+Using the `uses_params` flag will serialize the object with a more structured type
+description which will make the serialization more efficient see the discussion on
+`save_type_params` / `load_type_params` below.
+"""
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
@@ -541,7 +539,7 @@ include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
 
-include("upgrades/main.jl")
+include("Upgrades/main.jl")
 
 ################################################################################
 # Interacting with IO streams and files
@@ -550,7 +548,7 @@ include("upgrades/main.jl")
     save(io::IO, obj::Any; metadata::MetaData=nothing)
     save(filename::String, obj::Any, metadata::MetaData=nothing)
 
-Save an object `T` to the given io stream
+Save an object `obj` to the given io stream
 respectively to the file `filename`.
 
 See [`load`](@ref).
