@@ -846,6 +846,25 @@ function Oscar.order(a::QQAbElem)
   return o
 end
 
+# Convenient sqrt and cbrt functions as simple wrappers around the roots function,
+# which is already implemented for QQAbElem directly
+
+function Oscar.sqrt(a::QQAbElem)
+  sqrt = Oscar.roots(a, 2)
+  if is_empty(sqrt)
+    error("Element $a does not have a square root")
+  end
+  return sqrt[1]
+end
+
+function Oscar.cbrt(a::QQAbElem)
+  cbrt = Oscar.roots(a,3)
+  if is_empty(cbrt)
+    error("Element $a does not have a cube root")
+  end
+  return cbrt[1]
+end
+
 
 ###############################################################################
 #
