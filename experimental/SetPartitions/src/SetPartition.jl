@@ -19,11 +19,15 @@ struct SetPartition <: AbstractPartition
     upper_points::Vector{Int}
     lower_points::Vector{Int}
 
-    function SetPartition(upper_points, lower_points)
-        (new_upper, new_lower) = _normal_form(convert(Vector{Int}, upper_points), 
-                                             convert(Vector{Int}, lower_points))
+    function SetPartition(upper_points::Vector{Int}, lower_points::Vector{Int})
+        (new_upper, new_lower) = _normal_form(upper_points, lower_points)
         return new(new_upper, new_lower)
     end
+end
+
+function set_partition(upper_points::Vector, lower_points::Vector)
+    return SetPartition(convert(Vector{Int}, upper_points), 
+                        convert(Vector{Int}, lower_points))
 end
 
 
@@ -63,7 +67,7 @@ See also Section 4.1.1 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> tensor_product(SetPartition([1, 2], [2, 1]), SetPartition([1, 1], [1]))
+julia> tensor_product(set_partition([1, 2], [2, 1]), set_partition([1, 1], [1]))
 SetPartition([1, 2, 3, 3], [2, 1, 3])
 ```
 """
@@ -71,7 +75,7 @@ function tensor_product(p::SetPartition, q::SetPartition)
     
     q_new = _new_point_values(upper_points(p), lower_points(p), 
             upper_points(q), lower_points(q))
-    return SetPartition(vcat(upper_points(p), q_new[1]), vcat(lower_points(p), q_new[2]))
+    return set_partition(vcat(upper_points(p), q_new[1]), vcat(lower_points(p), q_new[2]))
 end
 
 """
@@ -84,36 +88,36 @@ See also Section 4.1.1 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> involution(SetPartition([1, 2, 3], [2, 1]))
+julia> involution(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2], [2, 1, 3])
 ```
 """
 function involution(p::SetPartition)
-    return SetPartition(lower_points(p), upper_points(p))
+    return set_partition(lower_points(p), upper_points(p))
 end
 
 """
-    vertical_reflection(p::SetPartition)
+    reflect_vertical(p::SetPartition)
 
-Return vertical reflection of `p`.
+Reflect `p` vertically.
 
 The vertical reflection of a partition is obtained by reversing the order of 
 the upper and lower points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> vertical_reflection(SetPartition([1, 2, 3], [2, 1]))
+julia> reflect_vertical(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2, 3], [3, 2])
 ```
 """
-function vertical_reflection(p::SetPartition)
-    return SetPartition(reverse(upper_points(p)), reverse(lower_points(p)))
+function reflect_vertical(p::SetPartition)
+    return set_partition(reverse(upper_points(p)), reverse(lower_points(p)))
 end
 
 """
-    rotation(p::SetPartition)
+    rotate(p::SetPartition)
 
-Return the rotation of `p` in the direction given by `lr` and `tb`. 
+Rotate `p` in the direction given by `lr` and `tb`. 
 
 Rotating a partition moves the left- or right-most point of the upper points 
 to the lower points or vice verca. See also Section 4.1.2 in [Gro20](@cite).
@@ -125,20 +129,20 @@ to the lower points or vice verca. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> rotation(SetPartition([1, 2, 3], [2, 1]), true, true)
+julia> rotate(set_partition([1, 2, 3], [2, 1]), true, true)
 SetPartition([1, 2], [3, 1, 3])
 
-julia> rotation(SetPartition([1, 2, 3], [2, 1]), true, false)
+julia> rotate(set_partition([1, 2, 3], [2, 1]), true, false)
 SetPartition([1, 2, 1, 3], [2])
 
-julia> rotation(SetPartition([1, 2, 3], [2, 1]), false, true)
+julia> rotate(set_partition([1, 2, 3], [2, 1]), false, true)
 SetPartition([1, 2], [2, 1, 3])
 
-julia> rotation(SetPartition([1, 2, 3], [2, 1]), false, false)
+julia> rotate(set_partition([1, 2, 3], [2, 1]), false, false)
 SetPartition([1, 2, 3, 1], [2])
 ```
 """
-function rotation(p::SetPartition, lr::Bool, tb::Bool)
+function rotate(p::SetPartition, lr::Bool, tb::Bool)
     
     if tb
         @req !isempty(upper_points(p)) "SetPartition has no top part"
@@ -170,7 +174,7 @@ function rotation(p::SetPartition, lr::Bool, tb::Bool)
         end
     end
     
-    return SetPartition(ret[1], ret[2])
+    return set_partition(ret[1], ret[2])
 end
 
 function is_composable(p::SetPartition, q::SetPartition)
@@ -178,7 +182,7 @@ function is_composable(p::SetPartition, q::SetPartition)
 end
 
 """
-    composition_loops(p::SetPartition, q::SetPartition)
+    compose_count_loops(p::SetPartition, q::SetPartition)
 
 Return the composition of `p` and `q` as well as the number of removed loops.
 
@@ -191,17 +195,17 @@ The composition of `p` and `q` is only defined if the number of upper points of
 
 # Examples
 ```jldoctest
-julia> composition_loops(SetPartition([1, 2], [2, 1]), SetPartition([1], [1, 1]))
+julia> compose_count_loops(set_partition([1, 2], [2, 1]), set_partition([1], [1, 1]))
 (SetPartition([1], [1, 1]), 0)
 
-julia> composition_loops(SetPartition([1, 1], [2]), SetPartition([1], [2, 2]))
+julia> compose_count_loops(set_partition([1, 1], [2]), set_partition([1], [2, 2]))
 (SetPartition([1], [2]), 1)
 
-julia> composition_loops(SetPartition([1], [1, 2]), SetPartition([1], [2, 2]))
-ERROR: format not fitting
+julia> compose_count_loops(set_partition([1], [1, 2]), set_partition([1], [2, 2]))
+ERROR: ArgumentError: Number of points mismatch
 ```
 """
-function composition_loops(p::SetPartition, q::SetPartition)
+function compose_count_loops(p::SetPartition, q::SetPartition)
     
     @req is_composable(p, q) "Number of points mismatch" 
 
@@ -281,7 +285,7 @@ function composition_loops(p::SetPartition, q::SetPartition)
 
     # removing the middle by just changing the top of our partition 
     # to the adjusted top of the second partition
-    ret = SetPartition(vector_q[1], lower_points(p_copy))
+    ret = set_partition(vector_q[1], lower_points(p_copy))
 
     # calculating removed related components (loop)
         

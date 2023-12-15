@@ -15,10 +15,20 @@ end
 
 function colored_partition(
     partition::SetPartition, 
-    color_upper::Vector{Int}, 
-    color_lower::Vector{Int})
+    color_upper::Vector, 
+    color_lower::Vector)
 
-    return ColoredPartition(partition, color_upper, color_lower)
+    return ColoredPartition(partition, convert(Vector{Int}, color_upper), 
+                                       convert(Vector{Int}, color_lower))
+end
+
+function colored_partition(
+    upper_points::Vector,
+    lower_points::Vector,
+    color_upper::Vector, 
+    color_lower::Vector)
+
+    return colored_partition(set_partition(upper_points, lower_points), color_upper, color_lower)
 end
 
 function hash(p::ColoredPartition, h::UInt)
@@ -70,7 +80,7 @@ Return the tensor product of `p` and `q`.
 """
 function tensor_product(p::ColoredPartition, q::ColoredPartition)
 
-    return ColoredPartition(tensor_product(p.partition, q.partition), 
+    return colored_partition(tensor_product(p.partition, q.partition), 
         vcat(p.color_upper_points, q.color_upper_points), 
         vcat(p.color_lower_points, q.color_lower_points))
 end
@@ -82,7 +92,7 @@ Return the involution of `p`.
 """
 function involution(p::ColoredPartition)
 
-    return ColoredPartition(involution(p.partition), 
+    return colored_partition(involution(p.partition), 
         p.color_lower_points, p.color_upper_points)
 
 end
@@ -93,33 +103,33 @@ function is_composable(p::ColoredPartition, q::ColoredPartition)
 end
 
 """
-    composition_loops(p::ColoredPartition, q::ColoredPartition)
+    compose_count_loops(p::ColoredPartition, q::ColoredPartition)
 
 Return the composition of `p` and `q` as well as the number of removed loops.
 """
-function composition_loops(p::ColoredPartition, q::ColoredPartition)
+function compose_count_loops(p::ColoredPartition, q::ColoredPartition)
 
     @req p.color_upper_points == q.color_lower_points "p upper and q 
         lower colors are different in composition"
 
-    comp_loops = composition_loops(p.partition, q.partition)
+    comp_loops = compose_count_loops(p.partition, q.partition)
     
-    return (ColoredPartition(comp_loops[1], q.color_upper_points, p.color_lower_points), 
+    return (colored_partition(comp_loops[1], q.color_upper_points, p.color_lower_points), 
         comp_loops[2])
 
 end
 
 """
-    rotation(p::ColoredPartition)
+    rotate(p::ColoredPartition, lr::Bool, tb::Bool)
 
-Return the rotation of `p` in the direction given by `lr` and `tb`.
+Rotate `p` in the direction given by `lr` and `tb`.
 
 # Arguments
 - `p`: input partition
 - `lr`: whether left (true) or right (false)
 - `tb`: whether top (true) or bottom (false)
 """
-function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
+function rotate(p::ColoredPartition, lr::Bool, tb::Bool)
 
     if tb
         @req !isempty(upper_points(p)) "SetPartition has no top part"
@@ -167,5 +177,5 @@ function rotation(p::ColoredPartition, lr::Bool, tb::Bool)
             push!(ret[3], Int(!Bool(a)))
         end
     end
-    return ColoredPartition(SetPartition(ret[1], ret[2]), ret[3], ret[4])
+    return colored_partition(ret[1], ret[2], ret[3], ret[4])
 end

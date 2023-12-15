@@ -1,16 +1,16 @@
 """
     AbstractPartition
 
-Abstract type for classical-, colored- and spatial partitions.
+Abstract type for `SetPartition`, `ColoredPartition` and `SpatialPartition`.
 """
 abstract type AbstractPartition end
 
-function composition(p::T, q::T) where {T <: AbstractPartition}
-    return composition_loops(p, q)[1]
+function compose(p::T, q::T) where {T <: AbstractPartition}
+    return compose_count_loops(p, q)[1]
 end
 
 function *(p::T, q::T) where {T <: AbstractPartition}
-    return composition(p, q)
+    return compose(p, q)
 end
 
 function ⊗(p::T, q::T) where {T <: AbstractPartition}

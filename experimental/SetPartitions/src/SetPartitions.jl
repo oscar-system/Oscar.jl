@@ -11,6 +11,7 @@ import Base:
     
 import Oscar:
     ⊗,
+    compose,
     involution,
     tensor_product,
     @req
@@ -19,21 +20,23 @@ export ColoredPartition
 export SetPartition
 export SpatialPartition
 
-export composition
-export composition_loops
+export colored_partition
+export compose_count_loops
 export construct_category
 export is_balanced
-export is_noncrossing
+export is_non_crossing
 export is_pair
 export lower_colors
 export lower_points
 export num_lower_points
 export num_upper_points
 export print_trace
-export rotation
+export reflect_vertical
+export rotate
+export set_partition
+export spatial_partition
 export upper_colors
 export upper_points
-export vertical_reflection
 
 
 include("AbstractPartition.jl")
@@ -51,18 +54,20 @@ export ColoredPartition
 export SetPartition
 export SpatialPartition
 
-export composition
-export composition_loops
+export colored_partition
+export compose_count_loops
 export construct_category
 export is_balanced
-export is_noncrossing
+export is_non_crossing
 export is_pair
 export lower_colors
 export lower_points
 export num_lower_points
 export num_upper_points
 export print_trace
-export rotation
+export reflect_vertical
+export rotate
+export set_partition
+export spatial_partition
 export upper_colors
 export upper_points
-export vertical_reflection

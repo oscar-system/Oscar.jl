@@ -17,6 +17,10 @@ function spatial_partition(partition::SetPartition, dim::Int)
     return SpatialPartition(partition, dim)
 end
 
+function spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
+    return spatial_partition(set_partition(upper_points, lower_points), dim)
+end
+
 function hash(p::SpatialPartition, h::UInt)
     return hash(p.partition, hash(p.dimension, h))
 end
@@ -52,7 +56,7 @@ function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
     @req p.dimension == q.dimension "p and q have different dimensions in tensor product"
 
-    return SpatialPartition(tensor_product(p.partition, q.partition), p.dimension)
+    return spatial_partition(tensor_product(p.partition, q.partition), p.dimension)
 end
 
 """
@@ -61,7 +65,7 @@ end
 Return the involution of `p`.
 """
 function involution(p::SpatialPartition)
-    return SpatialPartition(involution(p.partition), p.dimension)
+    return spatial_partition(involution(p.partition), p.dimension)
 end
 
 function is_composable(p::SpatialPartition, q::SpatialPartition)
@@ -69,16 +73,16 @@ function is_composable(p::SpatialPartition, q::SpatialPartition)
 end
 
 """
-    composition_loops(p::SpatialPartition, q::SpatialPartition)
+    compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 
 Return the composition of `p` and `q` as well as the number of removed loops.
 """
-function composition_loops(p::SpatialPartition, q::SpatialPartition)
+function compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 
     @req is_composable(p, q) "p and q have different dimensions in composition"
 
-    comp_loops = composition_loops(p.partition, q.partition)
+    comp_loops = compose_count_loops(p.partition, q.partition)
 
-    return (SpatialPartition(comp_loops[1], p.dimension), comp_loops[2])
+    return (spatial_partition(comp_loops[1], p.dimension), comp_loops[2])
 
 end

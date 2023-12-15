@@ -19,7 +19,7 @@ Return whether `p` is a partition only consisting of blocks of size two.
 
 # Examples
 ```jldoctest
-julia> is_pair(SetPartition([1, 2, 2, 1, 3], [3]))
+julia> is_pair(set_partition([1, 2, 2, 1, 3], [3]))
 true
 ```
 """
@@ -49,7 +49,7 @@ Return whether `p` is a balanced partition.
 
 # Examples
 ```jldoctest
-julia> is_balanced(SetPartition([1, 2, 3], [3, 2, 1]))
+julia> is_balanced(set_partition([1, 2, 3], [3, 2, 1]))
 true
 ```
 """
@@ -83,17 +83,17 @@ function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 end
 
 """
-    is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
+    is_non_crossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
 Return whether `p` is a non-crossing partition.
 
 # Examples
 ```jldoctest
-julia> is_noncrossing(SetPartition([1, 2, 2, 3, 1, 4], [4, 3]))
+julia> is_non_crossing(set_partition([1, 2, 2, 3, 1, 4], [4, 3]))
 false
 ```
 """
-function is_noncrossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
+function is_non_crossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
     # transform partition to only upper points
     p_vector = vcat(upper_points(p), reverse(lower_points(p)))

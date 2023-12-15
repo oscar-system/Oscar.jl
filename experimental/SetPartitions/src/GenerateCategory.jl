@@ -41,9 +41,9 @@ function _do_unary(
             if pmod isa SetPartition || pmod isa ColoredPartition
                 # start with rotation
                 if !isempty(upper_points(pmod))
-                    a = rotation(pmod, true, true)
+                    a = rotate(pmod, true, true)
                 elseif length(lower_points(pmod)) > 0
-                    a = rotation(pmod, false, false)
+                    a = rotate(pmod, false, false)
                 end
 
                 # add every new partition to all_partitions
@@ -56,8 +56,8 @@ function _do_unary(
 
                     # call functions which adds partition a into the right set in the dict
                     all_partitions_by_size = 
-                        _add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                        _add_partition(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                             all_partitions_by_size_top_bottom, a)
                 end
             elseif spatial_rotation !== nothing
@@ -73,8 +73,8 @@ function _do_unary(
 
                     # call functions which adds partition a into the right set in the dict
                     all_partitions_by_size = 
-                        _add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                        _add_partition(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                             all_partitions_by_size_top_bottom, a)
                 end
             end
@@ -91,14 +91,14 @@ function _do_unary(
                 push!(to_unary, a)
 
                 # call functions which adds the partition a into the right set in the dict
-                all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, a)
-                all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                all_partitions_by_size = _add_partition(all_partitions_by_size, a)
+                all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                         all_partitions_by_size_top_bottom, a)
             end
 
             if pmod isa SetPartition
                 # end with vertical reflection
-                a = vertical_reflection(pmod)
+                a = reflect_vertical(pmod)
 
                 # add every new partition to all_partitions
                 if !(a in all_partitions)
@@ -110,8 +110,8 @@ function _do_unary(
 
                     # call functions which adds partition a into the right set in the dict 
                     all_partitions_by_size = 
-                        _add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                        _add_partition(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                             all_partitions_by_size_top_bottom, a)
                 end
             end
@@ -198,8 +198,8 @@ function _do_tensor_products(
 
                     # call function which adds partition a to the right set in the dicts
                     all_partitions_by_size = 
-                        _add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                        _add_partition(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                         all_partitions_by_size_top_bottom, a)
 
                     stop_whole = false
@@ -208,10 +208,10 @@ function _do_tensor_products(
 
                     # call function which adds partition a to the right set in the dicts
                     all_partitions_by_size = 
-                        _add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                        _add_partition(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                         all_partitions_by_size_top_bottom, a)
-                    new_tens_by_size = _add_partition_to_dict(new_tens_by_size, a)
+                    new_tens_by_size = _add_partition(new_tens_by_size, a)
 
                     stop_whole = false
                     push!(new_tens, a)
@@ -256,7 +256,7 @@ function _do_composition(
     # new_comp stored in vector with a dict for top and bottom size 
     # (similar to the technique in the construct_category function)
     new_comp_by_size_top_bottom = 
-        [Dict{Int, Set{T}}(), Dict{Int, Set{Int}}()]
+        [Dict{Int, Set{T}}(), Dict{Int, Set{T}}()]
     new_comp_by_size_top_bottom[1] = 
         Dict{Int, Set{T}}(i => Set{T}() for i in 0:max_length)
     new_comp_by_size_top_bottom[2] = 
@@ -301,17 +301,17 @@ function _do_composition(
         al = deepcopy(to_comp)
         
         for (i, ii) in al
-            a = composition(i, ii)
+            a = compose(i, ii)
             if !(a in all_partitions)
                 trace[a] = ([i, ii], "c")
                 push!(all_partitions, a)
 
                 # call function which adds the partition a to the right set in the dicts
-                all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, a)
-                all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
+                all_partitions_by_size = _add_partition(all_partitions_by_size, a)
+                all_partitions_by_size_top_bottom = _add_partition_top_bottom(
                     all_partitions_by_size_top_bottom, a)
                 new_comp_by_size_top_bottom = 
-                    _add_partition_to_composition_dict(new_comp_by_size_top_bottom, a)
+                    _add_partition_top_bottom(new_comp_by_size_top_bottom, a)
 
                 stop_whole = false
                 push!(new_comp, a)
@@ -417,9 +417,9 @@ function construct_category(
         push!(tuple_list_all_partitions, i)
     end
     for i in vcat(p, tuple_list_all_partitions)
-        all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, i)
+        all_partitions_by_size = _add_partition(all_partitions_by_size, i)
         all_partitions_by_size_top_bottom = 
-            _add_partition_to_composition_dict(all_partitions_by_size_top_bottom, i)
+            _add_partition_top_bottom(all_partitions_by_size_top_bottom, i)
     end
     
     # while new were found apply on them unary tensor and composition

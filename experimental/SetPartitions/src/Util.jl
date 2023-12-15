@@ -68,13 +68,13 @@ function _normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 end
 
 """
-    _add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
+    _add_partition(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
 
 Return `dict` with `p` included as value and `size(p)` as corresponding key.
 
 Note that this is a helper function of the `construct_category` algorithm.
 """
-function _add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where 
+function _add_partition(dict::Dict{Int, Set{T}}, p::T) where 
                                                 {T <: AbstractPartition}
 
     add_apbs = dict[size(p)]
@@ -85,7 +85,7 @@ function _add_partition_to_dict(dict::Dict{Int, Set{T}}, p::T) where
 end
 
 """
-    _add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
+    _add_partition_top_bottom(Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
 
 Return `vector` with `p` included as value and `size(lower_points(p))` as
 corresponding key in the dict of `vector[2]` as well as
@@ -94,7 +94,7 @@ corresponding key in the dict of `vector[1]`.
 
 Note that this is a helper function of the `construct_category` algorithm.
 """
-function _add_partition_to_composition_dict(vector::Vector, p::AbstractPartition)
+function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
 
     # add right partition in first dict for top size
     add_apbs_top = (vector[1])[length(upper_points(p))]
