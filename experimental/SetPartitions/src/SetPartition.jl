@@ -63,7 +63,7 @@ SetPartition([1, 2, 3, 3], [2, 1, 3])
 """
 function tensor_product(p::SetPartition, q::SetPartition)
     
-    q_new = new_point_values(upper_points(p), lower_points(p), 
+    q_new = _new_point_values(upper_points(p), lower_points(p), 
             upper_points(q), lower_points(q))
     return SetPartition(vcat(upper_points(p), q_new[1]), vcat(lower_points(p), q_new[2]))
 end
@@ -204,7 +204,7 @@ function composition_loops(p::SetPartition, q::SetPartition)
 
     # new_ids dictionary stores the new value we need to assign to the partition,
     # in order to connect new segments
-    vector_q = new_point_values(upper_points(p_copy), lower_points(p_copy), 
+    vector_q = _new_point_values(upper_points(p_copy), lower_points(p_copy), 
                 deepcopy(upper_points(q)), deepcopy(lower_points(q)))
     new_ids = Dict{Int, Int}()
     

@@ -17,7 +17,7 @@ it is incorporated into `all_partitions`, `all_partitions_by_size`, and
 
 The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
 """
-function do_unary(
+function _do_unary(
     to_unary::Set{T}, 
     all_partitions::Set{T}, 
     stop_whole::Bool, 
@@ -56,8 +56,8 @@ function do_unary(
 
                     # call functions which adds partition a into the right set in the dict
                     all_partitions_by_size = 
-                        add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                        _add_partition_to_dict(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
             elseif spatial_rotation !== nothing
@@ -73,8 +73,8 @@ function do_unary(
 
                     # call functions which adds partition a into the right set in the dict
                     all_partitions_by_size = 
-                        add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                        _add_partition_to_dict(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
             end
@@ -91,8 +91,8 @@ function do_unary(
                 push!(to_unary, a)
 
                 # call functions which adds the partition a into the right set in the dict
-                all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
-                all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, a)
+                all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                         all_partitions_by_size_top_bottom, a)
             end
 
@@ -110,8 +110,8 @@ function do_unary(
 
                     # call functions which adds partition a into the right set in the dict 
                     all_partitions_by_size = 
-                        add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                        _add_partition_to_dict(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                             all_partitions_by_size_top_bottom, a)
                 end
             end
@@ -135,7 +135,7 @@ simultaneously setting the `stop_whole` flag to true.
 
 The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
 """
-function do_tensor_products(
+function _do_tensor_products(
     all_partitions::Set{T}, 
     already_t::Set{Tuple{T, T}}, 
     to_tens::Set{Tuple{T, T}}, 
@@ -198,8 +198,8 @@ function do_tensor_products(
 
                     # call function which adds partition a to the right set in the dicts
                     all_partitions_by_size = 
-                        add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                        _add_partition_to_dict(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                         all_partitions_by_size_top_bottom, a)
 
                     stop_whole = false
@@ -208,10 +208,10 @@ function do_tensor_products(
 
                     # call function which adds partition a to the right set in the dicts
                     all_partitions_by_size = 
-                        add_partition_to_dict(all_partitions_by_size, a)
-                    all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                        _add_partition_to_dict(all_partitions_by_size, a)
+                    all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                         all_partitions_by_size_top_bottom, a)
-                    new_tens_by_size = add_partition_to_dict(new_tens_by_size, a)
+                    new_tens_by_size = _add_partition_to_dict(new_tens_by_size, a)
 
                     stop_whole = false
                     push!(new_tens, a)
@@ -240,7 +240,7 @@ simultaneously setting the `stop_whole` flag to true.
 
 The return value of this function is a tuple of the updated sets and the `stop_whole` flag.
 """
-function do_composition(
+function _do_composition(
     all_partitions::Set{T}, 
     already_c::Set{Tuple{T, T}}, 
     stop_whole::Bool, 
@@ -285,11 +285,11 @@ function do_composition(
                     operate_on = new_comp_temp_comp
                 end
                 for ii in operate_on
-                    if is_composable(i, ii) && is_worth_composition(i, ii, max_length)
+                    if is_composable(i, ii) && _is_worth_composition(i, ii, max_length)
                         push!(to_comp, (i, ii))
                         push!(already_c, (i, ii))
                     end
-                    if is_composable(ii, i) && is_worth_composition(ii, i, max_length)
+                    if is_composable(ii, i) && _is_worth_composition(ii, i, max_length)
                         push!(to_comp, (ii, i))
                         push!(already_c, (ii, i))
                     end
@@ -307,11 +307,11 @@ function do_composition(
                 push!(all_partitions, a)
 
                 # call function which adds the partition a to the right set in the dicts
-                all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, a)
-                all_partitions_by_size_top_bottom = add_partition_to_composition_dict(
+                all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, a)
+                all_partitions_by_size_top_bottom = _add_partition_to_composition_dict(
                     all_partitions_by_size_top_bottom, a)
                 new_comp_by_size_top_bottom = 
-                    add_partition_to_composition_dict(new_comp_by_size_top_bottom, a)
+                    _add_partition_to_composition_dict(new_comp_by_size_top_bottom, a)
 
                 stop_whole = false
                 push!(new_comp, a)
@@ -417,9 +417,9 @@ function construct_category(
         push!(tuple_list_all_partitions, i)
     end
     for i in vcat(p, tuple_list_all_partitions)
-        all_partitions_by_size = add_partition_to_dict(all_partitions_by_size, i)
+        all_partitions_by_size = _add_partition_to_dict(all_partitions_by_size, i)
         all_partitions_by_size_top_bottom = 
-            add_partition_to_composition_dict(all_partitions_by_size_top_bottom, i)
+            _add_partition_to_composition_dict(all_partitions_by_size_top_bottom, i)
     end
     
     # while new were found apply on them unary tensor and composition
@@ -437,7 +437,7 @@ function construct_category(
         # fist phase: all possible combinations of unary operations
         (stop_whole, all_partitions, already_u, all_partitions_by_size, 
             all_partitions_by_size_top_bottom, trace) = 
-            do_unary(to_unary, all_partitions, stop_whole, already_u, max_length, 
+            _do_unary(to_unary, all_partitions, stop_whole, already_u, max_length, 
             all_partitions_by_size, all_partitions_by_size_top_bottom, trace, 
             spatial_rotation)
 
@@ -467,7 +467,7 @@ function construct_category(
         # second phase: all possible tensor products which aren't redundant
         (all_partitions, already_t, stop_whole, all_partitions_by_size, 
             all_partitions_by_size_top_bottom, trace) = 
-            do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length,
+            _do_tensor_products(all_partitions, already_t, to_tens, stop_whole, max_length,
             all_partitions_by_size, all_partitions_by_size_top_bottom, trace)
 
         # add new variations produced by tensor product for composition
@@ -479,7 +479,7 @@ function construct_category(
             all_partitions_temp_comp = (all_partitions_by_size_top_bottom[2])[length(upper_points(i))]
             for ii in all_partitions_temp_comp
                 if !((i, ii) in already_c) && is_composable(i, ii) && 
-                        is_worth_composition(i, ii, max_length)
+                        _is_worth_composition(i, ii, max_length)
                     push!(to_comp, (i, ii))
                     push!(already_c, (i, ii))
                 end
@@ -488,7 +488,7 @@ function construct_category(
 
         # third phase: all possible compositions which aren't redundant
         (all_partitions, already_c, stop_whole, all_partitions_by_size, 
-            all_partitions_by_size_top_bottom, trace) = do_composition(all_partitions, 
+            all_partitions_by_size_top_bottom, trace) = _do_composition(all_partitions, 
             already_c, stop_whole, max_length, to_comp, all_partitions_by_size, 
             all_partitions_by_size_top_bottom, trace)
     end

@@ -1,12 +1,12 @@
 """
-    is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
+    _is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
 
 Return whether it is worth to compose `p` and `q` such that the result is less
 equal `max_length` and not equal to the empty partition.
 
 Note that this is a helper function for the `construct_category` algorithm.
 """
-function is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
+function _is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
     return length(upper_points(p)) != max_length && 
         length(lower_points(p)) + length(upper_points(q)) <= max_length
 end
