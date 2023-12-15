@@ -18,15 +18,28 @@ end
 
 
 # TODO: Jacobi criterion
-function is_smooth(P::AbsProjectiveScheme; algorithm=:covered)
-  get_attribute!(P, :is_smooth) do
+function is_smooth(P::AbsProjectiveScheme; algorithm=:affine_cone)
+#   get_attribute!(P, :is_smooth) do
     if algorithm == :covered
       return is_smooth(covered_scheme(P))
+    elseif algorithm == :affine_cone
+      a = affine_cone(P)[1]
+      return singular_locus_reduced(a)[1] == subscheme(a, coordinates(a))
+    elseif algorithm == :jacobi
+      if !(base_ring(P) isa Field)
+        throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when base ring not a field"))
+      end
+      if !(is_integral(P))
+        throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when scheme not integral"))
+      end
+      R = base_ring(homogeneous_coordinate_ring(P))
+      I = defining_ideal(P)
+      mat = jacobi_matrix(R, gens(I))
+      sing_locus = I + ideal(R, minors(mat, dim(ambient_space(P)) - dim(P)))
+      sing_subscheme = subscheme(ambient_space(P), sing_locus)
+      return isempty(sing_subscheme)
     end
-    if algorithm == :jacobi
-      error("jacobi criterion not implemented")
-    end
-  end
+#   end
 end
 
 @attr Bool function is_irreducible(P::AbsProjectiveScheme)
