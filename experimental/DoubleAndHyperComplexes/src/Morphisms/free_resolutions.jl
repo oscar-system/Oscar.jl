@@ -117,3 +117,21 @@ end
 
 ### Additional getters
 augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
+
+### Additional functionality
+function betti_table(C::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+  @assert has_upper_bound(C) "no upper bound known for this resolution"
+  generator_count = Dict{Tuple{Int, Any}, Int}()
+  rng = upper_bound(C):-1:lower_bound(C)
+  n = first(rng)
+  for i in 0:upper_bound(C)
+    @assert is_graded(C[i]) "one of the modules in the graded free resolution is not graded"
+    module_degrees = degree.(gens(C[i]))
+    for degree in module_degrees
+      idx = (i, degree)
+      generator_count[idx] = get(generator_count, idx, 0) + 1
+    end
+  end
+  return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
+end
+
