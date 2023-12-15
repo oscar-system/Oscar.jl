@@ -59,7 +59,6 @@ end
   @test pullback(projection_to_base(Y))(a)*s0 == s1
 end
 
-
 @testset "projective schemes as covered schemes" begin
   P3 = projective_space(QQ,3)
   S = homogeneous_coordinate_ring(P3)
@@ -68,6 +67,17 @@ end
   U = patches(Fc)[1]
   V = patches(Fc)[2]
   Oscar.intersect_in_covering(U,V,Fc[1])
+end
+
+@testset "singular schemes" begin
+  A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+  B, _ = quo(A, ideal(A, [x^2 + y^2]));
+  C = projective_scheme(B)
+  @test !is_smooth(C; algorithm=:jacobi)
+  C = projective_scheme(B)
+  @test !is_smooth(C; algorithm=:affine_cone)
+  C = projective_scheme(B)
+  @test !is_smooth(C; algorithm=:covered)
 end
 
 @testset "Fermat lines" begin
@@ -176,7 +186,6 @@ end
   @test sprint(show, IP2_U) isa String
   @test sprint(show, IP2_UY) isa String
 
-
   W = SpecOpen(UY, [x-1, y-1])
   IP2_W = projective_space(W, 2, var_name="w")
   CW = affine_cone(IP2_W)
@@ -271,7 +280,9 @@ end
   @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
-  @test is_smooth(C)
+  @test is_smooth(C; algorithm=:jacobi)
+  @test is_smooth(C; algorithm=:affine_cone)
+  @test is_smooth(C; algorithm=:covered)
   @test arithmetic_genus(C) == 0
 
   R, (x,y,z,w) = QQ["x", "y", "z", "w"]
@@ -282,7 +293,9 @@ end
   @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
-  @test is_smooth(Y)
+  @test is_smooth(Y; algorithm=:jacobi)
+  @test is_smooth(Y; algorithm=:affine_cone)
+  @test is_smooth(Y; algorithm=:covered)
   @test arithmetic_genus(Y) == 1
   @test is_reduced(Y)
   @test is_integral(Y)

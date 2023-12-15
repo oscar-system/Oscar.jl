@@ -16,16 +16,61 @@ end
   return all(x->radical_membership(x, defining_ideal(P)), gens(ambient_coordinate_ring(P)))
 end
 
+@doc raw"""
+    function is_smooth(P::AbsProjectiveScheme; algorithm=:default) -> Bool
 
-# TODO: Jacobi criterion
-function is_smooth(P::AbsProjectiveScheme; algorithm=:affine_cone)
-#   get_attribute!(P, :is_smooth) do
+Check whether the scheme `X` is smooth.
+
+# Algorithms
+
+There are three possible algorithms for checking smoothness, determined
+by the value of the keyword argument `algorithm`:
+  * `:covered` - converts to a covered scheme,
+  * `:jacobian` - uses the Jacobian criterion for projective varieties,
+    see Exercise 4.2.10 of [Liu06](@cite),
+  * `:affine_cone` - checks that the affine cone is smooth outside the origin.
+
+The `:jacobian` algorithm first checks that the scheme is integral,
+which can be expensive.
+
+By default, if the base ring is a field and the scheme has already been
+computed to be integral, then the `:jacobian` algorithm is used.
+Otherwise, the `:affine_cone` algorithm is used.
+
+# Examples
+```jldoctest
+julia> A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+
+julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
+
+julia> C = projective_scheme(B)
+Projective scheme
+  over rational field
+defined by ideal(x^2 + y^2)
+
+julia> is_smooth(C)
+false
+
+julia> is_smooth(C; algorithm=:jacobian)
+false
+```
+"""
+function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
+  get_attribute!(P, :is_smooth) do
+    if algorithm == :default
+      if base_ring(P) isa Field && has_attribute(P, :is_integral) && is_integral(P)
+        algorithm = :jacobian
+      else
+        algorithm = :affine_cone
+      end
+    end
     if algorithm == :covered
       return is_smooth(covered_scheme(P))
     elseif algorithm == :affine_cone
-      a = affine_cone(P)[1]
-      return singular_locus_reduced(a)[1] == subscheme(a, coordinates(a))
-    elseif algorithm == :jacobi
+      aff = affine_cone(P)[1]
+      origin = subscheme(aff, coordinates(aff))
+      return singular_locus_reduced(aff)[1] == origin
+    elseif algorithm == :jacobian
       if !(base_ring(P) isa Field)
         throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when base ring not a field"))
       end
@@ -39,7 +84,7 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:affine_cone)
       sing_subscheme = subscheme(ambient_space(P), sing_locus)
       return isempty(sing_subscheme)
     end
-#   end
+  end
 end
 
 @attr Bool function is_irreducible(P::AbsProjectiveScheme)
@@ -97,4 +142,3 @@ end
   @assert length(AI)==1 # it is prime since X is integral
   return AI[1][4]==1
 end
-
