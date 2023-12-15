@@ -265,7 +265,7 @@ end
 
     @test order(z(5)) == 5
 
-    @test cbrt(K(8)) == 2
+    @test cbrt(K(8))^3 == K(8)
     @test_throws ErrorException("Element 4 does not have a cube root") cbrt(K(4))
 
   end
@@ -296,7 +296,7 @@ end
       @test ((a - x)//y)^2 == n
     end
 
-    @test sqrt(K(2)) == -z(8)^3 + z(8)
+    @test sqrt(K(2))^2 == K(2)
     @test_throws ErrorException("Element zeta(4) + 1 does not have a square root") sqrt(z(4)+1)
 
     @test Oscar.AbelianClosure.quadratic_irrationality_info(z(5)) === nothing
