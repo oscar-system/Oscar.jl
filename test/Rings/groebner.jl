@@ -15,8 +15,8 @@
     I = ideal(R, [x])
     gb = groebner_basis_f4(I)
     @test normal_form(y, I) == y
-    @test Oscar._normal_form_singular(y, I, degrevlex(R)) == y
-    @test Oscar._normal_form_f4(y, I) == y
+    @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
+    @test Oscar._normal_form_f4([y], I) == [y]
     @test normal_form(y, I) == y
     G = groebner_basis(I)
     J = ideal(R, y)

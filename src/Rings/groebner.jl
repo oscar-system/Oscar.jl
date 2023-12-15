@@ -968,7 +968,7 @@ function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_o
 end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-  if ordering == degrevlex(base_ring(J)) && is_probable_prime(characteristic(base_ring(J)))
+  if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
