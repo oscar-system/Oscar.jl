@@ -16,5 +16,6 @@
   @test is_graded(dualFIC[-10])
   @test !Oscar.can_compute_index(dualFIC, 1)
   betti_table(FI)
+  minimal_betti_table(FI)
   simplify(FI)
 end

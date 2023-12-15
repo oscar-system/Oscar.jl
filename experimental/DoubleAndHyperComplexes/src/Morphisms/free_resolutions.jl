@@ -119,6 +119,9 @@ end
 augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 
 ### Additional functionality
+function betti(b::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool = false)
+  return betti_table(b; project, reverse_direction)
+end
 function betti_table(C::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
   @assert has_upper_bound(C) "no upper bound known for this resolution"
   generator_count = Dict{Tuple{Int, Any}, Int}()
@@ -135,3 +138,33 @@ function betti_table(C::SimpleFreeResolution; project::Union{GrpAbFinGenElem, No
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
+function minimal_betti_table(C::SimpleFreeResolution)
+  @assert has_lower_bound(C) && has_upper_bound(C) "resolution must be bounded"
+  offsets = Dict{GrpAbFinGenElem, Int}()
+  betti_hash_table = Dict{Tuple{Int, Any}, Int}()
+  for i in 1:upper_bound(C)+1
+    phi = map(C, i)
+    F = domain(phi)
+    @assert is_graded(F) "modules must be graded"
+    @assert is_standard_graded(base_ring(F)) "ring must be standard graded"
+    G = codomain(phi)
+    @assert is_graded(G) "modules must be graded"
+    @assert is_standard_graded(base_ring(G)) "ring must be standard graded"
+    dom_degs = unique!([degree(g) for g in gens(F)])
+    cod_degs = unique!([degree(g) for g in gens(G)])
+    for d in cod_degs
+      d::GrpAbFinGenElem
+      if d in dom_degs
+        _, _, sub_mat = _constant_sub_matrix(phi, d)
+        r = rank(sub_mat)
+        c = ncols(sub_mat) - r - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        offsets[d] = r
+      else
+        c = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+      end
+    end
+  end
+  return BettiTable(betti_hash_table)
+end
