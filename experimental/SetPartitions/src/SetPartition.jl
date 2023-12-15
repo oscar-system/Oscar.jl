@@ -35,8 +35,14 @@ function ==(p::SetPartition, q::SetPartition)
     return p.lower_points == q.lower_points && p.upper_points == q.upper_points
 end
 
-function deepcopy(p::SetPartition)
-    return SetPartition(deepcopy(p.upper_points), deepcopy(p.lower_points))
+function deepcopy_internal(p::SetPartition, stackdict::IdDict)
+    if haskey(stackdict, p)
+        return stackdict[p]
+    end
+    q = SetPartition(deepcopy_internal(p.upper_points, stackdict), 
+                     deepcopy_internal(p.lower_points, stackdict))
+    stackdict[p] = q
+    return q
 end
 
 function upper_points(p::SetPartition)

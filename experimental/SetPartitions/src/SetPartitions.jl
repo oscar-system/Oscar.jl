@@ -4,10 +4,10 @@ import Base:
     ==, 
     *,
     adjoint,
-    copy,
+    deepcopy,
+    deepcopy_internal,
     hash,
-    size,
-    deepcopy
+    size
     
 import Oscar:
     ⊗,

@@ -25,10 +25,15 @@ function ==(p::SpatialPartition, q::SpatialPartition)
     return p.partition == q.partition && p.dimension == q.dimension
 end
 
-function deepcopy(p::SpatialPartition)
-    return SpatialPartition(deepcopy(p.partition), deepcopy(p.dimension))
+function deepcopy_internal(p::SpatialPartition, stackdict::IdDict)
+    if haskey(stackdict, p)
+        return stackdict[p]
+    end
+    q = SpatialPartition(deepcopy_internal(p.partition, stackdict), 
+                         deepcopy_internal(p.dimension, stackdict))
+    stackdict[p] = q
+    return q
 end
-
 
 function upper_points(p::SpatialPartition)
     return upper_points(p.partition)

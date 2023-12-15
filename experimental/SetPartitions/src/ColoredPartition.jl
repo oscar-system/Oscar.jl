@@ -35,12 +35,16 @@ function ==(p::ColoredPartition, q::ColoredPartition)
 
 end
 
-function deepcopy(p::ColoredPartition)
-    return ColoredPartition(deepcopy(p.partition), 
-        deepcopy(p.color_upper_points), 
-        deepcopy(p.color_lower_points))
+function deepcopy_internal(p::ColoredPartition, stackdict::IdDict)
+    if haskey(stackdict, p)
+        return stackdict[p]
+    end
+    q = ColoredPartition(deepcopy_internal(p.partition, stackdict), 
+                         deepcopy_internal(p.color_upper_points, stackdict), 
+                         deepcopy_internal(p.color_lower_points, stackdict))
+    stackdict[p] = q
+    return q
 end
-
 
 function upper_points(p::ColoredPartition)
     return upper_points(p.partition)
