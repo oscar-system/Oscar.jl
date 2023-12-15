@@ -20,7 +20,12 @@
   end
 end
 
-function groebner_basis(r::MPolyQuoRing)
+function _groebner_basis(r::MPolyQuoRing)
+  # Assure that the correspondence to Singular is set up
+  # Note that this is the only way to create the Singular quotient ring:
+  # 1. Translate the modulus to a Singular ideal
+  # 2. Create the quotient ring (rQuotientRing) on the Singular side
+  # 3. Create a Singular.PolyRing (create_ring_from_singular_ring).
   if isdefined(r, :SQRGB)
     return true
   end
@@ -62,10 +67,10 @@ Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
+oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
@@ -301,7 +306,8 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function groebner_basis(a::MPolyQuoIdeal)
+function _groebner_basis(a::MPolyQuoIdeal)
+  # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
@@ -309,7 +315,7 @@ function groebner_basis(a::MPolyQuoIdeal)
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
-  groebner_basis(a)
+  _groebner_basis(a)
 
   return a.gb.S
 end
