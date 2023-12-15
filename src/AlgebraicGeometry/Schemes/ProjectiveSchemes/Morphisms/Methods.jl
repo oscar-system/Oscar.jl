@@ -52,8 +52,8 @@ with default covering
 ```
 """
 @attr function covered_scheme_morphism(
-    f::AbsProjectiveSchemeMorphism{<:Any, <:Any, PBT}
-  ) where {PBT <: MPolyAnyMap{<:Any, <:Any, Nothing}} # No map on the base rings
+    f::AbsProjectiveSchemeMorphism{<:Any, <:Any, <:Any, Nothing} # No map on base rings
+  )
   PX = domain(f)
   PY = codomain(f)
   SX = ambient_coordinate_ring(PX)
