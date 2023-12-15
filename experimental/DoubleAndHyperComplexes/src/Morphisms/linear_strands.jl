@@ -72,8 +72,8 @@ end
 
 underlying_morphism(phi::LinearStrandInclusion) = phi.internal_morphism
 
-# User facing constructor
-function linear_strand(C::AbsHyperComplex; degree::Int=0)
+### User facing constructor
+function linear_strand(C::AbsHyperComplex, degree::Int=0)
   result = LinearStrandComplex(C, degree=degree)
   result.map_to_original = LinearStrandInclusion(result)
   return result, result.map_to_original
@@ -81,6 +81,19 @@ end
 
 function linear_strand(C::AbsHyperComplex, g::GrpAbFinGenElem)
   return linear_strand(C, g[1])
+end
+
+### Additional constructors for compatibility with what's already there:
+# TODO: Adjust once we have decided which structures to use in the long run!
+function linear_strand(C::ComplexOfMorphisms, degree::Int=0)
+  return linear_strand(SimpleComplexWrapper(C), degree)
+end
+
+function linear_strand(C::FreeResolution, degree::Int=0)
+  rng = range(C.C)
+  # TODO: Using the operator [first(rng):-1:0] on C.C directly does not 
+  # cut off the lower end. Is this a bug? 
+  return linear_strand(SimpleComplexWrapper(C.C)[0:first(rng)], degree)
 end
 
 ### Associated functionality for cokernels
