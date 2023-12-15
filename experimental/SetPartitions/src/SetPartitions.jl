@@ -66,9 +66,3 @@ export rotation
 export upper_colors
 export upper_points
 export vertical_reflection
-
-using Test
-using Oscar
-include("../test/Partition-test.jl")
-include("../test/PartitionProperties-test.jl")
-include("../test/GenerateCategory-test.jl")
