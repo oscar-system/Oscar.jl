@@ -93,7 +93,7 @@ push!(upgrade_scripts_set, UpgradeScript(
         # which was our primary focus, this may be updated upon request
         error("The upgrade script needs an update")
       end
-      
+
       upgraded_dict[:_type] = Dict(:name => type_string, :params => params)
     elseif contains(type_string, "NamedTuple")
       upgraded_tuple = upgrade_0_13_0(s, dict[:data][:content])
@@ -138,7 +138,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif contains(type_string, "Tuple")
       params = []
       entry_data = []
-      
+
       for (i, field_type) in enumerate(dict[:data][:field_types])
         U = reverse_type_map[field_type]
         if serialize_with_params(U)
@@ -162,13 +162,12 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = matrix_data
     end
 
-    
+
     if contains(type_string, "Field")
       if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
       end
     end
-
 
     if haskey(upgraded_dict, :refs)
       upgraded_refs = Dict()
