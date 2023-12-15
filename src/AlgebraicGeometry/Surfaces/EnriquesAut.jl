@@ -258,8 +258,8 @@ end
 # inv(g)*h in G => fingerprint(g) == fingerprint(h)
 # So far no good idea?
 function fingerprint(D::EnriquesChamber)
-  return 0
-  return hnf(D.data.Dplus_perp*change_base_ring(GF(2),D.tau))
+  fp = rref(D.data.Dplus_perp*change_base_ring(GF(2),inv(D.tau)))[2]
+  return fp
 end
 
 function walls(D::EnriquesChamber)
@@ -337,6 +337,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   waiting_list = EnriquesChamber[D]
 
   chambers = Dict{UInt64,Vector{EnriquesChamber}}()
+  chambers[hash(fingerprint(D))] = EnriquesChamber[D]
   waiting_list = [D]
 
   automorphisms = Set{ZZMatrix}()
@@ -354,26 +355,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
       @vprint :K3Auto 1 "mass left $(massY - mass_explored)"
     end
     D = popfirst!(waiting_list)
-    # check G-congruence
-    fp = hash(fingerprint(D))
-    if !haskey(chambers, fp)
-      chambers[fp] = EnriquesChamber[]
-    end
-    is_explored = false
-    for E in chambers[fp]
-      gg = hom_first(D, E)
-      if length(gg) > 0
-        # enough to add a single homomorphism
-        push!(automorphisms, gg[1])
-        is_explored = true
-        break
-      end
-    end
-    if is_explored
-      continue
-    end
-    push!(chambers[fp], D)
-    nchambers = nchambers+1
+    nchambers = nchambers + 1
 
     autD = aut(D)
     mass_explored = mass_explored + inv(QQ(length(autD)))
@@ -411,6 +393,8 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
         continue
       end
       Dv = adjacent_chamber(D, v)
+      # check G-congruence
+      @vprint :K3Auto 3 "checking G-congruence "
       fp = hash(fingerprint(Dv))
       if !haskey(chambers, fp)
         chambers[fp] = EnriquesChamber[]
@@ -425,6 +409,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
           break
         end
       end
+      @vprintln :K3Auto 3 "done"
       if is_explored
         continue
       end
@@ -441,7 +426,7 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :K3Auto 1 "$(length(rational_curves)) orbits of rational curves\n"
   @vprint :K3Auto 1 "$mass $(massY)\n"
   @vprint :K3Auto 1 "$mass explored $(mass_explored)\n"
-  #@assert massY == mass_explored
+  @assert massY == mass_explored
   return data, collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
 
