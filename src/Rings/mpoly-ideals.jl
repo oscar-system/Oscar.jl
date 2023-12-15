@@ -534,6 +534,13 @@ function primary_decomposition(I::T; algorithm::Symbol=:GTZ, cache::Bool=true) w
   end::Vector{Tuple{T,T}}
 end
 
+function _old_primary_decomposition(I::T; algorithm::Symbol=:GTZ, cache::Bool=true) where {T<:MPolyIdeal}
+  !cache && return _compute_primary_decomposition(I, algorithm=algorithm)
+  return get_attribute!(I, :primary_decomposition) do
+    return _compute_primary_decomposition(I, algorithm=algorithm)
+  end::Vector{Tuple{T,T}}
+end
+
 function primary_decomposition(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, cache::Bool=true
@@ -808,6 +815,38 @@ julia> L = minimal_primes(I)
 ```
 """
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
+  has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
+  R = base_ring(I)
+  if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
+    A, mA = absolute_simple_field(base_ring(R))
+    mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
+    result = typeof(I)[map_coefficients(mA, x) for x = mp]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
+  end
+  if elem_type(base_ring(R)) <: FieldElement
+    if algorithm == :GTZ
+      l = Singular.LibPrimdec.minAssGTZ(singular_polynomial_ring(I), singular_generators(I))
+    elseif algorithm == :charSets
+      l = Singular.LibPrimdec.minAssChar(singular_polynomial_ring(I), singular_generators(I))
+    else
+      error("algorithm invalid")
+    end
+  elseif base_ring(singular_polynomial_ring(I)) isa Singular.Integers
+    l = Singular.LibPrimdecint.minAssZ(singular_polynomial_ring(I), singular_generators(I))
+  else
+    error("base ring not implemented")
+  end
+  V = [ideal(R, i) for i in l]
+  if length(V) == 1 && is_one(gen(V[1], 1))
+    result = typeof(I)[]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
+  end
+  return V
+end
+
+function _old_minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
