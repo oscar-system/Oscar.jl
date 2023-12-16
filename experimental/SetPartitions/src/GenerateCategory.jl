@@ -231,6 +231,7 @@ function _do_tensor_products(
         all_partitions_by_size_top_bottom, trace)
 end
 
+
 """
 This function is a helper function of `construct_category`, which applies 
 compositions on all partitions in  the set `to_comp`. When a new partition 
@@ -333,18 +334,21 @@ end
 
 """
     construct_category(p::Vector{AbstractPartition}, n::Int, tracing::Bool = false, 
-        max_artifical::Int = 0, spatial_rotation::Union{Function,Nothing}=nothing)
+        max_artifical::Int = 0, spatial_rotation::Union{Functi on,Nothing}=nothing)
 
-Return a list of all partitions of size `n` constructed from partitions in `p` without 
-using partitions of size greater than max(`n`, maxsize(`p`), `max_artifical`)
+Return a list of all partitions of size `n` which can be constructed from category 
+operations using partitions in `p` and without using partitions of size greater than 
+`max(n, maxsize(p), max_artifical)`.
+
+Category operations include composition, tensor product, involution, rotation and reflection. 
+See Section 4.1.1 in [Gro20](@cite) for more information categories of partitions and these operations.
 
 # Arguments
 - `p`: list of partitions
-- `n`: size of partitions in constructing category
-- `tracing`: optinal input: activate tracing and get the output (category, trace)
-- `max_artifical`: optional input: allow partitions to grow > max_length
-- `spatial_rotation`: optional input: function from SpatialPartition to SpatialPartition 
-    which performs a valid rotation or similar
+- `n`: size of partitions to construct
+- `tracing` (optional): return additional data to allow tracing using `print_trace` 
+- `max_artifical` (optional): allow partitions to grow larger then `n` and `maxsize(p)`
+- `spatial_rotation` (optional): function which performs a rotation on `SpatialPartition`
 
 # Returns
 - list of all partitions of size `n` constructed from partitions in `p`
@@ -511,7 +515,6 @@ end
     print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
 
 Print the trace of the partition `start` constructed with `construct_category`.
-(via breath first search)
 """
 function print_trace(trace::Trace{T}, start::T) where {T <: AbstractPartition}
     # iterate through trace with breath first search and print it

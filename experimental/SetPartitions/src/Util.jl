@@ -1,6 +1,6 @@
 """
     _new_point_values(p_upper::Vector{Int}, p_lower::Vector{Int}, 
-                     q_upper::Vector{Int}, q_lower::Vector{Int})
+                      q_upper::Vector{Int}, q_lower::Vector{Int})
 
 Return two vectors which are semantically identical to `q_upper` and `q_lower`
 as set-partition and have no common values with `p_upper` and `p_lower`.
@@ -68,6 +68,19 @@ function _normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 end
 
 """
+    _is_worth_composition(p::T, q::T, max_length::Int) where {T <: AbstractPartition}
+
+Return whether it is worth to compose `p` and `q`, i.e. the result is less or
+equal `max_length` and not equal to the empty partition.
+
+Note that this is a helper function for the `construct_category` algorithm.
+"""
+function _is_worth_composition(p::T, q::T, max_length::Int) where {T <: AbstractPartition}
+    return length(upper_points(p)) != max_length && 
+        length(lower_points(p)) + length(upper_points(q)) <= max_length
+end
+
+"""
     _add_partition(dict::Dict{Int, Set{T}}, p::T) where {T <: AbstractPartition}
 
 Return `dict` with `p` included as value and `size(p)` as corresponding key.
@@ -85,7 +98,7 @@ function _add_partition(dict::Dict{Int, Set{T}}, p::T) where
 end
 
 """
-    _add_partition_top_bottom(Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
+    _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
 
 Return `vector` with `p` included as value and `size(lower_points(p))` as
 corresponding key in the dict of `vector[2]` as well as

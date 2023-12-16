@@ -24,6 +24,7 @@ export colored_partition
 export compose_count_loops
 export construct_category
 export is_balanced
+export is_composable
 export is_non_crossing
 export is_pair
 export lower_colors
@@ -58,6 +59,7 @@ export colored_partition
 export compose_count_loops
 export construct_category
 export is_balanced
+export is_composable
 export is_non_crossing
 export is_pair
 export lower_colors

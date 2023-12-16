@@ -1,19 +1,9 @@
 """
     SetPartition
 
-A set-partition is a partition of a set of upper and lower points into disjoint subsets. 
-Such partitions are often depicted as string diagrams where points in the same subset 
+`SetPartition` represents a partition of a set of upper and lower points into disjoint subsets. 
+Such set-partitions are often depicted as string diagrams where points in the same subset 
 are connected by lines. See also Section 4.1.1 in [Gro20](@cite).
-
-`SetPartition` stores two vectors `upper_points` and `lower_points`
-where same numbers correspond to points in the same subset. Both vectors are 
-automatically converted into normal form as returned by [`normal_form`](@ref).
-
-# Examples
-```jldoctest
-julia> SetPartition([2, 4], [4, 99])
-SetPartition([1, 2], [2, 3])
-```
 """
 struct SetPartition <: AbstractPartition
     upper_points::Vector{Int}
@@ -25,6 +15,20 @@ struct SetPartition <: AbstractPartition
     end
 end
 
+"""
+    set_partition(upper_points::Vector, lower_points::Vector)
+
+Construct a `SetPartition` with points `upper_points` and `lower_points`
+where two points are in the same subset if and only if they have the same value.
+
+Note that `upper_points` and `lower_points` are stored in normal form.
+
+# Examples
+```jldoctest
+julia> set_partition([2, 4], [4, 99])
+SetPartition([1, 2], [2, 3])
+```
+"""
 function set_partition(upper_points::Vector, lower_points::Vector)
     return SetPartition(convert(Vector{Int}, upper_points), 
                         convert(Vector{Int}, lower_points))
@@ -49,10 +53,31 @@ function deepcopy_internal(p::SetPartition, stackdict::IdDict)
     return q
 end
 
+"""
+    upper_points(p::SetPartition)
+
+Return the upper points of `p`.
+
+# Examples
+```jldoctest
+julia> upper_points(set_partition([2, 4], [4, 99]))
+[1, 2]
+```
+"""
 function upper_points(p::SetPartition)
     return p.upper_points
 end
 
+"""
+    lower_points(p::SetPartition)
+
+Return the lower points of `p`.
+
+# Examples
+```jldoctest
+julia> lower_points(set_partition([2, 4], [4, 99]))
+[2, 3]
+"""
 function lower_points(p::SetPartition)
     return p.lower_points
 end
@@ -62,7 +87,7 @@ end
 
 Return tensor product of `p` and `q`.
 
-The tensor product of two partitions is given by their vertical concatenation.
+The tensor product of two partitions is given by their horizontal concatenation.
 See also Section 4.1.1 in [Gro20](@cite).
 
 # Examples
@@ -72,10 +97,11 @@ SetPartition([1, 2, 3, 3], [2, 1, 3])
 ```
 """
 function tensor_product(p::SetPartition, q::SetPartition)
-    
     q_new = _new_point_values(upper_points(p), lower_points(p), 
-            upper_points(q), lower_points(q))
-    return set_partition(vcat(upper_points(p), q_new[1]), vcat(lower_points(p), q_new[2]))
+                              upper_points(q), lower_points(q))
+
+    return set_partition(vcat(upper_points(p), q_new[1]), 
+                         vcat(lower_points(p), q_new[2]))
 end
 
 """
@@ -99,7 +125,7 @@ end
 """
     reflect_vertical(p::SetPartition)
 
-Reflect `p` vertically.
+Reflect `p` at the vertical axis.
 
 The vertical reflection of a partition is obtained by reversing the order of 
 the upper and lower points. See also Section 4.1.2 in [Gro20](@cite).
@@ -115,7 +141,7 @@ function reflect_vertical(p::SetPartition)
 end
 
 """
-    rotate(p::SetPartition)
+    rotate(p::SetPartition, lr::Bool, tb::Bool)
 
 Rotate `p` in the direction given by `lr` and `tb`. 
 
@@ -177,6 +203,22 @@ function rotate(p::SetPartition, lr::Bool, tb::Bool)
     return set_partition(ret[1], ret[2])
 end
 
+
+"""
+    is_composable(p::SetPartition, q::SetPartition)
+
+Return whether `p` and `q` are composable, i.e. the number of upper points of 
+`p` equals the number of lower points of `q`.
+
+# Examples
+```jldoctest
+julia> is_composable(set_partition([1, 2], [2, 1]), set_partition([1], [1, 1]))
+true
+
+julia> is_composable(set_partition([1], [1, 1]), set_partition([1, 2], [2, 1]))
+false
+```
+"""
 function is_composable(p::SetPartition, q::SetPartition)
     return num_upper_points(p) == num_lower_points(q)
 end
@@ -186,7 +228,7 @@ end
 
 Return the composition of `p` and `q` as well as the number of removed loops.
 
-The composition of two partitions is obtained concatenating them horizontally
+The composition of two partitions is obtained by concatenating them vertically
 and removing intermediate loops which are no longer connected to the top or bottom.
 See also Section 4.1.1 in [Gro20](@cite).
 

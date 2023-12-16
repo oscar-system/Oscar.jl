@@ -1,22 +1,36 @@
 """
     SpatialPartition
 
-A spatial partition is a set-partition where the points are 
-arranged in multiple layers along the third dimension. 
+`SpatialPartition` is a set-partition where the points are 
+arranged in multiple levels along the third dimension. 
 See Section 2.2 in [CW16](@cite).
-
-It is represented by a set-partition `partition` where the 
-number of upper and lower points are a multiple of `dimension`.
 """
 struct SpatialPartition <: AbstractPartition
     partition::SetPartition
     dimension::Int
 end
 
+"""
+    spatial_partition(partition::SetPartition, dim::Int)
+
+Construct a `SpatialPartition` on `dim` levels from `partition`.
+
+Note that number of upper and lower points of `partition` have to be a multiple of `dim`. 
+See Remark 2.4 in [CW16](@cite).
+"""
 function spatial_partition(partition::SetPartition, dim::Int)
     return SpatialPartition(partition, dim)
 end
 
+"""
+    spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
+
+Construct a `SpatialPartition` on `dim` levels from a partition given by 
+`upper_points` and `lower_points`.
+
+Note that the length of `upper_points` and `lower_points` have to be a multiple of `dim`. 
+See Remark 2.4 in [CW16](@cite).
+"""
 function spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
     return spatial_partition(set_partition(upper_points, lower_points), dim)
 end
@@ -39,10 +53,32 @@ function deepcopy_internal(p::SpatialPartition, stackdict::IdDict)
     return q
 end
 
+"""
+    upper_points(p::SpatialPartition)
+
+Return the upper points of `p`.
+
+# Examples
+```jldoctest
+julia> upper_points(spatial_partition([2, 4], [4, 99], 2))
+[1, 2]
+```
+"""
 function upper_points(p::SpatialPartition)
     return upper_points(p.partition)
 end
 
+"""
+    lower_points(p::SpatialPartition)
+
+Return the lower points of `p`.
+
+# Examples
+```jldoctest
+julia> lower_points(spatial_partition([2, 4], [4, 99], 2))
+[2, 3]
+```
+"""
 function lower_points(p::SpatialPartition)
     return lower_points(p.partition)
 end
@@ -51,6 +87,15 @@ end
     tensor_product(p::SpatialPartition, q::SpatialPartition)
 
 Return the tensor product of `p` and `q`.
+
+The tensor product of two spatial partitions is given by their horizontal concatenation.
+See also Section 2.3 in [CW16](@cite) and `tensor_product(::SetPartition, ::SetPartition)`.
+
+# Examples
+```jldoctest
+julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 1], [1], 2))
+SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), 2)
+```
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
@@ -62,12 +107,37 @@ end
 """
     involution(p::SpatialPartition)
 
-Return the involution of `p`.
+Return involution of `p`.
+
+The involution of a spatial partition is obtained by swapping the upper 
+and lower points. See also Section 2.3 in [CW16](@cite) and `involution(::SetPartition)`.
+
+# Examples
+```jldoctest
+julia> involution(spatial_partition([1, 2], [2, 1, 3, 3], 2))
+SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1]), 2)
+```
 """
 function involution(p::SpatialPartition)
     return spatial_partition(involution(p.partition), p.dimension)
 end
 
+"""
+    is_composable(p::SpatialPartition, q::SpatialPartition)
+
+Return whether `p` and `q` are composable, i.e. they have the same 
+number of levels and the number of upper points of `p` equal the 
+number of lower points of `q`.
+
+# Examples
+```jldoctest
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
+true
+
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
+false
+```
+"""
 function is_composable(p::SpatialPartition, q::SpatialPartition)
     return p.dimension == q.dimension && is_composable(p.partition, q.partition)
 end
@@ -76,6 +146,26 @@ end
     compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 
 Return the composition of `p` and `q` as well as the number of removed loops.
+
+The composition of two spatial partitions is obtained by concatenating them vertically
+and removing intermediate loops which are no longer connected to the top or bottom.
+See also Section 2.3 in [CW16](@cite) and `compose_count_loops(::SetPartition, ::SetPartition)`.
+
+The composition of `p` and `q` is only defined if they have the same 
+number of levels and the number of upper points of `p` equal the 
+number of lower points of `q`. See also `is_composable(::SpatialPartition)`.
+
+# Examples
+```jldoctest
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
+(SpatialPartition(SetPartition([1, 2], [1, 1]), 2), 0)
+
+julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), spatial_partition([1, 1], [2, 2], 2))
+(SpatialPartition(SetPartition([1, 1], [2, 2]), 2), 1)
+
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
+ERROR: ArgumentError: p and q have different dimensions in composition
+```
 """
 function compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 

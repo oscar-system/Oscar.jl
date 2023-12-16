@@ -1,26 +1,15 @@
 """
-    _is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
-
-Return whether it is worth to compose `p` and `q` such that the result is less
-equal `max_length` and not equal to the empty partition.
-
-Note that this is a helper function for the `construct_category` algorithm.
-"""
-function _is_worth_composition(p::AbstractPartition, q::AbstractPartition, max_length::Int)
-    return length(upper_points(p)) != max_length && 
-        length(lower_points(p)) + length(upper_points(q)) <= max_length
-end
-
-
-"""
     is_pair(p::AbstractPartition)
 
-Return whether `p` is a partition only consisting of blocks of size two.
+Return whether `p` is a partition consisting only of subsets of size two.
 
 # Examples
 ```jldoctest
 julia> is_pair(set_partition([1, 2, 2, 1, 3], [3]))
 true
+
+julia> is_pair(set_partition([1, 2, 3, 1, 3], [3]))
+false
 ```
 """
 function is_pair(p::AbstractPartition)
@@ -45,12 +34,18 @@ end
 """
     is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-Return whether `p` is a balanced partition.
+Return whether `p` is a balanced partition, i.e. every subset has the 
+same number of points with even and odd indices.
+
+Note that the parity of the lower indices is inverted.
 
 # Examples
 ```jldoctest
 julia> is_balanced(set_partition([1, 2, 3], [3, 2, 1]))
 true
+
+julia> is_balanced(set_partition([1, 2, 3], [3, 1, 2]))
+false
 ```
 """
 function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
@@ -85,10 +80,14 @@ end
 """
     is_non_crossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
 
-Return whether `p` is a non-crossing partition.
+Return whether `p` is a non-crossing partition, i.e. there are no crossing
+lines when drawing `p`. See also Section 4.1.1 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
+julia> is_non_crossing(set_partition([1, 2, 2, 1, 3], [3, 3]))
+true
+
 julia> is_non_crossing(set_partition([1, 2, 2, 3, 1, 4], [4, 3]))
 false
 ```
