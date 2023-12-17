@@ -278,7 +278,8 @@ function _do_composition(
                 # get fitting partitions in advance (improve runtime)
                 new_comp_temp_comp = Set{T}()
                 if length(upper_points(i)) <= max_length
-                    new_comp_temp_comp = (new_comp_by_size_top_bottom[2])[length(upper_points(i))]
+                    new_comp_temp_comp = 
+                        (new_comp_by_size_top_bottom[2])[length(upper_points(i))]
                 end
                 if i in keys(without)
                     operate_on = setdiff(new_comp_temp_comp, without[i])
@@ -340,8 +341,10 @@ Return a list of all partitions of size `n` which can be constructed from catego
 operations using partitions in `p` and without using partitions of size greater than 
 `max(n, maxsize(p), max_artifical)`.
 
-Category operations include composition, tensor product, involution, rotation and reflection. 
-See Section 4.1.1 in [Gro20](@cite) for more information categories of partitions and these operations.
+Category operations include composition, tensor product, involution, 
+rotation and reflection. 
+See Section 4.1.1 in [Gro20](@cite) for more information categories 
+of partitions and these operations.
 
 # Arguments
 - `p`: list of partitions
@@ -480,7 +483,8 @@ function construct_category(
         # get all candidates for
         for i in all_partitions
             # get in advance the right second candidate (regarding format)
-            all_partitions_temp_comp = (all_partitions_by_size_top_bottom[2])[length(upper_points(i))]
+            all_partitions_temp_comp = 
+                (all_partitions_by_size_top_bottom[2])[length(upper_points(i))]
             for ii in all_partitions_temp_comp
                 if !((i, ii) in already_c) && is_composable(i, ii) && 
                         _is_worth_composition(i, ii, max_length)

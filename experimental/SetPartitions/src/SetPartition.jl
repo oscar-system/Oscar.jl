@@ -1,7 +1,8 @@
 """
     SetPartition
 
-`SetPartition` represents a partition of a set of upper and lower points into disjoint subsets. 
+`SetPartition` represents a partition of a set of upper and lower points 
+into disjoint subsets. 
 Such set-partitions are often depicted as string diagrams where points in the same subset 
 are connected by lines. See also Section 4.1.1 in [Gro20](@cite).
 """

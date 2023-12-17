@@ -22,8 +22,8 @@ function is_pair(p::AbstractPartition)
         if !(i in keys(block_to_size))
             block_to_size[i] = 1
         else
-            block_to_size[i] = get(block_to_size, i, -1) + 1
-            if get(block_to_size, i, -1) > 2
+            block_to_size[i] = block_to_size[i] + 1
+            if block_to_size[i] > 2
                 return false
             end
         end
@@ -68,9 +68,9 @@ function is_balanced(p::T) where {T<:Union{SetPartition, ColoredPartition}}
     for (i, n) in enumerate(p_vector)
         condition = upper_uneven ? i % 2 == 1 : (i <= upper ? i % 2 == 1 : i % 2 == 0)
         if condition
-            block_to_size[n] = get(block_to_size, n, -1) - 1
+            block_to_size[n] = block_to_size[n] - 1
         else
-            block_to_size[n] = get(block_to_size, n, -1) + 1
+            block_to_size[n] = block_to_size[n] + 1
         end
     end
 
@@ -117,7 +117,7 @@ function is_non_crossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
         end
         if !(n in already_seen)
             push!(already_seen, n)
-            block_size = block_to_size[n] = get(block_to_size, n, -1) - 1
+            block_size = block_to_size[n] = block_to_size[n] - 1
             if (block_size > 0 && 
                 (isempty(last_incompleted) ? -1 : last_incompleted[end]) != n)
                 push!(last_incompleted, n)
@@ -127,7 +127,7 @@ function is_non_crossing(p::T) where {T<:Union{SetPartition, ColoredPartition}}
             if p_vector[i-1] != n && get(block_to_size, p_vector[i-1], -1) != 0
                 return false
             end
-            block_size = block_to_size[n] = get(block_to_size, n, -1) - 1
+            block_size = block_to_size[n] = block_to_size[n] - 1
             if block_size == 0 && !isempty(last_incompleted)
                 if last_incompleted[end] == n
                     pop!(last_incompleted)
