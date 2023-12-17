@@ -5,9 +5,13 @@
         
         @test upper_points(colored_partition([2, 4], [8, 9], [1, 0], [0, 1])) == [1, 2]
         @test lower_points(colored_partition([2, 4], [8, 9], [1, 0], [0, 1])) == [3, 4]
+        @test_throws ArgumentError colored_partition([1, 2], [3], [1, 0], [])
+        @test_throws ArgumentError colored_partition([1, 2], [5], [2, 0], [1])
 
         @test upper_points(spatial_partition([89, 99], [1, 2], 2)) == [1, 2]
         @test lower_points(spatial_partition([89, 99], [1, 2], 2)) == [3, 4]
+        @test_throws ArgumentError spatial_partition([1, 2, 3], [2, 3], 2)
+        @test_throws ArgumentError spatial_partition([1, 2], [2, 1], -1)
     end
     @testset "Operations on classical partitions" begin
         @test involution(set_partition([2, 3], [4, 4])) == set_partition([1, 1], [2, 3])
@@ -34,8 +38,8 @@
                     set_partition([1, 1, 2, 1], [2, 1])
     end
     @testset "Operations on colored partitions" begin
-        @test involution(colored_partition([99, 1, 4], [4, 99], [0, 1], [1, 0])) == 
-                colored_partition([1, 2], [2, 3, 1], [1, 0], [0, 1])
+        @test involution(colored_partition([99, 1, 4], [4, 99], [0, 1, 1], [1, 0])) == 
+                colored_partition([1, 2], [2, 3, 1], [1, 0], [0, 1, 1])
 
         @test tensor_product(colored_partition([1, 2], [2, 1], [0, 0], [0, 0]), 
                              colored_partition([1], [1, 1],[1], [0, 0])) == 
