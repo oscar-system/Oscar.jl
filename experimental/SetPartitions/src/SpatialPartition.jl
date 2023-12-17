@@ -133,8 +133,7 @@ See also Section 2.3 in [CW16](@cite) and `tensor_product(::SetPartition, ::SetP
 
 # Examples
 ```jldoctest
-julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), 
-                        spatial_partition([1, 1], [1], 2))
+julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 1], [1], 2))
 SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), 2)
 ```
 """
@@ -172,12 +171,10 @@ number of lower points of `q`.
 
 # Examples
 ```jldoctest
-julia> is_composable(spatial_partition([1, 2], [2, 1], 2), 
-                        spatial_partition([1, 2], [1, 1], 2))
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
 true
 
-julia> is_composable(spatial_partition([1, 2], [2, 1], 2), 
-                        spatial_partition([1, 2], [1, 1], 1))
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
 false
 ```
 """
@@ -201,16 +198,13 @@ number of lower points of `q`. See also `is_composable(::SpatialPartition)`.
 
 # Examples
 ```jldoctest
-julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), 
-                            spatial_partition([1, 2], [1, 1], 2))
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
 (SpatialPartition(SetPartition([1, 2], [1, 1]), 2), 0)
 
-julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), 
-                            spatial_partition([1, 1], [2, 2], 2))
+julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), spatial_partition([1, 1], [2, 2], 2))
 (SpatialPartition(SetPartition([1, 1], [2, 2]), 2), 1)
 
-julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), 
-                            spatial_partition([1, 2], [1, 1], 1))
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
 ERROR: ArgumentError: p and q have different levels in composition
 ```
 """

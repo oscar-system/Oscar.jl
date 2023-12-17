@@ -179,8 +179,7 @@ See also Section 1.2 in [TW18](@cite) and
 
 # Examples
 ```jldoctest
-julia> tensor_product(colored_partition([1, 2], [2, 1], [1, 0], [1, 1]), 
-                        colored_partition([1, 1], [1], [0, 1], [0]))
+julia> tensor_product(colored_partition([1, 2], [2, 1], [1, 0], [1, 1]), colored_partition([1, 1], [1], [0, 1], [0]))
 ColoredPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), [1, 0, 0, 1], [1, 1, 0])
 ```
 """
@@ -221,12 +220,10 @@ Return whether `p` and `q` are composable, i.e. the upper colors of
 
 # Examples
 ```jldoctest
-julia> is_composable(colored_partition([1, 2], [2, 1], [1, 1], [0, 1]), 
-                        colored_partition([1, 2], [1, 1], [0, 1], [1, 1]))
+julia> is_composable(colored_partition([1, 2], [2, 1], [1, 1], [0, 1]), colored_partition([1, 2], [1, 1], [0, 1], [1, 1]))
 true
 
-julia> is_composable(colored_partition([1, 2], [2, 1], [0, 1], [1, 1]), 
-                        colored_partition([1, 2], [1, 1], [0, 1], [1, 1]))
+julia> is_composable(colored_partition([1, 2], [2, 1], [0, 1], [1, 1]), colored_partition([1, 2], [1, 1], [0, 1], [1, 1]))
 false
 ```
 """
@@ -250,16 +247,13 @@ The composition of `p` and `q` is only defined if the upper colors of
 
 # Examples
 ```jldoctest
-julia> compose_count_loops(colored_partition([1, 2], [2, 1], [1, 1], [0, 1]), 
-                            colored_partition([1], [1, 1], [0], [1, 1]))
+julia> compose_count_loops(colored_partition([1, 2], [2, 1], [1, 1], [0, 1]), colored_partition([1], [1, 1], [0], [1, 1]))
 (ColoredPartition(SetPartition([1], [1, 1]), [0], [0, 1]), 0)
 
-julia> compose_count_loops(colored_partition([1, 1], [2], [1, 1], [0]), 
-                            colored_partition([1], [2, 2], [1], [1, 1]))
+julia> compose_count_loops(colored_partition([1, 1], [2], [1, 1], [0]), colored_partition([1], [2, 2], [1], [1, 1]))
 (ColoredPartition(SetPartition([1], [2]), [1], [0]), 1)
 
-julia> compose_count_loops(colored_partition([1], [1, 2], [0], [1, 0]), 
-                            colored_partition([1], [2, 2], [0], [0, 1]))
+julia> compose_count_loops(colored_partition([1], [1, 2], [0], [1, 0]), colored_partition([1], [2, 2], [0], [0, 1]))
 ERROR: ArgumentError: p upper and q lower colors are different in composition
 ```
 """
