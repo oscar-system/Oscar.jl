@@ -10,8 +10,11 @@ struct SpatialPartition <: AbstractPartition
     levels::Int
 
     function SpatialPartition(_partition::SetPartition, _levels::Int)
-        @req _req_spatial_partition(_partition, _levels) "
-            incorrect format of attributes for colored partitions"
+        @req length(upper_points(_partition)) % _levels == 0 &&
+            length(lower_points(_partition)) % _levels == 0 "
+            number of points does not match dimension"
+        @req _levels > 0 "
+            dimension needs to be greater than 0"
         return new(_partition, _levels)
     end
 end

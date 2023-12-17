@@ -12,8 +12,12 @@ struct ColoredPartition <: AbstractPartition
     function ColoredPartition(_partition::SetPartition, 
                                 _color_upper_points::Vector{Int},
                                 _color_lower_points::Vector{Int})
-        @req _req_colored_partition(_partition, _color_upper_points, _color_lower_points) "
-                        incorrect format of attributes for colored partitions"
+        @req all(x -> x in (0, 1), Set(_color_upper_points)) &&
+            all(x -> x in (0, 1), Set(_color_lower_points)) "
+            coloring has to be binary in {0, 1}"
+        @req length(upper_points(_partition)) == length(_color_upper_points) && 
+            length(lower_points(_partition)) == length(_color_lower_points) "
+            coloring format does not match upper and lower points format"
         return new(_partition, _color_upper_points, _color_lower_points)
     end
 end
