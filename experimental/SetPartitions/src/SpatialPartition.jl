@@ -7,7 +7,13 @@ See Section 2.2 in [CW16](@cite).
 """
 struct SpatialPartition <: AbstractPartition
     partition::SetPartition
-    dimension::Int
+    levels::Int
+
+    function SpatialPartition(_partition::SetPartition, _levels::Int)
+        @req _req_spatial_partition(_partition, _levels) "
+            incorrect format of attributes for colored partitions"
+        return new(_partition, _levels)
+    end
 end
 
 """
@@ -36,11 +42,11 @@ function spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
 end
 
 function hash(p::SpatialPartition, h::UInt)
-    return hash(p.partition, hash(p.dimension, h))
+    return hash(p.partition, hash(p.levels, h))
 end
 
 function ==(p::SpatialPartition, q::SpatialPartition)
-    return p.partition == q.partition && p.dimension == q.dimension
+    return p.partition == q.partition && p.levels == q.levels
 end
 
 function deepcopy_internal(p::SpatialPartition, stackdict::IdDict)
@@ -48,7 +54,7 @@ function deepcopy_internal(p::SpatialPartition, stackdict::IdDict)
         return stackdict[p]
     end
     q = SpatialPartition(deepcopy_internal(p.partition, stackdict), 
-                         deepcopy_internal(p.dimension, stackdict))
+                         deepcopy_internal(p.levels, stackdict))
     stackdict[p] = q
     return q
 end
@@ -84,6 +90,37 @@ function lower_points(p::SpatialPartition)
 end
 
 """
+    set_partition(p::SpatialPartition)
+
+Return the SetPartition part of `p`.
+
+# Examples
+```jldoctest
+julia> set_partition(spatial_partition([2, 4], [4, 99], 2))
+SetPartition([1, 2], [2, 3])
+```
+"""
+function set_partition(p::SpatialPartition)
+    return p.partition
+end
+
+"""
+    levels(p::SpatialPartition)
+
+Return the level of `p`.
+
+# Examples
+```jldoctest
+julia> lower_points(spatial_partition([2, 4], [4, 99], 2))
+2
+```
+"""
+function levels(p::SpatialPartition)
+    return p.levels
+end
+
+
+"""
     tensor_product(p::SpatialPartition, q::SpatialPartition)
 
 Return the tensor product of `p` and `q`.
@@ -93,15 +130,16 @@ See also Section 2.3 in [CW16](@cite) and `tensor_product(::SetPartition, ::SetP
 
 # Examples
 ```jldoctest
-julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 1], [1], 2))
+julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), 
+                        spatial_partition([1, 1], [1], 2))
 SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), 2)
 ```
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-    @req p.dimension == q.dimension "p and q have different dimensions in tensor product"
+    @req levels(p) == levels(q) "p and q have different levels in tensor product"
 
-    return spatial_partition(tensor_product(p.partition, q.partition), p.dimension)
+    return spatial_partition(tensor_product(set_partition(p), set_partition(q)), levels(p))
 end
 
 """
@@ -119,7 +157,7 @@ SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1]), 2)
 ```
 """
 function involution(p::SpatialPartition)
-    return spatial_partition(involution(p.partition), p.dimension)
+    return spatial_partition(involution(set_partition(p)), levels(p))
 end
 
 """
@@ -131,15 +169,17 @@ number of lower points of `q`.
 
 # Examples
 ```jldoctest
-julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), 
+                        spatial_partition([1, 2], [1, 1], 2))
 true
 
-julia> is_composable(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
+julia> is_composable(spatial_partition([1, 2], [2, 1], 2), 
+                        spatial_partition([1, 2], [1, 1], 1))
 false
 ```
 """
 function is_composable(p::SpatialPartition, q::SpatialPartition)
-    return p.dimension == q.dimension && is_composable(p.partition, q.partition)
+    return levels(p) == levels(q) && is_composable(set_partition(p), set_partition(q))
 end
 
 """
@@ -149,7 +189,8 @@ Return the composition of `p` and `q` as well as the number of removed loops.
 
 The composition of two spatial partitions is obtained by concatenating them vertically
 and removing intermediate loops which are no longer connected to the top or bottom.
-See also Section 2.3 in [CW16](@cite) and `compose_count_loops(::SetPartition, ::SetPartition)`.
+See also Section 2.3 in [CW16](@cite) and 
+`compose_count_loops(::SetPartition, ::SetPartition)`.
 
 The composition of `p` and `q` is only defined if they have the same 
 number of levels and the number of upper points of `p` equal the 
@@ -157,22 +198,25 @@ number of lower points of `q`. See also `is_composable(::SpatialPartition)`.
 
 # Examples
 ```jldoctest
-julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 2))
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), 
+                            spatial_partition([1, 2], [1, 1], 2))
 (SpatialPartition(SetPartition([1, 2], [1, 1]), 2), 0)
 
-julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), spatial_partition([1, 1], [2, 2], 2))
+julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), 
+                            spatial_partition([1, 1], [2, 2], 2))
 (SpatialPartition(SetPartition([1, 1], [2, 2]), 2), 1)
 
-julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
-ERROR: ArgumentError: p and q have different dimensions in composition
+julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), 
+                            spatial_partition([1, 2], [1, 1], 1))
+ERROR: ArgumentError: p and q have different levels in composition
 ```
 """
 function compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 
-    @req is_composable(p, q) "p and q have different dimensions in composition"
+    @req is_composable(p, q) "p and q have different levels in composition"
 
-    comp_loops = compose_count_loops(p.partition, q.partition)
+    comp_loops = compose_count_loops(set_partition(p), set_partition(q))
 
-    return (spatial_partition(comp_loops[1], p.dimension), comp_loops[2])
+    return (spatial_partition(comp_loops[1], levels(p)), comp_loops[2])
 
 end

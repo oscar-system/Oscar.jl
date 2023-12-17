@@ -68,6 +68,41 @@ function _normal_form(p_upper::Vector{Int}, p_lower::Vector{Int})
 end
 
 """
+    _req_colored_partition(partition::AbstractPartition, 
+                            color_upper_points::Vector{Int}, 
+                            color_lower_points::Vector{Int})
+
+Return true if the format of the attributes for initializing a
+colored partition is valid, false otherwise.
+
+Note that this is a helper function for the constructor of colored partitions.
+"""
+function _req_colored_partition(partition::AbstractPartition, 
+                                color_upper_points::Vector{Int}, 
+                                color_lower_points::Vector{Int})
+    return all(x -> x in (0, 1), Set(color_upper_points)) &&
+            all(x -> x in (0, 1), Set(color_lower_points)) &&
+            length(upper_points(partition)) == length(color_upper_points) && 
+            length(lower_points(partition)) == length(color_lower_points)
+end
+
+"""
+    _req_spatial_partition(partition::AbstractPartition, 
+                            levels::Int)
+
+Return true if the format of the attributes for initializing a
+spatial partition is valid, false otherwise.
+
+Note that this is a helper function for the constructor of spatial partitions.
+"""
+function _req_spatial_partition(partition::AbstractPartition, 
+                                    levels::Int)
+    return length(upper_points(partition)) % levels == 0 &&
+            length(lower_points(partition)) % levels == 0 &&
+            levels > 0
+end
+
+"""
     _is_worth_composition(p::T, q::T, max_length::Int) where {T <: AbstractPartition}
 
 Return whether it is worth to compose `p` and `q`, i.e. the result is less or
@@ -98,7 +133,8 @@ function _add_partition(dict::Dict{Int, Set{T}}, p::T) where
 end
 
 """
-    _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
+    _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where 
+                                                            {T <: AbstractPartition}
 
 Return `vector` with `p` included as value and `size(lower_points(p))` as
 corresponding key in the dict of `vector[2]` as well as
@@ -107,7 +143,8 @@ corresponding key in the dict of `vector[1]`.
 
 Note that this is a helper function of the `construct_category` algorithm.
 """
-function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where {T <: AbstractPartition}
+function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) where 
+                                                                {T <: AbstractPartition}
 
     # add right partition in first dict for top size
     add_apbs_top = (vector[1])[length(upper_points(p))]
