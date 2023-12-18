@@ -1,6 +1,6 @@
 # We need to cache eventually created exterior powers.
-@attr Dict{Int, Tuple{T, <:Map}} function _exterior_powers(F::T) where {T<:ModuleFP}
-  return Dict{Int, Tuple{typeof(F), Map}}()
+@attr Dict{Int, Tuple{typeof(F), MapFromFunc}} function _exterior_powers(F::ModuleFP)
+  return Dict{Int, Tuple{typeof(F), MapFromFunc}}()
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
@@ -8,7 +8,7 @@ end
 # and `(false, F, 0)` otherwise.
 function is_exterior_power(M::ModuleFP)
   if has_attribute(M, :is_exterior_power)
-    MM, p = get_attribute(M, :is_exterior_power)
+    MM, p = get_attribute(M, :is_exterior_power)::Tuple{typeof(M), Int}
     return (true, MM, p)
   end
   return (false, M, 0)
