@@ -85,6 +85,13 @@ end
   @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
   @test intersect(I,J,P) == intersect([I,J,P])
 
+  I = ideal(R, [x^3, x*y^2, x^2*y])
+  J = ideal(R, [x,y])
+  @test saturation(I) == ideal(R, [x])
+  @test saturation(I) == saturation(I, J)
+  @test saturation_with_index(I) == (ideal(R, [x]), 2)
+  @test saturation_with_index(I) == saturation_with_index(I, J)
+
   @test I != J
   RR, (xx, yy) = grade(R, [1, 1])
   @test_throws ErrorException ideal(R, [x]) == ideal(RR, [xx])
