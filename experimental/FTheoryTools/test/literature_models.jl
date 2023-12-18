@@ -215,7 +215,12 @@ t9 = literature_model(arxiv_id = "1212.2949", equation = "5.7")
 t10 = literature_model(arxiv_id = "1212.2949", equation = "5.13")
 
 
-@testset "Test more Tate models (from paper Tate form on Steroids) in our database" begin
+#############################################################
+# 4: Literature Tate model over concrete base
+#############################################################
+
+
+@testset "Test more Tate models (from paper Tate form on Steroids) in our database, by constructing them over arbitrary bases" begin
   @test base_fully_specified(t4) == false
   @test is_partially_resolved(t5) == false
   @test length(resolutions(t6)) == 1
@@ -226,14 +231,34 @@ t10 = literature_model(arxiv_id = "1212.2949", equation = "5.13")
 end
 
 
+ζ0 = torusinvariant_prime_divisors(B3)[1]
+t4b = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t5b = literature_model(arxiv_id = "1212.2949", equation = "3.42", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t6b = literature_model(arxiv_id = "1212.2949", equation = "4.1", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t7b = literature_model(arxiv_id = "1212.2949", equation = "4.23", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t8b  = literature_model(arxiv_id = "1212.2949", equation = "5.1", base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t9b = literature_model(arxiv_id = "1212.2949", equation = "5.7", base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t10b = literature_model(arxiv_id = "1212.2949", equation = "5.13", base_space = B3, model_sections = Dict("ζ0" => ζ0))
+
+
+@testset "Test more Tate models (from paper Tate form on Steroids) in our database, by constructing them over concrete bases" begin
+  @test base_fully_specified(t4b) == true
+  @test is_partially_resolved(t5b) == false
+  @test length(resolutions(t6b)) == 1
+  @test length(paper_authors(t7b)) == 2
+  @test model_description(t8b) == "E6 Tate model"
+  @test model_description(t9b) == "E7 Tate model"
+  @test model_description(t10b) == "E8 Tate model"
+end
+
 
 #############################################################
-# 4: Literature Weierstrass model over arbitrary base
+# 5: Literature Weierstrass model over arbitrary base
 #############################################################
 
 w2 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false)
 
-@testset "Test defining data for literature Weierstrass model over concrete base" begin
+@testset "Test defining data for literature Weierstrass model over arbitrary base" begin
   @test parent(weierstrass_section_f(w2)) == cox_ring(base_space(w2))
   @test parent(weierstrass_section_g(w2)) == cox_ring(base_space(w2))
   @test parent(weierstrass_polynomial(w2)) == cox_ring(ambient_space(w2))
@@ -244,7 +269,7 @@ w2 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_ch
   @test base_fully_specified(w2) == false
 end
 
-@testset "Test meta data for literature Weierstrass model over concrete base" begin
+@testset "Test meta data for literature Weierstrass model over arbitrary base" begin
   @test arxiv_id(w2) == "1208.2695"
   @test arxiv_doi(w2) == "10.48550/arXiv.1208.2695"
   @test arxiv_link(w2) == "https://arxiv.org/abs/1208.2695v2"
@@ -272,7 +297,7 @@ end
   @test paper_title(w2) ==  "F-Theory and the Mordell-Weil Group of Elliptically-Fibered Calabi-Yau Threefolds"
 end
 
-@testset "Test error messages for literature Weierstrass model over concrete base" begin
+@testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
   @test_throws ArgumentError related_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
@@ -287,6 +312,25 @@ end
 w3 = literature_model(arxiv_id = "1507.05954", equation = "A.1")
 
 
-@testset "Test more Weierstrass literature models in our database" begin
+@testset "Test more Weierstrass literature models in our database over arbitrary base" begin
   @test model_description(w3) == "U(1)xU(1) Weierstrass model"
+end
+
+
+#############################################################
+# 6: Literature Weierstrass model over arbitrary base
+#############################################################
+
+B2 = projective_space(NormalToricVariety, 2)
+b = torusinvariant_prime_divisors(B2)[2]
+w4 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false, base_space = B2, model_sections = Dict("b" =>b))
+b2 = anticanonical_divisor(B2)
+w5 = literature_model(arxiv_id = "1507.05954", equation = "A.1", completeness_check = false, base_space = B2, model_sections = Dict("s8" => b2, "a1" => b, "a2" => b, "a3" => b))
+
+@testset "Test defining data for literature Weierstrass model over concrete base" begin
+  @test length(singular_loci(w4)) == 1
+  @test dim(base_space(w4)) == 2
+  @test dim(ambient_space(w4)) == 4
+  @test base_fully_specified(w4) == true
+  @test model_description(w5) == "U(1)xU(1) Weierstrass model"
 end
