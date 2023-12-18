@@ -75,6 +75,6 @@ Perform( Oscar._GAP_serializations,
 Perform( Oscar._GAP_deserializations,
          function( entry )
            InstallMethod( DeserializeInOscar,
-             [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject", "IsObject" ],
+             [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject" ],
              Julia.GAP.WrapJuliaFunc( entry[2] ) );
          end );

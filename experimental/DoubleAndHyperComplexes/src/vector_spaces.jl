@@ -71,7 +71,7 @@ function (fac::VerticalTensorMapFactory{AbstractAlgebra.Generic.ModuleHomomorphi
   end
 
   R = base_ring(B)
-  res_mat = zero(MatrixSpace(R, r1i*nrows(B), r1i*ncols(B)))
+  res_mat = zero_matrix(R, r1i*nrows(B), r1i*ncols(B))
   for ii in 1:nrows(B)
     for jj in 1:ncols(B)
       for k in 1:r1i

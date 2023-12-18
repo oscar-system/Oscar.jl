@@ -390,7 +390,7 @@ function polyhedral_fan_from_cones(listOfCones::Vector{<:Cone})
     fanIncidences = IncidenceMatrix(fanIncidences)
     fanRays = matrix(QQ,fanRays)
     fanLineality = matrix(QQ,lineality_space(first(listOfCones)))
-    return polyhedral_fan(fanRays,fanLineality,fanIncidences)
+    return polyhedral_fan(fanIncidences, fanRays, fanLineality)
 end
 
 

@@ -1076,8 +1076,8 @@ end
   tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
   @test tbl.values == lbt.values
-  @test tbl[0, -6] == 70
-  @test tbl[2, 0] == 1
+  @test tbl[3, -6] == 70
+  @test tbl[1, 0] == 1
   @test iszero(tbl[2, -2])
 
   F = free_module(S, 1)

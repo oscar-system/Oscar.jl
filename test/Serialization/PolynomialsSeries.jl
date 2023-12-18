@@ -42,6 +42,23 @@ cases = [
       end
     end
 
+    @testset "Graded Ring" begin
+      R, (x, y) = QQ[:x, :y]
+      A = [1 3; 2 1]
+      M, (m1, m2) = grade(R, A)
+
+      test_save_load_roundtrip(path, m1 * m2) do loaded
+        @test loaded == m1 * m2
+        @test grading_group(parent(loaded)) == grading_group(M)
+      end
+
+      GM, _ = grade(M, A)
+      test_save_load_roundtrip(path, GM) do loaded
+        @test loaded == GM
+        @test forget_grading(loaded) == forget_grading(GM)
+      end
+    end
+
     for case in cases
       @testset "Univariate Polynomial over $(case[4])" begin
         R, z = polynomial_ring(case[1], "z")
@@ -106,7 +123,7 @@ cases = [
 
       # Tropical Semirings currently can't have formal power series
       filter!(case-> case[4] != "Tropical Semiring", cases)
-
+      
       @testset "Multivariate Laurent Polynomial over $(case[4])" begin
         R, (z, w) = laurent_polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)

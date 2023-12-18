@@ -475,6 +475,9 @@ Pfister, Sadiq, and Steidel. See [GTZ88](@cite), [SY96](@cite), and [PSS11](@cit
 !!! warning
     The algorithm of Gianni, Trager, and Zacharias may not terminate over a small finite field. If it terminates, the result is correct.
 
+!!! warning
+    If computations are done in a ring over a number field, then the output may contain redundant components.
+
 If `cache=false` is set, the primary decomposition is recomputed and not cached.
 
 # Examples
@@ -531,6 +534,27 @@ function primary_decomposition(I::T; algorithm::Symbol=:GTZ, cache::Bool=true) w
   end::Vector{Tuple{T,T}}
 end
 
+function primary_decomposition(
+    I::MPolyIdeal{T}; 
+    algorithm::Symbol=:GTZ, cache::Bool=true
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  if has_attribute(I, :primary_decomposition)
+    return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
+  end
+  R = base_ring(I)
+  R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  dec = primary_decomposition(I_flat; algorithm, cache)
+  result = Vector{Tuple{typeof(I), typeof(I)}}()
+  for (P, Q) in dec
+    push!(result, (ideal(R, unique!([x for x in iso.(gens(P)) if !iszero(x)])), 
+                   ideal(R, unique!([x for x in iso.(gens(Q)) if !iszero(x)]))))
+  end
+
+  cache && set_attribute!(I, :primary_decomposition=>result)
+  return result
+end
+
 function _compute_primary_decomposition(I::MPolyIdeal; algorithm::Symbol=:GTZ)
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
@@ -576,6 +600,9 @@ defined over a number field of degree $d_{ij}$ whose generator prints as `_a`.
 
 The implementation combines the algorithm of Gianni, Trager, and Zacharias for primary
 decomposition with absolute polynomial factorization.
+
+!!! warning
+    Over number fields this proceduce might return redundant output.
 
 # Examples
 ```jldoctest
@@ -657,6 +684,36 @@ Multivariate polynomial ring in 2 variables over number field graded by
          _map_to_ext(R, absprimes[i][1]),
          absprimes[i][2]::Int)
          for i in 1:length(decomp)]
+end
+
+@attr function absolute_primary_decomposition(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  kk = coefficient_ring(R)
+  R_exp, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  iso_inv(one(R))
+  I_exp = ideal(R_exp, iso_inv.(gens(I)))
+  res = absolute_primary_decomposition(I_exp)
+  full_res = []
+  for (P_ext, Q_ext, P_prime, d) in res
+    @assert base_ring(P_ext) === R_exp
+    P = ideal(R, unique!(iso.(gens(P_ext))))
+    Q = ideal(R, unique!(iso.(gens(Q_ext))))
+    RR = base_ring(P_prime)
+    L = coefficient_ring(RR)
+    f = defining_polynomial(L)
+    f_kk = map_coefficients(kk, f)
+    h = first([h for (h, _) in factor(f_kk)])
+    kk_ext, zeta = extension_field(h)
+    iso_kk_ext = hom(L, kk_ext, zeta)
+    br = base_ring(P_prime)
+    LoR, to_LoR = change_base_ring(kk_ext, R)
+    help_map = hom(br, LoR, iso_kk_ext, to_LoR.(iso.(gens(R_exp))))
+    P_prime_ext = ideal(LoR, help_map.(gens(P_prime)))
+    push!(full_res, (P, Q, P_prime_ext, degree(h)))
+  end
+  return full_res
 end
 
 # the ideals in QQbar[x] come back in QQ[x,a] with an extra variable a added
@@ -750,12 +807,15 @@ julia> L = minimal_primes(I)
  ideal(17, a)
 ```
 """
-function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
+function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
+  has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AnticNumberField)
     A, mA = absolute_simple_field(base_ring(R))
     mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
-    return typeof(I)[map_coefficients(mA, x) for x = mp]
+    result = typeof(I)[map_coefficients(mA, x) for x = mp]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
   end
   if elem_type(base_ring(R)) <: FieldElement
     if algorithm == :GTZ
@@ -772,10 +832,36 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ)
   end
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
-    return typeof(I)[]
+    result = typeof(I)[]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
   end
   return V
 end
+
+# rerouting the procedure for minimal primes this way leads to 
+# much longer computations compared to the flattening of the coefficient
+# field implemented above.
+function minimal_primes(
+    I::MPolyIdeal{T}; 
+    algorithm::Symbol=:GTZ, 
+    cache::Bool=true
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
+
+  R = base_ring(I)
+  R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  dec = minimal_primes(I_flat; algorithm)
+  result = Vector{typeof(I)}()
+  for Q in dec
+    push!(result, ideal(R, iso.(gens(Q))))
+  end
+
+  cache && set_attribute!(I, :minimal_primes=>result)
+  return result
+end
+
 #######################################################
 @doc raw"""
     equidimensional_decomposition_weak(I::MPolyIdeal)
@@ -824,6 +910,18 @@ julia> L = equidimensional_decomposition_weak(I)
   return V
 end
 
+@attr function equidimensional_decomposition_weak(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_decomposition_weak(I_ext)
+  return typeof(I)[ideal(R, unique!([x for x in iso.(gens(I)) if !iszero(x)])) for I in res]
+end
+
+
+
 @doc raw"""
     equidimensional_decomposition_radical(I::MPolyIdeal)
 
@@ -867,6 +965,17 @@ julia> L = equidimensional_decomposition_radical(I)
   end
   return V
 end
+
+@attr function equidimensional_decomposition_radical(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_decomposition_weak(I_ext)
+  return [ideal(R, unique!(iso.(gens(I)))) for I in res]
+end
+
 #######################################################
 @doc raw"""
     equidimensional_hull(I::MPolyIdeal)
@@ -929,6 +1038,17 @@ function equidimensional_hull(I::MPolyIdeal)
   end
   return ideal(R, i)
 end
+
+function equidimensional_hull(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_hull(I_ext)
+  return ideal(R, unique!(iso.(gens(res))))
+end
+
 #######################################################
 @doc raw"""
     equidimensional_hull_radical(I::MPolyIdeal)
@@ -966,6 +1086,16 @@ function equidimensional_hull_radical(I::MPolyIdeal)
   end
   i = Singular.LibPrimdec.equiRadical(singular_polynomial_ring(I), singular_generators(I))
   return ideal(R, i)
+end
+
+function equidimensional_hull_radical(
+    I::MPolyIdeal{T}
+  ) where {U<:Union{nf_elem, <:Hecke.NfRelElem}, T<:MPolyRingElem{U}}
+  R = base_ring(I)
+  R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
+  I_ext = ideal(R_ext, iso_inv.(gens(I)))
+  res = equidimensional_hull_radical(I_ext)
+  return ideal(R, unique!(iso.(gens(res))))
 end
 
 #######################################################

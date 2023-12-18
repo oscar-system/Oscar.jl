@@ -374,6 +374,7 @@ export complement_equations
 export complement_ideal
 export complement_of_point_ideal
 export complement_of_prime_ideal
+export complement_scheme
 export complement_system, has_complement_system, set_complement_system
 export complete_bipartite_graph
 export complete_graph
@@ -608,7 +609,6 @@ export graded_free_module
 export graded_image
 export graded_map
 export graded_polynomial_ring
-export grading
 export grading_group
 export graph
 export graph_from_adjacency_matrix
@@ -1258,6 +1258,7 @@ export ray_indices
 export ray_vector
 export rays
 export rays_modulo_lineality
+export read_metadata
 export real_projective_plane
 export real_solutions
 export realization

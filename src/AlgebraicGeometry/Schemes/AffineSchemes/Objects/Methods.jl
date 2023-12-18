@@ -173,12 +173,12 @@ end
 # instance, the massive use of primary decompositions can be avoided. 
 # This should eventually be addressed. 
 @doc raw"""
-    components(X::AbsSpec)
+    connected_components(X::AbsSpec)
 
 Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
-function components(X::AbsSpec)
+function connected_components(X::AbsSpec)
   I = saturated_ideal(modulus(OO(X)))
   l = primary_decomposition(I)
   comp = [subscheme(X, Q) for (Q, _) in l]

@@ -2,7 +2,7 @@
   weight = BasisLieHighestWeight.weight
   calc_vec = BasisLieHighestWeight.calc_vec
 
-  ZZx, _ = PolynomialRing(ZZ, 2)
+  ZZx, _ = polynomial_ring(ZZ, 2)
   x = gens(ZZx)
   mon1 = ZZx(1)
   mon2 = x[1]^2 * x[2]

@@ -604,16 +604,16 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
   Rx, x = polynomial_ring(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
   # write f = cont*F, cont in Qt, F in Rx
-  F, cont = Oscar._remove_denominators(Rx, f)
+  F, cont = Oscar.AbstractAlgebra._remove_denominators(Rx, f)
   lF = factor(F)
   an = []
-  push!(an, Qtx(cont)*Oscar._restore_numerators(Qtx, lF.unit))
+  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, lF.unit))
   K = base_ring(f)
   Kt, t = polynomial_ring(K, "t", cached = false)
   for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)
     res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
     if res === nothing
-      push!(an, (Oscar._restore_numerators(Qtx, k), parent(k)(1), e))
+      push!(an, (Oscar.AbstractAlgebra._restore_numerators(Qtx, k), parent(k)(1), e))
       continue
     end
     p, c, ex = res
