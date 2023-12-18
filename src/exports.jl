@@ -609,7 +609,6 @@ export graded_free_module
 export graded_image
 export graded_map
 export graded_polynomial_ring
-export grading
 export grading_group
 export graph
 export graph_from_adjacency_matrix

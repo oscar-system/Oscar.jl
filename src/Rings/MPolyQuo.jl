@@ -1287,9 +1287,9 @@ end
 #
 ################################################################################
 
-function grading(R::MPolyQuoRing)
+function _grading(R::MPolyQuoRing)
   if base_ring(R) isa MPolyDecRing
-    return grading(base_ring(R))
+    return _grading(base_ring(R))
   else
     error("Underlying polynomial ring must be graded")
   end

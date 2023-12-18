@@ -526,6 +526,7 @@ include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
 include("Rings.jl")
+include("MPolyMap.jl")
 include("Algebras.jl")
 include("polymake.jl")
 include("TropicalGeometry.jl")
@@ -674,7 +675,6 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer)
   s = state(deserializer_open(io, serializer_type))
-  
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
