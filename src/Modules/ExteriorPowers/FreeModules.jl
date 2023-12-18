@@ -31,14 +31,14 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
   end
 
   # Create the multiplication map
-  function my_mult(u::FreeModElem...)
+  function my_mult(u::Tuple{Vararg{FreeModElem}})
     isempty(u) && return result[1] # only the case p=0
     @req all(x -> parent(x) === F, u) "elements must live in the same module"
     @req length(u) == p "need a $p-tuple of elements"
     return wedge(collect(u); parent=result)
   end
-  function my_mult(u::Tuple)
-    return my_mult(u...)
+  function my_mult(u::FreeModElem...)
+    return my_mult(u)
   end
 
   function my_decomp(u::FreeModElem)

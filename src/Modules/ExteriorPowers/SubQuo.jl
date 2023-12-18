@@ -19,14 +19,14 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
     result, mm = _exterior_power(phi, p)
   end
 
-  function my_mult(u::SubquoModuleElem...)
+  function my_mult(u::Tuple{Vararg{SubquoModuleElem}})
     isempty(u) && return result[1] # only the case p=0
     @assert all(x->parent(x)===M, u) "elements must live in the same module"
     @assert length(u) == p "need a $p-tuple of elements"
     return wedge(collect(u), parent=result)
   end
-  function my_mult(u::Tuple)
-    return my_mult(u...)
+  function my_mult(u::SubquoModuleElem...)
+    return my_mult(u)
   end
 
   function my_decomp(u::SubquoModuleElem)

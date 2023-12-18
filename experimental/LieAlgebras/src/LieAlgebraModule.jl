@@ -1004,7 +1004,7 @@ function exterior_power(
   E_to_T = hom(E, T, E_to_T_mat; check=false)
   T_to_E = hom(T, E, T_to_E_mat; check=false)
 
-  function my_mult(as::LieAlgebraModuleElem{C}...)
+  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == k "Length of vector does not match."
     @req all(a -> parent(a) === V, as) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_E)
@@ -1014,8 +1014,8 @@ function exterior_power(
     end
     return E(mat)
   end
-  function my_mult(as::Tuple)
-    return my_mult(as...)::LieAlgebraModuleElem{C}
+  function my_mult(as::LieAlgebraModuleElem{C}...)
+    return my_mult(as)::LieAlgebraModuleElem{C}
   end
 
   function my_decomp(a::LieAlgebraModuleElem{C})
