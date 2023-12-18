@@ -53,9 +53,13 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test tate_section_a6(t2) == tate_section_a6(loaded)
       @test base_space(t2) == base_space(loaded)
       @test ambient_space(t2) == ambient_space(loaded)
+      @test base_fully_specified(t2) == base_fully_specified(loaded)
+      @test is_partially_resolved(t2) == is_partially_resolved(t2)
     end
   end
 end
+
+
 #############################################################
 # 2: Global Tate models over arbitrary base space
 #############################################################
