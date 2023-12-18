@@ -23,4 +23,12 @@
     R_rep3 = invariant_ring(rep3, T)
     f = X[1]*X[4]*X[8]*X[10] - X[1]*X[4]*X[9]^2 - X[1]*X[5]*X[7]*X[10] + X[1]*X[5]*X[8]*X[9] + X[1]*X[6]*X[7]*X[9] - X[1]*X[6]*X[8]^2 - X[2]^2*X[8]*X[10] + X[2]^2*X[9]^2 + X[2]*X[3]*X[7]*X[10] - X[2]*X[3]*X[8]*X[9] + X[2]*X[4]*X[5]*X[10] - X[2]*X[4]*X[6]*X[9] - 2*X[2]*X[5]^2*X[9] + 3*X[2]*X[5]*X[6]*X[8] - X[2]*X[6]^2*X[7] - X[3]^2*X[7]*X[9] + X[3]^2*X[8]^2 - X[3]*X[4]^2*X[10] + 3*X[3]*X[4]*X[5]*X[9] - X[3]*X[4]*X[6]*X[8] - 2*X[3]*X[5]^2*X[8] + X[3]*X[5]*X[6]*X[7] + X[4]^2*X[6]^2 - 2*X[4]*X[5]^2*X[6] + X[5]^4
     @test reynolds_operator(R_rep3, f) == f
+
+    #tori
+    #example in the derksen book
+    T = reductive_group(:torus, 1, QQ)
+    r = representation_on_weights(T, [-3, -1, 1, 2])
+    I = invariant_ring(r)
+    f = fundamental_invariants(I)
+    @test length(f) == 6
 end

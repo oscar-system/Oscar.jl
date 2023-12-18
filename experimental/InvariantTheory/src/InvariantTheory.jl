@@ -116,10 +116,12 @@ function representation_on_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{
     if G.group[1] == :torus
         V = Vector{Vector{ZZRingElem}}()
         if typeof(W) <: Vector
+            G.group[2] == 1 || @error("Incompatible weights")
             for i in 1:length(W)
                 push!(V, [ZZRingElem(W[i])])
             end
         else
+            G.group[2] == ncols(W) || @error("Incompatible weights")
             #assume columns = G.group[2]
             for i in 1:nrows(W)
                 push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
@@ -269,8 +271,7 @@ mutable struct InvariantRing
         if isdefined(R, :weights)
             n = length(weights(R))
             z.field = field(group(R))
-            super_ring, __ = grade(polynomial_ring(z.field, "X"=>1:n)[1])
-            #super_ring, __ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
+            super_ring, __ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
             z.poly_ring = super_ring
             z.group = group(R)
             z.representation = R
@@ -558,7 +559,6 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             C[i][j] = C1[i][j]
         end
     end
-    @show C
     #step 3
     S = Vector{Vector{elem_type(R)}}()
     U = Vector{Vector{elem_type(R)}}()
@@ -572,7 +572,6 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             if point == W[i] #check type here TODO
                 push!(S, [gen(R,i)])
                 push!(U, [gen(R,i)])
-                @show S
                 c = false
                 break
             end
@@ -582,8 +581,6 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             push!(U, elem_type(R)[])
         end
     end
-    @show S
-    @show U
     k = 0
     while k<4
         #step 4
@@ -599,15 +596,12 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
         @label step4_b
         m = U[j][1]
         w = C[j] #weight_of_monomial(m, W)
-        @show j, U[j], m, w
         #step 5 - 7
         for i in 1:n
             u = m*gen(R,i)
             v = w + W[i]
-            @show u, v
             if v in C
                 index = findfirst(item -> item == v, C)
-                @show index
                 c = true
                 if length(S[index]) == 0
                     c = true
@@ -618,17 +612,13 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                         break
                     end
                 end
-                @show c
                 if c == true
                     push!(S[index], u)
                     push!(U[index], u)
-                    @show S[index], U[index]
                 end
             end
         end
-        @show U[j]
-        deleteat!(U[j], findall(item -> item == m, U[j])) 
-        @show U[j]
+        deleteat!(U[j], findall(item -> item == m, U[j]))
         k += 1
         @goto step_4
     end
