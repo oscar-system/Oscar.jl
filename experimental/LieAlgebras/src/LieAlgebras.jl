@@ -44,6 +44,7 @@ import ..Oscar:
   ideal,
   identity_map,
   image,
+  induced_map_on_exterior_power,
   inv,
   is_abelian,
   is_exterior_power,

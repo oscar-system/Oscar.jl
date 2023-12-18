@@ -492,6 +492,44 @@ function hom_tensor(
   return hom(V, W, mat; check=false)
 end
 
+function _induced_map_on_power(
+  D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
+)
+  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)
+  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)
+
+  mat = reduce(
+    kronecker_product,
+    [matrix(h) for _ in 1:power];
+    init=identity_matrix(coefficient_ring(C), 1),
+  )
+  TD_to_TC = hom(TD, TC, mat; check=false)
+
+  if type == :tensor
+    return TD_to_TC
+  else
+    D_to_TD = get_attribute(D, :embedding_tensor_power_embedding)
+    TC_to_C = get_attribute(C, :embedding_tensor_power_projection)
+    return D_to_TD * TD_to_TC * TC_to_C
+  end
+end
+
+function induced_map_on_exterior_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_exterior_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_exterior_power(codomain)
+  @req domain_fl "Domain must be an exterior power"
+  @req codomain_fl "Codomain must be an exterior power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :ext)
+end
+
 @doc raw"""
     hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
 
@@ -502,13 +540,8 @@ $S^k h: V \to W$ (analogous for other types of powers).
 function hom_power(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if ((fl, Vb, Vk) = is_exterior_power(V); fl)
-    (fl, Wb, Wk) = is_exterior_power(W)
-    @req fl "First module is an exterior power, but second module is not"
-    @req Vk == Wk "Exponent mismatch"
-    @req domain(h) === Vb && codomain(h) === Wb "Domain/codomain mismatch"
-    type = :ext
-    power = Vk
+  if is_exterior_power(V)[1]
+    return induced_map_on_exterior_power(h; domain=V, codomain=W)
   elseif is_symmetric_power(V)
     @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
     type = :sym
@@ -524,21 +557,5 @@ function hom_power(
     power = get_attribute(V, :power)
   end
 
-  TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
-  TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
-
-  mat = reduce(
-    kronecker_product,
-    [matrix(h) for _ in 1:power];
-    init=identity_matrix(coefficient_ring(W), 1),
-  )
-  TV_to_TW = hom(TV, TW, mat; check=false)
-
-  if type == :tensor
-    return TV_to_TW
-  else
-    V_to_TV = get_attribute(V, :embedding_tensor_power_embedding)
-    TW_to_W = get_attribute(W, :embedding_tensor_power_projection)
-    return V_to_TV * TV_to_TW * TW_to_W
-  end
+  return _induced_map_on_power(V, W, h, power, type)
 end

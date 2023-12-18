@@ -172,13 +172,13 @@ end
 # The induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   success, F, p = is_exterior_power(M)
-  success || error("module is not an exterior power")
+  @req success "module is not an exterior power"
   success, FF, q = is_exterior_power(N)
-  success || error("module is not an exterior power")
-  F === domain(phi) || error("map not compatible")
-  FF === codomain(phi) || error("map not compatible")
-  p == q || error("exponents must agree")
-  return induced_map_on_exterior_power(phi, p, domain=M, codomain=N)
+  @req success "module is not an exterior power"
+  @req F === domain(phi) "map not compatible"
+  @req FF === codomain(phi) "map not compatible"
+  @req p == q "exponents must agree"
+  return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
 
 
