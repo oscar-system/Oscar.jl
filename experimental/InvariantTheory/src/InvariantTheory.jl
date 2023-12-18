@@ -20,6 +20,7 @@ mutable struct ReductiveGroup
         elseif sym == :torus
             G = new()
             G.group = (sym, m)
+            characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
             G.field = fld
             return G
         end
@@ -31,6 +32,7 @@ mutable struct ReductiveGroup
         if sym != :SL
             error("Only implemented for SLm")
         end
+        characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
         G.field = base_ring(ring)
         @assert m^2  == ngens(ring)
         G.group = (sym,m)
