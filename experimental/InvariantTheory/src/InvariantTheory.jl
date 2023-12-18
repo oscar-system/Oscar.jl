@@ -66,7 +66,7 @@ mutable struct RepresentationReductiveGroup
     sym_deg::Tuple{Bool, Int}
     reynolds_v::Function
 
-    weights::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Integer}}
+    weights::Vector{Vector{ZZRingElem}}
     
     #representation of group G over symmetric degree d
     function RepresentationReductiveGroup(G::ReductiveGroup, d::Int)
@@ -79,7 +79,7 @@ mutable struct RepresentationReductiveGroup
     end
 
     #function RepresentationReductiveGroup(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Integer}})
-    function RepresentationReductiveGroup(G::ReductiveGroup, W::Vector{Vector{Int}})
+    function RepresentationReductiveGroup(G::ReductiveGroup, W::Vector{Vector{ZZRingElem}})
         if !(G.group[1] == :torus)
             return nothing
         else
@@ -104,6 +104,7 @@ end
 
 #representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReductiveGroup(G, d)
 representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem) = RepresentationReductiveGroup(G,M)
+group(R::RepresentationReductiveGroup) = R.group
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
     if G.group[1] == :SL
@@ -113,7 +114,25 @@ end
 
 function representation_on_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
     if G.group[1] == :torus
-        return RepresentationReductiveGroup(G,W)
+        V = Vector{Vector{ZZRingElem}}()
+        if typeof(W) <: Vector
+            for i in 1:length(W)
+                push!(V, [ZZRingElem(W[i])])
+            end
+        else
+            #assume columns = G.group[2]
+            for i in 1:nrows(W)
+                push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
+            end
+        end
+        return RepresentationReductiveGroup(G,V)
+    end
+end
+
+function representation_reductive_group(G::ReductiveGroup)
+    if G.group[1] == :SL
+        M = canonical_representation(G)
+        return RepresentationReductiveGroup(G,M)
     end
 end
 
@@ -122,6 +141,12 @@ function representation_matrix(R::RepresentationReductiveGroup)
         return R.rep_mat
     else 
         return nothing
+    end
+end
+
+function weights(R::RepresentationReductiveGroup)
+    if isdefined(R, :weights)
+        return R.weights
     end
 end
 
@@ -242,7 +267,15 @@ mutable struct InvariantRing
     function InvariantRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
         z = new()
         if isdefined(R, :weights)
-            #do something
+            n = length(weights(R))
+            z.field = field(group(R))
+            super_ring, __ = grade(polynomial_ring(z.field, "X"=>1:n)[1])
+            #super_ring, __ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
+            z.poly_ring = super_ring
+            z.group = group(R)
+            z.representation = R
+            #z.fundamental = torus_invariants_fast(weights(R), ring)
+            return z
         end
         n = ncols(R.rep_mat)
         z.representation = R
@@ -275,12 +308,17 @@ end
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
 invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = InvariantRing(R, ring)
 null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
+poly_ring(R::InvariantRing) = R.poly_ring
 
 function fundamental_invariants(z::InvariantRing)
     if isdefined(z, :fundamental)
         return z.fundamental
     else
         R = z.representation
+        if group(group(R))[1] == :torus && isdefined(R, :weights)
+            z.fundamental = torus_invariants_fast(weights(R), poly_ring(z))
+            return z.fundamental
+        end
         I, M = proj_of_image_ideal(R.group, R.rep_mat)
         z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
         z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
@@ -489,23 +527,110 @@ function reynolds_operator(R::InvariantRing, elem::MPolyElem)
     return reynolds_operator(X, elem)
 end
 
-#Unsure if this is needed. 
-#Computes the image of elem under map mu_star of group with representation R.
-# function mu_star(R::RepresentationReductiveGroup, elem_::MPolyElem)
-#     G = R.group
-#     n = ncols(R.rep_mat)
-#     ngens(parent(elem_)) == n || error("group not compatible with element")
-#     m = G.group[2]
-#     mixed_ring_xz, x, z = PolynomialRing(G.field, "x"=>1:n, "z"=>(1:m,1:m))
-#     group_ring = base_ring(R.rep_mat)
-#     map1 = hom(group_ring, mixed_ring_xz, gens(mixed_ring_xz)[n+1:n+m^2])
-#     new_rep_mat = matrix(mixed_ring_xz,n,n,[map1(R.rep_mat[i,j]) for i in 1:n, j in 1:n])
-#     new_vars = mu_star(new_rep_mat)
-#     vector_ring = parent(elem_)
-#     map2 = hom(vector_ring, mixed_ring_xz, gens(mixed_ring_xz)[1:n])
-#     elem = map2(elem_)
-#     sum_ = mixed_ring_xz()
-#     #mu_star: 
-#     map3 = hom(mixed_ring_xy, mixed_ring_xy, vcat(new_vars, [0 for i in 1:m^2]))
-#     return map3(elem)
-# end
+##########################
+#fast algorithm for invariants of tori
+##########################
+function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
+    #no check that length(W[i]) for all i is the same
+    length(W) == ngens(R) || error("number of weights must be equal to the number of generators of the polynomial ring")
+    n = length(W)
+    r = length(W[1])
+    #step 2
+    if length(W[1]) == 1
+        M = zero_matrix(Int, n, 1)
+        for i in 1:n
+            M[i,1] = W[i][1]
+        end
+        C1 = collect(lattice_points(convex_hull(M)))
+    else
+        M = zero_matrix(Int, 2*n, r)
+        for i in 1:n
+            M[i, 1:r] = 2*r*W[i]
+            M[n + i, 1:r] = -2*r*W[i]   
+        end
+        C1 = collect(lattice_points(convex_hull(M)))
+    end
+    
+    #get a Vector{Vector{ZZRingElem}} from Vector{PontVector{ZZRingElem}}
+    C = [[ZZRingElem(0) for i in 1:r] for j in 1:length(C1)]
+    for i in 1:length(C1)
+        for j in 1:r
+            C[i][j] = C1[i][j]
+        end
+    end
+    @show C
+    #step 3
+    S = Vector{Vector{elem_type(R)}}()
+    U = Vector{Vector{elem_type(R)}}()
+    index_0 = 0
+    for point in C
+        if point == [ZZRingElem(0) for i in 1:r] #this may not work CHECK
+            index_0 = findfirst(item -> item == point, C)
+        end
+        c = true
+        for i in 1:n
+            if point == W[i] #check type here TODO
+                push!(S, [gen(R,i)])
+                push!(U, [gen(R,i)])
+                @show S
+                c = false
+                break
+            end
+        end
+        if c == true
+            push!(S, elem_type(R)[])
+            push!(U, elem_type(R)[])
+        end
+    end
+    @show S
+    @show U
+    k = 0
+    while k<4
+        #step 4
+        @label step_4 #not sure if this is needed...
+        j = 0
+        for i in 1:length(U)
+            if length(U[i]) != 0
+                j = i
+                @goto step4_b
+            end
+        end
+        return S[index_0]
+        @label step4_b
+        m = U[j][1]
+        w = C[j] #weight_of_monomial(m, W)
+        @show j, U[j], m, w
+        #step 5 - 7
+        for i in 1:n
+            u = m*gen(R,i)
+            v = w + W[i]
+            @show u, v
+            if v in C
+                index = findfirst(item -> item == v, C)
+                @show index
+                c = true
+                if length(S[index]) == 0
+                    c = true
+                end
+                for elem in S[index]
+                    if divides(u, elem)[1]
+                        c = false
+                        break
+                    end
+                end
+                @show c
+                if c == true
+                    push!(S[index], u)
+                    push!(U[index], u)
+                    @show S[index], U[index]
+                end
+            end
+        end
+        @show U[j]
+        deleteat!(U[j], findall(item -> item == m, U[j])) 
+        @show U[j]
+        k += 1
+        @goto step_4
+    end
+    return S[index_0]
+end
