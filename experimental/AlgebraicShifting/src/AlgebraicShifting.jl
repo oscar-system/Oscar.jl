@@ -35,8 +35,8 @@ function delta_ext(K::SimplicialComplex)
     end
     push!(sub_compound_matrix, sparse_row(Qx, row_minors))
   end
-
-  _, A = Oscar.ModStdQt.ref_ff_rc!(matrix(sub_compound_matrix))
+  A = matrix(sub_compound_matrix)
+  Oscar.ModStdQt.ref_ff_rc!(A)
 
   delta_K = Int[]
 

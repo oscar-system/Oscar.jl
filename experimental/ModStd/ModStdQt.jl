@@ -515,7 +515,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
       break
     end
     if j > ncols(M)
-      return rk, M
+      return rk
     end
     rk += 1
 
@@ -529,7 +529,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
     end
     j += 1
   end
-  return rk, M
+  return rk
 end
 
 #to, basically, make the doctest stable
