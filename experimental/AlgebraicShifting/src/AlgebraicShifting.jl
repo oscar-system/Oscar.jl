@@ -3,25 +3,41 @@ function delta_ext(K::SimplicialComplex)
 
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
   K_facets = sort(facets(K); lt=cmp)
-
+  m = length(K_facets)
   k = length(K_facets[1])
-  Qx, x = polynomial_ring(QQ, :x => (1:n, 1:n))
-  X = matrix(fraction_field(Qx), hcat(x))
-  sub_compound_matrix_rows = Vector{FracElem{<:MPolyRingElem}}[]
-  nCk = sort(subsets(n, k))
   
-  for col_subset in nCk
-    col_minors = []
-    for row_subset in K_facets
+  K_min_non_faces = minimal_nonfaces(K)
+
+  Qx, x = polynomial_ring(QQ, :x => (1:n, 1:n))
+  F = fraction_field(Qx)
+  X = matrix(F, hcat(x))
+  nCk = sort(subsets(n, k))
+  sub_compound_matrix = sparse_matrix(F, 0, 0)
+
+  for row_subset in K_facets
+    row_minors = Tuple{Int, AbstractAlgebra.Generic.FracFieldElem}[]
+
+    for (i, col_subset) in enumerate(nCk)
+      has_non_face = false
+      for non_face in K_min_non_faces
+        if is_subset(non_face, Set(col_subset))
+          has_non_face = true
+          break
+        end
+      end
+
+      if has_non_face
+        continue
+      end
+    
       ri = collect(row_subset)
       ci = collect(col_subset)
-      push!(col_minors, det(X[ri, ci]))
+      push!(row_minors, (i, det(X[ri, ci])))
     end
-    push!(sub_compound_matrix_rows, col_minors)
+    push!(sub_compound_matrix, sparse_row(F, row_minors))
   end
 
-  A = reduce(hcat, sub_compound_matrix_rows)
-  _, _, _, U = lu(matrix(A));
+  @time _, _, _, U = lu(matrix(sub_compound_matrix));
   delta_K = Int[]
 
   row_index = 1
