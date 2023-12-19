@@ -515,7 +515,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
       break
     end
     if j > ncols(M)
-      return rk
+      return rk, M
     end
     rk += 1
 
@@ -523,13 +523,13 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
       if iszero(M[k, j])
         continue
       end
-#      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
+      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
       M[k, :] = b*M[k, :] - a * M[i, :]
       M[k, :] = divexact(M[k, :], content(M[k, :]))
     end
     j += 1
   end
-  return rk
+  return rk, M
 end
 
 #to, basically, make the doctest stable
