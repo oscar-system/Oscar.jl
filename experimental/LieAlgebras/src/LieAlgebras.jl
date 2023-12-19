@@ -92,7 +92,6 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
-export base_module
 export base_modules
 export bracket
 export cartan_bilinear_form
@@ -202,7 +201,6 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
-export base_module
 export base_modules
 export bracket
 export cartan_bilinear_form

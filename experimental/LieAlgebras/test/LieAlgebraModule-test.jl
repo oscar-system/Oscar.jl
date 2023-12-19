@@ -132,7 +132,7 @@
 
   module_type_bools(V) = (
     is_standard_module(V),
-    is_dual(V),
+    is_dual(V)[1],
     is_direct_sum(V),
     is_tensor_product(V),
     is_exterior_power(V)[1],
@@ -144,6 +144,8 @@
     for (L, dimV) in
         [(general_linear_lie_algebra(QQ, 3), 3), (special_orthogonal_lie_algebra(QQ, 4), 4)]
       V = standard_module(L)
+      @test V === standard_module(L)
+      @test V !== standard_module(L; cached=false)
       @test dim(V) == dimV
       @test length(repr(V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -161,8 +163,10 @@
       type_V = module_type_bools(V)
 
       dual_V = dual(V)
+      @test dual_V === dual(V)
+      @test dual_V !== dual(V; cached=false)
       @test type_V == module_type_bools(V) # construction of dual_V should not change type of V
-      @test base_module(dual_V) === V
+      @test is_dual(dual_V) === (true, V)
       @test dim(dual_V) == dim(V)
       @test length(repr(dual_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -186,6 +190,8 @@
 
       for k in 1:3
         ds_V = direct_sum([V for _ in 1:k]...)
+        @test_broken ds_V === direct_sum([V for _ in 1:k]...)
+        @test_broken ds_V !== direct_sum([V for _ in 1:k]...; cached=false)
         @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
         @test base_modules(ds_V) == [V for _ in 1:k]
         @test dim(ds_V) == k * dim(V)
@@ -225,6 +231,8 @@
 
       for k in 1:3
         tp_V = tensor_product([V for _ in 1:k]...)
+        @test_broken tp_V === tensor_product([V for _ in 1:k]...)
+        @test_broken tp_V !== tensor_product([V for _ in 1:k]...; cached=false)
         @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
         @test base_modules(tp_V) == [V for _ in 1:k]
         @test dim(tp_V) == dim(V)^k
@@ -266,6 +274,8 @@
 
       for k in 1:3
         E, map = exterior_power(V, k)
+        @test E === exterior_power(V, k)[1]
+        @test E !== exterior_power(V, k; cached=false)[1]
         @test type_V == module_type_bools(V) # construction of E should not change type of V
         @test is_exterior_power(E) === (true, V, k)
         @test dim(E) == binomial(dim(V), k)
@@ -310,6 +320,8 @@
 
       for k in 1:3
         S, map = symmetric_power(V, k)
+        @test S === symmetric_power(V, k)[1]
+        @test S !== symmetric_power(V, k; cached=false)[1]
         @test type_V == module_type_bools(V) # construction of S should not change type of V
         @test is_symmetric_power(S) === (true, V, k)
         @test dim(S) == binomial(dim(V) + k - 1, k)
@@ -354,6 +366,8 @@
 
       for k in 1:3
         T, map = tensor_power(V, k)
+        @test T === tensor_power(V, k)[1]
+        @test T !== tensor_power(V, k; cached=false)[1]
         @test type_V == module_type_bools(V) # construction of T should not change type of V
         @test is_tensor_power(T) === (true, V, k)
         @test dim(T) == dim(V)^k

@@ -155,7 +155,7 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   io = pretty(io)
   println(io, _module_type_to_string(get_attribute(V, :type, :unknown), V))
   println(io, Indent(), "of dimension $(dim(V))")
-  if is_dual(V) ||
+  if is_dual(V)[1] ||
     is_direct_sum(V) ||
     is_tensor_product(V) ||
     is_exterior_power(V)[1] ||
@@ -170,12 +170,12 @@ end
 
 function _show_inner(io::IO, V::LieAlgebraModule)
   type = get_attribute(V, :type, :unknown)
-  if type == :standard_module
+  if is_standard_module(V)
     println(io, "standard module")
-  elseif type == :dual
+  elseif ((fl, W) = is_dual(V); fl)
     println(io, "dual of ", Lowercase())
     print(io, Indent())
-    _show_inner(io, base_module(V))
+    _show_inner(io, W)
     print(io, Dedent())
   elseif type == :direct_sum
     println(io, "direct sum with direct summands")
@@ -227,9 +227,9 @@ function Base.show(io::IO, V::LieAlgebraModule)
 end
 
 function _module_type_to_string(type::Symbol, V::LieAlgebraModule) # TODO: remove first argument
-  if type == :standard_module
+  if is_standard_module(V)
     return "Standard module"
-  elseif type == :dual
+  elseif is_dual(V)[1]
     return "Dual module"
   elseif type == :direct_sum
     return "Direct sum module"
@@ -331,7 +331,7 @@ Return `v`. Fails, in general, if `v` is not an element of `V`.
 If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  if is_dual(V) && base_module(V) === parent(v)
+  if ((fl, W) = is_dual(V); fl) && W === parent(v)
     return V(coefficients(v))
   end
   @req V === parent(v) "Incompatible modules."
@@ -513,16 +513,26 @@ end
 Check whether `V` has been constructed as a standard module.
 """
 function is_standard_module(V::LieAlgebraModule)
-  return get_attribute(V, :type, :fallback)::Symbol == :standard_module
+  if has_attribute(V, :is_standard_module)
+    @assert get_attribute(V, :is_standard_module)::Bool === true
+    return true
+  end
+  return false
 end
 
 @doc raw"""
-    is_dual(V::LieAlgebraModule{C}) -> Bool
+    is_dual(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}
 
 Check whether `V` has been constructed as a dual module.
+If it has, return `true` and the base module.
+If not, return `false` as the first return value, and an arbitrary value for the second.
 """
 function is_dual(V::LieAlgebraModule)
-  return get_attribute(V, :type, :fallback)::Symbol == :dual
+  if has_attribute(V, :is_dual)
+    W = get_attribute(V, :is_dual)::typeof(V)
+    return (true, W)
+  end
+  return (false, V)
 end
 
 @doc raw"""
@@ -589,22 +599,12 @@ function is_tensor_power(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    base_module(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
-
-Returns the base module of `V`, if `V` has been constructed as a dual module.
-"""
-function base_module(V::LieAlgebraModule{C}) where {C<:FieldElem} # TODO: remove
-  @req is_dual(V) "Not a dual module."
-  return get_attribute(V, :base_module)::LieAlgebraModule{C}
-end
-
-@doc raw"""
     base_modules(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModule{C}}
 
 Returns the summands or tensor factors of `V`,
 if `V` has been constructed as a direct sum or tensor product of modules.
 """
-function base_modules(V::LieAlgebraModule{C}) where {C<:FieldElem}
+function base_modules(V::LieAlgebraModule{C}) where {C<:FieldElem} # TODO: remove
   if is_tensor_product(V)
     return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
   elseif is_direct_sum(V)
@@ -710,7 +710,7 @@ function trivial_module(L::LieAlgebra, d::IntegerUnion=1)
 end
 
 @doc raw"""
-    standard_module(L::LinearLieAlgebra{C}) -> LieAlgebraModule{C}
+    standard_module(L::LinearLieAlgebra{C}; cached::Bool=true) -> LieAlgebraModule{C}
 
 Construct the standard module of the linear Lie algebra `L`.
 If `L` is a Lie subalgebra of $\mathfrak{gl}_n(R)$, then the standard module
@@ -731,19 +731,28 @@ Standard module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function standard_module(L::LinearLieAlgebra)
+function standard_module(L::LinearLieAlgebra; cached::Bool=true)
+  if cached && has_attribute(L, :standard_module)
+    return get_attribute(
+      L, :standard_module
+    )::LieAlgebraModule{elem_type(coefficient_ring(L))}
+  end
+
   dim_std_V = L.n
   transformation_matrices = transpose.(matrix_repr_basis(L))
   s = [Symbol("v_$(i)") for i in 1:dim_std_V]
   std_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
     L, dim_std_V, transformation_matrices, s; check=false
   )
-  set_attribute!(std_V, :type => :standard_module)
+  set_attribute!(std_V, :is_standard_module => true)
+
+  cached && (set_attribute!(L, :standard_module => std_V))
+
   return std_V
 end
 
 @doc raw"""
-    dual(V::LieAlgebraModule{C}) -> LieAlgebraModule{C}
+    dual(V::LieAlgebraModule{C}; cached::Bool=true) -> LieAlgebraModule{C}
 
 Construct the dual module of `V`.
 
@@ -762,7 +771,11 @@ Dual module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function dual(V::LieAlgebraModule{C}) where {C<:FieldElem}
+function dual(V::LieAlgebraModule{C}; cached::Bool=true) where {C<:FieldElem}
+  if cached && has_attribute(V, :dual)
+    return get_attribute(V, :dual)::typeof(V)
+  end
+
   L = base_lie_algebra(V)
   dim_dual_V = dim(V)
 
@@ -777,7 +790,10 @@ function dual(V::LieAlgebraModule{C}) where {C<:FieldElem}
   end
 
   pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
-  set_attribute!(pow_V, :type => :dual, :base_module => V)
+  set_attribute!(pow_V, :is_dual => V)
+
+  cached && (set_attribute!(V, :dual => pow_V))
+
   return pow_V
 end
 
