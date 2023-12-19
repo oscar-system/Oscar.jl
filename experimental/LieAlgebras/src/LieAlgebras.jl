@@ -114,7 +114,6 @@ export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
 export hom_direct_sum
-export hom_power
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
@@ -223,7 +222,6 @@ export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
 export hom_direct_sum
-export hom_power
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix

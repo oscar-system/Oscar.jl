@@ -503,6 +503,27 @@ function hom_tensor(
   return hom(V, W, mat; check=false)
 end
 
+@doc raw"""
+    hom(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+
+Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
+say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
+$S^k h: V \to W$ (analogous for other types of powers).
+"""
+function hom(
+  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
+) where {C<:FieldElem}
+  if is_exterior_power(V)[1]
+    return induced_map_on_exterior_power(h; domain=V, codomain=W)
+  elseif is_symmetric_power(V)[1]
+    return induced_map_on_symmetric_power(h; domain=V, codomain=W)
+  elseif is_tensor_power(V)[1]
+    return induced_map_on_tensor_power(h; domain=V, codomain=W)
+  else
+    throw(ArgumentError("First module must be a power module"))
+  end
+end
+
 function _induced_map_on_power(
   D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
 )
@@ -571,32 +592,4 @@ function induced_map_on_tensor_power(
 
   k = domain_k
   return _induced_map_on_power(domain, codomain, h, k, :tensor)
-end
-
-@doc raw"""
-    hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
-
-Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
-say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
-$S^k h: V \to W$ (analogous for other types of powers).
-"""
-function hom_power(
-  V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
-) where {C<:FieldElem} # TODO: cleanup
-  if is_exterior_power(V)[1]
-    return induced_map_on_exterior_power(h; domain=V, codomain=W)
-  elseif is_symmetric_power(V)[1]
-    return induced_map_on_symmetric_power(h; domain=V, codomain=W)
-  elseif is_tensor_power(V)[1]
-    return induced_map_on_tensor_power(h; domain=V, codomain=W)
-  else
-    throw(ArgumentError("First module must be a power module"))
-  end
-  if !is_exterior_power(V)[1]
-    @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
-    @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
-    power = get_attribute(V, :power)
-  end
-
-  return _induced_map_on_power(V, W, h, power, type)
 end

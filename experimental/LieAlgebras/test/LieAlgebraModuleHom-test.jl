@@ -174,26 +174,8 @@
     @test is_welldefined(h)
   end
 
-  @testset "hom_power ($f_power)" for f_power in []
-    for k in 0:3
-      L = special_orthogonal_lie_algebra(QQ, 4)
-      Vb = standard_module(L)
-      Wb = dual(dual(standard_module(L)))
-      V = f_power(Vb, k)
-      W = f_power(Wb, k)
-      hb = hom(Vb, Wb, [2 * b for b in basis(Wb)])
-
-      h = hom_power(V, W, hb)
-      @test domain(h) == V
-      @test codomain(h) == W
-      @test is_welldefined(h)
-      vs = elem_type(Vb)[Vb(rand(-10:10, dim(Vb))) for _ in 1:k]
-      @test h(V(vs)) == W(hb.(vs))
-    end
-  end
-
-  @testset "hom_power ($f_power)" for f_power in
-                                      [exterior_power, symmetric_power, tensor_power]
+  @testset "hom (lift $f_power)" for f_power in
+                                     [exterior_power, symmetric_power, tensor_power]
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
@@ -202,7 +184,7 @@
       W, _ = f_power(Wb, k)
       hb = hom(Vb, Wb, [2 * b for b in basis(Wb)])
 
-      h = hom_power(V, W, hb)
+      h = hom(V, W, hb)
       @test domain(h) == V
       @test codomain(h) == W
       @test is_welldefined(h)
