@@ -1127,10 +1127,10 @@ end
     F1 = graded_free_module(Rg, [1,2,2])
     F2 = graded_free_module(Rg, [3,5])
     V, f = hom(F1, F2)
-    ff = random_homogeneous(Rg,8)
+    ff = rand_homogeneous(Rg,8)
     @test is_homogeneous(ff)
     @test degree(ff) == 8*Z[1]
-    v = random_homogeneous(V, 8)
+    v = rand_homogeneous(V, 8)
     @test is_homogeneous(v)
     @test degree(v) == 8*Z[1]
 end
@@ -1138,11 +1138,12 @@ end
 @testset "random subquo module hom" begin
     Rg, (x, y) = graded_polynomial_ring(GF(101), ["x", "y"])
     Z = grading_group(Rg)
-    F = graded_free_module(Rg, 2);
+    F = graded_free_module(Rg, [3,5]);
     V = [x*F[1], y^2*F[2]];
     M = quo(F, V)[1]
-    H, f = hom(M, M)
-    v = random_homogeneous(H, 8)
+    F2 = graded_free_module(Rg, [2,2]);
+    H, f = hom(F2, M)
+    v = rand_homogeneous(H, 8)
     @test is_homogeneous(v)
     @test degree(v) == 8*Z[1]
 end
