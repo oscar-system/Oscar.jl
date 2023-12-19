@@ -2888,30 +2888,18 @@ end
 # Random elements
 ###############################################################################
 
-
-function all_partitions_in(n, k)
-    if k == 0
-        return n == 0 ? [Int[]] : []
-    end
-    partitions = Vector{Int}[]
-    for i in 0:n
-        for p in all_partitions_in(n - i, k - 1)
-            push!(partitions, [i; p])
-        end
-    end
-    return partitions
-end
-
-
 function rand_homogeneous(R::MPolyRing, degree::Int)
   K = base_ring(R)
+  if !is_standard_graded(R)
+      throw(ArgumentError("Base ring is not standard graded"))
+  end
   if !is_finite(K)
       throw(ArgumentError("Base ring is not finite"))
   end
   n = nvars(R)
-  partitions = all_partitions_in(degree, n)
+  comps = weak_compositions(degree, n)
   M = MPolyBuildCtx(R)
-  for p in partitions 
+  for p in comps 
       push_term!(M, rand(K), p)
   end
   return finish(M)
