@@ -2336,3 +2336,83 @@ end
 function _as_localized_quotient(W::MPolyQuoLocRing)
   return W, identity_map(W), identity_map(W)
 end
+
+function Base.:(==)(
+    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
+           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}},
+    g::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
+           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
+   )
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+
+  if _has_coefficient_map(f)
+    if _has_coefficient_map(g) 
+      coefficient_map(f) == coefficient_map(g) || return false
+    else
+      coefficient_map(f) == identity_map(coefficient_ring(domain(f))) || return false
+    end
+  elseif _has_coefficient_map(g)
+    if _has_coefficient_map(f) 
+      coefficient_map(f) == coefficient_map(g) || return false
+    else
+      coefficient_map(g) == identity_map(coefficient_ring(domain(g))) || return false
+    end
+  end
+
+  return all(x->f(x) == g(x), gens(domain(f)))
+end
+
+coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))
+coefficient_map(f::MPolyQuoLocalizedRingHom) = coefficient_map(restricted_map(f))
+
+_has_coefficient_map(::Type{T}) where {U, T<:MPolyLocalizedRingHom{<:Any, <:Any, U}} = _has_coefficient_map(U)
+_has_coefficient_map(f::MPolyLocalizedRingHom) = _has_coefficient_map(typeof(f))
+
+_has_coefficient_map(::Type{T}) where {U, T<:MPolyQuoLocalizedRingHom{<:Any, <:Any, U}} = _has_coefficient_map(U)
+_has_coefficient_map(f::MPolyQuoLocalizedRingHom) = _has_coefficient_map(typeof(f))
+
+_has_coefficient_map(::Type{T}) where {U, T<:MPolyAnyMap{<:Any, <:Any, U}} = (U !== Nothing)
+_has_coefficient_map(f::MPolyAnyMap) = _has_coefficient_map(typeof(f))
+
+function compose(f::MPolyAnyMap, 
+    g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom}
+  )
+  @assert codomain(f) === domain(g)
+  if _has_coefficient_map(f)
+    b = coefficient_map(f)(one(coefficient_ring(domain(f))))
+    if _has_coefficient_map(g)
+      if parent(b) === coefficient_ring(domain(g))
+        return hom(domain(f), codomain(g), compose(coefficient_map(f), coefficient_map(g)), 
+                   g.(f.(gens(domain(f)))); check=false)
+      elseif parent(b) === domain(g)
+        return hom(domain(f), codomain(g), compose(coefficient_map(f), g), 
+                   g.(f.(gens(domain(f)))); check=false)
+      else 
+        # assume that things can be coerced 
+        return hom(domain(f), codomain(g), x-> g(domain(g)(coefficient_map(f)(x))),
+                   g.(f.(gens(domain(f)))); check=false)
+      end
+    else
+      if parent(b) === coefficient_ring(domain(g))
+        return hom(domain(f), codomain(g), coefficient_map(f), 
+                   g.(f.(gens(domain(f)))); check=false)
+      elseif parent(b) === domain(g)
+        return hom(domain(f), codomain(g), compose(coefficient_map(f), g), 
+                   g.(f.(gens(domain(f)))); check=false)
+      else 
+        # assume that things can be coerced 
+        return hom(domain(f), codomain(g), x-> g(domain(g)(coefficient_map(f)(x))),
+                   g.(f.(gens(domain(f)))); check=false)
+      end
+    end
+  elseif _has_coefficient_map(g)
+    return hom(domain(f), codomain(g), coefficient_map(g),
+               g.(f.(gens(domain(f)))); check=false)
+  else
+    return hom(domain(f), codomain(g), 
+               g.(f.(gens(domain(f)))); check=false)
+  end
+end
+
+
