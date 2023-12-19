@@ -6,15 +6,15 @@
 ###########################################################
 
 @doc raw"""
-    fiber_product(f::SpecMor{SpecType, SpecType, <:Any}, g::SpecMor{SpecType, SpecType, <:Any}) where {SpecType<:StdSpec}
+    fiber_product(f::AbsSpecMor, g::AbsSpecMor)
 
 For morphisms ``f : Y → X`` and ``g : Z → X`` return the fiber
 product ``Y×Z`` over ``X`` together with its two canonical projections.
 """
 function fiber_product(
-    f::SpecMor{SpecType, SpecType, <:Any},
-    g::SpecMor{SpecType, SpecType, <:Any}
-  ) where {SpecType<:StdSpec}
+    f::AbsSpecMor,
+    g::AbsSpecMor
+  )
   Y = domain(f)
   X = codomain(f)
   X == codomain(g) || error("maps need to have the same codomain")
@@ -25,7 +25,93 @@ function fiber_product(
   return W, restrict(pY, W, Y, check=false), restrict(pZ, W, Z, check=false)
 end
 
+function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
+  @assert codomain(f) === codomain(g) "codomains are not the same"
+  A = domain(f)
+  B = domain(g)
+  C = codomain(f)
+  h = complement_equations(f)
+  pbh = pullback(g).(h)
+  result = PrincipalOpenSubset(B, pbh)
+  ff = PrincipalOpenEmbedding(SpecMor(result, B, gens(OO(result)), check=false), pbh, check=false)
+  f_res_inv = inverse_on_image(f)
+  gg = compose(restrict(g, result, image(f), check=false), f_res_inv)
+  return result, gg, ff
+end
 
+function fiber_product(f::AbsSpecMor, g::PrincipalOpenEmbedding)
+  @assert codomain(f) === codomain(g) "codomains are not the same"
+  A = domain(f)
+  B = domain(g)
+  C = codomain(f)
+  h = complement_equations(g)
+  pbh = pullback(f).(h)
+  result = PrincipalOpenSubset(A, pbh)
+  gg = PrincipalOpenEmbedding(SpecMor(result, A, gens(OO(result)), check=false), pbh, check=false)
+  g_res_inv = inverse_on_image(g)
+  ff = compose(restrict(f, result, image(g), check=false), g_res_inv)
+  return result, gg, ff
+end
+
+# additional method to remove method ambiguity
+function fiber_product(f::PrincipalOpenEmbedding, g::PrincipalOpenEmbedding)
+  @assert codomain(f) === codomain(g) "codomains are not the same"
+  A = domain(f)
+  B = domain(g)
+  C = codomain(f)
+  h = complement_equations(f)
+  pbh = pullback(g).(h)
+  result = PrincipalOpenSubset(B, pbh)
+  ff = PrincipalOpenEmbedding(SpecMor(result, B, gens(OO(result)), check=false), pbh, check=false)
+  f_res_inv = inverse_on_image(f)
+  gg = compose(restrict(g, result, image(f), check=false), f_res_inv)
+  return result, gg, ff
+end
+
+
+### Some helper functions
+function _restrict_domain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
+  D === domain(f) && return f
+  ambient_scheme(D) === domain(f) && return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  @check is_subset(D, domain(f)) "domain incompatible"
+  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+end
+
+function _restrict_domain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
+  D === domain(f) && return f
+  @check is_subset(D, domain(f)) "domain incompatible"
+  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+end
+
+function _restrict_codomain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
+  D === codomain(f) && return f
+  if ambient_scheme(D) === codomain(f) 
+    @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
+    return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  end
+  @check is_subset(D, codomain(f)) "codomain incompatible"
+  @check is_subset(domain(f), preimage(f, D))
+  return SpecMor(domain(f), D, OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+end
+
+function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
+  @check is_subset(D, codomain(f)) "codomain incompatible"
+  @check is_subset(domain(f), preimage(f, D))
+  return SpecMor(domain(f), D, OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+end
+
+function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
+  interm = _restrict_domain(f, D)
+  return _restrict_codomain(interm, Z)
+end
+
+# TODO: Take care of maps with base change.
+
+function Base.:(==)(f::AbsSpecMor, g::AbsSpecMor)
+  domain(f) === domain(g) || return false
+  codomain(f) === codomain(g) || return false
+  return pullback(f) == pullback(g)
+end
 
 ###########################################################
 # (2) The direct product of two affine schemes

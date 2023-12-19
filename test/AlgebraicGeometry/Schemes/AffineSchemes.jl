@@ -308,3 +308,27 @@ end
   there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
   back = inverse_on_image(there)
 end
+
+@testset "fiber products with principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+  Y, inc_Y = sub(X, z)
+  pro, p1, p2 = fiber_product(there, inc_Y)
+  @test compose(p1, there) == compose(p2, inc_Y)
+  pro, p1, p2 = fiber_product(inc_Y, there)
+  @test codomain(p1) === domain(inc_Y)
+  @test codomain(p2) === domain(there)
+  @test compose(p1, inc_Y) == compose(p2, there)
+  pro, p1, p2 = fiber_product(there, there)
+  @test compose(p1, there) == compose(p2, there)
+end
+

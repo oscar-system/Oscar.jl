@@ -2375,6 +2375,11 @@ _has_coefficient_map(f::MPolyQuoLocalizedRingHom) = _has_coefficient_map(typeof(
 _has_coefficient_map(::Type{T}) where {U, T<:MPolyAnyMap{<:Any, <:Any, U}} = (U !== Nothing)
 _has_coefficient_map(f::MPolyAnyMap) = _has_coefficient_map(typeof(f))
 
+# for the default, we have to assume that there is no coefficient map.
+_has_coefficient_map(::Type{T}) where {T<:Map} = false
+_has_coefficient_map(f::Map) = _has_coefficient_map(typeof(f))
+
+
 function compose(f::MPolyAnyMap, 
     g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom}
   )
