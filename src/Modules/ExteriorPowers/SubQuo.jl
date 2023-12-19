@@ -1,16 +1,15 @@
 function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   n = rank(ambient_free_module(M))
-  R = base_ring(M)
-  ((p >= 0) && (p <= n)) || error("exponent out of range")
+  R = base_ring(M)::base_ring_type(M)
+  @req 0 <= p <= n "Exponent out of bounds"
 
   if cached
     powers = _exterior_powers(M)
     haskey(powers, p) && return powers[p]
   end
 
-  result = M # Initialize variable
   if iszero(p)
-    F = FreeMod(R, 1)
+    F = free_module(R, 1)
     result, _ = sub(F, [F[1]])
   else
     C = presentation(M)
@@ -21,8 +20,8 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
 
   function my_mult(u::Tuple{Vararg{SubquoModuleElem}})
     isempty(u) && return result[1] # only the case p=0
-    @assert all(x->parent(x)===M, u) "elements must live in the same module"
-    @assert length(u) == p "need a $p-tuple of elements"
+    @req all(x -> parent(x) === M, u) "elements must live in the same module"
+    @req length(u) == p "need a $p-tuple of elements"
     return wedge(collect(u), parent=result)
   end
   function my_mult(u::SubquoModuleElem...)
@@ -30,9 +29,9 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   end
 
   function my_decomp(u::SubquoModuleElem)
-    parent(u) === result || error("element does not belong to the correct module")
-    k = findfirst(x->x==u, gens(result)) 
-    k === nothing && error("element must be a generator of the module")
+    @req parent(u) === result "element does not belong to the correct module"
+    k = findfirst(x -> x == u, gens(result))
+    @req !isnothing(k) "element must be a generator of the module"
     ind = ordered_multi_index(k, p, n)
     e = gens(M)
     return Tuple(e[i] for i in indices(ind))

@@ -328,7 +328,7 @@ mutable struct SubQuoHom{
     RingMapType<:Any
   } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
-  header::Hecke.MapHeader
+  header::MapHeader{T1,T2}
   im::Vector # The images of the generators; use `images_of_generators` as a getter.
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
@@ -345,7 +345,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -361,7 +361,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -377,7 +377,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -398,7 +398,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -419,7 +419,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -440,7 +440,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -525,7 +525,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
-  header::MapHeader
+  header::MapHeader{T1, T2}
   ring_map::RingMapType
   d::GrpAbFinGenElem
   imgs_of_gens::Vector # stored here for easy evaluation; use `images_of_generators` as getter
@@ -652,7 +652,7 @@ struct FreeModuleHom_dec{
     T2 <: ModuleFP,
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType}
   f::FreeModuleHom{T1,T2, RingMapType}
-  header::MapHeader
+  header::MapHeader{T1,T2}
   # TODO degree and homogeneity
 
   function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}

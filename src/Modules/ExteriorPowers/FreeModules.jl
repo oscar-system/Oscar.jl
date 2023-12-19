@@ -13,21 +13,23 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   if cached
     powers = _exterior_powers(F)
-    haskey(powers, p) && return powers[p]::Tuple{typeof(F), <:Map}
+    haskey(powers, p) && return powers[p]
   end
 
-  R = base_ring(F)
+  R = base_ring(F)::base_ring_type(F)
   n = rank(F)
-  result = free_module(R, binomial(n, p))
+  result_ = free_module(R, binomial(n, p))
 
   # In case F was graded, we have to take an extra detour. 
-  if is_graded(F)
+  result = if is_graded(F)
     G = grading_group(F)
     weights = elem_type(G)[]
     for ind in OrderedMultiIndexSet(p, n)
       push!(weights, sum(degree(F[i]) for i in indices(ind); init=zero(G)))
     end
-    result = grade(result, weights)
+    grade(result_, weights)
+  else
+    result_
   end
 
   # Create the multiplication map
