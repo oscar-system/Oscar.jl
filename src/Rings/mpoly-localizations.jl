@@ -3223,5 +3223,3 @@ function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
 
-
-

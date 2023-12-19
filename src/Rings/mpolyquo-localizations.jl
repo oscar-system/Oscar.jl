@@ -2289,3 +2289,50 @@ function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRin
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
 
+########################################################################
+# Inverses of homomorphisms                                            #
+########################################################################
+
+function inverse(
+    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
+           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
+          }
+  )
+  R = domain(f)
+  S = codomain(f)
+  RR, iso_R, iso_R_inv = _as_localized_quotient(R)
+  SS, iso_S, iso_S_inv = _as_localized_quotient(S)
+
+  pbff = hom(RR, SS, iso_S.(f.(gens(R))))
+
+  inv = inverse(pbff)
+  return compose(iso_S, compose(inv, iso_R_inv))
+end
+
+function _as_localized_quotient(R::MPolyRing)
+  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), powers_of_element(one(R)))
+  iso = hom(R, result, gens(result), check=false)
+  iso_inv = hom(result, R, gens(R), check=false)
+  return result, iso, iso_inv
+end
+
+function _as_localized_quotient(A::MPolyQuoRing)
+  R = base_ring(A)
+  result = MPolyQuoLocalizedRing(R, modulus(A), powers_of_element(one(R)))
+  iso = hom(A, result, gens(result), check=false)
+  iso_inv = hom(result, A, gens(R), check=false)
+  return result, iso, iso_inv
+end
+
+function _as_localized_quotient(L::MPolyLocRing)
+  R = base_ring(L)
+  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), inverted_set(L))
+  iso = hom(L, result, gens(result), check=false)
+  iso_inv = hom(result, L, gens(R), check=false)
+  return result, iso, iso_inv
+end
+
+
+function _as_localized_quotient(W::MPolyQuoLocRing)
+  return W, identity_map(W), identity_map(W)
+end
