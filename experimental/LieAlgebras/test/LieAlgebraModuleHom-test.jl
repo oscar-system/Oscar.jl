@@ -36,7 +36,7 @@
   @testset "Identity and zero map" begin
     L = special_linear_lie_algebra(QQ, 3)
     stdV = standard_module(L)
-    V1 = symmetric_power(stdV, 3)
+    V1 = symmetric_power(stdV, 3)[1]
     V2 = exterior_power(stdV, 2)[1]
 
     h = identity_map(V1)
@@ -174,7 +174,7 @@
     @test is_welldefined(h)
   end
 
-  @testset "hom_power ($f_power)" for f_power in [symmetric_power, tensor_power]
+  @testset "hom_power ($f_power)" for f_power in [tensor_power]
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
@@ -192,13 +192,13 @@
     end
   end
 
-  @testset "hom_power ($f_power)" for f_power in [exterior_power]
+  @testset "hom_power ($f_power)" for f_power in [exterior_power, symmetric_power]
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
       Wb = dual(dual(standard_module(L)))
-      V = f_power(Vb, k)[1]
-      W = f_power(Wb, k)[1]
+      V, _ = f_power(Vb, k)
+      W, _ = f_power(Wb, k)
       hb = hom(Vb, Wb, [2 * b for b in basis(Wb)])
 
       h = hom_power(V, W, hb)

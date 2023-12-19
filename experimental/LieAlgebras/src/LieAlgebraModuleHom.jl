@@ -530,6 +530,22 @@ function induced_map_on_exterior_power(
   return _induced_map_on_power(domain, codomain, h, k, :ext)
 end
 
+function induced_map_on_symmetric_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=symmetric_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_symmetric_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_symmetric_power(codomain)
+  @req domain_fl "Domain must be an symmetric power"
+  @req codomain_fl "Codomain must be an symmetric power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :sym)
+end
+
 @doc raw"""
     hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
 
@@ -542,9 +558,8 @@ function hom_power(
 ) where {C<:FieldElem}
   if is_exterior_power(V)[1]
     return induced_map_on_exterior_power(h; domain=V, codomain=W)
-  elseif is_symmetric_power(V)
-    @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
-    type = :sym
+  elseif is_symmetric_power(V)[1]
+    return induced_map_on_symmetric_power(h; domain=V, codomain=W)
   elseif is_tensor_power(V)
     @req is_tensor_power(W) "First module is a tensor power, but second module is not"
     type = :tensor

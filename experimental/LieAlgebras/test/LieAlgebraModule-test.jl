@@ -65,7 +65,7 @@
 
     @testset "⋀^2 S^2 V of so_4(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 4)
-      V = exterior_power(symmetric_power(standard_module(L), 2), 2)[1]
+      V = exterior_power(symmetric_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -83,19 +83,19 @@
 
     @testset "S^2 ⋀^2 V of so_4(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 4)
-      V = symmetric_power(exterior_power(standard_module(L), 2)[1], 2)
+      V = symmetric_power(exterior_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "S^2 T^2 V of so_4(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 4)
-      V = symmetric_power(tensor_power(standard_module(L), 2), 2)
+      V = symmetric_power(tensor_power(standard_module(L), 2), 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "S^2 V of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
-      V = symmetric_power(standard_module(L), 2)
+      V = symmetric_power(standard_module(L), 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -107,7 +107,7 @@
 
     @testset "T^2 S^2 V of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
-      V = tensor_power(symmetric_power(standard_module(L), 2), 2)
+      V = tensor_power(symmetric_power(standard_module(L), 2)[1], 2)
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -124,7 +124,7 @@
     is_direct_sum(V),
     is_tensor_product(V),
     is_exterior_power(V)[1],
-    is_symmetric_power(V),
+    is_symmetric_power(V)[1],
     is_tensor_power(V),
   )
 
@@ -145,7 +145,7 @@
 
   @testset "dual" begin
     for L in [general_linear_lie_algebra(QQ, 3), special_orthogonal_lie_algebra(QQ, 4)]
-      V = symmetric_power(standard_module(L), 2)
+      V = symmetric_power(standard_module(L), 2)[1]
       type_V = module_type_bools(V)
 
       dual_V = dual(V)
@@ -169,7 +169,7 @@
 
   @testset "direct_sum" begin
     for L in [general_linear_lie_algebra(QQ, 3), special_orthogonal_lie_algebra(QQ, 4)]
-      V = symmetric_power(standard_module(L), 2)
+      V = symmetric_power(standard_module(L), 2)[1]
       type_V = module_type_bools(V)
 
       for k in 1:3
@@ -186,7 +186,7 @@
         @test ds_V([x * v for v in a]) == x * ds_V(a)
       end
 
-      V1 = symmetric_power(standard_module(L), 2)
+      V1 = symmetric_power(standard_module(L), 2)[1]
       V2 = exterior_power(standard_module(L), 2)[1]
       type_V1 = module_type_bools(V1)
       type_V2 = module_type_bools(V2)
@@ -208,7 +208,7 @@
 
   @testset "tensor_product" begin
     for L in [general_linear_lie_algebra(QQ, 3), special_orthogonal_lie_algebra(QQ, 4)]
-      V = symmetric_power(standard_module(L), 2)
+      V = symmetric_power(standard_module(L), 2)[1]
       type_V = module_type_bools(V)
 
       for k in 1:3
@@ -227,7 +227,7 @@
         @test tp_V == tensor_power(V, k)
       end
 
-      V1 = symmetric_power(standard_module(L), 2)
+      V1 = symmetric_power(standard_module(L), 2)[1]
       V2 = exterior_power(standard_module(L), 2)[1]
       type_V1 = module_type_bools(V1)
       type_V2 = module_type_bools(V2)
@@ -249,11 +249,11 @@
 
   @testset "exterior_power" begin
     for L in [general_linear_lie_algebra(QQ, 3), special_orthogonal_lie_algebra(QQ, 4)]
-      V = symmetric_power(standard_module(L), 2)
+      V = symmetric_power(standard_module(L), 2)[1]
       type_V = module_type_bools(V)
 
       for k in 1:3
-        E = exterior_power(V, k)[1]
+        E, map = exterior_power(V, k)
         @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
         @test is_exterior_power(E) === (true, V, k)
         @test dim(E) == binomial(dim(V), k)
@@ -275,6 +275,9 @@
           @test iszero(E(a, a))
         end
 
+        as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
+        @test E(as) == map(as)
+
         T = get_attribute(E, :embedding_tensor_power)
         E_to_T = get_attribute(E, :embedding_tensor_power_embedding)
         T_to_E = get_attribute(E, :embedding_tensor_power_projection)
@@ -294,9 +297,9 @@
       type_V = module_type_bools(V)
 
       for k in 1:3
-        S = symmetric_power(V, k)
+        S, map = symmetric_power(V, k)
         @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
-        @test base_module(S) === V
+        @test is_symmetric_power(S) === (true, V, k)
         @test dim(S) == binomial(dim(V) + k - 1, k)
         @test length(repr(S)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -305,15 +308,19 @@
         if k == 1
           x = L(rand(-10:10, dim(L)))
           a = V(rand(-10:10, dim(V)))
+          # @test S(x * a) == x * S(a)  # TODO: fix this
           @test S([x * a]) == x * S([a])
         elseif k == 2
           a = V(rand(-10:10, dim(V)))
           b = V(rand(-10:10, dim(V)))
-          @test !iszero(S([a, b]))
-          @test !iszero(S([a, b]) + S([b, a]))
-          @test iszero(S([a, b]) - S([b, a]))
-          @test !iszero(S([a, a]))
+          @test !iszero(S(a, b))
+          @test !iszero(S(a, b) + S(b, a))
+          @test iszero(S(a, b) - S(b, a))
+          @test !iszero(S(a, a))
         end
+
+        as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
+        @test S(as) == map(as)
 
         T = get_attribute(S, :embedding_tensor_power)
         S_to_T = get_attribute(S, :embedding_tensor_power_embedding)
@@ -386,7 +393,7 @@
     struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
     struct_const_V[2, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 3)], [], [(QQ(1), 1)]]
     struct_const_V[3, :] = Vector{Tuple{QQFieldElem,Int64}}[[], [(QQ(-1), 3)], [(QQ(1), 2)]]
-    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)) ==
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)[1]) ==
       struct_const_V
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 6)
@@ -414,7 +421,7 @@
       [(QQ(1), 4), (QQ(-1), 6)],
       [(QQ(2), 5)],
     ]
-    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 2)) ==
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 2)[1]) ==
       struct_const_V
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 10)
@@ -454,7 +461,7 @@
       [(QQ(2), 8), (QQ(-1), 10)],
       [(QQ(3), 9)],
     ]
-    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 4)) ==
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 4)[1]) ==
       struct_const_V
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
@@ -513,7 +520,7 @@
     struct_const_V[6, :] = Vector{Tuple{QQFieldElem,Int64}}[
       [], [], [(QQ(-1), 4)], [(QQ(1), 3)]
     ]
-    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)) ==
+    @test lie_algebra_module_struct_const(L, symmetric_power(standard_module(L), 1)[1]) ==
       struct_const_V
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
