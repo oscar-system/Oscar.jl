@@ -1445,7 +1445,8 @@ end
     for U in patches(C)
       V = __find_chart(U, default_covering(X))
       phi = OOX(V, U)
-      set_decomposition_info!(C, U, phi.(decomposition_info(default_covering(X))[V]))
+      new_info = Vector{elem_type(OO(U))}(phi.(decomposition_info(default_covering(X))[V]))
+      set_decomposition_info!(C, U, new_info)
     end
   end
 
