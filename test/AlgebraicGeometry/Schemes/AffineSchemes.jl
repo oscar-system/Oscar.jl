@@ -294,3 +294,17 @@ end
   @test WW isa SpecOpen
 end
 
+@testset "principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+  back = inverse_on_image(there)
+end

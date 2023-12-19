@@ -734,6 +734,7 @@ export invariant_ring
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
+export inverse_on_image
 export invert
 export invert_birational_map
 export inverted_set

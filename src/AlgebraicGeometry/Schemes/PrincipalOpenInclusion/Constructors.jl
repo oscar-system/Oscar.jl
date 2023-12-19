@@ -4,6 +4,8 @@ function complement(X::AbsSpec, h::Vector)
   U = PrincipalOpenSubset(X, h)
   f = SpecMor(U, X, gens(OO(X)), check=false)
   inc = PrincipalOpenEmbedding(f, h)
+  inc.inverse_on_image = identity_map(U)
+  inc.image = U
   return U, inc
 end
 

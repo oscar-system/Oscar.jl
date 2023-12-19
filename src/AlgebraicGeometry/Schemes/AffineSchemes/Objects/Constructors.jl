@@ -361,6 +361,15 @@ function subscheme(X::AbsSpec, I::Ideal)
   return Y
 end
 
+function sub(X::AbsSpec, a)
+  (a isa RingElem && parent(a) === OO(X)) || return sub(X, OO(X)(a))
+  return sub(X, ideal(OO(X), a))
+end
+
+function sub(X::AbsSpec, a::Vector)
+  all(a->a isa RingElem && parent(a) === OO(X), a) || return sub(X, OO(X).(a))
+  return sub(X, ideal(OO(X), a))
+end
 
 
 ########################################################
