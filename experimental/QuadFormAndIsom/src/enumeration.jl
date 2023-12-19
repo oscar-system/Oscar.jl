@@ -211,7 +211,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
       return false
     end
   end
-  Cp = symbol(Cp)
+  Cp = copy(symbol(Cp))
   for s in Cp
     s[1] += 2
   end
