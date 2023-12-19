@@ -502,9 +502,13 @@ $S^k h: V \to W$ (analogous for other types of powers).
 function hom_power(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if is_exterior_power(V)
-    @req is_exterior_power(W) "First module is an exterior power, but second module is not"
+  if ((fl, Vb, Vk) = is_exterior_power(V); fl)
+    (fl, Wb, Wk) = is_exterior_power(W)
+    @req fl "First module is an exterior power, but second module is not"
+    @req Vk == Wk "Exponent mismatch"
+    @req domain(h) === Vb && codomain(h) === Wb "Domain/codomain mismatch"
     type = :ext
+    power = Vk
   elseif is_symmetric_power(V)
     @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
     type = :sym
@@ -514,15 +518,18 @@ function hom_power(
   else
     throw(ArgumentError("First module must be a power module"))
   end
-  @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
-  @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
+  if !is_exterior_power(V)[1]
+    @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
+    @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
+    power = get_attribute(V, :power)
+  end
 
   TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
   TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
 
   mat = reduce(
     kronecker_product,
-    [matrix(h) for _ in 1:get_attribute(V, :power)];
+    [matrix(h) for _ in 1:power];
     init=identity_matrix(coefficient_ring(W), 1),
   )
   TV_to_TW = hom(TV, TW, mat; check=false)
