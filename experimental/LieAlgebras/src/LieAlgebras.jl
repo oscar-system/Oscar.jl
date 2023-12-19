@@ -116,6 +116,7 @@ export general_linear_lie_algebra
 export hom_direct_sum
 export hom_power
 export induced_map_on_symmetric_power
+export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
@@ -224,6 +225,7 @@ export general_linear_lie_algebra
 export hom_direct_sum
 export hom_power
 export induced_map_on_symmetric_power
+export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum

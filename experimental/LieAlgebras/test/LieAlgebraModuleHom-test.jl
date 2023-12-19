@@ -164,7 +164,7 @@
     V12 = dual(standard_module(L))
     V2i = dual(dual(standard_module(L)))
     V1 = tensor_product(V11, V12)
-    V2 = tensor_power(V2i, 2)
+    V2 = tensor_power(V2i, 2)[1]
     h1 = hom(V11, V2i, basis(V2i))
     h2 = hom(V12, V2i, [zero(V2i) for _ in basis(V12)])
 
@@ -174,7 +174,7 @@
     @test is_welldefined(h)
   end
 
-  @testset "hom_power ($f_power)" for f_power in [tensor_power]
+  @testset "hom_power ($f_power)" for f_power in []
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
@@ -192,7 +192,8 @@
     end
   end
 
-  @testset "hom_power ($f_power)" for f_power in [exterior_power, symmetric_power]
+  @testset "hom_power ($f_power)" for f_power in
+                                      [exterior_power, symmetric_power, tensor_power]
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)

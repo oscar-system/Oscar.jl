@@ -57,6 +57,18 @@
       lie_algebra_module_conformance_test(L, V)
     end
 
+    @testset "V^* of sl_4(QQ)" begin
+      L = special_linear_lie_algebra(QQ, 4)
+      V = dual(standard_module(L))
+      lie_algebra_module_conformance_test(L, V)
+    end
+
+    @testset "(T^2 S^2 V)^* of so_4(QQ)" begin
+      L = special_orthogonal_lie_algebra(QQ, 4)
+      V = dual(tensor_power(symmetric_power(standard_module(L), 2)[1], 2)[1])
+      lie_algebra_module_conformance_test(L, V)
+    end
+
     @testset "V of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       V = standard_module(L)
@@ -71,7 +83,7 @@
 
     @testset "⋀^2 T^2 V of so_4(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 4)
-      V = exterior_power(tensor_power(standard_module(L), 2), 2)[1]
+      V = exterior_power(tensor_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -89,7 +101,7 @@
 
     @testset "S^2 T^2 V of so_4(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 4)
-      V = symmetric_power(tensor_power(standard_module(L), 2), 2)[1]
+      V = symmetric_power(tensor_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
@@ -101,19 +113,19 @@
 
     @testset "T^2 ⋀^2 V of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
-      V = tensor_power(exterior_power(standard_module(L), 2)[1], 2)
+      V = tensor_power(exterior_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "T^2 S^2 V of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
-      V = tensor_power(symmetric_power(standard_module(L), 2)[1], 2)
+      V = tensor_power(symmetric_power(standard_module(L), 2)[1], 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "T^2 V of sl_4(CF(4))" begin
       L = special_linear_lie_algebra(cyclotomic_field(4)[1], 4)
-      V = tensor_power(standard_module(L), 2)
+      V = tensor_power(standard_module(L), 2)[1]
       lie_algebra_module_conformance_test(L, V)
     end
   end
@@ -125,7 +137,7 @@
     is_tensor_product(V),
     is_exterior_power(V)[1],
     is_symmetric_power(V)[1],
-    is_tensor_power(V),
+    is_tensor_power(V)[1],
   )
 
   @testset "standard_module" begin
@@ -224,7 +236,7 @@
         a = [V(rand(-10:10, dim(V))) for _ in 1:k]
         @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) == x * tp_V(a)
 
-        @test tp_V == tensor_power(V, k)
+        @test tp_V == tensor_power(V, k)[1]
       end
 
       V1 = symmetric_power(standard_module(L), 2)[1]
@@ -254,7 +266,7 @@
 
       for k in 1:3
         E, map = exterior_power(V, k)
-        @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+        @test type_V == module_type_bools(V) # construction of E should not change type of V
         @test is_exterior_power(E) === (true, V, k)
         @test dim(E) == binomial(dim(V), k)
         @test length(repr(E)) < 10^4 # outputs tend to be excessively long due to recursion
@@ -281,7 +293,7 @@
         T = get_attribute(E, :embedding_tensor_power)
         E_to_T = get_attribute(E, :embedding_tensor_power_embedding)
         T_to_E = get_attribute(E, :embedding_tensor_power_projection)
-        @test T == tensor_power(V, k)
+        @test T == tensor_power(V, k)[1]
         @test domain(E_to_T) === E
         @test codomain(E_to_T) === T
         @test domain(T_to_E) === T
@@ -298,7 +310,7 @@
 
       for k in 1:3
         S, map = symmetric_power(V, k)
-        @test type_V == module_type_bools(V) # construction of pow_V should not change type of V
+        @test type_V == module_type_bools(V) # construction of S should not change type of V
         @test is_symmetric_power(S) === (true, V, k)
         @test dim(S) == binomial(dim(V) + k - 1, k)
         @test length(repr(S)) < 10^4 # outputs tend to be excessively long due to recursion
@@ -325,7 +337,7 @@
         T = get_attribute(S, :embedding_tensor_power)
         S_to_T = get_attribute(S, :embedding_tensor_power_embedding)
         T_to_S = get_attribute(S, :embedding_tensor_power_projection)
-        @test T == tensor_power(V, k)
+        @test T == tensor_power(V, k)[1]
         @test domain(S_to_T) === S
         @test codomain(S_to_T) === T
         @test domain(T_to_S) === T
@@ -338,29 +350,33 @@
   @testset "tensor_power" begin
     for L in [general_linear_lie_algebra(QQ, 3), special_orthogonal_lie_algebra(QQ, 4)]
       V = standard_module(L)
-      T = module_type_bools(V)
+      type_V = module_type_bools(V)
 
       for k in 1:3
-        pow_V = tensor_power(V, k)
-        @test T == module_type_bools(V) # construction of pow_V should not change type of V
-        @test base_module(pow_V) === V
-        @test dim(pow_V) == dim(V)^k
-        @test length(repr(pow_V)) < 10^4 # outputs tend to be excessively long due to recursion
+        T, map = tensor_power(V, k)
+        @test type_V == module_type_bools(V) # construction of T should not change type of V
+        @test is_tensor_power(T) === (true, V, k)
+        @test dim(T) == dim(V)^k
+        @test length(repr(T)) < 10^4 # outputs tend to be excessively long due to recursion
 
-        @test module_type_bools(pow_V) == (false, false, false, false, false, false, true) # tensor_power
+        @test module_type_bools(T) == (false, false, false, false, false, false, true) # tensor_power
 
         if k == 1
           x = L(rand(-10:10, dim(L)))
           a = V(rand(-10:10, dim(V)))
-          @test pow_V([x * a]) == x * pow_V([a])
+          # @test T(x * a) == x * T(a)  # TODO: fix this
+          @test T([x * a]) == x * T([a])
         elseif k == 2
           a = V(rand(-10:10, dim(V)))
           b = V(rand(-10:10, dim(V)))
-          @test !iszero(pow_V([a, b]))
-          @test !iszero(pow_V([a, b]) + pow_V([b, a]))
-          @test !iszero(pow_V([a, b]) - pow_V([b, a]))
-          @test !iszero(pow_V([a, a]))
+          @test !iszero(T(a, b))
+          @test !iszero(T(a, b) + T(b, a))
+          @test !iszero(T(a, b) - T(b, a))
+          @test !iszero(T(a, a))
         end
+
+        as = NTuple{k,elem_type(V)}(V(rand(-10:10, dim(V))) for _ in 1:k)
+        @test T(as) == map(as)
       end
     end
   end

@@ -476,11 +476,22 @@ This works for $r$th tensor powers as well.
 """
 function hom_tensor(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
-) where {C<:FieldElem}
-  @req is_tensor_product(V) || is_tensor_power(V) "First module must be a tensor product or power"
-  @req is_tensor_product(W) || is_tensor_power(W) "Second module must be a tensor product or power"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+) where {C<:FieldElem} # TODO: cleanup after refactoring tensor_product
+  if is_tensor_product(V)
+    Vs = base_modules(V)
+  elseif ((fl, Vb, k) = is_tensor_power(V); fl)
+    Vs = [Vb for _ in 1:k]
+  else
+    throw(ArgumentError("First module must be a tensor product or power"))
+  end
+  if is_tensor_product(W)
+    Ws = base_modules(W)
+  elseif ((fl, Wb, k) = is_tensor_power(W); fl)
+    Ws = [Wb for _ in 1:k]
+  else
+    throw(ArgumentError("Second module must be a tensor product or power"))
+  end
+
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
@@ -546,6 +557,22 @@ function induced_map_on_symmetric_power(
   return _induced_map_on_power(domain, codomain, h, k, :sym)
 end
 
+function induced_map_on_tensor_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=tensor_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_tensor_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_tensor_power(codomain)
+  @req domain_fl "Domain must be an tensor power"
+  @req codomain_fl "Codomain must be an tensor power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :tensor)
+end
+
 @doc raw"""
     hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
 
@@ -555,14 +582,13 @@ $S^k h: V \to W$ (analogous for other types of powers).
 """
 function hom_power(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
-) where {C<:FieldElem}
+) where {C<:FieldElem} # TODO: cleanup
   if is_exterior_power(V)[1]
     return induced_map_on_exterior_power(h; domain=V, codomain=W)
   elseif is_symmetric_power(V)[1]
     return induced_map_on_symmetric_power(h; domain=V, codomain=W)
-  elseif is_tensor_power(V)
-    @req is_tensor_power(W) "First module is a tensor power, but second module is not"
-    type = :tensor
+  elseif is_tensor_power(V)[1]
+    return induced_map_on_tensor_power(h; domain=V, codomain=W)
   else
     throw(ArgumentError("First module must be a power module"))
   end
