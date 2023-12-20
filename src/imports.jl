@@ -197,6 +197,3 @@ import Hecke:
 
 import cohomCalg_jll
 
-abstract type CyclotomicField end
-export CyclotomicField
-
