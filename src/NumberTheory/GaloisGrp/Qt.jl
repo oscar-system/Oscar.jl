@@ -307,7 +307,7 @@ function to_uni(f::MPolyRingElem, trans::Int = 1)
   return evaluate(f, ev)
 end
 
-"""
+@doc raw"""
     function_field(f::MPolyRingElem, trans::Int, s::VarName = :_a; cached::Bool = false, check::Bool = true)
  
 Let $f$ in $K[s, t]$ for trans == 1, return the function field $K(s)/f$
@@ -317,7 +317,7 @@ function Oscar.function_field(f::MPolyRingElem, trans::Int, s::VarName = :_a; ca
   return function_field(to_uni(f, trans), s; cached)
 end
 
-"""
+@doc raw"""
     galois_group(f::QQMPolyRingElem, trans::Int = 1)
 
 Let $f \in QQ[s,t]$, then this computes 
