@@ -37,4 +37,3 @@ struct OscarPair{S, T}
   first::S
   second::T
 end
-

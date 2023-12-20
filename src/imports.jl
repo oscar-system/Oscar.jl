@@ -196,4 +196,3 @@ import Hecke:
   QQBar
 
 import cohomCalg_jll
-
