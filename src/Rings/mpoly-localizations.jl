@@ -2641,7 +2641,7 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
-mutable struct MPolyLocalizedRingHom{
+@attributes mutable struct MPolyLocalizedRingHom{
                                      DomainType<:MPolyLocRing, 
                                      CodomainType<:Ring, 
                                      RestrictedMapType<:Map
