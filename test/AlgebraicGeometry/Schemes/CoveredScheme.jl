@@ -251,3 +251,19 @@ end
   Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
   @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
 end
+
+@testset "fiber products of coverings" begin
+  IP1 = projective_space(QQ, [:x, :y])
+  S = homogeneous_coordinate_ring(IP1)
+  (x, y) = gens(S)
+  X = covered_scheme(IP1)
+  cov = default_covering(X)
+  f = identity_map(cov)
+  cc, p1, p2 = fiber_product(f, f)
+  Phi = hom(S, S, [x+y, x-y])
+  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+  g = covered_scheme_morphism(phi)
+  g_cov = covering_morphism(g)
+  cc, p1, p2 = fiber_product(g_cov, f)
+end
+
