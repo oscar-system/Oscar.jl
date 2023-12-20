@@ -2298,15 +2298,41 @@ function inverse(
            <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
           }
   )
+  has_attribute(f, :inverse) && return get_attribute(f, :inverse)::Map
   R = domain(f)
   S = codomain(f)
   RR, iso_R, iso_R_inv = _as_localized_quotient(R)
   SS, iso_S, iso_S_inv = _as_localized_quotient(S)
 
-  pbff = hom(RR, SS, iso_S.(f.(gens(R))))
+  ff = hom(RR, SS, iso_S.(f.(gens(R))))
 
-  inv = inverse(pbff)
-  return compose(iso_S, compose(inv, iso_R_inv))
+  inv = inverse(ff)
+  result = compose(iso_S, compose(inv, iso_R_inv))
+  set_attribute!(f, :inverse=>result)
+  return result
+end
+
+function is_isomorphism(
+    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
+           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
+          }
+  )
+  has_attribute(f, :inverse) && return true
+  R = domain(f)
+  S = codomain(f)
+  RR, iso_R, iso_R_inv = _as_localized_quotient(R)
+  SS, iso_S, iso_S_inv = _as_localized_quotient(S)
+
+  ff = hom(RR, SS, iso_S.(f.(gens(R))))
+
+  result = is_isomorphism(ff)
+  if result
+    # Supposedly the inverse has been computed and cached by the call to 
+    # is_isomorphism
+    inv = compose(iso_S, compose(inverse(ff), iso_R_inv))
+    set_attribute!(f, :inverse=>inv)
+  end
+  return result
 end
 
 function _as_localized_quotient(R::MPolyRing)
