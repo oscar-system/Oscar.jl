@@ -380,7 +380,6 @@ export complete_bipartite_graph
 export complete_graph
 export complete_intersection_germ
 export complex_projective_plane
-export compositions
 export components
 export compose
 export composition_series, has_composition_series, set_composition_series
@@ -1508,7 +1507,6 @@ export volume_form
 export walls
 export wdeglex
 export wdegrevlex
-export weak_compositions
 export weakly_connected_components
 export wedge
 export wedge_multiplication_map
