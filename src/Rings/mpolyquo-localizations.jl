@@ -2446,9 +2446,7 @@ function compose(f::MPolyAnyMap,
   end
 end
 
-morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocalizedRing, CT<:Ring} = MPolyLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
-
-morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyQuoLocalizedRing, CT<:Ring} = MPolyQuoLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
+morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPolyLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
 base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
