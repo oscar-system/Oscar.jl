@@ -670,6 +670,8 @@ function abstract_module(
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
+######################## Trivial module ########################
+
 @doc raw"""
     trivial_module(L::LieAlgebra{C}, d=1) -> LieAlgebraModule{C}
 
@@ -695,8 +697,16 @@ function trivial_module(L::LieAlgebra, d::IntegerUnion=1)
   triv_V = LieAlgebraModule{elem_type(coefficient_ring(L))}(
     L, dim_triv_V, transformation_matrices, s; check=false
   )
-  # set_attribute!(triv_V, :type => :trivial)
   return triv_V
+end
+
+######################## Standard module ########################
+
+# cache storage
+@attr LieAlgebraModule{elem_type(coefficient_ring(L))} function _standard_module(
+  L::LinearLieAlgebra
+)
+  return standard_module(L; cached=false)
 end
 
 @doc raw"""
@@ -710,7 +720,6 @@ is $R^n$ with the action of $L$ given by left multiplication.
     This uses the left action of $L$, and converts that to internally use the equivalent
     right action.
 
-
 # Examples
 ```jldoctest
 julia> L = special_linear_lie_algebra(QQ, 3);
@@ -722,11 +731,7 @@ over special linear Lie algebra of degree 3 over QQ
 ```
 """
 function standard_module(L::LinearLieAlgebra; cached::Bool=true)
-  if cached && has_attribute(L, :standard_module)
-    return get_attribute(
-      L, :standard_module
-    )::LieAlgebraModule{elem_type(coefficient_ring(L))}
-  end
+  cached && return _standard_module(L)
 
   dim_std_V = L.n
   transformation_matrices = transpose.(matrix_repr_basis(L))
@@ -736,9 +741,14 @@ function standard_module(L::LinearLieAlgebra; cached::Bool=true)
   )
   set_attribute!(std_V, :is_standard_module => true)
 
-  cached && (set_attribute!(L, :standard_module => std_V))
-
   return std_V
+end
+
+######################## Duals ########################
+
+# cache storage
+@attr typeof(V) function _dual(V::LieAlgebraModule)
+  return dual(V; cached=false)
 end
 
 @doc raw"""
@@ -762,9 +772,7 @@ over special linear Lie algebra of degree 3 over QQ
 ```
 """
 function dual(V::LieAlgebraModule{C}; cached::Bool=true) where {C<:FieldElem}
-  if cached && has_attribute(V, :dual)
-    return get_attribute(V, :dual)::typeof(V)
-  end
+  cached && return _dual(V)
 
   L = base_lie_algebra(V)
   dim_dual_V = dim(V)
@@ -782,13 +790,14 @@ function dual(V::LieAlgebraModule{C}; cached::Bool=true) where {C<:FieldElem}
   pow_V = LieAlgebraModule{C}(L, dim_dual_V, transformation_matrices, s; check=false)
   set_attribute!(pow_V, :is_dual => V)
 
-  cached && (set_attribute!(V, :dual => pow_V))
-
   return pow_V
 end
 
 Base.:^(V::LieAlgebraModule, ::typeof(Base.:*)) = dual(V)
 
+######################## Direct sums ########################
+
+# TODO: add caching
 @doc raw"""
     direct_sum(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
     ⊕(V::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
@@ -844,6 +853,9 @@ end
 ⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   direct_sum(V, Vs...)
 
+######################## Tensor products ########################
+
+# TODO: add caching
 @doc raw"""
   tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
   ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
@@ -949,6 +961,13 @@ end
 
 ⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   tensor_product(V, Vs...)
+
+######################## Exterior powers ########################
+
+# cache storage
+@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _exterior_powers(V::LieAlgebraModule)
+  return Dict{Int,Tuple{typeof(V),MapFromFunc}}()
+end
 
 @doc raw"""
     exterior_power(V::LieAlgebraModule{C}, k::Int; cached::Bool=true) -> LieAlgebraModule{C}, Map
@@ -1062,7 +1081,10 @@ function exterior_power(
   return E, mult_map
 end
 
-@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _exterior_powers(V::LieAlgebraModule)
+######################## Symmetric powers ########################
+
+# cache storage
+@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _symmetric_powers(V::LieAlgebraModule)
   return Dict{Int,Tuple{typeof(V),MapFromFunc}}()
 end
 
@@ -1199,7 +1221,10 @@ function symmetric_power(
   return S, mult_map
 end
 
-@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _symmetric_powers(V::LieAlgebraModule)
+######################## Tensor powers ########################
+
+# cache storage
+@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _tensor_powers(V::LieAlgebraModule)
   return Dict{Int,Tuple{typeof(V),MapFromFunc}}()
 end
 
@@ -1307,10 +1332,6 @@ function tensor_power(
   cached && (_tensor_powers(V)[k] = (T, mult_map))
 
   return T, mult_map
-end
-
-@attr Dict{Int,Tuple{typeof(V),MapFromFunc}} function _tensor_powers(V::LieAlgebraModule)
-  return Dict{Int,Tuple{typeof(V),MapFromFunc}}()
 end
 
 ###############################################################################
