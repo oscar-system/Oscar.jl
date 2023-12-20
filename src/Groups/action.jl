@@ -453,6 +453,11 @@ function on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
     return inv(res[i]) * res
 end
 
+function on_subgroups(x::GapObj, g::GAPGroupElem)
+  return GAPWrap.Group(GAPWrap.Image(g.X, GAPWrap.GeneratorsOfGroup(x)))
+end
+
+on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(x.X, g))
 
 @doc raw"""
     stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])

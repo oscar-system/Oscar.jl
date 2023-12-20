@@ -88,6 +88,17 @@ direct_sum(::Vector{QuadSpaceWithIsom})
 rescale(::QuadSpaceWithIsom, ::RationalUnion)
 ```
 
+## Spinor norm
+
+Given a quadratic space with isometry $(V, f)$, one often would like to compute
+the *spinor norm* of $f$ seen as an isometry of the real quadratic space
+$V\otimes \mathbb{R}$. Depending on their convention, the users can choose to
+compute such a norm with respect to the opposite form on $V$:
+
+```@docs
+spinor_norm(::QuadSpaceWithIsom)
+```
+
 ## Equality
 
 We choose as a convention that two pairs $(V, f)$ and $(V', f')$ of quadratic

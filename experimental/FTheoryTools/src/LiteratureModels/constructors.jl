@@ -39,26 +39,11 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Normal toric variety
+A family of spaces of dimension d = 5
 
-julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
-
-julia> I = ideal([x,y,w]);
-
-julia> v2 = domain(blow_up(v, I))
-Normal toric variety
-
-julia> cox_ring(v2)
-Multivariate polynomial ring in 9 variables over QQ graded by
-  a1 -> [1 0 0 0]
-  a21 -> [0 1 0 0]
-  a32 -> [-1 2 0 0]
-  a43 -> [-2 3 0 0]
-  w -> [0 0 1 0]
-  x -> [0 1 1 2]
-  y -> [1 1 1 3]
-  z -> [0 0 0 1]
-  e -> [2 -1 -1 0]
+julia> coordinate_ring(v)
+Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
+  over rational field
 ```
 It is also possible to construct a literature model over a particular base.
 Currently, this feature is only supported for toric base spaces.
@@ -70,10 +55,28 @@ julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
 julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> length(singular_loci(t2))
 2
+```
+Of course, this is also possible for Weierstrass models.
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia> length(singular_loci(w))
+1
 ```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
@@ -112,32 +115,20 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
     end
     
     # Are all model sections specified?
-    needed_model_sections = model_dict["model_data"]["model_sections"]
-    @req all(k->haskey(model_sections, k), needed_model_sections) "Not all model sections are specified"
+    @req all(k->haskey(model_sections, k), model_dict["model_data"]["model_sections"]) "Not all model sections are specified"
     
     # Is the model specific for a base dimension? If so, make consistency check
     if haskey(model_dict["model_data"], "base_dim")
       @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
     end
     
-    # Appropriately construct the model
-    if model_dict["model_descriptors"]["type"] == "tate"
-      model = _construct_literature_tate_model(model_dict, base_space, model_sections, completeness_check)
-    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
-      @req false "Weierstrass literature models can currently not be created over a concrete base space"
-    else
-      @req false "Model is not a Tate or Weierstrass model"
-    end
-    
-  # (3b) Construct the model over a generic base
+    # Construct the model
+    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
+    @vprint :FTheoryConstructorInformation 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
+
+  # (3b) Construct the model over generic base
   else
-    if model_dict["model_descriptors"]["type"] == "tate"
-      model = _construct_literature_tate_model(model_dict)
-    elseif model_dict["model_descriptors"]["type"] == "weierstrass"
-      model = _construct_literature_weierstrass_model(model_dict)
-    else
-      @req false "Model is not a Tate or Weierstrass model"
-    end
+    model = _construct_literature_model_over_arbitrary_base(model_dict)
   end
 
   # Return the model
@@ -195,127 +186,59 @@ end
 # 3. Constructing models over concrete bases
 #######################################################
 
-# Constructs Tate model over concrete base from given Tate literature model
-function _construct_literature_tate_model(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
+# Constructs literature model over concrete base
+function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
 
-  # Generate random sections of the model sections
-  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-  for (key, value) in model_sections
-    # Lead to an error when trying to compute the singular loci.
-    # Likely, the current implementation assumes that the singular locus is given by the vanishing of a single monom?
-    explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
-    #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
-  end
-
-  # For a Tate model we need to create a1, a2, a3, a4, a6 with ai a section of Kbar^i.
-  # These are parametrized by the model sections above.
-  # We need to extract the parametrization from the model_dict and then identify the additional parameters' toric divisors.
-
+  # We first create a polynomial ring in which we can read the Tate sections as polynomials of the (internal) model sections
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-  a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
-  a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
-  a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
-  a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
-  a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+  vars = [string(g) for g in gens(auxiliary_base_ring)]
 
-  # Currently, we assume that Tate sections are monomial expressions in the model sections and remaining parameters
-  @req all(k->length(monomials(k)) == 1 || is_zero(k), [a1, a2, a3, a4, a6]) "Tate sections are assumed to be monomials in model sections and remaining parameters"
+  # Make list of divisor classes which express the internal model sections.
+  model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 2:1+length(model_sections)])
 
-  # Initialize necessary structures
-  divisor_list = Vector{ToricDivisor}()
-  coefficient_matrix = Vector{Vector{Int64}}()
-  Kbar = anticanonical_divisor(base_space)
-  cut_off = ngens(auxiliary_base_ring) - length(explicit_model_sections)
-  variables = gens(auxiliary_base_ring)
-  model_section_divisor_vector = Vector{ToricDivisor}()
-  for k in cut_off+1:length(variables)
-    push!(model_section_divisor_vector, model_sections[string(variables[k])])
-  end
-
-  # Fill divisor_list and coefficient_matrix
-  if is_zero(a1) == false
-    exp_vector = exponent_vector(a1,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a2) == false
-    exp_vector = exponent_vector(a2,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 2 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a3) == false
-    exp_vector = exponent_vector(a3,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 3 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a4) == false
-    exp_vector = exponent_vector(a4,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 4 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-  if is_zero(a6) == false
-    exp_vector = exponent_vector(a6,1)
-    model_section_combination = sum([exp_vector[k] * model_section_divisor_vector[k - cut_off] for k in cut_off+1:length(exp_vector)])
-    push!(divisor_list, 6 * Kbar - model_section_combination)
-    push!(coefficient_matrix, [exp_vector[k] for k in 1:cut_off])
-  end
-
-  # Find a left inverse of the coefficient matrix
-  inverse_matrix = solve_left(matrix(ZZ, coefficient_matrix), identity_matrix(ZZ, cut_off))
-
-  # Now we are in the position to tell the toric divisors for the internal parameters
+  # Find divisor classes of the internal model sections
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   internal_model_sections = Dict{String, ToricDivisor}()
-  for k in 1:cut_off
-    coeffs = inverse_matrix[k,:]
-    divisor = sum([coeffs[l] * divisor_list[l] for l in 1:length(coeffs)])
-    internal_model_sections[string(variables[k])] = divisor
+  for k in 2+length(model_sections):ngens(auxiliary_base_ring)
+    divisor = sum([auxiliary_base_grading[l,k] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
+    internal_model_sections[vars[k]] = divisor
   end
 
-  # Compute random internal model sections
+  # Next, generate random values for all involved sections.
+  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  for (key, value) in model_sections
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective model section"
+    #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    # Lead to error when computing singular loci - currently only monomials allowed...
+    explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+  end
   for (key, value) in internal_model_sections
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) model section"
     explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
-  # Finally, let us create the actual Tate sections
-  explicit_a1 = zero(cox_ring(base_space))
-  if is_zero(a1) == false
-    exp_vector = exponent_vector(a1,1)
-    explicit_a1 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a2 = zero(cox_ring(base_space))
-  if is_zero(a2) == false
-    exp_vector = exponent_vector(a2,1)
-    explicit_a2 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a3 = zero(cox_ring(base_space))
-  if is_zero(a3) == false
-    exp_vector = exponent_vector(a3,1)
-    explicit_a3 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a4 = zero(cox_ring(base_space))
-  if is_zero(a4) == false
-    exp_vector = exponent_vector(a4,1)
-    explicit_a4 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
-  explicit_a6 = zero(cox_ring(base_space))
-  if is_zero(a6) == false
-    exp_vector = exponent_vector(a6,1)
-    explicit_a6 = prod([explicit_model_sections[string(variables[k])]^exp_vector[k] for k in 1:ngens(auxiliary_base_ring)])
-  end
+  # Use these, to create map from auxiliary_base_ring to the cox ring of the base_space.
+  images = vcat([zero(cox_ring(base_space))], [explicit_model_sections[vars[k]] for k in 2:length(vars)])
+  map = hom(auxiliary_base_ring, cox_ring(base_space), images)
 
   # Construct the model
-  ais = [explicit_a1, explicit_a2, explicit_a3, explicit_a4, explicit_a6]
-  model = global_tate_model(base_space, ais; completeness_check = completeness_check)
-
-  # Remember the explicit model sections for autoresolution
+  if model_dict["model_descriptors"]["type"] == "tate"
+    a1 = map(eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring))
+    a2 = map(eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring))
+    a3 = map(eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring))
+    a4 = map(eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring))
+    a6 = map(eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring))
+    model = global_tate_model(base_space, [a1, a2, a3, a4, a6]; completeness_check = completeness_check)
+  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+    f = map(eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring))
+    g = map(eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring))
+    model = weierstrass_model(base_space, f, g; completeness_check = completeness_check)
+  else
+    @req false "Model is not a Tate or Weierstrass model"
+  end
   set_attribute!(model, :explicit_model_sections => explicit_model_sections)
-
-  # Return the model
   return model
 end
 
@@ -326,40 +249,33 @@ end
 #######################################################
 
 # Constructs Tate model from given Tate literature model
-function _construct_literature_tate_model(model_dict::Dict{String,Any})
+function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-  
-  base_dim = get(model_dict["model_data"], "base_dim", 3)
-  
-  a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
-  a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
-  a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
-  a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
-  a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
-  
+
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  return global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
-end
-
-# Constructs Weierstrass model from given Weierstrass literature model
-function _construct_literature_weierstrass_model(model_dict::Dict{String,Any})
-  @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
-  
-  f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
-  g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
-  
-  @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
-  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  return weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
-end
 
+  # Construct the model
+  if model_dict["model_descriptors"]["type"] == "tate"
+    a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
+    a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
+    a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
+    a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
+    a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+    model = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
+  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+    f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
+    g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
+    model = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
+  else
+    @req false "Model is not a Tate or Weierstrass model"
+  end
+  return model
+end
 
 
 
@@ -444,14 +360,15 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
   end
   
-  if typeof(model.base_space) == NormalToricVariety
-    base_ring = cox_ring(model.base_space) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
-    if haskey(model_dict["model_data"], "zero_section")
-      set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
-    end
-    if haskey(model_dict["model_data"], "generating_sections")
-      set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-    end
+  # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
+  #base_ring = cox_ring(model.base_space)
+  if haskey(model_dict["model_data"], "zero_section")
+    set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
+    #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+  end
+  if haskey(model_dict["model_data"], "generating_sections")
+    set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+    #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
   end
   
 end

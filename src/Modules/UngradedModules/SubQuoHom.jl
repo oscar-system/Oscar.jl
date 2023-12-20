@@ -334,7 +334,7 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   return true
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyElem{U}, T<:ModuleFP{S}}
+function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)

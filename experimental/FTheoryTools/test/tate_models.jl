@@ -29,6 +29,7 @@ t = global_tate_model(base; completeness_check = false)
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
+  @test is_partially_resolved(t) == false
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
@@ -52,9 +53,12 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test tate_section_a6(t2) == tate_section_a6(loaded)
       @test base_space(t2) == base_space(loaded)
       @test ambient_space(t2) == ambient_space(loaded)
+      @test base_fully_specified(t2) == base_fully_specified(loaded)
+      @test is_partially_resolved(t2) == is_partially_resolved(t2)
     end
   end
 end
+
 
 #############################################################
 # 2: Global Tate models over arbitrary base space
@@ -100,26 +104,23 @@ t_iistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4
 t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]);
 
 @testset "Attributes of global Tate models over generic base space" begin
-  @test parent(tate_section_a1(t_i5_s)) == cox_ring(base_space(t_i5_s))
-  @test parent(tate_section_a2(t_i5_s)) == cox_ring(base_space(t_i5_s))
-  @test parent(tate_section_a3(t_i5_s)) == cox_ring(base_space(t_i5_s))
-  @test parent(tate_section_a4(t_i5_s)) == cox_ring(base_space(t_i5_s))
-  @test parent(tate_section_a6(t_i5_s)) == cox_ring(base_space(t_i5_s))
-  @test parent(tate_polynomial(t_i5_s)) == cox_ring(ambient_space(t_i5_s))
-  @test parent(discriminant(t_i5_s)) == cox_ring(base_space(t_i5_s))
+  @test parent(tate_section_a1(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
+  @test parent(tate_section_a2(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
+  @test parent(tate_section_a3(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
+  @test parent(tate_section_a4(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
+  @test parent(tate_section_a6(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
+  @test parent(tate_polynomial(t_i5_s)) == coordinate_ring(ambient_space(t_i5_s))
+  @test parent(discriminant(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
   @test dim(base_space(t_i5_s)) == 3
   @test dim(ambient_space(t_i5_s)) == 5
   @test base_fully_specified(t_i5_s) == false
   @test base_fully_specified(t_i5_s) == base_fully_specified(weierstrass_model(t_i5_s))
-  @test is_smooth(ambient_space(t_i5_s)) == false
-  @test toric_variety(calabi_yau_hypersurface(t_i5_s)) == ambient_space(t_i5_s)
 end
 
 @testset "Error messages in global Tate models over generic base space" begin
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -3 -5 1], 3, [a1p])
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -3 -5 1], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, sec_a6])
   @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -3 -5 1], -1, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5])
-  @test_throws ArgumentError global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -3 -5 1], 7, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5])
 end
 
 @testset "Singular loci of global Tate models over generic base space" begin

@@ -4,6 +4,8 @@
 # successive order as determined by their version until finally the file has
 # been upgraded to the latest format.
 
+# Warning: The object is not saved to the new format, that is left to the user
+
 struct UpgradeScript
   version::VersionNumber # version to be upgraded to
   script::Function
@@ -70,18 +72,20 @@ const backref_sym = Symbol("#backref")
 
 # Finds the first version where an upgrade can be applied and then incrementally
 # upgrades to the current version
-function upgrade(dict::Dict{Symbol, Any}, dict_version::VersionNumber)
+function upgrade(format_version::VersionNumber, dict::Dict)
   upgraded_dict = dict
   for upgrade_script in upgrade_scripts
     script_version = version(upgrade_script)
-
-    if dict_version < script_version
+    if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
-      @info("upgrading serialized data....", maxlog=1)
+      @info("upgrading serialized data....",
+            maxlog=1)
 
-      s = UpgradeState()
-      upgraded_dict = upgrade_script(s, upgraded_dict)
+      upgrade_state = UpgradeState()
+      # upgrading large files needs a work around since the new load
+      # uses JSON3 which is read only 
+      upgraded_dict = upgrade_script(upgrade_state, upgraded_dict)
     end
   end
   upgraded_dict[:_ns] = get_oscar_serialization_version()

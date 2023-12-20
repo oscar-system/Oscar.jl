@@ -242,6 +242,17 @@ hermitian structure associated to $(L, f)$ via the trace equivalence.
 signatures(::ZZLatWithIsom)
 ```
 
+## Spinor norm
+
+Given an integer lattice with isometry $(L, f)$, one often would like to know
+the *spinor norm* of $f$ seen as an isometry of the real quadratic space $L\times
+\mathbb{R}$. Since convention might change depending on the author, we allow to
+do such computation with respect to the opposite form on $L$:
+
+```@docs
+spinor_norm(::ZZLatWithIsom)
+```
+
 ## Equality
 
 We choose as a convention that two pairs $(L, f)$ and $(L', f')$ of integer

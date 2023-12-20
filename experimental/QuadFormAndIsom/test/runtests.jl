@@ -57,6 +57,8 @@ end
   L = lattice(rescale(Vf, -2))
   @test is_even(L)
   @test is_negative_definite(L) == is_positive_definite(Vf)
+  @test spinor_norm(Vf) < 0
+  @test spinor_norm(Vf^2) > 0
 
   @test rank(biproduct(Vf, Vf)[1]) == 12
   @test order_of_isometry(direct_sum(Vf, Vf, Vf)[1]) == 3
@@ -113,6 +115,7 @@ end
   @test isone(ambient_isometry(L))
   @test isone(order_of_isometry(L))
   @test order(image_centralizer_in_Oq(L)[1]) == 2
+  @test spinor_norm(L) > 0
 
   for func in [rank, genus, basis_matrix, is_positive_definite,
                gram_matrix, det, scale, norm, is_integral, is_negative_definite,
@@ -357,4 +360,8 @@ end
 
   ok, reps = primitive_embeddings(L, C; check = false)
   @test length(reps) == 1
+end
+
+@testset "Equivariant primitive extensions" begin
+
 end

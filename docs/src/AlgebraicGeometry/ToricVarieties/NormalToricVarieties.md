@@ -29,9 +29,7 @@ affine_normal_toric_variety(v::NormalToricVariety)
 ### Normal Toric Varieties
 
 ```@docs
-normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false)
-normal_toric_variety(PF::PolyhedralFan)
-normal_toric_variety(P::Polyhedron)
+normal_toric_variety
 ```
 
 ### Famous Toric Vareties

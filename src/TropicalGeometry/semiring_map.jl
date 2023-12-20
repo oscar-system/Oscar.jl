@@ -127,7 +127,7 @@ julia> nu_2(1//4)
 """
 function tropical_semiring_map(K::QQField, p::Union{RingElem,Integer,Rational}, minOrMax::Union{typeof(min),typeof(max)}=min)
     p = ZZ(p)
-    @req isprime(ZZ(p)) "input p not prime"
+    @req is_prime(ZZ(p)) "input p not prime"
     @req p < 2^63-1 "input p may not exceed 2^63"
     return TropicalSemiringMap{typeof(K),typeof(p),typeof(minOrMax)}(K,p,tropical_semiring(minOrMax))
 end

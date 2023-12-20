@@ -6,6 +6,7 @@ export admissible_triples
 export ambient_isometry
 export discriminant_representation
 export enumerate_classes_of_lattices_with_isometry
+export equivariant_primitive_extensions
 export image_centralizer_in_Oq
 export integer_lattice_with_isometry
 export invariant_coinvariant_pair
@@ -20,6 +21,7 @@ export primitive_embeddings
 export primitive_extensions
 export quadratic_space_with_isometry
 export representatives_of_hermitian_type
+export spinor_norm
 export splitting_of_hermitian_prime_power
 export splitting_of_mixed_prime_power
 export splitting_of_pure_mixed_prime_power

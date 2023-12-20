@@ -168,3 +168,10 @@
   @test fh(x) == h(f(x)) 
   f = hom(Qix, Qi, x -> x, [i, 0])
 end
+
+@testset "coefficient maps" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = QQ[:t]
+  phi = hom(R, R, x->zero(L), [x, y])
+  @test_throws ErrorException compose(phi, phi)
+end

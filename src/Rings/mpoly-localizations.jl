@@ -1520,6 +1520,20 @@ true
 """ 
 is_unit(f::MPolyLocRingElem) = numerator(f) in inverted_set(parent(f))
 
+function is_zero_divisor(f::MPolyLocRingElem)
+  iszero(f) && return true
+  if is_constant(f)
+    c = first(AbstractAlgebra.coefficients(numerator(f)))
+    return is_zero_divisor(c)
+  end
+  return is_zero_divisor(numerator(f))
+end
+
+
+function is_constant(a::MPolyLocRingElem)
+  reduce_fraction(a)
+  return is_constant(numerator(a)) && is_constant(denominator(a))
+end
 
 ########################################################################
 # implementation of Oscar's general ring interface                     #
@@ -1528,11 +1542,8 @@ is_unit(f::MPolyLocRingElem) = numerator(f) in inverted_set(parent(f))
 one(W::MPolyLocRing) = W(one(base_ring(W)))
 zero(W::MPolyLocRing) = W(zero(base_ring(W)))
 
-elem_type(W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-elem_type(T::Type{MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-
-parent_type(f::MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-parent_type(T::Type{MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+elem_type(::Type{MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
+parent_type(::Type{MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}}) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} = MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
 
 function (W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType})(f::MPolyLocRingElem{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}; check::Bool=true) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType} 
   parent(f) === W && return f
