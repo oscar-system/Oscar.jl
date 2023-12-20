@@ -330,13 +330,13 @@ function _primitive_extensions_generic(
   qN = domain(GN)
 
   if !even && is_even(M)
-    qM = torsion_quadratic_module(cover(qM), relations(qM); modulus = QQ(1), modulus_qf = QQ(1))
+    qM = Hecke._as_finite_bilinear_module(qM)
     OqM = orthogonal_group(qM)
     GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check = false) for g in gens(GM)])
     fqM = hom(OqM(matrix(fqM); check = false))
   end
   if !even && is_even(N)
-    qN = torsion_quadratic_module(cover(qN), relations(qN); modulus = QQ(1), modulus_qf = QQ(1))
+    qN = Hecke._as_finite_bilinear_module(qN)
     OqN = orthogonal_group(qN)
     GN, _ = sub(OqN, elem_type(OqN)[OqN(matrix(g); check = false) for g in gens(GN)])
     fqN = hom(OqN(matrix(fqN); check = false))
@@ -450,10 +450,11 @@ function _primitive_extensions_generic(
 
         if ext_type[2] == :e
           C, _ = centralizer(OHN, OHN(fHN; check = false))
+          SN, _ = intersect(C, imN)
         else
           C = OHN
+          SN = imN
         end
-        SN, _ = intersect(C, imN)
 
         _stabHMphi = AutomorphismGroupElem{TorQuadModule}[OHN(compose(inv(phi), compose(hom(actM(g)), phi)); check = false) for g in gens(stabM)]
         stabHMphi, _ = sub(OHN, _stabHMphi)
@@ -1084,10 +1085,12 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::String = "su
   @req !iseven(G) || iseven(M) "Cannot embed an odd lattice into an even lattice"
   @req classification in String["none", "emb", "sub", "first"] "Wrong symbol for classification"
 
-  even = is_even(G) && is_even(M)
+  even = is_even(G)
   posL, _, negL = signature_tuple(G)
   posM, _, negM = signature_tuple(M)
-  @req (posL-posM >= 0 && negL-negM >= 0) "Incompatible signatures for the embeddings"
+  posN = posL - posM
+  negN = negL - negM
+  @req (posN >= 0 && negN >= 0) "Incompatible signatures for the embeddings"
 
   results = Tuple{ZZLat, ZZLat, ZZLat}[]
   if rank(M) == rank(G)
@@ -1121,34 +1124,35 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::String = "su
   # Then for each possible form, we check which one defines a genus with the
   # given signature pair and then we do our extension routine.
   if is_unimodular(G)
-    qMs = TorQuadModule[]
+    q = discriminant_group(G)
+    qM = rescale(discriminant_group(M), -1)
+    GKs = ZZGenus[]
     if even
-      push!(qMs, rescale(discriminant_group(M), -1))
-    elseif is_even(M)
-      qM_even = rescale(discriminant_group(M), -1)
-      qM_odd = rescale(torsion_quadratic_module(dual(M), M; modulus = QQ(1), modulus_qf = QQ(1)), -1)
-      push!(qMs, qM_even)
-      push!(qMs, qM_odd)
+      _G = try genus(qM, (posN, negN))
+           catch
+           nothing
+      end
+      !isnothing(_G) && push!(GKs, _G)
     else
-      mm = gram_matrix_quadratic(discriminant_group(M))
-      qM_even_1 = torsion_quadratic_module(-mm)
-      qM_even_2 = torsion_quadratic_module(-(mm + one(mm)))
-      qM_odd = rescale(discriminant_group(M), -1)
-      push!(qMs, qM_even_1)
-      push!(qMs, qM_even_2)
-      push!(qMs, qM_odd)
+      _Ge = try genus(qM, (posN, negN); parity = 2)
+            catch
+            nothing
+      end
+      !isnothing(_Ge) && push!(GKs, _Ge)
+      _Go = try genus(qM, (posN, negN); parity = 1)
+            catch
+            nothing
+      end
+      !isnothing(_Go) && push!(GKs, _Go)
     end
-    filter!(qq -> is_genus(qq, (posL-posM, negL-negM)), qMs)
-    
-    is_empty(qMs) && return false, results
-    GKs = ZZGenus[genus(qq, (posL-posM, negL-negM)) for qq in qMs]
+    is_empty(GKs) && return false, results
     unique!(GKs)
     orths = reduce(vcat, Vector{ZZLat}[representatives(GK) for GK in GKs])
     
     # Now for each K in GK, we compute primitive extensions of M and K into a
     # unimodular lattice in G
     for K in orths
-      ok, pe = primitive_extensions(M, K; x = abs(det(K)), even, classification = cs)
+      ok, pe = primitive_extensions(M, K; q, even, classification = cs)
       !ok && continue
       classification == "none" && return ok, results
       if !isempty(pe)
