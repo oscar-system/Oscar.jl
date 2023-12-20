@@ -822,11 +822,11 @@ function Base.:(/)(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   return c
 end
 
-function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem)
+function divexact(a::Oscar.IntegerUnion, b::MPolyQuoLocRingElem; check::Bool=true)
   return a/b
 end
 
-function divexact(a::T, b::T) where {T<:MPolyQuoLocRingElem}
+function divexact(a::T, b::T; check::Bool=true) where {T<:MPolyQuoLocRingElem}
   return a/b
 end
 
