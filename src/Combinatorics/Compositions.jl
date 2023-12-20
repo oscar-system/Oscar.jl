@@ -1,7 +1,7 @@
 
 function weak_compositions(n, k)
     if k == 0
-        return n == 0 ? [Int[]] : []
+        return n == 0 ? [Int[]] : Vector{Int}[]
     end
     compos = Vector{Int}[]
     for i in 0:n
@@ -14,7 +14,7 @@ end
 
 function compositions(n, k)
     if k == 0
-        return n == 0 ? [Int[]] : []
+        return n == 0 ? [Int[]] : Vector{Int}[]
     end
     if n < k
         return []
