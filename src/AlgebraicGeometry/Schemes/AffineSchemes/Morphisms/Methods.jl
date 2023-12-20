@@ -224,21 +224,19 @@ function _restrict_codomain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=t
   end
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
   interm = _restrict_domain(f, D)
   return _restrict_codomain(interm, Z)
 end
-
-# TODO: Take care of maps with base change.
 
 function Base.:(==)(f::AbsSpecMor, g::AbsSpecMor)
   domain(f) === domain(g) || return false

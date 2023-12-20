@@ -309,6 +309,9 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       V_VV, VV_V = glueing_domains(VVV)
       inc_U = inclusion_morphism(U_UU)
       inc_UU = inclusion_morphism(UU_U)
+      inc_V = inclusion_morphism(V_VV)
+      inc_VV = inclusion_morphism(VV_V)
+
       
       # assemble the new glueing domains:
       h_U = complement_equation(U_UU)
@@ -334,6 +337,9 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       simple_to_double_V, double_to_simple_V = glueing_morphisms(VVV)
 
       # construct the glueing morphisms
+      # Since the fiber products have not been constructed in the appropriate way, 
+      # we can not use the generic method.
+      #=
       simple_to_double = induced_map_to_fiber_product(compose(f_res_U, simple_to_double_U), compose(g_res_V, simple_to_double_V), 
                                                       restrict(f[UU], UU_U, codomain(f[UU]), check=true), 
                                                       restrict(g[VV], VV_V, codomain(g[VV]), check=true),
@@ -344,6 +350,26 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
                                                       restrict(g[V], V_VV, codomain(g[V]), check=true),
                                                       fiber_product=(U_UUxV_VV, f_res_U, g_res_V)
                                                      )
+      =#
+      pre_glue_double_to_simple = induced_map_to_fiber_product(
+           compose(f_res_UU, compose(double_to_simple_U, inc_U)),
+           compose(g_res_VV, compose(double_to_simple_V, inc_V)),
+           f[U], g[V],
+           fiber_product=(UxV, to_U, to_V)
+          )
+      double_to_simple = restrict(pre_glue_double_to_simple, domain(pre_glue_double_to_simple), 
+                                  U_UUxV_VV
+                                 )
+      pre_glue_simple_to_double = induced_map_to_fiber_product(
+           compose(f_res_U, compose(simple_to_double_U, inc_UU)),
+           compose(g_res_V, compose(simple_to_double_V, inc_VV)),
+           f[UU], g[VV],
+           fiber_product=(UUxVV, to_UU, to_VV)
+          )
+      simple_to_double = restrict(pre_glue_simple_to_double, domain(pre_glue_simple_to_double), 
+                                  UU_UxVV_V
+                                 )
+
       new_glueing = Glueing(UxV, UUxVV, simple_to_double, double_to_simple)
       add_glueing!(result, new_glueing)
     end
