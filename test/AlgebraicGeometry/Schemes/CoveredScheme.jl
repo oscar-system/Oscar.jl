@@ -265,5 +265,17 @@ end
   g = covered_scheme_morphism(phi)
   g_cov = covering_morphism(g)
   cc, p1, p2 = fiber_product(g_cov, f)
+
+  orig = default_covering(X)
+  ref = domain(g_cov)
+
+  inc_cc = Oscar.refinement_morphism(ref, orig)
+  id_orig = identity_map(orig)
+
+  fp_cc_orig, p1, p2 = fiber_product(inc_cc, id_orig)
+
+  fp_orig_cc, p1, p2 = fiber_product(id_orig, inc_cc)
+
+  fp_cc_cc = fiber_product(inc_cc, inc_cc)
 end
 
