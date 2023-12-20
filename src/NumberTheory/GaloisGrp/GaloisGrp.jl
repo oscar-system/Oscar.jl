@@ -2191,18 +2191,18 @@ end
 # rel. ext
 # ...
 function extension_field(f::ZZPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached, check = check)
+  return number_field(f, n; cached = cached, check = check)
 end
 function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached, check = check)
+  return number_field(f, n; cached = cached, check = check)
 end
 
 function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
-  return function_field(f, n, cached = cached)
+  return function_field(f, n; cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached)
+  return number_field(f, n; cached = cached)
 end
 
 #Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
@@ -2785,6 +2785,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
 
     con = (symmetric_group(length(po))(po))
     G = G^con
+    CC.G = G #needed as a fallback if no descent is used
     F = GroupFilter()
   #=
     function fi(x)
@@ -2794,17 +2795,64 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     push!(F, fi)
   =#  
 
+    push!(F, x->!is_transitive(x), "subdirect case: group is transitive")
     push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
     return CC, G, F, G(si), con
   end
   for X = cl
     @vprint :GaloisGroup 1 "dealing with factors $X ...\n"
     if length(X) == 1
-      @show X
       push!(res, (C[X][1], one(C[X][1].G)))
     else
-      CC, G, F, fr, con = setup(C[X])
-      push!(res, (descent(CC, G, F, fr, grp_id = x->(:-,:-))[2], con))
+      function red(A::GaloisCtx, B::GaloisCtx)
+        CC, G, F, fr, con = setup([A, B])
+        return descent(CC, G, F, fr, grp_id = x->(:-, :-))[2], con
+      end
+      local con
+      #=
+      G = C2 x C2 x C2 x C2 e.g. sqrt(2) sqrt(3) sqrt(5) sqrt(30)
+           (a,a)     (a,a)     with a: group combinations that have to be
+          a         a                  testet
+          a              a     with b: groups that are not sub-direct enough
+              a     a
+              a          a
+          a   a     a
+          a   a          a
+          a   a     a    a
+          a         a    a
+              a     a    a
+
+          b
+             b
+                    b
+                         b
+          b  b
+                    b    b
+      the idea is tp combine pairs in the hope that some descents can be 
+      found on smaller groups (smaller support/ degree)
+      We'll have to test all possible subdirect subgroups, but this tries 
+      smaller cases first
+      =#
+      @vprint :GaloisGroup 2 "entering combination tree..."
+      while length(X) > 1
+        local p
+        d = map(x->degree(x.f), C[X])
+        p = sortperm(d)
+        @vprint :GaloisGroup 2 "combining $(X[p[1:2]]) of degree $(degree(C[X[p[1]]].f)) and $(degree(C[X[p[2]]].f))\n"
+        Hecke.pushindent()
+        D, con = red(C[X[p[1]]], C[X[p[2]]])
+        Hecke.popindent()
+        #delete the larger index as to not upset the smaller one
+        #then replace the Ctx at the smaller index
+        if p[1] < p[2]
+          deleteat!(X, p[2])
+          C[X[p[1]]] = D
+        else
+          deleteat!(X, p[1])
+          C[X[p[2]]] = D
+        end
+      end
+      push!(res, (C[X[1]], con))
     end
   end
 
