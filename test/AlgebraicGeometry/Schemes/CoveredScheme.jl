@@ -279,3 +279,30 @@ end
   fp_cc_cc = fiber_product(inc_cc, inc_cc)
 end
 
+@testset "composition and fiber products of morphisms of covered schemes" begin
+  IP1 = projective_space(QQ, [:x, :y])
+  S = homogeneous_coordinate_ring(IP1)
+  (x, y) = gens(S)
+
+  X = covered_scheme(IP1)
+  id_X = identity_map(X)
+  fiber_product(id_X, id_X)
+
+  Phi = hom(S, S, [x+y, x-y])
+  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+  f = covered_scheme_morphism(phi)
+
+  fiber_product(f, id_X)
+
+  compose(f, id_X)
+  compose(id_X, f)
+  compose(f, f)
+  f_cov = covering_morphism(f)
+  ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
+  _, _, f_cov_ref = fiber_product(f_cov, ref)
+
+  ff = CoveredSchemeMorphism(X, X, f_cov_ref)
+  compose(id_X, ff)
+  compose(ff, id_X)
+  compose(ff, ff)
+end

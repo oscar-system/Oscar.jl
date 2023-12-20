@@ -36,23 +36,29 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   cf = covering_morphism(f)
   cg = covering_morphism(g)
   if codomain(cf) === domain(cg) 
-    mor_dict = IdDict{AbsSpec, AbsSpecMor}() # TODO: Keep the type of the morphisms?
-    for U in basic_patches(domain(cf))
-      mor_dict[U] = compose(cf[U], cg[codomain(cf[U])])
-    end
-    cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc)
+    cfg = compose(cf, cg)
+    return CoveredSchemeMorphism(X, Z, cfg)
+  elseif is_refinement(codomain(cf), domain(cg))[1]
+    ref = refinement_morphism(codomain(cf), domain(cg))
+    cf_ref_cg = compose(cf, compose(ref, cg))
+    return CoveredSchemeMorphism(X, Z, cf_ref_cg, check=true)
+  elseif is_refinement(domain(cg), codomain(cf))[1]
+    ref = refinement_morphism(domain(cg), codomain(cf))
+    A = domain(cf)
+    B = codomain(cf)
+    C = domain(ref)
+    AxC, to_A, to_C = fiber_product(cf, ref)
+    return CoveredSchemeMorphism(X, Z, compose(to_C, cg), check=true)
   else
-    haskey(refinements(Y), (codomain(cf), domain(cg))) || error("composition of this complicated case is not yet implemented")
-    ref_mor = Y[codomain(cf), domain(cg)] # the refinement `CoveringMorphism`
-    mor_dict = IdDict{AbsSpec, AbsSpecMor}() # TODO: Keep the type of the morphisms?
-    for U in basic_patches(domain(cf))
-      V = codomain(cf[U])
-      W = codomain(ref_mor[V])
-      mor_dict[U] = compose(compose(cf[U], ref_mor[V]), cg[W])
-    end
-    cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc)
+    A = domain(cf)
+    B = codomain(cf)
+    C = domain(cg)
+    D = codomain(cg)
+    ref_B = refinement_morphism(B, default_covering(Y))
+    ref_C = refinement_morphism(C, default_covering(Y))
+    BxC, to_B, to_C = fiber_product(ref_B, ref_C)
+    AxBxC, to_A, to_BxC = fiber_product(fc, to_B)
+    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, gc)), check=true)
   end
 end
 
@@ -156,6 +162,58 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
     length(domain(g)) != 1 && print(io, "s")
     println(io, Indent())
     show(IOContext(io, :show_semi_compact => true), covering_morphism(f))
+  end
+end
+
+########################################################################
+# fiber products
+########################################################################
+
+function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+  X = domain(f)
+  Y = domain(g)
+  Z = codomain(f)
+  @assert Z === codomain(g)
+  f_cov = covering_morphism(f)
+  g_cov = covering_morphism(g)
+  A = domain(f_cov)
+  B = domain(g_cov)
+  CA = codomain(f_cov)
+  CB = codomain(g_cov)
+  if CA === CB
+    AxB, to_A, to_B = fiber_product(f_cov, g_cov)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  elseif is_refinement(CA, CB)
+    inc = refinement_morphism(CA, CB)
+    f_cov_inc = compose(f_cov, inc)
+    AxB, to_A, to_B = fiber_product(f_cov_inc, g_cov)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  elseif is_refinement(CB, CA)
+    inc = refinement_morphism(CB, CA)
+    g_cov_inc = compose(g_cov, inc)
+    AxB, to_A, to_B = fiber_product(f_cov, g_cov_inc)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  else
+    C = default_covering(Z)
+    inc_A = refinement_morphism(CA, C)
+    inc_B = refinement_morphism(CB, C)
+    CAB, to_CA, to_CB = fiber_product(inc_A, inc_B)
+    AA, AA_to_A, AA_to_CAB = fiber_product(f_cov, to_CA)
+    BB, BB_to_B, BB_to_CAB = fiber_product(g_cov, to_CB)
+    AAxBB, to_AA, to_BB = fiber_product(AA_to_CAB, BB_to_CAB)
+    XxY = CoveredScheme(AAxBB)
+    to_X = CoveredSchemeMorphism(XxY, X, compose(to_AA, AA_to_A))
+    to_Y = CoveredSchemeMorphism(XxY, Y, compose(to_BB, BB_to_B))
+    return XxY, to_X, to_Y
   end
 end
 
