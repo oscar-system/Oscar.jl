@@ -153,11 +153,11 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   io = pretty(io)
-  println(io, _module_type_to_string(get_attribute(V, :type, :unknown), V))
+  println(io, _module_type_to_string(V))
   println(io, Indent(), "of dimension $(dim(V))")
   if is_dual(V)[1] ||
-    is_direct_sum(V) ||
-    is_tensor_product(V) ||
+    is_direct_sum(V)[1] ||
+    is_tensor_product(V)[1] ||
     is_exterior_power(V)[1] ||
     is_symmetric_power(V)[1] ||
     is_tensor_power(V)[1]
@@ -169,7 +169,6 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
 end
 
 function _show_inner(io::IO, V::LieAlgebraModule)
-  type = get_attribute(V, :type, :unknown)
   if is_standard_module(V)
     println(io, "standard module")
   elseif ((fl, W) = is_dual(V); fl)
@@ -177,17 +176,17 @@ function _show_inner(io::IO, V::LieAlgebraModule)
     print(io, Indent())
     _show_inner(io, W)
     print(io, Dedent())
-  elseif type == :direct_sum
+  elseif ((fl, Ws) = is_direct_sum(V); fl)
     println(io, "direct sum with direct summands")
     print(io, Indent())
-    for W in base_modules(V)
+    for W in Ws
       _show_inner(io, W)
     end
     print(io, Dedent())
-  elseif type == :tensor_product
+  elseif ((fl, Ws) = is_tensor_product(V); fl)
     println(io, "tensor product with tensor factors")
     print(io, Indent())
-    for W in base_modules(V)
+    for W in Ws
       _show_inner(io, W)
     end
     print(io, Dedent())
@@ -213,27 +212,22 @@ end
 
 function Base.show(io::IO, V::LieAlgebraModule)
   if get(io, :supercompact, false)
-    print(io, _module_type_to_string(get_attribute(V, :type, :unknown), V))
+    print(io, _module_type_to_string(V))
   else
     io = pretty(io)
-    print(
-      io,
-      _module_type_to_string(get_attribute(V, :type, :unknown), V),
-      " of dimension $(dim(V)) over ",
-      Lowercase(),
-    )
+    print(io, _module_type_to_string(V), " of dimension $(dim(V)) over ", Lowercase())
     print(IOContext(io, :supercompact => true), base_lie_algebra(V))
   end
 end
 
-function _module_type_to_string(type::Symbol, V::LieAlgebraModule) # TODO: remove first argument
+function _module_type_to_string(V::LieAlgebraModule)
   if is_standard_module(V)
     return "Standard module"
   elseif is_dual(V)[1]
     return "Dual module"
-  elseif type == :direct_sum
+  elseif is_direct_sum(V)[1]
     return "Direct sum module"
-  elseif type == :tensor_product
+  elseif is_tensor_product(V)[1]
     return "Tensor product module"
   elseif is_exterior_power(V)[1]
     return "Exterior power module"
@@ -352,11 +346,11 @@ where _correct_ depends on the case above.
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
 ) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
-  if is_direct_sum(V)
-    @req length(a) == length(base_modules(V)) "Length of vector does not match."
-    @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
+  if ((fl, Vs) = is_direct_sum(V); fl)
+    @req length(a) == length(Vs) "Length of vector does not match."
+    @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
     return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
-  elseif is_tensor_product(V)
+  elseif is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::LieAlgebraModuleElem{C}
   elseif is_exterior_power(V)[1] || is_symmetric_power(V)[1] || is_tensor_power(V)[1]
@@ -536,21 +530,33 @@ function is_dual(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_direct_sum(V::LieAlgebraModule{C}) -> Bool
+    is_direct_sum(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
 
 Check whether `V` has been constructed as a direct sum of modules.
+If it has, return `true` and the summands.
+If not, return `false` as the first return value, and an empty vector for the second.
 """
 function is_direct_sum(V::LieAlgebraModule)
-  return get_attribute(V, :type, :fallback)::Symbol == :direct_sum
+  if has_attribute(V, :is_direct_sum)
+    summands = get_attribute(V, :is_direct_sum)::Vector{typeof(V)}
+    return (true, summands)
+  end
+  return (false, typeof(V)[])
 end
 
 @doc raw"""
-    is_tensor_product(V::LieAlgebraModule{C}) -> Bool
+    is_tensor_product(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
 
 Check whether `V` has been constructed as a tensor product of modules.
+If it has, return `true` and the tensor factors.
+If not, return `false` as the first return value, and an empty vector for the second.
 """
 function is_tensor_product(V::LieAlgebraModule)
-  return get_attribute(V, :type, :fallback)::Symbol == :tensor_product
+  if has_attribute(V, :is_tensor_product)
+    factors = get_attribute(V, :is_tensor_product)::Vector{typeof(V)}
+    return (true, factors)
+  end
+  return (false, typeof(V)[])
 end
 
 @doc raw"""
@@ -596,22 +602,6 @@ function is_tensor_power(V::LieAlgebraModule)
     return (true, W, k)
   end
   return (false, V, 0)
-end
-
-@doc raw"""
-    base_modules(V::LieAlgebraModule{C}) -> Vector{LieAlgebraModule{C}}
-
-Returns the summands or tensor factors of `V`,
-if `V` has been constructed as a direct sum or tensor product of modules.
-"""
-function base_modules(V::LieAlgebraModule{C}) where {C<:FieldElem} # TODO: remove
-  if is_tensor_product(V)
-    return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
-  elseif is_direct_sum(V)
-    return get_attribute(V, :direct_sum)::Vector{LieAlgebraModule{C}}
-  else
-    error("Not a direct sum or tensor product module.")
-  end
 end
 
 ###############################################################################
@@ -847,7 +837,7 @@ function direct_sum(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C
   direct_sum_V = LieAlgebraModule{C}(
     L, dim_direct_sum_V, transformation_matrices, s; check=false
   )
-  set_attribute!(direct_sum_V, :type => :direct_sum, :direct_sum => Vs)
+  set_attribute!(direct_sum_V, :is_direct_sum => Vs)
   return direct_sum_V
 end
 
@@ -949,8 +939,7 @@ function tensor_product(
 
   set_attribute!(
     tensor_product_V,
-    :type => :tensor_product,
-    :tensor_product => Vs,
+    :is_tensor_product => Vs,
     :tensor_pure_function => pure,
     :tensor_pure_preimage_function => inv_pure,
   )

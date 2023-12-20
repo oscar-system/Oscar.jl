@@ -360,8 +360,9 @@ Return the canonical injections from all components into $V$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_injections(V::LieAlgebraModule)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  return [canonical_injection(V, i) for i in 1:length(base_modules(V))]
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  return [canonical_injection(V, i) for i in 1:length(Vs)]
 end
 
 @doc raw"""
@@ -371,9 +372,9 @@ Return the canonical injection $V_i \to V$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_injection(V::LieAlgebraModule, i::Int)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  Vs = base_modules(V)
-  @req 0 < i <= length(Vs) "Index out of bound"
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  @req 1 <= i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
   emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])]; check=false)
   return emb
@@ -386,8 +387,9 @@ Return the canonical projections from $V$ to all components
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_projections(V::LieAlgebraModule)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  return [canonical_projection(V, i) for i in 1:length(base_modules(V))]
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  return [canonical_projection(V, i) for i in 1:length(Vs)]
 end
 
 @doc raw"""
@@ -397,9 +399,9 @@ Return the canonical projection $V \to V_i$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_projection(V::LieAlgebraModule, i::Int)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  Vs = base_modules(V)
-  @req 0 < i <= length(Vs) "Index out of bound"
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  @req 1 <= i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
   proj = hom(
     V,
@@ -428,10 +430,10 @@ If `hs` is a vector, then it is interpreted as a diagonal matrix.
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
 ) where {C<:FieldElem}
-  @req is_direct_sum(V) "First module must be a direct sum"
-  @req is_direct_sum(W) "Second module must be a direct sum"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+  fl, Vs = is_direct_sum(V)
+  @req fl "First module must be a direct sum"
+  fl, Ws = is_direct_sum(W)
+  @req fl "Second module must be a direct sum"
   @req length(Vs) == size(hs, 1) "Length mismatch"
   @req length(Ws) == size(hs, 2) "Length mismatch"
   @req all(
@@ -454,10 +456,10 @@ end
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
 ) where {C<:FieldElem}
-  @req is_direct_sum(V) "First module must be a direct sum"
-  @req is_direct_sum(W) "Second module must be a direct sum"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+  fl, Vs = is_direct_sum(V)
+  @req fl "First module must be a direct sum"
+  fl, Ws = is_direct_sum(W)
+  @req fl "Second module must be a direct sum"
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
@@ -477,15 +479,15 @@ This works for $r$th tensor powers as well.
 function hom_tensor(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
 ) where {C<:FieldElem} # TODO: cleanup after refactoring tensor_product
-  if is_tensor_product(V)
-    Vs = base_modules(V)
+  if ((fl, Vs) = is_tensor_product(V); fl)
+    # nothing to do
   elseif ((fl, Vb, k) = is_tensor_power(V); fl)
     Vs = [Vb for _ in 1:k]
   else
     throw(ArgumentError("First module must be a tensor product or power"))
   end
-  if is_tensor_product(W)
-    Ws = base_modules(W)
+  if ((fl, Ws) = is_tensor_product(W); fl)
+    # nothing to do
   elseif ((fl, Wb, k) = is_tensor_power(W); fl)
     Ws = [Wb for _ in 1:k]
   else

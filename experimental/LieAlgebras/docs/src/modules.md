@@ -74,5 +74,4 @@ is_tensor_product(::LieAlgebraModule)
 is_exterior_power(::LieAlgebraModule)
 is_symmetric_power(::LieAlgebraModule)
 is_tensor_power(::LieAlgebraModule)
-base_modules(::LieAlgebraModule{C}) where {C<:FieldElem}
 ```

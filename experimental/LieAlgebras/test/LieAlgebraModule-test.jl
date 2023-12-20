@@ -133,8 +133,8 @@
   module_type_bools(V) = (
     is_standard_module(V),
     is_dual(V)[1],
-    is_direct_sum(V),
-    is_tensor_product(V),
+    is_direct_sum(V)[1],
+    is_tensor_product(V)[1],
     is_exterior_power(V)[1],
     is_symmetric_power(V)[1],
     is_tensor_power(V)[1],
@@ -193,7 +193,8 @@
         @test_broken ds_V === direct_sum([V for _ in 1:k]...)
         @test_broken ds_V !== direct_sum([V for _ in 1:k]...; cached=false)
         @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
-        @test base_modules(ds_V) == [V for _ in 1:k]
+        @test is_direct_sum(ds_V) == (true, [V for _ in 1:k])
+        @test all(x -> x[1] === x[2], zip(is_direct_sum(ds_V)[2], [V for _ in 1:k]))
         @test dim(ds_V) == k * dim(V)
         @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -212,7 +213,7 @@
       ds_V = direct_sum(V1, V2)
       @test type_V1 == module_type_bools(V1) # construction of ds_V should not change type of V1
       @test type_V2 == module_type_bools(V2) # construction of ds_V should not change type of V2
-      @test base_modules(ds_V) == [V1, V2]
+      @test is_direct_sum(ds_V) == (true, [V1, V2])
       @test dim(ds_V) == dim(V1) + dim(V2)
       @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -234,7 +235,8 @@
         @test_broken tp_V === tensor_product([V for _ in 1:k]...)
         @test_broken tp_V !== tensor_product([V for _ in 1:k]...; cached=false)
         @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
-        @test base_modules(tp_V) == [V for _ in 1:k]
+        @test is_tensor_product(tp_V) == (true, [V for _ in 1:k])
+        @test all(x -> x[1] === x[2], zip(is_tensor_product(tp_V)[2], [V for _ in 1:k]))
         @test dim(tp_V) == dim(V)^k
         @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -255,7 +257,7 @@
       tp_V = tensor_product(V1, V2)
       @test type_V1 == module_type_bools(V1) # construction of tp_V should not change type of V1
       @test type_V2 == module_type_bools(V2) # construction of tp_V should not change type of V2
-      @test base_modules(tp_V) == [V1, V2]
+      @test is_tensor_product(tp_V) == (true, [V1, V2])
       @test dim(tp_V) == dim(V1) * dim(V2)
       @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
