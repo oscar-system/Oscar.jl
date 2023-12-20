@@ -64,8 +64,8 @@ end
   @test f^2 == f*f
   @test f^2 == f^ZZRingElem(2)
   @test isone(divexact(f,f))
-  @test isunit(one(OU))
-  @test !isunit(OU(x))
+  @test is_unit(one(OU))
+  @test !is_unit(OU(x))
   g = OU(2)
   @test isone(g*inv(g))
   @test isone(OU(1))
@@ -423,9 +423,9 @@ end
   P, (u,v) = W["u", "v"]
   PQ, _ = quo(P, ideal(P, [u]))
 
-  @test evaluate(v, gens(PQ)) == v
+  @test parent(evaluate(v, gens(PQ))) === PQ
 
   PP, (uu, vv) = P["uu", "vv"]
-  @test one(W) * uu == uu
+  @test parent(one(W) * uu) === PP
 end
 

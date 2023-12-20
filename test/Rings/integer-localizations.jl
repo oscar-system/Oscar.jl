@@ -4,7 +4,7 @@
 
 using Oscar
 
-import Oscar: base_ring, inverted_set, ambient_ring, Localization, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar: base_ring, inverted_set, ambient_ring, localization, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
@@ -142,17 +142,17 @@ base_ring(W::FmpzLocalizedRing) = ZZ::ZZRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function
-function Localization(S::FmpzComplementOfPrimeIdeal) 
+function localization(S::FmpzComplementOfPrimeIdeal) 
   L = FmpzLocalizedRing(S)
   return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
-function Localization(S::FmpzComplementOfZeroIdeal)
+function localization(S::FmpzComplementOfZeroIdeal)
   L = FmpzLocalizedRing(S)
   return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
 
-function Localization(S::FmpzPowersOfElement)
+function localization(S::FmpzPowersOfElement)
   L = FmpzLocalizedRing(S)
   return L, MapFromFunc(base_ring(L), L, x->L(x))
 end
@@ -241,7 +241,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(33 in S)
   @test 5*5*7 in S
   @test ambient_ring(S) == ZZ
-  W, _ = Localization(S)
+  W, _ = localization(S)
   @test base_ring(W) == ambient_ring(S)
   @test inverted_set(W) == S
   a = W(3)
@@ -258,7 +258,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
   @test ambient_ring(U) == ZZ
-  W, _ = Localization(U)
+  W, _ = localization(U)
   @test base_ring(W) == ambient_ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
@@ -273,7 +273,7 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 234890 in O
   @test !(0 in O)
   @test ambient_ring(O) == ZZ
-  W, _ = Localization(O)
+  W, _ = localization(O)
   @test base_ring(W) == ambient_ring(O)
   @test inverted_set(W) == O
   a = W(4, 17)

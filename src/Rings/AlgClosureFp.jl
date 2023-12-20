@@ -42,9 +42,9 @@ struct AlgClosureElem{T} <: FieldElem
 end
 
 elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
-elem_type(::AlgClosure{T}) where T = AlgClosureElem{T}
-parent_type(::AlgClosureElem{T}) where T = AlgClosure{T}
 parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
+
+Oscar.canonical_unit(a::AlgClosureElem) = is_zero(a) ? one(a) : a
 
 function show(io::IO, a::AlgClosureElem)
   print(io, data(a))
@@ -326,6 +326,7 @@ function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S})
   mod(degree(F), degree(elm)) != 0 && return false, zero(F)
   return true, preimage(mp, elm)
 end
+
 
 end # AlgClosureFp
 

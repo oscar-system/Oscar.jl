@@ -348,7 +348,7 @@ function Hecke.subfields(FF::Generic.FunctionField{QQFieldElem})
       continue
     end
     ps, emb = fl
-    push!(res, (FunctionField(ps, "a", cached = false)[1], emb))
+    push!(res, (function_field(ps, "a", cached = false)[1], emb))
   end
   return res
 end 

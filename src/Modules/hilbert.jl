@@ -61,9 +61,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> Rg, (x, y, z) = grade(R, [4,3,2]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -165,7 +163,7 @@ julia> den
 function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
-    parent, _ = LaurentPolynomialRing(ZZ, :t)
+    parent, _ = laurent_polynomial_ring(ZZ, :t)
   end
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
@@ -174,7 +172,7 @@ end
 function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
-    parent, _ = LaurentPolynomialRing(ZZ, :t)
+    parent, _ = laurent_polynomial_ring(ZZ, :t)
   end
   return hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
 end

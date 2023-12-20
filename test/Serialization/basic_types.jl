@@ -1,7 +1,7 @@
 @testset "basic_types" begin
-  
+
   mktempdir() do path
-    @testset "Testing (de)serialization of $(T)" for T in 
+    @testset "Testing (de)serialization of $(T)" for T in
       (
         UInt, UInt8, UInt16, UInt32, UInt64, UInt128,
         Int, Int8, Int16, Int32, Int64, Int128,
@@ -14,14 +14,14 @@
         Nemo.fpField(UInt(7)),
         Nemo.FpField(ZZRingElem(7)),
         #PadicField(7, 30),
-        #TropicalSemiring()
+        #tropical_semiring()
       )
       original = T(1)
       test_save_load_roundtrip(path, original) do loaded
         @test loaded == original
       end
     end
-    
+
     @testset "String" begin
       original = "original"
       test_save_load_roundtrip(path, original) do loaded

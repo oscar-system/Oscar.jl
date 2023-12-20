@@ -10,20 +10,6 @@
 
 #TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
-#allows
-# polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
-# -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
-
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
-  w = (v1, v...)
-  str = _make_strings(w)
-  strings = vcat(str...)
-  Rx, c = polynomial_ring(R, strings, cached = cached, ordering = ordering)
-  # Now we need to collect the variables
-  # We do it recursively to make it type stable
-  Rx, _collect_variables(c, w)...
-end
-
 # To make a list of variables safe for Singular to use
 # Allowable schemes should be:
 # (:x), (:x, :y), (:x, :y, :z)
@@ -233,9 +219,7 @@ mutable struct IdealGens{S}
 
   function IdealGens(Ox::NCRing, O::Vector{T}; keep_ordering::Bool = true) where {T <: NCRingElem}
     r = new{T}()
-    if isdefined(r, :isGB) # why can this even happen?
-      r.isGB = false
-    end
+    r.isGB = false
     r.gens = BiPolyArray(Ox, O)
     r.keep_ordering = keep_ordering
     return r
@@ -503,16 +487,6 @@ end
 end
 
 
-function (S::Singular.Rationals)(a::QQFieldElem)
-  b = Base.Rational{BigInt}(a)
-  return S(b)
-end
-
-(F::Singular.N_ZpField)(a::Nemo.fpFieldElem) = F(lift(a))
-(F::Singular.N_ZpField)(a::Nemo.zzModRingElem) = F(lift(a))
-(F::Nemo.fpField)(a::Singular.n_Zp) = F(Int(a))
-(F::Nemo.zzModRing)(a::Singular.n_Zp) = F(Int(a))
-
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
 singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
 singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
@@ -680,7 +654,7 @@ Fields:
     r.gens = B
     r.dim = -1
     r.gb = Dict()
-    if isdefined(B, :isGB) && B.isGB
+    if B.isGB
       r.gb[B.ord] = B
     end
     return r
@@ -707,6 +681,14 @@ end
 
 function singular_generators(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
   return singular_generators(generating_system(I), monorder)
+end
+
+function singular_polynomial_ring(I::MPolyIdeal, monorder::MonomialOrdering=default_ordering(base_ring(I)))
+  return (singular_generators(I, monorder)).base_ring
+end
+
+function singular_polynomial_ring(G::IdealGens, monorder::MonomialOrdering=G.ord)
+  return (singular_generators(G, monorder)).base_ring
 end
 
 function singular_assure(I::BiPolyArray)
@@ -966,9 +948,7 @@ Tries to write the entries of `b` as linear combinations of `a`.
 function coordinates(a::Vector{<:MPolyRingElem}, b::Vector{<:MPolyRingElem})
   ia = ideal(a)
   ib = ideal(b)
-  singular_assure(ia)
-  singular_assure(ib)
-  c = _lift(ia.gens.S, ib.gens.S)
+  c = _lift(singular_generators(ia), singular_generators(ib))
   F = free_module(parent(a[1]), length(a))
   return [F(c[x]) for x = 1:Singular.ngens(c)]
 end
@@ -1288,3 +1268,23 @@ end
 
 # assure compatibility with generic code for MPolyQuos:
 lift(f::MPolyRingElem) = f
+
+### Hessian matrix
+function hessian_matrix(f::MPolyRingElem)
+  R = parent(f)
+  n = nvars(R)
+  df = jacobi_matrix(f)
+  result = zero_matrix(R, n, n)
+  for i in 1:n
+    for j in i:n
+      result[i, j] = result[j, i] = derivative(df[i], j)
+    end
+  end
+  return result
+end
+
+hessian(f::MPolyRingElem) = det(hessian_matrix(f))
+
+function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
+  set_attribute!(S, :default_ordering, ord)
+end

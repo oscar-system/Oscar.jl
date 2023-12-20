@@ -15,7 +15,7 @@ abstract type ProjectiveCurve end
 Given a homogeneous ideal `I` of Krull dimension 2, return the projective curve defined by `I`.
 
 # Examples
-```jldoctest
+```julia
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
@@ -77,7 +77,7 @@ end
 Return `true` if the point `P` is on the curve `C`, and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
@@ -92,8 +92,7 @@ Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
 
 julia> PP = proj_space(QQ, 3)
-(Projective space of dim 3 over Rational field
-, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2], x[3]])
+(Projective space of dim 3 over Rational field, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[0], x[1], x[2], x[3]])
 
 julia> P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
 (0 : 2 : 0 : 5)
@@ -133,7 +132,7 @@ end
 Return `true` if `C` is irreducible, and `false` otherwise.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
@@ -163,7 +162,7 @@ end
 Return the projective curve defined by the radical of the defining ideal of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 
@@ -193,7 +192,7 @@ end
 Return the Jacobian ideal of the defining ideal of `C`.
 
 # Examples
-```jldoctest
+```julia
 julia> S, (x, y, z, t) = polynomial_ring(QQ, ["x", "y", "z", "t"])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, t])
 

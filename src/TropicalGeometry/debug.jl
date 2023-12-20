@@ -13,7 +13,7 @@ singularRing = base_ring(singularIdeal)
 singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
 inI1 = ideal(Kx,singularIdeal)
 
-L,t = RationalFunctionField(K,"t")
+L,t = rational_function_field(K,"t")
 Lx,x = polynomial_ring(L,symbols(Kx))
 inI1 = ideal(Lx,[change_base_ring(L,g) for g in gens(inI1)])
 

@@ -237,7 +237,7 @@ Complement
 
 julia> RQ, p = quo(R, I);
 
-julia> RQL, iota = Localization(RQ, U);
+julia> RQL, iota = localization(RQ, U);
 
 julia> phi = compose(p, iota);
 
@@ -340,7 +340,7 @@ Complement
 
 julia> RQ, p = quo(R, I);
 
-julia> RQL, iota = Localization(RQ, U);
+julia> RQL, iota = localization(RQ, U);
 
 julia> phi = compose(p, iota);
 

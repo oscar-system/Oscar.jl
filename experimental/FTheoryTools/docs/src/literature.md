@@ -13,7 +13,7 @@ su5_tate_model_over_arbitrary_3d_base()
 ```
 More generally, we support literature constructions.
 ```@docs
-literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="")
+literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
 
 ## Attributes
@@ -39,7 +39,6 @@ journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
-model_description(m::AbstractFTheoryModel)
 model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
@@ -53,13 +52,18 @@ weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
 ```
-One can add this information for a model that does
-not have it:
+Note that we provide a description for well established models:
+```@docs
+model_description(m::AbstractFTheoryModel)
+```
+One can add/modify this information as follows:
 ```@docs
 set_description(m::AbstractFTheoryModel, description::String)
 ```
-Note however, that these changes will (currently) not be stored
-in our data base. One can also check if a model has a particular
+However, this changes will (currently) not be stored
+in our data base.
+
+One can also check if a model has a particular
 set of information. This is achieved with the following methods:
 * `has_arxiv_id(m::AbstractFTheoryModel)`,
 * `has_arxiv_doi(m::AbstractFTheoryModel)`,

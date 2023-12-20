@@ -177,4 +177,8 @@ end
     a = K(gen(F1))
     @test K(L(a)) == a
   end
+
+  R = algebraic_closure(GF(3,1))
+  Kt, t = rational_function_field(R, "t")
+  @test sprint(show, t) isa String
 end

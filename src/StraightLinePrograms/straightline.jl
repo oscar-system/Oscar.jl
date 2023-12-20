@@ -179,26 +179,26 @@ slpcst(c) = SLProgram(Const(c))
 
 # old basic version, useful when normal show is broken
 function showsimple(io::IO, p::SLProgram)
-    println("SLProgram:")
+    println(io, "SLProgram:")
     if !isempty(constants(p))
-        println("with constants:")
+        println(io, "with constants:")
         for (i, c) in enumerate(constants(p))
             println(io, i, " | ", c)
         end
     end
     if !isempty(integers(p))
-        println("with integers:")
+        println(io, "with integers:")
         for (i, c) in enumerate(integers(p))
             println(io, i, " | ", c.x % Int)
         end
     end
     if !isempty(lines(p))
-        println("with lines:")
+        println(io, "with lines:")
         for (i, c) in enumerate(lines(p))
             println(io, i, " | ", c)
         end
     end
-    println("return: ", p.ret == Arg(dectrue) ? "true" : p.ret)
+    println(io, "return: ", p.ret == Arg(dectrue) ? "true" : p.ret)
 end
 
 showsimple(p::SLProgram) = showsimple(stdout, p)

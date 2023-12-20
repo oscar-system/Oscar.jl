@@ -1,4 +1,4 @@
-@attributes mutable struct LieAlgebraModule{C<:RingElement}
+@attributes mutable struct LieAlgebraModule{C<:FieldElem}
   L::LieAlgebra{C}
   dim::Int
   transformation_matrices::Vector{MatElem{C}}
@@ -10,7 +10,7 @@
     transformation_matrices::Vector{<:MatElem{C}},
     s::Vector{Symbol};
     check::Bool=true,
-  ) where {C<:RingElement}
+  ) where {C<:FieldElem}
     @req dimV == length(s) "Invalid number of basis element names."
     @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
     @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
@@ -26,7 +26,7 @@
   end
 end
 
-struct LieAlgebraModuleElem{C<:RingElement}
+struct LieAlgebraModuleElem{C<:FieldElem}
   parent::LieAlgebraModule{C}
   mat::MatElem{C}
 end
@@ -37,9 +37,9 @@ end
 #
 ###############################################################################
 
-parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:RingElement} = LieAlgebraModule{C}
+parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:FieldElem} = LieAlgebraModule{C}
 
-elem_type(::Type{LieAlgebraModule{C}}) where {C<:RingElement} = LieAlgebraModuleElem{C}
+elem_type(::Type{LieAlgebraModule{C}}) where {C<:FieldElem} = LieAlgebraModuleElem{C}
 
 parent(v::LieAlgebraModuleElem) = v.parent
 
@@ -104,7 +104,7 @@ function iszero(v::LieAlgebraModuleElem)
   return iszero(coefficients(v))
 end
 
-@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+@inline function _matrix(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return (v.mat)::dense_matrix_type(C)
 end
 
@@ -141,7 +141,7 @@ end
 
 function check_parent(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   parent(v1) !== parent(v2) && error("Incompatible modules.")
 end
 
@@ -295,7 +295,7 @@ end
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:FieldElem}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
@@ -307,7 +307,7 @@ end
 Return the element of `V` with coefficient vector equivalent to
 the $1 \times \dim(L)$ matrix `mat`.
 """
-function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::MatElem{C}) where {C<:FieldElem}
   @req ncols(v) == dim(V) "Length of vector does not match dimension"
   @req nrows(v) == 1 "Not a vector in module constructor"
   return elem_type(V)(V, v)
@@ -318,7 +318,7 @@ end
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::SRow{C}) where {C<:FieldElem}
   mat = dense_row(v, dim(V))
   return elem_type(V)(V, mat)
 end
@@ -330,7 +330,7 @@ Return `v`. Fails, in general, if `v` is not an element of `V`.
 
 If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
-function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   if is_dual(V) && base_module(V) === parent(v)
     return V(coefficients(v))
   end
@@ -351,7 +351,7 @@ where _correct_ depends on the case above.
 """
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
   if is_direct_sum(V)
     @req length(a) == length(base_modules(V)) "Length of vector does not match."
     @req all(i -> parent(a[i]) === base_modules(V)[i], 1:length(a)) "Incompatible modules."
@@ -375,11 +375,11 @@ end
 
 function (V::LieAlgebraModule{C})(
   a::Tuple{T,Vararg{T}}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:RingElement}
+) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
   return V(collect(a))
 end
 
-function (V::LieAlgebraModule{C})(_::Tuple{}) where {C<:RingElement}
+function (V::LieAlgebraModule{C})(_::Tuple{}) where {C<:FieldElem}
   return V(LieAlgebraModuleElem{C}[])
 end
 
@@ -389,47 +389,39 @@ end
 #
 ###############################################################################
 
-function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function Base.:-(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return parent(v)(-_matrix(v))
 end
 
 function Base.:+(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return parent(v1)(_matrix(v1) + _matrix(v2))
 end
 
 function Base.:-(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return parent(v1)(_matrix(v1) - _matrix(v2))
 end
 
-function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:RingElem}
+function Base.:*(v::LieAlgebraModuleElem{C}, c::C) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:Union{Rational,IntegerUnion}}
+function Base.:*(v::LieAlgebraModuleElem, c::U) where {U<:RationalUnion}
   return parent(v)(_matrix(v) * c)
 end
 
-function Base.:*(v::LieAlgebraModuleElem{ZZRingElem}, c::ZZRingElem)
-  return parent(v)(_matrix(v) * c)
-end
-
-function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:RingElem}
+function Base.:*(c::C, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   coefficient_ring(v) != parent(c) && error("Incompatible rings.")
   return parent(v)(c * _matrix(v))
 end
 
-function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:Union{Rational,IntegerUnion}}
-  return parent(v)(c * _matrix(v))
-end
-
-function Base.:*(c::ZZRingElem, v::LieAlgebraModuleElem{ZZRingElem})
+function Base.:*(c::U, v::LieAlgebraModuleElem) where {U<:RationalUnion}
   return parent(v)(c * _matrix(v))
 end
 
@@ -439,7 +431,7 @@ end
 #
 ###############################################################################
 
-function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:RingElement}
+function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
   return V1.dim == V2.dim &&
          V1.s == V2.s &&
          V1.L == V2.L &&
@@ -457,7 +449,7 @@ end
 
 function Base.:(==)(
   v1::LieAlgebraModuleElem{C}, v2::LieAlgebraModuleElem{C}
-) where {C<:RingElement}
+) where {C<:FieldElem}
   check_parent(v1, v2)
   return coefficients(v1) == coefficients(v2)
 end
@@ -481,11 +473,11 @@ end
 
 Apply the action of `x` on `v`.
 """
-function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function Base.:*(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   return action(x, v)
 end
 
-function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:RingElement}
+function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
   @req parent(x) === base_lie_algebra(parent(v)) "Incompatible Lie algebras."
 
   cx = coefficients(x)
@@ -499,7 +491,7 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Ring
   )
 end
 
-function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:RingElement}
+function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:FieldElem}
   return (V.transformation_matrices[i])::dense_matrix_type(C)
 end
 
@@ -577,7 +569,7 @@ end
 
 Returns the base module of `V`, if `V` has been constructed as a power module.
 """
-function base_module(V::LieAlgebraModule{C}) where {C<:RingElement}
+function base_module(V::LieAlgebraModule{C}) where {C<:FieldElem}
   @req is_dual(V) || is_exterior_power(V) || is_symmetric_power(V) || is_tensor_power(V) "Not a power module."
   return get_attribute(V, :base_module)::LieAlgebraModule{C}
 end
@@ -588,7 +580,7 @@ end
 Returns the summands or tensor factors of `V`,
 if `V` has been constructed as a direct sum or tensor product of modules.
 """
-function base_modules(V::LieAlgebraModule{C}) where {C<:RingElement}
+function base_modules(V::LieAlgebraModule{C}) where {C<:FieldElem}
   if is_tensor_product(V)
     return get_attribute(V, :tensor_product)::Vector{LieAlgebraModule{C}}
   elseif is_direct_sum(V)
@@ -626,7 +618,7 @@ function abstract_module(
   transformation_matrices::Vector{<:MatElem{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
 end
 
@@ -653,7 +645,7 @@ function abstract_module(
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
-) where {C<:RingElement}
+) where {C<:FieldElem}
   @req dim(L) == size(struct_consts, 1) "Invalid structure constants dimensions."
   @req dimV == size(struct_consts, 2) "Invalid structure constants dimensions."
   @req dimV == length(s) "Invalid number of basis element names."
@@ -664,20 +656,6 @@ function abstract_module(
   end
 
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
-end
-
-@doc raw"""
-    highest_weight_module(L::LieAlgebra{C}, weight::Vector{Int}) -> LieAlgebraModule{C}
-
-Construct the highest weight module of the Lie algebra `L` with highest weight `weight`.
-The actual construction is done in GAP.
-"""
-function highest_weight_module(L::LieAlgebra, weight::Vector{Int})
-  struct_consts = lie_algebra_highest_weight_module_struct_consts_gap(L, weight)
-  dimV = size(struct_consts, 2)
-  V = abstract_module(L, dimV, struct_consts; check=false)
-  set_attribute!(V, :highest_weight => weight)
-  return V
 end
 
 @doc raw"""
@@ -762,7 +740,7 @@ Dual module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function dual(V::LieAlgebraModule{C}) where {C<:RingElement}
+function dual(V::LieAlgebraModule{C}) where {C<:FieldElem}
   L = base_lie_algebra(V)
   dim_dual_V = dim(V)
 
@@ -808,9 +786,7 @@ Direct sum module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function direct_sum(
-  V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
-) where {C<:RingElement}
+function direct_sum(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem}
   Vs = [V; Vs...]
 
   L = base_lie_algebra(Vs[1])
@@ -837,7 +813,7 @@ function direct_sum(
   return direct_sum_V
 end
 
-⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+⊕(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   direct_sum(V, Vs...)
 
 @doc raw"""
@@ -868,7 +844,7 @@ over special linear Lie algebra of degree 3 over QQ
 """
 function tensor_product(
   V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...
-) where {C<:RingElement}
+) where {C<:FieldElem}
   Vs = [V; Vs...]
   L = base_lie_algebra(Vs[1])
   @req all(x -> base_lie_algebra(x) === L, Vs) "All modules must have the same base Lie algebra."
@@ -944,7 +920,7 @@ function tensor_product(
   return tensor_product_V
 end
 
-⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:RingElement} =
+⊗(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C<:FieldElem} =
   tensor_product(V, Vs...)
 
 @doc raw"""
@@ -967,7 +943,7 @@ Exterior power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function exterior_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
@@ -1064,7 +1040,7 @@ Symmetric power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function symmetric_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
@@ -1182,7 +1158,7 @@ Tensor power module
 over special linear Lie algebra of degree 3 over QQ
 ```
 """
-function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
+function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
   L = base_lie_algebra(V)
   R = coefficient_ring(V)
@@ -1251,4 +1227,154 @@ function tensor_power(V::LieAlgebraModule{C}, k::Int) where {C<:RingElement}
     :tensor_pure_preimage_function => inv_pure,
   )
   return T
+end
+
+###############################################################################
+#
+#   Simple modules (via highest weight) of semisimple Lie algebras
+#
+###############################################################################
+
+# TODO: check semisimplicity check once that is available
+
+function is_dominant_weight(hw::Vector{Int})
+  return all(>=(0), hw)
+end
+
+@doc raw"""
+    simple_module(L::LieAlgebra{C}, hw::Vector{Int}) -> LieAlgebraModule{C}
+
+Construct the simple module of the Lie algebra `L` with highest weight `hw`.
+"""
+function simple_module(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
+  dimV = size(struct_consts, 2)
+  V = abstract_module(L, dimV, struct_consts; check=false)
+  # TODO: set appropriate attributes
+  return V
+end
+
+@doc raw"""
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{Int}) -> T
+
+Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
+The return value is of type `T`.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> dim_of_simple_module(L, [1, 1, 1])
+64
+```
+"""
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  return T(
+    GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))
+  )
+end
+
+function dim_of_simple_module(L::LieAlgebra, hw::Vector{Int})
+  return dim_of_simple_module(Int, L, hw)
+end
+
+@doc raw"""
+    dominant_character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+together with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> dominant_character(L, [2, 1, 0])
+Dict{Vector{Int64}, Int64} with 4 entries:
+  [2, 1, 0] => 1
+  [1, 0, 1] => 2
+  [0, 0, 0] => 3
+  [0, 2, 0] => 1
+```
+"""
+function dominant_character(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  return Dict{Vector{Int},Int}(
+    Vector{Int}(w) => d for (w, d) in
+    zip(GAPWrap.DominantCharacter(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))...)
+  )
+end
+
+@doc raw"""
+    character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+
+Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+together with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 3);
+
+julia> character(L, [2, 0, 0])
+Dict{Vector{Int64}, Int64} with 10 entries:
+  [0, 1, 0]   => 1
+  [0, -2, 2]  => 1
+  [0, 0, -2]  => 1
+  [-1, 1, -1] => 1
+  [-2, 2, 0]  => 1
+  [1, -1, 1]  => 1
+  [-1, 0, 1]  => 1
+  [1, 0, -1]  => 1
+  [0, -1, 0]  => 1
+  [2, 0, 0]   => 1
+```
+"""
+function character(L::LieAlgebra, hw::Vector{Int})
+  @req is_dominant_weight(hw) "Not a dominant weight."
+  dc = dominant_character(L, hw)
+  c = Dict{Vector{Int},Int}()
+  W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
+  for (w, d) in dc
+    it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
+    while !GAPWrap.IsDoneIterator(it)
+      push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+    end
+  end
+  return c
+end
+
+@doc raw"""
+    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}) -> MSet{Vector{Int}}
+
+Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
+into simple modules with their multiplicities.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :A, 2);
+
+julia> tensor_product_decomposition(L, [1, 0], [0, 1])
+MSet{Vector{Int64}} with 2 elements:
+  [0, 0]
+  [1, 1]
+
+julia> tensor_product_decomposition(L, [1, 1], [1, 1])
+MSet{Vector{Int64}} with 6 elements:
+  [0, 0]
+  [1, 1] : 2
+  [2, 2]
+  [3, 0]
+  [0, 3]
+```
+"""
+function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
+  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
+  return multiset(
+    Tuple{Vector{Vector{Int}},Vector{Int}}(
+      GAPWrap.DecomposeTensorProduct(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1), GAP.Obj(hw2)
+      ),
+    )...,
+  )
 end

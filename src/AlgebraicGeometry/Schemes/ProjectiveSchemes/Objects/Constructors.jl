@@ -22,6 +22,7 @@ function subscheme(P::AbsProjectiveScheme, f::RingElem)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -39,6 +40,7 @@ function subscheme(
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -52,6 +54,7 @@ function subscheme(P::AbsProjectiveScheme,
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
+  set_attribute!(result, :ambient_space, ambient_space(P))
   return result
 end
 
@@ -81,8 +84,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
 """
 function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
-  R, _ = polynomial_ring(A, Symbol.(var_symb))
-  S, _ = grade(R, [1 for i in 1:n ])
+  S, _ = graded_polynomial_ring(A, Symbol.(var_symb))
   return projective_scheme(S)
 end
 
@@ -93,8 +95,7 @@ Create the (relative) projective space `Proj(A[s₀,…,sᵣ])` over `A`
 where `s` is a string for the variable names.  
 """
 function projective_space(A::Ring, r::Int; var_name::VarName=:s)
-  R, _ = polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
-  S, _ = grade(R, [1 for i in 0:r ])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
   return projective_scheme(S)
 end
 

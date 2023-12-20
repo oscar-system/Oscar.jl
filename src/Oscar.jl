@@ -82,11 +82,19 @@ function __init__()
     withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
       GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
     end
-    for pkg in ["ctbllib",
-                "forms",
-                "wedderga", # provides a function to compute Schur indices
-                "repsn",
-               ]
+    for pkg in [
+       "atlasrep",
+       "ctbllib",  # character tables
+       "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
+       "fga",      # dealing with free groups
+       "forms",    # bilinear/sesquilinear/quadratic forms
+       "primgrp",  # primitive groups library
+       "repsn",    # constructing representations of finite groups
+       "sla",      # computing with simple Lie algebras
+       "smallgrp", # small groups library
+       "transgrp", # transitive groups library
+       "wedderga", # provides a function to compute Schur indices
+       ]
       GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
     end
     __init_group_libraries()
@@ -127,16 +135,22 @@ function __init__()
 
     add_assertion_scope(:ZZLatWithIsom)
     add_verbosity_scope(:ZZLatWithIsom)
+
+    # Pkg.is_manifest_current() returns false if the manifest might be out of date
+    # (but might return nothing when there is no project_hash)
+    if is_dev && VERSION >= v"1.8" && Pkg.is_manifest_current() === false
+      @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+    end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
 const VERSION_NUMBER = VersionNumber(PROJECT_TOML["version"])
+const PROJECT_UUID = UUID(PROJECT_TOML["uuid"])
 
 const is_dev = (function()
-        uuid = PROJECT_TOML["uuid"]
         deps = Pkg.dependencies()
-        if Base.haskey(deps, uuid)
-          if deps[uuid].is_tracking_path
+        if Base.haskey(deps, PROJECT_UUID)
+          if deps[PROJECT_UUID].is_tracking_path
             return true
           end
         end
@@ -214,8 +228,9 @@ include("Polymake/polymake_to_oscar.jl")
 
 include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
+include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
-include("Combinatorics/Matroids/matroid_strata_grassmannian.jl")
+include("Combinatorics/Compositions.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

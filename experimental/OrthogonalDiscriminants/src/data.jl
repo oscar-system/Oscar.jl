@@ -37,7 +37,7 @@ julia> orthogonal_discriminant(t2[4])
 ```
 """
 function orthogonal_discriminant(chi::Oscar.GAPGroupClassFunction)
-  tbl = chi.table
+  tbl = parent(chi)
   pos = findfirst(x -> x === chi, tbl)
   pos === nothing && return ""
   p = characteristic(tbl)

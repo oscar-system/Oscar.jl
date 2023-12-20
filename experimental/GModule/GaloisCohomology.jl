@@ -85,7 +85,7 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, k)[2])
+function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, nf(order(codomain((mR)))))[2])
   k = nf(order(codomain(mR)))
   G = domain(mG)
 
@@ -426,7 +426,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
   mQ = mQ*inv(mS)
 
   if Sylow > 0
-    @assert isprime(Sylow)
+    @assert is_prime(Sylow)
     G, mS = sylow_subgroup(G, Sylow)
     mG = mS*mG
   end
@@ -1001,7 +1001,7 @@ function Oscar.ideal(I::IdelParent, a::GrpAbFinGenElem; coprime::Union{NfOrdIdl,
 end
 
 function Oscar.galois_group(A::ClassField)
-  return PermGroup(codomain(A.quotientmap))
+  return permutation_group(codomain(A.quotientmap))
 end
 
 """
@@ -1045,7 +1045,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelPar
   @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
     s, ms = split_extension(gmodule(A))
-    return permutation_group(s)[1], ms
+    return permutation_group(s), ms
   end
   if idel_parent === nothing
     idel_parent = idel_class_gmodule(base_field(A))
@@ -1323,7 +1323,7 @@ mutable struct RelativeBrauerGroup
 end
 
 function Base.show(io::IO, B::RelativeBrauerGroup)
-  print(io, "Relative Brauer group for $(B.K) over $(B.k)\n")
+  print(io, "Relative Brauer group for $(B.K) over $(B.k)")
 end
 
 """
@@ -1345,6 +1345,9 @@ mutable struct RelativeBrauerGroupElem
     return r
   end
 end
+
+Oscar.elem_type(::Type{RelativeBrauerGroup}) = RelativeBrauerGroupElem
+Oscar.parent_type(::Type{RelativeBrauerGroupElem}) = RelativeBrauerGroup
 
 Oscar.parent(a::RelativeBrauerGroupElem) = a.parent
 
@@ -1386,6 +1389,10 @@ end
 
 function Base.show(io::IO, a::RelativeBrauerGroupElem)
   print(io, a.data)
+end
+
+function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
+  show(io, m, a.data)
 end
 
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
@@ -1839,6 +1846,7 @@ function Oscar.orbit(C::GModule, o)
   return orbit(C.G, (x,y) -> action(C, y, x), o)
 end
 
+#TODO: reduce torsion: the part coprime to |G| can go...
 """
     shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
 
@@ -1847,7 +1855,7 @@ Returns a cohomologically equivalent module with fewer generators and
 the quotient map.
 """
 function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
-  local mq
+  mq = hom(C.M, C.M, gens(C.M))
   q = C
   first = true
   while true
@@ -1855,9 +1863,9 @@ function shrink(C::GModule{PermGroup, GrpAbFinGen}, attempts::Int = 10)
     for i=1:attempts
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
-        s, ms = sub(q.M, collect(o))
+        s, ms = sub(q.M, collect(o), false)
         if rank(s) == length(o)
-          q, _mq = quo(q, ms)
+          q, _mq = quo(q, ms, false)
           if first
             mq = _mq
             first = false

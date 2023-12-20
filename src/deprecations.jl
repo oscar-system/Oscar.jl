@@ -27,19 +27,19 @@
 function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
     Base.depwarn("'AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
     "'affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
-    affine_normal_toric_variety(C; set_attributes = set_attributes)
+    affine_normal_toric_variety(C)
 end
 
 function AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
     Base.depwarn("'AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)' is deprecated, use "*
     "'affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
-    affine_normal_toric_variety(v; set_attributes = set_attributes)
+    affine_normal_toric_variety(v)
 end
 
 function NormalToricVariety(C::Cone; set_attributes::Bool = true)
     Base.depwarn("'NormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
     "'normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(C; set_attributes = set_attributes)
+    normal_toric_variety(C)
 end
 
 function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
@@ -47,7 +47,7 @@ function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vecto
     "non_redundant::Bool = false, set_attributes::Bool = true)' is deprecated, use "*
     "'normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; "*
     "non_redundant::Bool = false, set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(rays, max_cones; non_redundant = non_redundant, set_attributes = set_attributes)
+    normal_toric_variety(rays, max_cones; non_redundant = non_redundant)
 end
 
 function NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
@@ -59,11 +59,11 @@ end
 function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
     Base.depwarn("'NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)' is deprecated, use"*
     "'normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(P; set_attributes = set_attributes)
+    normal_toric_variety(P)
 end
 
-@deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
-@deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
+@deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P)
+@deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges)
 
 function RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
     Base.depwarn("'RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
@@ -224,12 +224,12 @@ end
 # Deprecated after 0.12.0
 @deprecate contains(P::Polyhedron, v::AbstractVector) Base.in(v, P)
 @deprecate contains(C::Cone, v::AbstractVector) Base.in(v, C)
-@deprecate blowup_on_ith_minimal_torus_orbit(v::NormalToricVarietyType, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
+@deprecate blowup_on_ith_minimal_torus_orbit(v::NormalToricVarietyType, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name)
 @deprecate starsubdivision(PF::_FanLikeType, n::Int) star_subdivision(PF, n)
 
 # Deprecated after 0.12.1
-@deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes)
-@deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b; set_attributes = set_attributes)
+@deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r)
+@deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b)
 
 # PolyhedralComplex -> polyhedral_complex
 function PolyhedralComplex{T}(
@@ -265,14 +265,14 @@ function PolyhedralFan{T}(Rays::AbstractCollection[RayVector],
                           Incidence::IncidenceMatrix; 
                           non_redundant::Bool = false) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, LS, Incidence; non_redundant=non_redundant)
+  return polyhedral_fan(T, Incidence, Rays, LS; non_redundant=non_redundant)
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, Incidence; non_redundant=non_redundant)
+  return polyhedral_fan(T, Incidence, Rays; non_redundant=non_redundant)
 end
-@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
-@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant = non_redundant)
 function PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
   return polyhedral_fan(itr)
@@ -283,11 +283,11 @@ function PolyhedralFan(C::Cone{T}) where T<:scalar_types
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, LS, Incidence)
+  return polyhedral_fan(T, Incidence, Rays, LS)
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, Incidence)
+  return polyhedral_fan(T, Incidence, Rays)
 end
 
 # SubdivisionOfPoints -> subdivision_of_points
@@ -408,3 +408,103 @@ end
 @alias issymmetric_form is_symmetric_form
 
 @deprecate dual_cone(v::AffineNormalToricVariety) weight_cone(v)
+@deprecate cohomology_index(tvs::ToricVanishingSet) cohomology_indices(tvs)
+
+@deprecate mul(x::GAPGroupElem, y::GAPGroupElem) x*y
+
+
+# see https://github.com/oscar-system/Oscar.jl/pull/2908
+function affine_normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(C)
+end
+
+function normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(C)
+end
+
+function affine_normal_toric_variety(v::NormalToricVariety, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(v)
+end
+
+function normal_toric_variety(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(P)
+end
+
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :Base.:*)
+  return v*w
+end
+
+function affine_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_space)
+  return affine_space(Type{NormalToricVariety}, d)
+end
+
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :del_pezzo_surface)
+  return del_pezzo_surface(Type{NormalToricVariety}, b)
+end
+
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :hirzebruch_surface)
+  return hirzebruch_surface(Type{NormalToricVariety}, r)
+end
+
+function projective_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :projective_space)
+  return projective_space(Type{NormalToricVariety}, d)
+end
+
+function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}, set_attributes::Bool) where {T <: IntegerUnion}
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :weighted_projective_space)
+  return weighted_projective_space(Type{NormalToricVariety}, w)
+end
+
+function normal_toric_variety_from_star_triangulation(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety_from_star_triangulation)
+  return normal_toric_variety_from_star_triangulation(P)
+end
+
+function normal_toric_varieties_from_star_triangulations(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_varieties_from_star_triangulations)
+  return normal_toric_varieties_from_star_triangulations(P)
+end
+
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, new_ray, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, n::Int, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, n, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, I, coordinate_name)
+end
+
+# Deprecated after 0.14.0
+@deprecate revlex(R::MPolyRing) invlex(R::MPolyRing)
+@deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
+@deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
+@deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})
+
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(f, Incidence, Rays, nothing; non_redundant)
+@deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant)
+@deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant)
+@deprecate polyhedral_fan(f::scalar_type_or_field,
+                        Rays::AbstractCollection[RayVector], 
+                        LS::Union{AbstractCollection[RayVector], Nothing},
+                        Incidence::IncidenceMatrix; 
+                        non_redundant::Bool = false) polyhedral_fan(f, Incidence, Rays, LS; non_redundant)
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+@deprecate normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false) normal_toric_variety(max_cones, rays; non_redundant)
+
+@deprecate components(X::AbsSpec) connected_components(X::AbsSpec)

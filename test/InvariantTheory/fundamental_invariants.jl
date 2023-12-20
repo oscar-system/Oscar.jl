@@ -1,9 +1,11 @@
 @testset "Fundamental invariants (for matrix groups)" begin
   # Char 0
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
+  # Force use of internal polynomial_ring with ordering = :lex
+  R, _ = graded_polynomial_ring(K, 3, ordering = :lex)
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 0, 0, 1, 1, 0, 0 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
-  RG0 = invariant_ring(M1, M2)
+  RG0 = invariant_ring(R, matrix_group(M1, M2))
 
   # Call it once without specifying `algo`
   @test length(fundamental_invariants(RG0)) == 4
@@ -56,7 +58,7 @@
   end
 
   # Char p, modular
-  F9, b = FiniteField(3, 2, "b")
+  F9, b = finite_field(3, 2, "b")
   N3 = matrix(F9, [ 1 0 0 0; b + 1 1 0 0; -1 0 1 0; b 0 -1 1 ])
   N4 = matrix(F9, [ 1 0 0 0; 1 1 0 0; 1 0 1 0; b -b b 1 ])
   RGm = invariant_ring(N3, N4)
@@ -97,7 +99,7 @@
   end
 
   # Specify degree bound
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
 
@@ -118,7 +120,7 @@
   end
 
   # `:primary_and_secondary` actually removes invariants
-  K, a = CyclotomicField(3, "a")
+  K, a = cyclotomic_field(3, "a")
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
 

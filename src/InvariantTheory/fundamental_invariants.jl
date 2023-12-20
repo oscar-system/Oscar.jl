@@ -23,10 +23,8 @@ end
 function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   @assert !is_modular(RG)
 
-  Rgraded = polynomial_ring(RG)
+  Rgraded = _internal_polynomial_ring(RG)
   R = forget_grading(Rgraded)
-  # R needs to have the correct ordering for application of divrem
-  @assert ordering(R) == :degrevlex
   ordR = degrevlex(gens(R))
 
   S = elem_type(R)[]
@@ -74,7 +72,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
     end
 
     for m in mons
-      f = forget_grading(reynolds_operator(RG, Rgraded(m)))
+      f = forget_grading(_cast_in_internal_poly_ring(RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))))
       if is_zero(f)
         continue
       end
@@ -84,7 +82,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
         continue
       end
 
-      push!(S, inv(leading_coefficient(f))*f)
+      push!(S, f)
       push!(GO, g)
     end
 
@@ -92,7 +90,10 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   end
 
   invars_cache = FundamentalInvarsCache{elem_type(Rgraded), typeof(Rgraded)}()
-  invars_cache.invars = [ Rgraded(f) for f in S ]
+  polys_ext = [ _cast_in_external_poly_ring(RG, Rgraded(f)) for f in S ]
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  invars_cache.invars = [ inv(AbstractAlgebra.leading_coefficient(f))*f for f in polys_ext ]
   invars_cache.via_primary_and_secondary = false
   invars_cache.S = graded_polynomial_ring(coefficient_ring(R), [ "y$i" for i = 1:length(S) ], [ total_degree(f) for f in S ])[1]
   return invars_cache
@@ -185,7 +186,7 @@ In the modular case, only the second method is available for theoretical reasons
 
 # Examples
 ```jldoctest
-julia> K, a = CyclotomicField(3, "a")
+julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
@@ -199,13 +200,14 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over K
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
-Matrix group of degree 3 over K
+  Matrix group of degree 3 over cyclotomic field of order 3
 with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
 
 julia> fundamental_invariants(IR)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:

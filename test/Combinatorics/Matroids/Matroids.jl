@@ -143,7 +143,7 @@
         GC.gc()
         @test bases(mg5) isa Vector
         @test length(hyperplanes(mg5)) == 37
-        @test matroid_groundset(mg5) == 1:10
+        @test length(matroid_groundset(mg5)) == 10
     end
 
     @testset "matroid modifications" begin
@@ -157,10 +157,11 @@
         @test m3 isa Matroid
         @test sort(bases(m2)) == sort(bases(m3))
 
-        m4 = deletion(m2, Set([2,"1'",5]))
+        m2gs = matroid_groundset(m2)
+        m4 = deletion(m2, view(m2gs, [2,7,5]))
         @test length(bases(m4)) == 32
 
-        m5 = deletion(m2, 5)
+        m5 = deletion(m2, [m2gs[5]])
         @test length(m5) == 11
 
         m6 = deletion(m2,Set([]))
@@ -168,23 +169,23 @@
         @test_throws ErrorException deletion(m2,Set([1,9]))
         @test_throws ErrorException deletion(m2,42)
 
-        m7 = restriction(m2,Set([1,2]))
+        m7 = restriction(m2,view(m2gs, [1,2]))
         @test m7 isa Matroid
         @test rank(m7) == 2
 
-        m8 = contraction(m2,Set([1,2]))
+        m8 = contraction(m2,view(m2gs, [1,2]))
         @test m8 isa Matroid
         @test rank(m8) == 4
 
-        m9 = contraction(m2,[1,1])
-        m10 = contraction(m2,[1])
+        m9 = contraction(m2, view(m2gs, [1,1]))
+        m10 = contraction(m2, view(m2gs, [1]))
         @test sort(bases(m9)) == sort(bases(m10))
 
-        m11 = minor(m2,Set([1,2]),[3,4,3])
+        m11 = minor(m2, view(m2gs, [1,2]), view(m2gs, [3,4,3]))
         @test m11 isa Matroid
         @test length(bases(m11)) == 32
 
-        @test_throws ErrorException minor(m2,Set([1,2]),[1,4,3])
+        @test_throws ErrorException minor(m2,view(m2gs, [1,2]), view(m2gs, [1,4,3]))
 
         m12 = principal_extension(fano_matroid(),Set([1,2,3]),8)
         @test m12 isa Matroid
@@ -279,7 +280,7 @@
         @test independent_sets(N) == [[],[1],[2],['i'],['j'],[1,'j'], [2,'j'], [1,'i'], [2,'i'], [1,2]]
         @test independent_sets(O) == [[]]
         @test independent_sets(uniform_matroid(0,2)) == [[]]
-        @test independent_sets(cycle_matroid(complete_graph(2))) == [[],[1]]
+        @test independent_sets(cycle_matroid(complete_graph(2))) == [[],[Edge(2,1)]]
 
         @test spanning_sets(N) == [[1,'j'], [2,'j'], [1,2], [1,'i'], [2,'i'], [1,2,'i'], [1,2,'j'], [1,'i','j'], [2,'i','j'], [1,2,'i','j']]
         @test spanning_sets(O) == [[]]
@@ -316,17 +317,18 @@
         @test_throws KeyError connectivity_function(N,[1,3])
 
         K23 = cycle_matroid(complete_bipartite_graph(2,3));
-        @test !is_vertical_k_separation(K23,2,[1,3,6])
-        @test is_vertical_k_separation(K23,3,[1,3,6])
-        @test !is_vertical_k_separation(K23,4,[1,3,6])
-        @test is_vertical_k_separation(K23,2,[1,2])
-        @test !is_vertical_k_separation(K23,3,[1,2])
+        K23gs = matroid_groundset(K23)
+        @test !is_vertical_k_separation(K23,2, view(K23gs, [1,3,6]))
+        @test is_vertical_k_separation(K23,3, view(K23gs, [1,3,6]))
+        @test !is_vertical_k_separation(K23,4, view(K23gs, [1,3,6]))
+        @test is_vertical_k_separation(K23,2, view(K23gs, [1,2]))
+        @test !is_vertical_k_separation(K23,3, view(K23gs, [1,2]))
 
-        @test !is_k_separation(K23,2,[1,3,6])
-        @test is_k_separation(K23,3,[1,3,6])
-        @test !is_k_separation(K23,4,[1,3,6])
-        @test is_k_separation(K23,2,[1,2])
-        @test !is_k_separation(K23,3,[1,2])
+        @test !is_k_separation(K23,2, view(K23gs, [1,3,6]))
+        @test is_k_separation(K23,3, view(K23gs, [1,3,6]))
+        @test !is_k_separation(K23,4, view(K23gs, [1,3,6]))
+        @test is_k_separation(K23,2, view(K23gs, [1,2]))
+        @test !is_k_separation(K23,3, view(K23gs, [1,2]))
 
         @test is_isomorphic(matroid_from_revlex_basis_encoding("**0***",2,4),N)
         @test !is_isomorphic(matroid_from_nonbases([[1,2,3],[3,4,5]],6),matroid_from_nonbases([[1,2,3],[4,5,6]],6))

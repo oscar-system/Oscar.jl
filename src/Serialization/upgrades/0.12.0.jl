@@ -17,7 +17,7 @@ push!(upgrade_scripts_set, UpgradeScript(
 
     if dict[:type] == string(backref_sym)
       backrefed_dict = s.id_to_dict[Symbol(dict[:id])]
-      T = decode_type(backrefed_dict[:type])
+      T = reverse_type_map[backrefed_dict[:type]]
       
       if serialize_with_id(T)
         #backref are still ok
@@ -51,7 +51,7 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = upgrade_0_12_0(s, dict[:data])
     end
 
-    T = decode_type(upgraded_dict[:type])
+    T = reverse_type_map[upgraded_dict[:type]]
     
     # remove ids according to update
     if serialize_with_id(T)

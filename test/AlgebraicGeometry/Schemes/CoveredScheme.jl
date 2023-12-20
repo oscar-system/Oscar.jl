@@ -10,7 +10,7 @@
   h = u^3 + u^2*v - OO(X)(x)*v^3
   Z = subscheme(P, h)
   C = standard_covering(Z)
-  f = dehomogenization_map(Z, 1)
+  f = dehomogenization_map(Z, C[2])
   @test f(u) == gens(OO(C[2]))[1]
 end
 

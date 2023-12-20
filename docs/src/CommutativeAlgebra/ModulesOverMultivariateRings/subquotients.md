@@ -217,7 +217,7 @@ true
 
 Given an element `m` of a subquotient `M` over a ring $R$ with element type `T`,
 - `parent(m)` refers to `M`, 
-- `coordinates(m)` to  an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$, and
+- `coordinates(m)` to an object of type `SRow{T}` specifying the coefficients of an $R$-linear combination of the generators of $M$ which gives $m$, and
 - `ambient_representative(m)` to an element of the ambient free module of `M` which represents `m`.
 
 Given an element `f` of the ambient free module of a subquotient `M` such that `f` represents an element of `M`,

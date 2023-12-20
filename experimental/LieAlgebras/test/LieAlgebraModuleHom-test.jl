@@ -176,7 +176,7 @@
 
   @testset "hom_power ($f_power)" for f_power in
                                       [exterior_power, symmetric_power, tensor_power]
-    for k in 1:3
+    for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
       Wb = dual(dual(standard_module(L)))
@@ -188,7 +188,7 @@
       @test domain(h) == V
       @test codomain(h) == W
       @test is_welldefined(h)
-      vs = [Vb(rand(-10:10, dim(Vb))) for _ in 1:k]
+      vs = elem_type(Vb)[Vb(rand(-10:10, dim(Vb))) for _ in 1:k]
       @test h(V(vs)) == W(hb.(vs))
     end
   end

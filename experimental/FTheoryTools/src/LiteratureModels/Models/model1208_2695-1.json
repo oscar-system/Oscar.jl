@@ -20,9 +20,9 @@
         "year": "2012",
         "link": "https://link.springer.com/article/10.1007/JHEP10(2012)128",
         "model_location": {
-            "section": "",
-            "equation": "",
-            "page": ""
+            "section": "B",
+            "equation": "B.5",
+            "page": "33"
         }
     },
     "paper_metadata": {
@@ -38,6 +38,7 @@
     },
     "model_data": {
         "base_dim": 2,
+        "model_sections": ["b"],
         "base_coordinates": ["Kbar", "b", "c0", "c1", "c2", "c3"],
         "auxiliary_base_grading": [
             [1, 0, 4, 3, 2, 1],

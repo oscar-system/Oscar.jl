@@ -45,7 +45,7 @@
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
     nf = normal_fan(sd)
-    nfc =  polyhedral_fan(E, rays(nf), maximal_cones(IncidenceMatrix,nf))
+    nfc =  polyhedral_fan(E, maximal_cones(IncidenceMatrix,nf), rays(nf))
     @test is_regular(nfc)
 
     @testset "Scalar detection" begin
@@ -54,7 +54,7 @@
             s = vertices(j)[1][1]
             @test s isa QQFieldElem
         end
-        let j = johnson_solid(64)
+        let j = polyhedron(Polymake.polytope.johnson_solid(64))
             @test j isa Polyhedron{Float64}
             s = vertices(j)[1][1]
             @test s isa Float64
@@ -70,7 +70,7 @@
             @test isq[2] == 2
         end
         let j = johnson_solid(1)
-            jj = polyhedron(Polymake.polytope.Polytope{Polymake.QuadraticExtension{Polymake.Rational}}(POINTS=Oscar.pm_object(j).VERTICES))
+            jj = polyhedron(Polymake.polytope.Polytope{Polymake.OscarNumber}(POINTS=Oscar.pm_object(j).VERTICES))
             @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
         end
     end
@@ -185,5 +185,37 @@
             end
         end
     end
+
+  @testset "QuadraticExtension-templated sub-objects" begin
+
+    j = johnson_solid(2)
+
+    let f = facets(Polyhedron, j)
+      fj = normal_vector.(facets(j))
+      fj = [fj; -fj]
+      for i in 1:nfacets(j)
+        @test normal_vector(affine_hull(f[i])[]) in fj
+      end
+      @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedElem{nf_elem}}, Vector{EmbeddedElem{nf_elem}}}}
+      g = halfspace_matrix_pair(f)
+      @test affine_halfspace(coefficient_field(j), g.A[1, :], g.b[1]) in facets(j)
+    end
+    for n in (1, 2) # faces which are facets have a different access function
+      let f = faces(j, n)
+        for i in 1:Int(f_vector(j)[n + 1])
+          @test issubset(vertices(f[i]), vertices(j))
+        end
+      end
+    end
+
+    k = face_fan(j)
+    let f = cones(k, 3)
+      for i in 1:Int(f_vector(k)[3])
+        @test issubset(rays(f[i]), rays(k))
+      end
+      l = f[1]
+    end
+    
+  end
 
 end

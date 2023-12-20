@@ -37,7 +37,7 @@ Polyhedron in ambient dimension 3
 
 julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min)
 Linear program
-   min{c⋅x + k | x ∈ P}
+   min{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
    c=Polymake.LibPolymake.Rational[3 -2 4]
    k=2
@@ -101,6 +101,7 @@ julia> V = optimal_vertex(LP)
 
 ```@docs
 feasible_region(lp::LinearProgram)
+ambient_dim(lp::LinearProgram)
 objective_function(lp::LinearProgram{T}; as::Symbol = :pair) where T<:scalar_types
 solve_lp(LP::LinearProgram)
 optimal_value(lp::LinearProgram{T}) where T<:scalar_types

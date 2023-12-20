@@ -49,7 +49,7 @@ julia> Phi = Oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2])
 julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
-Morphism
+Affine scheme morphism
   from [(t//s)]          AA^1 \ V()
   to   [(x//z), (y//z)]  affine 2-space
 given by the pullback function
@@ -119,11 +119,12 @@ codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
 coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 
 function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
-  io = pretty(io)
   if get(io, :supercompact, false)
     print("Morphism from rational functions")
   else
-    print("hom: ", X, " -> ", Y)
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(io, Lowercase(), domain(Phi), " -> ", Lowercase(), codomain(Phi))
   end
 end
 
@@ -204,8 +205,8 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   # `affine_chart` of the codomain of Phi.
   covered_codomain_patches = Vector{AbsSpec}([V])
   complement_equations = Vector{elem_type(OO(U))}()
-  FY = FunctionField(Y)
-  FX = FunctionField(X)
+  FY = function_field(Y)
+  FX = function_field(X)
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
@@ -525,7 +526,6 @@ end
 
 # Some functionality that was missing and should probably be moved elsewhere.
 # TODO: Do that.
-equidimensional_decomposition_radical(I::MPolyQuoIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 equidimensional_decomposition_radical(I::MPolyLocalizedIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 equidimensional_decomposition_radical(I::MPolyQuoLocalizedIdeal) = [ideal(base_ring(I), gens(J)) for J in equidimensional_decomposition_radical(saturated_ideal(I))]
 
@@ -600,7 +600,7 @@ end
 function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
-  all(x->isprime(x), components(D)) || error("divisor must be given in terms of irreducible components")
+  all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
   X = domain(Phi)
   Y = codomain(Phi)
   pushed_comps = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()

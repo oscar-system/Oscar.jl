@@ -6,7 +6,7 @@ Checks if the divisor `td` is Cartier.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -15,7 +15,7 @@ julia> is_cartier(td)
 true
 ```
 """
-@attr Bool is_cartier(td::ToricDivisor) = pm_tdivisor(td).CARTIER
+@attr Bool is_cartier(td::ToricDivisor) = pm_object(td).CARTIER
 
 
 @doc raw"""
@@ -26,7 +26,7 @@ Determine whether the toric divisor `td` is principal.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -35,7 +35,7 @@ julia> is_principal(td)
 false
 ```
 """
-@attr Bool is_principal(td::ToricDivisor) = pm_tdivisor(td).PRINCIPAL
+@attr Bool is_principal(td::ToricDivisor) = pm_object(td).PRINCIPAL
 
 @attr Bool is_trivial(td::ToricDivisor) = all([c == 0 for c in coefficients(td)])
 
@@ -48,7 +48,7 @@ Determine whether the toric divisor `td` is basepoint free.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -57,7 +57,7 @@ julia> is_basepoint_free(td)
 true
 ```
 """
-@attr Bool is_basepoint_free(td::ToricDivisor) = pm_tdivisor(td).BASEPOINT_FREE
+@attr Bool is_basepoint_free(td::ToricDivisor) = pm_object(td).BASEPOINT_FREE
 
 
 @doc raw"""
@@ -69,7 +69,7 @@ i.e. if all of its coefficients are non-negative.
 # Examples
 ```jldoctest
 julia> P2 = projective_space(NormalToricVariety,2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(P2, [1,-1,0])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -94,7 +94,7 @@ Determine whether the toric divisor `td` is integral.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -103,7 +103,7 @@ julia> is_integral(td)
 true
 ```
 """
-@attr Bool is_integral(td::ToricDivisor) = pm_tdivisor(td).INTEGRAL
+@attr Bool is_integral(td::ToricDivisor) = pm_object(td).INTEGRAL
 
 
 @doc raw"""
@@ -113,7 +113,7 @@ Determine whether the toric divisor `td` is ample.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -122,7 +122,7 @@ julia> is_ample(td)
 false
 ```
 """
-@attr Bool is_ample(td::ToricDivisor) = pm_tdivisor(td).AMPLE
+@attr Bool is_ample(td::ToricDivisor) = pm_object(td).AMPLE
 
 
 @doc raw"""
@@ -132,7 +132,7 @@ Determine whether the toric divisor `td` is very ample.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -141,7 +141,7 @@ julia> is_very_ample(td)
 false
 ```
 """
-@attr Bool is_very_ample(td::ToricDivisor) = pm_tdivisor(td).VERY_AMPLE
+@attr Bool is_very_ample(td::ToricDivisor) = pm_object(td).VERY_AMPLE
 
 
 @doc raw"""
@@ -151,7 +151,7 @@ Determine whether the toric divisor `td` is nef.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -160,7 +160,7 @@ julia> is_nef(td)
 true
 ```
 """
-@attr Bool is_nef(td::ToricDivisor) = pm_tdivisor(td).NEF
+@attr Bool is_nef(td::ToricDivisor) = pm_object(td).NEF
 
 
 @doc raw"""
@@ -170,7 +170,7 @@ Determine whether the toric divisor `td` is Q-Cartier.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety
@@ -179,7 +179,7 @@ julia> is_q_cartier(td)
 true
 ```
 """
-@attr Bool is_q_cartier(td::ToricDivisor) = pm_tdivisor(td).Q_CARTIER
+@attr Bool is_q_cartier(td::ToricDivisor) = pm_object(td).Q_CARTIER
 
 
 @doc raw"""
@@ -190,7 +190,7 @@ Determine whether the toric divisor `td` is a prime divisor.
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td = toric_divisor(F4, [1,0,0,0])
 Torus-invariant, prime divisor on a normal toric variety

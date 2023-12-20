@@ -10,7 +10,7 @@ Return the class in the Picard group which defines the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -32,13 +32,13 @@ Return the toric variety over which the toric line bundle `l` is defined.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
 julia> toric_variety(l)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety without torusfactor
 ```
 """
 toric_variety(l::ToricLineBundle) = l.toric_variety
@@ -52,7 +52,7 @@ Return a toric divisor corresponding to the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -84,7 +84,7 @@ Return a divisor class in the Class group corresponding to the toric line bundle
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -107,7 +107,7 @@ Return the degree of the toric line bundle `l`.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -119,9 +119,9 @@ julia> degree(l)
 @attr ZZRingElem degree(l::ToricLineBundle) = sum(coefficients(toric_divisor(l)))
 
 
-#####################
+#############################
 # 2. Basis of global sections
-#####################
+#############################
 
 @doc raw"""
     basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
@@ -131,7 +131,7 @@ Return a basis of the global sections of the toric line bundle `l` in terms of r
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -169,7 +169,7 @@ For convenience, this method can also be called via
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
@@ -203,3 +203,36 @@ julia> basis_of_global_sections(l)
     return monomial_basis(cox_ring(toric_variety(l)), divisor_class(toric_divisor_class(l)))
 end
 basis_of_global_sections(l::ToricLineBundle) = basis_of_global_sections_via_homogeneous_component(l)
+
+
+#############################
+# 3. Generic section
+#############################
+
+@doc raw"""
+    generic_section(l::ToricLineBundle)
+
+Return a generic section of the toric line bundle `l`, that
+is return the sum of all elements `basis_of_global_sections(l)`,
+each multiplied by a random integer.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> l = toric_line_bundle(v, [ZZRingElem(2)])
+Toric line bundle on a normal toric variety
+
+julia> s = generic_section(l);
+
+julia> parent(s) == cox_ring(toric_variety(l))
+true
+```
+"""
+@attr MPolyDecRingElem{QQFieldElem, QQMPolyRingElem} function generic_section(l::ToricLineBundle)
+  if length(basis_of_global_sections(l)) == 0
+    return zero(cox_ring(toric_variety(l)))
+  end
+  return sum([rand(Int) * b for b in basis_of_global_sections(l)]);
+end

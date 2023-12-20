@@ -1,14 +1,16 @@
 ################################################################################
 ##  Constructing
 ################################################################################
-const ElementType = Union{IntegerUnion,Char,String}
+const ElementType = Union{IntegerUnion,Char,String,Edge}
 const GroundsetType = Union{AbstractVector, AbstractSet} 
 
+# Later test if this works:
+# @attributes mutable struct Matroid
 
 struct Matroid
     pm_matroid::Polymake.BigObject
     groundset::AbstractVector # groundset of the matroid 
-    gs2num::Dict{Any, IntegerUnion}# dictionary to map the groundset to the integers from 1 to its size
+    gs2num::Dict{<:Any, Int}# dictionary to map the groundset to the integers from 1 to its size
 end
 
 pm_object(M::Matroid) = M.pm_matroid
@@ -20,14 +22,25 @@ function Base.show(io::IO, M::Matroid)
 end
 
 # function that generates the dictionary which maps the groundset to integers
-create_gs2num(E::GroundsetType) = Dict{Any,IntegerUnion}(E[i] => i for i in 1:length(E))
+create_gs2num(E::GroundsetType) = Dict(zip(E, 1:length(E)))
+
+_pmset_to_indices(A::Polymake.Array{<:Polymake.Set{<:Integer}}) = collect.(Int, Polymake.to_one_based_indexing(A))
+_pmset_to_indices(A::Polymake.Set{<:Integer}) = collect(Int, Polymake.to_one_based_indexing(A))
+
+_indices_to_gs(A::AbstractVector{<:AbstractVector{<:Integer}}, gs::AbstractVector) = [gs[S] for S in A]
+_indices_to_gs(A::AbstractVector{<:Integer}, gs::AbstractVector) = gs[A]
+
+_gs_to_indices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = type(collect(Int, gs2num[i] for i in collect(s)))
+_gs_to_pmindices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = Polymake.to_zero_based_indexing(_gs_to_indices(s, gs2num; type=type))
+
+_property_to_gs(M::Matroid, p::Symbol) = _indices_to_gs(_pmset_to_indices(getproperty(pm_object(M), p)), M.groundset)
 
 @doc raw"""
     Matroid(pm_matroid::Polymake.BigObjectAllocated, [E::GroundsetType])
 
 Construct a `matroid` from a `polymake` matroid `M` on the default ground set `{1,...,n}`.
 """
-function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=Vector{Integer}(1:pm_matroid.N_ELEMENTS))
+function Matroid(pm_matroid::Polymake.BigObjectAllocated, E::GroundsetType=collect(1:pm_matroid.N_ELEMENTS))
     return Matroid(pm_matroid, E, create_gs2num(E))
 end
 
@@ -43,7 +56,7 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function matroid_from_revlex_basis_encoding(rvlx::String, r::IntegerUnion, n::IntegerUnion)
-    if match(r"[^*0]",rvlx)!=nothing
+    if match(r"[^*0]",rvlx) !== nothing
         error("The revlex encoding uses only `*` and `0`")
     end
     if length(rvlx)!= binomial(n,r)
@@ -97,7 +110,7 @@ function matroid_from_bases(bases::Union{AbstractVector{T},AbstractSet{T}}, grou
     end
 
     gs2num = create_gs2num(groundset)
-    pm_bases = Vector{Int}[[gs2num[i]-1 for i in B] for B in bases]
+    pm_bases = _gs_to_pmindices.(bases, Ref(gs2num))
     M = Polymake.matroid.Matroid(BASES=pm_bases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of bases")
@@ -153,7 +166,7 @@ function matroid_from_nonbases(nonbases::Union{AbstractVector{T},AbstractSet{T}}
 
     gs2num = create_gs2num(groundset)
     
-    pm_nonbases = [[gs2num[i]-1 for i in B] for B in nonbases]
+    pm_nonbases = _gs_to_pmindices.(nonbases, Ref(gs2num))
     M = Polymake.matroid.Matroid(NON_BASES=pm_nonbases,N_ELEMENTS=length(groundset))
     if check && !Polymake.matroid.check_basis_exchange_axiom(M.BASES)
         error("Input is not a collection of nonbases")
@@ -206,7 +219,7 @@ function matroid_from_circuits(circuits::Union{AbstractVector{T},AbstractSet{T}}
     end
 
     gs2num = create_gs2num(groundset)
-    pm_circuits = [[gs2num[i]-1 for i in C] for C in circuits]
+    pm_circuits = _gs_to_pmindices.(circuits, Ref(gs2num))
     M = Polymake.matroid.Matroid(CIRCUITS=pm_circuits,N_ELEMENTS=length(groundset))
     #TODO check_circuit_exchange_axiom (requires an update of polymake)
     #if check && !Polymake.matroid.check_circuit_exchange_axiom(M.CIRCUITS)
@@ -258,7 +271,7 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
 
     groundset = collect(groundset)
     gs2num = create_gs2num(groundset)
-    pm_hyperplanes = [[gs2num[i]-1 for i in H] for H in hyperplanes]
+    pm_hyperplanes = _gs_to_pmindices.(hyperplanes, Ref(gs2num))
     M = Polymake.matroid.Matroid(MATROID_HYPERPLANES=pm_hyperplanes,N_ELEMENTS=length(groundset))
     #TODO implement a check if these are actually the hyperplanes of a matroid
     return Matroid(M,groundset,gs2num)
@@ -319,7 +332,7 @@ Matroid of rank 2 on 4 elements
 matroid_from_matrix_rows(A::MatrixElem, ; check::Bool=true) = matroid_from_matrix_columns(transpose(A); check=check)
 
 @doc raw"""
-    cycle_matroid(g::Graph)
+    cycle_matroid(g::Graph{Undirected})
 
 The cycle matroid of a graph `g`.
 
@@ -334,12 +347,12 @@ julia> M = cycle_matroid(g)
 Matroid of rank 3 on 6 elements
 ```
 """
-function cycle_matroid(g::Graph)
-    pm_Graph = Polymake.graph.Graph(ADJACENCY=g.pm_graph)
-    M = Polymake.matroid.matroid_from_graph(pm_Graph)
-    n = ne(g)
-    gs2num = create_gs2num(1:n)
-    return Matroid(M,1:n,gs2num)
+function cycle_matroid(g::Graph{Undirected})
+  pm_Graph = Polymake.graph.Graph(ADJACENCY=pm_object(g))
+  M = Polymake.matroid.matroid_from_graph(pm_Graph)
+  gs = collect(edges(g))
+  gs2num = create_gs2num(gs)
+  return Matroid(M,gs,gs2num)
 end
 
 @doc raw"""
@@ -451,7 +464,7 @@ function direct_sum(M::Matroid, N::Matroid)
             gsN[i] = string(gsN[i],'\'')
         end
     end
-    return Matroid(Polymake.matroid.direct_sum(M.pm_matroid,N.pm_matroid),[M.groundset;gsN],create_gs2num([M.groundset;gsN]))
+    return Matroid(Polymake.matroid.direct_sum(pm_object(M), N.pm_matroid), [M.groundset; gsN], create_gs2num([M.groundset; gsN]))
 end
 
 direct_sum(comp::Vector{Matroid}) = foldl(direct_sum, comp)
@@ -497,17 +510,17 @@ function deletion(M::Matroid,set::GroundsetType)
     if !all([e in M.groundset for e in set])
         error("The set of deleted element must be a subset of the groundset.")
     end
-    sort_set = Vector(undef,length(M.groundset)-length(set))
-    gs2num = Dict{Any,IntegerUnion}()
+    sort_set = similar(M.groundset, length(M.groundset)-length(set))
+    gs2num = typeof(M.gs2num)()
     i = 1
     for elem in M.groundset
-        if length(findall(x->x==elem, set))==0
+        if !(elem in set)
             sort_set[i]=elem
             gs2num[elem] = i
             i+=1
         end
     end
-    pm_del = Polymake.matroid.deletion(M.pm_matroid, Set([M.gs2num[i]-1 for i in set]))
+    pm_del = Polymake.matroid.deletion(pm_object(M), _gs_to_pmindices(set, M.gs2num; type=Set))
     return Matroid(pm_del, sort_set, gs2num)
 end
 
@@ -628,10 +641,11 @@ function principal_extension(M::Matroid, set::GroundsetType, elem::ElementType)
     if elem in M.groundset
         error("The element you are about to add is already contained in the ground set")
     end
-    gs2num = copy(M.gs2num)
+    ktype = keytype(M.gs2num)
+    gs2num = Dict{Union{ktype, ElementType}, Int}(M.gs2num)
     gs2num[elem] = length(M.groundset)+1
-    pm_set = Set{Int}([gs2num[i]-1 for i in set])
-    return Matroid(Polymake.matroid.principal_extension(M.pm_matroid, pm_set),[M.groundset;elem],gs2num)
+    pm_set = _gs_to_pmindices(set, gs2num; type=Set)
+    return Matroid(Polymake.matroid.principal_extension(pm_object(M), pm_set),[M.groundset;elem],gs2num)
 end
 
 @doc raw"""
@@ -741,12 +755,35 @@ Construct the Pappus matroid.
 """
 pappus_matroid() = Matroid(Polymake.matroid.pappus_matroid())
 
+
+"""
+    moebius_kantor_matroid() 
+
+Construct the Möbius-Kantor matroid.
+"""
+moebius_kantor_matroid() = matroid_from_revlex_basis_encoding("0******0******0**********0********0*******0****0**0*****", 3, 8)
+
+"""
+    perles_matroid() 
+
+Construct the Perles matroid.
+"""
+perles_matroid() = matroid_from_revlex_basis_encoding("0000************0**********0****0**********0****0****************0*****0******0*****", 3, 9)
+
+
 """
     vamos_matroid()
 
 Construct the Vamos matroid.
 """
 vamos_matroid() = Matroid(Polymake.matroid.vamos_matroid())
+
+"""
+    R10_matroid() 
+
+Construct the R10 matroid.
+"""
+R10_matroid() = matroid_from_revlex_basis_encoding("0000000********0****00********0****00000*0**0**0**0*****0********0****0****00*0**0*0*0*00*******00**0***000**00*0**0*0*0**0*0*0********0****0*******000*00**0**00****0*0*0*00*0**00***0**0**0*00*0**0000**00****00********00**0**0*00****00***00*0**0*******", 5, 10)
 
 """
     all_subsets_matroid(r)
@@ -850,10 +887,10 @@ function affine_geometry(r::Int, q::Int; check::Bool=false)
 end
 
 @doc raw"""
-    automorphism_group(m::Matroid)
+    automorphism_group(M::Matroid)
 
-Given a matroid `m` return its automorphism group as a `PermGroup`.
-The group acts on the elements of `m`.
+Given a matroid `M` return its automorphism group as a `PermGroup`.
+The group acts on the elements of `M`.
 
 # Examples
 ```jldoctest
@@ -861,12 +898,12 @@ julia> M = uniform_matroid(2, 4)
 Matroid of rank 2 on 4 elements
 
 julia> automorphism_group(M)
-Group([ (3,4), (1,2), (2,3) ])
+Permutation group of degree 4
 ```
 """
-function automorphism_group(m::Matroid) 
-  @req length(m) > 0 "The matroid should not be empty."
-  I = rank(m) < 1 ? IncidenceMatrix(bases(dual_matroid(m))) : IncidenceMatrix(bases(m))
-  resize!(I, nrows(I), length(m))
+function automorphism_group(M::Matroid) 
+  @req length(M) > 0 "The matroid should not be empty."
+  I = rank(M) < 1 ? IncidenceMatrix(bases(dual_matroid(M))) : IncidenceMatrix(bases(M))
+  resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end

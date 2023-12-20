@@ -1,5 +1,7 @@
 @testset "Conformance tests" begin
 
+  pm = Polymake
+
     pts = [1 0; 0 0; 0 1]
     lin = [0 1 0]
     Cone1=positive_hull(pts)
@@ -203,7 +205,7 @@
         lincone = positive_hull([1 0 0], [0 1 0])
 
         @test positive_hull(rays_modulo_lineality(lincone)...) == lincone
-        @test ambient_dim(polyhedral_fan(rays_modulo_lineality(lincone)..., IM)) == 3
+        @test ambient_dim(polyhedral_fan(IM, rays_modulo_lineality(lincone)...)) == 3
         
     end
 

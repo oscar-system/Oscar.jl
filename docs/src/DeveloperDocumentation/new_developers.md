@@ -106,6 +106,11 @@ Oscar.test_module
 Oscar.get_seeded_rng
 ```
 
+If a test folder contains a file called `setup_tests.jl` it is included
+automatically before each file (directly) in this directory. This can be used
+to define helper functions that are used in multiple test files, for example
+`test_save_load_roundtrip` for serialization.
+
 ### Adding documentation
 For more information on docstrings, please read our page on [Documenting OSCAR
 code](@ref).  There are two places where documentation can be added:

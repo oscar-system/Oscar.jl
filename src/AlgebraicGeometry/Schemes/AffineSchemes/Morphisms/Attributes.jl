@@ -42,7 +42,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -91,7 +91,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -250,7 +250,7 @@ Spectrum
     by ideal(x1)
 
 julia> f = inclusion_morphism(X, Y)
-Morphism
+Affine scheme morphism
   from [x1, x2, x3]  V(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
@@ -259,7 +259,7 @@ given by the pullback function
   x3 -> x3
 
 julia> graph(f)
-(V(x1, -x1, x2 - x2, x3 - x3), Morphism: V(x1, -x1, x2 - x2, x3 - x3) -> V(x1), Morphism: V(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
+(V(x1, -x1, x2 - x2, x3 - x3), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> V(x1), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
 ```
 """
 function graph(f::AbsSpecMor{<:AbsSpec{BRT}, <:AbsSpec{BRT}}) where {BRT}

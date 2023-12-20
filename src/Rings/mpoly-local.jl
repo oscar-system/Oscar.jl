@@ -31,7 +31,7 @@ mutable struct MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebr
   end
 end
 
-function Oscar.Localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
+function Oscar.localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
   return MPolyRingLoc(R, m)
 end
 
@@ -70,13 +70,13 @@ end
 
 function MPolyRingElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
-  return MPolyRingElemLoc{T}(f//R(1), Localization(R, m), false)
+  return MPolyRingElemLoc{T}(f//R(1), localization(R, m), false)
 end
 
 function MPolyRingElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
-  return MPolyRingElemLoc{elem_type(B)}(f, Localization(R, m))
+  return MPolyRingElemLoc{elem_type(B)}(f, localization(R, m))
 end
 
 ###############################################################################
@@ -88,7 +88,7 @@ function Base.deepcopy_internal(a::MPolyRingElemLoc{T}, dict::IdDict) where T
 end
 
 function Base.show(io::IO, W::MPolyRingLoc)
-  print("Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
+  print(io, "Localization of the ", base_ring(W), " at the maximal ", W.max_ideal)
 end
 
 function Base.show(io::IO, w::MPolyRingElemLoc)
@@ -102,7 +102,6 @@ Nemo.parent(f::MPolyRingElemLoc) = f.parent
 Nemo.numerator(f::MPolyRingElemLoc) = numerator(f.frac)
 Nemo.denominator(f::MPolyRingElemLoc) = denominator(f.frac)
 
-elem_type(::MPolyRingLoc{T}) where {T} = MPolyRingElemLoc{T}
 elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyRingElemLoc{T}
 parent_type(::Type{MPolyRingElemLoc{T}}) where {T} = MPolyRingLoc{T}
 
@@ -356,26 +355,26 @@ function singular_assure(I::IdealGensLoc)
   end
 end
 
+function singular_generators(I::MPolyIdealLoc)
+  singular_assure(I.gens)
+  return I.gens.S
+end
+
 ###############################################################################
 # Ideal arithmetic                                                            #
 ###############################################################################
 
 function Base.:*(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S * J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) * singular_generators(J))
 end
 
 function Base.:+(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S + J.gens.S)
+  return MPolyIdealLoc(I.gens.Ox, singular_generators(I) + singular_generators(J))
 end
 Base.:-(I::MPolyIdealLoc, J::MPolyIdealLoc) = I+J
 
 function Base.:^(I::MPolyIdealLoc, j::Int)
-  singular_assure(I)
-  return MPolyIdealLoc(I.gens.Ox, I.gens.S^j)
+  return MPolyIdealLoc(I.gens.Ox, (singular_generators(I))^j)
 end
 
 ###############################################################################
@@ -416,9 +415,7 @@ end
 ###############################################################################
 
 function Base.:(==)(I::MPolyIdealLoc, J::MPolyIdealLoc)
-  singular_assure(I)
-  singular_assure(J)
-  return Singular.equal(I.gens.S, J.gens.S)
+  return Singular.equal(singular_generators(I), singular_generators(J))
 end
 
 function dim(I::MPolyIdealLoc)

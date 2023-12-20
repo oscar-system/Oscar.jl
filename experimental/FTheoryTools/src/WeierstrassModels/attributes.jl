@@ -77,10 +77,13 @@ Return the base space of the Weierstrass model.
 
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
+Assuming that the first row of the given grading is the grading under Kbar
+
 Weierstrass model over a not fully specified base
 
 julia> base_space(w)
-Scheme of a toric variety with fan spanned by RayVector{QQFieldElem}[[1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0]]
+A family of spaces of dimension d = 3
+```
 """
 function base_space(w::WeierstrassModel)
   base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
@@ -100,7 +103,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> ambient_space(w)
-Normal toric variety
+A family of spaces of dimension d = 5
 ```
 """
 function ambient_space(w::WeierstrassModel)
@@ -121,7 +124,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> fiber_ambient_space(w)
-Normal, non-affine, simplicial, projective, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 fiber_ambient_space(w::WeierstrassModel) = w.fiber_ambient_space
@@ -148,10 +151,8 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the Weierstrass model.
 
 ```jldoctest
-julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
-Assuming that the first row of the given grading is the grading under Kbar
-
-Weierstrass model over a not fully specified base
+julia> w = weierstrass_model(sample_toric_variety(); completeness_check = false)
+Weierstrass model over a concrete base
 
 julia> calabi_yau_hypersurface(w)
 Closed subvariety of a normal toric variety
@@ -167,6 +168,13 @@ end
 #####################################################
 # 2.2 Turn Weierstrass model into Tate model
 #####################################################
+
+# For convenience, allow to turn Weierstrass model into itself
+function weierstrass_model(w::WeierstrassModel)
+  @vprint :WeierstrassModel 0 "Weierstrass model provided, returning this very model.\n"
+  return w
+end
+
 
 # Currently no plan to include
 
@@ -190,7 +198,7 @@ julia> discriminant(w);
 ```
 """
 @attr MPolyRingElem function discriminant(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: NormalToricVariety "Discriminant of Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: Union{NormalToricVariety, FamilyOfSpaces} "Discriminant of Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
   return 4 * w.weierstrass_f^3 + 27 * w.weierstrass_g^2
 end
 
@@ -227,7 +235,7 @@ julia> length(singular_loci(w))
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: NormalToricVariety "Singular loci of Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: Union{NormalToricVariety, FamilyOfSpaces} "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   
   B = irrelevant_ideal(base_space(w))
   

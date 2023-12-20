@@ -1,5 +1,5 @@
 @testset "LieAlgebras.AbstractLieAlgebra" begin
-  function sl2_struct_consts(R::Ring)
+  function sl2_struct_consts(R::Field)
     sc = zeros(R, 3, 3, 3)
     sc[1, 2, 3] = R(1)
     sc[2, 1, 3] = R(-1)
@@ -11,6 +11,14 @@
   end
 
   @testset "conformance tests" begin
+    @testset "0-dim Lie algebra /QQ" begin
+      L = lie_algebra(QQ, Matrix{SRow{QQFieldElem}}(undef, 0, 0), Symbol[])
+      lie_algebra_conformance_test(
+        L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
+      )
+      @test is_abelian(L)
+    end
+
     @testset "sl_2(QQ) using structure constants" begin
       L = lie_algebra(QQ, sl2_struct_consts(QQ), ["e", "f", "h"])
       lie_algebra_conformance_test(
@@ -35,28 +43,28 @@
     end
 
     @testset "A_4(QQ)" begin
-      L = lie_algebra(QQ, ('A', 4))
+      L = lie_algebra(QQ, :A, 4)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
       )
     end
 
     @testset "B_3(QQ)" begin
-      L = lie_algebra(QQ, ('B', 3))
+      L = lie_algebra(QQ, :B, 3)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
       )
     end
 
     @testset "A_4(CF(4))" begin
-      L = lie_algebra(cyclotomic_field(4)[1], ('A', 4))
+      L = lie_algebra(cyclotomic_field(4)[1], :A, 4)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
       )
     end
 
     @testset "B_3(CF(4))" begin
-      L = lie_algebra(cyclotomic_field(4)[1], ('B', 3))
+      L = lie_algebra(cyclotomic_field(4)[1], :B, 3)
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
       )

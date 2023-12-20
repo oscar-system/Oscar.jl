@@ -76,7 +76,11 @@ function describe(io::IO, MILP::MixedIntegerLinearProgram)
   elseif MILP.convention == :min
     print(io, "   min")
   end
-  print(io, "{c⋅x + k | x ∈ P}\n")
+  if is_unicode_allowed()
+    print(io, "{c⋅x + k | x ∈ P}\n")
+  else
+    print(io, "{c*x + k | x in P}\n")
+  end
   print(io, "where P is a " * string(typeof(MILP.feasible_region)))
   print(io, "\n   c=")
   print(io, string(c'))
@@ -176,7 +180,7 @@ function optimal_solution(milp::MixedIntegerLinearProgram{T}) where {T<:scalar_t
     opt_vert = milp.polymake_milp.MINIMAL_SOLUTION
   end
   if !isnothing(opt_vert)
-    return PointVector{T}(dehomogenize(opt_vert))
+    return point_vector(coefficient_field(milp), dehomogenize(opt_vert))::PointVector{T}
   else
     return nothing
   end
@@ -244,3 +248,10 @@ julia> solve_milp(milp)
 ```
 """
 solve_milp(milp::MixedIntegerLinearProgram) = optimal_value(milp), optimal_solution(milp)
+
+@doc raw"""
+    ambient_dim(MILP::MixedIntegerLinearProgram)
+
+Return the ambient dimension of the feasible reagion of `MILP`.
+"""
+ambient_dim(milp::MixedIntegerLinearProgram) = ambient_dim(feasible_region(milp))

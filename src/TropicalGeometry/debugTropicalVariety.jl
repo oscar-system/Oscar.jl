@@ -2,7 +2,7 @@
 # Linear example /QQ(s)
 ###
 import Random
-K,s = RationalFunctionField(QQ,"s");
+K,s = rational_function_field(QQ,"s");
 Kx,(x1,x2,x3,x4) = polynomial_ring(K,4);
 I = ideal([x1-s*x2+(s+1)*x3,3*x2-s^2*x3+(s^2+1)*x4]);
 val = TropicalSemiringMap(K,s,min); Random.seed!(3847598273423); TropI = tropical_variety(I,val) # works
@@ -44,7 +44,7 @@ TropI, wG = tropical_variety(I,val)
 # Grass(2,5) /QQ(s)
 ###
 import Random
-K,s = RationalFunctionField(QQ,"s");
+K,s = rational_function_field(QQ,"s");
 Kx,(x1,x2,x3,x4,x5,x6,x7,x8,x9,x10) = polynomial_ring(K,10);
 p01 = x1
 p02 = x2
@@ -84,7 +84,7 @@ val = TropicalSemiringMap(K,s,max); Random.seed!(3847598273423); TropI,wG = trop
 # Grass(2,5) /FF_p(s)
 ###
 import Random
-K,s = RationalFunctionField(GF(32003),"s");
+K,s = rational_function_field(GF(32003),"s");
 Kx,(p01,p02,p03,p04,p12,p13,p14,p23,p24,p34) = polynomial_ring(K,10);
 I = ideal([p03*p12-p02*p13+p01*p23,
            p04*p12-p02*p14+p01*p24,
@@ -114,7 +114,7 @@ val = TropicalSemiringMap(K,s,max); Random.seed!(3847598273423); TropI = tropica
 # Grass(2,6) /QQ(s)
 ###
 import Random
-K,s = RationalFunctionField(QQ,"s");
+K,s = rational_function_field(QQ,"s");
 Kx,(p01,p02,p03,p04,p05,p12,p13,p14,p15,p23,p24,p25,p34,p35,p45) = polynomial_ring(K,15);
 val = TropicalSemiringMap(K,s);
 I = ideal([p03*p12-p02*p13+p01*p23,  p04*p12-p02*p14+p01*p24,
@@ -155,7 +155,7 @@ Random.seed!(133713371337); TropI,wG = tropical_variety(I,val)
 # Grass(2,6) /FF_p(s)
 ###
 import Random
-K,s = RationalFunctionField(GF(32003),"s");
+K,s = rational_function_field(GF(32003),"s");
 Kx,(p01,p02,p03,p04,p05,p12,p13,p14,p15,p23,p24,p25,p34,p35,p45) = polynomial_ring(K,15);
 val = TropicalSemiringMap(K,s);
 I = ideal([p03*p12-p02*p13+p01*p23,  p04*p12-p02*p14+p01*p24,
@@ -196,7 +196,7 @@ Random.seed!(133713371337); TropI,wG = tropical_variety(I,val)
 # Grass(3,6) /FF_p(s)
 ###
 import Random
-K,s = RationalFunctionField(GF(32003),"s");
+K,s = rational_function_field(GF(32003),"s");
 Kx,(p012,p013,p014,p015,p023,p024,p025,p034,p035,p045,p123,p124,p125,p134,p135,p145,p234,p235,p245,p345) = polynomial_ring(K,20);
 val = TropicalSemiringMap(K,s);
 I = ideal([p014*p023-p013*p024+p012*p034,  p015*p023-p013*p025+p012*p035,

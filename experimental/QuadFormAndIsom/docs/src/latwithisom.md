@@ -2,11 +2,11 @@
 CurrentModule = Oscar
 ```
 
-# Lattice with isometry
+# Lattices with isometry
 
 We call *lattice with isometry* any pair $(L, f)$ consisting of an integer
 lattice $L$ together with an isometry $f \in O(L)$. We refer to the section
-about integer lattices of the documentation for new users.
+about [Integer Lattices](@ref) of the documentation for new users.
 
 In Oscar, such a pair is encoded in the type called `ZZLatWithIsom`:
 
@@ -14,7 +14,7 @@ In Oscar, such a pair is encoded in the type called `ZZLatWithIsom`:
 ZZLatWithIsom
 ```
 
-and it is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists of
+It is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists of
 the ambient rational quadratic space $V$ of $L$ and an isometry $f_a$ of $V$
 preserving $L$ and inducing $f$ on $L$. The integer $n$ is the order of $f$,
 which is a divisor of the order of the isometry $f_a\in O(V)$.
@@ -34,7 +34,7 @@ Note that for some computations, it is more convenient to work either with the
 isometry of the lattice itself, or with the fixed isometry of the ambient
 quadratic space inducing it on the lattice.
 
-## Constructor
+## Constructors
 
 We provide two ways to construct a pair $Lf = (L,f)$ consisting of an integer
 lattice endowed with an isometry. One way to construct an object of type
@@ -81,9 +81,14 @@ genus(::ZZLatWithIsom)
 gram_matrix(::ZZLatWithIsom)
 is_definite(::ZZLatWithIsom)
 is_even(::ZZLatWithIsom)
+is_elementary(::ZZLatWithIsom, ::IntegerUnion)
+is_elementary_with_prime(::ZZLatWithIsom)
 is_integral(::ZZLatWithIsom)
 is_positive_definite(::ZZLatWithIsom)
+is_primary(::ZZLatWithIsom, ::IntegerUnion)
+is_primary_with_prime(::ZZLatWithIsom)
 is_negative_definite(::ZZLatWithIsom)
+is_unimodular(::ZZLatWithIsom)
 minimum(::ZZLatWithIsom)
 minimal_polynomial(::ZZLatWithIsom)
 norm(::ZZLatWithIsom)
@@ -93,8 +98,8 @@ scale(::ZZLatWithIsom)
 signature_tuple(::ZZLatWithIsom)
 ```
 
-Similarly, some basic operations on $\mathbb Z$-lattices are available for
-lattices with isometry.
+Similarly, some basic operations on $\mathbb Z$-lattices and matrices are
+available for integer lattices with isometry.
 
 ```@docs
 Base.:^(::ZZLatWithIsom, ::Int)
@@ -103,6 +108,7 @@ direct_product(::Vector{ZZLatWithIsom})
 direct_sum(::Vector{ZZLatWithIsom})
 dual(::ZZLatWithIsom)
 lll(::ZZLatWithIsom)
+orthogonal_submodule(::ZZLatWithIsom, ::QQMatrix)
 rescale(::ZZLatWithIsom, ::RationalUnion)
 ```
 
@@ -131,7 +137,7 @@ pair $(L, f)$ is of *hermitian type*. The type of a lattice with isometry of
 hermitian type is called *hermitian* (note that the type is only defined for
 finite order isometries).
 
-These namings follow from the fact that, by the trace equivalence, one can
+These names follow from the fact that, by the trace equivalence, one can
 associate to the pair $(L, f)$ a hermitian lattice over the equation order of
 $f$, if it is maximal in the associated number field $\mathbb{Q}[f]$.
 
@@ -140,7 +146,7 @@ is_of_hermitian_type(::ZZLatWithIsom)
 is_hermitian(::Dict)
 ```
 
-## Hermitian structure and trace equivalence
+## Hermitian structures and trace equivalence
 
 As mentioned in the previous section, to a lattice with isometry $Lf := (L, f)$
 such that the minimal polynomial of $f$ is irreducible, one can associate a
@@ -152,7 +158,7 @@ to perform the trace equivalence for lattices with isometry of hermitian type.
 hermitian_structure(::ZZLatWithIsom)
 ```
 
-## Discriminant group
+## Discriminant groups
 
 Given an integral lattice with isometry $Lf := (L, f)$, if one denotes by $D_L$ the
 discriminant group of $L$, there exists a natural map $\pi\colon O(L) \to O(D_L)$
@@ -168,18 +174,25 @@ discriminant_group(::ZZLatWithIsom)
 
 For simple cases as for definite lattices, $f$ being plus-or-minus the identity
 or if the rank of $L$ is equal to the totient of the order of $f$ (in the
-finite case), $G_{L,f}$ can be easily computed. The only other case which can
-be currently handled is for lattices with isometry of hermitian type following
-the *hermitian Miranda-Morisson theory* from [BH23](@cite). This has been implemented
-in this project and it can be indirectly used through the general following method:
+finite case), $G_{L,f}$ can be easily computed. For the remaining cases, we use
+the hermitian version of *Miranda-Morrison theory* as presented in
+[BH23](@cite). The general computation of $G_{L, f}$ has been implemented in this
+project and it can be indirectly used through the general following method:
 
 ```@docs
 image_centralizer_in_Oq(::ZZLatWithIsom)
 ```
 
-For an implementation of the regular Miranda-Morisson theory, we refer to the
+For an implementation of the regular Miranda-Morrison theory, we refer to the
 function `image_in_Oq` which actually computes the image of
 $\pi$ in both the definite and the indefinite case.
+
+More generally, for a finitely generated subgroup $G$ of $O(L)$, we have
+implemented a function which computes the representation of $G$ on $D_L$:
+
+```@docs
+discriminant_representation(::ZZLat, ::MatrixGroup)
+```
 
 We will see later in the section about enumeration of lattices with isometry
 that one can compute $G_{L,f}$ in some particular cases arising from equivariant
@@ -204,6 +217,7 @@ the so-called *invariant* and *coinvariant* lattices of $(L, f)$:
 ```@docs
 coinvariant_lattice(::ZZLatWithIsom)
 invariant_lattice(::ZZLatWithIsom)
+invariant_coinvariant_pair(::ZZLatWithIsom)
 ```
 
 Similarly, we provide the possibility to compute invariant and coinvariant
@@ -221,7 +235,7 @@ invariant_coinvariant_pair(::ZZLat, ::MatrixGroup)
 We conclude this introduction about standard functionalities for lattices with
 isometry by introducing a last invariant for lattices with finite isometry of
 hermitian type $(L, f)$, called the *signatures*. These signatures are
-are intrinsequely connected to the local archimedean invariants of the
+intrinsically connected to the local archimedean invariants of the
 hermitian structure associated to $(L, f)$ via the trace equivalence.
 
 ```@docs
@@ -232,7 +246,6 @@ signatures(::ZZLatWithIsom)
 
 We choose as a convention that two pairs $(L, f)$ and $(L', f')$ of integer
 lattices with isometries are *equal* if their ambient quadratic space with
-isometry of type `QuadSpaceWithIsom` are equal, and if the underlying lattices
+isometry of type [`QuadSpaceWithIsom`](@ref) are equal, and if the underlying lattices
 $L$ and $L'$ are equal as $\mathbb Z$-modules in the common ambient quadratic
 space.
-

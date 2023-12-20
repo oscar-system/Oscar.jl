@@ -148,7 +148,7 @@ function Base.show(io::IO, p::AbstractGAPSL)
     print(io, "r = [ ")
     join(io, ("g$i" for i in 1:k), ", ")
     println(io, " ]")
-    print("# program:")
+    print(io, "# program:")
 
     for line in p.lines
         if issimpleline(line)
@@ -163,7 +163,7 @@ function Base.show(io::IO, p::AbstractGAPSL)
             x, e = line
             print(io, "\norder( r[$x] ) == $e || return false")
         elseif isreturnline(line)
-            print("\n# return values:\n[ ")
+            print(io, "\n# return values:\n[ ")
             for (i, l) in enumerate(line)
                 i == 1 || print(io, ", ")
                 prodshow(io, l)
@@ -174,9 +174,9 @@ function Base.show(io::IO, p::AbstractGAPSL)
         end
     end
     if p isa GAPSLProgram
-        print("\n# return value:\nr[$k]")
+        print(io, "\n# return value:\nr[$k]")
     else
-        print("\n# return value:\ntrue")
+        print(io, "\n# return value:\ntrue")
     end
 end
 

@@ -45,13 +45,13 @@ function (F::FinField)(x::GAP.FFE)
         # value fits into an Int; telling Julia about this via a type assertion
         # results in slightly better code
         val = GAPWrap.INT_FFE_DEFAULT(x)
-        return F(val)
+        return F(val)::elem_type(F)
     end
 
     # Use `iso_oscar_gap` not `iso_gap_oscar` in order to make sure
     # that the result is in `F`, and in order to cache the isomorphism in `F`.
     iso = iso_oscar_gap(F)
-    return preimage(iso, x)
+    return preimage(iso, x)::elem_type(F)
 end
 
 # test code for producing a gap finite field element not stored as FFE:  `GAP.Globals.Z(65537)`
@@ -217,7 +217,7 @@ function matrices_over_field(gapmats::GapObj)
       # (This is more Oscar-like, but the reason why we use this field
       # is that subfields are not supported on the GAP side;
       # for example, already 'FieldOfMatrixList' would not work.)
-      gapF = GAP.getbangproperty(GAP.Globals.FamilyObj(gapmats[1][1,1]), :wholeField)
+      gapF = GAP.getbangproperty(GAPWrap.FamilyObj(gapmats[1][1,1]), :wholeField)
     else
       throw(ArgumentError("gapmats is not a GAP list of matrices over a finite field"))
     end

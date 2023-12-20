@@ -214,7 +214,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
 
   if length(Fac) == 0
     A = abelian_group()
-    function dlog_0(x::Vector); return id(A); end;
+    function dlog_0(x::Vector{<:Hecke.NfRelElem}); return id(A); end;
     function exp_0(x::GrpAbFinGenElem); return one(E); end;
     return A, dlog_0, exp_0
   end
@@ -230,25 +230,25 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
 
   G, proj, inj = biproduct(groups...)
 
-  function dlog(x::Vector)
+  function dlog(x::Vector{<:Hecke.NfRelElem})
     if length(x) == 1
-      return sum([inj[i](dlogs[i](x[1])) for i in 1:length(Fac)]) 
+      return sum(inj[i](dlogs[i](x[1])) for i in 1:length(Fac)) 
     else
       @hassert :ZZLatWithIsom 1 length(x) == length(Fac)
-      return sum([inj[i](dlogs[i](x[i])) for i in 1:length(Fac)])
+      return sum(inj[i](dlogs[i](x[i])) for i in 1:length(Fac))
     end
   end
 
   function exp(x::GrpAbFinGenElem)
-    v = Hecke.NfRelElem[exps[i](proj[i](x)) for i in 1:length(Fac)]
+    v = elem_type(E)[exps[i](proj[i](x)) for i in 1:length(Fac)]
     @hassert :ZZLatWithIsom 1 dlog(v) == x
     return v
   end
 
-  for i in 1:10
-    a = rand(G)
-    @hassert :ZZLatWithIsom 1 dlog(exp(a)) == a
-  end
+  @v_do :ZZLatWithIsom 1 for i in 1:10
+      a = rand(G)
+      @hassert :ZZLatWithIsom 1 dlog(exp(a)) == a
+    end
 
   return G, dlog, exp
 end
@@ -314,14 +314,15 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
   if rank(Lf) != degree(Lf)
-    Lf2 = integer_lattice_with_isometry(integer_lattice(gram = gram_matrix(Lf)), isometry(Lf); ambient_representation = false)
+    Lf2 = integer_lattice_with_isometry(integer_lattice(gram = gram_matrix(Lf)), isometry(Lf); ambient_representation = false, check = false)
     qL2, fqL2 = discriminant_group(Lf2)
     OqL2 = orthogonal_group(qL2)
     ok, phi12 = is_isometric_with_isometry(qL, qL2)
     @hassert :ZZLatWithIsom 1 ok
-    ok, g0 = is_conjugate_with_data(OqL, fqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12)))))
+    ok, g0 = is_conjugate_with_data(OqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12))); check = false), fqL)
     @hassert :ZZLatWithIsom 1 ok
     phi12 = compose(hom(OqL(g0)), phi12)
+    #@hassert :ZZLatWithIsom 1 matrix(compose(hom(fqL), phi12)) == matrix(compose(phi12, hom(fqL2)))
     @hassert :ZZLatWithIsom 1 is_isometry(phi12)
   else
     Lf2 = Lf
@@ -333,8 +334,11 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # fqL, G is the group where we want to compute the image of O(L, f). This
   # group G corresponds to U(D_L) in the notation of BH23.
   G2, _ = centralizer(OqL2, fqL2)
-  G, _ = sub(OqL, elem_type(OqL)[OqL(compose(phi12, compose(hom(g), inv(phi12)))) for g in gens(G2)])
-  GtoG2 = hom(G, G2, gens(G), gens(G2))
+  gensG2 = gens(G2)
+  gensG = elem_type(OqL)[OqL(compose(phi12, compose(hom(g), inv(phi12))); check = false) for g in gensG2]
+  G, GinOqL = sub(OqL, gensG)
+  @hassert :ZZLatWithIsom 1 fqL in G
+  GtoG2 = hom(G, G2, gensG, gensG2; check = false)
 
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
@@ -407,7 +411,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   RmodF, Flog, _ = _get_product_quotient(E, Fdata)
 
   A = elem_type(RmodF)[Flog(Fsharpexp(g)) for g in gens(RmodFsharp)]
-  f = hom(RmodFsharp, RmodF, A)
+  f = hom(RmodFsharp, RmodF, A; check = false)
   FmodFsharp, j = kernel(f)
 
   # Now according to Theorem 6.15 of BH23, it remains to quotient out the image
@@ -418,10 +422,10 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   OK = base_ring(OE)
   UOK, mUOK = unit_group(OK)
 
-  fU = hom(UOEabs, UOK, elem_type(UOK)[mUOK\norm(OE(mUOK(m))) for m in gens(UOK)])
+  fU = hom(UOEabs, UOK, elem_type(UOK)[mUOK\norm(OE(mUOK(m))) for m in gens(UOK)]; check = false)
   KU, jU = kernel(fU)
 
-  gene_norm_one = Hecke.NfRelElem[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
+  gene_norm_one = elem_type(E)[EabstoE(Eabs(mUOEabs(jU(k)))) for k in gens(KU)]
 
   # Now according to Theorem 6.15 of BH23, it remains to quotient out
   FOEmodFsharp, m = sub(RmodFsharp, elem_type(RmodFsharp)[Fsharplog(typeof(x)[x for i in 1:length(S)]) for x in gene_norm_one])
@@ -445,7 +449,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # consider up to now, and then map the corresponding determinant adeles inside
   # Q. Since our matrices were approximate lifts of the generators of G, we can
   # create the map we wanted from those data.
-  for g in gens(G2)
+  for g in gensG2
     ds = elem_type(E)[]
     for p in S
       if !_is_special(H, p)
@@ -464,10 +468,11 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   end
 
   GSQ, SQtoGSQ, _ = Oscar._isomorphic_gap_group(SQ)
-  f2 = hom(G2, GSQ, gens(G2), SQtoGSQ.(imgs); check = false)
+  f2 = hom(G2, GSQ, gensG2, SQtoGSQ.(imgs); check = false)
   f = compose(GtoG2, f2)
 
-  return f
+  @hassert :ZZLatWithIsom 1 isone(f(fqL))
+  return f, GinOqL # Needs the second map to map the kernel of f into OqL
 end
 
 # We check whether for the prime ideal p E_O(L_p) != F(L_p).
@@ -506,7 +511,7 @@ function _is_special(L::HermLat, p::NfOrdIdl)
   u = elem_in_nf(uniformizer(P))
   s = involution(L)
   su = s(u)
-  H = block_diagonal_matrix([matrix(E, 2, 2, [0 u^(S[i]); su^(S[i]) 0]) for i in 1:length(S)])
+  H = block_diagonal_matrix(dense_matrix_type(E)[matrix(E, 2, 2, [0 u^(S[i]); su^(S[i]) 0]) for i in 1:length(S)])
   return is_locally_isometric(L, hermitian_lattice(E; gram = H), p)
 end
 
@@ -677,7 +682,7 @@ function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem
   Bps = _local_basis_modular_submodules(H2, minimum(P), a, res)
   Bp = reduce(vcat, Bps)
   Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
-  Fp = block_diagonal_matrix([_transfer_discriminant_isometry(res, g, Bps[i], P, BHp_inv) for i in 1:length(Bps)])
+  Fp = block_diagonal_matrix(typeof(Gp)[_transfer_discriminant_isometry(res, g, Bps[i], P, BHp_inv) for i in 1:length(Bps)])
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
@@ -717,7 +722,7 @@ function _local_basis_modular_submodules(H::HermLat, p::NfOrdIdl, a::Int, res::A
       L2 = restrict_scalars(H2, res)
       L2 = intersect(L, L2)
       B2 = basis_matrix(L2)
-      gene = [res(vec(collect(B2[i, :]))) for i in 1:nrows(B2)]
+      gene = Vector{elem_type(base_field(H))}[res(vec(collect(B2[i, :]))) for i in 1:nrows(B2)]
       H2 = lattice(ambient_space(H), gene)
       b = local_basis_matrix(H2, p; type = :submodule)
     end
@@ -736,7 +741,7 @@ end
 #    exactly what we look for (a unit at P with trace 1);
 #  - p is ramified, and then we cook up a good element. The actual code from
 #    that part is taken from the Sage implementation of Simon Brandhorst
-function _find_rho(P::Hecke.NfRelOrdIdl, e)
+function _find_rho(P::Hecke.NfRelOrdIdl, e::Int)
   OE = order(P)
   E = nf(OE)
   lp = prime_decomposition(OE, minimum(P))

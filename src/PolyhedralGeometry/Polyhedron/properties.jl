@@ -25,80 +25,147 @@ julia> F = faces(cube(3), 2)
  Polyhedron in ambient dimension 3
 ```
 """
-function faces(P::Polyhedron{T}, face_dim::Int) where T<:scalar_types
-    face_dim == dim(P) - 1 && return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
-    n = face_dim - length(lineality_space(P))
-    n < 0 && return nothing
-    pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
-    farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
-    rfaces = Vector{Int}(filter(i->!(pfaces[i] <= farf), range(1,length(pfaces); step=1)))
-    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron, length(rfaces), (f_dim = n, f_ind = rfaces))
+function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
+  face_dim == dim(P) - 1 &&
+    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
+  n = face_dim - length(lineality_space(P))
+  n < 0 && return nothing
+  pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
+  farf = Polymake.to_one_based_indexing(pm_object(P).FAR_FACE)
+  rfaces = Vector{Int}(filter(i -> !(pfaces[i] <= farf), range(1, length(pfaces); step=1)))
+  return SubObjectIterator{Polyhedron{T}}(
+    P, _face_polyhedron, length(rfaces), (f_dim=n, f_ind=rfaces)
+  )
 end
 
-function _face_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer; f_dim::Int = -1, f_ind::Vector{Int64} = Vector{Int64}()) where T<:scalar_types
-    pface = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim))[f_ind[i]]
-    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), coefficient_field(P))
+function _face_polyhedron(
+  ::Type{Polyhedron{T}},
+  P::Polyhedron{T},
+  i::Base.Integer;
+  f_dim::Int=-1,
+  f_ind::Vector{Int64}=Vector{Int64}(),
+) where {T<:scalar_types}
+  pface = Polymake.to_one_based_indexing(
+    Polymake.polytope.faces_of_dim(pm_object(P), f_dim)
+  )[f_ind[i]]
+  V = pm_object(P).VERTICES[collect(pface), :]
+  L = pm_object(P).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T)
+  return Polyhedron{T}(
+    Polymake.polytope.Polytope{PT}(; VERTICES=V, LINEALITY_SPACE=L), coefficient_field(P)
+  )
 end
 
-function _vertex_indices(::Val{_face_polyhedron}, P::Polyhedron; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind])))[:, _vertex_indices(pm_object(P))]
+function _vertex_indices(
+  ::Val{_face_polyhedron}, P::Polyhedron; f_dim=-1, f_ind::Vector{Int64}=Vector{Int64}()
+)
+  return IncidenceMatrix(
+    collect.(
+      Polymake.to_one_based_indexing(
+        Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind]
+      )
+    ),
+  )[
+    :, _vertex_indices(pm_object(P))
+  ]
 end
 
-function _ray_indices(::Val{_face_polyhedron}, P::Polyhedron; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind])))[:, _ray_indices(pm_object(P))]
+function _ray_indices(
+  ::Val{_face_polyhedron}, P::Polyhedron; f_dim=-1, f_ind::Vector{Int64}=Vector{Int64}()
+)
+  return IncidenceMatrix(
+    collect.(
+      Polymake.to_one_based_indexing(
+        Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind]
+      )
+    ),
+  )[
+    :, _ray_indices(pm_object(P))
+  ]
 end
 
-function _vertex_and_ray_indices(::Val{_face_polyhedron}, P::Polyhedron; f_dim = -1, f_ind::Vector{Int64} = Vector{Int64}())
-    return IncidenceMatrix(collect.(Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind])))
+function _vertex_and_ray_indices(
+  ::Val{_face_polyhedron}, P::Polyhedron; f_dim=-1, f_ind::Vector{Int64}=Vector{Int64}()
+)
+  return IncidenceMatrix(
+    collect.(
+      Polymake.to_one_based_indexing(
+        Polymake.polytope.faces_of_dim(pm_object(P), f_dim)[f_ind]
+      )
+    ),
+  )
 end
 
 _incidencematrix(::Val{_face_polyhedron}) = _vertex_and_ray_indices
 
-function _face_polyhedron_facet(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
-    pface = pm_object(P).VERTICES_IN_FACETS[_facet_index(pm_object(P), i), :]
-    return Polyhedron{T}(Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}(VERTICES = pm_object(P).VERTICES[collect(pface),:], LINEALITY_SPACE = pm_object(P).LINEALITY_SPACE), coefficient_field(P))
+function _face_polyhedron_facet(
+  ::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types}
+  pface = pm_object(P).VERTICES_IN_FACETS[_facet_index(pm_object(P), i), :]
+  V = pm_object(P).VERTICES[collect(pface), :]
+  L = pm_object(P).LINEALITY_SPACE
+  PT = _scalar_type_to_polymake(T)
+  return Polyhedron{T}(
+    Polymake.polytope.Polytope{PT}(; VERTICES=V, LINEALITY_SPACE=L), coefficient_field(P)
+  )
 end
 
-_vertex_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))])
+_vertex_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[
+    1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))
+  ],
+  pm_object(P).VERTICES_IN_FACETS[
+    (_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))
+  ],
+)
 
-_ray_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _ray_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _ray_indices(pm_object(P))])
+_ray_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[
+    1:(_facet_at_infinity(pm_object(P)) - 1), _ray_indices(pm_object(P))
+  ],
+  pm_object(P).VERTICES_IN_FACETS[
+    (_facet_at_infinity(pm_object(P)) + 1):end, _ray_indices(pm_object(P))
+  ],
+)
 
-_vertex_and_ray_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), :], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, :])
+_vertex_and_ray_indices(::Val{_face_polyhedron_facet}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), :],
+  pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, :],
+)
 
 _incidencematrix(::Val{_face_polyhedron_facet}) = _vertex_and_ray_indices
 
 function _isray(P::Polyhedron, i::Base.Integer)
-    return in(i, _ray_indices(pm_object(P)))
+  return in(i, _ray_indices(pm_object(P)))
 end
 
 function _vertex_indices(P::Polymake.BigObject)
-    vi = Polymake.get_attachment(P, "_vertex_indices")
-    if isnothing(vi)
-        A = P.VERTICES
-        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(findall(!iszero, view(A, :, 1)))
-        Polymake.attach(P, "_vertex_indices", vi)
-    end
-    return vi
+  vi = Polymake.get_attachment(P, "_vertex_indices")
+  if isnothing(vi)
+    A = P.VERTICES
+    vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(findall(!iszero, view(A, :, 1)))
+    Polymake.attach(P, "_vertex_indices", vi)
+  end
+  return vi
 end
 
 _ray_indices(P::Polymake.BigObject) = collect(Polymake.to_one_based_indexing(P.FAR_FACE))
 
 function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, i::Base.Integer)
-    return i - sum((>).(i, P.FAR_FACE))
+  return i - sum((>).(i, P.FAR_FACE))
 end
 
 function _polymake_to_oscar_vertex_index(P::Polymake.BigObject, v::AbstractVector)
-    return [_polymake_to_oscar_vertex_index(P, v[i]) for i in 1:length(v)]
+  return [_polymake_to_oscar_vertex_index(P, v[i]) for i in 1:length(v)]
 end
 
 function _polymake_to_oscar_ray_index(P::Polymake.BigObject, i::Base.Integer)
-    return sum((<).(i, P.FAR_FACE))
+  return sum((<).(i, P.FAR_FACE))
 end
 
 function _polymake_to_oscar_ray_index(P::Polymake.BigObject, v::AbstractVector)
-    return [_polymake_to_oscar_ray_index(P, v[i]) for i in 1:length(v)]
+  return [_polymake_to_oscar_ray_index(P, v[i]) for i in 1:length(v)]
 end
-
 
 @doc raw"""
     minimal_faces(as, P::Polyhedron)
@@ -126,16 +193,25 @@ julia> minimal_faces(P)
 (base_points = PointVector{QQFieldElem}[[0, 0]], lineality_basis = RayVector{QQFieldElem}[[1, 0]])
 ```
 """
-minimal_faces(P::Polyhedron{T}) where T<:scalar_types = minimal_faces(NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
-function minimal_faces(as::Type{NamedTuple{(:base_points, :lineality_basis), Tuple{SubObjectIterator{PointVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron{T}) where T<:scalar_types
-    return (
-        base_points = _vertices(PointVector{T}, P),
-        lineality_basis = lineality_space(P)
-    )
+minimal_faces(P::Polyhedron{T}) where {T<:scalar_types} = minimal_faces(
+  NamedTuple{
+    (:base_points, :lineality_basis),
+    Tuple{SubObjectIterator{PointVector{T}},SubObjectIterator{RayVector{T}}},
+  },
+  P,
+)
+function minimal_faces(
+  ::Type{
+    NamedTuple{
+      (:base_points, :lineality_basis),
+      Tuple{SubObjectIterator{PointVector{T}},SubObjectIterator{RayVector{T}}},
+    },
+  },
+  P::Polyhedron{T},
+) where {T<:scalar_types}
+  return (base_points=_vertices(PointVector{T}, P), lineality_basis=lineality_space(P))
 end
-minimal_faces(as::Type{PointVector{T}}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
-
-
+minimal_faces(::Type{<:PointVector}, P::Polyhedron) = _vertices(P)
 
 @doc raw"""
     rays_modulo_lineality(as, P::Polyhedron)
@@ -162,15 +238,25 @@ julia> rmlP.lineality_basis
  [1, 0, 0]
 ```
 """
-rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types = rays_modulo_lineality(NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}, P)
-function rays_modulo_lineality(as::Type{NamedTuple{(:rays_modulo_lineality, :lineality_basis), Tuple{SubObjectIterator{RayVector{T}}, SubObjectIterator{RayVector{T}}}}}, P::Polyhedron) where T<:scalar_types
-    return (
-        rays_modulo_lineality = _rays(P),
-        lineality_basis = lineality_space(P)
-    )
+rays_modulo_lineality(P::Polyhedron{T}) where {T<:scalar_types} = rays_modulo_lineality(
+  NamedTuple{
+    (:rays_modulo_lineality, :lineality_basis),
+    Tuple{SubObjectIterator{RayVector{T}},SubObjectIterator{RayVector{T}}},
+  },
+  P,
+)
+function rays_modulo_lineality(
+  ::Type{
+    NamedTuple{
+      (:rays_modulo_lineality, :lineality_basis),
+      Tuple{SubObjectIterator{RayVector{T}},SubObjectIterator{RayVector{T}}},
+    },
+  },
+  P::Polyhedron{T},
+) where {T<:scalar_types}
+  return (rays_modulo_lineality=_rays(P), lineality_basis=lineality_space(P))
 end
-rays_modulo_lineality(as::Type{RayVector}, P::Polyhedron) = _rays(P)
-
+rays_modulo_lineality(::Type{<:RayVector}, P::Polyhedron) = _rays(P)
 
 @doc raw"""
     vertices(as, P)
@@ -197,29 +283,47 @@ julia> vertices(PointVector, P)
  [1, 2]
 ```
 """
-vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, P)
-_vertices(as::Type{PointVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
+vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
+  lineality_dim(P) == 0 ? _vertices(as, P) : _empty_subobjectiterator(as, P)
+_vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
+  SubObjectIterator{as}(P, _vertex_polyhedron, length(_vertex_indices(pm_object(P))))
 
-_vertex_polyhedron(::Type{PointVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = PointVector{T}(coefficient_field(P).(@view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end]))
+_vertex_polyhedron(
+  U::Type{PointVector{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types} = point_vector(
+  coefficient_field(P),
+  @view pm_object(P).VERTICES[_vertex_indices(pm_object(P))[i], 2:end]
+)::U
 
-_point_matrix(::Val{_vertex_polyhedron}, P::Polyhedron; homogenized=false) = @view pm_object(P).VERTICES[_vertex_indices(pm_object(P)), (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_vertex_polyhedron}, P::Polyhedron; homogenized=false) =
+  @view pm_object(P).VERTICES[_vertex_indices(pm_object(P)), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_vertex_polyhedron}) = _point_matrix
 
-vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = vertices(PointVector{T}, P)
-_vertices(::Type{PointVector}, P::Polyhedron{T}) where T<:scalar_types = _vertices(PointVector{T}, P)
+vertices(::Type{<:PointVector}, P::Polyhedron{T}) where {T<:scalar_types} =
+  vertices(PointVector{T}, P)
+_vertices(::Type{<:PointVector}, P::Polyhedron{T}) where {T<:scalar_types} =
+  _vertices(PointVector{T}, P)
 
-_facet_indices(::Val{_vertex_polyhedron}, P::Polyhedron) = pm_object(P).FACETS_THRU_VERTICES[_vertex_indices(pm_object(P)),_facet_indices(pm_object(P))]
+_facet_indices(::Val{_vertex_polyhedron}, P::Polyhedron) =
+  pm_object(P).FACETS_THRU_VERTICES[
+    _vertex_indices(pm_object(P)), _facet_indices(pm_object(P))
+  ]
 
 _incidencematrix(::Val{_vertex_polyhedron}) = _facet_indices
 
 function _facet_indices(P::Polymake.BigObject)
-    vi = Polymake.get_attachment(P, "_facet_indices")
-    if isnothing(vi)
-        vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}([collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))])
-        Polymake.attach(P, "_facet_indices", vi);
-    end
-    return vi;
+  vi = Polymake.get_attachment(P, "_facet_indices")
+  if isnothing(vi)
+    vi = Polymake.Vector{Polymake.to_cxx_type(Int64)}(
+      [
+        collect(1:(_facet_at_infinity(P) - 1))
+        collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))
+      ],
+    )
+    Polymake.attach(P, "_facet_indices", vi)
+  end
+  return vi
 end
 
 @doc raw"""
@@ -244,7 +348,6 @@ julia> vertices(P)
 """
 vertices(P::Polyhedron) = vertices(PointVector, P)
 _vertices(P::Polyhedron) = _vertices(PointVector, P)
-
 
 @doc raw"""
     nrays(P::Polyhedron)
@@ -289,7 +392,6 @@ julia> nvertices(C)
 nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
 _nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
 
-
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)
 
@@ -311,21 +413,30 @@ julia> rays(RayVector, PO)
  [0, 1]
 ```
 """
-rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, P)
-_rays(as::Type{RayVector{T}}, P::Polyhedron) where T<:scalar_types = SubObjectIterator{as}(P, _ray_polyhedron, length(_ray_indices(pm_object(P))))
+rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
+  lineality_dim(P) == 0 ? _rays(as, P) : _empty_subobjectiterator(as, P)
+_rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
+  SubObjectIterator{as}(P, _ray_polyhedron, length(_ray_indices(pm_object(P))))
 
-_ray_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(P).(@view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end]))
+_ray_polyhedron(
+  U::Type{RayVector{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types} = ray_vector(
+  coefficient_field(P), @view pm_object(P).VERTICES[_ray_indices(pm_object(P))[i], 2:end]
+)::U
 
-_facet_indices(::Val{_ray_polyhedron}, P::Polyhedron) = pm_object(P).FACETS_THRU_RAYS[_ray_indices(pm_object(P)), _facet_indices(pm_object(P))]
+_facet_indices(::Val{_ray_polyhedron}, P::Polyhedron) =
+  pm_object(P).FACETS_THRU_RAYS[_ray_indices(pm_object(P)), _facet_indices(pm_object(P))]
 
-_vector_matrix(::Val{_ray_polyhedron}, P::Polyhedron; homogenized=false) = @view pm_object(P).VERTICES[_ray_indices(pm_object(P)), (homogenized ? 1 : 2):end]
+_vector_matrix(::Val{_ray_polyhedron}, P::Polyhedron; homogenized=false) =
+  @view pm_object(P).VERTICES[_ray_indices(pm_object(P)), (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_ray_polyhedron}) = _vector_matrix
 
 _incidencematrix(::Val{_ray_polyhedron}) = _facet_indices
 
-rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = rays(RayVector{T}, P)
-_rays(::Type{RayVector}, P::Polyhedron{T}) where T<:scalar_types = _rays(RayVector{T}, P)
+rays(::Type{<:RayVector}, P::Polyhedron{T}) where {T<:scalar_types} = rays(RayVector{T}, P)
+_rays(::Type{<:RayVector}, P::Polyhedron{T}) where {T<:scalar_types} =
+  _rays(RayVector{T}, P)
 
 @doc raw"""
     rays(P::Polyhedron)
@@ -370,8 +481,8 @@ julia> nfacets(cross_polytope(5))
 ```
 """
 function nfacets(P::Polyhedron)
-    n = size(pm_object(P).FACETS, 1)::Int
-    return n - (_facet_at_infinity(pm_object(P)) != n + 1)
+  n = size(pm_object(P).FACETS, 1)::Int
+  return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
 
 @doc raw"""
@@ -400,44 +511,76 @@ julia> facets(Polyhedron, C)
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
-facets(as::Type{T}, P::Polyhedron{S}) where {R, S<:scalar_types, T<:Union{AffineHalfspace{S}, Pair{R, S}, Polyhedron{S}}} = SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
+facets(
+  as::Type{T}, P::Polyhedron{S}
+) where {R,S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S},Polyhedron{S}}} =
+  SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
 
-function _facet_polyhedron(::Type{AffineHalfspace{S}}, P::Polyhedron, i::Base.Integer) where S<:scalar_types
-    h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
-    return affine_halfspace(coefficient_field(P), h[1], h[2][])
+function _facet_polyhedron(
+  U::Type{AffineHalfspace{S}}, P::Polyhedron{S}, i::Base.Integer
+) where {S<:scalar_types}
+  h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
+  return affine_halfspace(coefficient_field(P), h[1], h[2][])::U
 end
-function _facet_polyhedron(::Type{Pair{R, S}}, P::Polyhedron, i::Base.Integer) where {R, S<:scalar_types}
-    f = coefficient_field(P)
-    h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
-    return Pair{R, S}(f.(view(h[1], :, :)), f(h[2][])) # view_broadcast
+function _facet_polyhedron(
+  U::Type{Pair{R,S}}, P::Polyhedron{S}, i::Base.Integer
+) where {R,S<:scalar_types}
+  f = coefficient_field(P)
+  h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
+  return U(f.(view(h[1], :, :)), f(h[2][])) # view_broadcast
 end
-function _facet_polyhedron(::Type{Polyhedron{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
-  return Polyhedron{T}(Polymake.polytope.facet(pm_object(P), _facet_index(pm_object(P), i)-1), coefficient_field(P))
+function _facet_polyhedron(
+  ::Type{Polyhedron{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types}
+  return Polyhedron{T}(
+    Polymake.polytope.facet(pm_object(P), _facet_index(pm_object(P), i) - 1),
+    coefficient_field(P),
+  )
 end
 
-_affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polyhedron) = -_remove_facet_at_infinity(pm_object(P))
+_affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polyhedron) =
+  -_remove_facet_at_infinity(pm_object(P))
 
 _affine_matrix_for_polymake(::Val{_facet_polyhedron}) = _affine_inequality_matrix
 
-_vertex_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))])
+_vertex_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[
+    1:(_facet_at_infinity(pm_object(P)) - 1), _vertex_indices(pm_object(P))
+  ],
+  pm_object(P).VERTICES_IN_FACETS[
+    (_facet_at_infinity(pm_object(P)) + 1):end, _vertex_indices(pm_object(P))
+  ],
+)
 
-_ray_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), _ray_indices(pm_object(P))], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, _ray_indices(pm_object(P))])
+_ray_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[
+    1:(_facet_at_infinity(pm_object(P)) - 1), _ray_indices(pm_object(P))
+  ],
+  pm_object(P).VERTICES_IN_FACETS[
+    (_facet_at_infinity(pm_object(P)) + 1):end, _ray_indices(pm_object(P))
+  ],
+)
 
-_vertex_and_ray_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), :], pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, :])
+_vertex_and_ray_indices(::Val{_facet_polyhedron}, P::Polyhedron) = vcat(
+  pm_object(P).VERTICES_IN_FACETS[1:(_facet_at_infinity(pm_object(P)) - 1), :],
+  pm_object(P).VERTICES_IN_FACETS[(_facet_at_infinity(pm_object(P)) + 1):end, :],
+)
 
 _incidencematrix(::Val{_facet_polyhedron}) = _vertex_and_ray_indices
 
-facets(::Type{Pair}, P::Polyhedron{T}) where T<:scalar_types = facets(Pair{Matrix{T}, T}, P)
+facets(::Type{<:Pair}, P::Polyhedron{T}) where {T<:scalar_types} =
+  facets(Pair{Matrix{T},T}, P)
 
-facets(::Type{Polyhedron}, P::Polyhedron{T}) where T<:scalar_types = facets(Polyhedron{T}, P)
+facets(::Type{Polyhedron}, P::Polyhedron{T}) where {T<:scalar_types} =
+  facets(Polyhedron{T}, P)
 
 @doc raw"""
     facets(P::Polyhedron)
@@ -451,43 +594,49 @@ julia> C = cube(3);
 
 julia> facets(C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
-facets(P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
+facets(P::Polyhedron{T}) where {T<:scalar_types} = facets(AffineHalfspace{T}, P)
 
-facets(::Type{Halfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
-
-facets(::Type{AffineHalfspace}, P::Polyhedron{T}) where T<:scalar_types = facets(AffineHalfspace{T}, P)
+facets(::Type{<:Halfspace}, P::Polyhedron{T}) where {T<:scalar_types} =
+  facets(AffineHalfspace{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
-    i < _facet_at_infinity(P) && return i
-    return i + 1
+  i < _facet_at_infinity(P) && return i
+  return i + 1
 end
 
 function _facet_at_infinity(P::Polymake.BigObject)
-    fai = Polymake.get_attachment(P, "_facet_at_infinity")
-    m = size(P.FACETS,1)
-    if isnothing(fai)
-        i = 1
-        while i <= m
-            _is_facet_at_infinity(view(P.FACETS, i, :)) && break
-            i += 1
-        end
-        fai = i
-        Polymake.attach(P, "_facet_at_infinity", fai)
+  fai = Polymake.get_attachment(P, "_facet_at_infinity")
+  m = size(P.FACETS, 1)
+  if isnothing(fai)
+    i = 1
+    while i <= m
+      _is_facet_at_infinity(view(P.FACETS, i, :)) && break
+      i += 1
     end
-    return fai::Int64
+    fai = i
+    Polymake.attach(P, "_facet_at_infinity", fai)
+  end
+  return fai::Int64
 end
 
 _is_facet_at_infinity(v::AbstractVector) = v[1] >= 0 && iszero(v[2:end])
 
-_remove_facet_at_infinity(P::Polymake.BigObject) = view(P.FACETS, [collect(1:(_facet_at_infinity(P) - 1)); collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))], :)
+_remove_facet_at_infinity(P::Polymake.BigObject) = view(
+  P.FACETS,
+  [
+    collect(1:(_facet_at_infinity(P) - 1))
+    collect((_facet_at_infinity(P) + 1):size(P.FACETS, 1))
+  ],
+  :,
+)
 
 ###############################################################################
 ###############################################################################
@@ -516,7 +665,6 @@ julia> lineality_dim(C)
 """
 lineality_dim(P::Polyhedron) = pm_object(P).LINEALITY_DIM::Int
 
-
 @doc raw"""
     volume(P::Polyhedron)
 
@@ -530,8 +678,8 @@ julia> volume(C)
 4
 ```
 """
-volume(P::Polyhedron{T}) where T<:scalar_types = coefficient_field(P)((pm_object(P)).VOLUME)
-
+volume(P::Polyhedron{T}) where {T<:scalar_types} =
+  coefficient_field(P)((pm_object(P)).VOLUME)
 
 @doc raw"""
     lattice_volume(P::Polyhedron{QQFieldElem})
@@ -546,8 +694,8 @@ julia> lattice_volume(C)
 8
 ```
 """
-lattice_volume(P::Polyhedron{QQFieldElem})::ZZRingElem = _assert_lattice(P) && pm_object(P).LATTICE_VOLUME
-
+lattice_volume(P::Polyhedron{QQFieldElem})::ZZRingElem =
+  _assert_lattice(P) && pm_object(P).LATTICE_VOLUME
 
 @doc raw"""
     normalized_volume(P::Polyhedron)
@@ -562,8 +710,8 @@ julia> normalized_volume(C)
 8
 ```
 """
-normalized_volume(P::Polyhedron{T}) where T<:scalar_types = coefficient_field(P)(factorial(dim(P))*(pm_object(P)).VOLUME)
-
+normalized_volume(P::Polyhedron) =
+  coefficient_field(P)(factorial(dim(P)) * (pm_object(P)).VOLUME)
 
 @doc raw"""
     dim(P::Polyhedron)
@@ -581,7 +729,6 @@ julia> dim(P)
 ```
 """
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
-
 
 @doc raw"""
     lattice_points(P::Polyhedron{QQFieldElem})
@@ -611,16 +758,20 @@ julia> matrix(ZZ, lattice_points(S))
 ```
 """
 function lattice_points(P::Polyhedron{QQFieldElem})
-    @req pm_object(P).BOUNDED "Polyhedron not bounded"
-    return SubObjectIterator{PointVector{ZZRingElem}}(P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1))
+  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  return SubObjectIterator{PointVector{ZZRingElem}}(
+    P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
+  )
 end
 
-_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])
+_lattice_point(
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
-_point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) = @view pm_object(P).LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
+_point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
+  @view pm_object(P).LATTICE_POINTS_GENERATORS[1][:, (homogenized ? 1 : 2):end]
 
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
-
 
 @doc raw"""
     interior_lattice_points(P::Polyhedron{QQFieldElem})
@@ -642,13 +793,22 @@ julia> matrix(ZZ, interior_lattice_points(c))
 ```
 """
 function interior_lattice_points(P::Polyhedron{QQFieldElem})
-    @req pm_object(P).BOUNDED "Polyhedron not bounded"
-    return SubObjectIterator{PointVector{ZZRingElem}}(P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1))
+  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  return SubObjectIterator{PointVector{ZZRingElem}}(
+    P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
+  )
 end
 
-_interior_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])
+_interior_lattice_point(
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
-_point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).INTERIOR_LATTICE_POINTS : @view pm_object(P).INTERIOR_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) =
+  if homogenized
+    pm_object(P).INTERIOR_LATTICE_POINTS
+  else
+    @view pm_object(P).INTERIOR_LATTICE_POINTS[:, 2:end]
+  end
 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
@@ -682,13 +842,22 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 ```
 """
 function boundary_lattice_points(P::Polyhedron{QQFieldElem})
-    @req pm_object(P).BOUNDED "Polyhedron not bounded"
-    return SubObjectIterator{PointVector{ZZRingElem}}(P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1))
+  @req pm_object(P).BOUNDED "Polyhedron not bounded"
+  return SubObjectIterator{PointVector{ZZRingElem}}(
+    P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
+  )
 end
 
-_boundary_lattice_point(::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer) = PointVector{ZZRingElem}(@view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])
+_boundary_lattice_point(
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
-_point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).BOUNDARY_LATTICE_POINTS : @view pm_object(P).BOUNDARY_LATTICE_POINTS[:, 2:end]
+_point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) =
+  if homogenized
+    pm_object(P).BOUNDARY_LATTICE_POINTS
+  else
+    @view pm_object(P).BOUNDARY_LATTICE_POINTS[:, 2:end]
+  end
 
 _matrix_for_polymake(::Val{_boundary_lattice_point}) = _point_matrix
 
@@ -709,7 +878,6 @@ julia> ambient_dim(P)
 """
 ambient_dim(P::Polyhedron) = Polymake.polytope.ambient_dim(pm_object(P))::Int
 
-
 @doc raw"""
     codim(P::Polyhedron)
 
@@ -725,12 +893,66 @@ julia> codim(P)
 1
 ```
 """
-codim(P::Polyhedron) = ambient_dim(P)-dim(P)
+codim(P::Polyhedron) = ambient_dim(P) - dim(P)
+
+@doc raw"""
+    facet_sizes(P::Polyhedron{T})
+
+Number of vertices in each facet. 
+
+# Example
+```jldoctest
+julia> p = johnson_solid(4) 
+Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+
+julia> facet_sizes(p)
+10-element Vector{Int64}:
+ 8
+ 4
+ 3
+ 4
+ 4
+ 3
+ 4
+ 3
+ 3
+ 4
+```
+"""
+function facet_sizes(P::Polyhedron{T}) where {T<:scalar_types}
+  im = vertex_indices(facets(P))
+  return [length(row(im, i)) for i in 1:nrows(im)]
+end
+
+@doc raw"""
+    vertex_sizes(P::Polyhedron{T})
+
+Number of incident facets for each vertex.
+
+# Example
+```jldoctest
+julia> vertex_sizes(bipyramid(simplex(2)))
+5-element Vector{Int64}:
+ 4
+ 4
+ 4
+ 3
+ 3
+```
+"""
+function vertex_sizes(P::Polyhedron{T}) where {T<:scalar_types}
+  pm_object(P).LINEALITY_DIM > 0 && return Vector{Int}()
+  res = Vector{Int}(pm_object(P).VERTEX_SIZES)
+
+  vertices = Polymake.to_one_based_indexing(
+    Polymake.polytope.bounded_vertices(pm_object(P))
+  )
+  return res[collect(vertices)]
+end
 
 ###############################################################################
 ## Points properties
 ###############################################################################
-
 
 # Previously: This implementation is not correct. Ask Taylor.
 # Taylor: lineality space generators always look like [0, v] so
@@ -751,14 +973,18 @@ julia> lineality_space(UH)
  [1, 0]
 ```
 """
-lineality_space(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{RayVector{T}}(P, _lineality_polyhedron, lineality_dim(P))
+lineality_space(P::Polyhedron{T}) where {T<:scalar_types} =
+  SubObjectIterator{RayVector{T}}(P, _lineality_polyhedron, lineality_dim(P))
 
-_lineality_polyhedron(::Type{RayVector{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types = RayVector{T}(coefficient_field(P).(@view pm_object(P).LINEALITY_SPACE[i, 2:end]))
+_lineality_polyhedron(
+  U::Type{RayVector{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types} =
+  ray_vector(coefficient_field(P), @view pm_object(P).LINEALITY_SPACE[i, 2:end])::U
 
-_generator_matrix(::Val{_lineality_polyhedron}, P::Polyhedron; homogenized=false) = homogenized ? pm_object(P).LINEALITY_SPACE : @view pm_object(P).LINEALITY_SPACE[:, 2:end]
+_generator_matrix(::Val{_lineality_polyhedron}, P::Polyhedron; homogenized=false) =
+  homogenized ? pm_object(P).LINEALITY_SPACE : @view pm_object(P).LINEALITY_SPACE[:, 2:end]
 
 _matrix_for_polymake(::Val{_lineality_polyhedron}) = _generator_matrix
-
 
 @doc raw"""
     affine_hull(P::Polytope)
@@ -773,21 +999,23 @@ julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
 2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
-x₃ = 2
-x₄ = 5
+x_3 = 2
+x_4 = 5
 ```
 """
-affine_hull(P::Polyhedron{T}) where T<:scalar_types = SubObjectIterator{AffineHyperplane{T}}(P, _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
+affine_hull(P::Polyhedron{T}) where {T<:scalar_types} =
+  SubObjectIterator{AffineHyperplane{T}}(P, _affine_hull, size(pm_object(P).AFFINE_HULL, 1))
 
-function _affine_hull(::Type{AffineHyperplane{T}}, P::Polyhedron, i::Base.Integer) where T<:scalar_types
-    h = decompose_hdata(-view(pm_object(P).AFFINE_HULL, [i], :))
-    return affine_hyperplane(coefficient_field(P), h[1], h[2][])
+function _affine_hull(
+  U::Type{AffineHyperplane{T}}, P::Polyhedron{T}, i::Base.Integer
+) where {T<:scalar_types}
+  h = decompose_hdata(-view(pm_object(P).AFFINE_HULL, [i], :))
+  return affine_hyperplane(coefficient_field(P), h[1], h[2][])::U
 end
 
 _affine_equation_matrix(::Val{_affine_hull}, P::Polyhedron) = pm_object(P).AFFINE_HULL
 
 _affine_matrix_for_polymake(::Val{_affine_hull}) = _affine_equation_matrix
-
 
 @doc raw"""
     recession_cone(P::Polyhedron)
@@ -813,8 +1041,8 @@ julia> rays(recession_cone(P))
  [1, 1]
 ```
 """
-recession_cone(P::Polyhedron{T}) where T<:scalar_types = Cone{T}(Polymake.polytope.recession_cone(pm_object(P)), coefficient_field(P))
-
+recession_cone(P::Polyhedron{T}) where {T<:scalar_types} =
+  Cone{T}(Polymake.polytope.recession_cone(pm_object(P)), coefficient_field(P))
 
 @doc raw"""
     ehrhart_polynomial(P::Polyhedron{QQFieldElem})
@@ -831,10 +1059,9 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-    R, x = polynomial_ring(QQ, "x")
-    return ehrhart_polynomial(R, P)
+  R, x = polynomial_ring(QQ, "x")
+  return ehrhart_polynomial(R, P)
 end
-
 
 @doc raw"""
     ehrhart_polynomial(R::QQMPolyRing, P::Polyhedron{QQFieldElem})
@@ -859,7 +1086,6 @@ function ehrhart_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
   return (R)(Vector{QQFieldElem}(coeffs))
 end
 
-
 @doc raw"""
     h_star_polynomial(P::Polyhedron)
 
@@ -875,10 +1101,9 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-    R, x = polynomial_ring(QQ, "x")
-    return h_star_polynomial(R, P)
+  R, x = polynomial_ring(QQ, "x")
+  return h_star_polynomial(R, P)
 end
-
 
 @doc raw"""
     h_star_polynomial(R::QQMPolyRing, P::Polyhedron)
@@ -898,8 +1123,8 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(R::QQPolyRing, P::Polyhedron{QQFieldElem})
-    coeffs = pm_object(P).H_STAR_VECTOR
-    return (R)(Vector{QQFieldElem}(coeffs))
+  coeffs = pm_object(P).H_STAR_VECTOR
+  return (R)(Vector{QQFieldElem}(coeffs))
 end
 
 ###############################################################################
@@ -925,11 +1150,12 @@ julia> is_lattice_polytope(c)
 false
 ```
 """
-is_lattice_polytope(P::Polyhedron{QQFieldElem}) = (is_bounded(P) && pm_object(P).LATTICE)::Bool
+is_lattice_polytope(P::Polyhedron{QQFieldElem}) =
+  (is_bounded(P) && pm_object(P).LATTICE)::Bool
 
-_assert_lattice(P::Polyhedron{QQFieldElem}) = is_lattice_polytope(P) ||
+_assert_lattice(P::Polyhedron{QQFieldElem}) =
+  is_lattice_polytope(P) ||
   throw(ArgumentError("This is only defined for lattice polytopes."))
-
 
 @doc raw"""
     is_very_ample(P::Polyhedron{QQFieldElem})
@@ -951,8 +1177,8 @@ julia> is_very_ample(P)
 false
 ```
 """
-is_very_ample(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).VERY_AMPLE::Bool
-
+is_very_ample(P::Polyhedron{QQFieldElem}) =
+  _assert_lattice(P) && pm_object(P).VERY_AMPLE::Bool
 
 @doc raw"""
     is_feasible(P::Polyhedron)
@@ -968,7 +1194,6 @@ false
 ```
 """
 is_feasible(P::Polyhedron) = pm_object(P).FEASIBLE::Bool
-
 
 @doc raw"""
     issubset(P::Polyhedron, Q::Polyhedron)
@@ -990,8 +1215,8 @@ julia> issubset(Q, P)
 false
 ```
 """
-Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where T<:scalar_types = Polymake.polytope.included_polyhedra(pm_object(P), pm_object(Q))::Bool
-
+Base.issubset(P::Polyhedron{T}, Q::Polyhedron{T}) where {T<:scalar_types} =
+  Polymake.polytope.included_polyhedra(pm_object(P), pm_object(Q))::Bool
 
 @doc raw"""
     in(v::AbstractVector, P::Polyhedron)
@@ -1010,8 +1235,8 @@ julia> [1, -2] in PO
 false
 ```
 """
-Base.in(v::AbstractVector, P::Polyhedron) = Polymake.polytope.contains(pm_object(P), [1; v])::Bool
-
+Base.in(v::AbstractVector, P::Polyhedron) =
+  Polymake.polytope.contains(pm_object(P), coefficient_field(P).([1; v]))::Bool
 
 @doc raw"""
     is_smooth(P::Polyhedron{QQFieldElem})
@@ -1028,7 +1253,6 @@ true
 ```
 """
 is_smooth(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).SMOOTH::Bool
-
 
 @doc raw"""
     is_normal(P::Polyhedron{QQFieldElem})
@@ -1054,7 +1278,6 @@ false
 """
 is_normal(P::Polyhedron{QQFieldElem}) = _assert_lattice(P) && pm_object(P).NORMAL::Bool
 
-
 @doc raw"""
     is_bounded(P::Polyhedron)
 
@@ -1069,7 +1292,6 @@ false
 ```
 """
 is_bounded(P::Polyhedron) = pm_object(P).BOUNDED::Bool
-
 
 @doc raw"""
     is_simple(P::Polyhedron)
@@ -1087,14 +1309,12 @@ true
 """
 is_simple(P::Polyhedron) = pm_object(P).SIMPLE::Bool
 
-
 @doc raw"""
     is_simplicial(P::Polyhedron)
 
 Check whether `P` is simplicial.
 """
 is_simplicial(P::Polyhedron) = pm_object(P).SIMPLICIAL::Bool
-
 
 @doc raw"""
     is_fulldimensional(P::Polyhedron)
@@ -1110,7 +1330,6 @@ false
 ```
 """
 is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
-
 
 @doc raw"""
     f_vector(P::Polyhedron)
@@ -1131,11 +1350,11 @@ julia> f_vector(cube(5))
 ```
 """
 function f_vector(P::Polyhedron)::Vector{ZZRingElem}
-    # the following differs from polymake's count in the unbounded case;
-    # polymake takes the far face into account, too
-    ldim = lineality_dim(P)
-    f_vec=vcat(zeros(Int64, ldim), [length(faces(P,i)) for i in ldim:dim(P)-1])
-    return f_vec
+  # the following differs from polymake's count in the unbounded case;
+  # polymake takes the far face into account, too
+  ldim = lineality_dim(P)
+  f_vec = vcat(zeros(Int64, ldim), [length(faces(P, i)) for i in ldim:(dim(P) - 1)])
+  return f_vec
 end
 
 @doc raw"""
@@ -1156,10 +1375,9 @@ julia> h_vector(cross_polytope(3))
 ```
 """
 function h_vector(P::Polyhedron)::Vector{ZZRingElem}
-    @req is_bounded(P) "defined for bounded polytopes only"
-    return pm_object(P).H_VECTOR
+  @req is_bounded(P) "defined for bounded polytopes only"
+  return pm_object(P).H_VECTOR
 end
-
 
 @doc raw"""
     g_vector(P::Polyhedron)
@@ -1177,10 +1395,9 @@ julia> g_vector(cross_polytope(3))
 ```
 """
 function g_vector(P::Polyhedron)::Vector{ZZRingElem}
-    @req is_bounded(P) "defined for bounded polytopes only"
-    return pm_object(P).G_VECTOR
+  @req is_bounded(P) "defined for bounded polytopes only"
+  return pm_object(P).G_VECTOR
 end
-
 
 @doc raw"""
     relative_interior_point(P::Polyhedron)
@@ -1213,8 +1430,10 @@ julia> matrix(QQ, vertices(square))
 [ 1    1]
 ```
 """
-relative_interior_point(P::Polyhedron{T}) where T<:scalar_types = PointVector{T}(coefficient_field(P).(view(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)), :))) #view_broadcast
-
+relative_interior_point(P::Polyhedron{T}) where {T<:scalar_types} = point_vector(
+  coefficient_field(P),
+  view(dehomogenize(Polymake.common.dense(pm_object(P).REL_INT_POINT)), :),
+)::PointVector{T} #view_broadcast
 
 @doc raw"""
     support_function(P::Polyhedron; convention::Symbol = :max)
@@ -1237,160 +1456,250 @@ julia> ψ([1,2,3])
 -6
 ```
 """
-function support_function(P::Polyhedron{T}; convention = :max) where T<:scalar_types
-    function h(ω::AbstractVector)
-        lp=linear_program(P,ω; convention = convention)
-        return solve_lp(lp)[1]
-    end
-    return h
+function support_function(P::Polyhedron{T}; convention=:max) where {T<:scalar_types}
+  function h(ω::AbstractVector)
+    lp = linear_program(P, ω; convention=convention)
+    return solve_lp(lp)[1]
+  end
+  return h
 end
 
+_cmp_string(::Val{:lte}) = is_unicode_allowed() ? "≦" : "<="
+_cmp_string(::Val{:eq}) = "="
 
 @doc raw"""
-    print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false)
+    print_constraints([io = stdout,] A::AnyVecOrMat, b::AbstractVector; trivial = false, numbered = false, cmp = :lte)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+- `cmp::Symbol`: Defines the string used for the comparison sign; supports `:lte` (less than or equal) and `:eq` (equal).
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 ```jldoctest
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; numbered = true)
-1: -x₁ + 4*x₃ + 5*x₄ ≦ 0
-2: 4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-3: x₁ ≦ 2
-5: 0 ≦ -4
-6: 9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+1: -x_1 + 4*x_3 + 5*x_4 <= 0
+2: 4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+3: x_1 <= 2
+5: 0 <= -4
+6: 9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 
 julia> print_constraints([-1 0 4 5; 4 4 4 3; 1 0 0 0; 0 0 0 0; 0 0 0 0; 9 9 9 9], [0, 1, 2, 3, -4, 5]; trivial = true)
--x₁ + 4*x₃ + 5*x₄ ≦ 0
-4*x₁ + 4*x₂ + 4*x₃ + 3*x₄ ≦ 1
-x₁ ≦ 2
-0 ≦ 3
-0 ≦ -4
-9*x₁ + 9*x₂ + 9*x₃ + 9*x₄ ≦ 5
+-x_1 + 4*x_3 + 5*x_4 <= 0
+4*x_1 + 4*x_2 + 4*x_3 + 3*x_4 <= 1
+x_1 <= 2
+0 <= 3
+0 <= -4
+9*x_1 + 9*x_2 + 9*x_3 + 9*x_4 <= 5
 ```
 """
-function print_constraints(A::AnyVecOrMat, b::AbstractVector; trivial::Bool = false, numbered::Bool = false, io::IO = stdout, cmp::String = "≦")
-    for i in 1:length(b)
-        terms = Vector{String}(undef, size(A)[2])
-        first = true
-        for j in 1:size(A)[2]
-            if iszero(A[i, j])
-                terms[j] = ""
+function print_constraints(
+  io::IO,
+  A::AnyVecOrMat,
+  b::AbstractVector;
+  trivial::Bool=false,
+  numbered::Bool=false,
+  cmp::Symbol=:lte,
+)
+  zero_char = is_unicode_allowed() ? '₀' : '0'
+  us_ascii = is_unicode_allowed() ? "" : "_"
+  for i in 1:length(b)
+    terms = Vector{String}(undef, size(A)[2])
+    first = true
+    for j in 1:size(A)[2]
+      if iszero(A[i, j])
+        terms[j] = ""
+      else
+        if isone(A[i, j]) || isone(-A[i, j])
+          terms[j] = if first
+            string(
+            isone(A[i, j]) ? "x" : "-x",
+            us_ascii,
+            reverse([zero_char + d for d in digits(j)])...,
+          )
+          else
+            string(
+            isone(A[i, j]) ? " + x" : " - x",
+            us_ascii,
+            reverse([zero_char + d for d in digits(j)])...,
+          )
+          end
+        else
+          terms[j] = if first
+            string(
+            _constraint_string(A[i, j]),
+            "*x",
+            us_ascii,
+            reverse([zero_char + d for d in digits(j)])...,
+          )
+          else
+            string(
+            if A[i, j] < zero(A[i, j])
+              string(" - ", _constraint_string(-A[i, j]))
             else
-                if isone(A[i, j]) || isone(-A[i, j])
-                    terms[j] = first ? string(isone(A[i, j]) ? "x" : "-x" , ['₀'+ d for d in digits(j)]...) :
-                        string(isone(A[i, j]) ? " + x" : " - x", ['₀'+ d for d in digits(j)]...)
-                else
-                    terms[j] = first ? string(_constraint_string(A[i, j]), "*x", ['₀'+ d for d in digits(j)]...) :
-                        string(A[i, j] < zero(A[i, j]) ? string(" - ", _constraint_string(-A[i, j])) : string(" + ", _constraint_string(A[i, j])), "*x", ['₀'+ d for d in digits(j)]...)
-                end
-                first = false
-            end
+              string(" + ", _constraint_string(A[i, j]))
+            end,
+            "*x",
+            us_ascii,
+            reverse([zero_char + d for d in digits(j)])...,
+          )
+          end
         end
-        if first
-            if b[i] >= 0 && !trivial
-                continue
-            end
-            terms[1] = "0"
-        end
-        println(io, string(numbered ? string(i, ": ") : "", terms..., " ", cmp, " ", b[i]))
+        first = false
+      end
     end
+    if first
+      if b[i] >= 0 && !trivial
+        continue
+      end
+      terms[1] = "0"
+    end
+    println(
+      io,
+      string(
+        numbered ? string(i, ": ") : "", terms..., " ", _cmp_string(Val(cmp)), " ", b[i]
+      ),
+    )
+  end
 end
 
 _constraint_string(x::Any) = string(x)
-
-_constraint_string(x::nf_elem) = string("(", x, ")")
+_constraint_string(x::QQFieldElem) = string(x)
+_constraint_string(x::FieldElem) = string("(", x, ")")
 
 @doc raw"""
-    print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false)
+    print_constraints([io = stdout,] P::Polyhedron; trivial = false, numbered = false)
 
 Pretty print the constraints given by $P(A,b) = \{ x |  Ax ≤ b \}$.
 
-Trivial inequalities are counted but omitted. They are included if `trivial` is
-set to `true`.
+# Optional & Keyword Arguments
+- `io::IO`: Target `IO` where the  constraints are printed to.
+- `trivial::Bool`: If `true`, include trivial inequalities.
+- `numbered::Bool`: If `true`, the each constraint is printed with the index corresponding to the input `AnyVecOrMat`.
+
+Trivial inequalities are always counted for numbering, even when omitted.
 
 # Examples
 The 3-cube is given by $-1 ≦ x_i ≦ 1 ∀ i ∈ \{1, 2, 3\}$.
 ```jldoctest
 julia> print_constraints(cube(3))
--x₁ ≦ 1
-x₁ ≦ 1
--x₂ ≦ 1
-x₂ ≦ 1
--x₃ ≦ 1
-x₃ ≦ 1
+-x_1 <= 1
+x_1 <= 1
+-x_2 <= 1
+x_2 <= 1
+-x_3 <= 1
+x_3 <= 1
 ```
 """
-print_constraints(P::Polyhedron; trivial::Bool = false, numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(facets(P))...; trivial = trivial, io = io)
+print_constraints(io::IO, P::Polyhedron; trivial::Bool=false, numbered::Bool=false) =
+  print_constraints(io, halfspace_matrix_pair(facets(P))...; trivial=trivial)
 
-print_constraints(H::Halfspace; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io)
+print_constraints(io::IO, H::Halfspace; trivial::Bool=false) =
+  print_constraints(io, permutedims(normal_vector(H)), [negbias(H)]; trivial=trivial)
 
-print_constraints(H::Hyperplane; trivial::Bool = false, io::IO = stdout) = print_constraints(hcat(normal_vector(H)...), [negbias(H)]; trivial = trivial, io = io, cmp = "=")
+print_constraints(io::IO, H::Hyperplane; trivial::Bool=false) = print_constraints(
+  io, permutedims(normal_vector(H)), [negbias(H)]; trivial=trivial, cmp=:eq
+)
 
-print_constraints(H::SubObjectIterator{<:Halfspace}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io)
+print_constraints(io::IO, H::SubObjectIterator{<:Halfspace}; numbered::Bool=false) =
+  print_constraints(io, halfspace_matrix_pair(H)...; trivial=true, numbered=numbered)
 
-print_constraints(H::SubObjectIterator{<:Hyperplane}; numbered::Bool = false, io::IO = stdout) = print_constraints(halfspace_matrix_pair(H)...; trivial = true, numbered = numbered, io = io, cmp = "=")
+print_constraints(io::IO, H::SubObjectIterator{<:Hyperplane}; numbered::Bool=false) =
+  print_constraints(
+    io, halfspace_matrix_pair(H)...; trivial=true, numbered=numbered, cmp=:eq
+  )
+
+# Default `io = stdout`
+print_constraints(
+  A::AnyVecOrMat,
+  b::AbstractVector;
+  trivial::Bool=false,
+  numbered::Bool=false,
+  cmp::Symbol=:lte,
+) = print_constraints(stdout, A, b; trivial=trivial, numbered=numbered, cmp=cmp)
+
+print_constraints(P::Polyhedron; trivial::Bool=false, numbered::Bool=false) =
+  print_constraints(stdout, P; trivial=trivial, numbered=numbered)
+
+print_constraints(H::Union{Halfspace,Hyperplane}; trivial::Bool=false) =
+  print_constraints(stdout, H; trivial=trivial)
+
+print_constraints(
+  H::SubObjectIterator{<:Union{Halfspace,Hyperplane}}; numbered::Bool=false
+) = print_constraints(stdout, H; numbered=numbered)
 
 function Base.show(io::IO, H::Halfspace)
-    n = length(normal_vector(H))
-    if iszero(normal_vector(H)) && negbias(H) >= 0
-        print(io, "The trivial half-space, R^$n")
-    else
-        print(io, "The half-space of R^$n described by\n")
-        print_constraints(H; io=io)
-    end
+  n = length(normal_vector(H))
+  if iszero(normal_vector(H)) && negbias(H) >= 0
+    print(io, "The trivial half-space, R^$n")
+  else
+    print(io, "The half-space of R^$n described by\n")
+    print_constraints(io, H)
+  end
 end
 
 function Base.show(io::IO, H::Hyperplane)
-    n = length(normal_vector(H))
-    b = negbias(H)
-    if iszero(b) && iszero(normal_vector(H))
-        print(io, "The trivial hyperplane, R^$n")
-    else
-        print(io, "The hyperplane of R^$n described by\n")
-        print_constraints(H; io = io)
-    end
+  n = length(normal_vector(H))
+  b = negbias(H)
+  if iszero(b) && iszero(normal_vector(H))
+    print(io, "The trivial hyperplane, R^$n")
+  else
+    print(io, "The hyperplane of R^$n described by\n")
+    print_constraints(io, H)
+  end
 end
 
-Base.show(io::IO, ::MIME"text/plain", H::SubObjectIterator{<:Union{Halfspace, Hyperplane}}) = show(io, H)
+Base.show(io::IO, ::MIME"text/plain", H::SubObjectIterator{<:Union{Halfspace,Hyperplane}}) =
+  show(io, H)
 
 function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
-    s = length(H)
-    t = typeof(H)
-    d = displaysize(io)[1] - 5
-    print(io, "$s-element $t")
-    if !isempty(H)
-        n = length(normal_vector(H[1]))
-        print(io, " over the Halfspaces of R^$n described by:\n")
-        if s < d
-            print_constraints(H; io = io)
-        else
-            A, b = halfspace_matrix_pair(H)
-            print_constraints(view(A, 1:floor(Int, d/2), :), b[1:floor(Int, d/2)]; io = io)
-            println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io)
-        end
+  s = length(H)
+  t = typeof(H)
+  d = displaysize(io)[1] - 5
+  print(io, "$s-element $t")
+  if !isempty(H)
+    n = length(normal_vector(H[1]))
+    print(io, " over the Halfspaces of R^$n described by:\n")
+    if s < d
+      print_constraints(io, H)
+    else
+      A, b = halfspace_matrix_pair(H)
+      print_constraints(io, view(A, 1:floor(Int, d / 2), :), b[1:floor(Int, d / 2)])
+      println(io, "⋮")
+      print_constraints(
+        io,
+        A[(s - floor(Int, d / 2) + d % 2):end, :],
+        b[(s - floor(Int, d / 2) + d % 2):end],
+      )
     end
+  end
 end
 
 function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
-    s = length(H)
-    t = typeof(H)
-    d = displaysize(io)[1] - 5
-    print(io, "$s-element $t")
-    if !isempty(H)
-        n = length(normal_vector(H[1]))
-        print(io, " over the Hyperplanes of R^$n described by:\n")
-        if s < d
-            print_constraints(H; io = io)
-        else
-            A, b = halfspace_matrix_pair(H)
-            print_constraints(A[1:floor(Int, d/2), :], b[1:floor(Int, d/2)]; io = io, cmp = "=")
-            println(io, "⋮")
-            print_constraints(A[(s - floor(Int, d/2) + d%2):end, :], b[(s - floor(Int, d/2) + d%2):end]; io = io, cmp = "=")
-        end
+  s = length(H)
+  t = typeof(H)
+  d = displaysize(io)[1] - 5
+  print(io, "$s-element $t")
+  if !isempty(H)
+    n = length(normal_vector(H[1]))
+    print(io, " over the Hyperplanes of R^$n described by:\n")
+    if s < d
+      print_constraints(io, H)
+    else
+      A, b = halfspace_matrix_pair(H)
+      print_constraints(io, A[1:floor(Int, d / 2), :], b[1:floor(Int, d / 2)]; cmp=:eq)
+      println(io, "⋮")
+      print_constraints(
+        io,
+        A[(s - floor(Int, d / 2) + d % 2):end, :],
+        b[(s - floor(Int, d / 2) + d % 2):end];
+        cmp=:eq,
+      )
     end
+  end
 end
