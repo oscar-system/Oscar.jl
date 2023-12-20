@@ -380,6 +380,7 @@ export complete_bipartite_graph
 export complete_graph
 export complete_intersection_germ
 export complex_projective_plane
+export compositions
 export components
 export compose
 export composition_series, has_composition_series, set_composition_series
@@ -1246,6 +1247,7 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
+export rand_homogeneous
 export rank
 export rank_action
 export rational_equivalence_class
@@ -1506,6 +1508,7 @@ export volume_form
 export walls
 export wdeglex
 export wdegrevlex
+export weak_compositions
 export weakly_connected_components
 export wedge
 export wedge_multiplication_map
