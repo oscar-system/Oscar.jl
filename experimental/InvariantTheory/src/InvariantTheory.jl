@@ -457,7 +457,7 @@ function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Gen
     return reynolds_slm(sum_, new_det, p)
 end
 
-function reynolds_slm(elem::MPolyElem, det_::MPolyElem, p::Int)
+function reynolds_slm(elem::MPolyRingElem, det_::MPolyRingElem, p::Int)
     num = omegap_(p,det_, elem)
     den = omegap_(p,det_,det_^p)
     if !(denominator(num//den)==1)
@@ -505,7 +505,7 @@ end
 #####################callable reynold's operator
 
 #this function returns the image of elem under the reynolds operator of group with representation X
-function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyElem)
+function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyRingElem)
     X.group.group[1] == :SL || error("Only implemented for SLm")
     vector_ring = parent(elem)
     G = X.group
@@ -525,7 +525,7 @@ function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyElem)
     return reverse_map(f)
 end
 
-function reynolds_operator(R::InvariantRing, elem::MPolyElem)
+function reynolds_operator(R::InvariantRing, elem::MPolyRingElem)
     X = R.representation
     return reynolds_operator(X, elem)
 end
