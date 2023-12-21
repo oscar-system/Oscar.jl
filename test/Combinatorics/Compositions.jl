@@ -1,4 +1,5 @@
 @testset "compositions" begin
+  compositions = Oscar.compositions
   @test isempty(compositions(1, 0))
   @test length(compositions(0, 0)) == 1
   @test isempty(compositions(2, 3))
@@ -10,6 +11,7 @@
 end
 
 @testset "weak compositions" begin
+  weak_compositions = Oscar.weak_compositions
   @test isempty(weak_compositions(1, 0))
   @test length(weak_compositions(0, 0)) == 1
   @test [0, 3] in weak_compositions(3, 2)
