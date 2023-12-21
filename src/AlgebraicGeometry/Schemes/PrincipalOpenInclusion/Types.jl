@@ -24,7 +24,7 @@ one ``X`` such that the image is a principal open subset.
     @check begin
       U = PrincipalOpenSubset(Y, complement_equations)
       f_res = SpecMor(X, U, pullback(f).(gens(OO(Y))), check=check)
-      is_isomorphism(f) || error("restriction is not an isomorphism")
+      is_isomorphism(f_res) || error("restriction is not an isomorphism")
     end
 
     return new{typeof(X), typeof(Y), pullback_type(f)}(f, complement_equations)
