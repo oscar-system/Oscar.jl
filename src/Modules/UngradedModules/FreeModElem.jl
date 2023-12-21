@@ -262,11 +262,18 @@ function *(a::MPolyRingElem, b::AbstractFreeModElem)
   return parent(b)(a*coordinates(b))
 end
 
-function *(a::RingElem, b::AbstractFreeModElem) 
+function *(a::NCRingElem, b::AbstractFreeModElem) 
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
   return parent(b)(a*coordinates(b))
+end
+
+function *(b::AbstractFreeModElem, a::NCRingElem) 
+  if parent(a) !== base_ring(parent(b))
+    return b*base_ring(parent(b))(a) # this will throw if conversion is not possible
+  end
+  return parent(b)(coordinates(b)*a)
 end
 
 *(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
