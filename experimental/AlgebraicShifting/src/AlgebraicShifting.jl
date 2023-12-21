@@ -57,18 +57,35 @@ end
 Returns the symmetric shift of `K`
 """
 function delta_sym(K::SimplicialComplex)
-  I_K = stanley_reisner_ideal(K)
+  R_K, quotient_map = stanley_reisner_ring(K)
+  Ry, y = polynomial_ring(R_K, :y => (1:n, 1:n))
+  Y = matrix(Ry, hcat(y))
+  y_1 = Y[1, :] * gens(R_K)
+  
+  collect(terms(y_1[1] * y_1[1]))
 end
-
 
 function generic_initial_ideal(I::MPolyIdeal)
   R = base_ring(I)
   n = nvars(R)
   Ry, y = polynomial_ring(R, :y => (1:n, 1:n))
+  Y = matrix(Ry, hcat(y))
+  gens_R = gens(R)
+  generic_ini_gens = MPolyRingElem[]
 
-  for g in I_K
-    findall(x -> !is_zero(x[2]), exponents(g))
-    map(e -> Y[:, ], exponents(g))
+  for g in gens(I)
+    monomials = exponents(g)
+    non_zero_exp_indices = (findall(x -> !is_zero(x), m) for m in monomials)
+    generic_gen = zero(Ry)
+    for (m, e) in zip(monomials, non_zero_exp_indices)
+      degrees = m[e]
+      multinomials = Y[e, :] * gens_R
+      generic_monomial = prod(zip(multinomials, degrees)) do (multinomial, d)
+        multinomial^d
+      end
+      generic_gen += generic_monomial
+    end
+    push!(generic_ini_gens, generic_gen)
   end
-
+  return ideal(generic_ini_gens)
 end
