@@ -1710,7 +1710,7 @@ function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)
-  return Generic.ModuleIsomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
+  return Generic.ModuleHomomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
 end
 ###########################################################
 
