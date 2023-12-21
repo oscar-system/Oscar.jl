@@ -276,6 +276,17 @@ function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: M
   end
 end
 
+function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: Generic.IdentityMap{C}}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  f = coefficient_map(F)
+  if typeof(codomain(f)) === C
+    newcoeffmap = compose(f, G)
+    return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
+  else
+    return Generic.CompositeMap(F, G)
+  end
+end
+
 ################################################################################
 #
 #  Types computers
