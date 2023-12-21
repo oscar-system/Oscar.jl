@@ -355,7 +355,7 @@ julia> journal_report_numbers(m)
 ```
 """
 function journal_report_numbers(m::AbstractFTheoryModel)
-  @req has_journal_report_numbers(m) "No journal pages known for this model"
+  @req has_journal_report_numbers(m) "No journal report numbers known for this model"
   return get_attribute(m, :journal_report_numbers)
 end
 

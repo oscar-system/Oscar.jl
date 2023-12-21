@@ -1246,6 +1246,7 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
+export rand_homogeneous
 export rank
 export rank_action
 export rational_equivalence_class

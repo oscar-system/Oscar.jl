@@ -601,10 +601,13 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 #
 ################################################################################
 
-for T in [:(+), :(-), :(*), :divexact]
+for T in [:(+), :(-), :(*)]
   @eval ($T)(a::MPolyDecRingElem,
              b::MPolyDecRingElem) = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
 end
+
+divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+
 
 ################################################################################
 #
@@ -620,11 +623,11 @@ end
 #
 ################################################################################
 
-divexact(a::MPolyDecRingElem, b::RingElem) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::RingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Integer) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::Integer; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Rational) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::Rational; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
 for T in [:(-), :(+)]
   @eval ($T)(a::MPolyDecRingElem,

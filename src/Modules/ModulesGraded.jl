@@ -2882,3 +2882,39 @@ function _regularity_bound(M::SubquoModule)
   end
   return result
 end
+
+
+###############################################################################
+# Random elements
+###############################################################################
+
+function rand_homogeneous(R::MPolyRing, degree::Int)
+  K = base_ring(R)
+  if !is_standard_graded(R)
+      throw(ArgumentError("Base ring is not standard graded"))
+  end
+  if !is_finite(K)
+      throw(ArgumentError("Base ring is not finite"))
+  end
+  n = nvars(R)
+  comps = weak_compositions(degree, n)
+  M = MPolyBuildCtx(R)
+  for p in comps 
+      push_term!(M, rand(K), p)
+  end
+  return finish(M)
+end
+
+
+function rand_homogeneous(V::ModuleFP, d::Int)
+  R = base_ring(V)
+  random_element = zero(V)
+  for gen in gens(V)
+      gen_degree = (degree(gen).coeff)[1,1]
+      if gen_degree <= d
+          rand_poly = rand_homogeneous(R, Int(d - gen_degree))
+          random_element += rand_poly*gen
+      end
+  end
+  return random_element
+end

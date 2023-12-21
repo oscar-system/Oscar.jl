@@ -29,6 +29,7 @@ t = global_tate_model(base; completeness_check = false)
   @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
+  @test is_partially_resolved(t) == false
 end
 
 @testset "Error messages in global Tate models over concrete base space" begin
@@ -52,9 +53,13 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test tate_section_a6(t2) == tate_section_a6(loaded)
       @test base_space(t2) == base_space(loaded)
       @test ambient_space(t2) == ambient_space(loaded)
+      @test base_fully_specified(t2) == base_fully_specified(loaded)
+      @test is_partially_resolved(t2) == is_partially_resolved(t2)
     end
   end
 end
+
+
 #############################################################
 # 2: Global Tate models over arbitrary base space
 #############################################################
