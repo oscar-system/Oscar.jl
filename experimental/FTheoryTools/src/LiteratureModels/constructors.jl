@@ -78,14 +78,37 @@ Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv 
 julia> length(singular_loci(w))
 1
 ```
+For convenience, we also support a simplified constructor. Instead of the meta data of the article,
+this constructor accepts an integer, which specifies the position of this model in our database.
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> w = literature_model(3, base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia> length(singular_loci(w))
+1
+```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  
-  # (1) Find the model
   model_dict = _find_model(doi, arxiv_id, version, equation)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+end
+
+function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+  model_dict = _find_model(k)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+end
+
+function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   
-  
-  # (2) Deal with model parameters
+  # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
     
@@ -137,16 +160,13 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
 end
 
 
+
 #######################################################
 # 2. Helper function to find the specified model
 #######################################################
 
 function _find_model(doi::String, arxiv_id::String, version::String, equation::String)
-
-  # Check that we have at least some information...
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
-
-  # Create list of possible candidate files
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
   for k in 1:length(file_index)
@@ -157,9 +177,23 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
       push!(candidate_files, string(file_index[k]["file"]))
     end
   end
+  return _process_candidates(candidate_files)
+end
 
-  # Check if we found exactly one file, i.e., we were able to identify the model uniquely
-  @req length(candidate_files) != 0 "We could not find any models matching the given identifiers"
+function _find_model(l::Int)
+  @req l >= 1 "Model index must be at least 1"
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  candidate_files = Vector{String}()
+  for k in 1:length(file_index)
+    if get(file_index[k], "model_index", nothing) == string(l)
+      push!(candidate_files, string(file_index[k]["file"]))
+    end
+  end
+  return _process_candidates(candidate_files)
+end
+
+function _process_candidates(candidate_files::Vector{String})
+  @req length(candidate_files) != 0 "We could not find any models matching the given model index"
   @req(length(candidate_files) == 1,
     begin
       dicts = map(f -> JSON.parsefile(joinpath(@__DIR__, "Models/" * f)), candidate_files)
@@ -170,16 +204,10 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
       strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i])" for i in 1:length(dicts)]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
-
-  # Create dictionary
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
-  # Add literature identifier. For this, remove 'model' from the front and '.json' from the end of the file name.
   model_dict["literature_identifier"] = candidate_files[1][6:end - 5]
-
-  # Return the dictionary
   return model_dict
 end
-
 
 
 #######################################################
@@ -390,5 +418,21 @@ function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}
     else
       set_attribute!(m, Symbol(t_name) => m_dict[l1][l2][t])
     end
+  end
+end
+
+
+
+#######################################################
+# 6. Function to display all known literature models
+#######################################################
+
+function display_all_literature_models()
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  sorted_dicts = sort(file_index, by = x -> parse(Int, x["model_index"]))
+  for dict in sorted_dicts
+    print("Model $(dict["model_index"]):\n")
+    print(dict)
+    print("\n\n")
   end
 end
