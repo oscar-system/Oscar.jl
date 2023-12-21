@@ -325,15 +325,14 @@ Return `v`. Fails, in general, if `v` is not an element of `V`.
 If `V` is the dual module of the parent of `v`, return the dual of `v`.
 """
 function (V::LieAlgebraModule{C})(v::LieAlgebraModuleElem{C}) where {C<:FieldElem}
-  if ((fl, W) = is_dual(V); fl) && W === parent(v)
-    return V(coefficients(v))
-  end
-  @req V === parent(v) "Incompatible modules."
-  return v
+  # handled by more general function below
+  return V((v,))::elem_type(V)
 end
 
 @doc raw"""
     (V::LieAlgebraModule{C})(a::Vector{T}) where {T<:LieAlgebraModuleElem{C}}) -> LieAlgebraModuleElem{C}
+    (V::LieAlgebraModule{C})(a::NTuple{T}) where {T<:LieAlgebraModuleElem{C}}) -> LieAlgebraModuleElem{C}
+    (V::LieAlgebraModule{C})(a::T...) where {T<:LieAlgebraModuleElem{C}}) -> LieAlgebraModuleElem{C}
 
 If `V` is a direct sum, return its element, where the $i$-th component is equal to `a[i]`.
 If `V` is a tensor product, return the tensor product of the `a[i]`.
@@ -345,35 +344,36 @@ where _correct_ depends on the case above.
 """
 function (V::LieAlgebraModule{C})(
   a::Vector{T}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
-  if ((fl, Vs) = is_direct_sum(V); fl)
-    @req length(a) == length(Vs) "Length of vector does not match."
-    @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
-    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
-  elseif is_tensor_product(V)[1]
-    pure = get_attribute(V, :tensor_pure_function)
-    return pure(a)::LieAlgebraModuleElem{C}
-  elseif is_exterior_power(V)[1] || is_symmetric_power(V)[1] || is_tensor_power(V)[1]
-    return V(Tuple(a))::LieAlgebraModuleElem{C}
-  else
-    throw(ArgumentError("Invalid input."))
-  end
+) where {C<:FieldElem,T<:LieAlgebraModuleElem{C}}
+  @req _is_allowed_input_length(V, length(a)) "Invalid input length." # Check here to not compile unnecessary dispatches on tuples
+  return V(Tuple(a))::elem_type(V)
 end
 
 function (V::LieAlgebraModule{C})(
   a::Tuple{Vararg{T}}
-) where {T<:LieAlgebraModuleElem{C}} where {C<:FieldElem}
-  if is_exterior_power(V)[1]
+) where {C<:FieldElem,T<:LieAlgebraModuleElem{C}}
+  if length(a) == 1 && V === parent(a[1])
+    return a[1]
+  elseif ((fl, W) = is_dual(V); fl)
+    @req length(a) == 1 "Invalid input length."
+    @req W === parent(v) "Incompatible modules."
+    return V(coefficients(v))
+  elseif ((fl, Vs) = is_direct_sum(V); fl)
+    @req length(a) == length(Vs) "Invalid input length."
+    @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
+    return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
+  elseif is_tensor_product(V)[1]
+    pure = get_attribute(V, :tensor_pure_function)
+    return pure(a)::elem_type(V)
+  elseif is_exterior_power(V)[1]
     pure = get_attribute(V, :wedge_pure_function)
-    return pure(a)::LieAlgebraModuleElem{C}
+    return pure(a)::elem_type(V)
   elseif is_symmetric_power(V)[1]
     pure = get_attribute(V, :mult_pure_function)
-    return pure(a)::LieAlgebraModuleElem{C}
+    return pure(a)::elem_type(V)
   elseif is_tensor_power(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
-    return pure(a)::LieAlgebraModuleElem{C}
-  elseif isempty(a) # TODO: Remove case
-    return V(LieAlgebraModuleElem{C}[])
+    return pure(a)::elem_type(V)
   else
     throw(ArgumentError("Invalid input."))
   end
@@ -381,6 +381,22 @@ end
 
 function (V::LieAlgebraModule{C})(a::LieAlgebraModuleElem{C}...) where {C<:FieldElem}
   return V(a)
+end
+
+function _is_allowed_input_length(V::LieAlgebraModule, a::Int)
+  if ((fl, Vs) = is_direct_sum(V); fl)
+    return a == length(Vs)
+  elseif ((fl, Vs) = is_tensor_product(V); fl)
+    return a == length(Vs)
+  elseif ((fl, W, k) = is_exterior_power(V); fl)
+    return a == k
+  elseif ((fl, W, k) = is_symmetric_power(V); fl)
+    return a == k
+  elseif ((fl, W, k) = is_tensor_power(V); fl)
+    return a == k
+  else
+    throw(ArgumentError("Invalid input."))
+  end
 end
 
 ###############################################################################
@@ -921,7 +937,7 @@ function tensor_product(
     L, dim_tensor_product_V, transformation_matrices, s; check=false
   )
 
-  function pure(as::LieAlgebraModuleElem{C}...)
+  function my_mult(as::Tuple{Vararg{LieAlgebraModuleElem{C}}})
     @req length(as) == length(Vs) "Length of vector does not match."
     @req all(i -> parent(as[i]) === Vs[i], 1:length(as)) "Incompatible modules."
     mat = zero_matrix(R, 1, dim_tensor_product_V)
@@ -930,14 +946,11 @@ function tensor_product(
     end
     return tensor_product_V(mat)
   end
-  function pure(as::Tuple)
-    return pure(as...)::LieAlgebraModuleElem{C}
-  end
-  function pure(as::Vector{LieAlgebraModuleElem{C}})
-    return pure(as...)::LieAlgebraModuleElem{C}
+  function my_mult(as::LieAlgebraModuleElem{C}...)
+    return my_mult(as)::LieAlgebraModuleElem{C}
   end
 
-  function inv_pure(a::LieAlgebraModuleElem{C})
+  function my_decomp(a::LieAlgebraModuleElem{C})
     @req parent(a) === tensor_product_V "Incompatible modules."
     if iszero(a)
       return Tuple(zero(Vi) for Vi in Vs)
@@ -949,11 +962,16 @@ function tensor_product(
     return Tuple(basis(Vi, indi) for (Vi, indi) in zip(Vs, inds))
   end
 
+  mult_map = MapFromFunc(
+    Hecke.TupleParent(Tuple([zero(Vi) for Vi in Vs])), tensor_product_V, my_mult, my_decomp
+  )
+  inv_mult_map = MapFromFunc(tensor_product_V, domain(mult_map), my_decomp, my_mult)
+
   set_attribute!(
     tensor_product_V,
     :is_tensor_product => Vs,
-    :tensor_pure_function => pure,
-    :tensor_pure_preimage_function => inv_pure,
+    :tensor_pure_function => mult_map,
+    :tensor_generator_decompose_function => inv_mult_map,
   )
 
   return tensor_product_V
@@ -1063,7 +1081,7 @@ function exterior_power(
   end
 
   mult_map = MapFromFunc(
-    Hecke.TupleParent(Tuple([zero(V) for f in 1:k])), E, my_mult, my_decomp
+    Hecke.TupleParent(Tuple([zero(V) for _ in 1:k])), E, my_mult, my_decomp
   )
   inv_mult_map = MapFromFunc(E, domain(mult_map), my_decomp, my_mult)
 
@@ -1204,7 +1222,7 @@ function symmetric_power(
   end
 
   mult_map = MapFromFunc(
-    Hecke.TupleParent(Tuple([zero(V) for f in 1:k])), S, my_mult, my_decomp
+    Hecke.TupleParent(Tuple([zero(V) for _ in 1:k])), S, my_mult, my_decomp
   )
   inv_mult_map = MapFromFunc(S, domain(mult_map), my_decomp, my_mult)
 
@@ -1320,7 +1338,7 @@ function tensor_power(
   end
 
   mult_map = MapFromFunc(
-    Hecke.TupleParent(Tuple([zero(V) for f in 1:k])), T, my_mult, my_decomp
+    Hecke.TupleParent(Tuple([zero(V) for _ in 1:k])), T, my_mult, my_decomp
   )
   inv_mult_map = MapFromFunc(T, domain(mult_map), my_decomp, my_mult)
 
