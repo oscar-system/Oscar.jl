@@ -44,6 +44,11 @@ An `AbsCoveredScheme` may have different properties such as
     is_smooth(X::AbsCoveredScheme)
 ```
 
+## Methods
+```@docs
+    fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+```
+
 ## The modeling of covered schemes and their expected behaviour 
 
 Any `AbsCoveredScheme` may possess several `Covering`s. This is necessary for 

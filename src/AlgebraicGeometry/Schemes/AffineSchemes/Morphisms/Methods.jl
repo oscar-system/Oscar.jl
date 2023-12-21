@@ -5,8 +5,12 @@
 @doc raw"""
     fiber_product(f::AbsSpecMor, g::AbsSpecMor)
 
-For morphisms ``f : Y → X`` and ``g : Z → X`` return the fiber
-product ``Y×Z`` over ``X`` together with its two canonical projections.
+For morphisms ``f : X → Z`` and ``g : Y → Z`` return the fiber
+product ``X×Y`` over ``Z`` together with its two canonical projections.
+
+Whenever you have another set of maps `a: W → X` and `b : W → Y` forming 
+a commutative square with `f` and `g`, you can use 
+`induced_map_to_fiber_product` to  create the resulting map `W → X×Y`.
 """
 function fiber_product(
     f::AbsSpecMor,

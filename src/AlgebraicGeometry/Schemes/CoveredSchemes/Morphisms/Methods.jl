@@ -169,6 +169,18 @@ end
 # fiber products
 ########################################################################
 
+@doc raw"""
+    fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+
+For a diagram 
+    XxY ----> Y
+     |        | g
+     V        V
+     X------> Z
+         f
+this computes the fiber product `XxY` together with the canonical maps 
+to `X` and `Y` and returns the resulting triple.
+"""
 function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   X = domain(f)
   Y = domain(g)
