@@ -65,6 +65,26 @@ with default covering
 
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   U = affine_charts(X)
+
+  if ngens(SY) == ngens(SX) && all(k->pullback(SY[k]) == SX[k], 1:ngens(SY))
+    for i in 1:ngens(SX)
+      U_i = U[i]
+      dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
+      y = gen(SY, i)
+      denom = dehom(pbf(y))
+      V_i = affine_charts(Y)[i]
+      mor_dict[U_i] = SpecMor(U_i, V_j, 
+                               hom(OO(V_j), OO(U_i), 
+                                   [OO(U_i)(dehom(pbf(gen(SY, k)))) for k in 1:ngens(SY) if k != i]
+                                  )
+                              )
+    end
+    phi = CoveringMorphism(default_covering(X), default_covering(Y), mor_dict, check=false)
+    ff = CoveredSchemeMorphism(X, Y, phi)
+    return ff
+  end
+
+  # the default case
   for i in 1:ngens(SX)
     U_i = U[i]
     dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
@@ -107,6 +127,25 @@ end
 
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   U = affine_charts(X)
+  if ngens(SY) == ngens(SX) && all(k->pullback(f)(SY[k]) == SX[k], 1:ngens(SY))
+    for i in 1:ngens(SX)
+      U_i = U[i]
+      dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)
+      y = gen(SY, i)
+      denom = dehom(pbf(y))
+      V_i = affine_charts(Y)[i]
+      mor_dict[U_i] = SpecMor(U_i, V_i, 
+                               hom(OO(V_i), OO(U_i), coeff_map,
+                                   [OO(U_i)(dehom(pbf(gen(SY, k)))) for k in 1:ngens(SY) if k != i]
+                                  )
+                              )
+    end
+    phi = CoveringMorphism(default_covering(X), default_covering(Y), mor_dict, check=false)
+    ff = CoveredSchemeMorphism(X, Y, phi)
+    return ff
+  end
+
+  # the default case
   for i in 1:ngens(SX)
     U_i = U[i]
     dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)

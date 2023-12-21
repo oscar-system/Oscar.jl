@@ -50,7 +50,7 @@ space over the same ring with the identity on the base.
   domain::DomainType
   codomain::CodomainType
   pullback::PullbackType
-  base_ring_morphism::Map
+  base_ring_morphism::BaseMorType
 
   #fields for caching
   map_on_base_schemes::SchemeMor
@@ -73,29 +73,13 @@ space over the same ring with the identity on the base.
       #TODO: Check map on ideals (not available yet)
       true
     end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
-  end
-  
-  ### Morphisms with an underlying base change
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType;
-      check::Bool=true
-    ) where {DomainType<:AbsProjectiveScheme,
-             CodomainType<:AbsProjectiveScheme,
-             PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
-            }
-    T = homogeneous_coordinate_ring(P)
-    S = homogeneous_coordinate_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    @check begin
-      #TODO: Check map on ideals (not available yet)
-      true
+    # TODO: Can we make this type stable? Or is it already?
+    if _has_coefficient_map(f)
+      return new{DomainType, CodomainType, PullbackType, typeof(coefficient_map(f))}(P, Q, f, coefficient_map(f))
+    else
+      return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
     end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
   end
-
 
   ### complicated morphisms over a non-trivial morphism of base schemes
   function ProjectiveSchemeMor(
