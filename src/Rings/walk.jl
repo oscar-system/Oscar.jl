@@ -1,6 +1,6 @@
 using Oscar
 
-global infoLevel = 1
+global infoLevel = 0
 
 ###############################################################
 # Implementation of different variants of the Groebner Walk.
@@ -8,9 +8,9 @@ global infoLevel = 1
 ###############################################################
 @doc raw"""
 		groebnerwalk(
-			I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-			startOrder::Symbol = :degrevlex,
-			targetOrder::Symbol = :lex,
+			I::MPolyIdeal; 
+			startOrder::MonomialOrdering = default_ordering(base_ring(I)),
+			targetOrder::Symbol = lex(base_ring(I)),
 			walktype::Symbol = :standard,
 			perturbationDegree::Int = 2,
 		)
@@ -25,7 +25,7 @@ Fractal Walk (:fractalcombined) computes the Walk like it´s presented in Amrhei
 Fractal Walk (:fractal) computes the Walk like it´s presented in Amrhein & Gloor (1998). Pertubes only the target vector.
 Set infoLevel to trace the walk:
 	-'infoLevel=0': no detailed printout,
-	-'infoLevel=1': intermediate weight vectors,
+	-'infoLevel=1': adds intermediate weight vectors,
 	-'infoLevel=2': adds information about the Groebner basis.
 
 #Arguments
@@ -40,10 +40,48 @@ Set infoLevel to trace the walk:
 	- `fractal`: standard-version of the Fractal Walk,
 	- `fractalcombined`: combined Version of the Fractal Walk. Target monomial order needs to be lex,
 - `perturbationDegree::Int=2`: perturbationdegree for the perturbed Walk.
+
+
+# Examples
+
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"], ordering = :degrevlex);
+
+julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
+
+julia> groebnerwalk(I, degrevlex(R), lex(R), :standard)
+standard_walk results
+Crossed Cones in: 
+[4, 3]
+[4, 1]
+[12, 1]
+[1, 0]
+Cones crossed: 4
+Gröbner basis with elements
+1 -> y^16
+2 -> x + y^12 - y^8 + y^4
+with respect to the ordering
+matrix_ordering([x, y], [1 0; 0 1])
+
+julia> groebnerwalk(I, degrevlex(R), lex(R), :perturbed, 2)
+perturbed_walk results
+Crossed Cones in: 
+[4, 3]
+[4, 1]
+[5, 1]
+[12, 1]
+[1, 0]
+Cones crossed: 5
+Gröbner basis with elements
+1 -> y^16
+2 -> x + y^12 - y^8 + y^4
+with respect to the ordering
+matrix_ordering([x, y], [1 0; 0 1])
+```
 """
 function groebnerwalk(
 	I::MPolyIdeal, startOrder::MonomialOrdering = default_ordering(base_ring(I)),
-	targetOrder::MonomialOrdering = :lex,
+	targetOrder::MonomialOrdering = lex(base_ring(I)),
 	walktype::Symbol = :standard,
 	perturbationDegree::Int = 2)
 	S = canonical_matrix(startOrder)
@@ -74,7 +112,7 @@ Fractal Walk (:fractal) computes the Walk like it´s presented in Amrhein & Gloo
 Fractal Walk (:fractalcombined) computes the Walk like it´s presented in Amrhein & Gloor (1998) with multiple extensions. The target monomial order has to be lex. This version uses the Buchberger Algorithm to skip weightvectors with entries bigger than Int32.
 Set infoLevel to trace the walk:
 	-'infoLevel=0': no detailed printout,
-	-'infoLevel=1': intermediate weight vectors,
+	-'infoLevel=1': adds intermediate weight vectors,
 	-'infoLevel=2': adds information about the Groebner basis.
 
 #Arguments
@@ -89,6 +127,43 @@ Set infoLevel to trace the walk:
 	- `fractal`: standard-version of the Fractal Walk,
 	- `fractalcombined`: combined version of the Fractal Walk. The target monomial order needs to be lex,
 -`p::Int=2`: perturbationdegree for the perturbed Walk.
+
+# Examples
+
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"], ordering = :degrevlex);
+
+julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
+
+julia> groebnerwalk(I, [1 1; 0 -1], [1 0; 0 1], :standard)
+standard_walk results
+Crossed Cones in: 
+[4, 3]
+[4, 1]
+[12, 1]
+[1, 0]
+Cones crossed: 4
+Gröbner basis with elements
+1 -> y^16
+2 -> x + y^12 - y^8 + y^4
+with respect to the ordering
+matrix_ordering([x, y], [1 0; 0 1])
+
+julia> groebnerwalk(I, [1 1; 0 -1], [1 0; 0 1], :perturbed, 2)
+perturbed_walk results
+Crossed Cones in: 
+[4, 3]
+[4, 1]
+[5, 1]
+[12, 1]
+[1, 0]
+Cones crossed: 5
+Gröbner basis with elements
+1 -> y^16
+2 -> x + y^12 - y^8 + y^4
+with respect to the ordering
+matrix_ordering([x, y], [1 0; 0 1])
+```
 """
 function groebnerwalk(
 	G::Union{Oscar.IdealGens, MPolyIdeal},
@@ -174,17 +249,17 @@ function standard_walk(
 	tarweight::Vector{Int})
 	while true
 		G = standard_step(G, currweight, T)
-		if infoLevel >= 1
-			println(currweight)
-			if infoLevel == 2
-				println(G)
-			end
-		end
-		raise_step_counter()
 		if currweight == tarweight
 			return G
 		else
 			currweight = next_weight(G, currweight, tarweight)
+		end
+		if infoLevel >= 1
+			raise_step_counter()
+			println(currweight)
+			if infoLevel == 2
+				println(G)
+			end
 		end
 	end
 end
@@ -227,7 +302,7 @@ function generic_walk(
 	ordNew = matrix_ordering(base_ring(G), T)
 	if infoLevel >= 1
 		println("generic_walk results")
-		println("Crossed Cones with: ")
+		println("Facets crossed for: ")
 	end
 	while !isempty(v)
 		G, Lm = generic_step(G, Lm, v, ordNew)

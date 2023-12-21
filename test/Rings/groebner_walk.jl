@@ -33,11 +33,11 @@
 
 	ideals = []
 	infoLevel = 1
-	for i ∈ 2:nvars(R)-2
+	for i ∈ 2:nvars(R)
 		push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :perturbed, i))
 	end
 	push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :standard))
-	#push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :tran))
+	# push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :tran))
 
 	push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :fractal))
 	push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :fractal_start_order))
@@ -52,6 +52,16 @@
 			s,
 		)
 	end
+
+	R, (x, y) = polynomial_ring(QQ, ["x", "y"], ordering = :degrevlex)
+	I = ideal([y^4 + x^3 - x^2 + x, x^4])
+	id = groebnerwalk(I, degrevlex(R), lex(R), :tran)
+
+	s = groebner_basis(I, ordering = lex(R), complete_reduction = true)
+	@test equalitytest(
+		Oscar.IdealGens(R, gens(id), lex(R)),
+		s,
+	)
 
 	@testset "backend-functions for the Groebner Walk" begin
 
