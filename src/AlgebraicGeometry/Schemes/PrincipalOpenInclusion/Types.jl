@@ -1,3 +1,9 @@
+# This type is needed to handle the morphisms in refinements of coverings efficiently. 
+# In principal, it does not much more than `PrincipalOpenSubset` with it's implicit 
+# embedding into its ambient scheme. But this allows for an actual morphism of rings 
+# in the background, so that the identification of the domain with a principal open 
+# subset of its codomain can also be realized for schemes with different `ambient_coordinate_ring`s. 
+# This is important for the refinements, since we also allow `SimplifiedSpec`.
 @doc raw"""
     PrincipalOpenEmbedding{DomainType, CodomainType, PullbackType} <: AbsSpecMor
 
@@ -18,8 +24,7 @@ one ``X`` such that the image is a principal open subset.
     @check begin
       U = PrincipalOpenSubset(Y, complement_equations)
       f_res = SpecMor(X, U, pullback(f).(gens(OO(Y))), check=check)
-      # is_isomorphism does not work for all required constellations.
-      #is_isomorphism(f) || error("restriction is not an isomorphism")
+      is_isomorphism(f) || error("restriction is not an isomorphism")
     end
 
     return new{typeof(X), typeof(Y), pullback_type(f)}(f, complement_equations)

@@ -248,27 +248,6 @@ end
 # of a refinement is of type `PrincipalOpenEmbedding`.
 ########################################################################
 
-struct FiberProductCache
-  cache::IdDict{<:AbsSpec, <:IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}}}
-
-  function FiberProductCache()
-    return new(IdDict{AbsSpec, IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}}}())
-  end
-end
-
-function get_index(cache::FiberProductCache, X::AbsSpec, Y::AbsSpec)
-  haskey(cache.cache, X) || return nothing
-  dict = cache.cache[X]
-  haskey(dict, Y) || return nothing
-  return dict[Y]
-end
-
-function setindex!(cache::FiberProductCache, X::AbsSpec, Y::AbsSpec, Z::AbsSpec, p1::AbsSpecMor, p2::AbsSpecMor)
-  !haskey(cache.cache, X) && (cache.cache[X] = IdDict{AbsSpec, AbsSpec}())
-  dict = cache.cache[X]
-  dict[Y] = (Z, p1, p2)
-end
-
 function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
   A = domain(f)
   B = domain(g)
@@ -295,6 +274,7 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
   result = Covering(new_patches)
 
   # construct all the glueings
+  # TODO: Make these lazy!
   for UxV in new_patches
     to_U, to_V = cache[UxV]
     U = codomain(to_U)
@@ -303,6 +283,8 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       to_UU, to_VV = cache[UUxVV]
       UU = codomain(to_UU)
       VV = codomain(to_VV)
+      !haskey(glueings(A), (U, UU)) && continue
+      !haskey(glueings(B), (V, VV)) && continue
       UUU = A[U, UU]::AbsGlueing
       VVV = B[V, VV]::AbsGlueing
       U_UU, UU_U = glueing_domains(UUU)

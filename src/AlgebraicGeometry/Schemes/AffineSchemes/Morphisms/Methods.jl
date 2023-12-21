@@ -26,6 +26,16 @@ function fiber_product(
   return W, restrict(pY, W, Y, check=false), restrict(pZ, W, Z, check=false)
 end
 
+# Whenever one of the maps, say f, in a fiber product is a `PrincipalOpenEmbedding` 
+# then the fiber product is only the restriction of g to g^{-1}(image(f)). 
+# This can be computed much easier and, in particular, without introducing 
+# extra variables: One just pulls back the `complement_equations` for `f` to 
+# the domain of `g`. 
+#
+# We need this more simple procedure for refinements of coverings. In particular, 
+# it is important that the resulting fiber product is a PrincipalOpenSubset of 
+# the domain of `g` (or the domain of `f` when it's the other way around), so that 
+# the ancestry-tree for patches is preserved.
 function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
   @assert codomain(f) === codomain(g) "codomains are not the same"
   A = domain(f)
@@ -121,6 +131,9 @@ function induced_map_to_fiber_product(
   return SpecMor(W, XxY, img_gens, check=check)
 end
 
+# When the fiber product was created from at least one `PrincipalOpenEmbedding`, 
+# then the construction did not proceed via the `product` of `X` and `Y`.
+# In this case, the induced map must be created differently.
 function induced_map_to_fiber_product(
     a::AbsSpecMor, b::AbsSpecMor, 
     f::PrincipalOpenEmbedding, g::AbsSpecMor;

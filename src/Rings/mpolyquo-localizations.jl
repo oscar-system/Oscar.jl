@@ -2312,6 +2312,11 @@ function inverse(
   return result
 end
 
+# It seems tedious to implement special methods for all constellations of 
+# rings that can appear. But all rings considered can be realized 
+# as a localized quotient and the functionality exists for those. 
+# Since this does not produce significant overhead, we reroute everything 
+# to those. 
 function is_isomorphism(
     f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
            <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
@@ -2363,6 +2368,10 @@ function _as_localized_quotient(W::MPolyQuoLocRing)
   return W, identity_map(W), identity_map(W)
 end
 
+# Problems arise with comparison for non-trivial coefficient maps 
+# in all constellations. This calls for a streamlined set of commands 
+# to check whether coefficient maps exist and if so, what they are, 
+# so that they can be compared. 
 function Base.:(==)(
     f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
            <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}},
@@ -2406,6 +2415,10 @@ _has_coefficient_map(::Type{T}) where {T<:Map} = false
 _has_coefficient_map(f::Map) = _has_coefficient_map(typeof(f))
 
 
+# Composition of maps is complicated, if there are coefficient maps, too.
+# By convention, the coefficient maps are allowed to take values in the 
+# coefficient ring of the codomain, or the codomain itself. Depending 
+# on the case, we have to select the correct way to compose maps.
 function compose(f::MPolyAnyMap, 
     g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom}
   )
