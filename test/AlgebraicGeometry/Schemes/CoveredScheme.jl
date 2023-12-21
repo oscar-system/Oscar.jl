@@ -235,6 +235,27 @@ end
   @test compose(a, inc_X) == compose(b, c)
 end
 
+@testset "base change of morphisms of covered schemes" begin
+  IP1 = projective_space(QQ, [:x, :y])
+  S = homogeneous_coordinate_ring(IP1)
+  (x, y) = gens(S)
+  X = covered_scheme(IP1)
+  E = direct_sum([twisting_sheaf(IP1, 0), twisting_sheaf(IP1, 2)])
+  IPE = projectivization(E)
+  Y = covered_scheme(IPE)
+  pr = covered_projection_to_base(IPE)
+  P, t = QQ[:t]
+  g = t^2 + 1
+  kk, zeta = number_field(g)
+  a, ff, b = base_change(kk, pr)
+  aa = first(values(a.f.morphisms))
+  @test Oscar._has_coefficient_map(pullback(aa))
+  bb = first(values(b.f.morphisms))
+  @test Oscar._has_coefficient_map(pullback(bb))
+  bb = first(values(ff.f.morphisms))
+  @test !Oscar._has_coefficient_map(pullback(bb))
+end
+
 @testset "decomposition info" begin
   P3 = projective_space(ZZ, 3)
   X = covered_scheme(P3)

@@ -126,24 +126,42 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
   f_cov = covering_morphism(f)
   dom_cov = covering_morphism(domain_map)
   cod_cov = covering_morphism(codomain_map)
-  if codomain(dom_cov) === domain(f_cov)
-    if codomain(dom_cov) === codomain(f_cov)
-      _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
-      X = domain(f)
-      Y = codomain(f)
-      XX = domain(domain_map)
-      YY = domain(codomain_map)
-      return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
+  # The codomains of the base change maps need not be compatible with 
+  # the domain/codomain of f_cov. If this is the case, we need to refine 
+  # all these.
+  if codomain(dom_cov) !== domain(f_cov)
+    if is_refinement(codomain(dom_cov), domain(f_cov))[1]
+      ref = refinement_morphism(codomain(dom_cov), domain(f_cov))
+      dom_cov = compose(dom_cov, ref)
+    elseif is_refinement(domain(f_cov), codomain(dom_cov))
+      # This should be the most common case, really: base_change 
+      # has happened on the `default_covering`s and `f` has a refinement 
+      # thereof as its codomain.
+      ref = refinement_morphism(domain(f_cov), codomain(dom_cov))
+      _, to_dom_dom_cov, to_dom_f_cov = fiber_product(dom_cov, ref)
+      dom_cov = to_dom_f_cov
     else
-      f_cov_inc = compose(dom_cov, f_cov)
-      cod_cod_ref, inc_1, inc2 = common_refinement(codomain(cod_cov), codomain(f_cov))
-      # TODO: finish
+      # This should not really happen usually, since we assume a base_change 
+      # to be carried out on the default_covering.
       error("case not implemented")
     end
-  else
-    error("case not implemented")
-      # TODO: finish
   end
+  if codomain(cod_cov) !== codomain(f_cov)
+    # We must assume that `cod_cov` is realized w.r.t. the `default_covering`s 
+    # on both sides. Otherwise, we have no chance to write down the lifting 
+    # map to the rings with the new coefficient ring.
+    ref = refinement_morphism(codomain(f_cov), default_covering(codomain(f)))
+    f_cov = compose(f_cov, ref)
+  end
+    
+  @assert codomain(dom_cov) === domain(f_cov)
+  @assert codomain(cod_cov) === codomain(f_cov) "base change in the codomain is not possible unless one is using the `default_covering`"
+  _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
+  X = domain(f)
+  Y = codomain(f)
+  XX = domain(domain_map)
+  YY = domain(codomain_map)
+  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
