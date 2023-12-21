@@ -997,6 +997,7 @@ function exterior_power(
   V::LieAlgebraModule{C}, k::Int; cached::Bool=true
 ) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
+  @req characteristic(coefficient_ring(V)) == 0 "Characteristic must be zero."
 
   if cached
     powers = _exterior_powers(V)
@@ -1008,13 +1009,13 @@ function exterior_power(
   dim_E = binomial(dim(V), k)
   ind_map = collect(combinations(1:dim(V), k))
 
-  T, _ = tensor_power(V, k)
-  E_to_T_mat = zero_matrix(coefficient_ring(V), dim_E, dim(T))
-  T_to_E_mat = zero_matrix(coefficient_ring(V), dim(T), dim_E)
+  T, _ = tensor_power(V, k; cached)
+  E_to_T_mat = zero_matrix(R, dim_E, dim(T))
+  T_to_E_mat = zero_matrix(R, dim(T), dim_E)
   for (i, _inds) in enumerate(ind_map), (inds, sgn) in permutations_with_sign(_inds)
     j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    E_to_T_mat[i, j] = sgn//factorial(k)
-    T_to_E_mat[j, i] = sgn
+    E_to_T_mat[i, j] = R(sgn)//factorial(k)
+    T_to_E_mat[j, i] = R(sgn)
   end
   transformation_matrices = map(1:dim(L)) do i
     E_to_T_mat * transformation_matrix(T, i) * T_to_E_mat
@@ -1116,6 +1117,7 @@ function symmetric_power(
   V::LieAlgebraModule{C}, k::Int; cached::Bool=true
 ) where {C<:FieldElem}
   @req k >= 0 "Non-negative exponent needed"
+  @req characteristic(coefficient_ring(V)) == 0 "Characteristic must be zero."
 
   if cached
     powers = _symmetric_powers(V)
@@ -1127,13 +1129,13 @@ function symmetric_power(
   dim_S = binomial(dim(V) + k - 1, k)
   ind_map = collect(multicombinations(1:dim(V), k))
 
-  T, _ = tensor_power(V, k)
-  S_to_T_mat = zero_matrix(coefficient_ring(V), dim_S, dim(T))
-  T_to_S_mat = zero_matrix(coefficient_ring(V), dim(T), dim_S)
+  T, _ = tensor_power(V, k; cached)
+  S_to_T_mat = zero_matrix(R, dim_S, dim(T))
+  T_to_S_mat = zero_matrix(R, dim(T), dim_S)
   for (i, _inds) in enumerate(ind_map), inds in permutations(_inds)
     j = 1 + sum((ind - 1) * dim(V)^(k - 1) for (k, ind) in enumerate(reverse(inds)); init=0)
-    S_to_T_mat[i, j] += 1//factorial(k)
-    T_to_S_mat[j, i] = 1
+    S_to_T_mat[i, j] += R(1)//factorial(k)
+    T_to_S_mat[j, i] = R(1)
   end
   transformation_matrices = map(1:dim(L)) do i
     S_to_T_mat * transformation_matrix(T, i) * T_to_S_mat
