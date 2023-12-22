@@ -19,7 +19,7 @@ end
 @doc raw"""
     function is_smooth(P::AbsProjectiveScheme; algorithm=:default) -> Bool
 
-Check whether the scheme `X` is smooth.
+Check whether the scheme `P` is smooth.
 
 # Algorithms
 

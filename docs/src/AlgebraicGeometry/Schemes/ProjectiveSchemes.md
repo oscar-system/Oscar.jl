@@ -91,7 +91,6 @@ Further properties of projective schemes:
 ```
 ```
     is_empty(P::AbsProjectiveScheme{<:Field})
-    is_smooth(P::AbsProjectiveScheme)
     is_irreducible(P::AbsProjectiveScheme)
     is_reduced(P::AbsProjectiveScheme)
     is_geometrically_reduced(P::AbsProjectiveScheme{<:Field})
