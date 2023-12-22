@@ -9,39 +9,38 @@ struct SpatialPartition <: AbstractPartition
     partition::SetPartition
     levels::Int
 
-    function SpatialPartition(_partition::SetPartition, _levels::Int)
-        @req length(upper_points(_partition)) % _levels == 0 &&
-            length(lower_points(_partition)) % _levels == 0 "
-            number of points does not match dimension"
-        @req _levels > 0 "
-            dimension needs to be greater than 0"
-        return new(_partition, _levels)
+    function SpatialPartition(partition::SetPartition, levels::Int)
+        @req num_upper_points(partition) % levels == 0 "number of upper points not divisible by levels"
+        @req num_lower_points(partition) % levels == 0 "number of lower points not divisible by levels"
+        @req levels > 0 "levels needs to be greater than 0"
+
+        return new(partition, levels)
     end
 end
 
 """
-    spatial_partition(partition::SetPartition, dim::Int)
+    spatial_partition(partition::SetPartition, m::Int)
 
-Construct a `SpatialPartition` on `dim` levels from `partition`.
+Construct a `SpatialPartition` on `m` levels from `partition`.
 
-Note that number of upper and lower points of `partition` have to be a multiple of `dim`. 
+Note that number of upper and lower points of `partition` have to be a multiple of `m`. 
 See Remark 2.4 in [CW16](@cite).
 """
-function spatial_partition(partition::SetPartition, dim::Int)
-    return SpatialPartition(partition, dim)
+function spatial_partition(partition::SetPartition, m::Int)
+    return SpatialPartition(partition, m)
 end
 
 """
-    spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
+    spatial_partition(upper_points::Vector, lower_points::Vector, m::Int)
 
-Construct a `SpatialPartition` on `dim` levels from a partition given by 
+Construct a `SpatialPartition` on `m` levels from a partition given by 
 `upper_points` and `lower_points`.
 
-Note that the length of `upper_points` and `lower_points` have to be a multiple of `dim`. 
+Note that the length of `upper_points` and `lower_points` have to be a multiple of `m`. 
 See Remark 2.4 in [CW16](@cite).
 """
-function spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
-    return spatial_partition(set_partition(upper_points, lower_points), dim)
+function spatial_partition(upper_points::Vector, lower_points::Vector, m::Int)
+    return spatial_partition(set_partition(upper_points, lower_points), m)
 end
 
 function hash(p::SpatialPartition, h::UInt)
@@ -95,7 +94,7 @@ end
 """
     set_partition(p::SpatialPartition)
 
-Return the SetPartition part of `p`.
+Return the `SetPartition` part of `p`.
 
 # Examples
 ```jldoctest
@@ -110,7 +109,7 @@ end
 """
     levels(p::SpatialPartition)
 
-Return the level of `p`.
+Return the number of levels of `p`.
 
 # Examples
 ```jldoctest
@@ -139,7 +138,7 @@ SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), 2)
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
 
-    @req levels(p) == levels(q) "p and q have different levels in tensor product"
+    @req levels(p) == levels(q) "p and q have different levels"
 
     return spatial_partition(tensor_product(set_partition(p), set_partition(q)), levels(p))
 end
@@ -147,7 +146,7 @@ end
 """
     involution(p::SpatialPartition)
 
-Return involution of `p`.
+Return the involution of `p`.
 
 The involution of a spatial partition is obtained by swapping the upper 
 and lower points. See also Section 2.3 in [CW16](@cite) and `involution(::SetPartition)`.
@@ -210,7 +209,7 @@ ERROR: ArgumentError: p and q have different levels in composition
 """
 function compose_count_loops(p::SpatialPartition, q::SpatialPartition)
 
-    @req is_composable(p, q) "p and q have different levels in composition"
+    @req is_composable(p, q) "p and q have different levels"
 
     comp_loops = compose_count_loops(set_partition(p), set_partition(q))
 

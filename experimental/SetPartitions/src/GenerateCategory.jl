@@ -128,7 +128,7 @@ end
 
 """
 This function is a helper function of `construct_category`, which applies 
-tensor products on all partitions in  the set `to_tens`. When a new partition 
+tensor products on all partitions in the set `to_tens`. When a new partition 
 is created in the course of this process, it is incorporated into `all_partitions`, 
 `all_partitions_by_size`, `already_t` and `all_partitions_by_size_top_bottom`, 
 simultaneously setting the `stop_whole` flag to true.
@@ -234,7 +234,7 @@ end
 
 """
 This function is a helper function of `construct_category`, which applies 
-compositions on all partitions in  the set `to_comp`. When a new partition 
+compositions on all partitions in the set `to_comp`. When a new partition 
 is created in the course of this process, it is incorporated into `all_partitions`, 
 `all_partitions_by_size`, `already_c` and `all_partitions_by_size_top_bottom`, 
 simultaneously setting the `stop_whole` flag to true.
@@ -342,9 +342,10 @@ operations using partitions in `p` and without using partitions of size greater 
 `max(n, maxsize(p), max_artifical)`.
 
 Category operations include composition, tensor product, involution, 
-rotation and reflection. 
-See Section 4.1.1 in [Gro20](@cite) for more information categories 
-of partitions and these operations.
+rotation and reflection. See Section 4.1.1 in [Gro20](@cite) 
+for more information on categories of partitions and these operations. 
+
+See also Section 4 in [Vol23](@cite) for a description of the underlying algorithm.
 
 # Arguments
 - `p`: list of partitions

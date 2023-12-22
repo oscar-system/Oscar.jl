@@ -27,6 +27,7 @@ export is_balanced
 export is_composable
 export is_non_crossing
 export is_pair
+export levels
 export lower_colors
 export lower_points
 export num_lower_points
@@ -62,6 +63,7 @@ export is_balanced
 export is_composable
 export is_non_crossing
 export is_pair
+export levels
 export lower_colors
 export lower_points
 export num_lower_points

@@ -9,16 +9,16 @@ struct ColoredPartition <: AbstractPartition
     color_upper_points::Vector{Int}
     color_lower_points::Vector{Int}
 
-    function ColoredPartition(_partition::SetPartition, 
-                                _color_upper_points::Vector{Int},
-                                _color_lower_points::Vector{Int})
-        @req all(x -> x in (0, 1), Set(_color_upper_points)) &&
-            all(x -> x in (0, 1), Set(_color_lower_points)) "
-            coloring has to be binary in {0, 1}"
-        @req length(upper_points(_partition)) == length(_color_upper_points) && 
-            length(lower_points(_partition)) == length(_color_lower_points) "
-            coloring format does not match upper and lower points format"
-        return new(_partition, _color_upper_points, _color_lower_points)
+    function ColoredPartition(partition::SetPartition, 
+                              color_upper_points::Vector{Int},
+                              color_lower_points::Vector{Int})
+
+        @req all(x -> x in (0, 1), color_upper_points) "upper coloring has to be binary in {0, 1}"
+        @req num_upper_points(partition) == length(color_upper_points) "upper coloring format does not match upper points format"
+        @req all(x -> x in (0, 1), color_lower_points) "lower coloring has to be binary in {0, 1}"
+        @req num_lower_points(partition) == length(color_lower_points) "lower coloring format does not match and lower points format"
+
+        return new(partition, color_upper_points, color_lower_points)
     end
 end
 
@@ -34,13 +34,12 @@ julia> colored_partition(set_partition([2, 4], [4, 99]), [1, 0], [0, 1])
 ColoredPartition(SetPartition([1, 2], [2, 3]), [1, 0], [0, 1])
 ```
 """
-function colored_partition(
-    partition::SetPartition, 
-    upper_colors::Vector, 
-    lower_colors::Vector)
+function colored_partition(partition::SetPartition, 
+                           upper_colors::Vector, lower_colors::Vector)
 
-    return ColoredPartition(partition, convert(Vector{Int}, upper_colors), 
-                                       convert(Vector{Int}, lower_colors))
+    return ColoredPartition(partition, 
+                            convert(Vector{Int}, upper_colors), 
+                            convert(Vector{Int}, lower_colors))
 end
 
 """
@@ -56,28 +55,21 @@ julia> colored_partition([2, 4], [4, 99], [1, 0], [0, 1])
 ColoredPartition(SetPartition([1, 2], [2, 3]), [1, 0], [0, 1])
 ```
 """
-function colored_partition(
-    upper_points::Vector,
-    lower_points::Vector,
-    upper_colors::Vector, 
-    lower_colors::Vector)
+function colored_partition(upper_points::Vector,lower_points::Vector,
+                           upper_colors::Vector, lower_colors::Vector)
 
     return colored_partition(set_partition(upper_points, lower_points), 
-                                            upper_colors, lower_colors)
+                             upper_colors, lower_colors)
 end
 
 function hash(p::ColoredPartition, h::UInt)
-
     return hash(set_partition(p), hash(upper_colors(p), hash(lower_colors(p), h)))
-    
 end
 
 function ==(p::ColoredPartition, q::ColoredPartition)
-
     return set_partition(p) == set_partition(q) && 
            upper_colors(p)  == upper_colors(q)  && 
            lower_colors(p)  == lower_colors(q)
-
 end
 
 function deepcopy_internal(p::ColoredPartition, stackdict::IdDict)
@@ -94,7 +86,7 @@ end
 """
     set_partition(p::ColoredPartition)
 
-Return the SetPartition part of `p`.
+Return the `SetPartition` part of `p`.
 
 # Examples
 ```jldoctest
@@ -148,7 +140,7 @@ julia> upper_colors(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
 ```
 """
 function upper_colors(p::ColoredPartition)
-    return p.upper_colors
+    return p.color_upper_points
 end
 
 """
@@ -163,7 +155,7 @@ julia> lower_colors(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
 ```
 """
 function lower_colors(p::ColoredPartition)
-    return p.lower_colors
+    return p.color_lower_points
 end
 
 """
@@ -171,9 +163,8 @@ end
 
 Return the tensor product of `p` and `q`.
 
-The tensor product of two colored partitions is 
-given by their horizontal concatenation.
-See also Section 1.2 in [TW18](@cite) and 
+The tensor product of two colored partitions is given by their 
+horizontal concatenation. See also Section 1.2 in [TW18](@cite) and 
 `tensor_product(::SetPartition, ::SetPartition)`.
 
 # Examples
@@ -183,10 +174,9 @@ ColoredPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), [1, 0, 0, 1], [1, 1, 0])
 ```
 """
 function tensor_product(p::ColoredPartition, q::ColoredPartition)
-
     return colored_partition(tensor_product(set_partition(p), set_partition(q)), 
-        vcat(upper_colors(p), upper_colors(q)), 
-        vcat(lower_colors(p), lower_colors(q)))
+                             vcat(upper_colors(p), upper_colors(q)), 
+                             vcat(lower_colors(p), lower_colors(q)))
 end
 
 """
@@ -205,10 +195,8 @@ ColoredPartition(SetPartition([1, 2], [2, 1, 3]), [0, 1], [1, 1, 0])
 ```
 """
 function involution(p::ColoredPartition)
-
     return colored_partition(involution(set_partition(p)), 
-        lower_colors(p), upper_colors(p))
-
+                             lower_colors(p), upper_colors(p))
 end
 
 """
@@ -228,7 +216,7 @@ false
 """
 function is_composable(p::ColoredPartition, q::ColoredPartition)
     return upper_colors(p) == lower_colors(q) && 
-        is_composable(set_partition(p), set_partition(q))
+           is_composable(set_partition(p), set_partition(q))
 end
 
 """
@@ -253,18 +241,17 @@ julia> compose_count_loops(colored_partition([1, 1], [2], [1, 1], [0]), colored_
 (ColoredPartition(SetPartition([1], [2]), [1], [0]), 1)
 
 julia> compose_count_loops(colored_partition([1], [1, 2], [0], [1, 0]), colored_partition([1], [2, 2], [0], [0, 1]))
-ERROR: ArgumentError: p upper and q lower colors are different in composition
+ERROR: ArgumentError: upper and lower colors are different
 ```
 """
 function compose_count_loops(p::ColoredPartition, q::ColoredPartition)
 
-    @req upper_colors(p) == lower_colors(q) "
-        p upper and q lower colors are different in composition"
+    @req upper_colors(p) == lower_colors(q) "upper and lower colors are different"
 
     comp_loops = compose_count_loops(set_partition(p), set_partition(q))
     
     return (colored_partition(comp_loops[1], upper_colors(q), lower_colors(p)), 
-        comp_loops[2])
+            comp_loops[2])
 
 end
 
@@ -300,9 +287,9 @@ ColoredPartition(SetPartition([1, 2, 3, 1], [2]), [1, 0, 1, 0], [1])
 function rotate(p::ColoredPartition, lr::Bool, tb::Bool)
 
     if tb
-        @req !isempty(upper_points(p)) "SetPartition has no top part"
+        @req !isempty(upper_points(p)) "partition has no top part"
     elseif !tb
-        @req !isempty(lower_points(p)) "SetPartition has no bottom part"
+        @req !isempty(lower_points(p)) "partition has no bottom part"
     end
 
     ret = deepcopy((upper_points(p), lower_points(p), 

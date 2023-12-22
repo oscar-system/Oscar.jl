@@ -88,7 +88,7 @@ end
 """
     tensor_product(p::SetPartition, q::SetPartition)
 
-Return tensor product of `p` and `q`.
+Return the tensor product of `p` and `q`.
 
 The tensor product of two partitions is given by their horizontal concatenation.
 See also Section 4.1.1 in [Gro20](@cite).
@@ -110,7 +110,7 @@ end
 """
     involution(p::SetPartition)
 
-Return involution of `p`.
+Return the involution of `p`.
 
 The involution of a partition is obtained by swapping the upper and lower points.
 See also Section 4.1.1 in [Gro20](@cite).
@@ -174,9 +174,9 @@ SetPartition([1, 2, 3, 1], [2])
 function rotate(p::SetPartition, lr::Bool, tb::Bool)
     
     if tb
-        @req !isempty(upper_points(p)) "SetPartition has no top part"
+        @req !isempty(upper_points(p)) "partition has no top part"
     elseif !tb
-        @req !isempty(lower_points(p)) "SetPartition has no bottom part"
+        @req !isempty(lower_points(p)) "partition has no bottom part"
     end
 
     ret = deepcopy((upper_points(p), lower_points(p)))
@@ -247,12 +247,12 @@ julia> compose_count_loops(set_partition([1, 1], [2]), set_partition([1], [2, 2]
 (SetPartition([1], [2]), 1)
 
 julia> compose_count_loops(set_partition([1], [1, 2]), set_partition([1], [2, 2]))
-ERROR: ArgumentError: Number of points mismatch
+ERROR: ArgumentError: number of points mismatch
 ```
 """
 function compose_count_loops(p::SetPartition, q::SetPartition)
     
-    @req is_composable(p, q) "Number of points mismatch" 
+    @req is_composable(p, q) "number of points mismatch" 
 
     # Work with copies to not change the input partitions
     p_copy = deepcopy(p)

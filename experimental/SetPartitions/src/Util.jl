@@ -6,7 +6,7 @@ Return two vectors which are semantically identical to `q_upper` and `q_lower`
 as set-partition and have no common values with `p_upper` and `p_lower`.
 """
 function _new_point_values(p_upper::Vector{Int}, p_lower::Vector{Int}, 
-                          q_upper::Vector{Int}, q_lower::Vector{Int})
+                           q_upper::Vector{Int}, q_lower::Vector{Int})
 
     p_points = vcat(p_upper, p_lower)
 
@@ -112,14 +112,14 @@ function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) wher
                                                                 {T <: AbstractPartition}
 
     # add right partition in first dict for top size
-    add_apbs_top = (vector[1])[num_upper_points(p)]
+    add_apbs_top = vector[1][num_upper_points(p)]
     push!(add_apbs_top, p)
-    (vector[1])[num_upper_points(p)] = add_apbs_top
+    vector[1][num_upper_points(p)] = add_apbs_top
 
     # add right partition in first dict for bottom size
-    add_apbs_bottom = (vector[2])[num_upper_points(p)]
+    add_apbs_bottom = vector[2][num_upper_points(p)]
     push!(add_apbs_bottom, p)
-    (vector[2])[num_lower_points(p)] = add_apbs_bottom
+    vector[2][num_lower_points(p)] = add_apbs_bottom
 
     return vector
 end
