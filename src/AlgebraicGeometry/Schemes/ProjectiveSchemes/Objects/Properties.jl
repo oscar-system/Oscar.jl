@@ -25,17 +25,17 @@ Check whether the scheme `P` is smooth.
 
 There are three possible algorithms for checking smoothness, determined
 by the value of the keyword argument `algorithm`:
+  * `:projective_jacobian` - uses the Jacobian criterion for projective
+    varieties, see Exercise 4.2.10 of [Liu06](@cite),
   * `:covered` - converts to a covered scheme,
-  * `:jacobi` - uses the Jacobian criterion for projective varieties,
-    see Exercise 4.2.10 of [Liu06](@cite),
   * `:affine_cone` - checks that the affine cone is smooth outside the origin.
 
-The `:jacobi` algorithm first checks that the scheme is integral,
-which can be expensive.
+The `:projective_jacobian` and the `:covered` algorithms first check
+that the scheme is equidimensional, which can be expensive.
 
 By default, if the base ring is a field and the scheme has already been
-computed to be integral, then the `:jacobi` algorithm is used.
-Otherwise, the `:affine_cone` algorithm is used.
+computed to be equidimensional, then the `:projective_jacobian`
+algorithm is used. Otherwise, the `:affine_cone` algorithm is used.
 
 # Examples
 ```jldoctest
@@ -51,40 +51,67 @@ defined by ideal(x^2 + y^2)
 julia> is_smooth(C)
 false
 
-julia> is_smooth(C; algorithm=:jacobi)
+julia> is_smooth(C; algorithm=:covered_jacobian)
 false
 ```
 """
 function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
   get_attribute!(P, :is_smooth) do
     if algorithm == :default
-      if base_ring(P) isa Field && has_attribute(P, :is_integral) && is_integral(P)
-        algorithm = :jacobi
+      if (
+        base_ring(P) isa Field
+        && has_attribute(P, :is_equidimensional)
+        && is_equidimensional(P)
+      )
+        algorithm = :projective_jacobian
       else
         algorithm = :affine_cone
       end
     end
-    if algorithm == :covered
-      return is_smooth(covered_scheme(P))
+
+    algorithms = [
+      :projective_jacobian,
+      :covered_jacobian,
+      :affine_cone,
+    ]
+    if !(algorithm in algorithms)
+      throw(ArgumentError(
+        "the optional argument to the function is_smooth can only be one"
+         + " of the following: " + join(algorithms, ", ") + "."
+      ))
+    end
+
+    if algorithm == :covered_jacobian
+      return _jacobian_criterion(covered_scheme(P))
     elseif algorithm == :affine_cone
       aff = affine_cone(P)[1]
-      origin = subscheme(aff, coordinates(aff))
-      return singular_locus_reduced(aff)[1] == origin
-    elseif algorithm == :jacobi
-      if !(base_ring(P) isa Field)
-        throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when base ring not a field"))
-      end
-      if !(is_integral(P))
-        throw(NotImplementedError(:is_smooth, "jacobi criterion not implemented when scheme not integral"))
-      end
-      R = base_ring(homogeneous_coordinate_ring(P))
-      I = defining_ideal(P)
-      mat = jacobi_matrix(R, gens(I))
-      sing_locus = I + ideal(R, minors(mat, dim(ambient_space(P)) - dim(P)))
-      sing_subscheme = subscheme(ambient_space(P), sing_locus)
-      return isempty(sing_subscheme)
+      singular_locus(aff)[1]
+      return dim(singular_locus(aff)[1]) <= 0
+    elseif algorithm == :projective_jacobian
+      return _projective_jacobian_criterion(P)
     end
   end
+end
+
+# Use decomposition_info
+function _projective_jacobian_criterion(P::AbsProjectiveScheme)
+  if !(base_ring(P) isa Field)
+    throw(NotImplementedError(
+      :is_smooth,
+      "projective jacobian criterion not implemented when base ring not a field"
+    ))
+  end
+  if !(is_equidimensional(P))
+    throw(NotImplementedError(
+      :is_smooth,
+      "projective jacobian criterion not implemented when scheme not equidimensional"
+    ))
+  end
+  R = base_ring(homogeneous_coordinate_ring(P))
+  I = defining_ideal(P)
+  mat = jacobi_matrix(R, gens(I))
+  sing_locus = ideal(R, minors(mat, codim(P)))
+  return dim(sing_locus + I) <= 0
 end
 
 @attr Bool function is_irreducible(P::AbsProjectiveScheme)
@@ -141,4 +168,9 @@ end
   AI = absolute_primary_decomposition(I)
   @assert length(AI)==1 # it is prime since X is integral
   return AI[1][4]==1
+end
+
+@attr Bool function is_equidimensional(P::AbsProjectiveScheme)
+  I = defining_ideal(P)
+  return is_equidimensional(I)
 end

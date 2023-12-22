@@ -98,5 +98,3 @@ Further properties of projective schemes:
     is_integral(X::AbsProjectiveScheme{<:Field})
     is_geometrically_integral(X::AbsProjectiveScheme{<:Field})
 ```
-
-
