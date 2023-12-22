@@ -444,7 +444,8 @@ function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem; simplif
     p = parent(s)
     k, ma = absolute_simple_field(p)
     t = ma(evaluate(Hecke.reduce_mod_powers(preimage(ma, s), d)))
-    r = ma(root(preimage(ma, s//t), d))*r
+    rt = ma(root(preimage(ma, s//t), d))
+    r *= inv(rt)
     s = t
     @hassert :SolveRadical 1 s == r^d
   end
@@ -499,6 +500,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   #in a couple of places...
 
   scale = leading_coefficient(f)
+  @req is_squarefree(f) "Polynomial must be square-free"
 
   #switches check = true in hom and number_field on
   CHECK = get_assert_level(:SolveRadical) > 0
@@ -613,7 +615,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         h = hom(L, K, h_data..., check = CHECK)
       end
     else
-      @vtime :SolveRadical 2 Ra, hh = as_radical_extension(L, aut[i-length(pp)-1], zeta[findfirst(isequal(degree(L)), lp)])
+      @vtime :SolveRadical 2 Ra, hh = as_radical_extension(L, aut[i-length(pp)-1], zeta[findfirst(isequal(degree(L)), lp)]; simplify)
       #hh: new -> old
 
       @vtime :SolveRadical 2 g = map_coefficients(h, parent(defining_polynomial(L))(preimage(hh, gen(L))))

@@ -609,7 +609,6 @@ export graded_free_module
 export graded_image
 export graded_map
 export graded_polynomial_ring
-export grading
 export grading_group
 export graph
 export graph_from_adjacency_matrix
@@ -1247,6 +1246,7 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
+export rand_homogeneous
 export rank
 export rank_action
 export rational_equivalence_class

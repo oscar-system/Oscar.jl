@@ -669,20 +669,26 @@ function isometry_group(f::SesquilinearForm{T}) where T
 end
 
 """
-    isometry_group(L::AbstractLat) -> MatrixGroup
+    isometry_group(L::AbstractLat; depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
 
 Return the group of isometries of the lattice `L`.
 
 The transformations are represented with respect to the ambient space of `L`.
+
+Setting the parameters `depth` and `bacher_depth` to a positive value may improve
+performance. If set to `-1` (default), the used value of `depth` is chosen
+heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-@attr MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbstractLat)
-   gens = Hecke.automorphism_group_generators(L)
-   G = matrix_group(gens)
-   return G
+function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int = 0)
+  get_attribute!(L, :isometry_group) do
+    gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
+    G = matrix_group(gens)
+    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
+  end
 end
 
 @doc raw"""
-    isometry_group(L::ZZLat; algorithm =: direct) -> MatrixGroup
+    isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
 
 Given an integer lattice $L$ which is definite or of rank 2, return the
 isometry group $O(L)$ of $L$.
@@ -692,8 +698,12 @@ only support the following algorithms:
 - `:direct`: compute generators of $O(L)$ using Plesken-Souvignier;
 - `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
   invariant sublattices.
+
+Setting the parameters `depth` and `bacher_depth` to a positive value may improve
+performance. If set to `-1` (default), the used value of `depth` is chosen
+heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-function isometry_group(L::ZZLat; algorithm = :direct)
+function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0)
   get_attribute!(L, :isometry_group) do
 
     # corner case
@@ -708,10 +718,10 @@ function isometry_group(L::ZZLat; algorithm = :direct)
     end
 
     if algorithm == :direct
-      gens = Hecke.automorphism_group_generators(L)
+      gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
       G = matrix_group(gens)
     elseif algorithm == :decomposition
-      G, _ = _isometry_group_via_decomposition(L)
+      G, _ = _isometry_group_via_decomposition(L, depth = depth, bacher_depth = bacher_depth)
     else
       error("Unknown algorithm: for the moment, we support :direct or :decomposition")
     end
@@ -720,11 +730,11 @@ function isometry_group(L::ZZLat; algorithm = :direct)
 end
 
 """
-    _isometry_group_via_decomposition(L::ZZLat) -> Tuple{MatrixGroup, Vector{QQMatrix}}
+    _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
 """
-function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
+function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true, depth::Int = -1, bacher_depth::Int = 0)
   # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
@@ -752,7 +762,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
   #=
   # the following is slower than computing the automorphism_group generators of
   # M1primitive outright
-  gensOM1 = Hecke.automorphism_group_generators(M1)
+  gensOM1 = automorphism_group_generators(M1, depth = depth, bacher_depth = bacher_depth)
   OM1 = matrix_group(gensOM1)
   if M1primitive == M1
     O1 = OM1
@@ -762,7 +772,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
     O1,_ = stabilizer(OM1, M1primitive, on_lattices)
   end
   =#
-  O1 = matrix_group(automorphism_group_generators(M1primitive))
+  O1 = matrix_group(automorphism_group_generators(M1primitive, depth = depth, bacher_depth = bacher_depth))
   _set_nice_monomorphism!(O1, sv1; closed)
   if rank(M1) == rank(L)
     @hassert :Lattice 2 M1primitive == L
@@ -774,7 +784,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
 
   @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
   # recursion
-  O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct)
+  O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth)
 
 
   # In what follows we compute the stabilizer of L in O1 x O2
