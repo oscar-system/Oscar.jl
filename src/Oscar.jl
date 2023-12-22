@@ -73,76 +73,76 @@ function __init__()
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
     ])
-    __GAP_info_messages_off()
-    # make Oscar module accessible from GAP (it may not be available as
-    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
-    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
-    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
-    withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
-      GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
-    end
-    for pkg in [
-       "atlasrep",
-       "ctbllib",  # character tables
-       "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
-       "fga",      # dealing with free groups
-       "forms",    # bilinear/sesquilinear/quadratic forms
-       "primgrp",  # primitive groups library
-       "repsn",    # constructing representations of finite groups
-       "sla",      # computing with simple Lie algebras
-       "smallgrp", # small groups library
-       "transgrp", # transitive groups library
-       "wedderga", # provides a function to compute Schur indices
-       ]
-      GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
-    end
-    __init_group_libraries()
+  __GAP_info_messages_off()
+  # make Oscar module accessible from GAP (it may not be available as
+  # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+  GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
+  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+  end
+  for pkg in [
+     "atlasrep",
+     "ctbllib",  # character tables
+     "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
+     "fga",      # dealing with free groups
+     "forms",    # bilinear/sesquilinear/quadratic forms
+     "primgrp",  # primitive groups library
+     "repsn",    # constructing representations of finite groups
+     "sla",      # computing with simple Lie algebras
+     "smallgrp", # small groups library
+     "transgrp", # transitive groups library
+     "wedderga", # provides a function to compute Schur indices
+     ]
+    GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+  end
+  __init_group_libraries()
 
-    add_verbose_scope(:K3Auto)
-    add_assert_scope(:K3Auto)
+  add_verbose_scope(:K3Auto)
+  add_assert_scope(:K3Auto)
 
-    add_verbose_scope(:EllipticSurface)
-    add_assert_scope(:EllipticSurface)
+  add_verbose_scope(:EllipticSurface)
+  add_assert_scope(:EllipticSurface)
 
-    add_verbose_scope(:MorphismFromRationalFunctions)
-    add_assert_scope(:MorphismFromRationalFunctions)
+  add_verbose_scope(:MorphismFromRationalFunctions)
+  add_assert_scope(:MorphismFromRationalFunctions)
 
-    add_verbose_scope(:Glueing)
-    add_assert_scope(:Glueing)
+  add_verbose_scope(:Glueing)
+  add_assert_scope(:Glueing)
 
-    add_verbose_scope(:Intersections)
-    add_assert_scope(:Intersections)
+  add_verbose_scope(:Intersections)
+  add_assert_scope(:Intersections)
 
-    add_verbose_scope(:MaximalAssociatedPoints)
-    add_assert_scope(:MaximalAssociatedPoints)
+  add_verbose_scope(:MaximalAssociatedPoints)
+  add_assert_scope(:MaximalAssociatedPoints)
 
-    add_verbose_scope(:Divisors)
-    add_assert_scope(:Divisors)
+  add_verbose_scope(:Divisors)
+  add_assert_scope(:Divisors)
 
-    add_verbose_scope(:Blowup)
-    add_assert_scope(:Blowup)
+  add_verbose_scope(:Blowup)
+  add_assert_scope(:Blowup)
 
-    add_verbose_scope(:hilbert)
-    add_assert_scope(:hilbert)
+  add_verbose_scope(:hilbert)
+  add_assert_scope(:hilbert)
 
-    add_verbose_scope(:GlobalTateModel)
-    add_verbose_scope(:WeierstrassModel)
-    add_verbose_scope(:HypersurfaceModel)
-    add_verbose_scope(:FTheoryConstructorInformation)
-    
-    add_verbosity_scope(:LinearQuotients)
+  add_verbose_scope(:GlobalTateModel)
+  add_verbose_scope(:WeierstrassModel)
+  add_verbose_scope(:HypersurfaceModel)
+  add_verbose_scope(:FTheoryConstructorInformation)
 
-    add_assertion_scope(:ZZLatWithIsom)
-    add_verbosity_scope(:ZZLatWithIsom)
+  add_verbosity_scope(:LinearQuotients)
 
-    # Pkg.is_manifest_current() returns false if the manifest might be out of date
-    # (but might return nothing when there is no project_hash)
-    if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
-        Pkg.is_manifest_current() :
-        Pkg.is_manifest_current(dirname(Base.active_project())))
-      @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
-    end
+  add_assertion_scope(:ZZLatWithIsom)
+  add_verbosity_scope(:ZZLatWithIsom)
+
+  # Pkg.is_manifest_current() returns false if the manifest might be out of date
+  # (but might return nothing when there is no project_hash)
+  if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+      Pkg.is_manifest_current() :
+      Pkg.is_manifest_current(dirname(Base.active_project())))
+    @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+  end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
