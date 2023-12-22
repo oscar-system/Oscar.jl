@@ -51,7 +51,7 @@ function (fac::MapFactoryFromComplex{T})(HC::AbsHyperComplex, p::Int, i::Tuple) 
   return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
 end
 
-function can_compute(fac::MapFactoryFromComplex, HC::AbsHyperComplex, p::Int, i::Int)
+function can_compute(fac::MapFactoryFromComplex, HC::AbsHyperComplex, p::Int, i::Tuple)
   @assert isone(p) "request out of bounds"
   @assert isone(length(i)) "index out of bounds"
   fac.auto_extend && return true
@@ -76,3 +76,47 @@ function SimpleComplexWrapper(C::ComplexOfMorphisms; auto_extend::Bool=false)
   hc = hyper_complex(C; auto_extend)
   return SimpleComplexWrapper(hc)
 end
+
+### Shifts
+shift(c::AbsHyperComplex, i::Tuple) = ShiftedHyperComplex(c, i)
+shift(c::AbsHyperComplex, i::Int...) = shift(c, i)
+
+shift(d::AbsDoubleComplexOfMorphisms, i::Tuple) = DoubleComplexWrapper(ShiftedHyperComplex(d, i))
+
+shift(d::AbsSimpleComplex, i::Tuple) = SimpleComplexWrapper(ShiftedHyperComplex(d, i))
+
+
+########################################################################
+# Constructors for views (slices) of hypercomplexes                    #
+########################################################################
+
+# Suppose C is a double complex. Then C[5, 2:4] should return a 
+# simple complex concentrated in degrees 2:4 given by the fifth
+# column of C in this range.
+function getindex(c::AbsHyperComplex, u::Union{Int, UnitRange}...)
+  return c[Vector{Union{Int, UnitRange{Int}}}(collect(u))]
+end
+
+function getindex(c::AbsHyperComplex, u::Vector{Union{Int, UnitRange{Int}}})
+  new_dims = 0
+  v = Vector{Tuple{Int, Union{Int, UnitRange{Int}}}}()
+  for r in u
+    if r isa UnitRange
+      new_dims = new_dims + 1
+      push!(v, (new_dims, r))
+    else
+      push!(v, (0, r))
+    end
+  end
+  return HyperComplexView(c, v)
+end
+
+function extend_dimension(c::AbsHyperComplex, d::Int)
+  d >= dim(c) || error("new dimension must be at least the given one")
+  all(k->has_upper_bound(c, k), 1:dim(c)) || error("extension only implemented for bounded complexes")
+  all(k->has_lower_bound(c, k), 1:dim(c)) || error("extension only implemented for bounded complexes")
+  u = [(k, lower_bound(c, k):upper_bound(c, k)) for k in 1:dim(c)]
+  u = vcat(u, [(i, 0:0) for i in dim(c)+1:d])
+  return HyperComplexView(c, u)
+end
+
