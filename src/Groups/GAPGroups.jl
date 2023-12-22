@@ -128,7 +128,7 @@ false
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAPWrap.Order(x.X)
    if ord === GAP.Globals.infinity
-      throw(GroupsCore.InfiniteOrder(x))
+      throw(InfiniteOrder(x))
    end
    return T(ord)
 end
@@ -349,8 +349,7 @@ Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)
 
 Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
 
-# Compatibility with GroupsCore interface
-one!(x::GAPGroupElem) = one(parent(x))
+# Compatibility with groups interface
 inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
 
 mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y

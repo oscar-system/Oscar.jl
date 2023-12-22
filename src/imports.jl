@@ -82,8 +82,11 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  has_gens,
   Ideal,
   Indent,
+  is_finiteorder,
+  is_trivial,
   is_unicode_allowed,
   Lowercase,
   LowercaseOff,
@@ -112,12 +115,6 @@ import AbstractAlgebra:
   symbols,
   total_degree,
   with_unicode
-
-import AbstractAlgebra.GroupsCore
-import AbstractAlgebra.GroupsCore:
-  hasgens,
-  isfiniteorder,
-  istrivial
 
 import GAP:
   @gapattribute,
