@@ -84,15 +84,15 @@
         @test length(nonc2) <= 126
         for partition in nonc2
             @test is_pair(partition) && 
-                is_non_crossing(partition.partition) && 
+                is_non_crossing(set_partition(partition)) && 
                 size(partition) == 8 && 
-                partition.partition in nonc2classic
+                set_partition(partition) in nonc2classic
         end
         function spatial_rotation_example(p::SpatialPartition)
-            if !isempty(p.partition.upper_points)
-                return spatial_partition(rotate(p.partition, true, true), p.levels)
-            elseif !isempty(p.partition.lower_points)
-                return spatial_partition(rotate(p.partition, true, false), p.levels)
+            if !isempty(upper_points(p))
+                return spatial_partition(rotate(set_partition(partition), true, true), levels(p))
+            elseif !isempty(lower_points(p))
+                return spatial_partition(rotate(set_partition(partition), true, false), levels(p))
             else
                 return p
             end

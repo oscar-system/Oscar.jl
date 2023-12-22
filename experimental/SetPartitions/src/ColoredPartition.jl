@@ -68,15 +68,15 @@ end
 
 function hash(p::ColoredPartition, h::UInt)
 
-    return hash(p.partition, hash(p.color_upper_points, hash(p.color_lower_points, h)))
+    return hash(set_partition(p), hash(upper_colors(p), hash(lower_colors(p), h)))
     
 end
 
 function ==(p::ColoredPartition, q::ColoredPartition)
 
-    return p.partition == q.partition && 
-        p.color_upper_points == q.color_upper_points && 
-        p.color_lower_points == q.color_lower_points
+    return set_partition(p) == set_partition(q) && 
+           upper_colors(p)  == upper_colors(q)  && 
+           lower_colors(p)  == lower_colors(q)
 
 end
 
@@ -92,6 +92,21 @@ function deepcopy_internal(p::ColoredPartition, stackdict::IdDict)
 end
 
 """
+    set_partition(p::ColoredPartition)
+
+Return the SetPartition part of `p`.
+
+# Examples
+```jldoctest
+julia> set_partition(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
+SetPartition([1, 2], [2, 3])
+```
+"""
+function set_partition(p::ColoredPartition)
+    return p.partition
+end
+
+"""
     upper_points(p::ColoredPartition)
 
 Return the upper points of `p`.
@@ -103,7 +118,7 @@ julia> upper_points(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
 ```
 """
 function upper_points(p::ColoredPartition)
-    return upper_points(p.partition)
+    return upper_points(set_partition(p))
 end
 
 """
@@ -118,7 +133,7 @@ julia> lower_points(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
 ```
 """
 function lower_points(p::ColoredPartition)
-    return lower_points(p.partition)
+    return lower_points(set_partition(p))
 end
 
 """
@@ -152,22 +167,6 @@ function lower_colors(p::ColoredPartition)
 end
 
 """
-    set_partition(p::ColoredPartition)
-
-Return the SetPartition part of `p`.
-
-# Examples
-```jldoctest
-julia> set_partition(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
-SetPartition([1, 2], [2, 3])
-```
-"""
-function set_partition(p::ColoredPartition)
-    return p.partition
-end
-
-
-"""
     tensor_product(p::ColoredPartition, q::ColoredPartition)
 
 Return the tensor product of `p` and `q`.
@@ -186,8 +185,8 @@ ColoredPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), [1, 0, 0, 1], [1, 1, 0])
 function tensor_product(p::ColoredPartition, q::ColoredPartition)
 
     return colored_partition(tensor_product(set_partition(p), set_partition(q)), 
-        vcat(p.color_upper_points, q.color_upper_points), 
-        vcat(p.color_lower_points, q.color_lower_points))
+        vcat(upper_colors(p), upper_colors(q)), 
+        vcat(lower_colors(p), lower_colors(q)))
 end
 
 """
@@ -208,7 +207,7 @@ ColoredPartition(SetPartition([1, 2], [2, 1, 3]), [0, 1], [1, 1, 0])
 function involution(p::ColoredPartition)
 
     return colored_partition(involution(set_partition(p)), 
-        p.color_lower_points, p.color_upper_points)
+        lower_colors(p), upper_colors(p))
 
 end
 
@@ -228,7 +227,7 @@ false
 ```
 """
 function is_composable(p::ColoredPartition, q::ColoredPartition)
-    return p.color_upper_points == q.color_lower_points && 
+    return upper_colors(p) == lower_colors(q) && 
         is_composable(set_partition(p), set_partition(q))
 end
 
@@ -259,12 +258,12 @@ ERROR: ArgumentError: p upper and q lower colors are different in composition
 """
 function compose_count_loops(p::ColoredPartition, q::ColoredPartition)
 
-    @req p.color_upper_points == 
-        q.color_lower_points "p upper and q lower colors are different in composition"
+    @req upper_colors(p) == lower_colors(q) "
+        p upper and q lower colors are different in composition"
 
     comp_loops = compose_count_loops(set_partition(p), set_partition(q))
     
-    return (colored_partition(comp_loops[1], q.color_upper_points, p.color_lower_points), 
+    return (colored_partition(comp_loops[1], upper_colors(q), lower_colors(p)), 
         comp_loops[2])
 
 end
@@ -306,8 +305,8 @@ function rotate(p::ColoredPartition, lr::Bool, tb::Bool)
         @req !isempty(lower_points(p)) "SetPartition has no bottom part"
     end
 
-    ret = (deepcopy(upper_points(p)), deepcopy(lower_points(p)), 
-        deepcopy(p.color_upper_points), deepcopy(p.color_lower_points))
+    ret = deepcopy((upper_points(p), lower_points(p), 
+                    upper_colors(p), lower_colors(p)))
 
     if lr
         if tb

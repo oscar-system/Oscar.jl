@@ -45,11 +45,11 @@ function spatial_partition(upper_points::Vector, lower_points::Vector, dim::Int)
 end
 
 function hash(p::SpatialPartition, h::UInt)
-    return hash(p.partition, hash(p.levels, h))
+    return hash(set_partition(p), hash(levels(p), h))
 end
 
 function ==(p::SpatialPartition, q::SpatialPartition)
-    return p.partition == q.partition && p.levels == q.levels
+    return set_partition(p) == set_partition(q) && levels(p) == levels(q)
 end
 
 function deepcopy_internal(p::SpatialPartition, stackdict::IdDict)
@@ -74,7 +74,7 @@ julia> upper_points(spatial_partition([2, 4], [4, 99], 2))
 ```
 """
 function upper_points(p::SpatialPartition)
-    return upper_points(p.partition)
+    return upper_points(set_partition(p))
 end
 
 """
@@ -89,7 +89,7 @@ julia> lower_points(spatial_partition([2, 4], [4, 99], 2))
 ```
 """
 function lower_points(p::SpatialPartition)
-    return lower_points(p.partition)
+    return lower_points(set_partition(p))
 end
 
 """

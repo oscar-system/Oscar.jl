@@ -37,11 +37,13 @@ end
 
 
 function hash(p::SetPartition, h::UInt)
-    return hash(p.upper_points, hash(p.lower_points, h))
+    return hash(upper_points(p), hash(lower_points(p), h))
 end
 
 function ==(p::SetPartition, q::SetPartition)
-    return p.lower_points == q.lower_points && p.upper_points == q.upper_points
+    return upper_points(p) == upper_points(q) && 
+           lower_points(p) == lower_points(q) 
+    
 end
 
 function deepcopy_internal(p::SetPartition, stackdict::IdDict)
@@ -177,7 +179,7 @@ function rotate(p::SetPartition, lr::Bool, tb::Bool)
         @req !isempty(lower_points(p)) "SetPartition has no bottom part"
     end
 
-    ret = (deepcopy(upper_points(p)), deepcopy(lower_points(p)))
+    ret = deepcopy((upper_points(p), lower_points(p)))
 
     if lr
         if tb
