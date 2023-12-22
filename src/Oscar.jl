@@ -138,7 +138,9 @@ function __init__()
 
     # Pkg.is_manifest_current() returns false if the manifest might be out of date
     # (but might return nothing when there is no project_hash)
-    if is_dev && VERSION >= v"1.8" && Pkg.is_manifest_current() === false
+    if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+        Pkg.is_manifest_current() :
+        Pkg.is_manifest_current(dirname(Base.active_project())))
       @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
     end
 end
