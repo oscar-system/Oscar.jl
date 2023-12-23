@@ -69,7 +69,9 @@ Return the upper points of `p`.
 # Examples
 ```jldoctest
 julia> upper_points(spatial_partition([2, 4], [4, 99], 2))
-[1, 2]
+2-element Vector{Int64}:
+ 1
+ 2
 ```
 """
 function upper_points(p::SpatialPartition)
@@ -84,7 +86,9 @@ Return the lower points of `p`.
 # Examples
 ```jldoctest
 julia> lower_points(spatial_partition([2, 4], [4, 99], 2))
-[2, 3]
+2-element Vector{Int64}:
+ 2
+ 3
 ```
 """
 function lower_points(p::SpatialPartition)
@@ -113,7 +117,7 @@ Return the number of levels of `p`.
 
 # Examples
 ```jldoctest
-julia> lower_points(spatial_partition([2, 4], [4, 99], 2))
+julia> levels(spatial_partition([2, 4], [4, 99], 2))
 2
 ```
 """
@@ -132,8 +136,8 @@ See also Section 2.3 in [CW16](@cite) and `tensor_product(::SetPartition, ::SetP
 
 # Examples
 ```jldoctest
-julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 1], [1], 2))
-SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3]), 2)
+julia> tensor_product(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 1], [1, 2], 2))
+SpatialPartition(SetPartition([1, 2, 3, 3], [2, 1, 3, 4]), 2)
 ```
 """
 function tensor_product(p::SpatialPartition, q::SpatialPartition)
@@ -204,7 +208,7 @@ julia> compose_count_loops(spatial_partition([1, 1], [2, 2], 2), spatial_partiti
 (SpatialPartition(SetPartition([1, 1], [2, 2]), 2), 1)
 
 julia> compose_count_loops(spatial_partition([1, 2], [2, 1], 2), spatial_partition([1, 2], [1, 1], 1))
-ERROR: ArgumentError: p and q have different levels in composition
+ERROR: ArgumentError: p and q have different levels
 ```
 """
 function compose_count_loops(p::SpatialPartition, q::SpatialPartition)

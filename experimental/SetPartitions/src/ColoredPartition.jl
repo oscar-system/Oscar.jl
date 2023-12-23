@@ -106,7 +106,9 @@ Return the upper points of `p`.
 # Examples
 ```jldoctest
 julia> upper_points(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
-[1, 2]
+2-element Vector{Int64}:
+ 1
+ 2
 ```
 """
 function upper_points(p::ColoredPartition)
@@ -121,7 +123,9 @@ Return the lower points of `p`.
 # Examples
 ```jldoctest
 julia> lower_points(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
-[2, 3]
+2-element Vector{Int64}:
+ 2
+ 3
 ```
 """
 function lower_points(p::ColoredPartition)
@@ -136,7 +140,9 @@ Return the upper colors of `p`.
 # Examples
 ```jldoctest
 julia> upper_colors(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
-[1, 0]
+2-element Vector{Int64}:
+ 1
+ 0
 ```
 """
 function upper_colors(p::ColoredPartition)
@@ -151,7 +157,9 @@ Return the lower colors of `p`.
 # Examples
 ```jldoctest
 julia> lower_colors(colored_partition([2, 4], [4, 99], [1, 0], [0, 1]))
-[0, 1]
+2-element Vector{Int64}:
+ 0
+ 1
 ```
 """
 function lower_colors(p::ColoredPartition)
@@ -260,7 +268,7 @@ end
 
 Perform a top-left rotation of `p`.
 
-Top-left rotation of a colored partition moves the leftmost point of the upper points 
+A top-left rotation of a colored partition moves the leftmost point of the upper points 
 to the lower points and inverts its color. 
 See also Section 1.2 in [TW18](@cite) and `rotate_top_left(::SetPartition)`.
 
@@ -292,7 +300,7 @@ end
 
 Perform a bottom-left rotation of `p`.
 
-Bottom-left rotation of a colored partition moves the leftmost point of the lower points 
+A bottom-left rotation of a colored partition moves the leftmost point of the lower points 
 to the upper points and inverts its color. 
 See also Section 1.2 in [TW18](@cite) and `rotate_bottom_left(::SetPartition)`.
 
@@ -324,7 +332,7 @@ end
 
 Perform a top-right rotation of `p`.
 
-Top-right rotation of a colored partition moves the rightmost point of the upper points 
+A top-right rotation of a colored partition moves the rightmost point of the upper points 
 to the lower points and inverts its color. 
 See also Section 1.2 in [TW18](@cite) and `rotate_top_right(::SetPartition)`.
 
@@ -356,7 +364,7 @@ end
 
 Perform a bottom-right rotation of `p`.
 
-Bottom-right rotation of a colored partition moves the rightmost point of the lower points 
+A bottom-right rotation of a colored partition moves the rightmost point of the lower points 
 to the upper points and inverts its color. 
 See also Section 1.2 in [TW18](@cite) and `rotate_bottom_right(::SetPartition)`.
 

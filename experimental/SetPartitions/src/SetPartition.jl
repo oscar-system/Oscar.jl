@@ -64,7 +64,9 @@ Return the upper points of `p`.
 # Examples
 ```jldoctest
 julia> upper_points(set_partition([2, 4], [4, 99]))
-[1, 2]
+2-element Vector{Int64}:
+ 1
+ 2
 ```
 """
 function upper_points(p::SetPartition)
@@ -79,7 +81,9 @@ Return the lower points of `p`.
 # Examples
 ```jldoctest
 julia> lower_points(set_partition([2, 4], [4, 99]))
-[2, 3]
+2-element Vector{Int64}:
+ 2
+ 3
 """
 function lower_points(p::SetPartition)
     return p.lower_points
@@ -148,7 +152,7 @@ end
 
 Perform a top-left rotation of `p`.
 
-Top-left rotation of a partition moves the leftmost point of the upper points 
+A top-left rotation of a partition moves the leftmost point of the upper points 
 to the lower points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
@@ -174,7 +178,7 @@ end
 
 Perform a bottom-left rotation of `p`.
 
-Bottom-left rotation of a partition moves the leftmost point of the lower points 
+A bottom-left rotation of a partition moves the leftmost point of the lower points 
 to the upper points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
@@ -200,7 +204,7 @@ end
 
 Perform a top-right rotation of `p`.
 
-Top-right rotation of a partition moves the rightmost point of the upper points 
+A top-right rotation of a partition moves the rightmost point of the upper points 
 to the lower points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
@@ -227,12 +231,12 @@ end
 
 Perform a bottom-right rotation of `p`.
 
-Bottom-right rotation of a partition moves the rightmost point of the lower points 
+A bottom-right rotation of a partition moves the rightmost point of the lower points 
 to the upper points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> rotate_top_right(set_partition([1, 2, 3], [2, 1]))
+julia> rotate_bottom_right(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2, 3, 1], [2])
 ```
 """
