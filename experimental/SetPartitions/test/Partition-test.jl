@@ -25,14 +25,20 @@
         @test compose(set_partition([1, 2, 2, 2], [2, 3, 4]), 
                     set_partition([1, 2], [3, 3, 1, 2])) == set_partition([1, 1], [1, 2, 3])
         
-                    @test compose(set_partition([1, 2, 3, 4, 1, 3], [3, 4]), 
+        @test compose(set_partition([1, 2, 3, 4, 1, 3], [3, 4]), 
                     set_partition([1, 2, 3], [1, 1, 2, 2, 3, 1])) == 
                     set_partition([1, 1, 1], [1, 1])
         
-        @test_throws ArgumentError rotate(set_partition([], [1]), true, true) 
+        @test_throws ArgumentError rotate_top_left(set_partition([], [1])) 
         
-        @test rotate(set_partition([1, 2], [2, 1]), false, false) == 
-                    set_partition([1, 2, 1], [2]) 
+        @test rotate_bottom_left(set_partition([1, 2], [3, 2])) == 
+                set_partition([1, 2, 3], [3])
+        @test rotate_top_left(set_partition([1, 2], [3, 2])) == 
+                set_partition([1], [2, 3, 1])
+        @test rotate_top_right(set_partition([1, 2], [3, 2])) == 
+                set_partition([1], [2, 3, 3])
+        @test rotate_bottom_right(set_partition([1, 2], [3, 2])) == 
+                set_partition([1, 2, 2], [3])
         
         @test reflect_vertical(set_partition([2, 3, 2, 2], [2, 3])) == 
                     set_partition([1, 1, 2, 1], [2, 1])
@@ -52,8 +58,14 @@
         @test_throws ArgumentError compose(colored_partition([1, 2], [2, 1], [1, 1], [1, 0]), 
                                            colored_partition([1, 2], [2, 1], [1, 0], [0, 1]))
 
-        @test rotate(colored_partition([1, 2], [3, 2], [1, 1], [1, 1]), true, false) == 
+        @test rotate_bottom_left(colored_partition([1, 2], [3, 2], [1, 1], [1, 1])) == 
                 colored_partition([1, 2, 3], [3], [0, 1, 1], [1])
+        @test rotate_top_left(colored_partition([1, 2], [3, 2], [1, 1], [1, 1])) == 
+                colored_partition([1], [2, 3, 1], [1], [0, 1, 1])
+        @test rotate_top_right(colored_partition([1, 2], [3, 2], [1, 1], [1, 1])) == 
+                colored_partition([1], [2, 3, 3], [1], [1, 1, 0])
+        @test rotate_bottom_right(colored_partition([1, 2], [3, 2], [1, 1], [1, 1])) == 
+                colored_partition([1, 2, 2], [3], [1, 1, 0], [1])
     end
     @testset "Operations on spatial partitions" begin
         @test involution(spatial_partition([99, 1, 4, 4], [4, 99], 2)) == 

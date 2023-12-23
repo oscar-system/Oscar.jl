@@ -41,9 +41,9 @@ function _do_unary(
             if pmod isa SetPartition || pmod isa ColoredPartition
                 # start with rotation
                 if !isempty(upper_points(pmod))
-                    a = rotate(pmod, true, true)
+                    a = rotate_top_left(pmod)
                 elseif length(lower_points(pmod)) > 0
-                    a = rotate(pmod, false, false)
+                    a = rotate_bottom_right(pmod)
                 end
 
                 # add every new partition to all_partitions

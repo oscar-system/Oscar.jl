@@ -34,7 +34,10 @@ export num_lower_points
 export num_upper_points
 export print_trace
 export reflect_vertical
-export rotate
+export rotate_top_right
+export rotate_top_left
+export rotate_bottom_left
+export rotate_bottom_right
 export set_partition
 export spatial_partition
 export upper_colors
@@ -70,7 +73,10 @@ export num_lower_points
 export num_upper_points
 export print_trace
 export reflect_vertical
-export rotate
+export rotate_top_right
+export rotate_top_left
+export rotate_bottom_left
+export rotate_bottom_right
 export set_partition
 export spatial_partition
 export upper_colors

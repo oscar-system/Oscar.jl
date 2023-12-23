@@ -90,9 +90,9 @@
         end
         function spatial_rotation_example(p::SpatialPartition)
             if !isempty(upper_points(p))
-                return spatial_partition(rotate(set_partition(p), true, true), levels(p))
+                return spatial_partition(rotate_top_left(set_partition(p)), levels(p))
             elseif !isempty(lower_points(p))
-                return spatial_partition(rotate(set_partition(p), true, false), levels(p))
+                return spatial_partition(rotate_bottom_left(set_partition(p)), levels(p))
             else
                 return p
             end

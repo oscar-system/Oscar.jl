@@ -256,81 +256,129 @@ function compose_count_loops(p::ColoredPartition, q::ColoredPartition)
 end
 
 """
-    rotate(p::ColoredPartition, lr::Bool, tb::Bool)
+    rotate_top_left(p::ColoredPartition)
 
-Rotate `p` in the direction given by `lr` and `tb`.
+Perform a top-left rotation of `p`.
 
-Rotating a colored partition moves the left- or right-most point of the upper points 
-to the lower points or vice verca and inverts its color. 
-See also Section 1.2 in [TW18](@cite) and `rotate(::SetPartition, ::Bool, ::Bool)`.
-
-# Arguments
-- `p`: input partition
-- `lr`: rotating at the left (true) or at the right (false)
-- `tb`: rotating from top to bottom (true) or from bottom to top (false)
+Top-left rotation of a colored partition moves the leftmost point of the upper points 
+to the lower points and inverts its color. 
+See also Section 1.2 in [TW18](@cite) and `rotate_top_left(::SetPartition)`.
 
 # Examples
 ```jldoctest
-julia> rotate(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]), true, true)
+julia> rotate_top_left(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]))
 ColoredPartition(SetPartition([1, 2], [3, 1, 3]), [0, 1], [0, 1, 1])
+```
+"""
+function rotate_top_left(p::ColoredPartition)
+    
+    @req !isempty(upper_points(p)) "partition has no top part"
 
-julia> rotate(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]), true, false)
+    result = deepcopy((upper_points(p), lower_points(p), 
+                    upper_colors(p), lower_colors(p)))
+    a = result[1][1]
+    splice!(result[1], 1)
+    pushfirst!(result[2], a)
+
+    a = result[3][1]
+    splice!(result[3], 1)
+    pushfirst!(result[4], Int(!Bool(a)))
+    
+    return colored_partition(result[1], result[2], result[3], result[4])
+end
+
+"""
+    rotate_bottom_left(p::ColoredPartition)
+
+Perform a bottom-left rotation of `p`.
+
+Bottom-left rotation of a colored partition moves the leftmost point of the lower points 
+to the upper points and inverts its color. 
+See also Section 1.2 in [TW18](@cite) and `rotate_bottom_left(::SetPartition)`.
+
+# Examples
+```jldoctest
+julia> rotate_bottom_left(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]))
 ColoredPartition(SetPartition([1, 2, 1, 3], [2]), [0, 1, 0, 1], [1])
+```
+"""
+function rotate_bottom_left(p::ColoredPartition)
+    
+    @req !isempty(lower_points(p)) "partition has no bottom part"
 
-julia> rotate(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]), false, true)
+    result = deepcopy((upper_points(p), lower_points(p), 
+                    upper_colors(p), lower_colors(p)))
+    a = result[2][1]
+    splice!(result[2], 1)
+    pushfirst!(result[1], a)
+
+    a = result[4][1]
+    splice!(result[4], 1)
+    pushfirst!(result[3], Int(!Bool(a)))
+    
+    return colored_partition(result[1], result[2], result[3], result[4])
+end
+
+"""
+    rotate_top_right(p::ColoredPartition)
+
+Perform a top-right rotation of `p`.
+
+Top-right rotation of a colored partition moves the rightmost point of the upper points 
+to the lower points and inverts its color. 
+See also Section 1.2 in [TW18](@cite) and `rotate_top_right(::SetPartition)`.
+
+# Examples
+```jldoctest
+julia> rotate_top_right(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]))
 ColoredPartition(SetPartition([1, 2], [2, 1, 3]), [1, 0], [1, 1, 0])
+```
+"""
+function rotate_top_right(p::ColoredPartition)
+    
+    @req !isempty(upper_points(p)) "partition has no top part"
 
-julia> rotate(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]), false, false)
+    result = deepcopy((upper_points(p), lower_points(p), 
+                    upper_colors(p), lower_colors(p)))
+    a = result[1][end]
+    pop!(result[1])
+    push!(result[2], a)
+
+    a = result[3][end]
+    pop!(result[3])
+    push!(result[4], Int(!Bool(a)))
+    
+    return colored_partition(result[1], result[2], result[3], result[4])
+end
+
+"""
+    rotate_bottom_right(p::ColoredPartition)
+
+Perform a bottom-right rotation of `p`.
+
+Bottom-right rotation of a colored partition moves the rightmost point of the lower points 
+to the upper points and inverts its color. 
+See also Section 1.2 in [TW18](@cite) and `rotate_bottom_right(::SetPartition)`.
+
+# Examples
+```jldoctest
+julia> rotate_bottom_right(colored_partition([1, 2, 3], [2, 1], [1, 0, 1], [1, 1]))
 ColoredPartition(SetPartition([1, 2, 3, 1], [2]), [1, 0, 1, 0], [1])
 ```
 """
-function rotate(p::ColoredPartition, lr::Bool, tb::Bool)
+function rotate_bottom_right(p::ColoredPartition)
+    
+    @req !isempty(lower_points(p)) "partition has no bottom part"
 
-    if tb
-        @req !isempty(upper_points(p)) "partition has no top part"
-    elseif !tb
-        @req !isempty(lower_points(p)) "partition has no bottom part"
-    end
-
-    ret = deepcopy((upper_points(p), lower_points(p), 
+    result = deepcopy((upper_points(p), lower_points(p), 
                     upper_colors(p), lower_colors(p)))
+    a = result[2][end]
+    pop!(result[2])
+    push!(result[1], a)
 
-    if lr
-        if tb
-            a = ret[1][1]
-            splice!(ret[1], 1)
-            pushfirst!(ret[2], a)
-
-            a = ret[3][1]
-            splice!(ret[3], 1)
-            pushfirst!(ret[4], Int(!Bool(a)))
-        else
-            a = ret[2][1]
-            splice!(ret[2], 1)
-            pushfirst!(ret[1], a)
-
-            a = ret[4][1]
-            splice!(ret[4], 1)
-            pushfirst!(ret[3], Int(!Bool(a)))
-        end
-    else
-        if tb
-            a = ret[1][end]
-            pop!(ret[1])
-            push!(ret[2], a)
-
-            a = ret[3][end]
-            pop!(ret[3])
-            push!(ret[4], Int(!Bool(a)))
-        else
-            a = ret[2][end]
-            pop!(ret[2])
-            push!(ret[1], a)
-
-            a = ret[4][end]
-            pop!(ret[4])
-            push!(ret[3], Int(!Bool(a)))
-        end
-    end
-    return colored_partition(ret[1], ret[2], ret[3], ret[4])
+    a = result[4][end]
+    pop!(result[4])
+    push!(result[3], Int(!Bool(a)))
+    
+    return colored_partition(result[1], result[2], result[3], result[4])
 end

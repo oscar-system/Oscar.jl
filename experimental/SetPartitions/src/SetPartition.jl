@@ -144,68 +144,110 @@ function reflect_vertical(p::SetPartition)
 end
 
 """
-    rotate(p::SetPartition, lr::Bool, tb::Bool)
+    rotate_top_left(p::SetPartition)
 
-Rotate `p` in the direction given by `lr` and `tb`. 
+Perform a top-left rotation of `p`.
 
-Rotating a partition moves the left- or right-most point of the upper points 
-to the lower points or vice verca. See also Section 4.1.2 in [Gro20](@cite).
-
-# Arguments
-- `p`: input partition
-- `lr`: rotating at the left (true) or at the right (false)
-- `tb`: rotating from top to bottom (true) or from bottom to top (false)
+Top-left rotation of a partition moves the leftmost point of the upper points 
+to the lower points. See also Section 4.1.2 in [Gro20](@cite).
 
 # Examples
 ```jldoctest
-julia> rotate(set_partition([1, 2, 3], [2, 1]), true, true)
+julia> rotate_top_left(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2], [3, 1, 3])
+```
+"""
+function rotate_top_left(p::SetPartition)
+    
+    @req !isempty(upper_points(p)) "partition has no top part"
 
-julia> rotate(set_partition([1, 2, 3], [2, 1]), true, false)
+    result = deepcopy((upper_points(p), lower_points(p)))
+    a = result[1][1]
+    splice!(result[1], 1)
+    pushfirst!(result[2], a)
+    
+    return set_partition(result[1], result[2])
+end
+
+"""
+    rotate_bottom_left(p::SetPartition)
+
+Perform a bottom-left rotation of `p`.
+
+Bottom-left rotation of a partition moves the leftmost point of the lower points 
+to the upper points. See also Section 4.1.2 in [Gro20](@cite).
+
+# Examples
+```jldoctest
+julia> rotate_bottom_left(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2, 1, 3], [2])
+```
+"""
+function rotate_bottom_left(p::SetPartition)
+    
+    @req !isempty(lower_points(p)) "partition has no bottom part"
 
-julia> rotate(set_partition([1, 2, 3], [2, 1]), false, true)
+    result = deepcopy((upper_points(p), lower_points(p)))
+    a = result[2][1]
+    splice!(result[2], 1)
+    pushfirst!(result[1], a)
+    
+    return set_partition(result[1], result[2])
+end
+
+"""
+    rotate_top_right(p::SetPartition)
+
+Perform a top-right rotation of `p`.
+
+Top-right rotation of a partition moves the rightmost point of the upper points 
+to the lower points. See also Section 4.1.2 in [Gro20](@cite).
+
+# Examples
+```jldoctest
+julia> rotate_top_right(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2], [2, 1, 3])
+```
+"""
+function rotate_top_right(p::SetPartition)
+    
 
-julia> rotate(set_partition([1, 2, 3], [2, 1]), false, false)
+    @req !isempty(upper_points(p)) "partition has no top part"
+
+    result = deepcopy((upper_points(p), lower_points(p)))
+    a = result[1][end]
+    pop!(result[1])
+    push!(result[2], a)
+    
+    return set_partition(result[1], result[2])
+end
+
+"""
+    rotate_bottom_right(p::SetPartition)
+
+Perform a bottom-right rotation of `p`.
+
+Bottom-right rotation of a partition moves the rightmost point of the lower points 
+to the upper points. See also Section 4.1.2 in [Gro20](@cite).
+
+# Examples
+```jldoctest
+julia> rotate_top_right(set_partition([1, 2, 3], [2, 1]))
 SetPartition([1, 2, 3, 1], [2])
 ```
 """
-function rotate(p::SetPartition, lr::Bool, tb::Bool)
+function rotate_bottom_right(p::SetPartition)
     
-    if tb
-        @req !isempty(upper_points(p)) "partition has no top part"
-    elseif !tb
-        @req !isempty(lower_points(p)) "partition has no bottom part"
-    end
 
-    ret = deepcopy((upper_points(p), lower_points(p)))
+    @req !isempty(lower_points(p)) "partition has no bottom part"
 
-    if lr
-        if tb
-            a = ret[1][1]
-            splice!(ret[1], 1)
-            pushfirst!(ret[2], a)
-        else
-            a = ret[2][1]
-            splice!(ret[2], 1)
-            pushfirst!(ret[1], a)
-        end
-    else
-        if tb
-            a = ret[1][end]
-            pop!(ret[1])
-            push!(ret[2], a)
-        else
-            a = ret[2][end]
-            pop!(ret[2])
-            push!(ret[1], a)
-        end
-    end
+    result = deepcopy((upper_points(p), lower_points(p)))
+    a = result[2][end]
+    pop!(result[2])
+    push!(result[1], a)
     
-    return set_partition(ret[1], ret[2])
+    return set_partition(result[1], result[2])
 end
-
 
 """
     is_composable(p::SetPartition, q::SetPartition)
