@@ -75,7 +75,7 @@ end
       end
       continue
     end
-    ms = MSet(s)
+    ms = multiset(s)
     val = sort(unique(ms))
     LL = copy(fL)
     _lbs = deepcopy(lbs)
@@ -97,7 +97,7 @@ end
         else
           _p = 1
         end
-        ms2 = MSet(s[k+1:end])
+        ms2 = multiset(s[k+1:end])
         val2 = sort(unique(ms2))
         for l in val2
           idx = filter(m -> LL[m] == l, j+1:length(LL))
@@ -238,7 +238,7 @@ function _first(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   L = underlying_list(EC)
   f = associated_function(EC)
   fL = f.(L)
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for l in val
@@ -277,7 +277,7 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
       i += 1
     end
   end
-  return sort(s)
+  return sort!(s)
 end
 
 # we keep track of the first elevation
@@ -293,7 +293,7 @@ function _last(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   L = underlying_list(EC)
   f = associated_function(EC)
   fL = f.(L)
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for l in val
@@ -332,7 +332,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
       i -= 1
     end
   end
-  return sort(s)
+  return sort!(s)
 end
 
 # we keep track of the last elevation
@@ -351,7 +351,7 @@ function _next(EC::ElevCtx, elev::Vector{Int})
     return _first(EC, sumsum[j+1])
   end
 
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for i in length(val):-1:1
@@ -383,7 +383,7 @@ function _next_homog(lbs::Vector{Int}, ubs::Vector{Int}, elh::Vector{Int})
   end
 
   s = Int[i for i in 1:length(lbs) for j in 1:lbs[i]]
-  ubs = [ubs[i]-lbs[i] for i in 1:length(lbs)]
+  ubs = Int[ubs[i]-lbs[i] for i in 1:length(lbs)]
   s2 = deepcopy(s)
   adj = Int[]
   while s2 != elh
