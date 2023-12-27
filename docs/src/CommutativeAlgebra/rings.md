@@ -82,7 +82,7 @@ QQPolyRingElem
 julia> T, x = polynomial_ring(GF(3), ["x[1]", "x[2]"]);
 
 julia> x
-2-element Vector{fpMPolyRingElem}:
+2-element Vector{FqMPolyRingElem}:
  x[1]
  x[2]
 
@@ -126,10 +126,10 @@ Rational field
 
 ```jldoctest
 julia> GF(3)
-Finite field of characteristic 3
+Finite field of degree 1 over GF(3)
 
 julia> GF(ZZ(2)^127 - 1)
-Finite field of characteristic 170141183460469231731687303715884105727
+Finite field of degree 1 over GF(170141183460469231731687303715884105727)
 
 ```
 
@@ -151,7 +151,7 @@ julia> K, a = number_field(t^2 + 1, "a")
 (Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Finite field of characteristic 3
+Finite field of degree 1 over GF(3)
 
 julia> T, t = polynomial_ring(F, "t")
 (Univariate polynomial ring in t over GF(3), t)
@@ -440,10 +440,10 @@ subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bas
 
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
-(Multivariate polynomial ring in 2 variables over GF(5), fpMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over GF(5), FqMPolyRingElem[x, y])
 
 julia> c = map(GF(5), [1, 2, 3])
-3-element Vector{fpFieldElem}:
+3-element Vector{FqFieldElem}:
  1
  2
  3
@@ -459,7 +459,7 @@ x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
 Multivariate polynomial ring in 2 variables x, y
-  over finite field of characteristic 5
+  over finite field of degree 1 over GF(5)
 
 julia> total_degree(f)
 5

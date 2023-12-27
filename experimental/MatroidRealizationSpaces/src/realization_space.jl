@@ -514,7 +514,7 @@ One realization is given by
 [1   0   0   1   1   1]
 [0   1   0   1   4   3]
 [0   0   1   1   3   2]
-in the Finite field of characteristic 5
+in the Finite field of degree 1 over GF(5)
 
 ```
 """

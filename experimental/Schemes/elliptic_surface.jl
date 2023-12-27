@@ -319,9 +319,13 @@ function weierstrass_model(X::EllipticSurface)
   c = standard_covering(IP1)
   # rename the variables on the affine charts
   # to a more readable version
-  OO(c[1]).S = [:t]
-  OO(c[2]).S = [:s]
-
+  if k isa FqField
+    OO(c[1]).data.S = [:t]
+    OO(c[2]).data.S = [:s]
+  else
+    OO(c[1]).S = [:t]
+    OO(c[2]).S = [:s]
+  end
 
   O0 = twisting_sheaf(IP1, 0)
   O4 = twisting_sheaf(IP1, -2*s)
@@ -981,7 +985,7 @@ julia> E = EllipticCurve(ktfield,[3*t^8+24*t^7+22*t^6+15*t^5+28*t^4+20*t^3+16*t^
 julia> bk = [E(collect(i)) for i in bk];
 
 julia> Oscar._prop217(E,bk[2],2)
-5-element Vector{Tuple{fpPolyRingElem, fpPolyRingElem}}:
+5-element Vector{Tuple{FqPolyRingElem, FqPolyRingElem}}:
  (t^2 + 12*t + 7, 0)
  (t^3 + 8*t + 3, 0)
  (t^4 + 23*t + 2, 0)
@@ -989,7 +993,7 @@ julia> Oscar._prop217(E,bk[2],2)
  (12*t + 28, t)
 
 julia> Oscar._prop217(E,bk[1],1)
-2-element Vector{Tuple{fpPolyRingElem, fpPolyRingElem}}:
+2-element Vector{Tuple{FqPolyRingElem, FqPolyRingElem}}:
  (1, 0)
  (t, 0)
 ```

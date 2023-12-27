@@ -115,7 +115,6 @@ end
    end
    @test GAP.Globals.DefiningPolynomial(codomain(f)) ==
          GAP.Globals.ConwayPolynomial(p, 2)
-   @test F.is_conway == 0
    p2 = next_prime(p)
    @test_throws ErrorException f(GF(p2)(1))
    @test_throws ErrorException image(f, GF(p2)(1))

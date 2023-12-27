@@ -199,7 +199,7 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT, IteratorT, ElemT} <: Vecto
   basis_iterator_state::Any # I don't know the type of this and I don't think there
                        # is a "type-stable" way of finding it out
 
-  function VectorSpaceIteratorFiniteField(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField}, IteratorT}
+  function VectorSpaceIteratorFiniteField(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField, FqField}, IteratorT}
     VSI = new{FieldT, IteratorT, eltype(basis_iterator)}()
     VSI.field = K
     VSI.basis_iterator = basis_iterator

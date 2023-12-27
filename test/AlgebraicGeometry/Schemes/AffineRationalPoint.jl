@@ -57,7 +57,8 @@
   A2L = Oscar.RationalPointSet(Spec(L), A2)
   pk = A2k([1,1])
   pL = A2L(pk) # conversion
-  @test !(pk == pL) # no automatic coercion -> consistent with hom interpretation since the domains differ
+  @test_throws ErrorException pk == pL
+  #@test !(pk == pL) # no automatic coercion -> consistent with hom interpretation since the domains differ
 
   # reduction mod p
   k = ZZ

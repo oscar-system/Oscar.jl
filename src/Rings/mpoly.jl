@@ -530,6 +530,63 @@ function singular_coeff_ring(F::fqPolyRepField)
   return SF
 end
 
+# Nonsense for FqField (aka fq_default from flint)
+function singular_coeff_ring(F::Nemo.FqField)
+  # we are way beyond type stability, so just do what you want
+  @assert is_absolute(F)
+  ctx = Nemo._fq_default_ctx_type(F)
+  if ctx == Nemo._FQ_DEFAULT_NMOD
+    return Singular.Fp(Int(characteristic(F)))
+  elseif nbits(characteristic(F)) <= 29
+    # TODO: the Fp(Int(char)) can throw
+    minpoly = modulus(F)
+    Fa = parent(minpoly)
+    SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
+                                        _variables_for_singular(symbols(Fa)))
+    Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
+    for i in 1:degree(minpoly)
+      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
+    end
+    SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
+    return SF
+  else
+    return Singular.CoefficientRing(F)
+  end
+end
+
+function (K::FqField)(a::Singular.n_algExt)
+  SK = parent(a)
+  SF = parent(Singular.modulus(SK))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
+  F = parent(a)
+  SFa = gen(SF)
+  res = SF(lift(ZZ, coeff(a, 0)))
+  for i in 1:degree(F)-1
+    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+  end
+  return res
+end
+
+function (F::FqField)(a::Singular.n_Zp)
+  return F(Int(a))
+end
+
+function (SF::Singular.N_ZpField)(a::FqFieldElem)
+   return SF(lift(ZZ, a))
+end
+
 #### TODO stuff to move to singular.jl
 function (F::Singular.N_FField)(a::Union{zzModRingElem, fpFieldElem})
   return F(a.data)

@@ -270,13 +270,13 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over finite field of degree 1 over GF(3)
 
 julia> IR = invariant_ring(G)
 Invariant ring of
   Matrix group of degree 3 over GF(3)
 with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -285,7 +285,7 @@ Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+3-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]
  x[2]
  x[3]
@@ -462,21 +462,21 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over finite field of degree 1 over GF(3)
 
 julia> IR = invariant_ring(G)
 Invariant ring of
   Matrix group of degree 3 over GF(3)
 with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 
 julia> basis(IR, 3)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```

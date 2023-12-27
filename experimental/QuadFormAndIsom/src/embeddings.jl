@@ -282,8 +282,8 @@ function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMor, p::IntegerUnion)
     return Vp(vec(collect(v)))
   end
 
-  function _VptoV(v::ModuleElem{FpFieldElem})
-    x = lift.(v.v)
+  function _VptoV(v::ModuleElem{FqFieldElem})
+    x = map(z -> lift(ZZ, z), v.v)
     return sum(x[i]*V[i] for i in 1:n)
   end
 
@@ -379,8 +379,8 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # invariants sub-vector spaces of given rank in the quotient (then lifting
   # generators and putting them with H0 will give us invariant subgroups as
   # wanted)
-  act_GV = FpMatrix[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
-  act_GV = FpMatrix[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV]
+  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
+  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[solve(VptoQp.matrix, g*VptoQp.matrix) for g in act_GV]
   MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
