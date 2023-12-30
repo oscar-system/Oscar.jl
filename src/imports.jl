@@ -138,6 +138,7 @@ import Nemo:
   fqPolyRepFieldElem,
   fraction_field,
   height,
+  is_embedded,
   is_prime,
   is_probable_prime,
   is_square,
