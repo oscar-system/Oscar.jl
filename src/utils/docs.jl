@@ -160,7 +160,7 @@ The optional parameter `doctest` can take three values:
   - `:fix`: Run the doctests and replace the output in the manual with
     the output produced by Oscar. Please use this option carefully.
 
-In GitHub Actions the Julia version used for building the manual is 1.9 and
+In GitHub Actions the Julia version used for building the manual is 1.10 and
 doctests are run with >= 1.7. Using a different Julia version may produce
 errors in some parts of Oscar, so please be careful, especially when setting
 `doctest=:fix`.
