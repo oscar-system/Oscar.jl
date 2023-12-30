@@ -544,56 +544,6 @@ function leading_ideal(I::MPolyIdeal; ordering::MonomialOrdering = default_order
 end
 
 @doc raw"""
-    normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
-
-**Note**: Internal function, subject to change, do not use.
-
-Compute the normal form of the generators `gens(I)` of the ideal `I` w.r.t. a
-Gröbner basis of `J` and the monomial ordering `o`.
-
-CAVEAT: This computation needs a Gröbner basis of `J` and the monomial ordering
-`o`. If this Gröbner basis is not available, one is computed automatically.
-This may take some time.
-
-# Examples
-```jldoctest
-julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
-(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[a, b, c])
-
-julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
-ideal(b + c - 1, 2*a*b + a*c + b - 1)
-
-julia> gens(groebner_basis(J))
-2-element Vector{QQMPolyRingElem}:
- b + c - 1
- a*c - 2*a + c
-
-julia> SR = singular_poly_ring(base_ring(J))
-Singular polynomial ring (QQ),(x,y,z),(dp(3),C)
-
-julia> I = Singular.Ideal(SR,[SR(-1+c+b+a^3),SR(-1+b+c*a+2*a^3),SR(5+c*b+c^2*a)])
-Singular ideal over Singular polynomial ring (QQ),(x,y,z),(dp(3),C) with generators (x^3 + y + z - 1, 2*x^3 + x*z + y - 1, x*z^2 + y*z + 5)
-
-julia> Oscar.normal_form_internal(I,J,default_ordering(base_ring(J)))
-3-element Vector{QQMPolyRingElem}:
- a^3
- 2*a^3 + 2*a - 2*c
- 4*a - 2*c^2 - c + 5
-```
-"""
-function normal_form_internal(I::Singular.sideal, J::MPolyIdeal, o::MonomialOrdering)
-  groebner_assure(J, o)
-  G = J.gb[o]
-  R = base_ring(J)
-  SR = singular_poly_ring(R, o)
-  f = Singular.AlgebraHomomorphism(base_ring(I), SR, gens(SR))
-  IS = Singular.map_ideal(f, I)
-  GS = singular_generators(G, o)
-  K = ideal(base_ring(J), reduce(IS, GS))
-  return [J.gens.Ox(x) for x = gens(K.gens.S)]
-end
-
-@doc raw"""
     reduce(I::IdealGens, J::IdealGens; 
           ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
@@ -1012,18 +962,110 @@ julia> normal_form(A, J)
 ```
 """
 function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-  singular_assure(J)
-  SR = J.gens.Sx
-  I = Singular.Ideal(SR, SR(f))
-  N = normal_form_internal(I, J, ordering)
-  return N[1]
+  res = normal_form([f], J, ordering = ordering)
+
+  return res[1]
 end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
-  singular_assure(J)
-  SR = J.gens.Sx
-  I = Singular.Ideal(SR, [SR(x) for x in A])
-  normal_form_internal(I, J, ordering)
+  if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
+    res = _normal_form_f4(A, J)
+  else
+    res = _normal_form_singular(A, J, ordering)
+  end
+
+  return res
+end
+
+@doc raw"""
+  _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem }
+
+**Note**: Internal function, subject to change, do not use.
+
+Compute the normal form of the elements of `A` w.r.t. a
+Gröbner basis of `J` and the monomial ordering `degrevlex` using the F4 Algorithm from AlgebraicSolving.
+
+CAVEAT: This computation needs a Gröbner basis of `J` and the monomial ordering
+`ordering. If this Gröbner basis is not available, one is computed automatically.
+This may take some time. This function only works in polynomial rings over prime fields
+with the degree reverse lexicographical ordering.
+
+# Examples
+```jldoctest
+julia> R,(a,b,c) = polynomial_ring(GF(65521),["a","b","c"])
+(Multivariate polynomial ring in 3 variables over GF(65521), fpMPolyRingElem[a, b, c])
+
+julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
+ideal(b + c + 65520, 2*a*b + a*c + b + 65520)
+
+julia> A = [-1+c+b+a^3, -1+b+c*a+2*a^3, 5+c*b+c^2*a]
+3-element Vector{fpMPolyRingElem}:
+ a^3 + b + c + 65520
+ 2*a^3 + a*c + b + 65520
+ a*c^2 + b*c + 5
+
+julia> Oscar._normal_form_f4(A, J)
+3-element Vector{fpMPolyRingElem}:
+ a^3
+ 2*a^3 + 2*a + 65519*c
+ 65519*c^2 + 4*a + 65520*c + 5
+```
+"""
+function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem }
+  if !haskey(J.gb, degrevlex(base_ring(J)))
+    groebner_basis_f4(J, complete_reduction = true)
+  end
+
+  AJ = AlgebraicSolving.Ideal(J.gens.O)
+  AJ.gb[0] = J.gb[degrevlex(base_ring(J))].gens.O
+  
+  return AlgebraicSolving.normal_form(A, AJ)
+end
+
+@doc raw"""
+  _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
+
+**Note**: Internal function, subject to change, do not use.
+
+Compute the normal form of the elements of `A` w.r.t. a
+Gröbner basis of `J` and the monomial ordering `ordering` using Singular.
+
+CAVEAT: This computation needs a Gröbner basis of `J` and the monomial ordering
+`ordering. If this Gröbner basis is not available, one is computed automatically.
+This may take some time.
+
+# Examples
+```jldoctest
+julia> R,(a,b,c) = polynomial_ring(QQ,["a","b","c"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[a, b, c])
+
+julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
+ideal(b + c - 1, 2*a*b + a*c + b - 1)
+
+julia> gens(groebner_basis(J))
+2-element Vector{QQMPolyRingElem}:
+ b + c - 1
+ a*c - 2*a + c
+
+julia> A = [-1+c+b+a^3, -1+b+c*a+2*a^3, 5+c*b+c^2*a]
+3-element Vector{QQMPolyRingElem}:
+ a^3 + b + c - 1
+ 2*a^3 + a*c + b - 1
+ a*c^2 + b*c + 5
+
+julia> Oscar._normal_form_singular(A, J, default_ordering(base_ring(J)))
+3-element Vector{QQMPolyRingElem}:
+ a^3
+ 2*a^3 + 2*a - 2*c
+ 4*a - 2*c^2 - c + 5
+```
+"""
+function _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
+  SR = singular_poly_ring(base_ring(J), ordering)
+  IS = Singular.Ideal(SR, [SR(x) for x in A])
+  GS = singular_groebner_generators(J, ordering)
+  K  = ideal(base_ring(J), reduce(IS, GS))
+  return [J.gens.Ox(x) for x = gens(K.gens.S)]
 end
 
 @doc raw"""
