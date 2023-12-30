@@ -130,7 +130,7 @@ end
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
 stats = reduce(merge, pmap(testlist) do x
-                        @info "Starting tests for $x"
+                        println("Starting tests for $x")
                         Oscar.test_module(x; new=false, timed=true)
                       end)
 
