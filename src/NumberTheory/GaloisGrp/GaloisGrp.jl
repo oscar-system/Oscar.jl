@@ -1946,15 +1946,25 @@ julia> roots(C, 2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0, algorithm::Symbol=:pAdic, field::Union{Nothing, AnticNumberField} = nothing)
+function galois_group(K::AnticNumberField, extra::Int = 5; 
+  useSubfields::Bool = true, 
+  pStart::Int = 2*degree(K), 
+  prime::Int = 0, 
+  do_shape::Bool = true,
+  algorithm::Symbol=:pAdic, 
+  field::Union{Nothing, AnticNumberField} = nothing)
 
   @assert algorithm in [:pAdic, :Complex, :Symbolic]
 
+  if do_shape
+    p, ct = find_prime(K.pol, pStart)
+  else
+    ct = Set{CycleType}()
+    @assert prime != 0
+  end
+
   if prime != 0
     p = prime
-    ct = Set{CycleType}()
-  else
-    p, ct = find_prime(K.pol, pStart = pStart, prime = prime)
   end
 
   # TODO: otherwise, try to detect here if we are primitive or even 2-transitive
@@ -2181,18 +2191,18 @@ end
 # rel. ext
 # ...
 function extension_field(f::ZZPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached, check = check)
+  return number_field(f, n; cached = cached, check = check)
 end
 function extension_field(f::QQPolyRingElem, n::String = "_a"; cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached, check = check)
+  return number_field(f, n; cached = cached, check = check)
 end
 
 function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T}
-  return function_field(f, n, cached = cached)
+  return function_field(f, n; cached = cached)
 end
 
 function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
-  return number_field(f, n, cached = cached)
+  return number_field(f, n; cached = cached)
 end
 
 #Hecke.function_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true) where {T} = function_field(f, n, cached = cached)
@@ -2632,6 +2642,7 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
 end
 
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
+  
   if all(x->x[2] == 1, lf)
     return G, C
   end
@@ -2674,6 +2685,25 @@ function galois_group(f::ZZPolyRingElem; pStart::Int = 2*degree(f), prime::Int =
 end
 
 @doc raw"""
+    are_disjoint(G::GaloisCtx, S::GaloisCtx)
+
+Tests if the splitting fields implicitly defined by G and S are
+linearly disjoint, or equivalently, if the Galois group for the product
+of the polynomials is the direct product of the groups.
+
+If the function returns true, the fields are provable disjoint,
+false does not imply no-disjoint.
+"""
+function are_disjoint(G::GaloisCtx, S::GaloisCtx)
+  return false
+end
+function are_disjoint(G::GaloisCtx{T}, S::GaloisCtx{T}) where T <: Union{Hecke.qAdicRootCtx, ComplexRootCtx}
+  r = isone(gcd(order(G.G), order(S.G))) || 
+      isone(gcd(ZZ(discriminant(G.f)), ZZ(discriminant(S.f))))
+  return r
+end
+
+@doc raw"""
     galois_group(f::PolyRingElem{<:FieldElem})
 
 Computes the automorphism group of a splitting field of `f` as an explicit
@@ -2697,44 +2727,146 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
   p, ct = find_prime(g, pStart = pStart, prime = prime)
 
   C = [galois_group(extension_field(x, cached = false)[1], prime = p)[2] for x = lg]
-  G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
+  #= Strategy:
+    sort factors into clusters where the splitting fields are disjoint.
+    There the resulting group is the direct product
 
-  CC = GaloisCtx(g, p)
-  rr = roots(CC, 5, raw = true) #raw is necessary for non-monic case
-                                #the scaling factor is the lead coeff
-                                #thus not the same for all factors...
-  @assert length(Set(rr)) == length(rr)
+    Within each cluster the group is a subdirect product
+    Maybe use Gap's SubDirectProducts for pairs? It is
+    supposed to be better than just doing everything
 
-  d = map(frobenius, rr)
-  si = [findfirst(y->y==x, rr) for x = d]
+    Can I can MaximalSubDirectProducts?
 
-  @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
+    Plan:
+     - function to check if 2 GaloisCtx are disjoint. True if disjoiunt,
+           false if undecided
+     - use this to find the clusters
+     - deal with them
+     - form the big product
+  =#
 
-  k, mk = residue_field(parent(rr[1]))
-  rr = map(mk, rr)
-  po = Int[]
-  for GC = C
-    r = roots(GC, 5, raw = true)
-    K, mK = residue_field(parent(r[1]))
-    r = map(mK, r)
-    phi = Hecke.find_morphism(K, k)
-    po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
+  g = Graph{Undirected}(length(C))
+  for i=1:length(C)
+    for j=i+1:length(C)
+      if !are_disjoint(C[i], C[j])
+        add_edge!(g, i, j)
+      end
+    end
+  end
+  cl = connected_components(g)
+  @vprint :GaloisGroup 1 "found $(length(cl)) connected components\n"
+
+  res = Vector{Tuple{typeof(C[1]), PermGroupElem}}()
+  function setup(C::Vector{<:GaloisCtx})
+    G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
+    g = prod(x.f for x = C)
+
+    CC = GaloisCtx(g, p)
+    rr = roots(CC, 5, raw = true) #raw is necessary for non-monic case
+                                  #the scaling factor is the lead coeff
+                                  #thus not the same for all factors...
+    @assert length(Set(rr)) == length(rr)
+
+    d = map(frobenius, rr)
+    si = [findfirst(y->y==x, rr) for x = d]
+
+    @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
+
+    k, mk = residue_field(parent(rr[1]))
+    rr = map(mk, rr)
+    po = Int[]
+    for GC = C
+      r = roots(GC, 5, raw = true)
+      K, mK = residue_field(parent(r[1]))
+      r = map(mK, r)
+      phi = Hecke.find_morphism(K, k)
+      po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
+    end
+
+    con = (symmetric_group(length(po))(po))
+    G = G^con
+    CC.G = G #needed as a fallback if no descent is used
+    F = GroupFilter()
+  #=
+    function fi(x)
+      @show [pro[y](x^inv(con))[1] == C[y].G for y=1:length(C)]
+      return all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C))
+    end
+    push!(F, fi)
+  =#  
+
+    push!(F, x->!is_transitive(x), "subdirect case: group is transitive")
+    push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
+    return CC, G, F, G(si), con
+  end
+  for X = cl
+    @vprint :GaloisGroup 1 "dealing with factors $X ...\n"
+    if length(X) == 1
+      push!(res, (C[X][1], one(C[X][1].G)))
+    else
+      function red(A::GaloisCtx, B::GaloisCtx)
+        CC, G, F, fr, con = setup([A, B])
+        return descent(CC, G, F, fr, grp_id = x->(:-, :-))[2], con
+      end
+      local con
+      #=
+      G = C2 x C2 x C2 x C2 e.g. sqrt(2) sqrt(3) sqrt(5) sqrt(30)
+           (a,a)     (a,a)     with a: group combinations that have to be
+          a         a                  testet
+          a              a     with b: groups that are not sub-direct enough
+              a     a
+              a          a
+          a   a     a
+          a   a          a
+          a   a     a    a
+          a         a    a
+              a     a    a
+
+          b
+             b
+                    b
+                         b
+          b  b
+                    b    b
+      the idea is tp combine pairs in the hope that some descents can be 
+      found on smaller groups (smaller support/ degree)
+      We'll have to test all possible subdirect subgroups, but this tries 
+      smaller cases first
+      =#
+      @vprint :GaloisGroup 2 "entering combination tree..."
+      while length(X) > 1
+        local p
+        d = map(x->degree(x.f), C[X])
+        p = sortperm(d)
+        @vprint :GaloisGroup 2 "combining $(X[p[1:2]]) of degree $(degree(C[X[p[1]]].f)) and $(degree(C[X[p[2]]].f))\n"
+        Hecke.pushindent()
+        D, con = red(C[X[p[1]]], C[X[p[2]]])
+        Hecke.popindent()
+        #delete the larger index as to not upset the smaller one
+        #then replace the Ctx at the smaller index
+        if p[1] < p[2]
+          deleteat!(X, p[2])
+          C[X[p[1]]] = D
+        else
+          deleteat!(X, p[1])
+          C[X[p[2]]] = D
+        end
+      end
+      push!(res, (C[X[1]], con))
+    end
   end
 
-  con = (symmetric_group(length(po))(po))
-  G = G^con
-  F = GroupFilter()
-#=
-  function fi(x)
-    @show [pro[y](x^inv(con))[1] == C[y].G for y=1:length(C)]
-    return all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C))
+  @vprint :GaloisGroup 1 "combining clusters...\n"
+  if length(res) == 1
+    CC = res[1][1]
+    G = CC.G
+    con = res[1][2]
+  else
+    CC, G, F, fr, con = setup([x[1] for x = res])
   end
-  push!(F, fi)
-=#  
+  @vprint :GaloisGroup 1 "adding multiplicity...\n"
 
-  push!(F, x->all(y->pro[y](x^inv(con))[1] == C[y].G, 1:length(C)), "subdirect case: wrong projections")
-  G, C =  descent(CC, G, F, G(si), grp_id = x->(:-,:-))
-  return blow_up(G, C, lf, con)
+  return blow_up(G, CC, lf, con)
 end
 
 function Nemo.cyclotomic(n::Int, x::QQPolyRingElem)

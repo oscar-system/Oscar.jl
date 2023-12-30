@@ -1,4 +1,5 @@
 {
+    "model_index": "3",
     "arxiv_data": {
         "id": "1208.2695",
         "doi": "10.48550/arXiv.1208.2695",
@@ -20,9 +21,9 @@
         "year": "2012",
         "link": "https://link.springer.com/article/10.1007/JHEP10(2012)128",
         "model_location": {
-            "section": "",
-            "equation": "",
-            "page": ""
+            "section": "B",
+            "equation": "B.19",
+            "page": "34"
         }
     },
     "paper_metadata": {

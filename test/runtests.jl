@@ -129,7 +129,10 @@ end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-stats = merge(pmap(x -> Oscar.test_module(x; new=false, timed=true), testlist)...)
+stats = reduce(merge, pmap(testlist) do x
+                        println("Starting tests for $x")
+                        Oscar.test_module(x; new=false, timed=true)
+                      end)
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
