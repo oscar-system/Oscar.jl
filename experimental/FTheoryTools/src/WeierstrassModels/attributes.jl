@@ -169,6 +169,13 @@ end
 # 2.2 Turn Weierstrass model into Tate model
 #####################################################
 
+# For convenience, allow to turn Weierstrass model into itself
+function weierstrass_model(w::WeierstrassModel)
+  @vprint :WeierstrassModel 0 "Weierstrass model provided, returning this very model.\n"
+  return w
+end
+
+
 # Currently no plan to include
 
 

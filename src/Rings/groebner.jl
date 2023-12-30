@@ -96,15 +96,15 @@ degrevlex([x, y])
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   # incorrect one
-  singular_assure(B, ordering)
-  R = B.Sx
-  I  = Singular.Ideal(R, gens(B.S)...)
-  i  = Singular.std(I, complete_reduction = complete_reduction)
-  BA = IdealGens(B.Ox, i, complete_reduction)
-  # correct one (segfaults)
-  #gensSord = singular_generators(B, ordering)
-  #i = Singular.std(gensSord, complete_reduction = complete_reduction)
+  #singular_assure(B, ordering)
+  #R = B.Sx
+  #I  = Singular.Ideal(R, gens(B.S)...)
+  #i  = Singular.std(I, complete_reduction = complete_reduction)
   #BA = IdealGens(B.Ox, i, complete_reduction)
+  # correct one (segfaults)
+  gensSord = singular_generators(B, ordering)
+  i = Singular.std(gensSord, complete_reduction = complete_reduction)
+  BA = IdealGens(B.Ox, i, complete_reduction)
   BA.isGB = true
   BA.ord = ordering
   if isdefined(BA, :S)

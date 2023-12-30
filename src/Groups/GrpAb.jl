@@ -18,6 +18,8 @@ end
 # (This is analogous to `issubset`.)
 is_element(x::GrpAbFinGenElem, G::GrpAbFinGen) = issubset(sub([x])[1], G)
 
+_coeff(x::GrpAbFinGenElem) = x.coeff
+
 function is_finiteorder(a::GrpAbFinGenElem)
   G, m = snf(a.parent)
   b = preimage(m, a)

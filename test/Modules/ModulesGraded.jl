@@ -1116,3 +1116,34 @@ end
     @test all(x->degree(x) == grading_group(F)([d]), amm)
   end
 end
+
+##################################################################
+# Tests random elements
+##################################################################
+
+@testset "random free module hom" begin
+    Rg, (x, y, z) = graded_polynomial_ring(GF(101), ["x", "y", "z"])
+    Z = grading_group(Rg)
+    F1 = graded_free_module(Rg, [1,2,2])
+    F2 = graded_free_module(Rg, [3,5])
+    V, f = hom(F1, F2)
+    ff = rand_homogeneous(Rg,8)
+    @test is_homogeneous(ff)
+    @test degree(ff) == 8*Z[1]
+    v = rand_homogeneous(V, 8)
+    @test is_homogeneous(v)
+    @test degree(v) == 8*Z[1]
+end
+
+@testset "random subquo module hom" begin
+    Rg, (x, y) = graded_polynomial_ring(GF(101), ["x", "y"])
+    Z = grading_group(Rg)
+    F = graded_free_module(Rg, [3,5]);
+    V = [x*F[1], y^2*F[2]];
+    M = quo(F, V)[1]
+    F2 = graded_free_module(Rg, [2,2]);
+    H, f = hom(F2, M)
+    v = rand_homogeneous(H, 8)
+    @test is_homogeneous(v)
+    @test degree(v) == 8*Z[1]
+end

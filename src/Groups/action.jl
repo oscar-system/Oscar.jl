@@ -453,6 +453,33 @@ function on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
     return inv(res[i]) * res
 end
 
+@doc raw"""
+    on_subgroups(x::GapObj, g::GAPGroupElem) -> GapObj
+    on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup -> T
+
+Return the image of the group `x` under `g`. Note that `x` must
+be a subgroup of the domain of `g`.
+
+# Examples
+```jldoctest
+julia> C = cyclic_group(20)
+Pc group of order 20
+
+julia> S = automorphism_group(C)
+Aut( <pc group of size 20 with 3 generators> )
+
+julia> H, _ = sub(C, [gens(C)[1]^4])
+(Pc group of order 5, Hom: pc group -> pc group)
+
+julia> all(g -> on_subgroups(H, g) == H, S)
+true
+```
+"""
+function on_subgroups(x::GapObj, g::GAPGroupElem)
+  return GAPWrap.Image(g.X, x)
+end
+
+on_subgroups(x::T, g::GAPGroupElem) where T <: GAPGroup = T(on_subgroups(x.X, g))
 
 @doc raw"""
     stabilizer(G::Oscar.GAPGroup, pnt::Any[, actfun::Function])

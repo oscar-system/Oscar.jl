@@ -20,8 +20,9 @@ discuss functionality for handling such algebras in OSCAR.
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
     basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-    to the `default_ordering` on the underlying polynomial ring; see the section on *Gröbner/Standard Bases* for default orderings in
-    OSCAR). Once computed, the Gröbner basis is cached for later reuse.
+    to the monomial ordering entered by the user when creating the quotient; if no such ordering is entered, OSCAR will use the
+	`default_ordering` on the underlying polynomial ring; see the section on Gröbner/Standard Bases for default orderings in OSCAR).
+	Once computed, the Gröbner basis is cached for later reuse.
 
 !!! note
     Recall that Gröbner basis methods are implemented for multivariate polynomial rings over fields (exact fields supported by
