@@ -158,3 +158,137 @@ function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e
   # Return the model
   return model
 end
+
+
+
+#####################################################
+# 3: Tune a Tate model
+#####################################################
+
+@doc raw"""
+    tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
+
+Tune a Tate model by fixing a special choice of the Tate sections.
+This choice is provided by a dictionary, to be provided as second argument.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice = Dict("a1" => x1^4)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 1 entry:
+  "a1" => x1^4
+
+julia> tuned_t = tune(t, my_choice)
+Global Tate model over a concrete base
+
+julia> tate_section_a1(tuned_t) == x1^4
+true
+```
+"""
+function tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
+  @req !(typeof(base_space(t)) <: FamilyOfSpaces) "Currently, tuning is only possible for models over concrete toric bases"
+  isempty(special_ai_choices) && return t
+  ais = [tate_section_a1(t), tate_section_a2(t), tate_section_a3(t), tate_section_a4(t), tate_section_a6(t)]
+  if haskey(special_ai_choices, "a1")
+    @req parent(special_ai_choices["a1"]) == parent(tate_section_a1(t)) "Parent mismatch between given and existing Tate section a1"
+    @req degree(special_ai_choices["a1"]) == degree(tate_section_a1(t)) "Parent mismatch between given and existing Tate section a1"
+    ais[1] = special_ai_choices["a1"]
+  end
+  if haskey(special_ai_choices, "a2")
+    @req parent(special_ai_choices["a2"]) == parent(tate_section_a2(t)) "Parent mismatch between given and existing Tate section a2"
+    @req degree(special_ai_choices["a2"]) == degree(tate_section_a2(t)) "Parent mismatch between given and existing Tate section a2"
+    ais[2] = special_ai_choices["a2"]
+  end
+  if haskey(special_ai_choices, "a3")
+    @req parent(special_ai_choices["a3"]) == parent(tate_section_a3(t)) "Parent mismatch between given and existing Tate section a3"
+    @req degree(special_ai_choices["a3"]) == degree(tate_section_a3(t)) "Parent mismatch between given and existing Tate section a3"
+    ais[3] = special_ai_choices["a3"]
+  end
+  if haskey(special_ai_choices, "a4")
+    @req parent(special_ai_choices["a4"]) == parent(tate_section_a4(t)) "Parent mismatch between given and existing Tate section a4"
+    @req degree(special_ai_choices["a4"]) == degree(tate_section_a4(t)) "Parent mismatch between given and existing Tate section a4"
+    ais[4] = special_ai_choices["a4"]
+  end
+  if haskey(special_ai_choices, "a6")
+    @req parent(special_ai_choices["a6"]) == parent(tate_section_a6(t)) "Parent mismatch between given and existing Tate section a6"
+    @req degree(special_ai_choices["a6"]) == degree(tate_section_a6(t)) "Parent mismatch between given and existing Tate section a6"
+    ais[5] = special_ai_choices["a6"]
+  end
+  return global_tate_model(base_space(t), ais; completeness_check)
+end
+
+@doc raw"""
+    tune(t::GlobalTateModel, p::MPolyRingElem; completeness_check::Bool = true)
+
+Tune a Tate model by replacing the Tate polynomial by a custom hypersurface
+equation (given by a polynomial). The latter can be any type of polynomial:
+a Tate polynomial, Weierstrass polynomial or a general hypersurface. We do not
+conduct checks to tell if the provided polynomial is a Tate polynomial. Instead,
+we always return a hypersurface model.
+
+Note that currently, there is less functionality for hypersurface models than for
+example Weierstrass model. For instance, `singular_loci` can currently not be computed
+for hypersurface models.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t)))
+7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+ x
+ y
+ z
+
+julia> new_tate_polynomial = x^3 - y^2 - x * y * z * x4^4
+-x4^4*x*y*z + x^3 - y^2
+
+julia> tuned_t = tune(t, new_tate_polynomial)
+Hypersurface model over a concrete base
+
+julia> hypersurface_equation(tuned_t) == new_tate_polynomial
+true
+
+julia> base_space(tuned_t) == base_space(t)
+true
+```
+"""
+function tune(t::GlobalTateModel, p::MPolyRingElem; completeness_check::Bool = true)
+  @req !(typeof(base_space(t)) <: FamilyOfSpaces) "Currently, tuning is only possible for models over concrete toric bases"
+  @req parent(p) == parent(tate_polynomial(t)) "Parent mismatch between given and existing Tate polynomial"
+  @req degree(p) == degree(tate_polynomial(t)) "Degree mismatch between given and existing Tate polynomial"
+  p == tate_polynomial(t) && return t
+  tuned_model = HypersurfaceModel(base_space(t), ambient_space(t), fiber_ambient_space(t), p)
+  set_attribute!(tuned_model, :partially_resolved, false)
+  return tuned_model
+end
