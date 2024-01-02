@@ -135,13 +135,13 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
   T = domain(f)
   FT, id_F = pushforward(inc, F)
   g = ambient_representatives_generators(M)
-  gT = [sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(g)]
+  gT = elem_type(FT)[sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(g)]
   rel = relations(M)
-  relT = [sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(rel)]
+  relT = elem_type(FT)[sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(rel)]
   G, inc_G = sub(FT, vcat(gT, relT))
   Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
   MT = cokernel(inc_Q)
-  id = hom(MT, M, vcat(gens(M), [zero(M) for i in 1:length(relT)]))
+  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]))
   return MT, id
 end
 
