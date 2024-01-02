@@ -72,6 +72,7 @@ function __init__()
         (GAP.Globals.IsPcGroup, PcGroup),
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
+        (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
   __GAP_info_messages_off()
   # make Oscar module accessible from GAP (it may not be available as
