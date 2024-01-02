@@ -3,7 +3,7 @@
 #####################################################
 
 @doc raw"""
-    base_fully_specified(h::HypersurfaceModel)
+    is_base_space_fully_specified(h::HypersurfaceModel)
 
 Return `true` is the hypersurface model has a concrete base space and `false` otherwise.
 
@@ -11,11 +11,11 @@ Return `true` is the hypersurface model has a concrete base space and `false` ot
 julia> h = hypersurface_model_over_projective_space(2)
 Hypersurface model over a concrete base
 
-julia> base_fully_specified(h)
+julia> is_base_space_fully_specified(h)
 true
 ```
 """
-base_fully_specified(h::HypersurfaceModel) = get_attribute(h, :base_fully_specified)
+is_base_space_fully_specified(h::HypersurfaceModel) = !(typeof(h.base_space) <: FamilyOfSpaces)
 
 
 @doc raw"""

@@ -42,7 +42,7 @@ Normal toric variety
 ```
 """
 function base_space(h::HypersurfaceModel)
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
+  is_base_space_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return h.base_space
 end
 
@@ -61,7 +61,7 @@ Normal toric variety without torusfactor
 ```
 """
 function ambient_space(h::HypersurfaceModel)
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return h.ambient_space
 end
 
@@ -141,7 +141,7 @@ Closed subvariety of a normal toric variety
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(h::HypersurfaceModel)
   @req typeof(base_space(h)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(h), [hypersurface_equation(h)])
 end
 

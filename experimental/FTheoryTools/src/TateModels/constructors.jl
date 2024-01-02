@@ -65,7 +65,6 @@ function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completenes
   # construct the model
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
   model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, ambient_space)
-  set_attribute!(model, :base_fully_specified, true)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -169,7 +168,6 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   pt = _tate_polynomial([a1, a2, a3, a4, a6], coordinate_ring(auxiliary_ambient_space))
   model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
-  set_attribute!(model, :base_fully_specified, false)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -187,7 +185,7 @@ function Base.show(io::IO, t::GlobalTateModel)
   else
     push!(properties_string, "Global Tate model over a")
   end
-  if base_fully_specified(t)
+  if is_base_space_fully_specified(t)
     push!(properties_string, "concrete base")
   else
     push!(properties_string, "not fully specified base")

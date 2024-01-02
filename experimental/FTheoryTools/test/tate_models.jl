@@ -25,8 +25,8 @@ t = global_tate_model(base; completeness_check = false)
   @test parent(discriminant(t)) == cox_ring(base_space(t))
   @test dim(base_space(t)) == 3
   @test dim(ambient_space(t)) == 5
-  @test base_fully_specified(t) == true
-  @test base_fully_specified(t) == base_fully_specified(weierstrass_model(t))
+  @test is_base_space_fully_specified(t) == true
+  @test is_base_space_fully_specified(t) == is_base_space_fully_specified(weierstrass_model(t))
   @test is_smooth(ambient_space(t)) == false
   @test toric_variety(calabi_yau_hypersurface(t)) == ambient_space(t)
   @test is_partially_resolved(t) == false
@@ -53,7 +53,7 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test tate_section_a6(t2) == tate_section_a6(loaded)
       @test base_space(t2) == base_space(loaded)
       @test ambient_space(t2) == ambient_space(loaded)
-      @test base_fully_specified(t2) == base_fully_specified(loaded)
+      @test is_base_space_fully_specified(t2) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(t2) == is_partially_resolved(t2)
     end
   end
@@ -113,8 +113,8 @@ t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 
   @test parent(discriminant(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
   @test dim(base_space(t_i5_s)) == 3
   @test dim(ambient_space(t_i5_s)) == 5
-  @test base_fully_specified(t_i5_s) == false
-  @test base_fully_specified(t_i5_s) == base_fully_specified(weierstrass_model(t_i5_s))
+  @test is_base_space_fully_specified(t_i5_s) == false
+  @test is_base_space_fully_specified(t_i5_s) == is_base_space_fully_specified(weierstrass_model(t_i5_s))
 end
 
 @testset "Error messages in global Tate models over generic base space" begin

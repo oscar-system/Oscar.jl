@@ -159,7 +159,7 @@ fiber_ambient_space(w::WeierstrassModel)
 ```
 The following method allows to tell if the base/ambient space is auxiliary or not:
 ```@docs
-base_fully_specified(w::WeierstrassModel)
+is_base_space_fully_specified(w::WeierstrassModel)
 ```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.

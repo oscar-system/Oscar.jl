@@ -12,7 +12,7 @@ h1 = hypersurface_model(base; completeness_check = false)
   @test is_simplicial(fiber_ambient_space(h1)) == true
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h1)))] == ["x", "y", "z"]
   @test toric_variety(calabi_yau_hypersurface(h1)) == ambient_space(h1)
-  @test base_fully_specified(h1) == true
+  @test is_base_space_fully_specified(h1) == true
   @test is_partially_resolved(h1) == false
 end
 
@@ -30,7 +30,7 @@ h2 = hypersurface_model(base, ambient_space_of_fiber, D1, D2; completeness_check
   @test is_smooth(fiber_ambient_space(h2)) == true
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h2)))] == ["x", "y", "z"]
   @test toric_variety(calabi_yau_hypersurface(h2)) == ambient_space(h2)
-  @test base_fully_specified(h2) == true
+  @test is_base_space_fully_specified(h2) == true
 end
 
 
@@ -92,7 +92,7 @@ h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
   @test is_smooth(fiber_ambient_space(h4)) == false
   @test is_simplicial(fiber_ambient_space(h4)) == true
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h4)))] == ["x", "y", "z"]
-  @test base_fully_specified(h4) == false
+  @test is_base_space_fully_specified(h4) == false
 end
 
 new_grading = [0 2 3 4 6 0; 0 -1 -2 -3 -5 1]
