@@ -116,7 +116,7 @@ ambient_space(h::HypersurfaceModel)
 ```
 The following method allows to tell if the base/ambient space is auxiliary or not:
 ```@docs
-base_fully_specified(h::HypersurfaceModel)
+is_base_space_fully_specified(h::HypersurfaceModel)
 ```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.

@@ -17,8 +17,8 @@ t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
   @test length(singular_loci(t1)) == 2
   @test dim(base_space(t1)) == 3
   @test dim(ambient_space(t1)) == 5
-  @test base_fully_specified(t1) == true
-  @test base_fully_specified(t1) == base_fully_specified(weierstrass_model(t1))
+  @test is_base_space_fully_specified(t1) == true
+  @test is_base_space_fully_specified(t1) == is_base_space_fully_specified(weierstrass_model(t1))
   @test is_smooth(ambient_space(t1)) == false
   @test toric_variety(calabi_yau_hypersurface(t1)) == ambient_space(t1)
 end
@@ -99,7 +99,7 @@ w1 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
   @test length(singular_loci(w1)) == 1
   @test dim(base_space(w1)) == 2
   @test dim(ambient_space(w1)) == 4
-  @test base_fully_specified(w1) == true
+  @test is_base_space_fully_specified(w1) == true
   @test is_smooth(ambient_space(w1)) == false
   @test toric_variety(calabi_yau_hypersurface(w1)) == ambient_space(w1)
 end
@@ -162,8 +162,8 @@ t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1")
   @test length(singular_loci(t3)) == 2
   @test dim(base_space(t3)) == 3
   @test dim(ambient_space(t3)) == 5
-  @test base_fully_specified(t3) == false
-  @test base_fully_specified(t3) == base_fully_specified(weierstrass_model(t3))
+  @test is_base_space_fully_specified(t3) == false
+  @test is_base_space_fully_specified(t3) == is_base_space_fully_specified(weierstrass_model(t3))
 end
 
 @testset "Test meta data for literature Tate model over arbitrary base" begin
@@ -215,7 +215,7 @@ t9 = literature_model(arxiv_id = "1212.2949", equation = "5.7")
 t10 = literature_model(arxiv_id = "1212.2949", equation = "5.13")
 
 @testset "Test more Tate models (from paper Tate form on Steroids) in our database, by constructing them over arbitrary bases" begin
-  @test base_fully_specified(t4) == false
+  @test is_base_space_fully_specified(t4) == false
   @test is_partially_resolved(t5) == false
   @test length(resolutions(t6)) == 1
   @test length(paper_authors(t7)) == 2
@@ -239,7 +239,7 @@ t9b = literature_model(arxiv_id = "1212.2949", equation = "5.7", base_space = B3
 t10b = literature_model(arxiv_id = "1212.2949", equation = "5.13", base_space = B3, model_sections = Dict("ζ0" => ζ0))
 
 @testset "Test more Tate models (from paper Tate form on Steroids) in our database, by constructing them over concrete bases" begin
-  @test base_fully_specified(t4b) == true
+  @test is_base_space_fully_specified(t4b) == true
   @test is_partially_resolved(t5b) == false
   @test length(resolutions(t6b)) == 1
   @test length(paper_authors(t7b)) == 2
@@ -263,7 +263,7 @@ w2 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_ch
   @test length(singular_loci(w2)) == 1
   @test dim(base_space(w2)) == 2
   @test dim(ambient_space(w2)) == 4
-  @test base_fully_specified(w2) == false
+  @test is_base_space_fully_specified(w2) == false
 end
 
 @testset "Test meta data for literature Weierstrass model over arbitrary base" begin
@@ -328,7 +328,7 @@ w5 = literature_model(arxiv_id = "1507.05954", equation = "A.1", completeness_ch
   @test length(singular_loci(w4)) == 1
   @test dim(base_space(w4)) == 2
   @test dim(ambient_space(w4)) == 4
-  @test base_fully_specified(w4) == true
+  @test is_base_space_fully_specified(w4) == true
   @test model_description(w5) == "U(1)xU(1) Weierstrass model"
 end
 
@@ -346,7 +346,7 @@ w6 = literature_model(3, base_space = B2, model_sections = Dict("b" => b), compl
   @test length(singular_loci(w6)) == 1
   @test dim(base_space(w6)) == 2
   @test dim(ambient_space(w6)) == 4
-  @test base_fully_specified(w6) == true
+  @test is_base_space_fully_specified(w6) == true
   @test model_description(w6) == "U(1) Weierstrass model"
 end
 

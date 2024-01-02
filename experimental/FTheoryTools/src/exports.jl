@@ -19,7 +19,6 @@ export arxiv_model_page
 export arxiv_model_section
 export arxiv_version
 export associated_literature_models
-export base_fully_specified
 export base_space
 export blow_up
 export calabi_yau_hypersurface
@@ -72,6 +71,7 @@ export hypersurface_model_over_del_pezzo_surface
 export hypersurface_model_over_hirzebruch_surface
 export hypersurface_model_over_projective_space
 export irrelevant_ideal
+export is_base_space_fully_specified
 export is_partially_resolved
 export journal_doi
 export journal_link

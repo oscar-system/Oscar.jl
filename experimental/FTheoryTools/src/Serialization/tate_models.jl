@@ -84,7 +84,6 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
     # A couple of boolean values, that are always known for Tate models
     save_data_array(s, :boolean_data) do
       save_object(s, is_partially_resolved(gtm))
-      save_object(s, base_fully_specified(gtm))
     end
   end
 end
@@ -104,6 +103,5 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
   # Set boolean attributes
   bools = load_object(s, Vector, Bool, :boolean_data)
   set_attribute!(model, :partially_resolved, bools[1])
-  set_attribute!(model, :base_fully_specified, bools[2])
   return model
 end

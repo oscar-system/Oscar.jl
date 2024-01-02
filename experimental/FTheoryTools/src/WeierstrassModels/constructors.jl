@@ -62,7 +62,6 @@ function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyR
   # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
   model = WeierstrassModel(f, g, pw, base, ambient_space)
-  set_attribute!(model, :base_fully_specified, true)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -153,7 +152,6 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
   pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
   model = WeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space)
-  set_attribute!(model, :base_fully_specified, false)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -170,7 +168,7 @@ function Base.show(io::IO, w::WeierstrassModel)
   else
     push!(properties_string, "Weierstrass model over a")
   end
-  if base_fully_specified(w)
+  if is_base_space_fully_specified(w)
     push!(properties_string, "concrete base")
   else
     push!(properties_string, "not fully specified base")

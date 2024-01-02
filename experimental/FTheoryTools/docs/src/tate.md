@@ -174,7 +174,7 @@ fiber_ambient_space(t::GlobalTateModel)
 ```
 The following method allows to tell if the base/ambient space is auxiliary or not:
 ```@docs
-base_fully_specified(t::GlobalTateModel)
+is_base_space_fully_specified(t::GlobalTateModel)
 ```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.

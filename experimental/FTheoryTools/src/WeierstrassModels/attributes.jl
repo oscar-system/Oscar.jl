@@ -86,7 +86,7 @@ A family of spaces of dimension d = 3
 ```
 """
 function base_space(w::WeierstrassModel)
-  base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
+  is_base_space_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return w.base_space
 end
 
@@ -107,7 +107,7 @@ A family of spaces of dimension d = 5
 ```
 """
 function ambient_space(w::WeierstrassModel)
-  base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return w.ambient_space
 end
 
@@ -160,7 +160,7 @@ Closed subvariety of a normal toric variety
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
   @req typeof(base_space(w)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
-  base_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(w) || @vprint :WeierstrassModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
 end
 

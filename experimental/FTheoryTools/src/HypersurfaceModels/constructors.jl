@@ -72,7 +72,6 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   # Construct the model
   hypersurface_equation = generic_section(anticanonical_bundle(ambient_space))
   model = HypersurfaceModel(base, ambient_space, fiber_ambient_space, hypersurface_equation)
-  set_attribute!(model, :base_fully_specified, true)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -214,7 +213,6 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
 
   # Construct the model
   model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space, hypersurface_equation)
-  set_attribute!(model, :base_fully_specified, false)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -231,7 +229,7 @@ function Base.show(io::IO, h::HypersurfaceModel)
   else
     push!(properties_string, "Hypersurface model over a")
   end
-  if base_fully_specified(h)
+  if is_base_space_fully_specified(h)
     push!(properties_string, "concrete base")
   else
     push!(properties_string, "not fully specified base")

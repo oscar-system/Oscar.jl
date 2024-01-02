@@ -141,7 +141,7 @@ A family of spaces of dimension d = 3
 ```
 """
 function base_space(t::GlobalTateModel)
-  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
+  is_base_space_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
   return t.base_space
 end
 
@@ -162,7 +162,7 @@ A family of spaces of dimension d = 5
 ```
 """
 function ambient_space(t::GlobalTateModel)
-  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
   return t.ambient_space
 end
 
@@ -215,7 +215,7 @@ Closed subvariety of a normal toric variety
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
   @req typeof(base_space(t)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
-  base_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  is_base_space_fully_specified(t) || @vprint :GlobalTateModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
 end
 
