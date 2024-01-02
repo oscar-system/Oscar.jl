@@ -7,21 +7,33 @@ CurrentModule = Oscar
 ## Introduction
 
 A hypersurface model describes a particular form of an elliptic fibration.
-For now, we consider such models in toric settings only, that is we restrict
-to a toric base space ``B`` and assume that the generic fiber is a
-hypersurface in a 2-dimensional toric fiber ambient space ``F``.
+We make the following assumptions:
+* The generic fiber is a hypersurface in a 2-dimensional toric fiber ambient space ``F``.
+* The first two (homogeneous) coordinates in the coordinate ring of ``F`` transform in the
+divisor classes ``D_1`` and ``D_2`` over the base ``B`` of the elliptic fibration. The
+remaining coordinates of ``F`` are assumed to transform in the trivial bundle over ``B``.
+See [KM-POPR15](@cite) for more details.
 
-In addition, we shall assume that the first two homogeneous coordinates of
-``F`` transform in the divisor classes ``D_1`` and ``D_2`` over the base ``B``
-of the elliptic fibration. The remaining coordinates of ``F`` are assumed to
-transform in the trivial bundle over ``B``. See [KM-POPR15](@cite) for more details.
+Our tools are most powerful if the base space ``B`` is a toric variety. Then, based on the
+above information, it is possible to compute a toric ambient space ``A`` for the elliptic
+fibration. The elliptic fibration is then a hypersurface in this toric space ``A``. Furthermore,
+since we assume that this fibration is Calabi-Yau, it is clear that the hypersurface equation is
+a (potentially very special) section of the ``\overline{K}_A``. This hypersurface equation
+completes the information required about a hypersurface model.
 
-Given this set of information, it is possible to compute a toric ambient space ``A``
-for the elliptic fibration. The elliptic fibration is then a hypersurface in this toric
-space ``A``. Furthermore, since we assume that this fibration is Calabi-Yau,
-it is clear that the hypersurface equation is a (potentially very special) section
-of the ``\overline{K}_A``. This hypersurface equation completes the information
-required about a hypersurface model.
+Certainly, one often wishes to extend beyond this setting:
+* Oftentimes, a special hypersurface equation is chosen. In the toric setting above, this will
+be a polynomial in the Cox ring of the toric ambient space. Since said ambient space, and therefore
+also its Cox ring, are computed in the cause of the above construction, we do not support one
+constructor, which immediately accepts a special hypersurface equation. Rather, in this case,
+the user must first use one of the general constructors described in the next section. Subsequently,
+the `tune` function, described in the methods section below, can be employed.
+* Bases other than toric spaces matter. Often, the F-theory literature will now even assume
+one particular base space but rather an entire family of base spaces. We extend our machinery to
+these cases, but such more general settings are typically significantly more limited than the
+toric setting. This limitation originates from the nature of the matter -- the more general the geometry,
+the less is known.
+
 
 
 ## Constructors
@@ -32,7 +44,8 @@ We aim to provide support for hypersurface models over the following bases:
 * a (covered) scheme.
 
 [Often, one also wishes to obtain information about a hypersurface model without
-explicitly specifying the base space. Also for this application, we provide support.]
+explicitly specifying the base space. For this, please use our `tune` function,
+described in the methods section below.]
 
 Finally, we provide support for some standard constructions.
 
@@ -93,36 +106,33 @@ hypersurface_model_over_del_pezzo_surface(b::Int)
 
 ### Basic attributes
 
-For all hypersurface models -- irrespective over whether the base is toric or not -- we support
-the following attributes:
+All hypersurface models come with a hypersurface equation:
 ```@docs
 hypersurface_equation(h::HypersurfaceModel)
 ```
-One can also decide to specify a custom hypersurface equation:
+Note that this equation is a polynomial in the coordinate ring of a suitable
+ambient space. This ambient space is computed by our constructors. Consequently,
+the coordinate ring, in which the hypersurface equation is an element, is only
+available after the model has been constructed.
+
+To specify a custom value for the hypersurface equation, first use one of the above
+constructors. Once completed, employ the `tune` function described in the methods
+section to set the hypersurface equation to your desired value.
+
+The base, ambient and fiber ambient space can be accessed as follows:
 ```@docs
-set_hypersurface_equation(h::HypersurfaceModel, p::MPolyRingElem)
-```
-The fiber ambient space can be accessed via
-```@docs
+ambient_space(h::HypersurfaceModel)
+base_space(h::HypersurfaceModel)
 fiber_ambient_space(h::HypersurfaceModel)
 ```
-In case the hypersurface model is constructed over a not fully specified base,
-recall that we construct an auxiliary (toric) base space as well as an
-auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
-be accessed with the following functions:
-```@docs
-base_space(h::HypersurfaceModel)
-ambient_space(h::HypersurfaceModel)
-```
-The following method allows to tell if the base/ambient space is auxiliary or not:
+The following method allows to tell if the base/ambient space is fully specified or
+if we are working with a family of base spaces instead:
 ```@docs
 is_base_space_fully_specified(h::HypersurfaceModel)
 ```
-The user can decide to get an information whenever an auxiliary base space,
-auxiliary ambient space or auxiliary hypersurface have been computed.
-To this end, one invokes `set_verbosity_level(:HypersurfaceModel, 1)`.
-More background information is available
-[here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+The user can decide to get an information whenever a family of base spaces is used.
+To this end, one invokes `set_verbosity_level(:HypersurfaceModel, 1)`. Additional background
+information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 
 ### Attributes in toric settings
 
@@ -159,4 +169,15 @@ singular_loci(h::HypersurfaceModel)
 
 ```@docs
 is_partially_resolved(h::HypersurfaceModel)
+```
+
+
+## Methods
+
+### Tuning
+
+Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
+larger gauge group. We support the following functionality:
+```@docs
+tune(h::HypersurfaceModel, p::MPolyRingElem; completeness_check::Bool = true)
 ```
