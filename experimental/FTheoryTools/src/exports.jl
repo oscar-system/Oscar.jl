@@ -98,7 +98,6 @@ export resolve
 export sample_toric_variety
 export set_description
 export set_global_tate_model
-export set_hypersurface_equation
 export set_weierstrass_model
 export singular_loci
 export su5_tate_model_over_arbitrary_3d_base
