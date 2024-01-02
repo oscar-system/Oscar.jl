@@ -128,7 +128,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   end
   
   
-  # (3a) Construct the model over concrete base
+  # (2a) Construct the model over concrete base
   if dim(base_space) > 0
     
     # Currently, support only for toric bases
@@ -148,13 +148,14 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
     @vprint :FTheoryConstructorInformation 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
-
-  # (3b) Construct the model over generic base
+    
+  # (2b) Construct the model over generic base
   else
     model = _construct_literature_model_over_arbitrary_base(model_dict)
   end
-
-  # Return the model
+  
+  
+  # (3) Return the model after we set all required attributes
   _set_all_attributes(model, model_dict, model_parameters)
   return model
 end

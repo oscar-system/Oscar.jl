@@ -109,6 +109,7 @@ export tate_section_a2
 export tate_section_a3
 export tate_section_a4
 export tate_section_a6
+export tune
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface
 export weierstrass_model_over_hirzebruch_surface

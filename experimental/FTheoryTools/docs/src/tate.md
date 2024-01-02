@@ -212,6 +212,16 @@ is_partially_resolved(t::GlobalTateModel)
 ```
 
 
+### Tuning
+
+Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
+larger gauge group. We support the following functionality:
+```@docs
+tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
+tune(t::GlobalTateModel, p::MPolyRingElem; completeness_check::Bool = true)
+```
+
+
 ### Fiber study
 
 In F-theory, it is standard to not work with the singular space directly.
