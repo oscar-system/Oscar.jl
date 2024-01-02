@@ -194,3 +194,13 @@ Consequently, the model will thereafter be partially resolved.
 ```@docs
 is_partially_resolved(w::WeierstrassModel)
 ```
+
+
+### Tuning
+
+Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
+larger gauge group. We support the following functionality:
+```@docs
+tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
+tune(w::WeierstrassModel, p::MPolyRingElem; completeness_check::Bool = true)
+```
