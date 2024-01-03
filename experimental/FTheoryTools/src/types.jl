@@ -96,24 +96,3 @@ end
     return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
   end
 end
-
-
-################################################
-# 3: conceptual parents
-################################################
-
-@attr ClosedSubschemeModel function conceptual_parent(cim::CompleteIntersectionModel)
-  # do something
-end
-
-@attr CompleteIntersectionModel function conceptual_parent(hm::HypersurfaceModel)
-  # do something
-end
-
-@attr HypersurfaceModel function conceptual_parent(gtm::GlobalTateModel)
-  # do something
-end
-
-@attr HypersurfaceModel function conceptual_parent(gwm::WeierstrassModel)
-  # do something
-end
