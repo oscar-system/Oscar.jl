@@ -1,41 +1,5 @@
 ################################################################
-# 1: Construct auxiliary base space
-################################################################
-
-
-function _auxiliary_base_space(auxiliary_base_variable_names::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int)
-
-  # We now try to guess one toric base space with the desired grading and maximal dimension
-  charges = matrix(ZZ, auxiliary_base_grading)
-  variety = normal_toric_variety_from_glsm(charges)
-  G1 = free_abelian_group(ncols(charges))
-  G2 = free_abelian_group(nrows(charges))
-  set_attribute!(variety, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(G1, G2, transpose(charges)))
-  set_attribute!(variety, :class_group, G2)
-  set_attribute!(variety, :torusinvariant_weil_divisor_group, G1)
-  
-  # Check if dimensional requirement is met
-  @req dim(variety) >= d "Cannot construct an auxiliary base space of the desired dimension"
-  
-  # Construct one base space of desired dimension
-  auxiliary_base_space = variety
-  if dim(auxiliary_base_space) != d
-    integral_rays = matrix(ZZ, rays(variety))
-    new_max_cones = IncidenceMatrix(cones(variety, d))
-    auxiliary_base_space = normal_toric_variety(new_max_cones, integral_rays; non_redundant = true)
-  end
-
-  # Set attributes of this base space and return it
-  set_coordinate_names(auxiliary_base_space, auxiliary_base_variable_names)
-  set_attribute!(auxiliary_base_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, hom(G1, G2, transpose(charges)))
-  set_attribute!(auxiliary_base_space, :class_group, G2)
-  set_attribute!(auxiliary_base_space, :torusinvariant_weil_divisor_group, G1)
-  return auxiliary_base_space
-end
-
-
-################################################################
-# 2: Construct ambient space from given base
+# 1: Construct ambient space from given base
 ################################################################
 
 function _ambient_space_from_base(base::NormalToricVariety)
@@ -122,7 +86,7 @@ end
 
 
 ################################################################
-# 3: Construct the Weierstrass polynomial
+# 2: Construct the Weierstrass polynomial
 ################################################################
 
 function _weierstrass_sections(base::NormalToricVariety)
@@ -142,7 +106,7 @@ end
 
 
 ################################################################
-# 4: Construct the Tate polynomial
+# 3: Construct the Tate polynomial
 ################################################################
 
 function _tate_sections(base::NormalToricVariety)
@@ -168,7 +132,7 @@ end
 
 
 ################################################################
-# 5: A base space for efficient testing
+# 4: A base space for efficient testing
 ################################################################
 
 @doc raw"""
@@ -203,14 +167,14 @@ end
 
 
 ################################################################
-# 6: Check if an ideal/subvariety is nontrivial
+# 5: Check if an ideal/subvariety is nontrivial
 ################################################################
 
 _is_nontrivial(id::MPolyIdeal{T}, irr::MPolyIdeal{T}) where {T<:MPolyRingElem} = !is_one(id) && !is_one(saturation(id, irr))
 
 
 ################################################################
-# 7: Compute singularity Kodaira type and refined Tate type
+# 6: Compute singularity Kodaira type and refined Tate type
 ################################################################
 
 _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_primary_decomposition(ideal([poly])))
@@ -273,7 +237,7 @@ end
 
 
 ################################################################
-# 8: Blowups
+# 7: Blowups
 ################################################################
 
 function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
@@ -350,7 +314,7 @@ _blowup_global_sequence(id::T, centers::Vector{<:Vector{<:Integer}}, irr::T, sri
 
 
 ###########################################################################
-# 9: Constructing a generic sample for models over not-fully specified spaces
+# 8: Constructing a generic sample for models over not-fully specified spaces
 ###########################################################################
 
 function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int)
