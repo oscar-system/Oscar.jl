@@ -4,11 +4,6 @@
 ###################################################################
 ###################################################################
 
-
-#####################################################
-# 1.1 Hypersurface equation
-#####################################################
-
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
@@ -22,64 +17,6 @@ julia> hypersurface_equation(h);
 ```
 """
 hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
-
-
-#####################################################
-# 1.2 Base, ambient space and fiber ambient space
-#####################################################
-
-@doc raw"""
-    base_space(h::HypersurfaceModel)
-
-Return the base space of the hypersurface model.
-
-```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-
-julia> base_space(h)
-Normal toric variety
-```
-"""
-function base_space(h::HypersurfaceModel)
-  is_base_space_fully_specified(h) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
-  return h.base_space
-end
-
-
-@doc raw"""
-    ambient_space(h::HypersurfaceModel)
-
-Return the ambient space of the hypersurface model.
-
-```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-
-julia> ambient_space(h)
-Normal toric variety without torusfactor
-```
-"""
-function ambient_space(h::HypersurfaceModel)
-  is_base_space_fully_specified(h) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
-  return h.ambient_space
-end
-
-
-@doc raw"""
-    fiber_ambient_space(HypersurfaceModel)
-
-Return the fiber ambient space of the hypersurface model.
-
-```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-
-julia> fiber_ambient_space(h)
-Normal toric variety
-```
-"""
-fiber_ambient_space(h::HypersurfaceModel) = h.fiber_ambient_space
 
 
 

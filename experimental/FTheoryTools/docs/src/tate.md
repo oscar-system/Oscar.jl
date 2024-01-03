@@ -163,24 +163,11 @@ tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
 ```
-In case the global Tate model is constructed over a not fully specified base,
-recall that we construct an auxiliary (toric) base space as well as an
-auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
-be accessed with the following functions:
-```@docs
-base_space(t::GlobalTateModel)
-ambient_space(t::GlobalTateModel)
-fiber_ambient_space(t::GlobalTateModel)
-```
-The following method allows to tell if the base/ambient space is auxiliary or not:
-```@docs
-is_base_space_fully_specified(t::GlobalTateModel)
-```
-The user can decide to get an information whenever an auxiliary base space,
-auxiliary ambient space or auxiliary hypersurface have been computed.
-To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
-More background information is available
-[here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
+fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
+tell if the model has been constructed over a concrete space (in which case the function returns
+`true`) or a family of spaces (returning `false`).
+
 
 ### Advanced attributes
 
@@ -202,14 +189,10 @@ singular_loci(t::GlobalTateModel)
 
 ### Blowup
 
-We can blow up a global Tate model:
-```@docs
-blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
-```
-Consequently, the model will thereafter be partially resolved.
-```@docs
-is_partially_resolved(t::GlobalTateModel)
-```
+We can blow up a global Tate model with the `blow_up` function. The resulting model
+will thereafter be partially resolved. No checks are currently implemented to test
+if a model is completely resolved. However, `is_partially_resolved` will return `true`
+if a blowup has been applied to the model in question.
 
 
 ### Tuning
@@ -218,8 +201,8 @@ Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
 larger gauge group. We support the following functionality:
 ```@docs
 tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-tune(t::GlobalTateModel, p::MPolyRingElem; completeness_check::Bool = true)
 ```
+See also the `tune` function described in [Functionality for all F-theory models](@ref).
 
 
 ### Fiber study

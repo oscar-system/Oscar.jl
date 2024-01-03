@@ -148,24 +148,11 @@ weierstrass_section_f(w::WeierstrassModel)
 weierstrass_section_g(w::WeierstrassModel)
 weierstrass_polynomial(w::WeierstrassModel)
 ```
-In case the Weierstrass model is constructed over a not fully specified base,
-recall that we construct an auxiliary (toric) base space as well as an
-auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
-be accessed with the following functions:
-```@docs
-base_space(w::WeierstrassModel)
-ambient_space(w::WeierstrassModel)
-fiber_ambient_space(w::WeierstrassModel)
-```
-The following method allows to tell if the base/ambient space is auxiliary or not:
-```@docs
-is_base_space_fully_specified(w::WeierstrassModel)
-```
-The user can decide to get an information whenever an auxiliary base space,
-auxiliary ambient space or auxiliary hypersurface have been computed.
-To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
-More background information is available
-[here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
+fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
+tell if the model has been constructed over a concrete space (in which case the function returns
+`true`) or a family of spaces (returning `false`).
+
 
 ### Advanced attributes
 
@@ -186,14 +173,10 @@ singular_loci(w::WeierstrassModel)
 
 ### Blowup
 
-We can blow up a Weierstrass model:
-```@docs
-blow_up(w::WeierstrassModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
-```
-Consequently, the model will thereafter be partially resolved.
-```@docs
-is_partially_resolved(w::WeierstrassModel)
-```
+We can blow up a Weierstrass model with the `blow_up` function. The resulting model
+will thereafter be partially resolved. No checks are currently implemented to test
+if a model is completely resolved. However, `is_partially_resolved` will return `true`
+if a blowup has been applied to the model in question.
 
 
 ### Tuning
@@ -202,5 +185,5 @@ Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
 larger gauge group. We support the following functionality:
 ```@docs
 tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
-tune(w::WeierstrassModel, p::MPolyRingElem; completeness_check::Bool = true)
 ```
+See also the `tune` function described in [Functionality for all F-theory models](@ref).

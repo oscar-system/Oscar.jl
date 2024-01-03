@@ -119,20 +119,11 @@ To specify a custom value for the hypersurface equation, first use one of the ab
 constructors. Once completed, employ the `tune` function described in the methods
 section to set the hypersurface equation to your desired value.
 
-The base, ambient and fiber ambient space can be accessed as follows:
-```@docs
-ambient_space(h::HypersurfaceModel)
-base_space(h::HypersurfaceModel)
-fiber_ambient_space(h::HypersurfaceModel)
-```
-The following method allows to tell if the base/ambient space is fully specified or
-if we are working with a family of base spaces instead:
-```@docs
-is_base_space_fully_specified(h::HypersurfaceModel)
-```
-The user can decide to get an information whenever a family of base spaces is used.
-To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`. Additional background
-information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
+fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
+tell if the model has been constructed over a concrete space (in which case the function returns
+`true`) or a family of spaces (returning `false`).
+
 
 ### Attributes in toric settings
 
@@ -165,19 +156,9 @@ discriminant(h::HypersurfaceModel)
 singular_loci(h::HypersurfaceModel)
 ```
 
-## Properties
-
-```@docs
-is_partially_resolved(h::HypersurfaceModel)
-```
-
 
 ## Methods
 
 ### Tuning
 
-Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
-larger gauge group. We support the following functionality:
-```@docs
-tune(h::HypersurfaceModel, p::MPolyRingElem; completeness_check::Bool = true)
-```
+Tuning is possible with the `tune` function, cf. [Functionality for all F-theory models](@ref).

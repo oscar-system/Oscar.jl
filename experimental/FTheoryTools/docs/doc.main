@@ -1,10 +1,10 @@
 [
    "F-Theory Tools" => [
       "introduction.md",
+      "generalities.md",
       "weierstrass.md",
       "tate.md",
       "hypersurface.md",
-      "literature.md",
-      "family_of_spaces.md",
+      "literature.md"
    ],
 ]

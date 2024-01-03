@@ -1,11 +1,7 @@
-#####################################################
-# 1. Properties for general global Tate models
-#####################################################
-
 @doc raw"""
-    is_base_space_fully_specified(t::GlobalTateModel)
+    is_base_space_fully_specified(m::AbstractFTheoryModel)
 
-Return `true` if the Tate model has a concrete base space and `false` otherwise.
+Return `true` if the F-theory model has a concrete base space and `false` otherwise.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -17,12 +13,12 @@ julia> is_base_space_fully_specified(t)
 false
 ```
 """
-is_base_space_fully_specified(t::GlobalTateModel) = !(typeof(t.base_space) <: FamilyOfSpaces)
+is_base_space_fully_specified(m::AbstractFTheoryModel) = !(typeof(m.base_space) <: FamilyOfSpaces)
 
 @doc raw"""
-    is_partially_resolved(t::GlobalTateModel)
+    is_partially_resolved(m::AbstractFTheoryModel)
 
-Return `true` if resolution techniques were applies to the global Tate model,
+Return `true` if resolution techniques were applied to the F-theory model,
 thereby potentially resolving its singularities. Otherwise, return `false`.
 
 ```jldoctest
@@ -47,4 +43,4 @@ julia> is_partially_resolved(t2)
 true
 ```
 """
-is_partially_resolved(t::GlobalTateModel) = get_attribute(t, :partially_resolved)
+is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)
