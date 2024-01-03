@@ -5,7 +5,7 @@ function normal_form(o::Origami)
 
     # TODO does this exists already? if not move to appropriate part of Oscar
     function cycle_length(sigma::PermGroupElem, i::Integer)
-        return GAP.Globals.CycleLength(GapObj(sigma), i)
+        return GAP.Globals.CycleLength(GapObj(sigma), i)::Int
     end
 
     # Find points which minimize the lengths of the cycles in which they occur.
