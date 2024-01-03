@@ -178,7 +178,7 @@ is_base_space_fully_specified(t::GlobalTateModel)
 ```
 The user can decide to get an information whenever an auxiliary base space,
 auxiliary ambient space or auxiliary hypersurface have been computed.
-To this end, one invokes `set_verbosity_level(:GlobalTateModel, 1)`.
+To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`.
 More background information is available
 [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 

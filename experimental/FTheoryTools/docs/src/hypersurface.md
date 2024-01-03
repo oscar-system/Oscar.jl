@@ -131,7 +131,7 @@ if we are working with a family of base spaces instead:
 is_base_space_fully_specified(h::HypersurfaceModel)
 ```
 The user can decide to get an information whenever a family of base spaces is used.
-To this end, one invokes `set_verbosity_level(:HypersurfaceModel, 1)`. Additional background
+To this end, one invokes `set_verbosity_level(:FTheoryModelPrinter, 1)`. Additional background
 information is available [here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
 
 ### Attributes in toric settings
