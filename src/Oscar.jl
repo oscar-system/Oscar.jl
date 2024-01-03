@@ -127,10 +127,7 @@ function __init__()
   add_verbose_scope(:hilbert)
   add_assert_scope(:hilbert)
 
-  add_verbose_scope(:GlobalTateModel)
-  add_verbose_scope(:WeierstrassModel)
-  add_verbose_scope(:HypersurfaceModel)
-  add_verbose_scope(:FTheoryConstructorInformation)
+  add_verbose_scope(:FTheoryModelPrinter)
 
   add_verbosity_scope(:LinearQuotients)
 

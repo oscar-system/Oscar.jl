@@ -60,7 +60,7 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
-    @vprint :HypersurfaceModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   if completeness_check
     @req is_complete(base) "Base space must be complete"
@@ -197,7 +197,7 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
   # Inform about the assume Kbar grading
-  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the spaces
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)

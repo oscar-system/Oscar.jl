@@ -147,7 +147,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
-    @vprint :FTheoryConstructorInformation 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
+    @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   # (2b) Construct the model over generic base
   else
