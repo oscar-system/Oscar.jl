@@ -12,8 +12,7 @@ function normal_form(o::Origami)
     # This can greatly reduce the number of breadths-first searches below.
     minimal_cycle_lengths = (n, n)
     minimize_cycle_lengths = Int[]
-    degree_list = collect(1:n)
-    for i in degree_list
+    for i in 1:n
         cycle_lengths = (cycle_length(x, i), cycle_length(y, i))
         if cycle_lengths == minimal_cycle_lengths
             push!(minimize_cycle_lengths, i)
@@ -23,7 +22,8 @@ function normal_form(o::Origami)
         end
     end
 
-    G = []
+    G = PermGroupElem[]
+    sym = symmetric_group(n)
 
     # TODO this can be completetly refactored. this is the exact same as
     # normalform_conjugators apart from looping over different lists
@@ -51,12 +51,12 @@ function normal_form(o::Origami)
                 L[wy] = numSeen
             end
         end
-        push!(G, L)
+        push!(G, perm(sym, L))
     end
     
-    G = perm.(G)
-    G = (i -> [i^-1 * x * i, i^-1 * y * i]).(G)
+    G2 = [ (x ^ i, y ^ i) for i in G ]
     # no need to check if surface connected
-    min_entry = minimum(G)
+    min_entry = minimum(G2)
     return origami_disconnected(min_entry[1], min_entry[2], n)
+
 end
