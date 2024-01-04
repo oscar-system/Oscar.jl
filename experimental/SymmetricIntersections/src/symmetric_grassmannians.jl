@@ -71,7 +71,7 @@ with character `chi` of a module `V`, return `chi`.
 """
 submodule_character(M::IsotGrass) = M.chi
 
-submodule_dimension(M::IsotGrass) = Int(degree(M.chi))
+submodule_dimension(M::IsotGrass) = degree(Int, M.chi)
 
 module_representation(M::IsotGrass) = M.rep_mod
 
@@ -86,7 +86,7 @@ function defining_ideal(M::IsotGrass)
   F = base_field(representation_ring(rep))
   chi = submodule_character(M)
   cd = character_decomposition(chi)[1]
-  n = Int(scalar_product(character_representation(rep), cd[2]))
+  n = scalar_product(Int, character_representation(rep), cd[2])
   t = cd[1]
   if t in Int[1, n-1, n]
     return defining_ideal(projective_space(F, binomial(n, t)-1))
@@ -198,7 +198,7 @@ with character `chi` of a module `V`, return `chi`.
 """
 submodule_character(M::CharGrass) = sum(M.dec)
 
-submodule_dimension(M::CharGrass) = Int(degree(sum(M.dec)))
+submodule_dimension(M::CharGrass) = degree(Int, sum(M.dec))
 
 module_representation(M::CharGrass) = module_representation(isotypical_factors(M)[1])
 
@@ -514,7 +514,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
     return ideal_Gr
   end
   
-  ideal_PV = ideal(S, vec(collect(matrix(S, 1, nvars(S), gens(S)))*K))
+  ideal_PV = ideal(S, vec(collect(matrix(S, 1, nvars(S), gens(S))*K)))
   PV = subscheme(X, ideal_PV)
   _J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
   J = ideal(S, elem_type(S)[map_coefficients(x -> F(x), p; parent = S) for p in gens(_J)])

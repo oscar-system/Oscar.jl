@@ -101,8 +101,8 @@ function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPoly
   @req is_invariant_ideal(rep, I) "I is not invariant"
   rd = homogeneous_polynomial_representation(rep, d)
   Rd, RdtoR = homogeneous_component(R, d)
-  M = [transpose(reverse_cols!((RdtoR\f).v)) for f in gene]
-  M = reduce(vcat, M)
+  _M = MatElem{elem_type(base_ring(R))}[reverse_cols!((RdtoR\f).v) for f in gene]
+  M = reduce(vcat, _M)
   return action_on_submodule(rd, M)
 end
 

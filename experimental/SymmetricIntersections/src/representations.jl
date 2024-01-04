@@ -822,7 +822,7 @@ elements of `B`.
 """
 function basis_exterior_power(B::Vector{T}, t::Int64) where T
   l = length(B)
-  L = ones(Int, k)
+  L = ones(Int, l)
   el = elevator(L, t; ubs = L)
   return Vector{T}[B[lis] for lis in el]
 end
@@ -847,7 +847,7 @@ end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
   @req length(v) == length(w) "Tensor must have the same number of components"
-  return all(cv -> any(cw -> cv[2] == cw[2], w), v)
+  return all(cv -> any(cw -> cv == cw, w), v)
 end
 
 function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
@@ -902,10 +902,8 @@ function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem
       w = evaluate(b, poly_m)
       for k in 1:length(w)
         c = monomial(w, k)
-        _c = content(c)
-        c = divexact(c, _c)
         j = findfirst(j -> bsp[j] == c, 1:length(bsp))
-        m2[i, j] += _c
+        m2[i, j] += coeff(w, k)
       end
     end
     push!(coll, m2)
@@ -987,7 +985,7 @@ function _wedge_product(V::Vector{T}) where T
       w_co = copy(w[2])
       lw_co = pushfirst!(w_co, l[2])
       ba, mult = _in_basis(lw_co, bas)
-      j = findfirst(j -> bas[j] == ba, length(bas))
+      j = findfirst(j -> bas[j] == ba, 1:length(bas))
       coeffs[j] += mult*w[1]*l[1]
     end
   end
@@ -1009,7 +1007,7 @@ function _action_exterior_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{
     m2 = zero_matrix(F, length(bsp), length(bsp))
     for i = 1:length(bsp)
       b = bsp[i]
-      mb = eltype(bsp)[transpose(m)*bb for bb in b]
+      mb = typeof(m)[transpose(m)*bb for bb in b]
       sp = _wedge_product(mb)
       for bbb in sp
         j = findfirst(j -> bsp[j] == bbb[2], 1:length(bsp))
@@ -1062,15 +1060,15 @@ end
 function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
-  f_gap = GG.EpimorphismSchurCover(G_gap)
-  H_gap = GG.Source(f_gap)
-  n, p = is_power(GG.Size(H_gap))
+  f_gap = GG.EpimorphismSchurCover(G_gap)::GAP.GapObj
+  H_gap = GG.Source(f_gap)::GAP.GapObj
+  n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
-    fff_gap = GG.EpimorphismPGroup(H_gap, p)
-    E_gap = fff_gap(H_gap)
+    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GAP.GapObj
+    E_gap = fff_gap(H_gap)::GAP.GapObj
   else
-    fff_gap = GG.IsomorphismPermGroup(H_gap)
-    E_gap = fff_gap(H_gap)
+    fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
+    E_gap = fff_gap(H_gap)::GAP.GapObj
   end
   E = Oscar._get_type(E_gap)(E_gap)
   H = Oscar._get_type(H_gap)(H_gap)
@@ -1312,7 +1310,8 @@ function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <
   F = base_field(representation_ring(rep))
   V = vector_space(F, dimension_representation(rep))
   sub_gene = elem_type(V)[V(M[i,:]) for i in 1:nrows(M)]
-  _, p = quo(V, sub_gene)
+  VV, _ = sub(V, sub_gene)
+  _, p = Oscar.quo(V, VV)
   proj = p.matrix::W
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
@@ -1349,7 +1348,8 @@ function isotypical_components(rep::LinRep{S, T, U}) where {S, T, U}
     @assert length(_B) == c[1]
     B = reduce(vcat, _B)
     B2 = complement_submodule(rep, B)
-    _, pc = quo(V, elem_type(V)[V(B2[i,:]) for i in 1:nrows(B2)])
+    VV, _ = sub(V, elem_type(V)[V(B2[i,:]) for i in 1:nrows(B2)])
+    _, pc = quo(V, VV)
     ic[c[2]] = (B, pc.matrix)
   end
   return ic
