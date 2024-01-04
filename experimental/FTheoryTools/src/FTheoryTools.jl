@@ -29,7 +29,6 @@ include("LiteratureModels/constructors.jl")
 include("LiteratureModels/attributes.jl")
 include("LiteratureModels/properties.jl")
 include("LiteratureModels/methods.jl")
-include("LiteratureModels/auxiliary.jl")
 include("LiteratureModels/create_index.jl")
 
 include("exports.jl")
