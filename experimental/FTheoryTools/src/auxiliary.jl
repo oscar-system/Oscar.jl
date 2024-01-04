@@ -290,22 +290,15 @@ function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vecto
   ambient_space_vars = vcat(base_vars, ["x", "y", "z"])
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
   ambient_space_grading = zero_matrix(Int, nrows(base_grading)+1,ncols(base_grading)+3)
-  for i in 1:nrows(base_grading)
-    for j in 1:ncols(base_grading)
-      ambient_space_grading[i,j] = base_grading[i,j]
-    end
-  end
-  ambient_space_grading[1,ncols(base_grading)+1] = 2
-  ambient_space_grading[1,ncols(base_grading)+2] = 3
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 1] = 2
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 2] = 3
-  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 3] = 1
+  ambient_space_grading[1:nrows(base_grading),1:ncols(base_grading)] = base_grading
+  ambient_space_grading[1,ncols(base_grading)+1:ncols(base_grading)+2] = [2; 3]
+  ambient_space_grading[nrows(base_grading) + 1,ncols(base_grading) + 1:ncols(base_grading) + 3] = [2; 3; 1]
   ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+2)
   return [coordinate_ring(base_space), base_space, ambient_space]
 end
 
 
-function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64})
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
