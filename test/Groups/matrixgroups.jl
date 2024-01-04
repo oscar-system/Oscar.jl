@@ -629,6 +629,8 @@ end
    G = isometry_group(L)
    @test order(G) == 12
    @test isometry_group(L) == orthogonal_group(L)
+   L = lattice(q, QQ[1 0; 0 1]) # avoid caching
+   @test isometry_group(L, depth = 1, bacher_depth = 0) == orthogonal_group(L)
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 

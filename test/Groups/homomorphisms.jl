@@ -651,6 +651,15 @@ end
 
    @test is_isomorphic(A,GL(2,3))
    @test order(inner_automorphism_group(A)[1])==1
+
+   # Create an Oscar group from a group of automorphisms in GAP.
+   G = alternating_group(6)
+   A = automorphism_group(G)
+   fun = Oscar._get_type(A.X)
+   B = fun(A.X)
+   @test B == A
+   @test B !== A
+   @test B.X === A.X
 end
 
 @testset "Composition of mappings" begin

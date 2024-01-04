@@ -20,7 +20,7 @@ base_fully_specified(w::WeierstrassModel) = get_attribute(w, :base_fully_specifi
     is_partially_resolved(w::WeierstrassModel)
 
 Return `true` if resolution techniques were applies to the Weierstrass model,
-thereby potentially resolving its singularities.
+thereby potentially resolving its singularities. Otherwise, return `false`.
 
 ```jldoctest
 julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false)

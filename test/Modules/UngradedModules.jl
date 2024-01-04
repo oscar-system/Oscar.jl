@@ -1049,7 +1049,7 @@ end
 
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi)
   
   M, inc = sub(F2, [x*F2[1], y*F2[1]])
   F1 = FreeMod(R, 1)
@@ -1071,7 +1071,7 @@ end
   
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi) 
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
   Mv, ev = Oscar.dual(M, cod=F1)

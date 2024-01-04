@@ -23,7 +23,7 @@ base_fully_specified(t::GlobalTateModel) = get_attribute(t, :base_fully_specifie
     is_partially_resolved(t::GlobalTateModel)
 
 Return `true` if resolution techniques were applies to the global Tate model,
-thereby potentially resolving its singularities.
+thereby potentially resolving its singularities. Otherwise, return `false`.
 
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)

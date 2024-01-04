@@ -183,3 +183,50 @@ function ordered_multi_index(k::Int, p::Int, n::Int)
   end
 end
 
+mutable struct MultiIndicesOfDegree
+  n::Int
+  d::Int
+
+  function MultiIndicesOfDegree(n::Int, d::Int)
+    @assert n >= 0 "length of index must be non-negative"
+    @assert d >= 0 "degree must be non-negative"
+    return new(n, d)
+  end
+end
+
+degree(I::MultiIndicesOfDegree) = I.d
+index_length(I::MultiIndicesOfDegree) = I.n
+
+Base.eltype(I::MultiIndicesOfDegree) = Vector{Int}
+Base.length(I::MultiIndicesOfDegree) = binomial(I.n + I.d - 1, I.n - 1)
+
+function Base.iterate(I::MultiIndicesOfDegree)
+  iszero(index_length(I)) && return nothing
+  result = [0 for i in 1:index_length(I)]
+  result[end] = degree(I)
+  return result, result
+end
+
+function Base.iterate(I::MultiIndicesOfDegree, state::Vector{Int})
+  iszero(index_length(I)) && return nothing
+  isone(index_length(I)) && return nothing
+  ind = copy(state)
+  a = last(ind)
+  if iszero(a)
+    k = length(ind) - 1 
+    while k>0 && ind[k] == degree(I) - sum(ind[1:k-1]; init=0)
+      k = k - 1
+    end
+    iszero(k) && return nothing # End of iteration
+    ind[k] = ind[k] + 1
+    for i in k+1:length(ind)-1
+      ind[i] = 0
+    end
+    ind[end] = degree(I) - sum(ind[1:end-1]; init=0)
+  else
+    ind[end-1] = ind[end-1] + 1
+    ind[end] = ind[end] - 1
+  end
+  return ind, ind
+end
+

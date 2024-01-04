@@ -34,7 +34,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, elem_type, divexact, gen,
+import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
                 has_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
@@ -131,6 +131,10 @@ primitive roots of unity. The string `s` will be used during printing.
 function gen(K::QQAbField, s::String)
   K.s = s
   return gen(K)
+end
+
+function characteristic(::QQAbField)
+  return 0
 end
 
 ################################################################################
@@ -844,6 +848,25 @@ function Oscar.order(a::QQAbElem)
     o *= p^f
   end
   return o
+end
+
+# Convenient sqrt and cbrt functions as simple wrappers around the roots function,
+# which is already implemented for QQAbElem directly
+
+function Oscar.sqrt(a::QQAbElem)
+  sqrt = Oscar.roots(a, 2)
+  if is_empty(sqrt)
+    error("Element $a does not have a square root")
+  end
+  return sqrt[1]
+end
+
+function Oscar.cbrt(a::QQAbElem)
+  cbrt = Oscar.roots(a,3)
+  if is_empty(cbrt)
+    error("Element $a does not have a cube root")
+  end
+  return cbrt[1]
 end
 
 

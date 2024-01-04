@@ -154,3 +154,9 @@ of the corresponding Weierstrass model.
 discriminant(h::HypersurfaceModel)
 singular_loci(h::HypersurfaceModel)
 ```
+
+## Properties
+
+```@docs
+is_partially_resolved(h::HypersurfaceModel)
+```
