@@ -496,8 +496,8 @@ end
 
 # return the element (L[1],L[2],...) in W
 function (W::WreathProductGroup)(
-  L::Union{GAPGroupElem{T},GAPGroupElem{PermGroup}}...
-) where {T<:GAPGroup}
+  L::Union{GAPGroupElem{<:GAPGroup},GAPGroupElem{PermGroup}}...
+)
   d = GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map))
   @req length(L) == d + 1 "Wrong number of arguments"
   for i in 1:d

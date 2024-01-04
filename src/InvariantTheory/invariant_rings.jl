@@ -63,10 +63,12 @@ function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
   return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring([m, ms...])
+end
 
-function invariant_ring(R::MPolyDecRing, matrices::MatrixElem{T}...) where {T}
-  return invariant_ring(R, collect(matrices))
+function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring(R, [m, ms...])
 end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
