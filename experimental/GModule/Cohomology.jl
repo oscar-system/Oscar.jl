@@ -551,7 +551,11 @@ end
 
 struct CoChain{N, G, M}
   C::GModule
-  d::Dict{NTuple{N, G}, M} 
+  d::Dict{NTuple{N, G}, M}
+
+  function CoChain{N, G, M}(C::GModule, d::Dict{NTuple{N, G}, M}) where {N, G, M}
+    return new{N, G, M}(C, d)
+  end
 end
 
 function Base.show(io::IO, C::CoChain{N}) where {N}
