@@ -218,7 +218,7 @@ function _is_projective_without_denominators(A::MatElem;
     end
 
     # pull the denominator u from the result and make the matrix liftable. 
-    d = lcm(_lifted_denominator.(result))
+    d = reduce(lcm, _lifted_denominator.(result))
     if isone(d)
       return true, result, 0
     end
