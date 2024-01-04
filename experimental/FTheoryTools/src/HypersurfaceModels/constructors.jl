@@ -200,7 +200,7 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the spaces
-  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2)
   
   # Map p to coordinate ring of ambient space
   gens_S = gens(S)
