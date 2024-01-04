@@ -384,6 +384,9 @@ function parent_type(::Type{WeylGroupElem})
 end
 
 # rename to reduced decompositions ?
+@doc raw"""
+    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
+"""
 function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
   return ReducedExpressionIterator(x, up_to_commutation)
 end
@@ -396,7 +399,7 @@ function word(x::WeylGroupElem)
 end
 
 ###############################################################################
-# Iterators
+# ReducedExpressionIterator
 
 struct ReducedExpressionIterator
   el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
@@ -459,6 +462,70 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       s = 1
     end
   end
+end
+
+###############################################################################
+# ParabolicWeylGroupCoset
+
+struct ParabolicWeylGroupCoset
+  parent::WeylGroup
+  weight::WeightLatticeElem
+end
+
+function (P::ParabolicWeylGroupCoset)(x::WeylGroupElem)
+  @req parent(x) === parent(P) "$x needs to have the same parent as $P"
+end
+
+function parent(P::ParabolicWeylGroupCoset)
+  return P.parent
+end
+
+###############################################################################
+# WeylIteratorNoCopy
+
+# Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
+# or analogously over all elements in the quotient W/W_P
+struct WeylIteratorNoCopy
+  weight::WeightLatticeElem # dominant weight
+  weyl_group::WeylGroup
+end
+
+function Base.IteratorSize(::Type{WeylIteratorNoCopy})
+  return Base.SizeUnknown()
+end
+
+function Base.eltype(::Type{WeylIteratorNoCopy})
+  return Tuple{WeightLatticeElem,WeylGroupElem}
+end
+
+function Base.iterate(iter::WeylIteratorNoCopy)
+  return (iter.weight, one(iter.weyl_group)), (UInt8[], deepcopy(iter.weight))
+end
+
+# based on [Ste01], 4.C and 4.D
+function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{Vector{UInt8}, WeightLatticeElem})
+  path, wt = data
+  R = root_system(iter.weight)
+
+  ai = isempty(data.path) ? UInt8(0) : path[end]
+  # compute next descendant index
+  di = UInt8(0)
+  while true
+    di = next_descendant_index(Int(ai), Int(di), wt)
+    if !iszero(di)
+      break
+    elseif isempty(path)
+      return nothing
+    elseif iszero(di)
+      reflect!(wt, Int(ai))
+      di = pop!(path)
+      ai = isempty(path) ? UInt8(0) : path[end]
+    end
+  end
+
+  push!(path, di)
+  reflect!(wt, Int(di))
+  return (wt, ), (path, wt)
 end
 
 ###############################################################################
