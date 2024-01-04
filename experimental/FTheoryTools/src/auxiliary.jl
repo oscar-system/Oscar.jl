@@ -2,78 +2,54 @@
 # 1: Construct ambient space from given base
 ################################################################
 
-function _ambient_space(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
-  
-  # Consistency checks
+function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
   @req ((toric_variety(D1) === base) && (toric_variety(D2) === base)) "The divisors must belong to the base space"
   
   # Extract information about the toric base
-  base_rays = matrix(ZZ, rays(base))
-  base_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
+  b_rays = matrix(ZZ, rays(base))
+  b_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
+  b_grades = reduce(vcat, [elem.coeff for elem in cox_ring(base).d])
+  b_var_names = [string(k) for k in gens(cox_ring(base))]
   
   # Extract information about the fiber ambient space
-  fiber_rays = matrix(ZZ, rays(fiber_ambient_space))
-  fiber_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_ambient_space)))
+  f_rays = matrix(ZZ, rays(fiber_amb_space))
+  f_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_amb_space)))
+  f_grades = reduce(vcat, [elem.coeff for elem in cox_ring(fiber_amb_space).d])
+  f_var_names = [string(k) for k in gens(cox_ring(fiber_amb_space))]
   
-  # Compute the u-matrix
-  base_weights = transpose(reduce(vcat, [elem.coeff for elem in cox_ring(base).d]))
-  m1 = transpose(reduce(vcat, [divisor_class(D1).coeff, divisor_class(D2).coeff]))
-  m2 = fiber_rays[1:2,:]
-  u_matrix = solve(base_weights,(-1)*m1*m2)
+  # Extract coefficients of divisors D1, D2 and compute u_matrix
+  D1_coeffs = divisor_class(D1).coeff
+  D2_coeffs = divisor_class(D2).coeff
+  m1 = reduce(vcat, [D1_coeffs, D2_coeffs])
+  m2 = transpose(f_rays[1:2,:])
+  u_matrix = solve_left(b_grades, (-1)*m2*m1)
   
-  # Form the rays of the toric ambient space
-  new_base_rays = hcat(base_rays, u_matrix)
-  new_fiber_rays = hcat(zero_matrix(ZZ, nrows(fiber_rays), ncols(base_rays)), fiber_rays)
-  ambient_space_rays = vcat(new_base_rays, new_fiber_rays)
-  ambient_space_rays = reduce(vcat, [[k for k in ambient_space_rays[i,:]] for i in 1:nrows(ambient_space_rays)])
+  # Form toric ambient space
+  a_rays = zero_matrix(ZZ, nrows(b_rays) + nrows(f_rays), ncols(b_rays) + ncols(f_rays))
+  a_rays[1:nrows(b_rays), 1:ncols(b_rays)] = b_rays
+  a_rays[1:nrows(b_rays), 1+ncols(b_rays):ncols(a_rays)] = transpose(u_matrix)
+  a_rays[1+nrows(b_rays):nrows(a_rays), 1+ncols(b_rays):ncols(a_rays)] = f_rays
+  a_cones = [hcat([b for b in b_cones[i,:]], [c for c in f_cones[j,:]]) for i in 1:nrows(b_cones), j in 1:nrows(f_cones)]
+  a_space = normal_toric_variety(IncidenceMatrix(vcat(a_cones...)), a_rays; non_redundant = true)
+  set_coordinate_names(a_space, vcat(b_var_names, f_var_names))
   
-  # Construct the incidence matrix for the maximal cones of the ambient space
-  ambient_space_max_cones = []
-  for i in 1:nrows(base_cones)
-    for j in 1:nrows(fiber_cones)
-      push!(ambient_space_max_cones, [k for k in hcat([b for b in base_cones[i,:]], [c for c in fiber_cones[j,:]])])
-    end
-  end
-  ambient_space_max_cones = IncidenceMatrix(vcat(ambient_space_max_cones...))
+  # Compute divisor group and the class group of a_space
+  a_space_divisor_group = free_abelian_group(nrows(a_rays))
+  a_space_class_group = free_abelian_group(ncols(b_grades) + rank(class_group(fiber_amb_space)))
   
-  # Construct the ambient space
-  ambient_space = normal_toric_variety(ambient_space_max_cones, ambient_space_rays; non_redundant = true)
+  # Compute grading of Cox ring of a_space
+  a_space_grading = zero_matrix(ZZ, rank(a_space_divisor_group), rank(a_space_class_group))
+  a_space_grading[1:nrows(b_grades), 1:ncols(b_grades)] = b_grades
+  a_space_grading[1+nrows(b_rays):nrows(b_rays) + nrows(f_grades), 1+ncols(b_grades):ncols(b_grades) + ncols(f_grades)] = f_grades
+  a_space_grading[1+nrows(b_rays), 1:ncols(D1_coeffs)] = D1_coeffs
+  a_space_grading[2+nrows(b_rays), 1:ncols(D2_coeffs)] = D2_coeffs
   
-  # Compute torusinvariant weil divisor group and the class group
-  ambient_space_torusinvariant_weil_divisor_group = free_abelian_group(nrows(ambient_space_rays))
-  ambient_space_class_group = free_abelian_group(nrows(base_weights) + rank(class_group(fiber_ambient_space)))
-  
-  # Construct grading matrix of ambient space
-  ambient_space_grading = zero_matrix(ZZ,rank(ambient_space_torusinvariant_weil_divisor_group),rank(ambient_space_class_group))
-  for i in 1:ncols(base_weights)
-    for j in 1:nrows(base_weights)
-      ambient_space_grading[i,j] = base_weights[j,i]
-    end
-  end
-  fiber_weights = transpose(reduce(vcat, [elem.coeff for elem in cox_ring(fiber_ambient_space).d]))
-  for i in 1:ncols(fiber_weights)
-    for j in 1:nrows(fiber_weights)
-      ambient_space_grading[i + nrows(base_rays),j + nrows(base_weights)] = fiber_weights[j,i]
-    end
-  end
-  for i in 1:ncols(divisor_class(D1).coeff)
-    ambient_space_grading[1 + nrows(base_rays),i] = divisor_class(D1).coeff[i]
-  end
-  for i in 1:ncols(divisor_class(D2).coeff)
-    ambient_space_grading[2 + nrows(base_rays),i] = divisor_class(D2).coeff[i]
-  end
-  
-  # Construct the grading map for the ambient space
-  ambient_space_grading = hom(ambient_space_torusinvariant_weil_divisor_group, ambient_space_class_group, ambient_space_grading)
-  
-  set_coordinate_names(ambient_space, vcat([string(k) for k in gens(cox_ring(base))], [string(k) for k in gens(cox_ring(fiber_ambient_space))]))
-  set_attribute!(ambient_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, ambient_space_grading)
-  set_attribute!(ambient_space, :class_group, ambient_space_class_group)
-  set_attribute!(ambient_space, :torusinvariant_weil_divisor_group, ambient_space_torusinvariant_weil_divisor_group)
-  
-  # Return the constructed space
-  return ambient_space
-  
+  # Set important attributes of a_space and return it
+  a_space_grading = hom(a_space_divisor_group, a_space_class_group, a_space_grading)
+  set_attribute!(a_space, :map_from_torusinvariant_weil_divisor_group_to_class_group, a_space_grading)
+  set_attribute!(a_space, :class_group, a_space_class_group)
+  set_attribute!(a_space, :torusinvariant_weil_divisor_group, a_space_divisor_group)
+  return a_space
 end
 
 
