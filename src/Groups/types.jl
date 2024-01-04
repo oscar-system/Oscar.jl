@@ -482,6 +482,12 @@ function _get_type(G::GapObj)
                  matgrp.X = dom
                  return matgrp
                end
+      elseif pair[2] == AutomorphismGroup
+        return function(A::GAP.GapObj)
+                 actdom_gap = GAP.Globals.AutomorphismDomain(A)
+                 actdom_oscar = _get_type(actdom_gap)(actdom_gap)
+                 return AutomorphismGroup(A, actdom_oscar)
+               end
       else
         return pair[2]
       end

@@ -77,3 +77,15 @@ end=#
     
 subquo_type(::Type{RingType}) where {RingType<:Ring} = SubquoModule{elem_type(RingType)}
 subquo_type(R::RingType) where {RingType<:Ring} = subquo_type(typeof(R))
+
+function (==)(M1::SubquoModule{T}, M2::SubquoModule{T}) where {T<:AbsLocalizedRingElem}
+  F = ambient_free_module(M1)
+  F === ambient_free_module(M2) || error("ambient free modules are incompatible")
+  all(x->iszero(M1(x)), relations(M2)) || return false
+  all(x->iszero(M2(x)), relations(M1)) || return false
+  all(x->x in M1, ambient_representatives_generators(M2)) || return false
+  all(x->x in M2, ambient_representatives_generators(M1)) || return false
+  return true
+end
+
+

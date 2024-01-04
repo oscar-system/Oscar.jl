@@ -211,11 +211,11 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
       return false
     end
   end
-  Cp = copy(symbol(Cp))
-  for s in Cp
+  _Cp = deepcopy(symbol(Cp))
+  for s in _Cp
     s[1] += 2
   end
-  Cp = ZZLocalGenus(p, Cp)
+  Cp = ZZLocalGenus(p, _Cp)
   
   if !represents(local_symbol(AperpB, p), Cp)
     return false

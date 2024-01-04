@@ -327,7 +327,7 @@ end
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = a//b
+divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem; check::Bool=true) = a//b
 
 +(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = b + a
 
@@ -335,7 +335,7 @@ divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = a//b
 
 Base.://(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a * inv(b)
 
-divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a//b
+divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}; check::Bool=true) = a//b
 
 # with QQFieldElem
 +(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
@@ -347,7 +347,7 @@ divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a//b
 Base.://(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} = a//b
+divexact(a::NfNSGenElem{T, S}, b::QQFieldElem; check::Bool=true) where {S, T} = a//b
 
 +(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
@@ -355,7 +355,7 @@ divexact(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} = a//b
 
 Base.://(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
+divexact(a::QQFieldElem, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} = a//b
 
 # with ZZRingElem
 +(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} =
@@ -367,7 +367,7 @@ divexact(a::QQFieldElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
 Base.://(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} = a//b
+divexact(a::NfNSGenElem{T, S}, b::ZZRingElem; check::Bool=true) where {S, T} = a//b
 
 +(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
@@ -375,7 +375,7 @@ divexact(a::NfNSGenElem{T, S}, b::ZZRingElem) where {S, T} = a//b
 
 Base.://(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
+divexact(a::ZZRingElem, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} = a//b
 
 # with Integer
 +(a::NfNSGenElem{T, S}, b::Base.Integer) where {S, T} =
@@ -385,9 +385,9 @@ divexact(a::ZZRingElem, b::NfNSGenElem{T, S}) where {S, T} = a//b
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) =
-    NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
+    NfNSGenElem(divexact(Hecke.data(a), b; check=true), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) = a//b
+divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer; check::Bool=true) = a//b
 
 +(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
@@ -395,7 +395,7 @@ divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) = a//
 
 Base.://(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = a//b
+divexact(a::Base.Integer, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} = a//b
 
 # with Rational
 +(a::NfNSGenElem{T, S}, b::Base.Rational{<:Base.Integer}) where {T, S} =
@@ -407,7 +407,7 @@ divexact(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = a//b
 Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}) =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}) =
+divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}; check::Bool=true) =
     a//b
 
 +(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}) where {S, T} = b + a
@@ -416,7 +416,7 @@ divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Bas
 
 Base.://(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}) where {S, T} = a * inv(b)
 
-divexact(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}) where {S, T} =
+divexact(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} =
     a//b
 
 ################################################################################
