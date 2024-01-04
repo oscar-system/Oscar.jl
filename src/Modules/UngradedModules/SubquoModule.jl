@@ -1700,3 +1700,17 @@ Return the relations of `M`.
 """
 relations(M::SubquoModule) = rels(M)
 
+# the two methods below are needed for the implementation of is_surjective
+function (==)(G::SubquoModule, F::FreeMod)
+  return F == G
+end
+
+function (==)(F::FreeMod, G::SubquoModule)
+  base_ring(F) === base_ring(G) || return false
+  ambient_free_module(G) === F || return false
+  if isdefined(G, :quo) 
+    iszero(G.quo) || return false
+  end
+  all(e -> e in G, gens(F)) || return false
+  return true
+end

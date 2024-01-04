@@ -40,6 +40,12 @@ end
       @test quo(PermGroup, G, subgens)[1] isa PermGroup
       @test_throws ArgumentError quo(PcGroup, G, subgens)
    end
+   G = automorphism_group(small_group(12, 5))
+   N = trivial_subgroup(G)[1]
+   for subgens in [N, gens(N)]
+      @test quo(G, subgens)[1] isa AutomorphismGroup
+      @test quo(PermGroup, G, subgens)[1] isa PermGroup
+   end
 
    # - `maximal_abelian_quotient` without prescribed type:
    #   same type as the input type if abelian,

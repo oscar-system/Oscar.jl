@@ -523,7 +523,7 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
       if iszero(M[k, j])
         continue
       end
-#      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
+      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
       M[k, :] = b*M[k, :] - a * M[i, :]
       M[k, :] = divexact(M[k, :], content(M[k, :]))
     end

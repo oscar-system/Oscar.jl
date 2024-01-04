@@ -7,4 +7,5 @@ using Aqua
     unbound_args=false,     # TODO: fix unbound type parameters
     piracies=false,         # TODO: check the reported methods to be moved upstream
   )
+  @test length(Aqua.detect_unbound_args_recursively(Oscar)) <= 16
 end

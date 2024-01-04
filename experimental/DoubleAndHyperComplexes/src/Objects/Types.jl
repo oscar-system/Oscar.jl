@@ -12,8 +12,11 @@ abstract type AbsHyperComplex{ChainType, MapType} end
 
 ### asking for the entries of the complex
 getindex(HC::AbsHyperComplex, i::Tuple) = underlying_complex(HC)[i]
+getindex(HC::AbsHyperComplex, i::Int...) = getindex(HC, i)
 has_index(HC::AbsHyperComplex, i::Tuple) = has_index(underlying_complex(HC), i)
+has_index(HC::AbsHyperComplex, i::Int...) = has_index(HC, i)
 can_compute_index(HC::AbsHyperComplex, i::Tuple) = can_compute_index(underlying_complex(HC), i)
+can_compute_index(HC::AbsHyperComplex, i::Int...) = can_compute_index(HC, i)
 
 ### accessing the maps
 map(HC::AbsHyperComplex, p::Int, i::Tuple) = map(underlying_complex(HC), p, i)
@@ -28,6 +31,17 @@ has_upper_bound(HC::AbsHyperComplex, p::Int) = has_upper_bound(underlying_comple
 has_lower_bound(HC::AbsHyperComplex, p::Int) = has_lower_bound(underlying_complex(HC), p)
 upper_bound(HC::AbsHyperComplex, p::Int) = upper_bound(underlying_complex(HC), p)
 lower_bound(HC::AbsHyperComplex, p::Int) = lower_bound(underlying_complex(HC), p)
+
+### internal getters
+chain_factory(HC::AbsHyperComplex) = chain_factory(underlying_complex(HC))
+map_factory(HC::AbsHyperComplex) = map_factory(underlying_complex(HC))
+
+### type gettes 
+chain_type(hc::AbsHyperComplex) = chain_type(typeof(hc))
+chain_type(::Type{T}) where {CT, T<:AbsHyperComplex{CT}} = CT
+
+morphism_type(hc::AbsHyperComplex) = morphism_type(typeof(hc))
+morphism_type(::Type{T}) where {CT, MT, T<:AbsHyperComplex{CT, MT}} = MT
 
 ### factories for the chains
 abstract type HyperComplexChainFactory{ChainType} end
@@ -52,7 +66,7 @@ function can_compute(fac::HyperComplexMapFactory, HC::AbsHyperComplex, p::Int, i
 end
 
 ### A minimal concrete type for general hypercomplexes
-mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
+@attributes mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
   d::Int 
   chains::Dict{Tuple, <:ChainType}
   morphisms::Dict{Tuple, Dict{Int, <:MorphismType}}
@@ -67,6 +81,9 @@ mutable struct HyperComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainTyp
 
   # fields for caching
   is_complete::Union{Bool, Nothing}
+  kernel_cache::Dict{<:Tuple{<:Tuple, Int}, <:Map} # Storing the inclusion map for the kernel
+  boundary_cache::Dict{<:Tuple{<:Tuple, Int}, <:Map} # Storing the inclusion map of boundaries
+  homology_cache::Dict{<:Tuple{<:Tuple, Int}, <:Map} # Storing the maps from the kernels
 
   function HyperComplex(
       d::Int,
@@ -98,25 +115,33 @@ getindex(C::AbsSimpleComplex, i::Int) = C[(i,)]
 has_index(C::AbsSimpleComplex, i::Int) = has_index(C, (i,))
 can_compute_index(C::AbsSimpleComplex, i::Int) = can_compute_index(C, (i,))
 map(C::AbsSimpleComplex, i::Int) = map(C, 1, (i,))
+map(C::AbsHyperComplex, i::Int) = (isone(dim(C)) ? map(C, 1, (i,)) : error("complex must be one-dimensional"))
 has_map(C::AbsSimpleComplex, i::Int) = has_map(C, 1, (i,))
+has_map(C::AbsHyperComplex, i::Int) = (isone(dim(C)) ? has_map(C, 1, (i,)) : error("complex must be one-dimensional"))
 can_compute_map(C::AbsSimpleComplex, i::Int) = can_compute_map(C, 1, (i,))
+can_compute_map(C::AbsHyperComplex, i::Int) = (isone(dim(C)) ? can_compute_map(C, 1, (i,)) : error("complex must be one-dimensional"))
 
 direction(C::AbsSimpleComplex) = direction(C, 1)
+direction(C::AbsHyperComplex) = (isone(dim(C)) ? direction(C, 1) : error("complex must be one-dimensional"))
 is_chain_complex(C::AbsSimpleComplex) = direction(C) == :chain
 is_cochain_complex(C::AbsSimpleComplex) = !is_chain_complex(C)
 has_upper_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+has_upper_bound(C::AbsHyperComplex) = (isone(dim(C)) ? has_upper_bound(C, 1) : error("complex must be one-dimensional"))
 has_lower_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+has_lower_bound(C::AbsHyperComplex) = (isone(dim(C)) ? has_lower_bound(C, 1) : error("complex must be one-dimensional"))
 upper_bound(C::AbsSimpleComplex) = upper_bound(C, 1)
+upper_bound(C::AbsHyperComplex) = (isone(dim(C)) ? upper_bound(C, 1) : error("complex must be one-dimensional"))
 lower_bound(C::AbsSimpleComplex) = lower_bound(C, 1)
-Base.range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
-map_range(C::AbsSimpleComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
+lower_bound(C::AbsHyperComplex) = (isone(dim(C)) ? lower_bound(C, 1) : error("complex must be one-dimensional"))
+Base.range(C::AbsHyperComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
+map_range(C::AbsHyperComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
 
 underlying_complex(C::AbsSimpleComplex) = error("underlying_complex not implemented for $C")
 
-mutable struct SimpleComplexWrapper{ChainType, MapType} <: AbsSimpleComplex{ChainType, MapType}
-  hc::HyperComplex{ChainType, MapType}
+@attributes mutable struct SimpleComplexWrapper{ChainType, MapType} <: AbsSimpleComplex{ChainType, MapType}
+  hc::AbsHyperComplex{ChainType, MapType}
 
-  function SimpleComplexWrapper(hc::HyperComplex{ChainType, MapType}) where {ChainType, MapType}
+  function SimpleComplexWrapper(hc::AbsHyperComplex{ChainType, MapType}) where {ChainType, MapType}
     @assert dim(hc) == 1 "hypercomplex must be one-dimensional"
     return new{ChainType, MapType}(hc)
   end
@@ -354,24 +379,12 @@ return `true` even though one or more of the "islands" have not yet been uncover
 Use this carefully if your full double complex might be separated by zero entries!
 """
 function is_complete(D::AbsDoubleComplexOfMorphisms)
-  if has_attribute(D, :is_complete) && get_attribute(D, :is_complete)::Bool
-    return true
-  end
-  todo = keys(D.chains)
-  isempty(todo) && return false
-  for (i, j) in todo
-    iszero(D[i, j]) && continue
-    has_index(D, i+1, j) || !can_compute_index(D, i+1, j) || return false
-    has_index(D, i-1, j) || !can_compute_index(D, i-1, j) || return false
-    has_index(D, i, j+1) || !can_compute_index(D, i, j+1) || return false
-    has_index(D, i, j-1) || !can_compute_index(D, i, j-1) || return false
-  end
-  set_attribute!(D, :is_complete, true)
-  return true
+  return is_complete(underlying_complex(D))
 end
 
+
 ### A concrete type using hypercomplexes in the background
-mutable struct DoubleComplexWrapper{ChainType, MapType} <: AbsDoubleComplexOfMorphisms{ChainType, MapType}
+@attributes mutable struct DoubleComplexWrapper{ChainType, MapType} <: AbsDoubleComplexOfMorphisms{ChainType, MapType}
   hc::AbsHyperComplex{ChainType, MapType}
 
   function DoubleComplexWrapper(hc::AbsHyperComplex{ChainType, MapType}) where {ChainType, MapType}
@@ -443,7 +456,7 @@ function can_compute(fac::ChainMorphismFactory, dc::AbsDoubleComplexOfMorphisms,
 end
 
 ### The actual concrete type
-mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
+@attributes mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
   chains::Dict{Tuple{Int, Int}, <:ChainType}
   horizontal_maps::Dict{Tuple{Int, Int}, <:MorphismType}
   vertical_maps::Dict{Tuple{Int, Int}, <:MorphismType}
@@ -493,4 +506,119 @@ mutable struct DoubleComplexOfMorphisms{ChainType, MorphismType<:Map} <: AbsDoub
     return result
   end
 end
+
+
+### Zero dimensional hypercomplexes
+# Needed for internals.
+
+struct DummyChainFactory{ChainType} <: HyperComplexChainFactory{ChainType} end
+struct DummyMorphismFactory{MorphismType} <: HyperComplexMapFactory{MorphismType} end
+
+@attributes mutable struct ZeroDimensionalComplex{ChainType, MorphismType} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
+  M::ChainType
+
+  function ZeroDimensionalComplex(M::ChainType) where {ChainType}
+    MorphismType = morphism_type(ChainType)
+    return new{ChainType, MorphismType}(M)
+  end
+end
+
+function getindex(c::ZeroDimensionalComplex, i::Tuple) 
+  @assert iszero(length(i)) "index out of bounds"
+  return c.M
+end
+
+function can_compute_index(c::ZeroDimensionalComplex, i::Tuple)
+  @assert iszero(length(i)) "index out of bounds"
+  return true
+end
+
+function has_index(c::ZeroDimensionalComplex, i::Tuple)
+  @assert iszero(length(i)) "index out of bounds"
+  return true
+end
+
+dim(c::ZeroDimensionalComplex) = 0
+is_complete(c::ZeroDimensionalComplex) = true
+
+### Wrappers for shifted complexes
+@attributes mutable struct ShiftedHyperComplex{ChainType, MorphismType} <: AbsDoubleComplexOfMorphisms{ChainType, MorphismType}
+  complex::AbsHyperComplex{ChainType, MorphismType}
+  shift::Vector{Int}
+
+  function ShiftedHyperComplex(c::AbsHyperComplex{ChainType, MorphismType}, shift::Tuple) where {ChainType, MorphismType}
+    @assert length(shift) == dim(c)
+    return new{ChainType, MorphismType}(c, collect(shift))
+  end
+end
+
+### Views of hypercomplexes
+#
+# These can be slices, hyperrectangles, extensions, ...
+@attributes mutable struct HyperComplexView{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType}
+  d::Int
+  original::AbsHyperComplex # the complex from which the view is taken; use `original_complex`
+  mapping_matrix::Matrix{Int} # an integer matrix to map an index of the new complex to the 
+                              # corresponding index of the old; use `mapping_matrix`
+  offset_vector::Vector{Int}  # a vector to be added to the result of the mapping_matrix 
+                              # multiplication to arrive at the actual index of the old complex
+  lower_bounds::Vector{Int}
+  upper_bounds::Vector{Int}
+
+  # v is a vector with entry (k, u) in place i signaling that 
+  #   * if u is a UnitRange: the i-th dimension of the 
+  #     old complex should become the k-th dimension of 
+  #     the new one with index running within u.
+  #
+  #   * if u is an integer: the i-th dimension of the old 
+  #     complex does not appear in the new complex, and 
+  #     its value is fixed to be u.
+  #
+  #   * if i is bigger than the dimension of the old complex:
+  #     k is a new dimension of the new complex and the new 
+  #     complex is concentrated in some degree u = r:r there.
+  function HyperComplexView(
+      c::AbsHyperComplex{ChainType, MapType}, v::Vector{T}
+    ) where {ChainType, MapType, T<:Tuple{Int, <:Union{Int, UnitRange{Int}}}}
+    @assert length(v) >= dim(c) "not enough information provided for a full view"
+    @assert all(k->k[2] isa UnitRange && isone(length(k[2])), v[dim(c)+1:end]) "additional dimensions must have a specified range of length one"
+    ranges = [(k, u) for (k, u) in v if u isa UnitRange]
+    d = length(ranges)
+    all_ind = [k for (k, u) in v if u isa UnitRange]
+    @assert all(k->k in all_ind, 1:d) "matching of ranges is not unique"
+
+    mapping_matrix = [0 for i in 1:dim(c), j in 1:d]
+    new_ranges = Dict(v)
+    offset_vector = [0 for i in 1:dim(c)]
+    for i in 1:dim(c)
+      (k, u) = v[i]
+      if u isa UnitRange
+        mapping_matrix[i, k] = 1
+      else
+        iszero(k) || error("fixed slice indices must be provided without a new dimension")
+        offset_vector[i] = u
+      end
+    end
+    lower_bounds = [first(new_ranges[k]) for k in 1:d]
+    upper_bounds = [last(new_ranges[k]) for k in 1:d]
+    
+    return new{ChainType, MapType}(d, c, mapping_matrix, offset_vector, lower_bounds, upper_bounds)
+  end
+end
+
+@attributes mutable struct TotalComplex{ChainType, MorphismType, ComplexType} <: AbsSimpleComplex{ChainType, MorphismType}
+  original::ComplexType
+  complex::AbsHyperComplex{ChainType, MorphismType}
+
+  kernels::Dict{Int, ChainType}
+  boundaries::Dict{Int, ChainType}
+  homologies::Dict{Int, ChainType}
+
+  function TotalComplex(c::ComplexType, internal_complex::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType, ComplexType}
+    all(k->has_upper_bound(c, k), 1:dim(c)) || all(k->has_lower_bound(c, k), 1:dim(c)) || error("complex must have either all upper or all lower bounds")
+    return new{ChainType, MorphismType, ComplexType}(c, internal_complex)
+  end
+end
+
+underlying_complex(c::TotalComplex) = c.complex
 

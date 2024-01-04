@@ -34,7 +34,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, elem_type, divexact, gen,
+import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
                 has_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
@@ -131,6 +131,10 @@ primitive roots of unity. The string `s` will be used during printing.
 function gen(K::QQAbField, s::String)
   K.s = s
   return gen(K)
+end
+
+function characteristic(::QQAbField)
+  return 0
 end
 
 ################################################################################

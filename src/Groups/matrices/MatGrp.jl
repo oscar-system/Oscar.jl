@@ -46,11 +46,11 @@ function matrix_group(F::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) w
    return G
 end
 
-matrix_group(R::Ring, m::Int, V::T...; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(R, m, collect(V); check)
+matrix_group(R::Ring, m::Int, V::Union{MatElem,MatrixGroupElem}...; check::Bool=true) = matrix_group(R, m, collect(V); check)
 
 matrix_group(V::AbstractVector{T}; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(base_ring(V[1]), nrows(V[1]), V; check)
 
-matrix_group(V::T...; check::Bool=true) where T<:Union{MatElem,MatrixGroupElem} = matrix_group(collect(V); check)
+matrix_group(V::Union{MatElem,MatrixGroupElem}...; check::Bool=true) = matrix_group(collect(V); check)
 
 # For `general_linear_group` etc. the degree comes first, so we should also provide that option
 matrix_group(m::Int, R::Ring) = matrix_group(R, m)

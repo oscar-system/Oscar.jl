@@ -125,7 +125,7 @@ function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) wher
 end
 
 ## action of permutations on tuples of positive integers
-function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{Vararg{T2}} where T2<:IntegerUnion
+function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:IntegerUnion
   return GSetByElements(G, on_tuples, Omega; closed = closed)
 end
 

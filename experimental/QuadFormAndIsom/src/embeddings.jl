@@ -754,7 +754,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
     stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
     stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
     # Stabilizers should preserve the actual subspaces, by definition. so if we
-    # have lifted since properly, this should hold..
+    # have lifted everything properly, this should hold..
     @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
     push!(res, (orbqinq, stabq))
   end
@@ -762,9 +762,8 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
 end
 
 # Compute `O`-orbits of `f`-stable submodules of `q` which are isometric, as
-# torsion quadratic modules, to `H`. It also computes the stabilizers in `O`
-# of such subgroups. If `H` is not provided, then `ordH` should be a positive
-# integer and compute such orbits of stable submodules of order `ordH`.
+# torsion quadratic modules, to `H`. It also computesthe  stabilizers in `O`
+# of such subgroups.
 #
 # The outputs are given by embeddings of such submodules in `q`.
 #

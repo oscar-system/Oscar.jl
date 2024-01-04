@@ -1121,6 +1121,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_subgroups
 export on_tuples
 export one!
 export open_subset_type
@@ -1246,6 +1247,7 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
+export rand_homogeneous
 export rank
 export rank_action
 export rational_equivalence_class

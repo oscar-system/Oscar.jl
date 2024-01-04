@@ -25,3 +25,23 @@
 
   @test [Oscar.ordered_multi_index(k, 3, 5) for k in 1:binomial(5, 3)] == collect(Oscar.OrderedMultiIndexSet(3, 5))
 end
+
+@testset "multiindices of given degree" begin
+  l = collect(Oscar.MultiIndicesOfDegree(3, 5)) # All non-negative multiindices I = [i1, i2, i3] 
+                                              # with ∑ iₖ = 5
+  @test length(l) == 21
+  @test all(x->sum(x)==5, l)
+  b = unique!(l)
+  @test length(b) == length(l)
+
+  l = collect(Oscar.MultiIndicesOfDegree(0, 5))
+  @test l == Vector{Vector{Int}}()
+  l = collect(Oscar.MultiIndicesOfDegree(7, 0))
+  @test l == [[0 for i in 1:7]]
+  l = collect(Oscar.MultiIndicesOfDegree(7, 1))
+  @test length(l) == length(unique!(l)) == 7
+
+  l = collect(Oscar.MultiIndicesOfDegree(1, 7))
+  @test l == [[7]]
+end
+
