@@ -14,6 +14,8 @@ mutable struct EnriquesBorcherdsCtx
   SY::ZZLat
   # the following are given with respect to the basis of SY
   initial_walls::Vector{ZZMatrix}
+  initial_rays::Vector{ZZMatrix}
+  initial_isotropic_rays::Vector{ZZMatrix}
   # automorphisms of the initial chamber
   # written w.r.t. the basis of SY
   initial_automorphisms::Vector{ZZMatrix}
@@ -43,6 +45,15 @@ function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
   print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX)).")
 end
 
+function deltaYbarplus(SY,SX)
+  Sm = orthogonal_submodule(SX, SY)
+  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+  # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
+  H_Sm = cover(domain(phi))
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
+  sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
+  return roots_mod2 = Set([change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(phi(i))))) for i in sv2])
+end
 
 function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   # X K3 ---> Y Enriques
@@ -57,12 +68,6 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
   dataY.membership_test = (x -> true)
   ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
-  @vprint :K3Auto 2 "computing walls\n"
-  ECtx.initial_walls = walls(ECtx.initial_chamber)
-  @vprint :K3Auto 2 "computing automorphisms"
-  ECtx.initial_automorphisms = aut(ECtx.initial_chamber)
-  @vprintln :K3Auto 2 " done found $length(ECtx.initial_automorphisms) automorphisms"
-  ECtx.initial_automorphisms_mod2 = [change_base_ring(GF(2), i) for i in ECtx.initial_automorphisms]
 
   # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
   Sm = orthogonal_submodule(SX, SY)
@@ -102,7 +107,7 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   ODSY = orthogonal_group(DSY)
   tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
   tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
-  gens_Gplus = [ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
+  gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
   Gplus,_ = sub(ODSY, gens_Gplus)
   @assert order(Gplus) == order(Gminus)
   # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
@@ -117,7 +122,7 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
     g2 = reduce(vcat,[change_base_ring(GF(2),solve_left(B,matrix(QQ,1,26, lift(g(DSY(vec(B[i,:])))))))  for i in 1:10])
     push!(gens_Gplus_mat, g2)
   end
-  Gplus_mat = matrix_group(gens_Gplus_mat)
+  Gplus_mat = matrix_group(GF(2),10, gens_Gplus_mat)
   ECtx.Gplus_mat = Gplus_mat
 
   snf_Dplus, i_snf = snf(Dplus)
@@ -136,7 +141,7 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
 
   @vprint :K3Auto 2 "done\n"
   ECtx.membership_test = membership_test_as_group
-  upper_bound = mass(ECtx)*length(ECtx.initial_automorphisms)
+  #upper_bound = mass(ECtx)*length(initial_automorphisms(ECtx))
   return ECtx
 
 end
@@ -158,6 +163,22 @@ function membership_test_as_group(data::EnriquesBorcherdsCtx, f::fpMatrix)
   b =  f in data.Gplus_mat
   return b
 end
+
+function initial_rays(ECtx::EnriquesBorcherdsCtx)
+  if !isdefined(ECtx, :initial_rays)
+    ECtx.initial_rays = rays(ECtx.initial_chamber)
+  end
+  return ECtx.initial_rays
+end
+
+function initial_isotropic_rays(ECtx::EnriquesBorcherdsCtx)
+  if !isdefined(ECtx, :initial_isotropic_rays)
+    iso_rays = filter(r->0==r*ECtx.gramSY*transpose(r), rays(ECtx.initial_chamber))
+    ECtx.initial_isotropic_rays = iso_rays
+  end
+  return ECtx.initial_isotropic_rays
+end
+
 
 function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
   if isdefined(ECtx,:imgs_mod2)
@@ -203,7 +224,12 @@ function ==(x::EnriquesChamber, y::EnriquesChamber)
 end
 
 function Base.hash(D::EnriquesChamber, h::UInt)
-  return hash(0, h)
+  return hash(fingerprint(D), h)
+end
+
+# inv(g)*h in G => fingerprint(g) == fingerprint(h)
+function fingerprint(D::EnriquesChamber)
+  #return 0
   # the computation of this hash will be a bit expensive
   # t.f.a.e.
   # D0*g G-cong D0*g
@@ -213,11 +239,54 @@ function Base.hash(D::EnriquesChamber, h::UInt)
   # B g^-1 aut(D0) = Bh^-1 aut(D0)
   # We can hash this set, or something canonically computed from it
   B = D.data.Dplus_perp
-  S = Set([B*inv(D.tau)*f for f in D.data.initial_automorphisms])
-  return hash(S, h)
+  T = B*inv(D.tau)
+  function _lt(x::fpMatrix,y::fpMatrix)
+    n = nrows(x)
+    m = ncols(x)
+    for i in 1:n
+      for j in 1:m
+        x0 = iszero(x[i,j])
+        y0 = iszero(y[i,j])
+        if x0 && !y0
+          return true
+        elseif !x0 && y0
+          return false
+        end
+      end
+    end
+    # now x == y
+    return false
+  end
+  S = sort!([T*f for f in initial_automorphisms(D.data)],lt=_lt)
+  return S
   # this hash will be cheaper if we precompute the sum
-  S = sum(change_base_ring(GF(2),i) for i in D.data.initial_automorphisms)
-  return hash(B*inv(D.tau)*S, h)
+  S = sum(change_base_ring(GF(2),i) for i in initial_automorphisms(D.data))
+  return B*inv(D.tau)*S
+end
+
+
+function initial_automorphisms(Y::EnriquesBorcherdsCtx)
+  if !isdefined(Y, :initial_automorphisms)
+    @vprint :K3Auto 2 "computing automorphisms"
+    Y.initial_automorphisms = aut(Y.initial_chamber)
+    @vprintln :K3Auto 2 " done found $(length(Y.initial_automorphisms)) automorphisms"
+  end
+  return Y.initial_automorphisms
+end
+
+function initial_automorphisms_mod2(Y::EnriquesBorcherdsCtx)
+  if !isdefined(Y, :initial_automorphisms_mod2)
+    Y.initial_automorphisms_mod2 = [change_base_ring(GF(2), i) for i in initial_automorphisms(Y)]
+  end
+  return Y.initial_automorphisms_mod2
+end
+
+function initial_walls(Y::EnriquesBorcherdsCtx)
+  if !isdefined(Y, :initial_walls)
+    @vprint :K3Auto 2 "computing walls\n"
+    Y.initial_walls = walls(Y.initial_chamber)
+  end
+  return Y.initial_walls
 end
 
 function Base.show(io::IO, ::MIME"text/plain", D::EnriquesChamber)
@@ -255,17 +324,19 @@ function adjacent_chamber(D::EnriquesChamber, v::ZZMatrix)
   return Dnew
 end
 
-# inv(g)*h in G => fingerprint(g) == fingerprint(h)
-# So far no good idea?
-function fingerprint(D::EnriquesChamber)
-  return 0
-  fp = rref(D.data.Dplus_perp*change_base_ring(GF(2),D.tau))[2]
-  return fp
+function rays(D::EnriquesChamber)
+  r = initial_rays(D.data)
+  return [i*D.tau for i in r]
+end
+
+function isotropic_rays(D::EnriquesChamber)
+  r = initial_isotropic_rays(D.data)
+  return [i*D.tau for i in r]
 end
 
 function walls(D::EnriquesChamber)
   gramS = D.data.gramSY
-  walls0 = D.data.initial_walls
+  walls0 = initial_walls(D.data)
   return [r*D.tau for r in walls0]
 end
 
@@ -279,7 +350,7 @@ function hom(D1::EnriquesChamber, D2::EnriquesChamber)
   tau1inv = inv(D1.tau)
   n = 0
   #=
-  for g in D1.data.initial_automorphisms
+  for g in initial_automorphisms(D1.data)
     n = n+1
     if n==10
       break
@@ -293,10 +364,10 @@ function hom(D1::EnriquesChamber, D2::EnriquesChamber)
   =#
   t1 = change_base_ring(GF(2),tau1inv)
   t2 = change_base_ring(GF(2), D2.tau)
-  for (i,g2) in enumerate(D1.data.initial_automorphisms_mod2)
+  for (i,g2) in enumerate(initial_automorphisms_mod2(D1.data))
     h2 = t1*g2*t2
     if D1.data.membership_test(D1.data, h2)
-      g = D1.data.initial_automorphisms[i]
+      g = initial_automorphisms(D1.data)[i]
       h = tau1inv*g*D2.tau
       push!(result, h)
     end
@@ -309,10 +380,10 @@ function hom_first(D1::EnriquesChamber, D2::EnriquesChamber)
   tau1inv = inv(D1.tau)
   t1 = change_base_ring(GF(2),tau1inv)
   t2 = change_base_ring(GF(2), D2.tau)
-  for (i,g2) in enumerate(D1.data.initial_automorphisms_mod2)
+  for (i,g2) in enumerate(initial_automorphisms_mod2(D1.data))
     h2 = t1*g2*t2
     if D1.data.membership_test(D1.data, h2)
-      g = D1.data.initial_automorphisms[i]
+      g = initial_automorphisms(D1.data)[i]
       h = tau1inv*g*D2.tau
       push!(result, h)
       break
@@ -344,10 +415,29 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   automorphisms = Set{ZZMatrix}()
   rational_curves = Set{ZZMatrix}()
 
+  # apparently computing the small/minimal generating set is very slow
+  autD = aut(D)
+  autD_grp = matrix_group(autD)
+  @vprint :K3Auto 4 "computing minimal generating set "
+  autD_mod2 = matrix_group([change_base_ring(GF(2),i) for i in autD])
+  iso = hom(autD_grp, autD_mod2, gens(autD_mod2),check=false)
+  autD = [matrix(preimage(iso,i)) for i in minimal_generating_set(autD_mod2)]
+  if order(autD_mod2) != length(autD)
+    K,i = kernel(iso)
+    append!(autD, matrix.(gens(K)))
+  end
+  @vprintln :K3Auto 4 "done"
+  # the following was too slow
+  #order(autD_grp)  # somehow computing the order makes it faster
+  #autD = [matrix(g) for g in small_generating_set(autD_grp)]
+  for f in autD
+    push!(automorphisms, f)
+  end
+
   massY = mass(data)
   mass_explored = QQ(0)
   ntry = 0
-  nchambers = 0
+  nchambers = 1
   while length(waiting_list) > 0
     ntry = ntry + 1
     if mod(ntry, 5)==0
@@ -356,25 +446,11 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
       @vprint :K3Auto 1 "mass left $(massY - mass_explored)"
     end
     D = popfirst!(waiting_list)
-    nchambers = nchambers + 1
 
     autD = aut(D)
     mass_explored = mass_explored + inv(QQ(length(autD)))
     # we need the orbits of the walls only
     if length(autD) > 1
-      # apparently computing the small generating set is very slow
-      autD_grp = matrix_group(autD)
-      @vprint :K3Auto 4 "computing small generating set "
-      autD_mod2 = matrix_group([change_base_ring(GF(2),i) for i in autD])
-      iso = hom(autD_grp, autD_mod2, gens(autD_mod2),check=false)
-      autD = [matrix(preimage(iso,i)) for i in small_generating_set(autD_mod2)]
-      @vprintln :K3Auto 4 "done"
-      # the following was too slow
-      #order(autD_grp)  # somehow computing the order makes it faster
-      #autD = [matrix(g) for g in small_generating_set(autD_grp)]
-      for f in autD
-        push!(automorphisms, f)
-      end
       # compute the orbits
       @vprint :K3Auto 3 "computing orbits"
       Omega = [F(v) for v in walls(D)]
@@ -435,7 +511,7 @@ end
 function frame_lattice(L, v)
   @assert v*gram_matrix(ambient_space(L))*transpose(v)==0
   F = orthogonal_submodule(L,lattice(ambient_space(L),v))
-  vF = solve_left(change_base_ring(ZZ,basis_matrix(F)), v)
+  vF = change_base_ring(ZZ,solve_left(basis_matrix(F), v))
   @assert gcd(vec(vF))==1
   b = Hecke._complete_to_basis(vF)
   return lll(lattice(ambient_space(F),b[1:end-1,:]*basis_matrix(F)))
@@ -478,4 +554,131 @@ function _emb_types()
   end
   return d
 end
+
+function can_extend_with_extension(S, L, fS)
+  R = orthogonal_submodule(L, S)
+  @req is_definite(R) "R must be definite"
+  OR = orthogonal_group(R)
+  DR = discriminant_group(R)
+  ODR,_= orthogonal_group(DR)
+  phiR = hom(OR, ODR, ODR.(gens(OR)); check=false)
+  GR = phiR(OR)[1]
+  phi,incDS,incDR = glue_map(S,R,L)
+  DS = domain(phi)
+  @vprint :K3Auto 2 "computing stabilizer "
+  stab_DR, inc_stabDR = stabilizer(GR, DR, Oscar._on_subgroups)
+  resDR, inc_resDR = restrict_automorphism_group(stab_DR, inc_DR)
+  # to be continued
+end
+
+function compute_Gplus(SY,SX,L26)
+
+  # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
+  Sm = orthogonal_submodule(SX, SY)
+  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+
+  # Cook up the membership test
+  @vprint :K3Auto 2 "computing orthogonal group\n"
+  OSm = orthogonal_group(Sm)
+  GSm,_= image_in_Oq(Sm)
+  phiSm = hom(OSm, GSm, GSm.(gens(OSm)); check=false)
+  DSm = discriminant_group(Sm)
+  Dminus = domain(phi)
+  @vprint :K3Auto 2 "computing stabilizer "
+  stab_Dminus, inc_stab = stabilizer(GSm, Dminus, Oscar._on_subgroups)
+  @vprint :K3Auto 2 "done\n"
+  Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
+  res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
+  res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
+  @vprint :K3Auto 2 "computing kernel "
+  Gminus, inc_Gminus = kernel(inc)
+  @vprintln :K3Auto 2 "done"
+
+  # compute Gplus
+  Q = orthogonal_submodule(L26,SY)
+  DQ = discriminant_group(Q)
+  glue_SY_Q,inc1,inc2 = glue_map(L26,SY, Q)
+  DO = codomain(glue_SY_Q)
+
+  @vprint :K3Auto 2 "preparing membership test\n"
+  DSY = discriminant_group(SY)
+  ODSY = orthogonal_group(DSY)
+  tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
+  tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
+  gens_Gplus = [ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
+  Gplus,_ = sub(ODSY, gens_Gplus)
+  @assert order(Gplus) == order(Gminus)
+  # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
+  return Gplus
+end
+
+function ellfib_number(SY, SX, L26)
+  Gplus = compute_Gplus(SY,SX,L26)
+  DSY = discriminant_group(SY)
+  isoY = [i for i in DSY if quadratic_product(i)==0 && !is_zero(i)]
+  X = gset(Gplus, (x,g)->g(x),isoY)
+  orbX = orbits(X)
+  return length(orbX), [representative(i) for i in orbX]
+end
+
+function fibration_types(fbar::TorQuadModElem, SY, SX, L26)
+  DY = discriminant_group(SY)
+  Sm = orthogonal_submodule(SX, SY)
+  phi, inc_Dplus, _ = glue_map(SX, SY, Sm)
+  Dplus = domain(phi)
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
+  sv2 = [codomain(phi)(i) for i in sv2 if i in cover(codomain(phi))]
+  DeltabarY = Set([inc_Dplus(inv(phi)(i)) for i in sv2])
+  ebar = 0*DY[1]
+  for x in DY
+    if inner_product(x,fbar)!=0
+      ebar = x
+      break
+    end
+  end
+  @assert !iszero(ebar)
+
+
+  Delta_fbar = [x for x in DeltabarY if inner_product(fbar,x) ==0]
+  Delta1 = [ x for x in Delta_fbar if !(x+fbar in Delta_fbar)]
+  Delta2 = [x for x in Delta_fbar if x+fbar in Delta_fbar && inner_product(x,ebar)==0]
+  return _identify_fibers(Delta1,fbar),_identify_fibers(Delta2,fbar)
+end
+
+function _identify_fibers(D::Vector{TorQuadModElem},fbar)
+  n = length(D)
+  g = zero_matrix(GF(2),n,n)
+  for i in 1:n
+    for j in i+1:n
+      if !iszero(inner_product(D[i],D[j]))
+        g[i,j] = 1
+        g[j,i] = 1
+      end
+    end
+  end
+  G = graph_from_adjacency_matrix(Undirected,g)
+  # We identify an ADE lattice by
+  # ((number of roots) // 2, rank of gram mod 2)
+  An = [(1, 0), (3, 2), (6, 2), (10, 4), (15, 4), (21, 6), (28, 6), (36, 8), (45, 8), (55, 10)]
+  Dn = [(12, 2), (20, 4), (30, 4), (42, 6), (56, 6), (72, 8), (90, 8)]
+  En = [(36, 6), (63, 6), (120, 8)]
+  fiber_types = Tuple{Symbol,Int}[]
+  for c in connected_components(G)
+    l = (length(c),rank(g[c,c]))
+    if l in An
+      i = findfirst(==(l),An)
+      t = (:A,i)
+    elseif l in Dn
+      i = 3+findfirst(==(l),Dn)
+      t = (:D,i)
+    elseif l in En
+      i = 5+findfirst(==(l),En)
+      t = (:E,i)
+    end
+    push!(fiber_types,t)
+  end
+  return fiber_types
+end
+
+
 
