@@ -85,7 +85,7 @@ end
 ################################################
 
 @doc raw"""
-    global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
+    global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 
 This method constructs a global Tate model over a base space that is not
 fully specified.
@@ -96,7 +96,7 @@ auxiliary base space, unless the user already provides this grading. Our convent
 is that the first grading refers to Kbar and that the homogeneous variable corresponding
 to this class carries the name "Kbar".
 
-The following example exemplifies this approach.
+The following code exemplifies this approach.
 
 # Examples
 ```jldoctest
@@ -123,14 +123,9 @@ julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base
-
-julia> t = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, 3, ais; toric_sample = false)
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base
 ```
 """
-function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
+function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   
   # Is there a grading [1, 0, ..., 0]?
   Kbar_grading_present = false
@@ -161,11 +156,6 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
-  if d == 1
-    @req length(gens_base_names) - nrows(auxiliary_base_grading) > d "We expect a number of base variables that is strictly greater than one plus the number of scaling relations"
-  else
-    @req length(gens_base_names) - nrows(auxiliary_base_grading) >= d "We expect at least as many base variables as the sum of the desired base dimension and the number of scaling relations"
-  end
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
@@ -174,16 +164,10 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the model
-  if toric_sample
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_toric_sample(auxiliary_base_grading, gens_base_names, d)
-    R = cox_ring(auxiliary_ambient_space)
-  else
-    (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
-    R = coordinate_ring(auxiliary_ambient_space)
-  end
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
   ring_map = hom(parent(ais[1]), S, gens(S)[1:ngens(parent(ais[1]))])
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
-  pt = _tate_polynomial([a1, a2, a3, a4, a6], R)
+  pt = _tate_polynomial([a1, a2, a3, a4, a6], coordinate_ring(auxiliary_ambient_space))
   model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :base_fully_specified, false)
   set_attribute!(model, :partially_resolved, false)

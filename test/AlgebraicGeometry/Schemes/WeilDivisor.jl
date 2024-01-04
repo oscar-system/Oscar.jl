@@ -2,15 +2,15 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, = graded_polynomial_ring(kk, ["s", "t"])
+  S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 
   # split this into the standard covering
-  base_covering = standard_covering(base_P1)
+  bc = standard_covering(base_P1)
 
-  A1s = patches(base_covering)[1]
-  A1t = patches(base_covering)[2]
+  A1s = patches(bc)[1]
+  A1t = patches(bc)[2]
 
   # Set up relative projective space of relative dimension 2 
   # over both base patches

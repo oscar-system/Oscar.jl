@@ -334,7 +334,7 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   return true
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyElem{U}, T<:ModuleFP{S}}
+function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
@@ -1116,7 +1116,7 @@ with the injection map $N \to M$ and the projection map $M \to N$. These maps ar
 isomorphisms.
 The only simplifications which are done are the following: 
 - Remove all generators which are represented by the zero element in the ambient 
-free module.
+  free module.
 - Remove all generators which are in the generating set of the relations.
 - Remove all duplicates in the generators and relations sets.
 """

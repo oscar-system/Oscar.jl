@@ -39,27 +39,11 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> v = ambient_space(t)
-Normal toric variety
+A family of spaces of dimension d = 5
 
-julia> a1,a21,a32,a43,w,x,y,z = gens(cox_ring(v));
-
-julia> I = ideal([x,y,w]);
-
-julia> v2 = domain(blow_up(v, I))
-Normal toric variety
-
-julia> cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by 
-  Kbar -> [1 0 0 0]
-  w -> [0 1 0 0]
-  a1 -> [1 0 0 0]
-  a21 -> [2 -1 0 0]
-  a32 -> [0 0 1 0]
-  a43 -> [1 -1 1 0]
-  x -> [1 0 1 2]
-  y -> [6 -3 0 3]
-  z -> [1 -1 0 1]
-  e -> [3 -2 -1 0]
+julia> coordinate_ring(v)
+Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
+  over rational field
 ```
 It is also possible to construct a literature model over a particular base.
 Currently, this feature is only supported for toric base spaces.
@@ -94,14 +78,37 @@ Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv 
 julia> length(singular_loci(w))
 1
 ```
+For convenience, we also support a simplified constructor. Instead of the meta data of the article,
+this constructor accepts an integer, which specifies the position of this model in our database.
+```jldoctest
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> w = literature_model(3, base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
+
+julia> length(singular_loci(w))
+1
+```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  
-  # (1) Find the model
   model_dict = _find_model(doi, arxiv_id, version, equation)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+end
+
+function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+  model_dict = _find_model(k)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+end
+
+function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   
-  
-  # (2) Deal with model parameters
+  # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
     
@@ -153,16 +160,13 @@ function literature_model(; doi::String="", arxiv_id::String="", version::String
 end
 
 
+
 #######################################################
 # 2. Helper function to find the specified model
 #######################################################
 
 function _find_model(doi::String, arxiv_id::String, version::String, equation::String)
-
-  # Check that we have at least some information...
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
-
-  # Create list of possible candidate files
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
   for k in 1:length(file_index)
@@ -173,9 +177,23 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
       push!(candidate_files, string(file_index[k]["file"]))
     end
   end
+  return _process_candidates(candidate_files)
+end
 
-  # Check if we found exactly one file, i.e., we were able to identify the model uniquely
-  @req length(candidate_files) != 0 "We could not find any models matching the given identifiers"
+function _find_model(l::Int)
+  @req l >= 1 "Model index must be at least 1"
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  candidate_files = Vector{String}()
+  for k in 1:length(file_index)
+    if get(file_index[k], "model_index", nothing) == string(l)
+      push!(candidate_files, string(file_index[k]["file"]))
+    end
+  end
+  return _process_candidates(candidate_files)
+end
+
+function _process_candidates(candidate_files::Vector{String})
+  @req length(candidate_files) != 0 "We could not find any models matching the given model index"
   @req(length(candidate_files) == 1,
     begin
       dicts = map(f -> JSON.parsefile(joinpath(@__DIR__, "Models/" * f)), candidate_files)
@@ -186,16 +204,10 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
       strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i])" for i in 1:length(dicts)]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
-
-  # Create dictionary
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
-  # Add literature identifier. For this, remove 'model' from the front and '.json' from the end of the file name.
   model_dict["literature_identifier"] = candidate_files[1][6:end - 5]
-
-  # Return the dictionary
   return model_dict
 end
-
 
 
 #######################################################
@@ -225,13 +237,13 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   # Next, generate random values for all involved sections.
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   for (key, value) in model_sections
-    @req is_effective(value) "Encountered a non-effective model section"
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective model section"
     #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
     # Lead to error when computing singular loci - currently only monomials allowed...
     explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
   end
   for (key, value) in internal_model_sections
-    @req is_effective(value) "Encountered a non-effective (internal) model section"
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) model section"
     explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
@@ -376,16 +388,15 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
   end
   
-  if typeof(model.base_space) == NormalToricVariety
-    #base_ring = cox_ring(model.base_space) # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
-    if haskey(model_dict["model_data"], "zero_section")
-      set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
-      #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
-    end
-    if haskey(model_dict["model_data"], "generating_sections")
-      set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-      #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-    end
+  # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
+  #base_ring = cox_ring(model.base_space)
+  if haskey(model_dict["model_data"], "zero_section")
+    set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
+    #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+  end
+  if haskey(model_dict["model_data"], "generating_sections")
+    set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+    #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
   end
   
 end
@@ -407,5 +418,21 @@ function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}
     else
       set_attribute!(m, Symbol(t_name) => m_dict[l1][l2][t])
     end
+  end
+end
+
+
+
+#######################################################
+# 6. Function to display all known literature models
+#######################################################
+
+function display_all_literature_models()
+  file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  sorted_dicts = sort(file_index, by = x -> parse(Int, x["model_index"]))
+  for dict in sorted_dicts
+    print("Model $(dict["model_index"]):\n")
+    print(dict)
+    print("\n\n")
   end
 end

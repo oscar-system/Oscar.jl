@@ -63,11 +63,7 @@ function is_exact_type(a::Type{U}) where {T, U <: PBWAlgQuoElem{T}}
    return is_exact_type(T)
 end
 
-elem_type(::PBWAlgQuo{T, S}) where {T, S} = PBWAlgQuoElem{T, S}
-
 elem_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = PBWAlgQuoElem{T, S}
-
-parent_type(::PBWAlgQuoElem{T, S}) where {T, S} = PBWAlgQuo{T, S}
 
 parent_type(::Type{PBWAlgQuoElem{T, S}}) where {T, S} = PBWAlgQuo{T, S}
 
@@ -283,11 +279,11 @@ function (Q::PBWAlgQuo)(a::PBWAlgElem)
 end
 
 function (Q::PBWAlgQuo)()
-  return PBWAlgQuoElem(Q, base_ring(Q)())
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(0)))
 end
 
 function (Q::PBWAlgQuo{T, S})(c::T) where {T, S}
-  return PBWAlgQuoElem(Q, base_ring(Q)(c))
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(c)))
 end
 
 function (Q::PBWAlgQuo)(c::IntegerUnion)

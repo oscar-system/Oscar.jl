@@ -8,6 +8,7 @@ include("FamilyOfSpaces/attributes.jl")
 include("WeierstrassModels/constructors.jl")
 include("WeierstrassModels/attributes.jl")
 include("WeierstrassModels/properties.jl")
+include("WeierstrassModels/methods.jl")
 
 include("TateModels/constructors.jl")
 include("TateModels/attributes.jl")

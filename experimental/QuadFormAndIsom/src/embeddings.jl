@@ -219,37 +219,16 @@ end
 #
 ###############################################################################
 
-# T is a submodule of the domain q of g, and the function return the submodule
-# g(T) of q (which is isomorphic to T as torsion quadratic module by definition
-# of g).
-function _on_subgroups(T::TorQuadModule, g::AutomorphismGroupElem)
-  q = domain(parent(g))
-  gene = elem_type(q)[g(q(lift(t))) for t in gens(T)]
-  return sub(q, gene)[1]
-end
-
-# Compute stabilizer of a subgroup of a `TorQuadModule` under the action by
-# automorphisms.
-function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
-  @req domain(O) === codomain(i) "Incompatible arguments"
-  q = domain(O)
-  N, _ = sub(q, i.(gens(domain(i))))
-  stab, _ = stabilizer(O, N, _on_subgroups)
-  return sub(O, elem_type(O)[O(h) for h in gens(stab)])
-end
-
 # Given an embedding of an `(O, f)`-stable finite quadratic module `V` of `q`,
 # compute representatives of `O`-orbits of `f`-stable submodules of `V` of order
-# `ord`. If `compute_stab = true`, then the stabilizers in `O` is also computed.
-# Otherwise, we set as "fake stabilizers" the full group `O`.
+# `ord`. The stabilizers in `O` is also computed.
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
 function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor,
                                                           O::AutomorphismGroup{TorQuadModule},
                                                           ord::IntegerUnion = -1,
-                                                          f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq));
-                                                          compute_stab::Bool = true)
+                                                          f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)))
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
@@ -267,17 +246,17 @@ function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor
     filter!(s -> is_invariant(fV, s[2]), subs)
   end
 
-  subs = TorQuadModule[s[1] for s in subs]
-  m = gset(O, _on_subgroups, subs)
+  to_gap = get_attribute(O, :to_gap)
+  to_oscar = get_attribute(O, :to_oscar)
+
+  qgap = codomain(to_gap)
+  sgap = typeof(qgap)[sub(qgap, elem_type(qgap)[to_gap(q(lift(s[2](a)))) for a in gens(s[1])])[1] for s in subs]
+  m = gset(O, on_subgroups, sgap)
   orbs = orbits(m)
   for orb in orbs
-    rep = representative(orb)
-    if compute_stab
-      stab, _ = stabilizer(O, rep, _on_subgroups)
-    else
-      stab = O
-    end
-    _, rep = sub(q, TorQuadModuleElem[q(lift(g)) for g in gens(rep)])
+    _repgap = representative(orb)
+    _, rep = sub(q, TorQuadModuleElem[to_oscar(qgap(a)) for a in gens(_repgap)])
+    stab, _ = stabilizer(O, rep)
     push!(res, (rep, stab))
   end
   return res
@@ -296,7 +275,7 @@ function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMor, p::IntegerUnion)
 
   n = ngens(V)
   F = GF(p)
-  Vp = VectorSpace(F, n)
+  Vp = vector_space(F, n)
 
   function _VtoVp(x::TorQuadModuleElem)
     v = data(x).coeff
@@ -316,20 +295,6 @@ function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMor, p::IntegerUnion)
   return Qp, VtoVp, VptoQp
 end
 
-# Almost duplicate of an existing function: we do not always want to compute
-# stabilizers but just some orbit representatives
-function _orbit_representatives(G::MatrixGroup{E}, k::Int, O::AutomorphismGroup{TorQuadModule}) where E <: FinFieldElem
-  F = base_ring(G)
-  n = degree(G)
-  q = GAP.Obj(order(F))
-  V = VectorSpace(F, n)
-  orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAP.Globals.GF(q)^n, k))
-  orbs1 = [GAP.Globals.BasisVectors(GAP.Globals.Basis(orb[1])) for orb in orbs]
-  orbs2 = [[[F(x) for x in v] for v in bas] for bas in orbs1]::Vector{Vector{Vector{elem_type(F)}}}
-  orbs3 = [sub(V, [V(v) for v in bas])[1] for bas in orbs2]
-  return [(orbs3[i], O) for i in 1:length(orbs3)]
-end
-
 # Given an embedding of an `(O, f)`-stable finite quadratic module `V` of `q`,
 # where the abelian group structure on `V` is `p`-elementary, compute
 # representatives of `G`-orbit of `f`-stable subgroups of `V` of order `ord`,
@@ -339,8 +304,7 @@ end
 # as a set of outer automorphisms (so two subgroups are in the
 # same orbit if they are `G`-isomorphic).
 #
-# If `compute_stab = true`, then the stabilizers in `G` is also computed.
-# Otherwise, we set as "fake stabilizers" the full group `G`.
+# The stabilizers in `G` is also computed.
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
@@ -348,8 +312,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::IntegerUnion,
                                                                      f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
-                                                                     l::IntegerUnion = -1;
-                                                                     compute_stab::Bool = true)
+                                                                     l::IntegerUnion = -1)
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
@@ -409,9 +372,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
 
   # We descend G to V for computing stabilizers later on
   GV, GtoGV = restrict_automorphism_group(G, Vinq; check = false)
-  if compute_stab
-    satV, j = kernel(GtoGV)
-  end
+  satV, j = kernel(GtoGV)
 
   # Automorphisms in G preserved V and H0, since the construction of H0 is
   # natural. Therefore, the action of G descends to the quotient and we look for
@@ -430,11 +391,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # K is H0 but seen a subvector space of Vp (which is V)
   k, K = kernel(VptoQp.matrix; side = :left)
   gene_H0p = elem_type(Vp)[Vp(vec(collect(K[i,:]))) for i in 1:k]
-  if compute_stab
-    orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
-  else
-    orb_and_stab = _orbit_representatives(MGp, g-k, G)
-  end
+  orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
 
   for (orb, stab) in orb_and_stab
     i = orb.map
@@ -449,24 +406,19 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
     # We keep only f-stable subspaces
     is_invariant(f, orbqinq) || continue
 
-    if compute_stab
-      stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
-      stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
-      # Stabilizers should preserve the actual subspaces, by definition. so if we
-      # have lifted since properly, this should hold..
-      @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
-    else
-      stabq = G
-    end
+    stabq_gen = elem_type(G)[GtoMGp\(s) for s in gens(stab)]
+    stabq, _ = sub(G, union!(stabq_gen, gens(satV)))
+    # Stabilizers should preserve the actual subspaces, by definition. so if we
+    # have lifted everything properly, this should hold..
+    @hassert :ZZLatWithIsom 1 is_invariant(stabq, orbqinq)
     push!(res, (orbqinq, stabq))
   end
   return res
 end
 
 # Compute `O`-orbits of `f`-stable submodules of `q` which are isometric, as
-# torsion quadratic modules, to `H`. If `compute_stab = true`, it also computes
-# the stabilizers in `O` of such subgroups. Otherwise, it returns as "fake
-# stabilziers" the full group `O`.
+# torsion quadratic modules, to `H`. It also computesthe  stabilizers in `O`
+# of such subgroups.
 #
 # The outputs are given by embeddings of such submodules in `q`.
 #
@@ -475,8 +427,7 @@ end
 function _classes_isomorphic_subgroups(q::TorQuadModule,
                                        O::AutomorphismGroup{TorQuadModule},
                                        H::TorQuadModule,
-                                       f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)),
-                                       compute_stab::Bool = true)
+                                       f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)))
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   # Trivial case: we look for subgroups in a given primary part of q
@@ -484,10 +435,10 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   if ok
     if is_elementary(H, p)
       _, Vinq = _get_V(id_hom(q), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, order(H), f; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, order(H), f)
     else
       _, Vinq = primary_part(q, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, order(H), f; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, order(H), f)
     end
     filter!(d -> is_isometric_with_isometry(domain(d[1]), H)[1], sors)
     return sors
@@ -499,22 +450,17 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   #
   # First, we cut q as an orthogonal direct sum of its primary parts
   pds = sort!(prime_divisors(order(q)))
-  if compute_stab
-    blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
-    ni = Int[ngens(domain(blocks[1]))]
-    for i in 2:length(pds)
-      _f = blocks[end]
-      _, j = has_complement(_f)
-      _T = domain(j)
-      __f = primary_part(_T, pds[i])[2]
-      push!(blocks, compose(__f, j))
-      push!(ni, ngens(domain(__f)))
-    end
-    D, inj, proj = biproduct(domain.(blocks))
-  else
-    blocks = TorQuadModuleMor[primary_part(q, p)[2] for p in pds]
-    D, inj, proj = biproduct(domain.(blocks))
+  blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
+  for i in 2:length(pds)
+    _f = blocks[end]
+    _, j = has_complement(_f)
+    _T = domain(j)
+    __f = primary_part(_T, pds[i])[2]
+    push!(blocks, compose(__f, j))
+    push!(ni, ngens(domain(__f)))
   end
+  D, inj, proj = biproduct(domain.(blocks))
   phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
   @hassert :ZZLatWithIsom 1 is_isometry(phi)
 
@@ -529,9 +475,9 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     fqp = restrict_endomorphism(f, qpinq; check = false)
     if is_elementary(T, p)
       _, j = _get_V(id_hom(qp), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, order(T), fqp; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, order(T), fqp)
     else
-      sors = _subgroups_orbit_representatives_and_stabilizers(id_hom(qp), Oqp, order(T), fqp; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers(id_hom(qp), Oqp, order(T), fqp)
     end
     filter!(d -> is_isometric_with_isometry(domain(d[1]), T)[1], sors)
     is_empty(sors) && return res
@@ -548,25 +494,21 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     embs = TorQuadModuleMor[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
     H2, _proj = direct_product(domain.(embs)...)
     _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
-    if compute_stab
-      stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
-      genestab = ZZMatrix[]
+    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
+    genestab = ZZMatrix[]
 
-      for i in 1:length(ni)
-        nb = sum(ni[1:i-1])
-        na = sum(ni[(i+1):end])
-        Inb = identity_matrix(ZZ, nb)
-        Ina = identity_matrix(ZZ, na)
-        append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
-      end
-
-      genestab = TorQuadModuleMor[hom(D, D, g) for g in genestab]
-      genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestab]
-      stab = Oscar._orthogonal_group(q, unique(genestas); check = false)
-      @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
-    else
-      stab = O
+    for i in 1:length(ni)
+      nb = sum(ni[1:i-1])
+      na = sum(ni[(i+1):end])
+      Inb = identity_matrix(ZZ, nb)
+      Ina = identity_matrix(ZZ, na)
+      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
     end
+
+    genestab = TorQuadModuleMor[hom(D, D, g) for g in genestab]
+    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestab]
+    stab = Oscar._orthogonal_group(q, unique(genestas); check = false)
+    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
     push!(res, (H2inq, stab))
   end
 
@@ -574,9 +516,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
 end
 
 # Compute `O`-orbits of `f`-stable submodules of `q` of order `ordH`.
-# If `compute_stab = true`, it also computes the stabilizers in `O`
-# of such subgroups. Otherwise, it returns as "fake stabilziers" the
-# full group `O`.
+# It also computes the stabilizers in `O` of such subgroups.
 #
 # The outputs are given by embeddings of such submodules in `q`.
 #
@@ -585,8 +525,7 @@ end
 function _classes_isomorphic_subgroups(q::TorQuadModule,
                                        O::AutomorphismGroup{TorQuadModule},
                                        ordH::IntegerUnion,
-                                       f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)),
-                                       compute_stab::Bool = true)
+                                       f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O)))
   res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
 
   !is_divisible_by(order(q), ordH) && return res
@@ -596,10 +535,10 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   if ok
     if e == 1
       _, Vinq = _get_V(id_hom(q), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, f; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, f)
     else
       _, Vinq = primary_part(q, p)
-      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
     end
     return sors
   end
@@ -609,22 +548,17 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   #
   # First, we cut q as an orthogonal direct sum of its primary parts
   pds = sort!(prime_divisors(order(q)))
-  if compute_stab
-    blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
-    ni = Int[ngens(domain(blocks[1]))]
-    for i in 2:length(pds)
-      _f = blocks[end]
-      _, j = has_complement(_f)
-      _T = domain(j)
-      __f = primary_part(_T, pds[i])[2]
-      push!(blocks, compose(__f, j))
-      push!(ni, ngens(domain(__f)))
-    end
-    D, inj, proj = biproduct(domain.(blocks))
-  else
-    blocks = TorQuadModuleMor[primary_part(q, p)[2] for p in pds]
-    D, inj, proj = biproduct(domain.(blocks))
+  blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
+  ni = Int[ngens(domain(blocks[1]))]
+  for i in 2:length(pds)
+    _f = blocks[end]
+    _, j = has_complement(_f)
+    _T = domain(j)
+    __f = primary_part(_T, pds[i])[2]
+    push!(blocks, compose(__f, j))
+    push!(ni, ngens(domain(__f)))
   end
+  D, inj, proj = biproduct(domain.(blocks))
   phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
   @hassert :ZZLatWithIsom 1 is_isometry(phi)
 
@@ -639,9 +573,9 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     fqp = restrict_endomorphism(f, qpinq; check = false)
     if ordHp == p
       _, j = _get_V(id_hom(qp), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, fqp; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, fqp)
     else
-      sors = _subgroups_orbit_representatives_and_stabilizers(id_hom(qp), Oqp, ordHp, fqp; compute_stab)
+      sors = _subgroups_orbit_representatives_and_stabilizers(id_hom(qp), Oqp, ordHp, fqp)
     end
     is_empty(sors) && return res
     push!(list_can, sors)
@@ -657,25 +591,21 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     embs = TorQuadModuleMor[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
     H2, _proj = direct_product(domain.(embs)...)
     _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
-    if compute_stab
-      stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
-      genestab = ZZMatrix[]
+    stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
+    genestab = ZZMatrix[]
 
-      for i in 1:length(ni)
-        nb = sum(ni[1:i-1])
-        na = sum(ni[(i+1):end])
-        Inb = identity_matrix(ZZ, nb)
-        Ina = identity_matrix(ZZ, na)
-        append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
-      end
-
-      genestab = TorQuadModuleMor[hom(D, D, g) for g in genestab]
-      genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestab]
-      stab = Oscar._orthogonal_group(q, unique(genestas); check = false)
-      @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
-    else
-      stab = O
+    for i in 1:length(ni)
+      nb = sum(ni[1:i-1])
+      na = sum(ni[(i+1):end])
+      Inb = identity_matrix(ZZ, nb)
+      Ina = identity_matrix(ZZ, na)
+      append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
     end
+
+    genestab = TorQuadModuleMor[hom(D, D, g) for g in genestab]
+    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestab]
+    stab = Oscar._orthogonal_group(q, unique(genestas); check = false)
+    @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
     push!(res, (H2inq, stab))
   end
 
@@ -858,10 +788,10 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing
 
       if elN || elM
         _, VNinqN = _get_V(id_hom(qN), minimal_polynomial(identity_matrix(QQ, 1)), max(pN, pM))
-        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k; compute_stab = false)
+        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k)
       elseif ok && (ek == 1)
         _, VNinqN = _get_V(id_hom(qN), minimal_polynomial(identity_matrix(QQ, 1)), k)
-        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k; compute_stab = false)
+        subsN = _subgroups_orbit_representatives_and_stabilizers_elementary(VNinqN, GN, k)
       else
         if prN || prM
           _, VNinqN = primary_part(qN, max(pN, pM))
@@ -870,7 +800,7 @@ function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing
         else
           VNinqN = id_hom(qN)
         end
-        subsN = _subgroups_orbit_representatives_and_stabilizers(VNinqN, GN, k; compute_stab = false)
+        subsN = _subgroups_orbit_representatives_and_stabilizers(VNinqN, GN, k)
       end
       isempty(subsN) && continue
 
@@ -1484,10 +1414,9 @@ function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
   @hassert :ZZLatWithIsom 1 is_anti_isometry(phi_0)
 
   # We first massage phi such that it maps HA to HB
-  phiHA, _ = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
+  phiHA, phiHAinSB = sub(SB, elem_type(SB)[phi(SA(lift(a))) for a in gens(HA)])
   OSB = orthogonal_group(SB)
-  G = GSetByElements(OSB, _on_subgroups, TorQuadModule[HB])
-  ok, g = is_conjugate_with_data(G, phiHA, HB)
+  ok, g = is_conjugate_with_data(OSB, phiHAinSB, HBinSB)
   @hassert :ZZLatWithIsom 1 ok
   phi_1 = compose(phi, hom(g))
   @hassert :ZZLatWithIsom 1 sub(SB, elem_type(SB)[phi_1(SA(lift(a))) for a in gens(HA)])[1] == HB

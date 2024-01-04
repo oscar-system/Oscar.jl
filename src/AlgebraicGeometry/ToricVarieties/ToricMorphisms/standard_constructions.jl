@@ -16,7 +16,7 @@ Toric morphism
     mapping_matrix = matrix(ZZ, rays(variety))
     max_cones_for_cox_variety = ray_indices(maximal_cones(variety))
     rays_for_cox_variety = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:nrays(variety)] for i in 1:nrays(variety)])
-    cox_variety = normal_toric_variety(polyhedral_fan(rays_for_cox_variety, max_cones_for_cox_variety))
+    cox_variety = normal_toric_variety(polyhedral_fan(max_cones_for_cox_variety, rays_for_cox_variety))
     return toric_morphism(cox_variety, mapping_matrix, variety)
 end
 

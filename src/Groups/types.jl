@@ -453,13 +453,11 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
-elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 # `parent_type` is defined and documented in AbstractAlgebra.
-parent_type(::Type{T}) where T<:BasicGAPGroupElem{S} where S = S
-parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
+parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 
 #
 # The array _gap_group_types contains pairs (X,Y) where
@@ -483,6 +481,12 @@ function _get_type(G::GapObj)
                  matgrp.ring_iso = inv(iso)
                  matgrp.X = dom
                  return matgrp
+               end
+      elseif pair[2] == AutomorphismGroup
+        return function(A::GAP.GapObj)
+                 actdom_gap = GAP.Globals.AutomorphismDomain(A)
+                 actdom_oscar = _get_type(actdom_gap)(actdom_gap)
+                 return AutomorphismGroup(A, actdom_oscar)
                end
       else
         return pair[2]

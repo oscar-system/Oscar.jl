@@ -39,7 +39,6 @@ journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
-model_description(m::AbstractFTheoryModel)
 model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
@@ -53,13 +52,18 @@ weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
 ```
-One can add this information for a model that does
-not have it:
+Note that we provide a description for well established models:
+```@docs
+model_description(m::AbstractFTheoryModel)
+```
+One can add/modify this information as follows:
 ```@docs
 set_description(m::AbstractFTheoryModel, description::String)
 ```
-Note however, that these changes will (currently) not be stored
-in our data base. One can also check if a model has a particular
+However, this changes will (currently) not be stored
+in our data base.
+
+One can also check if a model has a particular
 set of information. This is achieved with the following methods:
 * `has_arxiv_id(m::AbstractFTheoryModel)`,
 * `has_arxiv_doi(m::AbstractFTheoryModel)`,

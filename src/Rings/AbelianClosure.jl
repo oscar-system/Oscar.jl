@@ -21,6 +21,10 @@
 # as a primitive n-th root. to change between these two options, use
 # PCharSaturateAll with allroots or allrootsNew (change this in the code)
 
+abstract type CyclotomicField end
+
+export CyclotomicField
+
 module AbelianClosure 
 
 using ..Oscar
@@ -30,7 +34,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, elem_type, divexact, gen,
+import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
                 has_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
@@ -129,6 +133,10 @@ function gen(K::QQAbField, s::String)
   return gen(K)
 end
 
+function characteristic(::QQAbField)
+  return 0
+end
+
 ################################################################################
 #
 #  Parent and element functions
@@ -136,15 +144,11 @@ end
 ################################################################################
 
 elem_type(::Type{QQAbField{AnticNumberField}}) = QQAbElem{nf_elem}
-elem_type(::QQAbField{AnticNumberField}) = QQAbElem{nf_elem}
 parent_type(::Type{QQAbElem{nf_elem}}) = QQAbField{AnticNumberField}
-parent_type(::QQAbElem{nf_elem}) = QQAbField{AnticNumberField}
 parent(::QQAbElem{nf_elem}) = _QQAb
 
 elem_type(::Type{QQAbField{NfAbsNS}}) = QQAbElem{NfAbsNSElem}
-elem_type(::QQAbField{NfAbsNS}) = QQAbElem{NfAbsNSElem}
 parent_type(::Type{QQAbElem{NfAbsNSElem}}) = QQAbField{NfAbsNS}
-parent_type(::QQAbElem{NfAbsNSElem}) = QQAbField{NfAbsNS}
 parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
 
 ################################################################################
@@ -844,6 +848,25 @@ function Oscar.order(a::QQAbElem)
     o *= p^f
   end
   return o
+end
+
+# Convenient sqrt and cbrt functions as simple wrappers around the roots function,
+# which is already implemented for QQAbElem directly
+
+function Oscar.sqrt(a::QQAbElem)
+  sqrt = Oscar.roots(a, 2)
+  if is_empty(sqrt)
+    error("Element $a does not have a square root")
+  end
+  return sqrt[1]
+end
+
+function Oscar.cbrt(a::QQAbElem)
+  cbrt = Oscar.roots(a,3)
+  if is_empty(cbrt)
+    error("Element $a does not have a cube root")
+  end
+  return cbrt[1]
 end
 
 

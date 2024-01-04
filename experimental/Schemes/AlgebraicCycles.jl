@@ -11,11 +11,13 @@ export scheme
 #
 # Abstract type for algebraic cycles on a separated scheme X.
 ########################################################################
-abstract type AbsAlgebraicCycle{
-                                CoveredSchemeType<:AbsCoveredScheme, 
-                                CoefficientRingType<:AbstractAlgebra.Ring
-                               }
-end
+
+### The following declaration has been moved to src/forward_declarations.jl
+#abstract type AbsAlgebraicCycle{
+#                                CoveredSchemeType<:AbsCoveredScheme, 
+#                                CoefficientRingType<:AbstractAlgebra.Ring
+#                               }
+#end
 
 ### type getters 
 scheme_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = S

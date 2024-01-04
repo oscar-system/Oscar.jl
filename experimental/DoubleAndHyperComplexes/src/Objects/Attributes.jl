@@ -1,81 +1,100 @@
-  ########################################################################
-  # concrete hypercomplexes
-  ########################################################################
+########################################################################
+# concrete hypercomplexes
+########################################################################
 
-  ### asking for the entries of the complex
-  function getindex(HC::HyperComplex, i::Tuple)
-    haskey(HC.chains, i) && return HC.chains[i]
+### asking for the entries of the complex
+function getindex(HC::HyperComplex, i::Tuple)
+  haskey(HC.chains, i) && return HC.chains[i]
 
-    can_compute(HC.chain_factory, HC, i) || error("index out of bounds")
+  can_compute(HC.chain_factory, HC, i) || error("index out of bounds")
 
-    result = HC.chain_factory(HC, i)
-    HC.chains[i] = result
-    return result
+  result = HC.chain_factory(HC, i)
+  HC.chains[i] = result
+  return result
+end
+
+function has_index(HC::HyperComplex, i::Tuple)
+  return haskey(HC.chains, i)
+end
+
+function can_compute_index(HC::HyperComplex, i::Tuple)
+  return can_compute(HC.chain_factory, HC, i)
+end
+
+### accessing the maps
+function emanating_maps(HC::HyperComplex{ChainType, MorphismType}, i::Tuple) where {ChainType, MorphismType}
+  haskey(HC.morphisms, i) && return HC.morphisms[i]
+  md = Dict{Int, MorphismType}()
+  HC.morphisms[i] = md
+  return md
+end
+
+function map(HC::HyperComplex, p::Int, i::Tuple)
+  phi = emanating_maps(HC, i)
+  haskey(phi, p) && return phi[p]
+  result = HC.map_factory(HC, p, i)
+  phi[p] = result
+  return result
+end
+
+function has_map(HC::HyperComplex, p::Int, i::Tuple)
+  phi = emanating_maps(HC, i)
+  return haskey(phi, p)
+end
+
+function can_compute_map(HC::HyperComplex, p::Int, i::Tuple)
+  return can_compute(HC.map_factory, HC, p, i)
+end
+
+### properties
+function direction(HC::HyperComplex, p::Int)
+  return HC.directions[p]
+end
+
+function dim(HC::HyperComplex)
+  return HC.d
+end
+
+function is_complete(HC::HyperComplex)
+  HC.is_complete === true && return true
+  todo = keys(HC.chains)
+  isempty(todo) && return false
+  for i in todo
+    for p in 1:dim(HC)
+      iszero(HC[i]) && continue
+      i_vec = collect(i)
+      i_plus = copy(i_vec)
+      i_plus[p] = i_plus[p] + 1
+      i_minus = copy(i_vec)
+      i_minus[p] = i_minus[p] - 1
+      i_p = Tuple(i_plus)
+      i_m = Tuple(i_minus)
+      has_index(HC, i_p) || !can_compute_index(HC, i_p) || return false
+      has_index(HC, i_m) || !can_compute_index(HC, i_m) || return false
+    end
   end
+  HC.is_complete = true
+  return true
+end
 
-  function has_index(HC::HyperComplex, i::Tuple)
-    return haskey(HC.chains, i)
-  end
+function has_upper_bound(HC::HyperComplex, p::Int) 
+  return HC.upper_bounds[p] !== nothing
+end
 
-  function can_compute_index(HC::HyperComplex, i::Tuple)
-    return can_compute(HC.chain_factory, HC, i)
-  end
+function has_lower_bound(HC::HyperComplex, p::Int)
+  return HC.lower_bounds[p] !== nothing
+end
 
-  ### accessing the maps
-  function emanating_maps(HC::HyperComplex{ChainType, MorphismType}, i::Tuple) where {ChainType, MorphismType}
-    haskey(HC.morphisms, i) && return HC.morphisms[i]
-    md = Dict{Int, MorphismType}()
-    HC.morphisms = md
-    return md
-  end
+function upper_bound(HC::HyperComplex, p::Int) 
+  return HC.upper_bounds[p]::Int
+end
 
-  function map(HC::HyperComplex, p::Int, i::Tuple)
-    phi = emanating_maps(HC, i)
-    haskey(phi, p) && return phi[p]
-    result = HC.map_factory(HC, p, i)
-    phi[p] = result
-    return result
-  end
-
-  function has_map(HC::HyperComplex, p::Int, i::Tuple)
-    phi = emanating_maps(HC, i)
-    return haskey(phi, p)
-  end
-
-  function can_compute_map(HC::HyperComplex, p::Int, i::Tuple)
-    return can_compute(HC.map_factory, HC, p, i)
-  end
-
-  ### properties
-  function direction(HC::HyperComplex, p::Int)
-    return HC.directions[p]
-  end
-
-  function dim(HC::HyperComplex)
-    return HC.d
-  end
-
-  function is_complete(HC::HyperComplex)
-    HC.is_complete === true && return true
-    error("not implemented")
-  end
-
-  function has_upper_bound(HC::HyperComplex, p::Int) 
-    return HC.upper_bounds[p] !== nothing
-  end
-
-  function has_lower_bound(HC::HyperComplex, p::Int)
-    return HC.lower_bounds[p] !== nothing
-  end
-
-  function upper_bound(HC::HyperComplex, p::Int) 
-    return HC.upper_bounds[p]::Int
-  end
-
-  function lower_bound(HC::HyperComplex, p::Int)
+function lower_bound(HC::HyperComplex, p::Int)
   return HC.lower_bounds[p]::Int
 end
 
+chain_factory(HC::HyperComplex) = HC.chain_factory
+map_factory(HC::HyperComplex) = HC.map_factory
 
 ########################################################################
 # concrete double complexes
@@ -342,4 +361,94 @@ function lower_bound(D::DoubleComplexOfMorphisms, p::Int)
   p == 2 && return lower_bound(D)
   error("index out of bounds")
 end
+
+### ShiftedHyperComplex
+shift(c::ShiftedHyperComplex) = c.shift
+original_complex(c::ShiftedHyperComplex) = c.complex
+
+getindex(c::ShiftedHyperComplex, i::Tuple) = original_complex(c)[Tuple(collect(i) + shift(c))]
+has_index(c::ShiftedHyperComplex, i::Tuple) = has_index(original_complex(c), Tuple(collect(i) + shift(c)))
+can_compute_index(c::ShiftedHyperComplex, i::Tuple) = can_compute_index(original_complex(c), Tuple(collect(i) + shift(c)))
+
+map(c::ShiftedHyperComplex, p::Int, i::Tuple) = map(original_complex(c), p, Tuple(collect(i) + shift(c)))
+has_map(c::ShiftedHyperComplex, p::Int, i::Tuple) = has_map(original_complex(c), p, Tuple(collect(i) + shift(c)))
+can_compute_map(c::ShiftedHyperComplex, p::Int, i::Tuple) = can_compute_map(original_complex(c), p, Tuple(collect(i) + shift(c)))
+
+direction(c::ShiftedHyperComplex, p::Int) = direction(original_complex(c), p)
+dim(c::ShiftedHyperComplex) = dim(original_complex(c))
+is_complete(c::ShiftedHyperComplex) = is_complete(original_complex(c))
+has_upper_bound(c::ShiftedHyperComplex, p::Int) = has_upper_bound(original_complex(c), p)
+has_lower_bound(c::ShiftedHyperComplex, p::Int) = has_lower_bound(original_complex(c), p)
+upper_bound(c::ShiftedHyperComplex, p::Int) = upper_bound(original_complex(c)) - shift(c)[p]
+lower_bound(c::ShiftedHyperComplex, p::Int) = lower_bound(original_complex(c)) - shift(c)[p]
+
+########################################################################
+# Hypercomplex views                                                   #
+########################################################################
+original_complex(c::AbsHyperComplex) = c.original
+mapping_matrix(c::HyperComplexView) = c.mapping_matrix
+offset_vector(c::HyperComplexView) = c.offset_vector
+
+# Implementing the interface directly
+dim(c::HyperComplexView) = c.d
+
+function getindex(c::HyperComplexView, I::Tuple)
+  can_compute_index(c, I) || error("index out of bounds")
+  i = collect(I)
+  j = mapping_matrix(c)*i + offset_vector(c)
+  return original_complex(c)[j...]
+end
+
+function has_index(c::HyperComplexView, I::Tuple)
+  can_compute_index(c, I) || error("index out of bounds")
+  i = collect(I)
+  j = mapping_matrix(c)*i + offset_vector(c)
+  return has_index(original_complex(c), j...)
+end
+
+function can_compute_index(c::HyperComplexView, I::Tuple)
+  return all(k->(I[k] >= lower_bound(c, k) && I[k] <= upper_bound(c, k)), 1:dim(c))
+end
+
+function map(c::HyperComplexView, p::Int, I::Tuple)
+  can_compute_map(c, p, I) || error("index out of bounds")
+  i = collect(I)
+  j = mapping_matrix(c)*i + offset_vector(c)
+  q = findfirst(k->!iszero(mapping_matrix(c)[k, p]), 1:dim(original_complex(c)))
+  q === nothing && error("can not compute this map")
+  return map(original_complex(c), q::Int, Tuple(j))
+end
+
+function can_compute_map(c::HyperComplexView, p::Int, I::Tuple)
+  can_compute_index(c, I) || return false
+  I[p] >= lower_bound(c, p) + (direction(c, p) == :chain ? 1 : 0) || return false
+  I[p] <= upper_bound(c, p) + (direction(c, p) == :cochain ? 1 : 0) || return false
+  i = collect(I)
+  j = mapping_matrix(c)*i + offset_vector(c)
+  q = findfirst(k->!iszero(mapping_matrix(c)[k, p]), 1:dim(original_complex(c)))
+  q === nothing && return false
+  return can_compute_map(original_complex(c), q::Int, Tuple(j))
+end
+
+function has_map(c::HyperComplexView, p::Int, I::Tuple)
+  can_compute_map(c, I) || error("index out of bounds")
+  i = collect(I)
+  j = mapping_matrix(c)*i + offset_vector(c)
+  q = findfirst(k->!iszero(mapping_matrix(c)[k, p]), 1:dim(original_complex(c)))
+  q === nothing && return false
+  return has_map(original_complex(c), q::Int, Tuple(j))
+end
+
+function direction(c::HyperComplexView, p::Int)
+  q = findfirst(k->!iszero(mapping_matrix(c)[k, p]), 1:dim(original_complex(c)))
+  q === nothing && return :chain # The default?
+  return direction(original_complex(c), q::Int) # Allow for reversing directions?
+end
+
+has_upper_bound(c::HyperComplexView, p::Int) = true
+has_lower_bound(c::HyperComplexView, p::Int) = true
+upper_bound(c::HyperComplexView, p::Int) = c.upper_bounds[p]
+lower_bound(c::HyperComplexView, p::Int) = c.lower_bounds[p]
+is_complete(c::HyperComplexView) = is_complete(original_complex(c)) # restrict?
+
 

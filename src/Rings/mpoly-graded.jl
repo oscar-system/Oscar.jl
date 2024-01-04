@@ -43,6 +43,8 @@ function is_graded(R::MPolyDecRing)
    return !isdefined(R, :lt)
 end
 
+_grading(R::MPolyDecRing) = R.d
+
 @doc raw"""
     is_graded(R::MPolyRing)
 
@@ -333,7 +335,7 @@ false
   G = grading_group(R)
   is_free(G) || return false
   if ngens(G) == rank(G)
-    W = vcat([x.coeff for x = R.d])
+    W = reduce(vcat, [x.coeff for x = R.d])
     if is_positive_grading_matrix(transpose(W))
        return true
     end
@@ -562,7 +564,6 @@ parent(a::MPolyDecRingElem{T, S}) where {T, S} = a.parent::MPolyDecRing{T, paren
 Nemo.symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
 Nemo.nvars(R::MPolyDecRing) = nvars(forget_decoration(R))
 
-elem_type(::MPolyDecRing{T, S}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 elem_type(::Type{MPolyDecRing{T, S}}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, parent_type(S)}
 
@@ -600,10 +601,13 @@ zero(W::MPolyDecRing) = MPolyDecRingElem(zero(forget_decoration(W)), W)
 #
 ################################################################################
 
-for T in [:(+), :(-), :(*), :divexact]
+for T in [:(+), :(-), :(*)]
   @eval ($T)(a::MPolyDecRingElem,
              b::MPolyDecRingElem) = MPolyDecRingElem($T(forget_decoration(a), forget_decoration(b)), parent(a))
 end
+
+divexact(a::MPolyDecRingElem, b::MPolyDecRingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), forget_decoration(b); check=check), parent(a))
+
 
 ################################################################################
 #
@@ -619,11 +623,11 @@ end
 #
 ################################################################################
 
-divexact(a::MPolyDecRingElem, b::RingElem) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::RingElem; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Integer) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::Integer; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
-divexact(a::MPolyDecRingElem, b::Rational) = MPolyDecRingElem(divexact(forget_decoration(a), b), parent(a))
+divexact(a::MPolyDecRingElem, b::Rational; check::Bool=true) = MPolyDecRingElem(divexact(forget_decoration(a), b; check=check), parent(a))
 
 for T in [:(-), :(+)]
   @eval ($T)(a::MPolyDecRingElem,
@@ -1003,7 +1007,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
   # First assemble the homogeneous components into the build contexts.
   # Afterwards compute the polynomials.
   hh = Dict{elem_type(D), MPolyBuildCtx{S, DataType}}()
-  dmat = vcat([d[i].coeff for i in 1:length(d)])
+  dmat = reduce(vcat, [d[i].coeff for i in 1:length(d)])
   tmat = zero_matrix(ZZ, 1, nvars(R))
   res_mat = zero_matrix(ZZ, 1, ncols(dmat))
   for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(forget_decoration(a)), AbstractAlgebra.exponent_vectors(forget_decoration(a)))
@@ -1203,7 +1207,7 @@ function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
      #need the positive elements in there...
      #Ax = b, Cx >= 0
      C = identity_matrix(FlintZZ, ngens(W))
-     A = vcat([x.coeff for x = W.d])
+     A = reduce(vcat, [x.coeff for x = W.d])
      k = solve_mixed(transpose(A), transpose(d.coeff), C)    
      for ee = 1:nrows(k)
        e = k[ee, :]

@@ -137,7 +137,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> base_space(t)
-Normal toric variety
+A family of spaces of dimension d = 3
 ```
 """
 function base_space(t::GlobalTateModel)
@@ -158,7 +158,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> ambient_space(t)
-Normal toric variety
+A family of spaces of dimension d = 5
 ```
 """
 function ambient_space(t::GlobalTateModel)
@@ -206,10 +206,8 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the global Tate model.
 
 ```jldoctest
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
-Assuming that the first row of the given grading is the grading under Kbar
-
-Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> t = global_tate_model(sample_toric_variety(); completeness_check = false)
+Global Tate model over a concrete base
 
 julia> calabi_yau_hypersurface(t)
 Closed subvariety of a normal toric variety
@@ -238,11 +236,11 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weierstrass_model(t)
-Weierstrass model over a not fully specified base
+Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: NormalToricVariety "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
@@ -253,7 +251,10 @@ Weierstrass model over a not fully specified base
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
   model = WeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
-  set_attribute!(model, :base_fully_specified, base_fully_specified(t))
+  model_attributes = t.__attrs
+  for (key, value) in model_attributes
+    set_attribute!(model, key, value)
+  end
   return model
 end
 
@@ -277,7 +278,7 @@ julia> discriminant(t);
 ```
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: NormalToricVariety "Discriminant of global Tate model is currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Discriminant of global Tate model is currently only supported for toric varieties and family of spaces as base space"
   return discriminant(weierstrass_model(t))
 end
 
@@ -346,6 +347,6 @@ julia> singular_loci(t)[2]
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: NormalToricVariety "Singular loci of global Tate model currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Singular loci of global Tate model currently only supported for toric varieties and family of spaces as base space"
   return singular_loci(weierstrass_model(t))
 end
