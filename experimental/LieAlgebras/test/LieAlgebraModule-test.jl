@@ -342,7 +342,13 @@
               elseif k == 2
                 a = V()
                 b = V()
-                while iszero(a) || iszero(b) || a == b
+                while iszero(a) ||
+                        iszero(b) ||
+                        can_solve(
+                          Oscar.LieAlgebras._matrix(a),
+                          Oscar.LieAlgebras._matrix(b);
+                          side=:left,
+                        )
                   a = V(rand(-10:10, dim(V)))
                   b = V(rand(-10:10, dim(V)))
                 end
@@ -394,7 +400,13 @@
               elseif k == 2
                 a = V()
                 b = V()
-                while iszero(a) || iszero(b) || a == b
+                while iszero(a) ||
+                        iszero(b) ||
+                        can_solve(
+                          Oscar.LieAlgebras._matrix(a),
+                          Oscar.LieAlgebras._matrix(b);
+                          side=:left,
+                        )
                   a = V(rand(-10:10, dim(V)))
                   b = V(rand(-10:10, dim(V)))
                 end
@@ -443,10 +455,18 @@
             elseif k == 2
               a = V()
               b = V()
-              while iszero(a) || iszero(b) || a == b
+              while iszero(a) ||
+                      iszero(b) ||
+                      can_solve(
+                        Oscar.LieAlgebras._matrix(a),
+                        Oscar.LieAlgebras._matrix(b);
+                        side=:left,
+                      )
                 a = V(rand(-10:10, dim(V)))
                 b = V(rand(-10:10, dim(V)))
               end
+              println(a)
+              println(b)
               @test !iszero(T(a, b))
               @test !iszero(T(a, b) + T(b, a))
               @test !iszero(T(a, b) - T(b, a))
