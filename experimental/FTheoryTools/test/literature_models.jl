@@ -61,7 +61,7 @@ end
   @test_throws ArgumentError related_literature_models(t1)
 end
 
-set_description(t1, "Testing...")
+set_model_description(t1, "Testing...")
 
 @testset "Test modifying the model description for literature Tate model over concrete base" begin
   @test model_description(t1) == "Testing..."

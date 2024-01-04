@@ -26,9 +26,6 @@ include("standard_constructions.jl")
 include("Serialization/tate_models.jl")
 
 include("LiteratureModels/constructors.jl")
-include("LiteratureModels/attributes.jl")
-include("LiteratureModels/properties.jl")
-include("LiteratureModels/methods.jl")
 include("LiteratureModels/create_index.jl")
 
 include("exports.jl")
