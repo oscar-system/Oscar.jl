@@ -42,11 +42,15 @@ is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
   return all(is_smooth, affine_charts(X))
 end
 
-# Use decomposition_info
 function _jacobian_criterion(X::CoveredScheme{<:Field})
   if !isdefined(X, :coverings)
     return true
   end
+
+  if !has_decomposition_info(default_covering(X))
+    throw(NotImplementedError(:_jacobian_criterion, "only implemented when decomposition info is available"))
+  end
+
   dec_info = decomposition_info(default_covering(X))
   for (V, fs) in dec_info
     R = base_ring(OO(V))
