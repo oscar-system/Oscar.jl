@@ -523,8 +523,8 @@ function _primitive_extensions_generic(
             else
               M2 = lattice_in_same_ambient_space(Lf, hcat(basis_matrix(M), zero_matrix(QQ, rank(M), degree(Lf) - degree(M))))
               N2 = lattice_in_same_ambient_space(Lf, hcat(zero_matrix(QQ, rank(N), degree(Lf) - degree(N)), basis_matrix(N)))
-              @hassert :ZZLatWithIsom 2 genus(M) == genus(M2)
-              @hassert :ZZLatWithIsom 2 genus(N) == genus(N2)
+              @hassert :ZZLatWithIsom 1 genus(M) == genus(M2)
+              @hassert :ZZLatWithIsom 1 genus(N) == genus(N2)
             end
             
             if compute_bar_Gf
@@ -867,8 +867,8 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
       append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
     end
 
-    genestab = TorQuadModuleMor[hom(D, D, g) for g in genestab]
-    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestab]
+    genestabD = TorQuadModuleMor[hom(D, D, g) for g in genestab]
+    genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
     stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check = false))
     @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
     push!(res, (H2inq, stab))

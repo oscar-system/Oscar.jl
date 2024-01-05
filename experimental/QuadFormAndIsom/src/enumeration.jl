@@ -459,9 +459,11 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_ro
 
   reps = ZZLatWithIsom[]
 
-  if n*m < 3
+  nm = n*m
+
+  if nm < 3
     @vprintln :ZZLatWithIsom 1 "Order smaller than 3"
-    f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
+    f = (-1)^(nm+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
     @vprintln :ZZLatWithIsom 1 "$(length(repre)) representative(s)"
@@ -475,10 +477,10 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_ro
   !iseven(s2) && return reps
 
   @vprintln :ZZLatWithIsom 1 "Order bigger than 3"
-  ok, rk = divides(rk, euler_phi(n*m))
+  ok, rk = divides(rk, euler_phi(nm))
   ok || return reps
 
-  E, b = cyclotomic_field_as_cm_extension(n*m)
+  E, b = cyclotomic_field_as_cm_extension(nm)
   gene = Hecke.genus_herm_type(E)[]
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -513,7 +515,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_ro
     det(M) == d || continue
     MfM = integer_lattice_with_isometry(M, fM; check = false)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
-    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == n*m
+    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == nm
     if is_even(M) != is_even(Lf)
       continue
     end
