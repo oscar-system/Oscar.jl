@@ -15,7 +15,7 @@ Return the boolean value whether a covered scheme `X` is empty.
 """
 is_empty(X::AbsCoveredScheme) = is_empty(underlying_scheme(X))
 @attr function is_empty(X::CoveredScheme)
-  if !isdefined(X, :coverings) 
+  if !isdefined(X, :coverings)
     return true
   end
   return all(isempty, all_patches(default_covering(X)))
@@ -32,14 +32,37 @@ Return the boolean value whether a covered scheme `X` is smooth.
 is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
 
 @attr function is_smooth(X::CoveredScheme)
-  if !isdefined(X, :coverings) 
+  if !isdefined(X, :coverings)
     return true
   end
   # TODO: Can this be optimized? We only need to check the rank of
-  # the jacobian matrices where we haven't checked in another chart before. 
+  # the jacobian matrices where we haven't checked in another chart before.
   # This is a tradeoff between cost of Jacobian criterion and cost of
   # optimizing the use of the covering
   return all(is_smooth, affine_charts(X))
+end
+
+function _jacobian_criterion(X::CoveredScheme{<:Field})
+  if !isdefined(X, :coverings)
+    return true
+  end
+
+  if !has_decomposition_info(default_covering(X))
+    throw(NotImplementedError(:_jacobian_criterion, "only implemented when decomposition info is available"))
+  end
+
+  dec_info = decomposition_info(default_covering(X))
+  for (V, fs) in dec_info
+    R = base_ring(OO(V))
+    I = ambient_closure_ideal(V)
+    mat = jacobi_matrix(R, gens(I))
+    sing_locus = ideal(R, fs) + ideal(R, minors(mat, codim(V)))
+    sing_subscheme = subscheme(V, sing_locus)
+    if !isempty(sing_subscheme)
+      return false
+    end
+  end
+  return true
 end
 
 ########################################################################
