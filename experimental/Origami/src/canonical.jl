@@ -1,3 +1,13 @@
+# HACK HACK HACK special case optimization...
+function GAP.GapObj(obj::Vector{Int}; recursive::Bool = false)
+    len = length(obj)
+    ret_val = GAP.NewPlist(len)
+    for i = 1:len
+        ret_val[i] = obj[i]
+    end
+    return ret_val
+end
+
 function normal_form(o::Origami)
     x = horizontal_perm(o)
     y = vertical_perm(o)
