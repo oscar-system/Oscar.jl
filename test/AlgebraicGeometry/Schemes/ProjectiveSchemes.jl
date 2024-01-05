@@ -73,11 +73,11 @@ end
   A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
   B, _ = quo(A, ideal(A, [x^2 + y^2]));
   C = projective_scheme(B)
-  @test !is_smooth(C; algorithm=:jacobi)
+  @test !is_smooth(C; algorithm=:projective_jacobian)
+  C = projective_scheme(B)
+  @test !is_smooth(C; algorithm=:covered_jacobian)
   C = projective_scheme(B)
   @test !is_smooth(C; algorithm=:affine_cone)
-  C = projective_scheme(B)
-  @test !is_smooth(C; algorithm=:covered)
 end
 
 @testset "Fermat lines" begin
@@ -280,9 +280,11 @@ end
   @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
-  @test is_smooth(C; algorithm=:jacobi)
+  @test is_smooth(C; algorithm=:projective_jacobian)
+  C = ProjectiveScheme(Q)
+  @test is_smooth(C; algorithm=:covered_jacobian)
+  C = ProjectiveScheme(Q)
   @test is_smooth(C; algorithm=:affine_cone)
-  @test is_smooth(C; algorithm=:covered)
   @test arithmetic_genus(C) == 0
 
   R, (x,y,z,w) = QQ["x", "y", "z", "w"]
@@ -293,9 +295,11 @@ end
   @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
-  @test is_smooth(Y; algorithm=:jacobi)
+  @test is_smooth(Y; algorithm=:projective_jacobian)
+  Y = ProjectiveScheme(Q)
+  @test is_smooth(Y; algorithm=:covered_jacobian)
+  Y = ProjectiveScheme(Q)
   @test is_smooth(Y; algorithm=:affine_cone)
-  @test is_smooth(Y; algorithm=:covered)
   @test arithmetic_genus(Y) == 1
   @test is_reduced(Y)
   @test is_integral(Y)
