@@ -21,6 +21,13 @@ end
 
 Check whether the scheme `P` is smooth.
 
+For schemes that are not equidimensional, use the optional argument
+  `algorithm=:affine_cone`.
+If you already know that the scheme is equidimensional and wish to avoid
+computing that, write
+  !set_attribute(P, :is_equidimensional, true)
+before checking for smoothness.
+
 # Algorithms
 
 There are three possible algorithms for checking smoothness, determined
@@ -30,12 +37,14 @@ by the value of the keyword argument `algorithm`:
   * `:covered` - converts to a covered scheme,
   * `:affine_cone` - checks that the affine cone is smooth outside the origin.
 
-The `:projective_jacobian` and the `:covered` algorithms first check
-that the scheme is equidimensional, which can be expensive.
+The `:projective_jacobian` and the `:covered` algorithms only work for equidimensional schemes. The algorithms first check for equidimensionality, which can be expensive.
 
-By default, if the base ring is a field and the scheme has already been
-computed to be equidimensional, then the `:projective_jacobian`
-algorithm is used. Otherwise, the `:affine_cone` algorithm is used.
+By default, if the base ring is a field, then we first compute whether the scheme is equidimensional. If yes, then the `:projective_jacobian` algorithm is used. Otherwise, the `:affine_cone` algorithm is used.
+
+If you already know that the scheme is equidimensional, then you can
+avoid recomputing that by writing
+  `set_attribute!(P, :is_equidimensional, true)`
+before checking for smoothness.
 
 # Examples
 ```jldoctest
