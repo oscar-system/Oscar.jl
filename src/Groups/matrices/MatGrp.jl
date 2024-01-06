@@ -560,7 +560,7 @@ end
 
 Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
@@ -594,7 +594,7 @@ end
 
 Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
@@ -629,7 +629,7 @@ end
 Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
@@ -666,7 +666,7 @@ Return the orthogonal group of dimension `n` over the ring `R` respectively the
 field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
@@ -718,7 +718,7 @@ Return the special orthogonal group of dimension `n` over the ring `R` respectiv
 the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
@@ -771,7 +771,7 @@ Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
 
-Currently, this function only supports rings of type `fqPolyRepField`.
+Currently, this function only supports rings of type `FqField`.
 
 # Examples
 ```jldoctest
