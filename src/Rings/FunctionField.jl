@@ -90,7 +90,7 @@ function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{
   cst_num = constant_coefficient(num)
   denom = denominator(x)
   cst_denom = constant_coefficient(denom)
-  if (num != cst_num || denom != cst_denom) throw(InexactError(:fpFieldElem, fpFieldElem, x)) end
+  if (num != cst_num || denom != cst_denom) throw(InexactError(:FqFieldElem, FqFieldElem, x)) end
   F(cst_num) // F(cst_denom)
 end
 

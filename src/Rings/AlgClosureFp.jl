@@ -108,7 +108,7 @@ function ext_of_degree(A::AlgClosure, d::Int)
   elseif isa(k, FqField)
     K = GF(characteristic(k), d, cached = false)
   else
-    K = Nemo.Nativ.GF(characteristic(k), d, cached = false)
+    K = Nemo.Native.GF(characteristic(k), d, cached = false)
   end
   A.fld[d] = K
   return K
