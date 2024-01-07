@@ -27,7 +27,8 @@ function normal_form(o::Origami)
         if cycle_lengths == minimal_cycle_lengths
             push!(minimize_cycle_lengths, i)
         elseif cycle_lengths < minimal_cycle_lengths
-            minimize_cycle_lengths = [i]
+            empty!(minimize_cycle_lengths)
+            push!(minimize_cycle_lengths, i)
             minimal_cycle_lengths = cycle_lengths
         end
     end
@@ -35,29 +36,28 @@ function normal_form(o::Origami)
     G = PermGroupElem[]
     sym = symmetric_group(n)
 
-    # TODO this can be completetly refactored. this is the exact same as
+    # TODO this can be completely refactored. this is the exact same as
     # normalform_conjugators apart from looping over different lists
+    L = fill(0, n)
+    Q = Int[]
     for i in minimize_cycle_lengths
-        L = fill(0, n)
-        seen = fill(false, n)
-        Q = [i]
-        seen[i] = true
+        fill!(L, 0)
+        empty!(Q)
+        push!(Q, i)
         numSeen = 1
         L[i] = 1
         while numSeen < n
             v = popfirst!(Q)
             wx = v^x
             wy = v^y
-            if !seen[wx]
+            if L[wx] == 0
                 push!(Q, wx)
-                seen[wx] = true
-                numSeen = numSeen + 1
+                numSeen += 1
                 L[wx] = numSeen
             end
-            if !seen[wy]
+            if L[wy] == 0
                 push!(Q, wy)
-                seen[wy] = true
-                numSeen = numSeen + 1
+                numSeen += 1
                 L[wy] = numSeen
             end
         end
