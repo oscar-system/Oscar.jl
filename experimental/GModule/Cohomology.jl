@@ -1834,7 +1834,7 @@ function (k::Nemo.fpField)(a::Vector)
 end
 
 function (k::fqPolyRepField)(a::Vector)
-  return k(polynomial(GF(Int(characteristic(k))), a))
+  return k(polynomial(Native.GF(Int(characteristic(k))), a))
 end
 
 function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
@@ -1854,12 +1854,14 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
+    F = base_ring(parent(a))
+    @assert absolute_degree(F) == 1
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
-        push!(r, lift(a[i]))
+        push!(r, lift(ZZ, a[i]))
       end
     end
     g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))

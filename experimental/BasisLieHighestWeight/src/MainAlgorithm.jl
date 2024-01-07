@@ -103,6 +103,7 @@ function compute_monomials(
   """
   # simple cases
   # we already computed the highest_weight result in a prior recursion step
+
   if haskey(calc_highest_weight, highest_weight)
     return calc_highest_weight[highest_weight]
   elseif highest_weight == [ZZ(0) for i in 1:(L.rank)] # we mathematically know the solution
@@ -136,7 +137,7 @@ function compute_monomials(
       lambda_1 = sub_weights_w[i]
       lambda_2 = highest_weight .- lambda_1
 
-      if lambda_2 > lambda_1
+      if lambda_1 > lambda_2
         continue
       end
 
@@ -171,6 +172,7 @@ function compute_monomials(
         L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon
       )
     end
+
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
   end

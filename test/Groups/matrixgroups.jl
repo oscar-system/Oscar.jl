@@ -449,7 +449,7 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*matrix(y) isa fqPolyRepMatrix
+   @test x*matrix(y) isa typeof(matrix(y))
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm

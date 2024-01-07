@@ -54,7 +54,7 @@ homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_rin
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
 
-# Example 
+# Example
 ```jldoctest
 julia> S, _ = grade(QQ["x", "y", "z"][1]);
 
@@ -86,8 +86,8 @@ _homogenization_cache(X::AbsProjectiveScheme) = _homogenization_cache(underlying
 @doc raw"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
-On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
-for a standard graded polynomial ring ``P`` and a 
+On a projective scheme ``P = Proj(S)`` with ``S = P/I``
+for a standard graded polynomial ring ``P`` and a
 homogeneous ideal ``I`` this returns ``P``.
 
 # Example
@@ -259,8 +259,8 @@ defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}) = modulus(homogene
 @doc raw"""
     affine_cone(X::AbsProjectiveScheme)
 
-On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹`` 
-is the affine cone of ``X`` and ``f : S → 𝒪(C)`` is the morphism of rings 
+On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹``
+is the affine cone of ``X`` and ``f : S → 𝒪(C)`` is the morphism of rings
 from the `homogeneous_coordinate_ring` to the `coordinate_ring` of the affine cone.
 
 
@@ -441,7 +441,7 @@ function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   return X.Y
 end
 
-function base_scheme(X::ProjectiveScheme{<:SpecOpenRing}) 
+function base_scheme(X::ProjectiveScheme{<:SpecOpenRing})
   return domain(base_ring(X))
 end
 
@@ -505,6 +505,10 @@ projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ri
 
 @attr Int function dim(P::AbsProjectiveScheme{<:Field})
   return dim(defining_ideal(P))-1
+end
+
+@attr Int function codim(P::AbsProjectiveScheme{<:Field})
+  return dim(ambient_space(P)) - dim(defining_ideal(P)) + 1
 end
 
 @attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})

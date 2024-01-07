@@ -10,14 +10,14 @@
 
   G = diagonal_matrix([R(1), R(1)])
   L = Oscar._orthogonal_grp_gens_odd(G, 3)
-  L = [change_base_ring(F, g) for g in L]
+  L = [change_base_ring(F, lift(g)) for g in L]
   @test order(matrix_group(L)) == 8
   Oscar._gens(G,2, 3)
 
 
   G = diagonal_matrix([R(1),R(2)])
   L = Oscar._orthogonal_grp_gens_odd(G, 3)
-  L = [change_base_ring(F, g) for g in L]
+  L = [change_base_ring(F, lift(g)) for g in L]
   @test order(matrix_group(L)) == 4
   Oscar._gens(G,2, 3)
 
@@ -25,14 +25,14 @@
   R = residue_ring(ZZ, 3^5)
   F = GF(3)
   G = diagonal_matrix([R(x) for x in [3*1, 3*1]])
-  L = [change_base_ring(F,g) for g in Oscar._gens_mod_p(G, 3)]
+  L = [change_base_ring(F, lift(g)) for g in Oscar._gens_mod_p(G, 3)]
   @test order(matrix_group(L))==8
   # Oscar._gens(G,2, 3)
 
 
 
   G = diagonal_matrix([R(x) for x in [1, 3, 3, 9, 2*27]])
-  L = [change_base_ring(F,g) for g in Oscar._gens_mod_p(G, 3)]
+  L = [change_base_ring(F,lift(g)) for g in Oscar._gens_mod_p(G, 3)]
   @test order(matrix_group(L))==1259712
   #Oscar._gens(G,2, 3)
 
@@ -59,14 +59,14 @@ end
   [U, w1, w5]]
   GG = [diagonal_matrix(G) for G in L]
   GG = [Oscar._orthogonal_gens_bilinear(G) for G in GG]
-  GG = [matrix_group([change_base_ring(F,g) for g in G]) for G in GG]
+  GG = [matrix_group([change_base_ring(F, lift(g)) for g in G]) for G in GG]
   GG = [order(G) for G in GG]
   @test GG == [6, 6, 48, 48, 2, 720, 6, 48]
 
 
   GG = [diagonal_matrix(G) for G in [[U,V], [U, W0],[V,W0],[U,U,W0],[U,V,W0], [W1]]]
   GG = [Oscar._orthogonal_grp_quadratic(G) for G in GG]
-  GG = [matrix_group([change_base_ring(F,g) for g in G]) for G in GG]
+  GG = [matrix_group([change_base_ring(F, lift(g)) for g in G]) for G in GG]
   GG = [order(G) for G in GG]
   @test GG == [120, 8, 24, 1152,1920,2]
 
@@ -126,7 +126,7 @@ end
     ]
   M = [diagonal_matrix(G) for G in L]
   GG = [Oscar._gens_mod_2(G) for G in M]
-  GG = [matrix_group([change_base_ring(F,g) for g in G]) for G in GG]
+  GG = [matrix_group([change_base_ring(F, lift(g)) for g in G]) for G in GG]
   GG = [order(G) for G in GG]
   @test GG == [720,
       24,
