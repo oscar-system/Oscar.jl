@@ -50,7 +50,9 @@ GAP.@wrap CollectionsFamily(x::GapObj)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
 GAP.@wrap ConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap CycleFromList(x::GapObj)::GapObj
+GAP.@wrap CycleLength(x::GapObj, y::Int)::GapInt
 GAP.@wrap CycleStructurePerm(x::GapObj)::GapObj
+GAP.@wrap CYCLE_LENGTH_PERM_INT(x::GapObj, y::Int)::Int
 GAP.@wrap CycList(x::GapObj)::GapInt
 GAP.@wrap CyclotomicPol(x::Int)::GapObj
 GAP.@wrap DecomposeTensorProduct(x::GapObj, y::GapObj, z::GapObj)::GapObj
