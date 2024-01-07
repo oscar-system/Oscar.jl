@@ -28,7 +28,7 @@ function (k::Nemo.FpField)(a::Vector)
   return k(a[1])
 end
 function (k::FqPolyRepField)(a::Vector)
-  return k(polynomial(GF(ZZ(characteristic(k))), a))
+  return k(polynomial(Native.GF(ZZ(characteristic(k))), a))
 end
 
 # TODO : Should be fixed in Hecke for prime fields
@@ -348,7 +348,7 @@ function _extension_with_tower_basis(
   push!(lcoeffs, one(K))
   pmat = identity_matrix(K, Int(deg))
   vname = "x" * string(deg)
-  L, X = finite_field(polynomial(K, lcoeffs), vname)
+  L, X = Native.finite_field(polynomial(K, lcoeffs), vname)
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 
@@ -439,7 +439,7 @@ function _extension_with_tower_basis(
   # pmat gives the primitive powers in the tower basis for the new extension
 
   vname = "x" * string(d)
-  L, X = finite_field(polynomial(F, poly), vname)
+  L, X = Native.finite_field(polynomial(F, poly), vname)
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 
@@ -461,7 +461,7 @@ Finite field of degree 24 over GF(3)
 """
 function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
   @req is_prime(p) "first argument must be a prime"
-  F = GF(p)
+  F = Native.GF(p)
   set_standard_prime_field!(F)
 
   function _sff(N::Fac{ZZRingElem})

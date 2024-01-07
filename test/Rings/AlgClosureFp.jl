@@ -5,12 +5,12 @@ function test_elem(K::AlgClosure{T}) where T <: FinField
 end
 
 @testset "AlgClosureFp" begin
-  @testset "Interface for $F" for F in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Interface for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(GF(3,1))
     test_Field_interface(K)
   end
 
-  @testset "Creation for $F" for F in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Creation for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F)
     @test base_field(K) === F
     @test characteristic(K) == characteristic(F)
@@ -52,7 +52,7 @@ end
     @test a == b
   end
 
-  @testset "Printing for $F" for F in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Printing for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F)
     @test sprint(show, "text/plain", K) == "Algebraic Closure of Finite field of degree 1 over GF(3)"
 
@@ -61,7 +61,7 @@ end
     end
   end
 
-  @testset "Coercion and conversion for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Coercion and conversion for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     F2 = ext_of_degree(K, 2)
     a = gen(F2)
@@ -74,7 +74,7 @@ end
     @test_throws ErrorException F2(d)
   end
 
-  @testset "Arithmetic for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Arithmetic for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     @test is_unit(K(one(F1)))
     @test !is_unit(zero(K))
@@ -103,7 +103,7 @@ end
     end
   end
 
-  @testset "Ad hoc operations for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Ad hoc operations for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     for i in 1:10
       a = test_elem(K)
@@ -122,7 +122,7 @@ end
     end
   end
 
-  @testset "Comparison for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Comparison for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     F2 = ext_of_degree(K, 2)
     F3 = ext_of_degree(K, 3)
@@ -136,7 +136,7 @@ end
     @test hash(K(one(F2)), zero(UInt)) == hash(K(one(F3)), zero(UInt))
   end
 
-  @testset "Embeddings for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Embeddings for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F1)
     F2 = ext_of_degree(K, 2)
     F3 = ext_of_degree(K, 3)
@@ -151,7 +151,7 @@ end
     @test !has_preimage(emb, K(gen(F3)))[1]
   end
 
-  @testset "Polynomial for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Polynomial for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     p = characteristic(F1)
     K = algebraic_closure(F1)
     Kx, x = K["x"]
@@ -161,7 +161,7 @@ end
     @test sort!(map(degree, r)) == [1, 1, 2, 2]
   end
 
-  @testset "Matrix for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Matrix for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     p = characteristic(F1)
     K = algebraic_closure(F1)
     z = zero(K)
@@ -170,7 +170,7 @@ end
     @test M^2 == M * M
   end
 
-  @testset "Singular ring for $F1" for F1 in [GF(3, 1), Nemo._GF(3, 1)]
+  @testset "Singular ring for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     p = characteristic(F1)
     K = algebraic_closure(F1)
     L = Oscar.singular_coeff_ring(K)

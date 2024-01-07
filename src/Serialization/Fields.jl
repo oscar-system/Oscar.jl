@@ -144,7 +144,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: fqPolyRepField})
   def_pol = load_typed_object(s, :def_pol)
-  K, _ = finite_field(def_pol, cached=false)
+  K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end
 
@@ -196,10 +196,10 @@ function load_object(s::DeserializerState, ::Type{<: FqField})
   load_node(s) do node
     if node isa String
       order = ZZRingElem(node)
-      return Hecke.Nemo._FiniteField(order)[1]
+      return finite_field(order)[1]
     else
       def_pol = load_typed_object(s)
-      return Hecke.Nemo._FiniteField(def_pol, cached=false)[1]
+      return finite_field(def_pol, cached=false)[1]
     end
   end
 end

@@ -8,13 +8,13 @@ Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
 Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
-Fin, d = finite_field(t^2 + t + 1)
+Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = tropical_semiring()
-F, o  = Hecke.Nemo._FiniteField(4)
+F, o  = finite_field(4)
 Fs, s = F["s"]
-FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
+FF, r = finite_field(s^2 + o * s + 1, "r")
 
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
