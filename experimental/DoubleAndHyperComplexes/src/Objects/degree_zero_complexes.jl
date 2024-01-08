@@ -1,3 +1,16 @@
+# Given a 1-dimensional hypercomplex `C` of graded modules with 
+# homogeneous (co-)boundary maps, this constructs the same complex,
+# but with all modules shifted so that the morphisms become homogeneous 
+# of degree zero. 
+#
+# Note that to this end the complex needs to be connected in the sense 
+# that there must not be zero modules or maps sitting between any non-zero 
+# modules. 
+#
+# Furthermore, one module needs to be given from which the levelling to 
+# degree zero starts. By default, this is the codomain of the last 
+# nonzero (co-)boundary map (depending on the direction of the complex).
+
 ### Production of the chains
 struct DegreeZeroChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   orig::AbsHyperComplex{ChainType}
