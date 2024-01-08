@@ -238,7 +238,7 @@ include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Compositions.jl")
-include("Combinatorics/IntegerCombinatorics/JuLie.jl")
+include("Combinatorics/IntegerCombinatorics/IntegerCombinatorics.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

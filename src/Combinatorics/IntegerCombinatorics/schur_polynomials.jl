@@ -7,8 +7,6 @@
 # by Tom Schmit and Ulrich Thiel; OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
-export schur_polynomial
-
 @doc raw"""
     schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
     schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer

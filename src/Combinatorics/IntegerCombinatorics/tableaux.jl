@@ -7,22 +7,6 @@
 # by Tom Schmit and Ulrich Thiel; OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
-export Tableau
-
-export bump!
-export hook_length
-export hook_lengths
-export is_semistandard
-export is_standard
-export number_of_standard_tableaux
-export reading_word
-export schensted
-export semistandard_tableaux
-export shape
-export standard_tableaux
-export weight
-
-
 @doc raw"""
     Tableau{T} <: AbstractVector{AbstractVector{T}}
 

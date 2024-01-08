@@ -9,16 +9,6 @@
 # Mar 2023: Improvements and bug fixes by UT.
 ################################################################################
 
-export Partition
-
-export ascending_partitions
-export conjugate
-export dominates
-export getindex_safe
-export number_of_partitions, npartitions      # aliases do not work in experimental
-export partition
-export partitions
-
 ################################################################################
 # Partition type
 ################################################################################

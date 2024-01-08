@@ -1,5 +1,3 @@
-import Oscar.JuLie: schur_polynomial_cbf
-
 @testset "Schur polynomials" begin
 	S,x = polynomial_ring(ZZ, :x => 1:3)
 
