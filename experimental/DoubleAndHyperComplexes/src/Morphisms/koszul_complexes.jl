@@ -1,3 +1,20 @@
+###
+# Let ϕ : F → G be a morphism of free R-modules F ≅ Rᵐ and G ≅ Rⁿ. 
+# Suppose that we have two elements v ∈ F and w ∈ G which give rise 
+# to Koszul complexes 
+#
+#  0 → ⋀⁰ F → ⋀¹ F → ⋀² F → … → ⋀ᵐ⁻¹ F → ⋀ᵐ F → 0
+#
+# and
+#
+#  0 → ⋀⁰ G → ⋀¹ G → ⋀² G → … → ⋀ⁿ⁻¹ G → ⋀ⁿ G → 0
+#
+# given by exterior multiplication with v and w, respectively. 
+# Then, in case ϕ(v) = w, there is an induced morphism of complexes 
+# ⋀* F → ⋀* G coming from the maps on the exterior powers. 
+#
+# The struct below implements this morphism of complexes. 
+
 struct KoszulKomplexMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
   original_map::MorphismType
 
