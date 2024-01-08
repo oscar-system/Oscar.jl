@@ -36,7 +36,6 @@ export morphism
 export AffineNormalToricVariety
 export AffinePlaneCurve
 export AffineVariety
-export arithmetic_genus
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BettiTable
@@ -109,6 +108,7 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
+export MorphismFromRationalFunctions
 export Nemo
 export NormalToricVariety
 export OO
@@ -116,6 +116,7 @@ export PBWAlgElem
 export PBWAlgQuo
 export PBWAlgQuoElem
 export PBWAlgRing
+export Partition
 export PcGroup
 export PcGroupElem
 export PermGroup
@@ -133,6 +134,7 @@ export ProjectiveScheme
 export ProjectiveSchemeMor
 export ProjectiveVariety
 export QQ
+export R10_matroid
 export RationalEquivalenceClass
 export RayVector
 export SIM_body_polytope
@@ -161,6 +163,7 @@ export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
+export Tableau
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
@@ -243,6 +246,7 @@ export approximate_class_fusion
 export archimedean_solid
 export as_dictionary
 export as_gset
+export ascending_partitions
 export associahedron
 export atlas_description
 export atlas_group
@@ -277,6 +281,7 @@ export borcherds_method
 export boundary_lattice_points
 export build_ctx
 export build_doc
+export bump!
 export canonical_bundle
 export canonical_divisor
 export canonical_divisor_class
@@ -369,6 +374,7 @@ export conjugacy_class
 export conjugacy_classes
 export conjugacy_classes_maximal_subgroups
 export conjugacy_classes_subgroups
+export conjugate
 export conjugate_group
 export conjugate_transpose
 export connected_components
@@ -464,6 +470,7 @@ export divrem
 export dodecahedron
 export domain
 export domain_covering
+export dominates
 export double_coset
 export double_cosets
 export double_dual
@@ -567,6 +574,7 @@ export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
 export germ_at_point
+export getindex_safe
 export girth
 export gkz_vector
 export gluing_domains
@@ -640,6 +648,8 @@ export homology
 export homomorphism_of_semidirect_product
 export homomorphism_of_wreath_product
 export homomorphism_to_element
+export hook_length
+export hook_lengths
 export hyperplane
 export hyperplanes
 export hypersimplex
@@ -834,6 +844,7 @@ export is_regular_sequence
 export is_right
 export is_semiregular
 export is_semisimple
+export is_semistandard
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
@@ -841,6 +852,7 @@ export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
+export is_standard
 export is_standard_basis
 export is_standard_graded
 export is_strongly_connected
@@ -926,6 +938,7 @@ export link_subcomplex
 export load
 export load_lp
 export load_mps
+export localization
 export localized_ring
 export loops
 export low_index_subgroup_reps
@@ -995,7 +1008,6 @@ export monomials
 export monomials_of_degree
 export mori_cone
 export morphism_from_cox_variety
-export MorphismFromRationalFunctions
 export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
@@ -1077,6 +1089,7 @@ export number_of_polyhedra
 export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_rays
 export number_of_small_groups, has_number_of_small_groups
+export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
 export number_of_vertices
 export numerator
@@ -1114,6 +1127,8 @@ export parallel_extension
 export parametrization
 export parametrization_conic
 export parent
+export partition
+export partitions
 export patches
 export pbw_algebra
 export pc_group
@@ -1198,7 +1213,6 @@ export quaternion_group
 export quo
 export quotient
 export quotient_ring_as_module
-export R10_matroid
 export radical
 export radical_membership
 export rand
@@ -1225,6 +1239,7 @@ export ray_vector
 export rays
 export rays_modulo_lineality
 export read_metadata
+export reading_word
 export real_projective_plane
 export real_solutions
 export realization
@@ -1292,13 +1307,16 @@ export save_lp
 export save_mps
 export scalar_product
 export scheme
+export schensted
 export schur_index
 export schur_multiplier
+export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
 export semi_invariants
 export semidirect_product
+export semistandard_tableaux
 export separating_hyperplanes
 export series_extension
 export set_base_scheme!
@@ -1314,6 +1332,7 @@ export set_relative_order!
 export set_relative_orders!
 export set_theoretic_intersection
 export sets
+export shape
 export sheaf_cohomology
 export short_right_transversal
 export shortest_path_dijkstra
@@ -1358,6 +1377,7 @@ export stable_set_polytope
 export standard_basis
 export standard_basis_with_transformation_matrix
 export standard_covering
+export standard_tableaux
 export stanley_reisner_ideal
 export stanley_reisner_ring
 export star_subcomplex
@@ -1473,7 +1493,6 @@ export wedge
 export wedge_generator_decompose_function
 export wedge_multiplication_map
 export wedge_pure_function
-export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering
