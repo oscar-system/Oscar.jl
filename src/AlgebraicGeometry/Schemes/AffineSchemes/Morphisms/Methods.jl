@@ -154,6 +154,7 @@ function _induced_map_to_fiber_product(
   # XxY is a principal open subset of Y.
   XxY = fiber_product[1]
   W = domain(a)
+  Y = codomain(b)
   img_gens = pullback(b).(gens(OO(Y)))
   return SpecMor(W, XxY, img_gens, check=check)
 end
