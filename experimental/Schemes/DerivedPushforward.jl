@@ -37,7 +37,7 @@ function _derived_pushforward(M::SubquoModule)
   kosz = koszul_complex(Oscar.KoszulComplex, v)
   K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
 
-  res = free_resolution(Oscar.SimpleFreeResolution, M)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
   KoM = hom(K, res)
   tot = total_complex(KoM)
   tot_simp = simplify(tot)
