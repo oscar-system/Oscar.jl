@@ -35,6 +35,16 @@
   @test d2(A(x)*WA[2][4]) == WA[3][1]
   @test "$(WA[2])" == "$(Oscar.is_unicode_allowed() ? "Ω" : "\\Omega")^2($A)"
 
+  I = L(I)
+  A, pr = quo(L, I)
+  WA1 = Oscar.kaehler_differentials(A)
+  @test iszero(WA1[4])
+  WA = Oscar.de_rham_complex(A)
+  @test iszero(WA[4])
+  @test !iszero(WA[3])
+  d2 = map(WA, 2)
+  @test d2(A(1//x)*WA[2][4]) == -A(1//x^2)*WA[3][1]
+
   # The graded case
   S, _ = grade(R)
   I = ideal(S, S[4])
@@ -49,14 +59,4 @@
   d2 = map(WA, 2)
   @test d2(A(x)*WA[2][4]) == WA[3][1]
   @test "$(WA[2])" == "$(Oscar.is_unicode_allowed() ? "Ω" : "\\Omega")^2($A)"
-
-  I = L(I)
-  A, pr = quo(L, I)
-  WA1 = Oscar.kaehler_differentials(A)
-  @test iszero(WA1[4])
-  WA = Oscar.de_rham_complex(A)
-  @test iszero(WA[4])
-  @test !iszero(WA[3])
-  d2 = map(WA, 2)
-  @test d2(A(1//x)*WA[2][4]) == -A(1//x^2)*WA[3][1]
 end
