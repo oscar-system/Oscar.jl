@@ -87,14 +87,14 @@ end
 
 Returns the symmetric shift of `K`
 """
-function delta_sym(K::SimplicialComplex)
+function delta_sym(F::Field, K::SimplicialComplex)
   n = nvertices(K)
-  Ry, y = polynomial_ring(QQ, :y => (1:n, 1:n))
-  Ryx, x = polynomial_ring(Ry, n)
+  Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
+  Fyx, x = polynomial_ring(Fy, n)
 
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
   # but we want to avoid using fraction field of Ry during row reduction 
-  mb_ring, z = graded_polynomial_ring(QQ, n)
+  mb_ring, z = graded_polynomial_ring(F, n)
   o = monomial_ordering(mb_ring, :lex)
   cmp_order(a, b) = cmp(o, a, b) > 0
 
