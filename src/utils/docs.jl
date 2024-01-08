@@ -63,6 +63,12 @@ end
     doctest_fix(f::Function; set_meta::Bool = false)
 
 Fixes all doctests for the given function `f`.
+
+# Example
+The following call fixes all doctests for the function `symmetric_group`:
+```julia
+julia> Oscar.doctest_fix(symmetric_group)
+```
 """
 function doctest_fix(f::Function; set_meta::Bool = false)
   S = Symbol(f)
@@ -78,20 +84,27 @@ function doctest_fix(f::Function; set_meta::Bool = false)
 end
 
 """
-    doctest_fix(n::String; set_meta::Bool = false)
+    doctest_fix(path::String; set_meta::Bool = false)
 
-Fixes all doctests for the file `n`, ie. all files in Oscar where
-`n` occurs in the full pathname of.
+Fixes all doctests for all files in Oscar where
+`path` occurs in the full pathname.
+
+# Example
+The following call fixes all doctests in files that live in a directory
+called `Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
+```julia
+julia> Oscar.doctest_fix("/Rings/")
+```
 """
-function doctest_fix(n::String; set_meta::Bool=false)
+function doctest_fix(path::String; set_meta::Bool=false)
   doc, doctest = get_document(set_meta)
 
   walkmodules(Oscar) do m
     #essentially inspired by Documenter/src/DocTests.jl
     bm = Base.Docs.meta(m)
-    for (k, md) in bm
+    for (_, md) in bm
       for s in md.order
-        if occursin(n, md.docs[s].data[:path])
+        if occursin(path, md.docs[s].data[:path])
           doctest(md.docs[s], Oscar, doc)
         end
       end
