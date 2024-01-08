@@ -367,3 +367,16 @@ end
   Y = covered_scheme(X)
   @test length(affine_charts(Y)) == 2
 end
+
+@testset "cotangent modules" begin
+  X = projective_space(QQ, [:x, :y, :z, :w])
+  W = Oscar.relative_cotangent_module(X)
+  R = homogeneous_coordinate_ring(X)
+  (x, y, z, w) = gens(R)
+  f = x^4 + y^4 + z^4 + w^4
+  S, inc_S = sub(X, f)
+  RS = homogeneous_coordinate_ring(S)
+  #W1 = Oscar.kaehler_differentials(RS)
+  WS = Oscar.relative_cotangent_module(S)
+end
+
