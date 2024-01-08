@@ -64,7 +64,6 @@ function schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:
   return schur_polynomial(polynomial_ring(ZZ, n)[1], lambda, n)
 end
 
-
 function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
   @req n >= 0 "n >= 0 required"
   if n==0 || n < length(lambda)
@@ -90,7 +89,6 @@ function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(la
   end
 end
 
-
 #returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
 function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) where T<:Integer
   #if isempty(x) #this event is handled in the calling methods
@@ -103,9 +101,9 @@ function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) 
 
   n = length(x)
   @assert n > 0 "number of variables must be > 0"
-  # TODO: The next line suggested that the case n<=0 is invalid input. But is this 
-  # really the case? I see some comment lines below which have probably been there 
-  # at some point to catch such boundary cases. 
+  # TODO: The next line suggested that the case n<=0 is invalid input. But is this
+  # really the case? I see some comment lines below which have probably been there
+  # at some point to catch such boundary cases.
   R = parent(x[1]) # Multi-polynomialring
   @assert all(y->parent(y)===R, x) "input elements must have the same parent"
 

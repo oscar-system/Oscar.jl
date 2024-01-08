@@ -7,45 +7,11 @@
 # by Tom Schmit and Ulrich Thiel; OSCAR-ified by Claudia He Yun and Matthias Zach.
 ################################################################################
 
-@doc raw"""
-    Tableau{T} <: AbstractVector{AbstractVector{T}}
-
-A **Young diagram** is a diagram of finitely many empty "boxes" arranged
-in left-justified rows, with the row lengths in non-increasing order. The
-box in row `i` and and column `j` has the **coordinates** `(i,j)`. Listing
-the number of boxes in each row gives a partition ``λ`` of a non-negative
-integer `n` (the total number of boxes of the diagram). The diagram is
-then said to be of **shape** ``λ``. Conversely, one can associate to any
-partition ``λ`` a Young diagram in the obvious way, so Young diagrams are
-just another way to look at partitions.
-
-A **Young tableau** of shape ``λ`` is a filling of the boxes of the Young
-diagram of ``λ`` with elements from some set. After relabeling we can (and
-will) assume that we fill from a set of integers from ``1`` up to some number,
-which in applications is often equal to `n`. We encode a tableau as an
-array of arrays and we have implemented an own type `Tableau{T}`
-as subtype of `AbstractVector{AbstractVector{T}}` to work with
-tableaux. As for partitions, you may increase performance by casting
-into smaller integer types, e.g.
-
-For efficiency, we do not check whether the given array is really a
-tableau, i.e. whether the structure of the array defines a partition.
-
-# Examples
-```jldoctest
-julia> tab=Tableau([[1,2,3],[4,5],[6]])
-[[1, 2, 3], [4, 5], [6]]
-
-julia> tab=Tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
-Vector{Int8}[[2, 1], [], [3, 2, 1]]
-```
-
-# References
-1. Wikipedia, [Young tableau](https://en.wikipedia.org/wiki/Young_tableau).
-"""
-struct Tableau{T} <: AbstractVector{AbstractVector{T}}
-  t::Vector{Vector{T}}
-end
+################################################################################
+#
+#  Array-like functionality
+#
+################################################################################
 
 function Base.show(io::IO, ::MIME"text/plain", tab::Tableau)
   print(io, tab.t)
@@ -67,6 +33,11 @@ function Base.getindex(tab::Tableau, I::Vararg{Int, 2})
   return getindex(getindex(tab.t,I[1]), I[2])
 end
 
+################################################################################
+#
+#  Basic functionality
+#
+################################################################################
 
 @doc raw"""
     shape(tab::Tableau{T})
@@ -77,7 +48,6 @@ rows of the tableau.
 function shape(tab::Tableau{T}) where T
   return partition(T[ length(tab[i]) for i=1:length(tab) ])
 end
-
 
 @doc raw"""
     weight(tab::Tableau)
@@ -106,7 +76,6 @@ function weight(tab::Tableau)
   end
   return w
 end
-
 
 @doc raw"""
     reading_word(tab::Tableau)
@@ -139,6 +108,11 @@ function reading_word(tab::Tableau)
   return w
 end
 
+################################################################################
+#
+#  Semistandard tableaux
+#
+################################################################################
 
 @doc raw"""
     is_semistandard(tab::Tableau)
@@ -183,8 +157,6 @@ function is_semistandard(tab::Tableau)
   end
   return true
 end
-
-
 
 @doc raw"""
     semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
@@ -396,7 +368,11 @@ function semistandard_tableaux(s::Partition{T}, weight::Partition{T}) where T<:I
   return semistandard_tableaux(Vector{T}(s),Vector{T}(weight))
 end
 
-
+################################################################################
+#
+#  Standard tableaux
+#
+################################################################################
 
 @doc raw"""
     is_standard(tab::Tableau)
@@ -457,7 +433,6 @@ function is_standard(tab::Tableau)
   return true
 end
 
-
 @doc raw"""
     standard_tableaux(s::Partition)
     standard_tableaux(s::Vector{Integer})
@@ -514,11 +489,9 @@ function standard_tableaux(s::Partition)
   return tabs
 end
 
-
 function standard_tableaux(s::Vector{T}) where T<:Integer
   return standard_tableaux(partition(s))
 end
-
 
 @doc raw"""
     standard_tableaux(n::Integer)
@@ -534,7 +507,11 @@ function standard_tableaux(n::Integer)
   return ST
 end
 
-
+################################################################################
+#
+#  Hook length
+#
+################################################################################
 
 @doc raw"""
     hook_length(lambda::Partition, i::Integer, j::Integer)
@@ -564,7 +541,6 @@ function hook_length(tab::Tableau, i::Integer, j::Integer)
   return hook_length(shape(tab),i,j)
 end
 
-
 @doc raw"""
     hook_lengths(lambda::Partition)
 
@@ -578,7 +554,6 @@ function hook_lengths(lambda::Partition)
   tab = [ [hook_length(lambda,i,j) for j in 1:lambda[i]] for i in 1:length(lambda) ]
   return Tableau(tab)
 end
-
 
 @doc raw"""
     number_of_standard_tableaux(lambda::Partition)
@@ -604,6 +579,11 @@ function number_of_standard_tableaux(lambda::Partition)
   return h
 end
 
+################################################################################
+#
+#  Schensted insertion
+#
+################################################################################
 
 @doc raw"""
     schensted(sigma::Vector{Integer})
@@ -612,7 +592,7 @@ end
 The Robinson–Schensted correspondence is a bijection between
 permutations and pairs of standard Young tableaux of the same shape. For
 a permutation sigma (given as an array), this function performs the
-Schnested algorithm and returns the corresponding pair of standard
+Schensted algorithm and returns the corresponding pair of standard
 tableaux (the insertion and recording tableaux).
 
 # Examples
@@ -644,7 +624,6 @@ end
 function schensted(sigma::Perm{T}) where T<:Integer
   return schensted(sigma.d)
 end
-
 
 @doc raw"""
     bump!(tab::Tableau, x::Int)
