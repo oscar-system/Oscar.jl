@@ -2294,9 +2294,7 @@ end
 ########################################################################
 
 function inverse(
-    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
-           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
-          }
+    f::Map{<:MPolyAnyRing, <:MPolyAnyRing}
   )
   has_attribute(f, :inverse) && return get_attribute(f, :inverse)::Map
   R = domain(f)
@@ -2318,9 +2316,7 @@ end
 # Since this does not produce significant overhead, we reroute everything 
 # to those. 
 function is_isomorphism(
-    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
-           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
-          }
+    f::Map{<:MPolyAnyRing, <:MPolyAnyRing}
   )
   has_attribute(f, :inverse) && return true
   R = domain(f)
@@ -2373,10 +2369,8 @@ end
 # to check whether coefficient maps exist and if so, what they are, 
 # so that they can be compared. 
 function Base.:(==)(
-    f::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
-           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}},
-    g::Map{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing},
-           <:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
+    f::Map{<:MPolyAnyRing, <:MPolyAnyRing},
+    g::Map{<:MPolyAnyRing, <:MPolyAnyRing}
    )
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
