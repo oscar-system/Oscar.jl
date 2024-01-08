@@ -38,25 +38,18 @@ function get_document(set_meta::Bool)
   if !isdefined(Main, :Documenter)
     error("you need to do `using Documenter` first")
   end
-
-  if isdefined(Main.Documenter, :Document)
-    Document = Main.Documenter.Document
-  else
-    Document = Main.Documenter.Documents.Document
-  end
-  doc = Document(root = joinpath(oscardir, "docs"), doctest = :fix)
-
-  if Main.Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
-    Main.Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
+  Documenter = Main.Documenter
+  if pkgversion(Documenter) < v"1-"
+    error("you need to use Documenter.jl version 1.0.0 or later")
   end
 
-  if isdefined(Main.Documenter, :DocTests)
-    doctest = Main.Documenter.DocTests.doctest
-  else
-    doctest = Main.Documenter._doctest
+  doc = Documenter.Document(root = joinpath(oscardir, "docs"), doctest = :fix)
+
+  if Documenter.DocMeta.getdocmeta(Oscar, :DocTestSetup) === nothing || set_meta
+    Documenter.DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
   end
 
-  return doc, doctest
+  return doc, Documenter._doctest
 end
 
 """
