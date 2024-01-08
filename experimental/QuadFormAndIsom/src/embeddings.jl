@@ -254,10 +254,18 @@ end
 #   compute the representation of the centralizer of the isometries constructed
 #   on the discriminant of the associated primitive extensions (can be computed
 #   at the level of glue map by "gluing stabilizers");
+# - `OqfM`: if `compute_bar_Gf == true`, then this is the image of the representation
+#   of the centralizer `O(M, fM)` on the discriminant group `qM`. It is needed
+#   to reconstruct the one of the extension (since a priori GM could be
+#   smaller);
+# - `OqfN`: same as before. Also, when the extension type of `(:e, :p)`, `OqfN`
+#   is the image of the representation of `O(N)` on the discriminant group `qN`
+#   used to reconstruct fitting isometries in the equivariant gluings;
 # - `discrep` in the case where M has an isometry but not N, N has to be
 #   definite and we want to find an isometry of N which coincide with the fixed
 #   isometry of M on the gluing. In that way, we can extend the isometry of M, and
 #   we classify all such isometries (this can be expensive)
+#
 #   TODO: add another argument to classify equivariant primitive extensions, but
 #   each such, consider only one isometry of N (it happens often that we do this
 #   classification up to conjugacy of a factor group of O(N), and thus at the end
@@ -272,7 +280,7 @@ function _primitive_extensions_generic(
     GM::AutomorphismGroup{TorQuadModule},
     GN::AutomorphismGroup{TorQuadModule},
     ext_type::Tuple{Symbol, Symbol} = (:p, :p);
-    even::Bool = true,
+    even::Bool = is_even(M) && is_even(N),
     exist_only::Bool = false,
     first::Bool = false,
     fM::QQMatrix = identity_matrix(QQ, rank(M)),
@@ -282,11 +290,17 @@ function _primitive_extensions_generic(
     x::Union{IntegerUnion, Nothing} = nothing,
     q::Union{TorQuadModule, Nothing} = nothing,
     compute_bar_Gf::Bool = false,
+    OqfM::Union{Nothing, AutomorphismGroup{TorQuadModule}} = nothing,
+    OqfN::Union{Nothing, AutomorphismGroup{TorQuadModule}} = nothing,
     discrep::Union{GAPGroupHomomorphism, Nothing} = nothing
 )
 
   @assert ext_type[2] == :p || ext_type[1] == :e
-  
+
+  if ext_type[1] == :e
+    @assert !isnothing(OqfM)
+    @assert !isnothing(OqfN)
+  end
   if ext_type == (:e, :p)
     @assert !isnothing(discrep)
   end
@@ -294,32 +308,32 @@ function _primitive_extensions_generic(
   results = Tuple{ZZLatWithIsom, ZZLatWithIsom, ZZLatWithIsom}[]
 
   @req !even || (is_even(M) && is_even(N)) "Odd lattices cannot embed in an even lattice"
-
+  parity = even ? 2 : 1
   # We check the initial conditions to make sense for having a primitive
   # extensions with the potential given requirements
   if !isnothing(x)
     @req x > 0 "x must be a positive integer"
-    !is_divisible_by(numerator(gcd(det(M), det(N))), x) && return results
+    !is_divisible_by(numerator(gcd(det(M), det(N))), x) && return false, results
     if !isnothing(q)
       @req modulus_bilinear_form(q) == 1 "q does not define the discriminant form of an integral lattice"
       @req !even || modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
       @req x^2*order(q) == det(M)*det(N) "Wrong requirements: the square of the index `x` should be equal to (det(M)*det(N)/order(q))"
       aM, _, bM = signature_tuple(M)
       aN, _, bN = signature_tuple(N)
-      !is_genus(q, (aM+aN, bM+bN)) && return results
-      G = genus(q, (aM+aN, bM+bN))
+      !is_genus(q, (aM+aN, bM+bN); parity) && return false, results
+      G = genus(q, (aM+aN, bM+bN); parity)
     end
   elseif !isnothing(q)
     @req modulus_bilinear_form(q) == 1 "q does not define the discriminant form of an integral lattice"
     @req !even || modulus_quadratic_form(q) == 2 "q does not define the discriminant form of an even lattice"
     aM, _, bM = signature_tuple(M)
     aN, _, bN = signature_tuple(N)
-    !is_genus(q, (aM+aN, bM+bN)) && return results
-    G = genus(q, (aM+aN, bM+bN))
+    !is_genus(q, (aM+aN, bM+bN); parity) && return false, results
+    G = genus(q, (aM+aN, bM+bN); parity)
     ok, x = divides(numerator(det(M)*det(N)), order(q))
-    !ok && return results
-    ok, x = is_square_with_sqrt(x)
-    !ok && return results
+    !ok && return false, results
+    ok, x = is_square_with_sqrt(abs(x))
+    !ok && return false, results
   end
 
   # Methods are simpler if we work in a fixed space
@@ -329,21 +343,30 @@ function _primitive_extensions_generic(
   qM = domain(GM)
   qN = domain(GN)
 
+  # If we want an odd extension, then we create M and N as odd lattices. In
+  # paritcular, we forget about the quadratic form on the discriminant group
+  # which we see as a finite bilinear module
   if !even && is_even(M)
     qM = Hecke._as_finite_bilinear_module(qM)
     OqM = orthogonal_group(qM)
     GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check = false) for g in gens(GM)])
-    fqM = hom(OqM(matrix(fqM); check = false))
+    fqM = hom(qM, qM, matrix(fqM))
+    if !isnothing(OqfM)
+      OqfM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check = false) for g in gens(OqfM)])
+    end
   end
   if !even && is_even(N)
     qN = Hecke._as_finite_bilinear_module(qN)
     OqN = orthogonal_group(qN)
     GN, _ = sub(OqN, elem_type(OqN)[OqN(matrix(g); check = false) for g in gens(GN)])
-    fqN = hom(OqN(matrix(fqN); check = false))
+    fqN = hom(qN, qN, matrix(fqN))
     if !isnothing(discrep)
       OqN = orthogonal_group(qN)
-      OtoOqN = hom(codomain(discrep), OqN, elem_type(OqN)[OqN(matrix(g); check = false) for g in gens(codomain(discrep))])
+      OtoOqN = hom(codomain(discrep), OqN, elem_type(OqN)[OqN(matrix(g); check = false) for g in gens(codomain(discrep))]; check = false)
       discrep = compose(discrep, OtoOqN)
+    end
+    if !isnothing(OqfN)
+      OqfN, _ = sub(OqN, elem_type(OqN)[OqN(matrix(g); check = false) for g in gens(OqfN)])
     end
   end
 
@@ -372,10 +395,25 @@ function _primitive_extensions_generic(
     OD = orthogonal_group(D)
   end
 
+
   # If x is known, the user has fixed the order so we just look for glue kernels
   # of that size. Otherwise, we have to go through all the possibilities
-  # depending on the determinants of M and N.
-  pos_ord = !isnothing(x) ? typeof(x)[x] : divisors(gcd(order(qM), order(qN)))
+  # depending on the abelian group structures of qM and qN (to have isomorphic
+  # abelian subgroups)
+  if !isnothing(x)
+    pos_ord = typeof(x)[x]
+  else
+    _pds = prime_divisors(gcd(order(qM), order(qN)))
+    _gcd = ZZ(1)
+    for p in _pds
+      snM = elementary_divisors(primary_part(abelian_group(qM), p)[1])
+      snN = elementary_divisors(primary_part(abelian_group(qN), p)[1])
+      for i in min(length(snM), length(snN)):-1:1
+        mul!(_gcd, _gcd, gcd(snM[i], snN[i]))
+      end
+    end
+    pos_ord = divisors(_gcd)
+  end
   
   # In the primary and elementary case, we can make things faster
   prM, pM = is_primary_with_prime(M)
@@ -405,11 +443,9 @@ function _primitive_extensions_generic(
       subsM = _subgroups_orbit_representatives_and_stabilizers(VMinqM, GM, k, fqM)
     end
     isempty(subsM) && continue
-
     for H1 in subsM
       subsN = _classes_isomorphic_subgroups(qN, GN, fqN; H = rescale(domain(H1[1]), -1))
       isempty(subsN) && continue
-
       for H2 in subsN
         ok, phi = is_anti_isometric_with_anti_isometry(domain(H1[1]), domain(H2[1]))
         @hassert :ZZLatWithIsom 1 ok
@@ -443,11 +479,9 @@ function _primitive_extensions_generic(
           phi = compose(phi, hom(OHN(g0)))
           @hassert :ZZLatWithIsom 1 OHN(compose(inv(phi), compose(fHM, phi)); check = false) == OHN(fHN; check = false)
         end
-
-        actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(stabM)])
-        actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(stabN)])
+        actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(stabM)]; check = false)
+        actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(stabN)]; check = false)
         imN, _ = image(actN)
-
         if ext_type[2] == :e
           C, _ = centralizer(OHN, OHN(fHN; check = false))
           SN, _ = intersect(C, imN)
@@ -465,9 +499,12 @@ function _primitive_extensions_generic(
         else
           iso = id_hom(C)
         end
+
+        # This set of double cosets correspond to the different classes of
+        # primitive extensions we consider, i.e. it is in bijection with the set
+        # of admissible gluings.
         reps = double_cosets(codomain(iso), iso(SM)[1], iso(SN)[1])
         @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
-        
         for _g in reps
           g = iso\(representative(_g))
           phig = compose(phi, hom(g))
@@ -475,12 +512,15 @@ function _primitive_extensions_generic(
           if ext_type == (:e, :p)
             # We need to see whether there exists an isometry of N which
             # stabilizes HN and agree with fHM.
+            _stabN, _ = stabilizer(OqfN, HNinqN)
+            _actN = hom(_stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(_stabN)]; check = false)
+            _imN, _ = image(_actN)
             _fHN = OHN(compose(inv(phig), compose(fHM, phig)); check = false)
-            _fHN in imN || continue
+            _fHN in _imN || continue
             # When it is the case, we compute an example of such isometry and then
             # depending on the boolean "first", we classify conjugacy classes of
             # such isometries modulo the preimage of the stabilizer of HN in \bar{O(N)}
-            _fqN = actN\_fHN
+            _fqN = _actN\_fHN
             _fN = discrep\_fqN
 
             if first
@@ -488,7 +528,7 @@ function _primitive_extensions_generic(
             else
               # All possible isometries are in the coset fNKN, and CN-conjugate of
               # them will give rise to isomorphic equivariant primitive extensions
-              KNhat, _ = discrep\(kernel(actN)[1])
+              KNhat, _ = discrep\(kernel(_actN)[1])
               fNKN = _fN*KNhat
               CN, _ = discrep\stabN
               m = gset(CN, (a, g) -> inv(g)*a*g, fNKN)
@@ -504,12 +544,14 @@ function _primitive_extensions_generic(
           else
             reporb = QQMatrix[fN]
           end
-          
+
           for b in reporb
             L, fL, graph = _overlattice(phig, HMinD, HNinD, fM, b; same_ambient)
 
             if !isnothing(q)
               genus(L) == G || continue
+            else
+              is_even(L) == even || continue
             end
             exist_only && return true, results
 
@@ -526,17 +568,19 @@ function _primitive_extensions_generic(
               @hassert :ZZLatWithIsom 1 genus(M) == genus(M2)
               @hassert :ZZLatWithIsom 1 genus(N) == genus(N2)
             end
-            
+
             if compute_bar_Gf
               @assert ext_type != (:p, :p)
+              _stabM, _ = stabilizer(OqfM, HMinqM)
+              _actM = hom(_stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false); check = false) for x in gens(_stabM)]; check = false)
               if ext_type[2] == :p
                 _GN, _ = discrep(centralizer(domain(discrep), b)[1])
-                _GN, _ = stabilizer(_GN, HNinqN)
-                _actN = hom(_GN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(_GN)])
               else
-                _actN = actN
+                _GN = OqfN
               end
-              disc, stab = _glue_stabilizers(phig, actM, _actN, OqMinOD, OqNinOD, graph)
+              _stabN, _ = stabilizer(_GN, HNinqN)
+              _actN = hom(_stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false); check = false) for x in gens(_stabN)]; check = false)
+              disc, stab = _glue_stabilizers(phig, _actM, _actN, OqMinOD, OqNinOD, graph)
               qL, fqL = discriminant_group(Lf)
               OqL = orthogonal_group(qL)
               phi2 = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
@@ -886,7 +930,7 @@ end
 @doc raw"""
     primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing} = nothing,
                                              q::Union{TorQuadModule, Nothing} = nothing,
-                                             even::Bool = true,
+                                             even::Bool = is_even(M) && is_even(N),
                                              classification::String = "subsub")
                                           -> Bool, Vector{Tuple{ZZLat, ZZLat, ZZLat}}
 
@@ -918,7 +962,7 @@ If $M$, $N$ or `q` is not even while `even = true`, an ArgumentError is raised.
 """
 function primitive_extensions(M::ZZLat, N::ZZLat; x::Union{IntegerUnion, Nothing} = nothing,
                                                   q::Union{TorQuadModule, Nothing} = nothing,
-                                                  even::Bool = true,
+                                                  even::Bool = is_even(M) && is_even(N),
                                                   classification::String = "subsub")
   @req classification in String["none", "first", "embemb", "subsub", "subemb", "embsub"] "Wrong classification method"
 
@@ -1147,7 +1191,6 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::String = "su
     is_empty(GKs) && return false, results
     unique!(GKs)
     orths = reduce(vcat, Vector{ZZLat}[representatives(GK) for GK in GKs])
-    
     # Now for each K in GK, we compute primitive extensions of M and K into a
     # unimodular lattice in G
     for K in orths
@@ -1162,6 +1205,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::String = "su
     return (length(results) > 0), results
   end
 
+  cs = length(cs) == 6 ? cs : "subsub"
   # Now we go on the harder case, which relies on the previous one
   # We follow the proof of Nikulin: we create `T` unique in its genus and with
   # surjective O(T) -> O(qT), and such that qT and q are anti-isometric
@@ -1233,7 +1277,7 @@ end
                                      N::Union{ZZLat, ZZLatWithIsom};
                                      x::Union{IntegerUnion, Nothing} = nothing,
                                      q::Union{IntegerUnion, Nothing} = nothing,
-                                     even::Bool = true
+                                     even::Bool = is_even(M) && is_even(N),
                                      classification::String = "subsub",
                                      compute_bar_Gf::Bool = true)
                                           -> Bool, Vector{Tuple{ZZLatWithIsom,
@@ -1287,7 +1331,7 @@ equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLat, Z
 
 function equivariant_primitive_extensions(M::ZZLatWithIsom, N::ZZLatWithIsom; x::Union{IntegerUnion, Nothing} = nothing,
                                                                               q::Union{TorQuadModule, Nothing} = nothing,
-                                                                              even::Bool = true,
+                                                                              even::Bool = is_even(M) && is_even(N),
                                                                               classification::String = "subsub",
                                                                               compute_bar_Gf::Bool = true)
   @req classification in String["none", "first", "embemb", "subsub", "subemb", "embsub"] "Wrong classification method"
@@ -1306,15 +1350,23 @@ function equivariant_primitive_extensions(M::ZZLatWithIsom, N::ZZLatWithIsom; x:
     GN, _ = image_centralizer_in_Oq(N)
   end
 
+  if compute_bar_Gf
+    OqfM, _ = image_centralizer_in_Oq(M)
+    OqfN, _ = image_centralizer_in_Oq(N)
+  else
+    OqfM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check = false)
+    OqfN = Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check = false)
+  end
+
   exist_only = classification == "none"
   first = classification == "first"
 
-  return _primitive_extensions_generic(lattice(M), lattice(N), GM, GN, (:e, :e); even, exist_only, first, fM = isometry(M), fqM = hom(fqM), fN = isometry(N), fqN = hom(fqN), x, q, compute_bar_Gf)
+  return _primitive_extensions_generic(lattice(M), lattice(N), GM, GN, (:e, :e); even, exist_only, first, fM=isometry(M), fqM=hom(fqM), fN=isometry(N), fqN=hom(fqN), x, q, compute_bar_Gf, OqfM, OqfN)
 end
 
 function equivariant_primitive_extensions(M::ZZLatWithIsom, N::ZZLat; x::Union{IntegerUnion, Nothing} = nothing,
                                                                       q::Union{TorQuadModule, Nothing} = nothing,
-                                                                      even::Bool = true,
+                                                                      even::Bool = is_even(M) && is_even(N),
                                                                       classification::String = "subsub",
                                                                       compute_bar_Gf::Bool = false)
 
@@ -1341,15 +1393,23 @@ function equivariant_primitive_extensions(M::ZZLatWithIsom, N::ZZLat; x::Union{I
     GN, _ = image(discN)
   end
 
+  if compute_bar_Gf
+    OqfM, _ = image_centralizer_in_Oq(M)
+  else
+    OqfM = Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check = false)
+  end
+
   exist_only = classification == "none"
   first = classification == "first"
 
-  return _primitive_extensions_generic(lattice(M), N, GM, GN, (:e, :p); even, exist_only, first, fM = isometry(M), fqM = hom(fqM), x, q, compute_bar_Gf, discrep = discN)
+  OqfN, _ = image_in_Oq(N)
+
+  return _primitive_extensions_generic(lattice(M), N, GM, GN, (:e, :p); even, exist_only, first, fM=isometry(M), fqM=hom(fqM), x, q, compute_bar_Gf, OqfM, OqfN, discrep=discN)
 end
 
 function equivariant_primitive_extensions(M::ZZLat, N::ZZLatWithIsom; x::Union{IntegerUnion, Nothing} = nothing,
                                                                       q::Union{TorQuadModule, Nothing} = nothing,
-                                                                      even::Bool = true,
+                                                                      even::Bool = is_even(M) && is_even(N),
                                                                       classification::String = "subsub",
                                                                       compute_bar_Gf::Bool = false)
   @req classification in String["none", "first", "embemb", "subsub", "subemb", "embsub"] "Wrong classification method"
@@ -1358,7 +1418,7 @@ function equivariant_primitive_extensions(M::ZZLat, N::ZZLatWithIsom; x::Union{I
     classification = classification[4:6]*classification[1:3]
   end
 
-  ok, res = primitive_extensions(N, M; x, q, even, classification, compute_bar_Gf)
+  ok, res = equivariant_primitive_extensions(N, M; x, q, even, classification, compute_bar_Gf)
 
   for i in 1:length(res)
     res[i] = res[i][[1,3,2]]
@@ -1560,10 +1620,10 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     # we compute the image of the stabilizers in the respective OS* and we keep track
     # of the elements of the stabilizers acting trivially in the respective S*
     # (there are in the ker*).
-    actA = hom(stabA, OSA, elem_type(OSA)[OSA(restrict_automorphism(x, SAinqA; check = false); check = false) for x in gens(stabA)])
+    actA = hom(stabA, OSA, elem_type(OSA)[OSA(restrict_automorphism(x, SAinqA; check = false); check = false) for x in gens(stabA)]; check = false)
     imA, _ = image(actA)
 
-    actB = hom(stabB, OSB, elem_type(OSB)[OSB(restrict_automorphism(x, SBinqB; check = false); check = false) for x in gens(stabB)])
+    actB = hom(stabB, OSB, elem_type(OSB)[OSB(restrict_automorphism(x, SBinqB; check = false); check = false) for x in gens(stabB)]; check = false)
     imB, _ = image(actB)
 
     # Now it is time to compute generators for O(SB, rho_l(qB), fB), and the induced
