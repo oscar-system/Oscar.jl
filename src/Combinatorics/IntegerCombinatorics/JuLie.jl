@@ -3,8 +3,7 @@ module JuLie
 using ..Oscar
 import Oscar: 
   IntegerUnion,
-  number_of_partitions, npartitions,      # aliases do not work in experimental
-  weight
+  number_of_partitions
 
 include("partitions.jl")
 include("schur_polynomials.jl")

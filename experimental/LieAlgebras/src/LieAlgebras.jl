@@ -1,4 +1,3 @@
-function weight end
 function word end
 
 module LieAlgebras

@@ -1,4 +1,4 @@
-@testset "Experimental/JuLie/partitions.jl" begin
+@testset "Integer Partitions" begin
 
   ############################################################################
   # Partition constructor
