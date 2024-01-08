@@ -397,6 +397,9 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
   return SRow(kk, pos, vals)
 end
 
+### Take a complex of graded modules and twist all 
+# modules so that the (co-)boundary maps become homogenous 
+# of degree zero. 
 function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])
   is_standard_graded(R) || error("ring must be standard graded")
@@ -429,6 +432,9 @@ function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   return ComplexOfMorphisms(T, new_maps, typ = :chain, seed=last(range(C)))
 end
 
+### Take a complex of free ℤ-graded modules with (co-)boundary 
+# maps of degree zero and return the complex given by all the 
+# degree d parts.
 function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])
   is_standard_graded(R) || error("ring must be standard graded")
@@ -444,14 +450,12 @@ function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
   chains = [FreeMod(kk, length(mons))]
   
   for i in range(C)
-    @show i
     i == last(range(C)) && break # How else to skip that???
     new_mons = collect(all_monomials(C[i-1], d))
     push!(chains, FreeMod(kk, length(new_mons)))
     imgs = elem_type(last(chains))[]
     phi = map(C, i)
     M = last(chains)
-    @show length(mons)
     for x in mons
       c = _coordinates_in_monomial_basis(phi(x), new_mons)
       v = sum(x*M[i] for (i, x) in c; init=zero(M))
@@ -463,6 +467,7 @@ function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
   return ComplexOfMorphisms(typeof(domain(first(res_maps))), res_maps, typ = :chain, seed=last(range(C)), check=false)
 end
 
+### Get a subcomplex in a specific range. 
 function getindex(c::ComplexOfMorphisms{T}, r::UnitRange) where {T}
   first(r) in range(c) || error("range out of bounds")
   last(r) in range(c) || error("range out of bounds")
