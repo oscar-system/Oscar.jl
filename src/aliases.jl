@@ -27,7 +27,7 @@ Base.@deprecate_binding hasrelshp has_relshp
 Base.@deprecate_binding hastorusfactor has_torusfactor
 Base.@deprecate_binding inner_automorphisms_group inner_automorphism_group
 Base.@deprecate_binding isaffine is_affine
-Base.@deprecate_binding isalmostsimple is_almostsimple
+Base.@deprecate_binding isalmostsimple is_almost_simple
 Base.@deprecate_binding isample is_ample
 Base.@deprecate_binding isbicoset is_bicoset
 Base.@deprecate_binding isbinomial is_binomial

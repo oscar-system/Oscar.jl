@@ -348,7 +348,7 @@ end
 #
 ################################################################################
 
-is_almostsimple(G::GrpAbFinGen) = false
+is_almost_simple(G::GrpAbFinGen) = false
 
 is_finitely_generated(G::GrpAbFinGen) = true
 

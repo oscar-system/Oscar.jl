@@ -1349,7 +1349,7 @@ false
 @gapattribute is_simple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
 @doc raw"""
-    is_almostsimple(G::GAPGroup)
+    is_almost_simple(G::GAPGroup)
 
 Return whether `G` is an almost simple group,
 i.e., `G` is isomorphic to a group $H$ with the property
@@ -1357,15 +1357,15 @@ $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 
 # Examples
 ```jldoctest
-julia> is_almostsimple(symmetric_group(5))
+julia> is_almost_simple(symmetric_group(5))
 true
 
-julia> is_almostsimple(special_linear_group(2, 5))
+julia> is_almost_simple(special_linear_group(2, 5))
 false
 
 ```
 """
-@gapattribute is_almostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
+@gapattribute is_almost_simple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 
 @doc raw"""
     is_quasisimple(G::GAPGroup)

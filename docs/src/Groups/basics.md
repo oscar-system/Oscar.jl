@@ -78,7 +78,7 @@ is_supersolvable
 is_solvable
 is_perfect
 is_simple(G::GAPGroup)
-is_almostsimple
+is_almost_simple(G::GAPGroup)
 is_quasisimple
 is_sporadic_simple
 is_finitely_generated(G::GAPGroup)

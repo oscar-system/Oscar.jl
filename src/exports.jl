@@ -745,7 +745,7 @@ export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
-export is_almostsimple, has_is_almostsimple, set_is_almostsimple
+export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
 export is_basepoint_free

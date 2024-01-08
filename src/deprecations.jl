@@ -514,3 +514,7 @@ Base.@deprecate_binding has_is_finitelygenerated has_is_finitely_generated
 Base.@deprecate_binding set_is_finitelygenerated set_is_finitely_generated
 
 Base.@deprecate_binding is_obviouslyabelian is_obviously_abelian false
+
+Base.@deprecate_binding is_almostsimple is_almost_simple
+Base.@deprecate_binding has_is_almostsimple has_is_almost_simple
+Base.@deprecate_binding set_is_almostsimple set_is_almost_simple
