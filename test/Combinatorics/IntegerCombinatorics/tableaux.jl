@@ -19,7 +19,6 @@
 	@test is_standard(Tableau([[1,2],[4]])) == false
 	@test is_standard(Tableau([[1,3,2],[4]])) == false
 
-
 	# is_semistandard
 	@test is_semistandard(Tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
 	@test is_semistandard(Tableau([[1,2],[3,4]])) == true
@@ -31,157 +30,100 @@
 	@test is_semistandard(Tableau([[1,2,1],[2,4]])) == false
 
 	# semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
-	check = true
 	shapes = [[3,2,1],[3,3,1],[2,2,2]]
 	for s in shapes
 		SST = semistandard_tableaux(s)
 		#check that all tableaux are distinct
-		if SST != unique(SST)
-			check = false
-			break
-		end
-		#check that all tableaux are semistandard_tableaux
+		@test SST == unique(SST)
+
+    #check that all tableaux are semistandard_tableaux
 		for tab in SST
-			if !is_semistandard(tab)
-				check = false
-				break
-			end
+			@test is_semistandard(tab)
 		end
 	end
-	@test check==true
 	@test isempty(semistandard_tableaux([3,2,1],2))
 
 	# semistandard_tableaux(s::Array{T,1}, weight::Array{T,1})
-	check = true
 	shapes = [[5,3,1,1],[4,3,2,1],[2,2,2,2,2]]
 	weights = [[1,1,1,1,1,1,1,1,1,1],[3,0,2,0,0,5],[4,3,2,1]]
 	for s in shapes
 		for w in weights
 			SST = semistandard_tableaux(s,w)
 			#check that all tableaux are distinct
-			if SST != unique(SST)
-				check = false
-				break
-			end
+			@test SST == unique(SST)
 			#check that all tableaux are semistandard_tableaux
 			for tab in SST
-				if !is_semistandard(tab)
-					check = false
-					break
-				end
+				@test is_semistandard(tab)
 			end
 			#check that all tableaux have the correct shape
 			for tab in SST
-				if shape(tab)!=s
-					check = false
-					break
-				end
+				@test shape(tab) == s
 			end
 			#check that all tableaux have the correct weight
 			for tab in SST
-				if weight(tab)!=w
-					check = false
-					break
-				end
+				@test weight(tab) == w
 			end
 		end
 	end
-	@test check==true
 	@test semistandard_tableaux(Int[], Int[]) == [Tableau(Array{Int,1}[])]
 
 	#semistandard_tableaux(box_num, max_val)
-	check = true
 	BoxNum = 0:5
 	MaxVal = 1:6
 	for box_num in BoxNum
 		for max_val in MaxVal
 			SST = semistandard_tableaux(box_num, max_val)
 			#check that all tableaux are distinct
-			if SST != unique(SST)
-				check = false
-				break
-			end
+			@test SST == unique(SST)
 			#check that all tableaux are semistandard_tableaux
 			for tab in SST
-				if !is_semistandard(tab)
-					check = false
-					break
-				end
+				@test is_semistandard(tab)
 			end
 			#check that all tableaux have box_num boxes
 			for tab in SST
-				if sum(shape(tab)) != box_num
-					check = false
-					break
-				end
+				@test sum(shape(tab)) == box_num
 			end
 			#check that all tableaux have values ≤ max_val
 			for tab in SST
 				for i in 1:length(tab)
-					if tab[i][end] > max_val
-						check = false
-						break
-					end
+					@test tab[i][end] <= max_val
 				end
 			end
 		end
 	end
-	@test check==true
 
 	# number_of_standard_tableaux
 	# standard_tableaux(s::Partition)
-	check = true
 	for i = 1:10
 		for s in partitions(i)
 			ST = standard_tableaux(s)
 			#check that all tableaux are distinct
-			if ST != unique(ST)
-				check = false
-				break
-			end
+			@test ST == unique(ST)
 			#check that all tableaux are standard_tableaux
 			for tab in ST
-				if !is_standard(tab)
-					check = false
-					break
-				end
+				@test is_standard(tab)
 			end
 			#check that all tableaux where found
-			if length(ST)!=number_of_standard_tableaux(s)
-				check = false
-				break
-			end
+			@test length(ST) == number_of_standard_tableaux(s)
 		end
 	end
-	@test check==true
 	@test standard_tableaux(partition(Int[])) == [Tableau(Array{Int,1}[])]
 	@test standard_tableaux([3,2,1]) == standard_tableaux(partition([3,2,1]))
 
 	# standard_tableaux(n::Integer)
-	check = true
 	for n = 0:10
 		ST = standard_tableaux(n)
 		#check that all tableaux are distinct
-		if ST != unique(ST)
-			check = false
-			break
-		end
+		@test ST == unique(ST)
 		#check that all tableaux are standard_tableaux
 		for tab in ST
-			if !is_standard(tab)
-				check = false
-				break
-			end
+			@test is_standard(tab)
 		end
 		#check that all tableaux have n boxes
 		for tab in ST
-			if sum(shape(tab))!=n
-				check = false
-				break
-			end
+			@test sum(shape(tab)) == n
 		end
 	end
-	@test check==true
 
 	# hook_length
 	@test hook_length(partition([1]),1,1) == 1
