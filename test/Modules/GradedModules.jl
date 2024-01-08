@@ -77,6 +77,8 @@ end
 
   for d in -4:4
     amm = Oscar.all_monomials(F, d)
+    length(amm)
+    eltype(amm)
     @test d < -1 || !isempty(amm)
     @test all(x->degree(x) == grading_group(F)([d]), amm)
     ae = Oscar.all_exponents(F, d)
