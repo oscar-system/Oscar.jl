@@ -350,7 +350,7 @@ end
 
 is_almostsimple(G::GrpAbFinGen) = false
 
-is_finitelygenerated(G::GrpAbFinGen) = true
+is_finitely_generated(G::GrpAbFinGen) = true
 
 is_perfect(G::GrpAbFinGen) = is_trivial(G)
 

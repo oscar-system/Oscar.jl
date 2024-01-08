@@ -788,7 +788,7 @@ export is_fano
 export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
-export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
+export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_finiteorder
 export is_flat
 export is_full_direct_product

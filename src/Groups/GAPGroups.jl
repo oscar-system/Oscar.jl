@@ -1551,7 +1551,7 @@ end
 #end
 
 """
-    is_finitelygenerated(G::GAPGroup)
+    is_finitely_generated(G::GAPGroup)
 
 Return whether `G` is a finitely generated group.
 
@@ -1560,17 +1560,17 @@ Return whether `G` is a finitely generated group.
 julia> F = free_group(2)
 Free group of rank 2
 
-julia> is_finitelygenerated(F)
+julia> is_finitely_generated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
 Free group
 
-julia> is_finitelygenerated(H)
+julia> is_finitely_generated(H)
 false
 ```
 """
-@gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+@gapattribute is_finitely_generated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
 
 
 # TODO/FIXME: is_free is disabled for now as it is not universal; it only
@@ -2031,7 +2031,7 @@ julia> describe(free_group(3))
 ```
 """
 function describe(G::GAPGroup)
-   is_finitelygenerated(G) || return "a non-finitely generated group"
+   is_finitely_generated(G) || return "a non-finitely generated group"
 
    # handle groups whose finiteness is known
    if has_is_finite(G)
@@ -2054,7 +2054,7 @@ end
 function describe(G::FPGroup)
    # despite the name, there are non-finitely generated (and hence non-finitely presented)
    # FPGroup instances
-   is_finitelygenerated(G) || return "a non-finitely generated group"
+   is_finitely_generated(G) || return "a non-finitely generated group"
 
    if GAPWrap.IsFreeGroup(G.X)
       r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt

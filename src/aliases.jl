@@ -43,7 +43,7 @@ Base.@deprecate_binding isfano is_fano
 Base.@deprecate_binding isfeasible is_feasible
 Base.@deprecate_binding isfiltered is_filtered
 Base.@deprecate_binding isfinite_order is_finiteorder
-Base.@deprecate_binding isfinitelygenerated is_finitelygenerated
+Base.@deprecate_binding isfinitelygenerated is_finitely_generated
 Base.@deprecate_binding isfull_direct_product is_full_direct_product
 Base.@deprecate_binding isfull_semidirect_product is_full_semidirect_product
 Base.@deprecate_binding isfull_wreath_product is_full_wreath_product

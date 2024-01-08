@@ -81,7 +81,7 @@ is_simple(G::GAPGroup)
 is_almostsimple
 is_quasisimple
 is_sporadic_simple
-is_finitelygenerated
+is_finitely_generated(G::GAPGroup)
 ```
 
 
