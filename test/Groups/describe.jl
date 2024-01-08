@@ -92,5 +92,5 @@ end
    sigma = matrix(F, [1 0 0 ; 0 -1 0 ; 0 0 -1])
    tau = matrix(F, [1//2 -sqrt3//2 0 ; sqrt3//2 1//2 0 ; 0 0 1])
    G = matrix_group(sigma, tau)
-   @test_broken describe(G) == "D12"
+   @test describe(G) == "D12"
 end
