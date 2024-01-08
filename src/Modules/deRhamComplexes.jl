@@ -70,7 +70,7 @@ function kaehler_differentials(R::MPolyQuoRing{<:MPolyDecRingElem}; cached::Bool
   Pr = graded_free_module(P, r)
   @assert is_graded(OmegaP)
   phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
-  phi_res, _, _ = change_base_ring(R, phi)
+  phi_res = _change_base_ring_and_preserve_gradings(R, phi)
   @assert is_graded(codomain(phi_res))
   M = cokernel(phi_res)
   @assert is_graded(M)
