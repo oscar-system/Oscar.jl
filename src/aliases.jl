@@ -62,7 +62,7 @@ Base.@deprecate_binding ismolien_series_implemented is_molien_series_implemented
 Base.@deprecate_binding isnatural_alternating_group is_natural_alternating_group
 Base.@deprecate_binding isnatural_symmetric_group is_natural_symmetric_group
 Base.@deprecate_binding isnef is_nef
-Base.@deprecate_binding isobviouslyabelian is_obviouslyabelian
+Base.@deprecate_binding isobviouslyabelian is_obviously_abelian false
 Base.@deprecate_binding isorbifold is_orbifold
 Base.@deprecate_binding isperfect is_perfect
 Base.@deprecate_binding ispgroup is_pgroup

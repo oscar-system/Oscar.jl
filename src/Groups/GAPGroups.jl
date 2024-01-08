@@ -2078,7 +2078,7 @@ function describe(G::FPGroup)
    # abelian groups can be dealt with by GAP
    extra = ""
    if !has_is_abelian(G)
-      if is_obviouslyabelian(G)
+      if is_obviously_abelian(G)
          set_is_abelian(G, true) # TODO: Claus won't like this...
          return String(GAP.Globals.StructureDescription(G.X)::GapObj)
       end
@@ -2102,7 +2102,7 @@ function describe(G::FPGroup)
 
 end
 
-function is_obviouslyabelian(G::FPGroup)
+function is_obviously_abelian(G::FPGroup)
     rels = relators(G)
     fgens = gens(free_group(G))
     signs = [(e1,e2,e3) for e1 in (-1,1) for e2 in (-1,1) for e3 in (-1,1)]
