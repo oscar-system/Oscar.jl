@@ -51,16 +51,7 @@ function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
 end
 
 function fiber_product(f::AbsSpecMor, g::PrincipalOpenEmbedding)
-  @assert codomain(f) === codomain(g) "codomains are not the same"
-  A = domain(f)
-  B = domain(g)
-  C = codomain(f)
-  h = complement_equations(g)
-  pbh = pullback(f).(h)
-  result = PrincipalOpenSubset(A, pbh)
-  gg = PrincipalOpenEmbedding(SpecMor(result, A, gens(OO(result)), check=false), pbh, check=false)
-  g_res_inv = inverse_on_image(g)
-  ff = compose(restrict(f, result, image(g), check=false), g_res_inv)
+  result, ff, gg = fiber_product(g, f)
   return result, gg, ff
 end
 
@@ -89,16 +80,18 @@ end
       )
 
 In a commutative diagram 
+```
           b
-   W ------------\
+   W ------------.
    |             |
    |             V
   a|    X x Y -->Y
    |      |      | g
    |      V      V
-   \----->X----> Z
+   `----->X----> Z
              f
-this computes the canonical map `W -> XxY`.
+```
+this computes the canonical map `W -> X x Y`.
 """
 function induced_map_to_fiber_product(
     a::AbsSpecMor, b::AbsSpecMor, 
@@ -106,6 +99,8 @@ function induced_map_to_fiber_product(
     fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}=fiber_product(f, g),
     check::Bool=true
   )
+  # All checks are done here. The actual computations are carried out 
+  # in an internal method.
   X = domain(f)
   Y = domain(g)
   Z = codomain(f)
@@ -122,11 +117,27 @@ function induced_map_to_fiber_product(
   @assert codomain(b) === Y
   @check compose(a, f) == compose(b, g) "maps do not commute"
   @check compose(ff, g) == compose(gg, f) "maps do not commute"
+  return _induced_map_to_fiber_product(a, b, f, g, fiber_product=fiber_product, check=check)
+end
 
+function _induced_map_to_fiber_product(
+    a::AbsSpecMor, b::AbsSpecMor, 
+    f::AbsSpecMor, g::AbsSpecMor;
+    fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}=fiber_product(f, g),
+    check::Bool=true
+  )
   # The ambient scheme of XxY is the actual product of X and Y 
   # over Spec(k), the coefficient ring. If it is not, then 
   # this is due to special dispatch which has to also be caught 
   # with a special method for this function here.
+  XxY = fiber_product[1]
+  gg = fiber_product[2]
+  ff = fiber_product[3]
+  X = domain(f)
+  Y = domain(g)
+  W = domain(a)
+  @check gens(OO(XxY)) == vcat(pullback(gg).(gens(OO(X))), pullback(ff).(gens(OO(Y)))) "variables must be pullbacks of variables on the factors"
+
   img_gens = vcat(pullback(a).(gens(OO(X))), pullback(b).(gens(OO(Y))))
   return SpecMor(W, XxY, img_gens, check=check)
 end
@@ -134,87 +145,44 @@ end
 # When the fiber product was created from at least one `PrincipalOpenEmbedding`, 
 # then the construction did not proceed via the `product` of `X` and `Y`.
 # In this case, the induced map must be created differently.
-function induced_map_to_fiber_product(
+function _induced_map_to_fiber_product(
     a::AbsSpecMor, b::AbsSpecMor, 
     f::PrincipalOpenEmbedding, g::AbsSpecMor;
     fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:PrincipalOpenEmbedding}=fiber_product(f, g),
     check::Bool=true
   )
-  X = domain(f)
-  Y = domain(g)
-  Z = codomain(f)
-  @assert codomain(g) === Z
-  XxY = fiber_product[1]
-  gg = fiber_product[2]
-  ff = fiber_product[3]
-  @assert codomain(ff) === Y
-  @assert codomain(gg) === X
-
-  W = domain(a)
-  @assert W === domain(b)
-  @assert codomain(a) === X
-  @assert codomain(b) === Y
-  @check compose(a, f) == compose(b, g) "maps do not commute"
-  @check compose(ff, g) == compose(gg, f) "maps do not commute"
-
   # XxY is a principal open subset of Y.
+  XxY = fiber_product[1]
+  W = domain(a)
   img_gens = pullback(b).(gens(OO(Y)))
   return SpecMor(W, XxY, img_gens, check=check)
 end
 
-function induced_map_to_fiber_product(
+function _induced_map_to_fiber_product(
     a::AbsSpecMor, b::AbsSpecMor, 
     f::AbsSpecMor, g::PrincipalOpenEmbedding;
     fiber_product::Tuple{<:AbsSpec, <:PrincipalOpenEmbedding, <:AbsSpecMor}=fiber_product(f, g),
     check::Bool=true
   )
-  X = domain(f)
-  Y = domain(g)
-  Z = codomain(f)
-  @assert codomain(g) === Z
-  XxY = fiber_product[1]
-  gg = fiber_product[2]
-  ff = fiber_product[3]
-  @assert codomain(ff) === Y
-  @assert codomain(gg) === X
-
-  W = domain(a)
-  @assert W === domain(b)
-  @assert codomain(a) === X
-  @assert codomain(b) === Y
-  @check compose(a, f) == compose(b, g) "maps do not commute"
-  @check compose(ff, g) == compose(gg, f) "maps do not commute"
-
   # XxY is a principal open subset of X.
+  XxY = fiber_product[1]
+  X = domain(f)
+  W = domain(a)
   img_gens = pullback(a).(gens(OO(X)))
   return SpecMor(W, XxY, img_gens, check=check)
 end
 
 # additional method to remove ambiguity
-function induced_map_to_fiber_product(
+function _induced_map_to_fiber_product(
     a::AbsSpecMor, b::AbsSpecMor, 
     f::PrincipalOpenEmbedding, g::PrincipalOpenEmbedding;
     fiber_product::Tuple{<:AbsSpec, <:PrincipalOpenEmbedding, <:PrincipalOpenEmbedding}=fiber_product(f, g),
     check::Bool=true
   )
-  X = domain(f)
-  Y = domain(g)
-  Z = codomain(f)
-  @assert codomain(g) === Z
-  XxY = fiber_product[1]
-  gg = fiber_product[2]
-  ff = fiber_product[3]
-  @assert codomain(ff) === Y
-  @assert codomain(gg) === X
-
   W = domain(a)
-  @assert W === domain(b)
-  @assert codomain(a) === X
-  @assert codomain(b) === Y
-  @check compose(a, f) == compose(b, g) "maps do not commute"
-  @check compose(ff, g) == compose(gg, f) "maps do not commute"
-
   # XxY is a principal open subset of Y.
+  XxY = fiber_product[1]
+  Y = domain(g)
   img_gens = pullback(b).(gens(OO(Y)))
   return SpecMor(W, XxY, img_gens, check=check)
 end
@@ -251,8 +219,8 @@ function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
 end
 
 function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
-  interm = _restrict_domain(f, D)
-  return _restrict_codomain(interm, Z)
+  interm = _restrict_domain(f, D; check)
+  return _restrict_codomain(interm, Z; check)
 end
 
 function Base.:(==)(f::AbsSpecMor, g::AbsSpecMor)
@@ -448,10 +416,9 @@ and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple
     ↑ b₁          ↑ b₂
   X×ₖSpec(𝕂) → Y×ₖSpec(𝕂)
              F
-
+```
 The optional arguments `domain_map` and `codomain_map` can be used 
 to specify the morphisms `b₁` and `b₂`, respectively. 
-```
 """
 function base_change(phi::Any, f::AbsSpecMor; 
     domain_map::AbsSpecMor=base_change(phi, domain(f))[2],

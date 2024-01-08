@@ -300,9 +300,19 @@ end
   f_cov = covering_morphism(f)
   ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
   _, _, f_cov_ref = fiber_product(f_cov, ref)
+  _, _, f_cov_ref2 = fiber_product(f_cov, ref)
 
   ff = CoveredSchemeMorphism(X, X, f_cov_ref)
+  ff2 = CoveredSchemeMorphism(X, X, f_cov_ref2)
   compose(id_X, ff)
   compose(ff, id_X)
   compose(ff, ff)
+  compose(ff, ff2)
+  compose(ff2, ff)
+
+  fiber_product(ff, f)
+  fiber_product(f, ff)
+  fiber_product(ff, ff)
+  fiber_product(ff, ff2)
+  fiber_product(ff2, ff)
 end

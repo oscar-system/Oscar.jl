@@ -230,7 +230,7 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     to_X = CoveredSchemeMorphism(XxY, X, to_A)
     to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
     return XxY, to_X, to_Y
-  elseif is_refinement(CA, CB)
+  elseif is_refinement(CA, CB)[1]
     # We have to complete the square
     #
     #                              B
@@ -248,7 +248,7 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     to_X = CoveredSchemeMorphism(XxY, X, to_A)
     to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
     return XxY, to_X, to_Y
-  elseif is_refinement(CB, CA)
+  elseif is_refinement(CB, CA)[1]
     # Similar to the above case
     inc = refinement_morphism(CB, CA)
     g_cov_inc = compose(g_cov, inc)
