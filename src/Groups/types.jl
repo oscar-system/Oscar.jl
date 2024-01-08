@@ -352,8 +352,7 @@ end
 """
     AutomorphismGroup{T} <: GAPGroup
 
-Group of automorphisms over a group of type `T`. It can be defined via the
-function `automorphism_group`.
+Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`
 """
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
@@ -373,6 +372,10 @@ end
 (aut::AutomorphismGroup{T} where T)(x::GapObj) = group_element(aut,x)
 
 const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
+
+function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
+    print(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
+end
 
 ################################################################################
 #
