@@ -63,10 +63,12 @@ function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
   return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring([m, ms...])
+end
 
-function invariant_ring(R::MPolyDecRing, matrices::MatrixElem{T}...) where {T}
-  return invariant_ring(R, collect(matrices))
+function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring(R, [m, ms...])
 end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
@@ -268,13 +270,13 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over finite field of degree 1 over GF(3)
 
 julia> IR = invariant_ring(G)
 Invariant ring of
   Matrix group of degree 3 over GF(3)
 with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -283,7 +285,7 @@ Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+3-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]
  x[2]
  x[3]
@@ -460,21 +462,21 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over finite field of degree 1 over GF(3)
 
 julia> IR = invariant_ring(G)
 Invariant ring of
   Matrix group of degree 3 over GF(3)
 with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
 
 julia> basis(IR, 2)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 
 julia> basis(IR, 3)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```

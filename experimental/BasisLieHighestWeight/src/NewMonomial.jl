@@ -12,9 +12,7 @@ function calc_vec(
   degree_mon = degrees(mon)
   for i in length(degree_mon):-1:1
     for _ in 1:degree_mon[i]
-      # currently there is no sparse matrix * vector mult
-      # this is also the line that takes up almost all the computation time for big examples
-      v = v * transpose(matrices_of_operators[i]) # TODO: remove transpose?
+      v = v * matrices_of_operators[i]
     end
   end
   return v

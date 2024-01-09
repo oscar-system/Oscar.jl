@@ -2448,7 +2448,7 @@ function character_field(chi::GAPGroupClassFunction)
       q = order_field_of_definition(chi)
       flag, e, pp = is_prime_power_with_data(q)
       (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
-      F = Nemo._GF(p, e)
+      F = GF(p, e)
       return (F, identity_map(F))
     end
 

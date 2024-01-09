@@ -238,7 +238,7 @@ Map defined by a julia-function with inverse
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singular.PluralRing{S}} = nothing)  where {S}
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal; SpecialImpl::Union{Nothing, Singular.PluralRing} = nothing)
   @assert (Q == base_ring(I));
   ### No idea how to check whether SpecialImpl is sane!
 #??? Check if I is ideal of squares of gens then produce ExtAlg???

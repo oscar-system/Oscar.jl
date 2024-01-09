@@ -12,8 +12,9 @@ module GAPWrap
 
 using GAP
 
-GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
+# the following list is intended to be sorted according to `sort -f`, i.e. ignoring case
 GAP.@wrap AlgebraicExtension(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap AntiSymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap AsList(x::GapObj)::GapObj
 GAP.@wrap AsSet(x::GapObj)::GapObj
@@ -23,30 +24,30 @@ GAP.@wrap Basis(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap BasisNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CanonicalBasis(x::GapObj)::GapObj
 GAP.@wrap CentreOfCharacter(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap CF(x::Any)::GapObj
-GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
+GAP.@wrap CF(x::Any, y::Any)::GapObj
 GAP.@wrap Characteristic(x::Any)::GapInt
 GAP.@wrap CharacterParameters(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj)::GapObj
 GAP.@wrap CharacterTable(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap CharacterTableFactorGroup(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap CharacterTableWreathSymmetric(x::GapObj, y::GapInt)::GapObj
+GAP.@wrap CHAR_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap ClassFunction(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap ClassNames(x::GapObj)::GapObj
 GAP.@wrap ClassMultiplicationCoefficient(x::GapObj, y::Int, z::Int, t::Int)::GAP.Obj
+GAP.@wrap ClassNames(x::GapObj)::GapObj
+GAP.@wrap ClassParameters(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfCentre(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfDerivedSubgroup(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfNormalSubgroups(x::GapObj)::GapObj
 GAP.@wrap ClassPositionsOfPCore(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap ClassPositionsOfSolvableResiduum(x::GapObj)::GapObj
-GAP.@wrap ClassParameters(x::GapObj)::GapObj
 GAP.@wrap Coefficients(x::Any, y::Any)::GapObj
 GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
 GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
-GAP.@wrap ComputedPowerMaps(x::GapObj)::GapObj
 GAP.@wrap CollectionsFamily(x::GapObj)::GapObj
+GAP.@wrap ComputedPowerMaps(x::GapObj)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
 GAP.@wrap ConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap CycleFromList(x::GapObj)::GapObj
@@ -85,32 +86,32 @@ GAP.@wrap GaloisCyc(x::GAP.Obj, GapInt)::GAP.Obj
 GAP.@wrap GeneratorsOfField(x::GapObj)::GapObj
 GAP.@wrap GeneratorsOfGroup(x::GapObj)::GapObj
 GAP.@wrap GetFusionMap(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
+GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool
 GAP.@wrap HasClassParameters(x::GapObj)::Bool
-GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
 GAP.@wrap HasMaxes(x::GapObj)::Bool
+GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
 GAP.@wrap HasSize(x::Any)::Bool
-GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
+GAP.@wrap Image(x::Any, y::Any)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
-GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Indeterminate(x::GapObj)::GapObj
 GAP.@wrap Indeterminate(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
 GAP.@wrap IndeterminatesOfPolynomialRing(x::GapObj)::GapObj
 GAP.@wrap Indicator(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap Indicator(x::GapObj, y::GapObj, z::GapInt)::GapObj
-GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedClassFunction(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj)::GapObj
-GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
+GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IntFFE(x::Any)::GapInt
+GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap Irr(x::GapObj)::GapObj
 GAP.@wrap IsAbelian(x::Any)::Bool
@@ -126,8 +127,8 @@ GAP.@wrap IsBool(x::Any)::Bool
 GAP.@wrap IsCanonicalBasisAlgebraicExtension(x::GapObj)::Bool
 GAP.@wrap IsChar(x::Any)::Bool
 GAP.@wrap IsCharacteristicSubgroup(x::Any, y::Any)::Bool
-GAP.@wrap IsCheapConwayPolynomial(x::Any, y::Any)::Bool
 GAP.@wrap IsCheapConwayPolynomial(x::Any)::Bool
+GAP.@wrap IsCheapConwayPolynomial(x::Any, y::Any)::Bool
 GAP.@wrap IsClassFunction(x::Any)::Bool
 GAP.@wrap IsConjugate(x::Any, y::Any, z::Any)::Bool
 GAP.@wrap IsCyc(x::Any)::Bool
@@ -174,6 +175,8 @@ GAP.@wrap IsNilpotentGroup(x::Any)::Bool
 GAP.@wrap IsNormal(x::Any, y::Any)::Bool
 GAP.@wrap IsNumberField(x::Any)::Bool
 GAP.@wrap IsNumberFieldByMatrices(x::Any)::Bool
+GAP.@wrap IsomorphismFpGroupByGenerators(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap IsomorphismFpGroupByPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsOne(x::Any)::Bool
 GAP.@wrap IsPcGroup(x::Any)::Bool
 GAP.@wrap IsPerfectGroup(x::Any)::Bool
@@ -182,15 +185,15 @@ GAP.@wrap IsPGroup(x::Any)::Bool
 GAP.@wrap IsPolynomial(x::Any)::Bool
 GAP.@wrap IsPolynomialRing(x::Any)::Bool
 GAP.@wrap IsPrimeField(x::Any)::Bool
-GAP.@wrap IsPrimitive(x::Any, y::Any)::Bool
 GAP.@wrap IsPrimitive(x::Any)::Bool
+GAP.@wrap IsPrimitive(x::Any, y::Any)::Bool
 GAP.@wrap IsQuasisimpleGroup(x::Any)::Bool
 GAP.@wrap IsQuaternionGroup(x::Any)::Bool
 GAP.@wrap IsRationals(x::Any)::Bool
-GAP.@wrap IsRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsRegular(x::Any)::Bool
-GAP.@wrap IsSemiRegular(x::Any, y::Any)::Bool
+GAP.@wrap IsRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsSemiRegular(x::Any)::Bool
+GAP.@wrap IsSemiRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsSet(x::Any)::Bool
 GAP.@wrap IsSimpleGroup(x::Any)::Bool
 GAP.@wrap IsSingularForm(x::Any)::Bool
@@ -204,16 +207,14 @@ GAP.@wrap IsSyllableAssocWordRep(x::Any)::Bool
 GAP.@wrap IsSyllableWordsFamily(x::Any)::Bool
 GAP.@wrap IsSymmetricForm(x::Any)::Bool
 GAP.@wrap IsSymmetricGroup(x::Any)::Bool
-GAP.@wrap IsTransitive(x::Any, y::Any)::Bool
 GAP.@wrap IsTransitive(x::Any)::Bool
+GAP.@wrap IsTransitive(x::Any, y::Any)::Bool
 GAP.@wrap IsTrivial(x::Any)::Bool
 GAP.@wrap IsUnivariatePolynomialRing(x::Any)::Bool
 GAP.@wrap IsWholeFamily(x::Any)::Bool
 GAP.@wrap IsZero(x::Any)::Bool
 GAP.@wrap IsZmodnZObj(x::Any)::Bool
 GAP.@wrap IsZmodnZObjNonprimeCollection(x::Any)::Bool
-GAP.@wrap IsomorphismFpGroupByGenerators(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap IsomorphismFpGroupByPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
@@ -221,8 +222,8 @@ GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Maxes(x::GapObj)::GapObj
-GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
+GAP.@wrap MinimalPolynomial(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NameFunction(x::GapObj)::GapObj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj

@@ -58,8 +58,8 @@ function matrices_of_operators_gap(
   """
   M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
   matrices_of_operators = [
-    sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))) # TODO: remove transpose?
-    for o in operators
+    sparse_matrix(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))) for
+    o in operators
   ]
   denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))
   common_denominator = lcm(denominators)# // 1
