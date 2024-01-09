@@ -53,38 +53,108 @@ function convert_lattice_points_to_monomials(
 end
 
 @doc raw"""
-    get_lattice_points_of_weightspace(weights::Vector{Vector{QQFieldElem}}, wght::Vector{QQFieldElem}) -> Vector{Vector{ZZRingElem}}
+    get_lattice_points_of_weightspace(weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem},
+
 
 Calculates all lattice points in a given weightspace for a Lie algebra highest weight module.
 This is equivalent to finding $\mathbb{Z}$-linear combinations of `weights` that equal `wght`.
 All weights are given as coefficients to the simple roots $\alpha_i$.
 """
 function get_lattice_points_of_weightspace(
-  weights::Vector{Vector{QQFieldElem}}, wght::Vector{QQFieldElem}
+  weight_roots::Vector{Vector{QQFieldElem}}, 
+  L::LieAlgebraStructure, 
+  weight::Vector{ZZRingElem}, 
+  highest_weight::Vector{ZZRingElem}, 
+  zero_coordinates::Set{Any}
 )
   # calculate all integer solutions to the following linear program:
   # [   |              |    ]       [   x   ]      
-  # [weights[1]...weights[k]]   *   [   |   ]   =   weight 
+  # [weight_roots[1]...weight_roots[k]]   *   [   |   ]   =   weight
   # [   |              |    ]       [  res  ] 
   # [   |              |    ]       [   |   ]
   # where res[i] >= 0 for all i
-
-  n = length(weights)
+  wght = w_to_alpha(L, weight )
+  n = length(weight_roots)
   m = length(wght)
-  A = zero_matrix(QQ, 2m + n, n)
-  b = [zero(QQ) for _ in 1:(2m + n)]
+ 
+  #zero_coordinates = 0
+  #zero_coordinates = compute_zero_coordinates(weight_roots, L, weight, highest_weight) 
+  A = zero_matrix(QQ, 2m + n + length(zero_coordinates), n)
+  b = [zero(QQ) for _ in 1:(2m + n + length(zero_coordinates))]
+
   # equalities
   for i in 1:n
-    w = matrix(QQ, m, 1, weights[i])
+    w = matrix(QQ, m, 1, weight_roots[i])
     A[1:m, i] = w
     A[(m + 1):(2m), i] = -w
   end
+
   b[1:m] = wght
   b[(m + 1):(2m)] = -wght
   # non-negativity
   for i in 1:n
     A[2m + i, i] = -1
   end
+  j = 0
+  for i in zero_coordinates 
+    j = j+1
+    A[2m + n + j, i] = 1
+    b[2m + n + j] = 0
+  end
+  sol = Vector{ZZRingElem}.(lattice_points(polyhedron(A, b)))
+  return sol
+end
 
-  return Vector{ZZRingElem}.(lattice_points(polyhedron(A, b)))
+@doc raw"""
+compute_zero_coordinates(
+  weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem},
+)
+Uses the action on the generator to determine coordinates which always act by 0 
+on the generator, these are the root vectors which are supported on a complement of the support of the highest weight. 
+This has to be read from right to left, each possible action with a root vector increases the support of the so far generated module.
+ This might speed up the function get_lattice_points_of_weightspace if the roots to the right end of the birational sequence are small.
+"""
+
+function compute_zero_coordinates(
+  weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem},
+)
+  n = length(weight_roots)
+  m = length(weight)
+  a = cartan_matrix(L)
+  non_zeros = Set()
+  all = Set()
+  for i in 1:m 
+    push!(all, i)
+  end
+  for i in 1:m 
+    if highest_weight[i] != 0
+      push!(non_zeros, i)
+    end
+  end    
+
+  zero_coordinates = Set()
+  c = n
+  check = false
+  collect =Set()
+  while (c > 0 && !(issubset(all, non_zeros)) )
+    for i in 1:m
+      if (weight_roots[c][i] != 0) && ( i in non_zeros)
+        check = true
+        push!(collect, i)
+      end
+    end  
+    for i in collect
+      for j in 1:m
+        if (a[i,j] != 0)
+          push!(non_zeros, j)
+        end
+      end   
+    end   
+    if (!check)
+      push!(zero_coordinates, c)
+    end
+    c = c-1
+    check = false
+  end 
+  return zero_coordinates
 end
