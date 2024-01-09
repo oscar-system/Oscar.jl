@@ -88,7 +88,7 @@ for i in 2:degree
     #println(length(set_mon))
     #println(length(set_mon_sum))
     union!(set_mon_missing[i], setdiff(set_mon, set_mon_sum))
-    println(set_mon_missing[i], " for ", i)
+    #println(set_mon_missing[i], " for ", i)
     #if (!isempty(set_mon_missing[i]))
     #  push!(list_of_generators, i)
     #end 
