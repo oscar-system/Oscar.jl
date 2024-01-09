@@ -108,7 +108,7 @@ Oscar.doctest_fix
       output is still mathematically correct.
 
 !!! tip
-    If these commands fails with an error message indicating lacking permissions
+    If these commands fail with an error message indicating lacking permissions
     to change `AbstractAlgebra.jl` related docs, it may help to run the
     following command:
     ```
