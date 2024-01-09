@@ -33,26 +33,26 @@ jobs:
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
-            os: ubuntu-latest
             group: 'short'
+            os: ubuntu-latest
             depwarn: 'depwarn=error'
           - julia-version: '1.10'
-            os: ubuntu-latest
             group: 'long'
+            os: ubuntu-latest
             depwarn: 'depwarn=error'
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
-            os: macOS-latest
             group: 'short'
+            os: macOS-latest
           - julia-version: '1.10'
-            os: macOS-latest
             group: 'long'
-          - julia-version: 'nightly'
             os: macOS-latest
+          - julia-version: 'nightly'
             group: 'short'
-          - julia-version: 'nightly'
             os: macOS-latest
+          - julia-version: 'nightly'
             group: 'long'
+            os: macOS-latest
 
     steps:
       - uses: actions/checkout@v3
