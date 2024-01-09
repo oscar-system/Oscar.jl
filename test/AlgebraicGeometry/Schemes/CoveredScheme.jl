@@ -291,6 +291,7 @@ end
   Phi = hom(S, S, [x+y, x-y])
   phi = ProjectiveSchemeMor(IP1, IP1, Phi)
   f = covered_scheme_morphism(phi)
+  f2 = covered_scheme_morphism(ProjectiveSchemeMor(IP1, IP1, Phi)) # The same, but as a non-identical copy
 
   fiber_product(f, id_X)
 
@@ -298,9 +299,11 @@ end
   compose(id_X, f)
   compose(f, f)
   f_cov = covering_morphism(f)
+  f_cov2 = covering_morphism(f2)
   ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
+  ref2 = Oscar.refinement_morphism(domain(f_cov2), default_covering(X))
   _, _, f_cov_ref = fiber_product(f_cov, ref)
-  _, _, f_cov_ref2 = fiber_product(f_cov, ref)
+  _, _, f_cov_ref2 = fiber_product(f_cov, ref2)
 
   ff = CoveredSchemeMorphism(X, X, f_cov_ref)
   ff2 = CoveredSchemeMorphism(X, X, f_cov_ref2)

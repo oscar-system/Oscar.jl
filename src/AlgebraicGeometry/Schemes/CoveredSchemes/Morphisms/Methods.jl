@@ -85,8 +85,8 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     ref_B = refinement_morphism(B, default_covering(Y))
     ref_C = refinement_morphism(C, default_covering(Y))
     BxC, to_B, to_C = fiber_product(ref_B, ref_C)
-    AxBxC, to_A, to_BxC = fiber_product(fc, to_B)
-    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, gc)), check=true)
+    AxBxC, to_A, to_BxC = fiber_product(cf, to_B)
+    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, cg)), check=true)
   end
 end
 
