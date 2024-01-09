@@ -61,7 +61,8 @@ function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyR
   
   # construct the model
   pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
-  model = WeierstrassModel(f, g, pw, base, ambient_space)
+  explicit_model_sections = Dict("f" => f, "g" => g)
+  model = WeierstrassModel(explicit_model_sections, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -151,7 +152,8 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
   pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
-  model = WeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space)
+  explicit_model_sections = Dict("f" => f, "g" => g)
+  model = WeierstrassModel(explicit_model_sections, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end

@@ -9,6 +9,7 @@
 # 1.1 Tate sections and Tate polynomial
 #####################################################
 
+
 @doc raw"""
     tate_section_a1(t::GlobalTateModel)
 
@@ -24,7 +25,7 @@ julia> tate_section_a1(t)
 a1
 ```
 """
-tate_section_a1(t::GlobalTateModel) = t.tate_a1
+tate_section_a1(t::GlobalTateModel) = explicit_model_sections(t)["a1"]
 
 
 @doc raw"""
@@ -42,7 +43,7 @@ julia> tate_section_a2(t)
 w*a21
 ```
 """
-tate_section_a2(t::GlobalTateModel) = t.tate_a2
+tate_section_a2(t::GlobalTateModel) = explicit_model_sections(t)["a2"]
 
 
 @doc raw"""
@@ -60,7 +61,7 @@ julia> tate_section_a3(t)
 w^2*a32
 ```
 """
-tate_section_a3(t::GlobalTateModel) = t.tate_a3
+tate_section_a3(t::GlobalTateModel) = explicit_model_sections(t)["a3"]
 
 
 @doc raw"""
@@ -78,7 +79,7 @@ julia> tate_section_a4(t)
 w^3*a43
 ```
 """
-tate_section_a4(t::GlobalTateModel) = t.tate_a4
+tate_section_a4(t::GlobalTateModel) = explicit_model_sections(t)["a4"]
 
 
 @doc raw"""
@@ -96,7 +97,7 @@ julia> tate_section_a6(t)
 0
 ```
 """
-tate_section_a6(t::GlobalTateModel) = t.tate_a6
+tate_section_a6(t::GlobalTateModel) = explicit_model_sections(t)["a6"]
 
 
 #####################################################
@@ -184,7 +185,7 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  model = WeierstrassModel(f, g, pw, base_space(t), ambient_space(t))
+  model = WeierstrassModel(Dict("f" => f, "g" => g), pw, base_space(t), ambient_space(t))
   model_attributes = t.__attrs
   for (key, value) in model_attributes
     set_attribute!(model, key, value)

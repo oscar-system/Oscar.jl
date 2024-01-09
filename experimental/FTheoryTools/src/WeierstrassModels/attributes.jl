@@ -24,7 +24,7 @@ Weierstrass model over a not fully specified base
 julia> weierstrass_section_f(w);
 ```
 """
-weierstrass_section_f(w::WeierstrassModel) = w.weierstrass_f
+weierstrass_section_f(w::WeierstrassModel) = explicit_model_sections(w)["f"]
 
 
 @doc raw"""
@@ -42,7 +42,8 @@ Weierstrass model over a not fully specified base
 julia> weierstrass_section_g(w);
 ```
 """
-weierstrass_section_g(w::WeierstrassModel) = w.weierstrass_g
+weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
+
 
 
 #####################################################
@@ -133,7 +134,7 @@ julia> discriminant(w);
 """
 @attr MPolyRingElem function discriminant(w::WeierstrassModel)
   @req typeof(base_space(w)) <: Union{NormalToricVariety, FamilyOfSpaces} "Discriminant of Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
-  return 4 * w.weierstrass_f^3 + 27 * w.weierstrass_g^2
+  return 4 * weierstrass_section_f(w)^3 + 27 * weierstrass_section_g(w)^2
 end
 
 
