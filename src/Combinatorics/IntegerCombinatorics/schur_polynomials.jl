@@ -8,12 +8,12 @@
 ################################################################################
 
 @doc raw"""
-    schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
-    schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+    schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:IntegerUnion
+    schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:IntegerUnion
 
 Return the Schur polynomial ``s_λ(x_1,x_2,...,x_n)`` in `n` variables.
 
-If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ,n)`.
+If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ,n)`, with the exception that for `n == 0`, we use `polynomial_ring(ZZ, 1)`.
 
 # Examples
 ```jldoctest
@@ -52,25 +52,20 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 \end{vmatrix}
 ```
 """
-function schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+function schur_polynomial(lambda::Partition{T}, n::Int=length(lambda)) where T<:IntegerUnion
   @req n >= 0 "n >= 0 required"
-  if n==0 || n < length(lambda)
-    if isempty(lambda)
-      return 1
-    else
-      return 0
-    end
-  end
-  return schur_polynomial(polynomial_ring(ZZ, n)[1], lambda, n)
+  k = n == 0 ? 1 : n # we can't build polynomial_ring(ZZ, 0)
+  R, _ = polynomial_ring(ZZ, k, cached = false)
+  return schur_polynomial(R, lambda, n)
 end
 
-function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:Integer
+function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(lambda)) where T<:IntegerUnion
   @req n >= 0 "n >= 0 required"
-  if n==0 || n < length(lambda)
+  if n == 0 || n < length(lambda)
     if isempty(lambda)
-      return 1
+      return one(R)
     else
-      return 0
+      return zero(R)
     end
   end
 
@@ -84,32 +79,16 @@ function schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int=length(la
   if bo
     return schur_polynomial_combinat(R, lambda, n) #Combinatorial formula
   else
-    x = gens(R)[1:n]
-    return schur_polynomial_cbf(lambda, x) #Cauchy's bialternant formula
+    return schur_polynomial_cbf(R, lambda, n) #Cauchy's bialternant formula
   end
 end
 
-#returning the schur polynomial in the first k generators of R using Cauchy's bialternant formula.
-function schur_polynomial_cbf(lambda::Partition{T}, x::Vector{ZZMPolyRingElem}) where T<:Integer
-  #if isempty(x) #this event is handled in the calling methods
-  #  if sum(lambda)==0
-  #    return 1
-  #  else
-  #    return 0
-  #  end
-  #end
-
-  n = length(x)
-  @assert n > 0 "number of variables must be > 0"
-  # TODO: The next line suggested that the case n<=0 is invalid input. But is this
-  # really the case? I see some comment lines below which have probably been there
-  # at some point to catch such boundary cases.
-  R = parent(x[1]) # Multi-polynomialring
-  @assert all(y->parent(y)===R, x) "input elements must have the same parent"
-
-  #if n < length(lambda)
-  #  return 0
-  #end
+#returning the schur polynomial in the first n generators of R using Cauchy's bialternant formula.
+function schur_polynomial_cbf(R::ZZMPolyRing, lambda::Partition{T}, n::Int = length(lambda))  where T<:IntegerUnion
+  # the corner cases are handled in the calling function
+  @req n > 0 "number of variables must be > 0"
+  @req n >= length(lambda) "number of variables must be at least the length of the partition"
+  x = gens(R)[1:n]
 
   #=
   To calculate the determinant we use the Laplace expansion along the last row.
@@ -200,7 +179,7 @@ end
 
 # returning the schur polynomial in the first k generators of R using the
 # Combinatorial formula.
-function schur_polynomial_combinat(R::ZZMPolyRing, lambda::Partition{T}, k::Int=length(lambda)) where T<:Integer
+function schur_polynomial_combinat(R::ZZMPolyRing, lambda::Partition{T}, k::Int=length(lambda)) where T<:IntegerUnion
   if isempty(lambda)
     return one(R)
   end

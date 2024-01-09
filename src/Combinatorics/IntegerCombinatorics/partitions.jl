@@ -132,7 +132,6 @@ formula, see [Joh12](@cite) for details.
 """
 function number_of_partitions(n::IntegerUnion) # does not get called due to a more specific method in Nemo
   @req n >= 0 "n >= 0 required"
-  n = ZZ(n)
   z = ZZ()
   ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{ZZRingElem}, Culong), z, UInt(n))
   return z
@@ -161,13 +160,10 @@ julia> partitions(4) # Use partitions(Int8(4)) to use 8-bit integers
  [1, 1, 1, 1]
 ```
 """
-function partitions(n::IntegerUnion)
+function partitions(n::T) where T <: IntegerUnion
 
   #Argument checking
   @req n >= 0 "n >= 0 required"
-
-  # Use type of n
-  T = typeof(n)
 
   # Some trivial cases
   if n == 0
@@ -242,7 +238,7 @@ julia> @btime ascending_partitions(Int8(90), algorithm=:m);
 3.451 s (56634200 allocations: 6.24 GiB)
 ```
 """
-function ascending_partitions(n::IntegerUnion; algorithm::Symbol="ks")
+function ascending_partitions(n::IntegerUnion; algorithm::Symbol=:ks)
   if algorithm === :ks
     return ascending_partitions_kelleher_osullivan(n)
   elseif algorithm === :m
@@ -464,7 +460,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
   @req n >= 0 "n >= 0 required"
   @req l1 >= 0 "l1 >= 0 required"
 
-  # Use type of n
+  # Use type of m
   n = convert(T, n)
 
   # Some trivial cases
