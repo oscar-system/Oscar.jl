@@ -13,23 +13,23 @@
 #
 ################################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", tab::Tableau)
+function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
   print(io, tab.t)
 end
 
-function Base.size(tab::Tableau)
+function Base.size(tab::YoungTableau)
   return size(tab.t)
 end
 
-function Base.length(tab::Tableau)
+function Base.length(tab::YoungTableau)
   return length(tab.t)
 end
 
-function Base.getindex(tab::Tableau, i::Int)
+function Base.getindex(tab::YoungTableau, i::Int)
   return getindex(tab.t,i)
 end
 
-function Base.getindex(tab::Tableau, I::Vararg{Int, 2})
+function Base.getindex(tab::YoungTableau, I::Vararg{Int, 2})
   return getindex(getindex(tab.t,I[1]), I[2])
 end
 
@@ -40,23 +40,23 @@ end
 ################################################################################
 
 @doc raw"""
-    shape(tab::Tableau{T})
+    shape(tab::YoungTableau{T})
 
 Return the shape of a tableau, i.e. the partition given by the lengths of the
 rows of the tableau.
 """
-function shape(tab::Tableau{T}) where T
+function shape(tab::YoungTableau{T}) where T
   return partition(T[ length(tab[i]) for i=1:length(tab) ])
 end
 
 @doc raw"""
-    weight(tab::Tableau)
+    weight(tab::YoungTableau)
 
 The **weight** of a tableau is the number of times each number appears in the
 tableau. The return value is an array whose `i`-th element gives the number of
 times the integer `i` appears in the tableau.
 """
-function weight(tab::Tableau)
+function weight(tab::YoungTableau)
   if isempty(tab)
     return Int[]
   end
@@ -78,7 +78,7 @@ function weight(tab::Tableau)
 end
 
 @doc raw"""
-    reading_word(tab::Tableau)
+    reading_word(tab::YoungTableau)
 
 The **reading word** of a tableau is the word obtained by concatenating the
 fillings of the rows, starting from the *bottom* row. The word is here
@@ -86,7 +86,7 @@ returned as an array.
 
 # Examples
 ```jldoctest
-julia> reading_word(Tableau([ [1,2,3] , [4,5] , [6] ]))
+julia> reading_word(YoungTableau([ [1,2,3] , [4,5] , [6] ]))
 6-element Vector{Int64}:
  6
  4
@@ -96,7 +96,7 @@ julia> reading_word(Tableau([ [1,2,3] , [4,5] , [6] ]))
  3
 ```
 """
-function reading_word(tab::Tableau)
+function reading_word(tab::YoungTableau)
   w = zeros(Int,sum(shape(tab)))
   k = 0
   for i = length(tab):-1:1
@@ -115,12 +115,12 @@ end
 ################################################################################
 
 @doc raw"""
-    is_semistandard(tab::Tableau)
+    is_semistandard(tab::YoungTableau)
 
 A tableau is called **semistandard** if the entries weakly increase along each
 row and strictly increase down each column.
 """
-function is_semistandard(tab::Tableau)
+function is_semistandard(tab::YoungTableau)
   s = shape(tab)
   if isempty(s)
     return true
@@ -168,12 +168,12 @@ list of tableaux is in lexicographic order from left to right and top
 to bottom.
 """
 function semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where T<:Integer
-  SST = Vector{Tableau{T}}()
+  SST = Vector{YoungTableau{T}}()
   len = length(shape)
   if max_val < len
     return SST
   elseif len==0
-    push!(SST, Tableau(Vector{T}[]))
+    push!(SST, YoungTableau(Vector{T}[]))
     return SST
   end
   tab = [Array{T}(fill(i,shape[i])) for i = 1:len]
@@ -181,7 +181,7 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T=sum(shape)) where
   n = shape[m]
 
   while true
-    push!(SST,Tableau([copy(row) for row in tab]))
+    push!(SST,YoungTableau([copy(row) for row in tab]))
 
     #raise one element by 1
     while !(tab[m][n]<max_val &&
@@ -245,7 +245,7 @@ boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
   @req box_num>=0 "box_num >= 0 required"
-  SST = Vector{Tableau{T}}()
+  SST = Vector{YoungTableau{T}}()
   if max_val<=0
     return SST
   end
@@ -271,14 +271,14 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
   n_max = sum(s)
   @req n_max == sum(weight) "sum(s) == sum(weight) required"
 
-  tabs = Vector{Tableau}()
+  tabs = Vector{YoungTableau}()
   if isempty(s)
-    push!(tabs, Tableau(Vector{Int}[]))
+    push!(tabs, YoungTableau(Vector{Int}[]))
     return tabs
   end
   ls = length(s)
 
-  tab = Tableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
+  tab = YoungTableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
   sub_s = zeros(Integer, length(s))
 
   #tracker_row = zeros(Integer,n_max)
@@ -300,7 +300,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T<:Integer
           end
         end
       end
-      push!(tabs,Tableau([copy(row) for row in tab]))
+      push!(tabs,YoungTableau([copy(row) for row in tab]))
 
       return
 
@@ -375,12 +375,12 @@ end
 ################################################################################
 
 @doc raw"""
-    is_standard(tab::Tableau)
+    is_standard(tab::YoungTableau)
 
 A tableau is called **standard** if it is semistandard and the entries
 are in bijection with ``1,…,n``, where ``n`` is the number of boxes.
 """
-function is_standard(tab::Tableau)
+function is_standard(tab::YoungTableau)
   s = shape(tab)
   if isempty(s)
     return true
@@ -440,15 +440,15 @@ end
 Return a list of all standard tableaux of a given shape.
 """
 function standard_tableaux(s::Partition)
-  tabs = Vector{Tableau}()
+  tabs = Vector{YoungTableau}()
   if isempty(s)
-    push!(tabs, Tableau(Vector{Int}[]))
+    push!(tabs, YoungTableau(Vector{Int}[]))
     return tabs
   end
   n_max = sum(s)
   ls = length(s)
 
-  tab = Tableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
+  tab = YoungTableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
   sub_s = [0 for i=1:length(s)]
   tab[1][1] = 1
   sub_s[1] = 1
@@ -462,7 +462,7 @@ function standard_tableaux(s::Partition)
   while n > 0
     if n == n_max || i > ls
       if n == n_max
-        push!(tabs,Tableau([copy(row) for row in tab]))
+        push!(tabs,YoungTableau([copy(row) for row in tab]))
       end
       tab[tracker_row[n]][sub_s[tracker_row[n]]] = 0
       i = tracker_row[n] + 1
@@ -500,7 +500,7 @@ Return a list of all standard tableaux with n boxes.
 """
 function standard_tableaux(n::Integer)
   @req n>=0 "n >= 0 required"
-  ST = Vector{Tableau}()
+  ST = Vector{YoungTableau}()
   for s in partitions(n)
     append!(ST, standard_tableaux(s))
   end
@@ -533,11 +533,11 @@ function hook_length(lambda::Partition, i::Integer, j::Integer)
 end
 
 @doc raw"""
-    hook_length(tab::Tableau, i::Integer, j::Integer)
+    hook_length(tab::YoungTableau, i::Integer, j::Integer)
 
 Shortcut for `hook_length(shape(tab), i, j)`.
 """
-function hook_length(tab::Tableau, i::Integer, j::Integer)
+function hook_length(tab::YoungTableau, i::Integer, j::Integer)
   return hook_length(shape(tab),i,j)
 end
 
@@ -549,10 +549,10 @@ is equal to the hook length of the corresponding box.
 """
 function hook_lengths(lambda::Partition)
   if isempty(lambda)
-    return Tableau(Vector{Int}[])
+    return YoungTableau(Vector{Int}[])
   end
   tab = [ [hook_length(lambda,i,j) for j in 1:lambda[i]] for i in 1:length(lambda) ]
-  return Tableau(tab)
+  return YoungTableau(tab)
 end
 
 @doc raw"""
@@ -611,10 +611,10 @@ julia> Q
 """
 function schensted(sigma::Vector{T}) where T<:Integer
   if isempty(sigma)
-    return Tableau(Vector{T}[]),Tableau(Vector{T}[])
+    return YoungTableau(Vector{T}[]),YoungTableau(Vector{T}[])
   end
-  P = Tableau{T}([[sigma[1]]])
-  Q = Tableau{T}([[1]])
+  P = YoungTableau{T}([[sigma[1]]])
+  Q = YoungTableau{T}([[1]])
   for i = 2:length(sigma)
     bump!(P, sigma[i], Q, i)
   end
@@ -626,7 +626,7 @@ function schensted(sigma::Perm{T}) where T<:Integer
 end
 
 @doc raw"""
-    bump!(tab::Tableau, x::Int)
+    bump!(tab::YoungTableau, x::Int)
 
 Inserts the integer `x` into the tableau `tab` according to the bumping
 algorithm by applying the Schensted insertion.
@@ -634,7 +634,7 @@ algorithm by applying the Schensted insertion.
 # References
 1. Wolfram MathWorld, [Bumping Algorithm](https://mathworld.wolfram.com/BumpingAlgorithm.html)
 """
-function bump!(tab::Tableau, x::Integer)
+function bump!(tab::YoungTableau, x::Integer)
   if isempty(tab)
     push!(tab.t,[x])
     return tab
@@ -663,13 +663,13 @@ function bump!(tab::Tableau, x::Integer)
 end
 
 @doc raw"""
-    bump!(tab::Tableau, x::Integer, Q::Tableau, y::Integer)
+    bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
 
 Inserts `x` into tab according to the bumping algorithm by applying the
 Schensted insertion. Traces the change with `Q` by inserting `y` at the same
 position in `Q` as `x` in tab.
 """
-function bump!(tab::Tableau, x::Integer, Q::Tableau, y::Integer)
+function bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
   if isempty(tab)
     push!(tab.t,[x])
     push!(Q.t,[x])

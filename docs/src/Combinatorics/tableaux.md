@@ -1,7 +1,7 @@
 # Tableaux
 
 ```@docs
-Tableau
+YoungTableau
 ```
 
 ## Operations

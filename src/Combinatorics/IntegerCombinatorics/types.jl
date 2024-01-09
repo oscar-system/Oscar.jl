@@ -75,12 +75,12 @@ end
 
 ################################################################################
 #
-#  Tableau
+#  Young Tableaux
 #
 ################################################################################
 
 @doc raw"""
-    Tableau{T} <: AbstractVector{AbstractVector{T}}
+    YoungTableau{T} <: AbstractVector{AbstractVector{T}}
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged
 in left-justified rows, with the row lengths in non-increasing order. The
@@ -95,7 +95,7 @@ A **Young tableau** of shape ``λ`` is a filling of the boxes of the Young
 diagram of ``λ`` with elements from some set. After relabeling we can (and
 will) assume that we fill from a set of integers from ``1`` up to some number,
 which in applications is often equal to `n`. We encode a tableau as an
-array of arrays and we have implemented an own type `Tableau{T}`
+array of arrays and we have implemented an own type `YoungTableau{T}`
 as subtype of `AbstractVector{AbstractVector{T}}` to work with
 tableaux. As for partitions, you may increase performance by casting
 into smaller integer types, e.g.
@@ -105,16 +105,16 @@ tableau, i.e. whether the structure of the array defines a partition.
 
 # Examples
 ```jldoctest
-julia> tab=Tableau([[1,2,3],[4,5],[6]])
+julia> tab=YoungTableau([[1,2,3],[4,5],[6]])
 [[1, 2, 3], [4, 5], [6]]
 
-julia> tab=Tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
+julia> tab=YoungTableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
 Vector{Int8}[[2, 1], [], [3, 2, 1]]
 ```
 
 # References
 1. Wikipedia, [Young tableau](https://en.wikipedia.org/wiki/Young_tableau).
 """
-struct Tableau{T} <: AbstractVector{AbstractVector{T}}
+struct YoungTableau{T} <: AbstractVector{AbstractVector{T}}
   t::Vector{Vector{T}}
 end

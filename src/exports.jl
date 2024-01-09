@@ -163,7 +163,6 @@ export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
-export Tableau
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
@@ -177,6 +176,7 @@ export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
 export WreathProductGroup
+export YoungTableau
 export ZZ
 export abelian_group
 export abelian_invariants
