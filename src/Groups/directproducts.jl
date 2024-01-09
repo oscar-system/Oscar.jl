@@ -481,7 +481,7 @@ function wreath_product(G::T, H::PermGroup) where {T<:GAPGroup}
   else
     S = symmetric_group(H.deg)
     Wgap = GAP.Globals.WreathProduct(G.X, S.X)
-    W1 = GAP.Globals.PreImage(GGAPWrap.Projection(Wgap), H.X)
+    W1 = GAP.Globals.PreImage(GAPWrap.Projection(Wgap), H.X)
     # not id_hom(H) because I need NrMovedPoints(Image(a))==degree(H), see function embedding
     return WreathProductGroup(W1, G, H, id_hom(symmetric_group(H.deg)), Wgap, true)
   end
