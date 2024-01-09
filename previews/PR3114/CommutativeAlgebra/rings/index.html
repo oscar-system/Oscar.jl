@@ -35,7 +35,7 @@ QQPolyRingElem
 </code></pre><pre><code class="language-julia-repl hljs">julia&gt; T, x = polynomial_ring(GF(3), [&quot;x[1]&quot;, &quot;x[2]&quot;]);
 
 julia&gt; x
-2-element Vector{fpMPolyRingElem}:
+2-element Vector{FqMPolyRingElem}:
  x[1]
  x[2]
 </code></pre><p>The constructor illustrated below allows for the convenient handling of variables with multi-indices:</p><pre><code class="language-julia-repl hljs">julia&gt; R, x, y, z = polynomial_ring(QQ, &quot;x&quot; =&gt; (1:3, 1:4), &quot;y&quot; =&gt; 1:2, &quot;z&quot; =&gt; (1:1, 1:1, 1:1));
@@ -58,10 +58,10 @@ julia&gt; z
 </code></pre><h2 id="Coefficient-Rings"><a class="docs-heading-anchor" href="#Coefficient-Rings">Coefficient Rings</a><a id="Coefficient-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Coefficient-Rings" title="Permalink"></a></h2><p>Gröbner and standard bases are implemented for multivariate polynomial rings over the fields and rings below:</p><h3 id="The-field-of-rational-numbers-\\mathbb{Q}"><a class="docs-heading-anchor" href="#The-field-of-rational-numbers-\\mathbb{Q}">The field of rational numbers <span>$\mathbb{Q}$</span></a><a id="The-field-of-rational-numbers-\\mathbb{Q}-1"></a><a class="docs-heading-anchor-permalink" href="#The-field-of-rational-numbers-\\mathbb{Q}" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; QQ
 Rational field
 </code></pre><h3 id="Finite-fields-\\mathbb{F_p},-p-a-prime"><a class="docs-heading-anchor" href="#Finite-fields-\\mathbb{F_p},-p-a-prime">Finite fields <span>$\mathbb{F_p}$</span>, <span>$p$</span> a prime</a><a id="Finite-fields-\\mathbb{F_p},-p-a-prime-1"></a><a class="docs-heading-anchor-permalink" href="#Finite-fields-\\mathbb{F_p},-p-a-prime" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; GF(3)
-Finite field of characteristic 3
+Finite field of degree 1 over GF(3)
 
 julia&gt; GF(ZZ(2)^127 - 1)
-Finite field of characteristic 170141183460469231731687303715884105727
+Finite field of degree 1 over GF(170141183460469231731687303715884105727)
 </code></pre><h3 id="Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime"><a class="docs-heading-anchor" href="#Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime">Finite fields <span>$\mathbb{F}_{p^n}$</span> with <span>$p^n$</span> elements, <span>$p$</span> a prime</a><a id="Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime-1"></a><a class="docs-heading-anchor-permalink" href="#Finite-fields-\\mathbb{F}_{pn}-with-pn-elements,-p-a-prime" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; finite_field(2, 70, &quot;a&quot;)
 (Finite field of degree 70 over GF(2), a)
 </code></pre><h3 id="Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p"><a class="docs-heading-anchor" href="#Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p">Simple algebraic extensions of <span>$\mathbb{Q}$</span> or <span>$\mathbb{F}_p$</span></a><a id="Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p-1"></a><a class="docs-heading-anchor-permalink" href="#Simple-algebraic-extensions-of-\\mathbb{Q}-or-\\mathbb{F}_p" title="Permalink"></a></h3><pre><code class="language-julia-repl hljs">julia&gt; T, t = polynomial_ring(QQ, &quot;t&quot;)
@@ -71,7 +71,7 @@ julia&gt; K, a = number_field(t^2 + 1, &quot;a&quot;)
 (Number field of degree 2 over QQ, a)
 
 julia&gt; F = GF(3)
-Finite field of characteristic 3
+Finite field of degree 1 over GF(3)
 
 julia&gt; T, t = polynomial_ring(F, &quot;t&quot;)
 (Univariate polynomial ring in t over GF(3), t)
@@ -370,10 +370,10 @@ julia&gt; for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 julia&gt; finish(B)
 5*x^5*y^4 + 4*x^4*y^3 + 3*x^3*y^2 + 2*x^2*y + x
 </code></pre><h3 id="Special-Elements"><a class="docs-heading-anchor" href="#Special-Elements">Special Elements</a><a id="Special-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#Special-Elements" title="Permalink"></a></h3><p>Given a multivariate polynomial ring <code>R</code>, <code>zero(R)</code> and <code>one(R)</code> refer to the additive and multiplicative identity of <code>R</code>, respectively. Relevant test calls on an element <code>f</code> of <code>R</code> are  <code>iszero(f)</code> and <code>isone(f)</code>.</p><h3 id="Data-Associated-to-Elements-of-Multivariate-Rings"><a class="docs-heading-anchor" href="#Data-Associated-to-Elements-of-Multivariate-Rings">Data Associated to Elements of Multivariate Rings</a><a id="Data-Associated-to-Elements-of-Multivariate-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Elements-of-Multivariate-Rings" title="Permalink"></a></h3><p>Given an element <code>f</code> of a multivariate polynomial ring <code>R</code> or a graded version of such a ring, </p><ul><li><code>parent(f)</code> refers to <code>R</code>, and</li><li><code>total_degree(f)</code> to the total degree of <code>f</code>.</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Given a set of variables <span>$x = \{x_1, \ldots, x_n\}$</span>, the <em>total degree</em> of a monomial <span>$x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)$</span> is the sum of the <span>$\alpha_i$</span>. The <em>total degree</em> of a polynomial <code>f</code>  is the maximum of the total degrees of its monomials. In particular, the notion of total degree ignores the weights given to the variables in the graded case.</p></div></div><p>For iterators which allow one to recover the monomials  (terms, <span>$\dots$</span>) of <code>f</code> we refer to the subsection <em>Monomials, Terms, and More</em> of the section on <em>Gröbner/Standard Bases</em>.</p><h6 id="Examples-5"><a class="docs-heading-anchor" href="#Examples-5">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-5" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = polynomial_ring(GF(5), [&quot;x&quot;, &quot;y&quot;])
-(Multivariate polynomial ring in 2 variables over GF(5), fpMPolyRingElem[x, y])
+(Multivariate polynomial ring in 2 variables over GF(5), FqMPolyRingElem[x, y])
 
 julia&gt; c = map(GF(5), [1, 2, 3])
-3-element Vector{fpFieldElem}:
+3-element Vector{FqFieldElem}:
  1
  2
  3
@@ -389,7 +389,7 @@ x^3*y^2 + 2*x + 3*y
 
 julia&gt; parent(f)
 Multivariate polynomial ring in 2 variables x, y
-  over finite field of characteristic 5
+  over finite field of degree 1 over GF(5)
 
 julia&gt; total_degree(f)
 5</code></pre><p>Further functionality is available in the graded case:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_components-Union{Tuple{MPolyDecRingElem{T, S}}, Tuple{S}, Tuple{T}} where {T, S}" href="#homogeneous_components-Union{Tuple{MPolyDecRingElem{T, S}}, Tuple{S}, Tuple{T}} where {T, S}"><code>homogeneous_components</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}</code></pre><p>Given an element <code>f</code> of a graded multivariate ring, return the homogeneous components of <code>f</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;], [1, 2, 3])
@@ -587,4 +587,4 @@ defined by
   y -&gt; y
 
 julia&gt; H(f)
-x^2 + 1</code></pre></div></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuoRing{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyRingElem{T}</code>. Functionality for these homomorphism is discussed in the section on affine algebras.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../ideals/">Ideals in Multivariate Rings »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 30 December 2023 20:05">Saturday 30 December 2023</span>. Using Julia version 1.9.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+x^2 + 1</code></pre></div></section></article><p>Given a ring homomorphism <code>F</code> from <code>R</code> to <code>S</code> as above, <code>domain(F)</code> and <code>codomain(F)</code> refer to <code>R</code> and <code>S</code>, respectively.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The OSCAR homomorphism type <code>AffAlgHom</code> models ring homomorphisms <code>R</code> <span>$\to$</span> <code>S</code> such that the type of both <code>R</code> and <code>S</code>  is a subtype of <code>Union{MPolyRing{T}, MPolyQuoRing{U}}</code>, where <code>T &lt;: FieldElem</code> and <code>U &lt;: MPolyRingElem{T}</code>. Functionality for these homomorphism is discussed in the section on affine algebras.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../ideals/">Ideals in Multivariate Rings »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 9 January 2024 16:26">Tuesday 9 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
