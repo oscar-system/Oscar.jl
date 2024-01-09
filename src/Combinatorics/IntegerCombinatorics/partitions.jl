@@ -11,7 +11,7 @@
 
 ################################################################################
 #
-# Constructors
+# Constructors and basic functionality
 #
 ################################################################################
 
@@ -42,34 +42,36 @@ function partition(p::Vector{Any})
   return partition(Vector{Int}(p))
 end
 
+data(P::Partition) = P.p
+
+function Base.show(io::IO, ::MIME"text/plain", P::Partition)
+  print(io, data(P))
+end
+
 ################################################################################
 #
 #  Array-like functionality
 #
 ################################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", P::Partition)
-  print(io, P.p)
-end
-
 function Base.size(P::Partition)
-  return size(P.p)
+  return size(data(P))
 end
 
 function Base.length(P::Partition)
-  return length(P.p)
+  return length(data(P))
 end
 
 function Base.getindex(P::Partition, i::IntegerUnion)
-  return getindex(P.p,Int(i))
+  return getindex(data(P),Int(i))
 end
 
 function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
-  return setindex!(P.p,x,Int(i))
+  return setindex!(data(P),x,Int(i))
 end
 
 function Base.copy(P::Partition{T}) where T<:IntegerUnion
-  return partition(copy(P.p))
+  return partition(copy(data(P)))
 end
 
 @doc raw"""
@@ -79,7 +81,7 @@ In algorithms involving partitions it is sometimes convenient to be able to acce
 beyond the length of the partition and then one wants to get the value zero instead of an
 error. This function is a shortcut for
 ```
-return (i>length(P.p) ? 0 : getindex(P.p,i))
+return (i>length(data(P)) ? 0 : getindex(data(P),i))
 ```
 If you are sure that `P[i]` exists, use `getindex` because this will be faster.
 
@@ -96,7 +98,7 @@ julia> getindex_safe(P, 4)
 ```
 """
 function getindex_safe(P::Partition, i::IntegerUnion)
-  return (i>length(P.p) ? 0 : getindex(P.p,Int(i)))
+  return (i>length(data(P)) ? 0 : getindex(data(P),Int(i)))
 end
 
 ################################################################################

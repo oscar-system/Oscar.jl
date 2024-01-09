@@ -9,7 +9,7 @@
 
 ################################################################################
 #
-#  Constructor
+#  Constructor and basic functionality
 #
 ################################################################################
 
@@ -24,31 +24,35 @@ function young_tableau(v::Vector{Vector{T}}) where T <: IntegerUnion
   return YoungTableau(v)
 end
 
+data(tab::YoungTableau) = tab.t
+
+function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
+  print(io, data(tab))
+end
+
 ################################################################################
 #
 #  Array-like functionality
 #
 ################################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
-  print(io, tab.t)
-end
-
 function Base.size(tab::YoungTableau)
-  return size(tab.t)
+  return size(data(tab))
 end
 
 function Base.length(tab::YoungTableau)
-  return length(tab.t)
+  return length(data(tab))
 end
 
 function Base.getindex(tab::YoungTableau, i::Int)
-  return getindex(tab.t,i)
+  return getindex(data(tab),i)
 end
 
 function Base.getindex(tab::YoungTableau, I::Vararg{Int, 2})
-  return getindex(getindex(tab.t,I[1]), I[2])
+  return getindex(getindex(data(tab),I[1]), I[2])
 end
+
+push!(tab::YoungTableau{T}, r::Vector{T}) where T <: IntegerUnion = push!(tab.t, r)
 
 ################################################################################
 #
@@ -270,7 +274,7 @@ function semistandard_tableaux(box_num::T, max_val::T=box_num) where T<:Integer
 
   for s in shapes
     if max_val >= length(s)
-      append!(SST, semistandard_tableaux(s.p,max_val))
+      append!(SST, semistandard_tableaux(data(s),max_val))
     end
   end
 
@@ -653,7 +657,7 @@ algorithm by applying the Schensted insertion.
 """
 function bump!(tab::YoungTableau, x::Integer)
   if isempty(tab)
-    push!(tab.t,[x])
+    push!(tab, [x])
     return tab
   end
 
@@ -675,7 +679,7 @@ function bump!(tab::YoungTableau, x::Integer)
       j += 1
     end
   end
-  push!(tab.t,[x])
+  push!(tab, [x])
   return tab
 end
 
@@ -688,8 +692,8 @@ position in `Q` as `x` in tab.
 """
 function bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
   if isempty(tab)
-    push!(tab.t,[x])
-    push!(Q.t,[x])
+    push!(tab, [x])
+    push!(Q, [x])
     return tab,Q
   end
   i = 1
@@ -711,8 +715,8 @@ function bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
       j += 1
     end
   end
-  push!(tab.t, [x])
-  push!(Q.t, [y])
+  push!(tab, [x])
+  push!(Q, [y])
 
   return tab,Q
 end
