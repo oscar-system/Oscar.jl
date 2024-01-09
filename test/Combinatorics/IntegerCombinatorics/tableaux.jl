@@ -1,33 +1,33 @@
 @testset "Young Tableaux" begin
   # reading_word
-  @test reading_word(YoungTableau([ [1,2,5,7], [3,4], [6]])) == [6,3,4,1,2,5,7]
-  @test reading_word(YoungTableau([ [1], [2], [3]])) == [3,2,1]
-  @test reading_word(YoungTableau([[1,2,3]])) == [1,2,3]
-  @test reading_word(YoungTableau(Array{Int,1}[])) == Int[]
+  @test reading_word(young_tableau([ [1,2,5,7], [3,4], [6]])) == [6,3,4,1,2,5,7]
+  @test reading_word(young_tableau([ [1], [2], [3]])) == [3,2,1]
+  @test reading_word(young_tableau([[1,2,3]])) == [1,2,3]
+  @test reading_word(young_tableau(Array{Int,1}[])) == Int[]
 
   # weight
-  @test weight(YoungTableau([[1,2,3],[1,2],[1]])) == [3,2,1]
-  @test weight(YoungTableau([[1,2,3,4,5]])) == [1,1,1,1,1]
-  @test weight(YoungTableau([[1],[1],[1]])) == [3]
-  @test weight(YoungTableau(Array{Int,1}[])) == Int[]
+  @test weight(young_tableau([[1,2,3],[1,2],[1]])) == [3,2,1]
+  @test weight(young_tableau([[1,2,3,4,5]])) == [1,1,1,1,1]
+  @test weight(young_tableau([[1],[1],[1]])) == [3]
+  @test weight(young_tableau(Array{Int,1}[])) == Int[]
 
   # is_standard
-  @test is_standard(YoungTableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
-  @test is_standard(YoungTableau([[1,2],[3,4]])) == true
-  @test is_standard(YoungTableau([[1,3],[2,4]])) == true
-  @test is_standard(YoungTableau([[1,4],[2,4]])) == false
-  @test is_standard(YoungTableau([[1,2],[4]])) == false
-  @test is_standard(YoungTableau([[1,3,2],[4]])) == false
+  @test is_standard(young_tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
+  @test is_standard(young_tableau([[1,2],[3,4]])) == true
+  @test is_standard(young_tableau([[1,3],[2,4]])) == true
+  @test is_standard(young_tableau([[1,4],[2,4]])) == false
+  @test is_standard(young_tableau([[1,2],[4]])) == false
+  @test is_standard(young_tableau([[1,3,2],[4]])) == false
 
   # is_semistandard
-  @test is_semistandard(YoungTableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
-  @test is_semistandard(YoungTableau([[1,2],[3,4]])) == true
-  @test is_semistandard(YoungTableau([[1,3],[2,4]])) == true
-  @test is_semistandard(YoungTableau([[1,4],[2,4]])) == false
-  @test is_semistandard(YoungTableau([[1,2],[4]])) == true
-  @test is_semistandard(YoungTableau([[1,2,2],[3]])) == true
-  @test is_semistandard(YoungTableau([[1,2,3],[1,4]])) == false
-  @test is_semistandard(YoungTableau([[1,2,1],[2,4]])) == false
+  @test is_semistandard(young_tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
+  @test is_semistandard(young_tableau([[1,2],[3,4]])) == true
+  @test is_semistandard(young_tableau([[1,3],[2,4]])) == true
+  @test is_semistandard(young_tableau([[1,4],[2,4]])) == false
+  @test is_semistandard(young_tableau([[1,2],[4]])) == true
+  @test is_semistandard(young_tableau([[1,2,2],[3]])) == true
+  @test is_semistandard(young_tableau([[1,2,3],[1,4]])) == false
+  @test is_semistandard(young_tableau([[1,2,1],[2,4]])) == false
 
   # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
   shapes = [[3,2,1],[3,3,1],[2,2,2]]
@@ -65,7 +65,7 @@
       end
     end
   end
-  @test semistandard_tableaux(Int[], Int[]) == [YoungTableau(Array{Int,1}[])]
+  @test semistandard_tableaux(Int[], Int[]) == [young_tableau(Array{Int,1}[])]
 
   #semistandard_tableaux(box_num, max_val)
   BoxNum = 0:5
@@ -107,7 +107,7 @@
       @test length(ST) == number_of_standard_tableaux(s)
     end
   end
-  @test standard_tableaux(partition(Int[])) == [YoungTableau(Array{Int,1}[])]
+  @test standard_tableaux(partition(Int[])) == [young_tableau(Array{Int,1}[])]
   @test standard_tableaux([3,2,1]) == standard_tableaux(partition([3,2,1]))
 
   # standard_tableaux(n::Integer)
@@ -128,28 +128,28 @@
   # hook_length
   @test hook_length(partition([1]),1,1) == 1
   @test hook_length(partition([4,3,1,1]),1,1) == 7
-  @test hook_length(YoungTableau([[1,2,3,4],[5,6,7],[8],[9]]),1,1) == 7
+  @test hook_length(young_tableau([[1,2,3,4],[5,6,7],[8],[9]]),1,1) == 7
 
   # hook_lengths
-  @test hook_lengths(partition([4,3,1,1])) == YoungTableau([[7,4,3,1],[5,2,1],[2],[1]])
-  @test hook_lengths(partition([1])) == YoungTableau([[1]])
-  @test hook_lengths(partition([])) == YoungTableau(Array{Int,1}[])
+  @test hook_lengths(partition([4,3,1,1])) == young_tableau([[7,4,3,1],[5,2,1],[2],[1]])
+  @test hook_lengths(partition([1])) == young_tableau([[1]])
+  @test hook_lengths(partition([])) == young_tableau(Array{Int,1}[])
 
   # schensted
-  @test schensted([6,2,7,3,5,4,1]) == (YoungTableau([[1,3,4],[2,7],[5],[6]]),YoungTableau([[1,3,5],[2,4],[6],[7]]))
-  @test schensted([5,2,7,1,3,8,6,4]) == (YoungTableau([[1,3,4],[2,6,8],[5,7]]),YoungTableau([[1,3,6],[2,5,7],[4,8]]))
-  @test schensted([1]) == (YoungTableau([[1]]),YoungTableau([[1]]))
-  @test schensted(Int[]) == (YoungTableau(Array{Int,1}[]),YoungTableau(Array{Int,1}[]))
+  @test schensted([6,2,7,3,5,4,1]) == (young_tableau([[1,3,4],[2,7],[5],[6]]),young_tableau([[1,3,5],[2,4],[6],[7]]))
+  @test schensted([5,2,7,1,3,8,6,4]) == (young_tableau([[1,3,4],[2,6,8],[5,7]]),young_tableau([[1,3,6],[2,5,7],[4,8]]))
+  @test schensted([1]) == (young_tableau([[1]]),young_tableau([[1]]))
+  @test schensted(Int[]) == (young_tableau(Array{Int,1}[]),young_tableau(Array{Int,1}[]))
 
   # bump!
-  tab = YoungTableau(Array{Int,1}[])
-  tab2 = YoungTableau(Array{Int,1}[])
-  Q = YoungTableau(Array{Int,1}[])
+  tab = young_tableau(Array{Int,1}[])
+  tab2 = young_tableau(Array{Int,1}[])
+  Q = young_tableau(Array{Int,1}[])
   for x in [1,2,1,1,3,4,1,1]
     bump!(tab,x)
     bump!(tab2, x, Q, x)
   end
-  @test tab == YoungTableau([[1,1,1,1,1],[2,3,4]])
-  @test tab2 == YoungTableau([[1,1,1,1,1],[2,3,4]])
+  @test tab == young_tableau([[1,1,1,1,1],[2,3,4]])
+  @test tab2 == young_tableau([[1,1,1,1,1],[2,3,4]])
 
 end

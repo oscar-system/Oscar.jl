@@ -1502,5 +1502,6 @@ export weyl_vector
 export witt_index
 export wreath_product
 export write_as_full
+export young_tableau
 export zonotope
 export zonotope_vertices_fukuda_matrix

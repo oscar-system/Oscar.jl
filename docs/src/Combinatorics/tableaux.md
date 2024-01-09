@@ -2,6 +2,7 @@
 
 ```@docs
 YoungTableau
+young_tableau
 ```
 
 ## Operations

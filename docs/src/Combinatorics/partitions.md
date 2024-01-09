@@ -9,6 +9,7 @@ end
 
 ```@docs
 Partition
+partition
 getindex_safe
 ```
 

@@ -69,7 +69,7 @@ function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
 end
 
 function Base.copy(P::Partition{T}) where T<:IntegerUnion
-  return Partition{T}(copy(P.p))
+  return partition(copy(P.p))
 end
 
 @doc raw"""

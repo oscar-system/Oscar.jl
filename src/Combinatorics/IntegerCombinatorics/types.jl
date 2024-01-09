@@ -16,7 +16,7 @@ A partition can be encoded as an array with elements ``λᵢ``. We provide the p
 `IntegerUnion`. All functions that can be used for vectors (1-dimensional arrays) can thus
 be used for partitions as well. There is no performance impact by using an own type for
 partitions rather than simply using arrays. The parametric type allows to increase
-performance by using smaller integer types. For efficiency, the `Partition` constructor does
+performance by using smaller integer types. For efficiency, the `partition` constructor does
 not check whether the given array is indeed a decreasing sequence.
 
 A partition can be created by either calling `partition` on an array of integers or by
@@ -105,10 +105,10 @@ tableau, i.e. whether the structure of the array defines a partition.
 
 # Examples
 ```jldoctest
-julia> tab=YoungTableau([[1,2,3],[4,5],[6]])
+julia> tab=young_tableau([[1,2,3],[4,5],[6]])
 [[1, 2, 3], [4, 5], [6]]
 
-julia> tab=YoungTableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
+julia> tab=young_tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
 Vector{Int8}[[2, 1], [], [3, 2, 1]]
 ```
 

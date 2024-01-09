@@ -668,7 +668,7 @@ end
 
 Return the result of the Schur functor $\mathbf S^\lambda$.
 """
-function schur_functor(F::AbstractBundle, λ::Vector{Int}) schur_functor(F, Partition(λ)) end
+function schur_functor(F::AbstractBundle, λ::Vector{Int}) schur_functor(F, partition(λ)) end
 function schur_functor(F::AbstractBundle, λ::Partition)
   λ = conjugate(λ)
   X = F.parent
