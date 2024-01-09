@@ -48,6 +48,14 @@ function blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate
   return blow_up(m, I; coordinate_name = coordinate_name)
 end
 
+function _my_proper_transform(ring_map::T, p::MPolyRingElem, coordinate_name::String) where {T<:SetElem}
+  total_transform = ring_map(ideal([p]))
+  _e = eval_poly(coordinate_name, codomain(ring_map))
+  exceptional_ideal = total_transform + ideal([_e])
+  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
+  return gens(strict_transform)[1]
+end
+
 function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
@@ -85,20 +93,11 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
 
   # Construct the new model
   if typeof(m) == GlobalTateModel
-    total_transform = ring_map(ideal([tate_polynomial(m)]))
-    exceptional_ideal = total_transform + ideal([_e])
-    strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-    new_pt = gens(strict_transform)[1]
-    ais = [tate_section_a1(m), tate_section_a2(m), tate_section_a3(m), tate_section_a4(m), tate_section_a6(m)]
-    model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], new_pt, base_space(m), new_ambient_space)
+    new_pt = _my_proper_transform(ring_map, tate_polynomial(m), coordinate_name)
+    model = GlobalTateModel(explicit_model_sections(m), new_pt, base_space(m), new_ambient_space)
   else
-    total_transform = ring_map(ideal([weierstrass_polynomial(m)]))
-    exceptional_ideal = total_transform + ideal([_e])
-    strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-    new_pw = gens(strict_transform)[1]
-    f = weierstrass_section_f(m)
-    g = weierstrass_section_g(m)
-    model = WeierstrassModel(f, g, new_pw, base_space(m), new_ambient_space)
+    new_pw = _my_proper_transform(ring_map, weierstrass_polynomial(m), coordinate_name)
+    model = WeierstrassModel(explicit_model_section(m), new_pw, base_space(m), new_ambient_space)
   end
 
   # Copy/overwrite known attributes from old model

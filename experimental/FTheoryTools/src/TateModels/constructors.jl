@@ -64,7 +64,8 @@ function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completenes
   
   # construct the model
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
-  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, ambient_space)
+  explicit_model_sections = Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5])
+  model = GlobalTateModel(explicit_model_sections, pt, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -167,7 +168,8 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   ring_map = hom(parent(ais[1]), S, gens(S)[1:ngens(parent(ais[1]))])
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   pt = _tate_polynomial([a1, a2, a3, a4, a6], coordinate_ring(auxiliary_ambient_space))
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
+  explicit_model_sections = Dict("a1" => a1, "a2" => a2, "a3" => a3, "a4" => a4, "a6" => a6)
+  model = GlobalTateModel(explicit_model_sections, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end

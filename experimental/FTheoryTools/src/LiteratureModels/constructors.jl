@@ -107,7 +107,7 @@ function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{St
 end
 
 function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  
+  #return model_dict
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
@@ -277,7 +277,7 @@ end
 # 4. Constructing models over arbitrary bases
 #######################################################
 
-# Constructs Tate model from given Tate literature model
+# Constructs literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)

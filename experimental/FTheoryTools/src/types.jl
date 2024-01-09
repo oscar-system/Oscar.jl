@@ -59,40 +59,32 @@ end
 
 
 @attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
-  weierstrass_f::MPolyRingElem
-  weierstrass_g::MPolyRingElem
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
   weierstrass_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  function WeierstrassModel(weierstrass_f::MPolyRingElem,
-                            weierstrass_g::MPolyRingElem,
+  function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
-    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
+    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return new(explicit_model_sections, weierstrass_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
 end
 
 
 @attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
-  tate_a1::MPolyRingElem
-  tate_a2::MPolyRingElem
-  tate_a3::MPolyRingElem
-  tate_a4::MPolyRingElem
-  tate_a6::MPolyRingElem
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
   tate_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalTateModel(tate_a1::MPolyRingElem,
-                          tate_a2::MPolyRingElem,
-                          tate_a3::MPolyRingElem,
-                          tate_a4::MPolyRingElem,
-                          tate_a6::MPolyRingElem,
+  function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
+    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return new(explicit_model_sections, tate_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
 end

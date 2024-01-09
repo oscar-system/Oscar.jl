@@ -54,6 +54,7 @@ More information is available [here](http://www.thofma.com/Hecke.jl/dev/features
 ambient_space(m::AbstractFTheoryModel)
 base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
+explicit_model_sections(m::AbstractFTheoryModel)
 ```
 
 
