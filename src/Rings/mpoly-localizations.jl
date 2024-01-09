@@ -2917,14 +2917,12 @@ function compose(
   codomain(f) === domain(g) || error("maps are not compatible")
   R = base_ring(domain(f))
   res = restricted_map(f)
-  b = res(zero(base_ring(domain(f))))
-  if parent(b) === domain(g)
+  if codomain(res) === domain(g)
     return MPolyLocalizedRingHom(domain(f), codomain(g), compose(res, g), check=false)
   else
     new_res = MapFromFunc(domain(res), codomain(g), x->g(domain(g)(res(x))))
     return MPolyLocalizedRingHom(domain(f), codomain(g), new_res, check=false)
   end
-  #return MPolyLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
 end
 
 (f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))

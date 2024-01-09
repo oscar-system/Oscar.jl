@@ -2429,20 +2429,19 @@ function compose(f::MPolyAnyMap,
     b = coefficient_map(f)(one(coefficient_ring(domain(f))))
     if _has_coefficient_map(g)
       if parent(b) === coefficient_ring(domain(g))
-        return hom(domain(f), codomain(g), compose(coefficient_map(f), coefficient_map(g)), 
+        c = coefficient_map(g)(b)
+        return hom(domain(f), codomain(g), 
+                   _compose(coefficient_map(f), coefficient_map(g), coefficient_ring(domain(f)), parent(c)),
                    g.(f.(gens(domain(f)))); check=false)
       elseif parent(b) === domain(g)
-        if coefficient_map(f) isa Map
-          return hom(domain(f), codomain(g), compose(coefficient_map(f), g), 
-                     g.(f.(gens(domain(f)))); check=false)
-        else
-          new_coeff_map = MapFromFunc(coefficient_ring(domain(f)), codomain(g), x->g(coefficient_map(f)(x)))
-          return hom(domain(f), codomain(g), new_coeff_map, 
-                     g.(f.(gens(domain(f)))); check=false)
-        end
+        return hom(domain(f), codomain(g), 
+                   _compose(coefficient_map(f), g, coefficient_ring(domain(f)), codomain(g)), 
+                   g.(f.(gens(domain(f)))); check=false)
       else 
         # assume that things can be coerced 
-        return hom(domain(f), codomain(g), x-> g(domain(g)(coefficient_map(f)(x))),
+        c = g(domain(g)(b))
+        return hom(domain(f), codomain(g), 
+                   MapFromFunc(coefficient_ring(domain(f)), parent(c), x-> g(domain(g)(coefficient_map(f)(x)))),
                    g.(f.(gens(domain(f)))); check=false)
       end
     else
@@ -2450,17 +2449,13 @@ function compose(f::MPolyAnyMap,
         return hom(domain(f), codomain(g), coefficient_map(f), 
                    g.(f.(gens(domain(f)))); check=false)
       elseif parent(b) === domain(g)
-        if coefficient_map(f) isa Map
-          return hom(domain(f), codomain(g), compose(coefficient_map(f), g), 
-                     g.(f.(gens(domain(f)))); check=false)
-        else
-          new_coeff_map = MapFromFunc(coefficient_ring(domain(f)), codomain(g), x->g(coefficient_map(f)(x)))
-          return hom(domain(f), codomain(g), new_coeff_map, 
-                     g.(f.(gens(domain(f)))); check=false)
-        end
+        return hom(domain(f), codomain(g), 
+                   _compose(coefficient_map(f), g, coefficient_ring(domain(f)), codomain(g)),
+                   g.(f.(gens(domain(f)))); check=false)
       else 
         # assume that things can be coerced 
-        return hom(domain(f), codomain(g), x-> g(domain(g)(coefficient_map(f)(x))),
+        return hom(domain(f), codomain(g), 
+                   MapFromFunc(coefficient_ring(domain(f)), codomain(g), x-> g(domain(g)(coefficient_map(f)(x)))),
                    g.(f.(gens(domain(f)))); check=false)
       end
     end
@@ -2472,6 +2467,11 @@ function compose(f::MPolyAnyMap,
                g.(f.(gens(domain(f)))); check=false)
   end
 end
+
+_compose(f::Map, g::Map, dom::Any, cod::Any) = compose(f, g)
+_compose(f::Any, g::Map, dom::Any, cod::Any) = MapFromFunc(dom, cod, x->g(f(x)))
+_compose(f::Map, g::Any, dom::Any, cod::Any) = MapFromFunc(dom, cod, x->g(f(x)))
+_compose(f::Any, g::Any, dom::Any, cod::Any) = MapFromFunc(dom, cod, x->g(f(x)))
 
 morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPolyLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
 

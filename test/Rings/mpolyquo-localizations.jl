@@ -357,11 +357,28 @@ end
   S, (u, v) = KK[:u, :v]
   Sl, _ = localization(S, powers_of_element(u))
 
+  R_to_L = hom(R, L, L.([x, y]))
   R_to_Sl = hom(R, Sl, QQ, [u, v])
   L_to_Sl = hom(L, Sl, R_to_Sl)
   @test Oscar._has_coefficient_map(L_to_Sl)
+  compose(R_to_L, L_to_Sl)
 
-  phi = compose(identity_map(L), L_to_Sl)
+  id_L = identity_map(L)
+  phi = compose(id_L, L_to_Sl)
+  @test phi == L_to_Sl
+  psi = compose(L_to_Sl, identity_map(Sl))
+  @test psi == L_to_Sl
+
+  prep = hom(R, L, coefficient_ring(R), gens(L))
+  id_L = hom(L, L, prep)
+  phi = compose(id_L, L_to_Sl)
+  @test phi == L_to_Sl
+  psi = compose(L_to_Sl, identity_map(Sl))
+  @test psi == L_to_Sl
+
+  prep = hom(R, L, identity_map(coefficient_ring(R)), gens(L))
+  id_L = hom(L, L, prep)
+  phi = compose(id_L, L_to_Sl)
   @test phi == L_to_Sl
   psi = compose(L_to_Sl, identity_map(Sl))
   @test psi == L_to_Sl
