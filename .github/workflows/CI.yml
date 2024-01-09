@@ -23,8 +23,8 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '1.9'
-          - '~1.10.0-0'
+          - '1.9'   # to be removed in the near future
+          - '1.10'
           - 'nightly'
         group: [ 'short', 'long' ]
         os:
@@ -32,11 +32,11 @@ jobs:
         depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
-          - julia-version: '1.9'
+          - julia-version: '1.10'
             os: ubuntu-latest
             group: 'short'
             depwarn: 'depwarn=error'
-          - julia-version: '1.9'
+          - julia-version: '1.10'
             os: ubuntu-latest
             group: 'long'
             depwarn: 'depwarn=error'
@@ -66,16 +66,16 @@ jobs:
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
-          annotate: ${{ matrix.julia-version == '1.9' }}
-          coverage: ${{ matrix.julia-version == '1.9' }}
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.9' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.9' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
         uses: codecov/codecov-action@v3
 
@@ -86,19 +86,19 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.9'
-          - '~1.10.0-0'
+          - '1.9'   # to be removed in the near future
+          - '1.10'
           - 'nightly'
         os:
           - ubuntu-latest
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
-          - julia-version: '1.9'
+          - julia-version: '1.10'
             os: ubuntu-latest
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
-          - julia-version: '1.9'
+          - julia-version: '1.10'
             os: macOS-latest
 
     steps:
@@ -123,8 +123,8 @@ jobs:
         if: runner.os == 'macOS'
         uses: julia-actions/julia-runtest@latest
         with:
-          annotate: ${{ matrix.julia-version == '1.9' }}
-          coverage: ${{ matrix.julia-version == '1.9' }}
+          annotate: ${{ matrix.julia-version == '1.10' }}
+          coverage: ${{ matrix.julia-version == '1.10' }}
           depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
       - name: "Setup package"
         run: |
@@ -134,7 +134,7 @@ jobs:
             Pkg.instantiate()'
       - name: "Run doctests"
         run: |
-          julia ${{ matrix.julia-version == '1.9' && '--code-coverage' || '' }} \
+          julia ${{ matrix.julia-version == '1.10' && '--code-coverage' || '' }} \
             --project=docs --depwarn=${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }} --color=yes -e'
               using Documenter
               include("docs/documenter_helpers.jl")
@@ -142,11 +142,11 @@ jobs:
               DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
               doctest(Oscar)'
       - name: "Process code coverage"
-        if: matrix.julia-version == '1.9' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         uses: julia-actions/julia-processcoverage@v1
         with:
           directories: src,experimental
       - name: "Upload coverage data to Codecov"
-        if: matrix.julia-version == '1.9' && matrix.depwarn != 'depwarn=error'
+        if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
         uses: codecov/codecov-action@v3
