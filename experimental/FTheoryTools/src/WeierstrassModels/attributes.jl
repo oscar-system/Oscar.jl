@@ -93,15 +93,15 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
+  @req typeof(base_space(w)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
   is_base_space_fully_specified(w) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
 end
 
 
-#####################################################
-# 2.2 Turn Weierstrass model into Tate model
-#####################################################
+########################################################
+# 2.2 Turn Weierstrass model into Weierstrass/Tate model
+########################################################
 
 # For convenience, allow to turn Weierstrass model into itself
 function weierstrass_model(w::WeierstrassModel)
@@ -109,8 +109,8 @@ function weierstrass_model(w::WeierstrassModel)
   return w
 end
 
+# Currently no plan to include conversion of Weierstrass model into Tate model.
 
-# Currently no plan to include
 
 
 #####################################################

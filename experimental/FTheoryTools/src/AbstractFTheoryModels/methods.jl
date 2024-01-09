@@ -51,7 +51,8 @@ end
 function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
-  @req ((typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel)) "Blowups are currently only supported for Tate and Weierstrass models"
+  entry_test = ((typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel))
+  @req entry_test "Blowups are currently only supported for Tate and Weierstrass models"
 
   # This method only works if the model is defined over a toric variety over toric scheme
   @req typeof(base_space(m)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
@@ -160,8 +161,9 @@ true
 ```
 """
 function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
-  @req (typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel) || (typeof(m) == HypersurfaceModel) "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
-  @req !(typeof(base_space(m)) <: FamilyOfSpaces) "Currently, tuning is only possible for models over concrete toric bases"
+  entry_test = (typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel) || (typeof(m) == HypersurfaceModel)
+  @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
+  @req !(typeof(base_space(m)) <: FamilyOfSpaces) "Currently, tuning is only supported for models over concrete toric bases"
   if typeof(m) == GlobalTateModel
     equation = tate_polynomial(m)
   elseif typeof(m) == WeierstrassModel
@@ -387,17 +389,9 @@ julia> length(resolutions(m))
 """
 function add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
   @req length(exceptionals) == length(centers) "Number of exceptionals must match number of centers"
-
   resolution = [centers, exceptionals]
-  if has_attribute(m, :resolutions)
-    known_resolutions = resolutions(m)
-    if (resolution in known_resolutions) == false
-      push!(known_resolutions, resolution)
-      set_attribute!(m, :resolutions => known_resolutions)
-    end
-  else
-    set_attribute!(m, :resolutions => [resolution])
-  end
+  known_resolutions = has_resolutions(m) ? resolutions(m) : []
+  !(resolution in known_resolutions) && set_attribute!(m, :resolutions => vcat(known_resolutions, [resolution]))
 end
 
 function add_resolution_generating_section(m::AbstractFTheoryModel, addition::Vector{Vector{Vector{String}}})
@@ -471,6 +465,9 @@ Multivariate polynomial ring in 12 variables over QQ graded by
 ```
 """
 function resolve(m::AbstractFTheoryModel, index::Int)
+  entry_test = (typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel)
+  @req entry_test "Resolve currently supported only for Weierstrass and Tate models"
+  @req !(typeof(base_space(m)) <: FamilyOfSpaces) "Currently, resolve is only supported for models over concrete toric bases"
   @req has_attribute(m, :resolutions) "No resolutions known for this model"
   @req index > 0 "The resolution must be specified by a non-negative integer"
   @req index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
