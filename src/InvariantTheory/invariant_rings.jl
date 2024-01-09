@@ -591,13 +591,13 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
     if is_zero(characteristic(coefficient_ring(I)))
       psi = natural_character(G).values
     else
-      psi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
-             for c in GAP.Globals.ConjugacyClasses(t)]
+      psi = [GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c))
+             for c in GAPWrap.ConjugacyClasses(t)]
     end
   else
     deg = GAP.Obj(degree(G))
-    psi = [deg - GAP.Globals.NrMovedPoints(GAP.Globals.Representative(c))
-           for c in GAP.Globals.ConjugacyClasses(t)]
+    psi = [deg - GAP.Globals.NrMovedPoints(GAPWrap.Representative(c))
+           for c in GAPWrap.ConjugacyClasses(t)]
   end
   if chi === nothing
     info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
