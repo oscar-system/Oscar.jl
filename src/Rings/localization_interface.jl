@@ -655,3 +655,13 @@ function preimage(f::AbsLocalizedRingHom, I::Ideal)
   Q, proj = quo(codomain(f), I)
   return kernel(compose(f, proj))
 end
+
+# For the generic code we route everything through the kernel computation.
+# This is different to what happens within the affine algebras where the 
+# computation of kernels is rerouted to a preimage, but that shouldn't matter.
+function preimage(f::MPolyAnyMap{<:Any, <:AbsLocalizedRing}, I::Ideal)
+  base_ring(I) === codomain(f) || error("ideal must be in the codomain of f")
+  Q, proj = quo(codomain(f), I)
+  return kernel(compose(f, proj))
+end
+
