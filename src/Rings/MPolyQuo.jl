@@ -422,6 +422,8 @@ ideal(x + y, x^2 + y^2)
 """
 function Base.:+(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}) where T
   @req base_ring(a) == base_ring(b) "base rings must match"
+  return ideal(base_ring(a), vcat(gens(a), gens(b)))
+  # the line below makes trouble with field extensions.
   return MPolyQuoIdeal(base_ring(a), singular_generators(a.gens) + singular_generators(b.gens))
 end
 
@@ -480,6 +482,10 @@ function intersect(a::MPolyQuoIdeal{T}, b::MPolyQuoIdeal{T}...) where T
   for g in b
     @req base_ring(g) == base_ring(a) "base rings must match"
   end
+  # Necessary hack to allow ideals over number fields
+  res = intersect(vcat([saturated_ideal(a)], saturated_ideal.(collect(b))))
+  return ideal(base_ring(a), gens(res))
+
   as = Singular.intersection(singular_generators(a.gens), [singular_generators(g.gens) for g in b]...)
   return MPolyQuoIdeal(base_ring(a), as)
 end
@@ -761,6 +767,8 @@ true
 """
 function ideal_membership(a::MPolyQuoRingElem{T}, b::MPolyQuoIdeal{T}) where T
   parent(a) == base_ring(b) || error("base rings must match")
+  return lift(a) in saturated_ideal(b)
+  # the original code below was causing trouble with field extensions.
   SR = singular_poly_ring(base_ring(b))
   return Singular.iszero(Singular.reduce(SR(simplify(a)), singular_groebner_generators(b)))
 end
@@ -1024,13 +1032,15 @@ lift(a::MPolyQuoRingElem) = a.f
 function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   if parent(a) === Q
     return a
-  else
-    return Q(base_ring(Q)(a))
+  elseif base_ring(Q) === base_ring(parent(a))
+    @check issubset(modulus(parent(a)), modulus(Q)) "projection not well defined"
+    return Q(lift(a))
   end
 end
 
 function(Q::MPolyRing{T})(a::MPolyQuoRingElem{<:MPolyRingElem{T}}; check::Bool=false) where {T}
   @req base_ring(parent(a)) === Q "parent mismatch"
+  @check iszero(modulus(parent(a))) "lifting is not mathematically well defined"
   return lift(a)
 end
 
@@ -1678,6 +1688,8 @@ function dim(a::MPolyQuoIdeal)
   if a.dim > -1
     return a.dim
   end
+  # Fix necessary for handling number fields as coefficient rings
+  return dim(saturated_ideal(a))
   a.dim = Singular.dimension(singular_groebner_generators(a))
   return a.dim
 end
@@ -1787,6 +1799,8 @@ function small_generating_set(I::MPolyQuoIdeal)
   Q = base_ring(I)
 
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
+
+  return Q.(small_generating_set(saturated_ideal(I)))
 
   # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
   sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
