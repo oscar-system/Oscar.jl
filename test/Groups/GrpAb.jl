@@ -40,7 +40,7 @@ end
     # properties
     @test is_abelian(G1) == is_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
-    @test is_finitelygenerated(G1) == is_finitelygenerated(G2)
+    @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)
     @test is_pgroup(G1) == is_pgroup(G2)
     @test is_quasisimple(G1) == is_quasisimple(G2)

@@ -1349,7 +1349,7 @@ false
 @gapattribute is_simple(G::GAPGroup) = GAP.Globals.IsSimpleGroup(G.X)::Bool
 
 @doc raw"""
-    is_almostsimple(G::GAPGroup)
+    is_almost_simple(G::GAPGroup)
 
 Return whether `G` is an almost simple group,
 i.e., `G` is isomorphic to a group $H$ with the property
@@ -1357,15 +1357,15 @@ $S \leq H \leq Aut(S)$, for some non-abelian simple group $S$.
 
 # Examples
 ```jldoctest
-julia> is_almostsimple(symmetric_group(5))
+julia> is_almost_simple(symmetric_group(5))
 true
 
-julia> is_almostsimple(special_linear_group(2, 5))
+julia> is_almost_simple(special_linear_group(2, 5))
 false
 
 ```
 """
-@gapattribute is_almostsimple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
+@gapattribute is_almost_simple(G::GAPGroup) = GAP.Globals.IsAlmostSimpleGroup(G.X)::Bool
 
 @doc raw"""
     is_quasisimple(G::GAPGroup)
@@ -1551,7 +1551,7 @@ end
 #end
 
 """
-    is_finitelygenerated(G::GAPGroup)
+    is_finitely_generated(G::GAPGroup)
 
 Return whether `G` is a finitely generated group.
 
@@ -1560,17 +1560,17 @@ Return whether `G` is a finitely generated group.
 julia> F = free_group(2)
 Free group of rank 2
 
-julia> is_finitelygenerated(F)
+julia> is_finitely_generated(F)
 true
 
 julia> H = derived_subgroup(F)[1]
 Free group
 
-julia> is_finitelygenerated(H)
+julia> is_finitely_generated(H)
 false
 ```
 """
-@gapattribute is_finitelygenerated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
+@gapattribute is_finitely_generated(G::GAPGroup) = GAP.Globals.IsFinitelyGeneratedGroup(G.X)::Bool
 
 
 # TODO/FIXME: is_free is disabled for now as it is not universal; it only
@@ -2031,7 +2031,7 @@ julia> describe(free_group(3))
 ```
 """
 function describe(G::GAPGroup)
-   is_finitelygenerated(G) || return "a non-finitely generated group"
+   is_finitely_generated(G) || return "a non-finitely generated group"
 
    # force some checks in some cases
    if G isa MatrixGroup && is_infinite(base_ring(G))
@@ -2059,7 +2059,7 @@ end
 function describe(G::FPGroup)
    # despite the name, there are non-finitely generated (and hence non-finitely presented)
    # FPGroup instances
-   is_finitelygenerated(G) || return "a non-finitely generated group"
+   is_finitely_generated(G) || return "a non-finitely generated group"
 
    if GAPWrap.IsFreeGroup(G.X)
       r = GAP.Globals.RankOfFreeGroup(G.X)::GapInt
@@ -2083,7 +2083,7 @@ function describe(G::FPGroup)
    # abelian groups can be dealt with by GAP
    extra = ""
    if !has_is_abelian(G)
-      if is_obviouslyabelian(G)
+      if is_obviously_abelian(G)
          set_is_abelian(G, true) # TODO: Claus won't like this...
          return String(GAPWrap.StructureDescription(G.X))
       end
@@ -2107,7 +2107,7 @@ function describe(G::FPGroup)
 
 end
 
-function is_obviouslyabelian(G::FPGroup)
+function is_obviously_abelian(G::FPGroup)
     rels = relators(G)
     fgens = gens(free_group(G))
     signs = [(e1,e2,e3) for e1 in (-1,1) for e2 in (-1,1) for e3 in (-1,1)]
