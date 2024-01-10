@@ -2033,6 +2033,11 @@ julia> describe(free_group(3))
 function describe(G::GAPGroup)
    is_finitelygenerated(G) || return "a non-finitely generated group"
 
+   # force some checks in some cases
+   if G isa MatrixGroup && is_infinite(base_ring(G))
+      is_finite(G)
+   end
+
    # handle groups whose finiteness is known
    if has_is_finite(G)
       # finite groups: pass them to GAP
