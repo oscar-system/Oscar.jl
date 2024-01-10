@@ -13,16 +13,28 @@ function independent_columns(A::MatElem)
 end
 
 # applies function on facets of equal dimension
-function apply_on_facets(f::Function, K::SimplicialComplex)
+function apply_on_faces(f::Function, K::SimplicialComplex)
   dim_K = dim(K)
   K_facets = facets(K)
   facet_dict = Dict(
-    (k => filter(f -> length(f) == k + 1, K_facets) for k in 1:dim_K )
+    (k => Set(filter(f -> length(f) == k + 1, K_facets)) for k in 1:dim_K )
   )
-  for (dim_face, faces) in facet_dict
-    facet_dict[dim_face] = Set.(f((dim_face, faces)))
+  
+  for facet in K_facets
+    dim_facet = length(facet) - 1
+    
+    for subset_size in 2:dim_facet
+      for subset in subsets(facet, subset_size)
+        push!(facet_dict[subset_size - 1], subset)
+      end
+    end
   end
-  return facet_dict
+
+  input_faces = Vector{Int}[]
+  for (dim_face, faces) in facet_dict
+    input_faces = vcat(input_faces, f((dim_face, collect.(faces))))
+  end
+  return input_faces
 end
 
 function shift_basis_ext(F::Field, K::SimplicialComplex)
@@ -55,7 +67,7 @@ function delta_ext(F::Field, K::SimplicialComplex)
   n = nvertices(K)
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
-  facet_dict = apply_on_facets(K) do (dim_face, faces)
+  input_faces = apply_on_faces(K) do (dim_face, faces)
     sort!(faces; lt=cmp)
     X = matrix(Fx, hcat(x))
     nCk = sort(subsets(n, dim_face + 1))
@@ -76,9 +88,7 @@ function delta_ext(F::Field, K::SimplicialComplex)
     return nCk[delta_k]
   end
 
-  return simplicial_complex(
-    reduce(vcat, values(facet_dict))
-  )
+  return simplicial_complex(input_faces)
 end
 
 @doc raw"""
@@ -97,7 +107,7 @@ function delta_sym(F::Field, K::SimplicialComplex)
   o = monomial_ordering(mb_ring, :lex)
   cmp_order(a, b) = cmp(o, a, b) > 0
 
-  facet_dict = apply_on_facets(K) do (dim_face, faces)
+  input_faces = apply_on_faces(K) do (dim_face, faces)
     r = dim_face + 1
     mb = sort(monomial_basis(mb_ring, r); lt=cmp_order)
     
@@ -135,7 +145,5 @@ function delta_sym(F::Field, K::SimplicialComplex)
     return shifted_sets
   end
 
-  return simplicial_complex(
-    reduce(vcat, values(facet_dict))
-  )
+  return simplicial_complex(input_faces)
 end
