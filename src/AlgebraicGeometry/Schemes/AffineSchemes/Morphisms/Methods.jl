@@ -425,6 +425,8 @@ function base_change(phi::Any, f::AbsSpecMor;
     domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
     codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
   )
+  #@assert _has_coefficient_map(pullback(domain_map)) "base change map on the domain does not have an actual base change"
+  #@assert _has_coefficient_map(pullback(codomain_map)) "base change map on the codomain does not have an actual base change"
   X = domain(f)
   Y = codomain(f)
   XX = domain(domain_map)
@@ -442,9 +444,10 @@ function base_change(phi::Any, f::AbsSpecMor;
   # For the pullback of F no explicit coeff_map is necessary anymore 
   # since both rings in domain and codomain have the same (extended/reduced)
   # coefficient ring by now.
-  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
+  pbF = hom(RR, SS, img_gens, check=false)
 
-  return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+  result = SpecMor(XX, YY, pbF, check=false)
+  return domain_map, result, codomain_map 
 end
 
 function _register_birationality!(f::AbsSpecMor, 
