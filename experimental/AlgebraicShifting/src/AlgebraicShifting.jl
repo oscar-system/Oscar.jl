@@ -106,18 +106,19 @@ function delta_sym(F::Field, K::SimplicialComplex)
   mb_ring, z = graded_polynomial_ring(F, n)
   o = monomial_ordering(mb_ring, :lex)
   cmp_order(a, b) = cmp(o, a, b) > 0
+  R_K, _ = stanley_reisner_ring(Fyx, K)
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
     r = dim_face + 1
     mb = sort(monomial_basis(mb_ring, r); lt=cmp_order)
-    
-    R_K, _ = stanley_reisner_ring(Fyx, K)
     Y = matrix(Fy, hcat(y))
     A = Vector{MPolyRingElem}[]
-    
+
     for b in mb
       transformed_monomial = evaluate(b, Y * gens(R_K))
-      generic_col = collect(coefficients(lift(transformed_monomial)))
+      # this part will need to be adjusted for finite fields
+      non_zero_terms = filter(x -> !is_zero(R_K(x)), collect(terms(lift(transformed_monomial))))
+      generic_col = first.(coefficients.(non_zero_terms))
       push!(A, generic_col)
     end
     C = matrix(Fy, reduce(hcat, A))
@@ -131,13 +132,11 @@ function delta_sym(F::Field, K::SimplicialComplex)
     shifted_sets = Vector{Int}[]
     for me in generic_monomial_exponents
       shifted_set = Int[]
+      index_count = 1
       for (i, e) in enumerate(me)
-        if is_zero(e)
-          continue
-        else
-          for j in 1:e
-            push!(shifted_set, i - r + j)
-          end
+        for j in 1:e
+          push!(shifted_set, i - (r - index_count))
+          index_count += 1
         end
       end
       push!(shifted_sets, shifted_set)
