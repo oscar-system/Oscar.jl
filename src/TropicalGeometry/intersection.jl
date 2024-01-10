@@ -18,7 +18,7 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
     end
 
     n = ambient_dim(TropV1)
-    Sigma12 = Polyhedron[]
+    Sigma12 = Polyhedron{QQFieldElem}[]
     mults12 = ZZRingElem[]
 
     # todo: check that perturbation is actually generic
@@ -37,7 +37,7 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
         end
     end
 
-    return tropical_variety(Sigma12,mults12,minOrMax)
+    return tropical_variety(Sigma12,mults12,convention(TropV1))
 end
 
 function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::Polyhedron{QQFieldElem}, perturbation::Vector{Int})
