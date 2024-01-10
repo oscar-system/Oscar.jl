@@ -33,15 +33,25 @@ jobs:
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
-            os: ubuntu-latest
             group: 'short'
+            os: ubuntu-latest
             depwarn: 'depwarn=error'
           - julia-version: '1.10'
-            os: ubuntu-latest
             group: 'long'
+            os: ubuntu-latest
             depwarn: 'depwarn=error'
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
+          - julia-version: '1.10'
+            group: 'short'
+            os: macOS-latest
+          - julia-version: '1.10'
+            group: 'long'
+            os: macOS-latest
           - julia-version: 'nightly'
+            group: 'short'
+            os: macOS-latest
+          - julia-version: 'nightly'
+            group: 'long'
             os: macOS-latest
 
     steps:
@@ -117,15 +127,6 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
-      - name: "Run tests"
-        # HACK: since macOS runners are so expensive, we reuse this one to run
-        # both regular tests and doctests
-        if: runner.os == 'macOS'
-        uses: julia-actions/julia-runtest@latest
-        with:
-          annotate: ${{ matrix.julia-version == '1.10' }}
-          coverage: ${{ matrix.julia-version == '1.10' }}
-          depwarn: ${{ matrix.depwarn == 'depwarn=error' && 'error' || 'no' }}
       - name: "Setup package"
         run: |
           julia --project=docs --color=yes -e '
