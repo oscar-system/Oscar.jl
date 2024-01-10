@@ -321,10 +321,11 @@ function Base.show(io::IO, G::PermGroup)
   end
 end
 
-function Base.show(io::IO, G::PcGroup)
+function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
-  print(io, "Pc group")
+  T = typeof(G) == PcGroup ? "Pc group" : "Sub pc group"
+  print(io, T)
   if !get(io, :supercompact, false)
     if isfinite(G)
       print(io, " of order ", order(G))
@@ -1065,7 +1066,7 @@ Return `C, f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
 and `f` is the embedding morphism of `C` into `G`.
 """
-core(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Core(G.X, H.X))
+core(G::T1, H::T2) where {T1<:GAPGroup, T2<:GAPGroup} = _as_subgroup(G, GAPWrap.Core(G.X, H.X))
 
 """
     normal_closure(G::Group, H::Group)
@@ -1076,7 +1077,7 @@ and `f` is the embedding morphism of `N` into `G`.
 
 Note that `H` must be a subgroup of `G`.
 """
-normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.NormalClosure(G.X, H.X))
+normal_closure(G::T1, H::T2) where {T1<:GAPGroup, T2<:GAPGroup} = _as_subgroup(G, GAPWrap.NormalClosure(G.X, H.X))
 
 # Note:
 # GAP admits `NormalClosure` also when `H` is not a subgroup of `G`,
@@ -1274,7 +1275,7 @@ julia> complement_class_reps(G, center(G)[1])
 PcGroup[]
 ```
 """
-function complement_class_reps(G::T, N::T) where T <: GAPGroup
+function complement_class_reps(G::T1, N::T2) where {T1 <: GAPGroup, T2 <: GAPGroup}
    return _as_subgroups(G, GAP.Globals.ComplementClassesRepresentatives(G.X, N.X))
 end
 

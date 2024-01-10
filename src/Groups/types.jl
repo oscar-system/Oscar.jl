@@ -9,7 +9,7 @@ For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
-and `MatrixGroup`.
+`SubPcGroup`, and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
@@ -142,6 +142,7 @@ It is displayed as product of disjoint cycles.
 """
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
+
 """
     PcGroup
 
@@ -150,6 +151,11 @@ of a special kind, a so-called polycyclic presentation.
 Contrary to arbitrary finitely presented groups
 (see [Finitely presented groups](@ref)),
 this presentation allows for efficient computations with the group elements.
+
+For a group `G` of type `PcGroup`, the elements in `gens(G)` satisfy the
+relators of the underlying presentation.
+
+Functions that compute subgroups of `G` return groups of type `SubPcGroup`.
 
 # Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
@@ -162,12 +168,38 @@ this presentation allows for efficient computations with the group elements.
 
   function PcGroup(G::GapObj)
     @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
+    if GAP.Globals.IsPcpGroup(G)
+      x = GAP.Globals.One(G)
+      C = GAP.getbangproperty(x, :collector)
+      n = GAP.getbangindex(C, GAP.Globals.PC_NUMBER_OF_GENERATORS)
+      Ggens = GAPWrap.GeneratorsOfGroup(G)
+      full = true
+      if length(Ggens) != n
+        full = false
+      else
+        for i in 1:n
+          w = GAP.getbangproperty(Ggens[i], :word)
+          if length(w) != 2 || w[1] != i || w[2] != 1
+            full = false
+            break
+          end
+        end
+      end
+      if ! full
+        # Switch to a full pcp group.
+        G = GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G))
+      end
+    elseif GAPWrap.GeneratorsOfGroup(G) != GAP.Globals.FamilyPcgs(G)
+      # Switch to a full pc group.
+      G = GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G))
+    end
     z = new(G)
     return z
   end
 end
 
 pc_group(G::GapObj) = PcGroup(G)
+
 
 """
     PcGroupElem
@@ -196,6 +228,53 @@ for convenience they can also be accessed as `G[1]`, `G[2]`,
 as shown in Section [Elements of groups](@ref elements_of_groups).
 """
 const PcGroupElem = BasicGAPGroupElem{PcGroup}
+
+
+"""
+    SubPcGroup
+
+Subgroup of a polycyclic group,
+a group that is defined by generators that are elements of a group `G`
+of type [`PcGroup`](@ref).
+The arithmetic operations with elements are thus performed using the
+polycyclic presentation of `G`.
+
+Operations for computing subgroups of a group of type `PcGroup` or
+`SubPcGroup`, such as `derived_subgroup` and `sylow_subgroup`,
+return groups of type `SubPcGroup`.
+"""
+@attributes mutable struct SubPcGroup <: GAPGroup
+  X::GapObj
+  full_group::PcGroup
+#T no, create embedding!
+
+  function SubPcGroup(G::GapObj)
+    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
+    full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G))
+#T use GAPWrap!
+    z = new(G, PcGroup(full))
+    return z
+  end
+end
+
+sub_pc_group(G::GapObj) = SubPcGroup(G)
+
+
+"""
+    SubPcGroupElem
+
+Element of a subgroup of a polycyclic group.
+
+# Examples
+
+```jldoctest
+
+... hier! ...
+
+```
+"""
+const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
+
 
 """
     FPGroup
@@ -301,6 +380,13 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   M.ring_iso = iso
   return M
 end
+
+# `PcGroup`: switch to `SubPcGroup`
+# Note that `_oscar_group` is used to create *subgroups* of `G`.
+function _oscar_group(obj::GapObj, G::PcGroup)
+  return sub_pc_group(obj)
+end
+
 
 ################################################################################
 #
