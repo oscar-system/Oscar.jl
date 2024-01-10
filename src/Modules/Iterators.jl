@@ -159,6 +159,8 @@ end
 
 ### Iteration over monomials in Subquos
 #
+#= Disabled for the moment and continued soon (10.1.2024)
+#
 # We need a Groebner basis over a field for this to work; hence the 
 # type restriction.
 mutable struct AllSubquoMonomials{ModuleType<:SubquoModule{<:MPolyDecRingElem{<:FieldElem}}}
@@ -331,4 +333,4 @@ function Base.iterate(amm::AllSubquoExponents, state::Tuple)
   end
   return e, (mon_it, s)
 end
-
+=#
