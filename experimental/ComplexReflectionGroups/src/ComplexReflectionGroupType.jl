@@ -10,10 +10,13 @@
 # 
 # * Thiel, U. (2014). On restricted rational Cherednik algebras. TU Kaiserslautern.
 #
-# [Ulrich Thiel](https://ulthiel.com/math), 2023 
+# * Geck, M., & Malle, G. (2006). Reflection groups. In Handbook of algebra. Vol. 4 (Vol. 4, pp. 337–383)
+#
+# Ulrich Thiel, 2023 
 
 export ComplexReflectionGroupType
 
+export complex_reflection_group_type
 export is_irreducible
 export is_exceptional
 export order
@@ -36,27 +39,29 @@ export coxeter_number
 export is_shephard_group
 export is_spetsial
 export num_reflection_classes
+export field_of_definition
 
 struct ComplexReflectionGroupType
-    type::Vector{Union{Tuple{Int}, Tuple{Int,Int,Int}}}
+    type::Vector{Union{Int, Tuple{Int,Int,Int}}}
 
-    # Argument checking
-    function ComplexReflectionGroupType(type)
+    # Argument checking Cannot be more specific than Vector for the constructor argument
+    # since [ 4, (4,1,4) ] is of type Vector{Any}
+    function ComplexReflectionGroupType(type::Vector)
 
         # The normalized type with unique labels (see below)
-        typenorm = Vector{Union{Tuple{Int}, Tuple{Int,Int,Int}}}()
+        typenorm = Vector{Union{Int, Tuple{Int,Int,Int}}}()
 
         for t in type
-            @req length(t) == 1 || length(t) == 3 "Type must be a vector of 1-element vectors (for exceptional groups) or of 3-element vectors (for the infinite series)"
+            @req isa(t, Int) || isa(t, Tuple{Int,Int,Int}) "Type must be a vector of integers (for exceptional groups) or of 3-element vectors (for the infinite series)"
 
             # Will be the normalized type
             tnorm = t
 
-            if length(t) == 1
-                @req t[1] >= 4 && t[1] <= 37 "Exceptional types are between 4 and 37"
+            if isa(t, Int)
+                @req t >= 4 && t <= 37 "Exceptional types are between 4 and 37"
             end
 
-            if length(t) == 3
+            if isa(t, Tuple)
                 (m,p,n) = t
                 @req m >= 1 && p >= 1 && n >= 1 "m,p,n >= 1 required"
                 @req is_divisible_by(m,p) "p must be a divisor of m"
@@ -98,8 +103,8 @@ function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
     end
     for t in G.type
         print(io,"G")
-        if length(t) == 1
-            print(io,t[1])
+        if isa(t, Int) == 1
+            print(io,t)
         else
             print(io, "(", t[1], ",", t[2], ",", t[3], ")")
         end
@@ -111,21 +116,16 @@ function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
 end
 
 # Convenience constructors
-function ComplexReflectionGroupType(i::Int)
-    return ComplexReflectionGroupType([(i,)])
-end
+ComplexReflectionGroupType(i::Int) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [i]))
+ComplexReflectionGroupType(m::Int, p::Int, n::Int) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [(m,p,n)]))
+ComplexReflectionGroupType(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(convert(Vector{Union{Int, Tuple{Int,Int,Int}}}, [t]))
 
-function ComplexReflectionGroupType(t::Tuple{Int})
-    return ComplexReflectionGroupType([t])
-end
-
-function ComplexReflectionGroupType(m::Int, p::Int, n::Int)
-    return ComplexReflectionGroupType([(m,p,n)])
-end
-
-function ComplexReflectionGroupType(t::Tuple{Int,Int,Int})
-    return ComplexReflectionGroupType([t])
-end
+# Non-camel versions
+complex_reflection_group_type(i::Int) = ComplexReflectionGroupType(i)
+complex_reflection_group_type(m::Int, p::Int, n::Int) = ComplexReflectionGroupType(m,p,n)
+complex_reflection_group_type(t::Tuple{Int,Int,Int}) = ComplexReflectionGroupType(t)
+complex_reflection_group_type(X::Vector) = 
+ComplexReflectionGroupType(X)
 
 # Triviality
 function is_trivial(G::ComplexReflectionGroupType)
@@ -164,8 +164,8 @@ function order(G::ComplexReflectionGroupType)
     51840, 39191040, 51840, 2903040, 696729600 ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             ord *= ZZ(excords[i-3]) #index shift by 3 because exceptionals start with G4
         else
             m = ZZ(t[1])
@@ -185,8 +185,8 @@ function rank(G::ComplexReflectionGroupType)
     excranks = [ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 6, 6, 7, 8 ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             N *= ZZ(excranks[i-3]) #index shift by 3 because exceptionals start with G4
         else
             m = ZZ(t[1])
@@ -209,7 +209,7 @@ function is_imprimitive(G::ComplexReflectionGroupType)
     # We go through the factors. If there is a primitive one, we can return false.
     # See Lehrer & Taylor (2009).
     for t in G.type
-        if length(t) == 1 #exceptionals are primitive
+        if isa(t, Int) #exceptionals are primitive
             return false
         else
             (m,p,n) = t
@@ -249,8 +249,8 @@ function num_reflections(G::ComplexReflectionGroupType)
     excnum = [ 8, 16, 14, 22, 18, 30, 34, 46, 12, 18, 28, 34, 48, 78, 88, 118, 40, 70, 30, 15, 21, 24, 33, 45, 24, 40, 60, 60, 80, 45, 126, 36, 63, 120 ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             N += ZZ(excnum[i-3]) #index shift by 3 because exceptionals start with G4
         else
             m = ZZ(t[1])
@@ -270,8 +270,8 @@ function is_well_generated(G::ComplexReflectionGroupType)
     excwell = [ 4, 5, 6, 8, 9, 10, 14, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37 ]
     
     for t in G.type
-        if length(t) == 1
-            if !(t[1] in excwell)
+        if isa(t, Int)
+            if !(t in excwell)
                 return false
             end
         else
@@ -332,8 +332,8 @@ function degrees(G::ComplexReflectionGroupType)
     ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             append!(degrees, convert(Vector{ZZRingElem}, excdegrees[i-3]) ) 
         else
             # Lehrer & Taylor (2009), Appendix D.2 (p 274)
@@ -396,8 +396,8 @@ function codegrees(G::ComplexReflectionGroupType)
     ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             append!(codegrees, convert(Vector{ZZRingElem}, exccodegrees[i-3]) ) 
         else
             # Lehrer & Taylor (2009), Appendix D.2 (p 274)
@@ -451,8 +451,8 @@ function is_pseudo_real(G::ComplexReflectionGroupType)
     excpreal = [ 12, 13, 22, 23, 24, 27, 28, 29, 30, 31, 33, 34, 35, 36, 37 ]
 
     for t in G.type
-        if length(t) == 1
-            if !(t[1] in excpreal)
+        if isa(t, Int) == 1
+            if !(t in excpreal)
                 return false
             end
         else
@@ -474,8 +474,8 @@ function is_real(G::ComplexReflectionGroupType)
     excreal = [ 23, 28, 30, 35, 36, 37 ]
 
     for t in G.type
-        if length(t) == 1
-            if !(t[1] in excreal)
+        if isa(t, Int)
+            if !(t in excreal)
                 return false
             end
         else
@@ -502,8 +502,8 @@ function is_rational(G::ComplexReflectionGroupType)
     excrat = [ 28, 35, 36, 37 ]
 
     for t in G.type
-        if length(t) == 1
-            if !(t[1] in excrat)
+        if isa(t, Int)
+            if !(t in excrat)
                 return false
             end
         else
@@ -564,8 +564,8 @@ function is_spetsial(G::ComplexReflectionGroupType)
     excspet = [ 4, 6, 8, 14, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37 ]
 
     for t in G.type
-        if length(t) == 1
-            if !(t[1] in excspet)
+        if isa(t, Int)
+            if !(t in excspet)
                 return false
             end
         else
@@ -589,8 +589,8 @@ function num_reflection_classes(G::ComplexReflectionGroupType)
     excnum = [ 2, 4, 3, 5, 3, 4, 5, 6, 1, 2, 3, 4, 4, 5, 6, 7, 2, 3, 1, 1, 1, 2, 3, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 1 ]
 
     for t in G.type
-        if length(t) == 1
-            i = t[1]
+        if isa(t, Int)
+            i = t
             N += ZZ(excnum[i-3]) #index shift by 3 because exceptionals start with G4
         else
             (m,p,n) = t
@@ -623,6 +623,56 @@ function center(G::ComplexReflectionGroupType)
 
 end
 
-# function poincare_polynomial(G::ComplexReflectionGroupType)
+function field_of_definition(G::ComplexReflectionGroupType)
+    # Reference is Geck & Malle (2006)
 
-# end
+    fields = Field[]
+
+    for t in G.type
+        if isa(t, Int)
+            i = t
+            if i == 4
+                K,z = cyclotomic_field(3)
+            elseif i == 5
+                K,z = cyclotomic_field(3)
+            elseif i == 6
+                K,z = cyclotomic_field(12)
+            elseif i == 7
+                K,z = K,z = cyclotomic_field(12)
+            elseif i == 8
+                K,z = K,z = cyclotomic_field(4)
+            elseif i == 9
+                K,z = K,z = cyclotomic_field(8)
+            elseif i == 10
+                K,z = K,z = cyclotomic_field(12)
+            elseif i == 11
+                K,z = K,z = cyclotomic_field(24)
+            elseif i == 12
+                R,X = polynomial_ring(QQ, "X")
+                f = X^2 + 2
+                K,z = number_field(f)
+            elseif i == 13
+                K,z = K,z = cyclotomic_field(8)
+            elseif i == 14
+                R,X = polynomial_ring(QQ, "X")
+                f1 = X^3 - 1
+                f2 = X^2 + 2
+                K,(a,b) = number_field([f1,f2])
+            end
+            push!(fields, K)
+        else
+            m = ZZ(t[1])
+            p = ZZ(t[2])
+            n = ZZ(t[3])
+        end
+    end
+
+    if length(fields) == 1
+        return fields[1]
+    else
+        println(fields)
+        # From Lars Göttgens
+        return reduce(compositum, fields; init=rationals_as_number_field()[1])[1]
+    end
+
+end
