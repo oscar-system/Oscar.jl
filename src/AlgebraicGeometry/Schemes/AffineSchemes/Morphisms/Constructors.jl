@@ -212,6 +212,7 @@ function compose(f::AbsSpecMor, g::AbsSpecMor)
 end
 
 
+#=
 @doc raw"""
     restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
 
@@ -246,10 +247,25 @@ julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true
 ```
 """
-function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
+function restrict(f::AbsSpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   @check issubset(U, domain(f)) "second argument does not lie in the domain of the map"
   @check issubset(V, codomain(f)) "third argument does not lie in the codomain of the map"
   @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
+  if _has_coefficient_map(pullback(f))
+    return SpecMor(U, V, hom(OO(V), OO(U), coefficient_map(pullback(f)), OO(U).(_images(pullback(f)))); check)
+  end
   return SpecMor(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
+=#
 
+function hom(A::MPolyQuoLocRing, B::Ring, phi::Any, v::Vector; check::Bool=true)
+  R = base_ring(A)
+  psi_res = hom(R, B, phi, v; check)
+  return MPolyQuoLocalizedRingHom(A, B, psi_res; check)
+end
+
+function hom(A::MPolyLocRing, B::Ring, phi::Any, v::Vector; check::Bool=true)
+  R = base_ring(A)
+  psi_res = hom(R, B, phi, v; check)
+  return MPolyLocalizedRingHom(A, B, psi_res; check)
+end
