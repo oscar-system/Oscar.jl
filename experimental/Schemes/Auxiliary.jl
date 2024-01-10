@@ -93,7 +93,7 @@ function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
     pbf = pullback(f_U)
     ID[U] = ideal(OO(U), pbf.(gens(II(V))))
   end
-  return IdealSheaf(X, ID, check=false)
+  return IdealSheaf(X, ID, check=true)
 end
 
 function pullback(f::CompositeCoveredSchemeMorphism, C::EffectiveCartierDivisor)
