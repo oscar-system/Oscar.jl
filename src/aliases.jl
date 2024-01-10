@@ -1,7 +1,6 @@
 include(joinpath(pathof(AbstractAlgebra), "..", "Aliases.jl"))
 
 import Nemo: is_cyclo_type
-import Nemo: is_embedded
 import Nemo: is_maxreal_type
 import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
 import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
