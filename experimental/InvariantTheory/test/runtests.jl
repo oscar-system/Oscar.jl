@@ -31,4 +31,13 @@
     I = invariant_ring(r)
     f = fundamental_invariants(I)
     @test length(f) == 6
+
+    #example from Macaulay2
+    T = reductive_group(:torus, 2, QQ)
+    r = representation_on_weights(T, [1 0; 0 1; -1 -1; -1 1])
+    I = invariant_ring(r)
+    R = poly_ring(I)
+    X = gens(R)
+    f = fundamental_invariants(I)
+    @test f == [X[1]*X[2]*X[3], X[1]^2*X[3]*X[4]]
 end
