@@ -16,6 +16,14 @@
     x = gens(R_rep1.poly_ring)
     @test FI_rep2 == [-4*x[1]*x[3] + x[2]^2]
 
+    #direct sum of representation_reductive_group
+    D = direct_sum(rep1, rep2)
+    @test ncols(representation_matrix(D)) == 6
+    T1 = tensor([rep1, rep2])
+    T2 = tensor(rep1, rep2)
+    @test T1 == T2
+    @test ncols(representation_matrix(T1)) == 9
+
     #ternary cubics
     T, X = polynomial_ring(QQ, "X"=>1:10)
     g = reductive_group(:SL, 3, QQ)
@@ -40,4 +48,5 @@
     X = gens(R)
     f = fundamental_invariants(I)
     @test f == [X[1]*X[2]*X[3], X[1]^2*X[3]*X[4]]
+
 end

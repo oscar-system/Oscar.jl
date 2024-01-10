@@ -16,7 +16,7 @@ mutable struct ReductiveGroup
         #check char(fld)
         if sym == :SL 
             R, _ = polynomial_ring(fld, :z => (1:m,1:m))
-            return ReductiveGroup_SLm(sym, m, R)
+            return ReductiveGroup(sym, m, R)
         elseif sym == :torus
             G = new()
             G.group = (sym, m)
@@ -26,16 +26,16 @@ mutable struct ReductiveGroup
         end
     end
 
-    function ReductiveGroup_SLm(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
+    function ReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
         #check char(field)
         G = new()
         if sym != :SL
             error("Only implemented for SLm")
         end
-        @assert m^2  == ngens(pring)
         fld = base_ring(pring)
         characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
         G.field = fld
+        @assert m^2  == ngens(pring)
         G.group = (sym,m)
         G.reynolds_operator = reynolds_slm
         M = matrix(pring, m, m, gens(pring))
