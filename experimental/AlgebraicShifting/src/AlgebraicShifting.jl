@@ -3,7 +3,6 @@ function independent_columns(A::MatElem)
   row_index = 1
   row_bound = nrows(A)
   for col_index in 1:ncols(A)
-
     if !is_zero(A[row_index, col_index])
       push!(col_indices, col_index)
       row_index += 1
@@ -87,14 +86,14 @@ end
 
 Returns the symmetric shift of `K`
 """
-function delta_sym(K::SimplicialComplex)
+function delta_sym(F::Field, K::SimplicialComplex)
   n = nvertices(K)
-  Ry, y = polynomial_ring(QQ, :y => (1:n, 1:n))
-  Ryx, x = polynomial_ring(Ry, n)
+  Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
+  Fyx, x = polynomial_ring(Fy, n)
 
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
   # but we want to avoid using fraction field of Ry during row reduction 
-  mb_ring, z = graded_polynomial_ring(QQ, n)
+  mb_ring, z = graded_polynomial_ring(F, n)
   o = monomial_ordering(mb_ring, :lex)
   cmp_order(a, b) = cmp(o, a, b) > 0
 
@@ -102,8 +101,8 @@ function delta_sym(K::SimplicialComplex)
     r = dim_face + 1
     mb = sort(monomial_basis(mb_ring, r); lt=cmp_order)
     
-    R_K, _ = stanley_reisner_ring(Ryx, K)
-    Y = matrix(Ry, hcat(y))
+    R_K, _ = stanley_reisner_ring(Fyx, K)
+    Y = matrix(Fy, hcat(y))
     A = Vector{MPolyRingElem}[]
     
     for b in mb
@@ -111,7 +110,7 @@ function delta_sym(K::SimplicialComplex)
       generic_col = collect(coefficients(lift(transformed_monomial)))
       push!(A, generic_col)
     end
-    C = matrix(Ry, reduce(hcat, A))
+    C = matrix(Fy, reduce(hcat, A))
     Oscar.ModStdQt.ref_ff_rc!(C)
     
     smallest_basis_el = z[r]^r
