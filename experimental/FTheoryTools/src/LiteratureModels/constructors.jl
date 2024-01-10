@@ -259,11 +259,18 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     a3 = map(eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring))
     a4 = map(eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring))
     a6 = map(eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring))
-    model = global_tate_model(base_space, [a1, a2, a3, a4, a6]; completeness_check = completeness_check)
+    explicit_model_sections["a1"] = a1
+    explicit_model_sections["a2"] = a2
+    explicit_model_sections["a3"] = a3
+    explicit_model_sections["a4"] = a4
+    explicit_model_sections["a6"] = a6
+    model = global_tate_model(base_space, explicit_model_sections; completeness_check = completeness_check)
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
     f = map(eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring))
     g = map(eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring))
-    model = weierstrass_model(base_space, f, g; completeness_check = completeness_check)
+    explicit_model_sections["f"] = f
+    explicit_model_sections["g"] = g
+    model = weierstrass_model(base_space, explicit_model_sections; completeness_check = completeness_check)
   else
     @req false "Model is not a Tate or Weierstrass model"
   end
@@ -354,52 +361,38 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   end
   
   if haskey(model_dict["model_data"], "resolutions")
-    resolutions_data = model_dict["model_data"]["resolutions"]
-    resolutions = [[[string.(center) for center in res[1]], string.(res[2])] for res in resolutions_data]
-    set_attribute!(model, :resolutions => resolutions)
+    set_resolutions(model, [[[string.(c) for c in r[1]], string.(r[2])] for r in model_dict["model_data"]["resolutions"]])
   end
   
   if haskey(model_dict["model_data"], "resolution_generating_sections")
-    resolution_generating_sections_data = model_dict["model_data"]["resolution_generating_sections"]
-    resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in resolution_generating_sections_data]
-    set_attribute!(model, :resolution_generating_sections => resolution_generating_sections)
+    value = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["resolution_generating_sections"]]
+    set_resolution_generating_sections(model, value)
   end
   
   if haskey(model_dict["model_data"], "resolution_zero_sections")
-    resolution_zero_sections_data = model_dict["model_data"]["resolution_zero_sections"]
-    resolution_zero_sections = [[string.(factor) for factor in res] for res in resolution_zero_sections_data]
-    set_attribute!(model, :resolution_zero_sections => resolution_zero_sections)
+    set_resolution_zero_sections(model, [[string.(a) for a in b] for b in model_dict["model_data"]["resolution_zero_sections"]])
   end
   
   if haskey(model_dict["model_data"], "weighted_resolutions")
-    weighted_resolutions_data = model_dict["model_data"]["weighted_resolutions"]
-    weighted_resolutions = [[[[string.(center[1]), center[2]] for center in res[1]], string.(res[2])] for res in weighted_resolutions_data]
-    set_attribute!(model, :weighted_resolutions => weighted_resolutions)
+    set_weighted_resolutions(model, [[[[string.(c[1]), c[2]] for c in r[1]], string.(r[2])] for r in model_dict["model_data"]["weighted_resolutions"]])
   end
   
   if haskey(model_dict["model_data"], "weighted_resolution_generating_sections")
-    weighted_resolution_generating_sections_data = model_dict["model_data"]["weighted_resolution_generating_sections"]
-    weighted_resolution_generating_sections = [[[string.(factor) for factor in sec] for sec in res] for res in weighted_resolution_generating_sections_data]
-    set_attribute!(model, :weighted_resolution_generating_sections => weighted_resolution_generating_sections)
+    value = [[[string.(k) for k in sec] for sec in res] for res in model_dict["model_data"]["weighted_resolution_generating_sections"]]
+    set_weighted_resolution_generating_sections(model, value)
   end
   
   if haskey(model_dict["model_data"], "weighted_resolution_zero_sections")
-    weighted_resolution_zero_sections_data = model_dict["model_data"]["weighted_resolution_zero_sections"]
-    weighted_resolution_zero_sections = [[string.(factor) for factor in res] for res in weighted_resolution_zero_sections_data]
-    set_attribute!(model, :weighted_resolution_zero_sections => weighted_resolution_zero_sections)
+    set_weighted_resolution_zero_sections(model, [[string.(a) for a in b] for b in model_dict["model_data"]["weighted_resolution_zero_sections"]])
   end
   
-  # THIS CURRENTLY ASSUMES THE BASE IS TORIC, SHOULD FIX
-  #base_ring = cox_ring(model.base_space)
   if haskey(model_dict["model_data"], "zero_section")
-    set_attribute!(model, :zero_section => [coord for coord in model_dict["model_data"]["zero_section"]])
-    #set_attribute!(model, :zero_section => [eval_poly(coord, base_ring) for coord in model_dict["model_data"]["zero_section"]])
+    set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
   end
+
   if haskey(model_dict["model_data"], "generating_sections")
-    set_attribute!(model, :generating_sections => [[coord for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
-    #set_attribute!(model, :generating_sections => [[eval_poly(coord, base_ring) for coord in gen_sec] for gen_sec in model_dict["model_data"]["generating_sections"]])
+    set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
   end
-  
 end
 
 function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}, l::String, t::String, t_name::String)

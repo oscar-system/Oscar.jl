@@ -41,8 +41,15 @@ Weierstrass model over a concrete base
 ```
 """
 function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-  @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
-  
+  return weierstrass_model(base, Dict("f" => f, "g" => g); completeness_check = completeness_check)
+end
+
+function weierstrass_model(base::NormalToricVariety, explicit_model_sections::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
+  vs = collect(values(explicit_model_sections))
+  @req all(x -> parent(x) == cox_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
+  @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
+  @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
+
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
@@ -60,8 +67,7 @@ function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyR
   ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
   
   # construct the model
-  pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
-  explicit_model_sections = Dict("f" => f, "g" => g)
+  pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
   model = WeierstrassModel(explicit_model_sections, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
@@ -153,6 +159,10 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
   pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
   explicit_model_sections = Dict("f" => f, "g" => g)
+  section_candidates = gens(S)
+  for k in section_candidates
+    haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
+  end
   model = WeierstrassModel(explicit_model_sections, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model

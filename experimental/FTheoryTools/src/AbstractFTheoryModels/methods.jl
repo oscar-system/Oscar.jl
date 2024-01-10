@@ -97,7 +97,7 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
     model = GlobalTateModel(explicit_model_sections(m), new_pt, base_space(m), new_ambient_space)
   else
     new_pw = _my_proper_transform(ring_map, weierstrass_polynomial(m), coordinate_name)
-    model = WeierstrassModel(explicit_model_section(m), new_pw, base_space(m), new_ambient_space)
+    model = WeierstrassModel(explicit_model_sections(m), new_pw, base_space(m), new_ambient_space)
   end
 
   # Copy/overwrite known attributes from old model
@@ -326,36 +326,52 @@ end
 ### (4) Specialized model data setters
 ##########################################
 
-function set_generating_sections(m::AbstractFTheoryModel, desired_value::Vector{Vector{String}})
-  set_attribute!(m, :generating_sections => desired_value)
+function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
   set_attribute!(m, :resolutions => desired_value)
 end
 
-function set_resolution_generating_sections(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector{Vector{String}}}})
-  set_attribute!(m, :resolution_generating_sections => desired_value)
+function set_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+  set_attribute!(m, :resolution_generating_sections => result)
 end
 
-function set_resolution_zero_sections(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector{String}}})
-  set_attribute!(m, :resolution_zero_sections => desired_value)
+function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+  set_attribute!(m, :resolution_zero_sections => result)
 end
 
 function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
   set_attribute!(m, :weighted_resolutions => desired_value)
 end
 
-function set_weighted_resolution_generating_sections(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector{Vector{String}}}})
-  set_attribute!(m, :weighted_resolution_generating_sections => desired_value)
+function set_weighted_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
+  set_attribute!(m, :weighted_resolution_generating_sections => result)
 end
 
-function set_weighted_resolution_zero_sections(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector{String}}})
-  set_attribute!(m, :weighted_resolution_zero_sections => desired_value)
+function set_weighted_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
+  set_attribute!(m, :weighted_resolution_zero_sections => result)
 end
 
 function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :zero_section => desired_value)
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
 
