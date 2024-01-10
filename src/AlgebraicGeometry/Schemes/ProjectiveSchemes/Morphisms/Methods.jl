@@ -66,7 +66,7 @@ with default covering
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   U = affine_charts(X)
 
-  if ngens(SY) == ngens(SX) && all(k->pullback(SY[k]) == SX[k], 1:ngens(SY))
+  if ngens(SY) == ngens(SX) && all(k->pbf(SY[k]) == SX[k], 1:ngens(SY))
     for i in 1:ngens(SX)
       U_i = U[i]
       dehom = dehomogenization_map(PX, U_i) # the dehomogenization map SX → 𝒪(Uᵢ)

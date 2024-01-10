@@ -101,7 +101,9 @@ space over the same ring with the identity on the base.
     OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
     @check T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) "maps not compatible"
     @check coefficient_map(f) == pbh "maps not compatible"
-    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
+    return new{
+               DomainType, CodomainType, PullbackType, typeof(coefficient_map(f))
+              }(P, Q, f, coefficient_map(f), h)
   end
 end
 
