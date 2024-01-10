@@ -1035,6 +1035,8 @@ function (Q::MPolyQuoRing)(a::MPolyQuoRingElem; check::Bool=true)
   elseif base_ring(Q) === base_ring(parent(a))
     @check issubset(modulus(parent(a)), modulus(Q)) "projection not well defined"
     return Q(lift(a))
+  else
+    return Q(base_ring(Q)(a))
   end
 end
 
