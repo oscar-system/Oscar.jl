@@ -259,7 +259,7 @@ end
    @test is_simple(alternating_group(5))
    @test is_simple(quo(SL(4,3), center(SL(4,3))[1])[1])
 
-   @test is_almostsimple(symmetric_group(5))
+   @test is_almost_simple(symmetric_group(5))
    @test !is_simple(symmetric_group(5))
 
    @test is_perfect(alternating_group(5))

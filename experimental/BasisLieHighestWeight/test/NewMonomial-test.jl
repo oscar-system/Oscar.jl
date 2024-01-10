@@ -7,10 +7,10 @@
   mon1 = ZZx(1)
   mon2 = x[1]^2 * x[2]
   weights = [[ZZ(1), ZZ(1)], [ZZ(2), ZZ(1)]]
-  A = sparse_matrix(ZZ, 2, 2) # [0, 1; 2, 1]
-  setindex!(A, sparse_row(ZZ, [2], [ZZ(1)]), 1)
-  setindex!(A, sparse_row(ZZ, [1, 2], [ZZ(2), ZZ(1)]), 2)
-  B = sparse_matrix(ZZ, 2, 2) # [1, 0; 2, 0]
+  A = sparse_matrix(ZZ, 2, 2) # [0, 2; 1, 1]
+  setindex!(A, sparse_row(ZZ, [2], [ZZ(2)]), 1)
+  setindex!(A, sparse_row(ZZ, [1, 2], [ZZ(1), ZZ(1)]), 2)
+  B = sparse_matrix(ZZ, 2, 2) # [1, 0; 0, 2]
   setindex!(B, sparse_row(ZZ, [1], [ZZ(1)]), 1)
   setindex!(B, sparse_row(ZZ, [2], [ZZ(2)]), 2)
   matrices_of_operators = [A, B]

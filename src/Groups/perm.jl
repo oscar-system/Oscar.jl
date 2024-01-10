@@ -281,26 +281,26 @@ true
 At the moment, the input vectors of the function `cperm` need not be disjoint.
 
 """
-function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
-   if length(L)==0
-      return one(symmetric_group(1))
-   else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in L])
-#TODO: better create the product of GAP permutations?
-   end
+function cperm()
+  return one(symmetric_group(1))
+end
+
+function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
+  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
+  #TODO: better create the product of GAP permutations?
 end
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
-   if length(L)==0
-      return one(g)
-   else
-      x=prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
-      @req x in g.X "the element does not embed in the group"
-      return PermGroupElem(g, x)
-   end
+function cperm(g::PermGroup)
+  return one(g)
+end
+
+function cperm(g::PermGroup, L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
+  x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1, L...])
+  @req x in g.X "the element does not embed in the group"
+  return PermGroupElem(g, x)
 end
 
 function cperm(L::Vector{Vector{T}}) where T <: IntegerUnion

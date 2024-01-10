@@ -7,8 +7,8 @@ $\omega_i$ under the action of the Weyl group of the Lie algebra `L`.
 """
 function orbit_weylgroup(L::LieAlgebraStructure, weight_w::Vector{ZZRingElem})
   # initialization
-  weyl_group = GAP.Globals.WeylGroup(GAP.Globals.RootSystem(L.lie_algebra_gap))
-  orbit_iterator = GAP.Globals.WeylOrbitIterator(weyl_group, GAP.Obj(Int.(weight_w)))
+  weyl_group = GAPWrap.WeylGroup(GAPWrap.RootSystem(L.lie_algebra_gap))
+  orbit_iterator = GAPWrap.WeylOrbitIterator(weyl_group, GAP.Obj(Int.(weight_w)))
   vertices = Vector{ZZRingElem}[]
 
   # operate with the weylgroup on weight_vector

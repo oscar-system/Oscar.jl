@@ -25,7 +25,7 @@
    @test length(grps)==16
    props = [
       is_abelian,
-      is_almostsimple,
+      is_almost_simple,
       is_cyclic,
       is_nilpotent,
       is_perfect,

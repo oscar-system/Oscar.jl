@@ -1,3 +1,22 @@
+include(joinpath(pathof(AbstractAlgebra), "..", "Aliases.jl"))
+
+import Nemo: is_cyclo_type
+import Nemo: is_embedded
+import Nemo: is_maxreal_type
+import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: FpField  # FIXME: remove if/once Nemo exports this
+import Nemo: fpField  # FIXME: remove if/once Nemo exports this
+include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
+
+#import Hecke: quadratic_genera
+#import Hecke: has_algebra
+#import Hecke: has_embedding
+#import Hecke: has_matrix_action
+#import Hecke: has_root
+#import Hecke: ...
+#include(joinpath(pathof(Hecke), "..", "Aliases.jl"))
+
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
 @alias is_valid isvalid
@@ -8,7 +27,7 @@ Base.@deprecate_binding hasrelshp has_relshp
 Base.@deprecate_binding hastorusfactor has_torusfactor
 Base.@deprecate_binding inner_automorphisms_group inner_automorphism_group
 Base.@deprecate_binding isaffine is_affine
-Base.@deprecate_binding isalmostsimple is_almostsimple
+Base.@deprecate_binding isalmostsimple is_almost_simple
 Base.@deprecate_binding isample is_ample
 Base.@deprecate_binding isbicoset is_bicoset
 Base.@deprecate_binding isbinomial is_binomial
@@ -24,7 +43,7 @@ Base.@deprecate_binding isfano is_fano
 Base.@deprecate_binding isfeasible is_feasible
 Base.@deprecate_binding isfiltered is_filtered
 Base.@deprecate_binding isfinite_order is_finiteorder
-Base.@deprecate_binding isfinitelygenerated is_finitelygenerated
+Base.@deprecate_binding isfinitelygenerated is_finitely_generated
 Base.@deprecate_binding isfull_direct_product is_full_direct_product
 Base.@deprecate_binding isfull_semidirect_product is_full_semidirect_product
 Base.@deprecate_binding isfull_wreath_product is_full_wreath_product
@@ -43,7 +62,7 @@ Base.@deprecate_binding ismolien_series_implemented is_molien_series_implemented
 Base.@deprecate_binding isnatural_alternating_group is_natural_alternating_group
 Base.@deprecate_binding isnatural_symmetric_group is_natural_symmetric_group
 Base.@deprecate_binding isnef is_nef
-Base.@deprecate_binding isobviouslyabelian is_obviouslyabelian
+Base.@deprecate_binding isobviouslyabelian is_obviously_abelian false
 Base.@deprecate_binding isorbifold is_orbifold
 Base.@deprecate_binding isperfect is_perfect
 Base.@deprecate_binding ispgroup is_pgroup

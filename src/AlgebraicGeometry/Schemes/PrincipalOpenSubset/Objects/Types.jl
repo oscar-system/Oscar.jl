@@ -1,4 +1,3 @@
-
 ########################################################################
 # Principal open subsets of affine schemes                             #
 ########################################################################
@@ -6,7 +5,8 @@
   X::AmbientType
   U::Spec{BRT, RT}
   f::RingElem
-  inc::OpenInclusion
+  inc::AbsSpecMor # A PrincipalOpenInclusion, really; but this can not be 
+                  # said here because of the inclusion order.
 
   function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
     parent(f) == OO(X) || error("element does not belong to the correct ring")

@@ -104,11 +104,11 @@ function ext_of_degree(A::AlgClosure, d::Int)
     
   k = base_ring(A)
   if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
-    K = GF(Int(characteristic(k)), d, cached = false)
+    K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
-    K = Nemo._GF(characteristic(k), d, cached = false)
-  else
     K = GF(characteristic(k), d, cached = false)
+  else
+    K = Nemo.Native.GF(characteristic(k), d, cached = false)
   end
   A.fld[d] = K
   return K

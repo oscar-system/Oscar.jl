@@ -252,3 +252,4 @@ function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
   return SpecMor(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
+

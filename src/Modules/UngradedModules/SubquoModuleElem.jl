@@ -748,6 +748,20 @@ If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where T
   if isdefined(M, :quo) && isdefined(U, :quo)
+    F = ambient_free_module(M)
+    @assert F === ambient_free_module(U)
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general, 
+    # so we deflect to the Subquo-layer instead.
+    @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
+  else
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
+  end
+  Q = SubquoModule(M, gens(U.sub))
+  return return_quo_wrt_task(M, Q, task)
+end
+
+function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where {T<:MPolyRingElem}
+  if isdefined(M, :quo) && isdefined(U, :quo)
     @assert M.quo == U.quo
   else
     @assert !isdefined(M, :quo) && !isdefined(U, :quo)
