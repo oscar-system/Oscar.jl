@@ -15,7 +15,7 @@ Return the automorphism group of `G`.
 """
 function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
-  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   aut = AutomorphismGroup(AutGAP, G)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
@@ -139,7 +139,7 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   As_to_T = Hecke.map_from_func(toT, As, T)
   to_oscar = compose(to_oscar, As_to_T)
   to_gap = compose(T_to_As, to_gap)
-  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   ambient = AutomorphismGroup(AutGAP, T)
   set_attribute!(ambient, :to_gap => to_gap, :to_oscar => to_oscar)
   gens_aut = GapObj([ambient(g, check=check).X for g in gensOT])  # performs the checks

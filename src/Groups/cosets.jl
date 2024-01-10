@@ -448,11 +448,11 @@ function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
    res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
    for i = 1:length(res)
      dc = dcs[i]
-     g = group_element(G, GAP.Globals.Representative(dc))
+     g = group_element(G, GAPWrap.Representative(dc))
      res[i] = GroupDoubleCoset(G,H,K,g,dc)
    end
    return res
-   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
+   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
 end
 
 

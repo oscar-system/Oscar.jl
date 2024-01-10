@@ -114,7 +114,7 @@ function compute_monomials(
   # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
   # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
   # the recursion.
-  gap_dim = GAP.Globals.DimensionOfHighestWeightModule(
+  gap_dim = GAPWrap.DimensionOfHighestWeightModule(
     L.lie_algebra_gap, GAP.Obj(Int.(highest_weight))
   ) # fundamental weights
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
@@ -416,7 +416,7 @@ function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})
 
   simple_roots = GAP.Globals.SimpleSystem(rs)
   positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAP.Globals.WeylGroup(rs))
+  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
 
   root_inds = Int[]
 

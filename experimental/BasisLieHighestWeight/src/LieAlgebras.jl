@@ -16,7 +16,7 @@ end
 rank(L::LieAlgebraStructure) = L.rank
 
 @attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
-  R = GAP.Globals.RootSystem(L.lie_algebra_gap)
+  R = GAPWrap.RootSystem(L.lie_algebra_gap)
   C = matrix(QQ, GAP.Globals.CartanMatrix(R))
   return C
 end
@@ -43,7 +43,7 @@ function cartan_sub_basis(L::LieAlgebraStructure)
 end
 
 function root_system_gap(L::LieAlgebraStructure)
-  return GAP.Globals.RootSystem(L.lie_algebra_gap)
+  return GAPWrap.RootSystem(L.lie_algebra_gap)
 end
 
 function num_positive_roots(L::LieAlgebraStructure)
@@ -73,11 +73,11 @@ function weight(L::LieAlgebraStructure, operator::GAP.Obj)
   Calculates the weight in w_i for operator
   """
   @req !iszero(operator) "Operators should be non-zero"
-  basis = GAP.Globals.Basis(L.lie_algebra_gap)
+  basis = GAPWrap.Basis(L.lie_algebra_gap)
   basis_ind = GAP.Globals.Position(basis, operator)
-  denom = GAP.Globals.Coefficients(basis, operator)[basis_ind]
+  denom = GAPWrap.Coefficients(basis, operator)[basis_ind]
   return [
-    ZZ(GAP.Globals.Coefficients(basis, h * operator)[basis_ind]//denom) for
+    ZZ(GAPWrap.Coefficients(basis, h * operator)[basis_ind]//denom) for
     h in cartan_sub_basis(L)
   ]
 end
