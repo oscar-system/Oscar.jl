@@ -320,33 +320,35 @@ end
 #######################################################
 
 function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{String, Any}, model_parameters::Dict{String,<:Any})
-  set_attribute!(model, :literature_identifier => model_dict["literature_identifier"])
   set_attribute!(model, :partially_resolved, false)
+  set_literature_identifier(model, model_dict["literature_identifier"])
   
-  _set_model_attribute(model, model_dict, "model_descriptors", "description", "model_description")
+  set_model_description(model, model_dict["model_descriptors"]["description"])
   
-  _set_model_attribute(model, model_dict, "paper_metadata", "authors", "paper_authors")
-  _set_model_attribute(model, model_dict, "paper_metadata", "buzzwords", "paper_buzzwords")
-  _set_model_attribute(model, model_dict, "paper_metadata", "description", "paper_description")
-  _set_model_attribute(model, model_dict, "paper_metadata", "title", "paper_title")
+  set_paper_authors(model, string.(model_dict["paper_metadata"]["authors"]))
+  set_paper_buzzwords(model, string.(model_dict["paper_metadata"]["buzzwords"]))
+  set_paper_description(model, model_dict["paper_metadata"]["description"])
+  set_paper_title(model, model_dict["paper_metadata"]["title"])
+
+  set_arxiv_doi(model, model_dict["arxiv_data"]["doi"])
+  set_arxiv_link(model, model_dict["arxiv_data"]["link"])
+  set_arxiv_id(model, model_dict["arxiv_data"]["id"])
+  set_arxiv_version(model, model_dict["arxiv_data"]["version"])
+  set_arxiv_model_equation_number(model, model_dict["arxiv_data"]["model_location"]["equation"])
+  set_arxiv_model_page(model, model_dict["arxiv_data"]["model_location"]["page"])
+  set_arxiv_model_section(model, model_dict["arxiv_data"]["model_location"]["section"])
   
-  _set_model_attribute(model, model_dict, "arxiv_data", "doi", "arxiv_doi")
-  _set_model_attribute(model, model_dict, "arxiv_data", "link", "arxiv_link")
-  _set_model_attribute(model, model_dict, "arxiv_data", "id", "arxiv_id")
-  _set_model_attribute(model, model_dict, "arxiv_data", "version", "arxiv_version")  
-  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "equation", "arxiv_model_equation_number")
-  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "page", "arxiv_model_page")
-  _set_model_attribute(model, model_dict, "arxiv_data", "model_location", "section", "arxiv_model_section")
-  
-  _set_model_attribute(model, model_dict, "journal_data", "doi", "journal_doi")
-  _set_model_attribute(model, model_dict, "journal_data", "link", "journal_link")
-  _set_model_attribute(model, model_dict, "journal_data", "year", "journal_year")
-  _set_model_attribute(model, model_dict, "journal_data", "volume", "journal_volume")
-  _set_model_attribute(model, model_dict, "journal_data", "report_numbers", "journal_report_numbers")
-  _set_model_attribute(model, model_dict, "journal_data", "pages", "journal_pages")
-  _set_model_attribute(model, model_dict, "journal_data", "model_location", "equation", "journal_model_equation_number")
-  _set_model_attribute(model, model_dict, "journal_data", "model_location", "page", "journal_model_page")
-  _set_model_attribute(model, model_dict, "journal_data", "model_location", "section", "journal_model_section")
+  set_journal_doi(model, model_dict["journal_data"]["doi"])
+  set_journal_link(model, model_dict["journal_data"]["link"])
+  set_journal_year(model, model_dict["journal_data"]["year"])
+  set_journal_volume(model, model_dict["journal_data"]["volume"])
+  if haskey(model_dict["journal_data"], "report_numbers")
+    set_journal_report_numbers(model, string.(model_dict["journal_data"]["report_numbers"]))
+  end
+  set_journal_pages(model, model_dict["journal_data"]["pages"])
+  set_journal_model_equation_number(model, model_dict["journal_data"]["model_location"]["equation"])
+  set_journal_model_page(model, model_dict["journal_data"]["model_location"]["page"])
+  set_journal_model_section(model, model_dict["journal_data"]["model_location"]["section"])
   
   if haskey(model_dict, "related_models")
     set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
@@ -392,26 +394,6 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
 
   if haskey(model_dict["model_data"], "generating_sections")
     set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
-  end
-end
-
-function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}, l::String, t::String, t_name::String)
-  if haskey(m_dict[l], t)
-    if typeof(m_dict[l][t]) <: Vector{Any}
-      set_attribute!(m, Symbol(t_name) => [String(k) for k in m_dict[l][t]])
-    else
-      set_attribute!(m, Symbol(t_name) => m_dict[l][t])
-    end
-  end
-end
-
-function _set_model_attribute(m::AbstractFTheoryModel, m_dict::Dict{String, Any}, l1::String, l2::String, t::String, t_name::String)
-  if haskey(m_dict[l1][l2], t)
-    if typeof(m_dict[l1][l2][t]) <: Vector{Any}
-      set_attribute!(m, Symbol(t_name) => [String(k) for k in m_dict[l1][l2][t]])
-    else
-      set_attribute!(m, Symbol(t_name) => m_dict[l1][l2][t])
-    end
   end
 end
 
