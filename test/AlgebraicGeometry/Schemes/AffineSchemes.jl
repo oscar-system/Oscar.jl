@@ -294,3 +294,63 @@ end
   @test WW isa SpecOpen
 end
 
+@testset "principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+  back = inverse_on_image(there)
+end
+
+@testset "fiber products with principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+
+  # The classical case of two maps
+  prod1, p1, p2 = fiber_product(there, there)
+  id_V = identity_map(V)
+  h = Oscar.induced_map_to_fiber_product(id_V, id_V, there, there, fiber_product=(prod1, p1, p2))
+  @test codomain(h) === prod1
+  @test is_isomorphism(h)
+
+  # one open inclusion and a closed embedding
+  Y, inc_Y = sub(X, z)
+  pro, p1, p2 = fiber_product(there, inc_Y)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, there, inc_Y, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test compose(p1, there) == compose(p2, inc_Y)
+
+  # the same the other way around
+  pro, p1, p2 = fiber_product(inc_Y, there)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, inc_Y, there, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test codomain(p1) === domain(inc_Y)
+  @test codomain(p2) === domain(there)
+  @test compose(p1, inc_Y) == compose(p2, there)
+
+  # two open inclusions
+  pro, p1, p2 = fiber_product(there, there)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, there, there, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test compose(p1, there) == compose(p2, there)
+end
+

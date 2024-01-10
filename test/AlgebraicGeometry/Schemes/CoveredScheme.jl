@@ -251,3 +251,71 @@ end
   Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
   @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
 end
+
+@testset "fiber products of coverings" begin
+  IP1 = projective_space(QQ, [:x, :y])
+  S = homogeneous_coordinate_ring(IP1)
+  (x, y) = gens(S)
+  X = covered_scheme(IP1)
+  cov = default_covering(X)
+  f = identity_map(cov)
+  cc, p1, p2 = fiber_product(f, f)
+  Phi = hom(S, S, [x+y, x-y])
+  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+  g = covered_scheme_morphism(phi)
+  g_cov = covering_morphism(g)
+  cc, p1, p2 = fiber_product(g_cov, f)
+
+  orig = default_covering(X)
+  ref = domain(g_cov)
+
+  inc_cc = Oscar.refinement_morphism(ref, orig)
+  id_orig = identity_map(orig)
+
+  fp_cc_orig, p1, p2 = fiber_product(inc_cc, id_orig)
+
+  fp_orig_cc, p1, p2 = fiber_product(id_orig, inc_cc)
+
+  fp_cc_cc = fiber_product(inc_cc, inc_cc)
+end
+
+@testset "composition and fiber products of morphisms of covered schemes" begin
+  IP1 = projective_space(QQ, [:x, :y])
+  S = homogeneous_coordinate_ring(IP1)
+  (x, y) = gens(S)
+
+  X = covered_scheme(IP1)
+  id_X = identity_map(X)
+  fiber_product(id_X, id_X)
+
+  Phi = hom(S, S, [x+y, x-y])
+  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+  f = covered_scheme_morphism(phi)
+  f2 = covered_scheme_morphism(ProjectiveSchemeMor(IP1, IP1, Phi)) # The same, but as a non-identical copy
+
+  fiber_product(f, id_X)
+
+  compose(f, id_X)
+  compose(id_X, f)
+  compose(f, f)
+  f_cov = covering_morphism(f)
+  f_cov2 = covering_morphism(f2)
+  ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
+  ref2 = Oscar.refinement_morphism(domain(f_cov2), default_covering(X))
+  _, _, f_cov_ref = fiber_product(f_cov, ref)
+  _, _, f_cov_ref2 = fiber_product(f_cov, ref2)
+
+  ff = CoveredSchemeMorphism(X, X, f_cov_ref)
+  ff2 = CoveredSchemeMorphism(X, X, f_cov_ref2)
+  compose(id_X, ff)
+  compose(ff, id_X)
+  compose(ff, ff)
+  compose(ff, ff2)
+  compose(ff2, ff)
+
+  fiber_product(ff, f)
+  fiber_product(f, ff)
+  fiber_product(ff, ff)
+  fiber_product(ff, ff2)
+  fiber_product(ff2, ff)
+end
