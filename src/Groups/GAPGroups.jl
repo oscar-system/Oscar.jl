@@ -330,10 +330,11 @@ function Base.show(io::IO, G::PermGroup)
   end
 end
 
-function Base.show(io::IO, G::PcGroup)
+function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
-  print(io, "Pc group")
+  T = typeof(G) == PcGroup ? "Pc group" : "Sub pc group"
+  print(io, T)
   if !is_terse(io)
     if isfinite(G)
       print(io, " of order ", order(G))
@@ -1169,7 +1170,7 @@ Return `C, f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
 and `f` is the embedding morphism of `C` into `G`.
 """
-core(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Core(GapObj(G), GapObj(H)))
+core(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.Core(GapObj(G), GapObj(H)))
 
 """
     normal_closure(G::Group, H::Group)
@@ -1180,7 +1181,7 @@ and `f` is the embedding morphism of `N` into `G`.
 
 Note that `H` must be a subgroup of `G`.
 """
-normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.NormalClosure(GapObj(G), GapObj(H)))
+normal_closure(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.NormalClosure(GapObj(G), GapObj(H)))
 
 # Note:
 # GAP admits `NormalClosure` also when `H` is not a subgroup of `G`,

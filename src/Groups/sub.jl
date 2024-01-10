@@ -160,6 +160,14 @@ function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
   return res
 end
 
+function _as_subgroups(G::PcGroup, subs::GapObj)
+  res = Vector{SubPcGroup}(undef, length(subs))
+  for i = 1:length(res)
+    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
+  end
+  return res
+end
+
 
 """
     normal_subgroups(G::Group)
@@ -792,7 +800,7 @@ julia> typeof(quo(PermGroup, G, N)[1])
 PermGroup
 ```
 """
-function quo(G::T, N::T) where T <: GAPGroup
+function quo(G::T1, N::T2) where {T1 <: GAPGroup, T2 <: GAPGroup}
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(GapObj(G), GapObj(N))::GapObj
   # The call may have found out new information about `GapObj(G)`,
   # for example that `GapObj(G)` is finite.
@@ -805,7 +813,7 @@ function quo(G::T, N::T) where T <: GAPGroup
   return codom, GAPGroupHomomorphism(G, codom, mp)
 end
 
-function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
+function quo(::Type{Q}, G::T1, N::T2) where {Q <: GAPGroup, T1 <: GAPGroup, T2 <: GAPGroup}
   F, epi = quo(G, N)
   if !(F isa Q)
     map = isomorphism(Q, F)
@@ -1112,6 +1120,8 @@ together with the embeddings of $K into $G_i$.
 function intersect(G1::T, V::T...) where T<:GAPGroup
    return intersect([G1, V...])
 end
+#T The above method is not sufficient if subgroups can have different types.
+#T (And the result in this case will be wrong.)
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
    L = GapObj(V; recursive=true)

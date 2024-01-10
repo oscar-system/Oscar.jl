@@ -480,11 +480,18 @@ end
 ################################################################################
 
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
+
+# We use `GAP.Globals.IsomorphismPcGroup` as the `_get_iso_function` value
+# for both `PcGroup` and `SubPcGroup`.
+# Note that `_get_iso_function` is used to create a GAP mapping,
+# and afterwards an Oscar mapping is created whose codomain is obtained
+# from the codomain `G` in GAP by calling `T(G)` where `T` is the desired type.
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
+_get_iso_function(::Type{SubPcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 
 """
-    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, SubPcGroup, PermGroup}
     isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T = FPGroup
 
 Return an isomorphism from `G` to a group `H` of type `T`.
@@ -515,7 +522,7 @@ julia> codomain(iso) === ans
 true
 ```
 """
-function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (T, false)) do
@@ -566,6 +573,29 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
      GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), FPGroup}
+end
+
+# If `G` is not a full pc group then switch to a full pc group in Oscar.
+function isomorphism(T::Type{PcGroup}, G::GAPGroup)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
+   return get!(isos, T) do
+     fun = _get_iso_function(T)
+     f = fun(G.X)::GapObj
+     @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
+     # The codomain of `f` can be a *subgroup* of a full pc group.
+     # In this situation, we have to switch to a full pc group.
+     C = GAP.Globals.Range(f)::GapObj
+     if GAPWrap.GeneratorsOfGroup(C) != GAP.Globals.FamilyPcgs(C)
+       Cpcgs = GAP.Globals.Pcgs(C)
+       CC = GAP.Globals.PcGroupWithPcgs(pcgs)
+       CCpcgs = GAP.Globals.FamilyPcgs(CC)
+       switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)
+       f = GAP.Globals.CompositionMapping(switch, f)
+     end
+     H = T(GAP.Globals.ImagesSource(f)::GapObj)
+     return GAPGroupHomomorphism(G, H, f)
+   end::GAPGroupHomomorphism{typeof(G), T}
 end
 
 
@@ -793,12 +823,14 @@ end
     FinGenAbGroup(G::T) where T <: GAPGroup
     PcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    SubPcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    sub_pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     PermGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     permutation_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return a group of the requested type that is isomorphic to `G`.
 If one needs the isomorphism then
-[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}](@ref)
+[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, SubPcGroup, PermGroup}](@ref)
 can be used instead.
 """
 function (::Type{S})(G::T) where {S <: Union{FinGenAbGroup, GAPGroup}, T <: GAPGroup}
@@ -811,6 +843,7 @@ end
 
 fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = FPGroup(G)
 pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PcGroup(G)
+sub_pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubPcGroup(G)
 permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PermGroup(G)
 
 # Now for MultTableGroup
