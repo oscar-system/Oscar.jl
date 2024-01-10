@@ -746,6 +746,7 @@ export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
 export is_algebraically_independent
+export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample

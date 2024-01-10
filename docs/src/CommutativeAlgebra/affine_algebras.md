@@ -489,6 +489,7 @@ inverse(F::AffAlgHom)
 
 ```@docs
 is_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+is_algebraically_independent_with_relations(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 ```
 
 ## Subalgebras
