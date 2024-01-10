@@ -268,7 +268,7 @@ end
 function compose(F::MPolyAnyMap{D, C, <: Map, <: Any}, G::S) where {D, C, S <: Map{C, <: Any}}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   f = coefficient_map(F)
-  if typeof(codomain(f)) === C
+  if codomain(f) === domain(G)
     newcoeffmap = compose(f, G)
     return hom(domain(F), codomain(G), newcoeffmap, G.(_images(F)), check=false)
   else
