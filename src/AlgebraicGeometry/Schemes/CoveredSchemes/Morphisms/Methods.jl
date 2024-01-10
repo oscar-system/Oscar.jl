@@ -121,15 +121,29 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
     domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
     codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
   )
+  @assert codomain(domain_map) === domain(f) "domains do not match"
+  @assert codomain(codomain_map) === codomain(f) "codomains do not match"
   f_cov = covering_morphism(f)
   dom_cov = covering_morphism(domain_map)
   cod_cov = covering_morphism(codomain_map)
-  _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
-  X = domain(f)
-  Y = codomain(f)
-  XX = domain(domain_map)
-  YY = domain(codomain_map)
-  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
+  if codomain(dom_cov) === domain(f_cov)
+    if codomain(dom_cov) === codomain(f_cov)
+      _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
+      X = domain(f)
+      Y = codomain(f)
+      XX = domain(domain_map)
+      YY = domain(codomain_map)
+      return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
+    else
+      f_cov_inc = compose(dom_cov, f_cov)
+      cod_cod_ref, inc_1, inc2 = common_refinement(codomain(cod_cov), codomain(f_cov))
+      # TODO: finish
+      error("case not implemented")
+    end
+  else
+    error("case not implemented")
+      # TODO: finish
+  end
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
