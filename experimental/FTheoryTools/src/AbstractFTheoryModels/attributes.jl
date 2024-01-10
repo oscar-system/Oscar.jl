@@ -78,12 +78,17 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> explicit_model_sections(t)
-Dict{String, QQMPolyRingElem} with 5 entries:
-  "a6" => 0
-  "a3" => w^2*a32
-  "a2" => w*a21
-  "a1" => a1
-  "a4" => w^3*a43
+Dict{String, QQMPolyRingElem} with 10 entries:
+  "a6"   => 0
+  "a21"  => a21
+  "a3"   => w^2*a32
+  "w"    => w
+  "Kbar" => Kbar
+  "a2"   => w*a21
+  "a1"   => a1
+  "a4"   => w^3*a43
+  "a43"  => a43
+  "a32"  => a32
 ```
 """
 function explicit_model_sections(m::AbstractFTheoryModel)
@@ -702,8 +707,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> generating_sections(m)
-1-element Vector{Vector{String}}:
- ["0", "0", "1"]
+1-element Vector{Vector{QQMPolyRingElem}}:
+ [0, 0, 1]
 ```
 """
 function generating_sections(m::AbstractFTheoryModel)
@@ -752,8 +757,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{String}}}}:
- [[["0", "0", "1"], ["0", "0", "1"], ["0", "1"], ["0", "1"], ["0", "1"], ["a32", "-a43"]]]
+1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
+ [[[0, 0, 1], [0, 0, 1], [0, 1], [0, 1], [0, 1], [a32, -a43]]]
 ```
 """
 function resolution_generating_sections(m::AbstractFTheoryModel)
@@ -777,8 +782,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> resolution_zero_sections(m)
-1-element Vector{Vector{Vector{String}}}:
- [["1", "1", "0"], ["1", "1", "w"], ["1", "1"], ["1", "1"], ["1", "1"], ["1", "1"]]
+1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
+ [[1, 1, 0], [1, 1, w], [1, 1], [1, 1], [1, 1], [1, 1]]
 ```
 """
 function resolution_zero_sections(m::AbstractFTheoryModel)
@@ -827,8 +832,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_generating_sections(m)
-1-element Vector{Vector{Vector{Vector{String}}}}:
- [[["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["0", "0", "1"], ["a32", "-a43"]]]
+1-element Vector{Vector{Vector{Vector{QQMPolyRingElem}}}}:
+ [[[0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [0, 0, 1], [a32, -a43]]]
 ```
 """
 function weighted_resolution_generating_sections(m::AbstractFTheoryModel)
@@ -852,8 +857,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> weighted_resolution_zero_sections(m)
-1-element Vector{Vector{Vector{String}}}:
- [["1", "1", "0"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1", "w"], ["1", "1"]]
+1-element Vector{Vector{Vector{QQMPolyRingElem}}}:
+ [[1, 1, 0], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1, w], [1, 1]]
 ```
 """
 function weighted_resolution_zero_sections(m::AbstractFTheoryModel)
