@@ -175,6 +175,7 @@ end
   return result
 end
 
+#=
 function change_base_ring(phi::Any, A::MPolyQuoRing)
   R = base_ring(A)
   RR, map_R = change_base_ring(phi, R)
@@ -183,6 +184,7 @@ function change_base_ring(phi::Any, A::MPolyQuoRing)
   psi = hom(A, AA, phi, gens(AA), check=false)
   return AA, psi
 end
+=#
 
 function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
