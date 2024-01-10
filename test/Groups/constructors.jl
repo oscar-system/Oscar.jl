@@ -52,9 +52,9 @@ import Oscar.AbstractAlgebra.GroupsCore
 
   @test is_natural_symmetric_group(symmetric_group(4))
   @test ! is_natural_symmetric_group(PcGroup(symmetric_group(4)))
-  @test is_isomorphic_with_symmetric_group(symmetric_group(4))
-  @test is_isomorphic_with_symmetric_group(PcGroup(symmetric_group(4)))
-  @test !is_isomorphic_with_symmetric_group(alternating_group(4))
+  @test is_isomorphic_to_symmetric_group(symmetric_group(4))
+  @test is_isomorphic_to_symmetric_group(PcGroup(symmetric_group(4)))
+  @test !is_isomorphic_to_symmetric_group(alternating_group(4))
 end
 
 @testset "Special Constructors" begin

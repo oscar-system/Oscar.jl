@@ -14,7 +14,7 @@ PermGroup
 PermGroupElem
 symmetric_group
 is_natural_symmetric_group(G::GAPGroup)
-is_isomorphic_with_symmetric_group(G::GAPGroup)
+is_isomorphic_to_symmetric_group(G::GAPGroup)
 alternating_group
 is_natural_alternating_group(G::GAPGroup)
 is_isomorphic_with_alternating_group(G::GAPGroup)
