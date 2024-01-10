@@ -16,7 +16,7 @@ mutable struct ReductiveGroup
         #check char(fld)
         if sym == :SL 
             R, _ = polynomial_ring(fld, :z => (1:m,1:m))
-            return ReductiveGroup(sym, m, R)
+            return ReductiveGroup_SLm(sym, m, R)
         elseif sym == :torus
             G = new()
             G.group = (sym, m)
@@ -26,18 +26,19 @@ mutable struct ReductiveGroup
         end
     end
 
-    function ReductiveGroup_SLm(sym::Symbol, m::Int, ring::MPolyRing) #the ring input is the group ring
+    function ReductiveGroup_SLm(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
         #check char(field)
         G = new()
         if sym != :SL
             error("Only implemented for SLm")
         end
+        @assert m^2  == ngens(pring)
+        fld = base_ring(pring)
         characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
-        G.field = base_ring(ring)
-        @assert m^2  == ngens(ring)
+        G.field = fld
         G.group = (sym,m)
         G.reynolds_operator = reynolds_slm
-        M = matrix(ring, m, m, gens(ring))
+        M = matrix(pring, m, m, gens(pring))
         G.canonical_representation = M
         G.group_ideal = ideal([det(M) - 1])
         #base ring of M has to be the same as the representation matrix when that is created later.
@@ -182,6 +183,43 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
         print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(group(R)))
         print(io, AbstractAlgebra.Dedent())
     end
+end
+
+function direct_sum(X::RepresentationReductiveGroup, Y::RepresentationReductiveGroup)
+    @assert group(X) == group(Y)
+    G = group(X)
+    R = base_ring(group_ideal(G))
+    Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(X)), Matrix(representation_matrix(Y))])
+    return RepresentationReductiveGroup(G, Mat)
+end
+
+function direct_sum(V::Vector{RepresentationReductiveGroup})
+    n = length(V)
+    G = group(V[1])
+    for i in 2:n
+        @assert G == group(V[i])
+    end
+    R = base_ring(group_ideal(G))
+    Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
+    return RepresentationReductiveGroup(G, Mat)
+end
+
+function tensor(X::RepresentationReductiveGroup, Y::RepresentationReductiveGroup)
+    @assert group(X) == group(Y)
+    Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
+    return RepresentationReductiveGroup(group(X), Mat)
+end
+
+function tensor(V::Vector{RepresentationReductiveGroup})
+    n = length(V)
+    for i in 2:n
+        @assert group(V[1]) == group(V[i])
+    end
+    Mat = representation_matrix(V[1])
+    for i in 2:n
+        Mat = kronecker_product(Mat,representation_matrix(V[i]))
+    end
+    return RepresentationReductiveGroup(group(V[1]), Mat)
 end
 
 ###############
