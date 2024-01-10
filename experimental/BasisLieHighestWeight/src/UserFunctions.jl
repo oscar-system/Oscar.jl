@@ -416,7 +416,7 @@ julia> basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 64
-  with monomial ordering neglex([x1, x2, x3, x4, x5, x6])
+  with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6])
 over Lie algebra of type A3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 1, 1]
@@ -432,7 +432,7 @@ over Lie algebra of type A3
 ```
 """
 function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
-  monomial_ordering = :neglex
+  monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
