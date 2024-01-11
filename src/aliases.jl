@@ -52,8 +52,8 @@ Base.@deprecate_binding isglobal is_global
 Base.@deprecate_binding isgraded is_graded
 Base.@deprecate_binding isinner_automorphism is_inner_automorphism
 Base.@deprecate_binding isinvariant is_invariant
-Base.@deprecate_binding isisomorphic_with_alternating_group is_isomorphic_with_alternating_group
-Base.@deprecate_binding isisomorphic_with_symmetric_group is_isomorphic_with_symmetric_group
+Base.@deprecate_binding isisomorphic_with_alternating_group is_isomorphic_to_alternating_group
+Base.@deprecate_binding isisomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
 Base.@deprecate_binding isleft is_left
 Base.@deprecate_binding islocal is_local
 Base.@deprecate_binding ismixed is_mixed
