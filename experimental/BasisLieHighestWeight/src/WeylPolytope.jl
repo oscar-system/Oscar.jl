@@ -95,9 +95,7 @@ function get_lattice_points_of_weightspace(
   for i in 1:n
     A[2m + i, i] = -1
   end
-  j = 0
-  for i in zero_coordinates 
-    j = j+1
+  for (j, i) in enumerate(zero_coordinates) 
     A[2m + n + j, i] = 1
     b[2m + n + j] = 0
   end
