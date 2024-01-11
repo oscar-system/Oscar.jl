@@ -95,6 +95,36 @@ Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv 
 julia> length(singular_loci(w))
 1
 ```
+Similarly, also hypersurface models are supported:
+```jldoctest
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> explicit_model_sections(h)
+Dict{String, MPolyRingElem} with 6 entries:
+  "c2"   => c2
+  "c1"   => c1
+  "Kbar" => Kbar
+  "c3"   => c3
+  "b"    => b
+  "c0"   => c0
+
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> hypersurface_equation_parametrization(h2)
+b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
+```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation)
@@ -218,8 +248,8 @@ end
 # Constructs literature model over concrete base
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
 
-  # We first create a polynomial ring in which we can read the Tate sections as polynomials of the (internal) model sections
-  @req ((model_dict["model_descriptors"]["type"] == "tate") || (model_dict["model_descriptors"]["type"] == "weierstrass")) "Model is not a Tate or Weierstrass model"
+  # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
+  @req ((model_dict["model_descriptors"]["type"] == "tate") || (model_dict["model_descriptors"]["type"] == "weierstrass") || (model_dict["model_descriptors"]["type"] == "hypersurface")) "Model is not a Tate or Weierstrass model"
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   vars = [string(g) for g in gens(auxiliary_base_ring)]
@@ -254,7 +284,6 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   map = hom(auxiliary_base_ring, cox_ring(base_space), images)
 
   # Construct the model
-  defining_section_parametrization = Dict{String, MPolyElem}()
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -272,6 +301,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["a6"] = map(a6)
 
     # Find defining_section_parametrization
+    defining_section_parametrization = Dict{String, MPolyElem}()
     if !("a1" in vars) || (a1 != eval_poly("a1", parent(a1)))
       defining_section_parametrization["a1"] = a1
     end
@@ -291,7 +321,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     # Create the model
     model = global_tate_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
 
-  else
+  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
     # Compute Weierstrass sections
     f = map(eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring))
@@ -302,6 +332,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["g"] = g
 
     # Find defining_section_parametrization
+    defining_section_parametrization = Dict{String, MPolyElem}()
     if !("f" in vars) || (f != eval_poly("f", parent(f)))
       defining_section_parametrization["f"] = f
     end
@@ -312,10 +343,46 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     # Create the model
     model = weierstrass_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
   
+  elseif model_dict["model_descriptors"]["type"] == "hypersurface"
+
+    # Extract fiber ambient space
+    rays = [[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_rays"]]
+    max_cones = IncidenceMatrix([[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_max_cones"]])
+    fas = normal_toric_variety(max_cones, rays; non_redundant = true)
+    fiber_amb_coordinates = string.(model_dict["model_data"]["fiber_ambient_space_coordinates"])
+    set_coordinate_names(fas, fiber_amb_coordinates)
+
+    # Extract the divisor classes of the first two classes of the fiber...
+    D1 = [a for a in model_dict["model_data"]["D1"]]
+    D1_dc = toric_divisor_class(sum([D1[l] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)]))
+    D2 = [a for a in model_dict["model_data"]["D2"]]
+    D2_dc = toric_divisor_class(sum([D2[l] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)]))
+
+    # Create the model
+    model = hypersurface_model(base_space, fas, D1_dc, D2_dc; completeness_check = completeness_check)
+
+    # Remember explicit model sections
+    model.explicit_model_sections = explicit_model_sections
+
+    # Remember hypersurface_parametrization
+    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars[2:length(vars)], fiber_amb_coordinates), cached=false)
+    parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
+    model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
+
+    # Set explicit hypersurface equation
+    images1 = [eval_poly(string(explicit_model_sections[vars[k]]), cox_ring(ambient_space(model))) for k in 2:length(vars)]
+    images2 = [eval_poly(string(k), cox_ring(ambient_space(model))) for k in fiber_amb_coordinates]
+    map = hom(parent(parametrized_hypersurface_equation), cox_ring(ambient_space(model)), vcat(images1, images2))
+    model.hypersurface_equation = map(parametrized_hypersurface_equation)
+
+  else
+
+    @req false "Model is not a Tate, Weierstrass or hypersurface model"
+
   end
-  set_attribute!(model, :explicit_model_sections => explicit_model_sections)
 
   # Return the model
+  set_attribute!(model, :explicit_model_sections => explicit_model_sections)
   return model
 end
 
@@ -338,18 +405,47 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
 
   # Construct the model
   if model_dict["model_descriptors"]["type"] == "tate"
+
     a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
     a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
     a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
     a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
     a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
     model = global_tate_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, [a1, a2, a3, a4, a6])
+
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+
     f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
     g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
     model = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, base_dim, f, g)
+
+  elseif model_dict["model_descriptors"]["type"] == "hypersurface"
+
+    # Extract base variable names
+    auxiliary_base_vars = [string(g) for g in gens(auxiliary_base_ring)]
+
+    # Extract fiber ambient space
+    rays = [[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_rays"]]
+    max_cones = IncidenceMatrix([[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_max_cones"]])
+    fas = normal_toric_variety(max_cones, rays; non_redundant = true)
+    fiber_amb_coordinates = string.(model_dict["model_data"]["fiber_ambient_space_coordinates"])
+    set_coordinate_names(fas, fiber_amb_coordinates)
+
+    # Extract the divisor classes of the first two classes of the fiber...
+    D1 = [a for a in model_dict["model_data"]["D1"]]
+    D2 = [a for a in model_dict["model_data"]["D2"]]
+
+    # Extract the hypersurface equation
+    ambient_ring, _ = polynomial_ring(QQ, vcat(auxiliary_base_vars, fiber_amb_coordinates), cached = false)
+    p = eval_poly(model_dict["model_data"]["hypersurface_equation"], ambient_ring)
+    
+    # Create the model
+    model = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, base_dim, fas, D1, D2, p)
+
   else
-    @req false "Model is not a Tate or Weierstrass model"
+
+    @req false "Model is not a Tate, Weierstrass or hypersurface model"
+
   end
   return model
 end

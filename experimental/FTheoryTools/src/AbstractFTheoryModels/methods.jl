@@ -173,7 +173,12 @@ function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Boo
   @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
   @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
   p == equation && return m
-  tuned_model = HypersurfaceModel(base_space(m), ambient_space(m), fiber_ambient_space(m), p)
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  gens_S = gens(parent(p))
+  for k in 1:length(gens_S)
+    explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  end
+  tuned_model = HypersurfaceModel(explicit_model_sections, p, p, base_space(m), ambient_space(m), fiber_ambient_space(m))
   set_attribute!(tuned_model, :partially_resolved, false)
   return tuned_model
 end

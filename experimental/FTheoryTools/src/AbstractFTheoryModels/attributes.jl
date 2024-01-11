@@ -918,26 +918,28 @@ end
 # This example cannot be used until we support literature hypersurface models
 # At that point, we should simply be able to uncomment this block
 
-# @doc raw"""
-#     zero_section(m::AbstractFTheoryModel)
+@doc raw"""
+    zero_section(m::AbstractFTheoryModel)
 
-# Return the zero section of the given model.
-# If no zero section is known, an error is raised.
-# This information is not typically stored as an attribute for
-# Weierstrass and global Tate models, whose zero sections are known.
+Return the zero section of the given model.
+If no zero section is known, an error is raised.
+This information is not typically stored as an attribute for
+Weierstrass and global Tate models, whose zero sections are known.
 
-# ```jldoctest
-# julia> m = literature_model(arxiv_id = "1507.05954", equation = "3.4")
-# Hyoersurface model over a not fully specified base -- U(1)xU(1) hypersurface model based on arXiv paper 1507.05954 Eq. (A.1)
+```jldoctest
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+Assuming that the first row of the given grading is the grading under Kbar
 
-# julia> zero_section(m)
-# 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
-#  0
-#  -b1
-#  a1
-# ```
-# """
-# function zero_section(m::AbstractFTheoryModel)
-#   @req has_zero_section(m) "No zero section stored for this model"
-#   return get_attribute(m, :zero_section)
-# end
+Hypersurface model over a not fully specified base
+
+julia> zero_section(h)
+3-element Vector{QQMPolyRingElem}:
+ 0
+ 1
+ 0
+```
+"""
+function zero_section(m::AbstractFTheoryModel)
+  @req has_zero_section(m) "No zero section stored for this model"
+  return get_attribute(m, :zero_section)
+end

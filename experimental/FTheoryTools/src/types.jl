@@ -49,11 +49,20 @@ end
 
 
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
+  hypersurface_equation_parametrization::MPolyRingElem
+  hypersurface_equation::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  hypersurface_equation::MPolyRingElem
-  HypersurfaceModel(base_space::FTheorySpace, ambient_space::FTheorySpace, fiber_ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, fiber_ambient_space, hypersurface_equation)
+  function HypersurfaceModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                             hypersurface_equation_parametrization::MPolyRingElem,
+                             hypersurface_equation::MPolyRingElem,
+                             base_space::FTheorySpace,
+                             ambient_space::FTheorySpace,
+                             fiber_ambient_space::AbsCoveredScheme)
+    return new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+  end
 end
 
 

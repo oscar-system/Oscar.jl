@@ -115,6 +115,15 @@ ambient space. This ambient space is computed by our constructors. Consequently,
 the coordinate ring, in which the hypersurface equation is an element, is only
 available after the model has been constructed.
 
+Some hypersurface models parametrize the hypersurface equation with sections
+of line bundles of the base space. One can obtain those sections and their
+explicit polynomial expressions over the base with `explicit_model_sections`.
+The parametrization of the hypersurface equation by these sections is found as
+follows:
+```@docs
+hypersurface_equation_parametrization(h::HypersurfaceModel)
+```
+
 To specify a custom value for the hypersurface equation, first use one of the above
 constructors. Once completed, employ the `tune` function described in the methods
 section to set the hypersurface equation to your desired value.
