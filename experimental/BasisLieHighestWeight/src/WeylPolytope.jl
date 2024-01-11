@@ -112,7 +112,6 @@ on the generator, these are the root vectors which are supported on a complement
 This has to be read from right to left, each possible action with a root vector increases the support of the so far generated module.
  This might speed up the function get_lattice_points_of_weightspace if the roots to the right end of the birational sequence are small.
 """
-
 function compute_zero_coordinates(
   weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem},
 )
