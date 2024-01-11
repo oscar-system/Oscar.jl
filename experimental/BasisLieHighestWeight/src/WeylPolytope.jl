@@ -122,29 +122,21 @@ function compute_zero_coordinates(
   all = Set(1:m)
   non_zeros = Set(findall(!iszero, highest_weight))
 
-  zero_coordinates = Set()
-  c = n
-  check = false
-  collect = Set()
-  if c > 0 && !issubset(all, non_zeros)
-    for i in 1:m
-      if weight_roots[c][i] != 0 && i in non_zeros
+  zero_coordinates = Set{Int}()
+  collect = Set{Int}()
+  for c in n:-1:1
+    length(non_zeros) == m && break
+    check = false
+    for i in non_zeros
+      if weight_roots[c][i] != 0
         check = true
         push!(collect, i)
       end
     end
-    for i in collect
-      for j in 1:m
-        if a[i, j] != 0
-          push!(non_zeros, j)
-        end
-      end
-    end
+    union!(non_zeros, (j for j in 1:m if any(i -> a[i, j] != 0, collect)))
     if !check
       push!(zero_coordinates, c)
     end
-    c = c - 1
-    check = false
   end
   return zero_coordinates
 end
