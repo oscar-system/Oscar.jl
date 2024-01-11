@@ -176,16 +176,90 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
   @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
+  
+  # Compute explicit Weierstrass sections
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
   b4 = 2 * tate_section_a4(t) + tate_section_a1(t) * tate_section_a3(t)
   b6 = 4 * tate_section_a6(t) + tate_section_a3(t)^2
   f = - 1//48 * (b2^2 - 24 * b4)
   g = 1//864 * (b2^3 - 36 * b2 * b4 + 216 * b6)
+
+  # Compute explicit_model_sections
+  new_explicit_model_sections = Dict("f" => f, "g" => g)
+  sections_t = collect(keys(explicit_model_sections(t)))
+  for section in sections_t
+    if !(section in ["a1", "a2", "a3", "a4", "a6"])
+      new_explicit_model_sections[section] = explicit_model_sections(t)[section]
+    end
+  end
+
+  # Compute Weierstrass polynomial
   S = cox_ring(ambient_space(t))
   x, y, z = gens(S)[ngens(S)-2:ngens(S)]
   ring_map = hom(parent(f), S, gens(S)[1:ngens(parent(f))])
   pw = x^3 - y^2 + ring_map(f)*x*z^4 + ring_map(g)*z^6
-  model = WeierstrassModel(Dict("f" => f, "g" => g), pw, base_space(t), ambient_space(t))
+
+  # Compute parametrization of Weierstrass sections
+  parametrization = defining_section_parametrization(t)
+  param_keys = collect(keys(parametrization))
+  new_defining_section_parametrization = Dict{String, MPolyElem}()
+  if length(param_keys) > 0
+    # Find ring to evaluate polynomials into
+    R = parent(parametrization[param_keys[1]])
+
+    # Identify how we parametrize a1
+    if haskey(parametrization, "a1")
+      param_a1 = parametrization["a1"]
+    else
+      param_a1 = eval_poly("a1", R)
+    end
+
+    # Identify how we parametrize a2
+    if haskey(parametrization, "a2")
+      param_a2 = parametrization["a2"]
+    else
+      param_a2 = eval_poly("a2", R)
+    end
+
+    # Identify how we parametrize a3
+    if haskey(parametrization, "a3")
+      param_a3 = parametrization["a3"]
+    else
+      param_a3 = eval_poly("a3", R)
+    end
+
+    # Identify how we parametrize a4
+    if haskey(parametrization, "a4")
+      param_a4 = parametrization["a4"]
+    else
+      param_a4 = eval_poly("a4", R)
+    end
+
+    # Identify how we parametrize a6
+    if haskey(parametrization, "a6")
+      param_a6 = parametrization["a6"]
+    else
+      param_a6 = eval_poly("a6", R)
+    end
+
+    # Compute parametrization of b2, b4, b6
+    param_b2 = 4 * param_a2 + param_a1^2
+    param_b4 = 2 * param_a4 + param_a1 * param_a3
+    param_b6 = 4 * param_a6 + param_a3^2
+
+    # Compute parametrization of f, g
+    param_f = -1//48 * (param_b2^2 - 24 * param_b4)
+    param_g = 1//864 * (param_b2^3 - 36 * param_b2 * param_b4 + 216 * param_b6)
+
+    # Compute defining_section_parametrization
+    new_defining_section_parametrization = Dict("f" => param_f, "g" => param_g)
+
+  end
+  
+  # Compute Weierstrass model
+  model = WeierstrassModel(new_explicit_model_sections, new_defining_section_parametrization, pw, base_space(t), ambient_space(t))
+
+  # Copy attributes and return model
   model_attributes = t.__attrs
   for (key, value) in model_attributes
     set_attribute!(model, key, value)

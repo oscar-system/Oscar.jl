@@ -60,31 +60,35 @@ end
 
 @attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
+  defining_section_parametrization::Dict{String, <: MPolyRingElem}
   weierstrass_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
   function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                            defining_section_parametrization::Dict{String, <: MPolyRingElem},
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
     fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-    return new(explicit_model_sections, weierstrass_polynomial, base_space, ambient_space, fiber_ambient_space)
+    return new(explicit_model_sections, defining_section_parametrization, weierstrass_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
 end
 
 
 @attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
+  defining_section_parametrization::Dict{String, <: MPolyRingElem}
   tate_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
   function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
     fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-    return new(explicit_model_sections, tate_polynomial, base_space, ambient_space, fiber_ambient_space)
+    return new(explicit_model_sections, defining_section_parametrization, tate_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
 end
