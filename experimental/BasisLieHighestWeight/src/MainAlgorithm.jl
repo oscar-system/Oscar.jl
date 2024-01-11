@@ -221,7 +221,6 @@ function add_new_monomials!(
   """
 
   # first identify coordinates that are trivially zero because of the action on the generator
-  zero_coordinates = Set()
   zero_coordinates = compute_zero_coordinates(
     birational_sequence.weights_alpha, L, weight_w, highest_weight
   )
