@@ -495,9 +495,7 @@ end
 #   simplicity, if N has an isometry, M has one too; so we force M to be the one
 #   equiped with an isometry if only one lattice has an isometry to extend
 #   (since everything is symmetric);
-# - `even` forces the primitive extensions to be even - if all the data w.r.t to
-#   M, N and q does not allow for a primitive extension to be even, an error is
-#   thrown;
+# - `even` forces the primitive extensions to be even;
 # - `exist_only` is meant only to state about the existence of a primitive
 #   extension without doing further computations once it is proved to exist;
 # - `first` asks to return the first primitive extensions computed which
