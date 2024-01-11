@@ -31,7 +31,7 @@ end
   U = Oscar.MPolyPowersOfElement(x+y)
   S, _ = localization(U)
   F = FreeMod(S, 2)
-  Fb = base_ring_module(F)
+  Fb = Oscar.base_ring_module(F)
   A = S[x//(x+y); y//(x+y)^2]
   B, D = Oscar.clear_denominators(A)
   @test change_base_ring(S, D) * A == B
@@ -81,7 +81,7 @@ end
   A = S[x^4*y^2; x^2*y]
   B = S[y^8; y^9]
   M = SubquoModule(F, A, B)
-  Fb = base_ring_module(F)
+  Fb = Oscar.base_ring_module(F)
   @test !represents_element(y*Fb[1], Oscar.pre_saturated_module(M))
   @test represents_element(y*F[1], M)
   v = coordinates(y*F[1], M)

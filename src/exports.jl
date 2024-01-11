@@ -255,7 +255,6 @@ export augmented_chow_ring
 export aut
 export automorphism_group
 export base_ring
-export base_ring_module
 export base_scheme
 export bases
 export basic_patches
@@ -567,7 +566,6 @@ export general_linear_group
 export generalized_jordan_block
 export generalized_jordan_form
 export generating_system
-export generator_matrix
 export generic_fraction
 export generic_fractions
 export generic_section
