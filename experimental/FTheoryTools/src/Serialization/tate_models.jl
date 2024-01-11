@@ -64,8 +64,8 @@ end
 
 function save_object(s::SerializerState, gtm::GlobalTateModel)
   # Currently, only serialize Tate models with toric defining data
-  @req typeof(base_space(gtm)) == NormalToricVariety "Currently, we only serialize Tate models defined over a toric base space"
-  @req typeof(ambient_space(gtm)) == NormalToricVariety "Currently, we only serialize Tate models defined within a toric ambient space"
+  @req base_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined over a toric base space"
+  @req ambient_space(gtm) isa NormalToricVariety "Currently, we only serialize Tate models defined within a toric ambient space"
 
   # Save information
   save_data_dict(s) do
@@ -109,7 +109,7 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
   # Extract explicit_model_sections
   values = load_object(s, Vector, params[4], :explicit_model_section_values)
   keys = load_object(s, Vector, String, :explicit_model_section_keys)
-  explicit_model_sections = Dict{String, typeof(values[1])}()
+  explicit_model_sections = Dict{String, MPolyRingElem}()
   for i in 1:length(keys)
     explicit_model_sections[keys[i]] = values[i]
   end

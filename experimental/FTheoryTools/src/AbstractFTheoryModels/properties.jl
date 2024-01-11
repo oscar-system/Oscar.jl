@@ -17,7 +17,7 @@ julia> is_base_space_fully_specified(t)
 false
 ```
 """
-is_base_space_fully_specified(m::AbstractFTheoryModel) = !(typeof(m.base_space) <: FamilyOfSpaces)
+is_base_space_fully_specified(m::AbstractFTheoryModel) = !(m.base_space isa FamilyOfSpaces)
 
 
 @doc raw"""

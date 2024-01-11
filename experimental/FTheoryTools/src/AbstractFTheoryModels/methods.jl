@@ -59,12 +59,12 @@ end
 function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
-  entry_test = ((typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel))
+  entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Blowups are currently only supported for Tate and Weierstrass models"
 
   # This method only works if the model is defined over a toric variety over toric scheme
-  @req typeof(base_space(m)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
-  @req typeof(ambient_space(m)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
+  @req base_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
+  @req ambient_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
 
   # Compute the new ambient_space
   bd = blow_up(ambient_space(m), I; coordinate_name = coordinate_name)
@@ -92,7 +92,7 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   ring_map = hom(base_ring(I), S, images)
 
   # Construct the new model
-  if typeof(m) == GlobalTateModel
+  if m isa GlobalTateModel
     new_pt = _my_proper_transform(ring_map, tate_polynomial(m), coordinate_name)
     model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_pt, base_space(m), new_ambient_space)
   else
@@ -160,12 +160,12 @@ true
 ```
 """
 function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
-  entry_test = (typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel) || (typeof(m) == HypersurfaceModel)
+  entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
   @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
-  @req !(typeof(base_space(m)) <: FamilyOfSpaces) "Currently, tuning is only supported for models over concrete toric bases"
-  if typeof(m) == GlobalTateModel
+  @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
+  if m isa GlobalTateModel
     equation = tate_polynomial(m)
-  elseif typeof(m) == WeierstrassModel
+  elseif m isa WeierstrassModel
     equation = weierstrass_polynomial(m)
   else
     equation = hypersurface_equation(m)
@@ -484,9 +484,9 @@ Multivariate polynomial ring in 12 variables over QQ graded by
 ```
 """
 function resolve(m::AbstractFTheoryModel, index::Int)
-  entry_test = (typeof(m) == GlobalTateModel) || (typeof(m) == WeierstrassModel)
+  entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Resolve currently supported only for Weierstrass and Tate models"
-  @req !(typeof(base_space(m)) <: FamilyOfSpaces) "Currently, resolve is only supported for models over concrete toric bases"
+  @req (base_space(m) isa NormalToricVariety) "Currently, resolve is only supported for models over concrete toric bases"
   @req has_attribute(m, :resolutions) "No resolutions known for this model"
   @req index > 0 "The resolution must be specified by a non-negative integer"
   @req index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
@@ -514,7 +514,7 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   
   # If Tate model, use the new resolve function
   # FIXME: To be extended to Weierstrass and hypersurface models
-  if typeof(m) == GlobalTateModel
+  if m isa GlobalTateModel
     resolved_model = m
     for k in 1:nr_blowups
       # Center may involve base coordinates, subject to chosen base sections/variable names in the base. Adjust

@@ -149,7 +149,7 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  @req base_space(t) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
   is_base_space_fully_specified(t) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(t), [tate_polynomial(t)])
 end
@@ -175,7 +175,7 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
 ```
 """
 @attr WeierstrassModel function weierstrass_model(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
+  @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Conversion of global Tate model into Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
   
   # Compute explicit Weierstrass sections
   b2 = 4 * tate_section_a2(t) + tate_section_a1(t)^2
@@ -287,7 +287,7 @@ julia> discriminant(t);
 ```
 """
 @attr MPolyRingElem function discriminant(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Discriminant of global Tate model is currently only supported for toric varieties and family of spaces as base space"
+  @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Discriminant of global Tate model is currently only supported for toric varieties and family of spaces as base space"
   return discriminant(weierstrass_model(t))
 end
 
@@ -356,6 +356,6 @@ julia> singular_loci(t)[2]
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)
-  @req typeof(base_space(t)) <: Union{NormalToricVariety, FamilyOfSpaces} "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
+  @req (base_space(t) isa NormalToricVariety || base_space(t) isa FamilyOfSpaces) "Singular loci of global Tate model currently only supported for toric varieties and families of spaces as base space"
   return singular_loci(weierstrass_model(t))
 end

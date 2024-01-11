@@ -132,9 +132,9 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   if dim(base_space) > 0
     
     # Currently, support only for toric bases
-    @req typeof(base_space) == NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
+    @req base_space isa NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
     for (key, value) in model_sections
-      @req typeof(value) == ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
+      @req value isa ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
     end
     
     # Are all model sections specified?

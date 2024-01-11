@@ -11,7 +11,7 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
   
   # This method only works if the model is defined over a toric variety over toric scheme
-  @req typeof(base_space(model)) <: NormalToricVariety "Analysis of fibers currently only supported for toric variety as base space"
+  @req base_space(model) isa NormalToricVariety "Analysis of fibers currently only supported for toric variety as base space"
   
   # Ideal of the defining polynomial
   hypersurface_ideal = ideal([tate_polynomial(model)])
@@ -114,7 +114,7 @@ true
 ```
 """
 function tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
-  @req typeof(base_space(t)) <: NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
+  @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
   isempty(special_ai_choices) && return t
   ais = [tate_section_a1(t), tate_section_a2(t), tate_section_a3(t), tate_section_a4(t), tate_section_a6(t)]
   if haskey(special_ai_choices, "a1")
