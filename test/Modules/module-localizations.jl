@@ -1,7 +1,7 @@
 @testset "module localizations 1" begin
   kk = QQ
   R, (x,y) = QQ["x", "y"]
-  U = MPolyComplementOfKPointIdeal(R, [0, 0])
+  U = Oscar.MPolyComplementOfKPointIdeal(R, [0, 0])
   L, _ = localization(U)
   F = FreeMod(L, 3)
   A = L[x 0 1; 0 y y^2]
@@ -17,7 +17,7 @@
   @test represents_element((x^8-9)*F[2], K)
   @test represents_element(x*F[3], K)
 
-  T = MPolyPowersOfElement(R, [x, y])
+  T = Oscar.MPolyPowersOfElement(R, [x, y])
   W, _ = localization(T)
   F = FreeMod(W, 2)
   A = W[x 0; 0 y^2]
@@ -28,7 +28,7 @@ end
 
 @testset "module localizations 2" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x+y)
+  U = Oscar.MPolyPowersOfElement(x+y)
   S, _ = localization(U)
   F = FreeMod(S, 2)
   Fb = base_ring_module(F)
@@ -41,7 +41,7 @@ end
   @test success
   @test v*A == b
 
-  V = MPolyComplementOfPrimeIdeal(ideal(R, [x,y]))
+  V = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, [x,y]))
   S, _ = localization(V)
   A = S[x//(x+y+1); y*(x-5)^3]
   b = matrix(S, 1, 1, [(x+y)*x + 5*y//(x+y+2)^10])
@@ -75,7 +75,7 @@ end
 
 @testset "module localizations 3" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x^7)
+  U = Oscar.MPolyPowersOfElement(x^7)
   S, _ = localization(U)
   F = FreeMod(S, 1)
   A = S[x^4*y^2; x^2*y]
@@ -107,7 +107,7 @@ end
   R, (x,y,z) = QQ["x", "y", "z"]
   M = R[x-1 y; z x]
   I = ideal(R, det(M))
-  Q = MPolyQuoLocRing(R, I, units_of(R))
+  Q = Oscar.MPolyQuoLocRing(R, I, units_of(R))
   A = map_entries(Q, M)
   K1 = syz(A)
   K2 = syz(K1)

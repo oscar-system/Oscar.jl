@@ -22,14 +22,14 @@
   f = (x^2 + y^2)
   T = MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
   I = ideal(R, f)
-  V = MPolyQuoLocRing(R, I, T)
+  V = Oscar.MPolyQuoLocRing(R, I, T)
 
   S = R
   U = Oscar.MPolyPowersOfElement(S, [f-1])
   J = ideal(S, zero(S))
-  W = MPolyQuoLocRing(S, J, U)
+  W = Oscar.MPolyQuoLocRing(S, J, U)
 
-  h = MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
+  h = Oscar.MPolyQuoLocalizedRingHom(W, V, [x//(y-1), y//(x-5)])
   J1 = ideal(V, [x*(x-1), y*(y-3)])
   J2 = ideal(W, [x, y])
   @test preimage(h, J1) == J2
@@ -302,9 +302,9 @@ end
   U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
   U3 = Oscar.MPolyPowersOfElement(y)
-  Q1 = MPolyQuoLocRing(R,IQ,U1)
-  Q2 = MPolyQuoLocRing(R,IQ,U2)
-  Q3 = MPolyQuoLocRing(R,IQ,U3)
+  Q1 = Oscar.MPolyQuoLocRing(R,IQ,U1)
+  Q2 = Oscar.MPolyQuoLocRing(R,IQ,U2)
+  Q3 = Oscar.MPolyQuoLocRing(R,IQ,U3)
   J1 = ideal(Q1,[x^2-y^2,y^2-z^2,x^2-z^2])
   @test length(minimal_generating_set(J1)) == 1
   @test length(small_generating_set(J1)) == 1
@@ -321,7 +321,7 @@ end
   R, (x, y) = QQ[:x, :y]
   I = ideal(R, x^6-y)
   U = complement_of_point_ideal(R, [1, 1])
-  L = MPolyQuoLocRing(R, I, U)
+  L = Oscar.MPolyQuoLocRing(R, I, U)
   J = ideal(L, [x-1, y-1])^2
   minJ = minimal_generating_set(J)
   @test length(minJ) == 1

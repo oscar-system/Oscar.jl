@@ -94,10 +94,6 @@ export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
 export MPolyQuoIdeal
-export MPolyQuoLocRing
-export MPolyQuoLocRingElem
-export MPolyQuoLocalizedIdeal
-export MPolyQuoLocalizedRingHom
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
@@ -259,9 +255,7 @@ export augmented_chow_ring
 export aut
 export automorphism_group
 export base_ring
-export base_ring_elem_type
 export base_ring_module
-export base_ring_type
 export base_scheme
 export bases
 export basic_patches
@@ -354,7 +348,6 @@ export combinatorial_symmetries
 export comm
 export comm!
 export common_components
-export common_denominator
 export common_refinement
 export complement
 export complement_class_reps
@@ -629,11 +622,6 @@ export has_transitive_groups
 export has_vertex
 export haspreimage
 export height
-export helper_eta
-export helper_ideal
-export helper_images
-export helper_kappa
-export helper_ring
 export hermitian_form
 export hessian
 export hessian_matrix
@@ -674,7 +662,6 @@ export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
 export ideal_sheaf
-export ideal_type
 export identifier
 export identity_map
 export image
@@ -994,7 +981,6 @@ export min_revlex_basis_encoding
 export min_weights
 export minimal_betti_table
 export minimal_block_reps
-export minimal_denominators
 export minimal_faces
 export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
 export minimal_generators
@@ -1029,7 +1015,6 @@ export mpoly_dec_type
 export mpoly_ring_type
 export mpoly_type
 export mul!
-export mult_set_type
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
