@@ -124,11 +124,7 @@ function compute_zero_coordinates(
   for i in 1:m 
     push!(all, i)
   end
-  for i in 1:m 
-    if highest_weight[i] != 0
-      push!(non_zeros, i)
-    end
-  end    
+  non_zeros = Set(findall(!iszero , highest_weight))
 
   zero_coordinates = Set()
   c = n
