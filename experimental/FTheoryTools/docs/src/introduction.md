@@ -39,7 +39,7 @@ This project just began, and is therefore in its experimental stage. Upcoming ta
 
 ## Tutorial
 
-We provide a [tutorial for FTheoryTools in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/FTheoryToolsInOSCAR.ipynb).
+We provide a [tutorial for FTheoryTools in OSCAR](https://www.oscar-system.org/tutorials/).
 
 
 ## Possible future extensions
