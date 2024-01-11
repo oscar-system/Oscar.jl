@@ -134,7 +134,7 @@ function compute_zero_coordinates(
   c = n
   check = false
   collect =Set()
-  while (c > 0 && !(issubset(all, non_zeros)) )
+  while c > 0 && !issubset(all, non_zeros)
     for i in 1:m
       if (weight_roots[c][i] != 0) && ( i in non_zeros)
         check = true
