@@ -508,7 +508,7 @@ julia> S = complement_of_point_ideal(R,[1,2]);
 
 julia> T = powers_of_element(x);
 
-julia> ST = MPolyProductOfMultSets(R, [S, T])
+julia> ST = Oscar.MPolyProductOfMultSets(R, [S, T])
 Product of the multiplicative sets
   complement of maximal ideal of point (1, 2)
   products of (x)
@@ -1691,7 +1691,7 @@ julia> R,(x,y,z,w) = QQ["x","y","z","w"];
 
 julia> f = x+y+z+w-1;
 
-julia> T = MPolyPowersOfElement(f);
+julia> T = powers_of_element(f);
 
 julia> RL,phiL = localization(R,T);
 
@@ -2172,7 +2172,7 @@ Complement
   of prime ideal(x, y^2 + 1)
   in multivariate polynomial ring in 2 variables over QQ
 
-julia> L = MPolyLocRing(R, U)
+julia> L, _ = localization(R, U)
 Localization
   of multivariate polynomial ring in 2 variables x, y
     over rational field

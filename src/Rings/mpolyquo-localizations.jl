@@ -1643,7 +1643,7 @@ julia> Q = ideal(R,[x*y-z*w]);
 
 julia> RQ,phiQ = quo(R,Q);
 
-julia> T = MPolyComplementOfKPointIdeal(R,[0,0,0,0]);
+julia> T = complement_of_point_ideal(R,[0,0,0,0]);
 
 julia> RQL, phiQL = localization(RQ,T);
 
