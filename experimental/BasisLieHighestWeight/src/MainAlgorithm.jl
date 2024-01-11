@@ -339,7 +339,7 @@ function add_new_monomials!(
   zero_coordinates = Set()
   zero_coordinates = compute_zero_coordinates(birational_sequence.weights_alpha, L, weight_w, highest_weight) 
   # get monomials that are in the weightspace, sorted by monomial_ordering
-   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
+  poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
       birational_sequence.weights_alpha, 
