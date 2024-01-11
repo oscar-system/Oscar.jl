@@ -363,7 +363,6 @@ function add_new_monomials!(
   # go through possible monomials one by one and check if it extends the basis
   while number_mon_in_weightspace < dim_weightspace
     i += 1
-    
     mon = poss_mon_in_weightspace[i]
     if mon in set_mon
       continue
