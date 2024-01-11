@@ -33,7 +33,7 @@ function tensor_matrices_of_operators(
     matrices_of_operators = [
       _tensor_product(mat_temp, mat_wi)) for
       (mat_temp, mat_wi) in
-      zip(matrices_of_operators, matrices_of_operators_gap(L, highest_weight[i]*wi, operators))
+      zip(matrices_of_operators, matrices_of_operators_gap(L, highest_weight_i*wi, operators))
     ]
   end
   return matrices_of_operators
