@@ -24,7 +24,7 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
 function ring(S::AbsMultSet)
-  error("method `ambient_ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
+  error("method `ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 
 ### required functionality
@@ -59,7 +59,7 @@ end
 # of the multiplicative set whenever possible. For instance, this is 
 # used to check well-definedness of homomorphisms from localized rings. 
 # By default, however, this iteration does nothing.
-Base.iterate(U::T) where {T<:AbsMultSet} = (one(ambient_ring(U)), 1)
+Base.iterate(U::T) where {T<:AbsMultSet} = (one(ring(U)), 1)
 Base.iterate(U::T, a::Tuple{<:RingElem, Int}) where {T<:AbsMultSet} = nothing
 Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 
@@ -188,7 +188,7 @@ function localization(S::AbsMultSet)
 end
 
 function localization(R::Ring, U::AbsMultSet)
-  R == ambient_ring(U) || error("ring and multiplicative set are incompatible")
+  R == ring(U) || error("ring and multiplicative set are incompatible")
   return localization(U)
 end
 

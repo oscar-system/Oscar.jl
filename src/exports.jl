@@ -1288,6 +1288,7 @@ export right_coset_action
 export right_cosets
 export right_ideal
 export right_transversal
+export ring
 export ring_elem_type
 export ring_type
 export rising_factorial

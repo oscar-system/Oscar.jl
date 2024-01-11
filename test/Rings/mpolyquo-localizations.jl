@@ -7,8 +7,8 @@
   f = x*v-y*u
   I = ideal(R, f)
   Q, p = quo(R, I)
-  S = MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
-  T = MPolyComplementOfKPointIdeal(R, [QQ(0), QQ(0), QQ(0), QQ(0)])
+  S = Oscar.MPolyComplementOfKPointIdeal(R, [QQ(1), QQ(0), QQ(1), QQ(0)])
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [QQ(0), QQ(0), QQ(0), QQ(0)])
   L, _ = localization(Q, S)
   a = L(x)
   b = L(y)
@@ -20,7 +20,7 @@
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)
-  T = MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(0), kk(0)])
   I = ideal(R, f)
   V = Oscar.MPolyQuoLocRing(R, I, T)
 
@@ -42,7 +42,7 @@
 
   f = x^2 + y^2-2
   S = Oscar.MPolyPowersOfElement(x-1)
-  T = MPolyComplementOfKPointIdeal(R, [1,1])
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [1,1])
   V = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f))
   ⊂ = issubset
   @test S ⊂ V
@@ -52,9 +52,9 @@
   @test !(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
   @test S ⊂ Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1))
   @test !(Oscar.MPolyPowersOfElement(f) ⊂ V)
-  @test Oscar.MPolyPowersOfElement(x-1) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
-  @test Oscar.MPolyPowersOfElement(x-1) * MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
-  @test !(Oscar.MPolyPowersOfElement(x) ⊂ MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test Oscar.MPolyPowersOfElement(x-1) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
+  @test Oscar.MPolyPowersOfElement(x-1) * Oscar.MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0])
+  @test !(Oscar.MPolyPowersOfElement(x) ⊂ Oscar.MPolyComplementOfKPointIdeal(R, [0,0]))
   @test T*T == T
 
   U = S*T
@@ -97,7 +97,7 @@
 
   h = (x+5)*(x^2+10*y)+(y-7)*(y^2-3*x)
   Q, _ = quo(R, h)
-  T = MPolyComplementOfKPointIdeal(R, [-5, 7])
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [-5, 7])
   W, _ = localization(Q, T)
   @test x//(y) in W
   @test x//(y+h) in W
@@ -148,7 +148,7 @@ end
   Q2 = ideal(R,[x*y-z*w])
   RQ1,phiQ1 = quo(R,Q1)
   RQ2,phiQ2 = quo(R,Q2)
-  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
+  T1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0,0])
   f = x+y+z+w-1
   T2 = Oscar.MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
@@ -206,7 +206,7 @@ end
   Q2 = ideal(R,[z,x^2-y^2])
   RQ1,phiQ1 = quo(R,Q1)
   RQ2,phiQ2 = quo(R,Q2)
-  T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  T1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
   f = x-y
   T2 = Oscar.MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
@@ -299,8 +299,8 @@ end
 @testset "minimal and small generating sets" begin
   R, (x,y,z) = QQ["x","y","z"]
   IQ = ideal(R,[x-z])
-  U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
-  U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
+  U1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U2 = Oscar.MPolyComplementOfKPointIdeal(R,[1,1,1])
   U3 = Oscar.MPolyPowersOfElement(y)
   Q1 = Oscar.MPolyQuoLocRing(R,IQ,U1)
   Q2 = Oscar.MPolyQuoLocRing(R,IQ,U2)
