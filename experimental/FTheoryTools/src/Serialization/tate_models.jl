@@ -13,6 +13,13 @@ function save_type_params(s::SerializerState, gtm::GlobalTateModel)
     ambient = ambient_space(gtm)
     tate_polynomial_ring = parent(gtm.tate_polynomial)
     explicit_model_section_ring = parent(gtm.explicit_model_sections["a1"])
+    parametrizing_sections = collect(keys(gtm.defining_section_parametrization))
+    if length(parametrizing_sections) > 0
+      defining_section_parametrization_ring = parent(gtm.defining_section_parametrization[parametrizing_sections[1]])
+    else
+      defining_section_parametrization_ring = explicit_model_section_ring
+    end
+
     save_data_dict(s, :params) do
       if serialize_with_id(base)
         parent_ref = save_as_ref(s, base)
@@ -41,6 +48,14 @@ function save_type_params(s::SerializerState, gtm::GlobalTateModel)
       else
         save_typed_object(s, explicit_model_section_ring, :explicit_model_section_ring)
       end
+
+      if serialize_with_id(defining_section_parametrization_ring)
+        parent_ref = save_as_ref(s, defining_section_parametrization_ring)
+        save_object(s, parent_ref, :defining_section_parametrization_ring)
+      else
+        save_typed_object(s, defining_section_parametrization_ring, :defining_section_parametrization_ring)
+      end
+
     end
   end
 end
@@ -54,7 +69,8 @@ function load_type_params(s::DeserializerState, ::Type{<: GlobalTateModel})
     load_typed_object(s, :base_space),
     load_typed_object(s, :ambient_space),
     load_typed_object(s, :tate_polynomial_ring),
-    load_typed_object(s, :explicit_model_section_ring)
+    load_typed_object(s, :explicit_model_section_ring),
+    load_typed_object(s, :defining_section_parametrization_ring)
   )
 end
 
@@ -84,6 +100,20 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
       end
     end
 
+    # Save keys of defining_section_parametrization
+    save_data_array(s, :defining_section_parametrization_keys) do
+      for (key, value) in defining_section_parametrization(gtm)
+        save_object(s, key)
+      end
+    end
+
+    # Save keys of defining_section_parametrization
+    save_data_array(s, :defining_section_parametrization_values) do
+      for (key, value) in defining_section_parametrization(gtm)
+        save_object(s, value)
+      end
+    end
+
     # Tate polynomial
     save_object(s, tate_polynomial(gtm), :tate_polynomial)
 
@@ -98,7 +128,8 @@ end
 # This function loads a global Tate model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing})
+function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing, <:MPolyRing})
+
   # Extract base and ambient space
   base_space = params[1]
   ambient_space = params[2]
@@ -114,8 +145,16 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
     explicit_model_sections[keys[i]] = values[i]
   end
 
+  # Extract defining_section_parametrization
+  values = load_object(s, Vector, params[5], :defining_section_parametrization_values)
+  keys = load_object(s, Vector, String, :defining_section_parametrization_keys)
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
+  for i in 1:length(keys)
+    defining_section_parametrization[keys[i]] = values[i]
+  end
+
   # Construct the model
-  model = GlobalTateModel(explicit_model_sections, Dict{String, MPolyElem}(), pt, base_space, ambient_space)
+  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base_space, ambient_space)
 
   # Set boolean attributes
   bools = load_object(s, Vector, Bool, :boolean_data)
