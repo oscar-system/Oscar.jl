@@ -44,6 +44,19 @@ end
   @test_throws ArgumentError singular_loci(h2)
 end
 
+@testset "Saving and loading hypersurface models over concrete base space" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, h2) do loaded
+      @test hypersurface_equation(h2) == hypersurface_equation(loaded)
+      @test base_space(h2) == base_space(loaded)
+      @test ambient_space(h2) == ambient_space(loaded)
+      @test fiber_ambient_space(h2) == fiber_ambient_space(loaded)
+      @test is_base_space_fully_specified(h2) == is_base_space_fully_specified(loaded)
+      @test is_partially_resolved(h2) == is_partially_resolved(loaded)
+    end
+  end
+end
+
 h3 = hypersurface_model_over_projective_space(2)
 R = parent(hypersurface_equation(h3))
 new_poly = gens(R)[4]^3
