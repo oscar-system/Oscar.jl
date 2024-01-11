@@ -329,7 +329,7 @@ function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::V
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
-  #we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
