@@ -33,6 +33,21 @@ w2 = tune(w, my_choice; completeness_check = false)
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
 w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+
+@testset "Saving and loading Weierstrass models over concrete base space" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, w3) do loaded
+      @test weierstrass_polynomial(w3) == weierstrass_polynomial(loaded)
+      @test weierstrass_section_f(w3) == weierstrass_section_f(loaded)
+      @test weierstrass_section_g(w3) == weierstrass_section_g(loaded)
+      @test base_space(w3) == base_space(loaded)
+      @test ambient_space(w3) == ambient_space(loaded)
+      @test is_base_space_fully_specified(w3) == is_base_space_fully_specified(loaded)
+      @test is_partially_resolved(w3) == is_partially_resolved(loaded)
+    end
+  end
+end
+
 x1, x2, x3, x, y, z = gens(parent(weierstrass_polynomial(w3)))
 new_weierstrass_polynomial = x^3 - y^2 - x3^12 * x * z^4
 tuned_w3 = tune(w3, new_weierstrass_polynomial)

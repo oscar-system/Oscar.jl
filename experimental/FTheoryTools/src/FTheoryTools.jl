@@ -24,6 +24,7 @@ include("HypersurfaceModels/methods.jl")
 include("standard_constructions.jl")
 
 include("Serialization/tate_models.jl")
+include("Serialization/weierstrass_models.jl")
 
 include("LiteratureModels/constructors.jl")
 include("LiteratureModels/create_index.jl")
