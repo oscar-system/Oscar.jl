@@ -236,6 +236,10 @@ function set_journal_model_section(m::AbstractFTheoryModel, desired_value::Strin
   set_attribute!(m, :journal_model_section => desired_value)
 end
 
+function set_journal_name(m::AbstractFTheoryModel, desired_value::String)
+  set_attribute!(m, :journal_name => desired_value)
+end
+
 function set_journal_pages(m::AbstractFTheoryModel, desired_value::String)
   set_attribute!(m, :journal_pages => desired_value)
 end

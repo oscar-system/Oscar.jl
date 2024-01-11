@@ -342,6 +342,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   set_journal_link(model, model_dict["journal_data"]["link"])
   set_journal_year(model, model_dict["journal_data"]["year"])
   set_journal_volume(model, model_dict["journal_data"]["volume"])
+  set_journal_name(model, model_dict["journal_data"]["journal"])
   if haskey(model_dict["journal_data"], "report_numbers")
     set_journal_report_numbers(model, string.(model_dict["journal_data"]["report_numbers"]))
   end

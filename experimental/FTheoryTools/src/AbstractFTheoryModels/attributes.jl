@@ -474,6 +474,28 @@ end
 
 
 @doc raw"""
+    journal_name(m::AbstractFTheoryModel)
+
+Return the `journal_volume` of the published paper in which the given model was introduced.
+If no `journal_volume` are known, an error is raised.
+
+```jldoctest
+julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> journal_volume(m)
+"858"
+```
+"""
+function journal_name(m::AbstractFTheoryModel)
+@req has_journal_name(m) "No journal volume known for this model"
+  return get_attribute(m, :journal_name)
+end
+
+
+@doc raw"""
     journal_year(m::AbstractFTheoryModel)
 
 Return the `journal_year` of the published paper in which the given model was introduced.
