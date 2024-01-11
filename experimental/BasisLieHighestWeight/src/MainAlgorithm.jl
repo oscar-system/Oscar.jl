@@ -230,7 +230,6 @@ function add_new_monomials!(
       birational_sequence.weights_alpha, 
       L, 
       weight_w, 
-      highest_weight, 
       zero_coordinates
     ),
   )
