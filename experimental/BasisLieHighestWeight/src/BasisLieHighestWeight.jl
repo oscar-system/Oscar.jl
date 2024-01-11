@@ -45,7 +45,6 @@ export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string
 
-
 end
 
 using .BasisLieHighestWeight
@@ -58,4 +57,3 @@ export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string
-

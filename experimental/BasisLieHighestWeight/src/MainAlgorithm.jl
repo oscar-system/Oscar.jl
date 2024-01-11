@@ -219,18 +219,17 @@ function add_new_monomials!(
   Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
   """
-  
+
   # first identify coordinates that are trivially zero because of the action on the generator
   zero_coordinates = Set()
-  zero_coordinates = compute_zero_coordinates(birational_sequence.weights_alpha, L, weight_w, highest_weight) 
+  zero_coordinates = compute_zero_coordinates(
+    birational_sequence.weights_alpha, L, weight_w, highest_weight
+  )
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, 
-      L, 
-      weight_w, 
-      zero_coordinates
+      birational_sequence.weights_alpha, L, weight_w, zero_coordinates
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -356,7 +355,6 @@ function add_by_hand(
       v0,
       set_mon,
     )
-  
   end
   return set_mon
 end
