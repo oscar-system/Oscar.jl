@@ -398,7 +398,7 @@ for a simple Lie algebra $L$ of type `type_rank`.
 
 Then the birational sequence used consists of all operators in descening height of the corresponding root.
 
-The monomial ordering is fixed to `neglex` (negative lexicographic order).      
+The monomial ordering is fixed to `degrevlex`.      
       
 # Examples
 ```jldoctest
