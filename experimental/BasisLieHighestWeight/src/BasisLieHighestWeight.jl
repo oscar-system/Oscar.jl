@@ -38,14 +38,15 @@ include("WeylPolytope.jl")
 include("MainAlgorithm.jl")
 include("UserFunctions.jl")
 
+export basis_coordinate_ring_kodaira
+export basis_coordinate_ring_kodaira_ffl
 export basis_lie_highest_weight_operators
 export basis_lie_highest_weight
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string
-export basis_coordinate_ring_kodaira
-export basis_coordinate_ring_kodaira_ffl
+
 
 end
 
@@ -53,11 +54,12 @@ using .BasisLieHighestWeight
 
 export BasisLieHighestWeight
 
+export basis_coordinate_ring_kodaira
+export basis_coordinate_ring_kodaira_ffl
 export basis_lie_highest_weight_operators
 export basis_lie_highest_weight
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
 export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string
-export basis_coordinate_ring_kodaira
-export basis_coordinate_ring_kodaira_ffl
+
