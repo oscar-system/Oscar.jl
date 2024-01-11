@@ -33,7 +33,7 @@ given by the pullback function
   u -> 1/x
   v -> y/x
 
-julia> typeof(G)<:SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
+julia> G isa SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
 true
 
 julia> # Alternative using SpecOpens as glueing domains:
@@ -59,7 +59,7 @@ defined by the map
     u -> 1/x
     v -> y/x
 
-julia> typeof(H)<:Glueing
+julia> H isa Glueing
 true
 ```
 """
