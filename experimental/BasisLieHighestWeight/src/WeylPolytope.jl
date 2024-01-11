@@ -103,9 +103,8 @@ function get_lattice_points_of_weightspace(
 end
 
 @doc raw"""
-compute_zero_coordinates(
-  weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem},
-)
+    compute_zero_coordinates(weight_roots::Vector{Vector{QQFieldElem}}, L::LieAlgebraStructure, weight::Vector{ZZRingElem}, highest_weight::Vector{ZZRingElem})
+
 Uses the action on the generator to determine coordinates which always act by 0 
 on the generator, these are the root vectors which are supported on a complement of the support of the highest weight. 
 This has to be read from right to left, each possible action with a root vector increases the support of the so far generated module.
