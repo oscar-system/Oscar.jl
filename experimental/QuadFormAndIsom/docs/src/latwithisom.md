@@ -245,12 +245,11 @@ signatures(::ZZLatWithIsom)
 ## Spinor norm
 
 Given an integer lattice with isometry $(L, f)$, one often would like to know
-the *spinor norm* of $f$ seen as an isometry of the real quadratic space $L\times
-\mathbb{R}$. Since convention might change depending on the author, we allow to
-do such computation with respect to the opposite form on $L$:
+the *spinor norm* of $f$ seen as an isometry of the rational quadratic space $L\times
+\mathbb{Q}$. See [`rational_spinor_norm(::QuadSpaceWithIsom)`](@ref) for a definition.
 
 ```@docs
-spinor_norm(::ZZLatWithIsom)
+rational_spinor_norm(::ZZLatWithIsom)
 ```
 
 ## Equality

@@ -209,7 +209,7 @@ end
 
 Return the full orthogonal group of this torsion quadratic module.
 """
-@attr AutomorphismGroup function orthogonal_group(T::TorQuadModule)
+@attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
   if is_trivial(abelian_group(T))
     return _orthogonal_group(T, ZZMatrix[identity_matrix(ZZ, ngens(T))], check = false)
   elseif is_semi_regular(T)

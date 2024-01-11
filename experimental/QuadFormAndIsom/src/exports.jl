@@ -20,8 +20,8 @@ export order_of_isometry
 export primitive_embeddings
 export primitive_extensions
 export quadratic_space_with_isometry
+export rational_spinor_norm
 export representatives_of_hermitian_type
-export spinor_norm
 export splitting_of_hermitian_prime_power
 export splitting_of_mixed_prime_power
 export splitting_of_pure_mixed_prime_power

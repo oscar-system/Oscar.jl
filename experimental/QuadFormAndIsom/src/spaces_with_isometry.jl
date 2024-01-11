@@ -737,18 +737,19 @@ end
 ###############################################################################
 
 @doc raw"""
-    spinor_norm(Vf::QuadSpaceWithIsom; s::Int = -1) -> QQFieldElem
+    rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int = -1) -> QQFieldElem
 
 Given a rational quadratic space with isometry $(V, b, f)$, return the real
-spinor norm of the extension of $f$ to $V\otimes \mathbb{R}$.
+spinor norm of the extension of $f$ to $V\otimes \mathbb{Q}$.
 
-If `s == -1`, then the spinor norm is computed with respect to $-b$.
+If $\Phi$ is the form on $V$, then the spinor norm is computed with respect to
+$b\Phi$.
 """
-function spinor_norm(Vf::QuadSpaceWithIsom; s::Int = -1)
+function rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int = -1)
   @req dim(Vf) > 0 "V must have positive dimension"
   D, U = Hecke._gram_schmidt(gram_matrix(Vf), QQ)
   fD = U*isometry(Vf)*inv(U)
-  return Oscar.spin(s*D, fD)
+  return spin(b*D, fD)
 end
 
 ###############################################################################

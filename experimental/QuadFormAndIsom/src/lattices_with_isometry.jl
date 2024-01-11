@@ -2393,18 +2393,19 @@ end
 ###############################################################################
 
 @doc raw"""
-    spinor_norm(Lf::ZZLatWithIsom; s::Int = -1) -> QQFieldElem
+    rational_spinor_norm(Lf::ZZLatWithIsom; b::Int = -1) -> QQFieldElem
 
-Given a lattice with isometry $(L, b, f)$, return the real spinor norm of the
-extension of $f$ to $L\otimes \mathbb{R}$.
+Given a lattice with isometry $(L, b, f)$, return the rational spinor norm of
+the extension of $f$ to $L\otimes \mathbb{Q}$.
 
-If `s == -1`, then the spinor norm is computed with respect to $-b$.
+If $\Phi$ is the form on $L\otimes \mathbb{Q}$, then the spinor norm is computed
+with respect to $b\Phi$.
 """
-function spinor_norm(Lf::ZZLatWithIsom; s::Int = -1)
+function rational_spinor_norm(Lf::ZZLatWithIsom; b::Int = -1)
   @req rank(Lf) > 0 "L must have positive rank"
   D, U = Hecke._gram_schmidt(gram_matrix(Lf), QQ)
   fD = U*isometry(Lf)*inv(U)
-  return Oscar.spin(s*D, fD)
+  return spin(b*D, fD)
 end
 
 ###############################################################################
