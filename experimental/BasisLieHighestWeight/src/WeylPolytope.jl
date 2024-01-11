@@ -119,10 +119,7 @@ function compute_zero_coordinates(
   m = length(weight)
   a = cartan_matrix(L)
   non_zeros = Set()
-  all = Set()
-  for i in 1:m 
-    push!(all, i)
-  end
+  all = Set(1:m)
   non_zeros = Set(findall(!iszero , highest_weight))
 
   zero_coordinates = Set()
