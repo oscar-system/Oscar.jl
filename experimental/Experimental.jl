@@ -17,7 +17,7 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   #nees code from LieAlgebra
+  "BasisLieHighestWeight",   # nees code from LieAlgebras
   "JuLie",
   "IntersectionTheory",
   "OrthogonalDiscriminants",  # needs code from JuLie
