@@ -1,3 +1,22 @@
+@testset "MPolyAnyMap/MPolyQuoRing no segfault" begin
+  Qix, (x, y) = QQ["x", "y"]
+  I = ideal(Qix, elem_type(Qix)[])
+  Qix, = quo(Qix, I)
+  x = Qix(x)
+  y = Qix(y)
+  f = hom(Qix, Qix, [x^2, y^2])
+end
+
+@testset "MPolyAnyMap/MPolyQuoRing segfault" begin
+  Qi, i = quadratic_field(-1)
+  Qix, (x, y) = Qi["x", "y"]
+  I = ideal(Qix, elem_type(Qix)[])
+  Qix, = quo(Qix, I)
+  x = Qix(x)
+  y = Qix(y)
+  f = hom(Qix, Qix, [x^2, y^2])
+end
+
 @testset "MPolyAnyMap/MPolyQuoRing" begin
   Qsqrt2, = quadratic_field(-1)
   Zx, _ = ZZ["x"]

@@ -196,3 +196,186 @@ function tensor_product(list::Vector{T}) where {T<:ComplexOfMorphisms}
                      )
 end
 
+########################################################################
+# Tensor products of hypercomplexes                                    #
+########################################################################
+struct HCTensorProductChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
+  factors::Vector{<:AbsHyperComplex}
+  mult_map_cache::Dict{<:Tuple, <:Map}
+
+  function HCTensorProductChainFactory(
+      ::Type{CT},
+      factors::Vector{<:AbsHyperComplex}
+    ) where {CT}
+    mult_map_cache = Dict{Tuple, Map}()
+    return new{CT}(factors, mult_map_cache)
+  end
+end
+
+function (fac::HCTensorProductChainFactory{ChainType})(c::AbsHyperComplex, I::Tuple) where {ChainType}
+  i = collect(I)
+  # decompose I into its individual indices
+  j = Vector{Vector{Int}}()
+  k = 0
+  for f in fac.factors
+    push!(j, i[k+1:k+dim(f)])
+    k = k + dim(f)
+  end
+  factors = [fac.factors[k][Tuple(a)] for (k, a) in enumerate(j)]
+  any(iszero, factors) && return zero_object(first(factors))[1]
+  tmp_res = _tensor_product(factors...)
+  @assert tmp_res isa Tuple{<:ChainType, <:Map} "the output of `tensor_product` does not have the anticipated format; see the source code for details"
+  # If you got here because of the error message above:
+  # This is supposed to be generic code and it attempts to build the tensor product 
+  # of `factors` using the method of `tensor_product` for your specific type. 
+  # The convention in Oscar is that this should return a pair `(M, mult)` consisting 
+  # of the actual tensor product `M` and a multiplication map `mult` which takes a 
+  # `Tuple` of elements in the `factors` to its tensor product in `M`. 
+  # Unfortunately, it can not be assumed that the original method for `tensor_product` 
+  # produces this output and it is an ongoing effort to streamline this throughout 
+  # Oscar. Since such changes tend to happen with severe delay, if ever, we provide 
+  # a little workaround here. If this code does not run for your type of chains, 
+  # you may try two things:
+  #
+  #   1) Overwrite the method for `_tensor_product` below for your type and wrap the 
+  #      original method for `tensor_product` so that the anticipated output is produced
+  #
+  #   2) If that does not work, you may also overwrite the whole method for production 
+  #      of the tensor products here.
+  result, mult_map = tmp_res
+  fac.mult_map_cache[I] = mult_map
+  return result
+end
+
+# By default, we assume that `tensor_product` produces the correct output
+function _tensor_product(v::Any...)
+  return tensor_product(v...)
+end
+
+# If not, we can wrap it here so that the correct output is produced
+function _tensor_product(v::ModuleFP...)
+  return tensor_product(v...; task=:with_map)
+end
+
+function can_compute(fac::HCTensorProductChainFactory, c::AbsHyperComplex, I::Tuple)
+  i = collect(I)
+
+  # decompose I into its individual indices
+  j = Vector{Vector{Int}}()
+  k = 0
+  for f in fac.factors
+    push!(j, i[k+1:k+dim(f)])
+    k = k + dim(f)
+  end
+  return all(k->can_compute_index(fac.factors[k], Tuple(j[k])), 1:length(j))
+end
+
+### Production of the morphisms 
+struct HCTensorProductMapFactory{MorphismType} <: HyperComplexMapFactory{MorphismType}
+  factors::Vector{<:AbsHyperComplex}
+
+  function HCTensorProductMapFactory(
+      ::Type{MT},
+      factors::Vector{<:AbsHyperComplex}
+    ) where {MT}
+    return new{MT}(factors)
+  end
+end
+
+function zero_map(M::ModuleFP, N::ModuleFP)
+  base_ring(M) === base_ring(N) || error("base rings must coincide")
+  return hom(M, N, elem_type(N)[zero(N) for i in 1:ngens(M)], check=false)
+end
+
+function (fac::HCTensorProductMapFactory{MorphismType})(c::AbsHyperComplex, p::Int, I::Tuple) where {MorphismType}
+  next = collect(I)
+  next[p] = next[p] + (direction(c, p) == :chain ? -1 : 1)
+  J = Tuple(next)
+
+  if iszero(c[I]) || iszero(c[J])
+    return zero_map(c[I], c[J])
+  end
+  
+  i = collect(I)
+  # decompose I into its individual indices
+  j = Vector{Vector{Int}}()
+  k = 0
+  for f in fac.factors
+    push!(j, i[k+1:k+dim(f)])
+    k = k + dim(f)
+  end
+  maps = MorphismType[]
+  d = length.(j)
+  k = findfirst(k->sum(d[1:k]; init=0) >= p, 1:length(j))
+  k === nothing && error("direction out of bounds")
+  q = p - sum(d[1:k-1]; init = 0)
+  maps = MorphismType[identity_map(fac.factors[l][Tuple(j[l])]) for l in 1:k-1]
+  push!(maps, map(fac.factors[k], q, Tuple(j[k]))) 
+  maps = vcat(maps, MorphismType[identity_map(fac.factors[l][Tuple(j[l])]) for l in k+1:length(j)])
+  return tensor_product(c[I], c[J], maps)
+end
+
+function can_compute(fac::HCTensorProductMapFactory, c::AbsHyperComplex, p::Int, I::Tuple)
+  i = collect(I)
+  # decompose I into its individual indices
+  j = Vector{Vector{Int}}()
+  k = 0
+  for f in fac.factors
+    push!(j, i[k+1:k+dim(f)])
+    k = k + dim(f)
+  end
+  d = length.(j)
+  l = findfirst(l->sum(d[1:l]; init=0)>=p, 1:length(j))
+  l === nothing && error("mapping direction out of bounds")
+  return can_compute_map(fac.factors[l], p - sum(d[1:l-1]; init=0), Tuple(j[l]))
+end
+
+### The concrete struct
+@attributes mutable struct HCTensorProductComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
+  internal_complex::HyperComplex{ChainType, MorphismType}
+  factors::Vector{<:AbsHyperComplex}
+
+  function HCTensorProductComplex(
+      factors::Vector{<:AbsHyperComplex}
+    )
+    CT = reduce(typejoin, chain_type.(factors))
+    MT = reduce(typejoin, morphism_type.(factors))
+    chain_fac = HCTensorProductChainFactory(CT, factors)
+    map_fac = HCTensorProductMapFactory(MT, factors)
+
+    d = sum(dim(c) for c in factors; init=0)
+    dir = vcat([Symbol[direction(c, p) for p in 1:dim(c)] for c in factors]...)
+    upper_bounds = vcat([Union{Int, Nothing}[(has_upper_bound(c, p) ? upper_bound(c, p) : nothing) for p in 1:dim(c)] for c in factors]...)
+    lower_bounds = vcat([Union{Int, Nothing}[(has_lower_bound(c, p) ? lower_bound(c, p) : nothing) for p in 1:dim(c)] for c in factors]...)
+
+    internal_complex = HyperComplex(d, chain_fac, map_fac, 
+                                    dir, upper_bounds=upper_bounds,
+                                    lower_bounds=lower_bounds
+                                   )
+    # Assuming that ChainType and MorphismType are provided by the input
+    return new{CT, MT}(internal_complex, factors)
+  end
+end
+
+### Implementing the AbsHyperComplex interface via `underlying_complex`
+underlying_complex(c::HCTensorProductComplex) = c.internal_complex
+
+### Additional functionality
+factors(c::HCTensorProductComplex) = c.factors
+
+### User facing constructor
+function tensor_product(factors::Vector{<:AbsHyperComplex})
+  return HCTensorProductComplex(factors)
+end
+
+function tensor_product(c::AbsHyperComplex...)
+  return tensor_product(collect(c))
+end
+
+function tensor_product(M::ModuleFP{T}...) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}
+  R = base_ring(first(M))
+  @assert all(N->base_ring(N)===R, M) "modules must be defined over the same ring"
+  return tensor_product([free_resolution(SimpleFreeResolution, N)[1] for N in M]...)
+end
+
+

@@ -609,7 +609,6 @@ export graded_free_module
 export graded_image
 export graded_map
 export graded_polynomial_ring
-export grading
 export grading_group
 export graph
 export graph_from_adjacency_matrix
@@ -735,6 +734,7 @@ export invariant_ring
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
+export inverse_on_image
 export invert
 export invert_birational_map
 export inverted_set
@@ -746,7 +746,7 @@ export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
-export is_almostsimple, has_is_almostsimple, set_is_almostsimple
+export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
 export is_basepoint_free
@@ -789,7 +789,7 @@ export is_fano
 export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
-export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
+export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_finiteorder
 export is_flat
 export is_full_direct_product
@@ -1122,6 +1122,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_subgroups
 export on_tuples
 export one!
 export open_subset_type
@@ -1247,6 +1248,7 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
+export rand_homogeneous
 export rank
 export rank_action
 export rational_equivalence_class

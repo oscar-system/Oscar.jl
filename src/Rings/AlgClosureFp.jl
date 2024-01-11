@@ -44,6 +44,8 @@ end
 elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
 parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
 
+Oscar.canonical_unit(a::AlgClosureElem) = is_zero(a) ? one(a) : a
+
 function show(io::IO, a::AlgClosureElem)
   print(io, data(a))
 end
@@ -102,11 +104,11 @@ function ext_of_degree(A::AlgClosure, d::Int)
     
   k = base_ring(A)
   if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
-    K = GF(Int(characteristic(k)), d, cached = false)
+    K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
-    K = Nemo._GF(characteristic(k), d, cached = false)
-  else
     K = GF(characteristic(k), d, cached = false)
+  else
+    K = Nemo.Native.GF(characteristic(k), d, cached = false)
   end
   A.fld[d] = K
   return K
@@ -324,6 +326,7 @@ function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S})
   mod(degree(F), degree(elm)) != 0 && return false, zero(F)
   return true, preimage(mp, elm)
 end
+
 
 end # AlgClosureFp
 

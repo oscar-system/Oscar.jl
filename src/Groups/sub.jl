@@ -1167,13 +1167,8 @@ If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
 together with the embeddings of $K into $G_i$.
 """
-function intersect(V::T...) where T<:GAPGroup
-   L = GapObj([G.X for G in V])
-   K = GAP.Globals.Intersection(L)::GapObj
-   Embds = [_as_subgroup(G, K)[2] for G in V]
-   K = _as_subgroup(V[1], K)[1]
-   Arr = Tuple(vcat([K],Embds))
-   return Arr
+function intersect(G1::T, V::T...) where T<:GAPGroup
+   return intersect([G1, V...])
 end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
@@ -1184,4 +1179,3 @@ function intersect(V::AbstractVector{T}) where T<:GAPGroup
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
-#T why duplicate this code?

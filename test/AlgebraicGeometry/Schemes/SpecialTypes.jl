@@ -8,6 +8,7 @@
 
   inc = inclusion_morphism(U, check=true)
   @test inc === inclusion_morphism(U) # test caching
+  @test inc isa Oscar.PrincipalOpenEmbedding
 
   f = OO(U)(x)/OO(U)(h^2)
   @test OO(U)(generic_fraction(f, U)) == f
@@ -15,8 +16,7 @@
   @test domain(underlying_morphism(inc)) === U
   @test codomain(underlying_morphism(inc)) === X
   @test pullback(underlying_morphism(inc)) == pullback(inc)
-  @test h in complement_ideal(inc)
-  @test iszero(OO(complement_scheme(inc))(h))
+  @test h in ideal(OO(X), complement_equations(inc))
 
   V = hypersurface_complement(X, x)
   Y = subscheme(V, h)

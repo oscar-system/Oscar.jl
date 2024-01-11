@@ -521,7 +521,7 @@ x_3 <= 1
 """
 facets(
   as::Type{T}, P::Polyhedron{S}
-) where {R,S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S},Polyhedron{S}}} =
+) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
   SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
 
 function _facet_polyhedron(

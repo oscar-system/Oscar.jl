@@ -343,3 +343,136 @@ end
   L, loc = localization(A, U)
   @test dim(L) == 2
 end
+
+@testset "composition of morphisms with coefficient maps" begin
+  R, (x, y) = ZZ[:x, :y]
+  U = powers_of_element(x)
+  L, _ = localization(R, U)
+
+  Pt, t = QQ[:t]
+  KK, I = number_field(t^2 + 1)
+
+  O_KK = maximal_order(KK)
+
+  S, (u, v) = KK[:u, :v]
+  Sl, _ = localization(S, powers_of_element(u))
+
+  R_to_L = hom(R, L, L.([x, y]))
+  R_to_Sl = hom(R, Sl, QQ, [u, v])
+  L_to_Sl = hom(L, Sl, R_to_Sl)
+  @test Oscar._has_coefficient_map(L_to_Sl)
+  compose(R_to_L, L_to_Sl)
+
+  id_L = identity_map(L)
+  phi = compose(id_L, L_to_Sl)
+  @test phi == L_to_Sl
+  psi = compose(L_to_Sl, identity_map(Sl))
+  @test psi == L_to_Sl
+
+  prep = hom(R, L, coefficient_ring(R), gens(L))
+  id_L = hom(L, L, prep)
+  phi = compose(id_L, L_to_Sl)
+  @test phi == L_to_Sl
+  psi = compose(L_to_Sl, identity_map(Sl))
+  @test psi == L_to_Sl
+
+  prep = hom(R, L, identity_map(coefficient_ring(R)), gens(L))
+  id_L = hom(L, L, prep)
+  phi = compose(id_L, L_to_Sl)
+  @test phi == L_to_Sl
+  psi = compose(L_to_Sl, identity_map(Sl))
+  @test psi == L_to_Sl
+
+  R_to_Sl2 = hom(R, Sl, Sl, [u, v])
+  L_to_Sl2 = hom(L, Sl, R_to_Sl2)
+  @test Oscar._has_coefficient_map(L_to_Sl2)
+
+  phi = compose(identity_map(L), L_to_Sl2)
+  @test phi == L_to_Sl2
+  psi = compose(L_to_Sl2, identity_map(Sl))
+  @test psi == L_to_Sl2
+
+  R_to_Sl3 = hom(R, Sl, O_KK, [u, v])
+  L_to_Sl3 = hom(L, Sl, R_to_Sl3)
+  @test Oscar._has_coefficient_map(L_to_Sl3)
+
+  phi = compose(identity_map(L), L_to_Sl3)
+  @test phi == L_to_Sl3
+  psi = compose(L_to_Sl3, identity_map(Sl))
+  @test psi == L_to_Sl3
+
+
+  FF = GF(7)
+  T, (a, b) = FF[:a, :b]
+  Tl, _ = localization(T, powers_of_element(a))
+
+  R_to_Tl = hom(R, Tl, FF, [a, b])
+  L_to_Tl = hom(L, Tl, R_to_Tl)
+  @test Oscar._has_coefficient_map(L_to_Tl)
+
+  dirty_reduction = MapFromFunc(KK, GF(7), x->begin c = coordinates(x); FF(numerator(c[1]))/FF(denominator(c[1])) end)
+
+  S_to_Tl = hom(S, Tl, dirty_reduction, [a, b])
+  Sl_to_Tl = hom(Sl, Tl, S_to_Tl)
+
+  id_Sl = identity_map(Sl)
+  phi = compose(identity_map(Sl), Sl_to_Tl)
+  @test phi == Sl_to_Tl
+  psi = compose(Sl_to_Tl, identity_map(Tl))
+  @test psi == Sl_to_Tl
+
+
+  L_to_Tl = compose(L_to_Sl, Sl_to_Tl)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  phi = compose(identity_map(L), L_to_Tl)
+  @test phi == L_to_Tl
+  psi = compose(L_to_Tl, identity_map(Tl))
+  @test psi == L_to_Tl
+
+  L_to_Tl2 = compose(L_to_Sl2, Sl_to_Tl)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  phi = compose(identity_map(L), L_to_Tl2)
+  @test phi == L_to_Tl2
+  psi = compose(L_to_Tl2, identity_map(Tl))
+  @test psi == L_to_Tl2
+
+  L_to_Tl3 = compose(L_to_Sl3, Sl_to_Tl)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  phi = compose(identity_map(L), L_to_Tl3)
+  @test phi == L_to_Tl3
+  psi = compose(L_to_Tl3, identity_map(Tl))
+  @test psi == L_to_Tl3
+
+
+  dirty_reduction2 = MapFromFunc(KK, T, x->begin c = coordinates(x); T(numerator(c[1]))/T(denominator(c[1])) end)
+
+  S_to_Tl2 = hom(S, Tl, dirty_reduction2, [a, b])
+  Sl_to_Tl2 = hom(Sl, Tl, S_to_Tl2)
+
+  L_to_Tl = compose(L_to_Sl, Sl_to_Tl2)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  L_to_Tl2 = compose(L_to_Sl2, Sl_to_Tl2)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  L_to_Tl3 = compose(L_to_Sl3, Sl_to_Tl2)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+
+  dirty_reduction3 = MapFromFunc(KK, Tl, x->begin c = coordinates(x); Tl(numerator(c[1]))/Tl(denominator(c[1])) end)
+
+  S_to_Tl3 = hom(S, Tl, dirty_reduction3, [a, b])
+  Sl_to_Tl3 = hom(Sl, Tl, S_to_Tl3)
+
+  L_to_Tl = compose(L_to_Sl, Sl_to_Tl3)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  L_to_Tl2 = compose(L_to_Sl2, Sl_to_Tl3)
+  @test L_to_Tl(one(L)) == one(Tl)
+
+  L_to_Tl3 = compose(L_to_Sl3, Sl_to_Tl3)
+  @test L_to_Tl(one(L)) == one(Tl)
+end

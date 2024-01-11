@@ -34,11 +34,8 @@ function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union
   f = defining_polynomial(K)
   d = degree(f)
   powers = elem_type(P)[theta^k for k in 0:d-1]
-  function help_map(a)
-    return sum(c*powers[i] for (i, c) in enumerate(coefficients(a)); init=zero(P))
-  end
   R_flat, pr = quo(P, ideal(P, evaluate(f, theta)))
-  to_R_flat = hom(R, R_flat, x->pr(help_map(x)), gens(R_flat)[2:end])
+  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr(theta)), gens(R_flat)[2:end])
   to_R = hom(R_flat, R, vcat([R(alpha)], gens(R)))
   return R_flat, to_R, to_R_flat
 end
@@ -55,7 +52,7 @@ function _expand_coefficient_field(
   f = defining_polynomials(K)
   d = degree.(f)
   R_flat, pr = quo(P, ideal(P, [evaluate(a, b) for (a, b) in zip(f, theta)]))
-  to_R_flat = hom(R, R_flat, x->evaluate(x.data, theta), gens(R_flat)[r+1:end])
+  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr.(theta)), gens(R_flat)[r+1:end])
   to_R = hom(R_flat, R, vcat(R.(alpha), gens(R)))
   return R_flat, to_R, to_R_flat
 end
@@ -71,7 +68,7 @@ function _expand_coefficient_field(
   theta = gens(A_exp)[1:r]
   alpha = gens(coefficient_ring(A))
   to_A = hom(A_exp, A, vcat(A.(alpha), gens(A)))
-  to_A_exp = hom(A, A_exp, x->evaluate(x.data, theta), gens(A_exp)[r+1:end])
+  to_A_exp = hom(A, A_exp, hom(coefficient_ring(A), A_exp, theta), gens(A_exp)[r+1:end])
   return A_exp, to_A, to_A_exp
 end
 
@@ -109,10 +106,7 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
   f = defining_polynomial(coefficient_ring(Q))
   d = degree(f)
   powers = [theta^k for k in 0:d-1]
-  function help_map(a)
-    return sum(c*powers[i] for (i, c) in enumerate(coefficients(a)); init=zero(Q_flat))
-  end
-  to_Q_flat = hom(Q, Q_flat, help_map, gens(Q_flat)[2:end])
+  to_Q_flat = hom(Q, Q_flat, hom(coefficient_ring(Q), Q_flat, theta), gens(Q_flat)[2:end])
   return Q_flat, to_Q, to_Q_flat
 end
 

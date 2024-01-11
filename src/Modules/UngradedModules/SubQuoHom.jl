@@ -1116,7 +1116,7 @@ with the injection map $N \to M$ and the projection map $M \to N$. These maps ar
 isomorphisms.
 The only simplifications which are done are the following: 
 - Remove all generators which are represented by the zero element in the ambient 
-free module.
+  free module.
 - Remove all generators which are in the generating set of the relations.
 - Remove all duplicates in the generators and relations sets.
 """

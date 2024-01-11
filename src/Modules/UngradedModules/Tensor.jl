@@ -60,7 +60,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
-  if all(is_graded(g) for g in G)
+  if all(is_graded, G)
     tensor_degrees = [sum(G[i].d[tplidx[i]] for i in 1:length(G)) for tplidx in t] 
     F.d = tensor_degrees
   end

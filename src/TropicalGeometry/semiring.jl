@@ -348,7 +348,7 @@ function Base.:(*)(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{mi
     return parent(x)(data(x) + data(y)) # otherwise, return their sum
 end
 
-function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+function divexact(x::TropicalSemiringElem{minOrMax}, y::TropicalSemiringElem{minOrMax}; check::Bool=true) where {minOrMax<:Union{typeof(min),typeof(max)}}
     @req !iszero(y) "dividing by (tropical) zero"
     return (iszero(x) ? x : parent(x)(data(x)-data(y)))
 end

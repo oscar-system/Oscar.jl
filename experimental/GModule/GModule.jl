@@ -367,7 +367,8 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
 end
 
-function gmodule(k::Nemo.fpField, C::GModule{<:Oscar.GAPGroup, GrpAbFinGen})
+function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, GrpAbFinGen})
+  @assert absolute_degree(k) == 1
   q, mq = quo(C.M, characteristic(k))
   s, ms = snf(q)
 
@@ -512,9 +513,10 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
   return b
 end
 
-function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
-  F = free_module(k, dim(C)*degree(base_ring(C)))
-  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  @assert absolute_degree(k) == 1
+  F = free_module(k, dim(C)*absolute_degree(base_ring(C)))
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
 
 function Hecke.frobenius(K::FinField, i::Int=1)

@@ -2641,7 +2641,7 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
-mutable struct MPolyLocalizedRingHom{
+@attributes mutable struct MPolyLocalizedRingHom{
                                      DomainType<:MPolyLocRing, 
                                      CodomainType<:Ring, 
                                      RestrictedMapType<:Map
@@ -2916,7 +2916,13 @@ function compose(
   )
   codomain(f) === domain(g) || error("maps are not compatible")
   R = base_ring(domain(f))
-  return MPolyLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
+  res = restricted_map(f)
+  if codomain(res) === domain(g)
+    return MPolyLocalizedRingHom(domain(f), codomain(g), compose(res, g), check=false)
+  else
+    new_res = MapFromFunc(domain(res), codomain(g), x->g(domain(g)(res(x))))
+    return MPolyLocalizedRingHom(domain(f), codomain(g), new_res, check=false)
+  end
 end
 
 (f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
@@ -3223,5 +3229,4 @@ function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
 
-
-
+coefficient_ring(L::MPolyLocRing) = coefficient_ring(base_ring(L))

@@ -63,7 +63,13 @@ end
 #########################################
 
 function save_object(s::SerializerState, gtm::GlobalTateModel)
+  # Currently, only serialize Tate models with toric defining data
+  @req typeof(base_space(gtm)) == NormalToricVariety "Currently, we only serialize Tate models defined over a toric base space"
+  @req typeof(ambient_space(gtm)) == NormalToricVariety "Currently, we only serialize Tate models defined within a toric ambient space"
+
+  # Save information
   save_data_dict(s) do
+    # Tate sections
     save_data_array(s, :section_polys) do
       save_object(s, tate_section_a1(gtm))
       save_object(s, tate_section_a2(gtm))
@@ -71,7 +77,15 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
       save_object(s, tate_section_a4(gtm))
       save_object(s, tate_section_a6(gtm))
     end
+
+    # Tate polynomial
     save_object(s, tate_polynomial(gtm), :tate_polynomial)
+
+    # A couple of boolean values, that are always known for Tate models
+    save_data_array(s, :boolean_data) do
+      save_object(s, is_partially_resolved(gtm))
+      save_object(s, base_fully_specified(gtm))
+    end
   end
 end
 
@@ -79,17 +93,17 @@ end
 # This function loads a global Tate model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: GlobalTateModel},
-                     params::Tuple{NormalToricVariety,
-                                   NormalToricVariety,
-                                   MPolyDecRing,
-                                   MPolyDecRing})
-  p = load_object(s, MPolyDecRingElem, params[3], :tate_polynomial)
-  section_polys = load_object(s, Vector, params[4], :section_polys)
+function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing})
+  # Extract base and ambient space
+  base_space = params[1]
+  ambient_space = params[2]
+  pt = load_object(s, MPolyDecRingElem, params[3], :tate_polynomial)
+  tate_sections = load_object(s, Vector, params[4], :section_polys)
+  model = GlobalTateModel(tate_sections..., pt, base_space, ambient_space)
 
-  model = GlobalTateModel(section_polys..., p, params[1], params[2])
-
-  # not 100% sure about this line?
-  set_attribute!(model, :base_fully_specified, true)
+  # Set boolean attributes
+  bools = load_object(s, Vector, Bool, :boolean_data)
+  set_attribute!(model, :partially_resolved, bools[1])
+  set_attribute!(model, :base_fully_specified, bools[2])
   return model
 end

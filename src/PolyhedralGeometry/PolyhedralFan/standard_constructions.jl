@@ -236,19 +236,20 @@ end
 Get the image of a fan `F` under the matrix `A`. The default is to check
 whether the images of the maximal cones really form a fan.
 """
-function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}; check=true) where {U<:FieldElem}
+function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{<:FieldElem}}; check::Bool=true)
   @req ncols(A) == ambient_dim(F) "Incompatible dimension of fan and transformation matrix"
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
-  return _transform(F, Polymake.Matrix{OT}(A); check=check)
+  return _transform(F, Polymake.Matrix{OT}(A); check)
 end
-function _transform(F::_FanLikeType, A::Polymake.Matrix; check)
+
+function _transform(F::_FanLikeType, A::Polymake.Matrix; check::Bool)
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
   FT = typeof(F)
   R = pm_object(F).RAYS * transpose(A)
   L = pm_object(F).LINEALITY_SPACE * transpose(A)
   MC = pm_object(F).MAXIMAL_CONES
   opt = Polymake.OptionSet(Dict(["lineality_space" => L]))
-  if(check)
+  if check
     result = Polymake.fan.check_fan(R, MC, opt)
     return FT(result, coefficient_field(F))
   else

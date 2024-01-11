@@ -223,7 +223,7 @@ function character_decomposition(char::Oscar.GAPGroupClassFunction)
     alpha == 0 && continue
     push!(decomp, (alpha, chi))
   end
-  sort!(decomp, by = c -> Int(degree(c[2])))
+  sort!(decomp; by = c -> Int(degree(c[2])))
   return decomp
 end
 
@@ -268,7 +268,7 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   
   # sort of fallback when t = degree(chi)
   if t == 0
-    return [zero(chi)]
+    return typeof(chi)[zero(chi)]
   end
   
   # constituents of degree t in chi corresponds bijectively to their
@@ -276,7 +276,7 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   # computations, we always reduce to the case t <= floor(degree(chi)/2)
   if t > div(Int(degree(chi)), 2)
     els = constituents(chi, Int(degree(chi)) - t)
-    return [chi-nu for nu in els]
+    return typeof(chi)[chi-nu for nu in els]
   end
   
   cd = character_decomposition(chi)
@@ -292,9 +292,9 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   # all the t-elevations of (L, _deg) where we impose some upper bound
   # on their of time we can take each index (otherwise the resulting
   # character won't be a constituent of chi
-  el = elevator(L, _deg, t, ubs = ubs)
+  el = elevator(L, _deg, t; ubs)
   (number_of_elevations(el) == 0) && return Oscar.GAPGroupClassFunction[]
-  return Oscar.GAPGroupClassFunction[sum(L[l]) for l in el]
+  return Oscar.GAPGroupClassFunction[sum(L[l]; init = zero(chi)) for l in el]
 end
 
 @doc raw"""
@@ -323,7 +323,7 @@ Given a finite group `E`, return the representation ring over `E` over the
 """
 function representation_ring(E::T) where T <: Oscar.GAPGroup
   e = exponent(E)
-  F, _ = cyclotomic_field(Int(e), cached = false)
+  F, _ = cyclotomic_field(Int(e); cached = false)
   return RepRing{typeof(F), T}(F, E)
 end
 
@@ -347,14 +347,14 @@ function _linear_representation(RR::RepRing{S, T}, mr::Vector{V}, chi::Oscar.GAP
   @req parent(chi) === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
   G = underlying_group(RR)
   mg = matrix_group(mr)
-  f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
+  f = hom(G, mg, generators_underlying_group(RR), gens(mg); check = false)
   return linear_representation(RR, f, chi)
 end
 
 function _linear_representation(RR::RepRing{S ,T}, mr::Vector{V}) where {S ,T ,U, V <: MatElem{U}}
   G = underlying_group(RR)
   mg = matrix_group(mr)
-  f = hom(G, mg, generators_underlying_group(RR), gens(mg), check = false)
+  f = hom(G, mg, generators_underlying_group(RR), gens(mg); check = false)
   return linear_representation(RR, f)
 end
 
@@ -539,7 +539,7 @@ function affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPGroupClassFun
   # irreducible constituents of chi and their multiplicities
   # and then we take the direct sum of the corresponding
   # irreducible affording representations with the given multiplicities
-  blocks = [c[2] for c in cd for i in 1:c[1]]
+  blocks = typeof(chi)[c[2] for c in cd for i in 1:c[1]]
   rep = irreducible_affording_representation(RR, blocks[1])
   for j in 2:length(blocks)
     rep = direct_sum_representation(rep, irreducible_affording_representation(RR, blocks[j]))
@@ -805,8 +805,8 @@ function _standard_basis(F::U, n::Int) where U
   v = zero_matrix(F, n, 1)
   std_bas = typeof(v)[]
   for j=1:n
-    vv =deepcopy(v)
-    vv[j,1] = one(F)
+    vv = copy(v)
+    vv[j, 1] = one(F)
     push!(std_bas, vv)
   end
   return std_bas
@@ -822,8 +822,8 @@ elements of `B`.
 """
 function basis_exterior_power(B::Vector{T}, t::Int64) where T
   l = length(B)
-  L = [1 for i in 1:l]
-  el = elevator(L, t, ubs=L)
+  L = ones(Int, l)
+  el = elevator(L, t; ubs = L)
   return Vector{T}[B[lis] for lis in el]
 end
 
@@ -836,40 +836,40 @@ A bunch of operations on symmetric/anti-symmetric tensors.
 """
 function _change_basis(w, basis::Vector{Vector{T}}) where T 
   @req length(w) == length(basis) "Change of basis impossible" 
-  gene = [(w[i],basis[i]) for i =1:length(w) if w[i] != parent(w[i])(0)]
+  gene = Tuple{eltype(w), eltype(basis)}[(w[i], basis[i]) for i =1:length(w) if !iszero(w[i])]
   return gene 
 end
 
 function _decompose_in_standard_basis(v)
   std_bas = _standard_basis(base_ring(v), nrows(v))
-  return std_bas, [[v[i], std_bas[i]] for i=1:nrows(v)]
+  return std_bas, Tuple{eltype(v), eltype(std_bas)}[(v[i], std_bas[i]) for i=1:nrows(v)]
 end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
   @req length(v) == length(w) "Tensor must have the same number of components"
-  return MSet(v).dict == MSet(w).dict
+  return all(cv -> any(cw -> cv == cw, w), v)
 end
 
 function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
-  @req _same_support(v,w) "Tensor must be the same support"
+  @req _same_support(v, w) "Tensor must be the same support"
   if symmetric
     return 1
   else
-    return sign(perm([findfirst(vv -> vv == ww, v) for ww in w]))
+    return sign(perm(Int[findfirst(vv -> vv == ww, v) for ww in w]))
   end
 end
 
 function _in_basis(v::Vector{T}, basis::Vector{Vector{T}}; symmetric::Bool = false) where T
   @assert length(v) == length(basis[1])
-  i = findfirst(w -> _same_support(v,w),basis)
-  i === nothing ? (return false, 0) : (return basis[i], _div(v,basis[i], symmetric = symmetric))
+  i = findfirst(w -> _same_support(v, w), basis)
+  i === nothing ? (return false, 0) : (return basis[i], _div(v, basis[i]; symmetric))
 end
 
 function _tensor_in_basis(w, bas)
   @assert length(w[1][2]) == length(bas[1])
   v = zeros(parent(w[1][1]), 1, length(bas))
   for ww in w
-    j = indexin([ww[2]], bas)[1]
+    j = findfirst(j -> bas[j] == ww[2], 1:length(bas))
     v[j] = ww[1]
   end
   return matrix(v)
@@ -888,21 +888,22 @@ space `V`, return an induced action on Sym^d V.
 function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{S}}, d::Int) where S
   n = ncols(mr[1])
   F = base_ring(mr[1])
-  R, _ = graded_polynomial_ring(F, "x"=>1:n, cached=false)
+  R, _ = graded_polynomial_ring(F, "x"=>1:n; cached=false)
   R1, R1toR = homogeneous_component(R, 1)
   Rd, RdtoR = homogeneous_component(R, d)
-  bsp = reverse(RdtoR.(gens(Rd)))
+  bsp = reverse!(RdtoR.(gens(Rd)))
   coll = eltype(mr)[]
   for m in mr
-    poly_m = [R1toR(R1(reverse(vec(collect(m[i,:]))))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
     @assert length(poly_m) == n
     m2 = zero_matrix(F, length(bsp), length(bsp))
     for i = 1:length(bsp)
       b = bsp[i]
       w = evaluate(b, poly_m)
-      C = collect(terms(w))
-      for c in C
-        m2[i, indexin([collect(monomials(c))[1]], bsp)[1]] += collect(coefficients(c))[1]
+      for k in 1:length(w)
+        c = monomial(w, k)
+        j = findfirst(j -> bsp[j] == c, 1:length(bsp))
+        m2[i, j] += coeff(w, k)
       end
     end
     push!(coll, m2)
@@ -984,7 +985,8 @@ function _wedge_product(V::Vector{T}) where T
       w_co = copy(w[2])
       lw_co = pushfirst!(w_co, l[2])
       ba, mult = _in_basis(lw_co, bas)
-      coeffs[indexin([ba], bas)[1]] += mult*w[1]*l[1]
+      j = findfirst(j -> bas[j] == ba, 1:length(bas))
+      coeffs[j] += mult*w[1]*l[1]
     end
   end
   return _change_basis(coeffs, bas)
@@ -1005,13 +1007,14 @@ function _action_exterior_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{
     m2 = zero_matrix(F, length(bsp), length(bsp))
     for i = 1:length(bsp)
       b = bsp[i]
-      mb = [transpose(m)*bb for bb in b]
+      mb = typeof(m)[transpose(m)*bb for bb in b]
       sp = _wedge_product(mb)
       for bbb in sp
-        m2[indexin([bbb[2]], bsp)[1], i] += bbb[1]
+        j = findfirst(j -> bsp[j] == bbb[2], 1:length(bsp))
+        m2[i, j] += bbb[1]
       end
     end
-    push!(coll, transpose(m2))
+    push!(coll, m2)
   end
   return coll
 end
@@ -1057,15 +1060,15 @@ end
 function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
-  f_gap = GG.EpimorphismSchurCover(G_gap)
-  H_gap = GG.Source(f_gap)
-  n, p = is_power(GG.Size(H_gap))
+  f_gap = GG.EpimorphismSchurCover(G_gap)::GAP.GapObj
+  H_gap = GG.Source(f_gap)::GAP.GapObj
+  n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
-    fff_gap = GG.EpimorphismPGroup(H_gap, p)
-    E_gap = fff_gap(H_gap)
+    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GAP.GapObj
+    E_gap = fff_gap(H_gap)::GAP.GapObj
   else
-    fff_gap = GG.IsomorphismPermGroup(H_gap)
-    E_gap = fff_gap(H_gap)
+    fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
+    E_gap = fff_gap(H_gap)::GAP.GapObj
   end
   E = Oscar._get_type(E_gap)(E_gap)
   H = Oscar._get_type(H_gap)(H_gap)
@@ -1102,7 +1105,7 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
       continue
     end
     push!(chars, chi)
-    keep_index = union(keep_index, l)
+    union!(keep_index, l)
     push!(sum_index, l)
   end
   bool = length(keep_index) > 0
@@ -1223,7 +1226,7 @@ function is_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: MatElem{U
   @req ncols(M) == dimension_representation(rep) "Incompatible size for the basis"
   mr = matrix_representation(rep)
   for m in mr
-    ok = can_solve(M, M*m, side=:left)
+    ok = can_solve(M, M*m; side=:left)
     ok || return false
   end
   return true
@@ -1243,7 +1246,7 @@ function action_on_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: Ma
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
   for m in mr
-    ok, mm = can_solve_with_solution(M, M*m, side=:left)
+    ok, mm = can_solve_with_solution(M, M*m; side=:left)
     @req ok "Matrix does not define a submodule"
     push!(coll, mm)
   end
@@ -1305,15 +1308,15 @@ vector space of `rep`.
 function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: MatElem{U}}
   @req is_submodule(rep, M) "M is not invariant"
   F = base_field(representation_ring(rep))
-  V = VectorSpace(F, dimension_representation(rep))
-  sub_gene = [V(vec(collect(M[i,:]))) for i in 1:nrows(M)]
-  Vsub, _ = sub(V, sub_gene)
-  _, p = quo(V, Vsub)
+  V = vector_space(F, dimension_representation(rep))
+  sub_gene = elem_type(V)[V(M[i,:]) for i in 1:nrows(M)]
+  VV, _ = sub(V, sub_gene)
+  _, p = Oscar.quo(V, VV)
   proj = p.matrix::W
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
   for m in mr
-    ok, mm = can_solve_with_solution(proj, m*proj, side=:right)
+    ok, mm = can_solve_with_solution(proj, m*proj; side=:right)
     @assert ok
     push!(coll, mm)
   end
@@ -1339,13 +1342,14 @@ function isotypical_components(rep::LinRep{S, T, U}) where {S, T, U}
   ic = Dict{Oscar.GAPGroupClassFunction, Tuple{dense_matrix_type(U), dense_matrix_type(U)}}()
   cd = character_decomposition(rep)
   F = base_field(representation_ring(rep))
-  V = VectorSpace(F, dimension_representation(rep))
+  V = vector_space(F, dimension_representation(rep))
   for c in cd
-    _B = basis_isotypical_component(rep ,c[2])
+    _B = basis_isotypical_component(rep, c[2])
     @assert length(_B) == c[1]
     B = reduce(vcat, _B)
     B2 = complement_submodule(rep, B)
-    _, pc = quo(V, sub(V, [V(vec(collect(B2[i,:]))) for i in 1:nrows(B2)])[1])
+    VV, _ = sub(V, elem_type(V)[V(B2[i,:]) for i in 1:nrows(B2)])
+    _, pc = quo(V, VV)
     ic[c[2]] = (B, pc.matrix)
   end
   return ic

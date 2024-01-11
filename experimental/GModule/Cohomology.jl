@@ -551,7 +551,11 @@ end
 
 struct CoChain{N, G, M}
   C::GModule
-  d::Dict{NTuple{N, G}, M} 
+  d::Dict{NTuple{N, G}, M}
+
+  function CoChain{N, G, M}(C::GModule, d::Dict{NTuple{N, G}, M}) where {N, G, M}
+    return new{N, G, M}(C, d)
+  end
 end
 
 function Base.show(io::IO, C::CoChain{N}) where {N}
@@ -1710,7 +1714,7 @@ function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)
-  return Generic.ModuleIsomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
+  return Generic.ModuleHomomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
 end
 ###########################################################
 
@@ -1830,7 +1834,7 @@ function (k::Nemo.fpField)(a::Vector)
 end
 
 function (k::fqPolyRepField)(a::Vector)
-  return k(polynomial(GF(Int(characteristic(k))), a))
+  return k(polynomial(Native.GF(Int(characteristic(k))), a))
 end
 
 function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
@@ -1850,12 +1854,14 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
+    F = base_ring(parent(a))
+    @assert absolute_degree(F) == 1
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
-        push!(r, lift(a[i]))
+        push!(r, lift(ZZ, a[i]))
       end
     end
     g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))

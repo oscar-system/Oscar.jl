@@ -59,4 +59,22 @@ function identity_map(C::Covering)
   return CoveringMorphism(C, C, map_dict, check=false)
 end
 
+@doc raw"""
+    refinement_morphism(ref::Covering, orig::Covering)
 
+Suppose `ref` is a refinement of `orig` just by implicit ancestry 
+of the patches (every patch `U` of `ref` is a `PrincipalOpenSubset` 
+of some `PrincipalOpenSubset` of some ... of some patch `V` in orig).
+
+This function produces the inclusion map `ref -> orig` which is 
+realized on all `patches` as `PrincipalOpenEmbedding`s. 
+"""
+function refinement_morphism(ref::Covering, orig::Covering)
+  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(ref)
+    inc, h = _find_chart(U, orig)
+    # TODO: construct and cache the inverse on image
+    map_dict[U] = PrincipalOpenEmbedding(inc, h)
+  end
+  return CoveringMorphism(ref, orig, map_dict)
+end
