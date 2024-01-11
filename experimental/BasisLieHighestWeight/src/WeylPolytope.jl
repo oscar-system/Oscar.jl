@@ -123,25 +123,25 @@ function compute_zero_coordinates(
   c = n
   check = false
   collect =Set()
-   c > 0 && !issubset(all, non_zeros)
-    for i in 1:m
-      if weight_roots[c][i] != 0 &&  i in non_zeros
-        check = true
-        push!(collect, i)
-      end
-    end  
-    for i in collect
-      for j in 1:m
-        if a[i,j] != 0
-          push!(non_zeros, j)
-        end
-      end   
-    end   
-    if !check
-      push!(zero_coordinates, c)
-    end
-    c = c-1
-    check = false
+  if c > 0 && !issubset(all, non_zeros)
+   for i in 1:m
+     if weight_roots[c][i] != 0 &&  i in non_zeros
+       check = true
+       push!(collect, i)
+     end
+   end  
+   for i in collect
+     for j in 1:m
+       if a[i,j] != 0
+         push!(non_zeros, j)
+       end
+     end   
+   end   
+   if !check
+     push!(zero_coordinates, c)
+   end
+   c = c-1
+   check = false
   end 
   return zero_coordinates
 end
