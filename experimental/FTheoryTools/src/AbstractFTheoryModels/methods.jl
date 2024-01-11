@@ -94,10 +94,10 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   # Construct the new model
   if typeof(m) == GlobalTateModel
     new_pt = _my_proper_transform(ring_map, tate_polynomial(m), coordinate_name)
-    model = GlobalTateModel(explicit_model_sections(m), new_pt, base_space(m), new_ambient_space)
+    model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_pt, base_space(m), new_ambient_space)
   else
     new_pw = _my_proper_transform(ring_map, weierstrass_polynomial(m), coordinate_name)
-    model = WeierstrassModel(explicit_model_sections(m), new_pw, base_space(m), new_ambient_space)
+    model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_pw, base_space(m), new_ambient_space)
   end
 
   # Copy/overwrite known attributes from old model

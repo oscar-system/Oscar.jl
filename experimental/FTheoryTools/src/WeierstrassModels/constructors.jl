@@ -41,14 +41,19 @@ Weierstrass model over a concrete base
 ```
 """
 function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-  return weierstrass_model(base, Dict("f" => f, "g" => g); completeness_check = completeness_check)
+  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
 end
 
-function weierstrass_model(base::NormalToricVariety, explicit_model_sections::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
+function weierstrass_model(base::NormalToricVariety,
+                           explicit_model_sections::Dict{String, <:MPolyRingElem},
+                           defining_section_parametrization::Dict{String, <:MPolyRingElem};
+                           completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
   @req all(x -> parent(x) == cox_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
   @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
   @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
+  vs2 = collect(keys(defining_section_parametrization))
+  @req all(x -> x in ["f", "g"], vs2) "Only the Weierstrass sections f, g must be parametrized"
 
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -68,7 +73,7 @@ function weierstrass_model(base::NormalToricVariety, explicit_model_sections::Di
   
   # construct the model
   pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
-  model = WeierstrassModel(explicit_model_sections, pw, base, ambient_space)
+  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -153,17 +158,30 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   # Inform about the assume Kbar grading
   @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # Construct the model
+  # Compute Weierstrass polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
   ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
   pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
+
+  # Compute explicit model sections
   explicit_model_sections = Dict("f" => f, "g" => g)
   section_candidates = gens(S)
   for k in section_candidates
     haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
   end
-  model = WeierstrassModel(explicit_model_sections, pw, auxiliary_base_space, auxiliary_ambient_space)
+
+  # Compute defining_section_parametrization
+  defining_section_parametrization = Dict{String, MPolyElem}()
+  vars_S = [string(k) for k in gens(S)]
+  if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
+    defining_section_parametrization["f"] = f
+  end
+  if !("g" in vars_S) || (g != eval_poly("g", parent(g)))
+    defining_section_parametrization["g"] = g
+  end
+  
+  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end

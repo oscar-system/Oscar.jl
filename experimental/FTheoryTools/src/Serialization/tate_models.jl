@@ -115,7 +115,7 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
   end
 
   # Construct the model
-  model = GlobalTateModel(explicit_model_sections, pt, base_space, ambient_space)
+  model = GlobalTateModel(explicit_model_sections, Dict{String, MPolyElem}(), pt, base_space, ambient_space)
 
   # Set boolean attributes
   bools = load_object(s, Vector, Bool, :boolean_data)

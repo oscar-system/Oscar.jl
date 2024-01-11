@@ -97,6 +97,32 @@ function explicit_model_sections(m::AbstractFTheoryModel)
 end
 
 
+@doc raw"""
+    defining_section_parametrization(m::AbstractFTheoryModel)
+
+Return the model sections in explicit form, that
+is as polynomials of the base space coordinates.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> defining_section_parametrization(t)
+Dict{String, MPolyRingElem} with 4 entries:
+  "a6" => 0
+  "a3" => w^2*a32
+  "a2" => w*a21
+  "a4" => w^3*a43
+```
+"""
+function defining_section_parametrization(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :defining_section_parametrization) "defining_section_parametrization not supported for this F-theory model"
+  return m.defining_section_parametrization
+end
+
+
 
 ##########################################
 ### (2) Meta data attributes

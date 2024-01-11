@@ -219,6 +219,7 @@ end
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
 
   # We first create a polynomial ring in which we can read the Tate sections as polynomials of the (internal) model sections
+  @req ((model_dict["model_descriptors"]["type"] == "tate") || (model_dict["model_descriptors"]["type"] == "weierstrass")) "Model is not a Tate or Weierstrass model"
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
   auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
   vars = [string(g) for g in gens(auxiliary_base_ring)]
@@ -253,28 +254,68 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   map = hom(auxiliary_base_ring, cox_ring(base_space), images)
 
   # Construct the model
+  defining_section_parametrization = Dict{String, MPolyElem}()
   if model_dict["model_descriptors"]["type"] == "tate"
-    a1 = map(eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring))
-    a2 = map(eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring))
-    a3 = map(eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring))
-    a4 = map(eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring))
-    a6 = map(eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring))
-    explicit_model_sections["a1"] = a1
-    explicit_model_sections["a2"] = a2
-    explicit_model_sections["a3"] = a3
-    explicit_model_sections["a4"] = a4
-    explicit_model_sections["a6"] = a6
-    model = global_tate_model(base_space, explicit_model_sections; completeness_check = completeness_check)
-  elseif model_dict["model_descriptors"]["type"] == "weierstrass"
+
+    # Compute Tate sections
+    a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
+    a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
+    a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
+    a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
+    a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+
+    # Complete explicit_model_sections
+    explicit_model_sections["a1"] = map(a1)
+    explicit_model_sections["a2"] = map(a2)
+    explicit_model_sections["a3"] = map(a3)
+    explicit_model_sections["a4"] = map(a4)
+    explicit_model_sections["a6"] = map(a6)
+
+    # Find defining_section_parametrization
+    if !("a1" in vars) || (a1 != eval_poly("a1", parent(a1)))
+      defining_section_parametrization["a1"] = a1
+    end
+    if !("a2" in vars) || (a2 != eval_poly("a2", parent(a2)))
+      defining_section_parametrization["a2"] = a2
+    end
+    if !("a3" in vars) || (a3 != eval_poly("a3", parent(a3)))
+      defining_section_parametrization["a3"] = a3
+    end
+    if !("a4" in vars) || (a4 != eval_poly("a4", parent(a4)))
+      defining_section_parametrization["a4"] = a4
+    end
+    if !("a6" in vars) || (a6 != eval_poly("a6", parent(a6)))
+      defining_section_parametrization["a6"] = a6
+    end
+
+    # Create the model
+    model = global_tate_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
+
+  else
+
+    # Compute Weierstrass sections
     f = map(eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring))
     g = map(eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring))
+
+    # Complete explicit_model_sections
     explicit_model_sections["f"] = f
     explicit_model_sections["g"] = g
-    model = weierstrass_model(base_space, explicit_model_sections; completeness_check = completeness_check)
-  else
-    @req false "Model is not a Tate or Weierstrass model"
+
+    # Find defining_section_parametrization
+    if !("f" in vars) || (f != eval_poly("f", parent(f)))
+      defining_section_parametrization["f"] = f
+    end
+    if !("g" in vars) || (g != eval_poly("g", parent(g)))
+      defining_section_parametrization["g"] = g
+    end
+
+    # Create the model
+    model = weierstrass_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
+  
   end
   set_attribute!(model, :explicit_model_sections => explicit_model_sections)
+
+  # Return the model
   return model
 end
 

@@ -35,6 +35,7 @@ export base_space
 export blow_up
 export calabi_yau_hypersurface
 export coordinate_ring
+export defining_section_parametrization
 export discriminant
 export display_all_literature_models
 export explicit_model_sections
