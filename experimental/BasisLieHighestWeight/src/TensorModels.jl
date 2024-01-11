@@ -31,7 +31,7 @@ function tensor_matrices_of_operators(
     end
     wi = ZZ.(1:length(highest_weight) .== i) # i-th fundamental weight
     matrices_of_operators = [
-      _tensor_product(mat_temp, _tensor_power(mat_wi, 1)) for
+      _tensor_product(mat_temp, mat_wi)) for
       (mat_temp, mat_wi) in
       zip(matrices_of_operators, matrices_of_operators_gap(L, highest_weight[i]*wi, operators))
     ]
