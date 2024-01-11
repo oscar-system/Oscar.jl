@@ -86,6 +86,20 @@ set_global_tate_model(h3, gt_model)
   @test global_tate_model(h3) == gt_model
 end
 
+B2 = projective_space(NormalToricVariety, 2)
+b = torusinvariant_prime_divisors(B2)[1]
+h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+
+@testset "Attributes and properties of hypersurface literature models over concrete base space" begin
+  @test parent(hypersurface_equation(h5)) == cox_ring(ambient_space(h5))
+  @test dim(base_space(h5)) == 2
+  @test is_smooth(fiber_ambient_space(h5)) == false
+  @test is_simplicial(fiber_ambient_space(h5)) == true
+  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h5)))] == ["u", "w", "v"]
+  @test is_base_space_fully_specified(h5) == true
+  @test is_partially_resolved(h5) == false
+end
+
 
 
 #############################################################
@@ -101,22 +115,34 @@ ambient_space_of_fiber_2 = weighted_projective_space(NormalToricVariety, [2,3,1]
 set_coordinate_names(ambient_space_of_fiber_2, ["x", "y", "z"])
 auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ["a1", "a21", "a32", "a43", "a65", "w", "x", "y", "z"]
 p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
-h5 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, D1, D2, p)
+h6 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, D1, D2, p)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
-  @test parent(hypersurface_equation(h5)) == coordinate_ring(ambient_space(h5))
-  @test dim(base_space(h5)) == d
-  @test fiber_ambient_space(h5) == ambient_space_of_fiber_2
-  @test is_smooth(fiber_ambient_space(h5)) == false
-  @test is_simplicial(fiber_ambient_space(h5)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h5)))] == ["x", "y", "z"]
-  @test is_base_space_fully_specified(h5) == false
-  @test is_partially_resolved(h5) == false
+  @test parent(hypersurface_equation(h6)) == coordinate_ring(ambient_space(h6))
+  @test dim(base_space(h6)) == d
+  @test fiber_ambient_space(h6) == ambient_space_of_fiber_2
+  @test is_smooth(fiber_ambient_space(h6)) == false
+  @test is_simplicial(fiber_ambient_space(h6)) == true
+  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h6)))] == ["x", "y", "z"]
+  @test is_base_space_fully_specified(h6) == false
+  @test is_partially_resolved(h6) == false
 end
 
 new_grading = [0 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 @testset "Error messages in hypersurface models over not fully specified base spaces" begin
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, new_grading, d, ambient_space_of_fiber_2, D1, D2, p)
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, D1, D2, p)
-  @test_throws ArgumentError tune(h5, hypersurface_equation(h5))
+  @test_throws ArgumentError tune(h6, hypersurface_equation(h6))
+end
+
+h7 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+
+@testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
+  @test parent(hypersurface_equation(h7)) == coordinate_ring(ambient_space(h7))
+  @test dim(base_space(h7)) == 2
+  @test is_smooth(fiber_ambient_space(h7)) == false
+  @test is_simplicial(fiber_ambient_space(h7)) == true
+  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h7)))] == ["u", "w", "v"]
+  @test is_base_space_fully_specified(h7) == false
+  @test is_partially_resolved(h7) == false
 end

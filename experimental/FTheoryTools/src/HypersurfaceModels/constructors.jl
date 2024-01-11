@@ -55,7 +55,6 @@ Hypersurface model over a concrete base
 ```
 """
 function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
-  
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
@@ -71,10 +70,16 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   
   # Construct the model
   hypersurface_equation = generic_section(anticanonical_bundle(ambient_space))
-  model = HypersurfaceModel(base, ambient_space, fiber_ambient_space, hypersurface_equation)
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  gens_S = gens(cox_ring(ambient_space))
+  for k in 1:length(gens_S)
+    explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  end
+  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, base, ambient_space, fiber_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
+
 
 
 ################################################
@@ -211,8 +216,18 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   end
   hypersurface_equation = hom(parent(p), S, image_list)(p)
 
+  # Remember the parametrization of the hypersurface equation
+  hypersurface_equation_parametrization = eval_poly(string(p), coordinate_ring(auxiliary_ambient_space))
+
+  # Remember the explicit model sections
+  gens_R = gens(coordinate_ring(auxiliary_base_space))
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  for k in 1:length(gens_R)
+    explicit_model_sections[string(gens_R[k])] = gens_R[k]
+  end
+
   # Construct the model
-  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space, hypersurface_equation)
+  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
