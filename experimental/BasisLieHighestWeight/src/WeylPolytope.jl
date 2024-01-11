@@ -64,7 +64,6 @@ function get_lattice_points_of_weightspace(
   weight_roots::Vector{Vector{QQFieldElem}}, 
   L::LieAlgebraStructure, 
   weight::Vector{ZZRingElem}, 
-  highest_weight::Vector{ZZRingElem}, 
   zero_coordinates::Set{Any}
 )
   # calculate all integer solutions to the following linear program:
