@@ -18,7 +18,7 @@ const oldexppkgs = [
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # nees code from LieAlgebras
-  "JuLie",
+  "JuLie",	     # needs to be after LieAlgebras to correctly import `weight`
   "IntersectionTheory",
   "OrthogonalDiscriminants",  # needs code from JuLie
 ]
