@@ -41,7 +41,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
@@ -98,12 +98,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = localization(U);
+
 
 julia> R === base_ring(Rloc)
 true
@@ -126,12 +127,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = localization(U);
+
 
 julia> U === inverted_set(Rloc)
 true
@@ -160,12 +162,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(R, U);
+
 
 julia> Rloc
 Localization

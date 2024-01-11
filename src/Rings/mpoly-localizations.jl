@@ -2167,16 +2167,13 @@ julia> R, (x, y) = QQ["x", "y"]
 julia> I = ideal(R, [x, y^2+1])
 ideal(x, y^2 + 1)
 
-julia> U = MPolyComplementOfPrimeIdeal(I)
+julia> U = complement_of_prime_ideal(I)
 Complement
   of prime ideal(x, y^2 + 1)
   in multivariate polynomial ring in 2 variables over QQ
 
 julia> L, _ = localization(R, U)
-Localization
-  of multivariate polynomial ring in 2 variables x, y
-    over rational field
-  at complement of prime ideal(x, y^2 + 1)
+(Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal(x, y^2 + 1), Hom: multivariate polynomial ring -> localized ring)
 
 julia> J = ideal(L,[y*(x^2+(y^2+1)^2)])
 Ideal
@@ -3111,7 +3108,7 @@ with 4 generators
   y^2 - 4*y + 4
 
 julia> minimal_generating_set(I)
-3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+3-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  y^2 - 4*y + 4
  x*y - 2*x - y + 2
  x^2 - 2*x + 1
@@ -3187,7 +3184,7 @@ with 4 generators
   y^2
 
 julia> small_generating_set(I)
-3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyPowersOfElement{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+3-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyPowersOfElement{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  y^2
  x*y - y
  x^2 - 2*x + 1
