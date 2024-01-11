@@ -346,7 +346,7 @@ function _eval_poly(E::Number, vars)
 end
 
 function eval_poly(s::String, R)
-  if typeof(R) <: Union{PolyRing, MPolyRing}
+  if (R isa PolyRing || R isa MPolyRing)
     symR = symbols(R) # Symbol[]
     genR = gens(R)
   else

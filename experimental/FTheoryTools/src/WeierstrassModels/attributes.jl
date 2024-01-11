@@ -94,7 +94,7 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  @req base_space(w) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
   is_base_space_fully_specified(w) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(w), [weierstrass_polynomial(w)])
 end
@@ -133,7 +133,7 @@ julia> discriminant(w);
 ```
 """
 @attr MPolyRingElem function discriminant(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: Union{NormalToricVariety, FamilyOfSpaces} "Discriminant of Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
+  @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Discriminant of Weierstrass model is currently only supported for toric varieties and family of spaces as base space"
   return 4 * weierstrass_section_f(w)^3 + 27 * weierstrass_section_g(w)^2
 end
 
@@ -170,7 +170,7 @@ julia> length(singular_loci(w))
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
-  @req typeof(base_space(w)) <: Union{NormalToricVariety, FamilyOfSpaces} "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
+  @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   
   B = irrelevant_ideal(base_space(w))
   

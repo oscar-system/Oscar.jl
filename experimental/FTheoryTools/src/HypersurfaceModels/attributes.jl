@@ -77,7 +77,7 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  @req base_space(h) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
   is_base_space_fully_specified(h) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(h), [hypersurface_equation(h)])
 end
@@ -93,7 +93,7 @@ end
 Return the discriminant of the hypersurface model.
 """
 @attr MPolyRingElem function discriminant(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Discriminant currently only supported for toric varieties as base space"
+  @req base_space(h) isa NormalToricVariety "Discriminant currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return discriminant(weierstrass_model(h))
 end
@@ -107,7 +107,7 @@ vanishing of the Weierstrass sections and discriminant ``(f, g, \Delta)```
 at each locus. Also the refined Tate fiber type is returned.
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
+  @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return singular_loci(weierstrass_model(h))
 end

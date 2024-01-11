@@ -39,7 +39,7 @@ true
 ```
 """
 function tune(w::WeierstrassModel, special_section_choices::Dict{String, <:MPolyRingElem}; completeness_check::Bool = true)
-  @req (typeof(base_space(w)) <: NormalToricVariety) "Currently, tuning is only possible for models over concrete toric bases"
+  @req base_space(w) isa NormalToricVariety "Currently, tuning is only possible for models over concrete toric bases"
   isempty(special_section_choices) && return w
   f = weierstrass_section_f(w)
   g = weierstrass_section_g(w)

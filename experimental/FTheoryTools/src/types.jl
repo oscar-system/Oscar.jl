@@ -20,7 +20,6 @@ abstract type AbstractFTheoryModel end
 @attributes mutable struct ClosedSubschemeModel <: AbstractFTheoryModel
   base_space::FTheorySpace
   ambient_space::FTheorySpace
-  #@req typeof(base_space) === typeof(ambient_space) "Base and ambient space must be of the same type"
   # total_space
   # fiber_ambient_space
   # singular_loci
