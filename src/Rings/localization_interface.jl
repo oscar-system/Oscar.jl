@@ -19,11 +19,11 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
 @doc raw"""
-    ambient_ring(S::AbsMultSet)
+    ring(S::AbsMultSet)
 
 Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
-function ambient_ring(S::AbsMultSet)
+function ring(S::AbsMultSet)
   error("method `ambient_ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 

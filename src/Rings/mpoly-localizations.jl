@@ -70,7 +70,7 @@ mutable struct MPolyPowersOfElement{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyPowersOfElement) = S.R
+ring(S::MPolyPowersOfElement) = S.R
 
 ### additional constructors
 MPolyPowersOfElement(f::RET) where {RET<:MPolyRingElem} = MPolyPowersOfElement(parent(f), [f])
@@ -228,8 +228,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
 end
 
 ### required getter functions
-ambient_ring(
-    S::MPolyComplementOfPrimeIdeal) = S.R
+ring(S::MPolyComplementOfPrimeIdeal) = S.R
 
 ### required functionality
 function Base.in(
@@ -430,7 +429,7 @@ Multiplicative subset
 powers_of_element(f::MPolyRingElem) = MPolyPowersOfElement(f)
 
 ### required getter functions
-ambient_ring(S::MPolyComplementOfKPointIdeal) = S.R
+ring(S::MPolyComplementOfKPointIdeal) = S.R
 
 ### additional getter functions 
 point_coordinates(S::MPolyComplementOfKPointIdeal) = S.a
@@ -542,7 +541,7 @@ mutable struct MPolyProductOfMultSets{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyProductOfMultSets) = S.R
+ring(S::MPolyProductOfMultSets) = S.R
 
 ### additional functionality
 getindex(S::MPolyProductOfMultSets, i::Integer) = S.U[i]
@@ -653,7 +652,7 @@ mutable struct MPolyLeadingMonOne{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyLeadingMonOne) = S.R
+ring(S::MPolyLeadingMonOne) = S.R
 
 ### additional constructors
 MPolyLeadingMonOne(ord::MonomialOrdering) = MPolyLeadingMonOne(ord.R, ord)

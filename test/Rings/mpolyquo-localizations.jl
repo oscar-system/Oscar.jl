@@ -25,7 +25,7 @@
   V = MPolyQuoLocRing(R, I, T)
 
   S = R
-  U = MPolyPowersOfElement(S, [f-1])
+  U = Oscar.MPolyPowersOfElement(S, [f-1])
   J = ideal(S, zero(S))
   W = MPolyQuoLocRing(S, J, U)
 
@@ -41,20 +41,20 @@
   R, (x,y) = kk["x", "y"]
 
   f = x^2 + y^2-2
-  S = MPolyPowersOfElement(x-1)
+  S = Oscar.MPolyPowersOfElement(x-1)
   T = MPolyComplementOfKPointIdeal(R, [1,1])
-  V = MPolyComplementOfPrimeIdeal(ideal(R, f))
+  V = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f))
   ⊂ = issubset
   @test S ⊂ V
   @test !(V ⊂ S)
   @test !(T ⊂ V)
   @test (V ⊂ T)
-  @test !(MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
-  @test S ⊂ MPolyComplementOfPrimeIdeal(ideal(R, f-1))
-  @test !(MPolyPowersOfElement(f) ⊂ V)
-  @test MPolyPowersOfElement(x-1) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
-  @test MPolyPowersOfElement(x-1) * MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
-  @test !(MPolyPowersOfElement(x) ⊂ MPolyComplementOfKPointIdeal(R, [0,0]))
+  @test !(Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1)) ⊂ T)
+  @test S ⊂ Oscar.MPolyComplementOfPrimeIdeal(ideal(R, f-1))
+  @test !(Oscar.MPolyPowersOfElement(f) ⊂ V)
+  @test Oscar.MPolyPowersOfElement(x-1) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
+  @test Oscar.MPolyPowersOfElement(x-1) * MPolyComplementOfKPointIdeal(R, [0,0]) ⊂ MPolyComplementOfKPointIdeal(R, [0,0])
+  @test !(Oscar.MPolyPowersOfElement(x) ⊂ MPolyComplementOfKPointIdeal(R, [0,0]))
   @test T*T == T
 
   U = S*T
@@ -83,7 +83,7 @@
 
   h = x^4+23*x*y^3-15
   Q, _ = quo(R, f)
-  T = MPolyPowersOfElement(h^3)
+  T = Oscar.MPolyPowersOfElement(h^3)
   W, _ = localization(Q, T)
   @test x//(h+3*f) in W
   @test W(x//(h+3*f)) == W(x//h)
@@ -92,7 +92,7 @@
   g = [W(8*x*h+4), W(x, 45*h^2)]
   @test one(localized_ring(W)) in ideal(W, g)
 
-  @test one(W) == dot(write_as_linear_combination(one(W), g), g)
+  @test one(W) == dot(Oscar.write_as_linear_combination(one(W), g), g)
 
 
   h = (x+5)*(x^2+10*y)+(y-7)*(y^2-3*x)
@@ -102,11 +102,11 @@
   @test x//(y) in W
   @test x//(y+h) in W
   g = [W(h + (x+5) - 9, y+24*x^3-8)]
-  (d, a) = bring_to_common_denominator([one(W), g[1]])
+  (d, a) = Oscar.bring_to_common_denominator([one(W), g[1]])
   @test W(a[1], d) == one(W)
   @test W(a[2]*lifted_numerator(g[1]), d) == g[1]
   @test (one(localized_ring(W)) in ideal(W, g))
-  @test one(W) == dot(write_as_linear_combination(one(W), g), g) 
+  @test one(W) == dot(Oscar.write_as_linear_combination(one(W), g), g) 
 end
 
 @testset "prime ideals in quotient rings" begin
@@ -150,7 +150,7 @@ end
   RQ2,phiQ2 = quo(R,Q2)
   T1 = MPolyComplementOfKPointIdeal(R,[0,0,0,0])
   f = x+y+z+w-1
-  T2 = MPolyPowersOfElement(f)
+  T2 = Oscar.MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
   RL2,phiL2 = localization(R,T2)
   RQ1L1, phiQ1L1 = localization(RQ1,T1)
@@ -208,7 +208,7 @@ end
   RQ2,phiQ2 = quo(R,Q2)
   T1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   f = x-y
-  T2 = MPolyPowersOfElement(f)
+  T2 = Oscar.MPolyPowersOfElement(f)
   RL1,phiL1 = localization(R,T1)
   RL2,phiL2 = localization(R,T2)
   RQ1L1, phiQ1L1 = localization(RQ1,T1)
@@ -301,7 +301,7 @@ end
   IQ = ideal(R,[x-z])
   U1 = MPolyComplementOfKPointIdeal(R,[0,0,0])
   U2 = MPolyComplementOfKPointIdeal(R,[1,1,1])
-  U3 = MPolyPowersOfElement(y)
+  U3 = Oscar.MPolyPowersOfElement(y)
   Q1 = MPolyQuoLocRing(R,IQ,U1)
   Q2 = MPolyQuoLocRing(R,IQ,U2)
   Q3 = MPolyQuoLocRing(R,IQ,U3)

@@ -90,18 +90,9 @@ export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
 export localization
-export MPolyComplementOfKPointIdeal
-export MPolyComplementOfPrimeIdeal
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
-export MPolyLeadingMonOne
-export MPolyLocRing
-export MPolyLocRingElem
-export MPolyLocalizedIdeal
-export MPolyLocalizedRingHom
-export MPolyPowersOfElement
-export MPolyProductOfMultSets
 export MPolyQuoIdeal
 export MPolyQuoLocRing
 export MPolyQuoLocRingElem
@@ -246,7 +237,6 @@ export ambient_germ
 export ambient_module
 export ambient_representative
 export ambient_representatives_generators
-export ambient_ring
 export ambient_scheme
 export ambient_space
 export ambient_type
@@ -294,7 +284,6 @@ export blocks
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
-export bring_to_common_denominator
 export build_ctx
 export build_doc
 export canonical_bundle
@@ -1523,6 +1512,5 @@ export weyl_vector
 export witt_index
 export wreath_product
 export write_as_full
-export write_as_linear_combination
 export zonotope
 export zonotope_vertices_fukuda_matrix
