@@ -350,8 +350,8 @@ function (V::LieAlgebraModule{C})(
 end
 
 function (V::LieAlgebraModule{C})(
-  a::Tuple{Vararg{T}}
-) where {C<:FieldElem,T<:LieAlgebraModuleElem{C}}
+  a::Tuple{Vararg{LieAlgebraModuleElem{C}}}
+) where {C<:FieldElem}
   if length(a) == 1 && V === parent(a[1])
     return a[1]
   elseif ((fl, W) = is_dual(V); fl)

@@ -465,8 +465,6 @@
                 a = V(rand(-10:10, dim(V)))
                 b = V(rand(-10:10, dim(V)))
               end
-              println(a)
-              println(b)
               @test !iszero(T(a, b))
               @test !iszero(T(a, b) + T(b, a))
               @test !iszero(T(a, b) - T(b, a))
