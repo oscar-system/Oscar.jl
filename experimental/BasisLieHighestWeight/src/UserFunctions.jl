@@ -129,7 +129,7 @@ function basis_lie_highest_weight(
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
-  operators = reverse(chevalley_basis[1]) # TODO: change to [2]
+  operators = chevalley_basis[1] # TODO: change to [2]
   return basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
