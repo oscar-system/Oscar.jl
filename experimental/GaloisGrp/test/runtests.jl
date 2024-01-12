@@ -35,3 +35,12 @@
   @test degree(k) == 1 && k isa AnticNumberField
 end
 
+@testset "SubfieldLattice" begin
+  Zx, x = ZZ["x"]
+  k, a = number_field(swinnerton_dyer(3, x))[1]
+  s = subfield_lattice(k)
+  @test length(s) == 14
+  intersect(s[3], s[4])
+  s[3] * s[4]
+end
+

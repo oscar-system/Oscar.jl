@@ -69,6 +69,7 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     c = map(f, r) # TODO: use the embedding map!
     bs = Hecke.MPolyFact.block_system(c)
     if all(x->length(x) == length(bs[1]), bs) 
+      sort!(bs)
       return bs
     end
     pr *= 2
@@ -109,6 +110,7 @@ function Base.:*(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   cs = B.b
   ds = [intersect(b, c) for b = bs for c = cs]
   ds = [x for x = ds if length(x) > 0]
+  sort!(ds)
   return S(ds)
 end
 
@@ -129,6 +131,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     end
     ds = vec(collect(Set(ds)))
     if length(ds[1]) == n
+      sort!(ds)
       return S(ds)
     end
     n = length(ds[1])
@@ -141,6 +144,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     end
     ds = vec(collect(Set(ds)))
     if length(ds[1]) == n
+      sort!(ds)
       return S(ds)
     end
   end
@@ -229,7 +233,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   #Tr(beta^i) for i=1:length(bs)
   B = upper_bound(G, power_sum, func, length(bs))
   pr = bound_to_precision(G, B)
-  R = roots(G, pr, raw = true)
+  R = roots(G, pr, raw = !true)
   beta = [evaluate(f, R) for f = func]
   pow = copy(beta)
 
@@ -238,7 +242,9 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   if !isa(k, AbstractAlgebra.Field)
     k = QQ
   end
-  tr = [k(isinteger(G, B, sum(beta))[2])]
+  fl, v = isinteger(G, B, sum(beta))
+  fl || return nothing
+  tr = [k(v)]
   while length(tr) < length(bs)
     pow .*= beta
     fl, v = isinteger(G, B, sum(pow))
@@ -261,9 +267,10 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   B = length(bs)*evaluate(func[1], [G.B for x = R])*parent(B)(maximum(ceil(ZZRingElem, length(x)) for x = coefficients(Gk)))
   pr = bound_to_precision(G, B)
   R = roots(G, pr, raw = true)
+  RR = roots(G, pr, raw = !true)
   beta = K()
   for k=0:degree(K)-1
-    fl, v = isinteger(G, B, sum(evaluate(func[i], R)*sum(Gt[k+1](R[bs[i][j]]) for j=1:length(bs[1])) for i=1:length(bs)))
+    fl, v = isinteger(G, B, sum(evaluate(func[i], RR)*sum(Gt[k+1](R[bs[i][j]]) for j=1:length(bs[1])) for i=1:length(bs)))
     fl || return nothing
     beta += gen(K)^k//fsa*v
   end
@@ -293,6 +300,8 @@ end
 
 function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   Zx = Hecke.Globals.Zx
+  sf = get_attribute(K, :principal_subfields)
+  store = sf === nothing
 
   f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = ZZRingElem(1))*defining_polynomial(K))
   f = divexact(f, content(f))
@@ -309,13 +318,11 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   pr = 5
   nf = sum(x*x for x = coefficients(f))
   B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
-  @show B = B^2 # Nemo works with norm-squared....
-  @show "using ", p
-  @show pr = clog(B, p) 
-  @show pr *= div(n,2)
-  @show pr += 2*clog(2*n, p)
+  B = B^2 # Nemo works with norm-squared....
+  pr = clog(B, p) 
+  pr *= div(n,2)
+  pr += 2*clog(2*n, p)
   H = factor_mod_pk_init(f, p)
-  @show factor_mod_pk(H, 1)
 
   b = basis(K)
   b .*= inv(derivative(f)(gen(K)))
@@ -328,7 +335,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   #the roots in G are of course roots of the lf[i]
   #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
-  r = roots(G, 1)
+  r = roots(G, 1, raw = true)
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
   rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
@@ -362,14 +369,13 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
       D = diagonal_matrix(vcat([B for j=1:di], [ZZRingElem(1) for j=1:n]))
 #      M = M*D
       while true
-        @show maximum(nbits, M), nbits(B), size(M)
+#        @show maximum(nbits, M), nbits(B), size(M)
         global last_M = M
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the 
         #      van Hoeij factoring)
-        @time r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
+        r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
         M = M[1:r, :]
-        @show r, i, pr
 
         if iszero(M[:, 1:di])
           if n % r == 0
@@ -392,7 +398,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
             end
             @assert i in T
             @assert rt in T
-            @show T
+
             #the paper says the (unknown) (algebraic) coefficients of
             # prod(f[i] i in T)
             #have to generate the subfield and f in K[t] is is_irreducible
@@ -405,31 +411,35 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
             #However, instead of blocks, T is as good an indicator for 
             #subfields
             if sum(degree(lf[t][1]) for t = T) *r != degree(K)
-              @show :subfield_pol_wrong
+#              @show :subfield_pol_wrong
             else
               E = push!(S, gens)
               if S.P(E.b) in keys(S.l)
-                @show "field already known"
+#                @show "field already known"
               end
               if degree(E) != length(gens)
-                @show :wrong_block
+#                @show :wrong_block
               elseif subfield(E) === nothing
-                @show :no_subfield
+#                @show :no_subfield
               else
-                for j in T
-                  for h in rt_to_lf[j]
-                    done[j] = 1
+                if store && degree(E) > 1
+                  if sf === nothing
+                    sf = [subfield(E)]
+                    set_attribute!(K, :principal_subfields => sf)
+                  else
+                    push!(sf, subfield(E))
                   end
                 end
+
                 done[i] = 1
               end
             end
           else
-            @show :flop
+#            @show :flop
           end
           break
         else
-          @show :scale
+#          @show :scale
           M = M*D
         end
       end
