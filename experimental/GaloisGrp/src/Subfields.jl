@@ -450,4 +450,14 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
   end
 end
 
+function subfield_lattice(K::AnticNumberField)
+  return _subfields(K)
+end
+
+export subfield, subfield_lattice
+
 end #module
+
+using .SubfieldLattice_Module
+export subfield, subfield_lattice
+
