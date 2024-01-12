@@ -293,7 +293,7 @@ function basis_lie_highest_weight_string(
 end
 
 @doc raw"""
-    basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
+    basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
 
 Computes a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
@@ -301,15 +301,15 @@ for a simple Lie algebra $L$ of type `type_rank`.
 
 Then the birational sequence used consists of all operators in descening height of the corresponding root.
 
-The monomial ordering is fixed to `neglex` (negative lexicographic order).      
+The monomial ordering is fixed to `degrevlex`.      
       
 # Examples
 ```jldoctest
-julia> basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
+julia> basis_lie_highest_weight_ffl(:A, 3, [1,1,1])
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 64
-  with monomial ordering neglex([x1, x2, x3, x4, x5, x6])
+  with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6])
 over Lie algebra of type A3
   where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [1, 1, 1]
@@ -324,11 +324,12 @@ over Lie algebra of type A3
     [0, 0, 1]
 ```
 """
-function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
-  monomial_ordering = :neglex
+function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
+  monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
