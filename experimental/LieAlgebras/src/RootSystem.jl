@@ -95,7 +95,7 @@ end
 @doc raw"""
     fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
 
-Returns the fundamental weights corresponding to the simple roots of `R`.
+Returns the fundamental weights corresponding to the `simple_roots` of `R`.
 """
 function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
@@ -112,22 +112,58 @@ function is_simple(R::RootSystem)
   error("Not implemented") # TODO: implement is_simple
 end
 
+@doc raw"""
+    negative_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th negative root of `R`.
+This is a more efficient version for `negative_roots(R)[i]`.
+
+Also see: `negative_roots`.
+"""
 function negative_root(R::RootSystem, i::Int)
   return -R.positive_roots[i]::RootSpaceElem
 end
 
+@doc raw"""
+    negative_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
+
+Also see: `negative_root`.
+"""
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
 end
 
+@doc raw"""
+    num_positive_roots(R::RootSystem) -> Int
+
+Returns the number of positive roots of `R`. This is the same as the number of negative roots.
+
+Also see: `positive_roots`, `negative_roots`.
+"""
 function num_positive_roots(R::RootSystem)
   return length(R.positive_roots)
 end
 
+@doc raw"""
+    num_roots(R::RootSystem) -> Int
+
+Returns the number of roots of `R`.
+
+Also see: `roots`.
+"""
 function num_roots(R::RootSystem)
-  return 2 * length(R.positive_roots)
+  return 2 * num_positive_roots(R)
 end
 
+@doc raw"""
+    num_simple_roots(R::RootSystem) -> Int
+
+Returns the number of simple roots of `R`.
+
+Also see: `simple_roots`.
+"""
 function num_simple_roots(R::RootSystem)
   return rank(R)
 end
@@ -136,10 +172,25 @@ function nroots(R::RootSystem)
   return num_roots(R)
 end
 
+@doc raw"""
+    positive_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th positive root of `R`.
+This is a more efficient version for `positive_roots(R)[i]`.
+
+Also see: `positive_roots`.
+"""
 function positive_root(R::RootSystem, i::Int)
   return R.positive_roots[i]::RootSpaceElem
 end
 
+@doc raw"""
+    positive_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`.
+
+Also see: `positive_root`, `num_positive_roots`.
+"""
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
 end
@@ -147,7 +198,7 @@ end
 @doc raw"""
     rank(R::RootSystem) -> Int
 
-Returns the rank of `R`.
+Returns the rank of `R`, i.e. the number of simple roots.
 """
 function rank(R::RootSystem)
   return nrows(R.cartan_matrix)
@@ -163,6 +214,14 @@ function root_system_type_string(R::RootSystem)
   return join([string(t[1]) * string(t[2]) for t in R.type], " x ")
 end
 
+@doc raw"""
+    root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th root of `R`.
+This is a more efficient version for `roots(R)[i]`.
+
+Also see: `roots`.
+"""
 function root(R::RootSystem, i::Int)
   if i <= num_positive_roots(R)
     return positive_root(R, i)
@@ -171,15 +230,38 @@ function root(R::RootSystem, i::Int)
   end
 end
 
+@doc raw"""
+    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the roots of `R`, starting with the positive roots and then the negative roots,
+in the order of `positive_roots` and `negative_roots`.
+
+Also see: `root`.
+"""
 function roots(R::RootSystem)
   return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
+@doc raw"""
+    simple_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th simple root of `R`.
+This is a more efficient version for `simple_roots(R)[i]`.
+
+Also see: `simple_roots`.
+"""
 function simple_root(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "Invalid index"
   return positive_root(R, i)
 end
 
+@doc raw"""
+    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the simple roots of `R`.
+
+Also see: `simple_root`.
+"""
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
