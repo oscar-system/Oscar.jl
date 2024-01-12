@@ -228,7 +228,7 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, L, weight_w, zero_coordinates
+      birational_sequence.weights_alpha, w_to_alpha(L, weight_w), zero_coordinates
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
