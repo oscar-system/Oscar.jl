@@ -666,7 +666,7 @@ Spectrum
 julia> is_smooth(Y)
 false
 
-julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
+julia> U = complement_of_point_ideal(R, [1,1])
 Complement
   of maximal ideal corresponding to rational point with coordinates (1, 1)
   in multivariate polynomial ring in 2 variables over QQ

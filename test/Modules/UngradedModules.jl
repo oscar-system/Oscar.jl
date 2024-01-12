@@ -1019,8 +1019,8 @@ end
 
 @testset "change of base rings" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x)
-  S = MPolyLocRing(R, U)
+  U = Oscar.MPolyPowersOfElement(x)
+  S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
   FS, mapF = change_base_ring(S, F)
   @test 1//x*mapF(x*F[1]) == FS[1]

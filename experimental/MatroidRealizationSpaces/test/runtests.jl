@@ -119,7 +119,7 @@ end
   @test X isa AbsSpec
   @test !isdefined(X, :underlying_scheme)
   R = OO(X)
-  @test R isa MPolyQuoLocRing
+  @test R isa Oscar.MPolyQuoLocRing
   f = sum(gens(R))
   U = PrincipalOpenSubset(X, f)
   @test U isa AbsSpec

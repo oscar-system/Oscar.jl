@@ -543,7 +543,7 @@ Spectrum
       over rational field
     by ideal(x^2 - 2*x*y + y^2)
 
-julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
+julia> U = complement_of_point_ideal(R, [0,0])
 Complement
   of maximal ideal corresponding to rational point with coordinates (0, 0)
   in multivariate polynomial ring in 2 variables over QQ
@@ -646,7 +646,7 @@ julia> singular_locus(A3)
 julia> singular_locus(X)
 (V(x^2 - y^2 + z^2, z, y, x), Hom: V(x^2 - y^2 + z^2, z, y, x) -> V(x^2 - y^2 + z^2))
 
-julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
+julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement
   of maximal ideal corresponding to rational point with coordinates (0, 0, 0)
   in multivariate polynomial ring in 3 variables over QQ

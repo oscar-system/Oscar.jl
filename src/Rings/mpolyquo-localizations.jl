@@ -98,7 +98,7 @@ multiplicative set ``S ⊂ P`` of type `MultSetType`.
     #modulus(Q) == I || error("the modulus of the quotient ring does not coincide with the ideal")
     S === inverted_set(W) || error("the multiplicative set does not coincide with the inverted set of the localized ring")
     base_ring(W) === R || error("the localization does not come from the given ring")
-    ambient_ring(S) === R || error("Multiplicative set does not belong to the ring")
+    ring(S) === R || error("Multiplicative set does not belong to the ring")
     k = coefficient_ring(R)
     L = new{typeof(k), elem_type(k), typeof(R), RingElemType, MultSetType}(R, I, S, Q, W)
     return L
@@ -324,7 +324,7 @@ function localization(
     L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}, 
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
-  ambient_ring(S) === base_ring(L) || error("multiplicative set does not belong to the correct ring")
+  ring(S) === base_ring(L) || error("multiplicative set does not belong to the correct ring")
   issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
   U = inverted_set(L)*S
   W = MPolyQuoLocRing(base_ring(L), modulus(underlying_quotient(L)), U, underlying_quotient(L), localization(U)[1])
@@ -1643,7 +1643,7 @@ julia> Q = ideal(R,[x*y-z*w]);
 
 julia> RQ,phiQ = quo(R,Q);
 
-julia> T = MPolyComplementOfKPointIdeal(R,[0,0,0,0]);
+julia> T = complement_of_point_ideal(R,[0,0,0,0]);
 
 julia> RQL, phiQL = localization(RQ,T);
 
