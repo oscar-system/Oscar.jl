@@ -517,7 +517,7 @@ end
 #  h = vcat(f, g)
 #  r = length(f)
 #  s = length(g)
-#  Dh = jacobi_matrix(h)
+#  Dh = jacobian_matrix(h)
 #  (ll, ql, rl, cl) = _non_degeneration_cover(subscheme(U, g), Dh, codimension + codim(U), 
 #                          verbose=verbose, check=check, 
 #                          restricted_columns=[collect(1:r), [r + k for k in 1:s]])

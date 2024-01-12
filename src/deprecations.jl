@@ -527,3 +527,7 @@ Base.@deprecate_binding set_is_isomorphic_with_symmetric_group set_is_isomorphic
 Base.@deprecate_binding is_isomorphic_with_alternating_group is_isomorphic_to_alternating_group
 Base.@deprecate_binding has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
 Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
+
+# Deprecated after 0.15.0
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal

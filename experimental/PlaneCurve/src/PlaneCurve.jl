@@ -13,7 +13,7 @@ export hash
 export ideal_point
 export is_irreducible
 export is_reduced
-export jacobi_ideal
+export jacobian_ideal
 export reduction
 export ring
 export union
@@ -267,7 +267,7 @@ end
 ################################################################################
 
 @doc raw"""
-    jacobi_ideal(C::PlaneCurve)
+    jacobian_ideal(C::PlaneCurve)
 
 Return the Jacobian ideal of the defining polynomial of `C`.
 
@@ -279,12 +279,12 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 julia> C = AffinePlaneCurve(y^3*x^6 - y^6*x^2)
 Affine plane curve defined by x^6*y^3 - x^2*y^6
 
-julia> Oscar.jacobi_ideal(C)
+julia> Oscar.jacobian_ideal(C)
 ideal(6*x^5*y^3 - 2*x*y^6, 3*x^6*y^2 - 6*x^2*y^5)
 ```
 """
-function Oscar.jacobi_ideal(C::PlaneCurve)
- return jacobi_ideal(C.eq)
+function Oscar.jacobian_ideal(C::PlaneCurve)
+ return jacobian_ideal(C.eq)
 end
 
 ################################################################################
@@ -494,7 +494,7 @@ end
 using .PlaneCurveModule
 
 export Point, ideal_point, AffinePlaneCurve, ProjPlaneCurve, hash, degree,
-       jacobi_ideal, curve_components, is_irreducible, is_reduced, reduction,
+       jacobian_ideal, curve_components, is_irreducible, is_reduced, reduction,
        union, defining_equation, ring, ProjectivePlaneCurve
 
 export is_smooth, tangent, common_components, curve_intersect,
@@ -503,7 +503,7 @@ export is_smooth, tangent, common_components, curve_intersect,
        arithmetic_genus, geometric_genus
 
 export ProjCurve, defining_ideal, curve_components, reduction, is_irreducible,
-       jacobi_ideal
+       jacobian_ideal
        
 export parametrization_plane_curve, adjoint_ideal, rational_point_conic,
        parametrization_conic, map_to_rational_normal_curve,

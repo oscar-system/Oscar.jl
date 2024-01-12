@@ -47,7 +47,7 @@ false
 function Oscar.is_smooth(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve defined by ", C.eq)
-  J = jacobi_ideal(C)
+  J = jacobian_ideal(C)
   L = gens(J)
   a = evaluate(L[1], P.v)
   b = evaluate(L[2], P.v)
@@ -85,7 +85,7 @@ Projective plane curve defined by -48*x - 48*y
 function tangent(C::ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
   dim(P.parent) == 2 || error("The point needs to be in a projective two dimensional space")
   iszero(evaluate(C.eq, P.v)) || error("The point is not on the curve")
-  J = jacobi_ideal(C)
+  J = jacobian_ideal(C)
   L = gens(J)
   a = evaluate(L[1], P.v)
   b = evaluate(L[2], P.v)
@@ -238,7 +238,7 @@ function curve_singular_locus(PP::Oscar.Geometry.ProjSpc{S}, C::ProjectivePlaneC
      g = prod(f)
      push!(CC, ProjPlaneCurve(g))
   end
-  J = jacobi_ideal(D)
+  J = jacobian_ideal(D)
   FX, FY, FZ = gens(J)
   # Computation of the singular locus of the reduction of C.
   # With the fact that the equation is now squarefree, only points can appear.
@@ -300,7 +300,7 @@ Return `true` if `C` has no singular point, and `false` otherwise.
 function is_smooth_curve(C::ProjectivePlaneCurve)
    F = defining_equation(C)
    R = parent(F)
-   J = jacobi_ideal(F)
+   J = jacobian_ideal(F)
    if dim(J) > 0
       return false
    else
