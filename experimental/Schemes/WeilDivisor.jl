@@ -1,6 +1,5 @@
 export LinearSystem
 export WeilDivisor
-export coefficient_dict
 export coefficient_ring
 export coefficient_ring_type
 export coefficient_type
