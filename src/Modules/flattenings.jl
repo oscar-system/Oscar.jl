@@ -90,11 +90,31 @@ end
 
 # TODO: We need this special routine, because we can not write a generic 
 # base change method for morphisms of graded rings. See pr #2677
-function _change_base_ring_and_preserve_gradings(phi::Map{<:Ring, <:Ring}, F::FreeMod)
-  R = domain(phi)
-  S = codomain(phi)
+function _change_base_ring_and_preserve_gradings(phi::Any, F::FreeMod)
+  R = base_ring(F)
+  S = parent(phi(zero(R)))
   FS = (is_graded(F) ? graded_free_module(S, degree.(gens(F))) : FreeMod(S, ngens(F)))
   FS.S = F.S
   return FS, hom(F, FS, gens(FS), phi)
+end
+
+function _change_base_ring_and_preserve_gradings(phi::Any, M::SubquoModule)
+  R = base_ring(M)
+  S = parent(phi(zero(R)))
+  F = ambient_free_module(M)
+  FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
+  MM = SubquoModule(FF, iso_F.(ambient_representatives_generators(M)), iso_F.(relations(M)))
+  return MM, hom(M, MM, gens(MM), phi)
+end
+
+function _change_base_ring_and_preserve_gradings(
+    phi::Any, f::ModuleFPHom;
+    domain_change::Map = _change_base_ring_and_preserve_gradings(phi, domain(f))[2],
+    codomain_change::Map = _change_base_ring_and_preserve_gradings(phi, codomain(f))[2]
+  )
+  D = codomain(domain_change)
+  C = codomain(codomain_change)
+  result = hom(D, C, codomain_change.(f.(gens(domain(f)))))
+  return result
 end
 

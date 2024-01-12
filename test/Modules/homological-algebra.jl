@@ -106,3 +106,14 @@ end
   I = ideal(R, [x*z-z, x*y-y, x])
   @test depth(I, F) == 3
 end
+
+@testset "twisting to degree zero" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+  S3 = graded_free_module(S, [0, 0, 0])
+  v = x*S3[1] + y*S3[2] + z*S3[3]
+  C = koszul_complex(v)
+  CC = Oscar._make_homogeneous(C)
+  str = Oscar.strand(CC, 0)
+  str[0:3]
+end
+
