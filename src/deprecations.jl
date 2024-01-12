@@ -530,3 +530,34 @@ Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorph
 
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
+# Deprecated after 0.15
+Base.@deprecate_binding _compute_glueing_base_change _compute_gluing_base_change
+Base.@deprecate_binding _compute_inherited_glueing _compute_inherited_gluing
+Base.@deprecate_binding _compute_toric_glueing _compute_toric_gluing
+Base.@deprecate_binding add_glueing! add_gluing!
+Base.@deprecate_binding base_glueing base_gluing
+Base.@deprecate_binding glueing_data gluing_data
+Base.@deprecate_binding glueing_domains gluing_domains
+Base.@deprecate_binding glueing_graph gluing_graph
+Base.@deprecate_binding glueing_morphisms gluing_morphisms
+Base.@deprecate_binding glueing_type gluing_type
+Base.@deprecate_binding glueings gluings
+Base.@deprecate_binding inherit_glueings! inherit_gluings!
+Base.@deprecate_binding is_connected_glueing is_connected_gluing
+Base.@deprecate_binding projective_glueings projective_gluings
+Base.@deprecate_binding pruned_glueing_graph pruned_gluing_graph
+Base.@deprecate_binding underlying_glueing underlying_gluing
+Base.@deprecate_binding update_glueing_graph update_gluing_graph
+Base.@deprecate_binding AbsGlueing AbsGluing
+Base.@deprecate_binding AbsProjectiveGlueing AbsProjectiveGluing
+Base.@deprecate_binding BaseChangeGlueingData BaseChangeGluingData
+Base.@deprecate_binding CoveredProjectiveGlueingData CoveredProjectiveGluingData
+Base.@deprecate_binding Glueing Gluing
+Base.@deprecate_binding GluingType GlueingType
+Base.@deprecate_binding InheritGlueingData InheritGluingData
+Base.@deprecate_binding LazyGluing LazyGlueing
+Base.@deprecate_binding LazyProjectiveGlueing LazyProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueing ProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueingData ProjectiveGluingData
+Base.@deprecate_binding SimpleGlueing SimpleGluing
+Base.@deprecate_binding ToricGlueingData ToricGluingData

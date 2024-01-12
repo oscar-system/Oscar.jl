@@ -6,7 +6,7 @@
   U = affine_charts(X)
   L(U[1])
   C = default_covering(X)
-  (U12, U21) = glueing_domains(C[U[1], U[2]])
+  (U12, U21) = gluing_domains(C[U[1], U[2]])
   rho = L(U[1], U21)
   @test rho(L(U[1])[1]) == inv(gens(OO(U21))[1])*L(U21)[1]
   W = PrincipalOpenSubset(U[2], [complement_equation(U21), gens(OO(U[2]))[2]])

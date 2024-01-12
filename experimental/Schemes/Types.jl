@@ -174,7 +174,7 @@ to the following:
  * `W::SpecOpen` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``𝒪`` across charts, implicitly using the
-identifications given by the glueings in the `default_covering`.
+identifications given by the gluings in the `default_covering`.
 """
 @attributes mutable struct StructureSheafOfRings{SpaceType, OpenType, OutputType,
                                                  RestrictionType
@@ -238,7 +238,7 @@ identifications given by the glueings in the `default_covering`.
         return pullback(compose(incU, inclusion_morphism(U_flat)))
       else
         G = default_covering(X)[V, W]
-        f, g = glueing_morphisms(G)
+        f, g = gluing_morphisms(G)
         pbg = pullback(g)
         function rho_func(x::RingElem)
           parent(x) === OV || error("element does not belong to the correct domain")
@@ -266,7 +266,7 @@ identifications given by the glueings in the `default_covering`.
         psi = hom(OO(V_direct), OU, gens(OU))
         return hom(OV, OU, psi.(phi.(gens(OV))))
         ### deprecated code below;
-        # kept for the moment because of possible incompatibilities with glueings 
+        # kept for the moment because of possible incompatibilities with gluings 
         # along SpecOpens.
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
@@ -277,8 +277,8 @@ identifications given by the glueings in the `default_covering`.
         return hom(OV, OU, rho_func.(gens(OV)), check=false)
       else
         G = default_covering(X)[W, U]
-        W1, W2 = glueing_domains(G)
-        f, g = glueing_morphisms(G)
+        W1, W2 = gluing_domains(G)
+        f, g = gluing_morphisms(G)
         g_res = restrict(g, U, V_direct, check=false)
         return pullback(compose(g_res, inverse(incV)))
         ### deprecated code below; see comment above
@@ -308,7 +308,7 @@ identifications given by the glueings in the `default_covering`.
                   )
       else
         G = default_covering(X)[A, B]
-        f, g = glueing_morphisms(G)
+        f, g = gluing_morphisms(G)
         VV_flat = intersect(V_flat, codomain(f))
         VU = preimage(f, VV_flat, check=false)
         fres = restrict(f, VU, VV_flat, check=false)
@@ -335,7 +335,7 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(OV, OW, x->(OW(x)))
       else
         G = default_covering(X)[V, ambient_scheme(W)]
-        f, g = glueing_morphisms(G)
+        f, g = gluing_morphisms(G)
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           return restrict(pullback(g)(OO(domain(f))(a)), W, check=false)
@@ -360,7 +360,7 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(OV, OW, rho_func)
       else
         G = default_covering(X)(ambient_scheme(V), ambient_scheme(W))
-        f, g = glueing_morphisms(G)
+        f, g = gluing_morphisms(G)
         VG = intersect(V, domain(f))
         preV = preimage(g, VG, check=false)
         gres = restriction(g, preV, VG, check=false)
@@ -380,7 +380,7 @@ identifications given by the glueings in the `default_covering`.
         return MapFromFunc(OV, OW, pullback(inc))
       else
         G = default_covering(X)[ambient_scheme(V), ambient_scheme(W)]
-        f, g = glueing_morphisms(G)
+        f, g = gluing_morphisms(G)
         VG = intersect(V, domain(f))
         inc0 = inclusion_morphism(VG, V, check=false)
         preV = preimage(g, VG, check=false)
@@ -413,7 +413,7 @@ to the following:
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``ℐ`` across charts, implicitly using the
-identifications given by the glueings in the `default_covering`.
+identifications given by the gluings in the `default_covering`.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
                                       RestrictionType
@@ -544,7 +544,7 @@ identifications given by the glueings in the `default_covering`.
       for U in basic_patches(default_covering(X))
         for V in basic_patches(default_covering(X))
           G = C[U, V]
-          A, B = glueing_domains(G)
+          A, B = gluing_domains(G)
           for i in 1:number_of_complement_equations(A)
             I(A[i]) == ideal(OOX(A[i]), I(V, A[i]).(gens(I(V)))) || error("ideals do not coincide on overlap")
           end

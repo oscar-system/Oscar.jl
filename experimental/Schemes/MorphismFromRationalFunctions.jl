@@ -221,8 +221,8 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   while !isone(ideal(OO(U), complement_equations))
     # Find another chart in the codomain which is hopefully easily accessible
     V_next, V_orig = _find_good_neighboring_patch(codomain_covering(Phi), covered_codomain_patches)
-    # Get the glueing morphisms for the glueing to some already covered chart
-    f, g = glueing_morphisms(glueings(codomain_covering(Phi))[(V_next, V_orig)])
+    # Get the gluing morphisms for the gluing to some already covered chart
+    f, g = gluing_morphisms(gluings(codomain_covering(Phi))[(V_next, V_orig)])
     # Find one morphism which was already realized with this codomomain
     phi = first([psi for psi in Psi_res if codomain(psi) === V_orig])
     # We need to express the pullback of the coordinates of V_next as rational functions, 
@@ -411,7 +411,7 @@ function realize(Phi::MorphismFromRationalFunctions)
       append!(realizations, loc_mors)
     end
     domain_ref = Covering([domain(phi) for phi in realizations])
-    inherit_glueings!(domain_ref, domain_covering(Phi))
+    inherit_gluings!(domain_ref, domain_covering(Phi))
     # TODO: Inherit the decomposition_info, too!
     phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict, check=false)
     # Make the refinement known to the domain
@@ -533,17 +533,17 @@ equidimensional_decomposition_radical(I::MPolyQuoLocalizedIdeal) = [ideal(base_r
 # of patches `(U, V)`, it is essential to use information on 
 # other pairs `(U', V')` of patches which is already available 
 # through feasible channels. Now, for example, for `U'` as above
-# this finds another patch `U` for which the glueing of `U` and `U'` 
+# this finds another patch `U` for which the gluing of `U` and `U'` 
 # is already fully computed, but which is not in `covered`. 
 # If no such `U` exists: Bad luck. We just take any other one 
-# and the glueing has to be computed eventually. 
+# and the gluing has to be computed eventually. 
 function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
   U = [x for x in patches(cov) if !any(y->y===x, covered)]
-  glue = glueings(cov)
+  glue = gluings(cov)
   good_neighbors = [(x, y) for x in U for y in covered if 
                     haskey(glue, (x, y)) && 
-                    (glue[(x, y)] isa SimpleGlueing || 
-                     (glue[(x, y)] isa LazyGlueing && is_computed(glue[(x, y)]))
+                    (glue[(x, y)] isa SimpleGluing || 
+                     (glue[(x, y)] isa LazyGluing && is_computed(glue[(x, y)]))
                     )
                    ]
   if !isempty(good_neighbors)

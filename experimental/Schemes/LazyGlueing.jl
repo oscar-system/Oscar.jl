@@ -1,8 +1,8 @@
-@attributes mutable struct LazyGlueing{
+@attributes mutable struct LazyGluing{
                                        LeftSpecType<:AbsSpec, 
                                        RightSpecType<:AbsSpec,
-                                       GlueingDataType
-                                      }<:AbsGlueing{
+                                       GluingDataType
+                                      }<:AbsGluing{
                                                     LeftSpecType,
                                                     RightSpecType, 
                                                     Scheme, Scheme,
@@ -11,80 +11,80 @@
 
   X::LeftSpecType
   Y::RightSpecType
-  GD::GlueingDataType
+  GD::GluingDataType
   compute_function::Function
-  compute_glueing_domains::Function
-  glueing_domains::Union{Tuple{PrincipalOpenSubset, PrincipalOpenSubset},
+  compute_gluing_domains::Function
+  gluing_domains::Union{Tuple{PrincipalOpenSubset, PrincipalOpenSubset},
                          Tuple{SpecOpen, SpecOpen}}
-  G::AbsGlueing
+  G::AbsGluing
 
-  function LazyGlueing(X::AbsSpec, Y::AbsSpec, 
-      compute_function::Function, GD::GlueingDataType
-    ) where {GlueingDataType}
-    return new{typeof(X), typeof(Y), GlueingDataType}(X, Y, GD, compute_function)
+  function LazyGluing(X::AbsSpec, Y::AbsSpec, 
+      compute_function::Function, GD::GluingDataType
+    ) where {GluingDataType}
+    return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD, compute_function)
   end
-  function LazyGlueing(X::AbsSpec, Y::AbsSpec, 
-      compute_function::Function, compute_glueing_domains::Function, 
-      GD::GlueingDataType
-    ) where {GlueingDataType}
-    return new{typeof(X), typeof(Y), GlueingDataType}(X, Y, GD, compute_function, 
-                                                      compute_glueing_domains)
+  function LazyGluing(X::AbsSpec, Y::AbsSpec, 
+      compute_function::Function, compute_gluing_domains::Function, 
+      GD::GluingDataType
+    ) where {GluingDataType}
+    return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD, compute_function, 
+                                                      compute_gluing_domains)
   end
 end
 
-patches(G::LazyGlueing) = (G.X, G.Y)
+patches(G::LazyGluing) = (G.X, G.Y)
 
-# The underlying_glueing triggers the computation of the glueing on request.
-function underlying_glueing(G::LazyGlueing)
+# The underlying_gluing triggers the computation of the gluing on request.
+function underlying_gluing(G::LazyGluing)
   if !isdefined(G, :G) 
     G.G = G.compute_function(G.GD)
   end
   return G.G
 end
 
-function is_computed(G::LazyGlueing)
+function is_computed(G::LazyGluing)
   return isdefined(G, :G)
 end
 
-function glueing_domains(G::LazyGlueing) # TODO: Type annotation
-  if !isdefined(G, :glueing_domains)
+function gluing_domains(G::LazyGluing) # TODO: Type annotation
+  if !isdefined(G, :gluing_domains)
     # If there was a function provided to do the extra computation, use it.
-    if isdefined(G, :compute_glueing_domains)
-      G.glueing_domains = G.compute_glueing_domains(G.GD)
+    if isdefined(G, :compute_gluing_domains)
+      G.gluing_domains = G.compute_gluing_domains(G.GD)
     else
-      # Otherwise default to computation of the whole glueing.
-      G.glueing_domains = glueing_domains(underlying_glueing(G))
+      # Otherwise default to computation of the whole gluing.
+      G.gluing_domains = gluing_domains(underlying_gluing(G))
     end
   end
-  return G.glueing_domains
+  return G.gluing_domains
 end
 
 
 ### Preparations for some sample use cases
 mutable struct RestrictionDataIsomorphism
-  G::AbsGlueing
+  G::AbsGluing
   i::AbsSpecMor
   j::AbsSpecMor
   i_res::SchemeMor
   j_res::SchemeMor
-  function RestrictionDataIsomorphism(G::AbsGlueing, i::AbsSpecMor, j::AbsSpecMor)
+  function RestrictionDataIsomorphism(G::AbsGluing, i::AbsSpecMor, j::AbsSpecMor)
     return new(G, i, j)
   end
 end
 
 mutable struct RestrictionDataClosedEmbedding
-  G::AbsGlueing
+  G::AbsGluing
   X::AbsSpec
   Y::AbsSpec
   UX::Scheme
   VY::Scheme
-  function RestrictionDataClosedEmbedding(G::AbsGlueing, X::AbsSpec, Y::AbsSpec)
+  function RestrictionDataClosedEmbedding(G::AbsGluing, X::AbsSpec, Y::AbsSpec)
     return new(G, X, Y)
   end
 end
 
 function _compute_restriction(GD::RestrictionDataClosedEmbedding)
-  _compute_domains(GD) # Fills in the empty fields for the glueing domains
+  _compute_domains(GD) # Fills in the empty fields for the gluing domains
   return restrict(GD.G, GD.X, GD.Y, GD.UX, GD.VY, check=false)
 end
 
@@ -92,7 +92,7 @@ function _compute_domains(GD::RestrictionDataClosedEmbedding)
   if isdefined(GD, :UX) && isdefined(GD, :VY)
     return GD.UX, GD.UY
   end
-  (U, V) = glueing_domains(GD.G)
+  (U, V) = gluing_domains(GD.G)
   if U isa PrincipalOpenSubset
     GD.UX = PrincipalOpenSubset(GD.X, OO(GD.X)(lifted_numerator(complement_equation(U))))
     GD.VY = PrincipalOpenSubset(GD.Y, OO(GD.Y)(lifted_numerator(complement_equation(V))))
@@ -105,13 +105,13 @@ function _compute_domains(GD::RestrictionDataClosedEmbedding)
 end
 
 function _compute_restriction(GD::RestrictionDataIsomorphism)
-  _compute_domains(GD) # Fills in the empty fields for the glueing domains
+  _compute_domains(GD) # Fills in the empty fields for the gluing domains
   return restrict(GD.G, GD.i, GD.j, GD.i_res, GD.j_res, check=false)
 end
 
 function _compute_domains(GD::RestrictionDataIsomorphism)
   if !(isdefined(GD, :i_res) && isdefined(GD, :j_res))
-    U, V = glueing_domains(GD.G)
+    U, V = gluing_domains(GD.G)
 
     GD.i_res = restrict(GD.i, U, preimage(inverse(GD.i), U, check=false), check=false)
     i_res_inv = restrict(inverse(GD.i), codomain(GD.i_res), U, check=false)
@@ -126,7 +126,7 @@ function _compute_domains(GD::RestrictionDataIsomorphism)
   return codomain(GD.i_res), codomain(GD.j_res)
 end
 
-# Method for compatibility with internal methods of the glueings
+# Method for compatibility with internal methods of the gluings
   
-Glueing(g::LazyGlueing) = Glueing(underlying_glueing(g))
+Gluing(g::LazyGluing) = Gluing(underlying_gluing(g))
 

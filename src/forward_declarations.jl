@@ -21,7 +21,7 @@ abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
     AbsCoveredScheme{BaseRingType}
 
 An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
-`BaseRingType`, given by means of affine charts and their glueings.
+`BaseRingType`, given by means of affine charts and their gluings.
 """
 abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 
