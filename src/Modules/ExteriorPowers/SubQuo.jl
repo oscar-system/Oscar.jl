@@ -9,7 +9,7 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
   end
 
   if iszero(p)
-    F = free_module(R, 1)
+    F = FreeMod(R, 1)
     result, _ = sub(F, [F[1]])
   else
     C = presentation(M)

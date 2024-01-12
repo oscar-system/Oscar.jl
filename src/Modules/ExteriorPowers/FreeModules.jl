@@ -9,7 +9,7 @@
 
 # User facing constructor for ⋀ ᵖ F.
 function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
-  @req 0 <= p <= rank(F) "Exponent out of bounds"
+  @req 0 <= p <= rank(F) "exponent out of bounds"
 
   if cached
     powers = _exterior_powers(F)
@@ -18,7 +18,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
 
   R = base_ring(F)::base_ring_type(F)
   n = rank(F)
-  result_ = free_module(R, binomial(n, p))
+  result_ = FreeMod(R, binomial(n, p))
 
   # In case F was graded, we have to take an extra detour. 
   result = if is_graded(F)
