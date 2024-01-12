@@ -293,7 +293,7 @@ function basis_lie_highest_weight_string(
 end
 
 @doc raw"""
-    basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
+    basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
 
 Computes a monomial basis for the highest weight module with highest weight
 `highest_weight` (in terms of the fundamental weights $\omega_i$),
@@ -305,7 +305,7 @@ The monomial ordering is fixed to `degrevlex`.
       
 # Examples
 ```jldoctest
-julia> basis_lie_highest_weight_pbw(:A, 3, [1,1,1])
+julia> basis_lie_highest_weight_ffl(:A, 3, [1,1,1])
 Monomial basis of a highest weight module
   of highest weight [1, 1, 1]
   of dimension 64
@@ -324,7 +324,7 @@ over Lie algebra of type A3
     [0, 0, 1]
 ```
 """
-function basis_lie_highest_weight_pbw(type::Symbol, rank::Int, highest_weight::Vector{Int})
+function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
