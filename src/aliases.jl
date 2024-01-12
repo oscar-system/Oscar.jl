@@ -105,5 +105,3 @@ Base.@deprecate_binding SubQuo SubquoModule
 #@alias SubQuo_dec SubquoDecModule
 Base.@deprecate_binding GradedPolynomialRing graded_polynomial_ring
 
-# deprecations from the localizations
-Base.@deprecate_binding ambient_ring ring

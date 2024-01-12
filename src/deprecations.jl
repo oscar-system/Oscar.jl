@@ -518,3 +518,6 @@ Base.@deprecate_binding is_obviouslyabelian is_obviously_abelian false
 Base.@deprecate_binding is_almostsimple is_almost_simple
 Base.@deprecate_binding has_is_almostsimple has_is_almost_simple
 Base.@deprecate_binding set_is_almostsimple set_is_almost_simple
+
+# deprecations from the localizations
+Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
