@@ -246,7 +246,6 @@ export approximate_class_fusion
 export archimedean_solid
 export as_dictionary
 export as_gset
-export ascending_partitions
 export associahedron
 export atlas_description
 export atlas_group
