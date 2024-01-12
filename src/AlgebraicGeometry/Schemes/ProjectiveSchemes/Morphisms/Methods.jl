@@ -115,6 +115,42 @@ end
   return result
 end
 
+function pushforward(inc::ProjectiveClosedEmbedding, M::FreeMod)
+  f = pullback(inc)
+  S = codomain(f)
+  T = domain(f)
+  S === base_ring(M) || error("rings do not match")
+  FT = graded_free_module(T, [degree(a) for a in gens(M)])
+  I = image_ideal(inc)
+  IFT, inc_IFT = I*FT
+  MT = cokernel(inc_IFT)
+  id = hom(MT, M, gens(M), f)
+  return MT, id
+end
+
+function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
+  F = ambient_free_module(M)
+  f = pullback(inc)
+  S = codomain(f)
+  T = domain(f)
+  FT, id_F = pushforward(inc, F)
+  g = ambient_representatives_generators(M)
+  gT = elem_type(FT)[sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(g)]
+  rel = relations(M)
+  relT = elem_type(FT)[sum(lift(x[i])*FT[i] for i in 1:length(g); init=zero(FT)) for x in coordinates.(rel)]
+  G, inc_G = sub(FT, vcat(gT, relT))
+  Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
+  MT = cokernel(inc_Q)
+  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]))
+  return MT, id
+end
+
+function SubquoModule(F::FreeMod, g::Vector{T}, rel::Vector{T}) where {T<:FreeModElem}
+  G = SubModuleOfFreeModule(F, g)
+  Rel = SubModuleOfFreeModule(F, rel)
+  return SubquoModule(F, G, Rel)
+end
+
 ###############################################################################
 #
 #  Printing

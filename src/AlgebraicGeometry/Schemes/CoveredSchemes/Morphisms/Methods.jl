@@ -35,24 +35,58 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   Z = codomain(g)
   cf = covering_morphism(f)
   cg = covering_morphism(g)
+  # The general problem here is that the `CoveringMorphism`s for `f` and 
+  # `g` need not have compatible domains and codomains. If they do, we're 
+  # lucky, but if they don't we first need to create the necessary 
+  # refinements and then compose the induced maps.
   if codomain(cf) === domain(cg) 
-    mor_dict = IdDict{AbsSpec, AbsSpecMor}() # TODO: Keep the type of the morphisms?
-    for U in basic_patches(domain(cf))
-      mor_dict[U] = compose(cf[U], cg[codomain(cf[U])])
-    end
-    cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc)
+    # The easy case
+    cfg = compose(cf, cg)
+    return CoveredSchemeMorphism(X, Z, cfg)
+  elseif is_refinement(codomain(cf), domain(cg))[1]
+    # Another rather easy case: We only have to put the refinement morphism 
+    # in the middle.
+    ref = refinement_morphism(codomain(cf), domain(cg))
+    cf_ref_cg = compose(cf, compose(ref, cg))
+    return CoveredSchemeMorphism(X, Z, cf_ref_cg, check=true)
+  elseif is_refinement(domain(cg), codomain(cf))[1]
+    # A more tricky case: 
+    #
+    # AxB' --------> B' ---cg---> C
+    #  |             |
+    #  V             V ref
+    #  A --cf------> B
+    #
+    # Here we first have to complete the square to get another 
+    # `CoveringMorphism` representing `f` with `B'` as is codomain.
+    ref = refinement_morphism(domain(cg), codomain(cf))
+    A = domain(cf)
+    B = codomain(cf)
+    C = domain(ref)
+    AxC, to_A, to_C = fiber_product(cf, ref)
+    return CoveredSchemeMorphism(X, Z, compose(to_C, cg), check=true)
   else
-    haskey(refinements(Y), (codomain(cf), domain(cg))) || error("composition of this complicated case is not yet implemented")
-    ref_mor = Y[codomain(cf), domain(cg)] # the refinement `CoveringMorphism`
-    mor_dict = IdDict{AbsSpec, AbsSpecMor}() # TODO: Keep the type of the morphisms?
-    for U in basic_patches(domain(cf))
-      V = codomain(cf[U])
-      W = codomain(ref_mor[V])
-      mor_dict[U] = compose(compose(cf[U], ref_mor[V]), cg[W])
-    end
-    cc = CoveringMorphism(domain(cf), codomain(cg), mor_dict, check=false)
-    return CoveredSchemeMorphism(X, Z, cc)
+    # The most complicated case:
+    #
+    #  AxBxC ----> BxC
+    #   /          / \
+    #  V          V   V
+    # A ---cf--> B     C ---cg--> D
+    #             \   /
+    #              V V
+    #         default_covering(Y)
+    #
+    # Here we have to complete two squares, first (B->def, C->def)
+    # and then (A->B, BxC->B).
+    A = domain(cf)
+    B = codomain(cf)
+    C = domain(cg)
+    D = codomain(cg)
+    ref_B = refinement_morphism(B, default_covering(Y))
+    ref_C = refinement_morphism(C, default_covering(Y))
+    BxC, to_B, to_C = fiber_product(ref_B, ref_C)
+    AxBxC, to_A, to_BxC = fiber_product(cf, to_B)
+    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, cg)), check=true)
   end
 end
 
@@ -156,6 +190,103 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsCoveredSchemeMorphism)
     length(domain(g)) != 1 && print(io, "s")
     println(io, Indent())
     show(IOContext(io, :show_semi_compact => true), covering_morphism(f))
+  end
+end
+
+########################################################################
+# fiber products
+########################################################################
+
+@doc raw"""
+    fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+
+For a diagram 
+    XxY ----> Y
+     |        | g
+     V        V
+     X------> Z
+         f
+this computes the fiber product `XxY` together with the canonical maps 
+to `X` and `Y` and returns the resulting triple.
+"""
+function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+  X = domain(f)
+  Y = domain(g)
+  Z = codomain(f)
+  @assert Z === codomain(g)
+  f_cov = covering_morphism(f)
+  g_cov = covering_morphism(g)
+  A = domain(f_cov)
+  B = domain(g_cov)
+  CA = codomain(f_cov)
+  CB = codomain(g_cov)
+  # The problem is that the `CoveringMorphism`s representing `f` and `g` need 
+  # not have compatible codomains. Hence we will need to pass to necessary 
+  # refinements and their induced maps in most cases.
+  if CA === CB
+    # The easy case.
+    AxB, to_A, to_B = fiber_product(f_cov, g_cov)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  elseif is_refinement(CA, CB)[1]
+    # We have to complete the square
+    #
+    #                              B
+    #                              |
+    #                             g_cov
+    #                              |
+    #                              V
+    # A ---f_cov---> CA ---ref---> CB
+    #
+    # which is still rather easy.
+    inc = refinement_morphism(CA, CB)
+    f_cov_inc = compose(f_cov, inc)
+    AxB, to_A, to_B = fiber_product(f_cov_inc, g_cov)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  elseif is_refinement(CB, CA)[1]
+    # Similar to the above case
+    inc = refinement_morphism(CB, CA)
+    g_cov_inc = compose(g_cov, inc)
+    AxB, to_A, to_B = fiber_product(f_cov, g_cov_inc)
+    XxY = CoveredScheme(AxB)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    return XxY, to_X, to_Y
+  else
+    # In this case we complete the following square
+    # successively:
+    #
+    # AxCAxCBxB---> CAxCBxB------> B
+    #  |             |             |
+    #  |             |            g_cov
+    #  |             |             |
+    #  V             V             V
+    # AxCAxCB-----> CAxCB -------> CB
+    # |              |             |
+    # |              |            inc_B
+    # |              |             |
+    # V              V             V
+    # A ---f_cov---> CA ---inc_A-> C 
+    #
+    # TODO: Maybe it's easier to first compose the maps 
+    # on the boundary and do only one square? We should think 
+    # about it!
+    C = default_covering(Z)
+    inc_A = refinement_morphism(CA, C)
+    inc_B = refinement_morphism(CB, C)
+    CAB, to_CA, to_CB = fiber_product(inc_A, inc_B)
+    AA, AA_to_A, AA_to_CAB = fiber_product(f_cov, to_CA)
+    BB, BB_to_B, BB_to_CAB = fiber_product(g_cov, to_CB)
+    AAxBB, to_AA, to_BB = fiber_product(AA_to_CAB, BB_to_CAB)
+    XxY = CoveredScheme(AAxBB)
+    to_X = CoveredSchemeMorphism(XxY, X, compose(to_AA, AA_to_A))
+    to_Y = CoveredSchemeMorphism(XxY, Y, compose(to_BB, BB_to_B))
+    return XxY, to_X, to_Y
   end
 end
 

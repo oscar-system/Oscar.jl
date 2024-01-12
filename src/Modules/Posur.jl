@@ -156,7 +156,7 @@ recommended to choose ``f`` to be the 'least complex' in
 an appropriate sense for ``R``.
 """
 function has_nonempty_intersection(U::AbsMultSet, I::Ideal)
-  R = ambient_ring(U)
+  R = ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   error("this method is not implemented for multiplicative sets of type $(typeof(U)) and ideals of type $(typeof(I)); see Posur: Linear systems over localizations of rings, arXiv:1709.08180v2, Definition 3.8 for the requirements of the implementation")
 end
@@ -201,7 +201,7 @@ function has_solution(
   }
   R = base_ring(A)
   R === base_ring(b) || error("matrices must be defined over the same ring")
-  R === ambient_ring(U) || error("multiplicative set must be defined over the same ring as the matrices")
+  R === ring(U) || error("multiplicative set must be defined over the same ring as the matrices")
   m = nrows(A)
   nrows(b) == 1 || error("can not solve for more than one row vector")
   n = ncols(A)

@@ -29,3 +29,18 @@
   end
   @test Oscar.inclusion_map(res_5) === inc
 end
+
+@testset "strands basics" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+
+  S1_0 = graded_free_module(S, [0])
+  S1_3 = graded_free_module(S, [3])
+  phi = hom(S1_3, S1_0, [x*z^2*S1_0[1]])
+  C = Oscar.hyper_complex(chain_complex([phi]));
+  st, inc = Oscar.strand(C, 4);
+  @test compose(map(st, 1, (1,)), inc[0]) == compose(inc[1], map(C, 1, (1,)))
+  @test st[0] isa FreeMod
+  @test rank(st[1]) == 3
+  @test rank(st[0]) == 15
+end
+

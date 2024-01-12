@@ -312,7 +312,7 @@ See [Fau99](@cite) for more information.
 # Examples
 ```jldoctest
 julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
-(Multivariate polynomial ring in 3 variables over GF(101), fpMPolyRingElem[x, y, z])
+(Multivariate polynomial ring in 3 variables over GF(101), FqMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])
 ideal(x + 2*y + 2*z + 100, x^2 + 2*y^2 + 2*z^2 + 100*x, 2*x*y + 2*y*z + 100*y)
@@ -563,11 +563,11 @@ julia> J = ideal(R, [y^3])
 ideal(y^3)
 
 julia> reduce(J.gens, I.gens)
-1-element Vector{fpMPolyRingElem}:
+1-element Vector{FqMPolyRingElem}:
  y^3
 
 julia> reduce(J.gens, groebner_basis(I))
-1-element Vector{fpMPolyRingElem}:
+1-element Vector{FqMPolyRingElem}:
  0
 
 julia> reduce(y^3, [x^2, x*y-y^3])
@@ -577,7 +577,7 @@ julia> reduce(y^3, [x^2, x*y-y^3], ordering=lex(R))
 y^3
 
 julia> reduce([y^3], [x^2, x*y-y^3], ordering=lex(R))
-1-element Vector{fpMPolyRingElem}:
+1-element Vector{FqMPolyRingElem}:
  y^3
 ```
 """
@@ -758,7 +758,7 @@ julia> I = ideal(R, [x]);
 julia> J = ideal(R, [x+1]);
 
 julia> unit, M, res = reduce_with_quotients_and_unit(I.gens, J.gens, ordering = neglex(R))
-([x+1], [x], fpMPolyRingElem[0])
+([x+1], [x], FqMPolyRingElem[0])
 
 julia> M * gens(J) + res == unit * gens(I)
 true
@@ -767,7 +767,7 @@ julia> f = x^3*y^2-y^4-10
 x^3*y^2 + 10*y^4 + 1
 
 julia> F = [x^2*y-y^3, x^3-y^4]
-2-element Vector{fpMPolyRingElem}:
+2-element Vector{FqMPolyRingElem}:
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
@@ -815,7 +815,7 @@ with respect to the ordering
 degrevlex([x, y, z])
 
 julia> M, res = reduce_with_quotients(I.gens, gb)
-([1 0 0; 0 0 1], fpMPolyRingElem[y^2, 0])
+([1 0 0; 0 0 1], FqMPolyRingElem[y^2, 0])
 
 julia> M * gens(gb) + res == gens(I)
 true
@@ -824,7 +824,7 @@ julia> f = x^3*y^2-y^4-10
 x^3*y^2 + 10*y^4 + 1
 
 julia> F = [x^2*y-y^3, x^3-y^4]
-2-element Vector{fpMPolyRingElem}:
+2-element Vector{FqMPolyRingElem}:
  x^2*y + 10*y^3
  x^3 + 10*y^4
 
@@ -993,19 +993,19 @@ with the degree reverse lexicographical ordering.
 # Examples
 ```jldoctest
 julia> R,(a,b,c) = polynomial_ring(GF(65521),["a","b","c"])
-(Multivariate polynomial ring in 3 variables over GF(65521), fpMPolyRingElem[a, b, c])
+(Multivariate polynomial ring in 3 variables over GF(65521), FqMPolyRingElem[a, b, c])
 
 julia> J = ideal(R,[-1+c+b,-1+b+c*a+2*a*b])
 ideal(b + c + 65520, 2*a*b + a*c + b + 65520)
 
 julia> A = [-1+c+b+a^3, -1+b+c*a+2*a^3, 5+c*b+c^2*a]
-3-element Vector{fpMPolyRingElem}:
+3-element Vector{FqMPolyRingElem}:
  a^3 + b + c + 65520
  2*a^3 + a*c + b + 65520
  a*c^2 + b*c + 5
 
 julia> Oscar._normal_form_f4(A, J)
-3-element Vector{fpMPolyRingElem}:
+3-element Vector{FqMPolyRingElem}:
  a^3
  2*a^3 + 2*a + 65519*c
  65519*c^2 + 4*a + 65520*c + 5
@@ -1162,7 +1162,7 @@ to a Gröbner basis `H` w.r.t. another monomial ordering `ordering` for `<G>`.
 # Examples
 ```jldoctest
 julia> R, (x1, x2, x3, x4) = polynomial_ring(GF(101), ["x1", "x2", "x3", "x4"])
-(Multivariate polynomial ring in 4 variables over GF(101), fpMPolyRingElem[x1, x2, x3, x4])
+(Multivariate polynomial ring in 4 variables over GF(101), FqMPolyRingElem[x1, x2, x3, x4])
 
 julia> J = ideal(R, [x1+2*x2+2*x3+2*x4-1,
        x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
@@ -1597,7 +1597,9 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
   Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
 
   Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
-  std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+  std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
+    map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
+  end
   std_basis_crt_previous = std_basis_mod_p_lifted
 
   n_stable_primes = 0
@@ -1608,7 +1610,9 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
     while n_stable_primes < 2
       p = iterate(primes, p)[1]
       Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
-      std_basis_mod_p_lifted = map(x->lift(Zt, x), sorted_gb(ideal(Rt, gens(I))))
+      std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
+        map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
+      end
 
       # test for unlucky prime
       if any(((i, p), ) -> leading_monomial(p) != leading_monomial(std_basis_crt_previous[i]),

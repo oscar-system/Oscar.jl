@@ -4,7 +4,7 @@
 
 using Oscar
 
-import Oscar: base_ring, inverted_set, ambient_ring, localization, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar: base_ring, inverted_set, ring, localization, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
@@ -29,7 +29,7 @@ mutable struct FmpzPowersOfElement <: AbsMultSet{ZZRing, ZZRingElem}
 end
 
 ### required getter functions
-ambient_ring(S::FmpzPowersOfElement) = ZZ
+ring(S::FmpzPowersOfElement) = ZZ
 
 ### required functionality
 function Base.in(a::ZZRingElem, S::FmpzPowersOfElement) 
@@ -73,7 +73,7 @@ mutable struct FmpzComplementOfPrimeIdeal <: AbsMultSet{ZZRing, ZZRingElem}
 end
 
 ### required getter functions
-ambient_ring(S::FmpzComplementOfPrimeIdeal) = ZZ
+ring(S::FmpzComplementOfPrimeIdeal) = ZZ
 
 ### required functionality
 function Base.in(b::ZZRingElem, S::FmpzComplementOfPrimeIdeal)
@@ -103,7 +103,7 @@ mutable struct FmpzComplementOfZeroIdeal <: AbsMultSet{ZZRing, ZZRingElem}
 end
 
 ### required getter functions
-ambient_ring(S::FmpzComplementOfZeroIdeal) = ZZ
+ring(S::FmpzComplementOfZeroIdeal) = ZZ
 
 ### required functionality
 function Base.in(b::ZZRingElem, S::FmpzComplementOfZeroIdeal) 
@@ -240,9 +240,9 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test 25 in S
   @test !(33 in S)
   @test 5*5*7 in S
-  @test ambient_ring(S) == ZZ
+  @test ring(S) == ZZ
   W, _ = localization(S)
-  @test base_ring(W) == ambient_ring(S)
+  @test base_ring(W) == ring(S)
   @test inverted_set(W) == S
   a = W(3)
   b = W(7, 5)
@@ -257,9 +257,9 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   @test !(13^5 in U)
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
-  @test ambient_ring(U) == ZZ
+  @test ring(U) == ZZ
   W, _ = localization(U)
-  @test base_ring(W) == ambient_ring(U)
+  @test base_ring(W) == ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
   b = W(4*17)
@@ -272,9 +272,9 @@ parent_type(T::Type{FmpzLocalizedRingElem{MultSetType}}) where {MultSetType} = F
   O = FmpzComplementOfZeroIdeal()
   @test 234890 in O
   @test !(0 in O)
-  @test ambient_ring(O) == ZZ
+  @test ring(O) == ZZ
   W, _ = localization(O)
-  @test base_ring(W) == ambient_ring(O)
+  @test base_ring(W) == ring(O)
   @test inverted_set(W) == O
   a = W(4, 17)
   b = W(4*17)

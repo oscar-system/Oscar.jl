@@ -124,8 +124,8 @@ function _hom(
     d::AbsHyperComplex{DCT, DMT}, c::AbsHyperComplex{CCT, CMT};
     auto_extend::Bool=true
   ) where {DCT, DMT, CCT, CMT}
-  NCT = (DCT <: CCT ? CCT : (CCT <: DCT ? DCT : error("could not determine common chain type")))
-  NMT = (DMT <: CMT ? CMT : (CMT <: DMT ? DMT : error("could not determine common chain type")))
+  NCT = typejoin(chain_type(d), chain_type(c))
+  NMT = typejoin(morphism_type(d), morphism_type(c))
   
   d1 = dim(d)
   d2 = dim(c)

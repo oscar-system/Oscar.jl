@@ -26,7 +26,7 @@ end
 function __init_group_libraries()
   props = [
     is_abelian => GAP.Globals.IsAbelian,
-    is_almostsimple => GAP.Globals.IsAlmostSimple,
+    is_almost_simple => GAP.Globals.IsAlmostSimple,
     is_cyclic => GAP.Globals.IsCyclic,
     is_nilpotent => GAP.Globals.IsNilpotent,
     is_perfect => GAP.Globals.IsPerfect,

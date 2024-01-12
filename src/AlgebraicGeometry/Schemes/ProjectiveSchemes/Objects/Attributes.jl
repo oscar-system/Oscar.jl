@@ -54,7 +54,7 @@ homogeneous_coordinate_ring(P::AbsProjectiveScheme) = homogeneous_coordinate_rin
 
 On ``X ⊂ ℙʳ_A`` this returns ``r``.
 
-# Example 
+# Example
 ```jldoctest
 julia> S, _ = grade(QQ["x", "y", "z"][1]);
 
@@ -86,8 +86,8 @@ _homogenization_cache(X::AbsProjectiveScheme) = _homogenization_cache(underlying
 @doc raw"""
     ambient_coordinate_ring(P::AbsProjectiveScheme)
 
-On a projective scheme ``P = Proj(S)`` with ``S = P/I`` 
-for a standard graded polynomial ring ``P`` and a 
+On a projective scheme ``P = Proj(S)`` with ``S = P/I``
+for a standard graded polynomial ring ``P`` and a
 homogeneous ideal ``I`` this returns ``P``.
 
 # Example
@@ -259,8 +259,8 @@ defining_ideal(X::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}) = modulus(homogene
 @doc raw"""
     affine_cone(X::AbsProjectiveScheme)
 
-On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹`` 
-is the affine cone of ``X`` and ``f : S → 𝒪(C)`` is the morphism of rings 
+On ``X = Proj(S) ⊂ ℙʳ_𝕜`` this returns a pair `(C, f)` where ``C = C(X) ⊂ 𝕜ʳ⁺¹``
+is the affine cone of ``X`` and ``f : S → 𝒪(C)`` is the morphism of rings
 from the `homogeneous_coordinate_ring` to the `coordinate_ring` of the affine cone.
 
 
@@ -441,7 +441,7 @@ function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   return X.Y
 end
 
-function base_scheme(X::ProjectiveScheme{<:SpecOpenRing}) 
+function base_scheme(X::ProjectiveScheme{<:SpecOpenRing})
   return domain(base_ring(X))
 end
 
@@ -507,6 +507,10 @@ projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ri
   return dim(defining_ideal(P))-1
 end
 
+@attr Int function codim(P::AbsProjectiveScheme{<:Field})
+  return dim(ambient_space(P)) - dim(defining_ideal(P)) + 1
+end
+
 @attr QQPolyRingElem function hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
   return hilbert_polynomial(homogeneous_coordinate_ring(P))
 end
@@ -518,5 +522,65 @@ end
 @attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
   h = hilbert_polynomial(P)
   return (-1)^dim(P) * (first(coefficients(h)) - 1)
+end
+
+function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
+  return relative_euler_sequence(X)[0]
+end
+
+function relative_euler_sequence(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
+  S = homogeneous_coordinate_ring(X)::MPolyDecRing
+  W1 = kaehler_differentials(S)
+  W0 = kaehler_differentials(S, 0)
+  theta = hom(W1, W0, [x*W0[1] for x in gens(S)])
+  W, inc = kernel(theta)
+  Z = graded_free_module(S, 0)
+  inc_Z = hom(Z, W, elem_type(W)[])
+  comp = ComplexOfMorphisms(ModuleFP, [inc_Z, inc, theta], typ=:cochain, seed = -1)
+  return comp
+end
+
+function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
+  # We follow the common procedure. For X ↪ ℙ ⁿ we have
+  #
+  #                          θ
+  #    0 → Ω¹ → ⊕ ⁿ⁺¹ 𝒪 (-1) → 𝒪 
+  #
+  # the Euler sequence. Restricting to X we get 
+  #                               θ
+  #    0 → Ω¹|_X → ⊕ ⁿ⁺¹ 𝒪 (-1)_X → 𝒪_X
+  #
+  # Then for the defining ideal I of X in ℙⁿ we obtain 
+  # an exact sequence
+  #
+  #   I/I² → Ω¹|_X → Ω¹_X → 0.
+  #
+  # Note that for the associated graded modules we can 
+  # not simply restrict the module for Ω¹|_X, but we have to 
+  # recompute the kernel of the restricted θ.
+  inc_X = ambient_embedding(X)
+  phi = pullback(inc_X)
+  P = codomain(inc_X)
+  eu = relative_euler_sequence(P)
+  W1P = eu[0]
+  W1P_res, res_W1P = _change_base_ring_and_preserve_gradings(phi, W1P)
+  Omega1_res, res_Omega1 = _change_base_ring_and_preserve_gradings(phi, eu[1])
+  Omega0_res, res_Omega0 = _change_base_ring_and_preserve_gradings(phi, eu[2])
+
+  theta = map(eu, 1)
+  theta_res = _change_base_ring_and_preserve_gradings(phi, theta, domain_change = res_Omega1, codomain_change = res_Omega0)
+  
+  W1X, inc_W1X = kernel(theta_res)
+  f = gens(defining_ideal(X))
+  df = exterior_derivative.(f)
+  @assert all(x->parent(x) === eu[1], df)
+
+  SP = homogeneous_coordinate_ring(P)
+  F = graded_free_module(SP, degree.(f))
+  jac = hom(F, eu[1], df)
+  jac_res = _change_base_ring_and_preserve_gradings(phi, jac, codomain_change = res_Omega1)
+  img_gens = [preimage(inc_W1X, jac_res(x)) for x in gens(domain(jac_res))]
+  psi = hom(domain(jac_res), W1X, img_gens)
+  return cokernel(psi)
 end
 

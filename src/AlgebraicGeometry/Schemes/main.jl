@@ -13,6 +13,7 @@ include("Methods.jl")
 include("AffineSchemes/Objects/Types.jl")
 include("AffineSchemes/Morphisms/Types.jl")
 include("PrincipalOpenSubset/Objects/Types.jl")
+include("PrincipalOpenInclusion/Types.jl")
 include("SpecOpen/Objects/Types.jl")
 include("SpecOpen/Rings/Types.jl")
 include("SpecOpen/Morphisms/Types.jl")
@@ -62,6 +63,10 @@ include("PrincipalOpenSubset/Objects/Constructors.jl")
 include("PrincipalOpenSubset/Objects/Properties.jl")
 include("PrincipalOpenSubset/Objects/Attributes.jl")
 include("PrincipalOpenSubset/Objects/Methods.jl")
+
+include("PrincipalOpenInclusion/Constructors.jl")
+include("PrincipalOpenInclusion/Methods.jl")
+include("PrincipalOpenInclusion/Attributes.jl")
 
 ########################################################################
 # Open subsets of affine schemes                                       #

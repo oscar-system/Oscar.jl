@@ -148,7 +148,10 @@ function wedge(u::Vector{T};
     end
   ) where {T<:ModuleFPElem}
   isempty(u) && error("list must not be empty")
-  isone(length(u)) && return first(u)
+  if isone(length(u))
+    Oscar.parent(first(u)) === parent && return first(u)
+    return parent(coordinates(first(u)))
+  end
   k = div(length(u), 2)
   result = wedge(wedge(u[1:k]), wedge(u[k+1:end]), parent=parent)
   @assert Oscar.parent(result) === parent

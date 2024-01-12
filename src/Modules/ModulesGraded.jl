@@ -2803,11 +2803,11 @@ julia> degree(gen(N, 1))
 
 ```
 """
-function twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+function twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  error("Not implemented for the given type")
 end
 
-function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  R = base_ring(M)
  @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
  F = ambient_free_module(M)
@@ -2822,7 +2822,7 @@ function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingEle
  return N
 end
 
-function twist(F::FreeMod{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+function twist(F::FreeMod{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  R = base_ring(F)
  @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
  W = [x-g for x in F.d]
@@ -2878,7 +2878,7 @@ function _regularity_bound(M::SubquoModule)
   res = free_resolution(M)
   result = maximum((x->degree(x)[1]).(gens(res[0])))
   for i in 0:first(chain_range(res))
-    result = maximum(push!((x->degree(x)[1]-i).(gens(res[i])), result))
+    result = maximum(push!((x->degree(x)[1]).(gens(res[i])), result))
   end
   return result
 end

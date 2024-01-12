@@ -90,23 +90,10 @@ export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
 export localization
-export MPolyComplementOfKPointIdeal
-export MPolyComplementOfPrimeIdeal
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
-export MPolyLeadingMonOne
-export MPolyLocRing
-export MPolyLocRingElem
-export MPolyLocalizedIdeal
-export MPolyLocalizedRingHom
-export MPolyPowersOfElement
-export MPolyProductOfMultSets
 export MPolyQuoIdeal
-export MPolyQuoLocRing
-export MPolyQuoLocRingElem
-export MPolyQuoLocalizedIdeal
-export MPolyQuoLocalizedRingHom
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
@@ -246,7 +233,6 @@ export ambient_germ
 export ambient_module
 export ambient_representative
 export ambient_representatives_generators
-export ambient_ring
 export ambient_scheme
 export ambient_space
 export ambient_type
@@ -269,9 +255,6 @@ export augmented_chow_ring
 export aut
 export automorphism_group
 export base_ring
-export base_ring_elem_type
-export base_ring_module
-export base_ring_type
 export base_scheme
 export bases
 export basic_patches
@@ -294,7 +277,6 @@ export blocks
 export bond_matroid
 export borcherds_method
 export boundary_lattice_points
-export bring_to_common_denominator
 export build_ctx
 export build_doc
 export canonical_bundle
@@ -365,7 +347,6 @@ export combinatorial_symmetries
 export comm
 export comm!
 export common_components
-export common_denominator
 export common_refinement
 export complement
 export complement_class_reps
@@ -640,11 +621,6 @@ export has_transitive_groups
 export has_vertex
 export haspreimage
 export height
-export helper_eta
-export helper_ideal
-export helper_images
-export helper_kappa
-export helper_ring
 export hermitian_form
 export hessian
 export hessian_matrix
@@ -685,7 +661,6 @@ export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
 export ideal_sheaf
-export ideal_type
 export identifier
 export identity_map
 export image
@@ -734,6 +709,7 @@ export invariant_ring
 export invariant_sesquilinear_forms
 export invariant_symmetric_forms
 export inverse
+export inverse_on_image
 export invert
 export invert_birational_map
 export inverted_set
@@ -745,7 +721,7 @@ export irrelevant_ideal
 export is_abelian, has_is_abelian, set_is_abelian
 export is_admissible_ordering
 export is_affine
-export is_almostsimple, has_is_almostsimple, set_is_almostsimple
+export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
 export is_basepoint_free
@@ -788,7 +764,7 @@ export is_fano
 export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
-export is_finitelygenerated, has_is_finitelygenerated, set_is_finitelygenerated
+export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_finiteorder
 export is_flat
 export is_full_direct_product
@@ -814,10 +790,10 @@ export is_invertible
 export is_irreducible
 export is_isolated_singularity
 export is_isomorphic
-export is_isomorphic_with_alternating_group, has_is_isomorphic_with_alternating_group, set_is_isomorphic_with_alternating_group
+export is_isomorphic_to_alternating_group, has_is_isomorphic_to_alternating_group, set_is_isomorphic_to_alternating_group
+export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, set_is_isomorphic_to_symmetric_group
 export is_isomorphic_with_map
 export is_isomorphic_with_permutation
-export is_isomorphic_with_symmetric_group, has_is_isomorphic_with_symmetric_group, set_is_isomorphic_with_symmetric_group
 export is_isomorphism
 export is_k_separation
 export is_lattice_polytope
@@ -1004,7 +980,6 @@ export min_revlex_basis_encoding
 export min_weights
 export minimal_betti_table
 export minimal_block_reps
-export minimal_denominators
 export minimal_faces
 export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
 export minimal_generators
@@ -1039,7 +1014,6 @@ export mpoly_dec_type
 export mpoly_ring_type
 export mpoly_type
 export mul!
-export mult_set_type
 export multi_hilbert_function
 export multi_hilbert_series
 export multi_hilbert_series_reduced
@@ -1315,6 +1289,7 @@ export right_coset_action
 export right_cosets
 export right_ideal
 export right_transversal
+export ring
 export ring_elem_type
 export ring_type
 export rising_factorial
@@ -1522,6 +1497,5 @@ export weyl_vector
 export witt_index
 export wreath_product
 export write_as_full
-export write_as_linear_combination
 export zonotope
 export zonotope_vertices_fukuda_matrix

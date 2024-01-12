@@ -84,6 +84,9 @@ function koszul_complex(::Type{T}, v::RingElem...) where {T<:AbsSimpleComplex}
   return koszul_complex(T, collect(v))
 end
 
+function defining_element(K::KoszulComplex)
+  return K.v
+end
 #=
 function truncated_cech_complex(M::ModuleFP, x::Vector{T}, d::Int) where {T<:RingElem}
   R = base_ring(M)

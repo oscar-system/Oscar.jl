@@ -226,4 +226,138 @@ function Base.show(io::IO, ::MIME"text/plain", f::CoveringMorphism)
   end
 end
 
+########################################################################
+# fiber products of Coverings
+#
+# For any two `CoveringMorphism`s `f : A → C` and `g : B → C` we 
+# define the `fiber_product` to be the covering `A×B` which makes 
+# the obvious square commute:
+#        f'
+#    A×B → B
+#   g'↓    ↓ g
+#     A →  C
+#       f
+#
+# i.e. the `patches` of `A×B` are Uᵢ× Vⱼ for the `patches` Uᵢ
+# of `A` and `Vⱼ` of `B`.
+#
+# In special cases, e.g. when `f` is a refinement, the creation of 
+# the patches Uᵢ× Vⱼ and its associated maps can be significantly 
+# simplified. This is taken care of by the dispatch for fiber products
+# of morphisms of affine schemes and it is assumed that the morphisms 
+# of a refinement is of type `PrincipalOpenEmbedding`.
+########################################################################
+
+function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
+  A = domain(f)
+  B = domain(g)
+  C = codomain(f)
+  @assert C === codomain(g) "codomains do not agree"
+
+  new_patches = AbsSpec[]
+  cache = IdDict{AbsSpec, Tuple{<:AbsSpecMor, <:AbsSpecMor}}()
+  maps_to_A = IdDict{AbsSpec, AbsSpecMor}()
+  maps_to_B = IdDict{AbsSpec, AbsSpecMor}()
+  for U in patches(A)
+    f_U = f[U]
+    W = codomain(f_U)
+    for V in patches(B) 
+      g_V = g[V]
+      codomain(g_V) === W || continue
+      UxV, to_U, to_V = fiber_product(f_U, g_V)
+      push!(new_patches, UxV)
+      cache[UxV] = (to_U, to_V)
+      maps_to_A[UxV] = to_U
+      maps_to_B[UxV] = to_V
+    end
+  end
+  result = Covering(new_patches)
+
+  # construct all the glueings
+  # TODO: Make these lazy!
+  for UxV in new_patches
+    to_U, to_V = cache[UxV]
+    U = codomain(to_U)
+    V = codomain(to_V)
+    for UUxVV in new_patches
+      to_UU, to_VV = cache[UUxVV]
+      UU = codomain(to_UU)
+      VV = codomain(to_VV)
+      !haskey(glueings(A), (U, UU)) && continue
+      !haskey(glueings(B), (V, VV)) && continue
+      UUU = A[U, UU]::AbsGlueing
+      VVV = B[V, VV]::AbsGlueing
+      U_UU, UU_U = glueing_domains(UUU)
+      V_VV, VV_V = glueing_domains(VVV)
+      inc_U = inclusion_morphism(U_UU)
+      inc_UU = inclusion_morphism(UU_U)
+      inc_V = inclusion_morphism(V_VV)
+      inc_VV = inclusion_morphism(VV_V)
+
+      
+      # assemble the new glueing domains:
+      h_U = complement_equation(U_UU)
+      h_V = complement_equation(V_VV)
+      h_UV = [pullback(to_U)(h_U), pullback(to_V)(h_V)]
+      U_UUxV_VV = PrincipalOpenSubset(UxV, h_UV)
+      f_res_U = restrict(to_U, U_UUxV_VV, U_UU, check=true)
+      g_res_V = restrict(to_V, U_UUxV_VV, V_VV, check=true)
+      # TODO: Can we produce U_UUxV_VV as a PrincipalOpenSubset of UxV 
+      # with a generic `fiber_product` routine? If so, what should the 
+      # signature and functionality be? We need it as a PrincipalOpenSubset
+      # because of the convention for the `SimpleGlueing`s.
+      #   U_UUxV_VV, f_res_U, g_res_V = fiber_product(restrict(f, U_UU, codomain(f)), restrict(g, V_VV, codomain(g)))
+
+      h_UU = complement_equation(UU_U)
+      h_VV = complement_equation(VV_V)
+      h_UUVV = [pullback(to_UU)(h_UU), pullback(to_VV)(h_VV)]
+      UU_UxVV_V = PrincipalOpenSubset(UUxVV, h_UUVV)
+      f_res_UU = restrict(to_UU, UU_UxVV_V, UU_U, check=true)
+      g_res_VV = restrict(to_VV, UU_UxVV_V, VV_V, check=true)
+
+      simple_to_double_U, double_to_simple_U = glueing_morphisms(UUU)
+      simple_to_double_V, double_to_simple_V = glueing_morphisms(VVV)
+
+      # construct the glueing morphisms
+      # Since the fiber products have not been constructed in the appropriate way, 
+      # we can not use the generic method.
+      #=
+      simple_to_double = induced_map_to_fiber_product(compose(f_res_U, simple_to_double_U), compose(g_res_V, simple_to_double_V), 
+                                                      restrict(f[UU], UU_U, codomain(f[UU]), check=true), 
+                                                      restrict(g[VV], VV_V, codomain(g[VV]), check=true),
+                                                      fiber_product=(UU_UxVV_V, f_res_UU, g_res_VV)
+                                                     )
+      double_to_simple = induced_map_to_fiber_product(compose(f_res_UU, double_to_simple_U), compose(g_res_VV, double_to_simple_V), 
+                                                      restrict(f[U], U_UU, codomain(f[U]), check=true), 
+                                                      restrict(g[V], V_VV, codomain(g[V]), check=true),
+                                                      fiber_product=(U_UUxV_VV, f_res_U, g_res_V)
+                                                     )
+      =#
+      pre_glue_double_to_simple = induced_map_to_fiber_product(
+           compose(f_res_UU, compose(double_to_simple_U, inc_U)),
+           compose(g_res_VV, compose(double_to_simple_V, inc_V)),
+           f[U], g[V],
+           fiber_product=(UxV, to_U, to_V)
+          )
+      double_to_simple = restrict(pre_glue_double_to_simple, domain(pre_glue_double_to_simple), 
+                                  U_UUxV_VV
+                                 )
+      pre_glue_simple_to_double = induced_map_to_fiber_product(
+           compose(f_res_U, compose(simple_to_double_U, inc_UU)),
+           compose(g_res_V, compose(simple_to_double_V, inc_VV)),
+           f[UU], g[VV],
+           fiber_product=(UUxVV, to_UU, to_VV)
+          )
+      simple_to_double = restrict(pre_glue_simple_to_double, domain(pre_glue_simple_to_double), 
+                                  UU_UxVV_V
+                                 )
+
+      new_glueing = Glueing(UxV, UUxVV, simple_to_double, double_to_simple)
+      add_glueing!(result, new_glueing)
+    end
+  end
+  to_A = CoveringMorphism(result, A, maps_to_A)
+  to_B = CoveringMorphism(result, B, maps_to_B)
+  return result, to_A, to_B
+end
 

@@ -150,11 +150,11 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    K = base_ring(matrices[1])
    matrices_Fq = Vector{FqMatrix}(undef, length(matrices))
    if p == 2
-      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    O = EquationOrder(K)
    if mod(discriminant(O), p) == 0
-      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    for M in matrices
       for i = 1:nrows(M)
@@ -164,7 +164,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+               return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
             end
          end
       end

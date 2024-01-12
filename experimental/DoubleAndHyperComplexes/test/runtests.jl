@@ -17,3 +17,5 @@ include("tor.jl")
 include("free_resolutions.jl")
 include("linear_strands.jl")
 include("printing.jl")
+include("degree_zero_complex.jl")
+
