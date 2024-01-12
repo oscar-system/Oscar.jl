@@ -37,6 +37,13 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
         end
     end
 
+    if isempty(Sigma12)
+        # return empty tropical variety
+        Sigma = polyhedral_complex(IncidenceMatrix(),zero_matrix(QQ,0,ambient_dim(TropV1)))
+        mults = ZZRingElem[]
+        return tropical_variety(Sigma,mults,convention(TropV1))
+    end
+
     return tropical_variety(Sigma12,mults12,convention(TropV1))
 end
 
@@ -104,8 +111,14 @@ function stable_intersection(TropL1::TropicalLinearSpace{minOrMax,true}, TropL2:
 
     plueckerIndices12 = Vector{Int}[]
     plueckerVector12 = TropicalSemiringElem{minOrMax}[]
+
     d = dim(TropL1)-codim(TropL2)
-    @req d>0 "stable_intersection is empty"
+    if d<=0
+        # return empty polyhedral complex
+        Sigma = polyhedral_complex(IncidenceMatrix(),zero_matrix(QQ,0,ambient_dim(TropL1)))
+        mults = ZZRingElem[]
+        return tropical_linear_space(Sigma,mults,convention(TropL1))
+    end
 
     for (I1,p1) in zip(pluecker_indices(TropL1),tropical_pluecker_vector(TropL1))
         for (I2,p2) in zip(pluecker_indices(TropL2),tropical_pluecker_vector(TropL2))

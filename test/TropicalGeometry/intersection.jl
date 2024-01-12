@@ -9,6 +9,12 @@
         TropHH = stable_intersection(TropH,TropH)
         TropLL = stable_intersection(TropL,TropL)
         @test issetequal(maximal_polyhedra(TropHH),maximal_polyhedra(TropLL))
+
+        TropHHH = stable_intersection(TropHH,TropH)
+        @test dim(TropHHH)<0
+
+        TropLLL = stable_intersection(TropLL,TropL)
+        @test dim(TropLLL)<0
     end
 
 
