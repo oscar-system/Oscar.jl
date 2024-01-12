@@ -24,6 +24,8 @@
       @test all(i -> negative_root(R, i) == negative_roots(R)[i], 1:npositive_roots)
       @test simple_roots(R) == positive_roots(R)[1:rk]
       @test all(iszero, positive_roots(R) + negative_roots(R))
+
+      @test issorted(sum.(coefficients.(positive_roots(R)))) # sorted by height
     end
 
     @testset "A_$n" for n in [1, 2, 6]
@@ -69,6 +71,19 @@
     @testset "G_2" begin
       R = root_system(:G, 2)
       root_system_property_tests(R, 2, 6)
+    end
+
+    @testset "something mixed" begin
+      cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
+      for _ in 1:50
+        i, j = rand(1:nrows(cm), 2)
+        if i != j
+          swap_rows!(cm, i, j)
+          swap_cols!(cm, i, j)
+        end
+      end
+      R = root_system(cm)
+      root_system_property_tests(R, 3 + 3 + 6 + 2, binomial(3 + 1, 2) + 3^2 + 36 + 6)
     end
   end
 

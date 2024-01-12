@@ -12,11 +12,11 @@ mutable struct RootSystem
   type::Vector{Tuple{Symbol,Int}}
 
   function RootSystem(mat::ZZMatrix)
-    roots, refl = positive_roots_and_reflections(mat)
+    pos_roots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
     R = new(mat)
-    R.positive_roots = map(r -> RootSpaceElem(R, r), roots)
+    R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
     R.weyl_group = WeylGroup(finite, refl, R)
 
     return R
@@ -187,7 +187,8 @@ end
 @doc raw"""
     positive_roots(R::RootSystem) -> Vector{RootSpaceElem}
 
-Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`.
+Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`,
+and then increasing in height.
 
 Also see: `positive_root`, `num_positive_roots`.
 """
@@ -593,10 +594,13 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
     i += 1
   end
 
+  # sort roots by height
+  perm = sortperm(roots; by=sum)
+
   table = zero_matrix(ZZ, rank, length(roots))
   for i in 1:length(roots), s in 1:rank
-    table[s, i] = refl[s, i]
+    table[s, i] = refl[s, perm[i]]
   end
 
-  roots, table
+  roots[perm], table
 end
