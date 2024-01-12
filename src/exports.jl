@@ -1208,7 +1208,6 @@ export principal_extension
 export print_constraints
 export product
 export proj
-export proj_space
 export project_full
 export projection
 export projection_to_base
