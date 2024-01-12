@@ -68,7 +68,6 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     r = roots(G, pr, raw = true)
     c = map(f, r) # TODO: use the embedding map!
     bs = Hecke.MPolyFact.block_system(c)
-
     if all(x->length(x) == length(bs[1]), bs)
       sort!(bs)
       return bs
