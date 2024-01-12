@@ -53,4 +53,16 @@
     @test order(image_in_Oq(L)[1]) == k
     @test order(Oscar.image_in_Oq_signed(L)[1]) == ks
   end
+
+  L = root_lattice(:A, 7)
+  k = integer_lattice(; gram = QQ[1 0 0; 0 1 0; 0 0 -1])
+  L, _ = direct_sum(L, k)
+  GL, GLinOq = @inferred image_in_Oq(L)
+  @test is_bijective(GLinOq)
+
+  L = integer_lattice(; gram = QQ[0 1 0;1 0 0; 0 0 -3])
+  GL, GLinOq = @inferred Oscar.image_in_Oq_signed(L)
+  @test order(GL) == 2
+  @test is_bijective(GLinOq)
 end
+

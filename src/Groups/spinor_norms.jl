@@ -446,7 +446,6 @@ julia> imOL,inj = image_in_Oq(L);
 
 julia> order(imOL)
 1152
-
 ```
 
 By using the strong approximation theorem, we can also deal with
@@ -458,33 +457,54 @@ julia> gram = ZZ[0 2 0; 2 0 0; 0 0 4]
 [2   0   0]
 [0   0   4]
 
-julia> L = integer_lattice(gram=gram)
+julia> L = integer_lattice(; gram)
 Quadratic lattice of rank 3 and degree 3 over the rationals
 
 julia> Oq, inj = image_in_Oq(L);
 
 julia> order(Oq)
 12
-
 ```
 """
 @attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
-  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req is_integral(L) "L must be integral"
+  flag = is_even(L)
+
   if rank(L) > 2 && !is_definite(L)
-    # use strong approximation
-    f = det_spin_homomorphism(L,signed=false)
-    return kernel(f)
+    if flag
+      f = det_spin_homomorphism(L; signed = false)
+      return kernel(f)
+    else
+      f = det_spin_homomorphism(rescale(L, 2); signed = false)
+      K, _ = kernel(f)
+      qL = domain(K)
+      q = discriminant_group(L)
+      Oq = orthogonal_group(q)
+      gq = elem_type(Oq)[Oq(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
+      return sub(Oq, gq)
+    end
   end
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
-  return sub(Oq, unique!([Oq(g, check=false) for g in gens(G)]))
+  return sub(Oq, unique!([Oq(g; check = false) for g in gens(G)]))
 end
 
 @attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
-  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req is_integral(L) "L must be integral"
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
-  # use strong approximation
-  f = det_spin_homomorphism(L,signed=true)
-  return kernel(f)
+  flag = is_even(L)
+
+  if flag
+    f = det_spin_homomorphism(L; signed = true)
+    return kernel(f)
+  else
+    f = det_spin_homomorphism(rescale(L, 2); signed = true)
+    K, _ = kernel(f)
+    qL = domain(K)
+    q = discriminant_group(L)
+    Oq = orthogonal_group(q)
+    gq = elem_type(Oq)[Oq(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
+    return sub(Oq, gq)
+  end
 end

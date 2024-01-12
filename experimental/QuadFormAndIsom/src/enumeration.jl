@@ -377,8 +377,11 @@ end
 # given a cyclotomic field (as cm extension) E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
+# if `fix_root`, we do not consider permutations of a set of signatures since
+# any permutation correspond to a change of a choice of a primitive root of
+# unity.
 
-function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)
+function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
   @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
   ok, q = Hecke.is_cyclotomic_type(E)
   @hassert :ZZLatWithIsom 1 ok
@@ -390,7 +393,9 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
   s = length(inf)
   signs = Dict{typeof(inf[1]), Int}[]
   parts = Vector{Int}[]
-  perm = AllPerms(s)
+  if !fix_root
+    perm = AllPerms(s)
+  end
   for v in AllParts(l)
     if any(i -> i > rk, v)
       continue
@@ -401,9 +406,12 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
     while length(v) != s
       push!(v, 0)
     end
-    for vv in perm
-      v2 = v[vv.d]
-      v2 in parts ? continue : push!(parts, v2)
+    push!(parts, copy(v))
+    if !fix_root
+      for vv in perm
+        v2 = v[vv.d]
+        v2 in parts ? continue : push!(parts, v2)
+      end
     end
   end
   for v in parts
@@ -438,7 +446,7 @@ julia> is_of_hermitian_type(reps[1])
 true
 ```
 """
-function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
+function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   @req m >= 1 "m must be a positive integer"
@@ -451,9 +459,11 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
 
   reps = ZZLatWithIsom[]
 
-  if n*m < 3
+  nm = n*m
+
+  if nm < 3
     @vprintln :ZZLatWithIsom 1 "Order smaller than 3"
-    f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
+    f = (-1)^(nm+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
     @vprintln :ZZLatWithIsom 1 "$(length(repre)) representative(s)"
@@ -467,10 +477,10 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   !iseven(s2) && return reps
 
   @vprintln :ZZLatWithIsom 1 "Order bigger than 3"
-  ok, rk = divides(rk, euler_phi(n*m))
+  ok, rk = divides(rk, euler_phi(nm))
   ok || return reps
 
-  E, b = cyclotomic_field_as_cm_extension(n*m)
+  E, b = cyclotomic_field_as_cm_extension(nm)
   gene = Hecke.genus_herm_type(E)[]
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -482,7 +492,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
 
   @vprintln :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
-  signatures = _possible_signatures(s1, s2, E, rk)
+  signatures = _possible_signatures(s1, s2, E, rk, fix_root)
 
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
@@ -505,7 +515,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     det(M) == d || continue
     MfM = integer_lattice_with_isometry(M, fM; check = false)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
-    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == n*m
+    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == nm
     if is_even(M) != is_even(Lf)
       continue
     end
@@ -519,6 +529,31 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     end
   end
   return reps
+end
+
+@doc raw"""
+    representatives_of_hermitian_type(G::ZZGenus, m::Int) -> Vector{ZZLatWithIsom}
+    representatives_of_hermitian_type(L::ZZLat, m::Int) -> Vector{ZZLatWithIsom}
+
+Given an non-empty genus of integer lattices $G$, return a list of
+representatives of isomorphic classes of pairs $(L, f)$ consisting of a lattice
+$L$ in $G$ and $f \in O(L)$ is an isometry of minimal polynomial $\Phi_m(X)$,
+the $m-$th cyclotomic polynomial.
+
+If $m = 1,2$, this goes back to enumerate $G$ as a genus of integer lattices.
+
+One can also provide directly a representative $L$ of $G$ instead.
+"""
+representatives_of_hermitian_type(::Union{ZZGenus, ZZLat}, ::Int)
+
+function representatives_of_hermitian_type(G::ZZGenus, m::Int, fix_root::Bool = false)
+  Lf = integer_lattice_with_isometry(representative(G))
+  return representatives_of_hermitian_type(Lf, m, fix_root)
+end
+
+function representatives_of_hermitian_type(L::ZZLat, m::Int, fix_root::Bool = false)
+  Lf = integer_lattice_with_isometry(L)
+  return representatives_of_hermitian_type(Lf, m, fix_root)
 end
 
 @doc raw"""
@@ -557,7 +592,10 @@ julia> is_of_same_type(Lf, reps[2]^2)
 true
 ```
 """
-function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion; pA::Int = -1, pB::Int = -1)
+function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion;
+                                                               pA::Int = -1,
+                                                               pB::Int = -1,
+                                                               fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   @req is_prime(p) "p must be a prime number"
@@ -575,7 +613,7 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion; 
   while !is_empty(atp)
     A, B = pop!(atp)
     LB = integer_lattice_with_isometry(representative(B))
-    RB = representatives_of_hermitian_type(LB, p*q^e)
+    RB = representatives_of_hermitian_type(LB, p*q^e, fix_root)
     is_empty(RB) && continue
     LA = integer_lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^e)
@@ -620,7 +658,10 @@ julia> splitting_of_prime_power(Lf, 3, 1)
  Integer lattice with isometry of finite order 3
 ```
 """
-function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0)
+function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0;
+                                                                      p_inv::Int = -1,
+                                                                      pB::Int = -1,
+                                                                      fix_root::Bool = false)
   if rank(Lf) == 0
     (b == 0) && return ZZLatWithIsom[Lf]
     return ZZLatWithIsom[]
@@ -640,7 +681,7 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0
   reps = ZZLatWithIsom[]
 
   if e == 0
-    reps = splitting_of_hermitian_prime_power(Lf, p)
+    reps = splitting_of_hermitian_prime_power(Lf, p; pA = p_inv, pB, fix_root)
     (b == 1) && filter!(M -> order_of_isometry(M) == p, reps)
     return reps
   end
@@ -648,9 +689,9 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, q^e)
   B0 = kernel_lattice(Lf, x^(q^(e-1))-1)
-  RA = splitting_of_hermitian_prime_power(A0, p)
+  RA = splitting_of_hermitian_prime_power(A0, p; pB, fix_root)
   is_empty(RA) && return reps
-  RB = splitting_of_prime_power(B0, p)
+  RB = splitting_of_prime_power(B0, p; p_inv)
   is_empty(RB) && return reps
   for L1 in RA, L2 in RB
     b == 1 && !is_divisible_by(order_of_isometry(L1), p) && !is_divisible_by(order_of_isometry(L2), p) && continue
@@ -673,7 +714,10 @@ of $(L, f)$.
 
 Note that $e$ can be `0`, while $d$ has to be positive.
 """
-function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion)
+function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion;
+                                                                p_inv::Int = -1,
+                                                                pB::Int = -1,
+                                                                fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   n = order_of_isometry(Lf)
@@ -705,17 +749,20 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion
   reps = ZZLatWithIsom[]
 
   if e == 0
-    return representatives_of_hermitian_type(Lf, p)
+    return representatives_of_hermitian_type(Lf, p, fix_root)
   end
 
   A0 = kernel_lattice(Lf, p^d*q^e)
+  if pB >= 0 && signature_tuple(A0)[3] != pB
+    return reps
+  end
   bool, r = divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
   @hassert :ZZLatWithIsom 1 bool
 
   B0 = kernel_lattice(Lf, r)
-  RA = representatives_of_hermitian_type(A0, p)
+  RA = representatives_of_hermitian_type(A0, p, fix_root)
   is_empty(RA) && return reps
-  RB = splitting_of_pure_mixed_prime_power(B0, p)
+  RB = splitting_of_pure_mixed_prime_power(B0, p; p_inv)
   is_empty(RB) && return reps
   for L1 in RA, L2 in RB
     E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p; check = false)
@@ -771,7 +818,10 @@ julia> all(LL -> is_of_same_type(Lf, LL^2), reps)
 true
 ```
 """
-function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 1)
+function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 1;
+                                                                            p_inv::Int = -1,
+                                                                            pB::Int = -1,
+                                                                            fix_root::Bool = false)
   if rank(Lf) == 0
     b == 0 && return ZZLatWithIsom[Lf]
     return ZZLatWithIsom[]
@@ -786,7 +836,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::I
   @req length(pd) <= 2 "Order must have at most 2 prime divisors"
 
   if !(p in pd)
-    return splitting_of_prime_power(Lf, p, b)
+    return splitting_of_prime_power(Lf, p, b; p_inv, pB, fix_root)
   end
 
   d = valuation(n, p)
@@ -797,9 +847,9 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::I
   x = gen(parent(minimal_polynomial(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod(cyclotomic_polynomial(p^d*q^i) for i in 0:e))
-  RA = splitting_of_pure_mixed_prime_power(A0, p)
+  RA = splitting_of_pure_mixed_prime_power(A0, p; pB, fix_root)
   isempty(RA) && return reps
-  RB = splitting_of_mixed_prime_power(B0, p, 0)
+  RB = splitting_of_mixed_prime_power(B0, p, 0; p_inv)
   is_empty(RB) && return reps
   for L1 in RA, L2 in RB
     E = admissible_equivariant_primitive_extensions(L2, L1, Lf, p; check = false)

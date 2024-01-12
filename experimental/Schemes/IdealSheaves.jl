@@ -683,7 +683,7 @@ function order_on_divisor(
 #    L, map = localization(OO(U),
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
-#    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+#    L isa Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                        <:MPolyComplementOfPrimeIdeal},
 #                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                           <:MPolyComplementOfPrimeIdeal}

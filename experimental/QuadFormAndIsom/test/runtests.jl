@@ -57,6 +57,7 @@ end
   L = lattice(rescale(Vf, -2))
   @test is_even(L)
   @test is_negative_definite(L) == is_positive_definite(Vf)
+  @test rational_spinor_norm(Vf) > 0
 
   @test rank(biproduct(Vf, Vf)[1]) == 12
   @test order_of_isometry(direct_sum(Vf, Vf, Vf)[1]) == 3
@@ -113,6 +114,7 @@ end
   @test isone(ambient_isometry(L))
   @test isone(order_of_isometry(L))
   @test order(image_centralizer_in_Oq(L)[1]) == 2
+  @test rational_spinor_norm(L) > 0
 
   for func in [rank, genus, basis_matrix, is_positive_definite,
                gram_matrix, det, scale, norm, is_integral, is_negative_definite,
@@ -264,11 +266,11 @@ end
   @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
 end
 
-@testset "Primitive embeddings" begin
+@testset "Primitive extensions and embeddings" begin
   # Compute orbits of short vectors
   k = integer_lattice(; gram=matrix(QQ,1,1,[4]))
   E8 = root_lattice(:E, 8)
-  ok, sv = primitive_embeddings(E8, k; classification =:sublat)
+  ok, sv = primitive_embeddings(E8, k; classification=:sub)
   @test ok
   @test length(sv) == 1
   ok, sv = primitive_embeddings(rescale(E8, 2), rescale(k, QQ(1//2)); check=false)
@@ -278,12 +280,12 @@ end
 
   k = integer_lattice(; gram=matrix(QQ,1,1,[6]))
   E7 = root_lattice(:E, 7)
-  ok, sv = primitive_embeddings(E7, k; classification = :emb)
+  ok, sv = primitive_embeddings(E7, k; classification=:emb)
   @test ok
   @test length(sv) == 2
   q = discriminant_group(E7)
   p, z, n = signature_tuple(E7)
-  ok, _ = primitive_embeddings(q, (p,n), E7; classification = :none)
+  ok, _ = primitive_embeddings(q, (p,n), E7; classification=:none)
   @test ok
   A5 = root_lattice(:A, 5)
   ok, sv = primitive_embeddings(A5, k)
@@ -295,10 +297,10 @@ end
   @test ok
   @test length(sv) == 1
 
-  ok, _ = primitive_embeddings(q, (p,n), E7; classification = :none)
+  ok, _ = primitive_embeddings(q, (p,n), E7; classification=:none)
   @test ok
 
-  @test !primitive_embeddings(rescale(E7, 2), k; classification = :none, check = false)[1]
+  @test !primitive_embeddings(rescale(E7, 2), k; classification=:none, check = false)[1]
 
   B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
   G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
@@ -310,8 +312,8 @@ end
   reps = @inferred admissible_equivariant_primitive_extensions(F, C, Lf^0, 5)
   @test length(reps) == 1
   @test is_of_same_type(Lf, reps[1])
-  reps = @inferred primitive_extensions(lattice(F), lattice(C); q = discriminant_group(L), classification = :emb)
-  @test length(reps) == 1
+  _, reps = @inferred primitive_extensions(lattice(F), lattice(C); q = discriminant_group(L), classification=:embemb)
+  @test length(reps) == 2
   @test reps[1] == (L, lattice(F), lattice(C))
 
   C = integer_lattice(; gram = QQ[-4 -2 -2  0  2 -2 -1 -3 -2 -1 -3 -2 -4  0 -2 -1;
@@ -357,4 +359,40 @@ end
 
   ok, reps = primitive_embeddings(L, C; check = false)
   @test length(reps) == 1
+
+  ## Odd case
+  B = matrix(FlintQQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
+  G = matrix(FlintQQ, 5, 5 ,[3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
+  L = integer_lattice(B, gram = G);
+  k = lattice_in_same_ambient_space(L, B[2, :])
+  N = orthogonal_submodule(L, k)
+  ok, reps = primitive_extensions(k, N; glue_order=3)
+  @test ok
+  @test length(reps) == 2
+
+  GL = genus(torsion_quadratic_module(QQ[1;]), (3, 3))
+  A2 = root_lattice(:A, 2)
+  ok, reps = primitive_embeddings(GL, A2)
+  @test ok
+  @test !is_even(reps[1][3])
+end
+
+@testset "Equivariant primitive extensions" begin
+  A2 = root_lattice(:A, 2)
+  Fs = integer_lattice_with_isometry(root_lattice(:E, 6); neg=false)
+  q = torsion_quadratic_module(QQ[0;])
+
+  ok, reps = equivariant_primitive_extensions(A2, Fs; q, classification=:embemb)
+  @test ok
+  @test length(reps) == 6
+
+  ok, reps = equivariant_primitive_extensions(reps[1][2], reps[1][3]; q, classification=:embemb)
+  @test ok
+  @test length(reps) == 2
+
+  Fs2 = integer_lattice_with_isometry(integer_lattice(;gram = QQ[3;]); neg=false)
+  ok, reps = equivariant_primitive_extensions(A2, Fs2; even=false)
+
+  @test ok
+  @test length(reps) == 9
 end

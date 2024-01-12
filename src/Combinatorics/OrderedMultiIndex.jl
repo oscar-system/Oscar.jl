@@ -200,7 +200,7 @@ index_length(I::MultiIndicesOfDegree) = I.n
 Base.eltype(I::MultiIndicesOfDegree) = Vector{Int}
 Base.length(I::MultiIndicesOfDegree) = binomial(I.n + I.d - 1, I.n - 1)
 
-function Base.iterate(I::MultiIndicesOfDegree)
+function Base.iterate(I::MultiIndicesOfDegree, state::Nothing = nothing)
   iszero(index_length(I)) && return nothing
   result = [0 for i in 1:index_length(I)]
   result[end] = degree(I)

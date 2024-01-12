@@ -2448,7 +2448,7 @@ function coordinates(
     return transpose(T * transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))))
   end
 
-  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  i = findfirst(x->(x isa MPolyPowersOfElement), U)
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
@@ -2510,7 +2510,7 @@ function ideal_membership(
 
   numerator(a) in pre_saturated_ideal(I) && return true
 
-  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  i = findfirst(x->(x isa MPolyPowersOfElement), U)
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
