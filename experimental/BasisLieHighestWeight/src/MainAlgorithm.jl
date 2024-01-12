@@ -203,7 +203,6 @@ function add_new_monomials!(
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
   monomial_ordering::MonomialOrdering,
-  highest_weight::Vector{ZZRingElem},
   weightspaces::Dict{Vector{ZZRingElem},Int},
   dim_weightspace::Int,
   weight_w::Vector{ZZRingElem},
@@ -211,6 +210,7 @@ function add_new_monomials!(
   space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
   set_mon::Set{ZZMPolyRingElem},
+  zero_coordinates::Vector{Int},
 )
   """
   If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
@@ -220,10 +220,6 @@ function add_new_monomials!(
   polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
   """
 
-  # first identify coordinates that are trivially zero because of the action on the generator
-  zero_coordinates = compute_zero_coordinates(
-    birational_sequence.weights_alpha, L, weight_w, highest_weight
-  )
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
@@ -336,6 +332,9 @@ function add_by_hand(
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
+  # identify coordinates that are trivially zero because of the action on the generator
+  zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
+
   # calculate new monomials
   for weight_w in weights_with_non_full_weightspace
     dim_weightspace = weightspaces[weight_w]
@@ -345,7 +344,6 @@ function add_by_hand(
       ZZx,
       matrices_of_operators,
       monomial_ordering,
-      highest_weight,
       weightspaces,
       dim_weightspace,
       weight_w,
@@ -353,6 +351,7 @@ function add_by_hand(
       space,
       v0,
       set_mon,
+      zero_coordinates,
     )
   end
   return set_mon
