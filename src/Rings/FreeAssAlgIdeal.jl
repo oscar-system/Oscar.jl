@@ -89,7 +89,7 @@ end
 @doc raw"""
     ideal_membership(a::FreeAssAlgElem, I::FreeAssAlgIdeal, deg_bound::Int)
 
-Return `true` if calucations with intermediate degrees bounded by `deg_bound`
+Return `true` if calculations with intermediate degrees bounded by `deg_bound`
 prove that $a$ is in $I$. Otherwise, a return of `false` indicates an
 inconclusive answer, but larger `deg_bound`s give more confidence in a negative
 answer.
