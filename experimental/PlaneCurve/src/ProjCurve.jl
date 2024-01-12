@@ -2,7 +2,7 @@ export ProjCurve
 export curve_components
 export defining_ideal
 export is_irreducible
-export jacobi_ideal
+export jacobian_ideal
 export reduction
 
 import Oscar.defining_ideal
@@ -187,7 +187,7 @@ end
 ################################################################################
 
 @doc raw"""
-    jacobi_ideal(C::ProjCurve)
+    jacobian_ideal(C::ProjCurve)
 
 Return the Jacobian ideal of the defining ideal of `C`.
 
@@ -205,15 +205,15 @@ ideal(x^2, y^2*z, z^2)
 julia> C = Oscar.ProjCurve(I)
 Projective curve defined by the ideal(x^2, y^2*z, z^2)
 
-julia> Oscar.jacobi_ideal(C)
+julia> Oscar.jacobian_ideal(C)
 ideal(4*x*y*z, 2*x*y^2, 4*x*z, 4*y*z^2)
 ```
 """
-function Oscar.jacobi_ideal(C::ProjCurve)
+function Oscar.jacobian_ideal(C::ProjCurve)
     I = defining_ideal(C)
     R = base_ring(I)
     k = C.ambiant_dim - 1
-    M = jacobi_matrix(gens(I))
+    M = jacobian_matrix(gens(I))
     V = minors(M, k)
     filter!(!iszero, V)
     return ideal(R, V)

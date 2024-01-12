@@ -799,7 +799,7 @@ end
 ## compute *some* representative of the Jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
 
-function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))
   L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)
