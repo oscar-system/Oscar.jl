@@ -384,3 +384,100 @@ end
 pushforward(f::Generic.CompositeMap, a::Any) = pushforward(map2(f), pushforward(map1(f), a))
 pullback(f::Generic.CompositeMap, a::Any) = pullback(map1(f), pullback(map2(f), a))
 
+
+### Strands of graded modules
+function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRingElem, T <: FreeModElem{B}}
+  F = parent(v)
+  R = base_ring(F)
+  kk = coefficient_ring(R)
+  result = SRow(kk)
+  iszero(v) && return result
+  pos = [findfirst(k->k==m, b) for m in monomials(v)]
+  vals = collect(coefficients(v))
+  return SRow(kk, pos, vals)
+end
+
+### Take a complex of graded modules and twist all 
+# modules so that the (co-)boundary maps become homogenous 
+# of degree zero. 
+function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
+  R = base_ring(C[first(range(C))])
+  is_standard_graded(R) || error("ring must be standard graded")
+  all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")
+  all(k->is_graded(C[k]), range(C)) || error("complex must be graded")
+  all(k->C[k] isa FreeMod, range(C)) || error("terms in complex must be free")
+
+  new_maps = Map[]
+  new_chains = [C[first(range(C))]]
+  offset = zero(grading_group(R))
+  for i in range(C)
+    i == last(range(C)) && break
+    phi = map(C, i)
+    dom = domain(phi)
+    cod = codomain(phi)
+    x = gens(dom)
+    if !isempty(x)
+      delta = degree(phi(first(x))) - degree(first(x))
+      @assert all(u->degree(phi(u)) - degree(u) == delta, x[2:end]) "map is not homogeneous"
+      offset = offset + delta
+    end
+    new_chain = twist(cod, offset)
+    imgs = phi.(gens(domain(phi)))
+    imgs = [new_chain(coordinates(y)) for y in imgs]
+    new_map = hom(last(new_chains), new_chain, imgs)
+    push!(new_maps, new_map)
+    push!(new_chains, new_chain)
+  end
+  
+  return ComplexOfMorphisms(T, new_maps, typ = :chain, seed=last(range(C)))
+end
+
+### Take a complex of free ℤ-graded modules with (co-)boundary 
+# maps of degree zero and return the complex given by all the 
+# degree d parts.
+function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
+  R = base_ring(C[first(range(C))])
+  is_standard_graded(R) || error("ring must be standard graded")
+  all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")
+  all(k->is_graded(C[k]), range(C)) || error("complex must be graded")
+  all(k->C[k] isa FreeMod, range(C)) || error("terms in complex must be free")
+
+  kk = coefficient_ring(R)
+  res_maps = Map[]
+
+  i = first(range(C))
+  mons = collect(all_monomials(C[i], d))
+  chains = [FreeMod(kk, length(mons))]
+  
+  for i in range(C)
+    i == last(range(C)) && break # How else to skip that???
+    new_mons = collect(all_monomials(C[i-1], d))
+    push!(chains, FreeMod(kk, length(new_mons)))
+    imgs = elem_type(last(chains))[]
+    phi = map(C, i)
+    M = last(chains)
+    for x in mons
+      c = _coordinates_in_monomial_basis(phi(x), new_mons)
+      v = sum(x*M[i] for (i, x) in c; init=zero(M))
+      push!(imgs, v)
+    end
+    push!(res_maps, hom(chains[end-1], chains[end], imgs))
+    mons = new_mons
+  end
+  return ComplexOfMorphisms(typeof(domain(first(res_maps))), res_maps, typ = :chain, seed=last(range(C)), check=false)
+end
+
+### Get a subcomplex in a specific range. 
+function getindex(c::ComplexOfMorphisms{T}, r::UnitRange) where {T}
+  first(r) in range(c) || error("range out of bounds")
+  last(r) in range(c) || error("range out of bounds")
+  if is_chain_complex(c)
+    maps = [map(c, i) for i in last(r):-1:first(r)+1]
+    return ComplexOfMorphisms(T, maps, seed=first(r), typ=:chain, check=false)
+  else
+    maps = [map(c, i) for i in first(r):last(r)-1]
+    return ComplexOfMorphisms(T, maps, seed=first(r), typ=:cochain, check=false)
+  end
+end
+
+
