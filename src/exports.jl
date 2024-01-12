@@ -31,7 +31,7 @@ export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
-export affine_morphism
+export morphism
 export AffineNormalToricVariety
 export AffinePlaneCurve
 export AffineVariety

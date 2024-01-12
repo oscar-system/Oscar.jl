@@ -78,7 +78,7 @@ over the same `base_ring`, with underlying ring homomorphism
   end
 end
   
-function affine_morphism(X::DomainType, Y::CodomainType, pullback::PullbackType;
+function morphism(X::DomainType, Y::CodomainType, pullback::PullbackType;
     check::Bool=true
   ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
   return SpecMor(X, Y, pullback; check)

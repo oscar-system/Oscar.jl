@@ -57,7 +57,7 @@
   A2 = Spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
-  phi = affine_morphism(UX, A2, [y//z, z])
+  phi = morphism(UX, A2, [y//z, z])
   L = subscheme(A2, u-v)
   phi_L = preimage(phi, L)
   @test OO(phi_L)(y//z) == OO(phi_L)(z)
@@ -66,7 +66,7 @@
   @test iszero(pullback(p)(OO(phi_L)(y//z)) - pullback(q)(OO(L)(v)))
   
   Xstd = Oscar.standard_spec(X)
-  mirr = affine_morphism(Xstd, Xstd, [y, x, z])
+  mirr = morphism(Xstd, Xstd, [y, x, z])
   @test is_isomorphism(mirr)
   @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
   @test is_empty(EmptyScheme(QQ))
@@ -225,8 +225,8 @@ end
   B = Oscar.standard_spec(Spec(T))
   phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
   phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
-  Phi1 = affine_morphism(X, B, phi1)
-  Phi2 = affine_morphism(Y, B, phi2)
+  Phi1 = morphism(X, B, phi1)
+  Phi2 = morphism(Y, B, phi2)
   Z = fiber_product(Phi1, Phi2)[1]
   A = ambient_coordinate_ring(Z)
   a = gens(A)

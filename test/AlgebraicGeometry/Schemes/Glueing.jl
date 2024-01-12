@@ -54,8 +54,8 @@ end
   pbf = hom(OO(Vu), OO(Ux), [inv(OO(Ux)(x)), OO(Ux)(y)])
   pbg = hom(OO(Ux), OO(Vu), [inv(OO(Vu)(u)), OO(Vu)(v)])
 
-  f = affine_morphism(Ux, Vu, pbf)
-  g = affine_morphism(Vu, Ux, pbg)
+  f = morphism(Ux, Vu, pbf)
+  g = morphism(Vu, Ux, pbg)
 
   simpleG = SimpleGlueing(X, Y, f, g)
   G1 = Glueing(simpleG)
@@ -64,8 +64,8 @@ end
   Vv = PrincipalOpenSubset(Y, v)
   Wb = PrincipalOpenSubset(Z, b)
 
-  f = affine_morphism(Vv, Wb, [u, 1//v])
-  g = affine_morphism(Wb, Vv, [a, 1//b])
+  f = morphism(Vv, Wb, [u, 1//v])
+  g = morphism(Wb, Vv, [a, 1//b])
   Vvo = SpecOpen(Vv)
   Wbo = SpecOpen(Wb)
   simpleG2 = SimpleGlueing(Y, Z, f, g)

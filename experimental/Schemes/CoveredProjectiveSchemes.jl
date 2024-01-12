@@ -397,7 +397,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
       g = OO(UW).(gens(I))
       set_attribute!(p_res_dict[VW], :inverse, 
-                     affine_morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                     morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
     set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
@@ -440,7 +440,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
       g = OO(UW).(gens(I))
       set_attribute!(p_res_dict[VW], :inverse, 
-                     affine_morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                     morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
     
@@ -495,7 +495,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
     g = OO(UW).(gens(I))
     set_attribute!(p_res_dict[VW], :inverse, 
-                   affine_morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
+                   morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                   )
   end
   set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
@@ -909,8 +909,8 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   pb_BW_to_BBW = hom(OO(BW), OO(BBW), gens(OO(BBW)), check=false)
   yimgs = [pb_AW_to_AAW(psi(pp))*inv(pb_AW_to_AAW(psi(qq))) for (pp, qq) in yhh]
   ximgs = [pb_BW_to_BBW(phi(pp))*inv(pb_BW_to_BBW(phi(qq))) for (pp, qq) in xhh]
-  ff = affine_morphism(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
-  gg = affine_morphism(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
+  ff = morphism(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
+  gg = morphism(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
   return SimpleGlueing(UW, VW, ff, gg, check=false)
   pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov))
@@ -1774,7 +1774,7 @@ function fiber_product(
     lift_x = [preimage(pullback(i1[V1]), f) for f in x]
     pb_x = pullback(i2[V2]).(lift_x)
     pb_x = pullback(j1[U]).(pb_x)
-    morphism_dict[U] = ClosedEmbedding(affine_morphism(U, V1, pb_x, check=false), pb_I2(V1), check=false)
+    morphism_dict[U] = ClosedEmbedding(morphism(U, V1, pb_x, check=false), pb_I2(V1), check=false)
   end
   j2_cov = CoveringMorphism(default_covering(Z), domain(i1_cov), morphism_dict, check=false)
   j2 = Oscar.CoveredClosedEmbedding(Z, X1, j2_cov)

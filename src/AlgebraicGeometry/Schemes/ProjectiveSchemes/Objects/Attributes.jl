@@ -292,7 +292,7 @@ affine_cone(P::AbsProjectiveScheme)
   A = codomain(phi)
   C = Spec(A)
   B = base_scheme(P)
-  P.projection_to_base = affine_morphism(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
+  P.projection_to_base = morphism(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
   return C, phi
 end
 
