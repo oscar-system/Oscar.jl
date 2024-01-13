@@ -98,7 +98,7 @@ install_GAP_serialization(:IsFreeGroup,
         save_object(s, wfilt, :wfilt)
         # rank and names of generators
         Xnames = GAP.getbangproperty(elfam, :names)::GapObj
-        if length(Xnames) == GAP.Globals.infinity
+        if GAP.Globals.Length(Xnames)::GAP.Obj == GAP.Globals.infinity
           # store the initial names and the prefix
           prefix = GAP.getbangindex(Xnames, 1)::GapObj
           save_object(s, string(prefix), :nameprefix)
@@ -240,12 +240,12 @@ install_GAP_serialization(:IsPcGroup,
   function(X::GapObj, s::SerializerState)
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(X))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
-    if GAP.Globals.IsIdenticalObj(fullpcgs, GAPWrap.Pcgs(X)::GapObj)
+    if GAP.Globals.IsIdenticalObj(fullpcgs, GAPWrap.Pcgs(X))
       # full pc group: Save the defining data.
       save_data_dict(s) do
         save_object(s, "IsPcGroup", :GapType)
         # relative orders
-        relord = [GAP.Globals.RelativeOrderOfPcElement(fullpcgs, x)::GapObj
+        relord = [GAP.Globals.RelativeOrderOfPcElement(fullpcgs, x)::GAP.Obj
                   for x in fullpcgs]
         save_object(s, relord, :relord)
         # power relators
