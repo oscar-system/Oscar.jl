@@ -811,8 +811,8 @@ on ``X`` as a `CoherentSheaf`.
     (U, V) = patches(G)
     (UU, VV) = glueing_domains(G)
     (f, g) = glueing_morphisms(G)
-    MG[(U, V)] = transpose(jacobi_matrix(pullback(g).(gens(OO(UU)))))
-    MG[(V, U)] = transpose(jacobi_matrix(pullback(f).(gens(OO(VV)))))
+    MG[(U, V)] = transpose(jacobian_matrix(pullback(g).(gens(OO(UU)))))
+    MG[(V, U)] = transpose(jacobian_matrix(pullback(f).(gens(OO(VV)))))
   end
 
 
@@ -846,7 +846,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobian_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end
@@ -855,7 +855,7 @@ end
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
-  rels, _ = sub(F, transpose(change_base_ring(R, jacobi_matrix(base_ring(modulus(R)), gens(modulus(R))))))
+  rels, _ = sub(F, transpose(change_base_ring(R, jacobian_matrix(base_ring(modulus(R)), gens(modulus(R))))))
   M, _ = quo(F, rels)
   return M
 end

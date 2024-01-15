@@ -878,8 +878,8 @@ export isqrtrem
 export issubset
 export iszero
 export iterate_basis
-export jacobi_ideal
-export jacobi_matrix
+export jacobian_ideal
+export jacobian_matrix
 export jacobi_symbol
 export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid

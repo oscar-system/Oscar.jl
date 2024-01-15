@@ -530,3 +530,5 @@ Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorph
 
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal

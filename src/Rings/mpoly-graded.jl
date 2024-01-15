@@ -791,19 +791,19 @@ function finish(M::MPolyBuildCtx{<:MPolyDecRingElem})
   return parent(M.poly)(f)
 end
 
-function jacobi_matrix(f::MPolyDecRingElem)
+function jacobian_matrix(f::MPolyDecRingElem)
   R = parent(f)
   n = nvars(R)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_ideal(f::MPolyDecRingElem)
+function jacobian_ideal(f::MPolyDecRingElem)
   R = parent(f)
   n = nvars(R)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_matrix(g::Vector{<:MPolyDecRingElem})
+function jacobian_matrix(g::Vector{<:MPolyDecRingElem})
   R = parent(g[1])
   n = nvars(R)
   @assert all(x->parent(x) === R, g)
