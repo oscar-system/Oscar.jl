@@ -55,6 +55,10 @@ end
 
 Kbar = anticanonical_bundle(base_space(t))
 my_choice = Dict("a1" => basis_of_global_sections(Kbar)[1])
+my_choice["a2"] = basis_of_global_sections(Kbar^2)[1]
+my_choice["a3"] = basis_of_global_sections(Kbar^3)[1]
+my_choice["a4"] = basis_of_global_sections(Kbar^4)[1]
+my_choice["a6"] = basis_of_global_sections(Kbar^6)[1]
 t3 = tune(t, my_choice; completeness_check = false)
 
 x1, x2, x3, x4, x, y, z = gens(parent(tate_polynomial(t2)))
@@ -65,10 +69,14 @@ tuned_t2 = tune(t2, new_tate_polynomial)
   @test base_space(t3) == base_space(t)
   @test tate_section_a1(t3) == my_choice["a1"]
   @test tate_section_a1(t3) != tate_section_a1(t)
-  @test tate_section_a2(t3) == tate_section_a2(t)
-  @test tate_section_a3(t3) == tate_section_a3(t)
-  @test tate_section_a4(t3) == tate_section_a4(t)
-  @test tate_section_a6(t3) == tate_section_a6(t)
+  @test tate_section_a2(t3) == my_choice["a2"]
+  @test tate_section_a2(t3) != tate_section_a2(t)
+  @test tate_section_a3(t3) == my_choice["a3"]
+  @test tate_section_a3(t3) != tate_section_a3(t)
+  @test tate_section_a4(t3) == my_choice["a4"]
+  @test tate_section_a4(t3) != tate_section_a4(t)
+  @test tate_section_a6(t3) == my_choice["a6"]
+  @test tate_section_a6(t3) != tate_section_a6(t)
   @test t2 == tune(t2, tate_polynomial(t2))
   @test hypersurface_equation(tuned_t2) == new_tate_polynomial
   @test base_space(tuned_t2) == base_space(t2)
