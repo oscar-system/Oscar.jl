@@ -621,46 +621,41 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             push!(U, elem_type(R)[])
         end
     end
-    k = 0
-    while k<4
-        #step 4
-        @label step_4 #not sure if this is needed...
-        j = 0
-        for i in 1:length(U)
-            if length(U[i]) != 0
-                j = i
-                @goto step4_b
-            end
+    #step 4
+    @label step_4 #not sure if this is needed...
+    j = 0
+    for i in 1:length(U)
+        if length(U[i]) != 0
+            j = i
+            @goto step4_b
         end
-        return S[index_0]
-        @label step4_b
-        m = U[j][1]
-        w = C[j] #weight_of_monomial(m, W)
-        #step 5 - 7
-        for i in 1:n
-            u = m*gen(R,i)
-            v = w + W[i]
-            if v in C
-                index = findfirst(item -> item == v, C)
-                c = true
-                if length(S[index]) == 0
-                    c = true
-                end
-                for elem in S[index]
-                    if divides(u, elem)[1]
-                        c = false
-                        break
-                    end
-                end
-                if c == true
-                    push!(S[index], u)
-                    push!(U[index], u)
-                end
-            end
-        end
-        deleteat!(U[j], findall(item -> item == m, U[j]))
-        k += 1
-        @goto step_4
     end
     return S[index_0]
+    @label step4_b
+    m = U[j][1]
+    w = C[j] #weight_of_monomial(m, W)
+    #step 5 - 7
+    for i in 1:n
+        u = m*gen(R,i)
+        v = w + W[i]
+        if v in C
+            index = findfirst(item -> item == v, C)
+            c = true
+            if length(S[index]) == 0
+                c = true
+            end
+            for elem in S[index]
+                if divides(u, elem)[1]
+                    c = false
+                    break
+                end
+            end
+            if c == true
+                push!(S[index], u)
+                push!(U[index], u)
+            end
+        end
+    end
+    deleteat!(U[j], findall(item -> item == m, U[j]))
+    @goto step_4
 end
