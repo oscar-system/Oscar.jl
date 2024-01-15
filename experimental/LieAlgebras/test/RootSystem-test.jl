@@ -25,7 +25,7 @@
       @test simple_roots(R) == positive_roots(R)[1:rk]
       @test all(iszero, positive_roots(R) + negative_roots(R))
 
-      @test issorted(sum.(coefficients.(positive_roots(R)))) # sorted by height
+      @test issorted(height.(positive_roots(R))) # sorted by height
     end
 
     @testset "A_$n" for n in [1, 2, 6]

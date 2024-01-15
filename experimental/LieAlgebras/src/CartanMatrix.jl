@@ -222,7 +222,7 @@ end
 @doc raw"""
     cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true) -> ZZMatrix
 
-Returns the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_matrix_symmetrizer`.
+Returns the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_symmetrizer`.
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 
 # Example
@@ -233,10 +233,8 @@ julia> cartan_bilinear_form(cartan_matrix(:B, 2))
 ```
 """
 function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
-
+  sym = cartan_symmetrizer(gcm; check)
   bil = deepcopy(gcm)
-  sym = cartan_symmetrizer(gcm; check=false)
   for i in 1:length(sym)
     mul!(view(bil, i, :), sym[i])
   end

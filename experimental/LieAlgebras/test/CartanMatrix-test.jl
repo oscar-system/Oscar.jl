@@ -83,6 +83,11 @@
     @test cartan_symmetrizer(cartan_matrix(:F, 4)) == [2, 2, 1, 1]
     @test cartan_symmetrizer(cartan_matrix(:G, 2)) == [1, 3]
 
+    @test_skip cartan_symmetrizer(cartan_matrix((:A, 3), (:B, 3))) == [[1, 1, 1]; [2, 2, 1]] # TODO @felix-roehrich
+    @test_skip cartan_symmetrizer(cartan_matrix((:F, 4), (:D, 4))) ==
+      [[2, 2, 1, 1]; [1, 1, 1, 1]]
+    @test_skip cartan_symmetrizer(cartan_matrix((:C, 4), (:G, 2))) == [[1, 1, 1, 2]; [1, 3]]
+
     @test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -1 2]) == [1, 2, 2]
     @test cartan_symmetrizer(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]) == [2, 1, 1, 2]
 

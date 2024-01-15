@@ -33,12 +33,14 @@ import ..Oscar:
   derived_series,
   dim,
   direct_sum,
+  dot,
   dual,
   elem_type,
   expressify,
   exterior_power,
   gen,
   gens,
+  height,
   hom,
   hom_tensor,
   ideal,
@@ -73,7 +75,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
+import Base: getindex, deepcopy_internal, hash, issubset, iszero, length, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export LieAlgebra, LieAlgebraElem

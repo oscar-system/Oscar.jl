@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-mutable struct RootSystem
+@attributes mutable struct RootSystem
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
   positive_roots::Any #::Vector{RootSpaceElem} (cyclic reference)
@@ -24,17 +24,19 @@ mutable struct RootSystem
 end
 
 @doc raw"""
-    root_system(cartan_matrix::ZZMatrix) -> RootSystem
-    root_system(cartan_matrix::Matrix{Int}) -> RootSystem
+    root_system(cartan_matrix::ZZMatrix; check::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{Int}; check::Bool=true) -> RootSystem
 
 Constructs the root system defined by the Cartan matrix.
+If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
 """
-function root_system(cartan_matrix::ZZMatrix)
+function root_system(cartan_matrix::ZZMatrix; check::Bool=true)
+  @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
   return RootSystem(cartan_matrix)
 end
 
-function root_system(cartan_matrix::Matrix{<:Integer})
-  return RootSystem(matrix(ZZ, cartan_matrix))
+function root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true)
+  return root_system(matrix(ZZ, cartan_matrix); check)
 end
 
 @doc raw"""
@@ -44,14 +46,14 @@ Constructs the root system of the given type. See `cartan_matrix(fam::Symbol, rk
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
-  R = root_system(cartan)
+  R = root_system(cartan; check=false)
   R.type = [(fam, rk)]
   return R
 end
 
 function root_system(types::Tuple{Symbol,Int}...)
   cartan = cartan_matrix(types...)
-  R = root_system(cartan)
+  R = root_system(cartan; check=false)
   R.type = collect(types)
   return R
 end
@@ -70,6 +72,10 @@ function Base.show(io::IO, R::RootSystem)
   else
     print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
   end
+end
+
+@attr ZZMatrix function cartan_bilinear_form(R::RootSystem)
+  return cartan_bilinear_form(cartan_matrix(R); check=false)
 end
 
 @doc raw"""
@@ -303,19 +309,19 @@ function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
 end
 
 function Base.:(+)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req r.root_system === r2.root_system "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
 
-  return RootSpaceElem(r.root_system, r.vec + r2.vec)
+  return RootSpaceElem(root_system(r), r.vec + r2.vec)
 end
 
 function Base.:(-)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req r.root_system === r2.root_system "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
 
-  return RootSpaceElem(r.root_system, r.vec - r2.vec)
+  return RootSpaceElem(root_system(r), r.vec - r2.vec)
 end
 
 function Base.:(-)(r::RootSpaceElem)
-  return RootSpaceElem(r.root_system, -r.vec)
+  return RootSpaceElem(root_system(r), -r.vec)
 end
 
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
@@ -327,7 +333,7 @@ function Base.deepcopy_internal(r::RootSpaceElem, dict::IdDict)
     return dict[r]
   end
 
-  w2 = RootSpaceElem(r.root_system, deepcopy_internal(r.vec, dict))
+  w2 = RootSpaceElem(root_system(r), deepcopy_internal(r.vec, dict))
   dict[r] = w2
   return w2
 end
@@ -356,8 +362,24 @@ function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
 end
 
+function dot(r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(r1) === root_system(r2) "$r1 and $r2 must belong to the same root space"
+
+  return dot(coefficients(r1) * cartan_bilinear_form(root_system(r1)), coefficients(r2))
+end
+
+@doc raw"""
+    height(r::RootSpaceElem) -> QQFieldElem
+
+For a root `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple roots.
+If `r` is not a root, the return value is arbitrary.
+"""
+function height(r::RootSpaceElem)
+  return sum(coefficients(r))
+end
+
 function is_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), roots(r.root_system))
+  i = findfirst(==(r), roots(root_system(r)))
   if isnothing(i)
     return false, 0
   else
@@ -366,7 +388,7 @@ function is_root_with_index(r::RootSpaceElem)
 end
 
 function is_positive_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), positive_roots(r.root_system))
+  i = findfirst(==(r), positive_roots(root_system(r)))
   if isnothing(i)
     return false, 0
   else
@@ -375,7 +397,7 @@ function is_positive_root_with_index(r::RootSpaceElem)
 end
 
 function is_negative_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), negative_roots(r.root_system))
+  i = findfirst(==(r), negative_roots(root_system(r)))
   if isnothing(i)
     return false, 0
   else
@@ -384,7 +406,7 @@ function is_negative_root_with_index(r::RootSpaceElem)
 end
 
 function is_simple_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), simple_roots(r.root_system))
+  i = findfirst(==(r), simple_roots(root_system(r)))
   if isnothing(i)
     return false, 0
   else
@@ -394,6 +416,10 @@ end
 
 function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
+end
+
+function Base.length(r::RootSpaceElem)
+  return dot(r, r)
 end
 
 function reflect!(r::RootSpaceElem, s::Int)
