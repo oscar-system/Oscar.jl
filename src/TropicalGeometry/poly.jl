@@ -190,7 +190,7 @@ julia> tropical_polynomial(f,nu)
 function tropical_polynomial(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
 
     # if unspecified, set nu to be the trivial valuation + min convention
-    isnothing(nu) && (nu = tropical_semiring_map(parent(f)))
+    isnothing(nu) && (nu = tropical_semiring_map(coefficient_ring(f)))
 
     T = tropical_semiring(nu)
     Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
