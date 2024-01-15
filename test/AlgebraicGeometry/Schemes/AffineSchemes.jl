@@ -194,9 +194,9 @@ end
   @test_broken issubset(intersect(A3,V),A3)
   @test ambient_coordinate_ring(V)===R
   @test ambient_coordinate_ring(U) === R
-  @test ring_type(V) == typeof(OO(V))
-  @test base_ring_type(typeof(V)) == typeof(QQ)
-  @test base_ring_elem_type(V) == QQFieldElem
+  @test Oscar.ring_type(V) == typeof(OO(V))
+  @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
+  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test issubset(V,U)
   @test issubset(U,V)
