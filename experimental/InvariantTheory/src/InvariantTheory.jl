@@ -47,7 +47,14 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-    print(io, "Reductive group ", G.group[1], G.group[2])
+    io = AbstractAlgebra.pretty(io)
+    if G.group[1] == :SL
+        print(io, "Reductive group ", G.group[1], G.group[2])
+    else
+        println(io, "Torus of degree ", group(G)[2])
+        print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(G))
+        print(io, AbstractAlgebra.Dedent())
+    end
 end
 
 reductive_group(sym::Symbol, m::Int, R::MPolyRing) = ReductiveGroup(sym,m,R)
@@ -179,8 +186,13 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
             print(io, AbstractAlgebra.Dedent())
         end
     else
-        println(io, "Torus of degree ", group(group(R))[2])
-        print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(group(R)))
+        println(io, "Representation of torus of degree ", group(group(R))[2])
+        println(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(group(R)), " and weights ")
+        if isdefined(R, :weights)
+            print(io, R.weights)
+        elseif isdefined(R, :rep_mat)
+            print(R.rep_mat)
+        end
         print(io, AbstractAlgebra.Dedent())
     end
 end
@@ -571,6 +583,7 @@ end
 ##########################
 #fast algorithm for invariants of tori
 ##########################
+#Algorithm 4.3.1 from Derksen and Kemper. Computes Torus invariants without Reynolds operator.
 function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     #no check that length(W[i]) for all i is the same
     length(W) == ngens(R) || error("number of weights must be equal to the number of generators of the polynomial ring")
@@ -578,38 +591,33 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     r = length(W[1])
     #step 2
     if length(W[1]) == 1
-        M = zero_matrix(Int, n, 1)
+        M = zero_matrix(ZZ, n, 1)
         for i in 1:n
             M[i,1] = W[i][1]
         end
-        C1 = collect(lattice_points(convex_hull(M)))
+        C1 = lattice_points(convex_hull(M))
     else
-        M = zero_matrix(Int, 2*n, r)
+        M = zero_matrix(ZZ, 2*n, r)
         for i in 1:n
             M[i, 1:r] = 2*r*W[i]
             M[n + i, 1:r] = -2*r*W[i]   
         end
-        C1 = collect(lattice_points(convex_hull(M)))
+        C1 = lattice_points(convex_hull(M))
     end
     
     #get a Vector{Vector{ZZRingElem}} from Vector{PontVector{ZZRingElem}}
-    C = [[ZZRingElem(0) for i in 1:r] for j in 1:length(C1)]
-    for i in 1:length(C1)
-        for j in 1:r
-            C[i][j] = C1[i][j]
-        end
-    end
+    C = map(Vector{ZZRingElem}, C1)
     #step 3
     S = Vector{Vector{elem_type(R)}}()
     U = Vector{Vector{elem_type(R)}}()
     index_0 = 0
     for point in C
-        if point == [ZZRingElem(0) for i in 1:r] #this may not work CHECK
+        if is_zero(point)
             index_0 = findfirst(item -> item == point, C)
         end
         c = true
         for i in 1:n
-            if point == W[i] #check type here TODO
+            if point == W[i]
                 push!(S, [gen(R,i)])
                 push!(U, [gen(R,i)])
                 c = false
@@ -622,7 +630,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
         end
     end
     #step 4
-    @label step_4 #not sure if this is needed...
+    @label step_4 
     j = 0
     for i in 1:length(U)
         if length(U[i]) != 0
@@ -641,9 +649,6 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
         if v in C
             index = findfirst(item -> item == v, C)
             c = true
-            if length(S[index]) == 0
-                c = true
-            end
             for elem in S[index]
                 if divides(u, elem)[1]
                     c = false
