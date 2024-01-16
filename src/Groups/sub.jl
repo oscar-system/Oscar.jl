@@ -860,8 +860,7 @@ function quo(G::T, N::T) where T <: GAPGroup
   S = elem_type(G)
   S1 = _get_type(cod)
   codom = S1(cod)
-  mp_julia = __create_fun(mp, codom, S)
-  return codom, hom(G, codom, mp_julia)
+  return codom, GAPGroupHomomorphism(G, codom, mp)
 end
 
 function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
