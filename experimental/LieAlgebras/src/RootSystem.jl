@@ -9,6 +9,8 @@
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
   positive_roots::Any #::Vector{RootSpaceElem} (cyclic reference)
   weyl_group::Any     #::WeylGroup (cyclic reference)
+
+  # optional:
   type::Vector{Tuple{Symbol,Int}}
 
   function RootSystem(mat::ZZMatrix)
@@ -202,7 +204,7 @@ Returns the number of positive roots of `R`. This is the same as the number of n
 Also see: `positive_roots`, `negative_roots`.
 """
 function num_positive_roots(R::RootSystem)
-  return length(R.positive_roots)
+  return length(positive_roots(R))
 end
 
 @doc raw"""
@@ -284,7 +286,7 @@ end
 Returns the rank of `R`, i.e. the number of simple roots.
 """
 function rank(R::RootSystem)
-  return nrows(R.cartan_matrix)
+  return nrows(cartan_matrix(R))
 end
 
 function root_system_type(R::RootSystem)
@@ -293,8 +295,7 @@ function root_system_type(R::RootSystem)
 end
 
 function root_system_type_string(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
-  return join([string(t[1]) * string(t[2]) for t in R.type], " x ")
+  return join([string(t[1]) * string(t[2]) for t in root_system_type(R)], " x ")
 end
 
 @doc raw"""
@@ -550,23 +551,23 @@ function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
 end
 
 function Base.:(*)(n::IntegerUnion, w::WeightLatticeElem)
-  return WeightLatticeElem(w.root_system, n * w.vec)
+  return WeightLatticeElem(root_system(w), n * w.vec)
 end
 
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req w.root_system === w2.root_system "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
 
-  return RootSpaceElem(w.root_system, w.vec + w2.vec)
+  return RootSpaceElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req w.root_system === w2.root_system "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
 
-  return WeightLatticeElem(w.root_system, w.vec - w2.vec)
+  return WeightLatticeElem(root_system(w), w.vec - w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem)
-  return WeightLatticeElem(w.root_system, -w.vec)
+  return WeightLatticeElem(root_system(w), -w.vec)
 end
 
 function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
@@ -578,7 +579,7 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
     return dict[w]
   end
 
-  w2 = WeightLatticeElem(w.root_system, deepcopy_internal(w.vec, dict))
+  w2 = WeightLatticeElem(root_system(w), deepcopy_internal(w.vec, dict))
   dict[w] = w2
   return w2
 end
@@ -628,7 +629,7 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
   # conj will be dominant once all fundamental weights have a positive coefficient,
   # so search for negative coefficients and make them positive by applying the corresponding reflection.
   s = 1
-  while s <= rank(w.root_system)
+  while s <= rank(root_system(w))
     if conj.vec[s] < 0
       reflect!(conj, s)
       s = 1
@@ -643,7 +644,7 @@ end
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
-    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context=context), "$s$i"))
+    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$s$i"))
   end
   return sum
 end
@@ -664,7 +665,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(w.root_system.cartan_matrix, :, s), -w.vec[s])
+  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s), -w.vec[s])
   return w
 end
 
