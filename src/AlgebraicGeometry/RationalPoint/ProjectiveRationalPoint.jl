@@ -234,5 +234,5 @@ function Base.hash(a::AbsProjectiveRationalPoint, u::UInt=UInt(123432))
     return u
   end
   normalize!(a)
-  return hash(coordinates(v), u)
+  return hash(coordinates(a), u)
 end

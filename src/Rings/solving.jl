@@ -233,5 +233,5 @@ function rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem})
   end
   P = projective_space(Q, ngens(RS))
   #projective comparison!!!!
-  return [coordinates(v) for p in Set(P(x) for x = all_S)]
+  return [coordinates(p) for p in Set(P(x) for x = all_S)]
 end
