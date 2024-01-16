@@ -114,7 +114,7 @@ geometric_genus(C::AffinePlaneCurve)
 ## Smoothness, tangents and singularity related functions
 
 ```@docs
-jacobi_ideal(C::Oscar.PlaneCurveModule.PlaneCurve)
+jacobian_ideal(C::Oscar.PlaneCurveModule.PlaneCurve)
 is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
 is_smooth(C::Oscar.PlaneCurveModule.ProjectivePlaneCurve{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
 tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem

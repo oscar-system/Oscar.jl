@@ -52,7 +52,7 @@ end
 ################################################################################
 
 function is_inflection(F::Oscar.MPolyDecRingElem{S}, P::Oscar.Geometry.ProjSpcElem{S}) where S <: FieldElem
-   J = jacobi_matrix([jacobi_matrix(F)[i] for i in 1:3])
+   J = jacobian_matrix([jacobian_matrix(F)[i] for i in 1:3])
    H = det(J)
    return iszero(evaluate(F, P.v)) && iszero(evaluate(H, P.v))
 end

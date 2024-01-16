@@ -46,7 +46,7 @@ false
 function Oscar.is_smooth(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
   iszero(evaluate(C.eq, P.coord)) || error("The point is not on the curve defined by ", C.eq)
-  J = jacobi_ideal(C)
+  J = jacobian_ideal(C)
   L = gens(J)
   a = evaluate(L[1], P.coord)
   b = evaluate(L[2], P.coord)
@@ -80,7 +80,7 @@ Affine plane curve defined by -48*x - 48*y
 function tangent(C::AffinePlaneCurve{S}, P::Point{S}) where S <: FieldElem
   P.ambient_dim == 2 || error("The point needs to be in a two dimensional space")
   iszero(evaluate(C.eq, P.coord)) || error("The point is not on the curve")
-  J = jacobi_ideal(C)
+  J = jacobian_ideal(C)
   L = gens(J)
   a = evaluate(L[1], P.coord)
   b = evaluate(L[2], P.coord)
@@ -256,7 +256,7 @@ function curve_singular_locus(C::AffinePlaneCurve)
       push!(CC, AffinePlaneCurve(g))
    end
    # Computation of the singular locus of the reduction of C.
-   J = jacobi_ideal(D)
+   J = jacobian_ideal(D)
    F = D.eq
    FX, FY = gens(J)
    # The case FX = FY = 0 cannot occur in the reduced case.
@@ -402,7 +402,7 @@ end
 Return the singular locus of `C` as a variety.
 """
 function singular_locus(C::AffinePlaneCurve)
-  J = jacobi_ideal(C)
+  J = jacobian_ideal(C)
   R = parent(C.eq)
   S = ideal(R, [gens(J); C.eq])
   return Variety(S)

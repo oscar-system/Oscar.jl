@@ -220,7 +220,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   kk = base_ring(R)
   characteristic(kk) == 0 || error("only available in characteristic zero")
  
-  JM = jacobi_matrix(gens(IX))
+  JM = jacobian_matrix(gens(IX))
 
   smooth = (:A,0)
 

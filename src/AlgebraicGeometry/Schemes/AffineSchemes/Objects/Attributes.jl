@@ -751,7 +751,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   empty = typeof(X)[]
   result = empty
 
-# equidimensional decomposition to allow Jacobi criterion on each component
+# equidimensional decomposition to allow Jacobian criterion on each component
   P = Ideal[]
 
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
@@ -764,12 +764,12 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     end
   end
 
-# if irreducible, just do Jacobi criterion
+# if irreducible, just do Jacobian criterion
   if length(P)==1 && !reduced
     d = dim(X)
     R = base_ring(I)
     n = nvars(R) 
-    M = _jacobi_matrix_modulus(X)
+    M = _jacobian_matrix_modulus(X)
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
@@ -795,11 +795,11 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   return result
 end
 
-## cheaper version of jacobi_matrix specifically for Jacobi matrix of modulus
-## compute *some* representative of the jacobian matrix of gens(modulus),
+## cheaper version of jacobian_matrix specifically for Jacobian matrix of modulus
+## compute *some* representative of the Jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
 
-function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))
   L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)

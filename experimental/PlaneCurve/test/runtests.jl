@@ -470,7 +470,7 @@ end
     P = Oscar.Geometry.ProjSpcElem(PP[1], [QQ(0), QQ(2), QQ(0), QQ(5)])
     @test P in C
     @test PC.is_irreducible(C)
-    J = PC.jacobi_ideal(C)
+    J = PC.jacobian_ideal(C)
     L = gens(J)
     @test length(L) == 4
     @test length(findall(a -> a == 4*x*y*z, L)) == 1

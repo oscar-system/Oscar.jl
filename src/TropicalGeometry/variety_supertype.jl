@@ -125,7 +125,7 @@ Return the maximal polyhedra of `TropV`.
 """
 function maximal_polyhedra_and_multiplicities(TropV::TropicalVarietySupertype)
     TropVmults = multiplicities(TropV)
-    return [ (sigma,TropVmults[sigma]) for sigma in maximal_polyhedra(TropV) ]
+    return collect(zip(maximal_polyhedra(TropV),multiplicities(TropV)))
 end
 
 

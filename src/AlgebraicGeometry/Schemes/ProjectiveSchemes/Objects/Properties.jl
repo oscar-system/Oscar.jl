@@ -116,7 +116,7 @@ function _projective_jacobian_criterion(P::AbsProjectiveScheme)
   end
   R = base_ring(homogeneous_coordinate_ring(P))
   I = defining_ideal(P)
-  mat = jacobi_matrix(R, gens(I))
+  mat = jacobian_matrix(R, gens(I))
   sing_locus = ideal(R, minors(mat, codim(P)))
   return dim(sing_locus + I) <= 0
 end

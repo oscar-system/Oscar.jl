@@ -1187,12 +1187,12 @@ end
 #  verbose && println("call with $X and $f")
 #  R = base_ring(OO(X))
 #  g = gens(modulus(OO(X)))
-#  Dg = jacobi_matrix(g)
+#  Dg = jacobian_matrix(g)
 #  d = dim(X)
 #  n = nvars(R)
 #  verbose && println("generators:")
 #  verbose && println(f)
-#  verbose && println("jacobian matrix:")
+#  verbose && println("Jacobian matrix:")
 #  if verbose
 #    for i in 1:nrows(Dg)
 #      println(Dg[i, 1:end])
@@ -1206,7 +1206,7 @@ end
 #    verbose && println("proceed with finding a regular sequence on $U")
 #    g = X_dict[U][2]
 #    f_ext = vcat(g, f)
-#    Df_ext = jacobi_matrix(f_ext)
+#    Df_ext = jacobian_matrix(f_ext)
 #    good = X_dict[U][3]
 #    Z = subscheme(U, f)
 #    d = dim(Z)
@@ -1233,11 +1233,11 @@ end
 #function as_smooth_lci_of_cod(X::Spec, c::Int; check::Bool=true, verbose::Bool=false)
 #  R = base_ring(OO(X))
 #  f = gens(modulus(OO(X)))
-#  Df = jacobi_matrix(f)
+#  Df = jacobian_matrix(f)
 #  n = nvars(R)
 ##  verbose && println("generators:")
 ##  verbose && println(f)
-##  verbose && println("jacobian matrix:")
+##  verbose && println("Jacobian matrix:")
 ##  if verbose
 ##    for i in 1:nrows(Df)
 ##      println(Df[i, 1:end])
@@ -1249,11 +1249,11 @@ end
 ##      push!(f_part, sum([(rand(Int)%1000)*g for g in f]))
 ##    end
 ##    @show "first try"
-##    while !isempty(degeneracy_locus(X, jacobi_matrix(f_part), c, verbose=true))
+##    while !isempty(degeneracy_locus(X, jacobian_matrix(f_part), c, verbose=true))
 ##      @show "new try"
 ##      push!(f_part, dot([rand(Int)%1000 for j in 1:length(f)], f))
 ##    end
-##    return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f_part, jacobi_matrix(f_part), n-c, n, check=check, verbose=verbose)
+##    return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f_part, jacobian_matrix(f_part), n-c, n, check=check, verbose=verbose)
 #  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, Df, n-c, n, check=check, verbose=verbose)
 #end
 #
@@ -1271,12 +1271,12 @@ end
 #function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbose::Bool=false)
 #  R = base_ring(OO(X))
 #  f = gens(modulus(OO(X)))
-#  Df = jacobi_matrix(f)
+#  Df = jacobian_matrix(f)
 #  d = dim(X)
 #  n = nvars(R)
 #  verbose && println("generators:")
 #  verbose && println(f)
-#  verbose && println("jacobian matrix:")
+#  verbose && println("Jacobian matrix:")
 #  if verbose
 #    for i in 1:nrows(Df)
 #      println(Df[i, 1:end])
@@ -1672,7 +1672,7 @@ end
 #
 #function test_cover(C, f, hl, ql, rl, cl)
 #  n = length(hl)
-#  Df = jacobi_matrix(f)
+#  Df = jacobian_matrix(f)
 #  for i in 1:n
 #    h = prod(hl[i])
 #    A = Df[rl[i], cl[i]]

@@ -2983,13 +2983,13 @@ function derivative(f::MPolyLocRingElem, i::Int)
   return parent(f)(divexact(num, g), divexact(den, g), check=false)
 end
 
-function jacobi_matrix(f::MPolyLocRingElem)
+function jacobian_matrix(f::MPolyLocRingElem)
   L = parent(f)
   n = nvars(base_ring(L))
   return matrix(L, n, 1, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_matrix(g::Vector{<:MPolyLocRingElem})
+function jacobian_matrix(g::Vector{<:MPolyLocRingElem})
   R = parent(g[1])
   n = nvars(base_ring(R))
   @assert all(x->parent(x) == R, g)

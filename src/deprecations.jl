@@ -556,3 +556,6 @@ Base.@deprecate_binding ProjectiveGlueing ProjectiveGluing
 Base.@deprecate_binding ProjectiveGlueingData ProjectiveGluingData
 Base.@deprecate_binding SimpleGlueing SimpleGluing
 Base.@deprecate_binding ToricGlueingData ToricGluingData
+
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal

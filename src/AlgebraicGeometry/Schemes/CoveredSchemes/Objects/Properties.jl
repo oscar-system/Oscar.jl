@@ -36,7 +36,7 @@ is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
     return true
   end
   # TODO: Can this be optimized? We only need to check the rank of
-  # the jacobian matrices where we haven't checked in another chart before.
+  # the Jacobian matrices where we haven't checked in another chart before.
   # This is a tradeoff between cost of Jacobian criterion and cost of
   # optimizing the use of the covering
   return all(is_smooth, affine_charts(X))
@@ -55,7 +55,7 @@ function _jacobian_criterion(X::CoveredScheme{<:Field})
   for (V, fs) in dec_info
     R = base_ring(OO(V))
     I = ambient_closure_ideal(V)
-    mat = jacobi_matrix(R, gens(I))
+    mat = jacobian_matrix(R, gens(I))
     sing_locus = ideal(R, fs) + ideal(R, minors(mat, codim(V)))
     sing_subscheme = subscheme(V, sing_locus)
     if !isempty(sing_subscheme)
