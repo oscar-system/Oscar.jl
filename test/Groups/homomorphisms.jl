@@ -660,6 +660,15 @@ end
    @test B == A
    @test B !== A
    @test B.X === A.X
+
+   F = free_group(2)
+   x, y = gens(F)
+   Q, = quo(F, [x^-3*y^-3*x^-1*y*x^-2,
+                x*y^-1*x^-1*y*x^-1*y^-1*x^3*y^-1,
+                x*y^-1*x^-1*y^2*x^-2*y^-1*x^2])
+   A = automorphism_group(Q)
+   q = gen(Q, 1)
+   @test all(a -> a(preimage(a, q)) == q, collect(A))
 end
 
 @testset "Composition of mappings" begin

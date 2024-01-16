@@ -532,3 +532,5 @@ Base.@deprecate_binding proj_space projective_space
 
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal

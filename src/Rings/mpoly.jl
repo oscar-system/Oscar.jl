@@ -878,40 +878,40 @@ function (F::Generic.FreeModule)(s::Singular.svector)
 end
 
 @doc raw"""
-    jacobi_matrix(f::MPolyRingElem)
+    jacobian_matrix(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
-function jacobi_matrix(f::MPolyRingElem)
+function jacobian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_ideal(f::MPolyRingElem)
+    jacobian_ideal(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
-function jacobi_ideal(f::MPolyRingElem)
+function jacobian_ideal(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
+    jacobian_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
 return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
-function jacobi_matrix(g::Vector{<:MPolyRingElem})
+function jacobian_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"
   R = parent(g[1])
-  return jacobi_matrix(R, g)
+  return jacobian_matrix(R, g)
 end
 
-function jacobi_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
+function jacobian_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
   n = nvars(R)
   @req all(x->parent(x) === R, g) "polynomials must be elements of R"
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
@@ -1330,7 +1330,7 @@ lift(f::MPolyRingElem) = f
 function hessian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
-  df = jacobi_matrix(f)
+  df = jacobian_matrix(f)
   result = zero_matrix(R, n, n)
   for i in 1:n
     for j in i:n

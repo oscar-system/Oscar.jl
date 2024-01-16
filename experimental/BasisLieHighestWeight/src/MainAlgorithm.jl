@@ -1,4 +1,3 @@
-
 function basis_lie_highest_weight_compute(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
@@ -71,10 +70,8 @@ function basis_lie_highest_weight_compute(
     calc_highest_weight,
     no_minkowski,
   )
-
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
-
   # output
   return MonomialBasis(
     L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
@@ -103,16 +100,14 @@ function compute_monomials(
   """
   # simple cases
   # we already computed the highest_weight result in a prior recursion step
-
   if haskey(calc_highest_weight, highest_weight)
     return calc_highest_weight[highest_weight]
   elseif highest_weight == [ZZ(0) for i in 1:(L.rank)] # we mathematically know the solution
     return Set(ZZx(1))
   end
-
   # calculation required
   # gap_dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
-  # if highest_weight is a fundamental weight, partition into smaller summands is possible. This is the basecase of 
+  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the basecase of 
   # the recursion.
   gap_dim = GAPWrap.DimensionOfHighestWeightModule(
     L.lie_algebra_gap, GAP.Obj(Int.(highest_weight))
@@ -215,6 +210,7 @@ function add_new_monomials!(
   space::Dict{Vector{ZZRingElem},<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
   set_mon::Set{ZZMPolyRingElem},
+  zero_coordinates::Vector{Int},
 )
   """
   If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
@@ -223,11 +219,12 @@ function add_new_monomials!(
   Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
   """
+
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, w_to_alpha(L, weight_w)
+      birational_sequence.weights_alpha, w_to_alpha(L, weight_w), zero_coordinates
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -244,7 +241,6 @@ function add_new_monomials!(
   # go through possible monomials one by one and check if it extends the basis
   while number_mon_in_weightspace < dim_weightspace
     i += 1
-
     mon = poss_mon_in_weightspace[i]
     if mon in set_mon
       continue
@@ -309,7 +305,6 @@ function add_by_hand(
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
   weightspaces = get_dim_weightspace(L, highest_weight)
-
   # sort the monomials from the minkowski-sum by their weightspaces
   set_mon_in_weightspace = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
@@ -330,12 +325,15 @@ function add_by_hand(
 
   # The weightspaces could be calculated completely indepent (except for
   # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
-  # Oscar dependencies. But I plan to reimplement this. 
+  # Oscar dependendencies. But I plan to reimplement this. 
   # insert known monomials into basis
 
   for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
+
+  # identify coordinates that are trivially zero because of the action on the generator
+  zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
 
   # calculate new monomials
   for weight_w in weights_with_non_full_weightspace
@@ -353,9 +351,9 @@ function add_by_hand(
       space,
       v0,
       set_mon,
+      zero_coordinates,
     )
   end
-
   return set_mon
 end
 
