@@ -93,7 +93,7 @@ end
 function _change_base_ring_and_preserve_gradings(phi::Any, F::FreeMod)
   R = base_ring(F)
   S = parent(phi(zero(R)))
-  FS = (is_graded(F) ? graded_free_module(S, Vector{elem_type(grading_group(F))}(degree.(gens(F)))) : FreeMod(S, ngens(F)))
+  FS = (is_graded(F) ? graded_free_module(S, degree.(gens(F))) : FreeMod(S, ngens(F)))
   FS.S = F.S
   return FS, hom(F, FS, gens(FS), phi)
 end

@@ -16,7 +16,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     haskey(powers, p) && return powers[p]
   end
 
-  R = base_ring(F)::base_ring_type(F)
+  R = base_ring(F)
   n = rank(F)
   result_ = FreeMod(R, binomial(n, p))
 

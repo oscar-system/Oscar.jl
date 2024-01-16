@@ -848,7 +848,7 @@ ngens(M::SubquoModule) = ngens(M.sub)
 
 Given an `R`-module `M`, return `R`.
 """
-base_ring(M::SubquoModule) = base_ring(M.F)
+base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M.F)
 
 @doc raw"""
     zero(M::SubquoModule)
