@@ -87,11 +87,41 @@ function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
 end
 
-#function basis(R::RootSystem)
-#  rk = rank(R)
-#  it = 1:rk
-#  return [RootSpaceElem(R, matrix(QQ, 1, rk, i .== it)) for i in 1:rk]
-#end
+@doc raw"""
+    dual(R::RootSystem) -> RootSystem
+
+Returns the dual root system of `R`.
+"""
+@attr RootSystem function dual(R::RootSystem)
+  # TODO: find an algorithm that computes the dual reflection table directly
+  D = root_system(transpose(cartan_matrix(R)))
+  set_attribute!(D, :dual, R)
+  return D
+end
+
+@doc raw"""
+    coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system of `R`.
+This is a more efficient version for `coroots(R)[i]`.
+
+Also see: `coroots`.
+"""
+function coroot(R::RootSystem, i::Int)
+  return root(dual(R), i)
+end
+
+@doc raw"""
+    coroots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the coroots of `R`, starting with the coroots of positive roots and then the negative roots,
+in the order of `positive_coroots` and `negative_coroots`.
+
+Also see: `coroot`.
+"""
+function coroots(R::RootSystem)
+  return roots(dual(R))
+end
 
 function fundamental_weight(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "invalid index"
@@ -139,6 +169,29 @@ Also see: `negative_root`.
 """
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
+end
+
+@doc raw"""
+    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroot corresponding to the `i`-th negative root of `R`
+This is a more efficient version for `negative_coroots(R)[i]`.
+
+Also see: `negative_coroots`.
+"""
+function negative_coroot(R::RootSystem, i::Int)
+  return negative_coroot(dual(R), i)
+end
+
+@doc raw"""
+    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroots corresponding to the negative roots of `R`
+
+Also see: `negative_coroots`.
+"""
+function negative_coroots(R::RootSystem)
+  return negative_roots(dual(R))
 end
 
 @doc raw"""
@@ -200,6 +253,29 @@ Also see: `positive_root`, `num_positive_roots`.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
+end
+
+@doc raw"""
+    positive_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroot corresponding to the `i`-th positive root of `R`
+This is a more efficient version for `positive_coroots(R)[i]`.
+
+Also see: `positive_coroots`.
+"""
+function positive_coroot(R::RootSystem, i::Int)
+  return positive_coroot(dual(R), i)
+end
+
+@doc raw"""
+    positive_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroots corresponding to the positive roots of `R`
+
+Also see: `positive_coroots`.
+"""
+function positive_coroots(R::RootSystem)
+  return positive_roots(dual(R))
 end
 
 @doc raw"""
@@ -271,6 +347,29 @@ Also see: `simple_root`.
 """
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
+end
+
+@doc raw"""
+    simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroot corresponding to the `i`-th simple root of `R`
+This is a more efficient version for `simple_coroots(R)[i]`.
+
+Also see: `simple_coroots`.
+"""
+function simple_coroot(R::RootSystem, i::Int)
+  return simple_coroot(dual(R), i)
+end
+
+@doc raw"""
+    simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the coroots corresponding to the simple roots of `R`
+
+Also see: `simple_coroots`.
+"""
+function simple_coroots(R::RootSystem)
+  return simple_roots(dual(R))
 end
 
 @doc raw"""

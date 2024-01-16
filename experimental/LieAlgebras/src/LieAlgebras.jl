@@ -106,6 +106,8 @@ export coefficient_vector
 export coerce_to_lie_algebra_elem
 export combinations
 export conjugate_dominant_weight
+export coroot
+export coroots
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
@@ -134,6 +136,8 @@ export longest_element
 export lower_central_series
 export matrix_repr_basis
 export multicombinations
+export negative_coroot
+export negative_coroots
 export negative_root
 export negative_roots
 export num_positive_roots
@@ -141,6 +145,8 @@ export num_roots, nroots
 export num_simple_roots
 export permutations
 export permutations_with_sign
+export positive_coroot
+export positive_coroots
 export positive_root
 export positive_roots
 export reduced_expressions
@@ -149,6 +155,8 @@ export root_system_type, has_root_system_type
 export root_system, has_root_system
 export show_dynkin_diagram
 export simple_module
+export simple_coroot
+export simple_coroots
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
@@ -213,6 +221,8 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
+export coroot
+export coroots
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
@@ -242,11 +252,15 @@ export longest_element
 export lower_central_series
 export matrix_repr_basis
 export matrix_repr_basis
+export negative_coroot
+export negative_coroots
 export negative_root
 export negative_roots
 export num_positive_roots
 export num_roots, nroots
 export num_simple_roots
+export positive_coroot
+export positive_coroots
 export positive_root
 export positive_roots
 export reduced_expressions
@@ -257,6 +271,8 @@ export root_system, has_root_system
 export roots
 export show_dynkin_diagram
 export simple_module
+export simple_coroot
+export simple_coroots
 export simple_root
 export simple_roots
 export special_linear_lie_algebra

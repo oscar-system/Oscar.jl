@@ -26,21 +26,27 @@
       @test all(iszero, positive_roots(R) + negative_roots(R))
 
       @test issorted(height.(positive_roots(R))) # sorted by height
+
+      @test dual(R) !== R
+      @test dual(dual(R)) === R
     end
 
     @testset "A_$n" for n in [1, 2, 6]
       R = root_system(:A, n)
       root_system_property_tests(R, n, binomial(n + 1, 2))
+      root_system_property_tests(dual(R), n, binomial(n + 1, 2))
     end
 
     @testset "B_$n" for n in [2, 3, 6]
       R = root_system(:B, n)
       root_system_property_tests(R, n, n^2)
+      root_system_property_tests(dual(R), n, n^2)
     end
 
     @testset "C_$n" for n in [2, 3, 6]
       R = root_system(:C, n)
       root_system_property_tests(R, n, n^2)
+      root_system_property_tests(dual(R), n, n^2)
     end
 
     @testset "D_$n" for n in [4, 6]
@@ -66,14 +72,16 @@
     @testset "F_4" begin
       R = root_system(:F, 4)
       root_system_property_tests(R, 4, 24)
+      root_system_property_tests(dual(R), 4, 24)
     end
 
     @testset "G_2" begin
       R = root_system(:G, 2)
       root_system_property_tests(R, 2, 6)
+      root_system_property_tests(dual(R), 2, 6)
     end
 
-    @testset "something mixed" begin
+    @testset "something mixed 1" begin
       cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
       for _ in 1:50
         i, j = rand(1:nrows(cm), 2)
@@ -84,6 +92,19 @@
       end
       R = root_system(cm)
       root_system_property_tests(R, 3 + 3 + 6 + 2, binomial(3 + 1, 2) + 3^2 + 36 + 6)
+    end
+
+    @testset "something mixed 2" begin
+      cm = cartan_matrix((:F, 4), (:C, 3), (:E, 6), (:G, 2))
+      for _ in 1:50
+        i, j = rand(1:nrows(cm), 2)
+        if i != j
+          swap_rows!(cm, i, j)
+          swap_cols!(cm, i, j)
+        end
+      end
+      R = root_system(cm)
+      root_system_property_tests(dual(R), 4 + 3 + 6 + 2, 24 + 3^2 + 36 + 6)
     end
   end
 
