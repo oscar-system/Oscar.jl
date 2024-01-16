@@ -238,7 +238,7 @@ function root(R::RootSystem, i::Int)
 end
 
 @doc raw"""
-    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
+    roots(R::RootSystem) -> Vector{RootSpaceElem}
 
 Returns the roots of `R`, starting with the positive roots and then the negative roots,
 in the order of `positive_roots` and `negative_roots`.
