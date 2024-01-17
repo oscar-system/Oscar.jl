@@ -204,7 +204,18 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   dom = domain(cc.maps[1])
   j   = 2
 
-  while j <= Singular.length(res)
+  #= get correct length of Singular sresolution =#
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  #= adjust length for extension length in Oscar =#
+  slen = slen > len ? len : slen
+
+  br_name = AbstractAlgebra.find_name(base_ring(kernel_entry))
+  if br_name === nothing
+    br_name = "R"
+  end
+
+
+  while j <= slen
     rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
