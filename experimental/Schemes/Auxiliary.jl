@@ -210,7 +210,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         h = complement_equation(codomain(iso_W_flat))
         UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
-        ff = SpecMor(UW, W_flat, 
+        ff = morphism(UW, W_flat, 
                      hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(OOY(par, V).(gens(OO(par))))), check=false),
                      check=false
                     )
@@ -280,8 +280,8 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
     if iszero(h_X*h_Y)
       # Glueing along the empty set. This is trivial.
-      g = SpecMor(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
-      f = SpecMor(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
+      g = morphism(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
+      f = morphism(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
       
       return SimpleGlueing(X, Y, f, g, check=false)
     end
@@ -293,14 +293,14 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = OO(XYZ).(x_img)
     phi = restrict(iso_Y, YX, XYZ, check=false)
     x_img = pullback(phi).(x_img)
-    g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+    g = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
     psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
-    f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+    f = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
     return SimpleGlueing(X, Y, f, g, check=false)
   end
 
@@ -345,7 +345,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   x_img = pullback(gres).(x_img)
   phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
-  gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+  gg = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
 
   y_img = gens(OO(Y))
   y_img = pullback(inverse(iso_Y)).(y_img)
@@ -353,7 +353,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(fres).(y_img)
   psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
-  ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+  ff = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
 
   return SimpleGlueing(X, Y, ff, gg, check=false)
 end

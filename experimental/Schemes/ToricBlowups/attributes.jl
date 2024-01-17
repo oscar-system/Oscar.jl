@@ -13,7 +13,7 @@ Normal toric variety
 julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
 
-julia> underlying_morphism(blow_down_morphism)
+julia> Oscar.underlying_morphism(blow_down_morphism)
 Toric morphism
 ```
 """

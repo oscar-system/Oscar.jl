@@ -148,8 +148,8 @@ end
 
     result = new{typeof(base_ring(X)), typeof(OO(X))}(X, Y)
     # We need to rewrap the identification maps so that the (co-)domains match
-    fwrap = SpecMor(result, Y, pullback(f), check=false)
-    gwrap = SpecMor(Y, result, pullback(g), check=false)
+    fwrap = morphism(result, Y, pullback(f), check=false)
+    gwrap = morphism(Y, result, pullback(g), check=false)
     set_attribute!(fwrap, :inverse, gwrap)
     set_attribute!(gwrap, :inverse, fwrap)
     result.f = fwrap

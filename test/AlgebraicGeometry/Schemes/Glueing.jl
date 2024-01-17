@@ -8,12 +8,12 @@
   set_name!(X, "X")
   U = SpecOpen(A3, [x,y,z])
   UX = intersect(X, U)
-  d = find_non_zero_divisor(UX)
+  d = Oscar.find_non_zero_divisor(UX)
   S, (u,v) = QQ["u", "v"]
   A2 = Spec(S)
   set_name!(A2, "𝔸²")
   f = maximal_extension(X, A2, [x, z//y])
-  a = generic_fractions(f)
+  a = Oscar.generic_fractions(f)
   @test maximal_extension(X, A2, a) == f
 
   Sx, (yx, zx) = QQ["yx", "zx"]
@@ -54,8 +54,8 @@ end
   pbf = hom(OO(Vu), OO(Ux), [inv(OO(Ux)(x)), OO(Ux)(y)])
   pbg = hom(OO(Ux), OO(Vu), [inv(OO(Vu)(u)), OO(Vu)(v)])
 
-  f = SpecMor(Ux, Vu, pbf)
-  g = SpecMor(Vu, Ux, pbg)
+  f = morphism(Ux, Vu, pbf)
+  g = morphism(Vu, Ux, pbg)
 
   simpleG = SimpleGlueing(X, Y, f, g)
   G1 = Glueing(simpleG)
@@ -64,8 +64,8 @@ end
   Vv = PrincipalOpenSubset(Y, v)
   Wb = PrincipalOpenSubset(Z, b)
 
-  f = SpecMor(Vv, Wb, [u, 1//v])
-  g = SpecMor(Wb, Vv, [a, 1//b])
+  f = morphism(Vv, Wb, [u, 1//v])
+  g = morphism(Wb, Vv, [a, 1//b])
   Vvo = SpecOpen(Vv)
   Wbo = SpecOpen(Wb)
   simpleG2 = SimpleGlueing(Y, Z, f, g)

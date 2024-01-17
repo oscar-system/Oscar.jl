@@ -266,7 +266,7 @@ function base_change(phi::Any, X::AbsSpec)
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
   Y = Spec(R_red)
-  return Y, SpecMor(Y, X, Phi)
+  return Y, morphism(Y, X, Phi)
 end
 
 ### Some helper functions

@@ -211,7 +211,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
   list_for_V = _extend(U, a)
-  Psi = [SpecMor(W, ambient_space(V), b, check=false) for (W, b) in list_for_V]
+  Psi = [morphism(W, ambient_space(V), b, check=false) for (W, b) in list_for_V]
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
   # might need to restrict our domain of definition accordingly. 
@@ -236,7 +236,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
     total_rat_lift = [evaluate(a, rat_lift_y0) for a in rat_lift_y1]
     #total_rat_lift = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in total_rat_lift]
     list_for_V_next = _extend(U, total_rat_lift)
-    Psi = [SpecMor(W, ambient_space(V_next), b, check=false) for (W, b) in list_for_V_next]
+    Psi = [morphism(W, ambient_space(V_next), b, check=false) for (W, b) in list_for_V_next]
     Psi = [_restrict_properly(psi, V_next) for psi in Psi]
     append!(Psi_res, Psi)
     append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi])
@@ -273,7 +273,7 @@ function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, 
   dens = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(dens))
   img_gens = [OO(U_sub)(numerator(a), denominator(a)) for a in img_gens_frac]
-  prelim = SpecMor(U_sub, ambient_space(V), img_gens, check=false) # TODO: Set to false
+  prelim = morphism(U_sub, ambient_space(V), img_gens, check=false) # TODO: Set to false
   return _restrict_properly(prelim, V)
 end
 
@@ -320,7 +320,7 @@ Note that `U'` need not (and usually will not) be maximal with this property.
 function random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
-  phi = SpecMor(U_sub, ambient_space(V), img_gens, check=true) # Set to false
+  phi = morphism(U_sub, ambient_space(V), img_gens, check=true) # Set to false
   return phi
 end
 
@@ -363,7 +363,7 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::Ab
   denoms = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
   img_gens = [OO(U_sub)(numerator(a), denominator(a), check=true) for a in img_gens_frac] # Set to false
-  phi = SpecMor(U_sub, ambient_space(V), img_gens, check=true) # Set to false
+  phi = morphism(U_sub, ambient_space(V), img_gens, check=true) # Set to false
   cheap_realizations(Phi)[(U, V)] = phi
   return phi
 end
@@ -384,7 +384,7 @@ function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U:
   extensions = _extend(U, img_gens_frac)
   result = AbsSpecMor[]
   for (U, g) in extensions
-    prelim = SpecMor(U, ambient_space(V), g, check=false)
+    prelim = morphism(U, ambient_space(V), g, check=false)
     push!(result, _restrict_properly(prelim, V))
   end
   maximal_extensions(Phi)[(U, V)] = result

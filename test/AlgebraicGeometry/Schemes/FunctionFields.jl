@@ -59,7 +59,7 @@ end
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
   # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 

@@ -1,6 +1,4 @@
 export morphism_type
-export morphisms
-export refinements
 
 ########################################################################
 # Methods for Covering                                                 #
@@ -227,13 +225,13 @@ end
                   [x[k-1]//x[j-1] for k in i+1:j-1],
                   [x[k]//x[j-1] for k in j:r],
                   x[r+1:end])
-      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      f = morphism(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
       imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
                     [y[k+1]//y[i] for k in i:j-2],
                     [1//y[i]],
                     [y[k]//y[i] for k in j:r],
                     y[r+1:end])
-      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
+      g = morphism(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
       add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
     end
   end
@@ -291,13 +289,13 @@ end
                   [x[k-1]//x[j-1] for k in i+1:j-1],
                   [x[k]//x[j-1] for k in j:r],
                   x[r+1:end])
-      f = SpecMor(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
+      f = morphism(Ui, Uj, [OO(Ui)(a, check=false) for a in imgs_f], check=false)
       imgs_g = vcat([y[k]//y[i] for k in 1:i-1],
                     [y[k+1]//y[i] for k in i:j-2],
                     [1//y[i]],
                     [y[k]//y[i] for k in j:r],
                     y[r+1:end])
-      g = SpecMor(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
+      g = morphism(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
       add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
     end
   end

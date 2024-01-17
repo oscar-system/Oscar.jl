@@ -36,7 +36,7 @@
   add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
   # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -186,9 +186,9 @@ end
   X = covered_scheme(P3)
   D = weil_divisor(II)
   E = Oscar.irreducible_decomposition(D)
-  @test length(keys(coefficient_dict(E))) == 2
-  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
-  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test length(keys(Oscar.coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
 end
 
 @testset "intersection numbers on surfaces" begin

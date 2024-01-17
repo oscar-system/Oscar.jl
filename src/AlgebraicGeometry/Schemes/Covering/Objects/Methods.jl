@@ -225,9 +225,9 @@ julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
 
 julia> V2 = PrincipalOpenSubset(U2, u);
 
-julia> f = SpecMor(V1, V2, [1//x, y//x]); # The glueing isomorphism
+julia> f = morphism(V1, V2, [1//x, y//x]); # The glueing isomorphism
 
-julia> g = SpecMor(V2, V1, [1//u, v//u]); # and its inverse
+julia> g = morphism(V2, V1, [1//u, v//u]); # and its inverse
 
 julia> G = Glueing(U1, U2, f, g); # Construct the glueing
 

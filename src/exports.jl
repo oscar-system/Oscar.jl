@@ -31,6 +31,7 @@ export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
+export morphism
 export AffineNormalToricVariety
 export AffinePlaneCurve
 export AffineVariety
@@ -110,7 +111,6 @@ export MonomialOrdering
 export Nemo
 export NormalToricVariety
 export OO
-export OpenInclusion
 export PBWAlgElem
 export PBWAlgQuo
 export PBWAlgQuoElem
@@ -150,12 +150,11 @@ export Singular
 export Sp
 export SpaceGerm
 export Spec
-export SpecMor
+export spec
 export SpecOpen
 export SpecOpenMor
 export SpecOpenRing
 export SpecOpenRingElem
-export StdSpec
 export SubObjectIterator
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
@@ -215,7 +214,6 @@ export all_blocks
 export all_character_table_names
 export all_cohomologies
 export all_neighbors
-export all_patches
 export all_primitive_groups
 export all_small_groups
 export all_subsets_matroid
@@ -257,7 +255,6 @@ export automorphism_group
 export base_ring
 export base_scheme
 export bases
-export basic_patches
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
@@ -329,7 +326,6 @@ export cocycle_matroid
 export codim
 export codomain
 export codomain_covering
-export codomain_type
 export coefficient_field
 export coefficient_ring
 export coefficients
@@ -467,7 +463,6 @@ export divrem
 export dodecahedron
 export domain
 export domain_covering
-export domain_type
 export double_coset
 export double_cosets
 export double_dual
@@ -488,8 +483,6 @@ export eliminate
 export elliptic_parameter
 export embedding
 export embedding_orthogonal_group
-export empty_covered_scheme
-export empty_covering
 export epimorphism_from_free_group
 export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
@@ -523,11 +516,9 @@ export feasible_region
 export fglm
 export fiber_product
 export fibonacci
-export fill_transitions!
 export filtrate
 export find_morphism
 export find_morphisms
-export find_non_zero_divisor
 export fits
 export fitting_ideal
 export fitting_subgroup
@@ -640,7 +631,6 @@ export homogeneity_vector
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
-export homogeneous_coordinates_on_affine_cone
 export homogenization
 export homogenization_map
 export homogenize
@@ -946,7 +936,6 @@ export map_gens_of_chow_ring_to_cox_ring
 export map_on_affine_cones
 export map_range
 export map_word
-export maps_on_patches
 export mat_elem_type
 export mathieu_group
 export matrix_group
@@ -1007,7 +996,6 @@ export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
 export morphism_on_torusinvariant_weil_divisor_group
 export morphism_type
-export morphisms
 export moved_points, has_moved_points, set_moved_points
 export mpoly_dec_ring_type
 export mpoly_dec_type
@@ -1042,7 +1030,6 @@ export neginvlex
 export neglex
 export negwdeglex
 export negwdegrevlex
-export neighbor_patches
 export neighbors
 export newton_polytope
 export nfacets
@@ -1201,7 +1188,6 @@ export projective_symplectic_group
 export projective_unitary_group
 export pseudo_del_pezzo_polytope
 export pullback
-export pullback_type
 export pyramid
 export quadratic_form
 export quaternion_group
@@ -1369,7 +1355,6 @@ export stable_set_polytope
 export standard_basis
 export standard_basis_with_transformation_matrix
 export standard_covering
-export standard_spec
 export stanley_reisner_ideal
 export stanley_reisner_ring
 export star_subcomplex
@@ -1422,7 +1407,6 @@ export total_degree
 export total_space
 export total_transform
 export transform
-export transition_graph
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
 export transitivity
@@ -1445,15 +1429,12 @@ export twist
 export two_neighbor_step
 export two_sided_ideal
 export underlying_glueing
-export underlying_morphism
 export underlying_quotient
-export underlying_scheme
 export uniform_matroid
 export unit
 export unitary_group
 export units_of
 export unwrap
-export update_glueing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
 export upper_bound_h_vector

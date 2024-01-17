@@ -655,7 +655,7 @@ given by the pullback function
 """
 function germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
   Y = SpaceGerm(X, I)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
@@ -733,7 +733,7 @@ given by the pullback function
 """
 function hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
   Y = HypersurfaceGerm(X,I)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
@@ -808,7 +808,7 @@ given by the pullback function
 """
 function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
   Y = CompleteIntersectionGerm(X,I)
-  restr_map = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+  restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
 end
 
@@ -869,19 +869,19 @@ end
 ## and with identity map to keep usage consistent
 function germ_at_point(A::LocalRing)
   X = SpaceGerm(A)
-  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+  restr_map = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
   return X, restr_map
 end
 
 function hypersurface_germ(A::LocalRing)
   X = HypersurfaceGerm(A)
-  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+  restr_map = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
   return X, restr_map
 end
 
 function complete_intersection_germ(A::LocalRing)
   X = CompleteIntersectionGerm(A)
-  restr_map = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+  restr_map = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
   return X, restr_map
 end
 
@@ -1045,7 +1045,7 @@ given by the pullback function
 function singular_locus(X::AbsSpaceGerm)
   S, inc = singular_locus(underlying_scheme(X))
   Sgerm = SpaceGerm(S)
-  return Sgerm, ClosedEmbedding(SpecMor(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
+  return Sgerm, ClosedEmbedding(morphism(Sgerm, X, pullback(inc), check=false), image_ideal(inc), check=false)
 end
 
 ## note: subgerms of hypersurface and complete intersection germs are simply space germs

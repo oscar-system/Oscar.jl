@@ -1,6 +1,6 @@
 @testset "affine schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
   @test iszero(Oscar.ambient_closure_ideal(A3))
@@ -57,7 +57,7 @@
   A2 = Spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
-  phi = SpecMor(UX, A2, [y//z, z])
+  phi = morphism(UX, A2, [y//z, z])
   L = subscheme(A2, u-v)
   phi_L = preimage(phi, L)
   @test OO(phi_L)(y//z) == OO(phi_L)(z)
@@ -66,7 +66,7 @@
   @test iszero(pullback(p)(OO(phi_L)(y//z)) - pullback(q)(OO(L)(v)))
   
   Xstd = Oscar.standard_spec(X)
-  mirr = SpecMor(Xstd, Xstd, [y, x, z])
+  mirr = morphism(Xstd, Xstd, [y, x, z])
   @test is_isomorphism(mirr)
   @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
   @test is_empty(EmptyScheme(QQ))
@@ -98,7 +98,7 @@ end
   @test dim(plane) == 2
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   
   S = complement_of_point_ideal(R, [1, 1, 1])
   I = ideal(R, [x-1, y-1])*ideal(R, z)
@@ -123,7 +123,7 @@ end
   @test dim(plane) == 3
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   P = ideal(R, R(5))
   @test is_prime(P)
   S = complement_of_prime_ideal(P)
@@ -225,8 +225,8 @@ end
   B = Oscar.standard_spec(Spec(T))
   phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
   phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
-  Phi1 = SpecMor(X, B, phi1)
-  Phi2 = SpecMor(Y, B, phi2)
+  Phi1 = morphism(X, B, phi1)
+  Phi2 = morphism(Y, B, phi2)
   Z = fiber_product(Phi1, Phi2)[1]
   A = ambient_coordinate_ring(Z)
   a = gens(A)

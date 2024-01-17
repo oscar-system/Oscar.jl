@@ -22,8 +22,8 @@ julia> forget_toric_structure(antv)
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
   Y = underlying_scheme(X)
-  iso = SpecMor(Y, X, identity_map(OO(X)), check=true)
-  iso_inv = SpecMor(X, Y, identity_map(OO(X)), check=true)
+  iso = morphism(Y, X, identity_map(OO(X)), check=true)
+  iso_inv = morphism(X, Y, identity_map(OO(X)), check=true)
   set_attribute!(iso, :inverse => iso_inv)
   set_attribute!(iso_inv, :inverse => iso)
   return Y, iso
@@ -107,7 +107,7 @@ Polyhedral cone in ambient dimension 2
 julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
-julia> underlying_scheme(antv)
+julia> Oscar.underlying_scheme(antv)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x1, x2
@@ -172,8 +172,8 @@ function _compute_toric_glueing(gd::ToricGlueingData)
 
   xx = gens(OO(UV))
   yy = gens(OO(VU))
-  f = SpecMor(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
-  g = SpecMor(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
+  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
+  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
@@ -207,7 +207,7 @@ its toric origin.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> underlying_scheme(P2)
+julia> Oscar.underlying_scheme(P2)
 Scheme
   over rational field
 with default covering
@@ -288,8 +288,8 @@ function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVarie
   gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
   set_attribute!(gres, :inverse, fres)
   set_attribute!(fres, :inverse, gres)
-  f = SpecMor(U, V, fres)
-  g = SpecMor(V, U, gres)
+  f = morphism(U, V, fres)
+  g = morphism(V, U, gres)
   set_attribute!(g, :inverse, f)
   set_attribute!(f, :inverse, g)
   return SimpleGlueing(X, Y, f, g)

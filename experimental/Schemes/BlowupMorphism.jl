@@ -753,8 +753,8 @@ end
   U_flat = codomain(iso_U)
   iso_V = _flatten_open_subscheme(V, default_covering(Y))
   V_flat = codomain(iso_V)
-  phi = SpecMor(U_flat, V_flat, pullback(inverse(iso_U)).(pullback(pr_res).(pullback(iso_V).(gens(OO(V_flat))))), check=false)
-  phi_inv = SpecMor(V_flat, U_flat, pullback(inverse(iso_V)).(pullback(inverse(pr_res)).(pullback(iso_U).(gens(OO(U_flat))))), check=false)
+  phi = morphism(U_flat, V_flat, pullback(inverse(iso_U)).(pullback(pr_res).(pullback(iso_V).(gens(OO(V_flat))))), check=false)
+  phi_inv = morphism(V_flat, U_flat, pullback(inverse(iso_V)).(pullback(inverse(pr_res)).(pullback(iso_U).(gens(OO(U_flat))))), check=false)
   set_attribute!(phi, :inverse, phi_inv)
   set_attribute!(phi_inv, :inverse, phi)
   return phi

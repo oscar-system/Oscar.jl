@@ -177,6 +177,8 @@ AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem,
 
 ########################################################################
 # Additional methods for compatibility and coherence                   #
+# TODO: Remove these! They are not admissible and should be 
+# replaced by internal routines.
 ########################################################################
 function (R::MPolyQuoRing)(a::RingElem, b::RingElem; check::Bool=true)
   return R(a)*inv(R(b))

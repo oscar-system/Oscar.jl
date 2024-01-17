@@ -27,8 +27,8 @@ end
   C = standard_covering(X)
   D, i, j = simplify(C) 
   @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
-  @test transition_graph(Pc[1]) isa Graph
-  @test transition_graph(C) isa Graph
+  @test Oscar.transition_graph(Pc[1]) isa Graph
+  @test Oscar.transition_graph(C) isa Graph
 end
 
 @testset "standard_covering" begin
@@ -50,7 +50,7 @@ end
 
   R = base_ring(OO(Ccov[1][2]))
   L, _ = localization(R, R[1])
-  @test poly_type(Spec(R)) === poly_type(Spec(L)) === poly_type(Ccov[1][2])
+  @test Oscar.poly_type(Spec(R)) === Oscar.poly_type(Spec(L)) === Oscar.poly_type(Ccov[1][2])
   Lnew, f, g = simplify(L)
   @test !(L == Lnew)
   @test compose(f, g) == identity_map(L)
@@ -63,7 +63,7 @@ end
   @test domain(tmp1) === codomain(tmp1) === C2
   @test domain(tmp2) === codomain(tmp2) === C1
   @test length(C2) == 3
-  @test length(all_patches(C2)) == 3
+  @test length(Oscar.all_patches(C2)) == 3
   for (i, U) in zip(1:3, C2)
     @test U === C2[i]
   end
@@ -76,7 +76,7 @@ end
 
   @test sprint(show, C1) isa String
 
-  @test base_ring_type(Ccov) == typeof(QQ)
+  @test Oscar.base_ring_type(Ccov) == typeof(QQ)
   @test base_ring(Ccov) == QQ
   simplify!(Ccov)
   @test length(coverings(Ccov)) == 2
@@ -90,7 +90,7 @@ end
   @test name(Ccov) == "C"
 
   @test CoveredScheme(C1[1]) isa AbsCoveredScheme
-  @test is_empty(empty_covered_scheme(QQ))
+  @test is_empty(Oscar.empty_covered_scheme(QQ))
 
   E = subscheme(IP2, ideal(S, gens(S)))
   Ecov = covered_scheme(E)
@@ -99,7 +99,7 @@ end
   @attributes mutable struct DummyCoveredScheme{BRT}<:AbsCoveredScheme{BRT}
     C::CoveredScheme
     function DummyCoveredScheme(C::CoveredScheme)
-      return new{base_ring_type(C)}(C)
+      return new{Oscar.base_ring_type(C)}(C)
     end
   end
   Oscar.underlying_scheme(D::DummyCoveredScheme) = D.C
@@ -111,7 +111,7 @@ end
   @test Ccov[1][1] in D
   @test D[Ccov[1]] == Ccov[Ccov[1]]
   @test D[Ccov[1], Ccov[2]] == Ccov[Ccov[1], Ccov[2]]
-  @test refinements(D) == refinements(Ccov)
+  @test Oscar.refinements(D) == Oscar.refinements(Ccov)
   @test glueings(D) == glueings(Ccov)
   @test base_ring(D) == base_ring(Ccov)
 end
