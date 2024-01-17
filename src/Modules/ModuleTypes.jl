@@ -687,7 +687,6 @@ Data structure for free resolutions.
 """
 mutable struct FreeResolution{T}
     C::Hecke.ComplexOfMorphisms
-    complete::Bool
 
     function FreeResolution(C::Hecke.ComplexOfMorphisms{T}) where {T}
         FR = new{T}()
