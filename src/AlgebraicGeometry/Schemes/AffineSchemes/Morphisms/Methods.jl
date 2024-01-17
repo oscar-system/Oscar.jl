@@ -1,3 +1,6 @@
+
+
+
 ###########################################################
 # (1) The fibre product of two morphisms of affine schemes
 ###########################################################
@@ -189,36 +192,66 @@ function _induced_map_to_fiber_product(
 end
 
 ### Some helper functions
-function _restrict_domain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
-  D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
-  @check is_subset(D, domain(f)) "domain incompatible"
-  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
-end
-
 function _restrict_domain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
   D === domain(f) && return f
-  @check is_subset(D, domain(f)) "domain incompatible"
-  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  inc = inclusion_morphism(D, domain(f); check)
+  return compose(inc, f)
 end
 
 function _restrict_codomain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f) 
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    !_has_coefficient_map(pullback(f)) && return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    return SpecMor(domain(f), D, coefficient_map(pullback(f)), OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
   end
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return SpecMor(domain(f), D, coefficient_map(pullback(f)), OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return SpecMor(domain(f), D, coefficient_map(pullback(f)), OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
+@doc raw"""
+    restrict(f::SpecMor, D::AbsSpec, Z::AbsSpec)
+
+This method restricts the domain of the morphism ``f``
+to ``D`` and its codomain to ``Z``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Affine space of dimension 3
+  over rational field
+with coordinates [x1, x2, x3]
+
+julia> R = OO(X)
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal(x1)
+
+julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
+true
+```
+"""
 function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
   interm = _restrict_domain(f, D; check)
   return _restrict_codomain(interm, Z; check)
@@ -425,6 +458,8 @@ function base_change(phi::Any, f::AbsSpecMor;
     domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
     codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
   )
+  #@assert _has_coefficient_map(pullback(domain_map)) "base change map on the domain does not have an actual base change"
+  #@assert _has_coefficient_map(pullback(codomain_map)) "base change map on the codomain does not have an actual base change"
   X = domain(f)
   Y = codomain(f)
   XX = domain(domain_map)
@@ -442,9 +477,10 @@ function base_change(phi::Any, f::AbsSpecMor;
   # For the pullback of F no explicit coeff_map is necessary anymore 
   # since both rings in domain and codomain have the same (extended/reduced)
   # coefficient ring by now.
-  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
+  pbF = hom(RR, SS, img_gens, check=false)
 
-  return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+  result = SpecMor(XX, YY, pbF, check=false)
+  return domain_map, result, codomain_map 
 end
 
 function _register_birationality!(f::AbsSpecMor, 

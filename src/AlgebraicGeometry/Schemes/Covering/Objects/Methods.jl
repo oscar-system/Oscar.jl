@@ -392,7 +392,7 @@ function base_change(phi::Any, C::Covering)
       glueing_dict[A, B] = GG
     end
   end
-  CC = Covering([V for (V, _) in patch_change], glueing_dict)
+  CC = Covering([V for (V, _) in patch_change], glueing_dict, check=false)
 
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for (V, phi) in patch_change

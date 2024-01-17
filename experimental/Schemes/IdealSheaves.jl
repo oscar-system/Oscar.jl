@@ -334,7 +334,11 @@ function subscheme(I::IdealSheaf)
     for k in 1:length(new_patches)
       U = new_patches[k]
       V = basic_patches(C)[k]
-      set_decomposition_info!(Cnew, U, elem_type(OO(U))[OO(U)(a, check=false) for a in decomposition_info(C)[V]])
+      if !isempty(decomposition_info(C)[V])
+        set_decomposition_info!(Cnew, U, elem_type(OO(U))[OO(U)(a, check=false) for a in decomposition_info(C)[V]])
+      else
+        set_decomposition_info!(Cnew, U, elem_type(OO(U))[])
+      end
     end
   end
   return CoveredScheme(Cnew)
@@ -775,7 +779,9 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
       isone(J) && continue
     end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
+    dim(I(U)) == dim(I) || continue                  ## components of lesser dimension can be discarded
     components_here = minimal_primes(I(U))
+    @assert all(p->dim(p) == dim(I), components_here) "not all minimal primes have the correct dimension"
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the 
       # decomposition_info in this chart
@@ -1230,10 +1236,10 @@ function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   ideal_dict = IdDict{AbsSpec, Ideal}()
   for V in cod_cov
     f_loc = maps_with_given_codomain(f_cov, V)
-    I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
+    I_loc = [preimage(pullback(g), II(domain(g))) for g in f_loc]
     ideal_dict[V] = intersect(I_loc...)
   end
-  return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
+  return IdealSheaf(codomain(f), ideal_dict, check=false)
 end
 
 function Base.:^(II::IdealSheaf, k::IntegerUnion)

@@ -265,8 +265,9 @@ function base_change(phi::Any, X::AbsSpec)
   kk_red = parent(phi(zero(kk)))
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
+  #@assert _has_coefficient_map(Phi)
   Y = Spec(R_red)
-  return Y, SpecMor(Y, X, Phi)
+  return Y, SpecMor(Y, X, Phi, check=false)
 end
 
 ### Some helper functions
@@ -274,7 +275,8 @@ function _change_base_ring(phi::Any, R::MPolyRing)
   K = coefficient_ring(R)
   kk = parent(phi(zero(K)))
   P, _ = polynomial_ring(kk, symbols(R))
-  Phi = hom(R, P, phi, gens(P))
+  Phi = hom(R, P, phi, gens(P), check=false)
+  #@assert _has_coefficient_map(Phi)
   return P, Phi
 end
 
@@ -285,6 +287,7 @@ function _change_base_ring(phi::Any, A::MPolyQuoRing)
   I_red = ideal(P, Phi.(gens(I)))
   Q, pr = quo(P, I_red)
   Phi_bar = hom(A, Q, phi, gens(Q), check=false)
+  #@assert _has_coefficient_map(Phi_bar)
   return Q, Phi_bar
 end
 
@@ -297,7 +300,9 @@ function _change_base_ring(phi::Any,
   U = inverted_set(W)
   U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
   W_red, loc_map = localization(P, U_red)
-  return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
+  res_map = hom(W, W_red, compose(Phi, loc_map), check=false)
+  #@assert _has_coefficient_map(res_map)
+  return W_red, res_map
 end
 
 function _change_base_ring(phi::Any, 
@@ -311,6 +316,8 @@ function _change_base_ring(phi::Any,
   I_red = ideal(W_red, Phi_W.(gens(I)))
   L_red, pr = quo(W_red, I_red)
   res = compose(restricted_map(Phi_W), pr)
-  return L_red, hom(L, L_red, res, check=false)
+  res_map = hom(L, L_red, res, check=false)
+  #@assert _has_coefficient_map(res_map)
+  return L_red, res_map
 end
 

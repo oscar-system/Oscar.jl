@@ -75,7 +75,11 @@ represented by
   patch 1: 1
 ```
 """
-@attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
+function function_field(X::AbsCoveredScheme; check::Bool=true)
+  return get_attribute!(X, :function_field) do
+    VarietyFunctionField(X, check=check)
+  end
+end
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #

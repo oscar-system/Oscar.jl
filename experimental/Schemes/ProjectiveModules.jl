@@ -170,7 +170,7 @@ function _is_projective_without_denominators(A::MatElem;
     # We expect a pair (Q, k) consisting of a matrix Q defined over Rloc, 
     # but liftable to a matrix over R without effort. The local projector 
     # over Rloc is then 1//uᵏ ⋅ Q. 
-    push!(sub_results, _is_projective_without_denominators(map_entries(Rloc, Asub), unit=u, task=task))
+    push!(sub_results, _is_projective_without_denominators(map_entries(x->Rloc(x, check=false), Asub), unit=u, task=task))
     B = last(sub_results)[2]
     k = last(sub_results)[3]
     if last(sub_results)[1] == false

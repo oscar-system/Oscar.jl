@@ -1,114 +1,3 @@
-@doc raw"""
-    MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
-
-A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
-by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
-of ``𝒪(U)`` for one of the dense open `affine_chart`s ``U`` of ``X``. 
-The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some 
-`affine_chart` ``V`` of the codomain ``Y`` under this map. 
-```jldoctest
-julia> IP1 = covered_scheme(projective_space(QQ, [:s, :t]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 1-space
-    2: affine 1-space
-  in the coordinate(s)
-    1: [(t//s)]
-    2: [(s//t)]
-
-julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 2-space
-    2: affine 2-space
-    3: affine 2-space
-  in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
-
-julia> U = first(affine_charts(IP1))
-Spectrum
-  of multivariate polynomial ring in 1 variable (t//s)
-    over rational field
-
-julia> V = first(affine_charts(IP2))
-Spectrum
-  of multivariate polynomial ring in 2 variables (y//x), (z//x)
-    over rational field
-
-julia> t = first(gens(OO(U)))
-(t//s)
-
-julia> Phi = Oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
-
-julia> realizations = Oscar.realize_on_patch(Phi, U);
-
-julia> realizations[3]
-Affine scheme morphism
-  from [(t//s)]          AA^1 \ V()
-  to   [(x//z), (y//z)]  affine 2-space
-given by the pullback function
-  (x//z) -> (t//s)^2
-  (y//z) -> (t//s)
-
-```
-"""
-@attributes mutable struct MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, 
-                                       CodomainType<:AbsCoveredScheme
-                                      } <: AbsCoveredSchemeMorphism{DomainType, CodomainType, 
-                                                                    MorphismFromRationalFunctions, Nothing}
-  domain::DomainType
-  codomain::CodomainType
-  domain_covering::Covering
-  codomain_covering::Covering
-  domain_chart::AbsSpec
-  codomain_chart::AbsSpec
-  coord_imgs::Vector{<:FieldElem}
-
-  ### Various fields for caching
-  patch_representatives::IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:Vector{<:FieldElem}}}
-  realizations::IdDict{<:AbsSpec, <:Vector{<:AbsSpecMor}}
-  realization_previews::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:Vector{<:FieldElem}}
-  maximal_extensions::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:Vector{<:AbsSpecMor}}
-  cheap_realizations::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsSpecMor}
-  full_realization::CoveredSchemeMorphism
-
-  function MorphismFromRationalFunctions(
-      X::AbsCoveredScheme, Y::AbsCoveredScheme, 
-      U::AbsSpec, V::AbsSpec,
-      a::Vector{<:FieldElem};
-      check::Bool=true,
-      domain_covering::Covering=default_covering(X),
-      codomain_covering::Covering=default_covering(Y)
-    )
-    @check is_irreducible(X) "domain must be irreducible"
-    @check is_irreducible(Y) "codomain must be irreducible"
-    #_find_chart(U, default_covering(X)) !== nothing || error("patch not found in domain")
-    #_find_chart(V, default_covering(Y)) !== nothing || error("patch not found in codomain")
-    any(x->x===U, patches(default_covering(X))) || error("patch not found in domain")
-    any(x->x===V, patches(default_covering(Y))) || error("patch not found in codomain")
-    F = parent(first(a))
-    R = base_ring(F)
-    all(x->parent(x)===F, a) || error("coordinate images must be elements of the same field")
-    R === ambient_coordinate_ring(U) || error("images of pullback of the coordinates do not live in the correct ring")
-    patch_repr = IdDict{AbsSpec, Tuple{AbsSpec, Vector{FieldElem}}}()
-    patch_repr[U] = (V, a)
-    realizations = IdDict{AbsSpec, Vector{AbsSpecMor}}()
-    realization_previews = IdDict{Tuple{AbsSpec, AbsSpec}, Vector{FieldElem}}()
-    maximal_extensions = IdDict{Tuple{AbsSpec, AbsSpec}, Vector{AbsSpecMor}}()
-    cheap_realizations = IdDict{Tuple{AbsSpec, AbsSpec}, AbsSpecMor}()
-    return new{typeof(X), typeof(Y)}(X, Y, domain_covering, codomain_covering, 
-                                     U, V, a, patch_repr, realizations, 
-                                     realization_previews, maximal_extensions,
-                                     cheap_realizations
-                                    )
-  end
-end
 
 domain(Phi::MorphismFromRationalFunctions) = Phi.domain
 codomain(Phi::MorphismFromRationalFunctions) = Phi.codomain
@@ -205,8 +94,8 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   # `affine_chart` of the codomain of Phi.
   covered_codomain_patches = Vector{AbsSpec}([V])
   complement_equations = Vector{elem_type(OO(U))}()
-  FY = function_field(Y)
-  FX = function_field(X)
+  FY = function_field(Y, check=false)
+  FX = function_field(X, check=false)
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
@@ -516,7 +405,7 @@ function _extend(U::AbsSpec, a::Vector{<:FieldElem})
 
   for g in small_generating_set(I_undef)
     Ug = PrincipalOpenSubset(U, g)
-    b = [OO(Ug)(numerator(f), denominator(f)) for f in a]
+    b = [convert(OO(Ug), numerator(f)//denominator(f)) for f in a]
     #b = [divides(OO(Ug)(numerator(f)), OO(Ug)(denominator(f)))[2] for f in a]
     push!(result, (Ug, b))
   end
