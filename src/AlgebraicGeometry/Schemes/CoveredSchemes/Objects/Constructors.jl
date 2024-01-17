@@ -29,17 +29,17 @@ Covering
     1: [x, y]
     2: [u, v]
 
-julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
+julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for gluing
 
 julia> V2 = PrincipalOpenSubset(U2, u);
 
-julia> f = morphism(V1, V2, [1//x, y//x]); # The glueing isomorphism
+julia> f = morphism(V1, V2, [1//x, y//x]); # The gluing isomorphism
 
 julia> g = morphism(V2, V1, [1//u, v//u]); # and its inverse
 
-julia> G = Glueing(U1, U2, f, g); # Construct the glueing
+julia> G = Gluing(U1, U2, f, g); # Construct the gluing
 
-julia> add_glueing!(C, G) # Make the glueing part of the Covering
+julia> add_gluing!(C, G) # Make the gluing part of the Covering
 Covering
   described by patches
     1: affine 2-space
@@ -48,7 +48,7 @@ Covering
     1: [x, y]
     2: [u, v]
 
-julia> X = CoveredScheme(C) # Create a CoveredScheme from the Glueing
+julia> X = CoveredScheme(C) # Create a CoveredScheme from the Gluing
 Scheme
   over rational field
 with default covering

@@ -219,8 +219,8 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
       end
     end
   end
-  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
-  inherit_glueings!(new_domain, domain(phi))
+  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}())
+  inherit_gluings!(new_domain, domain(phi))
   _register!(new_domain, X)
 
   psi = CoveringMorphism(new_domain, DD, res_dict, check=false)
@@ -256,20 +256,20 @@ end
   return res_dict
 end
 
-struct InheritGlueingData
+struct InheritGluingData
   orig::Covering
   X::AbsSpec
   Y::AbsSpec
 end
 
-function _compute_inherited_glueing(gd::InheritGlueingData)
+function _compute_inherited_gluing(gd::InheritGluingData)
   X = gd.X
   Y = gd.Y
   C = gd.orig
 
   success, Z = _have_common_ancestor(X, Y)
   if success
-    # This is the easy case: Glueing within one chart. 
+    # This is the easy case: Gluing within one chart. 
     # Keep in mind, however, that we might have gone through some simplify(...) calls, 
     # so we can not assume everything to be happening in the same ambient_ring.
     iso_X = _flatten_open_subscheme(X, Z)
@@ -279,11 +279,11 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     XY = PrincipalOpenSubset(X, pullback(iso_X)(OO(codomain(iso_X))(h_Y)))
     YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
     if iszero(h_X*h_Y)
-      # Glueing along the empty set. This is trivial.
+      # Gluing along the empty set. This is trivial.
       g = morphism(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
       f = morphism(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
       
-      return SimpleGlueing(X, Y, f, g, check=false)
+      return SimpleGluing(X, Y, f, g, check=false)
     end
 
     XYZ = PrincipalOpenSubset(Z, h_X*h_Y)
@@ -305,16 +305,16 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   end
 
   # As the easy case would have been caught before, we are now facing an inherited 
-  # glueing across charts: X ↪ A ⊃ U ≅ V ⊂ B ↩ Y. 
+  # gluing across charts: X ↪ A ⊃ U ≅ V ⊂ B ↩ Y. 
   # We need to compute the intersection of X with Y along the identifications of U and V
-  # and cook up the SimpleGlueing from that.
+  # and cook up the SimpleGluing from that.
   iso_X = _flatten_open_subscheme(X, C)
   iso_Y = _flatten_open_subscheme(Y, C)
   A = ambient_scheme(codomain(iso_X))
   B = ambient_scheme(codomain(iso_Y))
-  G = C[A, B] # The original glueing needed
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  G = C[A, B] # The original gluing needed
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   U isa PrincipalOpenSubset && ambient_scheme(U) === A || error("incorrect intermediate result")
   V isa PrincipalOpenSubset && ambient_scheme(V) === B || error("incorrect intermediate result")
 
@@ -355,24 +355,24 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(psi).(y_img)
   ff = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
 
-  return SimpleGlueing(X, Y, ff, gg, check=false)
+  return SimpleGluing(X, Y, ff, gg, check=false)
 end
 
 ngens(Q::MPolyQuoLocRing) = ngens(base_ring(Q))
 
 @doc raw"""
-    inherit_glueings!(ref::Covering, orig::Covering)
+    inherit_gluings!(ref::Covering, orig::Covering)
 
-For a refinement `ref` of a `Covering` `orig` add all missing glueings 
-in `ref` as inherited glueings from those in `orig`.
+For a refinement `ref` of a `Covering` `orig` add all missing gluings 
+in `ref` as inherited gluings from those in `orig`.
 """
-function inherit_glueings!(ref::Covering, orig::Covering)
+function inherit_gluings!(ref::Covering, orig::Covering)
   for U in patches(ref)
     for V in patches(ref)
-      if !haskey(glueings(ref), (U, V))
-        glueings(ref)[(U, V)] = LazyGlueing(U, V, 
-                                            _compute_inherited_glueing,
-                                            InheritGlueingData(orig, U, V)
+      if !haskey(gluings(ref), (U, V))
+        gluings(ref)[(U, V)] = LazyGluing(U, V, 
+                                            _compute_inherited_gluing,
+                                            InheritGluingData(orig, U, V)
                                            )
       end
     end

@@ -468,7 +468,7 @@ function _separate_singularities!(X::EllipticSurface)
 
 
   Cref = Covering(refined_charts)
-  inherit_glueings!(Cref, P[1])
+  inherit_gluings!(Cref, P[1])
   push!(P.coverings, Cref)
   @assert has_decomposition_info(default_covering(P))
   inherit_decomposition_info!(P, Cref)

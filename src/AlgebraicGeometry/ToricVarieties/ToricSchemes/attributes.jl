@@ -58,11 +58,11 @@ function forget_toric_structure(X::NormalToricVariety)
     iso_dict_covariant[domain(phi)] = phi
   end
 
-  # Recreate all the glueings with the new patches
+  # Recreate all the gluings with the new patches
   for U in affine_charts(X), V in affine_charts(X)
     glue = default_covering(X)[U, V]
     new_glue = restrict(glue, inverse(iso_dict[U]), inverse(iso_dict[V]), check=true)
-    add_glueing!(cov, new_glue)
+    add_gluing!(cov, new_glue)
   end
 
   # Prepare the underlying covering morphisms for the identifying isomorphisms
@@ -118,8 +118,8 @@ Spectrum
 @attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
 
 ### 
-# Some additional structure to make computation of toric glueings lazy
-struct ToricGlueingData
+# Some additional structure to make computation of toric gluings lazy
+struct ToricGluingData
   X::NormalToricVariety
   U::AffineNormalToricVariety
   V::AffineNormalToricVariety
@@ -127,7 +127,7 @@ struct ToricGlueingData
 # j::Int
 end
 
-function _compute_toric_glueing(gd::ToricGlueingData)
+function _compute_toric_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
@@ -149,7 +149,7 @@ function _compute_toric_glueing(gd::ToricGlueingData)
   # given by localization maps. The cone τ ̌ has lineality L. 
   # We need to find a Hilbert basis for both L ∩ σ₁̌ and L ∩ σ₂̌.
   # Then the localization maps are given by inverting the 
-  # elements of these Hilbert bases. The glueing isomorphisms 
+  # elements of these Hilbert bases. The gluing isomorphisms 
   # are then obtained by expressing the generators on the one 
   # side in terms of the others. 
 
@@ -177,7 +177,7 @@ function _compute_toric_glueing(gd::ToricGlueingData)
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
-  result = Glueing(U, V, f, g, check=true)
+  result = Gluing(U, V, f, g, check=true)
   return result
 end
 
@@ -236,20 +236,20 @@ with default covering
     for j in i+1:length(patch_list)
       X = patch_list[i]
       Y = patch_list[j]
-      gd = ToricGlueingData(Z, X, Y)
-      add_glueing!(cov, LazyGlueing(X, Y, _compute_toric_glueing, gd))
+      gd = ToricGluingData(Z, X, Y)
+      add_gluing!(cov, LazyGluing(X, Y, _compute_toric_gluing, gd))
       continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue
       vmat = _find_localization_element(cone(X), cone(Y), facet)
       U = _localize_affine_toric_variety(X, vmat)
       V = _localize_affine_toric_variety(Y, (-1)*vmat)
-      add_glueing!(cov, _compute_gluings(X, Y, vmat, U, V))
+      add_gluing!(cov, _compute_gluings(X, Y, vmat, U, V))
     end
   end
   
   # TODO: Improve the gluing (lazy gluing) or try to use the Hasse diagram.
-  # TODO: For now, we conjecture, that the composition of the computed glueings is sufficient to deduce all glueings.
+  # TODO: For now, we conjecture, that the composition of the computed gluings is sufficient to deduce all gluings.
   #fill_transitions!(cov)
   return CoveredScheme(cov)
 end
@@ -292,7 +292,7 @@ function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVarie
   g = morphism(V, U, gres)
   set_attribute!(g, :inverse, f)
   set_attribute!(f, :inverse, g)
-  return SimpleGlueing(X, Y, f, g)
+  return SimpleGluing(X, Y, f, g)
 end
 
 

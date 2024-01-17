@@ -1,4 +1,4 @@
-@testset "glueings" begin
+@testset "gluings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   A3 = Spec(R)
   set_name!(A3, "𝔸³")
@@ -31,15 +31,15 @@
   fyz = maximal_extension(Ay, Az, [xy//zy, 1//zy])
   fzy = maximal_extension(Az, Ay, [xz//yz, 1//yz])
 
-  gxy = Glueing(Ax, Ay, restrict(fxy, domain(fxy), domain(fyx)), restrict(fyx, domain(fyx), domain(fxy)))
-  gxz = Glueing(Ax, Az, restrict(fxz, domain(fxz), domain(fzx)), restrict(fzx, domain(fzx), domain(fxz)))
-  gyz = Glueing(Ay, Az, restrict(fyz, domain(fyz), domain(fzy)), restrict(fzy, domain(fzy), domain(fyz)))
+  gxy = Gluing(Ax, Ay, restrict(fxy, domain(fxy), domain(fyx)), restrict(fyx, domain(fyx), domain(fxy)))
+  gxz = Gluing(Ax, Az, restrict(fxz, domain(fxz), domain(fzx)), restrict(fzx, domain(fzx), domain(fxz)))
+  gyz = Gluing(Ay, Az, restrict(fyz, domain(fyz), domain(fzy)), restrict(fzy, domain(fzy), domain(fyz)))
 
   gyz_alt = compose(gxy, gxz)
   @test gyz == maximal_extension(gyz_alt)
 end
 
-@testset "further glueings" begin
+@testset "further gluings" begin
   R, (x, y) = QQ["x", "y"]
   S, (u, v) = QQ["u", "v"]
   T, (a, b) = QQ["a", "b"]
@@ -57,8 +57,8 @@ end
   f = morphism(Ux, Vu, pbf)
   g = morphism(Vu, Ux, pbg)
 
-  simpleG = SimpleGlueing(X, Y, f, g)
-  G1 = Glueing(simpleG)
+  simpleG = SimpleGluing(X, Y, f, g)
+  G1 = Gluing(simpleG)
   @test sprint(show, G1) isa String
 
   Vv = PrincipalOpenSubset(Y, v)
@@ -68,11 +68,11 @@ end
   g = morphism(Wb, Vv, [a, 1//b])
   Vvo = SpecOpen(Vv)
   Wbo = SpecOpen(Wb)
-  simpleG2 = SimpleGlueing(Y, Z, f, g)
+  simpleG2 = SimpleGluing(Y, Z, f, g)
   @test compose(simpleG, simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), inverse(simpleG2)) == compose(simpleG, inverse(simpleG2))
-  G2 = Glueing(Y, Z, 
+  G2 = Gluing(Y, Z, 
                SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]), 
                SpecOpenMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))
 
@@ -86,14 +86,14 @@ end
   G1res = restrict(G1, Xsub, Ysub)
 
   ### test the abstract interface
-  @attributes mutable struct DummyGlueing{
+  @attributes mutable struct DummyGluing{
                                           LeftSpecType<:AbsSpec, 
                                           RightSpecType<:AbsSpec,
                                           LeftOpenType<:SpecOpen, 
                                           RightOpenType<:SpecOpen,
                                           LeftMorType<:SpecOpenMor,
                                           RightMorType<:SpecOpenMor
-                                         } <: AbsGlueing{
+                                         } <: AbsGluing{
                                                          LeftSpecType,
                                                          RightSpecType,
                                                          LeftOpenType,
@@ -101,25 +101,25 @@ end
                                                          LeftMorType,
                                                          RightMorType
                                                         }
-    G::Glueing
-    function DummyGlueing(G::Glueing{A, B, C, D, E, F}) where {A, B, C, D, E, F}
+    G::Gluing
+    function DummyGluing(G::Gluing{A, B, C, D, E, F}) where {A, B, C, D, E, F}
       return new{A, B, C, D, E, F}(G)
     end
   end
 
-  function Oscar.underlying_glueing(DG::DummyGlueing)
+  function Oscar.underlying_gluing(DG::DummyGluing)
     return DG.G
   end
 
-  function (DG::DummyGlueing)(G::Glueing)
-    return DummyGlueing(G)
+  function (DG::DummyGluing)(G::Gluing)
+    return DummyGluing(G)
   end
 
   ### now everything should work
-  DG = DummyGlueing(G1)
+  DG = DummyGluing(G1)
   @test (X, Y) == patches(DG)
-  @test glueing_morphisms(G1) == glueing_morphisms(DG)
-  @test glueing_domains(G1) == glueing_domains(DG)
+  @test gluing_morphisms(G1) == gluing_morphisms(DG)
+  @test gluing_domains(G1) == gluing_domains(DG)
   @test inverse(DG) == DG
 end
 
@@ -127,12 +127,12 @@ end
   kk, pr = quo(ZZ, 5)
   IP1 = covered_scheme(projective_space(ZZ, 1))
   C = default_covering(IP1)
-  G = first(values(glueings(C)))
+  G = first(values(gluings(C)))
   GG = base_change(pr, G)
-  @test underlying_glueing(GG) isa SimpleGlueing
+  @test underlying_gluing(GG) isa SimpleGluing
 end
 
-@testset "extra lazy glueing domains" begin
+@testset "extra lazy gluing domains" begin
   P3 = projective_space(QQ, 3)
   S = homogeneous_coordinate_ring(P3)
   (x, y, z, w) = gens(S)
@@ -142,20 +142,20 @@ end
   pr = blow_up(II)
   X = domain(pr)
 
-  for G in values(glueings(Oscar.simplified_covering(X)))
+  for G in values(gluings(Oscar.simplified_covering(X)))
     @test !isdefined(G, :G)
-    glueing_domains(G)
+    gluing_domains(G)
     @test !isdefined(G, :G)
-    @test isdefined(G, :glueing_domains)
+    @test isdefined(G, :gluing_domains)
   end
 
-  for G in values(glueings(Oscar.simplified_covering(X)))
+  for G in values(gluings(Oscar.simplified_covering(X)))
     @test !isdefined(G, :G)
-    underlying_glueing(G)
+    underlying_gluing(G)
     @test isdefined(G, :G)
-    @test isdefined(G, :glueing_domains)
-    @test (G.glueing_domains[1] === glueing_domains(underlying_glueing(G))[1])
-    @test (G.glueing_domains[2] === glueing_domains(underlying_glueing(G))[2])
+    @test isdefined(G, :gluing_domains)
+    @test (G.gluing_domains[1] === gluing_domains(underlying_gluing(G))[1])
+    @test (G.gluing_domains[2] === gluing_domains(underlying_gluing(G))[2])
   end
 end
 

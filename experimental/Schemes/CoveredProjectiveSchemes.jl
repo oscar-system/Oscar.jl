@@ -1,5 +1,5 @@
 export CoveredProjectiveScheme
-export ProjectiveGlueing
+export ProjectiveGluing
 export base_scheme
 export blow_up
 export controlled_transform
@@ -8,17 +8,17 @@ export projective_patches
 export strict_transform
 export weak_transform
 
-abstract type AbsProjectiveGlueing{
-                                   GlueingType<:AbsGlueing,
+abstract type AbsProjectiveGluing{
+                                   GluingType<:AbsGluing,
                                   }
 end
 
 ### getters for the essential functionality
-base_glueing(PG::AbsProjectiveGlueing) = base_glueing(underlying_glueing(PG))
-inclusion_maps(PG::AbsProjectiveGlueing) = inclusion_maps(underlying_glueing(PG))
-glueing_domains(PG::AbsProjectiveGlueing) = glueing_domains(underlying_glueing(PG))
-patches(PG::AbsProjectiveGlueing) = patches(underlying_glueing(PG))
-glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_glueing(PG))
+base_gluing(PG::AbsProjectiveGluing) = base_gluing(underlying_gluing(PG))
+inclusion_maps(PG::AbsProjectiveGluing) = inclusion_maps(underlying_gluing(PG))
+gluing_domains(PG::AbsProjectiveGluing) = gluing_domains(underlying_gluing(PG))
+patches(PG::AbsProjectiveGluing) = patches(underlying_gluing(PG))
+gluing_morphisms(PG::AbsProjectiveGluing) = gluing_morphisms(underlying_gluing(PG))
 
 ###############################################################################
 #
@@ -27,73 +27,73 @@ glueing_morphisms(PG::AbsProjectiveGlueing) = glueing_morphisms(underlying_gluei
 ###############################################################################
 
 @doc raw"""
-  LazyProjectiveGlueing(
+  LazyProjectiveGluing(
       X::AbsProjectiveScheme,
       Y::AbsProjectiveScheme,
-      BG::AbsGlueing,
+      BG::AbsGluing,
       compute_function::Function, 
-      glueing_data
+      gluing_data
     )
 
-Produce a container `pg` to host a non-computed `ProjectiveGlueing` of ``X`` with ``Y``.
+Produce a container `pg` to host a non-computed `ProjectiveGluing` of ``X`` with ``Y``.
 
 The arguments consist of 
 
  * the patches ``X`` and ``Y`` to be glued;
- * a glueing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
-   `ProjectiveGlueing` to be computed sits;
- * a function `compute_function` which takes a single argument `glueing_data` 
+ * a gluing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
+   `ProjectiveGluing` to be computed sits;
+ * a function `compute_function` which takes a single argument `gluing_data` 
    of arbitrary type and actually carries out the computation; 
- * an arbitrary struct `glueing_data` that the user can fill with whatever 
+ * an arbitrary struct `gluing_data` that the user can fill with whatever 
    information is needed to properly feed their `compute_function`. 
 
-The container `pg` can then be stored as the glueing of ``X`` and ``Y``. As soon 
-as it is asked about any data on the glueing beyond its two `patches`, it will 
+The container `pg` can then be stored as the gluing of ``X`` and ``Y``. As soon 
+as it is asked about any data on the gluing beyond its two `patches`, it will 
 invoke the internally stored `compute_function` to actually carry out the computation 
-of the glueing and then serve the incoming request on the basis of that result. 
-The latter actual `ProjectiveGlueing` will then be cached. 
+of the gluing and then serve the incoming request on the basis of that result. 
+The latter actual `ProjectiveGluing` will then be cached. 
 """
-mutable struct LazyProjectiveGlueing{
-                                     GlueingType<:AbsGlueing,
-                                     GlueingDataType
-                                    } <: AbsProjectiveGlueing{GlueingType}
-  base_glueing::GlueingType
+mutable struct LazyProjectiveGluing{
+                                     GluingType<:AbsGluing,
+                                     GluingDataType
+                                    } <: AbsProjectiveGluing{GluingType}
+  base_gluing::GluingType
   patches::Tuple{AbsProjectiveScheme, AbsProjectiveScheme}
   compute_function::Function
-  glueing_data::GlueingDataType
-  underlying_glueing::AbsProjectiveGlueing
+  gluing_data::GluingDataType
+  underlying_gluing::AbsProjectiveGluing
 
-  function LazyProjectiveGlueing(
+  function LazyProjectiveGluing(
       X::AbsProjectiveScheme,
       Y::AbsProjectiveScheme,
-      BG::AbsGlueing,
+      BG::AbsGluing,
       compute_function::Function, 
-      glueing_data
+      gluing_data
     )
-    (base_scheme(X), base_scheme(Y)) == patches(BG) || error("glueing is incompatible with provided patches")
-    return new{typeof(BG), typeof(glueing_data)}(BG, (X, Y), compute_function, glueing_data)
+    (base_scheme(X), base_scheme(Y)) == patches(BG) || error("gluing is incompatible with provided patches")
+    return new{typeof(BG), typeof(gluing_data)}(BG, (X, Y), compute_function, gluing_data)
   end
 end
 
 # Essential getters
-patches(G::LazyProjectiveGlueing) = G.patches
-base_glueing(G::LazyProjectiveGlueing) = G.base_glueing
+patches(G::LazyProjectiveGluing) = G.patches
+base_gluing(G::LazyProjectiveGluing) = G.base_gluing
 
 # Everything else will trigger the computation
-function underlying_glueing(G::LazyProjectiveGlueing)
-  if !isdefined(G, :underlying_glueing)
-    G.underlying_glueing = G.compute_function(G.glueing_data)
+function underlying_gluing(G::LazyProjectiveGluing)
+  if !isdefined(G, :underlying_gluing)
+    G.underlying_gluing = G.compute_function(G.gluing_data)
   end
-  return G.underlying_glueing
+  return G.underlying_gluing
 end
 
 @doc raw"""
-    ProjectiveGlueing(
-        G::GlueingType, 
+    ProjectiveGluing(
+        G::GluingType, 
         incP::IncType, incQ::IncType,
         f::IsoType, g::IsoType;
         check::Bool=true
-      ) where {GlueingType<:AbsGlueing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
+      ) where {GluingType<:AbsGluing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
 
 The `AbsProjectiveSchemeMorphism`s `incP` and `incQ` are open embeddings over open 
 embeddings of their respective `base_scheme`s. 
@@ -102,49 +102,49 @@ embeddings of their respective `base_scheme`s.
       π ↓    ↓    ↓    ↓ π
     G : X  ↩ U  ≅ V  ↪ Y 
 
-This creates a glueing of the projective schemes `codomain(incP)` and `codomain(incQ)` 
-over a glueing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s 
+This creates a gluing of the projective schemes `codomain(incP)` and `codomain(incQ)` 
+over a gluing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s 
 `f` and `g`, identifying `domain(incP)` and `domain(incQ)`, respectively.
 """
-mutable struct ProjectiveGlueing{
-                                 GlueingType<:AbsGlueing,
+mutable struct ProjectiveGluing{
+                                 GluingType<:AbsGluing,
                                  IsoType1<:ProjectiveSchemeMor,
                                  IncType1<:ProjectiveSchemeMor,
                                  IsoType2<:ProjectiveSchemeMor,
                                  IncType2<:ProjectiveSchemeMor,
-                                } <: AbsProjectiveGlueing{GlueingType}
-  G::GlueingType # the underlying glueing of the base schemes
+                                } <: AbsProjectiveGluing{GluingType}
+  G::GluingType # the underlying gluing of the base schemes
   inc_to_P::IncType1
   inc_to_Q::IncType2
   f::IsoType1
   g::IsoType2
 
   ### 
-  # Given two relative projective schemes and a glueing 
+  # Given two relative projective schemes and a gluing 
   #
   #       PX ↩ PU ≅ QV ↪ QY
   #     π ↓    ↓    ↓    ↓ π
   #   G : X  ↩ U  ≅ V  ↪ Y 
   #
-  # this constructs the glueing of PX and QY along 
+  # this constructs the gluing of PX and QY along 
   # their open subsets PU and QV, given the two inclusions 
-  # and isomorphisms over the glueing G in the base schemes.
-  function ProjectiveGlueing(
-      G::GlueingType, 
+  # and isomorphisms over the gluing G in the base schemes.
+  function ProjectiveGluing(
+      G::GluingType, 
       incP::IncType1, incQ::IncType2,
       f::IsoType1, g::IsoType2;
       check::Bool=true
-    ) where {GlueingType<:AbsGlueing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
+    ) where {GluingType<:AbsGluing, IncType1<:ProjectiveSchemeMor,IncType2<:ProjectiveSchemeMor, IsoType1<:ProjectiveSchemeMor, IsoType2<:ProjectiveSchemeMor}
     (X, Y) = patches(G)
-    (U, V) = glueing_domains(G)
-    @vprint :Glueing 1 "computing projective glueing\n"
-    @vprint :Glueing 2 "$(X), coordinates $(ambient_coordinates(X))\n"
-    @vprint :Glueing 2 "and\n"
-    @vprint :Glueing 2 "$(Y) coordinates $(ambient_coordinates(X))\n"
-    (fb, gb) = glueing_morphisms(G)
+    (U, V) = gluing_domains(G)
+    @vprint :Gluing 1 "computing projective gluing\n"
+    @vprint :Gluing 2 "$(X), coordinates $(ambient_coordinates(X))\n"
+    @vprint :Gluing 2 "and\n"
+    @vprint :Gluing 2 "$(Y) coordinates $(ambient_coordinates(X))\n"
+    (fb, gb) = gluing_morphisms(G)
     (PX, QY) = (codomain(incP), codomain(incQ))
     (PU, QV) = (domain(incP), domain(incQ))
-    (base_scheme(PX) == X && base_scheme(QY) == Y) || error("base glueing is incompatible with the projective schemes")
+    (base_scheme(PX) == X && base_scheme(QY) == Y) || error("base gluing is incompatible with the projective schemes")
     domain(f) == codomain(g) == PU && domain(g) == codomain(f) == QV || error("maps are not compatible")
     SPU = homogeneous_coordinate_ring(domain(f))
     SQV = homogeneous_coordinate_ring(codomain(f))
@@ -163,25 +163,25 @@ mutable struct ProjectiveGlueing{
       # idQV = compose(g, f)
       # all(t->(pullback(idQV)(t) == t), gens(SQV)) || error("composition of maps is not the identity")
     end
-    @vprint :Glueing 1 "done computing the projective gluing\n"
-    return new{GlueingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
+    @vprint :Gluing 1 "done computing the projective gluing\n"
+    return new{GluingType, IsoType1, IncType1, IsoType2, IncType2}(G, incP, incQ, f, g)
   end
 end
 
-function Base.show(io::IO, PG::LazyProjectiveGlueing)
-  print(io, "Glueing of projective patches (not yet computed)")
+function Base.show(io::IO, PG::LazyProjectiveGluing)
+  print(io, "Gluing of projective patches (not yet computed)")
 end
 
-function Base.show(io::IO, PG::ProjectiveGlueing)
-  print(io, "Glueing of projective patches")
+function Base.show(io::IO, PG::ProjectiveGluing)
+  print(io, "Gluing of projective patches")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGlueing)
+function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGluing)
   io = pretty(io)
-  f = glueing_morphisms(PG)[1]
+  f = gluing_morphisms(PG)[1]
   PX, PY = pacthes(PG)
-  PU, PV = glueing_domains(PG)
-  println(io, "Glueing")
+  PU, PV = gluing_domains(PG)
+  println(io, "Gluing")
   println(io, Indent(), "of  ", Lowercase(), PX)
   println(io, "and ", Lowercase(), PY)
   println(io, Dedent(), "along the open subsets")
@@ -194,16 +194,16 @@ end
 ### type getters
 #=
 TODO: Do we need these?
-glueing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
-glueing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGlueing{glueing_type(base_scheme_type(T)), T, morphism_type(T)}
+gluing_type(P::T) where {T<:ProjectiveScheme} = ProjectiveGluing{gluing_type(base_scheme_type(T)), T, morphism_type(T)}
+gluing_type(::Type{T}) where {T<:ProjectiveScheme} = ProjectiveGluing{gluing_type(base_scheme_type(T)), T, morphism_type(T)}
 =#
 ### essential getters
 
-base_glueing(PG::ProjectiveGlueing) = PG.G
-inclusion_maps(PG::ProjectiveGlueing) = (PG.inc_to_P, PG.inc_to_Q)
-glueing_domains(PG::ProjectiveGlueing) = (domain(PG.f), domain(PG.g))
-patches(PG::ProjectiveGlueing) = (codomain(PG.inc_to_P), codomain(PG.inc_to_Q))
-glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
+base_gluing(PG::ProjectiveGluing) = PG.G
+inclusion_maps(PG::ProjectiveGluing) = (PG.inc_to_P, PG.inc_to_Q)
+gluing_domains(PG::ProjectiveGluing) = (domain(PG.f), domain(PG.g))
+patches(PG::ProjectiveGluing) = (codomain(PG.inc_to_P), codomain(PG.inc_to_Q))
+gluing_morphisms(PG::ProjectiveGluing) = (PG.f, PG.g)
 
 ### Proper schemes π : Z → X over a covered base scheme X
 # 
@@ -227,23 +227,23 @@ glueing_morphisms(PG::ProjectiveGlueing) = (PG.f, PG.g)
   Y::AbsCoveredScheme # the base scheme
   BC::Covering # the reference covering of the base scheme
   patches::IdDict{AbsSpec, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
-  glueings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing} # the transitions sitting over the affine patches in the glueing domains of the base scheme
+  gluings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing} # the transitions sitting over the affine patches in the gluing domains of the base scheme
 
   function CoveredProjectiveScheme(
       Y::AbsCoveredScheme,
       C::Covering,
       projective_patches::IdDict{AbsSpec, AbsProjectiveScheme},
-      projective_glueings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing};
+      projective_gluings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing};
       check::Bool=true
     )
     C in coverings(Y) || error("covering not listed")
     for P in values(projective_patches)
       base_scheme(P) in patches(C) || error("base scheme not found in covering")
     end
-    for (U, V) in keys(glueings(C))
-      (U, V) in keys(projective_glueings) || error("not all projective glueings were provided")
+    for (U, V) in keys(gluings(C))
+      (U, V) in keys(projective_gluings) || error("not all projective gluings were provided")
     end
-    return new{base_ring_type(Y)}(Y, C, projective_patches, projective_glueings)
+    return new{base_ring_type(Y)}(Y, C, projective_patches, projective_gluings)
   end
 end
 
@@ -252,7 +252,7 @@ base_covering(P::CoveredProjectiveScheme) = P.BC
 base_patches(P::CoveredProjectiveScheme) = patches(P.BC)
 projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
 getindex(P::CoveredProjectiveScheme, U::AbsSpec) = (P.patches)[U]
-getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.glueings)[(U, V)]
+getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.gluings)[(U, V)]
 
 ###############################################################################
 #
@@ -323,10 +323,10 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   pp = IdDict{AbsSpec, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
-  #tr[(U, U)] = ProjectiveGlueing(Glueing(U, U, identity_map(W), identity_map(W)), 
+  #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, identity_map(W), identity_map(W)), 
                                  #inc, inc, identity_map(PW), identity_map(PW))
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
@@ -662,11 +662,11 @@ end
 #  end
 #end
 
-# This is a sample for how to use LazyProjectiveGlueings. 
+# This is a sample for how to use LazyProjectiveGluings. 
 # Originally, we probably had some body of a double for-loop iterating over 
 # pairs of patches (P, Q) that we need to glue. We take that body which 
-# computes the glueing of P and Q and move 
-# it to an external function (here _compute_projective_glueing). Then we 
+# computes the gluing of P and Q and move 
+# it to an external function (here _compute_projective_gluing). Then we 
 # go through all the local variables in the body of the for-loop which 
 # are needed for the actual computation and create a tailor-made struct to 
 # house them. We add an extraction section in the beginning of the compute 
@@ -675,17 +675,17 @@ end
 #
 # Finally, we can replace the inner part of the double for-loop with the 
 # actual wrap-up of the local variables and feed everything to a constructor 
-# for a `LazyProjectiveGlueing` as documented above. 
-struct CoveredProjectiveGlueingData
+# for a `LazyProjectiveGluing` as documented above. 
+struct CoveredProjectiveGluingData
   U::AbsSpec
   V::AbsSpec
   P::AbsProjectiveScheme
   Q::AbsProjectiveScheme
-  G::AbsGlueing
+  G::AbsGluing
   I::IdealSheaf
 end
 
-function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
+function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
   P = gd.P
   Q = gd.Q
   U = gd.U
@@ -697,13 +697,13 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
 
   SP = homogeneous_coordinate_ring(P)
   SQ = homogeneous_coordinate_ring(Q)
-  UV, VU = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  UV, VU = gluing_domains(G)
+  f, g = gluing_morphisms(G)
 
   # to construct the identifications of PUV with QVU we need to 
   # express the generators of I(U) in terms of the generators of I(V)
   # on the overlap U ∩ V. 
-  !(G isa Glueing) || error("method not implemented for this type of glueing")
+  !(G isa Gluing) || error("method not implemented for this type of gluing")
 
   QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
   PUV, PUVtoP = fiber_product(OX(U, UV), P)
@@ -734,7 +734,7 @@ function _compute_projective_glueing(gd::CoveredProjectiveGlueingData)
   # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
   fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
   gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)], check=false), check=false)
-  return ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
+  return ProjectiveGluing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
 end
 
 
@@ -782,17 +782,17 @@ function blow_up(
     end
     #comp_iso_dict = merge(comp_iso_dict, isos_on_complement_of_center)
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  projective_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
 
-  # prepare for the projective glueings
-  for (U, V) in keys(glueings(covering))
+  # prepare for the projective gluings
+  for (U, V) in keys(gluings(covering))
     P = local_blowups[U]
     Q = local_blowups[V]
     G = covering[U, V]
-    gd = CoveredProjectiveGlueingData(U, V, P, Q, G, I)
-    projective_glueings[U, V] = LazyProjectiveGlueing(P, Q, G, _compute_projective_glueing, gd)
+    gd = CoveredProjectiveGluingData(U, V, P, Q, G, I)
+    projective_gluings[U, V] = LazyProjectiveGluing(P, Q, G, _compute_projective_gluing, gd)
   end
-  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_glueings)
+  Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_gluings)
   Y = covered_scheme(Bl_I)
   # Assemble the exceptional divisor as a Cartier divisor
   ID = IdDict{AbsSpec, RingElem}()
@@ -815,10 +815,10 @@ function blow_up(
   return pr
 end
 
-# The following is a wrap-up of local variables necessary to compute glueings
+# The following is a wrap-up of local variables necessary to compute gluings
 # from morphisms of graded algebras. It will be used to fill in the 
-# `LazyGlueing` together with the compute function following below.
-struct ProjectiveGlueingData
+# `LazyGluing` together with the compute function following below.
+struct ProjectiveGluingData
   down_left::AbsSpec
   down_right::AbsSpec
   up_left::AbsSpec
@@ -827,15 +827,15 @@ struct ProjectiveGlueingData
   projective_scheme::CoveredProjectiveScheme
 end
 
-# This function actually computes the glueing with the data extracted 
-# from the ProjectiveGlueingData. 
+# This function actually computes the gluing with the data extracted 
+# from the ProjectiveGluingData. 
 #
 # Originally, this was in the body of a constructor. But we want to 
 # postpone the actual computation, so we wrap up all necessary local 
-# variables in a `ProjectiveGlueingData` and copy-paste the required 
+# variables in a `ProjectiveGluingData` and copy-paste the required 
 # part of code into the body of this function. Together with a header 
 # which is restoring our local variables. 
-function _compute_glueing(gd::ProjectiveGlueingData)
+function _compute_gluing(gd::ProjectiveGluingData)
   U = gd.down_left
   V = gd.down_right
   UW = gd.up_left
@@ -851,10 +851,10 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   #
   # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}. 
   P = gd.projective_scheme
-  (A, B) = glueing_domains(C[U, V])
-  (f, g) = glueing_morphisms(C[U, V])
-  (UD, VD) = glueing_domains(P[U, V])
-  (fup, gup) = glueing_morphisms(P[U, V])
+  (A, B) = gluing_domains(C[U, V])
+  (f, g) = gluing_morphisms(C[U, V])
+  (UD, VD) = gluing_domains(P[U, V])
+  (fup, gup) = gluing_morphisms(P[U, V])
   (incU, incV) = inclusion_maps(P[U, V])
   S = homogeneous_coordinate_ring(P[U])
   T = homogeneous_coordinate_ring(P[V])
@@ -867,20 +867,20 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
-  # We need to construct the glueing 
+  # We need to construct the gluing 
   #
   #          f', g'
   #   UW ↩ AAW ↔ BBW ↪ VW
   #   
   # as follows. 
-  # From the base glueing we already have that UW differs 
+  # From the base gluing we already have that UW differs 
   # from AAW by the pullback of the equation `complement_equation(A)`.
   # But then, also `hU` cuts out another locus which needs to be 
-  # removed before glueing. 
+  # removed before gluing. 
   #
   # The same applies to the other side. Finally, we need to track the 
-  # coordinates through the homogenization-glueing-pullback-dehomogenization 
-  # machinery to provide the glueing morphisms. 
+  # coordinates through the homogenization-gluing-pullback-dehomogenization 
+  # machinery to provide the gluing morphisms. 
 
   ptbUD = covered_projection_to_base(UD)
   ptbVD = covered_projection_to_base(VD)
@@ -912,7 +912,7 @@ function _compute_glueing(gd::ProjectiveGlueingData)
   ff = morphism(AAW, BBW, hom(OO(BBW), OO(AAW), yimgs, check=false), check=false)
   gg = morphism(BBW, AAW, hom(OO(AAW), OO(BBW), ximgs, check=false), check=false)
 
-  return SimpleGlueing(UW, VW, ff, gg, check=false)
+  return SimpleGluing(UW, VW, ff, gg, check=false)
   pr.exceptional_divisor = EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov))
   return pr
 end
@@ -921,7 +921,7 @@ end
   X = base_scheme(P)
   C = base_covering(P)
   new_patches = Vector{AbsSpec}()
-  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()
   parts = IdDict{AbsSpec, AbsCoveredScheme}() 
   for U in patches(C)
@@ -930,30 +930,30 @@ end
   # We first assemble a Covering where the preimage of every base 
   # patch appears as one connected component
   result_patches = vcat([affine_charts(parts[U]) for U in patches(C)]...)
-  result_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  result_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   for U in patches(C)
-    GG = glueings(parts[U])
+    GG = gluings(parts[U])
     for (A, B) in keys(GG)
-      result_glueings[(A, B)] = GG[(A, B)]
+      result_gluings[(A, B)] = GG[(A, B)]
     end
   end
-  result_covering = Covering(result_patches, result_glueings, check=false)
+  result_covering = Covering(result_patches, result_gluings, check=false)
   
-  # Now we need to add glueings
+  # Now we need to add gluings
   for U in patches(C)
     for V in patches(C)
       U === V && continue
       for UW in affine_charts(parts[U])
         for VW in affine_charts(parts[V])
-          GGG = LazyGlueing(UW, VW, _compute_glueing, 
-                            ProjectiveGlueingData(U, V, UW, VW, C, P)
+          GGG = LazyGluing(UW, VW, _compute_gluing, 
+                            ProjectiveGluingData(U, V, UW, VW, C, P)
                            )
-          result_glueings[(UW, VW)] = GGG
+          result_gluings[(UW, VW)] = GGG
         end
       end
     end
   end
-  result_covering = Covering(result_patches, result_glueings, check=false)
+  result_covering = Covering(result_patches, result_gluings, check=false)
   result = CoveredScheme(result_covering)
 
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()

@@ -85,7 +85,7 @@ end
   @test domain(Ccov[C1, C3]) === C1
   @test codomain(Ccov[C3, C1]) === C1
   @test domain(Ccov[C3, C1]) === C3
-  @test glueings(Ccov) === glueings(C1)
+  @test gluings(Ccov) === gluings(C1)
   set_name!(Ccov, "C")
   @test name(Ccov) == "C"
 
@@ -112,7 +112,7 @@ end
   @test D[Ccov[1]] == Ccov[Ccov[1]]
   @test D[Ccov[1], Ccov[2]] == Ccov[Ccov[1], Ccov[2]]
   @test Oscar.refinements(D) == Oscar.refinements(Ccov)
-  @test glueings(D) == glueings(Ccov)
+  @test gluings(D) == gluings(Ccov)
   @test base_ring(D) == base_ring(Ccov)
 end
 
@@ -208,13 +208,13 @@ end
 
   @test domain(g_cov) === codomain(g_cov) === covered_scheme(P)
 
-  # Test the LazyGlueings:
+  # Test the LazyGluings:
   X = covered_scheme(P)
 
   gg = covering_morphism(g_cov)
   dom_cov = domain(gg)
-  for k in keys(glueings(dom_cov))
-      @test underlying_glueing(glueings(dom_cov)[k]) isa SimpleGlueing
+  for k in keys(gluings(dom_cov))
+      @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
   end
 end
 
@@ -247,7 +247,7 @@ end
   V2 = PrincipalOpenSubset(U, x)
   V1 = PrincipalOpenSubset(U, x-1)
   new_cov = Covering(append!(AbsSpec[V1, V2], patches(orig_cov)[2:end]))
-  Oscar.inherit_glueings!(new_cov, orig_cov)
+  Oscar.inherit_gluings!(new_cov, orig_cov)
   Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
   @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
 end

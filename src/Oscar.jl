@@ -109,8 +109,8 @@ function __init__()
   add_verbose_scope(:MorphismFromRationalFunctions)
   add_assert_scope(:MorphismFromRationalFunctions)
 
-  add_verbose_scope(:Glueing)
-  add_assert_scope(:Glueing)
+  add_verbose_scope(:Gluing)
+  add_assert_scope(:Gluing)
 
   add_verbose_scope(:Intersections)
   add_assert_scope(:Intersections)

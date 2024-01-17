@@ -56,9 +56,9 @@ end
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
+  # Extend the gluing to the whole covered scheme
   Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
