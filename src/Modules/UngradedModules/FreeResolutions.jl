@@ -356,8 +356,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     error("Unsupported algorithm $algorithm")
   end
 
-  if length == 0 || Singular.length(res) < length
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  if length == 0 || slen < length
     cc_complete = true
+  end
+
+  if length != 0
+    slen =  slen > length ? length : slen
   end
 
   br_name = AbstractAlgebra.find_name(base_ring(M))
@@ -368,7 +373,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
   j   = 1
-  while j <= Singular.length(res)
+  while j <= slen
     if is_graded(M)
       codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
