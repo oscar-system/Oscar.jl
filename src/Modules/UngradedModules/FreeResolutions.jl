@@ -223,12 +223,12 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       generator_matrix(SM)
       map = graded_map(codom, SM.matrix)
       dom = domain(map)
-      set_attribute!(dom, :name => "R^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
-      set_attribute!(dom, :name => "R^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
       generator_matrix(SM)
       map = hom(dom, codom, SM.matrix)
     end
