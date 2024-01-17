@@ -116,9 +116,8 @@ function delta_sym(F::Field, K::SimplicialComplex)
 
     for b in mb
       transformed_monomial = evaluate(b, Y * gens(R_K))
-      # this can be moved outside loop at some point
-      non_zero_terms = filter(x -> !is_zero(R_K(x)),
-                              collect(monomials(lift(transformed_monomial))))
+      # this part will need to be adjusted for finite fields
+      non_zero_terms = filter(x -> !is_zero(R_K(x)), collect(terms(lift(transformed_monomial))))
       generic_col = first.(coefficients.(non_zero_terms))
       push!(A, generic_col)
     end
