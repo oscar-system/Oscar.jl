@@ -236,7 +236,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     j += 1
   end
   # Finalize maps.
-  if Singular.length(res) < len
+  if slen < len
     Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "0")
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
