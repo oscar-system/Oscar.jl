@@ -438,12 +438,12 @@ function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
       # To avoid overcounting, throw away all components that 
       # were already visible in other charts.
       for V in patches_done
-        if !haskey(glueings(covering), (U, V))
+        if !haskey(gluings(covering), (U, V))
           continue
         end
         G = covering[U, V]
-        (UV, VU) = glueing_domains(G)
-        UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
+        (UV, VU) = gluing_domains(G)
+        UV isa PrincipalOpenSubset || error("method is only implemented for simple gluings")
         f = complement_equation(UV)
         # Find a sufficiently high power of f such that it throws
         # away all components away from the horizon, but does not affect

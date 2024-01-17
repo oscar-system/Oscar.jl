@@ -110,7 +110,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     # C can be always glued with the empty genus to obtain C
     return true
   elseif (A == zg) || (B == zg)
-    # If A or B is empty but the other is not C, then there is no glueing
+    # If A or B is empty but the other is not C, then there is no gluing
     return false
   end
 
@@ -142,7 +142,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     return false
   end
 
-  # At this point, if C is unimodular at p, the glueing condition is equivalent to have 
+  # At this point, if C is unimodular at p, the gluing condition is equivalent to have 
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
@@ -155,7 +155,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   Bp = local_symbol(B, p)
   a_max = symbol(Ap, l+1)[2]
   b_max = symbol(Bp, l+1)[2]
-  # For the glueing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
+  # For the gluing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
   # same order
   if a_max != b_max
     return false

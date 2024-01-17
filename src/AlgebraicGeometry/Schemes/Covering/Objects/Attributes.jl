@@ -6,7 +6,7 @@ base_ring_type(::Type{Covering{T}}) where {T} = T
 base_ring_type(C::Covering) = base_ring_type(typeof(C))
 
 ### type constructors
-#covering_type(::Type{T}) where {T<:Spec} = Covering{T, glueing_type(T)}
+#covering_type(::Type{T}) where {T<:Spec} = Covering{T, gluing_type(T)}
 #covering_type(X::Spec) = covering_type(typeof(X))
 
 ########################################################################
@@ -22,28 +22,28 @@ Return the list of affine charts that make up the `Covering` `C`.
 affine_charts(C::Covering) = C.patches
 npatches(C::Covering) = length(C.patches)
 @doc raw"""
-    glueings(C::Covering)
+    gluings(C::Covering)
 
-Return a dictionary of glueings of the `affine_chart`s of `C`.
+Return a dictionary of gluings of the `affine_chart`s of `C`.
 
 The keys are pairs `(U, V)` of `affine_chart`s. 
-One can also use `C[U, V]` to obtain the respective glueing.
+One can also use `C[U, V]` to obtain the respective gluing.
 
-**Note:** Glueings are lazy in the sense that they are in general 
+**Note:** Gluings are lazy in the sense that they are in general 
 only computed when asked for. This method only returns the internal 
-cache, but does not try to compute new glueings.
+cache, but does not try to compute new gluings.
 """
-glueings(C::Covering) = C.glueings
+gluings(C::Covering) = C.gluings
 getindex(C::Covering, i::Int) = C.patches[i]
-getindex(C::Covering, i::Int, j::Int) = glueings(C)[(patches(C)[i], patches(C)[j])]
-getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = glueings(C)[(X, Y)]
+getindex(C::Covering, i::Int, j::Int) = gluings(C)[(patches(C)[i], patches(C)[j])]
+getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = gluings(C)[(X, Y)]
 #edge_dict(C::Covering) = C.edge_dict
 
-function glueing_graph(C::Covering; all_dense::Bool=false)
-  if !isdefined(C, :glueing_graph)
-    update_glueing_graph(C, all_dense=all_dense)
+function gluing_graph(C::Covering; all_dense::Bool=false)
+  if !isdefined(C, :gluing_graph)
+    update_gluing_graph(C, all_dense=all_dense)
   end
-  return C.glueing_graph
+  return C.gluing_graph
 end
 
 @doc raw"""

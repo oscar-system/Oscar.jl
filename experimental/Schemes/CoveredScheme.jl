@@ -57,7 +57,7 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
 #    return isoW, isoW, incWtoU, incWtoV
   else
     G = C[i, l]
-    (f, g) = glueing_morphisms(G)
+    (f, g) = gluing_morphisms(G)
     preimV = preimage(f, V)
     preimU = preimage(g, U)
     WU = intersect(preimV, U)
@@ -71,9 +71,9 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
 end
 
 #affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
-#glueing_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
-#affine_patch_type(::Type{Covering{SpecType, GlueingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
-#glueing_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = GlueingType
+#gluing_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
+#affine_patch_type(::Type{Covering{SpecType, GluingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
+#gluing_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
 #open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
 #open_subset_type(C::Covering) = open_subset_type(typeof(C))
 
@@ -232,7 +232,7 @@ end
                     [y[k]//y[i] for k in j:r],
                     y[r+1:end])
       g = morphism(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
-      add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
+      add_gluing!(result, SimpleGluing(U, V, f, g, check=false))
     end
   end
   return result
@@ -296,7 +296,7 @@ end
                     [y[k]//y[i] for k in j:r],
                     y[r+1:end])
       g = morphism(Uj, Ui, [OO(Uj)(b, check=false) for b in imgs_g], check=false)
-      add_glueing!(result, SimpleGlueing(U, V, f, g, check=false))
+      add_gluing!(result, SimpleGluing(U, V, f, g, check=false))
     end
   end
   covered_projection = CoveringMorphism(result, Covering(Y), projection_dict, check=false)
@@ -314,8 +314,8 @@ end
 #affine_patch_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = R
 #affine_patch_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = R
 
-#morphism_type(C::Covering{SpecType, GlueingType, SpecOpenType}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
-#morphism_type(::Type{Covering{SpecType, GlueingType, SpecOpenType}}) where {SpecType<:Spec, GlueingType<:Glueing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GlueingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+#morphism_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+#morphism_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 
 refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
@@ -443,19 +443,19 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 #    end
 #  end
 #  
-#  # cook up the glueings for the new patches from those in the common root.
-#  new_glueings = IdDict{Tuple{affine_patch_type(X), affine_patch_type(X)}, glueing_type(affine_patch_type(X))}()
-#  for (W1, W2) in keys(glueings(C0))
+#  # cook up the gluings for the new patches from those in the common root.
+#  new_gluings = IdDict{Tuple{affine_patch_type(X), affine_patch_type(X)}, gluing_type(affine_patch_type(X))}()
+#  for (W1, W2) in keys(gluings(C0))
 #    U_patches = [U for U in new_patches if codomain(inc0[U]) === W1]
 #    V_patches = [V for V in new_patches if codomain(inc0[V]) === W2]
 #    for U in U_patches
 #      for V in V_patches
-#        new_glueings[(U, V)] = restrict(C0[W1, W2], U, V)
+#        new_gluings[(U, V)] = restrict(C0[W1, W2], U, V)
 #      end
 #    end
 #  end
 #
-#  C_new = Covering(new_patches, new_glueings)
+#  C_new = Covering(new_patches, new_gluings)
 #  f = CoveringMorphism(C_new, C1, inc1, check=true) # set to false after debugging
 #  g = CoveringMorphism(C_new, C2, inc2, check=true)
 #  h = CoveringMorphism(C_new, C0, inc0, check=true)
@@ -544,18 +544,18 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
       rev_dict[U] = V
     end
   end
-  glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   for Unew in keys(mor_dict)
     U = codomain(mor_dict[Unew])
     for Vnew in keys(mor_dict)
       V = codomain(mor_dict[Vnew])
-      glueing_dict[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+      gluing_dict[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction, 
                                                RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
                                               )
     end
   end
 
-  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, glueing_dict, check=false))
+  Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, gluing_dict, check=false))
   cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=false)
   return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
 end

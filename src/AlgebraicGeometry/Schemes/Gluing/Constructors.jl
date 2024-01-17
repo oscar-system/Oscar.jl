@@ -3,7 +3,7 @@
 # Dummy constructor for documentation only                             #
 ########################################################################
 @doc raw"""
-    Glueing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+    Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
 
 Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms 
 ``f`` and ``g`` of open subsets ``U`` of ``X`` and ``V`` of ``Y``.
@@ -14,16 +14,16 @@ julia> P1, (x,y) = QQ["x", "y"]; P2, (u,v) = QQ["u", "v"];
 
 julia> U1 = Spec(P1); U2 = Spec(P2);
 
-julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
+julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for gluing
 
 julia> V2 = PrincipalOpenSubset(U2, u);
 
-julia> f = morphism(V1, V2, [1//x, y//x]); # The glueing isomorphism
+julia> f = morphism(V1, V2, [1//x, y//x]); # The gluing isomorphism
 
 julia> g = morphism(V2, V1, [1//u, v//u]); # and its inverse
 
-julia> G = Glueing(U1, U2, f, g) # Construct the glueing
-Glueing
+julia> G = Gluing(U1, U2, f, g) # Construct the gluing
+Gluing
   of affine 2-space
   and affine 2-space
 along the open subsets
@@ -33,10 +33,10 @@ given by the pullback function
   u -> 1/x
   v -> y/x
 
-julia> G isa SimpleGlueing # Since the glueing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGlueing`
+julia> G isa SimpleGluing # Since the gluing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGluing`
 true
 
-julia> # Alternative using SpecOpens as glueing domains:
+julia> # Alternative using SpecOpens as gluing domains:
 
 julia> W1 = SpecOpen(U1, [x]); W2 = SpecOpen(U2, [u]);
 
@@ -44,8 +44,8 @@ julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
 
 julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
 
-julia> H = Glueing(U1, U2, h1, h2)
-Glueing
+julia> H = Gluing(U1, U2, h1, h2)
+Gluing
   of affine 2-space
   and affine 2-space
 along the open subsets
@@ -59,32 +59,32 @@ defined by the map
     u -> 1/x
     v -> y/x
 
-julia> H isa Glueing
+julia> H isa Gluing
 true
 ```
 """
-function Glueing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
-  error("constructor for `Glueing` not implemented for morphisms of type $(typeof(f)) and $(typeof(g))")
+function Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+  error("constructor for `Gluing` not implemented for morphisms of type $(typeof(f)) and $(typeof(g))")
 end
 
 ########################################################################
-# Conversion from SimpleGlueings to Glueings                           #
+# Conversion from SimpleGluings to Gluings                           #
 ########################################################################
-function Glueing(G::SimpleGlueing)
+function Gluing(G::SimpleGluing)
   X, Y = patches(G)
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   incY = inclusion_morphism(V, Y)
   incX = inclusion_morphism(U, X)
   Uo = SpecOpen(U)
   Vo = SpecOpen(V)
   fo = SpecOpenMor(Uo, Vo, [compose(f, incY)], check=false)
   go = SpecOpenMor(Vo, Uo, [compose(g, incX)], check=false)
-  return Glueing(X, Y, fo, go, check=false)
+  return Gluing(X, Y, fo, go, check=false)
 end
 
-### For compatibility, return the glueing itself whenever it is of the right type
-function Glueing(G::Glueing)
+### For compatibility, return the gluing itself whenever it is of the right type
+function Gluing(G::Gluing)
   return G
 end
 
@@ -92,85 +92,85 @@ end
 # Simplified constructor for common special case                       #
 ########################################################################
 
-function Glueing(
+function Gluing(
     X::AbsSpec, Y::AbsSpec, 
     f::AbsSpecMor{<:PrincipalOpenSubset}, 
     g::AbsSpecMor{<:PrincipalOpenSubset};
     check::Bool=true)
-  return SimpleGlueing(X, Y, f, g, check=check)
+  return SimpleGluing(X, Y, f, g, check=check)
 end
 
 ########################################################################
-# Restrictions of Glueings to closed subschemes                        #
+# Restrictions of Gluings to closed subschemes                        #
 ########################################################################
-function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
-  return restrict(underlying_glueing(G), X, Y, check=check)
+function restrict(G::AbsGluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+  return restrict(underlying_gluing(G), X, Y, check=check)
 end
 
-function restrict(G::AbsGlueing, X::AbsSpec, Y::AbsSpec,
+function restrict(G::AbsGluing, X::AbsSpec, Y::AbsSpec,
     Ures::Scheme, Vres::Scheme;
     check::Bool=true
   )
-  return restrict(underlying_glueing(G), X, Y, Ures, Vres, check=check)
+  return restrict(underlying_gluing(G), X, Y, Ures, Vres, check=check)
 end
 
 
-function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
   @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   Ures = intersect(X, U, check=false)
   Vres = intersect(Y, V, check=false)
-  return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
+  return Gluing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
-function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+function restrict(G::SimpleGluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
   @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   UX = PrincipalOpenSubset(X, OO(X)(lifted_numerator(complement_equation(U))))
   VY = PrincipalOpenSubset(Y, OO(Y)(lifted_numerator(complement_equation(V))))
   f_res = restrict(f, UX, VY, check=check)
   g_res = restrict(g, VY, UX, check=check)
-  return SimpleGlueing(X, Y, f_res, g_res, check=check)
+  return SimpleGluing(X, Y, f_res, g_res, check=check)
 end
 
-function restrict(G::Glueing, X::AbsSpec, Y::AbsSpec,
+function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec,
     Ures::SpecOpen, Vres::SpecOpen;
     check::Bool=true
   )
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
   @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
-  return Glueing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
+  return Gluing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
-function restrict(G::SimpleGlueing, X::AbsSpec, Y::AbsSpec,
+function restrict(G::SimpleGluing, X::AbsSpec, Y::AbsSpec,
     UX::PrincipalOpenSubset, VY::PrincipalOpenSubset;
     check::Bool=true
   )
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
   @check is_closed_embedding(intersect(Y, ambient_scheme(V)), ambient_scheme(V)) "the scheme is not a closed in the ambient scheme of the open set"
   f_res = restrict(f, UX, VY, check=check)
   g_res = restrict(g, VY, UX, check=check)
-  return SimpleGlueing(X, Y, f_res, g_res, check=check)
+  return SimpleGluing(X, Y, f_res, g_res, check=check)
 end
 
 ########################################################################
-# Identification of glueings under isomorphisms of patches             #
+# Identification of gluings under isomorphisms of patches             #
 ########################################################################
 @doc raw"""
-    restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+    restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
-Given a glueing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
-``g: Y → Y'``, return the induced glueing of ``X'`` and ``Y'``.
+Given a gluing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
+``g: Y → Y'``, return the induced gluing of ``X'`` and ``Y'``.
 """
-function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   (X1, Y1) = patches(G)
   X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)
@@ -180,12 +180,12 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   Y2 = codomain(g)
   ginv = inverse(g)
 
-  (h1, h2) = glueing_morphisms(G)
+  (h1, h2) = gluing_morphisms(G)
 
   U2 = preimage(finv, domain(h1), check=check)
   V2 = preimage(ginv, domain(h2), check=check)
 
-  return Glueing(X2, Y2, 
+  return Gluing(X2, Y2, 
                  compose(restrict(finv, U2, domain(h1), check=check), 
                          compose(h1, restrict(g, domain(h2), V2, check=check))
                         ),
@@ -196,7 +196,7 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                 )
 end
 
-function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor,
+function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor,
     f_res::SchemeMor, g_res::SchemeMor;
     check::Bool=true
   )
@@ -209,12 +209,12 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor,
   Y2 = codomain(g)
   ginv = inverse(g)
 
-  (h1, h2) = glueing_morphisms(G)
+  (h1, h2) = gluing_morphisms(G)
 
   U2 = codomain(f_res)
   V2 = codomain(f_res)
 
-  return Glueing(X2, Y2, 
+  return Gluing(X2, Y2, 
                  compose(inverse(f_res), 
                          compose(h1, g_res)
                         ),
@@ -226,14 +226,14 @@ function restrict(G::AbsGlueing, f::AbsSpecMor, g::AbsSpecMor,
 end
 
 ########################################################################
-# Maximal extensions from SimpleGlueings                               #
+# Maximal extensions from SimpleGluings                               #
 ########################################################################
 
-function maximal_extension(G::SimpleGlueing)
-  # We first check, whether this glueing already is maximal.
+function maximal_extension(G::SimpleGluing)
+  # We first check, whether this gluing already is maximal.
   # If it is not, we pass it on to the more complicated methods.
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   X, Y = patches(G)
   x = gens(OO(X))
   y = gens(OO(Y))
@@ -242,6 +242,6 @@ function maximal_extension(G::SimpleGlueing)
   U2, ext_y = maximal_extension(X, fraction.(pby))
   V2, ext_x = maximal_extension(Y, fraction.(pbx))
   issubset(U2, U) && issubset(V2, V) && return G
-  return maximal_extension(Glueing(G))
+  return maximal_extension(Gluing(G))
 end
 

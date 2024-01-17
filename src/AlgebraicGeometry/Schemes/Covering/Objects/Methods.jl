@@ -47,45 +47,45 @@ function Base.indexin(U::AbsSpec, C::Covering)
 end
 
 ########################################################################
-# Functionality for lazy glueing                                       #
+# Functionality for lazy gluing                                       #
 ########################################################################
 function neighbor_patches(C::Covering, U::AbsSpec)
-  gg = glueing_graph(C)
+  gg = gluing_graph(C)
   n = neighbors(gg, C[U])
   return [C[i] for i in n]
 end
 
-## compute the glueing graph for the given covering and store it
-function update_glueing_graph(C::Covering; all_dense::Bool=false)
+## compute the gluing graph for the given covering and store it
+function update_gluing_graph(C::Covering; all_dense::Bool=false)
   n = npatches(C)
   gg = Graph{Undirected}(n)
-  for (X, Y) in keys(glueings(C))
+  for (X, Y) in keys(gluings(C))
     if all_dense
       add_edge!(gg, C[X], C[Y])
       add_edge!(gg, C[Y], C[X])
     else
-      (U, V) = glueing_domains(C[X,Y])
+      (U, V) = gluing_domains(C[X,Y])
       is_dense(U) && add_edge!(gg, C[X], C[Y])
       is_dense(V) && add_edge!(gg, C[Y], C[X])
     end
   end
-  C.glueing_graph = gg
+  C.gluing_graph = gg
   return gg
 end
 
 ## prune the covering by throwing away empty charts and then compute
-## the glueing graph afterwards 
-## (relevant data for connectedness of glueing)
-function pruned_glueing_graph(C::Covering)
+## the gluing graph afterwards 
+## (relevant data for connectedness of gluing)
+function pruned_gluing_graph(C::Covering)
   v = findall(U->!is_empty(U), C.patches)
   m = length(v)
   gt = Graph{Undirected}(m)
-  for (X, Y) in keys(glueings(C))
+  for (X, Y) in keys(gluings(C))
     i = findfirst(==(C[X]),v)
     !isnothing(i) || continue
     j = findfirst(==(C[Y]),v)
     !isnothing(j) || continue
-    (U, V) = glueing_domains(C[X,Y])
+    (U, V) = gluing_domains(C[X,Y])
     is_dense(U) && add_edge!(gt, i, j)
     is_dense(V) && add_edge!(gt, j, i)
   end
@@ -94,15 +94,15 @@ end
 
 function transition_graph(C::Covering)
   if !isdefined(C, :transition_graph)
-    p = length(keys(glueings(C)))
+    p = length(keys(gluings(C)))
     edge_dict = Dict{Tuple{Int, Int}, Int}()
     edge_count = 1::Int
     C.transition_graph = Graph{Undirected}(0)
-    for v in 1:nv(glueing_graph(C))
-      W = neighbors(glueing_graph(C), v)
+    for v in 1:nv(gluing_graph(C))
+      W = neighbors(gluing_graph(C), v)
       for i in 1:length(W)-1
         for j in i+1:length(W)
-          if is_dense(intersect(glueing_domains(C[W[i],v])[2], glueing_domains(C[v,W[j]])[1]))
+          if is_dense(intersect(gluing_domains(C[W[i],v])[2], gluing_domains(C[v,W[j]])[1]))
             if !haskey(edge_dict, (W[i],v))
               edge_dict[(W[i],v)] = edge_dict[(v, W[i])] = edge_count
               edge_count+=1
@@ -125,12 +125,12 @@ end
 
 ### fill transitions
 # Whenever three schemes X ↩ U ↪ Y ↩ V ↪ Z are glued with 
-# U ∩ V dense in both U and V, one can infer a glueing of 
-# X and Z. This is done by crawling through the glueing graph, 
-# updating the glueings, and proceeding until nothing more 
+# U ∩ V dense in both U and V, one can infer a gluing of 
+# X and Z. This is done by crawling through the gluing graph, 
+# updating the gluings, and proceeding until nothing more 
 # can be done.
 function fill_transitions!(C::Covering)
-  gg = glueing_graph(C)
+  gg = gluing_graph(C)
   dirty = true
   while dirty
     dirty = false
@@ -142,9 +142,9 @@ function fill_transitions!(C::Covering)
           # intersection of U and V is dense in both U and V and not in their ambient 
           # variety. This implementation certainly works, but it is not as general 
           # as it could be, yet. 
-          if !has_edge(gg, W[i], W[j]) && is_dense(intersect(glueing_domains(C[W[i],v])[2], glueing_domains(C[v,W[j]])[1]))
-            new_glueing = maximal_extension(compose(C[W[i], v], C[v, W[j]]))
-            add_glueing!(C, new_glueing)
+          if !has_edge(gg, W[i], W[j]) && is_dense(intersect(gluing_domains(C[W[i],v])[2], gluing_domains(C[v,W[j]])[1]))
+            new_gluing = maximal_extension(compose(C[W[i], v], C[v, W[j]]))
+            add_gluing!(C, new_gluing)
             add_edge!(gg, W[i], W[j])
             dirty = true
           end
@@ -196,9 +196,9 @@ Base.eltype(C::Covering) = AbsSpec
 # Building a Covering                                                  #
 ########################################################################
 @doc raw"""
-    add_glueing!(C::Covering, G::AbsGlueing)
+    add_gluing!(C::Covering, G::AbsGluing)
 
-Add a glueing `G` to the covering `C`. 
+Add a gluing `G` to the covering `C`. 
 
 The `patches` of `G` must be among the `affine_charts` of `C`.
 
@@ -221,17 +221,17 @@ Covering
     1: [x, y]
     2: [u, v]
 
-julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for glueing
+julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for gluing
 
 julia> V2 = PrincipalOpenSubset(U2, u);
 
-julia> f = morphism(V1, V2, [1//x, y//x]); # The glueing isomorphism
+julia> f = morphism(V1, V2, [1//x, y//x]); # The gluing isomorphism
 
 julia> g = morphism(V2, V1, [1//u, v//u]); # and its inverse
 
-julia> G = Glueing(U1, U2, f, g); # Construct the glueing
+julia> G = Gluing(U1, U2, f, g); # Construct the gluing
 
-julia> add_glueing!(C, G) # Make the glueing part of the Covering
+julia> add_gluing!(C, G) # Make the gluing part of the Covering
 Covering
   described by patches
     1: affine 2-space
@@ -240,14 +240,14 @@ Covering
     1: [x, y]
     2: [u, v]
 
-julia> C[U1, U2] == G # Check whether the glueing of U1 and U2 in C is G.
+julia> C[U1, U2] == G # Check whether the gluing of U1 and U2 in C is G.
 true
 ```
 """
-function add_glueing!(C::Covering, G::AbsGlueing)
+function add_gluing!(C::Covering, G::AbsGluing)
   (X, Y) = patches(G)
-  C.glueings[(X, Y)] = G
-  C.glueings[(Y, X)] = LazyGlueing(Y, X, inverse, G)
+  C.gluings[(X, Y)] = G
+  C.gluings[(Y, X)] = LazyGluing(Y, X, inverse, G)
   return C
 end
 
@@ -353,7 +353,7 @@ function common_refinement(C::Covering, D::Covering)
   #covered by those in the keysets. What if this is not the case?
 
   E = Covering(collect(keys(map_dict_C)))
-  #TODO: How to inherit the glueings?
+  #TODO: How to inherit the gluings?
   phi = CoveringMorphism(E, C, map_dict_C, check=false)
   psi = CoveringMorphism(E, D, map_dict_D, check=false)
   return E, phi, psi
@@ -382,17 +382,17 @@ function base_change(phi::Any, C::Covering)
   U = patches(C)
   patch_change = [base_change(phi, V) for V in U]
 
-  glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   for i in 1:length(U)
     (A, map_A) = patch_change[i]
     for j in 1:length(U)
       (B, map_B) = patch_change[j]
-      G = C[U[i], U[j]] # the glueing
+      G = C[U[i], U[j]] # the gluing
       GG = base_change(phi, G, patch_change1=map_A, patch_change2=map_B)
-      glueing_dict[A, B] = GG
+      gluing_dict[A, B] = GG
     end
   end
-  CC = Covering([V for (V, _) in patch_change], glueing_dict)
+  CC = Covering([V for (V, _) in patch_change], gluing_dict)
 
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for (V, phi) in patch_change

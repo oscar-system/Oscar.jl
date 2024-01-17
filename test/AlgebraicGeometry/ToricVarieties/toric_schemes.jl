@@ -23,7 +23,7 @@
   
   @testset "Product of projective spaces" begin
     @test is_smooth(Oscar.underlying_scheme(Y)) == is_smooth(Y)
-    @test length(values(glueings(default_covering(Y)))) == 16
+    @test length(values(gluings(default_covering(Y)))) == 16
   end
 
   IP2 = projective_space(NormalToricVariety, 2)
@@ -34,7 +34,7 @@
     @test X isa CoveredScheme
     @test codomain(iso) === IP2
     @test is_smooth(X) == is_smooth(IP2)
-    @test length(keys(glueings(default_covering(X)))) == 9
+    @test length(keys(gluings(default_covering(X)))) == 9
     @test domain(iso) === X
     @test codomain(iso) === IP2
     @test domain(inverse(iso)) === IP2
@@ -96,19 +96,19 @@
   end
 end
 
-@testset "Lazy glueings" begin
+@testset "Lazy gluings" begin
   f = polyhedral_fan(IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
   n_maximal_cones(f)
   ntv = normal_toric_variety(f)
   X = Oscar.underlying_scheme(ntv)
-  for g in values(glueings(default_covering(X)))
-    @test !(g isa Oscar.LazyGlueing) || !isdefined(g, :G)
+  for g in values(gluings(default_covering(X)))
+    @test !(g isa Oscar.LazyGluing) || !isdefined(g, :G)
   end
 
-  for g in values(glueings(default_covering(X)))
-    g isa Oscar.LazyGlueing || continue
-    g_sub = Oscar.underlying_glueing(g)
-    @test g_sub isa Oscar.SimpleGlueing
+  for g in values(gluings(default_covering(X)))
+    g isa Oscar.LazyGluing || continue
+    g_sub = Oscar.underlying_gluing(g)
+    @test g_sub isa Oscar.SimpleGluing
     @test g_sub === g.G
   end
 end

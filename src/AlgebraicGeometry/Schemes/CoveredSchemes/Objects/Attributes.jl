@@ -152,7 +152,7 @@ affine_charts(X::AbsCoveredScheme) = basic_patches(default_covering(X))
 coverings(X::CoveredScheme) = X.coverings
 default_covering(X::CoveredScheme) = X.default_covering
 patches(X::CoveredScheme) = patches(default_covering(X))
-glueings(X::CoveredScheme) = glueings(default_covering(X))
+gluings(X::CoveredScheme) = gluings(default_covering(X))
 base_ring(X::CoveredScheme) = X.kk
 
 

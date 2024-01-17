@@ -15,7 +15,7 @@ export AbsCoveredCurve
 export AbsCoveredScheme
 export AbsCoveredSchemeMorphism
 export AbsCoveredVariety
-export AbsGlueing
+export AbsGluing
 export AbsLocalizedIdeal
 export AbsLocalizedRing
 export AbsLocalizedRingElem
@@ -71,7 +71,7 @@ export GL
 export GO
 export GSet
 export GU
-export Glueing
+export Gluing
 export Graph
 export Graphs
 export GroupConjClass
@@ -144,7 +144,7 @@ export Scheme
 export SchemeMor
 export SemidirectProductGroup
 export SesquilinearForm
-export SimpleGlueing
+export SimpleGluing
 export SimplicialComplex
 export Singular
 export Sp
@@ -184,7 +184,7 @@ export acting_subgroup
 export action
 export action_homomorphism
 export add_edge!
-export add_glueing!
+export add_gluing!
 export add_vertex!
 export add_vertices!
 export adjacent_chamber
@@ -567,10 +567,10 @@ export geometric_irreducible_components
 export germ_at_point
 export girth
 export gkz_vector
-export glueing_domains
-export glueing_graph
-export glueing_morphisms
-export glueings
+export gluing_domains
+export gluing_graph
+export gluing_morphisms
+export gluings
 export goldfarb_cube
 export goldfarb_sit_cube
 export gorenstein_index
@@ -1429,13 +1429,14 @@ export tutte_polynomial
 export twist
 export two_neighbor_step
 export two_sided_ideal
-export underlying_glueing
+export underlying_gluing
 export underlying_quotient
 export uniform_matroid
 export unit
 export unitary_group
 export units_of
 export unwrap
+export update_gluing_graph
 export upper_bound_f_vector
 export upper_bound_g_vector
 export upper_bound_h_vector
