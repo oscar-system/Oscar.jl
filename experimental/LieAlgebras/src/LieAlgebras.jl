@@ -44,6 +44,7 @@ import ..Oscar:
   ideal,
   identity_map,
   image,
+  induced_map_on_exterior_power,
   inv,
   is_abelian,
   is_exterior_power,
@@ -91,8 +92,6 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
-export base_module
-export base_modules
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -113,7 +112,8 @@ export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
 export hom_direct_sum
-export hom_power
+export induced_map_on_symmetric_power
+export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
@@ -200,8 +200,6 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
-export base_module
-export base_modules
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -220,7 +218,8 @@ export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
 export hom_direct_sum
-export hom_power
+export induced_map_on_symmetric_power
+export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum

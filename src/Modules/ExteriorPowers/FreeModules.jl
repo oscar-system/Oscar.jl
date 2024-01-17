@@ -9,42 +9,44 @@
 
 # User facing constructor for ⋀ ᵖ F.
 function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
-  (p < 0 || p > rank(F)) && error("index out of bounds")
+  @req 0 <= p <= rank(F) "exponent out of bounds"
 
   if cached
     powers = _exterior_powers(F)
-    haskey(powers, p) && return powers[p]::Tuple{typeof(F), <:Map}
+    haskey(powers, p) && return powers[p]
   end
 
   R = base_ring(F)
   n = rank(F)
-  result = FreeMod(R, binomial(n, p))
+  result_ = FreeMod(R, binomial(n, p))
 
   # In case F was graded, we have to take an extra detour. 
-  if is_graded(F)
+  result = if is_graded(F)
     G = grading_group(F)
     weights = elem_type(G)[]
     for ind in OrderedMultiIndexSet(p, n)
       push!(weights, sum(degree(F[i]) for i in indices(ind); init=zero(G)))
     end
-    result = grade(result, weights)
+    grade(result_, weights)
+  else
+    result_
   end
 
   # Create the multiplication map
-  function my_mult(u::FreeModElem...)
+  function my_mult(u::Tuple{Vararg{FreeModElem}})
     isempty(u) && return result[1] # only the case p=0
-    @assert all(x->parent(x)===F, u) "elements must live in the same module"
-    @assert length(u) == p "need a $p-tuple of elements"
-    return wedge(collect(u), parent=result)
+    @req all(x -> parent(x) === F, u) "elements must live in the same module"
+    @req length(u) == p "need a $p-tuple of elements"
+    return wedge(collect(u); parent=result)
   end
-  function my_mult(u::Tuple)
-    return my_mult(u...)
+  function my_mult(u::FreeModElem...)
+    return my_mult(u)
   end
 
   function my_decomp(u::FreeModElem)
-    parent(u) === result || error("element does not belong to the correct module")
-    k = findfirst(x->x==u, gens(result)) 
-    k === nothing && error("element must be a generator of the module")
+    @req parent(u) === result "element does not belong to the correct module"
+    k = findfirst(x -> x == u, gens(result))
+    @req !isnothing(k) "element must be a generator of the module"
     ind = ordered_multi_index(k, p, n)
     e = gens(F)
     return Tuple(e[i] for i in indices(ind))
@@ -77,7 +79,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     end
   end
   result.S = new_symb
-  
+
   set_attribute!(result, :show => show_exterior_product)
 
   return result, mult_map
