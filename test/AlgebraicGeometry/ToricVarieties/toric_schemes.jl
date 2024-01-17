@@ -100,7 +100,7 @@ end
   f = polyhedral_fan(IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
   n_maximal_cones(f)
   ntv = normal_toric_variety(f)
-  X = underlying_scheme(ntv)
+  X = Oscar.underlying_scheme(ntv)
   for g in values(gluings(default_covering(X)))
     @test !(g isa Oscar.LazyGluing) || !isdefined(g, :G)
   end
