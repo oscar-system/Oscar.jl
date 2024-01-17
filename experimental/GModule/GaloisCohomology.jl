@@ -13,7 +13,7 @@ export local_index, units_mod_ideal
 Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
 parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
 
-_can_cache_aut(::FlintPadicField) = nothing
+_can_cache_aut(::PadicField) = nothing
 function _can_cache_aut(k) 
   a = get_attribute(k, :AutGroup)
   if a === nothing
@@ -316,7 +316,7 @@ end
 =#
 
 """
-    gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+    gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
 
 For a local field extension K/k, return the multiplicative
 group of K as a Gal(K/k) module. Strictly, it returns a quotient
@@ -331,7 +331,7 @@ Returns:
  - the map from G = Gal(K/k) -> Set of actual automorphisms
  - the map from the module into K
 """
-function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
+function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K); Sylow::Int = 0, full::Bool = false)
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
@@ -438,7 +438,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadi
 end
 
 #=  Not used
-function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, FlintPadicField, FlintQadicField} = base_field(K))
+function one_unit_cohomology(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicField, QadicField} = base_field(K))
 
   U, mU = Hecke.one_unit_group(K)
   G, mG = automorphism_group(PermGroup, K, k)
@@ -1184,8 +1184,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NfToN
   #so need embedding of the unram parts:
   bl = base_field(l)
   bL = base_field(L)
-  @assert isa(bl, FlintQadicField)
-  @assert isa(bL, FlintQadicField)
+  @assert isa(bl, QadicField)
+  @assert isa(bL, QadicField)
   @assert degree(bL) % degree(bl) == 0
   rL, mrL = residue_field(bL)
   rl, mrl = residue_field(bl)

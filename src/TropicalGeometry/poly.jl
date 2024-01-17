@@ -227,7 +227,7 @@ end
 # Field of 7-adic numbers
 
 # julia> Kxy, (x,y) = K["x", "y"]
-# (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+# (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{PadicFieldElem}[x, y])
 
 # julia> f = 7*x+y+49
 # (7^1 + O(7^3))*x + y + 7^2 + O(7^4)

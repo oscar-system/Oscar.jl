@@ -142,7 +142,7 @@ julia> G, C = galois_group(f)
 (Permutation group of degree 4 and order 4, Galois context for x^4 - 5*x^2 + 6 and prime 11)
 
 julia> r = roots(C, 5)
-4-element Vector{qadic}:
+4-element Vector{QadicFieldElem}:
  5*11^0 + 2*11^1 + 6*11^2 + 8*11^3 + 11^4 + O(11^5)
  6*11^0 + 8*11^1 + 4*11^2 + 2*11^3 + 9*11^4 + O(11^5)
  (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)
