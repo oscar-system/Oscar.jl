@@ -75,7 +75,7 @@ import ..Oscar:
   ⊕,
   ⊗
 
-import Base: getindex, deepcopy_internal, hash, issubset, iszero, length, parent, zero
+import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export DualRootSpaceElem

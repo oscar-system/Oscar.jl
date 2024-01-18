@@ -513,10 +513,6 @@ function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
 end
 
-function Base.length(r::RootSpaceElem)
-  return dot(r, r)
-end
-
 function reflect!(r::RootSpaceElem, s::Int)
   r.vec -=
     dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
