@@ -28,7 +28,7 @@ also its Cox ring, are computed in the cause of the above construction, we do no
 constructor, which immediately accepts a special hypersurface equation. Rather, in this case,
 the user must first use one of the general constructors described in the next section. Subsequently,
 the `tune` function, described in the methods section below, can be employed.
-* Bases other than toric spaces matter. Often, the F-theory literature will now even assume
+* Bases other than toric spaces matter. Often, the F-theory literature will not even assume
 one particular base space but rather an entire family of base spaces. We extend our machinery to
 these cases, but such more general settings are typically significantly more limited than the
 toric setting. This limitation originates from the nature of the matter -- the more general the geometry,
