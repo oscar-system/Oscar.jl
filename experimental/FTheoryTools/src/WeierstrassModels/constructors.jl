@@ -45,7 +45,7 @@ function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyR
 end
 
 function weierstrass_model(base::NormalToricVariety,
-                           explicit_model_sections::Dict{String, <:MPolyRingElem},
+                           explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
                            defining_section_parametrization::Dict{String, <:MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
