@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Functionality for all F-theory models
 
-All F-theory models focus on elliptic fibrations. Details depend on the specific
+All F-theory models focus on elliptic (or genus-one) fibrations. Details depend on the specific
 way in which the fibration is constructed/described. Still, some functionality is
 common among all or at least the majority of all supported models. We will document
 such common functionality here.
