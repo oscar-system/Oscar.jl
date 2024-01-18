@@ -27,7 +27,7 @@
   At = affine_space(QQ, [:t])
   (t,) = coordinates(At)
   C = algebraic_set(x^3-y^2)
-  f = SpecMor(At, C, [t^2,t^3])
+  f = morphism(At, C, [t^2,t^3])
   @test f(At([1,])) == C([1,1])
   @test f(At([2,])) == C([4,8])
   @test tangent_space(C,C([0,0])) == algebraic_set(0*x)

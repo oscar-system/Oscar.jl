@@ -80,22 +80,22 @@ Return the boolean value whether a covered scheme `X` is integral.
   return is_reduced(X) && is_irreducible(X)
 end
 
-# auxiliary function for connectedness of glueing graph
+# auxiliary function for connectedness of gluing graph
 #      do not confuse with connectedness of the scheme
-# Note: This does not work with glueing_graph, because empty patches
+# Note: This does not work with gluing_graph, because empty patches
 #      need to be ignored without changing the covering
 @doc raw"""
-   is_connected_glueing(X::AbsCoveredScheme)
+   is_connected_gluing(X::AbsCoveredScheme)
 
-Return the boolean value whether the glueing graph of the default
+Return the boolean value whether the gluing graph of the default
 covering of the scheme X is connected.
 
 !!! note
     This function is designed to ignore empty patches, which may arise e.g. upon creation of subschemes of covered schemes,
 
 """
-@attr function is_connected_glueing(X::AbsCoveredScheme)
-  return is_connected(pruned_glueing_graph(default_covering(X)))
+@attr function is_connected_gluing(X::AbsCoveredScheme)
+  return is_connected(pruned_gluing_graph(default_covering(X)))
 end
 
 ########################################################################
@@ -108,7 +108,7 @@ Return the boolean value whether a covered scheme `X` is connected.
 
 """
 @attr function is_connected(X::AbsCoveredScheme)
-  is_connected_glueing(X) || return false
+  is_connected_gluing(X) || return false
   # note for future implementation: expensive property
   # 1) do primary decomposition
   # 2) check connectedness of lowest two layers of the intersection lattice
@@ -138,7 +138,7 @@ Return the boolean value whether a covered scheme `X` is irreducible.
 
 """
 @attr function is_irreducible(X::AbsCoveredScheme)
-  is_connected_glueing(X) || return false
+  is_connected_gluing(X) || return false
   !is_empty(X) || return false
   v=findall(!is_empty, affine_charts(X))  ## only check non-empty patches
   return all(is_irreducible(affine_charts(X)[v[i]]) for i in 1:length(v) )

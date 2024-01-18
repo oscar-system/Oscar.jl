@@ -246,7 +246,7 @@ Covering
 
     # assemble the monomials where the variables of OO(V) are mapped
     imgs = [prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for i in 1:nrows(sol)]
-    morphism_dict[U] = SpecMor(U, V, imgs)
+    morphism_dict[U] = morphism(U, V, imgs)
   end
   return CoveringMorphism(domain_cov, codomain_cov, morphism_dict, check=false)
 end

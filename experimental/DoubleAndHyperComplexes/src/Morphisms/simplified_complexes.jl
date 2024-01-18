@@ -356,7 +356,7 @@ end
 
 ### Helper functions
 function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
-  if isgraded(M)
+  if is_graded(M)
     w = degree.(g)
     return graded_free_module(base_ring(M), w)
   else

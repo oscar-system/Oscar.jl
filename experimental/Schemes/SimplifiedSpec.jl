@@ -23,8 +23,8 @@ from the one of `X` and hence the two schemes will not compare using `==`.
 function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
   Y = Spec(L)
-  YtoX = SpecMor(Y, X, f, check=false)
-  XtoY = SpecMor(X, Y, g, check=false)
+  YtoX = morphism(Y, X, f, check=false)
+  XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)
   set_attribute!(XtoY, :inverse, YtoX)
   return SimplifiedSpec(Y, X, YtoX, XtoY, check=false)
@@ -112,8 +112,8 @@ function _flatten_open_subscheme(
     U::PrincipalOpenSubset, C::Covering;
     iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f
@@ -127,8 +127,8 @@ function _flatten_open_subscheme(
   hV = complement_equation(UV)
   hU = complement_equation(U)
   WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
-  ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
-  inv_ident = SpecMor(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
+  ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
+  inv_ident = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
   new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
@@ -143,8 +143,8 @@ function _flatten_open_subscheme(
     U::SimplifiedSpec, C::Covering;
     iso::AbsSpecMor=begin 
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f
@@ -159,12 +159,12 @@ function _flatten_open_subscheme(
   f, g = identification_maps(U)
   hVW = pullback(g)(hV)
   WV = PrincipalOpenSubset(W, hVW)
-  ident = SpecMor(UV, WV, 
+  ident = morphism(UV, WV, 
                   hom(OO(WV), OO(UV), 
                       [OO(UV)(x, check=false) for x in pullback(f).(gens(ambient_coordinate_ring(WV)))], 
                       check=false), 
                   check=false)
-  inv_ident = SpecMor(WV, UV,
+  inv_ident = morphism(WV, UV,
                       hom(OO(UV), OO(WV),
                           [OO(WV)(x, check=false) for x in pullback(g).(gens(ambient_coordinate_ring(UV)))],
                           check=false),
@@ -183,8 +183,8 @@ function _flatten_open_subscheme(
     U::AbsSpec, C::Covering;
     iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f
@@ -197,8 +197,8 @@ function _flatten_open_subscheme(
     U::PrincipalOpenSubset, P::AbsSpec;
     iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f
@@ -213,8 +213,8 @@ function _flatten_open_subscheme(
   hV = complement_equation(UV)
   hU = complement_equation(U)
   WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
-  ident = SpecMor(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
-  ident_inv = SpecMor(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
+  ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
+  ident_inv = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
   new_iso_inv = compose(ident_inv, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
@@ -229,8 +229,8 @@ function _flatten_open_subscheme(
     U::SimplifiedSpec, P::AbsSpec;
     iso::AbsSpecMor=begin 
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f
@@ -246,13 +246,13 @@ function _flatten_open_subscheme(
   f, g = identification_maps(U)
   hVW = pullback(g)(hV)
   WV = PrincipalOpenSubset(W, hVW)
-  ident = SpecMor(UV, WV, 
+  ident = morphism(UV, WV, 
                   hom(OO(WV), OO(UV), 
                       OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
                       check=false), 
                   check=false)
   new_iso =  compose(iso, ident)
-  ident_inv = SpecMor(WV, UV, 
+  ident_inv = morphism(WV, UV, 
                       hom(OO(UV), OO(WV), 
                           OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))), 
                           check=false), 
@@ -270,8 +270,8 @@ function _flatten_open_subscheme(
     U::AbsSpec, P::AbsSpec;
     iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
-      f = SpecMor(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
-      f_inv = SpecMor(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
+      f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
+      f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
       set_attribute!(f, :inverse, f_inv)
       set_attribute!(f_inv, :inverse, f)
       f

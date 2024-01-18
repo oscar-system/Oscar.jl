@@ -44,7 +44,7 @@ function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
   h = complement_equations(f)
   pbh = pullback(g).(h)
   result = PrincipalOpenSubset(B, pbh)
-  ff = PrincipalOpenEmbedding(SpecMor(result, B, gens(OO(result)), check=false), pbh, check=false)
+  ff = PrincipalOpenEmbedding(morphism(result, B, gens(OO(result)), check=false), pbh, check=false)
   f_res_inv = inverse_on_image(f)
   gg = compose(restrict(g, result, image(f), check=false), f_res_inv)
   return result, gg, ff
@@ -64,7 +64,7 @@ function fiber_product(f::PrincipalOpenEmbedding, g::PrincipalOpenEmbedding)
   h = complement_equations(f)
   pbh = pullback(g).(h)
   result = PrincipalOpenSubset(B, pbh)
-  ff = PrincipalOpenEmbedding(SpecMor(result, B, gens(OO(result)), check=false), pbh, check=false)
+  ff = PrincipalOpenEmbedding(morphism(result, B, gens(OO(result)), check=false), pbh, check=false)
   f_res_inv = inverse_on_image(f)
   gg = compose(restrict(g, result, image(f), check=false), f_res_inv)
   hg = complement_equations(g)
@@ -139,7 +139,7 @@ function _induced_map_to_fiber_product(
   @check gens(OO(XxY)) == vcat(pullback(gg).(gens(OO(X))), pullback(ff).(gens(OO(Y)))) "variables must be pullbacks of variables on the factors"
 
   img_gens = vcat(pullback(a).(gens(OO(X))), pullback(b).(gens(OO(Y))))
-  return SpecMor(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, img_gens, check=check)
 end
 
 # When the fiber product was created from at least one `PrincipalOpenEmbedding`, 
@@ -156,7 +156,7 @@ function _induced_map_to_fiber_product(
   W = domain(a)
   Y = codomain(b)
   img_gens = pullback(b).(gens(OO(Y)))
-  return SpecMor(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, img_gens, check=check)
 end
 
 function _induced_map_to_fiber_product(
@@ -170,7 +170,7 @@ function _induced_map_to_fiber_product(
   X = domain(f)
   W = domain(a)
   img_gens = pullback(a).(gens(OO(X)))
-  return SpecMor(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, img_gens, check=check)
 end
 
 # additional method to remove ambiguity
@@ -185,38 +185,38 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   Y = domain(g)
   img_gens = pullback(b).(gens(OO(Y)))
-  return SpecMor(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, img_gens, check=check)
 end
 
 ### Some helper functions
 function _restrict_domain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
   @check is_subset(D, domain(f)) "domain incompatible"
-  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function _restrict_domain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
   D === domain(f) && return f
   @check is_subset(D, domain(f)) "domain incompatible"
-  return SpecMor(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function _restrict_codomain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f) 
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
   end
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
   @check is_subset(D, codomain(f)) "codomain incompatible"
   @check is_subset(domain(f), preimage(f, D))
-  return SpecMor(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
 end
 
 function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
@@ -260,8 +260,8 @@ function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
   end
   KL, z = polynomial_ring(k, new_symb)
   XxY = Spec(KL)
-  pr1 = SpecMor(XxY, X, gens(KL)[1:m], check=false)
-  pr2 = SpecMor(XxY, Y, gens(KL)[m+1:m+n], check=false)
+  pr1 = morphism(XxY, X, gens(KL)[1:m], check=false)
+  pr2 = morphism(XxY, Y, gens(KL)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
 
@@ -322,8 +322,8 @@ function product(X::StdSpec, Y::StdSpec;
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
   UY = MPolyPowersOfElement(RS, inc2.(denominators(inverted_set(OO(Y)))))
   XxY = Spec(RS, IX + IY, UX*UY)
-  pr1 = SpecMor(XxY, X, gens(RS)[1:m], check=false)
-  pr2 = SpecMor(XxY, Y, gens(RS)[m+1:m+n], check=false)
+  pr1 = morphism(XxY, X, gens(RS)[1:m], check=false)
+  pr2 = morphism(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
 =#
@@ -444,7 +444,7 @@ function base_change(phi::Any, f::AbsSpecMor;
   # coefficient ring by now.
   pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
 
-  return domain_map, SpecMor(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+  return domain_map, morphism(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
 end
 
 function _register_birationality!(f::AbsSpecMor, 

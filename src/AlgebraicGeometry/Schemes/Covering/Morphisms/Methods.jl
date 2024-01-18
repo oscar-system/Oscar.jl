@@ -24,16 +24,16 @@ resulting covering ``C'`` and the identifying isomorphism
 function simplify(C::Covering)
   n = npatches(C)
   new_patches = AbsSpec[simplify(X) for X in patches(C)]
-  GD = glueings(C)
-  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  GD = gluings(C)
+  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   for (X, Y) in keys(GD)
     Xsimp = new_patches[C[X]]
     iX, jX = identification_maps(Xsimp)
     Ysimp = new_patches[C[Y]]
     iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
-    #new_glueings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
-    new_glueings[(Xsimp, Ysimp)] = LazyGlueing(Xsimp, Ysimp, _compute_restriction, _compute_domains,
+    #new_gluings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
+    new_gluings[(Xsimp, Ysimp)] = LazyGluing(Xsimp, Ysimp, _compute_restriction, _compute_domains,
                                                RestrictionDataIsomorphism(G, jX, jY)
                                               )
   end
@@ -43,7 +43,7 @@ function simplify(C::Covering)
     iDict[new_patches[i]] = identification_maps(new_patches[i])[1]
     jDict[C[i]] = identification_maps(new_patches[i])[2]
   end
-  Cnew = Covering(new_patches, new_glueings, check=false)
+  Cnew = Covering(new_patches, new_gluings, check=false)
   i_cov_mor = CoveringMorphism(Cnew, C, iDict, check=false)
   j_cov_mor = CoveringMorphism(C, Cnew, jDict, check=false)
   
@@ -273,7 +273,7 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
   end
   result = Covering(new_patches)
 
-  # construct all the glueings
+  # construct all the gluings
   # TODO: Make these lazy!
   for UxV in new_patches
     to_U, to_V = cache[UxV]
@@ -283,19 +283,19 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       to_UU, to_VV = cache[UUxVV]
       UU = codomain(to_UU)
       VV = codomain(to_VV)
-      !haskey(glueings(A), (U, UU)) && continue
-      !haskey(glueings(B), (V, VV)) && continue
-      UUU = A[U, UU]::AbsGlueing
-      VVV = B[V, VV]::AbsGlueing
-      U_UU, UU_U = glueing_domains(UUU)
-      V_VV, VV_V = glueing_domains(VVV)
+      !haskey(gluings(A), (U, UU)) && continue
+      !haskey(gluings(B), (V, VV)) && continue
+      UUU = A[U, UU]::AbsGluing
+      VVV = B[V, VV]::AbsGluing
+      U_UU, UU_U = gluing_domains(UUU)
+      V_VV, VV_V = gluing_domains(VVV)
       inc_U = inclusion_morphism(U_UU)
       inc_UU = inclusion_morphism(UU_U)
       inc_V = inclusion_morphism(V_VV)
       inc_VV = inclusion_morphism(VV_V)
 
       
-      # assemble the new glueing domains:
+      # assemble the new gluing domains:
       h_U = complement_equation(U_UU)
       h_V = complement_equation(V_VV)
       h_UV = [pullback(to_U)(h_U), pullback(to_V)(h_V)]
@@ -305,7 +305,7 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       # TODO: Can we produce U_UUxV_VV as a PrincipalOpenSubset of UxV 
       # with a generic `fiber_product` routine? If so, what should the 
       # signature and functionality be? We need it as a PrincipalOpenSubset
-      # because of the convention for the `SimpleGlueing`s.
+      # because of the convention for the `SimpleGluing`s.
       #   U_UUxV_VV, f_res_U, g_res_V = fiber_product(restrict(f, U_UU, codomain(f)), restrict(g, V_VV, codomain(g)))
 
       h_UU = complement_equation(UU_U)
@@ -315,10 +315,10 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       f_res_UU = restrict(to_UU, UU_UxVV_V, UU_U, check=true)
       g_res_VV = restrict(to_VV, UU_UxVV_V, VV_V, check=true)
 
-      simple_to_double_U, double_to_simple_U = glueing_morphisms(UUU)
-      simple_to_double_V, double_to_simple_V = glueing_morphisms(VVV)
+      simple_to_double_U, double_to_simple_U = gluing_morphisms(UUU)
+      simple_to_double_V, double_to_simple_V = gluing_morphisms(VVV)
 
-      # construct the glueing morphisms
+      # construct the gluing morphisms
       # Since the fiber products have not been constructed in the appropriate way, 
       # we can not use the generic method.
       #=
@@ -352,8 +352,8 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
                                   UU_UxVV_V
                                  )
 
-      new_glueing = Glueing(UxV, UUxVV, simple_to_double, double_to_simple)
-      add_glueing!(result, new_glueing)
+      new_gluing = Gluing(UxV, UUxVV, simple_to_double, double_to_simple)
+      add_gluing!(result, new_gluing)
     end
   end
   to_A = CoveringMorphism(result, A, maps_to_A)

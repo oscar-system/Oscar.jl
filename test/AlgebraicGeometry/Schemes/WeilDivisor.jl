@@ -33,10 +33,10 @@
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -186,9 +186,9 @@ end
   X = covered_scheme(P3)
   D = weil_divisor(II)
   E = Oscar.irreducible_decomposition(D)
-  @test length(keys(coefficient_dict(E))) == 2
-  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
-  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test length(keys(Oscar.coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
 end
 
 @testset "intersection numbers on surfaces" begin
