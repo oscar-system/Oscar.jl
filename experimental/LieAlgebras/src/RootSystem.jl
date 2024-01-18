@@ -460,7 +460,7 @@ end
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
   @req root_system(r1) === root_system(r2) "$r1 and $r2 must belong to the same root space"
 
-  return dot(coefficients(r1) * cartan_bilinear_form(root_system(r1)), coefficients(r2))
+  return dot(coefficients(r1) * bilinear_form(root_system(r1)), coefficients(r2))
 end
 
 @doc raw"""

@@ -96,6 +96,7 @@ export abstract_module
 export base_lie_algebra
 export base_module
 export base_modules
+export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -218,6 +219,7 @@ export abstract_module
 export base_lie_algebra
 export base_module
 export base_modules
+export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
