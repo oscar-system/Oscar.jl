@@ -48,8 +48,8 @@ function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completenes
 end
 
 function global_tate_model(base::NormalToricVariety,
-                           explicit_model_sections::Dict{String, <:MPolyRingElem},
-                           defining_section_parametrization::Dict{String, <:MPolyRingElem};
+                           explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
+                           defining_section_parametrization::Dict{String, MPolyRingElem};
                            completeness_check::Bool = true)
   vs = collect(values(explicit_model_sections))
   @req all(k -> parent(k) == cox_ring(base), vs) "All Tate sections must reside in the Cox ring of the base toric variety"
