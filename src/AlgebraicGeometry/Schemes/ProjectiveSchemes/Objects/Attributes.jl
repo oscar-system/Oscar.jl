@@ -292,7 +292,7 @@ affine_cone(P::AbsProjectiveScheme)
   A = codomain(phi)
   C = Spec(A)
   B = base_scheme(P)
-  P.projection_to_base = SpecMor(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
+  P.projection_to_base = morphism(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
   return C, phi
 end
 
@@ -401,7 +401,7 @@ Projective space of dimension 2
   over quotient of multivariate polynomial ring by ideal(u^2 + v^2)
 with homogeneous coordinates [x, y, z]
 
-julia> homogeneous_coordinates_on_affine_cone(P)
+julia> Oscar.homogeneous_coordinates_on_affine_cone(P)
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  x
  y

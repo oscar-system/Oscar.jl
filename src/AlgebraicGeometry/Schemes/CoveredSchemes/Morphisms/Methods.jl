@@ -152,7 +152,7 @@ end
 #
 ###############################################################################
 
-# We use a pattern for printings morphisms, glueings, etc...
+# We use a pattern for printings morphisms, gluings, etc...
 #
 # In supercompact printing, we just write what it is, super shortly.
 # For normal compact printing, we mention what it is, then use colons to

@@ -204,7 +204,18 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   dom = domain(cc.maps[1])
   j   = 2
 
-  while j <= Singular.length(res)
+  #= get correct length of Singular sresolution =#
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  #= adjust length for extension length in Oscar =#
+  slen = slen > len ? len : slen
+
+  br_name = AbstractAlgebra.find_name(base_ring(kernel_entry))
+  if br_name === nothing
+    br_name = "R"
+  end
+
+
+  while j <= slen
     rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
@@ -212,12 +223,12 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       generator_matrix(SM)
       map = graded_map(codom, SM.matrix)
       dom = domain(map)
-      set_attribute!(dom, :name => "R^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
-      set_attribute!(dom, :name => "R^$rk")
+      set_attribute!(dom, :name => "$br_name^$rk")
       generator_matrix(SM)
       map = hom(dom, codom, SM.matrix)
     end
@@ -225,7 +236,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     j += 1
   end
   # Finalize maps.
-  if Singular.length(res) < len
+  if slen < len
     Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "0")
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
@@ -345,8 +356,13 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     error("Unsupported algorithm $algorithm")
   end
 
-  if length == 0 || Singular.length(res) < length
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  if length == 0 || slen < length
     cc_complete = true
+  end
+
+  if length != 0
+    slen =  slen > length ? length : slen
   end
 
   br_name = AbstractAlgebra.find_name(base_ring(M))
@@ -357,7 +373,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
   j   = 1
-  while j <= Singular.length(res)
+  while j <= slen
     if is_graded(M)
       codom = domain(maps[1])
       rk    = Singular.ngens(res[j])

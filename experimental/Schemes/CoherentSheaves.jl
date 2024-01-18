@@ -92,7 +92,7 @@ end
 #  * U::PrincipalOpenSubset in W===ambient_scheme(U) in the basic charts of X
 #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
 #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-#    and U and V contained in the glueing domains of their ambient schemes
+#    and U and V contained in the gluing domains of their ambient schemes
 #  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
 #  * U::AbsSpec ⊂ X for U in the basic charts
 #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
@@ -106,8 +106,8 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     if A === B
       is_subset(U, V) || return false
     else
-      G = C[A, B] # Get the glueing
-      f, g = glueing_morphisms(G)
+      G = C[A, B] # Get the gluing
+      f, g = gluing_morphisms(G)
       is_subset(U, domain(f)) || return false
       gU = preimage(g, U)
       is_subset(gU, V) || return false
@@ -127,7 +127,7 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     any(x->x===U, affine_charts(X)) || return false
     any(x->x===V, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
-    return issubset(U, glueing_domains(G)[1])
+    return issubset(U, gluing_domains(G)[1])
   end
   function is_open_func(
       U::AbsSpec,
@@ -139,9 +139,9 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     A = ambient_scheme(codomain(inc_V_flat))
     Vdirect = codomain(inc_V_flat)
     W = ambient_scheme(Vdirect)
-    haskey(glueings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
+    haskey(gluings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
     G = default_covering(X)[W, U]
-    f, g = glueing_morphisms(G)
+    f, g = gluing_morphisms(G)
     pre_V = preimage(g, V)
     return is_subset(U, pre_V)
   end
@@ -154,9 +154,9 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
     W = ambient_scheme(Udirect)
-    haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
+    haskey(gluings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
     G = default_covering(X)[W, V]
-    return is_subset(Udirect, glueing_domains(G)[1])
+    return is_subset(Udirect, gluing_domains(G)[1])
   end
   return is_open_func
 end
@@ -176,7 +176,7 @@ to the following:
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``ℳ`` across charts implicitly using the
-identifications given by the glueings in the `default_covering`.
+identifications given by the gluings in the `default_covering`.
 """
 @attributes mutable struct SheafOfModules{SpaceType, OpenType, 
                                           OutputType,
@@ -205,20 +205,20 @@ identifications given by the glueings in the `default_covering`.
       check::Bool=true,
       default_cov::Covering=begin                      # This will be the `default_covering` of the sheaf to be created.
         patch_list = collect(keys(MD))
-        glueing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
-        C = Covering(patch_list, glueing_dict)
-        inherit_glueings!(C, default_covering(X))
+        gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+        C = Covering(patch_list, gluing_dict)
+        inherit_gluings!(C, default_covering(X))
         C
       end
     )
     OOX = OO(X)
-    # Make sure that all patches and glueings of the 
+    # Make sure that all patches and gluings of the 
     # given `default_covering` of the sheaf ℱ to be created 
     # are compatible with the data in the dictionaries.
     all(x->haskey(MD, x), patches(default_cov)) || error("all patches in the default covering must have a prescribed module")
     all(x->any(y->(x===y), patches(default_cov)), keys(MD)) || error("all prescribed modules must appear in the default covering")
-    all(x->haskey(MG, x), keys(glueings(default_cov))) || error("all glueings in the default covering must have a prescribed transition")
-    all(x->any(y->(x===y), keys(glueings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to glueings in the default covering")
+    all(x->haskey(MG, x), keys(gluings(default_cov))) || error("all gluings in the default covering must have a prescribed transition")
+    all(x->any(y->(x===y), keys(gluings(default_cov))), keys(MG)) || error("all prescribed transitions must correspond to gluings in the default covering")
 
     ### Lookup and production pattern for sheaves of modules
     #
@@ -327,12 +327,12 @@ identifications given by the glueings in the `default_covering`.
     ### Production of the restriction maps; to be cached
     function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
       # Since the other cases are caught by the methods below, both U and V 
-      # must be `affine_chart`s of X with U contained in V along some glueing.
+      # must be `affine_chart`s of X with U contained in V along some gluing.
       if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
         MV = F(V)
         MU = F(U)
         A = MG[(V, U)] # The transition matrix
-        UU, _ = glueing_domains(default_covering(X)[U, V])
+        UU, _ = gluing_domains(default_covering(X)[U, V])
         psi = OOX(UU, U) # Needs to exist by the checks of is_open_func, even though 
         # in general UU ⊂ U!
         return hom(MV, MU, [sum([psi(A[i, j]) * MU[j] for j in 1:ngens(MU)], init=zero(MU)) for i in 1:ngens(MV)], OOX(V, U))
@@ -360,7 +360,7 @@ identifications given by the glueings in the `default_covering`.
       # Now we know we have a transition across charts
       W = __find_chart(U, default_covering(X))
       A = MG[(V, W)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[W, V])
+      WW, _ = gluing_domains(default_covering(X)[W, V])
       # From W to U (and hence also from WW to U) the generators of the modules 
       # in F might have changed. Thus, we have to expect a non-trivial transition 
       # from the top-level down to U. The transition matrix A is only given with 
@@ -394,7 +394,7 @@ identifications given by the glueings in the `default_covering`.
       # Now we know we have a transition across charts
       W = __find_chart(U, default_covering(X))
       A = MG[(V, W)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[W, V])
+      WW, _ = gluing_domains(default_covering(X)[W, V])
       # From W to U (and hence also from WW to U) the generators of the modules 
       # in F might have changed. Thus, we have to expect a non-trivial transition 
       # from the top-level down to U. The transition matrix A is only given with 
@@ -429,8 +429,8 @@ identifications given by the glueings in the `default_covering`.
         end
         return hom(F(V), F(U), img_gens, OOX(V, U))
       else
-        # U must be properly contained in the glueing domains of the 
-        # glueing of the affine chart of V with U.
+        # U must be properly contained in the gluing domains of the 
+        # gluing of the affine chart of V with U.
         error("case not implemented")
       end
       # Problem: We can assume that we know how to pass from generators 
@@ -487,7 +487,7 @@ identifications given by the glueings in the `default_covering`.
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
       A = MG[(WV, WU)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      WW, _ = gluing_domains(default_covering(X)[WU, WV])
       for v in gens(F(V))
         w = preimage(inc, v) # We know that inc is actually an isomorphism
         c = coordinates(w)
@@ -545,7 +545,7 @@ identifications given by the glueings in the `default_covering`.
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
       A = MG[(WV, WU)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      WW, _ = gluing_domains(default_covering(X)[WU, WV])
       for v in gens(F(V))
         w = preimage(inc, v) # We know that inc is actually an isomorphism
         c = coordinates(w)
@@ -603,7 +603,7 @@ identifications given by the glueings in the `default_covering`.
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
       A = MG[(WV, WU)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      WW, _ = gluing_domains(default_covering(X)[WU, WV])
       for v in gens(F(V))
         w = preimage(inc, v) # We know that inc is actually an isomorphism
         c = coordinates(w)
@@ -663,7 +663,7 @@ identifications given by the glueings in the `default_covering`.
       sub_V, inc = sub(F(V), gens_V)
       img_gens = elem_type(F(U))[]
       A = MG[(WV, WU)] # The transition matrix
-      WW, _ = glueing_domains(default_covering(X)[WU, WV])
+      WW, _ = gluing_domains(default_covering(X)[WU, WV])
       for v in gens(F(V))
         w = preimage(inc, v) # We know that inc is actually an isomorphism
         c = coordinates(w)
@@ -747,9 +747,9 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
 
   MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
   C = default_covering(X)
-  for G in values(glueings(C))
+  for G in values(gluings(C))
     (U, V) = patches(G)
-    (UU, VV) = glueing_domains(G)
+    (UU, VV) = gluing_domains(G)
     h_U = complement_equation(UU)
     h_V = complement_equation(VV)
     MG[(U, V)] = diagonal_matrix((d>= 0 ? (x->OO(VV)(x, check=false))(h_V^d) : (inv((x->OO(VV)(x, check=false))(h_V))^(-d))), 1)
@@ -807,10 +807,10 @@ on ``X`` as a `CoherentSheaf`.
   end
   MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
   C = default_covering(X)
-  for G in values(glueings(C))
+  for G in values(gluings(C))
     (U, V) = patches(G)
-    (UU, VV) = glueing_domains(G)
-    (f, g) = glueing_morphisms(G)
+    (UU, VV) = gluing_domains(G)
+    (f, g) = gluing_morphisms(G)
     MG[(U, V)] = transpose(jacobian_matrix(pullback(g).(gens(OO(UU)))))
     MG[(V, U)] = transpose(jacobian_matrix(pullback(f).(gens(OO(VV)))))
   end
@@ -1049,9 +1049,9 @@ function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
 
   MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
   C = default_covering(X)
-  for G in values(glueings(C))
+  for G in values(gluings(C))
     (U, V) = patches(G)
-    (UU, VV) = glueing_domains(G)
+    (UU, VV) = gluing_domains(G)
     MG[(U, V)] = identity_matrix(OO(VV), n)
     MG[(V, U)] = identity_matrix(OO(UU), n)
   end
@@ -1440,7 +1440,7 @@ end
     patch_list = vcat(patch_list, _trivializing_covering(M, U))
   end
   C = Covering(patch_list)
-  inherit_glueings!(C, default_covering(X))
+  inherit_gluings!(C, default_covering(X))
   if has_decomposition_info(default_covering(X))
     for U in patches(C)
       V = __find_chart(U, default_covering(X))
@@ -1545,7 +1545,7 @@ end
     end
   end
   C = Covering(patch_list)
-  inherit_glueings!(C, default_covering(scheme(M)))
+  inherit_gluings!(C, default_covering(scheme(M)))
   push!(coverings(X), C)
   return C
 end
@@ -1734,18 +1734,18 @@ function projectivization(E::AbsCoherentSheaf;
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end
-  projective_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGlueing}()
+  projective_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
   OX = StructureSheafOfRings(X)
 
-  # prepare for the projective glueings
-  for (U, V) in keys(glueings(C))
+  # prepare for the projective gluings
+  for (U, V) in keys(gluings(C))
     P = on_patches[U]
     SP = homogeneous_coordinate_ring(P)
     Q = on_patches[V]
     SQ = homogeneous_coordinate_ring(Q)
     G = C[U, V]
-    UV, VU = glueing_domains(G)
-    f, g = glueing_morphisms(G)
+    UV, VU = gluing_domains(G)
+    f, g = gluing_morphisms(G)
 
     PUV, PUVtoP = fiber_product(OX(U, UV), P)
     QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
@@ -1753,7 +1753,7 @@ function projectivization(E::AbsCoherentSheaf;
     # to construct the identifications of PUV with QVU we need to 
     # express the generators of I(U) in terms of the generators of I(V)
     # on the overlap U ∩ V. 
-    !(G isa Glueing) || error("method not implemented for this type of glueing")
+    !(G isa Gluing) || error("method not implemented for this type of gluing")
 
     # The problem is that on a SpecOpen U ∩ V
     # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
@@ -1794,9 +1794,9 @@ function projectivization(E::AbsCoherentSheaf;
                               check=false
                              )
 
-    projective_glueings[U, V] = ProjectiveGlueing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
+    projective_gluings[U, V] = ProjectiveGluing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
   end
-  return CoveredProjectiveScheme(X, C, on_patches, projective_glueings, check=false)
+  return CoveredProjectiveScheme(X, C, on_patches, projective_gluings, check=false)
 end
 
 

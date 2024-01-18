@@ -513,7 +513,7 @@ function degree(f::FreeModElem)
   iszero(f) && return A[0]
   f.d = isa(f.d, GrpAbFinGenElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
   isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
-  return f.d
+  return f.d::GrpAbFinGenElem
 end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)

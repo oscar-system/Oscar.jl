@@ -6,7 +6,7 @@
 ########################################################################
 
 @doc raw"""
-    SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
+    morphism(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 
 This method constructs a morphism from the scheme ``X``
 to the scheme ``Y``. For this one has to specify the images
@@ -27,7 +27,7 @@ Affine space of dimension 3
   over rational field
 with coordinates [x1, x2, x3]
 
-julia> SpecMor(X, Y, gens(OO(X)))
+julia> morphism(X, Y, gens(OO(X)))
 Affine scheme morphism
   from [x1, x2, x3]  affine 3-space over QQ
   to   [x1, x2, x3]  affine 3-space over QQ
@@ -37,31 +37,31 @@ given by the pullback function
   x3 -> x3
 ```
 """
-function SpecMor(
+function morphism(
       X::AbsSpec,
       Y::AbsSpec,
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
+  return morphism(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
-function SpecMor(
+function morphism(
       X::AbsSpec,
       Y::AbsSpec{<:Ring, <:MPolyRing},
       f::Vector{<:RingElem};
       check::Bool=true
   )
-  return SpecMor(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
+  return morphism(X, Y, hom(OO(Y), OO(X), OO(X).(f), check=check), check=check)
 end
 
-function SpecMor(
+function morphism(
       X::AbsSpec,
       Y::AbsSpec,
       f::Vector;
       check::Bool=true
   )
-  return SpecMor(X, Y, OO(X).(f), check=check)
+  return morphism(X, Y, OO(X).(f), check=check)
 end
 
 
@@ -92,10 +92,10 @@ given by the pullback function
   x3 -> x3
 ```
 """
-identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = SpecMor(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
 
 
 @doc raw"""
@@ -143,7 +143,7 @@ julia> base_ring(I) == OO(X)
 true
 ```
 """
-inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = SpecMor(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
+inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = morphism(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
 
 
 @doc raw"""
@@ -208,7 +208,7 @@ true
 """
 function compose(f::AbsSpecMor, g::AbsSpecMor)
   codomain(f) === domain(g) || error("Morphisms can not be composed")
-  return SpecMor(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
+  return morphism(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
 
 
@@ -250,6 +250,6 @@ function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
   @check issubset(U, domain(f)) "second argument does not lie in the domain of the map"
   @check issubset(V, codomain(f)) "third argument does not lie in the codomain of the map"
   @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
-  return SpecMor(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
+  return morphism(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
 

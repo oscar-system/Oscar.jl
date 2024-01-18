@@ -23,7 +23,7 @@ one ``X`` such that the image is a principal open subset.
     @check all(h->is_unit(pullback(f)(h)), complement_equations) "image of the map is not contained in the complent of the zero locus of the given equations"
     @check begin
       U = PrincipalOpenSubset(Y, complement_equations)
-      f_res = SpecMor(X, U, pullback(f).(gens(OO(Y))), check=check)
+      f_res = morphism(X, U, pullback(f).(gens(OO(Y))), check=check)
       is_isomorphism(f_res) || error("restriction is not an isomorphism")
     end
 

@@ -1643,7 +1643,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   GB, _ = image_centralizer_in_Oq(B)
   @hassert :ZZLatWithIsom 1 fqB in GB
 
-  # this is where we will perform the glueing
+  # this is where we will perform the gluing
   if same_ambient
     D, qAinD, qBinD, OD, OqAinOD, OqBinOD = _sum_with_embeddings_orthogonal_groups(qA, qB)
   else

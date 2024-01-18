@@ -72,17 +72,17 @@ with default covering
       V_j = affine_charts(Y)[j]
       U_ij = PrincipalOpenSubset(U_i, denom)
       u = inv(OO(U_ij)(denom))
-      mor_dict[U_ij] = SpecMor(U_ij, V_j, 
+      mor_dict[U_ij] = morphism(U_ij, V_j, 
                                hom(OO(V_j), OO(U_ij), 
                                    [OO(U_ij)(dehom(pbf(gen(SY, k))))*u for k in 1:ngens(SY) if k != j]
                                   )
                               )
     end
   end
-  # We skip the glueings for the time being.
+  # We skip the gluings for the time being.
   # Eventually, they should be made lazy.
-  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
-  inherit_glueings!(CC, default_covering(X))
+  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}())
+  inherit_gluings!(CC, default_covering(X))
   phi = CoveringMorphism(CC, default_covering(Y), mor_dict, check=false)
   push!(coverings(X), CC)
 
@@ -107,7 +107,7 @@ end
   for i in 1:ngens(SX)
     U_i = U[i]
     V_i = affine_charts(Y)[i]
-    mor_dict[U_i] = ClosedEmbedding(SpecMor(U_i, V_i, gens(OO(U_i)), check=false), II(V_i))
+    mor_dict[U_i] = ClosedEmbedding(morphism(U_i, V_i, gens(OO(U_i)), check=false), II(V_i))
   end
   f_cov = CoveringMorphism(default_covering(X), default_covering(Y), mor_dict, check=false)
 

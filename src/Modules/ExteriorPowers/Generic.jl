@@ -1,6 +1,6 @@
 # We need to cache eventually created exterior powers.
-@attr Dict{Int, Tuple{T, <:Map}} function _exterior_powers(F::T) where {T<:ModuleFP}
-  return Dict{Int, Tuple{typeof(F), Map}}()
+@attr Dict{Int, Tuple{typeof(F), MapFromFunc}} function _exterior_powers(F::ModuleFP)
+  return Dict{Int, Tuple{typeof(F), MapFromFunc}}()
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
@@ -8,7 +8,7 @@ end
 # and `(false, F, 0)` otherwise.
 function is_exterior_power(M::ModuleFP)
   if has_attribute(M, :is_exterior_power)
-    MM, p = get_attribute(M, :is_exterior_power)
+    MM, p = get_attribute(M, :is_exterior_power)::Tuple{typeof(M), Int}
     return (true, MM, p)
   end
   return (false, M, 0)
@@ -175,13 +175,13 @@ end
 # The induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   success, F, p = is_exterior_power(M)
-  success || error("module is not an exterior power")
+  @req success "module is not an exterior power"
   success, FF, q = is_exterior_power(N)
-  success || error("module is not an exterior power")
-  F === domain(phi) || error("map not compatible")
-  FF === codomain(phi) || error("map not compatible")
-  p == q || error("exponents must agree")
-  return induced_map_on_exterior_power(phi, p, domain=M, codomain=N)
+  @req success "module is not an exterior power"
+  @req F === domain(phi) "map not compatible"
+  @req FF === codomain(phi) "map not compatible"
+  @req p == q "exponents must agree"
+  return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
 
 

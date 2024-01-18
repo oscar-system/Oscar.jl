@@ -4,6 +4,8 @@
 # (1) Generic constructors
 ########################################################
 
+spec(R::Ring) = Spec(R)
+
 @doc raw"""
     Spec(R::MPolyRing, I::MPolyIdeal)
 
@@ -199,7 +201,7 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 
 # Examples
 ```jldoctest
-julia> standard_spec(affine_space(QQ,5))
+julia> Oscar.standard_spec(affine_space(QQ,5))
 Spectrum
   of localization
     of quotient
@@ -219,7 +221,7 @@ Spectrum
       over rational field
     by ideal(x)
 
-julia> standard_spec(X)
+julia> Oscar.standard_spec(X)
 Spectrum
   of localization
     of quotient
@@ -239,7 +241,7 @@ Spectrum
       over rational field
     at complement of prime ideal(x)
 
-julia> standard_spec(X)
+julia> Oscar.standard_spec(X)
 Spectrum
   of localization
     of quotient

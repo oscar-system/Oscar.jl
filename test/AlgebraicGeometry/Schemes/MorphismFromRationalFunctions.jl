@@ -76,8 +76,8 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  Oscar.inherit_glueings!(dom_cov, default_covering(X))
-  Oscar.inherit_glueings!(cod_cov, default_covering(X))
+  Oscar.inherit_gluings!(dom_cov, default_covering(X))
+  Oscar.inherit_gluings!(cod_cov, default_covering(X))
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
@@ -99,8 +99,8 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  Oscar.inherit_glueings!(dom_cov, default_covering(X))
-  Oscar.inherit_glueings!(cod_cov, default_covering(X))
+  Oscar.inherit_gluings!(dom_cov, default_covering(X))
+  Oscar.inherit_gluings!(cod_cov, default_covering(X))
   mor_dict = IdDict{AbsSpec, AbsSpecMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
