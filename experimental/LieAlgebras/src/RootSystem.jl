@@ -4,21 +4,23 @@
 #
 ###############################################################################
 
-@attributes mutable struct RootSystem
+mutable struct RootSystem
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
-  positive_roots::Any #::Vector{RootSpaceElem} (cyclic reference)
+  positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
+  positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
   weyl_group::Any     #::WeylGroup (cyclic reference)
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
 
   function RootSystem(mat::ZZMatrix)
-    pos_roots, refl = positive_roots_and_reflections(mat)
+    pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
     R = new(mat)
     R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
+    R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
     R.weyl_group = WeylGroup(finite, refl, R)
 
     return R
@@ -90,18 +92,6 @@ function cartan_matrix(R::RootSystem)
 end
 
 @doc raw"""
-    dual(R::RootSystem) -> RootSystem
-
-Returns the dual root system of `R`.
-"""
-@attr RootSystem function dual(R::RootSystem)
-  # TODO: find an algorithm that computes the dual reflection table directly
-  D = root_system(transpose(cartan_matrix(R)))
-  set_attribute!(D, :dual, R)
-  return D
-end
-
-@doc raw"""
     coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
 Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system of `R`.
@@ -110,7 +100,11 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  return root(dual(R), i)
+  if i <= num_positive_roots(R)
+    return positive_coroot(R, i)
+  else
+    return negative_coroot(R, i - num_positive_roots(R))
+  end
 end
 
 @doc raw"""
@@ -122,7 +116,8 @@ in the order of `positive_coroots` and `negative_coroots`.
 Also see: `coroot`.
 """
 function coroots(R::RootSystem)
-  return roots(dual(R))
+  return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
+  (dual(R))
 end
 
 function fundamental_weight(R::RootSystem, i::Int)
@@ -182,7 +177,7 @@ This is a more efficient version for `negative_coroots(R)[i]`.
 Also see: `negative_coroots`.
 """
 function negative_coroot(R::RootSystem, i::Int)
-  return negative_coroot(dual(R), i)
+  return -R.positive_coroots[i]::DualRootSpaceElem
 end
 
 @doc raw"""
@@ -193,7 +188,7 @@ Returns the coroots corresponding to the negative roots of `R`
 Also see: `negative_coroots`.
 """
 function negative_coroots(R::RootSystem)
-  return negative_roots(dual(R))
+  return [-r for r in positive_coroots(R)]
 end
 
 @doc raw"""
@@ -266,7 +261,7 @@ This is a more efficient version for `positive_coroots(R)[i]`.
 Also see: `positive_coroots`.
 """
 function positive_coroot(R::RootSystem, i::Int)
-  return positive_coroot(dual(R), i)
+  return R.positive_coroots[i]::DualRootSpaceElem
 end
 
 @doc raw"""
@@ -277,7 +272,7 @@ Returns the coroots corresponding to the positive roots of `R`
 Also see: `positive_coroots`.
 """
 function positive_coroots(R::RootSystem)
-  return positive_roots(dual(R))
+  return R.positive_coroots::Vector{DualRootSpaceElem}
 end
 
 @doc raw"""
@@ -359,7 +354,8 @@ This is a more efficient version for `simple_coroots(R)[i]`.
 Also see: `simple_coroots`.
 """
 function simple_coroot(R::RootSystem, i::Int)
-  return simple_coroot(dual(R), i)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_coroot(R, i)
 end
 
 @doc raw"""
@@ -370,7 +366,7 @@ Returns the coroots corresponding to the simple roots of `R`
 Also see: `simple_coroots`.
 """
 function simple_coroots(R::RootSystem)
-  return simple_roots(dual(R))
+  return positive_coroots(R)[1:rank(R)]
 end
 
 @doc raw"""
@@ -530,6 +526,130 @@ function reflect!(r::RootSpaceElem, s::Int)
 end
 
 function root_system(r::RootSpaceElem)
+  return r.root_system
+end
+
+###############################################################################
+# DualRootSpaceElem
+
+mutable struct DualRootSpaceElem
+  root_system::RootSystem
+  vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
+end
+
+function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
+  return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+end
+
+function Base.:(*)(q::RationalUnion, r::DualRootSpaceElem)
+  return DualRootSpaceElem(root_system(r), q * r.vec)
+end
+
+function Base.:(+)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+
+  return DualRootSpaceElem(root_system(r), r.vec + r2.vec)
+end
+
+function Base.:(-)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+
+  return DualRootSpaceElem(root_system(r), r.vec - r2.vec)
+end
+
+function Base.:(-)(r::DualRootSpaceElem)
+  return DualRootSpaceElem(root_system(r), -r.vec)
+end
+
+function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
+  return r.root_system === r2.root_system && r.vec == r2.vec
+end
+
+function Base.deepcopy_internal(r::DualRootSpaceElem, dict::IdDict)
+  if haskey(dict, r)
+    return dict[r]
+  end
+
+  w2 = DualRootSpaceElem(root_system(r), deepcopy_internal(r.vec, dict))
+  dict[r] = w2
+  return w2
+end
+
+@doc raw"""
+    getindex(r::DualRootSpaceElem, i::Int) -> QQRingElem
+
+Returns the coefficient of the `i`-th simple root in `r`.
+"""
+function Base.getindex(r::DualRootSpaceElem, i::Int)
+  return coeff(r, i)
+end
+
+function Base.hash(r::DualRootSpaceElem, h::UInt)
+  b = 0x721bec0418bdbe0f % UInt
+  h = hash(r.root_system, h)
+  h = hash(r.vec, h)
+  return xor(b, h)
+end
+
+function coefficients(r::DualRootSpaceElem)
+  return r.vec
+end
+
+function coeff(r::DualRootSpaceElem, i::Int)
+  return r.vec[i]
+end
+
+@doc raw"""
+    height(r::DualRootSpaceElem) -> QQFieldElem
+
+For a coroot `r`, returns the height of `r`, i.e. the sum of the coefficients of the simple coroots.
+If `r` is not a coroot, the return value is arbitrary.
+"""
+function height(r::DualRootSpaceElem)
+  return sum(coefficients(r))
+end
+
+function is_coroot_with_index(r::DualRootSpaceElem)
+  i = findfirst(==(r), coroots(root_system(r)))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function is_positive_coroot_with_index(r::DualRootSpaceElem)
+  i = findfirst(==(r), positive_coroots(root_system(r)))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function is_negative_coroot_with_index(r::DualRootSpaceElem)
+  i = findfirst(==(r), negative_coroots(root_system(r)))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function is_simple_coroot_with_index(r::DualRootSpaceElem)
+  i = findfirst(==(r), simple_coroots(root_system(r)))
+  if isnothing(i)
+    return false, 0
+  else
+    return true, i
+  end
+end
+
+function Base.iszero(r::DualRootSpaceElem)
+  return iszero(r.vec)
+end
+
+function root_system(r::DualRootSpaceElem)
   return r.root_system
 end
 
@@ -728,5 +848,5 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
     table[s, i] = refl[s, perm[i]]
   end
 
-  roots[perm], table
+  roots[perm], coroots[perm], table
 end

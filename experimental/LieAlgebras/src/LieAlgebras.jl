@@ -78,6 +78,7 @@ import ..Oscar:
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, length, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -122,10 +123,14 @@ export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
 export is_dual
+export is_coroot_with_index
+export is_negative_coroot_with_index
 export is_negative_root_with_index
+export is_positive_coroot_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
@@ -195,6 +200,7 @@ end
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -237,10 +243,14 @@ export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
 export is_dual
+export is_coroot_with_index
+export is_negative_coroot_with_index
 export is_negative_root_with_index
+export is_positive_coroot_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
