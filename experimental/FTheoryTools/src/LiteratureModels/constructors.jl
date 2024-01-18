@@ -324,12 +324,12 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
     # Compute Weierstrass sections
-    f = map(eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring))
-    g = map(eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring))
+    f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
+    g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
 
     # Complete explicit_model_sections
-    explicit_model_sections["f"] = f
-    explicit_model_sections["g"] = g
+    explicit_model_sections["f"] = map(f)
+    explicit_model_sections["g"] = map(g)
 
     # Find defining_section_parametrization
     defining_section_parametrization = Dict{String, MPolyElem}()
