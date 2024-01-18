@@ -77,10 +77,9 @@ end
 #####################################################
 
 @doc raw"""
-    tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
+    tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
-Tune a Tate model by fixing a special choice of the Tate sections.
-This choice is provided by a dictionary, to be provided as second argument.
+Tune a Tate model by fixing a special choice for the model sections.
 
 # Examples
 ```jldoctest
@@ -102,8 +101,10 @@ julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
  x3
  x4
 
-julia> my_choice = Dict("a1" => x1^4)
-Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 1 entry:
+julia> my_choice = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => x1^8
   "a1" => x1^4
 
 julia> tuned_t = tune(t, my_choice)
@@ -113,34 +114,64 @@ julia> tate_section_a1(tuned_t) == x1^4
 true
 ```
 """
-function tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
+function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+  # Consistency checks
   @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
-  isempty(special_ai_choices) && return t
-  ais = [tate_section_a1(t), tate_section_a2(t), tate_section_a3(t), tate_section_a4(t), tate_section_a6(t)]
-  if haskey(special_ai_choices, "a1")
-    @req parent(special_ai_choices["a1"]) == parent(tate_section_a1(t)) "Parent mismatch between given and existing Tate section a1"
-    @req degree(special_ai_choices["a1"]) == degree(tate_section_a1(t)) "Parent mismatch between given and existing Tate section a1"
-    ais[1] = special_ai_choices["a1"]
+  isempty(input_sections) && return t
+  secs_names = collect(keys(explicit_model_sections(t)))
+  tuned_secs_names = collect(keys(input_sections))
+  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+
+  # 0. Prepare for computation by setting up some information
+  explicit_secs = deepcopy(explicit_model_sections(t))
+  def_secs_param = deepcopy(defining_section_parametrization(t))
+  tate_sections = ["a1", "a2", "a3", "a4", "a6"]
+
+  # 1. Tune model sections different from Tate sections
+  for x in setdiff(tuned_secs_names, tate_sections)
+    section_parent = parent(input_sections[x])
+    section_degree = degree(input_sections[x])
+    @req section_parent == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
+    @req section_degree == degree(explicit_model_sections(t)[x]) "Degree mismatch between given and existing model section"
+    explicit_secs[x] = input_sections[x]
   end
-  if haskey(special_ai_choices, "a2")
-    @req parent(special_ai_choices["a2"]) == parent(tate_section_a2(t)) "Parent mismatch between given and existing Tate section a2"
-    @req degree(special_ai_choices["a2"]) == degree(tate_section_a2(t)) "Parent mismatch between given and existing Tate section a2"
-    ais[2] = special_ai_choices["a2"]
+
+  # 2. Use model sections to reevaluate the Tate sections via their known parametrization
+  parametrization_keys = collect(keys(def_secs_param))
+  if !isempty(parametrization_keys) && !isempty(secs_names)
+    R = parent(def_secs_param[parametrization_keys[1]])
+    S = parent(explicit_secs[secs_names[1]])
+    vars = [string(k) for k in gens(R)]
+    images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+    map = hom(R, S, images)
+    for section in tate_sections
+      haskey(def_secs_param, section) && (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
+    end
   end
-  if haskey(special_ai_choices, "a3")
-    @req parent(special_ai_choices["a3"]) == parent(tate_section_a3(t)) "Parent mismatch between given and existing Tate section a3"
-    @req degree(special_ai_choices["a3"]) == degree(tate_section_a3(t)) "Parent mismatch between given and existing Tate section a3"
-    ais[3] = special_ai_choices["a3"]
+
+  # 3. Does the user want to set some Tate sections? If so, overwrite existing choice with desired value.
+  for sec in tate_sections
+    if haskey(input_sections, sec)
+      @req parent(input_sections[sec]) == parent(explicit_model_sections(t)[sec]) "Parent mismatch between given and existing Tate section"
+      @req degree(input_sections[sec]) == degree(explicit_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
+      explicit_secs[sec] = input_sections[sec]
+      delete!(def_secs_param, sec)
+    end
   end
-  if haskey(special_ai_choices, "a4")
-    @req parent(special_ai_choices["a4"]) == parent(tate_section_a4(t)) "Parent mismatch between given and existing Tate section a4"
-    @req degree(special_ai_choices["a4"]) == degree(tate_section_a4(t)) "Parent mismatch between given and existing Tate section a4"
-    ais[4] = special_ai_choices["a4"]
+
+  # 4. There could be unused model sections...
+  if !isempty(parametrization_keys)
+    polys = [eval_poly(string(def_secs_param[section]), R) for section in tate_sections if haskey(def_secs_param, section)]
+    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
+    all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
+    potentially_redundant_sections = gens(R)
+    for k in 1:length(potentially_redundant_sections)
+      string(potentially_redundant_sections[k]) in tate_sections && continue
+      is_used = any(all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents))
+      is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
+    end
   end
-  if haskey(special_ai_choices, "a6")
-    @req parent(special_ai_choices["a6"]) == parent(tate_section_a6(t)) "Parent mismatch between given and existing Tate section a6"
-    @req degree(special_ai_choices["a6"]) == degree(tate_section_a6(t)) "Parent mismatch between given and existing Tate section a6"
-    ais[5] = special_ai_choices["a6"]
-  end
-  return global_tate_model(base_space(t), ais; completeness_check)
+  
+  # 5. Build the new model
+  return global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
 end
