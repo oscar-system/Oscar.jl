@@ -128,7 +128,7 @@ end
 # This function loads a global Tate model
 #########################################
 
-function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing, MPolyDecRing})
+function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing, MPolyDecRing, <:Union{MPolyDecRing, MPolyRing}})
 
   # Extract base and ambient space
   base_space = params[1]
