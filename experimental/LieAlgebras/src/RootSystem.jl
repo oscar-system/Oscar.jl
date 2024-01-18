@@ -78,7 +78,7 @@ function Base.show(io::IO, R::RootSystem)
   end
 end
 
-@attr ZZMatrix function cartan_bilinear_form(R::RootSystem)
+@attr ZZMatrix function bilinear_form(R::RootSystem)
   return cartan_bilinear_form(cartan_matrix(R); check=false)
 end
 
@@ -117,7 +117,6 @@ Also see: `coroot`.
 """
 function coroots(R::RootSystem)
   return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
-  (dual(R))
 end
 
 function fundamental_weight(R::RootSystem, i::Int)
