@@ -26,8 +26,54 @@ end
 
 data(tab::YoungTableau) = tab.t
 
+# supercompact and one-line printing
+function Base.show(io::IO, tab::YoungTableau)
+  print(io, "Young tableau")
+  # TODO: is there meaningful information to add in one-line mode?
+end
+
 function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
-  print(io, data(tab))
+  # As the rows of the tableau have different length, we print row by row to
+  # make sure the separating lines are always only as long as necessary.
+
+  # Translate the rows of `tab` into 1 x k matrices of strings to feed into
+  # `labelled_matrix_formatted`
+  s = Vector{Matrix{String}}(undef, length(tab))
+  box_width = 0 # maximum length of an entry
+  for i in 1:length(tab)
+    r = tab[i]
+    s[i] = Matrix{String}(undef, 1, length(r))
+    for j in 1:length(r)
+      x = string(r[j])
+      box_width = max(length(x), box_width)
+      s[i][1, j] = x
+    end
+  end
+  # Pad the smaller boxes with whitespace (so that every box has the same width)
+  for i in 1:length(s)
+    for j in 1:size(s[i], 2)
+      x = s[i][1, j]
+      d = box_width - length(x)
+      for k = 1:d
+        x = " "*x
+      end
+      s[i][1, j] = x
+    end
+  end
+  # Now print the single rows
+  for i = 1:length(s)
+    if i == 1
+      # First row with a separator line on top and trailing line break
+      ioc = IOContext(io, :separators_row => 0:1, :separators_col => 0:length(s[i]), :footer => [""])
+    elseif i == length(s)
+      # Last row without trailing line break
+      ioc = IOContext(io, :separators_row => [1], :separators_col => 0:length(s[i]))
+    else
+      # Every other line with trailing line break
+      ioc = IOContext(io, :separators_row => [1], :separators_col => 0:length(s[i]), :footer => [""])
+    end
+    labelled_matrix_formatted(ioc, s[i])
+  end
 end
 
 ################################################################################
