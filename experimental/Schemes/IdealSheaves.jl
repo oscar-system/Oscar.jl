@@ -670,7 +670,7 @@ function order_on_divisor(
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
-  K = ambient_closure_ideal(V)
+  K = saturated_ideal(defining_ideal(V))
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))

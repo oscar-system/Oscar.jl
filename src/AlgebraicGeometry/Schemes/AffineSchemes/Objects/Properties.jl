@@ -121,7 +121,7 @@ function issubset(
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(ambient_closure_ideal(Y))
+  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(saturated_ideal(defining_ideal(Y)))
 end
 
 
@@ -143,7 +143,7 @@ function issubset(
   ) where {BRT, RT<:MPolyQuoRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(ambient_closure_ideal(Y), ambient_closure_ideal(X))
+  return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
 end
 
 
@@ -762,7 +762,7 @@ end
 
 @attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
   is_integral(X) || return false
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   AI = absolute_primary_decomposition(I)
   @assert length(AI)==1 # it is prime since X is integral
   return AI[1][4]==1

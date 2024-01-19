@@ -26,7 +26,7 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   end
   # avoid constructing a morphism
   F = fat_scheme(X)
-  I = ambient_closure_ideal(F)
+  I = saturated_ideal(defining_ideal(F))
   if has_attribute(F, :is_reduced) && is_reduced(F)
       Irad = I
   else
@@ -68,7 +68,8 @@ By Hilbert's Nullstellensatz this is a radical ideal.
 !!! note
     This triggers the computation of a radical, which is expensive.
 """
-vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
+vanishing_ideal(X::AbsAffineAlgebraicSet) = saturated_ideal(defining_ideal(X))
+#vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X) # TODO: What about this here? Should it also be removed?
 
 @doc raw"""
     fat_ideal(X::AbsAffineAlgebraicSet) -> Ideal
@@ -96,7 +97,7 @@ julia> fat_ideal(X) === I
 true
 ```
 """
-fat_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(fat_scheme(X))
+fat_ideal(X::AbsAffineAlgebraicSet) = saturated_ideal(defining_ideal(fat_scheme(X)))
 
 # avoid computing the underlying scheme
 ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(fat_scheme(X))

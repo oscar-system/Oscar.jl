@@ -12,7 +12,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyQ
   println(io, Lowercase(), ambient_space(X))
   print(io, Dedent(), "defined by ")
   if get_attribute(X, :is_reduced, false)
-    I = ambient_closure_ideal(X)
+    I = saturated_ideal(defining_ideal(X))
   else
     I = fat_ideal(X)
   end

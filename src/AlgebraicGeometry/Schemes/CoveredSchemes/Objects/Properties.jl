@@ -54,7 +54,7 @@ function _jacobian_criterion(X::CoveredScheme{<:Field})
   dec_info = decomposition_info(default_covering(X))
   for (V, fs) in dec_info
     R = base_ring(OO(V))
-    I = ambient_closure_ideal(V)
+    I = saturated_ideal(defining_ideal(V))
     mat = jacobian_matrix(R, gens(I))
     sing_locus = ideal(R, fs) + ideal(R, minors(mat, codim(V)))
     sing_subscheme = subscheme(V, sing_locus)

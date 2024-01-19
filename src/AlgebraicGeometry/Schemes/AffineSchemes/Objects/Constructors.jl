@@ -813,7 +813,7 @@ function closure(
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   return Spec(base_ring(I),I)
 end
 
@@ -823,7 +823,7 @@ function closure(
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
   return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
 end

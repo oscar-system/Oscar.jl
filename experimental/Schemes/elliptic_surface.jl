@@ -1077,7 +1077,7 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
     yn = numerator(P[2])
     yd = denominator(P[2])
 
-    I = ambient_closure_ideal(U)
+    I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
     issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 

@@ -808,18 +808,25 @@ function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
 end
 
 ########################################################################
-# (X) Attributes for AbsSpec   to be deleted
+# (X) Attributes for AbsSpec
 #     
 ########################################################################
 
-# TODO: ambient_closure_ideal should be deleted
-
 @doc raw"""
-    ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
+    defining_ideal(X::AbsSpec)
 
-Return the defining ideal of the closure of ``X`` in its ambient affine space.
+Return the ideal `I` defining `X` in an appropriate ambient space.
 
-# Examples
+If `X = Spec(R)` and `R` is...
+
+  - a polynomial ring, then this returns the zero ideal in `R` itself;
+  - a quotient ring `P/J` of a polynomial ring `P`, then this returns `J`;
+  - a localized polynomial ring `R[U⁻¹]`, then this returns the zero ideal in that ring;
+  - a quotient of a localized polynomial ring `(R[U⁻¹])/J`, then this returns the ideal `J` in the ring `R[U⁻¹]`.
+
+This behaviour is streamlined with the return values of `modulus` on the algebraic side.
+If you are looking for an ideal `I` in the polynomial `ambient_ring` of `X` defining 
+the closure of `X` in its `ambient_space`, use for instance `saturated_ideal(defining_ideal(X))`.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
@@ -843,7 +850,7 @@ Spectrum
       over rational field
     by ideal(x1*x2)
 
-julia> I = Oscar.ambient_closure_ideal(Y)
+julia> I = defining_ideal(Y)
 ideal(x1*x2)
 
 julia> base_ring(I) == OO(Y)
@@ -853,11 +860,11 @@ julia> base_ring(I) == R
 true
 ```
 """
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = saturated_ideal(modulus(OO(X)))
-
+defining_ideal(X::AbsSpec) = error("method not implemented for input of type $(typeof(X))")
+@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = modulus(OO(X))
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
 
 ########################################################################
 # (4) Implementation of the AbsSpec interface for the basic Spec

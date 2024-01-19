@@ -94,7 +94,7 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
       aff, _ = affine_cone(P)
       sing, _ = singular_locus(aff)
       origin = ideal(gens(ambient_coordinate_ring(sing)))
-      return isone(saturation(ambient_closure_ideal(sing), origin))
+      return isone(saturation(saturated_ideal(defining_ideal(sing)), origin))
     elseif algorithm == :projective_jacobian
       return _projective_jacobian_criterion(P)
     end

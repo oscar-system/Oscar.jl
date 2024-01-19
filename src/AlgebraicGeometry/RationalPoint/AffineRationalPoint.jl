@@ -95,7 +95,7 @@ end
 function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyQuoRing})
   ambient_space(P) == ambient_space(X) || return false
   c = coordinates(P)
-  for f in gens(ambient_closure_ideal(X))
+  for f in gens(saturated_ideal(defining_ideal(X)))
     iszero(evaluate(f, c)) || return false
   end
   return true
@@ -191,7 +191,7 @@ See also [`tangent_space(P::AbsAffineRationalPoint{<:Field})`](@ref)
 """
 function tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "the point needs to lie on the algebraic set"
-  J = jacobian_matrix(gens(ambient_closure_ideal(X)))
+  J = jacobian_matrix(gens(saturated_ideal(defining_ideal(X))))
   v = coordinates(P)
   JP = map_entries(x->evaluate(x, v), J)
   V = ambient_coordinates(X)
