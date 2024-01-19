@@ -36,7 +36,7 @@ function free_show(io::IO, C::ComplexOfMorphisms)
     push!(rank_mod, rank(M))
   end
 
-  io = IOContext(io, :compact => true)
+  io = IOContext(io, :supercompact => true)
   N = get_attribute(C, :free_res)
   if N !== nothing
     print(io, "Free resolution")

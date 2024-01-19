@@ -41,42 +41,37 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapT
   end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
-  # HACK
-  show(io, fmh)
+function AbstractAlgebra.show_map_data(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
+  if is_graded(fmh)
+    println(io)
+    print(io, "defined by", Indent())
+    io_compact = IOContext(io, :supercompact => true)
+    domain_gens = gens(domain(fmh))
+    for g in domain_gens
+      println(io)
+      print(io_compact, g, " -> ", fmh(g))
+    end
+  end
 end
 
 function Base.show(io::IO, fmh::SubQuoHom{T1, T2, RingMapType}) where {T1 <: AbstractSubQuo, T2 <: ModuleFP, RingMapType}
-  compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
-  domain_gens = gens(domain(fmh))
-  if is_graded(fmh)
-    print(io_compact, domain(fmh))
-    print(io, " -> ")
-    print(io_compact, codomain(fmh))
-    if !compact
-      print(io, "\n")
-      for i in 1:length(domain_gens)
-        print(io, domain_gens[i], " -> ")
-        print(io_compact, fmh(domain_gens[i]))
-        print(io, "\n")
-      end
+  if get(io, :supercompact, false)
+    if is_graded(fmh)
       A = grading_group(fmh)
       if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
+        io_compact = IOContext(io, :supercompact => true)
         print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
-        print(io, "\n")
       end
+    else
+        print(io, "Module homomorphism")
     end
   else
-    println(io, "Map with following data")
-    println(io, "Domain:")
-    println(io, "=======")
-    println(io, domain(fmh))
-    println(io, "Codomain:")
-    println(io, "=========")
-    print(io, codomain(fmh))
+    io = pretty(io)
+    print(io, "Hom: ")
+    print(IOContext(io, :supercompact => true), Lowercase(), domain(fmh), " -> ")
+    print(IOContext(io, :supercompact => true), Lowercase(), codomain(fmh))
   end
 end
 

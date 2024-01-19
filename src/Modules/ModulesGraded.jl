@@ -1942,7 +1942,7 @@ function show(io::IO, F::FreeMod_dec)
   @show_special(io, F)
 
   print(io, "Decorated free module of rank $(rank(F)) over ")
-  print(IOContext(io, :compact =>true), base_ring(F))
+  print(IOContext(io, :supercompact =>true), base_ring(F))
 
   i = 1
   while i < dim(F)
@@ -1951,8 +1951,8 @@ function show(io::IO, F::FreeMod_dec)
     while i+j <= dim(F) && d == F.d[i+j]
       j += 1
     end
-    print(IOContext(io, :compact => true), base_ring(F), "^$j")
-    print(IOContext(io, :compact => true), "(", -d, ")")
+    print(IOContext(io, :supercompact => true), base_ring(F), "^$j")
+    print(IOContext(io, :supercompact => true), "(", -d, ")")
     if i+j < dim(F)
       print(io, " + ")
     end

@@ -107,8 +107,9 @@ end
 function show(io::IO, F::FreeMod)
   @show_name(io, F)
   @show_special(io, F)
-  compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
+  io = pretty(io)
+  compact = get(io, :supercompact, false)
+  io_compact = IOContext(io, :supercompact => true)
   if is_graded(F)
       if !compact
         print(io, "Graded free module ")
@@ -133,17 +134,17 @@ function show(io::IO, F::FreeMod)
       end
 
       if !compact
-          print(io," of rank $(rank(F)) over ")
+          print(io," of rank $(rank(F)) over ", Lowercase())
           print(io_compact, base_ring(F))
       end
   else
       if !compact
           #Todo: Use once the printing of rings is fixed
           #print(io_compact, "Free module ", base_ring(F), "^$(F.n) of rank $(F.n) over ")
-          print(io_compact, "Free module of rank $(F.n) over ")
+          print(io_compact, "Free module of rank $(rank(F)) over ", Lowercase())
           print(io_compact, F.R)
       else
-          print(io_compact, base_ring(F), "^$(F.n)")
+          print(io_compact, base_ring(F), "^$(rank(F))")
       end
   end
 end
