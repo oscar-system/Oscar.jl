@@ -32,7 +32,6 @@ export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
-export morphism
 export AffineNormalToricVariety
 export AffinePlaneCurve
 export AffineVariety
@@ -90,7 +89,6 @@ export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
-export localization
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
@@ -153,7 +151,6 @@ export Singular
 export Sp
 export SpaceGerm
 export Spec
-export spec
 export SpecOpen
 export SpecOpenMor
 export SpecOpenRing
@@ -244,6 +241,7 @@ export anticanonical_divisor
 export anticanonical_divisor_class
 export approximate_class_fusion
 export archimedean_solid
+export arithmetic_genus
 export as_dictionary
 export as_gset
 export associahedron
@@ -1006,6 +1004,7 @@ export monomial_ordering
 export monomials
 export monomials_of_degree
 export mori_cone
+export morphism
 export morphism_from_cox_variety
 export morphism_of_projective_schemes
 export morphism_on_class_group
@@ -1366,6 +1365,7 @@ export solve_milp
 export solve_mixed
 export solve_non_negative
 export spanning_sets
+export spec
 export spec_open_ring_type
 export special_linear_group
 export special_orthogonal_group
