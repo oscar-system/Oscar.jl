@@ -13,7 +13,7 @@
   @test (A3empty==absempty)
   @test (absempty==A3empty)
   X = subscheme(A3, I)
-  @test defining_ideal(X) isa MPolyIdeal
+  @test defining_ideal(X) isa Oscar.MPolyIdeal
   @test_broken !is_non_zero_divisor(f,X)
   @test is_non_zero_divisor(f,A3)
   Xsub = subscheme(A3,J)
@@ -23,7 +23,7 @@
   set_name!(X, "X")
   @test iszero(OO(X)(f))
   U = hypersurface_complement(A3, x)
-  @test defining_ideal(U) isa MPolyLocalizedIdeal
+  @test defining_ideal(U) isa Oscar.MPolyLocalizedIdeal
   UX = hypersurface_complement(X,x)
   @test is_non_zero_divisor(f,U)
   @test !is_non_zero_divisor(f,UX)
@@ -44,7 +44,7 @@
   @test ambient_coordinate_ring(U) === R
   set_name!(U, "U")
   UX = intersect(X, U)
-  @test defining_ideal(UX) isa MPolyQuoLocalizedIdeal
+  @test defining_ideal(UX) isa Oscar.MPolyLocalizedIdeal
   set_name!(UX, "U ∩ X")
   @test issubset(UX, X)
   @test issubset(UX, U)
