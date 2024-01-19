@@ -858,6 +858,27 @@ ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
 @attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
 ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = saturated_ideal(modulus(OO(X)))
 
+@doc raw"""
+    defining_ideal(X::AbsSpec)
+
+Return the ideal `I` defining `X` in an appropriate ambient space.
+
+If `X = Spec(R)` and `R` is...
+
+  - a polynomial ring, then this returns the zero ideal in `R` itself;
+  - a quotient ring `P/J` of a polynomial ring `P`, then this returns `J`;
+  - a localized polynomial ring `R[U⁻¹]`, then this returns the zero ideal in that ring;
+  - a quotient of a localized polynomial ring `(R[U⁻¹])/J`, then this returns the ideal `J` in the ring `R[U⁻¹]`.
+
+This behaviour is streamlined with the return values of `modulus` on the algebraic side.
+If you are looking for an ideal `I` in the polynomial `ambient_ring` of `X` defining 
+the closure of `X` in its `ambient_space`, use for instance `saturated_ideal(defining_ideal(X))`.
+"""
+defining_ideal(X::AbsSpec) = error("method not implemented for input of type $(typeof(X))")
+@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
 
 ########################################################################
 # (4) Implementation of the AbsSpec interface for the basic Spec
