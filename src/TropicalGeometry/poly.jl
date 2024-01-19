@@ -167,7 +167,7 @@ end
 ################################################################################
 
 @doc raw"""
-    tropical_polynomial(f::MPolyRingElem,nu::TropicalSemiringMap)
+    tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem},nu::TropicalSemiringMap)
 
 Given a polynomial `f` and a tropical semiring map `nu`,
 return the tropicalization of `f` as a polynomial over the tropical semiring.
@@ -187,10 +187,10 @@ julia> tropical_polynomial(f,nu)
 (1)*x + y + (2)
 ```
 """
-function tropical_polynomial(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+function tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem}, nu::Union{Nothing,TropicalSemiringMap}=nothing)
 
     # if unspecified, set nu to be the trivial valuation + min convention
-    isnothing(nu) && (nu = tropical_semiring_map(parent(f)))
+    isnothing(nu) && (nu = tropical_semiring_map(coefficient_ring(f)))
 
     T = tropical_semiring(nu)
     Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
