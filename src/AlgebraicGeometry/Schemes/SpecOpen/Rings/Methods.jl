@@ -290,7 +290,7 @@ function restriction_map(
       end
       dirty = dirty - cleaned
     end
-    g = [W(p, q, check=false) for (p, q, dk, k) in sep]
+    g = [_cast_fraction(W, p, q, check=false) for (p, q, dk, k) in sep]
     dk = [dk for (p, q, dk, k) in sep]
     return OO(X)(sum([a*b for (a, b) in zip(g, c)]), check=false)*OO(X)(1//poh^m, check=false)
   end
