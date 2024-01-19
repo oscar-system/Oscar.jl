@@ -528,6 +528,8 @@ Base.@deprecate_binding is_isomorphic_with_alternating_group is_isomorphic_to_al
 Base.@deprecate_binding has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
 Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
 
+Base.@deprecate_binding proj_space projective_space
+
 Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
           
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
