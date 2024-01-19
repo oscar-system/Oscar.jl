@@ -282,23 +282,6 @@ solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
 # complement_class_reps(G::T, N::T) where T <: GrpAbFinGen
 # complement_system(G::GrpAbFinGen)
 
-function sylow_subgroup(G::GrpAbFinGen, p::IntegerUnion)
-   @req is_finite(G) "G is not finite"
-   @req is_prime(p) "p is not a prime"
-   subgens = GrpAbFinGenElem[]
-   for x in gens(G)
-     ord = order(x)
-     while mod(ord, p) == 0
-       ord = divexact(ord, p)
-     end
-     x = ord*x
-     if !is_zero(x)
-       push!(subgens, x)
-     end
-   end
-   return sub(G, subgens)
-end
-
 function sylow_system(G::GrpAbFinGen)
    @req is_finite(G) "G is not finite"
    result = GrpAbFinGen[]
