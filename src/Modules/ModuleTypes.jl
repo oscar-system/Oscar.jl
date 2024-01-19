@@ -103,7 +103,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over multivariate polynomial ring
 
 julia> f = F(sparse_row(R, [(1,x),(3,y)]))
 x*e[1] + y*e[3]
@@ -272,10 +272,10 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 4 generators
+by submodule with 4 generators
 1 -> x^2*e[1]
 2 -> x*y*e[1]
 3 -> y^2*e[1]

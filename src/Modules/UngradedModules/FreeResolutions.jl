@@ -106,10 +106,10 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 4 generators
+by submodule with 4 generators
 1 -> x^2*e[1]
 2 -> x*y*e[1]
 3 -> y^2*e[1]
@@ -276,10 +276,10 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 4 generators
+by submodule with 4 generators
 1 -> x^2*e[1]
 2 -> x*y*e[1]
 3 -> y^2*e[1]
@@ -294,7 +294,7 @@ julia> is_complete(fr)
 false
 
 julia> fr[4]
-Free module of rank 0 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 0 over multivariate polynomial ring
 
 julia> fr
 Free resolution of M
