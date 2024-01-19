@@ -587,3 +587,20 @@ function _has_index(a::SMat, i::Int, j::Int)
   return _has_index(a[i], j)
 end
 
+### Taylormade functionality for modules
+# Provided as a hotfix for issue #3108.
+function _alt_simplify(M::SubquoModule)
+  res, aug = free_resolution(SimpleFreeResolution, M)
+  simp = simplify(res)
+  simp_to_orig = map_to_original_complex(simp)
+  orig_to_simp = map_from_original_complex(simp)
+  result, Z0_to_result = homology(simp, 0)
+  Z0, inc_Z0 = kernel(simp, 0)
+
+  result_to_M = hom(result, M, 
+                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)])
+  M_to_result = hom(M, result,
+                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)])
+  return result, M_to_result, result_to_M
+end
+
