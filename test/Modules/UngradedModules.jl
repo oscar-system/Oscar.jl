@@ -1148,3 +1148,13 @@ end
   @test length(vector_space_basis(Mloc)) == 2
   @test length(vector_space_basis(Mloc,0)) == 1
 end
+
+@testset "issue 3107" begin
+  X = veronese();
+  I = defining_ideal(X);
+  Pn = base_ring(I)
+  FI = free_resolution(I)
+  F = graded_free_module(Pn, 1)
+  dualFIC = hom(FI.C, F)
+end
+
