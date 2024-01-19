@@ -243,19 +243,20 @@ end
 
 function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
     ###
-    # Compute reduced Groebner basis (usually already cached),
-    # construct matrix of exponent vector differences
+    # Construct matrix of exponent vector differences
     # and vector of coefficient valuation differences
     ###
-    G = groebner_basis(I,complete_reduction=true)
+    G = gens(I)
     A = matrix(ZZ,[first(collect(expv))-last(collect(expv)) for expv in exponents.(G)])
     b = [ QQ(nu(last(collect(coeff))/first(collect(coeff)))) for coeff in coefficients.(G)]
 
     ###
     # Compute tropical variety multiplicity
     ###
-    @req ncols(A)>nrows(A) "input needs to be a GB"
-    weight = abs(prod([snf(A)[i,i] for i in 1:nrows(A)]))
+    # Todo: replace lines below by `diagonal` when https://github.com/Nemocas/Nemo.jl/pull/1627 is merged
+    snfA = snf(A)
+    snfAdiag = [snfA[i,i] for i in 1:min(nrows(A),ncols(A))]
+    weight = abs(prod([m for m in snfAdiag if !iszero(m)]))
 
     ###
     # Constructing tropical variety set-theoretically
