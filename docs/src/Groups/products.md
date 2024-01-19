@@ -18,7 +18,9 @@ cartesian_power(G::GAPGroup, n::Int)
 inner_cartesian_power(G::T, n::Int; morphisms=false) where T<: GAPGroup
 factor_of_direct_product(G::DirectProductGroup, j::Int)
 canonical_injection(G::DirectProductGroup, j::Int)
+canonical_injections(G::DirectProductGroup)
 canonical_projection(G::DirectProductGroup, j::Int)
+canonical_projections(G::DirectProductGroup)
 write_as_full(G::DirectProductGroup)
 is_full_direct_product(G::DirectProductGroup)
 ```
@@ -47,4 +49,5 @@ homomorphism_of_wreath_product(G::WreathProductGroup)
 is_full_wreath_product(G::WreathProductGroup)
 canonical_projection(W::WreathProductGroup)
 canonical_injection(W::WreathProductGroup, n::Int)
+canonical_injections(W::WreathProductGroup)
 ```

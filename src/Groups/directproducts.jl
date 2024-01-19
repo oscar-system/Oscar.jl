@@ -149,7 +149,7 @@ end
 Return the `j`-th factor of `G`.
 """
 function factor_of_direct_product(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
+  @req j in 1:number_of_factors(G) "index not valid"
   return G.L[j]
 end
 
@@ -203,11 +203,21 @@ julia> inj1(h)*inj2(k)
 ```
 """
 function canonical_injection(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
+  @req j in 1:number_of_factors(G) "index not valid"
   @req G.isfull "Injection is not defined for proper subgroups of direct products"
   f = GAPWrap.Embedding(G.X, j)
   gr = G.L[j]
   return GAPGroupHomomorphism(gr, G, f)
+end
+
+"""
+    canonical_injections(G::DirectProductGroup)
+
+Return the injection of the `j`-th component of `G` into `G`, for all `j` = 1,...,#factors of `G`.
+It is not defined for proper subgroups of direct products.
+"""
+function canonical_injections(G::DirectProductGroup)
+  return [canonical_injection(G, j) for j in 1:number_of_factors(G)]
 end
 
 """
@@ -259,8 +269,19 @@ function canonical_projection(G::DirectProductGroup, j::Int)
   return GAPGroupHomomorphism(G, factor_of_direct_product(G, j), p)
 end
 
+"""
+    canonical_projection(G::DirectProductGroup)
+
+Return the projection of `G` into the `j`-th component of `G`, for all `j` = 1,...,#factors of `G`.
+"""
+function canonical_projections(G::DirectProductGroup)
+  return [canonical_projection(G, j) for j in 1:number_of_factors(G)]
+end
+
+
+
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
-  @req length(V) == length(G.L) "Wrong number of entries"
+  @req length(V) == number_of_factors(G) "Wrong number of entries"
   arr = [GAPWrap.Image(GAPWrap.Embedding(G.Xfull, i), V[i].X) for i in 1:length(V)]
   xgap = prod(arr)
   @req xgap in G.X "Element not in the group"
@@ -302,7 +323,7 @@ function write_as_full(G::DirectProductGroup)
   if G.isfull
     return G
   else
-    LK = [image(canonical_projection(G, j))[1] for j in 1:length(G.L)]
+    LK = [image(canonical_projection(G, j))[1] for j in 1:number_of_factors(G)]
     H = direct_product(LK)
     # index(H,G)==1 does not work because it does not recognize G as a subgroup of H
     @req order(H) == order(G) "G is not a direct product of groups"
@@ -599,6 +620,16 @@ function canonical_injection(W::WreathProductGroup, n::Int)
     C = W.G
   end
   return GAPGroupHomomorphism(C, W, f)
+end
+
+"""
+    canonical_injections(G::WreathProductGroup)
+
+Return the injection of the `n`-th component of `G` into `G` for all `n`.
+It is not defined for proper subgroups of wreath products.
+"""
+function canonical_injections(W::WreathProductGroup)
+  return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
 Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(x.X)))
