@@ -1,3 +1,5 @@
+export morphism_from_rational_functions
+
 @doc raw"""
     MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
 
@@ -6,57 +8,6 @@ by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `b
 of ``𝒪(U)`` for one of the dense open `affine_chart`s ``U`` of ``X``. 
 The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some 
 `affine_chart` ``V`` of the codomain ``Y`` under this map. 
-```jldoctest
-julia> IP1 = covered_scheme(projective_space(QQ, [:s, :t]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 1-space
-    2: affine 1-space
-  in the coordinate(s)
-    1: [(t//s)]
-    2: [(s//t)]
-
-julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 2-space
-    2: affine 2-space
-    3: affine 2-space
-  in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
-
-julia> U = first(affine_charts(IP1))
-Spectrum
-  of multivariate polynomial ring in 1 variable (t//s)
-    over rational field
-
-julia> V = first(affine_charts(IP2))
-Spectrum
-  of multivariate polynomial ring in 2 variables (y//x), (z//x)
-    over rational field
-
-julia> t = first(gens(OO(U)))
-(t//s)
-
-julia> Phi = Oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
-
-julia> realizations = Oscar.realize_on_patch(Phi, U);
-
-julia> realizations[3]
-Affine scheme morphism
-  from [(t//s)]          AA^1 \ V()
-  to   [(x//z), (y//z)]  affine 2-space
-given by the pullback function
-  (x//z) -> (t//s)^2
-  (y//z) -> (t//s)
-
-```
 """
 @attributes mutable struct MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, 
                                        CodomainType<:AbsCoveredScheme
@@ -117,6 +68,88 @@ codomain_covering(Phi::MorphismFromRationalFunctions) = Phi.codomain_covering
 domain_chart(Phi::MorphismFromRationalFunctions) = Phi.domain_chart
 codomain_chart(Phi::MorphismFromRationalFunctions) = Phi.codomain_chart
 coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
+
+# user facing constructor
+@doc raw"""
+    morphism_from_rational_functions(
+          X::AbsCoveredScheme, Y::AbsCoveredScheme, 
+          U::AbsSpec, V::AbsSpec,
+          a::Vector{<:FieldElem};
+          check::Bool=true,
+          domain_covering::Covering=default_covering(X),
+          codomain_covering::Covering=default_covering(Y)
+        )
+
+Given two `AbsCoveredScheme`s `X` and `Y` this constructs a morphism 
+`f : X → Y` from a list of rational functions `a`. The latter are 
+interpreted as representatives of the pullback along `f` of the 
+`coordinates` of an `affine_chart` `V` of the codomain `Y` in the 
+chart `U` in the domain `X`. 
+
+Note that, since there is no type supporting fraction fields of 
+quotient rings at the moment, the entries of `a` need to be 
+fractions of polynomials in the `ambient_coordinate_ring` of `U`.
+
+```jldoctest
+julia> IP1 = covered_scheme(projective_space(QQ, [:s, :t]))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 1-space
+    2: affine 1-space
+  in the coordinate(s)
+    1: [(t//s)]
+    2: [(s//t)]
+
+julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 2-space
+    2: affine 2-space
+    3: affine 2-space
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> U = first(affine_charts(IP1))
+Spectrum
+  of multivariate polynomial ring in 1 variable (t//s)
+    over rational field
+
+julia> V = first(affine_charts(IP2))
+Spectrum
+  of multivariate polynomial ring in 2 variables (y//x), (z//x)
+    over rational field
+
+julia> t = first(gens(OO(U)))
+(t//s)
+
+julia> Phi = morphism_from_rational_functions(IP1, IP2, U, V, [1//t, 1//t^2]);
+
+julia> realizations = Oscar.realize_on_patch(Phi, U);
+
+julia> realizations[3]
+Affine scheme morphism
+  from [(t//s)]          AA^1 \ V()
+  to   [(x//z), (y//z)]  affine 2-space
+given by the pullback function
+  (x//z) -> (t//s)^2
+  (y//z) -> (t//s)
+
+```
+"""
+morphism_from_rational_functions(
+      X::AbsCoveredScheme, Y::AbsCoveredScheme, 
+      U::AbsSpec, V::AbsSpec,
+      a::Vector{<:FieldElem};
+      check::Bool=true,
+      domain_covering::Covering=default_covering(X),
+      codomain_covering::Covering=default_covering(Y)
+     ) = MorphismFromRationalFunctions(X, Y, U, V, a; check, domain_covering, codomain_covering)
 
 function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
   if get(io, :supercompact, false)

@@ -11,7 +11,7 @@
   U = X[1][4]
   V = IP1[1][2]
   (x, y, z) = gens(ambient_coordinate_ring(U))
-  Phi = Oscar.MorphismFromRationalFunctions(X, IP1, U, V, [x//y])
+  Phi = morphism_from_rational_functions(X, IP1, U, V, [x//y])
 
   @test domain(Phi) === X 
   @test codomain(Phi) === IP1
