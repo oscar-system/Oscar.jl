@@ -1883,6 +1883,10 @@ function saturated_ideal(I::MPolyLocalizedIdeal)
   return I.saturated_ideal
 end
 
+# Some dummy methods to ensure compatibility with other ideals in 
+# instances of MPolyAnyRing
+saturated_ideal(I::MPolyIdeal) = I
+
 function pre_saturated_ideal(I::MPolyLocalizedIdeal)
   if !isdefined(I, :pre_saturated_ideal)
     W = base_ring(I)
