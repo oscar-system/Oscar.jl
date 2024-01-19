@@ -143,7 +143,7 @@ function issubset(
   ) where {BRT, RT<:MPolyQuoRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(saturated_ideal(defining_ideal(Y), saturated_ideal(defining_ideal(X))))
+  return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
 end
 
 
