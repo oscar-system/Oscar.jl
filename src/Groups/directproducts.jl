@@ -302,7 +302,7 @@ function write_as_full(G::DirectProductGroup)
   if G.isfull
     return G
   else
-    LK = [image(projection(G, j))[1] for j in 1:length(G.L)]
+    LK = [image(canonical_projection(G, j))[1] for j in 1:length(G.L)]
     H = direct_product(LK)
     # index(H,G)==1 does not work because it does not recognize G as a subgroup of H
     @req order(H) == order(G) "G is not a direct product of groups"
