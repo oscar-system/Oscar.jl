@@ -863,7 +863,7 @@ true
 defining_ideal(X::AbsSpec) = error("method not implemented for input of type $(typeof(X))")
 @attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
 defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
-@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
+defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = modulus(OO(X))
 defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
 
 ########################################################################
