@@ -235,7 +235,7 @@ end
 
 ################################################################################
 #
-#   disc_log
+#   disc_log   TODO: move to Hecke
 #
 @doc raw"""
     disc_log(b::T, x::T) where {T <: FinFieldElem}

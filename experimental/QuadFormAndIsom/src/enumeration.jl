@@ -455,6 +455,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_ro
   rk = rank(Lf)
   d = det(Lf)
   n = order_of_isometry(Lf)
+  @req is_finite(n) "Isometry must be of finite order"
   s1, _, s2 = signature_tuple(Lf)
 
   reps = ZZLatWithIsom[]
@@ -601,7 +602,10 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion;
   @req is_prime(p) "p must be a prime number"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
 
-  ok, e, q = is_prime_power_with_data(order_of_isometry(Lf))
+  n = order_of_isometry(Lf)
+  @req is_finite(n) "Isometry must be of finite order"
+
+  ok, e, q = is_prime_power_with_data(n)
 
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
@@ -694,7 +698,9 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0
   RB = splitting_of_prime_power(B0, p; p_inv)
   is_empty(RB) && return reps
   for L1 in RA, L2 in RB
-    b == 1 && !is_divisible_by(order_of_isometry(L1), p) && !is_divisible_by(order_of_isometry(L2), p) && continue
+    n1 = order_of_isometry(L1)::Int
+    n2 = order_of_isometry(L2)::Int
+    b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
     E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p; check = false)
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)

@@ -33,7 +33,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   A = parent(f)
   domGap = parent(xgap)
   imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
-  return to_oscar(imgap)
+  return to_oscar(imgap)::typeof(x)
 end
  
 (f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)

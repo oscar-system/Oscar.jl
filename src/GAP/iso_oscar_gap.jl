@@ -495,8 +495,6 @@ end
 #
 # Multivariate polynomial rings
 #
-@attributes AbstractAlgebra.Generic.MPolyRing # TODO: port this to AA
-
 function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapObj, coeffs_iso::MapFromFunc) where T
    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(RG))
    n = nvars(RO)
