@@ -357,8 +357,8 @@ function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
   chain_range = Hecke.map_range(C)
-  hom_modules = T[hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  hom_modules = Tuple{ModuleFP, Map}[hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, Tuple{ModuleFP, Map}[hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
