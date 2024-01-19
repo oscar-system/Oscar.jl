@@ -177,15 +177,17 @@ AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem,
 
 ########################################################################
 # Additional methods for compatibility and coherence                   #
-# TODO: Remove these! They are not admissible and should be 
-# replaced by internal routines.
 ########################################################################
-function (R::MPolyQuoRing)(a::RingElem, b::RingElem; check::Bool=true)
+function _cast_fraction(R::MPolyQuoRing, a::RingElem, b::RingElem; check::Bool=true)
   return R(a)*inv(R(b))
 end
 
-function (R::MPolyRing)(a::RingElem, b::RingElem; check::Bool=true)
+function _cast_fraction(R::MPolyRing, a::RingElem, b::RingElem; check::Bool=true)
   return R(a)*inv(R(b))
+end
+
+function _cast_fraction(R::Union{<:MPolyLocRing, <:MPolyQuoLocRing}, a, b; check::Bool=true)
+  return R(a, b; check)
 end
 
 ########################################################################
