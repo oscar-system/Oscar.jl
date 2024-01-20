@@ -150,4 +150,7 @@ end
   @test is_graded(SOmega)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
+  M, iso = forget_grading(Omega)
+  @test is_isomorphism(iso)
+  @test is_isomorphism(inverse(iso))
 end
