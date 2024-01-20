@@ -253,9 +253,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     ###
     # Compute tropical variety multiplicity
     ###
-    # Todo: replace lines below by `diagonal` when https://github.com/Nemocas/Nemo.jl/pull/1627 is merged
-    snfA = snf(A)
-    snfAdiag = [snfA[i,i] for i in 1:min(nrows(A),ncols(A))]
+    snfAdiag = elementary_divisors(A)
     weight = abs(prod([m for m in snfAdiag if !iszero(m)]))
 
     ###
