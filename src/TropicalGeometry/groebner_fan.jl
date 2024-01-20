@@ -429,7 +429,7 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 ```
 """
 
-function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, verbose_level::Int=0)
+function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, verbose_level::Int=0)
     ###
     # Preparation:
     #   Test whether the ideal is weighted homogeneous with respect to a positive weight vector
@@ -521,6 +521,10 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     if return_orderings == true
         orderings = Dict([(pt,ord) for (_,ord,_,pt) in finishedList])
         push!(output,orderings)
+    end
+    if return_initial_ideals == true
+        initial_ideals = Dict([(pt,leading_ideal(I;ordering=ord)) for (_,ord,_,pt) in finishedList])
+        push!(output,initial_ideals)
     end
     return output
 end
