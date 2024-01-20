@@ -298,6 +298,72 @@ function grading_group(M::FreeMod)
   return grading_group(base_ring(M))
 end
 
+# Forgetful functor for gradings 
+function forget_grading(F::FreeMod)
+  @assert is_graded(F) "module must be graded"
+  R = base_ring(F)
+  result = FreeMod(R, ngens(F))
+  phi = hom(F, result, gens(result))
+  psi = hom(result, F, gens(F))
+  set_attribute!(phi, :inverse=>psi)
+  set_attribute!(psi, :inverse=>phi)
+  return result, phi
+end
+
+function forget_grading(I::SubModuleOfFreeModule; 
+    ambient_forgetful_map::FreeModuleHom=begin
+      R = base_ring(I)
+      F = ambient_free_module(I)
+      _, iso_F = forget_grading(F)
+      iso_F
+    end
+  )
+  g = gens(I)
+  gg = ambient_forgetful_map.(g)
+  FF = codomain(ambient_forgetful_map)
+  result = SubModuleOfFreeModule(FF, gg)
+  return result
+end
+
+function forget_grading(M::SubquoModule;
+    ambient_forgetful_map::FreeModuleHom=begin
+      R = base_ring(M)
+      F = ambient_free_module(M)
+      _, iso_F = forget_grading(F)
+      iso_F
+    end
+  )
+  @assert is_graded(M) "module must be graded"
+  FF = codomain(ambient_forgetful_map)
+  if isdefined(M, :sub) && isdefined(M, :quo)
+    new_sub = forget_grading(M.sub; ambient_forgetful_map)
+    new_quo = forget_grading(M.quo; ambient_forgetful_map)
+    result = SubquoModule(new_sub, new_quo)
+    phi = hom(M, result, gens(result))
+    psi = hom(result, M, gens(M))
+    set_attribute!(phi, :inverse=>psi)
+    set_attribute!(psi, :inverse=>phi)
+    return result, phi
+  elseif isdefined(M, :sub)
+    new_sub = forget_grading(M.sub; ambient_forgetful_map)
+    result = SubquoModule(new_sub)
+    phi = hom(M, result, gens(result))
+    psi = hom(result, M, gens(M))
+    set_attribute!(phi, :inverse=>psi)
+    set_attribute!(psi, :inverse=>phi)
+    return result, phi
+  elseif isdefined(M, :quo)
+    new_quo = forget_grading(M.quo; ambient_forgetful_map)
+    pre_result = SubquoModule(new_quo)
+    result, _ = quo(FF, pre_result)
+    phi = hom(M, result, gens(result))
+    psi = hom(result, M, gens(M))
+    set_attribute!(phi, :inverse=>psi)
+    set_attribute!(psi, :inverse=>phi)
+    return result, phi
+  end
+end
+
 
 # Dangerous: Only for internal use with care!!!
 @doc raw"""
