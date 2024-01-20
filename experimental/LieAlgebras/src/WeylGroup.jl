@@ -375,7 +375,32 @@ Returns the result of multiplying `x` in place from the left by the `i`th simple
 """
 function lmul!(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
-  _lmul!(parent(x).refl, word(x), UInt8(i))
+
+  insert_index = 1
+  insert_letter = i
+
+  root = i
+  for s in 1:length(word)
+    if x[s] == root
+      deleteat!(word, s)
+      return nothing
+    end
+
+    root = refl[Int(x[s]), Int(root)]
+    if iszero(root)
+      # r is no longer a minimal root, meaning we found the best insertion point
+      break
+    end
+
+    # check if we have a better insertion point now. Since word[i] is a simple
+    # root, if root < word[i] it must be simple.
+    if root < x[s]
+      insert_index = s + 1
+      insert_letter = T(root)
+    end
+  end
+
+  insert!(word(x), insert_index, insert_letter)
   return x
 end
 
@@ -642,30 +667,5 @@ end
 # ----- internal -----
 
 function _lmul!(refl::ZZMatrix, word::Vector{T}, s::T) where {T<:Unsigned}
-  insert_index = 1
-  insert_letter = s
 
-  root = s
-  for i in 1:length(word)
-    if word[i] == root
-      deleteat!(word, i)
-      return nothing
-    end
-
-    root = refl[Int(word[i]), Int(root)]
-    if root == 0
-      # r is no longer a minimal root, meaning we found the best insertion point
-      break
-    end
-
-    # check if we have a better insertion point now. Since word[i] is a simple
-    # root, if root < word[i] it must be simple.
-    if root < word[i]
-      insert_index = i + 1
-      insert_letter = T(root)
-    end
-  end
-
-  insert!(word, insert_index, insert_letter)
-  return nothing
 end
