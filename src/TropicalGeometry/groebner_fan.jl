@@ -429,7 +429,7 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 ```
 """
 
-function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, verbose_level::Int=0)
+function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, marked_groebner_bases::Bool=false, verbose_level::Int=0)
     ###
     # Preparation:
     #   Test whether the ideal is weighted homogeneous with respect to a positive weight vector
@@ -507,7 +507,7 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     ###
     # construct polyhedral fan and return it if nothing else was required
     Sigma = polyhedral_fan_from_cones([entry[3] for entry in finishedList])
-    if !return_groebner_bases && !return_orderings
+    if !return_groebner_bases && !return_orderings && !return_initial_ideals
         return Sigma
     end
 
@@ -515,7 +515,13 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     output = []
     push!(output,Sigma)
     if return_groebner_bases == true
-        groebner_bases = Dict([(pt,GB) for (GB,_,_,pt) in finishedList])
+        if marked_groebner_bases == true
+            groebner_bases = Dict([
+                (pt,[(f,leading_term(f;ordering=ord)) for f in GB]) for (GB,ord,_,pt) in finishedList
+            ])
+        else
+            groebner_bases = Dict([(pt,GB) for (GB,_,_,pt) in finishedList])
+        end
         push!(output,groebner_bases)
     end
     if return_orderings == true
