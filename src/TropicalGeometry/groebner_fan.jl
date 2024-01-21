@@ -397,7 +397,7 @@ end
 
 
 @doc raw"""
-    groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, verbose_level::Int=0)
+    groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, marked_groebner_bases::Bool=false, verbose_level::Int=0)
 
 Return a `PolyhedralFan` representing the Groebner fan of `I`, where is a multivariate polynomial ideal over a field.
 
@@ -407,7 +407,11 @@ If `I` is not weighted homogeneous with respect to a positive weight vector, the
 
 If `return_groebner_bases==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the Groebner bases for those cones.  Their union will be a universal Groebner basis.
 
+If additionally `marked_groebner_bases==true`, the values of above dictionary are the Groebner bases for those cones together with the leading term for each generator.  
+
 If `return_orderings==true`, also return a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+
+If `return_initial_ideals==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the initial ideals for those cones.
 
 # Examples
 ```jldoctest
