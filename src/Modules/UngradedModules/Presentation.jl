@@ -28,7 +28,7 @@ function presentation(SQ::SubquoModule)
     end
   else
     if is_graded(SQ)
-      s, _ = kernel(graded_map(ambient_free_module(SQ), gens(SQ.sum)))
+      s, _ = kernel(graded_map(ambient_free_module(SQ), filter(!iszero, gens(SQ.sum))))
     else
       s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
     end

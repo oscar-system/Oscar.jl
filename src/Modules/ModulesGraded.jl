@@ -644,6 +644,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
 end
 
 function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T <: RingElement}
+  @assert !any(x->iszero(x), V) "input must not contain zero vectors"
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -658,7 +659,9 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T
       end
     end
   end
+  @assert length(V) == length(source_degrees) "the number of degrees determined differs from the input"
   Fcdm = graded_free_module(R, source_degrees)
+  @assert ngens(Fcdm) == length(V) "number of generators must be equal to the number of images"
   phi = hom(Fcdm, F, V)
   return phi
 end
