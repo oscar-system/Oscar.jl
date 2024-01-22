@@ -508,3 +508,58 @@ end
 @deprecate normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false) normal_toric_variety(max_cones, rays; non_redundant)
 
 @deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
+
+Base.@deprecate_binding is_finitelygenerated is_finitely_generated
+Base.@deprecate_binding has_is_finitelygenerated has_is_finitely_generated
+Base.@deprecate_binding set_is_finitelygenerated set_is_finitely_generated
+
+Base.@deprecate_binding is_obviouslyabelian is_obviously_abelian false
+
+Base.@deprecate_binding is_almostsimple is_almost_simple
+Base.@deprecate_binding has_is_almostsimple has_is_almost_simple
+Base.@deprecate_binding set_is_almostsimple set_is_almost_simple
+
+# Deprecated after 0.14.*
+Base.@deprecate_binding is_isomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
+Base.@deprecate_binding has_is_isomorphic_with_symmetric_group has_is_isomorphic_to_symmetric_group
+Base.@deprecate_binding set_is_isomorphic_with_symmetric_group set_is_isomorphic_to_symmetric_group
+
+Base.@deprecate_binding is_isomorphic_with_alternating_group is_isomorphic_to_alternating_group
+Base.@deprecate_binding has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
+Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
+
+Base.@deprecate_binding proj_space projective_space
+
+Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
+          
+Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
+
+# Deprecated after 0.15
+Base.@deprecate_binding _compute_glueing_base_change _compute_gluing_base_change
+Base.@deprecate_binding _compute_inherited_glueing _compute_inherited_gluing
+Base.@deprecate_binding _compute_toric_glueing _compute_toric_gluing
+Base.@deprecate_binding add_glueing! add_gluing!
+Base.@deprecate_binding base_glueing base_gluing
+Base.@deprecate_binding glueing_domains gluing_domains
+Base.@deprecate_binding glueing_graph gluing_graph
+Base.@deprecate_binding glueing_morphisms gluing_morphisms
+Base.@deprecate_binding glueings gluings
+Base.@deprecate_binding inherit_glueings! inherit_gluings!
+Base.@deprecate_binding is_connected_glueing is_connected_gluing
+Base.@deprecate_binding pruned_glueing_graph pruned_gluing_graph
+Base.@deprecate_binding underlying_glueing underlying_gluing
+Base.@deprecate_binding update_glueing_graph update_gluing_graph
+Base.@deprecate_binding AbsGlueing AbsGluing
+Base.@deprecate_binding AbsProjectiveGlueing AbsProjectiveGluing
+Base.@deprecate_binding BaseChangeGlueingData BaseChangeGluingData
+Base.@deprecate_binding CoveredProjectiveGlueingData CoveredProjectiveGluingData
+Base.@deprecate_binding Glueing Gluing
+Base.@deprecate_binding InheritGlueingData InheritGluingData
+Base.@deprecate_binding LazyProjectiveGlueing LazyProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueing ProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueingData ProjectiveGluingData
+Base.@deprecate_binding SimpleGlueing SimpleGluing
+Base.@deprecate_binding ToricGlueingData ToricGluingData
+
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal

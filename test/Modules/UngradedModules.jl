@@ -1019,8 +1019,8 @@ end
 
 @testset "change of base rings" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x)
-  S = MPolyLocRing(R, U)
+  U = Oscar.MPolyPowersOfElement(x)
+  S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
   FS, mapF = change_base_ring(S, F)
   @test 1//x*mapF(x*F[1]) == FS[1]
@@ -1091,6 +1091,19 @@ end
   Mk1 = Mk[1]
   fr = free_resolution(Mk1)
   @test rank(domain(map(fr.C,1))) == 0
+end
+
+@testset "length of free resolution" begin
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), ["x0", "x1", "x2", "x3", "x4"]);
+  m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0,
+            x1*x3+(-x1+x4+x0)*x0,
+            x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0,
+            x2*x3+(x1-x2+x3+x4-x0)*x0, x2*x4+(x1+x2-x3-x4-x0)*x0,
+            x3^2+(x3+x4-x0)*x0,x3*x4+(-x3-x4+x0)*x0,
+            x4^2+(x1+x3-x4-x0)*x0]);
+  A, _ = quo(S, m);
+  FA = free_resolution(A)
+  @test length(FA.C.maps) == 9
 end
 
 @testset "vector_space_dimension and vector_space_basis" begin

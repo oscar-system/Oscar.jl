@@ -18,6 +18,15 @@ function (R::fpMPolyRing)(f::QQMPolyRingElem)
   return finish(g)
 end
 
+function (R::FqMPolyRing)(f::QQMPolyRingElem)
+  g  = MPolyBuildCtx(R)
+  S = base_ring(R)
+  for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+    push_term!(g, S(c), v)
+  end
+  return finish(g)
+end
+
 function (S::Union{Nemo.zzModRing, Nemo.fpField})(a::QQFieldElem)
   return S(numerator(a))//S(denominator(a))
 end

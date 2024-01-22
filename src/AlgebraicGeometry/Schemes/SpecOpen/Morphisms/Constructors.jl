@@ -5,14 +5,14 @@
 # to every affine patch
 function SpecOpenMor(U::SpecOpen, V::SpecOpen, f::Vector{<:RingElem}; check::Bool=true)
   Y = ambient_scheme(V)
-  maps = [SpecMor(W, Y, f, check=check) for W in affine_patches(U)]
-  return SpecOpenMor(U, V, [SpecMor(W, Y, f, check=check) for W in affine_patches(U)], check=check) 
+  maps = [morphism(W, Y, f, check=check) for W in affine_patches(U)]
+  return SpecOpenMor(U, V, [morphism(W, Y, f, check=check) for W in affine_patches(U)], check=check) 
 end
 
 function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
-  return SpecOpenMor(U, V, [SpecMor(U[1], Y, OO(U[1]).(f), check=check)], check=check)
+  return SpecOpenMor(U, V, [morphism(U[1], Y, OO(U[1]).(f), check=check)], check=check)
 end
 
 ########################################################################
@@ -28,7 +28,7 @@ inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphi
 
 function identity_map(U::SpecOpen) 
   phi = SpecOpenMor(U, U, 
-                    [SpecMor(V, ambient_scheme(U), gens(OO(V)), check=false) for V in affine_patches(U)],
+                    [morphism(V, ambient_scheme(U), gens(OO(V)), check=false) for V in affine_patches(U)],
                     check=false
                    )
   return phi
@@ -80,7 +80,7 @@ function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   end
   phi = restriction_map(domain(f), W)
   fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_coordinate_ring(Y)))]
-  return SpecMor(W, Y, fy, check=false)
+  return morphism(W, Y, fy, check=false)
 end
 
 
@@ -119,7 +119,7 @@ function maximal_extension(
   n = length(affine_patches(U))
   maps = Vector{AbsSpecMor}()
   for i in 1:n
-    push!(maps, SpecMor(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
+    push!(maps, morphism(affine_patches(U)[i], Y, [restrictions(a)[i] for a in g]))
   end
   h = SpecOpenMor(U, SpecOpen(Y), maps)
   return h

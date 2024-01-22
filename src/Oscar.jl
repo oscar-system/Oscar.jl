@@ -63,7 +63,7 @@ function __init__()
     print("... \n ... which comes with absolutely no warranty whatsoever")
     println()
     println("Type: '?Oscar' for more information")
-    println("(c) 2019-2023 by The OSCAR Development Team")
+    println("(c) 2019-2024 by The OSCAR Development Team")
   end
 
   append!(_gap_group_types,
@@ -109,8 +109,8 @@ function __init__()
   add_verbose_scope(:MorphismFromRationalFunctions)
   add_assert_scope(:MorphismFromRationalFunctions)
 
-  add_verbose_scope(:Glueing)
-  add_assert_scope(:Glueing)
+  add_verbose_scope(:Gluing)
+  add_assert_scope(:Gluing)
 
   add_verbose_scope(:Intersections)
   add_assert_scope(:Intersections)
@@ -127,10 +127,7 @@ function __init__()
   add_verbose_scope(:hilbert)
   add_assert_scope(:hilbert)
 
-  add_verbose_scope(:GlobalTateModel)
-  add_verbose_scope(:WeierstrassModel)
-  add_verbose_scope(:HypersurfaceModel)
-  add_verbose_scope(:FTheoryConstructorInformation)
+  add_verbose_scope(:FTheoryModelPrinter)
 
   add_verbosity_scope(:LinearQuotients)
 

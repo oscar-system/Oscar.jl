@@ -15,8 +15,8 @@ export trivializing_covering
       X::AbsCoveredScheme, 
       D::IdDict{<:AbsSpec, <:RingElem};
       trivializing_covering::Covering=begin
-        C = Covering(collect(keys(D)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
-        inherit_glueings!(C, default_covering(X))
+        C = Covering(collect(keys(D)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}())
+        inherit_gluings!(C, default_covering(X))
         C
       end,
       check::Bool=true

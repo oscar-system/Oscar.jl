@@ -160,7 +160,7 @@ end
     end
   end
 
-  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo._GF]
+  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo.Native.GF]
     K, z = abelian_closure(QQ)
     F = gf_fun(2, 1)
     @test reduce(z(2), F) == one(F)

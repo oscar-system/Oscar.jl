@@ -39,7 +39,6 @@ there are still computational bottlenecks due to non-optimized algorithms.
 
 Among the possible improvements and extensions:
 * Implement extra methods for lattices with isometries of infinite order;
-* Extend existing methods for equivariant primitive embeddings/extensions.
 
 ## Current applications of this project
 

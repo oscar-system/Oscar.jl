@@ -187,7 +187,7 @@ end
 
 Return the underlying ring of `F`.
 """
-base_ring(F::FreeMod) = F.R
+base_ring(F::FreeMod) = (F.R)::base_ring_type(F)
 
 #TODO: Parent - checks everywhere!!!
 

@@ -42,7 +42,7 @@ import Oscar.AbstractAlgebra.GroupsCore
    end
 
    @testset "Comparison methods" begin
-      if typeof(G) isa PermGroup
+      if G isa PermGroup
       @test (g==h) isa Bool
       @test isequal(g,h) isa Bool
       @test g == g

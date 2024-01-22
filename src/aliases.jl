@@ -1,7 +1,6 @@
 include(joinpath(pathof(AbstractAlgebra), "..", "Aliases.jl"))
 
 import Nemo: is_cyclo_type
-import Nemo: is_embedded
 import Nemo: is_maxreal_type
 import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
 import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
@@ -27,7 +26,7 @@ Base.@deprecate_binding hasrelshp has_relshp
 Base.@deprecate_binding hastorusfactor has_torusfactor
 Base.@deprecate_binding inner_automorphisms_group inner_automorphism_group
 Base.@deprecate_binding isaffine is_affine
-Base.@deprecate_binding isalmostsimple is_almostsimple
+Base.@deprecate_binding isalmostsimple is_almost_simple
 Base.@deprecate_binding isample is_ample
 Base.@deprecate_binding isbicoset is_bicoset
 Base.@deprecate_binding isbinomial is_binomial
@@ -43,7 +42,7 @@ Base.@deprecate_binding isfano is_fano
 Base.@deprecate_binding isfeasible is_feasible
 Base.@deprecate_binding isfiltered is_filtered
 Base.@deprecate_binding isfinite_order is_finiteorder
-Base.@deprecate_binding isfinitelygenerated is_finitelygenerated
+Base.@deprecate_binding isfinitelygenerated is_finitely_generated
 Base.@deprecate_binding isfull_direct_product is_full_direct_product
 Base.@deprecate_binding isfull_semidirect_product is_full_semidirect_product
 Base.@deprecate_binding isfull_wreath_product is_full_wreath_product
@@ -53,8 +52,8 @@ Base.@deprecate_binding isglobal is_global
 Base.@deprecate_binding isgraded is_graded
 Base.@deprecate_binding isinner_automorphism is_inner_automorphism
 Base.@deprecate_binding isinvariant is_invariant
-Base.@deprecate_binding isisomorphic_with_alternating_group is_isomorphic_with_alternating_group
-Base.@deprecate_binding isisomorphic_with_symmetric_group is_isomorphic_with_symmetric_group
+Base.@deprecate_binding isisomorphic_with_alternating_group is_isomorphic_to_alternating_group
+Base.@deprecate_binding isisomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
 Base.@deprecate_binding isleft is_left
 Base.@deprecate_binding islocal is_local
 Base.@deprecate_binding ismixed is_mixed
@@ -62,7 +61,7 @@ Base.@deprecate_binding ismolien_series_implemented is_molien_series_implemented
 Base.@deprecate_binding isnatural_alternating_group is_natural_alternating_group
 Base.@deprecate_binding isnatural_symmetric_group is_natural_symmetric_group
 Base.@deprecate_binding isnef is_nef
-Base.@deprecate_binding isobviouslyabelian is_obviouslyabelian
+Base.@deprecate_binding isobviouslyabelian is_obviously_abelian false
 Base.@deprecate_binding isorbifold is_orbifold
 Base.@deprecate_binding isperfect is_perfect
 Base.@deprecate_binding ispgroup is_pgroup
@@ -105,3 +104,4 @@ Base.@deprecate_binding SubQuo SubquoModule
 #@alias SubQuoElem_dec SubquoDecModuleElem
 #@alias SubQuo_dec SubquoDecModule
 Base.@deprecate_binding GradedPolynomialRing graded_polynomial_ring
+

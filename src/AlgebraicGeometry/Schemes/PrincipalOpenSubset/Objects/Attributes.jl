@@ -26,8 +26,8 @@ getindex(U::PrincipalOpenSubset, i::Int) = (i == 1 ? U : error("index out of ran
 function inclusion_morphism(U::PrincipalOpenSubset; check::Bool=false) 
   if !isdefined(U, :inc)
     X = ambient_scheme(U)
-    inc = SpecMor(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check), check=check)
-    U.inc = OpenInclusion(inc, ideal(OO(X), complement_equation(U)), check=check)
+    inc = morphism(U, X, hom(OO(X), OO(U), gens(OO(U)), check=check), check=check)
+    U.inc = PrincipalOpenEmbedding(inc, [complement_equation(U)], check=check)
   end
-  return U.inc
+  return U.inc::PrincipalOpenEmbedding
 end

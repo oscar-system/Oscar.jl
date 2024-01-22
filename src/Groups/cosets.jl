@@ -448,11 +448,11 @@ function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
    res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
    for i = 1:length(res)
      dc = dcs[i]
-     g = group_element(G, GAP.Globals.Representative(dc))
+     g = group_element(G, GAPWrap.Representative(dc))
      res[i] = GroupDoubleCoset(G,H,K,g,dc)
    end
    return res
-   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAP.Globals.Representative(dc)),dc) for dc in dcs]
+   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
 end
 
 
@@ -511,12 +511,12 @@ function Base.iterate(G::GroupDoubleCoset, state)
 end
 
 """
-    intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+    intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
 
 Return a vector containing all elements belonging to all groups and cosets
 in `V`.
 """
-function intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+function intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
    if V[1] isa GAPGroup
       G = V[1]
    else

@@ -144,7 +144,7 @@ end
    x = G[2]
    TestConjCentr(G,x)
 
-   G = GL(3, Nemo._GF(3, 1))
+   G = GL(3, GF(3, 1))
    x = G[2]
    TestConjCentr(G,x)
 

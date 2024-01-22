@@ -16,7 +16,9 @@ const oldexppkgs = [
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "JuLie",
+  "LieAlgebras",
+  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "JuLie",	     # needs to be after LieAlgebras to correctly import `weight`
   "IntersectionTheory",
   "OrthogonalDiscriminants",  # needs code from JuLie
 ]
@@ -60,7 +62,7 @@ include("Schemes/CoveredProjectiveSchemes.jl")
 
 include("Schemes/SimplifiedSpec.jl")
 include("Schemes/CoherentSheaves.jl")
-include("Schemes/LazyGlueing.jl")
+include("Schemes/LazyGluing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
@@ -82,4 +84,6 @@ include("Schemes/ToricBlowups/attributes.jl")
 include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
+
+include("Schemes/DerivedPushforward.jl")
 

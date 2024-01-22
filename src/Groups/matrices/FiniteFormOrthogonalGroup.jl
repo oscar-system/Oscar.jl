@@ -124,7 +124,7 @@ function _gens_form(G::Union{ZZModMatrix, zzModMatrix}, form_constructor, p)
     Oq = isometry_group(q)
     gensOq = gens(Oq)
     gensOq = [change_base_ring(FF,matrix(g)) for g in gensOq]
-    gensOq = [change_base_ring(R,lift(g)) for g in gensOq]
+    gensOq = [change_base_ring(R,map(x -> lift(ZZ, x), g)) for g in gensOq]
 
     return gensOq
 end
