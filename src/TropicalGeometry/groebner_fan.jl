@@ -488,24 +488,29 @@ function groebner_fan(I::MPolyIdeal;
 
     # otherwise return what was required
     output = []
-    push!(output,Sigma)
-    if return_groebner_bases == true
-        if marked_groebner_bases == true
-            groebner_bases = Dict([
-                (pt,[(f,leading_term(f;ordering=ord)) for f in GB]) for (GB,ord,_,pt) in finishedList
-            ])
-        else
-            groebner_bases = Dict([(pt,GB) for (GB,_,_,pt) in finishedList])
+
+    for (GB,ord,_,pt) in finishedList
+        output_C = []
+
+        if return_interior_points == true
+            push!(output_C,pt)
         end
-        push!(output,groebner_bases)
+        if return_groebner_bases == true
+            if marked_groebner_bases == true
+                push!(output_C,(f,leading_term(f;ordering=ord)))
+            else
+                push!(output_C,GB)
+            end
+        end
+        if return_orderings == true
+            push!(output_C,ord)
+        end
+        if return_initial_ideals == true
+            initial_ideal = leading_ideal(I;ordering=ord)
+            push!(output_C,initial_ideal)
+        end
+
+        push!(output, output_C)
     end
-    if return_orderings == true
-        orderings = Dict([(pt,ord) for (_,ord,_,pt) in finishedList])
-        push!(output,orderings)
-    end
-    if return_initial_ideals == true
-        initial_ideals = Dict([(pt,leading_ideal(I;ordering=ord)) for (_,ord,_,pt) in finishedList])
-        push!(output,initial_ideals)
-    end
-    return output
+    return [Sigma, output]
 end
