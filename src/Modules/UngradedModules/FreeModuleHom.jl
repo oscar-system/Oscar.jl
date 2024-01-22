@@ -279,7 +279,7 @@ function AbstractAlgebra.show_map_data(io::IO, fmh::FreeModuleHom{T1, T2, RingMa
   if is_graded(fmh)
     println(io)
     print(io, "defined by", Indent())
-    io_compact = IOContext(io, :supercompact => true)
+    io_compact = IOContext(io, :compact => true, :supercompact => true)
     domain_gens = gens(domain(fmh))
     for g in domain_gens
       println(io)
@@ -295,7 +295,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
       if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        io_compact = IOContext(io, :supercompact => true)
+        io_compact = IOContext(io, :compact => true, :supercompact => true)
         print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
       end
     else
@@ -304,8 +304,9 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   else
     io = pretty(io)
     print(io, "Hom: ")
-    print(IOContext(io, :supercompact => true), Lowercase(), domain(fmh), " -> ")
-    print(IOContext(io, :supercompact => true), Lowercase(), codomain(fmh))
+    io_compact = IOContext(io, :compact => true, :supercompact => true)
+    print(io_compact, Lowercase(), domain(fmh), " -> ")
+    print(io_compact, Lowercase(), codomain(fmh))
   end
 end
 

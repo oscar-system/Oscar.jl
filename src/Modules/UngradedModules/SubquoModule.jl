@@ -357,7 +357,7 @@ function show(io::IO, SQ::SubquoModule)
   @show_name(io, SQ)
   @show_special(io, SQ)
   io = pretty(io)
-  io_compact = IOContext(io, :supercompact => true)
+  io_compact = IOContext(io, :compact => true, :supercompact => true)
 
   if is_graded(SQ)
       if isdefined(SQ, :quo) && !iszero(SQ.quo)

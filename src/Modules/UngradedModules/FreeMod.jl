@@ -109,7 +109,7 @@ function show(io::IO, F::FreeMod)
   @show_special(io, F)
   io = pretty(io)
   compact = get(io, :supercompact, false)
-  io_compact = IOContext(io, :supercompact => true)
+  io_compact = IOContext(io, :compact => true, :supercompact => true)
   if is_graded(F)
       if !compact
         print(io, "Graded free module ")

@@ -295,7 +295,7 @@ end
 function show(io::IO, M::SubModuleOfFreeModule)
   @show_name(io, M)
   @show_special(io, M)
-  io_compact = IOContext(io, :supercompact => true)
+  io_compact = IOContext(io, :compact => true, :supercompact => true)
   compact = get(io, :supercompact, false)
   if !compact
     if is_graded(M)

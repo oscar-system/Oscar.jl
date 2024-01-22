@@ -76,8 +76,9 @@ function show(io::IO, F::FreeModule_dec)
   @show_name(io, F)
   @show_special(io, F)
 
+  io_compact = IOContext(io, :compact => true, :supercompact => true)
   print(io, "Free module of rank $(length(F.d)) over ")
-  print(IOContext(io, :supercompact =>true), F.R)
+  print(io_compact, F.R)
   if is_graded(F.R)
     print(io, ", graded as ")
   else
@@ -92,7 +93,7 @@ function show(io::IO, F::FreeModule_dec)
     else
       first = false
     end
-    print(IOContext(io, :supercompact => true), F.R, "^$v(", k, ")")
+    print(io_compact, F.R, "^$v(", k, ")")
   end
 
 #=
@@ -103,8 +104,8 @@ function show(io::IO, F::FreeModule_dec)
     while i+j <= dim(F) && d == F.d[i+j]
       j += 1
     end
-    print(IOContext(io, :supercompact => true), F.R, "^$j")
-    print(IOContext(io, :supercompact => true), "(", -d, ")")
+    print(io_compact, F.R, "^$j")
+    print(io_compact, "(", -d, ")")
     if i+j < dim(F)
       print(io, " + ")
     end
