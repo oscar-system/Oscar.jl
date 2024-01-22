@@ -361,43 +361,8 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
                                            invlex(R)))
 end
 
-
-
-# constructs a polyhedral fan from list of cones
-function polyhedral_fan_from_cones(listOfCones::Vector{<:Cone})
-    ###
-    # Collect incidence information
-    ###
-    fanRays = Vector{Vector{QQFieldElem}}()
-    fanIncidences = Vector{Vector{Int}}()
-    for cone in listOfCones
-        coneIncidence = Vector{Int}()
-        coneRays,_ = rays_modulo_lineality(cone)
-        for coneRay in coneRays
-            # if ray does not occur in rayList, add it to it
-            # either way add the corresponding index to rayIncidences
-            i = findfirst(isequal(coneRay),fanRays)
-            if i === nothing
-                push!(fanRays,coneRay)
-                push!(coneIncidence,length(fanRays))
-            else
-                push!(coneIncidence,i)
-            end
-        end
-        push!(fanIncidences,coneIncidence)
-    end
-    # convert Vector{Vector} to IncidenceMatrix and Matrix respectively
-    fanIncidences = IncidenceMatrix(fanIncidences)
-    fanRays = matrix(QQ,fanRays)
-    fanLineality = matrix(QQ,lineality_space(first(listOfCones)))
-    return polyhedral_fan(fanIncidences, fanRays, fanLineality)
-end
-
-
-
-
 @doc raw"""
-    groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, verbose_level::Int=0)
+    groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, marked_groebner_bases::Bool=false, verbose_level::Int=0)
 
 Return a `PolyhedralFan` representing the Groebner fan of `I`, where is a multivariate polynomial ideal over a field.
 
@@ -405,9 +370,17 @@ If `verbose_level` is positive, also print how many cones have been computed dur
 
 If `I` is not weighted homogeneous with respect to a positive weight vector, the Groebner fan will be restricted to the positive orthant.  Otherwise, the Groebner fan will span the entire space and have a non-trivial lineality space.
 
-If `return_groebner_bases==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the Groebner bases for those cones.  Their union will be a universal Groebner basis.
+If any of `return_interior_points`, `return_groebner_bases`, `return_orderings` or `return_initial_ideals`
+is set to true, also return a list with the corresponding information for each cone.
 
-If `return_orderings==true`, also return a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+If `return_interior_points==true`, this includes the interior points of the maximal cones.
+
+If `return_groebner_bases==true`, above list includes the Groebner bases for those cones.  Their union will be a universal Groebner basis.
+If additionally `marked_groebner_bases==true`, the values the Groebner bases for those cones together with the leading term for each generator.  
+
+If `return_orderings==true`, above list includes the monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+
+If `return_initial_ideals==true`, above list includes the initial ideals for those cones.
 
 # Examples
 ```jldoctest
@@ -420,16 +393,20 @@ ideal(x1, x2 + x3)
 julia> SigmaI = groebner_fan(I)
 Polyhedral fan in ambient dimension 3
 
-julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderings=true)
-3-element Vector{Any}:
+julia> SigmaI,output = groebner_fan(I,return_groebner_bases=true,return_orderings=true)
+2-element Vector{Any}:
  Polyhedral fan in ambient dimension 3
- Dict{Vector{ZZRingElem}, Vector{QQMPolyRingElem}}([0, -1, 0] => [x1, x2 + x3], [0, 0, -1] => [x2 + x3, x1])
- Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
+ Any[Any[QQMPolyRingElem[x1, x2 + x3], matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3])], Any[QQMPolyRingElem[x2 + x3, x1], degrevlex([x1, x2, x3])]]
 
 ```
 """
-
-function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, verbose_level::Int=0)
+function groebner_fan(I::MPolyIdeal; 
+                      return_interior_points::Bool=false,
+                      return_groebner_bases::Bool=false, 
+                      return_orderings::Bool=false, 
+                      return_initial_ideals::Bool=false, 
+                      marked_groebner_bases::Bool=false, 
+                      verbose_level::Int=0)
     ###
     # Preparation:
     #   Test whether the ideal is weighted homogeneous with respect to a positive weight vector
@@ -506,21 +483,36 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     # Post processing
     ###
     # construct polyhedral fan and return it if nothing else was required
-    Sigma = polyhedral_fan_from_cones([entry[3] for entry in finishedList])
-    if !return_groebner_bases && !return_orderings
+    Sigma = polyhedral_fan(getindex.(finishedList,3);non_redundant=true)
+    if !return_interior_points && !return_groebner_bases && !return_orderings && !return_initial_ideals
         return Sigma
     end
 
     # otherwise return what was required
     output = []
-    push!(output,Sigma)
-    if return_groebner_bases == true
-        groebner_bases = Dict([(pt,GB) for (GB,_,_,pt) in finishedList])
-        push!(output,groebner_bases)
+
+    for (GB,ord,_,pt) in finishedList
+        output_C = []
+
+        if return_interior_points == true
+            push!(output_C,pt)
+        end
+        if return_groebner_bases == true
+            if marked_groebner_bases == true
+                push!(output_C,(f,leading_term(f;ordering=ord)))
+            else
+                push!(output_C,GB)
+            end
+        end
+        if return_orderings == true
+            push!(output_C,ord)
+        end
+        if return_initial_ideals == true
+            initial_ideal = leading_ideal(I;ordering=ord)
+            push!(output_C,initial_ideal)
+        end
+
+        push!(output, output_C)
     end
-    if return_orderings == true
-        orderings = Dict([(pt,ord) for (_,ord,_,pt) in finishedList])
-        push!(output,orderings)
-    end
-    return output
+    return [Sigma, output]
 end
