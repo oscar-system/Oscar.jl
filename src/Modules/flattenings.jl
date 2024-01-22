@@ -108,6 +108,41 @@ function free_resolution(
   return flat_counterparts(flat)[comp]::FreeResolution
 end
 
+function kernel(
+    phi::FreeModuleHom{
+                     <:ModuleFP{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                        MPolyQuoLocRingElem, MPolyLocRingElem}}},
+                     <:ModuleFP{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                        MPolyQuoLocRingElem, MPolyLocRingElem}}},
+                     Nothing
+                    }
+  )
+  R = base_ring(domain(phi))
+  flat_map = flatten(R)
+  dom_flat, iso_dom, iso_dom_inv = flat_map(domain(phi))
+  cod_flat, iso_cod, iso_cod_inv = flat_map(codomain(phi))
+  phi_b = flat_map(phi)
+  Kb, inc_Kb = kernel(phi_b)
+  K, inc_K = sub(domain(phi), iso_dom_inv.(ambient_representatives_generators(Kb)))
+  iso_K = hom(K, Kb, gens(Kb), flat_map)
+  iso_inv_K = hom(Kb, K, gens(K), inverse(flat_map))
+  flat_counterparts(flat_map)[K] = Kb, iso_K, iso_inv_K
+  flat_counterparts(flat_map)[inc_K] = inc_Kb
+  return K, inc_K
+end
+
+function (phi::RingFlattening)(f::ModuleFPHom)
+  if !haskey(flat_counterparts(phi), f)
+    dom = domain(f)
+    dom_b, iso_dom, iso_inv_dom = phi(dom)
+    cod = codomain(f)
+    cod_b, iso_cod, iso_inv_cod = phi(cod)
+    fb = hom(dom_b, cod_b, iso_cod.(f.(gens(dom))))
+    flat_counterparts(phi)[f] = fb
+  end
+  return flat_counterparts(phi)[f]::ModuleFPHom
+end
+
 # TODO: We need this special routine, because we can not write a generic 
 # base change method for morphisms of graded rings. See pr #2677
 function _change_base_ring_and_preserve_gradings(phi::Any, F::FreeMod)
