@@ -381,7 +381,7 @@ function show(io::IO, SQ::SubquoModule)
         print(io, "Subquotient of ", SQ.sub, "\nby ", SQ.quo)
       else
         print(io, SQ.sub, "\n")
-        print(io, "represented as subquotient with no relations.")
+        print(io, "represented as subquotient with no relations")
       end
   end
 end
