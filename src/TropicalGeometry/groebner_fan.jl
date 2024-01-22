@@ -483,7 +483,7 @@ function groebner_fan(I::MPolyIdeal;
     # construct polyhedral fan and return it if nothing else was required
     Sigma = polyhedral_fan(getindex.(finishedList,3);non_redundant=true)
     if !return_interior_points && !return_groebner_bases && !return_orderings && !return_initial_ideals
-        return Sigma, getindex.(finishedList,3)
+        return Sigma
     end
 
     # otherwise return what was required
