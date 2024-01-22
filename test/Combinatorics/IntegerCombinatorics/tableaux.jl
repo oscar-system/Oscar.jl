@@ -153,3 +153,112 @@
   @test tab2 == young_tableau([[1,1,1,1,1],[2,3,4]])
 
 end
+
+
+using Documenter
+
+# This module only exists to "host" a doctest used by the test suite.
+module AuxDocTest_young_tableau_printing
+@doc raw"""
+    some (potentially mathematically meaningless) "tableau"
+
+```jldoctest young_tableau_printing.test
+julia> using Oscar
+
+julia> young_tableau(Vector{Int}[])
+Empty Young tableau
+
+julia> young_tableau([[1, 2, 3, 4], [5, 6], [7], [8]])
++---+---+---+---+
+| 1 | 2 | 3 | 4 |
++---+---+---+---+
+| 5 | 6 |
++---+---+
+| 7 |
++---+
+| 8 |
++---+
+
+julia> young_tableau([[1, 2, 3, 4], [5, 6], [7, 8, 9]])
++---+---+---+---+
+| 1 | 2 | 3 | 4 |
++---+---+---+---+
+| 5 | 6 |
++---+---+---+
+| 7 | 8 | 9 |
++---+---+---+
+
+julia> young_tableau([[1], Int[], Int[], [1, 2, 3]])
++---+
+| 1 |
++---+
+|
+|
+|
++---+---+---+
+| 1 | 2 | 3 |
++---+---+---+
+
+julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
++----+----+----+----+----+----+----+----+----+
+|  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 |
++----+----+----+----+----+----+----+----+----+
+| 10 |
++----+
+
+julia> old_unicode = Oscar.allow_unicode(true);
+
+julia> young_tableau(Vector{Int}[])
+Empty Young tableau
+
+julia> young_tableau([[1, 2, 3, 4], [5, 6], [7], [8]])
+┌───┬───┬───┬───┐
+│ 1 │ 2 │ 3 │ 4 │
+├───┼───┼───┴───┘
+│ 5 │ 6 │
+├───┼───┘
+│ 7 │
+├───┤
+│ 8 │
+└───┘
+
+julia> young_tableau([[1, 2, 3, 4], [5, 6], [7, 8, 9]])
+┌───┬───┬───┬───┐
+│ 1 │ 2 │ 3 │ 4 │
+├───┼───┼───┴───┘
+│ 5 │ 6 │
+├───┼───┼───┐
+│ 7 │ 8 │ 9 │
+└───┴───┴───┘
+
+julia> young_tableau([[1], Int[], Int[], [1, 2, 3]])
+┌───┐
+│ 1 │
+├───┘
+│
+│
+│
+├───┬───┬───┐
+│ 1 │ 2 │ 3 │
+└───┴───┴───┘
+
+julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
+┌────┬────┬────┬────┬────┬────┬────┬────┬────┐
+│  1 │  2 │  3 │  4 │  5 │  6 │  7 │  8 │  9 │
+├────┼────┴────┴────┴────┴────┴────┴────┴────┘
+│ 10 │
+└────┘
+
+julia> Oscar.allow_unicode(old_unicode);
+```
+"""
+function dummy_placeholder end
+
+end
+
+@testset "Print Young Tableaux" begin
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
+  doctest(nothing, [AuxDocTest_young_tableau_printing])
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
+end

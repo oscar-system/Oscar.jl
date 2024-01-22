@@ -33,46 +33,122 @@ function Base.show(io::IO, tab::YoungTableau)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
-  # As the rows of the tableau have different length, we print row by row to
-  # make sure the separating lines are always only as long as necessary.
-
-  # Translate the rows of `tab` into 1 x k matrices of strings to feed into
-  # `labelled_matrix_formatted`
-  s = Vector{Matrix{String}}(undef, length(tab))
+  if length(tab) == 0
+    print(io, "Empty Young tableau")
+    return nothing
+  end
+  # Translate the rows of `tab` into vectors of strings
+  s = Vector{Vector{String}}(undef, length(tab))
   box_width = 0 # maximum length of an entry
   for i in 1:length(tab)
     r = tab[i]
-    s[i] = Matrix{String}(undef, 1, length(r))
+    s[i] = Vector{String}(undef, length(r))
     for j in 1:length(r)
       x = string(r[j])
       box_width = max(length(x), box_width)
-      s[i][1, j] = x
+      s[i][j] = x
     end
   end
   # Pad the smaller boxes with whitespace (so that every box has the same width)
   for i in 1:length(s)
-    for j in 1:size(s[i], 2)
-      x = s[i][1, j]
-      d = box_width - length(x)
-      for k = 1:d
+    for j in 1:length(s[i])
+      x = s[i][j]
+      while length(x) < box_width
         x = " "*x
       end
-      s[i][1, j] = x
+      s[i][j] = x
     end
   end
-  # Now print the single rows
-  for i = 1:length(s)
-    if i == 1
-      # First row with a separator line on top and trailing line break
-      ioc = IOContext(io, :separators_row => 0:1, :separators_col => 0:length(s[i]), :footer => [""])
-    elseif i == length(s)
-      # Last row without trailing line break
-      ioc = IOContext(io, :separators_row => [1], :separators_col => 0:length(s[i]))
-    else
-      # Every other line with trailing line break
-      ioc = IOContext(io, :separators_row => [1], :separators_col => 0:length(s[i]), :footer => [""])
+  # List of characters we use for the lines
+  if is_unicode_allowed()
+    pipe = "\u2502"
+    horz_bar = "\u2500"
+    cross = "\u253C"
+    crossleft = "\u251C" # cross with left arm missing
+    crossright = "\u2524" # cross with right arm missing
+    crosstop = "\u252C" # cross with top arm missing
+    crossbottom = "\u2534" # cross with bottom arm missing
+    crosstopright = "\u2510" # cross with top and right arms missing
+    crosstopleft = "\u250C" # cross with top and left arms missing
+    crossbottomright = "\u2518" # cross with bottom and right arms missing
+    crossbottomleft = "\u2514" # cross with bottom and left arms missing
+  else
+    pipe = "|"
+    horz_bar = "-"
+    # Without unicode, we just have one type of cross
+    cross = "+"
+    crossleft = "+"
+    crossright = "+"
+    crosstop = "+"
+    crossbottom = "+"
+    crosstopright = "+"
+    crosstopleft = "+"
+    crossbottomright = "+"
+    crossbottomleft = "+"
+  end
+  hline_portion = ""
+  while length(hline_portion) < box_width + 2
+    hline_portion *= horz_bar
+  end
+
+  # Start actual printing
+
+  # Print top line
+  write(io, crosstopleft)
+  for _ in 1:length(s[1]) - 1
+    write(io, hline_portion, crosstop)
+  end
+  write(io, hline_portion, crosstopright)
+  # Print rows and lines
+  for i in 1:length(s)
+    r = s[i]
+    write(io, "\n")
+    for b in r
+      write(io, pipe, " ", b, " ")
     end
-    labelled_matrix_formatted(ioc, s[i])
+    write(io, pipe, "\n")
+    if i == length(s)
+      # Print bottom line
+      write(io, crossbottomleft)
+      for _ in 1:length(r) - 1
+        write(io, hline_portion, crossbottom)
+      end
+      write(io, hline_portion, crossbottomright)
+    else
+      # Print "normal" line
+      # The next row should always be at most as long, but this is not checked
+      # in the construction of a tableau, so let's make sure it doesn't mess up
+      # printing.
+      m = length(r)
+      M = length(s[i + 1])
+      if m == 0 && M == 0
+        write(io, pipe)
+        continue
+      end
+      write(io, crossleft)
+      for _ in 1:min(m, M) - 1
+        write(io, hline_portion, cross)
+      end
+      if m == M
+        write(io, hline_portion, crossright)
+      elseif m < M
+        if m != 0
+          write(io, hline_portion, cross)
+        end
+        for _ in m + 1:M - 1
+          write(io, hline_portion, crosstop)
+        end
+        write(io, hline_portion, crosstopright)
+      elseif m > M
+        if M != 0
+          write(io, hline_portion, cross)
+        end
+        for _ in M + 1:m - 1
+          write(io, hline_portion, crossbottom)
+        end
+        write(io, hline_portion, crossbottomright)
+      end
+    end
   end
 end
 

@@ -106,10 +106,23 @@ tableau, i.e. whether the structure of the array defines a partition.
 # Examples
 ```jldoctest
 julia> tab=young_tableau([[1,2,3],[4,5],[6]])
-[[1, 2, 3], [4, 5], [6]]
++---+---+---+
+| 1 | 2 | 3 |
++---+---+---+
+| 4 | 5 |
++---+---+
+| 6 |
++---+
 
 julia> tab=young_tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
-Vector{Int8}[[2, 1], [], [3, 2, 1]]
++---+---+
+| 2 | 1 |
++---+---+
+|
++---+---+---+
+| 3 | 2 | 1 |
++---+---+---+
+
 ```
 
 # References
