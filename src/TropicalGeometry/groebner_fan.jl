@@ -393,11 +393,10 @@ ideal(x1, x2 + x3)
 julia> SigmaI = groebner_fan(I)
 Polyhedral fan in ambient dimension 3
 
-julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderings=true)
-3-element Vector{Any}:
+julia> SigmaI,output = groebner_fan(I,return_groebner_bases=true,return_orderings=true)
+2-element Vector{Any}:
  Polyhedral fan in ambient dimension 3
- Dict{Vector{ZZRingElem}, Vector{QQMPolyRingElem}}([0, -1, 0] => [x1, x2 + x3], [0, 0, -1] => [x2 + x3, x1])
- Dict{Vector{ZZRingElem}, MonomialOrdering{QQMPolyRing}}([0, -1, 0] => matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3]), [0, 0, -1] => degrevlex([x1, x2, x3]))
+ Any[Any[QQMPolyRingElem[x1, x2 + x3], matrix_ordering([x1, x2, x3], [1 1 1])*matrix_ordering([x1, x2, x3], [0 0 0])*matrix_ordering([x1, x2, x3], [0 -1 1])*invlex([x1, x2, x3])], Any[QQMPolyRingElem[x2 + x3, x1], degrevlex([x1, x2, x3])]]
 
 ```
 """
