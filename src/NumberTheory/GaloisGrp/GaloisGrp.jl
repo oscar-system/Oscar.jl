@@ -2214,7 +2214,7 @@ Finds a Tschirnhausen transformation, ie a polynomial in `Zx` s.th.
 
   ``|\{ I^s(t(r_1), ..., t(r_n)) | s in T\}| = |T|``
 """
-function find_transformation(r, I::SLPoly, T::Vector{PermGroupElem}; RNG::AbstractRNG=Random.default_rng())
+function find_transformation(r, I::SLPoly, T::AbstractVector{PermGroupElem}; RNG::AbstractRNG=Random.default_rng())
   return find_transformation(r, [I^t for t = T], RNG = RNG)
 end
 

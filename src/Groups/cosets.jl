@@ -305,7 +305,6 @@ function Base.show(io::IO, x::SubgroupTransversal)
 end
 
 Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
-Base.eltype(::Type{SubgroupTransversal{T,S,E}}) where {T,S,E} = E
 
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
@@ -382,7 +381,12 @@ Permutation group of degree 4 and order 24
 julia> H = symmetric_group(3)
 Permutation group of degree 3 and order 6
 
-julia> left_transversal(G,H)
+julia> T = left_transversal(G, H)
+Left transversal of length 4 of
+  Permutation group of degree 3 and order 6 in
+  Permutation group of degree 4 and order 24
+
+julia> collect(T)
 4-element Vector{PermGroupElem}:
  ()
  (1,4)
