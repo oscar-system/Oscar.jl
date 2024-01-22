@@ -217,8 +217,13 @@ end
    T = right_transversal(G,H)
    @test length(L)==10
    @test length(T)==10
+   @test T[end] == T[length(T)]
+   @test T == collect(T)
    @testset for t in T
        @test sum([t in l for l in L]) == 1
+   end
+   @testset for i in 1:length(T)
+       @test findfirst(isequal(T[i]), T) == i
    end
    rc = L[1]
    r = representative(rc)
@@ -230,8 +235,13 @@ end
    T = left_transversal(G,H)
    @test length(L)==10
    @test length(T)==10
+   @test T[end] == T[length(T)]
+   @test T == collect(T)
    @testset for t in T
        @test sum([t in l for l in L]) == 1
+   end
+   @testset for i in 1:length(T)
+       @test findfirst(isequal(T[i]), T) == i
    end
    lc = L[1]
    r = representative(lc)
