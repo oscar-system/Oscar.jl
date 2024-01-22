@@ -4,10 +4,10 @@ function flatten(F::ModuleFP)
   return flatten(base_ring(F))(F)
 end
 
-function (flat_map::RingFlattening)(F::ModuleFP{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
                                                                   MPolyQuoLocRingElem, MPolyLocRingElem}}}
   if !haskey(flat_counterparts(flat_map), F)
-    F_flat, iso = change_base_ring(flat_map, F)
+    F_flat, iso = _change_base_ring_and_preserve_gradings(flat_map, F)
     iso_inv = hom(F_flat, F, gens(F), inverse(flat_map))
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
@@ -16,6 +16,26 @@ function (flat_map::RingFlattening)(F::ModuleFP{T}) where {T <: MPolyRingElem{<:
     
   F_flat, iso, iso_inv = flat_counterparts(flat_map)[F]::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
   return F_flat, iso, iso_inv
+end
+
+function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  if !haskey(flat_counterparts(flat_map), M)
+    F = ambient_free_module(M)
+    F_flat, iso_F, iso_inv_F = flat_map(F)
+    M_flat = SubquoModule(F_flat, 
+                          iso_F.(ambient_representatives_generators(M)), 
+                          iso_F.(relations(M))
+                         )
+    iso = hom(M, M_flat, gens(M_flat), flat_map)
+    iso_inv = hom(M_flat, M, gens(M), inverse(flat_map))
+    set_attribute!(iso, :inverse, iso_inv)
+    set_attribute!(iso_inv, :inverse, iso)
+    flat_counterparts(flat_map)[M] = (M_flat, iso, iso_inv)
+  end
+    
+  M_flat, iso, iso_inv = flat_counterparts(flat_map)[M]::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
+  return M_flat, iso, iso_inv
 end
 
 function flatten(
@@ -98,12 +118,17 @@ function _change_base_ring_and_preserve_gradings(phi::Any, F::FreeMod)
   return FS, hom(F, FS, gens(FS), phi)
 end
 
-function _change_base_ring_and_preserve_gradings(phi::Any, M::SubquoModule)
-  R = base_ring(M)
-  S = parent(phi(zero(R)))
-  F = ambient_free_module(M)
-  FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
-  MM = SubquoModule(FF, iso_F.(ambient_representatives_generators(M)), iso_F.(relations(M)))
+function _change_base_ring_and_preserve_gradings(
+    phi::Any, M::SubquoModule;
+    ambient_base_change::FreeModuleHom=begin
+      F = ambient_free_module(M)
+      FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
+      iso_F
+    end
+  )
+  FF = codomain(ambient_base_change)
+  MM = SubquoModule(FF, ambient_base_change.(ambient_representatives_generators(M)), 
+                    ambient_base_change.(relations(M)))
   return MM, hom(M, MM, gens(MM), phi)
 end
 
@@ -116,5 +141,56 @@ function _change_base_ring_and_preserve_gradings(
   C = codomain(codomain_change)
   result = hom(D, C, codomain_change.(f.(gens(domain(f)))))
   return result
+end
+
+# SubModuleOfFreeModule needs its own treatment as they differ from the user facing 
+# modules in that they don't have their own elements and they dont have their own 
+# homomorphisms.
+function (flat_map::RingFlattening)(I::SubModuleOfFreeModule{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  if !haskey(flat_counterparts(flat_map), I)
+    F = ambient_free_module(I)
+    R = base_ring(I)
+    flat_map = flatten(R)
+    Fb, iso_F = flat_map(F)
+    I_flat = _change_base_ring_and_preserve_gradings(flat_map, I; ambient_base_change=iso_F)
+    flat_counterparts(flat_map)[I] = I_flat
+  end
+    
+  I_flat = flat_counterparts(flat_map)[I]::SubModuleOfFreeModule
+  return I_flat
+end
+
+function _change_base_ring_and_preserve_gradings(
+    phi::Any, M::SubModuleOfFreeModule;
+    ambient_base_change::FreeModuleHom=begin
+      F = ambient_free_module(M)
+      FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
+      iso_F
+    end
+  )
+  FF = codomain(ambient_base_change)
+  MM = SubModuleOfFreeModule(FF, ambient_base_change.(gens(M)))
+  # These modules dont have their own homomorphisms. 
+  # Hence the return signature differs.
+  return MM
+end
+
+function Base.in(
+    a::FreeModElem{T}, M::SubModuleOfFreeModule{T}
+  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  flat = flatten(base_ring(parent(a)))
+  return flat(a) in flat(M)
+end
+
+function coordinates(
+    a::FreeModElem{T}, M::SubModuleOfFreeModule{T}
+  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+
+  flat = flatten(base_ring(parent(a)))
+  c = coordinates(flat(a), flat(M))
+  return map_entries(inverse(flat), c)
 end
 
