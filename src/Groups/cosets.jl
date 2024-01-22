@@ -331,7 +331,7 @@ end
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
-This vector does not store its entries explicitly,
+This vector is not mutable, and it does not store its entries explicitly,
 they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
@@ -368,7 +368,7 @@ end
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
-This vector does not store its entries explicitly,
+This vector is not mutable, and it does not store its entries explicitly,
 they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
