@@ -361,41 +361,6 @@ function groebner_flip_adjacent_ordering(R::MPolyRing,
                                            invlex(R)))
 end
 
-
-
-# constructs a polyhedral fan from list of cones
-function polyhedral_fan_from_cones(listOfCones::Vector{<:Cone})
-    ###
-    # Collect incidence information
-    ###
-    fanRays = Vector{Vector{QQFieldElem}}()
-    fanIncidences = Vector{Vector{Int}}()
-    for cone in listOfCones
-        coneIncidence = Vector{Int}()
-        coneRays,_ = rays_modulo_lineality(cone)
-        for coneRay in coneRays
-            # if ray does not occur in rayList, add it to it
-            # either way add the corresponding index to rayIncidences
-            i = findfirst(isequal(coneRay),fanRays)
-            if i === nothing
-                push!(fanRays,coneRay)
-                push!(coneIncidence,length(fanRays))
-            else
-                push!(coneIncidence,i)
-            end
-        end
-        push!(fanIncidences,coneIncidence)
-    end
-    # convert Vector{Vector} to IncidenceMatrix and Matrix respectively
-    fanIncidences = IncidenceMatrix(fanIncidences)
-    fanRays = matrix(QQ,fanRays)
-    fanLineality = matrix(QQ,lineality_space(first(listOfCones)))
-    return polyhedral_fan(fanIncidences, fanRays, fanLineality)
-end
-
-
-
-
 @doc raw"""
     groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, marked_groebner_bases::Bool=false, verbose_level::Int=0)
 
@@ -433,7 +398,13 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 ```
 """
 
-function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_orderings::Bool=false, return_initial_ideals::Bool=false, marked_groebner_bases::Bool=false, verbose_level::Int=0)
+function groebner_fan(I::MPolyIdeal; 
+                      return_interior_points::Bool=false,
+                      return_groebner_bases::Bool=false, 
+                      return_orderings::Bool=false, 
+                      return_initial_ideals::Bool=false, 
+                      marked_groebner_bases::Bool=false, 
+                      verbose_level::Int=0)
     ###
     # Preparation:
     #   Test whether the ideal is weighted homogeneous with respect to a positive weight vector
@@ -510,9 +481,9 @@ function groebner_fan(I::MPolyIdeal; return_groebner_bases::Bool=false, return_o
     # Post processing
     ###
     # construct polyhedral fan and return it if nothing else was required
-    Sigma = polyhedral_fan_from_cones([entry[3] for entry in finishedList])
-    if !return_groebner_bases && !return_orderings && !return_initial_ideals
-        return Sigma
+    Sigma = polyhedral_fan(getindex.(finishedList,3);non_redundant=true)
+    if !return_interior_points && !return_groebner_bases && !return_orderings && !return_initial_ideals
+        return Sigma, getindex.(finishedList,3)
     end
 
     # otherwise return what was required
