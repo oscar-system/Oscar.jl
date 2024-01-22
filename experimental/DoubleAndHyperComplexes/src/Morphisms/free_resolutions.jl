@@ -115,6 +115,18 @@ function free_resolution(::Type{T}, I::Ideal{RET}) where {T<:SimpleFreeResolutio
   return free_resolution(T, M)
 end
 
+function free_resolution(::Type{T}, A::MPolyQuoRing) where {T<:SimpleFreeResolution}
+  R = base_ring(A)
+  I = modulus(A)
+  F = (!is_graded(R) ? FreeMod(R, 1) : graded_free_module(R, [zero(grading_group(R))]))
+  M, _ = I*F
+  AA, _ = quo(F, M)
+  if is_graded(R)
+    @assert is_graded(M)
+  end
+  return free_resolution(T, AA)
+end
+
 ### Additional getters
 augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 
@@ -122,7 +134,8 @@ augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 function betti(b::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool = false)
   return betti_table(b; project, reverse_direction)
 end
-function betti_table(C::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+function betti_table(C::AbsHyperComplex; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+  @assert dim(C) == 1 "complex must be one-dimensional"
   @assert has_upper_bound(C) "no upper bound known for this resolution"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   rng = upper_bound(C):-1:lower_bound(C)
@@ -138,7 +151,8 @@ function betti_table(C::SimpleFreeResolution; project::Union{GrpAbFinGenElem, No
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-function minimal_betti_table(C::SimpleFreeResolution)
+function minimal_betti_table(C::AbsHyperComplex)
+  @assert dim(C) == 1 "complex must be one-dimensional"
   @assert has_lower_bound(C) && has_upper_bound(C) "resolution must be bounded"
   offsets = Dict{GrpAbFinGenElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
