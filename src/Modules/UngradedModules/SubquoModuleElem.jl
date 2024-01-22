@@ -1015,7 +1015,8 @@ function is_zero(m::SubquoModuleElem)
   return (ambient_representative(m) in parent(m).quo)
 end
 
-function iszero(m::SubquoModuleElem{<:MPolyRingElem})
+# Method only for the cases which can be handled by singular
+function iszero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, ZZRingElem}}
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))
