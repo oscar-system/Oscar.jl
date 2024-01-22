@@ -401,7 +401,6 @@ julia> SigmaI,gbs,ords = groebner_fan(I,return_groebner_bases=true,return_orderi
 
 ```
 """
-
 function groebner_fan(I::MPolyIdeal; 
                       return_interior_points::Bool=false,
                       return_groebner_bases::Bool=false, 
