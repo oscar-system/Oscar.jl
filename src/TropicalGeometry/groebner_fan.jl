@@ -370,13 +370,17 @@ If `verbose_level` is positive, also print how many cones have been computed dur
 
 If `I` is not weighted homogeneous with respect to a positive weight vector, the Groebner fan will be restricted to the positive orthant.  Otherwise, the Groebner fan will span the entire space and have a non-trivial lineality space.
 
-If `return_groebner_bases==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the Groebner bases for those cones.  Their union will be a universal Groebner basis.
+If any of `return_interior_points`, `return_groebner_bases`, `return_orderings` or `return_initial_ideals`
+is set to true, also return a list with the corresponding information for each cone.
 
-If additionally `marked_groebner_bases==true`, the values of above dictionary are the Groebner bases for those cones together with the leading term for each generator.  
+If `return_interior_points==true`, this includes the interior points of the maximal cones.
 
-If `return_orderings==true`, also return a dictionary whose keys are interior points of the maximal Groebner cones and whose values are monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+If `return_groebner_bases==true`, above list includes the Groebner bases for those cones.  Their union will be a universal Groebner basis.
+If additionally `marked_groebner_bases==true`, the values the Groebner bases for those cones together with the leading term for each generator.  
 
-If `return_initial_ideals==true`, also return a dictionary whose keys are interior points of the maximal cones and whose values are the initial ideals for those cones.
+If `return_orderings==true`, above list includes the monomial orderings for those cones.  These orderings are suboptimal and hence it is generally recommended to create new orderings with the interior points.  However they do contain information on how the fan was traversed.
+
+If `return_initial_ideals==true`, above list includes the initial ideals for those cones.
 
 # Examples
 ```jldoctest
