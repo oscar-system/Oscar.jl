@@ -760,6 +760,12 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
   return conj
 end
 
+@doc raw"""
+    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+
+Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
+such that `x*w == dom`.
+"""
 function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
   R = root_system(w)
   wt = deepcopy(w)
@@ -779,7 +785,7 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
 
   # reversing word means it is in short revlex normal form
   # and it is the element taking w to wt
-  return wt, WeylGroupElem(R, reverse!(word))
+  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
 end
 
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
@@ -867,10 +873,11 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
 
   # sort roots by height
   perm = sortperm(roots; by=sum)
+  invp = invperm(perm)
 
-  table = zero_matrix(ZZ, rank, length(roots))
+  table = zeros(UInt, rank, length(roots))
   for i in 1:length(roots), s in 1:rank
-    table[s, i] = refl[s, perm[i]]
+    table[s, i] = iszero(refl[s, perm[i]]) ? 0 : invp[refl[s, perm[i]]]
   end
 
   roots[perm], coroots[perm], table

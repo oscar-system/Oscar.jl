@@ -9,10 +9,10 @@
 
 struct WeylGroup <: GroupsCore.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
-  refl::ZZMatrix            # see positive_roots_and_reflections
+  refl::Matrix{UInt}        # see positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
 
-  function WeylGroup(finite::Bool, refl::ZZMatrix, root_system::RootSystem)
+  function WeylGroup(finite::Bool, refl::Matrix{UInt}, root_system::RootSystem)
     return new(finite, refl, root_system)
   end
 end
@@ -47,7 +47,7 @@ end
 @doc raw"""
     (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
 """
-function (W::WeylGroup)(word::Vector{Int}; normalize::Bool=true)
+function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
   return weyl_group_elem(W, word; normalize=normalize)
 end
 
@@ -377,16 +377,16 @@ function lmul!(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
 
   insert_index = 1
-  insert_letter = i
+  insert_letter = UInt8(i)
 
-  root = i
-  for s in 1:length(word)
+  root = insert_letter
+  for s in 1:length(x)
     if x[s] == root
-      deleteat!(word, s)
-      return nothing
+      deleteat!(word(x), s)
+      return x
     end
 
-    root = refl[Int(x[s]), Int(root)]
+    root = parent(x).refl[Int(x[s]), Int(root)]
     if iszero(root)
       # r is no longer a minimal root, meaning we found the best insertion point
       break
@@ -396,7 +396,7 @@ function lmul!(x::WeylGroupElem, i::Integer)
     # root, if root < word[i] it must be simple.
     if root < x[s]
       insert_index = s + 1
-      insert_letter = T(root)
+      insert_letter = UInt8(root)
     end
   end
 
@@ -510,9 +510,15 @@ end
 
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
+# The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
+# this choice is made to align with conjugate_dominant_weight_with_elem
 struct WeylIteratorNoCopy
   weight::WeightLatticeElem # dominant weight
   weyl_group::WeylGroup
+
+  function WeylIteratorNoCopy(wt::WeightLatticeElem)
+    return new(conjugate_dominant_weight(wt), weyl_group(root_system(wt)))
+  end
 end
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
@@ -524,15 +530,16 @@ function Base.eltype(::Type{WeylIteratorNoCopy})
 end
 
 function Base.iterate(iter::WeylIteratorNoCopy)
-  return (iter.weight, one(iter.weyl_group)), (UInt8[], deepcopy(iter.weight))
+  data = deepcopy(iter.weight), deepcopy(one(iter.weyl_group))
+  return data, data
 end
 
 # based on [Ste01], 4.C and 4.D
-function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{Vector{UInt8}, WeightLatticeElem})
-  path, wt = data
-  R = root_system(iter.weight)
+function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{WeightLatticeElem, WeylGroupElem})
+  wt, path = data[1], word(data[2])
+  R = root_system(wt)
 
-  ai = isempty(data.path) ? UInt8(0) : path[end]
+  ai = isempty(path) ? UInt8(0) : path[end]
   # compute next descendant index
   di = UInt8(0)
   while true
@@ -550,122 +557,47 @@ function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{Vector{UInt8}, Weigh
 
   push!(path, di)
   reflect!(wt, Int(di))
-  return (wt, ), (path, wt)
+  return data, data
 end
 
 ###############################################################################
 # WeylOrbitIterator
 
 struct WeylOrbitIterator
-  dom_wt::WeightLatticeElem
-  to_dom_wt::WeylGroupElem
-  weyl_group::WeylGroup
+  nocopy::WeylIteratorNoCopy
 
   function WeylOrbitIterator(wt::WeightLatticeElem)
-    W = weyl_group(root_system(wt))
-    dom, x = conjugate_dominant_weight_with_elem(wt)
-    return new(dom, x, W)
+    return new(WeylIteratorNoCopy(wt))
   end
 end
 
-function WeylOrbitIterator(R::RootSystem, vec::Vector{<:Integer})
-  return WeylOrbitIterator(WeightLatticeElem(R, vec))
+function weyl_orbit(wt::WeightLatticeElem)
+  return WeylOrbitIterator(wt)
 end
 
-function WeylOrbitIterator(W::WeylGroup, vec::Vector{<:Integer})
-  return WeylOrbitIterator(root_system(W), vec)
+function weyl_orbit(R::RootSystem, vec::Vector{<:Integer})
+  return weyl_orbit(WeightLatticeElem(R, vec))
 end
 
-struct WeylOrbitIteratorData
-  path::Vector{UInt8}
-  wt::WeightLatticeElem
-
-  function WeylOrbitIteratorData(wt::WeightLatticeElem)
-    return new(UInt8[], deepcopy(wt))
-  end
+function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
+  return weyl_orbit(root_system(W), vec)
 end
 
 function Base.IteratorSize(::Type{WeylOrbitIterator})
-  return Base.SizeUnknown()
+  return Base.IteratorSize(::Type{WeylIteratorNoCopy})
 end
 
 function Base.eltype(::Type{WeylOrbitIterator})
-  return Tuple{WeightLatticeElem,WeylGroupElem}
+  return Base.eltype(::Type{WeylIteratorNoCopy})
 end
 
 function Base.iterate(iter::WeylOrbitIterator)
-  return (iter.dom_wt, iter.to_dom_wt), WeylOrbitIteratorData(iter.dom_wt)
+  (wt, _), data = iterate(iter.nocopy)
+  # wt is already a copy, so here we don't need to make one
+  return wt, data
 end
 
-# based on [Ste01], 4.C and 4.D
-function Base.iterate(iter::WeylOrbitIterator, data::WeylOrbitIteratorData)
-  R = root_system(data.wt)
-
-  ai = isempty(data.path) ? UInt8(0) : data.path[end]
-  # compute next descendant index
-  di = UInt8(0)
-  while true
-    di = next_descendant_index(Int(ai), Int(di), data.wt)
-    if !iszero(di)
-      break
-    elseif isempty(data.path)
-      return nothing
-    elseif iszero(di)
-      reflect!(data.wt, Int(ai))
-      di = pop!(data.path)
-      ai = isempty(data.path) ? UInt8(0) : data.path[end]
-    end
-  end
-
-  push!(data.path, di)
-  reflect!(data.wt, Int(di))
-
-  x = deepcopy(iter.to_dom_wt)
-  for s in data.path
-    lmul!(x, s)
-  end
-  return (deepcopy(data.wt), x), data
-end
-
-# based on [Ste01], 4.D
-function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
-  if iszero(ai)
-    for j in (di + 1):rank(root_system(wt))
-      if !iszero(wt[j])
-        return j
-      end
-    end
-    return 0
-  end
-
-  for j in (di + 1):ai-1
-    if !iszero(wt[j])
-      return j
-    end
-  end
-
-  for j in max(ai, di)+1:rank(root_system(wt))
-    if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
-      continue
-    end
-
-    ok = true
-    for k in ai:(j - 1)
-      if reflect(wt, j)[k] < 0
-        ok = false
-        break
-      end
-    end
-    if ok
-      return j
-    end
-  end
-
-  return 0
-end
-
-# ----- internal -----
-
-function _lmul!(refl::ZZMatrix, word::Vector{T}, s::T) where {T<:Unsigned}
-
+function Base.iterate(iter::WeylOrbitIterator, data::Tuple{WeightLatticeElem, WeylGroupElem})
+  (wt, _), data = iterate(iter.nocopy, data)
+  return deepcopy(wt), data
 end

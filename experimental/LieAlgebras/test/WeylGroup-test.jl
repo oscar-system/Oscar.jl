@@ -41,6 +41,18 @@
   @testset "(::WeylGroup)(::Vector{<:Integer})" begin
   end
 
+  @testset "inv(x::WeylGroupElem)" begin
+    W = weyl_group(:A, 2); s = gens(W)
+    @test inv(s[1]) == s[1]
+    @test inv(s[1]*s[2]) == s[2]*s[1]
+    @test inv(s[2]*s[1]*s[2]) == s[1]*s[2]*s[1]
+
+    W = weyl_group(:B, 4); s = gens(W)
+    @test inv(s[2]*s[1]) == s[1]*s[2]
+    @test inv(s[3]*s[1]) == s[3]*s[1]
+    @test inv(s[2]*s[4]*s[3]*s[4]) == s[4]*s[3]*s[4]*s[2]
+  end
+
   @testset "longest_element(W::WeylGroup)" begin
     # A1
     W = weyl_group(:A, 1)
@@ -193,7 +205,10 @@
     @test re[8] == UInt8[3, 2, 3, 1, 2, 3]
   end
 
-  @testset "WeylOrbitIterator" begin
+  @testset "WeylIteratorNoCopy" begin
+    WeylIteratorNoCopy = Oscar.LieAlgebras.WeylIteratorNoCopy
+
+    # test simple root systems
     @testset for ((fam, rk), vec) in [
       ((:A, 1), [-42]),
       ((:A, 3), [0, 0, 1]),
@@ -208,12 +223,16 @@
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      orb = collect(WeylOrbitIterator(wt))
+      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
+      orb = Tuple{WeightLatticeElem, WeylGroupElem}[]
+      for tup in WeylIteratorNoCopy(wt)
+        push!(orb, deepcopy(tup))
+      end
 
-      @test !isnothing(findfirst(==((wt, one(weyl_group(R)))), orb))
+      @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * wt == ow
+        @test x * ow == dom_wt
       end
 
       gap_num = 0
@@ -230,6 +249,7 @@
       @test length(orb) == gap_num
     end
 
+    # test composite root systems
     @testset for (type, vec) in [
       ([(:A, 1), (:A, 3), (:A, 3)], [-3, 0, 0, 1, 1, 0, 0]),
       ([(:A, 5), (:B, 3)], [1, -1, 2, 0, 2, 1, 1, 1]),
@@ -239,12 +259,16 @@
     ]
       R = root_system(type...)
       wt = WeightLatticeElem(R, vec)
-      orb = collect(WeylOrbitIterator(wt))
+      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
+      orb = Tuple{WeightLatticeElem, WeylGroupElem}[]
+      for tup in WeylIteratorNoCopy(wt)
+        push!(orb, deepcopy(tup))
+      end
 
-      @test !isnothing(findfirst(==((wt, one(weyl_group(R)))), orb))
+      @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * wt == ow
+        @test x * ow == dom_wt
       end
 
       gap_num = 0
