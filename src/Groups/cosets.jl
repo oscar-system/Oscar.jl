@@ -271,11 +271,68 @@ function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
   return [left_coset(H, x) for x in t]
 end
 
+
+# SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
+#
+# Type of left/right transversals of subgroups in groups.
+# The elements are encoded via a right transversal object in GAP.
+struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
+   G::T                    # big group containing the subgroup
+   H::S                    # subgroup
+   side::Symbol            # says if the transversal is left or right
+   X::GapObj               # underlying *right* transversal in GAP
+end
+
+function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
+  side = x.side === :left ? "Left" : "Right"
+  println(io, "$side transversal of length $(length(x)) of")
+  io = AbstractAlgebra.pretty(io)
+  print(io, Indent())
+  println(io, x.H, " in")
+  print(io, x.G)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, x::SubgroupTransversal)
+  side = x.side === :left ? "Left" : "Right"
+  if get(io, :supercompact, false)
+    print(io, "$side transversal of groups")
+  else
+    print(io, "$side transversal of ")
+    io = pretty(io)
+    print(IOContext(io, :supercompact => true), x.H, " in ", x.G)
+  end
+end
+
+Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
+
+Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
+
+function Base.getindex(T::SubgroupTransversal, i::Int)
+  res = group_element(T.G, T.X[i])
+  if T.side === :left
+    res = inv(res)
+  end
+  return res
+end
+
+# in order to make `T[end]` work
+Base.size(T::SubgroupTransversal) = (index(Int, T.G, T.H),)
+Base.lastindex(T::SubgroupTransversal) = length(T)
+
+# in order to make `findfirst` and `findall` work
+function Base.keys(T::SubgroupTransversal)
+    return keys(1:length(T))
+end
+
+
 """
     right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
+This vector is not mutable, and it does not store its entries explicitly,
+they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
@@ -287,7 +344,12 @@ Permutation group of degree 4 and order 24
 julia> H = symmetric_group(3)
 Permutation group of degree 3 and order 6
 
-julia> right_transversal(G,H)
+julia> T = right_transversal(G, H)
+Right transversal of length 4 of
+  Permutation group of degree 3 and order 6 in
+  Permutation group of degree 4 and order 24
+
+julia> collect(T)
 4-element Vector{PermGroupElem}:
  ()
  (1,4)
@@ -297,15 +359,8 @@ julia> right_transversal(G,H)
 """
 function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
    @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   L = GAP.Globals.RightTransversal(G.X,H.X)
-#TODO: The object returned by GAP tries to avoid the overhead of explicitly
-#      listing all elements.
-#      Eventually, we should use similar iterable objects in Oscar.
-   l = Vector{elem_type(G)}(undef, length(L))
-   for i in 1:length(l)
-      l[i] = group_element(G,L[i])
-   end
-   return l
+   return SubgroupTransversal{T, T, eltype(T)}(G, H, :right,
+              GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 """
@@ -313,6 +368,8 @@ end
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
+This vector is not mutable, and it does not store its entries explicitly,
+they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
@@ -324,7 +381,12 @@ Permutation group of degree 4 and order 24
 julia> H = symmetric_group(3)
 Permutation group of degree 3 and order 6
 
-julia> left_transversal(G,H)
+julia> T = left_transversal(G, H)
+Left transversal of length 4 of
+  Permutation group of degree 3 and order 6 in
+  Permutation group of degree 4 and order 24
+
+julia> collect(T)
 4-element Vector{PermGroupElem}:
  ()
  (1,4)
@@ -333,7 +395,9 @@ julia> left_transversal(G,H)
 ```
 """
 function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   return [x^-1 for x in right_transversal(G, H, check = check)]
+   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
+   return SubgroupTransversal{T, T, eltype(T)}(G, H, :left,
+              GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
