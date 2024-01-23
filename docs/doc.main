@@ -213,6 +213,18 @@
      ]
   ],
 
+  "Tropical Geometry" => [
+     "TropicalGeometry/intro.md",
+     "TropicalGeometry/semiring.md",
+     "TropicalGeometry/semiring_map.md",
+     "TropicalGeometry/variety.md",
+     "TropicalGeometry/hypersurface.md",
+     "TropicalGeometry/curve.md",
+     "TropicalGeometry/linear_space.md",
+     "TropicalGeometry/groebner_theory.md",
+     "TropicalGeometry/tropicalization.md",
+  ],
+
  "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
@@ -238,20 +250,6 @@
       "StraightLinePrograms/gapslps.md",
       "StraightLinePrograms/abstractalgebra.md",
    ],
-
-
-  "Tropical Geometry" => [
-     "TropicalGeometry/intro.md",
-     "TropicalGeometry/semiring.md",
-     "TropicalGeometry/semiring_map.md",
-     "TropicalGeometry/variety.md",
-     "TropicalGeometry/hypersurface.md",
-     "TropicalGeometry/curve.md",
-     "TropicalGeometry/linear_space.md",
-     "TropicalGeometry/groebner_theory.md",
-     "TropicalGeometry/tropicalization.md",
-  ],
-
 
   "References" => "references.md",
   "Index" => "manualindex.md",
