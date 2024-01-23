@@ -32,7 +32,7 @@ function partition(T::Type{<:IntegerUnion}, parts::IntegerUnion...)
   return partition(collect(T, parts))
 end
 
-function partition(parts::Vector{T}) where {T<:IntegerUnion}
+function partition(parts::Vector{T}) where {T <: IntegerUnion}
   return Partition{T}(parts)
 end
 
@@ -63,14 +63,14 @@ function Base.length(P::Partition)
 end
 
 function Base.getindex(P::Partition, i::IntegerUnion)
-  return getindex(data(P),Int(i))
+  return getindex(data(P), Int(i))
 end
 
 function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
-  return setindex!(data(P),x,Int(i))
+  return setindex!(data(P), x, Int(i))
 end
 
-function Base.copy(P::Partition{T}) where T<:IntegerUnion
+function Base.copy(P::Partition{T}) where T <: IntegerUnion
   return partition(copy(data(P)))
 end
 
@@ -81,13 +81,13 @@ In algorithms involving partitions it is sometimes convenient to be able to acce
 beyond the length of the partition and then one wants to get the value zero instead of an
 error. This function is a shortcut for
 ```
-return (i>length(data(P)) ? 0 : getindex(data(P),i))
+return (i > length(data(P)) ? 0 : getindex(data(P), i))
 ```
 If you are sure that `P[i]` exists, use `getindex` because this will be faster.
 
 # Examples
 ```jldoctest
-julia> P = partition([3,2,1])
+julia> P = partition([3, 2, 1])
 [3, 2, 1]
 
 julia> getindex_safe(P, 3)
@@ -98,7 +98,7 @@ julia> getindex_safe(P, 4)
 ```
 """
 function getindex_safe(P::Partition, i::IntegerUnion)
-  return (i>length(data(P)) ? 0 : getindex(data(P),Int(i)))
+  return (i > length(data(P)) ? 0 : getindex(data(P), Int(i)))
 end
 
 ################################################################################
@@ -122,7 +122,7 @@ julia> number_of_partitions(1000)
 # Algorithm
 
 We use the function
-[`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight=partitions#c.arith_number_of_partitions)
+[`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight;=partitions#c.arith_number_of_partitions)
 from [FLINT](@cite) which is very fast. It is based on the Hardy-Ramanujan-Rademacher
 formula, see [Joh12](@cite) for details. 
 
@@ -220,7 +220,7 @@ end
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts.
 
 # Algorithm
-We use the recurrence relation ``p_k(n) = p_{k-1}(n-1) + p_k(n-k)``, where ``p_k(n)``
+We use the recurrence relation ``p_k(n) = p_{k - 1}(n - 1) + p_k(n - k)``, where ``p_k(n)``
 denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), Section
 7.2.1.4, Equation (39) on page 399.
 
@@ -245,12 +245,12 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
   # See https://oeis.org/A008284
   elseif n < 2*k
-    return number_of_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+    return number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
 
   # See https://oeis.org/A008284
-  elseif n <= 2+3*k
-    p = number_of_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
-    for i=0:Int(n)-2*Int(k)-1
+  elseif n <= 2 + 3*k
+    p = number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
+    for i = 0:Int(n) - 2*Int(k) - 1
       p = p - number_of_partitions(ZZ(i))
     end
     return p
@@ -264,11 +264,11 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
     k = Int(k)
     p = fill( ZZ(1), n )
     for l = 2:k
-      for m = l+1:n-l+1
-        p[m] = p[m] + p[m-l]
+      for m = l + 1:n - l + 1
+        p[m] = p[m] + p[m - l]
       end
     end
-    return p[n-k+1]
+    return p[n - k + 1]
   end
 
 end
@@ -294,7 +294,7 @@ julia> partitions(7, 3, 1, 4)
 
 Same as above but requiring all parts to be distinct:
 ```jldoctest
-julia> partitions(7, 3, 1, 4 ; only_distinct_parts=true)
+julia> partitions(7, 3, 1, 4; only_distinct_parts = true)
 1-element Vector{Partition{Int64}}:
  [4, 2, 1]
 ```
@@ -340,17 +340,17 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
   P = Partition{T}[]    #this will be the array of all partitions
   x = zeros(T, n)
   y = zeros(T, n)
-  j = only_distinct_parts*n*(n-1)
-  m = m-n*l1-div(j,2)
+  j = only_distinct_parts*n*(n - 1)
+  m = m - n*l1 - div(j, 2)
   l2 = l2 - l1
-  if 0 <= m <= n*l2-j
+  if 0 <= m <= n*l2 - j
 
     for i = 1:n
-      y[i] = x[i] = l1+only_distinct_parts*(n-i)
+      y[i] = x[i] = l1 + only_distinct_parts*(n - i)
     end
 
     i = 1
-    l2 = l2-only_distinct_parts*(n-1)
+    l2 = l2 - only_distinct_parts*(n - 1)
 
     while true
       while m > l2
@@ -371,10 +371,10 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
       end
 
       lcycle = false
-      for j = i-1:-1:1
+      for j = i - 1:-1:1
         l2 = x[j] - y[j] - 1
         m = m + 1
-        if m <= (n-j)*l2
+        if m <= (n - j)*l2
           x[j] = y[j] + l2
           lcycle = true
           break
@@ -394,7 +394,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 end
 
 @doc raw"""
-    partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
+    partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
 
 All partitions of a non-negative integer `m` into `n` parts (no further restrictions).
 
@@ -409,9 +409,9 @@ julia> partitions(7, 3)
  [3, 2, 2]
 ```
 # Algorithm
-This function is a shortcut for `partitions(m,n,1,m;only_distinct_parts=false)`.
+This function is a shortcut for `partitions(m, n, 1, m; only_distinct_parts = false)`.
 """
-function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
+function partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
   @req m >= 0 "m >= 0 required"
   @req n >= 0 "n >= 0 required"
 
@@ -424,11 +424,11 @@ function partitions(m::T, n::IntegerUnion) where T<:IntegerUnion
     return [ partition(T[m]) ]
   end
 
-  return partitions(m,n,1,m; only_distinct_parts = false)
+  return partitions(m, n, 1, m; only_distinct_parts = false)
 end
 
 @doc raw"""
-    partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion, S<:IntegerUnion}
+    partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
 All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an
 element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] >
@@ -439,7 +439,7 @@ increasing. The partitions are produced in lexicographically *decreasing* order.
 We compute the partitions of 100 into seven parts, where the parts are required to be
 elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
 ```jldoctest
-julia> partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])
+julia> partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
 1-element Vector{Partition{Int64}}:
  [50, 20, 20, 5, 2, 2, 1]
 ```
@@ -449,20 +449,20 @@ The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code
 Thiel. The algorithm as published in the paper has several issues and we hope to have fixed
 them all, see the code for details. Some initial fixing was done by T. Schmit.
 """
-function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
+function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   @req m >= 0 "m >= 0 required"
   @req n >= 0 "n >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing.
   # Added (and noticed) on Mar 22, 2023.
-  @req all([v[i] < v[i+1] for i in 1:length(v)-1]) "v must be strictly increasing"
+  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
 
   # Parta allows v[1] = 0 but this is nonsense for entries of a partition
-  @req all(>(0),v) "Entries of v must be positive"
+  @req all(>(0), v) "Entries of v must be positive"
 
   # For safety
-  @req all(>(0),mu) "Entries of mu must be positive"
+  @req all(>(0), mu) "Entries of mu must be positive"
 
   # Special cases
   if n == 0
@@ -485,9 +485,9 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # The original ALGOL 60 code is electronically available at
   # https://gist.github.com/ulthiel/99de02994fc31fe614586ed0c930f744.
   # First, there were some issues with termination and indices for the arrays 
-  # x,y,ii getting out of bounds. We had to introduce some additional checks 
+  # x, y, ii getting out of bounds. We had to introduce some additional checks 
   # and breaks to take care of this. Some initial fixing was done by T. Schmit.
-  # An example showing the problem is 17, 3, [1,4], [1,4].
+  # An example showing the problem is 17, 3, [1, 4], [1, 4].
 
   # Initialize variables
   r = length(v)
@@ -509,7 +509,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # This fills the array x from right with the values from v from the left 
   # (the smallest) up to their specified multiplicity.
   # If this is larger than m, there cannot be a partition.
-  for i=n:-1:1
+  for i = n:-1:1
     x[i] = ll
     y[i] = ll
     k = k - 1
@@ -542,8 +542,8 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   end
 
   # The following is a condition for when only a single partition
-  # exists. We added the || i==1 condition because without it the example
-  # partitions(17, 7, [1,4], [1,4]) returns [0, 0, 4, 4, 4, 4, 1], which is 
+  # exists. We added the || i == 1 condition because without it the example
+  # partitions(17, 7, [1, 4], [1, 4]) returns [0, 0, 4, 4, 4, 4, 1], which is 
   # nonsense. So, we have to make sure that all entries of x were modified in
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
@@ -582,7 +582,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
     # label b2
     if gotob2
-      while r > 0 && v[r] > m # Added additional r>0, otherwise get out of bounds
+      while r > 0 && v[r] > m # Added additional r > 0, otherwise get out of bounds
         r = r - 1
       end
 
@@ -609,25 +609,25 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       k = y[i]
       # Here comes the most intricate mistake.
       # On "Knuth's" problem
-      # 100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2]
+      # 100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]
       # the published algorithm does not find the valid partition
-      # 50+20+20+5+2+2+1.
+      # 50 + 20 + 20 + 5 + 2 + 2 + 1.
       # But when we replace lr > k by lr >= k, everything works.
       # Finding this was a wild guess!
       # Found on Mar 27, 2023.
-      if lr >= k && m - lr <= (n-i)*(lr - ll)
+      if lr >= k && m - lr <= (n - i)*(lr - ll)
         gotob2 = false
         continue
       else
         x[i] = k
       end #if
-      for i_0 = i - 1:-1:1 #this is to replace the for i=i-1 in ALGOL code
+      for i_0 = i - 1:-1:1 #this is to replace the for i = i - 1 in ALGOL code
         i = i_0
         r = ii[i]
         lr = v[r]
         m = m + x[i] - k
         k = y[i]
-        if lr >= k && m - lr <= (n-i)*(lr-ll) # >= here as well (probably...)
+        if lr >= k && m - lr <= (n - i)*(lr - ll) # >= here as well (probably...)
           gotob2 = false
           break
         else
@@ -644,7 +644,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 end
 
 @doc raw"""
-    partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
+    partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
 All partitions of a non-negative integer `m` where each part is an element in the vector `v`
 of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume
@@ -654,7 +654,7 @@ of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We a
 We compute all partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
 part is allowed to occur at most twice:
 ```jldoctest
-julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
+julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
 6-element Vector{Partition{Int64}}:
  [50, 50]
  [50, 20, 20, 10]
@@ -665,23 +665,23 @@ julia> partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])
 ```
 
 # Algorithm
-We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of
+We use the function `partitions(m, n, v, mu)`, looping over the number of possible parts of
 partitions.
 """
-function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<:IntegerUnion}
+function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
   @req m >= 0 "m >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing.
   # Added (and noticed) on Mar 22, 2023.
-  @req all([v[i] < v[i+1] for i in 1:length(v)-1]) "v must be strictly increasing"
+  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
 
   # Parta allows v[1] = 0 but this is nonsense for entries of a partition
-  @req all(>(0),v) "Entries of v must be positive"
+  @req all(>(0), v) "Entries of v must be positive"
 
   # For safety
-  @req all(>(0),mu) "Entries of mu must be positive"
+  @req all(>(0), mu) "Entries of mu must be positive"
   res = Partition{T}[]
 
   if isempty(v)
@@ -716,7 +716,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<
     end
   end
 
-  for n=nmin:nmax
+  for n = nmin:nmax
     append!(res, partitions(m, n, v, mu))
   end
 
@@ -724,7 +724,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T<:IntegerUnion,S<
 end
 
 @doc raw"""
-    function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
+    function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
 
 All partitions of a non-negative integer `m` where each part is an element in the vector
 `v`. We assume (without loss of generality) that the entries in `v` are strictly increasing.
@@ -732,18 +732,18 @@ All partitions of a non-negative integer `m` where each part is an element in th
 # Example
 We compute the number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
 ```jldoctest
-julia> length(partitions(100, [1,2,5,10,20,50]))
+julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
 4562
 ```
 # Algorithm
-We use the function `partitions(m,n,v,mu)`, looping over the number of possible parts of
+We use the function `partitions(m, n, v, mu)`, looping over the number of possible parts of
 partitions.
 """
-function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
+function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
 
   @req m >= 0 "m >= 0 required"
-  @req all([v[i] < v[i+1] for i in 1:length(v)-1]) "v must be strictly increasing"
-  @req all(>(0),v) "Entries of v must be positive"
+  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+  @req all(>(0), v) "Entries of v must be positive"
 
   res = Partition{T}[]
 
@@ -764,7 +764,7 @@ function partitions(m::T, v::Vector{T}) where T<:IntegerUnion
   # Set the maximum multiplicity (equal to nmax above)
   mu = [ nmax for i in 1:r ]
 
-  for n=nmin:nmax
+  for n = nmin:nmax
     append!(res, partitions(m, n, v, mu))
   end
 
@@ -789,10 +789,10 @@ not.
 
 # Examples
 ```jldoctest
-julia> dominates( partition(3,1), partition(2,2) )
+julia> dominates( partition(3, 1), partition(2, 2) )
 true
 
-julia> dominates( partition(4,1), partition(3,3) )
+julia> dominates( partition(4, 1), partition(3, 3) )
 false
 ```
 
@@ -833,21 +833,21 @@ end
 ################################################################################
 
 @doc raw"""
-    conjugate(lambda::Partition{T}) where T<:IntegerUnion
+    conjugate(lambda::Partition{T}) where T <: IntegerUnion
 
 The **conjugate** of a partition is obtained by considering its Young diagram
 (see [Tableaux](@ref)) and then flipping it along its main diagonal.
 
 # Examples
 ```jldoctest
-julia> conjugate(partition(8,8,8,7,2,1,1))
+julia> conjugate(partition(8, 8, 8, 7, 2, 1, 1))
 [7, 5, 4, 4, 4, 4, 4, 3]
 ```
 # References
 1. [Ful97](@cite), page 2
 2. [Knu11](@cite), Section 7.2.1.4, page 394.
 """
-function conjugate(lambda::Partition{T}) where T<:IntegerUnion
+function conjugate(lambda::Partition{T}) where T <: IntegerUnion
   if isempty(lambda)
     return copy(lambda)
   end

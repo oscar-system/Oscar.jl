@@ -25,10 +25,10 @@ to provide the element type as the first argument.
 
 # Examples
 ```jldoctest
-julia> P = partition([6,4,4,2]) #The partition 6+4+4+2 of 16.
+julia> P = partition([6, 4, 4, 2]) #The partition 6+4+4+2 of 16.
 [6, 4, 4, 2]
 
-julia> P = partition(6,4,4,2) #Same as above but less to type
+julia> P = partition(6, 4, 4, 2) #Same as above but less to type
 [6, 4, 4, 2]
 
 julia> length(P)
@@ -37,11 +37,11 @@ julia> length(P)
 julia> P[1]
 6
 ```
-Usually, ``|λ| ≔ n`` is called the **size** of ``λ``. In Julia, the function `size` for
+Usually, ``|λ| ≔  n`` is called the **size** of ``λ``. In Julia, the function `size` for
 arrays already exists and returns the *dimension* of an array. Instead, you can use the
 Julia function `sum` to get the sum of the parts.
 ```jldoctest
-julia> P = partition(6,4,4,2)
+julia> P = partition(6, 4, 4, 2)
 [6, 4, 4, 2]
 
 julia> sum(P)
@@ -49,19 +49,19 @@ julia> sum(P)
 ```
 You can create partitions with smaller integer types as follows.
 ```jldoctest
-julia> P = partition(Int8,6,4,4,2) #Or partition(Int8[6,4,4,2])
+julia> P = partition(Int8, 6, 4, 4, 2) #Or partition(Int8[6, 4, 4, 2])
 Int8[6, 4, 4, 2]
 ```
 There is a unique partition of 0, namely the **empty partition** (of length 0). It can be
 created as follows.
 ```jldoctest
-julia> P = partition() #Or partition([])
+julia> P = partition() # Or partition([])
 Int64[]
 julia> sum(P)
 0
 julia> length(P)
 0
-julia> P = partition(Int8) #Or partition(Int8[])
+julia> P = partition(Int8) # Or partition(Int8[])
 Int8[]
 ```
 
@@ -84,7 +84,7 @@ end
 
 A **Young diagram** is a diagram of finitely many empty "boxes" arranged
 in left-justified rows, with the row lengths in non-increasing order. The
-box in row `i` and and column `j` has the **coordinates** `(i,j)`. Listing
+box in row `i` and and column `j` has the **coordinates** `(i, j)`. Listing
 the number of boxes in each row gives a partition ``λ`` of a non-negative
 integer `n` (the total number of boxes of the diagram). The diagram is
 then said to be of **shape** ``λ``. Conversely, one can associate to any
@@ -105,7 +105,7 @@ tableau, i.e. whether the structure of the array defines a partition.
 
 # Examples
 ```jldoctest
-julia> tab=young_tableau([[1,2,3],[4,5],[6]])
+julia> tab = young_tableau([[1, 2, 3], [4, 5], [6]])
 +---+---+---+
 | 1 | 2 | 3 |
 +---+---+---+
@@ -114,7 +114,7 @@ julia> tab=young_tableau([[1,2,3],[4,5],[6]])
 | 6 |
 +---+
 
-julia> tab=young_tableau(Vector{Int8}[[2,1], [], [3,2,1]]) #Using 8 bit integers
+julia> tab = young_tableau(Vector{Int8}[[2, 1], [], [3, 2, 1]]) # Using 8 bit integers
 +---+---+
 | 2 | 1 |
 +---+---+
