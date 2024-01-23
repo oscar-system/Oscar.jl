@@ -70,6 +70,7 @@ end
 
 ### Conversion of an affine scheme into a covered scheme
 CoveredScheme(X::AbsSpec) = CoveredScheme(Covering(X))
+covered_scheme(X::AbsSpec) = CoveredScheme(X)
 
 ### Construct the empty covered scheme over the ring R
 function empty_covered_scheme(R::RT) where {RT<:AbstractAlgebra.Ring}
