@@ -33,12 +33,14 @@ import ..Oscar:
   derived_series,
   dim,
   direct_sum,
+  dot,
   dual,
   elem_type,
   expressify,
   exterior_power,
   gen,
   gens,
+  height,
   hom,
   hom_tensor,
   ideal,
@@ -77,6 +79,7 @@ import ..Oscar:
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -92,6 +95,7 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
+export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -103,6 +107,8 @@ export coefficient_vector
 export coerce_to_lie_algebra_elem
 export combinations
 export conjugate_dominant_weight
+export coroot
+export coroots
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
@@ -118,10 +124,14 @@ export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
 export is_dual
+export is_coroot_with_index
+export is_negative_coroot_with_index
 export is_negative_root_with_index
+export is_positive_coroot_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
@@ -132,6 +142,8 @@ export longest_element
 export lower_central_series
 export matrix_repr_basis
 export multicombinations
+export negative_coroot
+export negative_coroots
 export negative_root
 export negative_roots
 export num_positive_roots
@@ -139,6 +151,8 @@ export num_roots, nroots
 export num_simple_roots
 export permutations
 export permutations_with_sign
+export positive_coroot
+export positive_coroots
 export positive_root
 export positive_roots
 export reduced_expressions
@@ -147,6 +161,8 @@ export root_system_type, has_root_system_type
 export root_system, has_root_system
 export show_dynkin_diagram
 export simple_module
+export simple_coroot
+export simple_coroots
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
@@ -185,6 +201,7 @@ end
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
 export LieAlgebraIdeal
@@ -200,6 +217,7 @@ export WeylGroup, WeylGroupElem
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
+export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -209,6 +227,8 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
+export coroot
+export coroots
 export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
@@ -224,10 +244,14 @@ export is_cartan_matrix
 export is_cartan_type
 export is_direct_sum
 export is_dual
+export is_coroot_with_index
+export is_negative_coroot_with_index
 export is_negative_root_with_index
+export is_positive_coroot_with_index
 export is_positive_root_with_index
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
@@ -239,11 +263,15 @@ export longest_element
 export lower_central_series
 export matrix_repr_basis
 export matrix_repr_basis
+export negative_coroot
+export negative_coroots
 export negative_root
 export negative_roots
 export num_positive_roots
 export num_roots, nroots
 export num_simple_roots
+export positive_coroot
+export positive_coroots
 export positive_root
 export positive_roots
 export reduced_expressions
@@ -254,6 +282,8 @@ export root_system, has_root_system
 export roots
 export show_dynkin_diagram
 export simple_module
+export simple_coroot
+export simple_coroots
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
