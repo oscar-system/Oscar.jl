@@ -316,6 +316,27 @@ function exceptional_divisor(p::BlowupMorphism)
   return p.exceptional_divisor
 end
 
+function strict_transform(p::AbsSimpleBlowdownMorphism, inc::ClosedEmbedding)
+  X = domain(p)
+  Y = codomain(p)
+  U = first(affine_charts(Y))
+  @assert isone(length(affine_charts(Y))) && U === codomain(inc) "codomain mismatch"
+  inc_cov = covered_scheme_morphism(inc, codomain=Y)
+  return strict_transform(p, inc_cov)
+end
+
+function covered_scheme_morphism(inc::ClosedEmbedding;
+    domain::AbsCoveredScheme=covered_scheme(domain(inc)),
+    codomain::AbsCoveredScheme=covered_scheme(codomain(inc))
+  )
+  @assert isone(length(affine_charts(domain))) && first(affine_charts(domain)) === Oscar.domain(inc) "domain mismatch"
+  @assert isone(length(affine_charts(codomain))) && first(affine_charts(codomain)) === Oscar.codomain(inc) "domain mismatch"
+  U = first(affine_charts(domain))
+  inc_cov_mor = CoveringMorphism(default_covering(domain), default_covering(codomain), IdDict{AbsSpec, ClosedEmbedding}([U=>inc]))
+  inc_cov = CoveredClosedEmbedding(domain, codomain, inc_cov_mor)
+  return inc_cov
+end
+
 @doc raw"""
     strict_transform(p::BlowupMorphism, inc::CoveredClosedEmbedding)
 
