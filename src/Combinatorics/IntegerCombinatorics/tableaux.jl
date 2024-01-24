@@ -728,8 +728,8 @@ end
 ################################################################################
 
 @doc raw"""
-    schensted(sigma::Vector{Integer})
-    schensted(sigma::Perm{T})
+    schensted(sigma::Vector{<:IntegerUnion})
+    schensted(sigma::PermGroupElem)
 
 The Robinson–Schensted correspondence is a bijection between
 permutations and pairs of standard Young tableaux of the same shape. For
@@ -751,7 +751,7 @@ julia> Q
 # References
 1. Wikipedia, [Robinson–Schensted correspondence](https://en.wikipedia.org/wiki/Robinson–Schensted_correspondence)
 """
-function schensted(sigma::Vector{T}) where T <: Integer
+function schensted(sigma::Vector{T}) where T <: IntegerUnion
   if isempty(sigma)
     return young_tableau(Vector{T}[]), young_tableau(Vector{T}[])
   end
@@ -763,9 +763,11 @@ function schensted(sigma::Vector{T}) where T <: Integer
   return P, Q
 end
 
-function schensted(sigma::Perm{T}) where T <: Integer
-  return schensted(sigma.d)
+function schensted(::Type{T}, sigma::PermGroupElem) where T <: IntegerUnion
+  return schensted(Vector{T}(sigma))
 end
+
+schensted(sigma::PermGroupElem) = schensted(Int, sigma)
 
 @doc raw"""
     bump!(tab::YoungTableau, x::Int)
