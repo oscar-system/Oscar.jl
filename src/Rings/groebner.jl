@@ -151,6 +151,7 @@ negdegrevlex([x, y])
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
                         complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
   complete_reduction && @assert is_global(ordering)
+  @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
     return I.gb[ordering]
   end
@@ -968,6 +969,7 @@ function normal_form(f::T, J::MPolyIdeal; ordering::MonomialOrdering = default_o
 end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
+  @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
   if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
     res = _normal_form_f4(A, J)
   else
@@ -1096,6 +1098,7 @@ true
 ```
 """
 function is_standard_basis(F::IdealGens; ordering::MonomialOrdering=default_ordering(base_ring(F)))
+  @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
   if F.isGB && F.ord == ordering
     return true
   else
