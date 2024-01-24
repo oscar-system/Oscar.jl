@@ -891,7 +891,9 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :group)
-      headerstring = lowercasefirst(string(group(tbl)))
+      str_io = IOBuffer()
+      print(pretty(str_io), Lowercase(), group(tbl))
+      headerstring = String(take!(str_io))
       if characteristic(tbl) != 0
         headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
       else
