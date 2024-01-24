@@ -36,13 +36,13 @@ Return the coset `Hg`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
@@ -66,7 +66,7 @@ julia> g = perm([3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> gH = left_coset(H,g)
 Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
@@ -137,19 +137,19 @@ If `C` = `Hx` or `xH`, return `H`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> gH = left_coset(H,g)
 Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
 
 julia> acting_domain(gH)
-Permutation group of degree 3 and order 6
+Sym(3)
 ```
 """
 acting_domain(C::GroupCoset) = C.H
@@ -162,13 +162,13 @@ If `C` = `Hx` or `xH`, return `x`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> gH = left_coset(H,g)
 Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
@@ -189,10 +189,10 @@ is the case if and only if the coset representative normalizes the acting domain
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> H = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
@@ -225,10 +225,10 @@ If `check == false`, do not check whether `H` is a subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> right_cosets(G,H)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
@@ -253,10 +253,10 @@ If `check == false`, do not check whether `H` is a subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> left_cosets(G,H)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
@@ -339,15 +339,15 @@ If `check == false`, do not check whether `H` is a subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> T = right_transversal(G, H)
 Right transversal of length 4 of
-  Permutation group of degree 3 and order 6 in
-  Permutation group of degree 4 and order 24
+  Sym(3) in
+  Sym(4)
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -376,15 +376,15 @@ If `check == false`, do not check whether `H` is a subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> T = left_transversal(G, H)
 Left transversal of length 4 of
-  Permutation group of degree 3 and order 6 in
-  Permutation group of degree 4 and order 24
+  Sym(3) in
+  Sym(4)
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -454,16 +454,16 @@ Return the double coset `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,5,1,2])
 (1,3,5,2,4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> K = symmetric_group(2)
-Permutation group of degree 2 and order 2
+Sym(2)
 
 julia> double_coset(H,g,K)
 Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
@@ -486,13 +486,13 @@ If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> K = symmetric_group(2)
-Permutation group of degree 2 and order 2
+Sym(2)
 
 julia> double_cosets(G,H,K)
 3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:

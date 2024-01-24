@@ -283,7 +283,7 @@ then `nothing` is returned.
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3)))
        end;
-Character table of permutation group of degree 3 and order 6
+Character table of Sym(3)
 
  2  1  1  .
  3  1  .  1
@@ -299,7 +299,7 @@ Character table of permutation group of degree 3 and order 6
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3), 2))
        end;
-2-modular Brauer table of permutation group of degree 3 and order 6
+2-modular Brauer table of Sym(3)
 
  2  1  .
  3  1  1
@@ -2055,7 +2055,7 @@ The result is an instance of `Vector{T}`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> chi = natural_character(g);
 
