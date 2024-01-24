@@ -3,7 +3,7 @@
 This document summarises the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
-is the process of reading and writing data. There are many reasons for this 
+is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
 mathematicians.
 
@@ -32,7 +32,7 @@ as follows:
 }
 ```
 It contains the version of OSCAR used for serialization. The content is "42",
-it represetns a `Base.Int`, according to the `_type` field.
+it represents a `Base.Int`, according to the `_type` field.
 
 
 ## Implementation
@@ -43,9 +43,9 @@ serializing objects of the polyhedral geometry section.
 
 ### Description of the saving and loading mechanisms
 
-We require that any types serialized through OSCAR are registered using 
+We require that any types serialized through OSCAR are registered using
 [`@register_serialization_type`](@ref).
-This is to ensure user safety during the load process by avoiding code 
+This is to ensure user safety during the load process by avoiding code
 evaluation.
 
 ```@docs
@@ -67,7 +67,7 @@ set in `save_typed_object` resulting in a "data branch" and "type branch".
 The usage of these functions can be used inside `save_object` / `load_object`
 and `save_type_params` / `load_type_params`. However using `save_typed_object` inside
 a `save_object` implementation will lead to a verbose format and should at some
-point be move to `save_type_params`. Their implemention can be found in the 
+point be moved to `save_type_params`. Their implemention can be found in the
 `main.jl` file.
 
 #### `save_object` / `load_object`
@@ -75,7 +75,7 @@ point be move to `save_type_params`. Their implemention can be found in the
 These functions should be the first functions to be overloaded when
 implementing the serialization of a new type.
 The functions `save_data_dict` and `save_data_array` are helpers functions
-that structure the serialization. 
+that structure the serialization.
 
 The examples show how they can be used to save data using the structure
 of an array or dict. Each nested call to `save_data_dict` or `save_data_array`
@@ -161,7 +161,7 @@ The corresponding loading function would look something like this.
 ```
 function load_object(s::DeserializerState, ::Type{<:NewType}, params::ParamsObj)
    obj1 = load_object(s, Obj1Type, params[1], :key1)
- 
+
    (obj3, obj4) = load_array_node(s, :key2) do (i, entry)
      if i == 1
        load_object(s, Obj3Type, params[2])
@@ -180,7 +180,7 @@ function save_object(s::SerializerState, obj:NewType)
 end
 ```
 
-While this will throw an error 
+While this will throw an error
 ```
 function save_object(s::SerializerState, obj:NewType)
   save_object(s, obj.1, :key)
@@ -218,21 +218,21 @@ exception that some nodes may point to a shared reference. The "data branch"
 is anything that is a child node of a data node, whereas the "type branch" is
 any information that is stored in a node that is a child of a type node.
 Avoiding type information inside the data branch will lead to a more
-efficient serialization format. When the `uses_params` is set when 
+efficient serialization format. When the `uses_params` is set when
 registering the type with [`@register_serialization_type`](@ref)
-(de)serialization will use `save_type_params` / `load_type_params` 
+(de)serialization will use `save_type_params` / `load_type_params`
 to format the type information.
-In general we expect that implementing a `save_type_params` and 
-`load_type_params` should not always be necessary. Many types 
-will serialize their types in a similar fashion for example serialization 
+In general we expect that implementing a `save_type_params` and
+`load_type_params` should not always be necessary. Many types
+will serialize their types in a similar fashion for example serialization
 of a `FieldElem` will use the `save_type_params` / `load_type_params` from
-`RingElem` since in both cases the only parameter needed for such types 
+`RingElem` since in both cases the only parameter needed for such types
 is their parent.
 
 ### Serializers
 
 The code for the different types of serializers and their states is found in the
-`serializers.jl` file. Different serializers have different use cases, the 
+`serializers.jl` file. Different serializers have different use cases, the
 default serializer `JSONSerializer` is used for writting to a file. Currently
 the only other serializer is the `IPCSerializer` which at the moment is
 quite similar to the `JSONSerializer` except that it does not store the refs of
@@ -240,10 +240,10 @@ any types that are registered with the `uses_id` flag. When using the `IPCSerial
 it is left up to the user to guarantee that any refs required by a process are sent
 prior.
 
-### Upgrades 
+### Upgrades
 
 All upgrade scripts can be found in the `src/Serialization/Upgrades` folder.
-The mechanics of upgrading are found in the `main.jl` file where the 
+The mechanics of upgrading are found in the `main.jl` file where the
 [`Oscar.upgrade`](@ref) function provides the core functionality. Upgrading
 is triggered during [`load`](@ref) when the version of the file format
 to be loaded is older than the current Oscar version.
@@ -254,8 +254,8 @@ Oscar.upgrade_data
 ```
 
 #### Upgrade Scripts
-    
-All upgrade scripts should be contained in a file named after the version 
+
+All upgrade scripts should be contained in a file named after the version
 they upgrade to. For example a script that upgrades to Oscar version 0.13.0
 should be named `0.13.0.jl`.
 
@@ -290,7 +290,7 @@ The general goal is to make mathematical data
 [FAIR](https://en.wikipedia.org/wiki/FAIR_data), a goal for which we cooperate
 with the [MaRDI](https://www.mardi4nfdi.de/about/mission) project.
 
-The ramifications of making mathematical data FAIR are manifold. 
+The ramifications of making mathematical data FAIR are manifold.
 - It becomes easier to exchange data and code with fellow mathematicians,
   enhancing communication and boosting research.
 - Computer experiments and new implementations require a lot of work and hence
