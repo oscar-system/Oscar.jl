@@ -17,6 +17,31 @@ struct WeylGroup <: GroupsCore.Group
   end
 end
 
+struct WeylGroupElem <: GroupsCore.GroupElement
+  parent::WeylGroup     # parent group
+  word::Vector{UInt8}   # short revlex normal form of the word
+
+  function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
+    if !normalize
+      if word isa Vector{UInt8}
+        return new(W, word)
+      else
+        return new(W, UInt8.(word))
+      end
+    end
+
+    @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
+    x = new(W, sizehint!(UInt8[], length(word)))
+    for s in Iterators.reverse(word)
+      lmul!(x, s)
+    end
+
+    return x
+  end
+end
+
+const IteratorNoCopyState = Tuple{WeightLatticeElem, WeylGroupElem}
+
 @doc raw"""
     weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
 
@@ -57,6 +82,20 @@ end
 
 function Base.eltype(::Type{WeylGroup})
   return WeylGroupElem
+end
+
+function Base.iterate(W::WeylGroup)
+  state = weyl_vector(root_system(W)), one(W)
+  return one(W), state
+end
+
+function Base.iterate(W::WeylGroup, state::IteratorNoCopyState)
+  state = _iterate_nocopy(state)
+  if isnothing(state)
+    return nothing
+  end
+
+  return deepcopy(state[2]), state
 end
 
 @doc raw"""
@@ -172,29 +211,6 @@ end
 
 ###############################################################################
 # Weyl group elements
-
-struct WeylGroupElem <: GroupsCore.GroupElement
-  parent::WeylGroup     # parent group
-  word::Vector{UInt8}   # short revlex normal form of the word
-
-  function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
-    if !normalize
-      if word isa Vector{UInt8}
-        return new(W, word)
-      else
-        return new(W, UInt8.(word))
-      end
-    end
-
-    @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
-    x = new(W, sizehint!(UInt8[], length(word)))
-    for s in Iterators.reverse(word)
-      lmul!(x, s)
-    end
-
-    return x
-  end
-end
 
 function weyl_group_elem(R::RootSystem, word::Vector{<:Integer}; normalize::Bool=true)
   return WeylGroupElem(weyl_group(R), word; normalize=normalize)
@@ -526,17 +542,25 @@ function Base.IteratorSize(::Type{WeylIteratorNoCopy})
 end
 
 function Base.eltype(::Type{WeylIteratorNoCopy})
-  return Tuple{WeightLatticeElem,WeylGroupElem}
+  return IteratorNoCopyState
 end
 
 function Base.iterate(iter::WeylIteratorNoCopy)
-  data = deepcopy(iter.weight), deepcopy(one(iter.weyl_group))
-  return data, data
+  state = deepcopy(iter.weight), one(iter.weyl_group)
+  return state, state
 end
 
 # based on [Ste01], 4.C and 4.D
-function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{WeightLatticeElem, WeylGroupElem})
-  wt, path = data[1], word(data[2])
+function Base.iterate(iter::WeylIteratorNoCopy, state::IteratorNoCopyState)
+  state = _iterate_nocopy(state)
+  if isnothing(state)
+    return nothing
+  end
+  return state, state
+end
+
+function _iterate_nocopy(state::IteratorNoCopyState)
+  wt, path = state[1], word(state[2])
   R = root_system(wt)
 
   ai = isempty(path) ? UInt8(0) : path[end]
@@ -557,7 +581,44 @@ function Base.iterate(iter::WeylIteratorNoCopy, data::Tuple{WeightLatticeElem, W
 
   push!(path, di)
   reflect!(wt, Int(di))
-  return data, data
+  return state
+end
+
+# based on [Ste01], 4.D
+function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
+  if iszero(ai)
+    for j in (di + 1):rank(root_system(wt))
+      if !iszero(wt[j])
+        return j
+      end
+    end
+    return 0
+  end
+
+  for j in (di + 1):ai-1
+    if !iszero(wt[j])
+      return j
+    end
+  end
+
+  for j in max(ai, di)+1:rank(root_system(wt))
+    if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
+      continue
+    end
+
+    ok = true
+    for k in ai:(j - 1)
+      if reflect(wt, j)[k] < 0
+        ok = false
+        break
+      end
+    end
+    if ok
+      return j
+    end
+  end
+
+  return 0
 end
 
 ###############################################################################
@@ -584,11 +645,11 @@ function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
 end
 
 function Base.IteratorSize(::Type{WeylOrbitIterator})
-  return Base.IteratorSize(::Type{WeylIteratorNoCopy})
+  return Base.IteratorSize(WeylIteratorNoCopy)
 end
 
 function Base.eltype(::Type{WeylOrbitIterator})
-  return Base.eltype(::Type{WeylIteratorNoCopy})
+  return WeightLatticeElem
 end
 
 function Base.iterate(iter::WeylOrbitIterator)
@@ -597,7 +658,12 @@ function Base.iterate(iter::WeylOrbitIterator)
   return wt, data
 end
 
-function Base.iterate(iter::WeylOrbitIterator, data::Tuple{WeightLatticeElem, WeylGroupElem})
-  (wt, _), data = iterate(iter.nocopy, data)
-  return deepcopy(wt), data
+function Base.iterate(iter::WeylOrbitIterator, state::IteratorNoCopyState)
+  it = iterate(iter.nocopy, state)
+  if isnothing(it)
+    return nothing
+  end
+
+  (wt, _), state = it
+  return deepcopy(wt), state
 end

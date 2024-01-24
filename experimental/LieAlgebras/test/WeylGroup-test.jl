@@ -1,4 +1,9 @@
 @testset "LieAlgebras.WeylGroup" begin
+  b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
+  b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
+  f4_w0 = UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
+  g2_w0 = UInt8[2, 1, 2, 1, 2, 1]
+
   @testset "weyl_group(::ZZMatrix)" begin
     W = weyl_group(cartan_matrix(:A, 2))
     @test isfinite(W) == true
@@ -38,9 +43,6 @@
     @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
   end
 
-  @testset "(::WeylGroup)(::Vector{<:Integer})" begin
-  end
-
   @testset "inv(x::WeylGroupElem)" begin
     W = weyl_group(:A, 2); s = gens(W)
     @test inv(s[1]) == s[1]
@@ -51,6 +53,42 @@
     @test inv(s[2]*s[1]) == s[1]*s[2]
     @test inv(s[3]*s[1]) == s[3]*s[1]
     @test inv(s[2]*s[4]*s[3]*s[4]) == s[4]*s[3]*s[4]*s[2]
+
+    @testset for (fam, rk) in [
+      (:A, 1),
+      (:A, 5),
+      (:B, 3),
+      (:C, 4),
+      (:D, 5),
+      (:F, 4),
+      (:G, 2),
+      ]
+
+      W = weyl_group(fam, rk)
+      for x in W
+        ix = inv(x)
+        @test length(ix) == length(x)
+        @test isone(ix*x) == isone(x*ix) == true
+      end
+    end
+  end
+
+  @testset "iterate(W::WeylGroup)" begin
+    @testset for (fam, rk) in [
+      (:A, 1),
+      (:A, 5),
+      (:B, 3),
+      (:C, 4),
+      (:D, 5),
+      (:F, 4),
+      (:G, 2),
+      ]
+
+      W = weyl_group(fam, rk)
+      elems = collect(W)
+      @test allunique(elems)
+      @test length(elems) == order(W)
+    end
   end
 
   @testset "longest_element(W::WeylGroup)" begin
@@ -68,16 +106,15 @@
 
     # B3
     W = weyl_group(:B, 3)
-    @test word(longest_element(W)) == UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
+    @test word(longest_element(W)) == b3_w0
 
     # F4
     W = weyl_group(:F, 4)
-    @test word(longest_element(W)) ==
-      UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
+    @test word(longest_element(W)) == f4_w0
 
     # G2
     W = weyl_group(:G, 2)
-    @test word(longest_element(W)) == UInt8[2, 1, 2, 1, 2, 1]
+    @test word(longest_element(W)) == g2_w0
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -95,41 +132,35 @@
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
-    # test A2
-    W = weyl_group(:A, 2)
-    s = gens(W)
-
+    # test short revlex normal form
+    W = weyl_group(:A, 2); s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
     @test word(s[2] * s[1]) == UInt[2, 1]
     @test word(s[1] * s[2]) == UInt[1, 2]
-
     @test word(s[1] * s[2] * s[1]) == UInt[1, 2, 1]
     @test word(s[2] * s[1] * s[2]) == UInt[1, 2, 1]
 
     # test A3
-    W = weyl_group(:A, 3)
-    s = gens(W)
-
+    W = weyl_group(:A, 3); s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
-
-    @test word(s[2] * s[1]) == UInt8[2, 1]
-    @test word(s[1] * s[2]) == UInt8[1, 2]
 
     @test word(s[3] * s[1]) == UInt8[3, 1]
     @test word(s[1] * s[3]) == UInt8[3, 1]
-
-    @test word(s[3] * s[2]) == UInt8[3, 2]
-    @test word(s[2] * s[3]) == UInt8[2, 3]
-
     @test word(s[1] * s[3] * s[1]) == UInt8[3]
     @test word(s[3] * s[1] * s[3]) == UInt8[1]
-
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
-    @test word(s[2] * s[1] * s[2]) == UInt8[1, 2, 1]
-
-    @test word(s[2] * s[3] * s[2]) == UInt8[2, 3, 2]
     @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
+
+    # test general multiplication behaviour
+    W = weyl_group(:B, 4)
+    @test W(b4_w0) == W(b4_w0; normalize=false)
+
+    W = weyl_group(:F, 4)
+    @test W(f4_w0) == W(f4_w0; normalize=false)
+
+    W = weyl_group(:G, 2)
+    @test W(g2_w0) == W(g2_w0; normalize=false)
   end
 
   @testset "Base.:(^)(x::WeylGroupElem, n::Int)" begin
@@ -285,6 +316,32 @@
         gap_num += 1
       end
       @test length(orb) == gap_num
+    end
+  end
+
+  @testset "WeylOrbitIterator" begin
+    @test eltype(WeylOrbitIterator) == WeightLatticeElem
+
+    @testset for ((fam, rk), vec) in [
+      ((:A, 1), [-42]),
+      ((:A, 3), [0, 0, 1]),
+      ((:A, 3), [1, 0, 0]),
+      ((:A, 5), [1, -1, 2, 0, 2]),
+      ((:B, 3), [1, 1, 1]),
+      ((:C, 4), [2, 1, 0, 1]),
+      ((:D, 5), [-1, 2, 2, -1, -1]),
+      ((:E, 6), [1, 2, 0, 0, 2, 1]),
+      ((:F, 4), [1, 2, 3, 4]),
+      ((:G, 2), [-1, -1]),
+      ]
+
+      R = root_system(fam, rk)
+      wt = WeightLatticeElem(R, vec)
+      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
+      orb = collect(WeylOrbitIterator(wt))
+
+      @test !isnothing(findfirst(==(wt), orb))
+      @test allunique(orb)
     end
   end
 end
