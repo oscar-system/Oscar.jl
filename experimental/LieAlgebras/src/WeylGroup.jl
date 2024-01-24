@@ -632,14 +632,29 @@ struct WeylOrbitIterator
   end
 end
 
+@doc raw"""
+    weyl_orbit(wt::WeightLatticeElem)
+
+Returns an iterator over the Weyl group orbit at the weight `wt`.
+"""
 function weyl_orbit(wt::WeightLatticeElem)
   return WeylOrbitIterator(wt)
 end
 
+@doc raw"""
+    weyl_orbit(R::RootSystem, vec::Vector{<:Integer})
+
+Shorthand for `weyl_orbit(WeightLatticeElem(R, vec))`.
+"""
 function weyl_orbit(R::RootSystem, vec::Vector{<:Integer})
   return weyl_orbit(WeightLatticeElem(R, vec))
 end
 
+@doc raw"""
+    weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
+
+Shorthand for `weyl_orbit(root_system(R), vec)`.
+"""
 function weyl_orbit(W::WeylGroup, vec::Vector{<:Integer})
   return weyl_orbit(root_system(W), vec)
 end

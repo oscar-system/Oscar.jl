@@ -180,6 +180,7 @@ export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group
+export weyl_orbit
 export word
 
 include("Combinatorics.jl")
@@ -304,4 +305,5 @@ export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group
+export weyl_orbit
 export word
