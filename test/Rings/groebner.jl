@@ -80,6 +80,9 @@
         1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
         5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
     @test elements(J.gb[lex(R)]) == H
+    R, (x,y) = polynomial_ring(AcbField(64),["x","y"])
+    I = ideal([x^2+y^2+1//3,x^2+x*y+1//3*x])
+    @test_throws ArgumentError groebner_basis(I)
 end
 
 @testset "groebner leading ideal" begin
