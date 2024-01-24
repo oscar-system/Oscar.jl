@@ -443,7 +443,7 @@ function submodule(F::FreeMod{T}, A::MatElem{T}) where {T}
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+    sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
 
 Suppose the `ambient_free_module` of the `parent` `M` of the elements `v_i` 
 in `O` is `F` and `M` is a submodule (i.e. no relations are present). 
@@ -455,7 +455,7 @@ If only the submodule itself is desired, use `submodule` instead.
 """
 function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
   s = SubquoModule(F, [repres(x) for x = O])
-  return sub(F, s, task)
+  return sub(F, s)
 end
 
 function submodule(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T

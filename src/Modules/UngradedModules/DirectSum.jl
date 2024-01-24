@@ -83,7 +83,7 @@ Additionally, return
 """
 function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   F, pro, mF = direct_product([ambient_free_module(x) for x = M]..., task = :both)
-  s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...), :both)
+  s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...))
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
   pro_quo = nothing
   if length(q) != 0
