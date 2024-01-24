@@ -525,7 +525,7 @@ end
 function _determine_degree_fast(coords::SRow, w::Vector{GrpAbFinGenElem})
   iszero(coords) && return zero(parent(first(w)))
   (i, c) = first(coords)
-  return (degree(c) + w[i])::GrpAbFinGenElem
+  return (_degree_fast(c) + w[i])::GrpAbFinGenElem
 end
 
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
