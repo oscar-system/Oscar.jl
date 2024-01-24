@@ -1,3 +1,5 @@
+import AbstractAlgebra.WeakKeyIdDict
+
 @doc raw"""
     ModuleFP{T}
 
@@ -77,6 +79,9 @@ option is set in suitable functions.
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
 
+  incoming::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
+  outgoing::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
+
   function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
     r.n = n
@@ -86,6 +91,9 @@ option is set in suitable functions.
 
     r.incoming_morphisms = Vector{ModuleFPHom}()
     r.outgoing_morphisms = Vector{ModuleFPHom}()
+
+    r.incoming = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, FreeModuleHom}()
 
     return r
   end
@@ -234,6 +242,9 @@ option is set in suitable functions.
 
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom} # TODO is it possible to make ModuleFPHom to SubQuoHom?
+  
+  incoming::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
+  outgoing::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
 
   function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
@@ -243,6 +254,9 @@ option is set in suitable functions.
     r.groebner_basis = Dict()
     r.incoming_morphisms = Vector{ModuleFPHom}()
     r.outgoing_morphisms = Vector{ModuleFPHom}()
+    
+    r.incoming = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
 
     return r
   end

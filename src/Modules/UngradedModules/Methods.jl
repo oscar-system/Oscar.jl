@@ -97,6 +97,21 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   modules = [M]
   found_N = false
   for A in modules
+    if N in keys(A.incoming)
+      parent_hom[N] = A.incoming[N]
+      found_N = true
+      break
+    end
+
+    for (I, f) in A.incoming
+      I === A && continue
+      parent_hom[I] = f
+      push!(modules, I)
+    end
+  end
+
+#=
+  for A in modules
     for H in A.incoming_morphisms
       B = domain(H)
       if B!==A # on trees "B!==A" is enough!
@@ -114,6 +129,7 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
       break
     end
   end
+  =#
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
@@ -164,19 +180,18 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   all_paths = []
 
-  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFPHom}, path::Vector)
+  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFP}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
     end
-    for neighbor_morphism in U.outgoing_morphisms
-      if findfirst(x->x===neighbor_morphism, visited) === nothing #if !(neighbor_morphism in visited) doesn't work since it uses == instead of ===
-        helper_dfs!(codomain(neighbor_morphism), D, vcat(visited, [neighbor_morphism]), union(path, [neighbor_morphism]))
-      end
+    for (cod, neighbor_morphism) in U.outgoing
+      any(x->x===cod, visited) && continue
+      helper_dfs!(cod, D, push!(visited, cod), union(path, [neighbor_morphism]))
     end
   end
 
-  helper_dfs!(N, M, Vector{ModuleFPHom}(), [])
+  helper_dfs!(N, M, Vector{ModuleFP}(), [])
 
   morphisms = Vector{ModuleFPHom}()
   for path in all_paths
@@ -200,8 +215,11 @@ end
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
 """
 function register_morphism!(f::ModuleFPHom)
-  push!(domain(f).outgoing_morphisms, f)
-  push!(codomain(f).incoming_morphisms, f)
+  dom = domain(f)
+  cod = codomain(f)
+  dom.outgoing[cod] = f
+  cod.incoming[dom] = f
+  f
 end
 
 #############################
