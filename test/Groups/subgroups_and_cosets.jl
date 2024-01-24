@@ -373,7 +373,7 @@ end
    # `complement_class_reps` can be changed)
    G = alternating_group(5)
    W = wreath_product(G, G)
-   N = kernel(projection(W))[1]
+   N = kernel(canonical_projection(W))[1]
    @test_throws ErrorException complement_class_reps(W, N)
 end
 

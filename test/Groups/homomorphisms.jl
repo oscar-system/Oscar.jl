@@ -471,12 +471,12 @@ end
    @test order(kernel(mp)[1]) == 1
 end
 
-TestDirectProds=function(G1,G2)
+function test_direct_prods(G1,G2)
    G = direct_product(G1,G2)
-   f1 = embedding(G,1)
-   f2 = embedding(G,2)
-   p1 = projection(G,1)
-   p2 = projection(G,2)
+   f1 = canonical_injection(G,1)
+   f2 = canonical_injection(G,2)
+   p1 = canonical_projection(G,1)
+   p2 = canonical_projection(G,2)
 
    @test is_injective(f1)
    @test is_injective(f2)
@@ -510,7 +510,7 @@ end
    C2 = cyclic_group(2)
    C4 = cyclic_group(4)
    G = direct_product(C2,C4)
-   TestDirectProds(C2,C4)
+   test_direct_prods(C2,C4)
    @test order(G)==8
    @test is_abelian(G)
    @test !is_cyclic(G)
@@ -520,7 +520,7 @@ end
    C3 = cyclic_group(3)
    C7 = cyclic_group(7)
    G = direct_product(C3,C7)
-   TestDirectProds(C3,C7)
+   test_direct_prods(C3,C7)
    @test order(G)==21
    @test is_abelian(G)
    @test is_cyclic(G)
@@ -530,12 +530,12 @@ end
    S4 = symmetric_group(4)
    A5 = alternating_group(5)
    G = direct_product(S4,A5)
-   TestDirectProds(S4,A5)
+   test_direct_prods(S4,A5)
    @test order(G)==1440
    @test typeof(G)==DirectProductGroup
 end
 
-TestKernels = function(G,H,f)
+function test_kernel(G,H,f)
    K,i = kernel(f)
    Im = image(f)[1]
 
@@ -564,19 +564,19 @@ end
 @testset "Kernel and cokernel" begin
    G=symmetric_group(4)
    z=rand(G)
-   TestKernels(G,G,hom(G,G, x -> x^z))
+   test_kernel(G,G,hom(G,G, x -> x^z))
    
    C=cyclic_group(2)
-   TestKernels(G,C,hom(G,C,gens(G),[C[1],C[1]]))      #sign
+   test_kernel(G,C,hom(G,C,gens(G),[C[1],C[1]]))      #sign
 
    G=GL(2,7)
    C=cyclic_group(6)
-   TestKernels(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
+   test_kernel(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
 
    G=abelian_group(PcGroup,[3,3,3])
    H=abelian_group(PcGroup,[3,3])
    f=hom(G,H,gens(G),[H[1],one(H),one(H)])
-   TestKernels(G,H,f)
+   test_kernel(G,H,f)
 end
 
 @testset "Automorphism group of Sym(n)" begin

@@ -531,7 +531,7 @@ Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorph
 Base.@deprecate_binding proj_space projective_space
 
 Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
-          
+
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
 # Deprecated after 0.15
@@ -563,3 +563,10 @@ Base.@deprecate_binding ToricGlueingData ToricGluingData
 
 Base.@deprecate_binding jacobi_matrix jacobian_matrix
 Base.@deprecate_binding jacobi_ideal jacobian_ideal
+
+@deprecate embedding(G::DirectProductGroup, j::Int) canonical_injection(G, j)
+@deprecate projection(G::DirectProductGroup, j::Int) canonical_projection(G, j)
+@deprecate embedding(G::SemidirectProductGroup, n::Int) canonical_injection(G, n)
+@deprecate projection(G::SemidirectProductGroup) canonical_projection(G)
+@deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
+@deprecate projection(W::WreathProductGroup) canonical_projection(W)

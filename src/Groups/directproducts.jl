@@ -149,14 +149,15 @@ end
 Return the `j`-th factor of `G`.
 """
 function factor_of_direct_product(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
+  @req j in 1:number_of_factors(G) "index not valid"
   return G.L[j]
 end
 
 """
-    embedding(G::DirectProductGroup, j::Int)
+    canonical_injection(G::DirectProductGroup, j::Int)
 
-Return the embedding of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
+Return the injection of the `j`-th component of `G` into `G`, for `j` = 1,...,#factors of `G`.
+It is not defined for proper subgroups of direct products.
 
 # Examples
 ```jldoctest
@@ -166,51 +167,61 @@ Permutation group of degree 3 and order 6
 julia> K = symmetric_group(2)
 Permutation group of degree 2 and order 2
 
-julia> G = direct_product(H,K)
+julia> G = direct_product(H, K)
 Direct product of
  Permutation group of degree 3 and order 6
  Permutation group of degree 2 and order 2
 
-julia> emb1 = embedding(G,1)
+julia> inj1 = canonical_injection(G, 1)
 Group homomorphism
   from permutation group of degree 3 and order 6
   to direct product of
    Permutation group of degree 3 and order 6
    Permutation group of degree 2 and order 2
 
-julia> h = perm(H,[2,3,1])
+julia> h = perm(H, [2,3,1])
 (1,2,3)
 
-julia> emb1(h)
+julia> inj1(h)
 (1,2,3)
 
-julia> emb2 = embedding(G,2)
+julia> inj2 = canonical_injection(G, 2)
 Group homomorphism
   from permutation group of degree 2 and order 2
   to direct product of
    Permutation group of degree 3 and order 6
    Permutation group of degree 2 and order 2
 
-julia> k = perm(K,[2,1])
+julia> k = perm(K, [2,1])
 (1,2)
 
-julia> emb2(k)
+julia> inj2(k)
 (4,5)
 
-julia> emb1(h)*emb2(k)
+julia> inj1(h)*inj2(k)
 (1,2,3)(4,5)
 ```
 """
-function embedding(G::DirectProductGroup, j::Int)
-  @req j in 1:length(G.L) "index not valid"
-  @req G.isfull "Embedding is not defined for proper subgroups of direct products"
+function canonical_injection(G::DirectProductGroup, j::Int)
+  @req j in 1:number_of_factors(G) "index not valid"
+  @req G.isfull "Injection is not defined for proper subgroups of direct products"
   f = GAPWrap.Embedding(G.X, j)
   gr = G.L[j]
   return GAPGroupHomomorphism(gr, G, f)
 end
 
 """
-    projection(G::DirectProductGroup, j::Int)
+    canonical_injections(G::DirectProductGroup)
+
+Return the injection of the `j`-th component of `G` into `G`, for all `j` = 1,...,#factors of `G`.
+It is not defined for proper subgroups of direct products.
+"""
+function canonical_injections(G::DirectProductGroup)
+  return [canonical_injection(G, j) for j in 1:number_of_factors(G)]
+end
+
+"""
+    canonical_projection(G::DirectProductGroup, j::Int)
 
 Return the projection of `G` into the `j`-th component of `G`, for `j` = 1,...,#factors of `G`.
 
@@ -222,19 +233,19 @@ Permutation group of degree 3 and order 6
 julia> K = symmetric_group(2)
 Permutation group of degree 2 and order 2
 
-julia> G = direct_product(H,K)
+julia> G = direct_product(H, K)
 Direct product of
  Permutation group of degree 3 and order 6
  Permutation group of degree 2 and order 2
 
-julia> proj1 = projection(G,1)
+julia> proj1 = canonical_projection(G, 1)
 Group homomorphism
   from direct product of
    Permutation group of degree 3 and order 6
    Permutation group of degree 2 and order 2
   to permutation group of degree 3 and order 6
 
-julia> proj2 = projection(G,2)
+julia> proj2 = canonical_projection(G, 2)
 Group homomorphism
   from direct product of
    Permutation group of degree 3 and order 6
@@ -251,15 +262,26 @@ julia> proj2(g)
 (1,2)
 ```
 """
-function projection(G::DirectProductGroup, j::Int)
+function canonical_projection(G::DirectProductGroup, j::Int)
   @req j in 1:number_of_factors(G) "index not valid"
   f = GAPWrap.Projection(G.Xfull, j)
   p = GAPWrap.RestrictedMapping(f, G.X)
   return GAPGroupHomomorphism(G, factor_of_direct_product(G, j), p)
 end
 
+"""
+    canonical_projection(G::DirectProductGroup)
+
+Return the projection of `G` into the `j`-th component of `G`, for all `j` = 1,...,#factors of `G`.
+"""
+function canonical_projections(G::DirectProductGroup)
+  return [canonical_projection(G, j) for j in 1:number_of_factors(G)]
+end
+
+
+
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
-  @req length(V) == length(G.L) "Wrong number of entries"
+  @req length(V) == number_of_factors(G) "Wrong number of entries"
   arr = [GAPWrap.Image(GAPWrap.Embedding(G.Xfull, i), V[i].X) for i in 1:length(V)]
   xgap = prod(arr)
   @req xgap in G.X "Element not in the group"
@@ -301,7 +323,7 @@ function write_as_full(G::DirectProductGroup)
   if G.isfull
     return G
   else
-    LK = [image(projection(G, j))[1] for j in 1:length(G.L)]
+    LK = [image(canonical_projection(G, j))[1] for j in 1:number_of_factors(G)]
     H = direct_product(LK)
     # index(H,G)==1 does not work because it does not recognize G as a subgroup of H
     @req order(H) == order(G) "G is not a direct product of groups"
@@ -379,13 +401,13 @@ Return whether `G` is a semidirect product of two groups, instead of a proper su
 is_full_semidirect_product(G::SemidirectProductGroup) = G.isfull
 
 """
-    embedding(G::SemidirectProductGroup, n::Int)
+    canonical_injection(G::SemidirectProductGroup, n::Int)
 
-Return the embedding of the `n`-th component of `G` into `G`, for `n` = 1,2.
+Return the injection of the `n`-th component of `G` into `G`, for `n` = 1,2.
 It is not defined for proper subgroups of semidirect products.
 """
-function embedding(G::SemidirectProductGroup, n::Int)
-  @req G.isfull "Embedding not defined for proper subgroups of semidirect products"
+function canonical_injection(G::SemidirectProductGroup, n::Int)
+  @req G.isfull "Injection not defined for proper subgroups of semidirect products"
   if n == 1
     f = GAPWrap.Embedding(G.X, 2)
     gr = G.N
@@ -399,11 +421,11 @@ function embedding(G::SemidirectProductGroup, n::Int)
 end
 
 """
-    projection(G::SemidirectProductGroup)
+    canonical_projection(G::SemidirectProductGroup)
 
 Return the projection of `G` into the second component of `G`.
 """
-function projection(G::SemidirectProductGroup)
+function canonical_projection(G::SemidirectProductGroup)
   f = GAPWrap.Projection(G.Xfull)
   p = GAPWrap.RestrictedMapping(f, G.X)
   return GAPGroupHomomorphism(G, acting_subgroup(G), p)
@@ -571,11 +593,11 @@ Return whether `G` is a wreath product of two groups, instead of a proper subgro
 is_full_wreath_product(G::WreathProductGroup) = G.isfull
 
 """
-    projection(G::WreathProductGroup)
+    canonical_projection(G::WreathProductGroup)
 
 Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
 """
-function projection(W::WreathProductGroup)
+function canonical_projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
   f = GAPWrap.Projection(W.Xfull)
   p = GAPWrap.RestrictedMapping(f, W.X)
@@ -583,11 +605,12 @@ function projection(W::WreathProductGroup)
 end
 
 """
-    embedding(G::WreathProductGroup, n::Int)
+    canonical_injection(G::WreathProductGroup, n::Int)
 
-Return the embedding of the `n`-th component of `G` into `G`.
+Return the injection of the `n`-th component of `G` into `G`.
+It is not defined for proper subgroups of wreath products.
 """
-function embedding(W::WreathProductGroup, n::Int)
+function canonical_injection(W::WreathProductGroup, n::Int)
   @req W.isfull "Embedding not defined for proper subgroups of wreath products"
   @req n <= GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1 "n is too big"
   f = GAPWrap.Embedding(W.Xfull, n)
@@ -597,6 +620,16 @@ function embedding(W::WreathProductGroup, n::Int)
     C = W.G
   end
   return GAPGroupHomomorphism(C, W, f)
+end
+
+"""
+    canonical_injections(G::WreathProductGroup)
+
+Return the injection of the `n`-th component of `G` into `G` for all `n`.
+It is not defined for proper subgroups of wreath products.
+"""
+function canonical_injections(W::WreathProductGroup)
+  return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
 Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(x.X)))
