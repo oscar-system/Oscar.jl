@@ -537,7 +537,7 @@ end
 
   F2 = FreeMod(R,2)
   M1 = SubquoModule(F2,R[x^2*y+x*y x*y^2-x; x+x*y^2 y^3],R[x^2 y^3-x])
-  S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))], :cache_morphism)
+  S1,i1 = sub(M1, [M1(sparse_row(R[1 1])),M1(sparse_row(R[y -x]))])
 
   @test S1 == SubquoModule(F2,R[x*y^2+x^3-x^2 x*y^3-x*y-x^2; x^2*y+x*y^2+x*y-x^2+x x*y^2],R[x^2 y^3-x])
   @test i1 == find_morphism(S1, M1)
@@ -547,7 +547,7 @@ end
   end
 
   M2 = SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
-  S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))], :cache_morphism)
+  S2,i2 = sub(M2,[M2(sparse_row(R[x*y -x*y^2 x*y])),M2(sparse_row(R[x 0 -1]))])
 
   @test S2 == SubquoModule(F2,R[x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y],R[x^3-y^2 y^4-x-y])
   @test i2 == find_morphisms(S2, M2)[1]
@@ -558,7 +558,7 @@ end
 
   M3 = SubquoModule(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
   elems = [M3(sparse_row(R[0 6 0])),M3(sparse_row(R[9 0 -x])),M3(sparse_row(R[0 0 -42]))]
-  S3,i3 = sub(M3,elems,:cache_morphism)
+  S3,i3 = sub(M3,elems)
 
   @test S3 == M3
   for k=1:5
@@ -931,7 +931,7 @@ end
   u1 = R[3*y 14*y^2 6*x*y^2 x^2*y 3*x^2*y^2]
   u2 = R[5*x*y^2 10*y^2 4*x*y 7*x^2*y^2 7*x^2]
   u3 = R[13*x^2*y 4*x*y 2*x 7*x^2 9*x^2]
-  N,iN = sub(NN,[NN(sparse_row(u1)), NN(sparse_row(u2)), NN(sparse_row(u3))], :cache_morphism)
+  N,iN = sub(NN,[NN(sparse_row(u1)), NN(sparse_row(u2)), NN(sparse_row(u3))])
 
   H = restrict_domain(p1*iM,N)
   @test is_welldefined(H)
@@ -1013,7 +1013,7 @@ end
     image_of_u = submodule(M,map(x -> H(x),u))
     preimage_test_module = image_of_u + submodule(M,[M[1]])
     _,emb = preimage(H,preimage_test_module,:with_morphism)
-    @test issubset(sub(N,u, :none), image(emb)[1])
+    @test issubset(submodule(N,u), image(emb)[1])
   end
 end
 
