@@ -412,6 +412,7 @@ function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T}
   s = SubquoModule(F, V)
   emb = hom(s, F, V; check=false)
   set_attribute!(s, :canonical_inclusion => emb)
+  register_morphism!(emb)
   return s, emb
 end
 
@@ -479,6 +480,7 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}) where T
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
+  register_morphism!(emb)
   return s, emb
 end
 
@@ -505,6 +507,7 @@ function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
   end
   emb = hom(t, M, V; check=false)
   set_attribute!(t, :canonical_inclusion => emb)
+  register_morphism!(emb)
   return t, emb
 end
 
