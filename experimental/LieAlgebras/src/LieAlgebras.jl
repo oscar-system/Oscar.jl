@@ -127,10 +127,10 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot_with_index
 export is_direct_sum
 export is_dominant
 export is_dual
-export is_coroot_with_index
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -142,8 +142,9 @@ export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
-export lmul!
+export lmul, lmul!
 export longest_element
 export lower_central_series
 export matrix_repr_basis
@@ -251,10 +252,10 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot_with_index
 export is_direct_sum
 export is_dominant
 export is_dual
-export is_coroot_with_index
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -268,10 +269,9 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lmul!
+export lmul, lmul!
 export longest_element
 export lower_central_series
-export matrix_repr_basis
 export matrix_repr_basis
 export negative_coroot
 export negative_coroots
