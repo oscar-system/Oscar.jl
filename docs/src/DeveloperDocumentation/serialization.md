@@ -18,7 +18,7 @@ julia> load("/tmp/fourtitwo.json")
 
 ```
 As hinted by the filename, OSCAR writes a file in JSON format. The file looks
-as follow:
+as follows:
 ```
 {
   "_ns": {
@@ -31,8 +31,9 @@ as follow:
   "data": "42"
 }
 ```
-It contains the version of OSCAR it was written by, its type, and the actual
-content, in this case as an `Int`.
+It contains the version of OSCAR used for serialization. The content is "42",
+it represetns a `Base.Int`, according to the `_type` field.
+
 
 ## Implementation
 All files for serialization can be found in the folder `src/Serialization`. The
@@ -66,7 +67,7 @@ set in `save_typed_object` resulting in a "data branch" and "type branch".
 The usage of these functions can be used inside `save_object` / `load_object`
 and `save_type_params` / `load_type_params`. However using `save_typed_object` inside
 a `save_object` implementation will lead to a verbose format and should at some
-point be move to `save_type_params`. Their implemention can be found the 
+point be move to `save_type_params`. Their implemention can be found in the 
 `main.jl` file.
 
 #### `save_object` / `load_object`
@@ -235,7 +236,9 @@ The code for the different types of serializers and their states is found in the
 default serializer `JSONSerializer` is used for writting to a file. Currently
 the only other serializer is the `IPCSerializer` which at the moment is
 quite similar to the `JSONSerializer` except that it does not store the refs of
-any types that are registered with the `uses_id` flag.
+any types that are registered with the `uses_id` flag. When using the `IPCSerializer`
+it is left up to the user to guarantee that any refs required by a process are sent
+prior.
 
 ### Upgrades 
 
@@ -251,10 +254,10 @@ Oscar.upgrade_data
 ```
 
 #### Upgrade Scripts
-
+    
 All upgrade scripts should be contained in a file named after the version 
 they upgrade to. For example a script that upgrades to Oscar version 0.13.0
-should is named `0.13.0.jl`.
+should be named `0.13.0.jl`.
 
 ```@docs
 Oscar.UpgradeScript
