@@ -50,9 +50,9 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
   println(io, "G-set of")
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
-  println(io, x.group)
+  println(io, Lowercase(), x.group)
   print(io, "with seeds ", x.seeds)
   print(io, Dedent())
 end
@@ -63,7 +63,7 @@ function Base.show(io::IO, x::GSetByElements)
   else
     print(io, "G-set of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), x.group, " with seeds ", x.seeds)
+    print(IOContext(io, :supercompact => true), Lowercase(), x.group, " with seeds ", x.seeds)
   end
 end
 
@@ -476,10 +476,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GSetByRightTransversal)
   println(io, "Right cosets of")
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
-  println(io, x.subgroup, " in")
-  print(io, x.group)
+  println(io, Lowercase(), x.subgroup, " in")
+  print(io, Lowercase(), x.group)
   print(io, Dedent())
 end
 
@@ -489,7 +489,7 @@ function Base.show(io::IO, x::GSetByRightTransversal)
   else
     print(io, "Right cosets of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), x.subgroup, " in ", x.group)
+    print(IOContext(io, :supercompact => true), Lowercase(), x.subgroup, " in ", Lowercase(), x.group)
   end
 end
 

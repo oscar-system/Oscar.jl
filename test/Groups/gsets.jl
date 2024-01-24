@@ -3,6 +3,7 @@
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
   Omega = gset(G)
+  @test repr(Omega, context = :supercompact => true) == "G-set"
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
@@ -320,6 +321,7 @@ end
   G = symmetric_group(5)
   H = sylow_subgroup(G, 2)[1]
   Omega = right_cosets(G, H)
+  @test repr(Omega, context = :supercompact => true) == "Right cosets of groups"
   @test isa(Omega, GSet)
   @test acting_group(Omega) == G
   @test length(Omega) == index(G, H)

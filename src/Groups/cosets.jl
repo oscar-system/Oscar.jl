@@ -28,11 +28,11 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
   side = x.side === :left ? "Left" : "Right"
-  println(io, "$side coset of ", x.H)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
+  println(io, "$side coset of ", Lowercase(), x.H)
   print(io, Indent())
   println(io, "with representative ", x.repr)
-  print(io, "in ", x.G)
+  print(io, "in ", Lowercase(), x.G)
   print(io, Dedent())
 end
 
@@ -43,7 +43,7 @@ function Base.show(io::IO, x::GroupCoset)
   else
     print(io, "$side coset of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), x.H, " with representative ", x.repr)
+    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " with representative ", x.repr)
   end
 end
 
@@ -95,9 +95,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H, g)
-Left coset of Permutation group of degree 3 and order 6
+Left coset of permutation group of degree 3 and order 6
   with representative (1,3)(2,4,5)
-  in Permutation group of degree 5 and order 120
+  in permutation group of degree 5 and order 120
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
@@ -164,9 +164,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H,g)
-Left coset of Permutation group of degree 3 and order 6
+Left coset of permutation group of degree 3 and order 6
   with representative (1,3)(2,4,5)
-  in Permutation group of degree 5 and order 120
+  in permutation group of degree 5 and order 120
 
 julia> acting_domain(gH)
 Sym(3)
@@ -191,9 +191,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H, g)
-Left coset of Permutation group of degree 3 and order 6
+Left coset of permutation group of degree 3 and order 6
   with representative (1,3)(2,4,5)
-  in Permutation group of degree 5 and order 120
+  in permutation group of degree 5 and order 120
 
 julia> representative(gH)
 (1,3)(2,4,5)
@@ -220,9 +220,9 @@ julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> gH = left_coset(H, g)
-Left coset of Permutation group of degree 4 and order 24
+Left coset of permutation group of degree 4 and order 24
   with representative (1,3)(2,4,5)
-  in Permutation group of degree 5 and order 120
+  in permutation group of degree 5 and order 120
 
 julia> is_bicoset(gH)
 false
@@ -231,9 +231,9 @@ julia> f = perm(G,[2,1,4,3,5])
 (1,2)(3,4)
 
 julia> fH = left_coset(H, f)
-Left coset of Permutation group of degree 4 and order 24
+Left coset of permutation group of degree 4 and order 24
   with representative (1,2)(3,4)
-  in Permutation group of degree 5 and order 120
+  in permutation group of degree 5 and order 120
 
 julia> is_bicoset(fH)
 true
@@ -258,15 +258,15 @@ Sym(3)
 
 julia> rc = right_cosets(G, H)
 Right cosets of
-  Permutation group of degree 3 and order 6 in
-  Permutation group of degree 4 and order 24
+  permutation group of degree 3 and order 6 in
+  permutation group of degree 4 and order 24
 
 julia> collect(rc)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Right coset of Permutation group with representative ()
- Right coset of Permutation group with representative (1,4)
- Right coset of Permutation group with representative (1,4,2)
- Right coset of Permutation group with representative (1,4,3)
+ Right coset of permutation group with representative ()
+ Right coset of permutation group with representative (1,4)
+ Right coset of permutation group with representative (1,4,2)
+ Right coset of permutation group with representative (1,4,3)
 ```
 """
 function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
@@ -290,10 +290,10 @@ Sym(3)
 
 julia> left_cosets(G, H)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Left coset of Permutation group with representative ()
- Left coset of Permutation group with representative (1,4)
- Left coset of Permutation group with representative (1,2,4)
- Left coset of Permutation group with representative (1,3,4)
+ Left coset of permutation group with representative ()
+ Left coset of permutation group with representative (1,4)
+ Left coset of permutation group with representative (1,2,4)
+ Left coset of permutation group with representative (1,3,4)
 ```
 """
 function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
@@ -316,10 +316,10 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
   println(io, "$side transversal of length $(length(x)) of")
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
-  println(io, x.H, " in")
-  print(io, x.G)
+  println(io, Lowercase(), x.H, " in")
+  print(io, Lowercase(), x.G)
   print(io, Dedent())
 end
 
@@ -330,7 +330,7 @@ function Base.show(io::IO, x::SubgroupTransversal)
   else
     print(io, "$side transversal of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), x.H, " in ", x.G)
+    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " in ", Lowercase(), x.G)
   end
 end
 
@@ -376,8 +376,13 @@ Sym(3)
 
 julia> T = right_transversal(G, H)
 Right transversal of length 4 of
+<<<<<<< HEAD
   Sym(3) in
   Sym(4)
+=======
+  permutation group of degree 3 and order 6 in
+  permutation group of degree 4 and order 24
+>>>>>>> address comments
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -413,8 +418,13 @@ Sym(3)
 
 julia> T = left_transversal(G, H)
 Left transversal of length 4 of
+<<<<<<< HEAD
   Sym(3) in
   Sym(4)
+=======
+  permutation group of degree 3 and order 6 in
+  permutation group of degree 4 and order 24
+>>>>>>> address comments
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
