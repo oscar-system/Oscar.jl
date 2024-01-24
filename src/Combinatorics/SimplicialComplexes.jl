@@ -13,7 +13,7 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 
 
 @doc raw"""
-   simplical_complex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+    simplical_complex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
 
 Construct an abstract simplicial complex from a set of faces.
 While arbitrary non-negative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
