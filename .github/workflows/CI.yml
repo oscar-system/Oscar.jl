@@ -58,6 +58,12 @@ jobs:
           - julia-version: 'nightly'
             group: 'long'
             os: macOS-latest
+          # Add a job on the local runner
+          - julia-version: '1.9'
+            #os doesn't need to be a real OS. Its just the variable which is evaluated for runs-on
+            # right ?
+            os: rptu-1
+            group: long
 
     steps:
       - uses: actions/checkout@v3
@@ -82,6 +88,9 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
+      - name: "Use many workers"
+        if: ${{startsWith(matrix.os, 'rptu')}}
+        run: echo "NUMPROCS=6" >> $GITHUB_ENV
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
