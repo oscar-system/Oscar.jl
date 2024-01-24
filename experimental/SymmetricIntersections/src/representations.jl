@@ -617,8 +617,8 @@ function is_faithful(rep::LinRep)
 end
 
 @doc raw"""
-    is_projectively_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
-    is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
 Given a linear representation `rep` of the domain `E` of the cover `p` affording the
 character `chi`, return whether `rep` is `p`-faithful, i.e. `rep` reduces to a faithful
