@@ -359,7 +359,7 @@ intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ## Submodules and Quotients
 
 ```@docs
-sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
 ```@docs
