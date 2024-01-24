@@ -1,6 +1,6 @@
 import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
 export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
-export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
+export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix, representation_on_weights
 export InvariantRing, invariant_ring, fundamental_invariants, null_cone_ideal
 ##########################
 #Reductive Groups
@@ -47,13 +47,13 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-    io = AbstractAlgebra.pretty(io)
+    io = pretty(io)
     if G.group[1] == :SL
         print(io, "Reductive group ", G.group[1], G.group[2])
     else
-        println(io, "Torus of degree ", group(G)[2])
-        print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(G))
-        print(io, AbstractAlgebra.Dedent())
+        println(io, "Torus of rank ", group(G)[2])
+        print(IOContext(io, :supercompact => true), Indent(), "over the field ", field(G))
+        print(io, Dedent())
     end
 end
 
@@ -90,14 +90,10 @@ mutable struct RepresentationReductiveGroup
 
     #function RepresentationReductiveGroup(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Integer}})
     function RepresentationReductiveGroup(G::ReductiveGroup, W::Vector{Vector{ZZRingElem}})
-        if !(G.group[1] == :torus)
-            return nothing
-        else
-            R = new()
-            R.group = G
-            R.weights = W
-            return R
-        end
+        R = new()
+        R.group = G
+        R.weights = W
+        return R
     end
     
     #matrix M is the representation matrix. does not check M.
@@ -117,28 +113,26 @@ representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.Mat
 group(R::RepresentationReductiveGroup) = R.group
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
-    if G.group[1] == :SL
+    @assert G.group[1] == :SL
         return RepresentationReductiveGroup(G, d)
-    end
 end
 
 function representation_on_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
-    if G.group[1] == :torus
-        V = Vector{Vector{ZZRingElem}}()
-        if typeof(W) <: Vector
-            G.group[2] == 1 || @error("Incompatible weights")
-            for i in 1:length(W)
-                push!(V, [ZZRingElem(W[i])])
-            end
-        else
-            G.group[2] == ncols(W) || @error("Incompatible weights")
-            #assume columns = G.group[2]
-            for i in 1:nrows(W)
-                push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
-            end
+    @assert G.group[1] == :torus
+    V = Vector{Vector{ZZRingElem}}()
+    if typeof(W) <: Vector
+        G.group[2] == 1 || @error("Incompatible weights")
+        for i in 1:length(W)
+            push!(V, [ZZRingElem(W[i])])
         end
-        return RepresentationReductiveGroup(G,V)
+    else
+        G.group[2] == ncols(W) || @error("Incompatible weights")
+        #assume columns = G.group[2]
+        for i in 1:nrows(W)
+            push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
+        end
     end
+    return RepresentationReductiveGroup(G,V)
 end
 
 function representation_reductive_group(G::ReductiveGroup)
@@ -174,26 +168,26 @@ function vector_space_dimension(R::RepresentationReductiveGroup)
 end
 
 function Base.show(io::IO, R::RepresentationReductiveGroup)
-    io = AbstractAlgebra.pretty(io)
+    io = pretty(io)
     if group(group(R))[1] == :SL
         println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
         if R.sym_deg[1]
-            print(io, AbstractAlgebra.Indent(), "over symmetric forms of degree ", R.sym_deg[2])
-            print(io, AbstractAlgebra.Dedent())
+            print(io, Indent(), "over symmetric forms of degree ", R.sym_deg[2])
+            print(io, Dedent())
         else
-            println(io, AbstractAlgebra.Indent(), "with representation matrix")
+            println(io, Indent(), "with representation matrix")
             show(io, R.rep_mat)
-            print(io, AbstractAlgebra.Dedent())
+            print(io, Dedent())
         end
     else
         println(io, "Representation of torus of degree ", group(group(R))[2])
-        println(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(group(R)), " and weights ")
+        println(IOContext(io, :supercompact => true), Indent(), "over the field ", field(group(R)), " and weights ")
         if isdefined(R, :weights)
             print(io, R.weights)
         elseif isdefined(R, :rep_mat)
             print(R.rep_mat)
         end
-        print(io, AbstractAlgebra.Dedent())
+        print(io, Dedent())
     end
 end
 
