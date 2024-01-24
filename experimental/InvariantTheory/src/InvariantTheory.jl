@@ -52,8 +52,8 @@ function Base.show(io::IO, G::ReductiveGroup)
         print(io, "Reductive group ", G.group[1], G.group[2])
     else
         println(io, "Torus of degree ", group(G)[2])
-        print(IOContext(io, :supercompact => true), AbstractAlgebra.Indent(), "over the field ", field(G))
-        print(io, AbstractAlgebra.Dedent())
+        print(IOContext(io, :supercompact => true), Indent(), "over the field ", field(G))
+        print(io, Dedent())
     end
 end
 
