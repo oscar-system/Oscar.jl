@@ -475,7 +475,7 @@ function is_homogeneous(el::FreeModElem)
 end
 
 @doc raw"""
-    degree(f::FreeModElem)
+    degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
 
 Given a homogeneous element `f` of a graded free module, return the degree of `f`.
 
