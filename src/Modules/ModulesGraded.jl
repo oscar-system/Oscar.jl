@@ -350,7 +350,7 @@ end
 
 function degrees(M::FreeMod)
   @assert is_graded(M)
-  return M.d
+  return M.d::Vector{GrpAbFinGenElem}
 end
 
 @doc raw"""
@@ -507,13 +507,8 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(f::FreeModElem)
-  !is_graded(parent(f)) && error("The parent module is not graded.")
-  A = grading_group(base_ring(parent(f)))
-  iszero(f) && return A[0]
-  f.d = isa(f.d, GrpAbFinGenElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
-  isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
-  return f.d::GrpAbFinGenElem
+function degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
+  return _determine_degree_fast(coordinates(f), degrees(parent(f)))
 end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
@@ -525,6 +520,12 @@ end
 function degree(::Type{Int}, f::FreeModElem)
   @assert is_z_graded(parent(f))
   return Int(degree(f)[1])
+end
+
+function _determine_degree_fast(coords::SRow, w::Vector{GrpAbFinGenElem})
+  iszero(coords) && return zero(first(w))
+  (i, c) = first(coords)
+  return (degree(c) + w[i])::GrpAbFinGenElem
 end
 
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
@@ -1040,6 +1041,7 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem)
+  return _determine_degree_fast(coordinates(el), degrees_of_generators(parent(el)))
   if !iszero(coordinates(el))
     result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
       if result === nothing
@@ -2448,13 +2450,7 @@ function generators_of_degree(
 end
 
 function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
-  result = Vector{Int}()
-  for (i, g) in enumerate(gens(F))
-    if degree(g) == d
-      push!(result, i)
-    end
-  end
-  return result
+  return Int[i for (i, g) in enumerate(gens(F)) if degree(g) == d]
 end
 
 function _constant_sub_matrix(
@@ -2470,10 +2466,13 @@ function _constant_sub_matrix(
   m = length(ind_dom)
   n = length(ind_cod)
   result = zero_matrix(kk, m, n)
-  for i in 1:m
-    for j in 1:n
-      c = (images_of_generators(phi)[ind_dom[i]])[ind_cod[j]]
-      result[i, j] = iszero(c) ? zero(kk) : first(coefficients(c))
+  img_gens = images_of_generators(phi)
+  for (i, l) in enumerate(ind_dom)
+    v = coordinates(img_gens[l])
+    for (j, k) in enumerate(ind_cod)
+      success, c = _has_index(v, k)
+      !success && continue
+      result[i, j] = first(coefficients(c))
     end
   end
   return ind_dom, ind_cod, result
