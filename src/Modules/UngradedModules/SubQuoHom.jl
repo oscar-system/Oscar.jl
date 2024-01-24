@@ -541,7 +541,7 @@ Return the image of `a` as an object of type `SubquoModule`.
 Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
-  s = sub(codomain(h), images_of_generators(h), :module)
+  s = submodule(codomain(h), images_of_generators(h))
   inc = hom(s, codomain(h), images_of_generators(h), check=false)
   return s, inc
 end
@@ -724,7 +724,7 @@ function kernel(h::SubQuoHom)
   @assert codomain(inc_K) === F
   v = gens(D)
   imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
-  k = sub(D, imgs, :module)
+  k = submodule(D, imgs)
   return k, hom(k, D, imgs, check=false)
 end
 
@@ -992,7 +992,7 @@ function restrict_domain(H::SubQuoHom, M::SubquoModule)
   if ngens(M) > 0
     @assert M.quo == domain(H).quo
   end
-  i = sub(domain(H), map(m -> SubquoModuleElem(repres(m), domain(H)), gens(M)), :cache_morphism)[2]
+  _, i = sub(domain(H), map(m -> SubquoModuleElem(repres(m), domain(H)), gens(M)))
   return i*H
 end
 

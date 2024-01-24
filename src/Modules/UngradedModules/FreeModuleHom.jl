@@ -462,7 +462,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   G = domain(h)
   R = base_ring(G)
   if ngens(G) == 0
-    s = sub(G, gens(G), :module)
+    s = submodule(G, gens(G))
     help = hom(s, G, gens(G), check=false)
     help.generators_map_to_generators = true
     return s, help
@@ -480,10 +480,10 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   k = syzygy_module(b)
   if isa(codomain(h), SubquoModule)
     s = collect(k.sub.gens)
-    k = sub(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s], :module)
+    k = submodule(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s])
   else
     #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)], :module)
+    k = submodule(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)])
   end
   @assert k.F === G
   c = collect(k.sub.gens)
@@ -560,7 +560,7 @@ Homogeneous module homomorphism)
 """
 function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
-  s = sub(codomain(h), si, :module)
+  s = submodule(codomain(h), si)
   phi = hom(s, codomain(h), si, check=false)
   return s, phi
 end

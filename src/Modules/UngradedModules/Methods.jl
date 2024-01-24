@@ -65,7 +65,7 @@ is not equal to 1 an error is thrown.
 """
 function ideal_to_module(I::MPolyIdeal{T}, F::FreeMod{T}) where T
   @assert rank(F) == 1
-  return sub(F, [x*gen(F,1) for x in gens(I)], :module)
+  return submodule(F, [x*gen(F,1) for x in gens(I)])
 end
 
 @doc raw"""

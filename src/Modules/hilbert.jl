@@ -119,7 +119,7 @@ end
 
 function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
-  return multi_hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
+  return multi_hilbert_series(submodule(F,gens(F)); parent=parent, backend=backend)
 end
 
 
@@ -174,5 +174,5 @@ function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, ba
   if parent === nothing
     parent, _ = laurent_polynomial_ring(ZZ, :t)
   end
-  return hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
+  return hilbert_series(submodule(F,gens(F)); parent=parent, backend=backend)
 end

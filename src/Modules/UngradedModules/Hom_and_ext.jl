@@ -78,7 +78,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   kDelta = kernel(delta)
 
   projected_kernel::Vector{elem_type(H_s0_t0)} = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
-  H = quo(sub(H_s0_t0, projected_kernel, :module), image(rho_prime)[1], :module)
+  H = quo(submodule(H_s0_t0, projected_kernel), image(rho_prime)[1], :module)
 
   H_simplified, s_inj, s_proj = simplify_light(H)
 
