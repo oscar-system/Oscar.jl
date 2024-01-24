@@ -1,4 +1,3 @@
-import Oscar.gens, AbstractAlgebra.direct_sum, Oscar.invariant_ring
 export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
 export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix, representation_on_weights
 export InvariantRing, invariant_ring, fundamental_invariants, null_cone_ideal
