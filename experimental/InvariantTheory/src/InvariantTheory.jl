@@ -47,7 +47,7 @@ mutable struct ReductiveGroup
 end
 
 function Base.show(io::IO, G::ReductiveGroup)
-    io = AbstractAlgebra.pretty(io)
+    io = pretty(io)
     if G.group[1] == :SL
         print(io, "Reductive group ", G.group[1], G.group[2])
     else
