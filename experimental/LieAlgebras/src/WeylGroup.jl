@@ -425,9 +425,6 @@ function parent_type(::Type{WeylGroupElem})
 end
 
 # rename to reduced decompositions ?
-@doc raw"""
-    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
-"""
 function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
   return ReducedExpressionIterator(x, up_to_commutation)
 end
