@@ -523,7 +523,7 @@ function degree(::Type{Int}, f::FreeModElem)
 end
 
 function _determine_degree_fast(coords::SRow, w::Vector{GrpAbFinGenElem})
-  iszero(coords) && return zero(parent(first(w)))
+  iszero(coords) && return zero(grading_group(base_ring(coords)))
   (i, c) = first(coords)
   return (_degree_fast(c) + w[i])::GrpAbFinGenElem
 end
