@@ -12,7 +12,7 @@ function independent_columns(A::MatElem)
   return col_indices
 end
 
-# applies function on facets of equal dimension
+# applies function on faces of equal dimension
 function apply_on_faces(f::Function, K::SimplicialComplex)
   dim_K = dim(K)
   K_facets = facets(K)
@@ -59,15 +59,16 @@ function shift_basis_ext(F::Field, K::SimplicialComplex)
 end
 
 @doc raw"""
-   delta_ext(K::SimplicialComplex)
+     exterior_shift(K::SimplicialComplex)
 
 Returns the exterior shift of `K`
 """
-function delta_ext(F::Field, K::SimplicialComplex)
+function exterior_shift(F::Field, K::SimplicialComplex)
   n = nvertices(K)
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
   input_faces = apply_on_faces(K) do (dim_face, faces)
+    println("shifting faces of dim $dim_face")
     sort!(faces; lt=cmp)
     X = matrix(Fx, hcat(x))
     nCk = sort(subsets(n, dim_face + 1))
@@ -92,11 +93,11 @@ function delta_ext(F::Field, K::SimplicialComplex)
 end
 
 @doc raw"""
-   delta_sym(K::SimplicialComplex)
+   symmetric_shift(K::SimplicialComplex)
 
 Returns the symmetric shift of `K`
 """
-function delta_sym(F::Field, K::SimplicialComplex)
+function symmetric_shift(F::Field, K::SimplicialComplex)
   n = nvertices(K)
   Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
   Fyx, x = polynomial_ring(Fy, n)
