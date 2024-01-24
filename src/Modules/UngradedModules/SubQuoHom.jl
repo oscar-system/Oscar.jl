@@ -983,9 +983,9 @@ of the domain of `H`. The relations of `M` must be the relations of
 the domain of `H`.
 """
 function restrict_domain(H::SubQuoHom, M::SubquoModule)
-  for i in M.outgoing_morphisms
-    if codomain(i) === domain(H)
-      return i*H
+  for (cod, t) in M.outgoing
+    if cod === domain(H)
+      return _recreate_morphism(M, cod, t)*H
     end
   end
   # else there is no cached map

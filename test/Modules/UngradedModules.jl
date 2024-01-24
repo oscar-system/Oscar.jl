@@ -1118,3 +1118,44 @@ end
   @test length(vector_space_basis(Mloc)) == 2
   @test length(vector_space_basis(Mloc,0)) == 1
 end
+
+@testset "canonical maps and garbage collection" begin
+  R, (x, y) = QQ[:x, :y]
+
+  F = FreeMod(R, 1)
+  I, inc = sub(F, [x*F[1]])
+
+  @test haskey(F.incoming, I)
+  @test Oscar._recreate_morphism(I, F, F.incoming[I]) == inc
+
+  @test haskey(I.outgoing, F)
+  @test Oscar._recreate_morphism(I, F, I.outgoing[F]) == inc 
+
+  I = 5
+  inc = "a"
+
+  GC.gc()
+  GC.gc()
+
+  @test_broken length(keys(F.incoming)) == 0 # For some reason this still does not work in the tests, although it works interactively in the REPL!
+  # The other way around it will not work, because I has a reference to its ambient_free_module f.
+  
+  I, inc_I = sub(F, [x*F[1]])
+  J, inc_J = sub(I, [x^2*I[1]])
+
+  @test haskey(J.outgoing, I)
+  @test haskey(I.incoming, J) 
+  @test Oscar._recreate_morphism(J, I, J.outgoing[I]) == inc_J
+  @test Oscar._recreate_morphism(J, I, I.incoming[J]) == inc_J
+
+  I = 5
+  inc_I = 6
+
+  GC.gc()
+  GC.gc()
+
+  # The inclusion map J -> I is still stored in the attributes of J as :canonical_inclusion.
+  # However, even removing that and calling gc() again does not remove the entry in J.outgoing.
+  # So there is still a memory leak somewhere!
+  @test_broken length(keys(J.outgoing)) == 0 
+end

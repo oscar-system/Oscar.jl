@@ -176,7 +176,7 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
     end
     for (cod, neighbor_morphism) in U.outgoing
       any(x->x===cod, visited) && continue
-      helper_dfs!(cod, D, push!(visited, cod), union(path, [neighbor_morphism]))
+      helper_dfs!(cod, D, push!(visited, cod), union(path, [_recreate_morphism(U, cod, neighbor_morphism)]))
     end
   end
 
@@ -212,7 +212,7 @@ function register_morphism!(f::ModuleFPHom)
 end
 
 # Some missing methods for the above to work
-function sparse_matrix(f::SubQuoHom)
+function sparse_matrix(f::ModuleFPHom)
   dom = domain(f)
   R = base_ring(codomain(f))
   result = sparse_matrix(R, 0, ngens(codomain(f)))
