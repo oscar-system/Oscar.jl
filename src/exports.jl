@@ -145,6 +145,7 @@ export SchemeMor
 export SemidirectProductGroup
 export SesquilinearForm
 export SimpleGluing
+export SimplicialComplex
 export Singular
 export Sp
 export SpaceGerm
