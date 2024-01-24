@@ -125,7 +125,7 @@ end
 
 function _recreate_morphism(dom::ModuleFP, cod::ModuleFP, t::Tuple{<:SMat, <:Any})
   A, bc = t
-  if t === nothing
+  if bc === nothing
     return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], check=false)
   else
     return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], bc, check=false)
