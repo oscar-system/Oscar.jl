@@ -177,6 +177,7 @@ If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
+  @req is_exact_type(typeof(base_ring(F)(0))) "This functionality is only supported over exact fields."
   singular_assure(F)
   if reduced
     @assert Singular.has_global_ordering(base_ring(F.SF))
