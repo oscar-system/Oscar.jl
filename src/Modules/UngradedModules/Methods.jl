@@ -93,43 +93,23 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
     return [identity_map(M)]
   end
-  parent_hom = IdDict{SubquoModule,ModuleFPHom}()
+  parent_hom = IdDict{SubquoModule, ModuleFPHom}()
   modules = [M]
   found_N = false
   for A in modules
     if N in keys(A.incoming)
-      parent_hom[N] = A.incoming[N]
+      parent_hom[N] = _recreate_morphism(N, A, A.incoming[N])
       found_N = true
       break
     end
 
     for (I, f) in A.incoming
       I === A && continue
-      parent_hom[I] = f
+      parent_hom[I] = _recreate_morphism(I, A, f)
       push!(modules, I)
     end
   end
 
-#=
-  for A in modules
-    for H in A.incoming_morphisms
-      B = domain(H)
-      if B!==A # on trees "B!==A" is enough!
-        if findfirst(x->x===B,modules) === nothing #if !(B in modules) doesn't work since it uses == instead of ===
-          parent_hom[B] = H
-          push!(modules,B)
-        end
-      end
-      if B===N
-        found_N = true
-        break
-      end
-    end
-    if found_N
-      break
-    end
-  end
-  =#
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
@@ -141,6 +121,15 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
     A = codomain(f)
   end
   return morphisms
+end
+
+function _recreate_morphism(dom::ModuleFP, cod::ModuleFP, t::Tuple{<:SMat, <:Any})
+  A, bc = t
+  if t === nothing
+    return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], check=false)
+  else
+    return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], bc, check=false)
+  end
 end
 
 @doc raw"""
@@ -217,10 +206,27 @@ Cache the morphism `f` in the corresponding caches of the domain and codomain of
 function register_morphism!(f::ModuleFPHom)
   dom = domain(f)
   cod = codomain(f)
-  dom.outgoing[cod] = f
-  cod.incoming[dom] = f
+  dom.outgoing[cod] = sparse_matrix(f), ring_map(f)
+  cod.incoming[dom] = sparse_matrix(f), ring_map(f)
   f
 end
+
+# Some missing methods for the above to work
+function sparse_matrix(f::SubQuoHom)
+  dom = domain(f)
+  R = base_ring(codomain(f))
+  result = sparse_matrix(R, 0, ngens(codomain(f)))
+  for v in gens(dom)
+    push!(result, coordinates(f(v)))
+  end
+  return result
+end
+
+ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::FreeModuleHom) = f.ring_map
+
+ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::SubQuoHom) = f.ring_map
 
 #############################
 #TODO move to Hecke

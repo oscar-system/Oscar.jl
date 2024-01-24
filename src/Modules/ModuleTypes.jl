@@ -76,11 +76,20 @@ option is set in suitable functions.
   S::Vector{Symbol}
   d::Union{Vector{GrpAbFinGenElem}, Nothing}
 
-  incoming_morphisms::Vector{<:ModuleFPHom}
-  outgoing_morphisms::Vector{<:ModuleFPHom}
-
-  incoming::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
-  outgoing::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
+  # We register the incoming and outgoing natural morphisms.
+  # This must be done in a way that objects can be collected by the 
+  # garbage collector. In particular, we can not store the actual 
+  # map as the value for a specific key (domain or codomain depending 
+  # on whether the map is incoming or outgoing), because then the 
+  # value has a reference to the key and thus the pair will never be 
+  # deleted. 
+  #
+  # Instead, we store a sparse matrix which allows us to reconstruct 
+  # the map and potentially a change of rings. This allows us to 
+  # reconstruct the map on request (which should be of relatively 
+  # low cost).
+  incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
+  outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
   function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
@@ -89,12 +98,8 @@ option is set in suitable functions.
     r.S = S
     r.d = nothing
 
-    r.incoming_morphisms = Vector{ModuleFPHom}()
-    r.outgoing_morphisms = Vector{ModuleFPHom}()
-
-    r.incoming = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, FreeModuleHom}()
-
+    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
     return r
   end
 end
@@ -240,11 +245,8 @@ option is set in suitable functions.
 
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
 
-  incoming_morphisms::Vector{<:ModuleFPHom}
-  outgoing_morphisms::Vector{<:ModuleFPHom} # TODO is it possible to make ModuleFPHom to SubQuoHom?
-  
-  incoming::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
-  outgoing::WeakKeyIdDict{<:ModuleFP, <:ModuleFPHom}
+  incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
+  outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
   function SubquoModule{R}(F::FreeMod{R}) where {R}
     # this does not construct a valid subquotient
@@ -252,11 +254,9 @@ option is set in suitable functions.
     r.F = F
 
     r.groebner_basis = Dict()
-    r.incoming_morphisms = Vector{ModuleFPHom}()
-    r.outgoing_morphisms = Vector{ModuleFPHom}()
     
-    r.incoming = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
-    r.outgoing = WeakKeyIdDict{ModuleFP, ModuleFPHom}()
+    r.incoming = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
+    r.outgoing = WeakKeyIdDict{ModuleFP, Tuple{SMat, Any}}()
 
     return r
   end
