@@ -7,6 +7,7 @@
 #
 ###############################################################################
 
+# TODO: Replace GroupsCore with AA and add conformance tests
 struct WeylGroup <: GroupsCore.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
@@ -40,7 +41,7 @@ struct WeylGroupElem <: GroupsCore.GroupElement
   end
 end
 
-const IteratorNoCopyState = Tuple{WeightLatticeElem, WeylGroupElem}
+const WeylIteratorNoCopyState = Tuple{WeightLatticeElem,WeylGroupElem}
 
 @doc raw"""
     weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
@@ -65,7 +66,7 @@ end
 
 Returns the Weyl group defined by .
 """
-function weyl_group(type::Tuple{Symbol, Int}...)
+function weyl_group(type::Tuple{Symbol,Int}...)
   return weyl_group(root_system(type...))
 end
 
@@ -89,7 +90,7 @@ function Base.iterate(W::WeylGroup)
   return one(W), state
 end
 
-function Base.iterate(W::WeylGroup, state::IteratorNoCopyState)
+function Base.iterate(W::WeylGroup, state::WeylIteratorNoCopyState)
   state = _iterate_nocopy(state)
   if isnothing(state)
     return nothing
@@ -503,22 +504,6 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
 end
 
 ###############################################################################
-# ParabolicWeylGroupCoset
-
-struct ParabolicWeylGroupCoset
-  parent::WeylGroup
-  weight::WeightLatticeElem
-end
-
-function (P::ParabolicWeylGroupCoset)(x::WeylGroupElem)
-  @req parent(x) === parent(P) "$x needs to have the same parent as $P"
-end
-
-function parent(P::ParabolicWeylGroupCoset)
-  return P.parent
-end
-
-###############################################################################
 # WeylIteratorNoCopy
 
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
@@ -539,7 +524,7 @@ function Base.IteratorSize(::Type{WeylIteratorNoCopy})
 end
 
 function Base.eltype(::Type{WeylIteratorNoCopy})
-  return IteratorNoCopyState
+  return WeylIteratorNoCopyState
 end
 
 function Base.iterate(iter::WeylIteratorNoCopy)
@@ -548,7 +533,7 @@ function Base.iterate(iter::WeylIteratorNoCopy)
 end
 
 # based on [Ste01], 4.C and 4.D
-function Base.iterate(iter::WeylIteratorNoCopy, state::IteratorNoCopyState)
+function Base.iterate(iter::WeylIteratorNoCopy, state::WeylIteratorNoCopyState)
   state = _iterate_nocopy(state)
   if isnothing(state)
     return nothing
@@ -556,7 +541,7 @@ function Base.iterate(iter::WeylIteratorNoCopy, state::IteratorNoCopyState)
   return state, state
 end
 
-function _iterate_nocopy(state::IteratorNoCopyState)
+function _iterate_nocopy(state::WeylIteratorNoCopyState)
   wt, path = state[1], word(state[2])
   R = root_system(wt)
 
@@ -592,13 +577,13 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     return 0
   end
 
-  for j in (di + 1):ai-1
+  for j in (di + 1):(ai - 1)
     if !iszero(wt[j])
       return j
     end
   end
 
-  for j in max(ai, di)+1:rank(root_system(wt))
+  for j in (max(ai, di) + 1):rank(root_system(wt))
     if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
       continue
     end
@@ -670,7 +655,7 @@ function Base.iterate(iter::WeylOrbitIterator)
   return wt, data
 end
 
-function Base.iterate(iter::WeylOrbitIterator, state::IteratorNoCopyState)
+function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
   it = iterate(iter.nocopy, state)
   if isnothing(it)
     return nothing

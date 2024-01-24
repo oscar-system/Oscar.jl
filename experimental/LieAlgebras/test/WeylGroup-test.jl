@@ -44,46 +44,32 @@
   end
 
   @testset "inv(x::WeylGroupElem)" begin
-    W = weyl_group(:A, 2); s = gens(W)
+    W = weyl_group(:A, 2)
+    s = gens(W)
     @test inv(s[1]) == s[1]
-    @test inv(s[1]*s[2]) == s[2]*s[1]
-    @test inv(s[2]*s[1]*s[2]) == s[1]*s[2]*s[1]
+    @test inv(s[1] * s[2]) == s[2] * s[1]
+    @test inv(s[2] * s[1] * s[2]) == s[1] * s[2] * s[1]
 
-    W = weyl_group(:B, 4); s = gens(W)
-    @test inv(s[2]*s[1]) == s[1]*s[2]
-    @test inv(s[3]*s[1]) == s[3]*s[1]
-    @test inv(s[2]*s[4]*s[3]*s[4]) == s[4]*s[3]*s[4]*s[2]
+    W = weyl_group(:B, 4)
+    s = gens(W)
+    @test inv(s[2] * s[1]) == s[1] * s[2]
+    @test inv(s[3] * s[1]) == s[3] * s[1]
+    @test inv(s[2] * s[4] * s[3] * s[4]) == s[4] * s[3] * s[4] * s[2]
 
-    @testset for (fam, rk) in [
-      (:A, 1),
-      (:A, 5),
-      (:B, 3),
-      (:C, 4),
-      (:D, 5),
-      (:F, 4),
-      (:G, 2),
-      ]
-
+    @testset for (fam, rk) in
+                 [(:A, 1), (:A, 5), (:B, 3), (:C, 4), (:D, 5), (:F, 4), (:G, 2)]
       W = weyl_group(fam, rk)
       for x in W
         ix = inv(x)
         @test length(ix) == length(x)
-        @test isone(ix*x) == isone(x*ix) == true
+        @test isone(ix * x) == isone(x * ix) == true
       end
     end
   end
 
   @testset "iterate(W::WeylGroup)" begin
-    @testset for (fam, rk) in [
-      (:A, 1),
-      (:A, 5),
-      (:B, 3),
-      (:C, 4),
-      (:D, 5),
-      (:F, 4),
-      (:G, 2),
-      ]
-
+    @testset for (fam, rk) in
+                 [(:A, 1), (:A, 5), (:B, 3), (:C, 4), (:D, 5), (:F, 4), (:G, 2)]
       W = weyl_group(fam, rk)
       elems = collect(W)
       @test allunique(elems)
@@ -133,7 +119,8 @@
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
     # test short revlex normal form
-    W = weyl_group(:A, 2); s = gens(W)
+    W = weyl_group(:A, 2)
+    s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
     @test word(s[2] * s[1]) == UInt[2, 1]
@@ -142,7 +129,8 @@
     @test word(s[2] * s[1] * s[2]) == UInt[1, 2, 1]
 
     # test A3
-    W = weyl_group(:A, 3); s = gens(W)
+    W = weyl_group(:A, 3)
+    s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
     @test word(s[3] * s[1]) == UInt8[3, 1]
@@ -197,7 +185,7 @@
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
 
-    x = W([1,3,5,4,2])
+    x = W([1, 3, 5, 4, 2])
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
   end
@@ -255,7 +243,7 @@
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
       dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
-      orb = Tuple{WeightLatticeElem, WeylGroupElem}[]
+      orb = Tuple{WeightLatticeElem,WeylGroupElem}[]
       for tup in WeylIteratorNoCopy(wt)
         push!(orb, deepcopy(tup))
       end
@@ -291,7 +279,7 @@
       R = root_system(type...)
       wt = WeightLatticeElem(R, vec)
       dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
-      orb = Tuple{WeightLatticeElem, WeylGroupElem}[]
+      orb = Tuple{WeightLatticeElem,WeylGroupElem}[]
       for tup in WeylIteratorNoCopy(wt)
         push!(orb, deepcopy(tup))
       end
@@ -333,8 +321,7 @@
       ((:E, 6), [1, 2, 0, 0, 2, 1]),
       ((:F, 4), [1, 2, 3, 4]),
       ((:G, 2), [-1, -1]),
-      ]
-
+    ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
       dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
