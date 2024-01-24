@@ -624,7 +624,7 @@ Given a linear representation `rep` of the domain `E` of the cover `p` affording
 character `chi`, return whether `rep` is `p`-faithful, i.e. `rep` reduces to a faithful
 projective representation of the codomain of `p`.
 
-This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
+This is equivalent to asking that the center of `chi` coincides with the kernel of `p`.
 """
 function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T, V}) where {T, V}
   E = group(parent(chi))::T
