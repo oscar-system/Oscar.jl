@@ -5,6 +5,7 @@ export @check
 export @pbw_relations
 export @perm
 export @permutation_group
+export @register_serialization_type
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
@@ -1240,7 +1241,6 @@ export regular_24_cell
 export regular_600_cell
 export regular_triangulation
 export regular_triangulations
-export @register_serialization_type
 export relations
 export relative_ambient_dimension
 export relative_interior_point
@@ -1252,7 +1252,6 @@ export renest
 export repres
 export representative
 export represents_element
-export reset_global_serializer_state
 export restrict
 export restrict_automorphism
 export restrict_automorphism_group

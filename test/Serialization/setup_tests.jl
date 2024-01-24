@@ -34,7 +34,7 @@ function test_save_load_roundtrip(func, path, original::T; params=nothing) where
 
   # test loading on a empty state
   save(filename, original)
-  reset_global_serializer_state()
+  Oscar.reset_global_serializer_state()
   loaded = load(filename; params=params)
 end
 
