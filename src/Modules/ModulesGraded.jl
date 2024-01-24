@@ -2465,7 +2465,7 @@ function _constant_sub_matrix(
   ind_cod = _indices_of_generators_of_degree(G, d)
   m = length(ind_dom)
   n = length(ind_cod)
-  result = zero_matrix(kk, m, n)
+  result = sparse_matrix(kk, m, n)
   img_gens = images_of_generators(phi)
   for (i, l) in enumerate(ind_dom)
     v = coordinates(img_gens[l])
