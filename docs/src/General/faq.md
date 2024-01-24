@@ -114,9 +114,20 @@ even if `zero(typeof(elm))` may not.
 
 ---
 
-**Q: How can I install or access custom GAP packages (e.g. unpublished ones)?**
+**Q: How can I access or install custom GAP packages (e.g. unpublished ones)?**
 
-TODO
+An already locally installed GAP package can be loaded into the OSCAR session
+via `GAP.Packages.load`, where the first argument is the local path to the
+package directory (the one that contains the `PackageInfo.g` file).
+This works only if no other version of this package has been loaded already.
+
+If Oscar loads the package in question already on startup
+but you want a different version of this package to be loaded,
+you can force this by storing the desired version in the `pkg` subdirectory
+of the user's root directory (`GAPInfo.UserGapRoot` in GAP).
+
+Installing a new GAP package for which you know the URL of a package archive
+can be done via `GAP.Packages.install`, where the first argument is this URL.
 
 ---
 
