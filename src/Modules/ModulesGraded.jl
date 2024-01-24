@@ -2472,7 +2472,7 @@ function _constant_sub_matrix(
   result = zero_matrix(kk, m, n)
   for i in 1:m
     for j in 1:n
-      c = phi(F[ind_dom[i]])[ind_cod[j]]
+      c = (images_of_generators(phi)[ind_dom[i]])[ind_cod[j]]
       result[i, j] = iszero(c) ? zero(kk) : first(coefficients(c))
     end
   end
