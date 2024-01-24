@@ -624,37 +624,40 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
         end
     end
     #step 4
-    @label step_4 
-    j = 0
-    for i in 1:length(U)
-        if length(U[i]) != 0
-            j = i
-            @goto step4_b
-        end
-    end
-    return S[index_0]
-    @label step4_b
-    m = U[j][1]
-    w = C[j] #weight_of_monomial(m, W)
-    #step 5 - 7
-    for i in 1:n
-        u = m*gen(R,i)
-        v = w + W[i]
-        if v in C
-            index = findfirst(item -> item == v, C)
-            c = true
-            for elem in S[index]
-                if divides(u, elem)[1]
-                    c = false
-                    break
+    count = 0
+    while true
+        for j in 1:length(U)
+            if length(U[j]) != 0
+                m = U[j][1]
+                w = C[j] #weight_of_monomial(m, W)
+                #step 5 - 7
+                for i in 1:n
+                    u = m*gen(R,i)
+                    v = w + W[i]
+                    if v in C
+                        index = findfirst(item -> item == v, C)
+                        c = true
+                        for elem in S[index]
+                            if divides(u, elem)[1]
+                                c = false
+                                break
+                            end
+                        end
+                        if c == true
+                            push!(S[index], u)
+                            push!(U[index], u)
+                        end
+                    end
                 end
-            end
-            if c == true
-                push!(S[index], u)
-                push!(U[index], u)
+                deleteat!(U[j], findall(item -> item == m, U[j]))
+            else
+                count += 1
             end
         end
+        if count == length(U)
+            return S[index_0]
+        else
+            count = 0
+        end
     end
-    deleteat!(U[j], findall(item -> item == m, U[j]))
-    @goto step_4
 end
