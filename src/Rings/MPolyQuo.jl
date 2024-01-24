@@ -1338,6 +1338,11 @@ function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem})
   return degree(a.f)
 end
 
+function _degree_fast(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  simplify(a)
+  @req !iszero(a) "Element must be non-zero"
+  return _degree_fast(a.f)
+end
 function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
   @assert is_z_graded(base_ring(parent(a)))
   return Int(degree(a)[1])
