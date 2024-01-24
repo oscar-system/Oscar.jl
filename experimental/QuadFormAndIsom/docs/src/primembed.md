@@ -48,16 +48,15 @@ first input:
 
 ```@docs
 primitive_embeddings(::ZZGenus, ::ZZLat)
-primitive_embeddings(::TorQuadModule, ::Tuple{Int, Int},
-::ZZLat)
+primitive_embeddings(::TorQuadModule, ::Tuple{Int, Int}, ::ZZLat)
 ```
 
 In order to compute such primitive embeddings of a lattice $M$ into a lattice
 $L$, we follow the proof of Proposition 1.15.1 of [Nik79](@cite).
 
-Note: for the implementation of the algorithm, we construct an even lattice
-$T := M(-1)\oplus U$ where $U$ is a hyperbolic plane - $T$ is unique in its
-genus and $O(T)\to O(D_T)$ is surjective. We then classify all primitive
+Note: for the implementation of the algorithm, we construct a lattice $T$ which
+is unique in its genus, such $D_T$ and $D_M(-1)$ are isometric and
+$O(T)\to O(D_T)$ is surjective. We then classify all primitive
 extensions of $M\oplus T$ modulo $O(D_T)$ (and modulo $O(M)$ for a
 classification of primitive sublattices). To classify such primitive
 extensions, we use Proposition 1.5.1 of [Nik79](@cite):

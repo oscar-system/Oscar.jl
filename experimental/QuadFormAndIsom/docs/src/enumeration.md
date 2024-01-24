@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Enumeration of isometries
 
-One of the main features of this project is the enumeration of lattices with
+One of the main features of this project is the enumeration of even lattices with
 isometry of finite order with at most two prime divisors. This is the content
 of [BH23](@cite) which has been implemented. We guide the user here to the global
 aspects of the available theory, and we refer to the paper [BH23](@cite) for further
@@ -88,3 +88,10 @@ embeddings and their equivariant version. We use this basis to introduce the
 method [`admissible_equivariant_primitive_extensions`](@ref) (Algorithm 2 in
 [BH23](@cite)) which is the major tool making the previous enumeration
 possible and fast, from an algorithmic point of view.
+
+### Extra functionalities
+
+```@docs
+representatives_of_hermitian_type(::Union{ZZGenus, ZZLat}, ::Int)
+representatives_of_hermitian_type(::Union{ZZLat, ZZGenus}, ::Union{ZZPolyRingElem, QQPolyRingElem})
+```

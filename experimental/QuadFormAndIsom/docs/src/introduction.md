@@ -37,9 +37,6 @@ This project has been slightly tested on simple and known examples. It is
 currently being tested on a larger scale to test its reliability. Moreover,
 there are still computational bottlenecks due to non-optimized algorithms.
 
-Among the possible improvements and extensions:
-* Implement extra methods for lattices with isometries of infinite order;
-
 ## Current applications of this project
 
 The project was initiated by S. Brandhorst and T. Hofmann for classifying

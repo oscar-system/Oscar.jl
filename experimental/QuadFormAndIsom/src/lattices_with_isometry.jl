@@ -405,7 +405,7 @@ julia> minimum(Lf)
 ```
 """
 function minimum(Lf::ZZLatWithIsom)
-  @req is_positive_definite(Lf) "Underlying lattice must be positive definite"
+  @req is_definite(Lf) "Underlying lattice must be definite"
   return minimum(lattice(Lf))
 end
 
@@ -1452,7 +1452,7 @@ end
     is_of_hermitian_type(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the minimal polynomial of
-the underlying isometry $f$ is irreducible.
+the underlying isometry $f$ is irreducible and the associated order is maximal.
 
 Note that if $(L, f)$ is of hermitian type with $f$ of minimal polynomial $\chi$,
 then $L$ can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
@@ -1486,7 +1486,11 @@ true
 """
 @attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
-  return is_irreducible(minimal_polynomial(Lf))
+  chi = minimal_polynomial(Lf)
+  !is_irreducible(chi) && return false
+  is_finite(order_of_isometry(Lf)) && return true
+  E = equation_order(number_field(chi; cached=false))
+  return is_maximal(E)
 end
 
 @doc raw"""
@@ -1615,7 +1619,7 @@ function discriminant_group(Lf::ZZLatWithIsom)
   q = discriminant_group(L)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
   fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
-  return (q, fq)
+  return q, fq
 end
 
 @doc raw"""
