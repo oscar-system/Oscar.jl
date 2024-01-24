@@ -1798,7 +1798,8 @@ function _weights_and_sing_mod(M::ModuleFP{T}) where {T <: MPolyDecRingElem}
 
   # get a cokernel presentation of M
   p = presentation(M)
-  cokern_repr = image(map(p, 1))[1]
+  #cokern_repr = image(map(p, 1))[1] # Creating the inclusion map takes too long, see Issue #2999
+  cokern_repr = SubquoModule(p[0], [map(p, 1)(v) for v in gens(p[1])])
   cokern_gens = ambient_representatives_generators(cokern_repr)
   if isempty(cokern_gens)
     cokern_gens = [zero(ambient_free_module(cokern_repr))]
