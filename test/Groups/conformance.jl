@@ -4,7 +4,7 @@ import Oscar.AbstractAlgebra.GroupsCore
 
 #include(joinpath(dirname(pathof(GroupsCore)), "..", "test", "conformance_test.jl"))
 
-@testset "GAPGroups_interface_conformance for $(G)" for G in L
+@testset "GAPGroups_interface_conformance $G of type $(typeof(G))" for G in L
 
    # TODO: enable GroupsCore conformance tests; this requires a new GroupsCore
    # release with https://github.com/kalmarek/GroupsCore.jl/pull/41 merged.
