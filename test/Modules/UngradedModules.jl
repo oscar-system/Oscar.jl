@@ -356,6 +356,13 @@ end
   @test P == Q
   v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
   @test represents_element(v,M)
+  R, (x,y,z) = polynomial_ring(AcbField(64), ["x", "y", "z"])
+  F = FreeMod(R, 2)
+
+  A = R[x+1 y*z+x^2; (y+2*z) z^3]
+  B = R[2*z*(x*z+y^2) (x*z)^5]
+  M = SubquoModule(F, A, B)
+  @test_throws ArgumentError groebner_basis(M)
 end
 
 
