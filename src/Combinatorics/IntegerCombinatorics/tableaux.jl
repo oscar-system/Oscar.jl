@@ -14,13 +14,19 @@
 ################################################################################
 
 @doc raw"""
-    young_tableau(v::Vector{Vector{T}}) where T <: IntegerUnion
+    young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion
 
 Return the Young tableau given by `v` as an object of type `YoungTableau{T}`.
 
 See[`YoungTableau`](@ref) for more details and examples.
+
+If `check` is `true` (default), it is checked whether `v` defines a tableau,
+that is, whether the structure of `v` defines a partition.
 """
-function young_tableau(v::Vector{Vector{T}}) where T <: IntegerUnion
+function young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion
+  if check
+    @req _defines_partition(map(length, v)) "The input does not define a Young tableau"
+  end
   return YoungTableau(v)
 end
 
@@ -98,7 +104,9 @@ function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
   for _ in 1:length(s[1]) - 1
     write(io, hline_portion, crosstop)
   end
-  write(io, hline_portion, crosstopright)
+  if length(s[1]) > 0
+    write(io, hline_portion, crosstopright)
+  end
   # Print rows and lines
   for i in 1:length(s)
     r = s[i]
@@ -113,7 +121,9 @@ function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
       for _ in 1:length(r) - 1
         write(io, hline_portion, crossbottom)
       end
-      write(io, hline_portion, crossbottomright)
+      if length(r) > 0
+        write(io, hline_portion, crossbottomright)
+      end
     else
       # Print "normal" line
       # The next row should always be at most as long, but this is not checked
@@ -189,7 +199,7 @@ Return the shape of a tableau, i.e. the partition given by the lengths of the
 rows of the tableau.
 """
 function shape(tab::YoungTableau{T}) where T
-  return partition(T[ length(tab[i]) for i = 1:length(tab) ])
+  return partition(T[ length(tab[i]) for i = 1:length(tab) ], check = false)
 end
 
 @doc raw"""
@@ -316,7 +326,7 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) whe
   if max_val < len
     return SST
   elseif len == 0
-    push!(SST, young_tableau(Vector{T}[]))
+    push!(SST, young_tableau(Vector{T}[], check = false))
     return SST
   end
   tab = [Array{T}(fill(i, shape[i])) for i = 1:len]
@@ -324,7 +334,7 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) whe
   n = shape[m]
 
   while true
-    push!(SST, young_tableau([copy(row) for row in tab]))
+    push!(SST, young_tableau([copy(row) for row in tab], check = false))
 
     #raise one element by 1
     while !(tab[m][n] < max_val &&
@@ -376,7 +386,7 @@ end
 Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
 """
 function semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
-  return semistandard_tableaux(partition(shape), max_val)
+  return semistandard_tableaux(partition(shape, check = false), max_val)
 end
 
 @doc raw"""
@@ -415,12 +425,12 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
 
   tabs = Vector{YoungTableau}()
   if isempty(s)
-    push!(tabs, young_tableau(Vector{Int}[]))
+    push!(tabs, young_tableau(Vector{Int}[], check = false))
     return tabs
   end
   ls = length(s)
 
-  tab = young_tableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
+  tab = young_tableau([ [0 for j = 1:s[i]] for i = 1:length(s)], check = false)
   sub_s = zeros(Integer, length(s))
 
   #tracker_row = zeros(Integer, n_max)
@@ -442,7 +452,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
           end
         end
       end
-      push!(tabs, young_tableau([copy(row) for row in tab]))
+      push!(tabs, young_tableau([copy(row) for row in tab], check = false))
 
       return
 
@@ -584,13 +594,13 @@ Return a list of all standard tableaux of a given shape.
 function standard_tableaux(s::Partition)
   tabs = Vector{YoungTableau}()
   if isempty(s)
-    push!(tabs, young_tableau(Vector{Int}[]))
+    push!(tabs, young_tableau(Vector{Int}[], check = false))
     return tabs
   end
   n_max = sum(s)
   ls = length(s)
 
-  tab = young_tableau([ [0 for j = 1:s[i]] for i = 1:length(s)])
+  tab = young_tableau([ [0 for j = 1:s[i]] for i = 1:length(s)], check = false)
   sub_s = [0 for i = 1:length(s)]
   tab[1][1] = 1
   sub_s[1] = 1
@@ -604,7 +614,7 @@ function standard_tableaux(s::Partition)
   while n > 0
     if n == n_max || i > ls
       if n == n_max
-        push!(tabs, young_tableau([copy(row) for row in tab]))
+        push!(tabs, young_tableau([copy(row) for row in tab], check = false))
       end
       tab[tracker_row[n]][sub_s[tracker_row[n]]] = 0
       i = tracker_row[n] + 1
@@ -632,7 +642,7 @@ function standard_tableaux(s::Partition)
 end
 
 function standard_tableaux(s::Vector{T}) where T <: Integer
-  return standard_tableaux(partition(s))
+  return standard_tableaux(partition(s, check = false))
 end
 
 @doc raw"""
@@ -691,10 +701,10 @@ is equal to the hook length of the corresponding box.
 """
 function hook_lengths(lambda::Partition)
   if isempty(lambda)
-    return young_tableau(Vector{Int}[])
+    return young_tableau(Vector{Int}[], check = false)
   end
   tab = [ [hook_length(lambda, i, j) for j in 1:lambda[i]] for i in 1:length(lambda) ]
-  return young_tableau(tab)
+  return young_tableau(tab, check = false)
 end
 
 @doc raw"""
@@ -766,10 +776,10 @@ julia> Q
 """
 function schensted(sigma::Vector{T}) where T <: IntegerUnion
   if isempty(sigma)
-    return young_tableau(Vector{T}[]), young_tableau(Vector{T}[])
+    return young_tableau(Vector{T}[], check = false), young_tableau(Vector{T}[], check = false)
   end
-  P = young_tableau([[sigma[1]]])
-  Q = young_tableau([[1]])
+  P = young_tableau([[sigma[1]]], check = false)
+  Q = young_tableau([[1]], check = false)
   for i = 2:length(sigma)
     bump!(P, sigma[i], Q, i)
   end

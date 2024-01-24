@@ -15,31 +15,44 @@
 #
 ################################################################################
 
+function _defines_partition(parts::Vector{<: IntegerUnion})
+  if isempty(parts)
+    return true
+  end
+  return all(i -> parts[i] >= parts[i + 1], 1:length(parts) - 1) && is_positive(parts[end])
+end
+
 @doc raw"""
-    partition([T::Type{<:IntegerUnion}, parts::IntegerUnion...)
-    partition(parts::Vector{T}) where T <: IntegerUnion
+    partition([T::Type{<:IntegerUnion}, parts::IntegerUnion...; check::Bool = true)
+    partition(parts::Vector{T}; check::Bool = true) where T <: IntegerUnion
 
 Return the partition given by `parts` as an object of type `Partition{T}`.
 See [`Partition`](@ref) for more details and examples.
+
+If `check` is `true` (default), it is checked whether the given sequence defines
+a partition.
 """
 partition
 
-function partition(parts::IntegerUnion...)
-  return partition(Int, parts...)
+function partition(parts::IntegerUnion...; check::Bool = true)
+  return partition(Int, parts..., check = check)
 end
 
-function partition(T::Type{<:IntegerUnion}, parts::IntegerUnion...)
-  return partition(collect(T, parts))
+function partition(T::Type{<:IntegerUnion}, parts::IntegerUnion...; check::Bool = true)
+  return partition(collect(T, parts), check = check)
 end
 
-function partition(parts::Vector{T}) where {T <: IntegerUnion}
+function partition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUnion}
+  if check
+    @req _defines_partition(parts) "The sequence does not define a partition"
+  end
   return Partition{T}(parts)
 end
 
 # The empty array is of "Any" type, and this is not what we want.
 # We want it to be an array of integers of the default type Int64.
-function partition(p::Vector{Any})
-  return partition(Vector{Int}(p))
+function partition(p::Vector{Any}; check::Bool = true)
+  return partition(Vector{Int}(p), check = check)
 end
 
 data(P::Partition) = P.p
@@ -167,9 +180,9 @@ function partitions(n::T) where T <: IntegerUnion
 
   # Some trivial cases
   if n == 0
-    return Partition{T}[ partition(T[]) ]
+    return Partition{T}[ partition(T[], check = false) ]
   elseif n == 1
-    return Partition{T}[ partition(T[1]) ]
+    return Partition{T}[ partition(T[1], check = false) ]
   end
 
   # Now, the algorithm starts
@@ -178,7 +191,7 @@ function partitions(n::T) where T <: IntegerUnion
   q = 1
   d = fill( T(1), n )
   d[1] = n
-  push!(P, partition(d[1:1]))
+  push!(P, partition(d[1:1], check = false))
   while q != 0
     if d[q] == 2
       k += 1
@@ -203,7 +216,7 @@ function partitions(n::T) where T <: IntegerUnion
         end
       end
     end
-    push!(P, partition(d[1:k]))
+    push!(P, partition(d[1:k], check = false))
   end
   return P
 end
@@ -318,7 +331,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 
   # Some trivial cases
   if m == 0 && n == 0
-    return Partition{T}[ partition(T[]) ]
+    return Partition{T}[ partition(T[], check = false) ]
   end
 
   if n == 0 || n > m
@@ -360,14 +373,14 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
       end
 
       x[i] = y[i] + m
-      push!(P, partition(x[1:n]))
+      push!(P, partition(x[1:n], check = false))
 
       if i < n && m > 1
         m = 1
         x[i] = x[i] - 1
         i += 1
         x[i] = y[i] + 1
-        push!(P, partition(x[1:n]))
+        push!(P, partition(x[1:n], check = false))
       end
 
       lcycle = false
@@ -417,11 +430,11 @@ function partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
 
   # Special cases
   if m == n
-    return [ partition(T[ 1 for i in 1:m]) ]
+    return [ partition(T[ 1 for i in 1:m], check = false) ]
   elseif m < n || n == 0
     return Partition{T}[]
   elseif n == 1
-    return [ partition(T[m]) ]
+    return [ partition(T[m], check = false) ]
   end
 
   return partitions(m, n, 1, m; only_distinct_parts = false)
@@ -548,7 +561,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
   if m == 0 && x[1] != 0
-    push!(P, partition(copy(x)))
+    push!(P, partition(copy(x), check = false))
     return P
   end
 
@@ -594,7 +607,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       if m == lr
         x[i] = lr
         if i <= n # Added, otherwise get out of bounds
-          push!(P, partition(copy(x))) #need copy here!
+          push!(P, partition(copy(x), check = false)) #need copy here!
         else
           break
         end
@@ -860,5 +873,5 @@ function conjugate(lambda::Partition{T}) where T <: IntegerUnion
     end
   end
 
-  return partition(mu)
+  return partition(mu, check = false)
 end
