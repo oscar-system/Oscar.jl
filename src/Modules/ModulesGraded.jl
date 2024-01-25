@@ -474,8 +474,13 @@ function is_homogeneous(el::FreeModElem)
   return isa(el.d, GrpAbFinGenElem)
 end
 
+AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
+                          <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
+                          <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
+                         }
+
 @doc raw"""
-    degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
+    degree(f::FreeModElem{T}) where {T<:AnyGradedRingElem}
 
 Given a homogeneous element `f` of a graded free module, return the degree of `f`.
 
@@ -507,7 +512,7 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
+function degree(f::FreeModElem{T}) where {T<:AnyGradedRingElem}
   return _determine_degree_fast(coordinates(f), degrees(parent(f)))
 end
 

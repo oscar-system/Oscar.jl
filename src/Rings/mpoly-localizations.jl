@@ -3221,6 +3221,10 @@ function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
   return degree(numerator(a)) - degree(denominator(a))
 end
 
+function _degree_fast(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
+end
+
 function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
