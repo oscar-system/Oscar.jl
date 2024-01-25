@@ -391,6 +391,17 @@ end
     @test is_homogeneous(f(H[1]))
     v = x*H[1]+y^2*H[2]
     #= Temporarily disabled because it fails (25.01.2024)
+    # First analysis suggests the following: In the course of converting 
+    # v to a map, some other map, say g, between free graded modules is created. 
+    # Now v will end up being the zero map and, in fact, x*H[1] is already zero.
+    # But for the map `g` the contribution `x*H[1]` already triggers some computation
+    # which runs into an error, because `g` is not homogeneous. 
+    # I don't know exactly why `g` is created and for which purpose, but it is a 
+    # map of free graded modules of degree zero with representing matrix 
+    #   [x   0]
+    #   [0 y^2]
+    # and this is certainly not homogeneous. So this seems to be a bug, indeed, 
+    # and it is triggered by new conventions on how and where to reduce elements.
     a = element_to_homomorphism(v)
     @test matrix(a) == Rg[x 0; 0 y]
     W =  [x*M[1], y*M[2]];

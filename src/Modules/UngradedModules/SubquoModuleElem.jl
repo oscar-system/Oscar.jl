@@ -73,14 +73,16 @@ Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 """
 function coordinates(m::SubquoModuleElem)
   if !isdefined(m, :coeffs)
+    @assert isdefined(m, :repres) "neither coeffs nor repres is defined on a SubquoModuleElem"
     m.coeffs = coordinates(repres(m), parent(m))
-  end
-  if is_graded(ambient_free_module(parent(m))) && is_homogeneous(repres(m))
-    d = degree(repres(m))
-    gen_deg = degrees_of_generators(parent(m))
-    for (i, c) in m.coeffs
-      _degree_fast(c) + gen_deg[i] == d || error("lifting of homogeneous element is not homogeneous")
-    end
+    # Code left here for debugging
+    # if is_graded(ambient_free_module(parent(m))) && is_homogeneous(m.repres)
+    #   d = degree(m.repres)
+    #   gen_deg = degrees_of_generators(parent(m))
+    #   for (i, c) in m.coeffs
+    #     _degree_fast(c) + gen_deg[i] == d || error("lifting of homogeneous element is not homogeneous")
+    #   end
+    # end
   end
   return m.coeffs
 end
@@ -94,8 +96,9 @@ Return a free module element that is a representative of `v`.
 """
 function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
+    @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+    v.repres = sum(a*M.sub[i] for (i, a) in v.coeffs; init=zero(M.sub))
   end
   return v.repres
 end
