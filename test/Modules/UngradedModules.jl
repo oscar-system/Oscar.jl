@@ -1123,33 +1123,42 @@ end
   R, (x, y) = QQ[:x, :y]
 
   F = FreeMod(R, 1)
-  I, inc = sub(F, [x*F[1]])
 
-  @test haskey(F.incoming, I)
-  @test Oscar._recreate_morphism(I, F, F.incoming[I]) == inc
+  # we need to wrap the creation of I in a scope of its own so 
+  # that gc works within the test suite.
+  function dummy(F::FreeMod)
+    I, inc = sub(F, [x*F[1]], cache_morphism=true)
 
-  @test haskey(I.outgoing, F)
-  @test Oscar._recreate_morphism(I, F, I.outgoing[F]) == inc 
+    @test haskey(F.incoming, I)
+    @test Oscar._recreate_morphism(I, F, F.incoming[I]) == inc
 
-  I = 5
-  inc = "a"
+    @test haskey(I.outgoing, F)
+    @test Oscar._recreate_morphism(I, F, I.outgoing[F]) == inc 
+
+    I = 5
+    inc = "a"
+  end
+  dummy(F)
 
   GC.gc()
   GC.gc()
 
-  @test_broken length(keys(F.incoming)) == 0 # For some reason this still does not work in the tests, although it works interactively in the REPL!
+  @test length(keys(F.incoming)) == 0
   # The other way around it will not work, because I has a reference to its ambient_free_module f.
   
-  I, inc_I = sub(F, [x*F[1]])
-  J, inc_J = sub(I, [x^2*I[1]])
+  function dummy2(F::FreeMod)
+    I, inc_I = sub(F, [x*F[1]], cache_morphism=true)
+    J, inc_J = sub(I, [x^2*I[1]], cache_morphism=true)
 
-  @test haskey(J.outgoing, I)
-  @test haskey(I.incoming, J) 
-  @test Oscar._recreate_morphism(J, I, J.outgoing[I]) == inc_J
-  @test Oscar._recreate_morphism(J, I, I.incoming[J]) == inc_J
+    @test haskey(J.outgoing, I)
+    @test haskey(I.incoming, J) 
+    @test Oscar._recreate_morphism(J, I, J.outgoing[I]) == inc_J
+    @test Oscar._recreate_morphism(J, I, I.incoming[J]) == inc_J
 
-  I = 5
-  inc_I = 6
+    I = 5
+    inc_I = 6
+  end
+  dummy2(F)
 
   GC.gc()
   GC.gc()
