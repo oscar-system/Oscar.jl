@@ -1126,4 +1126,27 @@ function newick(ptree::PhylogeneticTree)
   return ptree.pm_ptree.NEWICK
 end
 
+function tropical_median_consensus(arr::Array{PhylogeneticTree{T}}) where
+  T <: Union{Float64, QQFieldElem}
+
+  n = length(arr)
+  @req n > 0 "The array must not be empty"
+
+  phylo_type = Polymake.bigobject_type(arr[1].pm_ptree)
+  pm_arr = Polymake.Array{Polymake.BigObject}(phylo_type, n)
+  
+  for i in 1:n
+    pm_arr[i] = arr[i].pm_ptree
+  end
+  
+  pm_cons_tree = Polymake.tropical.tropical_median_consensus(pm_arr)
+  return PhylogeneticTree{T}(pm_cons_tree)
+end
+
+function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
+  return tropical_median_consensus(collect(trees))
+end
+
+
+
 
