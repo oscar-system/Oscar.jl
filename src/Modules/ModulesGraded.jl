@@ -2472,7 +2472,7 @@ function _constant_sub_matrix(
     for (j, k) in enumerate(ind_cod)
       success, c = _has_index(v, k)
       !success && continue
-      result[i][j] = first(coefficients(c))
+      result[i, j] = first(coefficients(c))
     end
   end
   return ind_dom, ind_cod, result
