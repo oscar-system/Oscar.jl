@@ -1056,7 +1056,9 @@ function degree(el::SubquoModuleElem)
 end
 
 # When there is a Groebner basis backend, we can reduce to normal form.
-function degree(el::SubquoModuleElem{<:Union{<:MPolyRingElem{<:FieldElem}, <:MPolyQuoRingElem{<:MPolyRingElem, <:FieldElem}}})
+function degree(
+    el::SubquoModuleElem{T}
+  ) where {T <:Union{<:MPolyRingElem{<:FieldElem}, <:MPolyQuoRingElem{<:MPolyRingElem{<:FieldElem}}}}
   !el.is_reduced && return degree(simplify(el))
   # TODO: Can we always assume the representative to be homogeneous if it is defined???
   isdefined(el, :repres) && return degree(repres(el))
