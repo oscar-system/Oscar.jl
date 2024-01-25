@@ -97,8 +97,10 @@ end
 
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   reduced = reduce(el.repres, parent(el).quo)
   result = SubquoModuleElem(reduced, parent(el), is_reduced=true)
@@ -107,8 +109,10 @@ end
 
 function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   el.repres = reduce(el.repres, parent(el).quo)
   el.is_reduced = true
