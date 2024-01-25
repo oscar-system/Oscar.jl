@@ -33,12 +33,13 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
-    if RS.char == nothing && RS.q == nothing
+    if RS.char === nothing && RS.q === nothing
       print(io, "The matroid is not realizable.")
     else
       print(io, "The matroid is not realizable over the specified field or characteristic.")
     end
   else
+    io = pretty(io)
     if RS.one_realization
       println(io, "One realization is given by")
     elseif has_attribute(RS, :is_realizable) && is_realizable(RS)
@@ -46,12 +47,11 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
     elseif !has_attribute(RS, :is_realizable)
       println(io, "The realization space is")
     end
-
+    print(io, Indent())
     show(io, MIME("text/plain"), RS.realization_matrix)
-    print(io, "\nin the ", RS.ambient_ring)
+    print(io, "\n", Dedent(), "in the ", Lowercase(), RS.ambient_ring)
     I = RS.defining_ideal
-    if (I isa NumFieldOrdIdl && I.gen != ZZ(0)) ||
-      (I isa Ideal && !iszero(I))
+    if !iszero(I)
       print(io, "\nwithin the vanishing set of the ideal\n", I)
     end
     if length(RS.inequations) > 0
@@ -258,40 +258,39 @@ julia> M = fano_matroid();
 
 julia> RS = realization_space(M)
 The realization space is
-[0   1   1   1   1   0   0]
-[1   0   1   1   0   1   0]
-[1   0   1   0   1   0   1]
-in the Integer ring
+  [0   1   1   1   1   0   0]
+  [1   0   1   1   0   1   0]
+  [1   0   1   0   1   0   1]
+in the integer ring
 within the vanishing set of the ideal
 2ZZ
 
 julia> realization_space(non_fano_matroid())
 The realization space is
-[1   1   0   0   1   1   0]
-[0   1   1   1   1   0   0]
-[0   1   1   0   0   1   1]
-in the Integer ring
+  [1   1   0   0   1   1   0]
+  [0   1   1   1   1   0   0]
+  [0   1   1   0   0   1   1]
+in the integer ring
 avoiding the zero loci of the polynomials
 RingElem[2]
 
 julia> realization_space(pappus_matroid(), char=0)
 The realization space is
-[1   0   1   0   x2   x2                 x2^2    1    0]
-[0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
-[0   0   0   1   x2   x1                x1*x2   x1   x2]
-in the Multivariate polynomial ring in 2 variables over QQ
+  [1   0   1   0   x2   x2                 x2^2    1    0]
+  [0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
+  [0   0   0   1   x2   x1                x1*x2   x1   x2]
+in the multivariate polynomial ring in 2 variables over QQ
 avoiding the zero loci of the polynomials
 RingElem[x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2]
 
 julia> realization_space(uniform_matroid(3,6))
 The realization space is
-[1   0   0   1    1    1]
-[0   1   0   1   x1   x3]
-[0   0   1   1   x2   x4]
-in the Multivariate polynomial ring in 4 variables over ZZ
+  [1   0   0   1    1    1]
+  [0   1   0   1   x1   x3]
+  [0   0   1   1   x2   x4]
+in the multivariate polynomial ring in 4 variables over ZZ
 avoiding the zero loci of the polynomials
 RingElem[x1*x4 - x2*x3, x2 - x4, x1 - x3, x1*x4 - x1 - x2*x3 + x2 + x3 - x4, x3 - x4, x4 - 1, x3 - 1, x3, x4, x1 - x2, x2 - 1, x1 - 1, x1, x2]
-
 ```
 """
 function realization_space(
@@ -381,7 +380,7 @@ function realization_space(
 
   def_ideal = ideal(polyR, eqs)
   def_ideal = ideal(groebner_basis(def_ideal))
-  if isone(def_ideal) 
+  if isone(def_ideal)
     RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, nothing, char, q, ground_ring)
     set_attribute!(RS, :is_realizable, :false)
     return RS
@@ -402,11 +401,11 @@ function realization_space(
     for x in gens(R)
       push!(eqs, x^q - x)
     end
-    I = I + ideal(R,eqs)
+    I = I + ideal(R, eqs)
     RS.defining_ideal = I
     if isone(RS.defining_ideal)
-        set_attribute!(RS, :is_realizable, :false)
-        return RS
+      set_attribute!(RS, :is_realizable, :false)
+      return RS
     end
   end
 
@@ -495,27 +494,26 @@ the characteristic or a specific field of definition for the realization.
 ```jldoctest
 julia> realization(pappus_matroid(), char=0)
 One realization is given by
-[1   0   1   0   2   2   4   1   0]
-[0   1   1   0   1   1   1   1   1]
-[0   0   0   1   2   3   6   3   2]
-in the Rational field
+  [1   0   1   0   2   2   4   1   0]
+  [0   1   1   0   1   1   1   1   1]
+  [0   0   0   1   2   3   6   3   2]
+in the rational field
 
 julia> realization(pappus_matroid(), q=4)
 One realization is given by
-[1   0   1   0   x1 + 1   x1 + 1   x1    1        0]
-[0   1   1   0        1        1    1    1        1]
-[0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
-in the Multivariate polynomial ring in 1 variable over GF(2)
+  [1   0   1   0   x1 + 1   x1 + 1   x1    1        0]
+  [0   1   1   0        1        1    1    1        1]
+  [0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
+in the multivariate polynomial ring in 1 variable over GF(2)
 within the vanishing set of the ideal
 ideal(x1^2 + x1 + 1)
 
 julia> realization(uniform_matroid(3,6), char=5)
 One realization is given by
-[1   0   0   1   1   1]
-[0   1   0   1   4   3]
-[0   0   1   1   3   2]
-in the Finite field of degree 1 over GF(5)
-
+  [1   0   0   1   1   1]
+  [0   1   0   1   4   3]
+  [0   0   1   1   3   2]
+in the finite field of degree 1 over GF(5)
 ```
 """
 function realization(
@@ -556,10 +554,10 @@ function realization(RS::MatroidRealizationSpace)
 
   if dim(Inew) == 0
     for p in minimal_primes(Inew)
-        if !any(i -> i in p, RS.inequations)
-            Inew = p
-            break
-        end
+      if !any(i -> i in p, RS.inequations)
+        Inew = p
+        break
+      end
     end
     RSnew = MatroidRealizationSpace(Inew, Vector{RingElem}(), R, RS.realization_matrix, RS.char, RS.q, RS.ground_ring)
     RSnew = reduce_realization_space(RSnew)
@@ -772,13 +770,13 @@ function reduce_realization_space(
   nr, nc = size(X)
   Igens = gens(MRS.defining_ideal)
   Sgens = MRS.inequations
-  
+
   # 0 is in the inequations, thus it is not realizable
   if R(0) in Sgens
     MRS.realization_matrix = nothing
     set_attribute!(MRS, :is_realizable, :false)
     return MRS
-  end  
+  end
   xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
 
   if length(xnew_str) == 0
