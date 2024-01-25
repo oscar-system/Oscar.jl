@@ -1598,7 +1598,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
   return B, B.map
 end
 
-function (B::RelativeBrauerGroup)(M::GModule{PermGroup, AbstractAlgebra.Generic.FreeModule{nf_elem}})
+function (B::RelativeBrauerGroup)(M::GModule{<:Group, AbstractAlgebra.Generic.FreeModule{nf_elem}})
   @assert B.K == base_ring(M)
   c = factor_set(M, B.mG)
   return preimage(B.map, c)

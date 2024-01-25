@@ -1515,6 +1515,8 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
+export gmodule_minimal_field
+export gmodule_over
 
 ## Fill in some stubs for Hecke
 
@@ -1568,4 +1570,5 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
-
+export gmodule_minimal_field
+export gmodule_over
