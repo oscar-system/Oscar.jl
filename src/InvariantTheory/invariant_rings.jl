@@ -110,7 +110,7 @@ with generators
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring of
-  Permutation group of degree 3 and order 6
+  Sym(3)
 with generators
   PermGroupElem[(1,2,3), (1,2)]
 
@@ -390,7 +390,7 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -654,7 +654,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)
