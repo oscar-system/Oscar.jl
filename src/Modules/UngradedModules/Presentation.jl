@@ -369,3 +369,39 @@ function present_as_cokernel(F::FreeMod, task::Symbol = :none)
   
   return presentation_module, isomorphism
 end
+
+function prune_with_map(M::ModuleFP)
+
+  # Singular presentation
+  pm = presentation(M)
+  krnel = image(pm.maps[1])[1]
+  s_fmod  = Oscar.singular_module(ambient_free_module(krnel))
+  s_mod = Singular.Module(base_ring(s_fmod),
+                          [s_fmod(repres(g)) for g in gens(krnel)]...)
+
+  # compute minimal presentation
+  s_mod_new, mat, p = Singular.prune_with_map_projection(s_mod)
+  new_rk = Singular.rank(s_mod_new)
+
+  # find which generators were scratched
+  img_inds = [findlast(j -> j == i, p) for i in 1:new_rk]
+  @assert all(i -> !isnothing(i), img_inds) "Something went wrong when trying to construct the map."
+  phi2 = pm.maps[2]
+  F2 = domain(phi2)
+
+  # convert s_mod_new to Oscar
+  R = base_ring(M)
+  if isgraded(M)
+    F = graded_free_module(R, degrees_of_generators(F2)[img_inds])
+  else
+    F = free_module(base_ring(M), new_rk)
+  end
+  new_krnel_gens = (F).([s_mod_new[i] for i in 1:ngens(s_mod_new)])
+  M_new, _ = quo(F, new_krnel_gens)
+
+  # build map
+  phi3 = hom(M_new, F2, gens(F2)[img_inds]) 
+  phi = compose(phi3, phi2)
+  
+  return M_new, phi
+end
