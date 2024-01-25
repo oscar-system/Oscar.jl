@@ -75,6 +75,13 @@ function coordinates(m::SubquoModuleElem)
   if !isdefined(m, :coeffs)
     m.coeffs = coordinates(repres(m), parent(m))
   end
+  if is_graded(ambient_free_module(parent(m))) && is_homogeneous(repres(m))
+    d = degree(repres(m))
+    gen_deg = degrees_of_generators(parent(m))
+    for (i, c) in m.coeffs
+      _degree_fast(c) + gen_deg[i] == d || error("lifting of homogeneous element is not homogeneous")
+    end
+  end
   return m.coeffs
 end
 
