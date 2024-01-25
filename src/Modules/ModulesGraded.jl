@@ -678,7 +678,7 @@ function degree(f::FreeModuleHom)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
@@ -1153,7 +1153,7 @@ function degree(f::SubQuoHom)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
