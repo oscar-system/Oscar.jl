@@ -1653,6 +1653,17 @@ function Hecke.AlgAss(a::RelativeBrauerGroupElem)
   return A = AlgAss(parent(a).map(a), parent(a).mG, parent(a).mkK)
 end
 
+function Hecke.grunwald_wang(b::RelativeBrauerGroupElem)
+  d1 = Dict((x=>Int(order(y))) for (x,y) = b.data if isa(x, NumFieldOrdIdl))
+  d2 = Dict((x=>Int(order(y))) for (x,y) = b.data if !isa(x, NumFieldOrdIdl))
+
+  if length(d2) == 0
+    return Hecke.grunwald_wang(d1)
+  else
+    return Hecke.grunwald_wang(d1, d2)
+  end
+end
+
 function local_index(C::GModule{<:Oscar.GAPGroup, Generic.FreeModule{nf_elem}}, p::Union{Integer, ZZRingElem})
   K = base_ring(C)
   k, mkK = Oscar.GModuleFromGap._character_field(C)
