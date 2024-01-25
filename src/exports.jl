@@ -1187,6 +1187,7 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
+export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
 export pyramid
