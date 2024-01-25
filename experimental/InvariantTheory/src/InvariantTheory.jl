@@ -179,7 +179,7 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
             print(io, Dedent())
         end
     else
-        println(io, "Representation of torus of degree ", group(group(R))[2])
+        println(io, "Representation of torus of rank ", group(group(R))[2])
         println(IOContext(io, :supercompact => true), Indent(), "over the field ", field(group(R)), " and weights ")
         if isdefined(R, :weights)
             print(io, R.weights)
