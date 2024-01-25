@@ -231,7 +231,7 @@ end
 
 
 """
-    is_invariant(f::GAPGroupHomomorphism, H::Group)
+    is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
     is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
 
 Return whether `f(H) == H` holds.
@@ -245,8 +245,8 @@ function is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
 end
 
 """
-    restrict_homomorphism(f::GAPGroupHomomorphism, H::Group)
-    restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: Group
+    restrict_homomorphism(f::GAPGroupHomomorphism, H::GAPGroup)
+    restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::T) where T <: GAPGroup
 
 Return the restriction of `f` to `H`.
 An exception is thrown if `H` is not a subgroup of `domain(f)`.
@@ -864,7 +864,7 @@ end
 ################################################################################
 
 """
-    automorphism_group(G::Group) -> A::AutomorphismGroup{T}
+    automorphism_group(G::GAPGroup) -> A::AutomorphismGroup{T}
 
 Return the full automorphism group of `G`. If `f` is an object of type
 `GAPGroupHomomorphism` and it is bijective from `G` to itself, then `A(f)`

@@ -177,7 +177,7 @@ julia> exponent(symmetric_group(13))
 Base.exponent(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAP.Globals.Exponent(G.X)::GapInt)
 
 """
-    rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::Group)
+    rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, G::GAPGroup)
 
 Return a random element of `G`, using the random number generator `rng`.
 """
@@ -411,7 +411,7 @@ The parent of `g` need not be equal to `G`.
 Base.in(g::GAPGroupElem, G::GAPGroup) = g.X in G.X
 
 """
-    gens(G::Group)
+    gens(G::GAPGroup)
 
 Return a vector of generators of `G`.
 To get the `i`-th generator,
@@ -443,7 +443,7 @@ function gens(G::GAPGroup)
 end
 
 """
-    has_gens(G::Group)
+    has_gens(G::GAPGroup)
 
 Return whether generators for the group `G` are known.
 
@@ -614,7 +614,7 @@ acting_group(C::GroupConjClass) = C.X
 # START elements conjugation
 
 """
-    conjugacy_class(G::Group, g::GAPGroupElem) -> GroupConjClass
+    conjugacy_class(G::GAPGroup, g::GAPGroupElem) -> GroupConjClass
 
 Return the conjugacy class `cc` of `g` in `G`, where `g` = `representative`(`cc`).
 
@@ -650,7 +650,7 @@ Return the number of conjugacy classes of elements in `G`.
 number_conjugacy_classes(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAPWrap.NrConjugacyClasses(G.X))
 
 """
-    conjugacy_classes(G::Group)
+    conjugacy_classes(G::GAPGroup)
 
 Return the vector of all conjugacy classes of elements in `G`.
 It is guaranteed that the class of the identity is in the first position.
@@ -674,7 +674,7 @@ function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 end
 
 """
-    is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
+    is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
 return `(true, z)`, where `x^z == y` holds;
@@ -695,7 +695,7 @@ end
 
 # START subgroups conjugation
 """
-    conjugacy_class(G::T, H::T) where T<:Group -> GroupConjClass
+    conjugacy_class(G::T, H::T) where T<:GAPGroup -> GroupConjClass
 
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
@@ -712,7 +712,7 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    conjugacy_classes_subgroups(G::Group)
+    conjugacy_classes_subgroups(G::GAPGroup)
 
 Return the vector of all conjugacy classes of subgroups of G.
 
@@ -768,7 +768,7 @@ function subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
 end
 
 """
-    conjugacy_classes_maximal_subgroups(G::Group)
+    conjugacy_classes_maximal_subgroups(G::GAPGroup)
 
 Return the vector of all conjugacy classes of maximal subgroups of G.
 
@@ -888,7 +888,7 @@ false
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.X,K.X)
 
 """
-    is_conjugate_with_data(G::Group, H::Group, K::Group)
+    is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
 If `H` and `K` are conjugate subgroups in `G`, return `true, z`
 where `H^z = K`; otherwise, return `false, nothing`.
@@ -1051,7 +1051,7 @@ end
 ################################################################################
 
 """
-    normalizer(G::Group, H::Group)
+    normalizer(G::GAPGroup, H::GAPGroup)
 
 Return `N, f`, where `N` is the normalizer of `H` in `G`,
 i.e., the largest subgroup of `G` in which `H` is normal,
@@ -1060,7 +1060,7 @@ and `f` is the embedding morphism of `N` into `G`.
 normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Normalizer(G.X, H.X))
 
 """
-    normalizer(G::Group, x::GAPGroupElem)
+    normalizer(G::GAPGroup, x::GAPGroupElem)
 
 Return `N, f`, where `N` is the normalizer of the cyclic subgroup generated
 by `x` in `G` and `f` is the embedding morphism of `N` into `G`.
@@ -1068,7 +1068,7 @@ by `x` in `G` and `f` is the embedding morphism of `N` into `G`.
 normalizer(G::GAPGroup, x::GAPGroupElem) = _as_subgroup(G, GAPWrap.Normalizer(G.X, x.X))
 
 """
-    core(G::Group, H::Group)
+    core(G::GAPGroup, H::GAPGroup)
 
 Return `C, f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
@@ -1077,7 +1077,7 @@ and `f` is the embedding morphism of `C` into `G`.
 core(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Core(G.X, H.X))
 
 """
-    normal_closure(G::Group, H::Group)
+    normal_closure(G::GAPGroup, H::GAPGroup)
 
 Return `N, f`, where `N` is the normal closure of `H` in `G`,
 that is, the smallest normal subgroup of `G` that contains `H`,
@@ -1094,7 +1094,7 @@ normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.NormalClo
 # but then the user should have the possibility to omit this check.)
 
 """
-    pcore(G::Group, p::IntegerUnion)
+    pcore(G::GAPGroup, p::IntegerUnion)
 
 Return `C, f`, where `C` is the `p`-core
 (i.e. the largest normal `p`-subgroup) of `G`
@@ -1163,7 +1163,7 @@ see [`minimal_normal_subgroups`](@ref).
 ################################################################################
 
 """
-    sylow_subgroup(G::Group, p::IntegerUnion)
+    sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 
 Return a Sylow `p`-subgroup of the finite group `G`, for a prime `p`.
 This is a subgroup of `p`-power order in `G`
@@ -1196,7 +1196,7 @@ function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
 end
 
 """
-    hall_subgroup_reps(G::Group, P::AbstractVector{<:IntegerUnion})
+    hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
 
 Return a vector that contains representatives of conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
@@ -1243,7 +1243,7 @@ function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
 end
 
 @doc raw"""
-    sylow_system(G::Group)
+    sylow_system(G::GAPGroup)
 
 Return a vector of Sylow $p$-subgroups of the finite group `G`,
 where $p$ runs over the prime factors of the order of `G`,
@@ -1288,7 +1288,7 @@ function complement_class_reps(G::T, N::T) where T <: GAPGroup
 end
 
 @doc raw"""
-    complement_system(G::Group)
+    complement_system(G::GAPGroup)
 
 Return a vector of Hall $p'$-subgroups of the finite group `G`,
 where $p$ runs over the prime factors of the order of `G`.
@@ -1302,7 +1302,7 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc raw"""
-    hall_system(G::Group)
+    hall_system(G::GAPGroup)
 
 Return a vector of Hall $P$-subgroups of the finite group `G`,
 where $P$ runs over the subsets of prime factors of the order of `G`.
