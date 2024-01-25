@@ -7,8 +7,7 @@
 #
 ###############################################################################
 
-# TODO: Replace GroupsCore with AA and add conformance tests
-struct WeylGroup <: GroupsCore.Group
+struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
@@ -18,7 +17,7 @@ struct WeylGroup <: GroupsCore.Group
   end
 end
 
-struct WeylGroupElem <: GroupsCore.GroupElement
+struct WeylGroupElem <: AbstractAlgebra.GroupElem
   parent::WeylGroup     # parent group
   word::Vector{UInt8}   # short revlex normal form of the word
 
@@ -86,7 +85,7 @@ function Base.eltype(::Type{WeylGroup})
 end
 
 function Base.iterate(W::WeylGroup)
-  state = weyl_vector(root_system(W)), one(W)
+  state = (weyl_vector(root_system(W)), one(W))
   return one(W), state
 end
 
@@ -102,7 +101,7 @@ end
 @doc raw"""
     isfinite(W::WeylGroup) -> Bool
 """
-function Base.isfinite(W::WeylGroup)
+function is_finite(W::WeylGroup)
   return W.finite
 end
 
@@ -150,7 +149,7 @@ end
 Returns the unique longest element of `W`.
 """
 function longest_element(W::WeylGroup)
-  @req isfinite(W) "$W is not finite"
+  @req is_finite(W) "$W is not finite"
 
   _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
@@ -171,8 +170,8 @@ end
 Returns the order of `W`.
 """
 function order(::Type{T}, W::WeylGroup) where {T}
-  if !isfinite(W)
-    throw(GroupsCore.InfiniteOrder(W))
+  if !is_finite(W)
+    throw(InfiniteOrderError(W))
   end
 
   ord = T(1)
