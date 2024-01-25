@@ -5,7 +5,9 @@ module LieAlgebras
 
 using ..Oscar
 
-import Oscar: GAPWrap, IntegerUnion, MapHeader
+import Oscar: GAPWrap, GroupsCore, IntegerUnion, MapHeader
+
+import Random
 
 # not importet in Oscar
 using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
@@ -62,6 +64,7 @@ import ..Oscar:
   matrix,
   ngens,
   normalizer,
+  order,
   parent_type,
   rank,
   root,
@@ -91,6 +94,7 @@ export RootSpaceElem
 export RootSystem
 export WeightLatticeElem
 export WeylGroup, WeylGroupElem
+export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
@@ -107,6 +111,7 @@ export coefficient_vector
 export coerce_to_lie_algebra_elem
 export combinations
 export conjugate_dominant_weight
+export conjugate_dominant_weight_with_elem
 export coroot
 export coroots
 export coxeter_matrix
@@ -122,9 +127,10 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
-export is_direct_sum
-export is_dual
 export is_coroot_with_index
+export is_direct_sum
+export is_dominant
+export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -136,8 +142,9 @@ export is_simple_root_with_index
 export is_standard_module
 export is_symmetric_power
 export is_tensor_power
+export is_tensor_product
 export lie_algebra
-export lmul!
+export lmul, lmul!
 export longest_element
 export lower_central_series
 export matrix_repr_basis
@@ -174,6 +181,7 @@ export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group
+export weyl_orbit
 export word
 
 include("Combinatorics.jl")
@@ -213,6 +221,7 @@ export RootSpaceElem
 export RootSystem
 export WeightLatticeElem
 export WeylGroup, WeylGroupElem
+export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
@@ -227,6 +236,7 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
+export conjugate_dominant_weight_with_elem
 export coroot
 export coroots
 export coxeter_matrix
@@ -242,9 +252,10 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
-export is_direct_sum
-export is_dual
 export is_coroot_with_index
+export is_direct_sum
+export is_dominant
+export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -258,10 +269,9 @@ export is_symmetric_power
 export is_tensor_power
 export is_tensor_product
 export lie_algebra
-export lmul!
+export lmul, lmul!
 export longest_element
 export lower_central_series
-export matrix_repr_basis
 export matrix_repr_basis
 export negative_coroot
 export negative_coroots
@@ -295,4 +305,5 @@ export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
 export weyl_group
+export weyl_orbit
 export word
