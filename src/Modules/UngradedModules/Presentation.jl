@@ -429,7 +429,7 @@ function prune_with_map(M::ModuleFP)
 
   # convert s_mod_new to Oscar
   R = base_ring(M)
-  if isgraded(M)
+  if is_graded(M)
     F = graded_free_module(R, degrees_of_generators(F2)[img_inds])
   else
     F = free_module(base_ring(M), new_rk)
