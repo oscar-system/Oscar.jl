@@ -428,7 +428,7 @@ Return the link of the face `sigma` in the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = simplical_complex ([[1,2,3],[2,3,4]]);
+julia> K = simplical_complex([[1,2,3],[2,3,4]]);
 
 julia> link_subcomplex(K,[2,3])
 Abstract simplicial complex of dimension 0 on 2 vertices
