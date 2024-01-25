@@ -992,7 +992,7 @@ function restrict_domain(H::SubQuoHom, M::SubquoModule)
   if ngens(M) > 0
     @assert M.quo == domain(H).quo
   end
-  _, i = sub(domain(H), map(m -> SubquoModuleElem(repres(m), domain(H)), gens(M)))
+  _, i = sub(domain(H), map(m -> SubquoModuleElem(repres(m), domain(H)), gens(M)), cache_morphism=true)
   return i*H
 end
 
