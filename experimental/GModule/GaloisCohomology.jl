@@ -1388,11 +1388,22 @@ function Base.:*(a::Union{Integer, ZZRingElem}, b::RelativeBrauerGroupElem)
 end
 
 function Base.show(io::IO, a::RelativeBrauerGroupElem)
-  print(io, a.data)
+  #online
+  print(io, "Element of relative Brauer group of $(parent(a).k)")
 end
 
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
-  show(io, m, a.data)
+  io = AbstractAlgebra.pretty(io)
+  print(io, "Element of relative Brauer group of $(parent(a).k)\n")
+  ioC = IOContext(io, :supercompact => true, :compact => true)
+  print(io, AbstractAlgebra.Indent())
+  for (p,v) = a.data
+    show(ioC, p)
+    print(io, " -> ")
+    show(ioC, v)
+    print(io, "\n")
+  end
+  print(io, AbstractAlgebra.Dedent())
 end
 
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
