@@ -1046,7 +1046,12 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem)
+  !el.is_reduced && return degree(simplify(el))
+  # TODO: Can we always assume the representative to be homogeneous if it is defined???
+  isdefined(el, :repres) && return degree(repres(el))
   return _determine_degree_fast(coordinates(el), degrees_of_generators(parent(el)))
+
+  # Old code below for reference
   if !iszero(coordinates(el))
     result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
       if result === nothing
