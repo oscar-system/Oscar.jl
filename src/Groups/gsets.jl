@@ -458,8 +458,8 @@ julia> Omega = gset(G, [Set([1, 2])]);  # action on unordered pairs
 
 julia> acthom = action_homomorphism(Omega)
 Group homomorphism
-  from permutation group of degree 6 and order 720
-  to permutation group of degree 15 and order 1307674368000
+  from Sym(6)
+  to Sym(15)
 
 julia> g = gen(G, 1)
 (1,2,3,4,5,6)
