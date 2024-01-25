@@ -95,9 +95,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H, g)
-Left coset of permutation group of degree 3 and order 6
+Left coset of Sym(3)
   with representative (1,3)(2,4,5)
-  in permutation group of degree 5 and order 120
+  in Sym(5)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
@@ -164,9 +164,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H,g)
-Left coset of permutation group of degree 3 and order 6
+Left coset of Sym(3)
   with representative (1,3)(2,4,5)
-  in permutation group of degree 5 and order 120
+  in Sym(5)
 
 julia> acting_domain(gH)
 Sym(3)
@@ -191,9 +191,9 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> gH = left_coset(H, g)
-Left coset of permutation group of degree 3 and order 6
+Left coset of Sym(3)
   with representative (1,3)(2,4,5)
-  in permutation group of degree 5 and order 120
+  in Sym(5)
 
 julia> representative(gH)
 (1,3)(2,4,5)
@@ -220,9 +220,9 @@ julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> gH = left_coset(H, g)
-Left coset of permutation group of degree 4 and order 24
+Left coset of Sym(4)
   with representative (1,3)(2,4,5)
-  in permutation group of degree 5 and order 120
+  in Sym(5)
 
 julia> is_bicoset(gH)
 false
@@ -231,9 +231,9 @@ julia> f = perm(G,[2,1,4,3,5])
 (1,2)(3,4)
 
 julia> fH = left_coset(H, f)
-Left coset of permutation group of degree 4 and order 24
+Left coset of Sym(4)
   with representative (1,2)(3,4)
-  in permutation group of degree 5 and order 120
+  in Sym(5)
 
 julia> is_bicoset(fH)
 true
@@ -258,15 +258,15 @@ Sym(3)
 
 julia> rc = right_cosets(G, H)
 Right cosets of
-  permutation group of degree 3 and order 6 in
-  permutation group of degree 4 and order 24
+  Sym(3) in
+  Sym(4)
 
 julia> collect(rc)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Right coset of permutation group with representative ()
- Right coset of permutation group with representative (1,4)
- Right coset of permutation group with representative (1,4,2)
- Right coset of permutation group with representative (1,4,3)
+ Right coset of Sym(3) with representative ()
+ Right coset of Sym(3) with representative (1,4)
+ Right coset of Sym(3) with representative (1,4,2)
+ Right coset of Sym(3) with representative (1,4,3)
 ```
 """
 function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
@@ -290,10 +290,10 @@ Sym(3)
 
 julia> left_cosets(G, H)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Left coset of permutation group with representative ()
- Left coset of permutation group with representative (1,4)
- Left coset of permutation group with representative (1,2,4)
- Left coset of permutation group with representative (1,3,4)
+ Left coset of Sym(3) with representative ()
+ Left coset of Sym(3) with representative (1,4)
+ Left coset of Sym(3) with representative (1,2,4)
+ Left coset of Sym(3) with representative (1,3,4)
 ```
 """
 function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
@@ -376,13 +376,8 @@ Sym(3)
 
 julia> T = right_transversal(G, H)
 Right transversal of length 4 of
-<<<<<<< HEAD
   Sym(3) in
   Sym(4)
-=======
-  permutation group of degree 3 and order 6 in
-  permutation group of degree 4 and order 24
->>>>>>> address comments
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
@@ -418,13 +413,8 @@ Sym(3)
 
 julia> T = left_transversal(G, H)
 Left transversal of length 4 of
-<<<<<<< HEAD
   Sym(3) in
   Sym(4)
-=======
-  permutation group of degree 3 and order 6 in
-  permutation group of degree 4 and order 24
->>>>>>> address comments
 
 julia> collect(T)
 4-element Vector{PermGroupElem}:
