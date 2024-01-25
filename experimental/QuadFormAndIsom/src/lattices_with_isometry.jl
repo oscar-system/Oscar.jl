@@ -1873,7 +1873,7 @@ function signatures(Lf::ZZLatWithIsom)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
   C = CalciumField()
-  eig = eigenvalues(f, QQBar)
+  eig = eigenvalues(QQBar, f)
   j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
   lambda = C(eig[j])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
