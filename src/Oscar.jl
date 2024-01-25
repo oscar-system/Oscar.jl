@@ -80,6 +80,8 @@ function __init__()
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
   GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
   GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
+  # Work around a problem in Julia 1.10 (see https://github.com/oscar-system/Oscar.jl/pull/3222).
+  isdefined(GAP.Packages.Downloads, :default_downloader!) && GAP.Packages.Downloads.default_downloader!(GAP.Packages.Downloads.Downloader(grace=0.01))
   withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
   end
@@ -90,6 +92,8 @@ function __init__()
      ]
     GAP.Packages.install(pkg, version, interactive = false, quiet = true)
   end
+  isdefined(GAP.Packages.Downloads, :default_downloader!) && GAP.Packages.Downloads.default_downloader!()
+
   # We need some GAP packages.
   for pkg in [
      "atlasrep",
