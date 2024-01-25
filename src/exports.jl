@@ -198,6 +198,7 @@ export add_edge!
 export add_glueing!
 export add_vertex!
 export add_vertices!
+export adjacency_tree
 export adjacent_chamber
 export affine_algebra
 export affine_charts
@@ -400,6 +401,7 @@ export coordinate_names_of_torus
 export coordinate_ring
 export coordinate_ring_of_torus
 export coordinates
+export cophenetic_matrix
 export corank
 export core
 export corresponding_bilinear_form
@@ -503,6 +505,7 @@ export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
 export equidimensional_hull
 export equidimensional_hull_radical
+export equidistant
 export euler_characteristic
 export euler_phi
 export expand
@@ -1051,6 +1054,7 @@ export negwdeglex
 export negwdegrevlex
 export neighbor_patches
 export neighbors
+export newick
 export newton_polytope
 export nfacets
 export ngens
@@ -1393,6 +1397,7 @@ export syz
 export syzygy_generators
 export tail
 export tangent_space
+export taxa
 export tensor_product
 export terms
 export tetrahedron

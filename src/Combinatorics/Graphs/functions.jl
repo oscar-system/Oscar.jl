@@ -1089,8 +1089,8 @@ end
 ################################################################################
 ################################################################################
 
-function phylogenetic_tree(T::Type{<:Union{Float64, Int, QQFieldElem}}, newick::String)
-  pm_ptree = Polymake.graph.PhylogeneticTree{T}(NEWICK = newick)
+function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
+  pm_ptree = Polymake.graph.PhylogeneticTree{Polymake.convert_to_pm_type(T)}(NEWICK = newick)
 
   # load graph properties
   pm_ptree.ADJACENCY
@@ -1106,5 +1106,24 @@ function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: scalar
   return PhylogeneticTree{T}(pm_ptree)
 end
 
+function adjacency_tree(ptree::PhylogeneticTree)
+  return ptree.pm_ptree.ADJACENCY
+end
+
+function equidistant(ptree::PhylogeneticTree)
+  return ptree.pm_ptree.EQUIDISTANT
+end
+
+function cophenetic_matrix(ptree::PhylogeneticTree)
+  return convert(Matrix, ptree.pm_ptree.COPHENETIC_MATRIX)
+end
+
+function taxa(ptree::PhylogeneticTree)
+  return convert(Array{String}, ptree.pm_ptree.TAXA)
+end
+
+function newick(ptree::PhylogeneticTree)
+  return ptree.pm_ptree.NEWICK
+end
 
 

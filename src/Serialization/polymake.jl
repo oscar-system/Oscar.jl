@@ -27,8 +27,7 @@ const polymake2OscarTypes = Dict{String, Type}([
   "common::GraphAdjacency<Undirected>" => Graph{Undirected},
   "common::GraphAdjacency<Directed>" => Graph{Directed},
   "graph::PhylogeneticTree<Rational>" => PhylogeneticTree{QQFieldElem},
-  "graph::PhylogeneticTree<Float>" => PhylogeneticTree{Float64},
-  "graph::PhylogeneticTree<Int>" => PhylogeneticTree{Int}
+  "graph::PhylogeneticTree<Float>" => PhylogeneticTree{Float64}
 ])
 
 @register_serialization_type Polymake.BigObjectAllocated "Polymake.BigObject" uses_id
