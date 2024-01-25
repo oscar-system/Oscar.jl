@@ -28,12 +28,14 @@
   end
 
   @testset "standard examples" begin
+    G = simplicial_complex(incidence_matrix(complete_bipartite_graph(2, 3)))
 
     for (SC, fv, bn) in ((torus(), [7, 21, 14], [0, 2, 1]),
                          (klein_bottle(), [9, 27, 18], [0, 1, 0]),
                          (real_projective_plane(), [6, 15, 10], [0, 0, 0]),
                          (complex_projective_plane(), [9, 36, 84, 90, 36], [0, 0, 1, 0, 1]),
-                         (complete_graph(3), [3, 3], [0, 1]))
+                         (G, [5, 6], [0, 2]))
+
 
       @test SC isa SimplicialComplex
       @test f_vector(SC) == fv
