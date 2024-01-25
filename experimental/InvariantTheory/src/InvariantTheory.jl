@@ -116,7 +116,7 @@ function representation_on_forms(G::ReductiveGroup, d::Int)
         return RepresentationReductiveGroup(G, d)
 end
 
-function representation_on_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+function representation_from_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
     @assert G.group[1] == :torus
     V = Vector{Vector{ZZRingElem}}()
     if typeof(W) <: Vector
