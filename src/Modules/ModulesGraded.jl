@@ -1046,6 +1046,17 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem)
+  # In general we can not assume that we have a groebner basis reduction available 
+  # as a backend to bring the element to normal form. 
+  # In particular, this may entail that `coordinates` produces non-homogeneous 
+  # vectors via differently implemented liftings. 
+  # Thus, the only thing we can do is to assume that the representative is 
+  # homogeneous.
+  return degree(repres(el))
+end
+
+# When there is a Groebner basis backend, we can reduce to normal form.
+function degree(el::SubquoModuleElem{<:Union{<:MPolyRingElem{<:FieldElem}, <:MPolyQuoRingElem{<:MPolyRingElem, <:FieldElem}}})
   !el.is_reduced && return degree(simplify(el))
   # TODO: Can we always assume the representative to be homogeneous if it is defined???
   isdefined(el, :repres) && return degree(repres(el))
