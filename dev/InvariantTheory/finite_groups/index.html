@@ -18,7 +18,7 @@ with generators
 
 julia&gt; IRp = invariant_ring(symmetric_group(3))
 Invariant ring of
-  Permutation group of degree 3 and order 6
+  Sym(3)
 with generators
   PermGroupElem[(1,2,3), (1,2)]
 
@@ -178,7 +178,7 @@ julia&gt; x = gens(R);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia&gt; reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]</code></pre></div></section></article><h2 id="Invariants-of-a-Given-Degree"><a class="docs-heading-anchor" href="#Invariants-of-a-Given-Degree">Invariants of a Given Degree</a><a id="Invariants-of-a-Given-Degree-1"></a><a class="docs-heading-anchor-permalink" href="#Invariants-of-a-Given-Degree" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="basis" href="#basis"><code>basis</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs"> basis(IR::InvRing, d::Int, algorithm::Symbol = :default)</code></pre><p>Given an invariant ring <code>IR</code> and an integer <code>d</code>, return a basis for the invariants in degree <code>d</code>.</p><p>The optional argument <code>algorithm</code> specifies the algorithm to be used. If <code>algorithm = :reynolds</code>, the Reynolds operator is utilized (this method is only available in the non-modular case). Setting <code>algorithm = :linear_algebra</code> means that plain linear algebra is used. The default option <code>algorithm = :default</code> asks to select the heuristically best algorithm.</p><p>See also <a href="#iterate_basis"><code>iterate_basis</code></a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = cyclotomic_field(3, &quot;a&quot;)
@@ -358,12 +358,12 @@ julia&gt; R = invariant_ring(QQ, S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia&gt; B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3 of
 Invariant ring of
-  Permutation group of degree 2 and order 2
+  Sym(2)
 with generators
   PermGroupElem[(1,2)]
 relative to a character
@@ -397,7 +397,7 @@ julia&gt; IR = invariant_ring(QQ, S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia&gt; molien_series(IR)
 1//(t^3 - t^2 - t + 1)
@@ -532,9 +532,9 @@ julia&gt; RS2 = invariant_ring(S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia&gt; semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1] - x[2]
-</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Wednesday 24 January 2024 16:00">Wednesday 24 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 25 January 2024 07:21">Thursday 25 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
