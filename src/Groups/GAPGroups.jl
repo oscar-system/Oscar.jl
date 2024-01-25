@@ -128,12 +128,12 @@ false
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAPWrap.Order(x.X)
    if ord === GAP.Globals.infinity
-      throw(GroupsCore.InfiniteOrder(x))
+      throw(InfiniteOrderError(x))
    end
    return T(ord)
 end
 
-order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x)
+order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x) # remove once https://github.com/Nemocas/Nemo.jl/pull/1637 is available
 
 has_order(G::GAPGroup) = GAPWrap.HasSize(G.X)
 set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAPWrap.SetSize(G.X, GAP.Obj(val))
@@ -352,25 +352,10 @@ Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
 Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
+div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
+div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
 
-Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
-
-Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
-
-# Compatibility with GroupsCore interface
-one!(x::GAPGroupElem) = one(parent(x))
-inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
-
-mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
-
-div_right(x::GAPGroupElem, y::GAPGroupElem) = x / y
-div_left(x::GAPGroupElem, y::GAPGroupElem) = y \ x
-div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x / y
-div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = y \ x
-
-Base.conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
-Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
+Base.conj(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
@@ -380,7 +365,6 @@ which is defined as `x^-1*y^-1*x*y`,
 and usually denoted as `[x,y]` in the literature.
 """
 comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
-comm!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 
 Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()

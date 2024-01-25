@@ -1,5 +1,3 @@
-import Oscar.AbstractAlgebra.GroupsCore
-
 @testset "The groups Sym(n) and Alt(n)" begin
 
   for n = 5:8
@@ -101,12 +99,12 @@ end
   g = cyclic_group(PosInf())
   @test is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
+  @test_throws InfiniteOrderError{PcGroup} order(g)
 
   g = dihedral_group(PosInf())
   @test !is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
+  @test_throws InfiniteOrderError{PcGroup} order(g)
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
@@ -133,7 +131,7 @@ end
 
   F = free_group("x","y")
   @test F isa FPGroup
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
+  @test_throws InfiniteOrderError{FPGroup} order(F)
   @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !is_finite(F)
@@ -141,7 +139,7 @@ end
 
   F = free_group(:x,:y)
   @test F isa FPGroup
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
+  @test_throws InfiniteOrderError{FPGroup} order(F)
   @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
   @test_throws MethodError degree(F)
   @test !is_finite(F)
