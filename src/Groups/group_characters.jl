@@ -1371,7 +1371,6 @@ julia> subtbl = character_table("A5"); tbl = character_table("A6");
 
 julia> println(approximate_class_fusion(subtbl, tbl))
 Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
-
 ```
 """
 function approximate_class_fusion(subtbl::GAPGroupCharacterTable,

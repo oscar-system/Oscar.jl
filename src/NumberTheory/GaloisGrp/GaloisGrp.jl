@@ -2473,7 +2473,6 @@ julia> Qx, x = QQ["x"];
 
 julia> cauchy_ideal(x^4-2)
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4)
-
 ```
 """
 function cauchy_ideal(f::PolyRingElem{<:FieldElem}; parent::MPolyRing = polynomial_ring(base_ring(f), degree(f), cached = false)[1])
@@ -2506,10 +2505,8 @@ ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x
 
 julia> k, _ = number_field(i);
 
-
 julia> length(roots(k, x^4-2))
 4
-
 ```
 """
 function galois_ideal(C::GaloisCtx, extra::Int = 5)

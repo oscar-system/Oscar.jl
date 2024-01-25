@@ -566,7 +566,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -600,7 +600,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -635,7 +635,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -672,7 +672,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -724,7 +724,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -777,7 +777,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)

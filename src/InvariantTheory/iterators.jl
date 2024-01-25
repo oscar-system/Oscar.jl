@@ -219,7 +219,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of degree 1 over GF(3)
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
