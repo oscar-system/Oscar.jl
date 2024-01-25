@@ -279,7 +279,7 @@ end
   M = SubquoModule(identity_matrix(R, 3), R[x 1 x])
   N, phi = prune_with_map(M)
   @test rank(ambient_free_module(N)) == 2
-  @test (phi).(gens(N)) = [gens(M)[1], gens(M)[3]]
+  @test (phi).(gens(N)) == [gens(M)[1], gens(M)[3]]
 
   # graded
   R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
