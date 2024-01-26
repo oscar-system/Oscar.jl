@@ -133,8 +133,6 @@ function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUn
    return T(ord)
 end
 
-order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x) # remove once https://github.com/Nemocas/Nemo.jl/pull/1637 is available
-
 has_order(G::GAPGroup) = GAPWrap.HasSize(G.X)
 set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAPWrap.SetSize(G.X, GAP.Obj(val))
 
@@ -384,7 +382,7 @@ function Base.iterate(G::GAPGroup, state)
 end
 
 # need this function just for the iterator
-Base.length(x::GAPGroup)::Int = order(x)
+Base.length(x::GAPGroup)::Int = order(Int, x)
 
 """
     Base.in(g::GAPGroupElem, G::GAPGroup)
