@@ -130,9 +130,20 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
+  io = pretty(io)
+  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
+end
+
 function Base.show(io::IO, AM::AllMonomials)
-  println(io, "Iterator over the monomials of degree $(AM.d) of")
-  print(io, AM.R)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the monomials of degree $(AM.d) of")
+    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+  end
 end
 
 ################################################################################
@@ -424,12 +435,23 @@ Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
 Base.length(BI::InvRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
-  println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
-  print(io, BI.R)
+function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
+  io = pretty(io)
+  println(io, "Iterator over a basis of the component of degree $(BI.degree)")
+  print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
   if BI.reynolds_operator !== nothing
     # We don't save the character in the iterator unfortunately
     print(io, "\nrelative to a character")
+  end
+end
+
+function Base.show(io::IO, BI::InvRingBasisIterator)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over a graded component of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
   end
 end
 

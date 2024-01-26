@@ -254,7 +254,8 @@ function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
   if get(io, :supercompact, false)
     print(io, "Complement of prime ideal")
   else
-    print(io, "Complement of prime ", prime_ideal(S))
+    io = pretty(io)
+    print(io, "Complement of prime ", Lowercase(), prime_ideal(S))
   end
 end
 
