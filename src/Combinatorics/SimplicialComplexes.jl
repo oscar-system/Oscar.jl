@@ -315,7 +315,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
 (Quotient of multivariate polynomial ring by ideal(x1*x4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
