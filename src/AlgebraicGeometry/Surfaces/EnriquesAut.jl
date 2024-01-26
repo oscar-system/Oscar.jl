@@ -19,20 +19,20 @@ mutable struct EnriquesBorcherdsCtx
   # automorphisms of the initial chamber
   # written w.r.t. the basis of SY
   initial_automorphisms::Vector{ZZMatrix}
-  initial_automorphisms_mod2::Vector{fpMatrix}  # same order as above but mod 2
+  initial_automorphisms_mod2::Vector{FqMatrix}  # same order as above but mod 2
   initial_chamber::K3Chamber   # a non-degenerate L26/SX chamber
   # whether a -2 vector defines an outer wall is a mod 2 condition
-  roots_mod2::Set{fpMatrix}  # mod 2 images of the rational curves
+  roots_mod2::Set{FqMatrix}  # mod 2 images of the rational curves
   gramSY::ZZMatrix  # to avoid coercions
   gramSX::ZZMatrix  # to avoid coercions
   membership_test
   # needed for the membership test
   # the following are in SY/2SY w.r.t the basis of SY mod 2
-  Dplus_perp::fpMatrix
-  Dplus::fpMatrix
-  imgs_mod2::Set{fpMatrix}
+  Dplus_perp::FqMatrix
+  Dplus::FqMatrix
+  imgs_mod2::Set{FqMatrix}
   # w.r.t the basis given by Dplus
-  Gplus_mat::MatrixGroup{fpFieldElem, fpMatrix}
+  Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
   function EnriquesBorcherdsCtx()
     return new()
   end
@@ -86,7 +86,7 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   DSm = discriminant_group(Sm)
   Dminus = domain(phi)
   @vprint :K3Auto 2 "computing stabilizer "
-  stab_Dminus, inc_stab = stabilizer(GSm, Dminus, Oscar._on_subgroups)
+  stab_Dminus, inc_stab = stabilizer(GSm, inc_Dminus)
   @vprint :K3Auto 2 "done\n"
   Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
   res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
@@ -117,7 +117,7 @@ function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
   # turn this into a mod 2 matrix group
   # with respect to the basis of SY mod 2
   B = 1//2*basis_matrix(SY)
-  gens_Gplus_mat = fpMatrix[]
+  gens_Gplus_mat = FqMatrix[]
   for g in gens(Gplus)
     g2 = reduce(vcat,[change_base_ring(GF(2),solve_left(B,matrix(QQ,1,26, lift(g(DSY(vec(B[i,:])))))))  for i in 1:10])
     push!(gens_Gplus_mat, g2)
@@ -156,7 +156,7 @@ function mass(ECtx::EnriquesBorcherdsCtx)
   return volindex(ECtx)[1]//ECtx.orderGbar
 end
 
-function membership_test_as_group(data::EnriquesBorcherdsCtx, f::fpMatrix)
+function membership_test_as_group(data::EnriquesBorcherdsCtx, f::FqMatrix)
   # test if f lies in Gplus
   # f must
   # act as identity on Dplus^perp
@@ -185,7 +185,7 @@ function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
     return
   end
   @vprint :K3Auto 2 "computing $(order(ECtx.Gplus_mat)) images mod 2\n"
-  imgs_mod2 = Set{fpMatrix}()
+  imgs_mod2 = Set{FqMatrix}()
   for g in ECtx.Gplus_mat
     h = matrix(g)
     push!(imgs_mod2, h*ECtx.Dplus)
@@ -193,7 +193,7 @@ function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
   ECtx.imgs_mod2 = imgs_mod2
 end
 
-function membership_test_set(data::EnriquesBorcherdsCtx, f::fpMatrix)
+function membership_test_set(data::EnriquesBorcherdsCtx, f::FqMatrix)
   # test if f lies in Gplus
   # f must
   # act as identity on Dplus^perp
@@ -240,7 +240,7 @@ function fingerprint(D::EnriquesChamber)
   # We can hash this set, or something canonically computed from it
   B = D.data.Dplus_perp
   T = B*inv(D.tau)
-  function _lt(x::fpMatrix,y::fpMatrix)
+  function _lt(x::FqMatrix,y::FqMatrix)
     n = nrows(x)
     m = ncols(x)
     for i in 1:n
@@ -566,7 +566,7 @@ function can_extend_with_extension(S, L, fS)
   phi,incDS,incDR = glue_map(S,R,L)
   DS = domain(phi)
   @vprint :K3Auto 2 "computing stabilizer "
-  stab_DR, inc_stabDR = stabilizer(GR, DR, Oscar._on_subgroups)
+  stab_DR, inc_stabDR = stabilizer(GR, incDR)
   resDR, inc_resDR = restrict_automorphism_group(stab_DR, inc_DR)
   # to be continued
 end
@@ -585,7 +585,7 @@ function compute_Gplus(SY,SX,L26)
   DSm = discriminant_group(Sm)
   Dminus = domain(phi)
   @vprint :K3Auto 2 "computing stabilizer "
-  stab_Dminus, inc_stab = stabilizer(GSm, Dminus, Oscar._on_subgroups)
+  stab_Dminus, inc_stab = stabilizer(GSm, inc_Dminus)
   @vprint :K3Auto 2 "done\n"
   Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
   res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
@@ -605,7 +605,7 @@ function compute_Gplus(SY,SX,L26)
   ODSY = orthogonal_group(DSY)
   tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
   tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
-  gens_Gplus = [ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
+  gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
   Gplus,_ = sub(ODSY, gens_Gplus)
   @assert order(Gplus) == order(Gminus)
   # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
