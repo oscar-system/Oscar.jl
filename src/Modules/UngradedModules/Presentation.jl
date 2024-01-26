@@ -412,7 +412,7 @@ function prune_with_map(M::ModuleFP)
   # TODO: take special care of graded modules 
   # by stripping off the grading and rewrapping it afterwards.
   N, a, b = _alt_simplify(M)
-  return N, a
+  return N, b
 end
 
 function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # The case that can be handled by Singular
