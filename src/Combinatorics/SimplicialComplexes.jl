@@ -54,7 +54,7 @@ end
 
 function simplicial_complex(generators::IncidenceMatrix)
   K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
-  SimplicialComplex(K)
+  simplicial_complex(K)
 end
 
 # more efficient UNEXPORTED+UNDOCUMENTED version, which requires consecutive vertices, and facets as generators;
