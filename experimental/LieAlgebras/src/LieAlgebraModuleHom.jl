@@ -360,8 +360,9 @@ Return the canonical injections from all components into $V$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_injections(V::LieAlgebraModule)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  return [canonical_injection(V, i) for i in 1:length(base_modules(V))]
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  return [canonical_injection(V, i) for i in 1:length(Vs)]
 end
 
 @doc raw"""
@@ -371,9 +372,9 @@ Return the canonical injection $V_i \to V$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_injection(V::LieAlgebraModule, i::Int)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  Vs = base_modules(V)
-  @req 0 < i <= length(Vs) "Index out of bound"
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  @req 1 <= i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
   emb = hom(Vs[i], V, [basis(V, l + j) for l in 1:dim(Vs[i])]; check=false)
   return emb
@@ -386,8 +387,9 @@ Return the canonical projections from $V$ to all components
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_projections(V::LieAlgebraModule)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  return [canonical_projection(V, i) for i in 1:length(base_modules(V))]
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  return [canonical_projection(V, i) for i in 1:length(Vs)]
 end
 
 @doc raw"""
@@ -397,9 +399,9 @@ Return the canonical projection $V \to V_i$
 where $V$ has been constructed as $V_1 \oplus \cdot \oplus V_n$.
 """
 function canonical_projection(V::LieAlgebraModule, i::Int)
-  @req is_direct_sum(V) "Module must be a direct sum"
-  Vs = base_modules(V)
-  @req 0 < i <= length(Vs) "Index out of bound"
+  fl, Vs = is_direct_sum(V)
+  @req fl "Module must be a direct sum"
+  @req 1 <= i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
   proj = hom(
     V,
@@ -428,10 +430,10 @@ If `hs` is a vector, then it is interpreted as a diagonal matrix.
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}
 ) where {C<:FieldElem}
-  @req is_direct_sum(V) "First module must be a direct sum"
-  @req is_direct_sum(W) "Second module must be a direct sum"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+  fl, Vs = is_direct_sum(V)
+  @req fl "First module must be a direct sum"
+  fl, Ws = is_direct_sum(W)
+  @req fl "Second module must be a direct sum"
   @req length(Vs) == size(hs, 1) "Length mismatch"
   @req length(Ws) == size(hs, 2) "Length mismatch"
   @req all(
@@ -454,10 +456,10 @@ end
 function hom_direct_sum(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
 ) where {C<:FieldElem}
-  @req is_direct_sum(V) "First module must be a direct sum"
-  @req is_direct_sum(W) "Second module must be a direct sum"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+  fl, Vs = is_direct_sum(V)
+  @req fl "First module must be a direct sum"
+  fl, Ws = is_direct_sum(W)
+  @req fl "Second module must be a direct sum"
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
@@ -476,11 +478,22 @@ This works for $r$th tensor powers as well.
 """
 function hom_tensor(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}
-) where {C<:FieldElem}
-  @req is_tensor_product(V) || is_tensor_power(V) "First module must be a tensor product or power"
-  @req is_tensor_product(W) || is_tensor_power(W) "Second module must be a tensor product or power"
-  Vs = base_modules(V)
-  Ws = base_modules(W)
+) where {C<:FieldElem} # TODO: cleanup after refactoring tensor_product
+  if ((fl, Vs) = is_tensor_product(V); fl)
+    # nothing to do
+  elseif ((fl, Vb, k) = is_tensor_power(V); fl)
+    Vs = [Vb for _ in 1:k]
+  else
+    throw(ArgumentError("First module must be a tensor product or power"))
+  end
+  if ((fl, Ws) = is_tensor_product(W); fl)
+    # nothing to do
+  elseif ((fl, Wb, k) = is_tensor_power(W); fl)
+    Ws = [Wb for _ in 1:k]
+  else
+    throw(ArgumentError("Second module must be a tensor product or power"))
+  end
+
   @req length(Vs) == length(Ws) == length(hs) "Length mismatch"
   @req all(i -> domain(hs[i]) === Vs[i] && codomain(hs[i]) === Ws[i], 1:length(hs)) "Domain/codomain mismatch"
 
@@ -493,45 +506,92 @@ function hom_tensor(
 end
 
 @doc raw"""
-    hom_power(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
+    hom(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom) -> LieAlgebraModuleHom
 
 Given modules `V` and `W` which are exterior/symmetric/tensor powers of the same kind with the same exponent,
 say, e.g., $V = S^k V'$, $W = S^k W'$, and given a homomorphism $h : V' \to W'$, return
 $S^k h: V \to W$ (analogous for other types of powers).
 """
-function hom_power(
+function hom(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if is_exterior_power(V)
-    @req is_exterior_power(W) "First module is an exterior power, but second module is not"
-    type = :ext
-  elseif is_symmetric_power(V)
-    @req is_symmetric_power(W) "First module is a symmetric power, but second module is not"
-    type = :sym
-  elseif is_tensor_power(V)
-    @req is_tensor_power(W) "First module is a tensor power, but second module is not"
-    type = :tensor
+  if is_exterior_power(V)[1]
+    return induced_map_on_exterior_power(h; domain=V, codomain=W)
+  elseif is_symmetric_power(V)[1]
+    return induced_map_on_symmetric_power(h; domain=V, codomain=W)
+  elseif is_tensor_power(V)[1]
+    return induced_map_on_tensor_power(h; domain=V, codomain=W)
   else
     throw(ArgumentError("First module must be a power module"))
   end
-  @req get_attribute(V, :power) == get_attribute(W, :power) "Exponent mismatch"
-  @req domain(h) === base_module(V) && codomain(h) === base_module(W) "Domain/codomain mismatch"
+end
 
-  TV = type == :tensor ? V : get_attribute(V, :embedding_tensor_power)
-  TW = type == :tensor ? W : get_attribute(W, :embedding_tensor_power)
+function _induced_map_on_power(
+  D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
+)
+  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)
+  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)
 
   mat = reduce(
     kronecker_product,
-    [matrix(h) for _ in 1:get_attribute(V, :power)];
-    init=identity_matrix(coefficient_ring(W), 1),
+    [matrix(h) for _ in 1:power];
+    init=identity_matrix(coefficient_ring(C), 1),
   )
-  TV_to_TW = hom(TV, TW, mat; check=false)
+  TD_to_TC = hom(TD, TC, mat; check=false)
 
   if type == :tensor
-    return TV_to_TW
+    return TD_to_TC
   else
-    V_to_TV = get_attribute(V, :embedding_tensor_power_embedding)
-    TW_to_W = get_attribute(W, :embedding_tensor_power_projection)
-    return V_to_TV * TV_to_TW * TW_to_W
+    D_to_TD = get_attribute(D, :embedding_tensor_power_embedding)
+    TC_to_C = get_attribute(C, :embedding_tensor_power_projection)
+    return D_to_TD * TD_to_TC * TC_to_C
   end
+end
+
+function induced_map_on_exterior_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_exterior_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_exterior_power(codomain)
+  @req domain_fl "Domain must be an exterior power"
+  @req codomain_fl "Codomain must be an exterior power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :ext)
+end
+
+function induced_map_on_symmetric_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=symmetric_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_symmetric_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_symmetric_power(codomain)
+  @req domain_fl "Domain must be an symmetric power"
+  @req codomain_fl "Codomain must be an symmetric power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :sym)
+end
+
+function induced_map_on_tensor_power(
+  h::LieAlgebraModuleHom;
+  domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(phi), p)[1],
+  codomain::LieAlgebraModule{C}=tensor_power(Oscar.codomain(phi), p)[1],
+) where {C<:FieldElem}
+  (domain_fl, domain_base, domain_k) = is_tensor_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_tensor_power(codomain)
+  @req domain_fl "Domain must be an tensor power"
+  @req codomain_fl "Codomain must be an tensor power"
+  @req domain_k == codomain_k "Exponent mismatch"
+  @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
+
+  k = domain_k
+  return _induced_map_on_power(domain, codomain, h, k, :tensor)
 end

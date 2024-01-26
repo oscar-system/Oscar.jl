@@ -60,7 +60,7 @@ end
   @test F(U[1], O)(OO(U[1])[1]) == OO(O)(OO(U[1])[1])
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))
   
-  # To test the other glueings, we repeat the above with a new glueing.
+  # To test the other gluings, we repeat the above with a new gluing.
   P = projective_space(QQ, 2)
   PC = covered_scheme(P)
   cov = default_covering(PC)
@@ -68,8 +68,8 @@ end
   for i in 1:length(U)-1
     for j in i+1:length(U)
       G0 = cov[U[i], U[j]]
-      G1 = Glueing(G0)
-      add_glueing!(cov, G1)
+      G1 = Gluing(G0)
+      add_gluing!(cov, G1)
     end
   end
 
@@ -102,7 +102,7 @@ end
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))
 
   G = cov[U[1], U[2]]
-  f, g = glueing_morphisms(G)
+  f, g = gluing_morphisms(G)
   O2 = preimage(g, O)
   @test F(O2, O)(gens(OO(O2))[1]) == inv(OO(O)(OO(U[1])[1]))
   @test F(O, O2)(inv(OO(O)(OO(U[1])[1]))) == gens(OO(O2))[1]

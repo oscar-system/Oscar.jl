@@ -510,6 +510,23 @@ function ideal_membership(
   return ideal_membership(phi(x), phi(I))
 end
 
+function radical_membership(
+    x::MPolyRingElem{RingElemType},
+    I::MPolyIdeal{<:MPolyRingElem{RingElemType}}
+  ) where {RingElemType <: Union{<:MPolyRingElem, <:MPolyQuoRingElem, <:MPolyLocRingElem, 
+                                  <:MPolyQuoLocRingElem
+                                 }
+          }
+  parent(x) === base_ring(I) || return base_ring(I)(x) in I
+  phi = flatten(parent(x))
+  return radical_membership(phi(x), phi(I))
+end
+
+# TODO: Move to appropriate place eventually.
+function radical_membership(x::MPolyQuoRingElem, I::MPolyQuoIdeal)
+  return radical_membership(lift(x), saturated_ideal(I))
+end
+
 function coordinates(
     x::MPolyRingElem{RingElemType},
     I::MPolyIdeal{<:MPolyRingElem{RingElemType}}

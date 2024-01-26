@@ -1,5 +1,6 @@
 module GaloisCohomology_Mod
 using Oscar
+import Oscar: gmodule
 import Oscar: GrpCoh
 import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent, 
                      Group
@@ -1388,11 +1389,22 @@ function Base.:*(a::Union{Integer, ZZRingElem}, b::RelativeBrauerGroupElem)
 end
 
 function Base.show(io::IO, a::RelativeBrauerGroupElem)
-  print(io, a.data)
+  #online
+  print(io, "Element of relative Brauer group of $(parent(a).k)")
 end
 
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
-  show(io, m, a.data)
+  io = AbstractAlgebra.pretty(io)
+  print(io, "Element of relative Brauer group of $(parent(a).k)\n")
+  ioC = IOContext(io, :supercompact => true, :compact => true)
+  print(io, AbstractAlgebra.Indent())
+  for (p,v) = a.data
+    show(ioC, p)
+    print(io, " -> ")
+    show(ioC, v)
+    print(io, "\n")
+  end
+  print(io, AbstractAlgebra.Dedent())
 end
 
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
@@ -1598,7 +1610,7 @@ function relative_brauer_group(K::AnticNumberField, k::Union{QQField, AnticNumbe
   return B, B.map
 end
 
-function (B::RelativeBrauerGroup)(M::GModule{PermGroup, AbstractAlgebra.Generic.FreeModule{nf_elem}})
+function (B::RelativeBrauerGroup)(M::GModule{<:Group, AbstractAlgebra.Generic.FreeModule{nf_elem}})
   @assert B.K == base_ring(M)
   c = factor_set(M, B.mG)
   return preimage(B.map, c)
@@ -1651,6 +1663,17 @@ by the element
 """
 function Hecke.AlgAss(a::RelativeBrauerGroupElem)
   return A = AlgAss(parent(a).map(a), parent(a).mG, parent(a).mkK)
+end
+
+function Hecke.grunwald_wang(b::RelativeBrauerGroupElem)
+  d1 = Dict((x=>Int(order(y))) for (x,y) = b.data if isa(x, NumFieldOrdIdl))
+  d2 = Dict((x=>Int(order(y))) for (x,y) = b.data if !isa(x, NumFieldOrdIdl))
+
+  if length(d2) == 0
+    return Hecke.grunwald_wang(d1)
+  else
+    return Hecke.grunwald_wang(d1, d2)
+  end
 end
 
 function local_index(C::GModule{<:Oscar.GAPGroup, Generic.FreeModule{nf_elem}}, p::Union{Integer, ZZRingElem})

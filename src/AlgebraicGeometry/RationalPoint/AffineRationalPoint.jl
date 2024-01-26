@@ -1,9 +1,22 @@
+function (X::AbsSpec{BRT})(p::AbsProjectiveRationalPoint) where BRT
+  # certainly not the fastest for the standard affine covering
+  # ... but it will work in general.
+  P = codomain(p)
+  h = homogenization_map(P, X)
+  q = elem_type(BRT)[]
+  for g in gens(OO(X))
+    n,d = lift.(h(g))
+    c = evaluate(n,coordinates(p))*inv(evaluate(d,coordinates(p)))
+    push!(q, c)
+  end
+  return X(q)
+end
+
 # implement the AbsRationalPoint interface
 parent(p::AffineRationalPoint) = p.parent
 
 coordinate(P::AbsAffineRationalPoint, i::Int) = coordinates(P)[i]
-getindex(P::AbsAffineRationalPoint, i::Int) = coordinate(P, i)
-
+Base.getindex(P::AbsAffineRationalPoint, i::Int) = coordinate(P, i)
 
 @doc raw"""
     coordinates(p::AffineRationalPoint{S,T}) -> Vector{S}
@@ -18,6 +31,13 @@ function (X::AbsSpec)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
   return AffineRationalPoint(rational_point_set(X), coordinates, check=check)
+end
+
+function (X::AbsSpec)(p::AffineRationalPoint; check::Bool=true)
+  if codomain(p) === X
+    return X
+  end
+  return X(coordinates(p);check=check)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", P::AbsAffineRationalPoint)
@@ -75,7 +95,7 @@ end
 function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyQuoRing})
   ambient_space(P) == ambient_space(X) || return false
   c = coordinates(P)
-  for f in gens(ambient_closure_ideal(X))
+  for f in gens(saturated_ideal(defining_ideal(X)))
     iszero(evaluate(f, c)) || return false
   end
   return true
@@ -146,7 +166,7 @@ function MPolyComplementOfKPointIdeal(P::AbsAffineRationalPoint)
   return MPolyComplementOfKPointIdeal(R, coordinates(P))
 end
 
-function is_smooth_at(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+function is_smooth(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "not a point on X"
   U = MPolyComplementOfKPointIdeal(P)
   R = OO(codomain(P))
@@ -159,7 +179,7 @@ end
 
 Return whether ``P`` is a smooth point of its ambient scheme ``X``.
 """
-is_smooth(P::AbsAffineRationalPoint) = is_smooth_at(codomain(P),P)
+is_smooth(P::AbsAffineRationalPoint) = is_smooth(codomain(P),P)
 
 
 @doc raw"""
@@ -171,7 +191,7 @@ See also [`tangent_space(P::AbsAffineRationalPoint{<:Field})`](@ref)
 """
 function tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "the point needs to lie on the algebraic set"
-  J = jacobi_matrix(gens(ambient_closure_ideal(X)))
+  J = jacobian_matrix(gens(saturated_ideal(defining_ideal(X))))
   v = coordinates(P)
   JP = map_entries(x->evaluate(x, v), J)
   V = ambient_coordinates(X)
@@ -219,4 +239,10 @@ julia> Oscar.decide_du_val_singularity(X([0,0,0]))
 function decide_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem,<:Any})
   d = decide_du_val_singularity(codomain(P), ideal(P))
   return d[1][1],d[1][3]
+end
+
+function stalk(X::AbsSpec, P::AbsAffineRationalPoint)
+  P in X || error("not a point of X")
+  S = MPolyComplementOfKPointIdeal(P)
+  return localization(OO(X),S)
 end

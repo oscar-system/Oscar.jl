@@ -37,7 +37,7 @@ frattini_subgroup
 socle
 solvable_radical
 pcore(G::GAPGroup, p::IntegerUnion)
-intersect(V::T...) where T<:GAPGroup
+intersect(::T, V::T...) where T<:GAPGroup
 ```
 
 The following functions return a vector of subgroups.
@@ -122,5 +122,5 @@ right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)
 order(C::Union{GroupCoset,GroupDoubleCoset})
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset})
-intersect(V::AbstractVector{Union{T, GroupCoset, GroupDoubleCoset}}) where T <: GAPGroup
+intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
 ```

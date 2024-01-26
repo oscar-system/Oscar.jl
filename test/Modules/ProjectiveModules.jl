@@ -13,7 +13,7 @@
   @test success
   @test P^2 == P
 
-  W = MPolyQuoLocRing(R, I, units_of(R))
+  W = Oscar.MPolyQuoLocRing(R, I, units_of(R))
   F3 = FreeMod(W, 3)
   F4 = FreeMod(W, 4)
   h = hom(F3, F4, map_entries(W, M))

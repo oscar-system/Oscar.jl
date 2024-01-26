@@ -73,19 +73,19 @@ If `G` is a permutation group and `x` is a permutation,
 an exception is thrown if `x` does not embed into `G`.
 ```jldoctest
 julia> G=symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> x=cperm([1,2,3])
 (1,2,3)
 
 julia> parent(x)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> y=G(x)
 (1,2,3)
 
 julia> parent(y)
-Permutation group of degree 5 and order 120
+Sym(5)
 ```
 
 If `G` is a permutation group and `x` is a vector of integers,
@@ -95,13 +95,13 @@ an exception is thrown if the element does not embed into `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(6)
-Permutation group of degree 6 and order 720
+Sym(6)
 
 julia> x = G([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Permutation group of degree 6 and order 720
+Sym(6)
 ```
 """
 @attributes mutable struct PermGroup <: GAPGroup
@@ -352,7 +352,7 @@ end
 """
     AutomorphismGroup{T} <: GAPGroup
 
-Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`.
+Group of automorphisms over a group of type `T`. It can be defined via the function `automorphism_group`
 """
 @attributes mutable struct AutomorphismGroup{T} <: GAPGroup
   X::GapObj
@@ -376,7 +376,6 @@ const AutomorphismGroupElem{T} = BasicGAPGroupElem{AutomorphismGroup{T}} where T
 function Base.show(io::IO, AGE::AutomorphismGroupElem{GrpAbFinGen}) 
     print(io, "Automorphism of ", GrpAbFinGen, " with matrix representation ", matrix(AGE))
 end
-
 
 ################################################################################
 #
@@ -453,13 +452,11 @@ In the future, a more elaborate setup for group element types
 might also be needed.
 """
 elem_type(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
-elem_type(::T) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 Base.eltype(::Type{T}) where T <: GAPGroup = BasicGAPGroupElem{T}
 
 # `parent_type` is defined and documented in AbstractAlgebra.
-parent_type(::Type{T}) where T<:BasicGAPGroupElem{S} where S = S
-parent_type(::T) where T<:BasicGAPGroupElem{S} where S = S
+parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 
 #
 # The array _gap_group_types contains pairs (X,Y) where
@@ -483,6 +480,12 @@ function _get_type(G::GapObj)
                  matgrp.ring_iso = inv(iso)
                  matgrp.X = dom
                  return matgrp
+               end
+      elseif pair[2] == AutomorphismGroup
+        return function(A::GAP.GapObj)
+                 actdom_gap = GAP.Globals.AutomorphismDomain(A)
+                 actdom_oscar = _get_type(actdom_gap)(actdom_gap)
+                 return AutomorphismGroup(A, actdom_oscar)
                end
       else
         return pair[2]

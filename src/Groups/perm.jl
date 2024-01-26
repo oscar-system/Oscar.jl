@@ -119,7 +119,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Permutation group of degree 6 and order 720
+Sym(6)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -227,7 +227,7 @@ julia> x=cperm(G,[1,2,3]);
 julia> y=cperm(A,[1,2,3]);
 
 julia> z=cperm([1,2,3]); parent(z)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> x==y
 true
@@ -251,13 +251,13 @@ true
 
 ```jldoctest
 julia> G=symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> x = cperm(G,[[1,2],[3,4]])
 (1,2)(3,4)
 
 julia> parent(x)
-Permutation group of degree 5 and order 120
+Sym(5)
 ```
 
 Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
@@ -281,26 +281,26 @@ true
 At the moment, the input vectors of the function `cperm` need not be disjoint.
 
 """
-function cperm(L::AbstractVector{T}...) where T <: IntegerUnion
-   if length(L)==0
-      return one(symmetric_group(1))
-   else
-      return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in L])
-#TODO: better create the product of GAP permutations?
-   end
+function cperm()
+  return one(symmetric_group(1))
+end
+
+function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
+  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
+  #TODO: better create the product of GAP permutations?
 end
 
 # cperm stays for "cycle permutation", but we can change name if we want
 # takes as input a list of vectors (not necessarily disjoint)
 # WARNING: we allow e.g. PermList([2,3,1,4,5,6]) in Sym(3)
-function cperm(g::PermGroup,L::AbstractVector{T}...) where T <: IntegerUnion
-   if length(L)==0
-      return one(g)
-   else
-      x=prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), L)
-      @req x in g.X "the element does not embed in the group"
-      return PermGroupElem(g, x)
-   end
+function cperm(g::PermGroup)
+  return one(g)
+end
+
+function cperm(g::PermGroup, L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
+  x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1, L...])
+  @req x in g.X "the element does not embed in the group"
+  return PermGroupElem(g, x)
 end
 
 function cperm(L::Vector{Vector{T}}) where T <: IntegerUnion
@@ -697,7 +697,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Permutation group of degree 8 and order 40320
+Sym(8)
 
 julia> y = cperm([1,2,3],[4,5],[6,7,8])
 (1,2,3)(4,5)(6,7,8)
@@ -754,7 +754,7 @@ julia> gens = @perm 14 [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Permutation group of degree 14 and order 87178291200
+Sym(14)
 ```
 """
 macro perm(n,gens)

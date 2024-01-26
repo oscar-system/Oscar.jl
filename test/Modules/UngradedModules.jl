@@ -268,6 +268,29 @@ end
   @test codomain(isom) == C
 end
 
+@testset "Prune With Map" begin
+  # ungraded
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  M = SubquoModule(identity_matrix(R, 3), R[1 x x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 2
+  @test (phi).(gens(N)) == gens(M)[2:3]
+  
+  M = SubquoModule(identity_matrix(R, 3), R[x 1 x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 2
+  @test (phi).(gens(N)) == [gens(M)[1], gens(M)[3]]
+
+  # graded
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+  F = graded_free_module(R, [2, 1])
+  M = SubquoModule(F, identity_matrix(R, 2), R[1 x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 1
+  @test (phi).(gens(N)) == [gens(M)[2]]
+  @test degrees_of_generators(N) == [degrees_of_generators(M)[2]]
+end
+
 @testset "Ext, Tor" begin
   # These tests are only meant to check that the ext and tor function don't throw any error
   # These tests don't check the correctness of ext and tor
@@ -356,6 +379,13 @@ end
   @test P == Q
   v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
   @test represents_element(v,M)
+  R, (x,y,z) = polynomial_ring(AcbField(64), ["x", "y", "z"])
+  F = FreeMod(R, 2)
+
+  A = R[x+1 y*z+x^2; (y+2*z) z^3]
+  B = R[2*z*(x*z+y^2) (x*z)^5]
+  M = SubquoModule(F, A, B)
+  @test_throws ArgumentError groebner_basis(M)
 end
 
 
@@ -1019,8 +1049,8 @@ end
 
 @testset "change of base rings" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x)
-  S = MPolyLocRing(R, U)
+  U = Oscar.MPolyPowersOfElement(x)
+  S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
   FS, mapF = change_base_ring(S, F)
   @test 1//x*mapF(x*F[1]) == FS[1]
@@ -1049,7 +1079,7 @@ end
 
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi)
   
   M, inc = sub(F2, [x*F2[1], y*F2[1]])
   F1 = FreeMod(R, 1)
@@ -1071,7 +1101,7 @@ end
   
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi) 
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
   Mv, ev = Oscar.dual(M, cod=F1)
@@ -1091,6 +1121,19 @@ end
   Mk1 = Mk[1]
   fr = free_resolution(Mk1)
   @test rank(domain(map(fr.C,1))) == 0
+end
+
+@testset "length of free resolution" begin
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), ["x0", "x1", "x2", "x3", "x4"]);
+  m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0,
+            x1*x3+(-x1+x4+x0)*x0,
+            x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0,
+            x2*x3+(x1-x2+x3+x4-x0)*x0, x2*x4+(x1+x2-x3-x4-x0)*x0,
+            x3^2+(x3+x4-x0)*x0,x3*x4+(-x3-x4+x0)*x0,
+            x4^2+(x1+x3-x4-x0)*x0]);
+  A, _ = quo(S, m);
+  FA = free_resolution(A)
+  @test length(FA.C.maps) == 9
 end
 
 @testset "vector_space_dimension and vector_space_basis" begin

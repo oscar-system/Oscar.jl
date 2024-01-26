@@ -4,19 +4,19 @@ end
 
 # conversion between fraction_field and Singular function field
 # univariate
-function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{QQPolyRingElem, fpPolyRingElem}
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{QQPolyRingElem, fpPolyRingElem, FqPolyRingElem}
   R = base_ring(F)
   return Singular.FunctionField(singular_coeff_ring(base_ring(R)), [string(R.S)])[1]
 end
 
-function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQPolyRingElem, fpPolyRingElem}
+function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQPolyRingElem, fpPolyRingElem, FqPolyRingElem}
   check_char(F, parent(x))
   @req Singular.transcendence_degree(F) == 1 "wrong number of generators"
   a = Singular.transcendence_basis(F)[1]
   numerator(x)(a) // denominator(x)(a)
 end
 
-function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQPolyRingElem, fpPolyRingElem}
+function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQPolyRingElem, fpPolyRingElem, FqPolyRingElem}
   check_char(F, parent(x))
   @req Singular.transcendence_degree(parent(x)) == 1 "wrong number of generators"
   n, d = Singular.n_transExt_to_spoly.([numerator(x), denominator(x)])
@@ -24,19 +24,19 @@ function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where
 end
 
 # multivariate
-function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
+function Oscar.singular_coeff_ring(F::AbstractAlgebra.Generic.FracField{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem, FqMPolyRingElem}
   R = base_ring(F)
   return Singular.FunctionField(singular_coeff_ring(base_ring(R)), _variables_for_singular(symbols(R)))[1]
 end
 
-function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
+function (F::Singular.N_FField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{QQMPolyRingElem, fpMPolyRingElem, FqMPolyRingElem}
   check_char(F, parent(x))
   @req Singular.transcendence_degree(F) == ngens(base_ring(parent(x))) "wrong number of generators"
   a = Singular.transcendence_basis(F)
   numerator(x)(a...) // denominator(x)(a...)
 end
 
-function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQMPolyRingElem, fpMPolyRingElem}
+function (F::AbstractAlgebra.Generic.FracField{T})(x::Singular.n_transExt) where T <: Union{QQMPolyRingElem, fpMPolyRingElem, FqMPolyRingElem}
   check_char(F, parent(x))
   @req ngens(base_ring(F)) == Singular.transcendence_degree(parent(x)) "wrong number of generators"
   n, d = Singular.n_transExt_to_spoly.([numerator(x), denominator(x)])
@@ -85,7 +85,20 @@ function (F::Nemo.fpField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{
   F(cst_num) // F(cst_denom)
 end
 
+function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.Frac{T}) where T <: Union{FqPolyRingElem, FqMPolyRingElem}
+  num = numerator(x)
+  cst_num = constant_coefficient(num)
+  denom = denominator(x)
+  cst_denom = constant_coefficient(denom)
+  if (num != cst_num || denom != cst_denom) throw(InexactError(:FqFieldElem, FqFieldElem, x)) end
+  F(cst_num) // F(cst_denom)
+end
+
 function (F::Nemo.fpField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{fpFieldElem})
+  return F(x.d)
+end
+
+function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{FqFieldElem})
   return F(x.d)
 end
 
@@ -102,6 +115,8 @@ AbstractAlgebra.promote_rule(::Type{QQFieldElem}, ::Type{Singular.n_transExt}) =
 AbstractAlgebra.promote_rule(::Type{fpFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
 
 AbstractAlgebra.promote_rule(::Type{FpFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+
+AbstractAlgebra.promote_rule(::Type{FqFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
 
 AbstractAlgebra.promote_rule(::Type{FqPolyRepFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
 

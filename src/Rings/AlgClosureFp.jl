@@ -14,6 +14,8 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
+import ..Oscar.AbstractAlgebra: pretty, Lowercase
+
 import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
   elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
@@ -28,7 +30,8 @@ struct AlgClosure{T} <: AbstractAlgebra.Field
 end
 
 function show(io::IO, A::AlgClosure)
-  print(io, "Algebraic Closure of $(A.k)")
+  io = pretty(io)
+  print(io, "Algebraic Closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k
@@ -42,9 +45,9 @@ struct AlgClosureElem{T} <: FieldElem
 end
 
 elem_type(::Type{AlgClosure{T}}) where T = AlgClosureElem{T}
-elem_type(::AlgClosure{T}) where T = AlgClosureElem{T}
-parent_type(::AlgClosureElem{T}) where T = AlgClosure{T}
 parent_type(::Type{AlgClosureElem{T}}) where T = AlgClosure{T}
+
+Oscar.canonical_unit(a::AlgClosureElem) = is_zero(a) ? one(a) : a
 
 function show(io::IO, a::AlgClosureElem)
   print(io, data(a))
@@ -104,11 +107,11 @@ function ext_of_degree(A::AlgClosure, d::Int)
     
   k = base_ring(A)
   if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
-    K = GF(Int(characteristic(k)), d, cached = false)
+    K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
-    K = Nemo._GF(characteristic(k), d, cached = false)
-  else
     K = GF(characteristic(k), d, cached = false)
+  else
+    K = Nemo.Native.GF(characteristic(k), d, cached = false)
   end
   A.fld[d] = K
   return K
@@ -326,6 +329,7 @@ function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S})
   mod(degree(F), degree(elm)) != 0 && return false, zero(F)
   return true, preimage(mp, elm)
 end
+
 
 end # AlgClosureFp
 

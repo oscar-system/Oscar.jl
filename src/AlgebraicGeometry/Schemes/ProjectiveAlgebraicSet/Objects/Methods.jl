@@ -7,7 +7,12 @@ function Base.show(io::IO, ::MIME"text/plain",
   io = pretty(io)
   println(io, "Projective algebraic set")
   println(io, Indent(), "in ", Lowercase(), ambient_space(X))
-  print(io, Dedent(), "defined by ", Lowercase(), defining_ideal(X))
+  if isdefined(X, :Xred)
+    I = vanishing_ideal(X)
+  else
+    I = fat_ideal(X)
+  end
+  print(io, Dedent(), "defined by ", Lowercase(), I)
 end
 
 # If we know a radical ideal describing our algebraic set, we preferably print

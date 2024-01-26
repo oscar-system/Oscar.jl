@@ -20,7 +20,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> order(G)
 120
@@ -41,12 +41,12 @@ on its moved points, and `false` otherwise.
 @gapattribute is_natural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
 
 """
-    is_isomorphic_with_symmetric_group(G::GAPGroup)
+    is_isomorphic_to_symmetric_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with a symmetric group,
+Return `true` if `G` is isomorphic to a symmetric group,
 and `false` otherwise.
 """
-@gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
+@gapattribute is_isomorphic_to_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
     alternating_group(n::Int)
@@ -56,7 +56,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Permutation group of degree 5 and order 60
+Alt(5)
 
 julia> order(G)
 60
@@ -77,12 +77,12 @@ on its moved points, and `false` otherwise.
 @gapattribute is_natural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
 
 """
-    is_isomorphic_with_alternating_group(G::GAPGroup)
+    is_isomorphic_to_alternating_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with an alternating group,
+Return `true` if `G` is isomorphic to an alternating group,
 and `false` otherwise.
 """
-@gapattribute is_isomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
+@gapattribute is_isomorphic_to_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
 
 """
     cyclic_group(::Type{T} = PcGroup, n::IntegerUnion)

@@ -24,34 +24,18 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: V((y//x), 1)
-    2: V(1, (x//y))
-    3: V((y//z), (x//z))
+    1: V((y//z), (x//z))
   in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
+    1: [(x//z), (y//z)]
 
 julia> identity_map(Xcov)
 Covered scheme morphism
-  from scheme over QQ covered with 3 patches
-    1a: [(y//x), (z//x)]   V((y//x), 1)
-    2a: [(x//y), (z//y)]   V(1, (x//y))
-    3a: [(x//z), (y//z)]   V((y//z), (x//z))
-  to scheme over QQ covered with 3 patches
-    1b: [(y//x), (z//x)]   V((y//x), 1)
-    2b: [(x//y), (z//y)]   V(1, (x//y))
-    3b: [(x//z), (y//z)]   V((y//z), (x//z))
-given by the pullback functions
+  from scheme over QQ covered with 1 patch
+    1a: [(x//z), (y//z)]   V((y//z), (x//z))
+  to scheme over QQ covered with 1 patch
+    1b: [(x//z), (y//z)]   V((y//z), (x//z))
+given by the pullback function
   1a -> 1b
-    (y//x) -> 0
-    (z//x) -> 0
-    ----------------------------------------
-  2a -> 2b
-    (x//y) -> 0
-    (z//y) -> 0
-    ----------------------------------------
-  3a -> 3b
     (x//z) -> 0
     (y//z) -> 0
 ```

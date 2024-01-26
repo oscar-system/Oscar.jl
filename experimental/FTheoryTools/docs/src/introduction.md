@@ -35,12 +35,11 @@ This project just began, and is therefore in its experimental stage. Upcoming ta
 * Consolidate notation about sections and line bundles in the documentation.
 * The Kodaira type function assumes that the singular locus is given by a single coordinate.
 * The Kodaira type function only works for codimension 1.
-* Modify the _ambient_space_from_base function to return ring maps from the base to the ambient space and all other constructors/types to appropriately carry that around, then fix the corresponding bit of code in analyze_fibers.
 
 
 ## Tutorial
 
-We provide a [tutorial for FTheoryTools in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/FTheoryToolsInOSCAR.ipynb).
+We provide a [tutorial for FTheoryTools in OSCAR](https://www.oscar-system.org/tutorials/).
 
 
 ## Possible future extensions

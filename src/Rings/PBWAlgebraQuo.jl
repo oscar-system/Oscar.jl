@@ -63,11 +63,7 @@ function is_exact_type(a::Type{U}) where {T, U <: PBWAlgQuoElem{T}}
    return is_exact_type(T)
 end
 
-elem_type(::PBWAlgQuo{T, S}) where {T, S} = PBWAlgQuoElem{T, S}
-
 elem_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = PBWAlgQuoElem{T, S}
-
-parent_type(::PBWAlgQuoElem{T, S}) where {T, S} = PBWAlgQuo{T, S}
 
 parent_type(::Type{PBWAlgQuoElem{T, S}}) where {T, S} = PBWAlgQuo{T, S}
 
@@ -242,7 +238,7 @@ Map defined by a julia-function with inverse
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singular.PluralRing{S}} = nothing)  where {S}
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal; SpecialImpl::Union{Nothing, Singular.PluralRing} = nothing)
   @assert (Q == base_ring(I));
   ### No idea how to check whether SpecialImpl is sane!
 #??? Check if I is ideal of squares of gens then produce ExtAlg???
@@ -283,11 +279,11 @@ function (Q::PBWAlgQuo)(a::PBWAlgElem)
 end
 
 function (Q::PBWAlgQuo)()
-  return PBWAlgQuoElem(Q, base_ring(Q)())
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(0)))
 end
 
 function (Q::PBWAlgQuo{T, S})(c::T) where {T, S}
-  return PBWAlgQuoElem(Q, base_ring(Q)(c))
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(c)))
 end
 
 function (Q::PBWAlgQuo)(c::IntegerUnion)

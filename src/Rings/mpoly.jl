@@ -10,20 +10,6 @@
 
 #TODO: reduce = divrem in Nemo. Should be faster - if we have the correct basis
 
-#allows
-# polynomial_ring(QQ, :a=>1:3, "b"=>1:3, "c=>1:5:10)
-# -> QQx, [a1, a2, a3], [b1 ,b2, b3], ....
-
-function polynomial_ring(R::AbstractAlgebra.Ring, v1::Pair{<:VarName, <:Any}, v...; cached::Bool = false, ordering::Symbol = :lex)
-  w = (v1, v...)
-  str = _make_strings(w)
-  strings = vcat(str...)
-  Rx, c = polynomial_ring(R, strings, cached = cached, ordering = ordering)
-  # Now we need to collect the variables
-  # We do it recursively to make it type stable
-  Rx, _collect_variables(c, w)...
-end
-
 # To make a list of variables safe for Singular to use
 # Allowable schemes should be:
 # (:x), (:x, :y), (:x, :y, :z)
@@ -544,6 +530,63 @@ function singular_coeff_ring(F::fqPolyRepField)
   return SF
 end
 
+# Nonsense for FqField (aka fq_default from flint)
+function singular_coeff_ring(F::Nemo.FqField)
+  # we are way beyond type stability, so just do what you want
+  @assert is_absolute(F)
+  ctx = Nemo._fq_default_ctx_type(F)
+  if ctx == Nemo._FQ_DEFAULT_NMOD
+    return Singular.Fp(Int(characteristic(F)))
+  elseif nbits(characteristic(F)) <= 29
+    # TODO: the Fp(Int(char)) can throw
+    minpoly = modulus(F)
+    Fa = parent(minpoly)
+    SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
+                                        _variables_for_singular(symbols(Fa)))
+    Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
+    for i in 1:degree(minpoly)
+      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
+    end
+    SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
+    return SF
+  else
+    return Singular.CoefficientRing(F)
+  end
+end
+
+function (K::FqField)(a::Singular.n_algExt)
+  SK = parent(a)
+  SF = parent(Singular.modulus(SK))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
+  F = parent(a)
+  SFa = gen(SF)
+  res = SF(lift(ZZ, coeff(a, 0)))
+  for i in 1:degree(F)-1
+    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+  end
+  return res
+end
+
+function (F::FqField)(a::Singular.n_Zp)
+  return F(Int(a))
+end
+
+function (SF::Singular.N_ZpField)(a::FqFieldElem)
+   return SF(lift(ZZ, a))
+end
+
 #### TODO stuff to move to singular.jl
 function (F::Singular.N_FField)(a::Union{zzModRingElem, fpFieldElem})
   return F(a.data)
@@ -757,7 +800,7 @@ end
 
 function oscar_assure(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
-    if typeof(B.Ox) <: MPolyQuoRing
+    if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
       R = B.Ox
@@ -835,40 +878,40 @@ function (F::Generic.FreeModule)(s::Singular.svector)
 end
 
 @doc raw"""
-    jacobi_matrix(f::MPolyRingElem)
+    jacobian_matrix(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
-function jacobi_matrix(f::MPolyRingElem)
+function jacobian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_ideal(f::MPolyRingElem)
+    jacobian_ideal(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
-function jacobi_ideal(f::MPolyRingElem)
+function jacobian_ideal(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
+    jacobian_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
 return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
-function jacobi_matrix(g::Vector{<:MPolyRingElem})
+function jacobian_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"
   R = parent(g[1])
-  return jacobi_matrix(R, g)
+  return jacobian_matrix(R, g)
 end
 
-function jacobi_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
+function jacobian_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
   n = nvars(R)
   @req all(x->parent(x) === R, g) "polynomials must be elements of R"
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
@@ -1223,21 +1266,6 @@ end
 #
 ##############################################################################
 
-#=
-function factor(f::MPolyRingElem)
-  I = ideal(parent(f), [f])
-  fS = Singular.factor(I.gens[Val(:S), 1])
-  R = parent(f)
-  return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
-end
-=#
-
-# generic fallback since this is not implemented specifically anywhere yet
-function is_irreducible(a::MPolyRingElem)
-  af = factor(a)
-  return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
-end
-
 ################################################################################
 
 @doc raw"""
@@ -1287,7 +1315,7 @@ lift(f::MPolyRingElem) = f
 function hessian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
-  df = jacobi_matrix(f)
+  df = jacobian_matrix(f)
   result = zero_matrix(R, n, n)
   for i in 1:n
     for j in i:n

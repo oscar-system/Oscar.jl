@@ -1,9 +1,10 @@
 @testset "affine schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
-  @test iszero(Oscar.ambient_closure_ideal(A3))
+  @test iszero(Oscar.saturated_ideal(defining_ideal(A3)))
+  @test iszero(defining_ideal(A3))
   f = x*y-z^2
   I = ideal(R, f)
   J = ideal(R, [f, x])
@@ -12,6 +13,7 @@
   @test (A3empty==absempty)
   @test (absempty==A3empty)
   X = subscheme(A3, I)
+  @test defining_ideal(X) isa Oscar.MPolyIdeal
   @test_broken !is_non_zero_divisor(f,X)
   @test is_non_zero_divisor(f,A3)
   Xsub = subscheme(A3,J)
@@ -21,6 +23,7 @@
   set_name!(X, "X")
   @test iszero(OO(X)(f))
   U = hypersurface_complement(A3, x)
+  @test defining_ideal(U) isa Oscar.MPolyLocalizedIdeal
   UX = hypersurface_complement(X,x)
   @test is_non_zero_divisor(f,U)
   @test !is_non_zero_divisor(f,UX)
@@ -41,6 +44,7 @@
   @test ambient_coordinate_ring(U) === R
   set_name!(U, "U")
   UX = intersect(X, U)
+  @test defining_ideal(UX) isa Oscar.MPolyLocalizedIdeal
   set_name!(UX, "U ∩ X")
   @test issubset(UX, X)
   @test issubset(UX, U)
@@ -57,7 +61,7 @@
   A2 = Spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
-  phi = SpecMor(UX, A2, [y//z, z])
+  phi = morphism(UX, A2, [y//z, z])
   L = subscheme(A2, u-v)
   phi_L = preimage(phi, L)
   @test OO(phi_L)(y//z) == OO(phi_L)(z)
@@ -66,7 +70,7 @@
   @test iszero(pullback(p)(OO(phi_L)(y//z)) - pullback(q)(OO(L)(v)))
   
   Xstd = Oscar.standard_spec(X)
-  mirr = SpecMor(Xstd, Xstd, [y, x, z])
+  mirr = morphism(Xstd, Xstd, [y, x, z])
   @test is_isomorphism(mirr)
   @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
   @test is_empty(EmptyScheme(QQ))
@@ -98,7 +102,7 @@ end
   @test dim(plane) == 2
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   
   S = complement_of_point_ideal(R, [1, 1, 1])
   I = ideal(R, [x-1, y-1])*ideal(R, z)
@@ -123,7 +127,7 @@ end
   @test dim(plane) == 3
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   P = ideal(R, R(5))
   @test is_prime(P)
   S = complement_of_prime_ideal(P)
@@ -194,9 +198,9 @@ end
   @test_broken issubset(intersect(A3,V),A3)
   @test ambient_coordinate_ring(V)===R
   @test ambient_coordinate_ring(U) === R
-  @test ring_type(V) == typeof(OO(V))
-  @test base_ring_type(typeof(V)) == typeof(QQ)
-  @test base_ring_elem_type(V) == QQFieldElem
+  @test Oscar.ring_type(V) == typeof(OO(V))
+  @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
+  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
   @test issubset(V,U)
   @test issubset(U,V)
@@ -225,8 +229,8 @@ end
   B = Oscar.standard_spec(Spec(T))
   phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
   phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
-  Phi1 = SpecMor(X, B, phi1)
-  Phi2 = SpecMor(Y, B, phi2)
+  Phi1 = morphism(X, B, phi1)
+  Phi2 = morphism(Y, B, phi2)
   Z = fiber_product(Phi1, Phi2)[1]
   A = ambient_coordinate_ring(Z)
   a = gens(A)
@@ -292,5 +296,65 @@ end
   W = SpecOpen(IA2, [x, y])
   WW, f = base_change(pr, W)
   @test WW isa SpecOpen
+end
+
+@testset "principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+  back = inverse_on_image(there)
+end
+
+@testset "fiber products with principal open embeddings" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  (x, y, z) = gens(OO(IA3))
+  U, inc = complement(IA3, y)
+  @test [y] == complement_equations(inc)
+  phi = inverse_on_image(inc)
+  X, X_to_IA3 = sub(IA3, [x-y])
+  X_simp = simplify(X)
+  X_simp_to_X, X_to_X_simp = Oscar.identification_maps(X_simp)
+  V, inc_V = complement(X_simp, OO(X_simp)[1])
+  g = compose(inc_V, X_simp_to_X)
+  there = Oscar.PrincipalOpenEmbedding(g, OO(X).([x]))
+
+  # The classical case of two maps
+  prod1, p1, p2 = fiber_product(there, there)
+  id_V = identity_map(V)
+  h = Oscar.induced_map_to_fiber_product(id_V, id_V, there, there, fiber_product=(prod1, p1, p2))
+  @test codomain(h) === prod1
+  @test is_isomorphism(h)
+
+  # one open inclusion and a closed embedding
+  Y, inc_Y = sub(X, z)
+  pro, p1, p2 = fiber_product(there, inc_Y)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, there, inc_Y, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test compose(p1, there) == compose(p2, inc_Y)
+
+  # the same the other way around
+  pro, p1, p2 = fiber_product(inc_Y, there)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, inc_Y, there, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test codomain(p1) === domain(inc_Y)
+  @test codomain(p2) === domain(there)
+  @test compose(p1, inc_Y) == compose(p2, there)
+
+  # two open inclusions
+  pro, p1, p2 = fiber_product(there, there)
+  h = Oscar.induced_map_to_fiber_product(p1, p2, there, there, fiber_product=(pro, p1, p2))
+  @test codomain(h) === pro
+  @test is_isomorphism(h)
+  @test compose(p1, there) == compose(p2, there)
 end
 

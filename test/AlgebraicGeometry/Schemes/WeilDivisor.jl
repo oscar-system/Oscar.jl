@@ -2,15 +2,15 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, = graded_polynomial_ring(kk, ["s", "t"])
+  S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 
   # split this into the standard covering
-  base_covering = standard_covering(base_P1)
+  bc = standard_covering(base_P1)
 
-  A1s = patches(base_covering)[1]
-  A1t = patches(base_covering)[2]
+  A1s = patches(bc)[1]
+  A1t = patches(bc)[2]
 
   # Set up relative projective space of relative dimension 2 
   # over both base patches
@@ -33,10 +33,10 @@
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -186,9 +186,9 @@ end
   X = covered_scheme(P3)
   D = weil_divisor(II)
   E = Oscar.irreducible_decomposition(D)
-  @test length(keys(coefficient_dict(E))) == 2
-  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
-  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test length(keys(Oscar.coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
 end
 
 @testset "intersection numbers on surfaces" begin

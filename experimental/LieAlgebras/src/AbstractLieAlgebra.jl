@@ -371,6 +371,10 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
 
   # start temporary workaround # TODO: reenable code above
   type = only(root_system_type(rs))
+  if type == (:F, 4)
+    # GAP uses a non-canonical order of simple roots for F4. Until we have our own implementation, we disable it to avoid confusion.
+    error("Not implemented for F4.")
+  end
   coeffs_iso = inv(Oscar.iso_oscar_gap(R))
   LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(string(type[1])), type[2], domain(coeffs_iso))
   @req GAPWrap.Dimension(LG) == n "Dimension mismatch. Something went wrong."

@@ -102,7 +102,6 @@ Nemo.parent(f::MPolyRingElemLoc) = f.parent
 Nemo.numerator(f::MPolyRingElemLoc) = numerator(f.frac)
 Nemo.denominator(f::MPolyRingElemLoc) = denominator(f.frac)
 
-elem_type(::MPolyRingLoc{T}) where {T} = MPolyRingElemLoc{T}
 elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyRingElemLoc{T}
 parent_type(::Type{MPolyRingElemLoc{T}}) where {T} = MPolyRingLoc{T}
 
