@@ -76,18 +76,18 @@ one line printing of newring with supercompact QQ</code></pre><h2 id="Advanced-p
 end
 
 function Base.show(io::IO, a::A)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   println(io, &quot;Something of type A&quot;)
-  print(io, AbstractAlgebra.Indent(), &quot;over &quot;, AbstractAlgebra.Lowercase(), a.x)
-  print(io, AbstractAlgebra.Dedent()) # don&#39;t forget to undo the indentation!
+  print(io, Indent(), &quot;over &quot;, Lowercase(), a.x)
+  print(io, Dedent()) # don&#39;t forget to undo the indentation!
 end
 
 struct B
 end
 
 function Base.show(io::IO, b::B)
-  io = AbstractAlgebra.pretty(io)
-  print(io, AbstractAlgebra.LowercaseOff(), &quot;Hilbert thing&quot;)
+  io = pretty(io)
+  print(io, LowercaseOff(), &quot;Hilbert thing&quot;)
 end</code></pre><p>At the REPL, this will then be printed as follows:</p><pre><code class="nohighlight hljs">julia&gt; A(2)
 Something of type A
   over 2
@@ -106,7 +106,7 @@ Something of type A
 julia&gt; function Base.show(io::IO, c::C{T}) where T
        x = c.x
        n = length(x)
-       print(io, &quot;Something with &quot;, AbstractAlgebra.ItemQuantity(n, &quot;element&quot;), &quot; of type $T&quot;)
+       print(io, &quot;Something with &quot;, ItemQuantity(n, &quot;element&quot;), &quot; of type $T&quot;)
        end</code></pre><p>At the REPL, this will then be printed as follows:</p><pre><code class="nohighlight hljs">julia&gt; C(Int[2,3,4])
 Something with 3 elements of type Int64
 
@@ -132,4 +132,4 @@ x &amp; x^{2} \\
     else
       print(io, &quot;A-&gt;B&quot;)
     end
-  end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../documentation/">« Documenting OSCAR code</a><a class="docs-footer-nextpage" href="../debugging/">Debugging OSCAR Code »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 25 January 2024 21:43">Thursday 25 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../documentation/">« Documenting OSCAR code</a><a class="docs-footer-nextpage" href="../debugging/">Debugging OSCAR Code »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 26 January 2024 08:49">Friday 26 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
