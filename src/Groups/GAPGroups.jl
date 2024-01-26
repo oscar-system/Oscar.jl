@@ -353,7 +353,7 @@ Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
 div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
-div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
+div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (y.X \ x.X)::GapObj)
 
 Base.conj(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 
