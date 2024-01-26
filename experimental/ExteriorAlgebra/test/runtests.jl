@@ -20,13 +20,13 @@ exterior_algebra(QQ, ["x", "y", "x"]);
 
 
 # residue_field produces a different result from GF... Singular does not like it
-@test_broken  exterior_algebra(residue_field(ZZ,2), 2);
-@test_broken  exterior_algebra(residue_field(ZZ,3), 4);
-@test_broken  exterior_algebra(residue_field(ZZ,1180591620717411303449), 2);
+@test_broken exterior_algebra(residue_field(ZZ, 2)[1], 2);
+@test_broken exterior_algebra(residue_field(ZZ, 3)[1], 4);
+@test_broken exterior_algebra(residue_field(ZZ, 1180591620717411303449)[1], 2);
 
 
 @test_throws MethodError  exterior_algebra(ZZ, 3)                  # Coeffs not field
-@test_throws MethodError  exterior_algebra(residue_ring(ZZ,4), 3)  # Coeffs not field
+@test_throws MethodError  exterior_algebra(residue_ring(ZZ,4)[1], 3)  # Coeffs not field
 
 @test_throws ArgumentError  exterior_algebra(QQ, String[]);        # empty name list
 
@@ -76,11 +76,11 @@ end
 # ### exterior_algebra_PBWAlgQuo(GF(1180591620717411303449), 2);  #  --> ERROR prime too big (for GF)
 
 
-# exterior_algebra_PBWAlgQuo(residue_field(ZZ,2), 2);
-# exterior_algebra_PBWAlgQuo(residue_field(ZZ,3), 4);
-# exterior_algebra_PBWAlgQuo(residue_field(ZZ,1180591620717411303449), 2);
+# exterior_algebra_PBWAlgQuo(residue_field(ZZ, 2)[1], 2);
+# exterior_algebra_PBWAlgQuo(residue_field(ZZ, 3)[1], 4);
+# exterior_algebra_PBWAlgQuo(residue_field(ZZ, 1180591620717411303449)[1], 2);
 
-# exterior_algebra_PBWAlgQuo(residue_ring(ZZ,4), 3)  # Coeffs not integral domain
+# exterior_algebra_PBWAlgQuo(residue_ring(ZZ,4)[1], 3)  # Coeffs not integral domain
 
 # @test_throws  ArgumentError  exterior_algebra_PBWAlgQuo(QQ, String[]); # empty name list
 # exterior_algebra_PBWAlgQuo(QQ, ["x", "y", "x"]); #  !!duplicate names are allowed!!

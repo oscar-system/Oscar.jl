@@ -413,7 +413,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
       # change to the user basis
       g = u * fp * inv(u)
       while true
-        R = residue_ring(ZZ, p^(prec+3))
+        R = residue_ring(ZZ, p^(prec+3))[1]
         conv = MapFromFunc(QQ, R, x -> R(numerator(x)) * R(denominator(x)^(-1)))
         _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
         g = change_base_ring(ZZ, _g)

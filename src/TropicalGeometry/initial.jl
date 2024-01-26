@@ -72,7 +72,7 @@ function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector{<:Union{QQ
     ###
     # Construct the initial form
     ###
-    kx,_ = polynomial_ring(residue_field(nu),symbols(parent(f)))
+    kx, _ = polynomial_ring(residue_field(nu),symbols(parent(f)))
     initialForm = MPolyBuildCtx(kx)
     for (c,alpha) in zip(coeffs,expvs)
         push_term!(initialForm,initial(c,nu),alpha)

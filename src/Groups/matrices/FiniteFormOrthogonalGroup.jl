@@ -774,9 +774,8 @@ function _compute_gens(T::TorQuadModule)
       q_p = block_diagonal_matrix([QQ[1;],q_p])
     end
     b = valuation(invs[end], p)
-    R = residue_ring(ZZ,ZZRingElem(p)^(b+5))
-    G_p = change_base_ring(ZZ, q_p*p^b)
-    G_p = change_base_ring(R, G_p)
+    R = residue_ring(ZZ, ZZRingElem(p)^(b+5))[1]
+    G_p = change_base_ring(R, change_base_ring(ZZ, q_p*p^b))
     if p != 2
       # make sure each homogeneous block of G_p stays in normal form
       r = divexact(G_p, R(2))
