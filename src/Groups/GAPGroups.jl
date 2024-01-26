@@ -303,20 +303,29 @@ end
 function Base.show(io::IO, G::PermGroup)
   @show_name(io, G)
   @show_special(io, G)
-  print(io, "Permutation group")
-  if !get(io, :supercompact, false)
-    print(io, " of degree ", degree(G))
-    if has_order(G)
-      if is_finite(G)
-        print(io, " and order ", order(G))
-      else
-        print(io, " and infinite order")
+
+  # Treat groups specially which know that they are nat. symmetric/alternating.
+  io = pretty(io)
+  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G)
+    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G)
+    print(io, LowercaseOff(), "Alt(", degree(G), ")")
+  else
+    print(io, "Permutation group")
+    if !get(io, :supercompact, false)
+      print(io, " of degree ", degree(G))
+      if has_order(G)
+        if is_finite(G)
+          print(io, " and order ", order(G))
+        else
+          print(io, " and infinite order")
+        end
+      elseif GAP.Globals.HasStabChainMutable(G.X)
+        # HACK: to show order in a few more cases where it is trivial to get
+        # but really, GAP should be using this anyway?
+        s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
+        print(io, " and order ", ZZRingElem(s))
       end
-    elseif GAP.Globals.HasStabChainMutable(G.X)
-      # HACK: to show order in a few more cases where it is trivial to get
-      # but really, GAP should be using this anyway?
-      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
-      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -710,7 +719,7 @@ Return the vector of all conjugacy classes of subgroups of G.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -811,9 +820,9 @@ julia> G = symmetric_group(5);
 
 julia> low_index_subgroup_reps(G, 5)
 3-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
- Permutation group of degree 5 and order 24
+ Sym(5)
+ Alt(5)
+ Sym(5)
 
 ```
 """
@@ -924,7 +933,7 @@ Return whether a conjugate of `V` by some element in `G` is a subgroup of `U`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Permutation group of degree 4 and order 12
+Alt(4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4

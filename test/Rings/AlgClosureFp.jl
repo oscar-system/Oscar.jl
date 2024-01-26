@@ -54,7 +54,7 @@ end
 
   @testset "Printing for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F)
-    @test sprint(show, "text/plain", K) == "Algebraic Closure of Finite field of degree 1 over GF(3)"
+    @test sprint(show, "text/plain", K) == "Algebraic Closure of finite field of degree 1 over GF(3)"
 
     for x in F
       @test sprint(show, "text/plain", K(x)) == sprint(show, "text/plain", x)

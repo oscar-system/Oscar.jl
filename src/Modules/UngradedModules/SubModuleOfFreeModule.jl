@@ -164,6 +164,7 @@ Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
 function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
+  @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, ordering) do
     return compute_standard_basis(submod, ordering)
   end::ModuleGens

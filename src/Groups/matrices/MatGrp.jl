@@ -117,12 +117,13 @@ end
 ########################################################################
 
 function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  io = pretty(io)
+  print(io, LowercaseOff(), string(x.descr), "(", x.deg ,",")
   if x.descr==:GU || x.descr==:SU
-    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+    print(io, characteristic(x.ring)^(div(degree(x.ring),2)),")")
   elseif x.ring isa Field && is_finite(x.ring)
-    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+    print(io, order(x.ring),")")
   else
-    print(io, string(x.descr), "(",x.deg,",")
     print(IOContext(io, :supercompact => true), x.ring)
     print(io ,")")
   end
@@ -131,7 +132,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   println(io, "Matrix group of degree ", degree(x))
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(x))
   print(io, Dedent())

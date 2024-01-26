@@ -188,7 +188,7 @@ The type of the returned groups is `PermGroup`.
 ```jldoctest
 julia> all_primitive_groups(degree => 3:5, is_abelian)
 2-element Vector{PermGroup}:
- Permutation group of degree 3 and order 3
+ Alt(3)
  Permutation group of degree 5 and order 5
 ```
 returns the list of all abelian primitive permutation groups acting on 3, 4 or 5 points.
