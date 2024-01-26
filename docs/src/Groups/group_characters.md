@@ -209,6 +209,7 @@ symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
 ```@docs
 class_multiplication_coefficient
 known_class_fusion
+known_class_fusions
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
 approximate_class_fusion
