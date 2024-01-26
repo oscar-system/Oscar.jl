@@ -134,12 +134,20 @@ invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
 invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
 
-function Base.show(io::IO, IR::InvRing)
+function Base.show(io::IO, ::MIME"text/plain", RG::InvRing)
   io = pretty(io)
-  println(io, "Invariant ring of")
-  println(io, Indent(), group(IR), Dedent())
-  println(io, "with generators")
-  print(io, Indent(), action(IR))
+  println(io, "Invariant ring")
+  print(io, Indent(), "of ", Lowercase(), group(RG), Dedent())
+end
+
+function Base.show(io::IO, RG::InvRing)
+  if get(io, :supercompact, false)
+    print(io, "Invariant ring")
+  else
+    io = pretty(io)
+    print(io, "Invariant ring of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), group(RG))
+  end
 end
 
 # Return a map performing the right action of M on the ring R.
