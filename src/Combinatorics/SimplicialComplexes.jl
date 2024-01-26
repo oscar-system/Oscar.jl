@@ -22,6 +22,13 @@ While arbitrary non-negative integers are allowed as vertices, they will be rela
 ```jldoctest
 julia> K = simplicial_complex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> G = complete_bipartite_graph(2,3)
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 1)(4, 2)(5, 1)(5, 2)
+
+julia> K = simplicial_complex(G)
+Abstract simplicial complex of dimension 1 on 5 vertices
 ```
 
 Simplicial complex comprising the empty set only:
@@ -55,6 +62,12 @@ end
 function simplicial_complex(generators::IncidenceMatrix)
   K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
   simplicial_complex(K)
+end
+
+function simplicial_complex(G::Graph)
+  IM = incidence_matrix(G)
+  edges_as_rows = IncidenceMatrix(transpose(IM))
+  simplicial_complex(edges_as_rows)
 end
 
 # more efficient UNEXPORTED+UNDOCUMENTED version, which requires consecutive vertices, and facets as generators;

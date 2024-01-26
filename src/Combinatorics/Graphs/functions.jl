@@ -580,13 +580,16 @@ julia> add_edge!(g, 1, 3);
 julia> add_edge!(g, 3, 4);
 
 julia> incidence_matrix(g)
-2×5 IncidenceMatrix
-[1, 3]
-[3, 4]
+5×2 IncidenceMatrix
+[1]
+[]
+[1, 2]
+[2]
+[]
 ```
 """
 function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-  IncidenceMatrix(transpose(Polymake.graph.incidence_matrix(pm_object(g))))
+  IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
 end
 
 @doc raw"""
