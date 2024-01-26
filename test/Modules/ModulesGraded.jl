@@ -1239,4 +1239,6 @@ end
   @test is_isomorphism(iso)
   inv_iso = get_attribute(iso, :inverse)
   @test is_isomorphism(inv_iso)
+  M, _ = forget_grading(Omega)
+  prune_with_map(M)
 end
