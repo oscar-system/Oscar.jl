@@ -294,6 +294,28 @@ function Oscar.degree(S::SubfieldLatticeElem)
   return length(S.b)
 end
 
+function frob_test(E::SubfieldLatticeElem, si::PermGroupElem)
+  #test if the (tentative) block system in E makes sense
+  @show bs = E.b
+  L = E.p #the lattice
+  for i=3:length(L)
+    x = intersect(bs, L[i].b)
+    if any(t->length(t) != length(x[1]), x)
+      @show :failed_consistency
+      return false
+    end
+  end
+  o = order(si)
+  cs = copy(bs)
+  for i=2:o
+    cs = sort([sort(x^si) for x = cs])
+    if L.P(cs) in keys(L.l)
+      @show :conjugate_known
+      return true
+    end
+  end
+  return true
+end
 ###################################
 # van Hoeij, Novacin, Klueners
 ###################################
@@ -336,6 +358,11 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
   r = roots(G, 1, raw = true)
+
+  d = map(frobenius, r)
+  si = symmetric_group(degree(K))([findfirst(y->y==x, r) for x = d])
+
+
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
   rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
@@ -370,7 +397,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 #      M = M*D
       while true
 #        @show maximum(nbits, M), nbits(B), size(M)
-        global last_M = M
+    
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)
@@ -419,6 +446,8 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
               end
               if degree(E) != length(gens)
 #                @show :wrong_block
+              elseif !frob_test(E, si)
+#                @show :no_subfield
               elseif subfield(E) === nothing
 #                @show :no_subfield
               else
