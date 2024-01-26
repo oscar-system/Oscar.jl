@@ -11,24 +11,20 @@ exterior_algebra(QQ, 99);  # --> Also tried with 999 indets, but takes a long ti
 
 exterior_algebra(GF(2), 2);  # BUG??  not recognized as commutative!!
 exterior_algebra(GF(3), 4);
+exterior_algebra(residue_field(ZZ, 2)[1], 2);
+exterior_algebra(residue_field(ZZ, 3)[1], 4);
 ##  exterior_algebra(GF(2), 1500);   ## limit 1500 on my 32Gbyte machine (!NB printing requires a lot of space!)
 
 @test_broken  exterior_algebra(GF(1180591620717411303449), 2);  #  --> ERROR prime too big (for GF)
+@test_broken exterior_algebra(residue_field(ZZ, 1180591620717411303449)[1], 2);
 
 # Duplicate names are allowed
 exterior_algebra(QQ, ["x", "y", "x"]);
 
+@test_throws MethodError exterior_algebra(ZZ, 3)                  # Coeffs not field
+@test_throws MethodError exterior_algebra(residue_ring(ZZ,4)[1], 3)  # Coeffs not field
 
-# residue_field produces a different result from GF... Singular does not like it
-@test_broken exterior_algebra(residue_field(ZZ, 2)[1], 2);
-@test_broken exterior_algebra(residue_field(ZZ, 3)[1], 4);
-@test_broken exterior_algebra(residue_field(ZZ, 1180591620717411303449)[1], 2);
-
-
-@test_throws MethodError  exterior_algebra(ZZ, 3)                  # Coeffs not field
-@test_throws MethodError  exterior_algebra(residue_ring(ZZ,4)[1], 3)  # Coeffs not field
-
-@test_throws ArgumentError  exterior_algebra(QQ, String[]);        # empty name list
+@test_throws ArgumentError exterior_algebra(QQ, String[]);        # empty name list
 
 
 ## (reduced) COMPUTATIONAL SPEED TEST
