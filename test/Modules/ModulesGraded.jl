@@ -1237,5 +1237,6 @@ end
   @test is_isomorphism(b)
   M, iso = forget_grading(Omega)
   @test is_isomorphism(iso)
-  @test is_isomorphism(inverse(iso))
+  inv_iso = get_attribute(iso, :inverse)
+  @test is_isomorphism(inv_iso)
 end
