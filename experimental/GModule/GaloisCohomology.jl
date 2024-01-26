@@ -555,7 +555,7 @@ function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
-  @assert istrivial(_S) || rank(_S) == ngens(_S) 
+  @assert is_trivial(_S) || rank(_S) == ngens(_S) 
   @assert rank(_K) == ngens(_K) 
 
   m = matrix(GrpAbFinGenMap(_mS * mSK * inv((_mK))))
@@ -564,7 +564,7 @@ function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
   # elt in S * U^-1 U m V V^-1 = elt_in K
   # elt in S * U^-1 snf = elt_in * V
   s, U, V = snf_with_transform(m)
-  if istrivial(S)
+  if is_trivial(S)
     r = 0
   else
     r = maximum(findall(x->isone(s[x,x]), 1:ngens(_S)))
@@ -572,7 +572,7 @@ function debeerst(M::GrpAbFinGen, sigma::Map{GrpAbFinGen, GrpAbFinGen})
 
   mu = hom(_S, _S, inv(U))
   mv = hom(_K, _K, V)
-  @assert istrivial(S) || all(i-> M(_mS(mu(gen(_S, i)))) == s[i,i] * M(_mK(mv(gen(_K, i)))), 1:ngens(S))
+  @assert is_trivial(S) || all(i-> M(_mS(mu(gen(_S, i)))) == s[i,i] * M(_mK(mv(gen(_K, i)))), 1:ngens(S))
   b = [_mK(mv(x)) for x = gens(_K)]
 
   Q, mQ = quo(S, image(sigma -id_hom(M), K)[1])
