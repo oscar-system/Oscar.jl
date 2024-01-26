@@ -20,7 +20,7 @@ end
 ########################################################################
 function inclusion_morphism(U::SpecOpen, V::SpecOpen; check::Bool=true)
   X = ambient_scheme(U)
-  @check issubset(U, V) "method not implemented"
+  @check is_subscheme(U, V) "method not implemented"
   return SpecOpenMor(U, V, gens(ambient_coordinate_ring(X)), check=false)
 end
 
@@ -48,9 +48,9 @@ end
 
 function restrict(f::SpecMor, U::SpecOpen, V::SpecOpen; check::Bool=true)
   @check begin
-    issubset(U, domain(f)) || error("$U is not contained in the domain of $f")
-    issubset(V, codomain(f)) || error("$V is not contained in the codomain of $f")
-    all(x->issubset(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
+    is_subscheme(U, domain(f)) || error("$U is not contained in the domain of $f")
+    is_subscheme(V, codomain(f)) || error("$V is not contained in the codomain of $f")
+    all(x->is_subscheme(preimage(f, x), U), affine_patches(V)) || error("preimage of $V is not contained in $U")
   end
   return SpecOpenMor(U, V, [restrict(f, W, ambient_scheme(V), check=check) for W in affine_patches(U)])
 end
@@ -62,9 +62,9 @@ function restrict(
     check::Bool=true
   )
   @check begin
-    issubset(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
-    issubset(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
-    issubset(preimage(f,V), U) || error("f(U) is not contained in V")
+    is_subscheme(U, domain(f)) || error("the given open is not an open subset of the domain of the map")
+    is_subscheme(V, codomain(f)) || error("the given open is not an open subset of the codomain of the map")
+    is_subscheme(preimage(f,V), U) || error("f(U) is not contained in V")
   end
   inc = inclusion_morphism(U, domain(f), check=check)
   help_map = compose(inc, f, check=check)
@@ -75,8 +75,8 @@ end
 
 function restrict(f::SpecOpenMor, W::AbsSpec, Y::AbsSpec; check::Bool=true)
   @check begin
-    issubset(W, domain(f)) || error("$U is not contained in the domain of $f")
-    issubset(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
+    is_subscheme(W, domain(f)) || error("$U is not contained in the domain of $f")
+    is_subscheme(W, preimage(f, Y)) || error("image of $W is not contained in $Y")
   end
   phi = restriction_map(domain(f), W)
   fy = [phi(pullback(f)(y)) for y in OO(codomain(f)).(gens(ambient_coordinate_ring(Y)))]

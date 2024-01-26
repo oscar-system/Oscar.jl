@@ -784,7 +784,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return X
 end
 
@@ -793,7 +793,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return Y
 end
 
@@ -802,7 +802,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return Y
 end
 
@@ -812,7 +812,7 @@ function closure(
     Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   return Spec(base_ring(I),I)
 end
@@ -822,7 +822,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
   return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
@@ -834,7 +834,7 @@ function closure(
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                     <:MPolyPowersOfElement}}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   #is_closed_embedding(X, Y) && return X
   W, _ = localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))

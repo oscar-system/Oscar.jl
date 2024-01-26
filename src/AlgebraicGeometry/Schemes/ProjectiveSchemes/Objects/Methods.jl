@@ -121,7 +121,7 @@ function _dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec, i::Int)
 end
 
 function _dehomogenization_map(
-    X::AbsProjectiveScheme{CRT}, 
+    X::AbsProjectiveScheme{CRT},
     U::AbsSpec,
     i::Int
   ) where {
@@ -138,7 +138,7 @@ end
 
 #=
 function dehomogenization_map(
-    X::AbsProjectiveScheme{CRT}, 
+    X::AbsProjectiveScheme{CRT},
     U::AbsSpec
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
@@ -174,20 +174,20 @@ end
 @doc raw"""
     homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
 
-Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme` 
-``P``, return a method ``h`` for the homogenization of elements 
+Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme`
+``P``, return a method ``h`` for the homogenization of elements
 ``a ∈ 𝒪(U)``.
 
 This means that ``h(a)`` returns a pair ``(p, q)`` representing a fraction
 ``p/q ∈ S`` of the `ambient_coordinate_ring` of ``P`` such
 that ``a`` is the dehomogenization of ``p/q``.
 
-**Note:** For the time being, this only works for affine 
+**Note:** For the time being, this only works for affine
 charts which are of the standard form ``sᵢ ≠ 0`` for ``sᵢ∈ S``
 one of the homogeneous coordinates of ``P``.
 
-**Note:** Since this map returns representatives only, it 
-is not a mathematical morphism and, hence, in particular 
+**Note:** Since this map returns representatives only, it
+is not a mathematical morphism and, hence, in particular
 not an instance of `Map`.
 
 # Examples
@@ -274,7 +274,7 @@ function _homogenization_map(P::AbsProjectiveScheme, U::AbsSpec, i::Int)
 end
 
 function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsSpec, i::Int)
-  # Determine those variables which come from the homogeneous 
+  # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
   n = ngens(S)
@@ -299,9 +299,9 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRi
     deg_q = weighted_degree(q, w)
     deg_a = deg_p - deg_q
     ss = S[i] # the homogenization variable
-    
+
     # preliminary lifts, not yet homogenized!
-    pp = evaluate(p, v) 
+    pp = evaluate(p, v)
     qq = evaluate(q, v)
 
     # homogenize numerator and denominator
@@ -319,7 +319,7 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRi
 end
 
 function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsSpec, i::Int)
-  # Determine those variables which come from the homogeneous 
+  # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
   n = ngens(S)
@@ -344,9 +344,9 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
     deg_q = weighted_degree(q, w)
     deg_a = deg_p - deg_q
     ss = S[i] # the homogenization variable
-    
+
     # preliminary lifts, not yet homogenized!
-    pp = evaluate(p, v) 
+    pp = evaluate(p, v)
     qq = evaluate(q, v)
 
     # homogenize numerator and denominator
@@ -367,7 +367,7 @@ function getindex(X::AbsProjectiveScheme, U::AbsSpec)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
     for j in 1:npatches(C)
-      if U === C[j] 
+      if U === C[j]
         return C, j
       end
     end
@@ -392,7 +392,7 @@ function ==(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
   return IXsat == IYsat
 end
 
-function issubset(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
+function is_subscheme(X::AbsProjectiveScheme, Y::AbsProjectiveScheme)
   ambient_space(X) == ambient_space(Y) || return false
   IX = defining_ideal(X)
   IY = defining_ideal(Y)

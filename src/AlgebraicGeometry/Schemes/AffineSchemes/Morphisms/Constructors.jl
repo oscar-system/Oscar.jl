@@ -247,9 +247,9 @@ true
 ```
 """
 function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
-  @check issubset(U, domain(f)) "second argument does not lie in the domain of the map"
-  @check issubset(V, codomain(f)) "third argument does not lie in the codomain of the map"
-  @check issubset(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
+  @check is_subscheme(U, domain(f)) "second argument does not lie in the domain of the map"
+  @check is_subscheme(V, codomain(f)) "third argument does not lie in the codomain of the map"
+  @check is_subscheme(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
   return morphism(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
 

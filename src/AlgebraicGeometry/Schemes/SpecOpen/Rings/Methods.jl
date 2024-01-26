@@ -24,7 +24,7 @@ function restrict(
       return restrictions(f)[i]
     end
   end
-  check && (issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
+  check && (is_subscheme(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   #l = write_as_linear_combination(one(OO(V)), OO(V).(lifted_denominator.(g)))
@@ -44,7 +44,7 @@ function restrict(
       return restrictions(f)[i]
     end
   end
-  check && (issubset(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
+  check && (is_subscheme(V, domain(f)) || error("the set is not contained in the domain of definition of the function"))
   VU = [intersect(V, U) for U in affine_patches(domain(f))]
   g = [OO(VU[i])(f[i]) for i in 1:length(VU)]
   J = ideal(OO(V), denominator.(g))
@@ -218,7 +218,7 @@ function restriction_map(
   # do the checks
   @check begin
     X == hypersurface_complement(Y, h) || error("$X is not the hypersurface complement of $h in the ambient variety of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subscheme(X, U) || error("$X is not a subset of $U")
   end
 
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
@@ -307,8 +307,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("`ambient_coordinate_ring`s of the schemes not compatible")
   @check begin
-    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subscheme(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    is_subscheme(X, U) || error("$X is not a subset of $U")
   end
   L = localized_ring(OO(X))
   D = denominators(inverted_set(L))
@@ -331,8 +331,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyQuoRing}},
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
   @check begin
-    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subscheme(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    is_subscheme(X, U) || error("$X is not a subset of $U")
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -346,8 +346,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || error("rings not compatible")
   @check begin
-    issubset(X, Y) || error("$X is not contained in the ambient scheme of $U")
-    issubset(X, U) || error("$X is not a subset of $U")
+    is_subscheme(X, Y) || error("$X is not contained in the ambient scheme of $U")
+    is_subscheme(X, U) || error("$X is not a subset of $U")
   end
   h = prod(denominators(inverted_set(OO(X))))
   return restriction_map(U, X, h, check=false)
@@ -376,7 +376,7 @@ end
 
 function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
   Y = ambient_scheme(U)
-  @check all(V->issubset(V, X), affine_patches(U)) "$U is not a subset of $X"
+  @check all(V->is_subscheme(V, X), affine_patches(U)) "$U is not a subset of $X"
   function mymap(f::MPolyQuoLocRingElem)
     return SpecOpenRingElem(OO(U), [OO(V)(f) for V in affine_patches(U)])
   end
@@ -384,7 +384,7 @@ function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
 end
 
 function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
-  @check issubset(V, U) "$V is not a subset of $U"
+  @check is_subscheme(V, U) "$V is not a subset of $U"
 
   if U === V
     function mymap(f::SpecOpenRingElem)
