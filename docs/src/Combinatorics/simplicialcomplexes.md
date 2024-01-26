@@ -18,7 +18,7 @@ General textbooks offering details on the theory include:
 ## Construction
 
 ```@docs
-SimplicialComplex(K::Vector{Vector{Int}})
+simplicial_complex(K::Vector{Vector{Int}})
 ```
 
 ### Subcomplexes

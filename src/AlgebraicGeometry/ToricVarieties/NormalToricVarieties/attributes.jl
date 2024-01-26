@@ -268,7 +268,7 @@ end
 
 @attr Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric} function _minimal_nonfaces(v::NormalToricVarietyType)
     I = ray_indices(maximal_cones(v))
-    K = SimplicialComplex(I)
+    K = simplicial_complex(I)
     return minimal_nonfaces(IncidenceMatrix, K)
 end
 

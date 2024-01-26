@@ -509,6 +509,9 @@ end
 
 @deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
 
+@deprecate SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}) simplicial_complex(generators)
+@deprecate SimplicialComplex(generators::IncidenceMatrix) simplicial_complex(generators)
+
 Base.@deprecate_binding is_finitelygenerated is_finitely_generated
 Base.@deprecate_binding has_is_finitelygenerated has_is_finitely_generated
 Base.@deprecate_binding set_is_finitelygenerated set_is_finitely_generated

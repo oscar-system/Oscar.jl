@@ -588,7 +588,9 @@ julia> incidence_matrix(g)
 []
 ```
 """
-incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}} = IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
+function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+  IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
+end
 
 @doc raw"""
     signed_incidence_matrix(g::Graph{Directed})
