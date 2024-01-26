@@ -884,6 +884,7 @@ export kernel
 export klee_minty_cube
 export klein_bottle
 export known_class_fusion
+export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix

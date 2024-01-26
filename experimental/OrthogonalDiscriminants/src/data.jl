@@ -95,10 +95,11 @@ julia> println(orthogonal_discriminants(t % 3))
 function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
   p = characteristic(tbl)
   if p == 0
-    id = identifier(tbl)
+    ordtbl = tbl
   else
-    id = identifier(ordinary_table(tbl))
+    ordtbl = ordinary_table(tbl)
   end
+  id = identifier(ordtbl)
   res = fill("", number_conjugacy_classes(tbl))
   if haskey(OD_simple_names, id)
     simp = OD_simple_names[id]
@@ -112,13 +113,64 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
           res[l[2]] = l[4]
         end
         return res
+      else
+#TODO: compute the reductions mod p (not dividing the group order)
+      end
+    end
+  else
+    # Perhaps a factor of `tbl` belongs to the database.
+    facttbl = nothing
+    for r in known_class_fusions(ordtbl)
+      if 1 < length(class_positions_of_kernel(r[2]))
+        id = r[1]
+        if haskey(OD_simple_names, id)
+          simp = OD_simple_names[id]
+          data = OD_data[simp]
+          if haskey(data, id)
+            data = data[id]
+            facttbl = character_table(id)
+            if haskey(data, string(p))
+              if p != 0
+                facttbl = mod(facttbl, p)
+              end
+              facttbl != nothing && break
+            end
+          end
+        end
+      end
+    end
+    if facttbl != nothing
+      # Set the known values for the factor.
+      mp = [findfirst(is_equal(restrict(x, tbl)), tbl) for x in facttbl]
+      data = data[string(p)]
+      for l in data
+        res[mp[l[2]]] = l[4]
+      end
+      # Set values for faithful characters if applicable.
+      perf = (length(filter(i -> degree(tbl[i]) == 1, 1:length(tbl))) == 1)
+      if p == 0 && perf && order(tbl) == 2*order(facttbl)
+#TODO: compute the reductions mod p (not dividing the group order)
+        # deal with the faithful characters of a perfect central extension 2.G,
+        # the image of the spinor norm is trivial
+        for i in 1:length(tbl)
+          chi = tbl[i]
+          deg = degree(chi)
+          ind = indicator(chi)
+          if ind == 1 && length(class_positions_of_kernel(chi)) == 1
+            if mod(deg, 4 ) == 0
+              res[i] = "1"
+            elseif mod(deg, 2 ) == 0
+              res[i] = "-1"
+            end
+          end
+        end
       end
     end
   end
 
-  # `tbl` is outside the scope of the database.
+  # Fill missing values.
   for i in 1:length(tbl)
-    if indicator(tbl[i]) == 1 && is_even(numerator(degree(tbl[i])))
+    if res[i] == "" && indicator(tbl[i]) == 1 && is_even(numerator(degree(tbl[i])))
       res[i] = "?"
     end
   end

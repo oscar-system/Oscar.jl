@@ -48,6 +48,7 @@ GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
 GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
 GAP.@wrap CollectionsFamily(x::GapObj)::GapObj
+GAP.@wrap ComputedClassFusions(x::GapObj)::GapObj
 GAP.@wrap ComputedPowerMaps(x::GapObj)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
 GAP.@wrap ConjugacyClass(x::GapObj, y::GapObj)::GapObj
