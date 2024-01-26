@@ -96,7 +96,6 @@ function kernel(c::HyperComplex{ChainType}, p::Int, i::Tuple) where {ChainType <
   end
 
   if !can_compute_map(c, p, i)
-    M = c[i]
     K, inc = sub(c[i], gens(c[i]))
     c.kernel_cache[(i, p)] = inc
     return K, inc
