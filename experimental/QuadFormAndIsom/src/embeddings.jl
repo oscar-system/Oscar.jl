@@ -86,7 +86,7 @@ end
 # This object is defined in Algorithm 2 of [BH23], the glue kernel we aim to use
 # for gluing lattices in a p-admissible triples are actually submodules of these
 # V's.
-function _get_V(fq::TorQuadModuleMor, mu::PolyRingElem, p::IntegerUnion)
+function _get_V(fq::TorQuadModuleMap, mu::PolyRingElem, p::IntegerUnion)
   q = domain(fq)
   V, _ = primary_part(q, p)
   _, Vinq = sub(q, elem_type(q)[q(lift(divexact(order(g), p)*g)) for g in gens(V) if !(order(g)==1)])
@@ -154,9 +154,9 @@ end
 #
 # fA and fB here are considered as isometry of the relations lattice of HA and
 # HB, respectively.
-function _overlattice(gamma::TorQuadModuleMor,
-                      HAinD::TorQuadModuleMor,
-                      HBinD::TorQuadModuleMor,
+function _overlattice(gamma::TorQuadModuleMap,
+                      HAinD::TorQuadModuleMap,
+                      HBinD::TorQuadModuleMap,
                       fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
                       fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD))));
                       same_ambient::Bool = false)
@@ -200,8 +200,8 @@ end
 # considered (so HA = L^{\vee}/L for some lattice integral lattice L, and same
 # for HB), and D is the orthogonal direct sum of HA and HB in an appropriate
 # quadratic space.
-function _overlattice(HAinD::TorQuadModuleMor,
-                      HBinD::TorQuadModuleMor,
+function _overlattice(HAinD::TorQuadModuleMap,
+                      HBinD::TorQuadModuleMap,
                       fA::QQMatrix = identity_matrix(QQ, rank(relations(domain(HAinD)))),
                       fB::QQMatrix = identity_matrix(QQ, rank(relations(domain(HBinD))));
                       same_ambient::Bool = false)
@@ -264,7 +264,7 @@ end
 # original lattice M.
 function _change_to_bilinear_module(qM::TorQuadModule,
                                     GM::AutomorphismGroup{TorQuadModule},
-                                    fqM::TorQuadModuleMor)
+                                    fqM::TorQuadModuleMap)
   qM = Hecke._as_finite_bilinear_module(qM)
   OqM = orthogonal_group(qM)
   GM, _ = sub(OqM, elem_type(OqM)[OqM(matrix(g); check = false) for g in gens(GM)])
@@ -312,9 +312,9 @@ end
 # this is correct: \phi was created to be any anti-isometry. The new
 # one computed is another anti-isometry, and we can take any isometry of
 # HN to make the change)
-function _can_be_made_equivariant(phi::TorQuadModuleMor,
-                                  fHM::TorQuadModuleMor,
-                                  fHN::TorQuadModuleMor)
+function _can_be_made_equivariant(phi::TorQuadModuleMap,
+                                  fHM::TorQuadModuleMap,
+                                  fHN::TorQuadModuleMap)
   OHN = orthogonal_group(domain(fHN))
   fHMinOHN = OHN(compose(inv(phi), compose(fHM, phi)); check = false)
   bool, g0 = is_conjugate_with_data(OHN, fHMinOHN, OHN(fHN; check = false))
@@ -343,9 +343,9 @@ end
 # - if `first == true`, we return only one isometry since we only want the first
 # extension in ouput of the global extension algorithm.
 function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
-                             HNinqN::TorQuadModuleMor,
-                             phig::TorQuadModuleMor,
-                             fHM::TorQuadModuleMor,
+                             HNinqN::TorQuadModuleMap,
+                             phig::TorQuadModuleMap,
+                             fHM::TorQuadModuleMap,
                              discrep::GAPGroupHomomorphism,
                              stabN::AutomorphismGroup{TorQuadModule},
                              N::ZZLat,
@@ -444,14 +444,14 @@ function _compute_image_stabilizer_in_Oq!(Lf::ZZLatWithIsom,
                                           ext_type::Tuple{Symbol, Symbol},
                                           OqfM::AutomorphismGroup{TorQuadModule},
                                           OqfN::AutomorphismGroup{TorQuadModule},
-                                          HMinqM::TorQuadModuleMor,
-                                          HNinqN::TorQuadModuleMor,
+                                          HMinqM::TorQuadModuleMap,
+                                          HNinqN::TorQuadModuleMap,
                                           discrep::Union{Nothing, GAPGroupHomomorphism},
                                           b::QQMatrix,
-                                          phig::TorQuadModuleMor,
+                                          phig::TorQuadModuleMap,
                                           OqMinOD::GAPGroupHomomorphism,
                                           OqNinOD::GAPGroupHomomorphism,
-                                          graph::TorQuadModuleMor)
+                                          graph::TorQuadModuleMap)
 
   @assert ext_type[1] != :plain
   OHM = orthogonal_group(domain(HMinqM))
@@ -544,9 +544,9 @@ function _primitive_extensions_generic(
     exist_only::Bool = false,
     first::Bool = false,
     fM::QQMatrix = identity_matrix(QQ, rank(M)),
-    fqM::TorQuadModuleMor = id_hom(domain(GM)),
+    fqM::TorQuadModuleMap = id_hom(domain(GM)),
     fN::QQMatrix = identity_matrix(QQ, rank(N)),
-    fqN::TorQuadModuleMor = id_hom(domain(GN)),
+    fqN::TorQuadModuleMap = id_hom(domain(GN)),
     glue_order::Union{IntegerUnion, Nothing} = nothing,
     q::Union{TorQuadModule, Nothing} = nothing,
     compute_bar_Gf::Bool = false,
@@ -761,11 +761,11 @@ end
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
-function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor,
+function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMap,
                                                           O::AutomorphismGroup{TorQuadModule},
                                                           ord::IntegerUnion = -1,
-                                                          f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)))
-  res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
+                                                          f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)))
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
   q = codomain(Vinq)
@@ -774,9 +774,9 @@ function _subgroups_orbit_representatives_and_stabilizers(Vinq::TorQuadModuleMor
     return res
   end
 
-  fV = f isa TorQuadModuleMor ? restrict_endomorphism(f, Vinq; check = false) : restrict_endomorphism(hom(f), Vinq; check = false)
+  fV = f isa TorQuadModuleMap ? restrict_endomorphism(f, Vinq; check = false) : restrict_endomorphism(hom(f), Vinq; check = false)
   if ord == -1
-    subs = collect(stable_submodules(V, TorQuadModuleMor[fV]))
+    subs = collect(stable_submodules(V, TorQuadModuleMap[fV]))
   else
     subs = collect(submodules(V; order = ord))
     filter!(s -> is_invariant(fV, s[2]), subs)
@@ -805,7 +805,7 @@ end
 # This function returns Qp := V/H as an Fp-vector space, the map which transforms
 # V into a Fp-vector space Vp, the quotient map Vp \to Qp, and the restriction
 # fQp of f to Qp
-function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMor, p::IntegerUnion)
+function _cokernel_as_Fp_vector_space(HinV::TorQuadModuleMap, p::IntegerUnion)
   H = domain(HinV)
   V = codomain(HinV)
 
@@ -844,12 +844,12 @@ end
 #
 # Note that any torsion quadratic module `H` in output is given by an embedding
 # of `H` in `q`.
-function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModuleMor,
+function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModuleMap,
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::IntegerUnion,
-                                                                     f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+                                                                     f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
                                                                      l::IntegerUnion = -1)
-  res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
 
@@ -963,10 +963,10 @@ end
 # to each others.
 function _classes_isomorphic_subgroups(q::TorQuadModule,
                                        O::AutomorphismGroup{TorQuadModule},
-                                       f::Union{TorQuadModuleMor, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
+                                       f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(domain(O));
                                        H::Union{Nothing, TorQuadModule} = nothing,
                                        ordH::Union{Nothing, IntegerUnion} = nothing)
-  res = Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}[]
+  res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   if isnothing(H)
     @assert !isnothing(ordH)
@@ -999,7 +999,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   #
   # First, we cut q as an orthogonal direct sum of its primary parts
   pds = sort!(prime_divisors(order(q)))
-  blocks = TorQuadModuleMor[primary_part(q, pds[1])[2]]
+  blocks = TorQuadModuleMap[primary_part(q, pds[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   for i in 2:length(pds)
     _f = blocks[end]
@@ -1013,7 +1013,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
   @hassert :ZZLatWithIsom 1 is_isometry(phi)
 
-  list_can = Vector{Tuple{TorQuadModuleMor, AutomorphismGroup{TorQuadModule}}}[]
+  list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
   # We collect the possible subgroups for each primary part, with the stabilizer
   for i in 1:length(pds)
     p = pds[i]
@@ -1044,8 +1044,8 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   # parts (as we do for computations of orthogonal groups in the non split
   # degenerate case)
   for lis in Hecke.cartesian_product_iterator(list_can)
-    embs = TorQuadModuleMor[l[1] for l in lis]
-    embs = TorQuadModuleMor[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
+    embs = TorQuadModuleMap[l[1] for l in lis]
+    embs = TorQuadModuleMap[hom(domain(embs[i]), q, TorQuadModuleElem[blocks[i](domain(blocks[i])(lift(embs[i](a)))) for a in gens(domain(embs[i]))]) for i in 1:length(lis)]
     H2, _proj = direct_product(domain.(embs)...)
     _, H2inq = sub(q, elem_type(q)[sum([embs[i](_proj[i](g)) for i in 1:length(lis)]) for g in gens(H2)])
     stabs = AutomorphismGroup{TorQuadModule}[l[2] for l in lis]
@@ -1059,7 +1059,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
       append!(genestab, ZZMatrix[block_diagonal_matrix([Inb, matrix(f), Ina]) for f in gens(stabs[i])])
     end
 
-    genestabD = TorQuadModuleMor[hom(D, D, g) for g in genestab]
+    genestabD = TorQuadModuleMap[hom(D, D, g) for g in genestab]
     genestas = ZZMatrix[matrix(compose(compose(inv(phi), g), phi)) for g in genestabD]
     stab, _ = intersect(O, Oscar._orthogonal_group(q, unique(genestas); check = false))
     @hassert :ZZLatWithIsom is_invariant(stab, H2inq)
@@ -1864,7 +1864,7 @@ end
 # We compute O(SB, rho_{l+1}(B)) where B has discriminant form qB. `spec` keep
 # track whether rho_{l+1}(B) should be considered as a finite quadratic module
 # or just a finite bilinear module (depends on the overlattice).
-function _compute_double_stabilizer(SBinqB::TorQuadModuleMor, l::IntegerUnion, spec::Bool)
+function _compute_double_stabilizer(SBinqB::TorQuadModuleMap, l::IntegerUnion, spec::Bool)
   SB = domain(SBinqB)
   qB = codomain(SBinqB)
   OSB = orthogonal_group(SB)
@@ -1894,9 +1894,9 @@ end
 # exist, we massage phi until we turn it into an admissible gluing. There might
 # be ways to improve such search, but I would expect that both loops iterating
 # on OSB and OSBHB are terminating after few tries.
-function _find_admissible_gluing(SAinqA::TorQuadModuleMor,
-                                 SBinqB::TorQuadModuleMor,
-                                 phi::TorQuadModuleMor,
+function _find_admissible_gluing(SAinqA::TorQuadModuleMap,
+                                 SBinqB::TorQuadModuleMap,
+                                 phi::TorQuadModuleMap,
                                  l::IntegerUnion,
                                  p::IntegerUnion,
                                  spec::Bool)
@@ -1966,12 +1966,12 @@ end
 # of the isometries of the two sublattices which preserve the glue groups, i.e.
 # elements of the domain of actA and actB respectively. We need to take care of
 # the kernel of such maps though, and compose the generators of their images.
-function _glue_stabilizers(phi::TorQuadModuleMor,
+function _glue_stabilizers(phi::TorQuadModuleMap,
                            actA::GAPGroupHomomorphism,
                            actB::GAPGroupHomomorphism,
                            OqAinOD::GAPGroupHomomorphism,
                            OqBinOD::GAPGroupHomomorphism,
-                           graph::TorQuadModuleMor)
+                           graph::TorQuadModuleMap)
   OD = codomain(OqAinOD)
   OqA = domain(OqAinOD)
   imA, _ = image(actA)
@@ -1994,8 +1994,8 @@ function _glue_stabilizers(phi::TorQuadModuleMor,
   stab = elem_type(OD)[OqAinOD(actA\x) * OqBinOD(actB\(imB(compose(inv(phi), compose(hom(x), phi)); check = false))) for x in gens(im3)]
   union!(stab, kerA)
   union!(stab, kerB)
-  stab = TorQuadModuleMor[restrict_automorphism(g, j; check = false) for g in stab]
-  stab = TorQuadModuleMor[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
+  stab = TorQuadModuleMap[restrict_automorphism(g, j; check = false) for g in stab]
+  stab = TorQuadModuleMap[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
   unique!(stab)
   return disc, stab
 end

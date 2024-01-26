@@ -366,7 +366,7 @@ end
 
 # Deprecated after 0.13.0
 @deprecate fan(v::NormalToricVarietyType) polyhedral_fan(v)
-@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool) restrict_automorphism_group(G, i; check)
+@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap, check::Bool) restrict_automorphism_group(G, i; check)
 
 # Polyhedral object wrappers now require a parent field
 function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types
