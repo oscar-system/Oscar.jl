@@ -586,12 +586,19 @@ function isomorphism(T::Type{PcGroup}, G::GAPGroup)
      # The codomain of `f` can be a *subgroup* of a full pc group.
      # In this situation, we have to switch to a full pc group.
      C = GAP.Globals.Range(f)::GapObj
-     if GAPWrap.GeneratorsOfGroup(C) != GAP.Globals.FamilyPcgs(C)
-       Cpcgs = GAP.Globals.Pcgs(C)
-       CC = GAP.Globals.PcGroupWithPcgs(pcgs)
-       CCpcgs = GAP.Globals.FamilyPcgs(CC)
-       switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)
-       f = GAP.Globals.CompositionMapping(switch, f)
+     if !_is_full_pc_group(C)
+       @assert GAPWrap.IsPcGroup(C) || GAP.Globals.IsPcpGroup(C)::Bool
+       if GAPWrap.IsPcGroup(C)::Bool
+         Cpcgs = GAP.Globals.Pcgs(C)::GapObj
+         CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
+         CCpcgs = GAP.Globals.FamilyPcgs(CC)::GapObj
+       else
+         Cpcgs = GAP.Globals.Pcp(C)::GapObj
+         CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
+         CCpcgs = GAP.Globals.Pcp(CC)::GapObj
+       end
+       switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
+       f = GAP.Globals.CompositionMapping(switch, f)::GapObj
      end
      H = T(GAP.Globals.ImagesSource(f)::GapObj)
      return GAPGroupHomomorphism(G, H, f)
@@ -656,7 +663,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      G = abelian_group(T, exponents)
      # `GAPWrap.GeneratorsOfGroup(GapObj(G))` consists of independent elements
      # of the orders in `exponents`.
-     # `GAP.Globals.IndependentGenerators(GapObj(G))` chooses generators
+     # `GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapObj(G))` chooses generators
      # that may differ from these generators,
      # and that belong to the exponent vectors returned by
      # `GAPWrap.IndependentGeneratorExponents(GapObj(G), g)`.

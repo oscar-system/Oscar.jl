@@ -175,6 +175,10 @@ Return the direct product of cyclic groups of the orders
 `v[1]`, `v[2]`, $\ldots$, `v[n]`, as an instance of `T`.
 Here, `T` must be one of `PermGroup`, `FPGroup`, `PcGroup`, or `SubPcGroup`.
 
+The `gens` value of the returned group corresponds to `v`, that is,
+the number of generators is equal to `length(v)`
+and the order of the `i`-th generator is `v[i]`.
+
 !!! warning
     The type need to be specified in the input of the function `abelian_group`,
     otherwise a group of type `FinGenAbGroup` is returned,
@@ -188,7 +192,9 @@ end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubPcGroup} where T <: IntegerUnion
-  if 0 in v
+  if 0 in v || (TG == PcGroup && any(x -> ! is_prime(x), v))
+    # We cannot construct an `IsPcGroup` group if some generator shall have
+    # order infinity or 1 or a composed number.
     return TG(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))
   else
     return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GAP.GapObj(v, recursive=true)))

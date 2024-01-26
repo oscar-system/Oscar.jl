@@ -167,38 +167,34 @@ Functions that compute subgroups of `G` return groups of type `SubPcGroup`.
   X::GapObj
 
   function PcGroup(G::GapObj)
-    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
-    if GAP.Globals.IsPcpGroup(G)
-      x = GAP.Globals.One(G)
-      C = GAP.getbangproperty(x, :collector)
-      n = GAP.getbangindex(C, GAP.Globals.PC_NUMBER_OF_GENERATORS)
-      Ggens = GAPWrap.GeneratorsOfGroup(G)
-      full = true
-      if length(Ggens) != n
-        full = false
-      else
-        for i in 1:n
-          w = GAP.getbangproperty(Ggens[i], :word)
-          if length(w) != 2 || w[1] != i || w[2] != 1
-            full = false
-            break
-          end
-        end
-      end
-      if ! full
-        # Switch to a full pcp group.
-        G = GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G))
-      end
-    elseif GAPWrap.GeneratorsOfGroup(G) != GAP.Globals.FamilyPcgs(G)
-      # Switch to a full pc group.
-      G = GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G))
+    _is_full_pc_group(G) && return new(G)
+    # Switch to a full pcp or pc group.
+    if GAP.Globals.IsPcpGroup(G)::Bool
+      return new(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
+    elseif GAPWrap.IsPcGroup(G)::Bool
+      return new(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
     end
-    z = new(G)
-    return z
+    throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
   end
 end
 
 pc_group(G::GapObj) = PcGroup(G)
+
+# Return `true` if the generators of `G` fit to those of its pc presentation.
+function _is_full_pc_group(G::GapObj)
+  GAPWrap.IsPcGroup(G) && return GAPWrap.GeneratorsOfGroup(G) != GAP.Globals.FamilyPcgs(G)
+  GAP.Globals.IsPcpGroup(G)::Bool || return false
+  x = GAP.Globals.One(G)::GapObj
+  C = GAP.getbangproperty(x, :collector)::GapObj
+  n = GAP.getbangindex(C, GAP.Globals.PC_NUMBER_OF_GENERATORS)::Int
+  Ggens = GAPWrap.GeneratorsOfGroup(G)
+  length(Ggens) == n || return false
+  for i in 1:n
+    w = GAP.getbangproperty(Ggens[i], :word)::GapObj
+    (length(w) == 2 && w[1] == i && w[2] == 1) || return false
+  end
+  return true
+end
 
 
 """
@@ -249,9 +245,13 @@ return groups of type `SubPcGroup`.
 #T no, create embedding!
 
   function SubPcGroup(G::GapObj)
-    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
-    full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G))
+    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)::Bool
+    if GAPWrap.IsPcGroup(G)
+      full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G)::GapObj)::GapObj
 #T use GAPWrap!
+    else
+      full = GAP.Globals.PcpGroupByCollectorNC(GAP.Globals.Collector(G)::GapObj)::GapObj
+    end
     z = new(G, PcGroup(full))
     return z
   end
