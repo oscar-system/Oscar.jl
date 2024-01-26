@@ -23,14 +23,28 @@ function _defines_partition(parts::Vector{<: IntegerUnion})
 end
 
 @doc raw"""
-    partition([T::Type{<:IntegerUnion}, parts::IntegerUnion...; check::Bool = true)
+    partition([T::Type{<:IntegerUnion}], parts::IntegerUnion...; check::Bool = true)
     partition(parts::Vector{T}; check::Bool = true) where T <: IntegerUnion
 
-Return the partition given by `parts` as an object of type `Partition{T}`.
-See [`Partition`](@ref) for more details and examples.
+Return the partition given by the integer sequence `parts` as an object of type
+`Partition{T}`.
+
+The element type `T` may be optionally specified, see also the examples below.
 
 If `check` is `true` (default), it is checked whether the given sequence defines
 a partition.
+
+# Examples
+```jldoctest
+julia> P = partition([6, 4, 4, 2]) # the partition 6 + 4 + 4 + 2 of 16
+[6, 4, 4, 2]
+
+julia> P = partition(6, 4, 4, 2) # the same partition
+[6, 4, 4, 2]
+
+julia> P = partition(Int8, 6, 4, 4, 2) # save the elements in 8-bit integers
+Int8[6, 4, 4, 2]
+```
 """
 partition
 
@@ -90,13 +104,8 @@ end
 @doc raw"""
     getindex_safe(P::Partition, i::IntegerUnion)
 
-In algorithms involving partitions it is sometimes convenient to be able to access parts
-beyond the length of the partition and then one wants to get the value zero instead of an
-error. This function is a shortcut for
-```
-return (i > length(data(P)) ? 0 : getindex(data(P), i))
-```
-If you are sure that `P[i]` exists, use `getindex` because this will be faster.
+Return `P[i]` if `i < length(P)` and `0` otherwise.
+It is assumed that `i` is positive.
 
 # Examples
 ```jldoctest
@@ -110,8 +119,8 @@ julia> getindex_safe(P, 4)
 0
 ```
 """
-function getindex_safe(P::Partition, i::IntegerUnion)
-  return (i > length(data(P)) ? 0 : getindex(data(P), Int(i)))
+function getindex_safe(P::Partition{T}, i::IntegerUnion) where T
+  return (i > length(data(P)) ? zero(T) : getindex(data(P), Int(i)))
 end
 
 ################################################################################
@@ -124,24 +133,13 @@ end
 @doc raw"""
     number_of_partitions(n::IntegerUnion)
 
-The number of integer partitions of the non-negative integer `n`.
+Return the number of integer partitions of the non-negative integer `n`.
 
 # Examples
 ```julia
 julia> number_of_partitions(1000)
 24061467864032622473692149727991
 ```
-
-# Algorithm
-
-We use the function
-[`arith_number_of_partitions`](http://flintlib.org/doc/arith.html?highlight;=partitions#c.arith_number_of_partitions)
-from [FLINT](@cite) which is very fast. It is based on the Hardy-Ramanujan-Rademacher
-formula, see [Joh12](@cite) for details. 
-
-# Further references
-1. [Knu11](@cite), Section 7.2.1.4 (starting on page 395).
-2. [OEIS](@cite), [A000041](https://oeis.org/A000041)
 """
 function number_of_partitions(n::IntegerUnion) # does not get called due to a more specific method in Nemo
   @req n >= 0 "n >= 0 required"
@@ -153,24 +151,30 @@ end
 @doc raw"""
     partitions(n::IntegerUnion)
 
-A list of all partitions of a non-negative integer `n`, produced in lexicographically
-*descending* order. This ordering is like in Sage, but opposite to GAP. You can apply the
-function `reverse` to reverse the order. As usual, you may increase performance by using
-smaller integer types.
+Return a list of all partitions of a non-negative integer `n`, produced in
+lexicographically *descending* order.
+Using a smaller integer type for `n` (e.g. `Int8`) may increase performance.
 
-# Algorithm
-The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also discussed in
-[Knu11](@cite), Algorithm P (page 392).
+The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also
+discussed in [Knu11](@cite), Algorithm P (page 392).
 
 # Examples
 ```jldoctest
-julia> partitions(4) # Use partitions(Int8(4)) to use 8-bit integers
+julia> partitions(4)
 5-element Vector{Partition{Int64}}:
  [4]
  [3, 1]
  [2, 2]
  [2, 1, 1]
  [1, 1, 1, 1]
+
+julia> partitions(Int8(4)) # using less memory
+5-element Vector{Partition{Int8}}:
+ Int8[4]
+ Int8[3, 1]
+ Int8[2, 2]
+ Int8[2, 1, 1]
+ Int8[1, 1, 1, 1]
 ```
 """
 function partitions(n::T) where T <: IntegerUnion
@@ -230,15 +234,8 @@ end
 @doc raw"""
     number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
-The number of integer partitions of the non-negative integer `n` into `k >= 0` parts.
-
-# Algorithm
-We use the recurrence relation ``p_k(n) = p_{k - 1}(n - 1) + p_k(n - k)``, where ``p_k(n)``
-denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), Section
-7.2.1.4, Equation (39) on page 399.
-
-# References
-1. [OEIS](@cite), [A008284](https://oeis.org/A008284)
+Return the number of integer partitions of the non-negative integer `n` into
+`k >= 0` parts.
 """
 function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
@@ -287,16 +284,30 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 end
 
 @doc raw"""
-    partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+    partitions(m::IntegerUnion, n::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
 
-A list of all partitions of a non-negative integer `m` into `n >= 0` parts with lower bound
-`l1 >= 0` and upper bound `l2` for the parts. There are two choices for the parameter
-`only_distinct_parts`:
+Return all partitions of a non-negative integer `m` into `n >= 0` parts.
+Optionally, a lower bound `l1 >= 0` and an upper bound `l2` for the parts can be
+supplied. In this case, the partitions are produced in *decreasing* order.
+
+There are two choices for the parameter `only_distinct_parts`:
 * `false`: no further restriction (*default*);
-* `true`: only distinct parts. The partitions are produced in *decreasing* order.
+* `true`: only distinct parts.
+
+The implemented algorithm is "parta" in [RJ76](@cite).
 
 # Examples
-We compute all partitions of 7 into 3 parts where all parts are between 1 and 4:
+All partitions of 7 into 3 parts:
+```jldoctest
+julia> partitions(7, 3)
+4-element Vector{Partition{Int64}}:
+ [5, 1, 1]
+ [4, 2, 1]
+ [3, 3, 1]
+ [3, 2, 2]
+```
+All partitions of 7 into 3 parts where all parts are between 1 and 4:
 ```jldoctest
 julia> partitions(7, 3, 1, 4)
 3-element Vector{Partition{Int64}}:
@@ -304,18 +315,15 @@ julia> partitions(7, 3, 1, 4)
  [3, 3, 1]
  [3, 2, 2]
 ```
-
 Same as above but requiring all parts to be distinct:
 ```jldoctest
 julia> partitions(7, 3, 1, 4; only_distinct_parts = true)
 1-element Vector{Partition{Int64}}:
  [4, 2, 1]
 ```
-# Algorithm
-The algorithm used is "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E.
-Thiel.
 """
 function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+  # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 
   # Note that we are considering partitions of m here. I would switch m and n
   # but the algorithm was given like that and I would otherwise confuse myself
@@ -406,25 +414,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
   return P
 end
 
-@doc raw"""
-    partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
-
-All partitions of a non-negative integer `m` into `n` parts (no further restrictions).
-
-# Examples
-```jldoctest
-# All partitions of 7 into 3 parts.
-julia> partitions(7, 3)
-4-element Vector{Partition{Int64}}:
- [5, 1, 1]
- [4, 2, 1]
- [3, 3, 1]
- [3, 2, 2]
-```
-# Algorithm
-This function is a shortcut for `partitions(m, n, 1, m; only_distinct_parts = false)`.
-"""
-function partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
+function partitions(m::T, n::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
   @req m >= 0 "m >= 0 required"
   @req n >= 0 "n >= 0 required"
 
@@ -437,32 +427,14 @@ function partitions(m::T, n::IntegerUnion) where T <: IntegerUnion
     return [ partition(T[m], check = false) ]
   end
 
-  return partitions(m, n, 1, m; only_distinct_parts = false)
+  return partitions(m, n, 1, m; only_distinct_parts = only_distinct_parts)
 end
 
-@doc raw"""
-    partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
-
-All partitions of a non-negative integer `m` into `n >= 0` parts, where each part is an
-element in the vector `v` of positive integers and each `v[i]` occurs a maximum of `mu[i] >
-0` times. We assume (without loss of generality) that the entries in `v` are strictly
-increasing. The partitions are produced in lexicographically *decreasing* order.
-
-# Examples
-We compute the partitions of 100 into seven parts, where the parts are required to be
-elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
-```jldoctest
-julia> partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
-1-element Vector{Partition{Int64}}:
- [50, 20, 20, 5, 2, 2, 1]
-```
-
-# Algorithm
-The algorithm used is "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E.
-Thiel. The algorithm as published in the paper has several issues and we hope to have fixed
-them all, see the code for details. Some initial fixing was done by T. Schmit.
-"""
 function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+  # Algorithm "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
+  # The algorithm as published in the paper has several issues and we hope to have fixed
+  # them all, see below for details. Some initial fixing was done by T. Schmit.
+
   @req m >= 0 "m >= 0 required"
   @req n >= 0 "n >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
@@ -656,31 +628,6 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   return P
 end
 
-@doc raw"""
-    partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
-
-All partitions of a non-negative integer `m` where each part is an element in the vector `v`
-of positive integers and each `v[i]` occurs a maximum of `mu[i] > 0` times. We assume
-(without loss of generality) that the entries in `v` are strictly increasing.
-
-# Example
-We compute all partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
-part is allowed to occur at most twice:
-```jldoctest
-julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
-6-element Vector{Partition{Int64}}:
- [50, 50]
- [50, 20, 20, 10]
- [50, 20, 20, 5, 5]
- [50, 20, 10, 10, 5, 5]
- [50, 20, 20, 5, 2, 2, 1]
- [50, 20, 10, 10, 5, 2, 2, 1]
-```
-
-# Algorithm
-We use the function `partitions(m, n, v, mu)`, looping over the number of possible parts of
-partitions.
-"""
 function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
   @req m >= 0 "m >= 0 required"
@@ -737,23 +684,50 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
 end
 
 @doc raw"""
-    function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
+    partitions(m::T, v::Vector{T}) where T <: IntegerUnion
+    partitions(m::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+    partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
 
-All partitions of a non-negative integer `m` where each part is an element in the vector
-`v`. We assume (without loss of generality) that the entries in `v` are strictly increasing.
+Return all partitions of a non-negative integer `m` where each part is an element
+in the vector `v` of positive integers.
+It is assumed that the entries in `v` are strictly increasing.
+
+If the optional vector `mu` is supplied, then each `v[i]` occurs a maximum of
+`mu[i] > 0` times per partition.
+
+If the optional integer `n >= 0` is supplied, the partitions will be into `n`
+parts. In this case, the partitions are produced in lexicographically *decreasing*
+order.
+
+The implemented algorithm is "partb" in [RJ76](@cite).
 
 # Example
-We compute the number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
+The number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
 ```jldoctest
 julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
 4562
 ```
-# Algorithm
-We use the function `partitions(m, n, v, mu)`, looping over the number of possible parts of
-partitions.
+All partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
+part is allowed to occur at most twice:
+```jldoctest
+julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
+6-element Vector{Partition{Int64}}:
+ [50, 50]
+ [50, 20, 20, 10]
+ [50, 20, 20, 5, 5]
+ [50, 20, 10, 10, 5, 5]
+ [50, 20, 20, 5, 2, 2, 1]
+ [50, 20, 10, 10, 5, 2, 2, 1]
+```
+The partitions of 100 into seven parts, where the parts are required to be
+elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
+```jldoctest
+julia> partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
+1-element Vector{Partition{Int64}}:
+ [50, 20, 20, 5, 2, 2, 1]
+```
 """
 function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
-
   @req m >= 0 "m >= 0 required"
   @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
   @req all(>(0), v) "Entries of v must be positive"
@@ -793,29 +767,16 @@ end
 @doc raw"""
     dominates(lambda::Partition, mu::Partition)
 
-The **dominance order** on partitions is the partial order ``⊵`` defined by ``λ ⊵ μ`` if and
-only if ``λ₁ + … + λᵢ ≥ μ₁ + … + μᵢ`` for all i. If ``λ ⊵ μ`` one says that ``λ``
-**dominates** ``μ``. This function returns true if and only if `lambda` dominates `mu`.
-
-Note that whereas the lexicographic ordering is a total ordering, the dominance ordering is
-not.
+Return `true` if `lambda` dominates `mu`, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> dominates( partition(3, 1), partition(2, 2) )
+julia> dominates(partition(3, 1), partition(2, 2))
 true
 
-julia> dominates( partition(4, 1), partition(3, 3) )
+julia> dominates(partition(4, 1), partition(3, 3))
 false
 ```
-
-# Remarks
-[Knu11](@cite) says **majorizes** instead of **dominates** and uses the symbol ``⪰`` instead
-of ``⊵``.
-
-# References
-1. [Ful97](@cite), page 26
-2. [Knu11](@cite), Section 7.2.1.4, Exercise 54 (page 412)
 """
 function dominates(lambda::Partition, mu::Partition)
   dif = 0
@@ -846,19 +807,15 @@ end
 ################################################################################
 
 @doc raw"""
-    conjugate(lambda::Partition{T}) where T <: IntegerUnion
+    conjugate(lambda::Partition)
 
-The **conjugate** of a partition is obtained by considering its Young diagram
-(see [Tableaux](@ref)) and then flipping it along its main diagonal.
+Return the conjugate of the partition `lambda`.
 
 # Examples
 ```jldoctest
 julia> conjugate(partition(8, 8, 8, 7, 2, 1, 1))
 [7, 5, 4, 4, 4, 4, 4, 3]
 ```
-# References
-1. [Ful97](@cite), page 2
-2. [Knu11](@cite), Section 7.2.1.4, page 394.
 """
 function conjugate(lambda::Partition{T}) where T <: IntegerUnion
   if isempty(lambda)

@@ -240,9 +240,11 @@
       "Combinatorics/graphs.md",
       "Combinatorics/matroids.md",
       "Combinatorics/simplicialcomplexes.md",
-      "Combinatorics/partitions.md",
-      "Combinatorics/tableaux.md",
-      "Combinatorics/schur_polynomials.md",
+      "Integer combinatorics" => [
+          "Combinatorics/IntegerCombinatorics/partitions.md",
+          "Combinatorics/IntegerCombinatorics/tableaux.md",
+          "Combinatorics/IntegerCombinatorics/schur_polynomials.md",
+      ],
   ],
 
   "Straight Line Programs" => [
