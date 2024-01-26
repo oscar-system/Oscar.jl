@@ -44,7 +44,7 @@ function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
    print(io, Indent(), "of ", Lowercase())
    show(io, MIME("text/plain"), base_ring(Q))
    println(io)
-   print(io, "by ", modulus(Q))
+   print(io, "by ", Lowercase(), modulus(Q))
    print(io, Dedent())
 end
 
@@ -56,7 +56,8 @@ function Base.show(io::IO, Q::MPolyQuoRing)
     print(io, "Quotient of multivariate polynomial ring")
   else
     # nested printing allowed
-    print(io, "Quotient of multivariate polynomial ring by ", modulus(Q))
+    io = pretty(io)
+    print(io, "Quotient of multivariate polynomial ring by ", Lowercase(), modulus(Q))
   end
 end
 
