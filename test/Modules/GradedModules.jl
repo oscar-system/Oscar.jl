@@ -153,4 +153,6 @@ end
   M, iso = forget_grading(Omega)
   @test is_isomorphism(iso)
   @test is_isomorphism(inverse(iso))
+  M, _ = forget_grading(Omega)
+  prune_with_map(M)
 end
