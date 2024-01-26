@@ -121,7 +121,7 @@ function is_subscheme(
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
-  return is_subscheme(inverted_set(OO(Y)), units_of(R)) && iszero(saturated_ideal(defining_ideal(Y)))
+  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(saturated_ideal(defining_ideal(Y)))
 end
 
 
