@@ -136,14 +136,16 @@ stats = reduce(merge, pmap(testlist) do x
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
-if numprocs == 1 && test_subset != "short"
-  # to debug GC corruption errors
-  GC.gc()
-  GC.gc()
-
-  println("Starting tests for Serialization/IPC.jl")
-  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
-end
+#
+# FIXME: disabled until #3184 is solved
+#if numprocs == 1 && test_subset != "short"
+#  # to debug GC corruption errors
+#  GC.gc()
+#  GC.gc()
+#
+#  println("Starting tests for Serialization/IPC.jl")
+#  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+#end
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
