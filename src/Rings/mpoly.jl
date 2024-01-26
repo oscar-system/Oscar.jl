@@ -15,80 +15,10 @@
 # (:x), (:x, :y), (:x, :y, :z)
 # (:x1, :x2, ...)
 function _variables_for_singular(n::Int)
-  n > 3 && return _make_strings("x#" => 1:n)
+  n > 3 && return [Symbol("x[$i]") for i in 1:n]
   return [ :x, :y, :z ][1:n]
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
-
-# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
-_make_variable(a, i) = _make_variable(String(a), i)
-
-function _make_variable(a::String, i)
-  ii = join(i, ", ")
-  if occursin('#', a)
-    aa = replace(a, '#' => "$ii")
-  else
-    if Hecke.inNotebook()
-      aa = "$(a)_{$ii}"
-    else
-      aa = "$a[$ii]"
-    end
-  end
-  return Symbol(aa)
-end
-
-# Type stable recursive function to create strings from "a" => 1:2 or
-# "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:VarName, <:Any})
-  lv = last(v)
-  if lv isa Tuple
-    p = Iterators.product(lv...)
-  else
-    p = lv
-  end
-  res = Symbol[]
-  a = first(v)
-  for i in p
-    push!(res, _make_variable(a, i))
-  end
-  return res
-end
-
-function _make_strings(v)
-  s = _make_strings(first(v))
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _make_strings(Base.tail(v))...)
-end
-
-# Type stable recursive function that given a vector of
-# variables (or any polynomials) and v = "a" => 1:2 or "a" =>
-# (1:2, 1:3) extracts the first variables into an
-# n-dimensional array with the given dimensions.
-# For example, _collect_variables([x1, x2, x3, x4, x5], "a" => (1:2, 1:2))
-# returns [x1 x3; x2 x4], 5
-function _collect_variables(c::Vector, v::Pair, start = 1)
-  lv = last(v)
-  if lv isa Tuple
-    res = Array{eltype(c)}(undef, map(length, lv))
-  else
-    res = Vector{eltype(c)}(undef, length(lv))
-  end
-  for i in eachindex(res)
-    res[i] = c[start]
-    start += 1
-  end
-  return res, start
-end
-
-function _collect_variables(c, v, start = 1)
-  s, next = _collect_variables(c, first(v), start)
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _collect_variables(c, Base.tail(v), next)...)
-end
 
 function Base.getindex(R::MPolyRing, i::Int)
   i == 0 && return zero(R)

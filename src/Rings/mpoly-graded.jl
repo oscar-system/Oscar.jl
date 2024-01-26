@@ -1617,7 +1617,7 @@ function _homogenization(f::MPolyRingElem, W::ZZMatrix, var::VarName, pos::Int)
      insert!(A, pos, Symbol(var))
   else
      for i = 1:size(W, 1)
-       insert!(A, pos-1+i, _make_variable(var, i))
+       insert!(A, pos-1+i, Symbol("$var[$i]"))
      end
   end
   G = abelian_group(zeros(Int, size(W, 1)))
@@ -1720,7 +1720,7 @@ function homogenization(V::Vector{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}
      insert!(A, pos, Symbol(var))
   else
      for i = 1:(size(W, 1))
-       insert!(A, pos-1+i, _make_variable(var, i))
+       insert!(A, pos-1+i, Symbol("$var[$i]"))
      end
   end
   G = abelian_group(zeros(Int, size(W, 1)))
