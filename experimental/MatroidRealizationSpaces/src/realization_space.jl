@@ -513,7 +513,7 @@ One realization is given by
   [1   0   0   1   1   1]
   [0   1   0   1   4   3]
   [0   0   1   1   3   2]
-in the finite field of degree 1 over GF(5)
+in the prime field of characteristic 5
 ```
 """
 function realization(

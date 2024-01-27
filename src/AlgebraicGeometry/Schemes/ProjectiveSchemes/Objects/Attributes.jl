@@ -414,7 +414,6 @@ julia> gens(OO(affine_cone(P)[1])) # all coordinates on the affine cone
  z
  u
  v
-
 ```
 """
 function homogeneous_coordinates_on_affine_cone(P::AbsProjectiveScheme)

@@ -5,7 +5,7 @@ module LieAlgebras
 
 using ..Oscar
 
-import Oscar: GAPWrap, GroupsCore, IntegerUnion, MapHeader
+import Oscar: GAPWrap, IntegerUnion, MapHeader
 
 import Random
 
@@ -52,6 +52,7 @@ import ..Oscar:
   inv,
   is_abelian,
   is_exterior_power,
+  is_finite,
   is_isomorphism,
   is_nilpotent,
   is_perfect,

@@ -72,7 +72,7 @@ function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector{<:Union{QQ
     ###
     # Construct the initial form
     ###
-    kx,_ = polynomial_ring(residue_field(nu),symbols(parent(f)))
+    kx, _ = polynomial_ring(residue_field(nu),symbols(parent(f)))
     initialForm = MPolyBuildCtx(kx)
     for (c,alpha) in zip(coeffs,expvs)
         push_term!(initialForm,initial(c,nu),alpha)
@@ -104,7 +104,6 @@ ideal(x^3 + x^2*y, y^3)
 
 julia> initial(I,nu_0,w)
 ideal(2*x^2*y - 3*y^3, x^3 - 5*x^2*y, x*y^3 - 5*y^4, y^5)
-
 ```
 """
 function initial(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}; skip_groebner_basis_computation::Bool=false)

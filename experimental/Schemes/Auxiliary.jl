@@ -301,7 +301,7 @@ function _compute_inherited_gluing(gd::InheritGluingData)
     psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
     f = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
-    return SimpleGlueing(X, Y, f, g, check=false)
+    return SimpleGluing(X, Y, f, g, check=false)
   end
 
   # As the easy case would have been caught before, we are now facing an inherited 

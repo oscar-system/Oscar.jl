@@ -97,7 +97,6 @@ julia> variety(y^2-x^3-1)
 Affine variety
   in affine 2-space over QQ with coordinates [x, y]
 defined by defined by ideal(-x^3 + y^2 - 1)
-
 ```
 """
 function variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)

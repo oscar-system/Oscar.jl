@@ -1650,7 +1650,7 @@ are given by all $d \times d$ minors of a $d \times n$ matrix. For the algorithm
 julia> grassmann_pluecker_ideal(2, 4)
 ideal(x[1]*x[6] - x[2]*x[5] + x[3]*x[4])
 
-julia> R, x = polynomial_ring(residue_ring(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
+julia> R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3), ordering=:degrevlex)
 (Multivariate polynomial ring in 6 variables over ZZ/(7), zzModMPolyRingElem[x[1, 1] x[1, 2] x[1, 3]; x[2, 1] x[2, 2] x[2, 3]])
 
 julia> grassmann_pluecker_ideal(R, 2, 4)

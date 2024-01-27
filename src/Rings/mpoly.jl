@@ -425,7 +425,7 @@ singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
 singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
 
 function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
-  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))
+  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
 end
 
 singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
