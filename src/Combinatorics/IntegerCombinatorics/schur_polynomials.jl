@@ -13,7 +13,7 @@
 
 Return the Schur polynomial ``s_λ(x_1, x_2, ..., x_n)`` in `n` variables.
 
-If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ, n)`, with the exception that for `n == 0`, we use `polynomial_ring(ZZ, 1)`.
+If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ, n)`.
 
 # Examples
 ```jldoctest
@@ -54,8 +54,7 @@ x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
 """
 function schur_polynomial(lambda::Partition{T}, n::Int = length(lambda)) where T <: IntegerUnion
   @req n >= 0 "n >= 0 required"
-  k = n == 0 ? 1 : n # we can't build polynomial_ring(ZZ, 0)
-  R, _ = polynomial_ring(ZZ, k, cached = false)
+  R, _ = polynomial_ring(ZZ, n, cached = false)
   return schur_polynomial(R, lambda, n)
 end
 
