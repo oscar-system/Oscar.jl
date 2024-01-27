@@ -618,9 +618,10 @@ Given an equidimensional projective curve `X` return the arithmetic genus of `X`
 integer `(-1)^n (h_X(0) - 1)` where `h_X` is the Hilbert polynomial of `X` 
 and `n` its dimension.
 """
-@attr function arithmetic_genus(X::AbsProjectiveScheme{<:Field})
+@attr Int function arithmetic_genus(X::AbsProjectiveScheme{<:Field})
   A = homogeneous_coordinate_ring(X)
   h = hilbert_polynomial(A)
   n = dim(X)
-  return (-1)^n*(evaluate(h, 0) - 1)
+  result = (-1)^n*(evaluate(h, 0) - 1)
+  return Int(result) # Convert QQFieldElem to integer
 end

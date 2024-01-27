@@ -395,5 +395,6 @@ end
   Y, _ = sub(IP2, g)
 
   @test isone(arithmetic_genus(Y))
+  @test arithmetic_genus(Y) isa Int64
   @test genus(Y) == -2
 end
