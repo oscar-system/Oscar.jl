@@ -30,7 +30,7 @@ is_empty(X::EmptyScheme) = true
 
 
 ####################################################################################
-# (2) IsSubset for all other schemes
+# (2) is_subscheme for all other schemes
 ####################################################################################
 
 
@@ -38,7 +38,7 @@ is_empty(X::EmptyScheme) = true
 
 
 @doc raw"""
-    is_subset(X::AbsSpec, Y::AbsSpec)
+    is_subscheme(X::AbsSpec, Y::AbsSpec)
 
 Check whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding morphism.
@@ -67,10 +67,10 @@ Spectrum
       over rational field
     by ideal(x1*x2)
 
-julia> is_subset(X, Y)
+julia> is_subscheme(X, Y)
 false
 
-julia> is_subset(Y, X)
+julia> is_subscheme(Y, X)
 true
 ```
 """
