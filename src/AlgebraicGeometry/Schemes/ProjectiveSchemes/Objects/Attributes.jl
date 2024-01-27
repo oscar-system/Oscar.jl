@@ -584,7 +584,7 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
 end
 
 @doc raw"""
-    genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:nor)
+    genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization)
 
 Given a projective curve `X` return the genus of `X`, i.e. the 
 integer `p_g = p_a - delta` where `p_a` is the arithmetic genus 
@@ -596,7 +596,7 @@ The `algorithm` keyword can be specified to
 Normalization is usually faster, but not always.
 """
 function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization)
-  @assert dim(X) == 1 "scheme must be one-dimensional"
+  @req dim(X) == 1 "scheme must be one-dimensional"
   get_attribute!(X, :genus) do
     I = defining_ideal(X)
     singular_assure(I)
@@ -612,7 +612,7 @@ function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization
 end
 
 @doc raw"""
-    arithmetic_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:nor)
+    arithmetic_genus(X::AbsProjectiveScheme{<:Field})
 
 Given an equidimensional projective curve `X` return the arithmetic genus of `X`, i.e. the 
 integer `(-1)^n (h_X(0) - 1)` where `h_X` is the Hilbert polynomial of `X` 
