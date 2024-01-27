@@ -206,7 +206,7 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
 
   k = 1
   while k <= l
-    g = T[k,:]
+    g = T[k:k,:]
     # error estimates
     lambd = valuation(g, p)
     rho = min(delta + nu + gamma, 2*nu + gamma)
@@ -216,7 +216,7 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
       # precision too low
       return ZZ(0), QQ(0)
     end
-    bm = g - E[k,:]
+    bm = g - E[k:k,:]
     qm = bm * G * transpose(bm)
     if valuation(qm, p) <= gammaL[k] + 2*delta
       tau1 = reflection(G, bm)

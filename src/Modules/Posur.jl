@@ -212,7 +212,7 @@ function has_solution(
   (success, u, a) = has_nonempty_intersection(U, I, check=check)
   success || return (false, zero_matrix(R, 1, ngens(I)), zero(R))
   l = a*L 
-  return (success, l[1, 2:end], l[1,1])
+  return (success, l[1:1, 2:end], l[1,1])
 end
 
 ########################################################################
@@ -494,8 +494,8 @@ function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocaliz
   # 
   # with x = [y z]. Now we would like to cache v' as a new generator for the 
   # `pre_saturated_module(M)` and w' as a new relation of it. 
-  y = x[1, 1:r]
-  z = x[1, r+1:r+s]
+  y = x[1:1, 1:r]
+  z = x[1:1, r+1:r+s]
   v = y*A
   w = z*B
   (v_clear, d_v) = clear_denominators(v)
@@ -524,7 +524,7 @@ function coordinates(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:AbsLocaliz
                 )
   set_attribute!(M, :pre_saturated_module, Mbext)
   # finally, return the computed coordinates
-  result = x[1, 1:r]
+  result = x[1:1, 1:r]
   return sparse_row(result)
 end
 
@@ -582,8 +582,8 @@ function represents_element(u::FreeModElem{T}, M::SubquoModule{T}) where {T<:Abs
   # 
   # with x = [y z]. Now we would like to cache v' as a new generator for the 
   # `pre_saturated_module(M)` and w' as a new relation of it. 
-  y = x[1, 1:r]
-  z = x[1, r+1:r+s]
+  y = x[1:1, 1:r]
+  z = x[1:1, r+1:r+s]
   v = y*A
   w = z*B
   (v_clear, d_v) = clear_denominators(v)

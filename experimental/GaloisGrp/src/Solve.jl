@@ -687,7 +687,7 @@ function conj_from_basis(C::GaloisCtx, S::SubField, a, pr)
   for i=0:degree(S.fld)-1
     d = conjugates(C, S.coeff_field, coeff(a, i), pr)
     for j=1:length(d)
-      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
+      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1:i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
     end
     res += tmp
   end

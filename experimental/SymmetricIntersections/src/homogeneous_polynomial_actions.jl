@@ -147,7 +147,7 @@ function parametrization_data(symci::SymInter)
   for (B, n) in pd
     B2 = Vector{MPolyDecRingElem}[]
     for b in B
-      vv = elem_type(S)[j(R(reverse_cols!(b[i,:]))) for i in 1:nrows(b)]
+      vv = elem_type(S)[j(R(reverse_cols!(b[i:i,:]))) for i in 1:nrows(b)]
       push!(B2, vv)
     end
     push!(pd2, (B2, n))

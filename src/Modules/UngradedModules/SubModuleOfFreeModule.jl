@@ -47,7 +47,7 @@ module is `F`. In particular, `rank(F) == ncols(A)` must hold.
 """
 function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} 
   subModule = SubModuleOfFreeModule{L}(F)
-  O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
+  O = [FreeModElem(sparse_row(A[i:i,:]), F) for i in 1:nrows(A)]
   subModule.gens = ModuleGens(O, F)
   subModule.matrix = A
   return subModule

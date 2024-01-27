@@ -212,7 +212,7 @@ function test_opposite_ordering(a)
   R = base_ring(a)
   b = opposite_ordering(R, a)
   M = matrix(a)
-  N = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
+  N = reduce(hcat, [M[:,i:i] for i in ncols(M):-1:1])
   @test b == matrix_ordering(gens(R), N)
   @test a == opposite_ordering(R, b)
 end

@@ -123,7 +123,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   I = identity_matrix(QQ,degree(L))
   # prS: L --> S^\vee given with respect to the standard basis of L and the basis of S
   prS = ibSR*I[:,1:rank(S)]#*basis_matrix(S)
-  @assert prS[rank(S)+1,:]==0
+  @assert prS[[rank(S)+1],:]==0
 
 
   if compute_OR
@@ -1913,7 +1913,7 @@ function ample_class(S::ZZLat)
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
   i = findfirst(x->x, [d>0 for d in diagonal(D)])
-  v = B[i,:]
+  v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
   @assert vsq > 0
@@ -2020,7 +2020,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
     i = findfirst(x->x==1,g)
-    s = basis_matrix(L)[i,:]
+    s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else
     # search a smallish section using a cvp

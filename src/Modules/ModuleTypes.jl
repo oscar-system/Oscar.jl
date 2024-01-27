@@ -610,7 +610,7 @@ function FreeModuleHom(
   ) where {T<:RingElem,S<:AbstractFreeMod}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)])
   hom.matrix = mat
   return hom
 end
@@ -620,7 +620,7 @@ function FreeModuleHom(
   ) where {T<:RingElem, S<:ModuleFP}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)])
   hom.matrix = mat
   return hom
 end
@@ -631,7 +631,7 @@ function FreeModuleHom(
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)], h)
   hom.matrix = mat
   return hom
 end
@@ -642,7 +642,7 @@ function FreeModuleHom(
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)], h)
   hom.matrix = mat
   return hom
 end

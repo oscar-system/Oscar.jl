@@ -21,10 +21,10 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
-    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)])
     return hom
   else
-    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)])
     return hom
   end
 end
@@ -1265,7 +1265,7 @@ function simplify(M::SubquoModule)
   for i=1:size(M_generators)[1]
     if i in to_delete
       index = findfirst(x -> x==i, to_delete)
-      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
+      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index]:(corresponding_row[index]),:], to_delete), i)
     else
       standard_unit_vector_index = i-length(filter(x -> x < i, to_delete))
       standard_unit_vector = [j == standard_unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]

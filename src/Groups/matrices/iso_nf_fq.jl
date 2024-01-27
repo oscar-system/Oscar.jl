@@ -178,7 +178,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    # I don't want to invert everything in char 0, so I just check whether the
    # matrices are still invertible mod p.
    for i = 1:length(matrices)
-      matrices_Fq[i] = matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in matrices[i] ])
+      matrices_Fq[i] = map_entries(a -> OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))), matrices[i])
       if rank(matrices_Fq[i]) != nrows(matrices_Fq[i])
          return false, Fq, matrices_Fq, Hecke.NfOrdToFqMor()
       end
