@@ -599,8 +599,7 @@ function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization
   @req dim(X) == 1 "scheme must be one-dimensional"
   get_attribute!(X, :genus) do
     I = defining_ideal(X)
-    singular_assure(I)
-    I_sing = I.gens.gens.S
+    I_sing = singular_generators(I)
     if algorithm == :normalization
       return Singular.LibNormal.genus(I_sing)
     elseif algorithm == :primary_decomposition
