@@ -583,3 +583,44 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
   return cokernel(psi)
 end
 
+@doc raw"""
+    genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:nor)
+
+Given a projective curve `X` return the genus of `X`, i.e. the 
+integer `p_g = p_a - delta` where `p_a` is the arithmetic genus 
+and `delta` the delta-invariant of the curve.
+
+The `algorithm` keyword can be specified to 
+  - `:normalization` to go via the computation of a normalization
+  - `:primary_decomposition` to proceed with a primary decomposition
+Normalization is usually faster, but not always.
+"""
+function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization)
+  @assert dim(X) == 1 "scheme must be one-dimensional"
+  get_attribute!(X, :genus) do
+    I = defining_ideal(X)
+    singular_assure(I)
+    I_sing = I.gens.gens.S
+    if algorithm == :normalization
+      return Singular.LibNormal.genus(I_sing)
+    elseif algorithm == :primary_decomposition
+      return Singular.LibNormal.genus(I_sing, "prim")
+    else 
+      error("algorithm not recognized")
+    end
+  end
+end
+
+@doc raw"""
+    arithmetic_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:nor)
+
+Given an equidimensional projective curve `X` return the arithmetic genus of `X`, i.e. the 
+integer `(-1)^n (h_X(0) - 1)` where `h_X` is the Hilbert polynomial of `X` 
+and `n` its dimension.
+"""
+@attr function arithmetic_genus(X::AbsProjectiveScheme{<:Field})
+  A = homogeneous_coordinate_ring(X)
+  h = hilbert_polynomial(A)
+  n = dim(X)
+  return (-1)^n*(evaluate(h, 0) - 1)
+end
