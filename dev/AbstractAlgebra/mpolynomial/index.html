@@ -116,7 +116,7 @@ base_ring(a::MPolyRingElem)</code></pre><p>Return the coefficient ring of the gi
 one(R::MPolyRing)
 iszero(a::MPolyRingElem)
 isone(a::MPolyRingElem)</code></pre><pre><code class="nohighlight hljs">divexact(a::T, b::T) where T &lt;: MPolyRingElem</code></pre><p>All basic functions from the Multivariate Polynomial interface are provided.</p><pre><code class="language-julia hljs">symbols(S::MPolyRing)
-nvars(f::MPolyRing)
+number_of_variables(f::MPolyRing)
 gens(S::MPolyRing)
 gen(S::MPolyRing, i::Int)</code></pre><pre><code class="language-julia hljs">ordering(S::MPolyRing{T})</code></pre><p>Note that the currently supported orderings are <code>:lex</code>, <code>:deglex</code> and <code>:degrevlex</code>.</p><pre><code class="language-julia hljs">length(f::MPolyRingElem)
 degrees(f::MPolyRingElem)
@@ -218,7 +218,7 @@ julia&gt; n = length(f)
 julia&gt; is_gen(y)
 true
 
-julia&gt; nvars(S) == 2
+julia&gt; number_of_variables(S) == 2
 true
 
 julia&gt; d = total_degree(f)
@@ -476,4 +476,4 @@ julia&gt; S, (s, t) = polynomial_ring(GF(7), [&quot;x&quot;, &quot;y&quot;])
 (Multivariate polynomial ring in 2 variables over finite field F_7, AbstractAlgebra.Generic.MPoly{AbstractAlgebra.GFElem{Int64}}[x, y])
 
 julia&gt; g = rand(S, -1:2, 3:5)
-4*x^3*y^4</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../polynomial/">« Univariate polynomial functionality</a><a class="docs-footer-nextpage" href="../series/">Power series »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 26 January 2024 22:14">Friday 26 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+4*x^3*y^4</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../polynomial/">« Univariate polynomial functionality</a><a class="docs-footer-nextpage" href="../series/">Power series »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 14:18">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

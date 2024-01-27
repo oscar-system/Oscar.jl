@@ -19,13 +19,13 @@ julia&gt; @time q = p*(p+1);
   0.161733 seconds (79.42 k allocations: 2.409 MiB)</code></pre><p>Here is an example using generic recursive ring constructions.</p><pre><code class="language-julia-repl hljs">julia&gt; using Nemo
 
 julia&gt; R, x = finite_field(7, 11, &quot;x&quot;)
-(Finite field of degree 11 over GF(7), x)
+(Finite field of degree 11 and characteristic 7, x)
 
 julia&gt; S, y = polynomial_ring(R, &quot;y&quot;)
-(Univariate polynomial ring in y over GF(7^11), y)
+(Univariate polynomial ring in y over GF(7, 11), y)
 
-julia&gt; T = residue_ring(S, y^3 + 3x*y + 1)
-Residue ring of univariate polynomial ring modulo y^3 + 3*x*y + 1
+julia&gt; T, _ = residue_ring(S, y^3 + 3x*y + 1)
+(Residue ring of univariate polynomial ring modulo y^3 + 3*x*y + 1, Map: univariate polynomial ring -&gt; residue ring)
 
 julia&gt; U, z = polynomial_ring(T, &quot;z&quot;)
 (Univariate polynomial ring in z over residue ring, z)
@@ -71,4 +71,4 @@ FLINT = &quot;/prefix/for/libflint&quot;
 Arb = &quot;/prefix/for/libarb&quot;
 
 [e21ec000-9f72-519e-ba6d-10061e575a27]
-Antic = &quot;/prefix/for/libantic&quot;</code></pre><p>(If only a specific library should be overridden, only the specific entry should be added.)</p><h2 id="Experimental-threading-support-for-flint"><a class="docs-heading-anchor" href="#Experimental-threading-support-for-flint">Experimental threading support for flint</a><a id="Experimental-threading-support-for-flint-1"></a><a class="docs-heading-anchor-permalink" href="#Experimental-threading-support-for-flint" title="Permalink"></a></h2><p>Enabling a threaded version of flint can be done by setting the environment variable <code>NEMO_THREADED=1</code>. To set the actual number of threads, use <code>Nemo.flint_set_num_threads($numberofthreads)</code>.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 26 January 2024 22:14">Friday 26 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Antic = &quot;/prefix/for/libantic&quot;</code></pre><p>(If only a specific library should be overridden, only the specific entry should be added.)</p><h2 id="Experimental-threading-support-for-flint"><a class="docs-heading-anchor" href="#Experimental-threading-support-for-flint">Experimental threading support for flint</a><a id="Experimental-threading-support-for-flint-1"></a><a class="docs-heading-anchor-permalink" href="#Experimental-threading-support-for-flint" title="Permalink"></a></h2><p>Enabling a threaded version of flint can be done by setting the environment variable <code>NEMO_THREADED=1</code>. To set the actual number of threads, use <code>Nemo.flint_set_num_threads($numberofthreads)</code>.</p></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 14:18">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

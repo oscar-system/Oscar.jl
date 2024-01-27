@@ -95,8 +95,7 @@ gcdx(f::PolyRingElem, g::PolyRingElem)
 gcdinv(f::PolyRingElem, g::PolyRingElem)</code></pre><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;)
 (Univariate polynomial ring in x over rationals, x)
 
-julia&gt; S = residue_ring(R, x^3 + 3x + 1)
-Residue ring of univariate polynomial ring modulo x^3 + 3*x + 1
+julia&gt; S, = residue_ring(R, x^3 + 3x + 1);
 
 julia&gt; T, y = polynomial_ring(S, &quot;y&quot;)
 (Univariate polynomial ring in y over residue ring, y)
@@ -162,8 +161,7 @@ julia&gt; S, y = polynomial_ring(R, &quot;y&quot;)
 julia&gt; T, z = polynomial_ring(QQ, &quot;z&quot;)
 (Univariate polynomial ring in z over rationals, z)
 
-julia&gt; U = residue_ring(ZZ, 17)
-Residue ring of integers modulo 17
+julia&gt; U, = residue_ring(ZZ, 17);
 
 julia&gt; V, w = polynomial_ring(U, &quot;w&quot;)
 (Univariate polynomial ring in w over residue ring, w)
@@ -390,8 +388,7 @@ julia&gt; S, y = polynomial_ring(R, &quot;y&quot;)
 julia&gt; T, z = polynomial_ring(QQ, &quot;z&quot;)
 (Univariate polynomial ring in z over rationals, z)
 
-julia&gt; U = residue_ring(T, z^3 + 3z + 1)
-Residue ring of univariate polynomial ring modulo z^3 + 3*z + 1
+julia&gt; U, = residue_ring(T, z^3 + 3z + 1);
 
 julia&gt; V, w = polynomial_ring(U, &quot;w&quot;)
 (Univariate polynomial ring in w over residue ring, w)
@@ -505,4 +502,4 @@ S, y = polynomial_ring(GF(7), &quot;y&quot;)
 g = rand(S, 2:2)
 
 U, z = polynomial_ring(R, &quot;z&quot;)
-h = rand(U, 3:3, -1:2, -10:10)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../Rings/integer/">« Integers</a><a class="docs-footer-nextpage" href="../mpolynomial/">Sparse distributed multivariate polynomials »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 26 January 2024 22:14">Friday 26 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+h = rand(U, 3:3, -1:2, -10:10)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../Rings/integer/">« Integers</a><a class="docs-footer-nextpage" href="../mpolynomial/">Sparse distributed multivariate polynomials »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 14:18">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

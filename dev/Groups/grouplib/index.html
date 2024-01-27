@@ -209,13 +209,13 @@ julia&gt; info = all_atlas_group_infos(&quot;A5&quot;, dim =&gt; 4, characterist
 
 julia&gt; atlas_group(info[1])
 Matrix group of degree 4
-  over finite field of degree 1 over GF(3)
+  over prime field of characteristic 3
 </code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="atlas_group" href="#atlas_group"><code>atlas_group</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">atlas_group([::Type{T}, ]name::String) where T &lt;: Union{PermGroup, MatrixGroup}</code></pre><p>Return a group from the Atlas of Group Representations whose isomorphism type is given by <code>name</code> and have the type <code>T</code>. If <code>T</code> is not given then <code>PermGroup</code> is chosen if a permutation group for <code>name</code> is available, and <code>MatrixGroup</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; atlas_group(&quot;A5&quot;)  # alternating group A5
 Permutation group of degree 5 and order 60
 
 julia&gt; atlas_group(MatrixGroup, &quot;A5&quot;)
 Matrix group of degree 4
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia&gt; atlas_group(&quot;M11&quot;)  # Mathieu group M11
 Permutation group of degree 11 and order 7920
@@ -242,9 +242,9 @@ Permutation group of degree 11 and order 720
 
 julia&gt; h3, emb = atlas_subgroup(MatrixGroup, &quot;M11&quot;, 1 );  h3
 Matrix group of degree 10
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia&gt; info = all_atlas_group_infos(&quot;M11&quot;, degree =&gt; 11);
 
 julia&gt; h4, emb = atlas_subgroup(info[1], 1);  h4
-Permutation group of degree 11 and order 720</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../autgroup/">« Groups of automorphisms</a><a class="docs-footer-nextpage" href="../../Hecke/abelian/introduction/">Abelian Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 26 January 2024 22:14">Friday 26 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Permutation group of degree 11 and order 720</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../autgroup/">« Groups of automorphisms</a><a class="docs-footer-nextpage" href="../../Hecke/abelian/introduction/">Abelian Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 14:18">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
