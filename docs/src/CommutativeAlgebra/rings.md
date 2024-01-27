@@ -126,10 +126,10 @@ Rational field
 
 ```jldoctest
 julia> GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> GF(ZZ(2)^127 - 1)
-Finite field of degree 1 over GF(170141183460469231731687303715884105727)
+Prime field of characteristic 170141183460469231731687303715884105727
 
 ```
 
@@ -137,7 +137,7 @@ Finite field of degree 1 over GF(170141183460469231731687303715884105727)
 
 ```jldoctest
 julia> finite_field(2, 70, "a")
-(Finite field of degree 70 over GF(2), a)
+(Finite field of degree 70 and characteristic 2, a)
 
 ```
 
@@ -151,13 +151,13 @@ julia> K, a = number_field(t^2 + 1, "a")
 (Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
 (Univariate polynomial ring in t over GF(3), t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
-(Finite field of degree 2 over GF(3), a)
+(Finite field of degree 2 and characteristic 3, a)
 
 ```
 
@@ -459,7 +459,7 @@ x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
 Multivariate polynomial ring in 2 variables x, y
-  over finite field of degree 1 over GF(5)
+  over prime field of characteristic 5
 
 julia> total_degree(f)
 5
