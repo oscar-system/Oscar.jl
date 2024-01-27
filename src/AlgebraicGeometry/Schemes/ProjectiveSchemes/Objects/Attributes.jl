@@ -518,11 +518,6 @@ end
   return degree(homogeneous_coordinate_ring(P))
 end
 
-@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
-  h = hilbert_polynomial(P)
-  return (-1)^dim(P) * (first(coefficients(h)) - 1)
-end
-
 function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
   return relative_euler_sequence(X)[0]
 end
@@ -607,7 +602,7 @@ function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization
     else 
       error("algorithm not recognized")
     end
-  end
+  end::Int
 end
 
 @doc raw"""
