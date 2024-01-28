@@ -35,6 +35,7 @@ include("TensorModels.jl")
 include("MonomialOrder.jl")
 include("RootConversion.jl")
 include("WeylPolytope.jl")
+include("VectorDemazure.jl")
 include("MainAlgorithm.jl")
 include("UserFunctions.jl")
 

@@ -3,7 +3,8 @@ function basis_lie_highest_weight_compute(
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
-  monomial_ordering_symb::Symbol,
+  monomial_ordering_symb::Symbol;
+  reduced_expression::Vector{Int}=Int[],  # _demazure
 )
   """
   Pseudocode:
@@ -68,7 +69,8 @@ function basis_lie_highest_weight_compute(
     highest_weight,
     monomial_ordering,
     calc_highest_weight,
-    no_minkowski,
+    no_minkowski;
+    reduced_expression,
   )
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
@@ -85,7 +87,8 @@ function compute_monomials(
   highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
-  no_minkowski::Set{Vector{ZZRingElem}},
+  no_minkowski::Set{Vector{ZZRingElem}};
+  reduced_expression::Vector{Int},  # _demazure
 )
   """
   This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
@@ -115,7 +118,7 @@ function compute_monomials(
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
+      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}(); reduced_expression,
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -288,7 +291,8 @@ function add_by_hand(
   ZZx::ZZMPolyRing,
   highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
-  set_mon::Set{ZZMPolyRingElem},
+  set_mon::Set{ZZMPolyRingElem};
+  reduced_expression::Vector{Int}  # _demazure
 )
   """
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
@@ -300,7 +304,13 @@ function add_by_hand(
     L, highest_weight, birational_sequence.operators
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
-  v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
+  
+  # starting vector v
+  if birational_sequence === nothing
+    v0 = sparse_row(ZZ, [(1, 1)]) 
+  else # _demazure
+    v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators) 
+  end
 
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
