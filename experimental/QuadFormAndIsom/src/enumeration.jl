@@ -507,7 +507,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     @vprintln :ZZLatWithIsom 1 "$(length(repre)) representative(s)"
     while !is_empty(repre)
       LL = pop!(repre)
-      push!(reps, integer_lattice_with_isometry(LL, f; check = false))
+      push!(reps, integer_lattice_with_isometry(LL, f; ambient_representation=false, check=false))
     end
     return reps
   end

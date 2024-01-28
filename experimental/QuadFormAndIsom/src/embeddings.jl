@@ -1785,7 +1785,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     stabSB, _ = intersect(center, imB)
 
     iso = isomorphism(PermGroup, center)
-    reps = double_cosets(codomain(iso), iso(stabSB)[1], iso(stabSAphi)[1])
+    reps = double_cosets(codomain(iso), iso(stabSAphi)[1], iso(stabSB)[1])
 
     # We iterate over all double cosets. Each representative, define a new
     # classe of admissible gluing and so, for each such representative we compute the
