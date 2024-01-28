@@ -147,9 +147,8 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
         res[mp[l[2]]] = l[4]
       end
       # Set values for faithful characters if applicable.
-      perf = (length(filter(i -> degree(tbl[i]) == 1, 1:length(tbl))) == 1)
-      if p == 0 && perf && order(tbl) == 2*order(facttbl)
-#TODO: compute the reductions mod p (not dividing the group order)
+      perf = (count(chi -> degree(chi) == 1, tbl) == 1)
+      if perf && order(tbl) == 2*order(facttbl) && p != 2
         # deal with the faithful characters of a perfect central extension 2.G,
         # the image of the spinor norm is trivial
         for i in 1:length(tbl)
@@ -157,10 +156,23 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
           deg = degree(chi)
           ind = indicator(chi)
           if ind == 1 && length(class_positions_of_kernel(chi)) == 1
-            if mod(deg, 4 ) == 0
-              res[i] = "1"
-            elseif mod(deg, 2 ) == 0
-              res[i] = "-1"
+            if mod(deg, 4) == 0
+              if p == 0
+                res[i] = "1"
+              else
+                res[i] = "O+"
+              end
+            elseif mod(deg, 2) == 0
+              if p == 0
+                res[i] = "-1"
+              else
+                # Check whether -1 is a square in the character field.
+                if mod(p-1, 4) == 0 || mod(degree(character_field(chi)[1]), 2) == 0
+                  res[i] = "O+"
+                else
+                  res[i] = "O-"
+                end
+              end
             end
           end
         end
@@ -532,7 +544,7 @@ function all_od_infos(L...)
             (!comment_matches(comment)) && (good_comment = false)
           elseif comment_matches isa String
             (!(comment_matches in comment)) && (good_comment = false)
-          elseif is_empty(intersect(comment, comment_matches ))
+          elseif is_empty(intersect(comment, comment_matches))
             good_comment = false
           end
         end
