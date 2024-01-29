@@ -283,7 +283,7 @@ then `nothing` is returned.
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3)))
        end;
-Character table of permutation group of degree 3 and order 6
+Character table of Sym(3)
 
  2  1  1  .
  3  1  .  1
@@ -299,7 +299,7 @@ Character table of permutation group of degree 3 and order 6
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3), 2))
        end;
-2-modular Brauer table of permutation group of degree 3 and order 6
+2-modular Brauer table of Sym(3)
 
  2  1  .
  3  1  1
@@ -891,7 +891,9 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :group)
-      headerstring = lowercasefirst(string(group(tbl)))
+      str_io = IOBuffer()
+      print(pretty(str_io), Lowercase(), group(tbl))
+      headerstring = String(take!(str_io))
       if characteristic(tbl) != 0
         headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
       else
@@ -1369,7 +1371,6 @@ julia> subtbl = character_table("A5"); tbl = character_table("A6");
 
 julia> println(approximate_class_fusion(subtbl, tbl))
 Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
-
 ```
 """
 function approximate_class_fusion(subtbl::GAPGroupCharacterTable,
@@ -2053,7 +2054,7 @@ The result is an instance of `Vector{T}`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> chi = natural_character(g);
 

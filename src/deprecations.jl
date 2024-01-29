@@ -366,7 +366,7 @@ end
 
 # Deprecated after 0.13.0
 @deprecate fan(v::NormalToricVarietyType) polyhedral_fan(v)
-@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool) restrict_automorphism_group(G, i; check)
+@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap, check::Bool) restrict_automorphism_group(G, i; check)
 
 # Polyhedral object wrappers now require a parent field
 function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types
@@ -509,6 +509,9 @@ end
 
 @deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
 
+@deprecate SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}) simplicial_complex(generators)
+@deprecate SimplicialComplex(generators::IncidenceMatrix) simplicial_complex(generators)
+
 Base.@deprecate_binding is_finitelygenerated is_finitely_generated
 Base.@deprecate_binding has_is_finitelygenerated has_is_finitely_generated
 Base.@deprecate_binding set_is_finitelygenerated set_is_finitely_generated
@@ -531,7 +534,7 @@ Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorph
 Base.@deprecate_binding proj_space projective_space
 
 Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
-          
+
 Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
 # Deprecated after 0.15
@@ -563,3 +566,10 @@ Base.@deprecate_binding ToricGlueingData ToricGluingData
 
 Base.@deprecate_binding jacobi_matrix jacobian_matrix
 Base.@deprecate_binding jacobi_ideal jacobian_ideal
+
+@deprecate embedding(G::DirectProductGroup, j::Int) canonical_injection(G, j)
+@deprecate projection(G::DirectProductGroup, j::Int) canonical_projection(G, j)
+@deprecate embedding(G::SemidirectProductGroup, n::Int) canonical_injection(G, n)
+@deprecate projection(G::SemidirectProductGroup) canonical_projection(G)
+@deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
+@deprecate projection(W::WreathProductGroup) canonical_projection(W)

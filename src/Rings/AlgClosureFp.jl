@@ -14,6 +14,8 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
+import ..Oscar.AbstractAlgebra: pretty, Lowercase
+
 import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
   elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
@@ -28,7 +30,8 @@ struct AlgClosure{T} <: AbstractAlgebra.Field
 end
 
 function show(io::IO, A::AlgClosure)
-  print(io, "Algebraic Closure of $(A.k)")
+  io = pretty(io)
+  print(io, "Algebraic Closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k

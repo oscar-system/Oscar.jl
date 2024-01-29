@@ -268,6 +268,29 @@ end
   @test codomain(isom) == C
 end
 
+@testset "Prune With Map" begin
+  # ungraded
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  M = SubquoModule(identity_matrix(R, 3), R[1 x x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 2
+  @test (phi).(gens(N)) == gens(M)[2:3]
+  
+  M = SubquoModule(identity_matrix(R, 3), R[x 1 x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 2
+  @test (phi).(gens(N)) == [gens(M)[1], gens(M)[3]]
+
+  # graded
+  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+  F = graded_free_module(R, [2, 1])
+  M = SubquoModule(F, identity_matrix(R, 2), R[1 x])
+  N, phi = prune_with_map(M)
+  @test rank(ambient_free_module(N)) == 1
+  @test (phi).(gens(N)) == [gens(M)[2]]
+  @test degrees_of_generators(N) == [degrees_of_generators(M)[2]]
+end
+
 @testset "Ext, Tor" begin
   # These tests are only meant to check that the ext and tor function don't throw any error
   # These tests don't check the correctness of ext and tor
@@ -356,6 +379,13 @@ end
   @test P == Q
   v = x*((x+1)*F[1] + (y*z+x^2)*F[2]) + (y-z)*((y+2*z)*F[1] + z^3*F[2]) + 2*z*(x*z+y^2)*F[1] + (x*z)^5*F[2]
   @test represents_element(v,M)
+  R, (x,y,z) = polynomial_ring(AcbField(64), ["x", "y", "z"])
+  F = FreeMod(R, 2)
+
+  A = R[x+1 y*z+x^2; (y+2*z) z^3]
+  B = R[2*z*(x*z+y^2) (x*z)^5]
+  M = SubquoModule(F, A, B)
+  @test_throws ArgumentError groebner_basis(M)
 end
 
 

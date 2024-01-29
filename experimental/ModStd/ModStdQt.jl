@@ -620,7 +620,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
     #p is a univariate over S
     #c[i] lives in quo(p)
     #S is a FracField(MPoly(QQ, ngens(Qt)))
-    R = residue_field(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))
+    R = residue_field(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))[1]
     RX, X = polynomial_ring(R, map(String, Qtx.S), cached = false)
     b = MPolyBuildCtx(RX)
     for i=1:length(c)
@@ -866,7 +866,7 @@ function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::nf_elem, b::nf_elem, V:
   @assert all(x->isone(denominator(x)), coefficients(gg))
   @assert is_monic(gg)
 
-  q = residue_field(parent(f), ff)
+  q = residue_field(parent(f), ff)[1]
 
   if degree(g) == 0
     return lift(q(coeff(g, 0)))

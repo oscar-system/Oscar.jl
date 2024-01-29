@@ -97,8 +97,10 @@ end
 
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   reduced = reduce(el.repres, parent(el).quo)
   result = SubquoModuleElem(reduced, parent(el), is_reduced=true)
@@ -107,8 +109,10 @@ end
 
 function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   el.repres = reduce(el.repres, parent(el).quo)
   el.is_reduced = true
@@ -177,6 +181,7 @@ If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
+  @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
   singular_assure(F)
   if reduced
     @assert Singular.has_global_ordering(base_ring(F.SF))

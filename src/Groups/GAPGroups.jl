@@ -128,12 +128,10 @@ false
 function order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
    ord = GAPWrap.Order(x.X)
    if ord === GAP.Globals.infinity
-      throw(GroupsCore.InfiniteOrder(x))
+      throw(InfiniteOrderError(x))
    end
    return T(ord)
 end
-
-order(x::Union{GAPGroupElem, GAPGroup}) = order(ZZRingElem, x)
 
 has_order(G::GAPGroup) = GAPWrap.HasSize(G.X)
 set_order(G::GAPGroup, val::T) where T<:IntegerUnion = GAPWrap.SetSize(G.X, GAP.Obj(val))
@@ -303,20 +301,29 @@ end
 function Base.show(io::IO, G::PermGroup)
   @show_name(io, G)
   @show_special(io, G)
-  print(io, "Permutation group")
-  if !get(io, :supercompact, false)
-    print(io, " of degree ", degree(G))
-    if has_order(G)
-      if is_finite(G)
-        print(io, " and order ", order(G))
-      else
-        print(io, " and infinite order")
+
+  # Treat groups specially which know that they are nat. symmetric/alternating.
+  io = pretty(io)
+  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G)
+    print(io, LowercaseOff(), "Sym(", degree(G), ")")
+  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G)
+    print(io, LowercaseOff(), "Alt(", degree(G), ")")
+  else
+    print(io, "Permutation group")
+    if !get(io, :supercompact, false)
+      print(io, " of degree ", degree(G))
+      if has_order(G)
+        if is_finite(G)
+          print(io, " and order ", order(G))
+        else
+          print(io, " and infinite order")
+        end
+      elseif GAP.Globals.HasStabChainMutable(G.X)
+        # HACK: to show order in a few more cases where it is trivial to get
+        # but really, GAP should be using this anyway?
+        s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
+        print(io, " and order ", ZZRingElem(s))
       end
-    elseif GAP.Globals.HasStabChainMutable(G.X)
-      # HACK: to show order in a few more cases where it is trivial to get
-      # but really, GAP should be using this anyway?
-      s = GAP.Globals.SizeStabChain( GAP.Globals.StabChainMutable( G.X ) )
-      print(io, " and order ", ZZRingElem(s))
     end
   end
 end
@@ -343,25 +350,10 @@ Base.:^(x::GAPGroupElem, y::Int) = group_element(parent(x), (x.X ^ y)::GapObj)
 
 Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perhaps  let GAP handle this; also handle arbitrary Integer subtypes?
 
-Base.:^(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
+div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
+div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (y.X \ x.X)::GapObj)
 
-Base.:/(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X / y.X)::GapObj)
-
-Base.:\(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (x.X \ y.X)::GapObj)
-
-# Compatibility with GroupsCore interface
-one!(x::GAPGroupElem) = one(parent(x))
-inv!(out::GAPGroupElem, x::GAPGroupElem) = inv(x)  #if needed later
-
-mul!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x*y
-
-div_right(x::GAPGroupElem, y::GAPGroupElem) = x / y
-div_left(x::GAPGroupElem, y::GAPGroupElem) = y \ x
-div_right!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x / y
-div_left!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = y \ x
-
-Base.conj(x::GAPGroupElem, y::GAPGroupElem) = x^y
-Base.conj!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^y
+Base.conj(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (x.X ^ y.X)::GapObj)
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
@@ -371,7 +363,6 @@ which is defined as `x^-1*y^-1*x*y`,
 and usually denoted as `[x,y]` in the literature.
 """
 comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
-comm!(out::GAPGroupElem, x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 
 Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
@@ -391,7 +382,7 @@ function Base.iterate(G::GAPGroup, state)
 end
 
 # need this function just for the iterator
-Base.length(x::GAPGroup)::Int = order(x)
+Base.length(x::GAPGroup)::Int = order(Int, x)
 
 """
     Base.in(g::GAPGroupElem, G::GAPGroup)
@@ -710,7 +701,7 @@ Return the vector of all conjugacy classes of subgroups of G.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
@@ -811,9 +802,9 @@ julia> G = symmetric_group(5);
 
 julia> low_index_subgroup_reps(G, 5)
 3-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
- Permutation group of degree 5 and order 24
+ Sym(5)
+ Alt(5)
+ Sym(5)
 
 ```
 """
@@ -924,7 +915,7 @@ Return whether a conjugate of `V` by some element in `G` is a subgroup of `U`.
 julia> G = symmetric_group(4);
 
 julia> U = derived_subgroup(G)[1]
-Permutation group of degree 4 and order 12
+Alt(4)
 
 julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4

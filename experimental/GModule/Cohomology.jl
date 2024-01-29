@@ -8,6 +8,8 @@ import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
 import AbstractAlgebra: Group, Module
 import Base: parent
 
+import Oscar: pretty, Lowercase, @show_name, @show_special
+
 function __init__()
   Hecke.add_verbose_scope(:GroupCohomology)
   Hecke.add_assert_scope(:GroupCohomology)
@@ -104,11 +106,12 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
 end
 
 function Base.show(io::IO, C::GModule)
-  AbstractAlgebra.@show_name(io, C)
-  AbstractAlgebra.@show_special(io, C)
+  @show_name(io, C)
+  @show_special(io, C)
 
+  io = pretty(io)
   io = IOContext(io, :compact => true)
-  print(io, "G-module for ", C.G, " acting on ", C.M)# , "\nvia: ", C.ac)
+  print(io, "G-module for ", Lowercase(), C.G, " acting on ", Lowercase(), C.M)# , "\nvia: ", C.ac)
 end
 
 """

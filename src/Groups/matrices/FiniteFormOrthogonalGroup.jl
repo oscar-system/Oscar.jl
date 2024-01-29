@@ -774,9 +774,8 @@ function _compute_gens(T::TorQuadModule)
       q_p = block_diagonal_matrix([QQ[1;],q_p])
     end
     b = valuation(invs[end], p)
-    R = residue_ring(ZZ,ZZRingElem(p)^(b+5))
-    G_p = change_base_ring(ZZ, q_p*p^b)
-    G_p = change_base_ring(R, G_p)
+    R = residue_ring(ZZ, ZZRingElem(p)^(b+5))[1]
+    G_p = change_base_ring(R, change_base_ring(ZZ, q_p*p^b))
     if p != 2
       # make sure each homogeneous block of G_p stays in normal form
       r = divexact(G_p, R(2))
@@ -826,7 +825,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
   # TorQuadModule isometric to T: we get then an isometry between those two modules.
   gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMap[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -856,7 +855,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
@@ -870,7 +869,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
@@ -895,7 +894,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
   NN, NtoNN = normal_form(N)
   @assert is_bijective(NtoNN)
   NNtoN = inv(NtoNN)
-  gensONN = TorQuadModuleMor[hom(NN, NN, m) for m in _compute_gens(NN)]
+  gensONN = TorQuadModuleMap[hom(NN, NN, m) for m in _compute_gens(NN)]
   gensON = ZZMatrix[compose(compose(NtoNN, g), NNtoN).map_ab.map for g in gensONN]
   n1 = nrows(gensON[1])
 
@@ -936,7 +935,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
     M[(n2+1):end, 1:n2] = m
     push!(gensOTorth, M)
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, m) for m in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, m) for m in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   return gensOT
@@ -956,7 +955,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
 
   gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMap[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -983,7 +982,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
@@ -995,7 +994,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
@@ -1047,7 +1046,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     end
   end
   gene = small_generating_set(G)
-  gene = TorQuadModuleMor[hom(S, S, matrix(g)) for g in gene]
+  gene = TorQuadModuleMap[hom(S, S, matrix(g)) for g in gene]
   gene = ZZMatrix[compose(inv(StoT), compose(g, StoT)).map_ab.map for g in gene]
   unique!(gene)
   return gene

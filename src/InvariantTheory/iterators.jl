@@ -219,7 +219,7 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of degree 1 over GF(3)
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
 Invariant ring of
@@ -325,12 +325,12 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3 of
 Invariant ring of
-  Permutation group of degree 2 and order 2
+  Sym(2)
 with generators
   PermGroupElem[(1,2)]
 relative to a character

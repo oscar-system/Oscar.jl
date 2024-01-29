@@ -230,7 +230,7 @@ end
 
   # Test coefficient rings that are actually fields for safety. The first three
   # are native to singular while FpFieldElem now has a proper wrapper
-  for Zn in [residue_ring(ZZ, 11), residue_ring(ZZ, ZZRingElem(10)^50+151), GF(11),
+  for Zn in [residue_ring(ZZ, 11)[1], residue_ring(ZZ, ZZRingElem(10)^50+151)[1], GF(11),
              GF(ZZRingElem(10)^50+151)]
     R, (x, y) = polynomial_ring(Zn, ["x", "y"], ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
@@ -299,7 +299,7 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
+    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3), ordering=:degrevlex)
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end

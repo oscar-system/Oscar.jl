@@ -631,7 +631,7 @@ end
 #   if m == 1
 #      VAR = ["t"]
 #   else
-#      VAR = [_make_variable("t", i) for i = 1:m]
+#      VAR = ["t[$i]" for i = 1:m]
 #   end
 #   S, _ = polynomial_ring(ZZ, VAR) 
 #   q = one(S)

@@ -5,6 +5,7 @@ export @check
 export @pbw_relations
 export @perm
 export @permutation_group
+export @register_serialization_type
 export @tropical
 export ANTIC
 export AbsAffineAlgebraicSet
@@ -1186,6 +1187,7 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
+export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
 export pyramid
@@ -1240,7 +1242,6 @@ export regular_24_cell
 export regular_600_cell
 export regular_triangulation
 export regular_triangulations
-export @register_serialization_type
 export relations
 export relative_ambient_dimension
 export relative_interior_point
@@ -1252,7 +1253,6 @@ export renest
 export repres
 export representative
 export represents_element
-export reset_global_serializer_state
 export restrict
 export restrict_automorphism
 export restrict_automorphism_group
@@ -1321,6 +1321,7 @@ export show_subquo
 export signed_incidence_matrix
 export signed_permutahedron
 export simplex
+export simplicial_complex
 export simplified_fp_group
 export simplify
 export simplify!

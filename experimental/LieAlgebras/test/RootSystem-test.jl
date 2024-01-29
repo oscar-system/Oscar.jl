@@ -1,4 +1,21 @@
 @testset "LieAlgebras.RootSystem" begin
+  @testset "conjugate_dominant_weight_with_elem(w::WeightLatticeElem)" begin
+    for (R, vec) in [
+      (root_system(:A, 5), [1, -1, 2, 0, 2]),
+      (root_system(:B, 3), [1, 1, 1]),
+      (root_system(:C, 4), [2, 1, 0, 1]),
+      (root_system(:D, 5), [-1, 2, 2, -1, -1]),
+      (root_system(:E, 6), [1, 2, 0, 0, 2, 1]),
+      (root_system(:F, 4), [1, 2, 3, 4]),
+      (root_system(:G, 2), [-1, -1]),
+    ]
+      wt = WeightLatticeElem(R, vec)
+      d, x = conjugate_dominant_weight_with_elem(wt)
+      @test is_dominant(d)
+      @test x * wt == d
+    end
+  end
+
   @testset "root_system(cartan_matrix::ZZMatrix)" begin
     R = root_system(:F, 4)
     @test num_positive_roots(R) == 24

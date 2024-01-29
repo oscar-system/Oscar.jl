@@ -344,6 +344,10 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
+function type(R::RootSystem)
+  return R.type
+end
+
 @doc raw"""
     simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -756,6 +760,34 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
   return conj
 end
 
+@doc raw"""
+    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+
+Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
+such that `x*w == dom`.
+"""
+function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
+  R = root_system(w)
+  wt = deepcopy(w)
+
+  # determine the Weyl group element taking w to the fundamental chamber
+  word = sizehint!(UInt8[], count(<(0), coefficients(wt))^2)
+  s = 1
+  while s <= rank(R)
+    if wt[s] < 0
+      push!(word, UInt8(s))
+      reflect!(wt, s)
+      s = 1
+    else
+      s += 1
+    end
+  end
+
+  # reversing word means it is in short revlex normal form
+  # and it is the element taking w to wt
+  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
+end
+
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
@@ -764,6 +796,10 @@ function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   return sum
 end
 @enable_all_show_via_expressify WeightLatticeElem
+
+function is_dominant(w::WeightLatticeElem)
+  return all(>=(0), coefficients(w))
+end
 
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
@@ -837,10 +873,11 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
 
   # sort roots by height
   perm = sortperm(roots; by=sum)
+  invp = invperm(perm)
 
-  table = zero_matrix(ZZ, rank, length(roots))
+  table = zeros(UInt, rank, length(roots))
   for i in 1:length(roots), s in 1:rank
-    table[s, i] = refl[s, perm[i]]
+    table[s, i] = iszero(refl[s, perm[i]]) ? 0 : invp[refl[s, perm[i]]]
   end
 
   roots[perm], coroots[perm], table

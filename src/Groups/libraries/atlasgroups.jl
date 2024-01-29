@@ -17,7 +17,7 @@ Permutation group of degree 5 and order 60
 
 julia> atlas_group(MatrixGroup, "A5")
 Matrix group of degree 4
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia> atlas_group("M11")  # Mathieu group M11
 Permutation group of degree 11 and order 7920
@@ -121,7 +121,7 @@ Permutation group of degree 11 and order 720
 
 julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
 Matrix group of degree 10
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia> info = all_atlas_group_infos("M11", degree => 11);
 
@@ -196,7 +196,7 @@ julia> info = all_atlas_group_infos("A5", dim => 4, characteristic => 3)
 
 julia> atlas_group(info[1])
 Matrix group of degree 4
-  over finite field of degree 1 over GF(3)
+  over prime field of characteristic 3
 
 ```
 """

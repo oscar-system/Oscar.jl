@@ -117,12 +117,13 @@ end
 ########################################################################
 
 function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  io = pretty(io)
+  print(io, LowercaseOff(), string(x.descr), "(", x.deg ,",")
   if x.descr==:GU || x.descr==:SU
-    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+    print(io, characteristic(x.ring)^(div(degree(x.ring),2)),")")
   elseif x.ring isa Field && is_finite(x.ring)
-    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+    print(io, order(x.ring),")")
   else
-    print(io, string(x.descr), "(",x.deg,",")
     print(IOContext(io, :supercompact => true), x.ring)
     print(io ,")")
   end
@@ -131,7 +132,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   println(io, "Matrix group of degree ", degree(x))
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(x))
   print(io, Dedent())
@@ -565,7 +566,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -599,7 +600,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -634,7 +635,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -671,7 +672,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -723,7 +724,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -776,7 +777,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)

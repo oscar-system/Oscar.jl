@@ -414,7 +414,7 @@ mutable struct GaloisCtx{T}
     SQqt, _ = polynomial_ring(SQq, "t", cached = false)
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
-    r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
+    r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{QadicFieldElem}}}()
     r.prime = (shft, p)
     Qt, t = rational_function_field(QQ, "t", cached = false)
     Qts, s = polynomial_ring(Qt, "s", cached = false)
@@ -435,7 +435,7 @@ mutable struct GaloisCtx{T}
   end
 end
 
-function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})
+function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{QadicFieldElem}}})
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
@@ -619,8 +619,8 @@ If `raw` is set to true, the scaling is omitted.
 The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
-  a = Hecke.roots(G.C, pr)::Vector{qadic}
-  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  a = Hecke.roots(G.C, pr)::Vector{QadicFieldElem}
+  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{QadicFieldElem}
   if isdefined(G, :rt_num)
     b = [b[G.rt_num[i]] for i=1:length(G.rt_num)]
   end
@@ -1939,7 +1939,7 @@ julia> describe(G)
 "C4"
 
 julia> roots(C, 2)
-4-element Vector{qadic}:
+4-element Vector{QadicFieldElem}:
  (4*19^0 + 2*19^1 + O(19^2))*a + 5*19^0 + 9*19^1 + O(19^2)
  (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (18*19^0 + 18*19^1 + O(19^2))*a + 12*19^0 + O(19^2)
@@ -2473,7 +2473,6 @@ julia> Qx, x = QQ["x"];
 
 julia> cauchy_ideal(x^4-2)
 ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4)
-
 ```
 """
 function cauchy_ideal(f::PolyRingElem{<:FieldElem}; parent::MPolyRing = polynomial_ring(base_ring(f), degree(f), cached = false)[1])
@@ -2506,10 +2505,8 @@ ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x
 
 julia> k, _ = number_field(i);
 
-
 julia> length(roots(k, x^4-2))
 4
-
 ```
 """
 function galois_ideal(C::GaloisCtx, extra::Int = 5)

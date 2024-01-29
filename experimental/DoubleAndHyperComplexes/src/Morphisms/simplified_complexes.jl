@@ -417,7 +417,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
         found_unit && break
         for (j, c) in v
           j in done_columns && continue
-          if isunit(c) 
+          if is_unit(c) 
             p = i
             q = j
             found_unit = true
@@ -433,7 +433,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
           found_unit && break
           for (j, c) in v
             j in done_columns && continue
-            if isunit(c) 
+            if is_unit(c) 
               p = i
               q = j
               found_unit = true

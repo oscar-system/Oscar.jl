@@ -63,7 +63,7 @@ end
 # Coercion                                                             #
 ########################################################################
 (R::SpecOpenRing)(f::RingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [_cast_fraction(OO(U),lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
 
 (R::SpecOpenRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
 

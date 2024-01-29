@@ -53,8 +53,8 @@ julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> F = hom(R, R, z -> z^2, [y, x])
 Ring homomorphism
-  from multivariate polynomial ring in 2 variables over GF(2^2)
-  to multivariate polynomial ring in 2 variables over GF(2^2)
+  from multivariate polynomial ring in 2 variables over GF(2, 2)
+  to multivariate polynomial ring in 2 variables over GF(2, 2)
 defined by
   x -> y
   y -> x
