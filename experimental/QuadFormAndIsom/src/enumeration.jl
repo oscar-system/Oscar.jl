@@ -548,7 +548,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
 
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
-    append!(gene, hermitian_genera(E, rk, sign, dd; min_scale = inv(DE), max_scale = numerator(dd)*DE))
+    append!(gene, hermitian_genera(E, rk, sign, dd; min_scale=inv(DE), max_scale = numerator(dd)*DE))
   end
   unique!(gene)
 
@@ -566,13 +566,13 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     M, fM = trace_lattice_with_isometry(H)
     genus(M) != G && continue
 
-    MfM = integer_lattice_with_isometry(M, fM; check = false)
+    MfM = integer_lattice_with_isometry(M, fM; check=false)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
 
     gr = genus_representatives(H)
     for HH in gr
       M, fM = trace_lattice_with_isometry(HH)
-      push!(reps, integer_lattice_with_isometry(M, fM; check = false))
+      push!(reps, integer_lattice_with_isometry(M, fM; check=false))
     end
   end
   return reps
@@ -775,7 +775,7 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion
   end
 
   phi = minimal_polynomial(Lf)
-  chi = prod(cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e; init = zero(phi))
+  chi = prod(cyclotomic_polynomial(p^d*q^i, parent(phi)) for i=0:e; init = one(phi))
 
   @req is_divisible_by(chi, phi) "Minimal polynomial is not of the correct form"
 
