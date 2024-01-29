@@ -1294,7 +1294,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
   end
 
-  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)
