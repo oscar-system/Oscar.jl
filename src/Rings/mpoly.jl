@@ -20,11 +20,6 @@ function _variables_for_singular(n::Int)
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-function Base.getindex(R::MPolyRing, i::Int)
-  i == 0 && return zero(R)
-  return gen(R, i)
-end
-
 ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
 
 function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
@@ -37,11 +32,6 @@ end
 
 function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
   return map(F, gens(base_ring(F)))
-end
-
-function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 ######################################################################

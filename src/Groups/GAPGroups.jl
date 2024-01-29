@@ -460,7 +460,6 @@ function gen(G::GAPGroup, i::Int)
    @assert length(L) >= i "The number of generators is lower than the given index"
    return group_element(G, L[i]::GapObj)
 end
-Base.getindex(G::GAPGroup, i::Int) = gen(G, i)
 
 """
     ngens(G::GAPGroup) -> Int

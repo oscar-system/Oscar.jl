@@ -156,11 +156,6 @@ function gen(F::FreeModule_dec, i::Int)
   return FreeModuleElem_dec(s, F)
 end
 
-function Base.getindex(F::FreeModule_dec, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 base_ring(F::FreeModule_dec) = F.R
 
 #TODO: Parent - checks everywhere!!!
@@ -703,11 +698,6 @@ zero(SQ::SubquoDecModule) = SubquoDecModuleElem(zero(SQ.F), SQ)
 
 function Base.iszero(F::SubquoDecModule)
   return all(iszero, gens(F))
-end
-
-function Base.getindex(F::SubquoDecModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 function Base.iterate(F::BiModArray, i::Int = 1)

@@ -249,10 +249,6 @@ function gen(R::PBWAlgRing, i::Int)
   return PBWAlgElem(R, gen(R.sring, i))
 end
 
-function Base.getindex(R::PBWAlgRing, i::Int)
-  return gen(R, i)
-end
-
 function var_index(a::PBWAlgElem)
   return Singular.var_index(a.sdata)
 end
@@ -616,8 +612,6 @@ function gen(a::PBWAlgIdeal, i::Int)
   R = base_ring(a)
   return PBWAlgElem(R, a.sdata[i])
 end
-
-getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
 
 function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal
