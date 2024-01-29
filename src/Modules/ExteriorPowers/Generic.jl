@@ -21,7 +21,7 @@ function show_exterior_product(io::IO, M::ModuleFP)
   if is_unicode_allowed()
     print(io, "⋀^$p($F)")
   else
-    print(io, "$p-th exterior power of $F")
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
   end
 end
 
@@ -32,7 +32,7 @@ function show_exterior_product(io::IO, ::MIME"text/html", M::ModuleFP)
   if is_unicode_allowed()
     print(io, "⋀^$p($F)")
   else
-    print(io, "$p-th exterior power of $F")
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
   end
 end
 
