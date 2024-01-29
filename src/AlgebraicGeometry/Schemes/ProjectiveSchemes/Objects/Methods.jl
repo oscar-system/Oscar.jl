@@ -6,7 +6,7 @@ function Base.show(io::IO, ::MIME"text/plain", P::AbsProjectiveScheme{<:Any, <:M
   io = pretty(io)
   println(io, "Projective scheme")
   println(io, Indent(), "over ", Lowercase(), base_ring(P))
-  print(io, Dedent(), "defined by ", defining_ideal(P))
+  print(io, Dedent(), "defined by ", Lowercase(), defining_ideal(P))
 end
 
 function Base.show(io::IO, P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
