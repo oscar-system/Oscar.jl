@@ -843,6 +843,7 @@ export is_standard_basis
 export is_standard_graded
 export is_strongly_connected
 export is_subset
+export is_subscheme
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
 export is_ternary

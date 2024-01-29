@@ -183,7 +183,7 @@ function preimage(
   )
   X = domain(phi)
   Y = codomain(phi)
-  check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
+  check && (is_subscheme(Z, Y) || (Z = intersect(Y, Z)))
   IZ = modulus(underlying_quotient(OO(Z)))
   a = denominators(inverted_set(OO(Z)))
   R = ambient_coordinate_ring(X)
