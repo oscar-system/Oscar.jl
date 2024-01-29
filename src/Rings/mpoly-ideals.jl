@@ -1701,16 +1701,6 @@ function Base.show(io::IO, ::MIME"text/plain", I::MPolyIdeal)
   end
 end
 
-function _get_generators_string_one_line(I::MPolyIdeal, character_limit::Int = 100)
-  # Try a full list of generators if it fits $character_limit characters
-  gen_string = "("*join(gens(I), ", ")*")"
-  if length(gen_string) <= character_limit
-    return gen_string
-  end
-
-  return "with $(ItemQuantity(ngens(I), "generator"))"
-end
-
 function Base.show(io::IO, I::MPolyIdeal)
   if get(io, :supercompact, false)
     print(io, "Ideal")
