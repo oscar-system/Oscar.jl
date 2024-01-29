@@ -40,10 +40,10 @@ jobs:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
-      - name: "Install custom julia"
-        uses: julia-actions/install-julia-from-url@main
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
         with:
-          url: 'https://buildkite.com/organizations/julialang/pipelines/julia-release-1-dot-10/builds/200/jobs/018d53e6-d1c4-4ace-8bca-74a761cab181/artifacts/018d53f0-4fa7-4a0e-b4ed-1b34fe28166c'
+          version: ${{ matrix.julia-version }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
