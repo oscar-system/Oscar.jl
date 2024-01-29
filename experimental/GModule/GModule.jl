@@ -200,10 +200,27 @@ where `M` is a module over `R`.
 
 (modules over finite fields or number fields)
 """
-function descent_to_minimal_degree_field(M::GModule)
-  error("not yet ...")
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}})
+  return C
 end
 
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  #always over char field
+  K =  base_ring(C)
+  d = 0
+  while d < degree(K)-1
+    d += 1
+    degree(K) % d == 0 || continue
+    k = GF(Int(characteristic(K)), d)
+    D = gmodule_over(k, C, do_error = false)
+    D === nothing || return D
+  end
+  return C
+end
+
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+  return _minimize(C)
+end
 
 """
     invariant_lattice_classes(M::GModule, phi::Map)
