@@ -124,6 +124,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 ## Attributes of character tables
 
 ```@docs
+block_distribution
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters

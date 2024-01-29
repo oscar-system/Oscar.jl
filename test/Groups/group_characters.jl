@@ -798,6 +798,9 @@ end
   @test modtbl === rem(ordtbl, 2)
   @test modtbl === ordtbl % 2
 
+  @test block_distribution(ordtbl, 2) == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
+  @test block_distribution(ordtbl, 2) == block_distribution(ordtbl, ZZ(2))
+  @test_throws ArgumentError block_distribution(modtbl, 2)
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]

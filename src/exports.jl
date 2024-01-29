@@ -270,6 +270,7 @@ export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
+export block_distribution
 export blocks
 export bond_matroid
 export borcherds_method
