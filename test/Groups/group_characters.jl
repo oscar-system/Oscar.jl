@@ -1062,9 +1062,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 
@@ -1076,9 +1076,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 end

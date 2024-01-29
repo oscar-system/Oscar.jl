@@ -81,7 +81,7 @@ end
 Return `true` if `F` is surjective, `false` otherwise.
 """
 function is_surjective(F::AffAlgHom)
-  return all(x -> has_preimage(F, x)[1], gens(codomain(F)))
+  return all(x -> has_preimage_with_preimage(F, x)[1], gens(codomain(F)))
 end
 
 ################################################################################
@@ -174,7 +174,7 @@ function inverse(F::AffAlgHom)
 
   preimgs = elem_type(R)[]
   for i in 1:ngens(S)
-    fl, p = has_preimage(F, gen(S, i))
+    fl, p = has_preimage_with_preimage(F, gen(S, i))
     fl || error("Homomorphism is not surjective")
     push!(preimgs, p)
   end
@@ -187,12 +187,12 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRing
 end
 
 function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  fl, g = has_preimage(F, f)
+  fl, g = has_preimage_with_preimage(F, f)
   !fl && error("Element not contained in image")
   return g
 end
 
-function has_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
   # Basically [GP09, p. 86, Solution 2]
   @req parent(f) === codomain(F) "Polynomial is not element of the codomain"
 

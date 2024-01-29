@@ -547,6 +547,8 @@ Base.@deprecate_binding glueing_domains gluing_domains
 Base.@deprecate_binding glueing_graph gluing_graph
 Base.@deprecate_binding glueing_morphisms gluing_morphisms
 Base.@deprecate_binding glueings gluings
+Base.@deprecate_binding has_preimage has_preimage_with_preimage
+Base.@deprecate_binding haspreimage has_preimage_with_preimage
 Base.@deprecate_binding inherit_glueings! inherit_gluings!
 Base.@deprecate_binding is_connected_glueing is_connected_gluing
 Base.@deprecate_binding pruned_glueing_graph pruned_gluing_graph

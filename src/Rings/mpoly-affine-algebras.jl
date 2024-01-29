@@ -980,7 +980,7 @@ function subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyRingEle
 
   S, _ = polynomial_ring(coefficient_ring(R), length(v), "t")
   phi = hom(S, R, v)
-  return has_preimage(phi, f)
+  return has_preimage_with_preimage(phi, f)
 end
 
 @doc raw"""

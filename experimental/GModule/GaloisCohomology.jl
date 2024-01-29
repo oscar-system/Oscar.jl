@@ -818,7 +818,7 @@ function idel_class_gmodule(k::AnticNumberField, s::Vector{Int} = Int[]; redo::B
     not_inv = Int[]
     for i=1:length(x)
       w = theta_i[i]
-      fl, pe = haspreimage(mz, w)
+      fl, pe = has_preimage_with_preimage(mz, w)
       if fl
         push!(inv, i)
         zz = mq(x[i])
@@ -1654,7 +1654,7 @@ function Oscar.cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGro
  
   h = hom(F, G, a[1:end-1])
   pop!(A)
-  return haspreimage(h, a[end])
+  return has_preimage_with_preimage(h, a[end])
 end  
 
 """

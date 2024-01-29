@@ -74,7 +74,7 @@ function norm_equation_fac_elem(R::Hecke.NfRelOrd{nf_elem,Hecke.NfOrdFracIdl}, a
     b = norm(mkK, aa)
     c = b*inv(FacElem(k(a)))
     d = preimage(mu, c)
-    fl, p = haspreimage(No, d)
+    fl, p = has_preimage_with_preimage(No, d)
     if fl
       push!(sol, FacElem(Dict(mKa(x) => v for (x, v) = (aa*inv(mU(p))).fac)))
     end

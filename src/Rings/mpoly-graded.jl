@@ -1199,7 +1199,7 @@ function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
   D = W.D
   is_free(D) || error("Grading group must be free")
   h = hom(free_abelian_group(ngens(W)), W.d)
-  fl, p = haspreimage(h, d)
+  fl, p = has_preimage_with_preimage(h, d)
   R = base_ring(W)
   B = elem_type(W)[]
   if fl

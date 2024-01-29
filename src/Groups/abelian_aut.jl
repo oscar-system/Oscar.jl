@@ -287,7 +287,7 @@ function is_invariant(f::TorQuadModuleMap, i::TorQuadModuleMap)
   U = domain(i)
   for a in gens(U)
     b = f(i(a))
-    has_preimage(i, b)[1] || return false
+    has_preimage_with_preimage(i, b)[1] || return false
   end
   return true
 end
@@ -337,7 +337,7 @@ function restrict_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::
   U = domain(i)
   for a in gens(U)
     b = f(i(a))
-    ok, c = has_preimage(i, b)
+    ok, c = has_preimage_with_preimage(i, b)
     @req ok "The domain of i is not invariant under the action of f"
     push!(imgs, c)
   end

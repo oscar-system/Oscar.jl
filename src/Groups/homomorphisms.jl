@@ -184,11 +184,11 @@ end
     preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
 
 Return an element `y` in the domain of `f` with the property `f(y) == x`.
-See [`haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)`](@ref)
+See [`has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)`](@ref)
 for a check whether `x` has such a preimage.
 """
 function preimage(f::GAPGroupHomomorphism, x::GAPGroupElem)
-  fl, p = haspreimage(f, x)
+  fl, p = has_preimage_with_preimage(f, x)
   @assert fl
   return p
 end
@@ -313,7 +313,7 @@ function cokernel(f::GAPGroupHomomorphism)
 end
 
 """
-    haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+    has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 
 Return (`true`, `y`) if there exists `y` in `domain(f)`
 such that `f`(`y`) = `x` holds;
@@ -322,11 +322,11 @@ otherwise, return (`false`, `o`) where `o` is the identity of `domain(f)`.
 If `check` is set to `false` then the test whether `x` is an element of
 `image(f)` is omitted.
 """
-function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
-  return _haspreimage(f.map, domain(f), image(f)[1], x, check = check)
+function has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.map, domain(f), image(f)[1], x; check)
 end
 
-# helper function for computing `haspreimage` for
+# helper function for computing `has_preimage_with_preimage` for
 # both `GAPGroupHomomorphism` (fieldnames `domain`, `codomain`, `map`)
 # and `AutomorphismGroupElem{T}` (fieldnames `parent`, `X`)
 function _haspreimage(mp::GapObj, dom::GAPGroup, img::GAPGroup, x::GAPGroupElem; check::Bool = true)
@@ -339,6 +339,7 @@ function _haspreimage(mp::GapObj, dom::GAPGroup, img::GAPGroup, x::GAPGroupElem;
 # see https://github.com/gap-system/gap/issues/4088.
 # Until this problem gets fixed on the GAP side, we perform a membership test
 # before calling `GAP.Globals.PreImagesRepresentative`.
+# Setting `check = false` avoids this argument check.
   check && ! (x in img) && return false, one(dom)
   r = GAP.Globals.PreImagesRepresentative(mp, x.X)::GapObj
   if r == GAP.Globals.fail
@@ -1020,6 +1021,9 @@ Return the domain of this group of automorphisms.
 """
 domain(A::AutomorphismGroup) = A.G
 
+# As mentioned before, the check argument is needed because the underlying GAP
+# function does not ensure to return anything sensible if x is not in the image
+# of f.
 """
     domain(f::AutomorphismGroupElem) -> Group
 
@@ -1027,12 +1031,12 @@ Return the domain of this automorphism.
 """
 domain(f::AutomorphismGroupElem) = domain(parent(f))
 
-function haspreimage(f::AutomorphismGroupElem, x::GAPGroupElem; check::Bool = true)
-  return _haspreimage(f.X, domain(parent(f)), domain(parent(f)), x, check = check)
+function has_preimage_with_preimage(f::AutomorphismGroupElem, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.X, domain(parent(f)), domain(parent(f)), x; check)
 end
 
 function preimage(f::AutomorphismGroupElem, x::GAPGroupElem)
-  fl, p = haspreimage(f, x)
+  fl, p = has_preimage_with_preimage(f, x)
   @assert fl
   return p
 end

@@ -904,7 +904,7 @@ end
 function Hecke._compute_inverse_data(f#= image Hecke.data =#, K, LL, L::NfAbsNSGen)
   preimg_gens = elem_type(K)[]
   for g in gens(L)
-    fl, preimg = haspreimage(f, LL(g))
+    fl, preimg = has_preimage_with_preimage(f, LL(g))
     @assert fl
     push!(preimg_gens, preimg)
   end
@@ -1007,7 +1007,7 @@ end
 function Hecke._compute_inverse_data(f, K, LL, L::NfNSGen)
   preimg_gens = elem_type(K)[]
   for g in gens(L)
-    fl, preimg = haspreimage(f, LL(g))
+    fl, preimg = has_preimage_with_preimage(f, LL(g))
     push!(preimg_gens, preimg)
   end
   inverse_data_base_field = Hecke._compute_inverse_data(f, K, LL, base_field(L))

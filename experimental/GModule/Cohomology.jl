@@ -1410,7 +1410,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
 
   function is_coboundary(cc::CoChain{2})
     t = TailFromCoChain(cc)
-    fl, b = haspreimage(CC, t)
+    fl, b = has_preimage_with_preimage(CC, t)
     if !fl
       return false, nothing
     end

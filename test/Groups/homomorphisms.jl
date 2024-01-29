@@ -5,7 +5,7 @@
      x = gen(H, 1)
      y = image(emb, x)
      @test preimage(emb, y) == x
-     @test any(g -> ! haspreimage(emb, g)[1], gens(G))
+     @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
    end
 end
 
@@ -542,8 +542,8 @@ function test_kernel(G,H,f)
    @test preimage(f,H)==(G,id_hom(G))
    @test preimage(f,sub(H,[one(H)])[1])==(K,i)
    z=rand(Im)
-   @test haspreimage(f,z)[1]
-   @test f(haspreimage(f,z)[2])==z
+   @test has_preimage_with_preimage(f,z)[1]
+   @test f(has_preimage_with_preimage(f,z)[2])==z
 
    @test is_injective(i)
    for j in 1:ngens(K)

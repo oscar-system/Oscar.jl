@@ -610,7 +610,7 @@ export has_small_groups
 export has_torusfactor
 export has_transitive_groups
 export has_vertex
-export haspreimage
+export has_preimage_with_preimage
 export height
 export hermitian_form
 export hessian
