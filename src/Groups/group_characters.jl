@@ -1433,6 +1433,34 @@ function possible_class_fusions(subtbl::GAPGroupCharacterTable,
   return [Vector{Int}(x::GapObj) for x in fus]
 end
 
+
+@doc raw"""
+    block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+
+Return a dictionary with the keys
+`:defect` (the vector containing at position `i` the defect of the
+`i`-th `p`-block of `tbl`) and
+`:block` (the vector containing at position `i` the number `j`
+such that `tbl[i]` belongs to the `j`-th `p`-block).
+
+An exception is thrown if `tbl` is not an ordinary character table.
+
+# Examples
+```jldoctest
+julia> block_distribution(character_table("A5"), 2)
+Dict{Symbol, Vector{Int64}} with 2 entries:
+  :block  => [1, 1, 1, 2, 1]
+  :defect => [2, 0]
+```
+"""
+function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+  @req characteristic(tbl) == 0 "character table must be ordinary"
+  blocks = GAP.Globals.PrimeBlocks(GAPTable(tbl), GAP.Obj(p))
+  return Dict(:defect => Vector{Int}(blocks.defect),
+              :block => Vector{Int}(blocks.block))
+end
+
+
 #############################################################################
 ##
 ##  character parameters, class parameters
