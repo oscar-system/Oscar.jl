@@ -112,7 +112,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x1, x2
       over rational field
-    by ideal(0)
+    by ideal (0)
 ```
 """
 @attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))

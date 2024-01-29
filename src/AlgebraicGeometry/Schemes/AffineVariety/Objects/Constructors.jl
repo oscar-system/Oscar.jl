@@ -33,7 +33,7 @@ julia> R, (x,y) = QQ[:x,:y]
 julia> variety(ideal([x,y]))
 Affine variety
   in affine 2-space over QQ with coordinates [x, y]
-defined by defined by ideal(x, y)
+defined by ideal (x, y)
 
 ```
 Over fields different from `QQ`, currently, we cannot check for irreducibility
@@ -45,7 +45,7 @@ julia> R, (x,y) = GF(2)[:x,:y];
 julia> variety(x^3+y+1, check=false)
 Affine variety
   in affine 2-space over GF(2) with coordinates [x, y]
-defined by defined by ideal(x^3 + y + 1)
+defined by ideal (x^3 + y + 1)
 
 ```
 """
@@ -72,7 +72,7 @@ julia> Q,_ = quo(R,ideal([x,y]));
 julia> variety(Q)
 Affine variety
   in affine 2-space over QQ with coordinates [x, y]
-defined by defined by ideal(x, y)
+defined by ideal (x, y)
 
 ```
 """
@@ -96,7 +96,7 @@ julia> (x,y) = coordinates(A2);
 julia> variety(y^2-x^3-1)
 Affine variety
   in affine 2-space over QQ with coordinates [x, y]
-defined by defined by ideal(-x^3 + y^2 - 1)
+defined by ideal (-x^3 + y^2 - 1)
 ```
 """
 function variety(f::MPolyRingElem{<:FieldElem}; check::Bool=true)

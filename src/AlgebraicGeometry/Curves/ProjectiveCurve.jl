@@ -25,7 +25,7 @@ julia> I = ideal(R, V);
 julia> TC = projective_curve(I)
 Projective curve
   in projective 3-space over QQ with coordinates [w, x, y, z]
-defined by ideal(w*y - x^2, w*z - x*y, x*z - y^2)
+defined by ideal (w*y - x^2, w*z - x*y, x*z - y^2)
 
 ```
 """

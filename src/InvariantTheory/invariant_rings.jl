@@ -103,16 +103,12 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> IRp = invariant_ring(symmetric_group(3))
-Invariant ring of
-  Sym(3)
-with generators
-  PermGroupElem[(1,2,3), (1,2)]
+Invariant ring
+  of Sym(3)
 
 julia> coefficient_ring(IRp)
 Rational field
@@ -134,12 +130,20 @@ invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
 invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
 
-function Base.show(io::IO, IR::InvRing)
+function Base.show(io::IO, ::MIME"text/plain", RG::InvRing)
   io = pretty(io)
-  println(io, "Invariant ring of")
-  println(io, Indent(), group(IR), Dedent())
-  println(io, "with generators")
-  print(io, Indent(), action(IR))
+  println(io, "Invariant ring")
+  print(io, Indent(), "of ", Lowercase(), group(RG), Dedent())
+end
+
+function Base.show(io::IO, RG::InvRing)
+  if get(io, :supercompact, false)
+    print(io, "Invariant ring")
+  else
+    io = pretty(io)
+    print(io, "Invariant ring of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), group(RG))
+  end
 end
 
 # Return a map performing the right action of M on the ring R.
@@ -240,10 +244,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
@@ -273,10 +275,8 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -443,10 +443,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> basis(IR, 6)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -465,10 +463,8 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> basis(IR, 2)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:

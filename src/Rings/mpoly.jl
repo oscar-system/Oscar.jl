@@ -648,12 +648,6 @@ Fields:
   end
 end
 
-@enable_all_show_via_expressify MPolyIdeal
-
-function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
-end
-
 function ideal(g::Vector{Any})
   return ideal(typeof(g[1])[x for x = g])
 end
