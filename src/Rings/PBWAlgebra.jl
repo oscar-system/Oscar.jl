@@ -20,7 +20,7 @@ mutable struct PBWAlgElem{T, S} <: NCRingElem
   sdata::Singular.spluralg{S}
 end
 
-mutable struct PBWAlgIdeal{D, T, S}
+mutable struct PBWAlgIdeal{D, T, S} <: Ideal{PBWAlgIdeal{T, S}}
   basering::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal, always defined
   sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite

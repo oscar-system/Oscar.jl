@@ -10,11 +10,11 @@
 # necessarily be confined to a degree bound.
 
 @doc raw"""
-    mutable struct FreeAssAlgIdeal{T} <: FreeAssAlgIdeal{T}
+    mutable struct FreeAssAlgIdeal{T}
 
 Two-sided ideal of a free associative algebra with elements of type `T`.
 """
-mutable struct FreeAssAlgIdeal{T}
+mutable struct FreeAssAlgIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
   gb::IdealGens{T}
 
