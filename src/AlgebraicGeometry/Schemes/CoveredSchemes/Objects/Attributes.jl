@@ -61,7 +61,7 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I)
 Projective scheme
   over rational field
-defined by ideal(s0*s1 - s2^2)
+defined by ideal (s0*s1 - s2^2)
 
 julia> Xcov = covered_scheme(X)
 Scheme
@@ -116,7 +116,7 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I)
 Projective scheme
   over rational field
-defined by ideal(s0*s1 - s2^2)
+defined by ideal (s0*s1 - s2^2)
 
 julia> Xcov = covered_scheme(X)
 Scheme
@@ -216,7 +216,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 julia> Y = variety(ideal([x^3-y^2*z]))
 Projective variety
   in projective 2-space over QQ with coordinates [x, y, z]
-defined by ideal(x^3 - y^2*z)
+defined by ideal (x^3 - y^2*z)
 
 julia> Ycov = covered_scheme(Y)
 Scheme

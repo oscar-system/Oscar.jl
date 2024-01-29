@@ -130,9 +130,20 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
+  io = pretty(io)
+  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
+end
+
 function Base.show(io::IO, AM::AllMonomials)
-  println(io, "Iterator over the monomials of degree $(AM.d) of")
-  print(io, AM.R)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the monomials of degree $(AM.d) of")
+    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+  end
 end
 
 ################################################################################
@@ -193,17 +204,12 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> B = iterate_basis(IR, 6)
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 
 julia> collect(B)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -222,17 +228,12 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> B = iterate_basis(IR, 2)
-Iterator over a basis of the component of degree 2 of
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Iterator over a basis of the component of degree 2
+  of invariant ring of matrix group
 
 julia> collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -304,11 +305,8 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 relative to a character
 
 julia> collect(B)
@@ -328,11 +326,8 @@ julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conj
 class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
-Iterator over a basis of the component of degree 3 of
-Invariant ring of
-  Sym(2)
-with generators
-  PermGroupElem[(1,2)]
+Iterator over a basis of the component of degree 3
+  of invariant ring of Sym(2)
 relative to a character
 
 julia> collect(B)
@@ -424,12 +419,23 @@ Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
 Base.length(BI::InvRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
-  println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
-  print(io, BI.R)
+function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
+  io = pretty(io)
+  println(io, "Iterator over a basis of the component of degree $(BI.degree)")
+  print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
   if BI.reynolds_operator !== nothing
     # We don't save the character in the iterator unfortunately
     print(io, "\nrelative to a character")
+  end
+end
+
+function Base.show(io::IO, BI::InvRingBasisIterator)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over a graded component of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
   end
 end
 

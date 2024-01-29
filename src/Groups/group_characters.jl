@@ -1600,6 +1600,19 @@ function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharact
     end
 end
 
+@doc raw"""
+    known_class_fusions(tbl::GAPGroupCharacterTable)
+
+Return the vector of pairs `(name, fus)` where `name` is the identifier of
+a character table
+and `fus` is the stored class fusion from `tbl` to this table,
+see [`known_class_fusion`](@ref).
+"""
+function known_class_fusions(tbl::GAPGroupCharacterTable)
+    return Tuple{String, Vector{Int64}}[(String(r.name), Vector{Int}(r.map))
+             for r in GAPWrap.ComputedClassFusions(GAPTable(tbl))]
+end
+
 
 #############################################################################
 ##

@@ -13,12 +13,12 @@ end
 
 function ==(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
-  return issubset(X, Y) && issubset(Y, X)
+  return is_subscheme(X, Y) && is_subscheme(Y, X)
 end
 
 
 function ==(X::AbsSpec, Y::EmptyScheme)
-  return issubset(X, Y)
+  return is_subscheme(X, Y)
 end
 
 
