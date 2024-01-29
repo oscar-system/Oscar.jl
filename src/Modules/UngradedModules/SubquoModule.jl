@@ -214,7 +214,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
 
 julia> ARL = RL[x; y]
 [x]

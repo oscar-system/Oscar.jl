@@ -204,17 +204,12 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> B = iterate_basis(IR, 6)
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 
 julia> collect(B)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -233,17 +228,12 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> B = iterate_basis(IR, 2)
-Iterator over a basis of the component of degree 2 of
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Iterator over a basis of the component of degree 2
+  of invariant ring of matrix group
 
 julia> collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -315,11 +305,8 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 relative to a character
 
 julia> collect(B)
@@ -339,11 +326,8 @@ julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conj
 class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
-Iterator over a basis of the component of degree 3 of
-Invariant ring of
-  Sym(2)
-with generators
-  PermGroupElem[(1,2)]
+Iterator over a basis of the component of degree 3
+  of invariant ring of Sym(2)
 relative to a character
 
 julia> collect(B)

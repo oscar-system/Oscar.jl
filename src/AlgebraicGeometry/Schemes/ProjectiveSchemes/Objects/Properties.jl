@@ -50,7 +50,7 @@ julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
 julia> C = projective_scheme(B)
 Projective scheme
   over rational field
-defined by ideal(x^2 + y^2)
+defined by ideal (x^2 + y^2)
 
 julia> is_smooth(C)
 false
