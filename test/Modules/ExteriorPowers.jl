@@ -129,7 +129,7 @@ end
   v = (F[1], F[3], F[4])
   u = (F[1], F[4], F[3])
 
-  @test "$(mm(v))" == "e[1]∧e[3]∧e[4]"
+  @test "$(mm(v))" == "e[1]\^e[3]\^e[4]"
   #@test "$(F3)" == "⋀^3(Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ)"
   @test "$(F3)" == "3rd exterior power of Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ"
 
