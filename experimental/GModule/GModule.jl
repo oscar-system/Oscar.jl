@@ -269,8 +269,8 @@ function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPM
   d = 0
   while d < absolute_degree(K)-1
     d += 1
-    absolute_degree(K) % d == 0 || continue
-    k = GF(Int(characteristic(K)), d)
+    degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
