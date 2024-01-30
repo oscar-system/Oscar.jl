@@ -265,7 +265,7 @@ end
 
 function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   #always over char field
-  K =  base_ring(C)
+  K = base_ring(C)
   d = 0
   while d < absolute_degree(K)-1
     d += 1
