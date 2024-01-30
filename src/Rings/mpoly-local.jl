@@ -95,10 +95,10 @@ function Base.show(io::IO, w::MPolyRingElemLoc)
   show(io, w.frac)
 end
 
-Nemo.base_ring(R::MPolyRingLoc) = R.base_ring
-Nemo.symbols(R::MPolyRingLoc) = symbols(base_ring(R))
-Nemo.nvars(R::MPolyRingLoc) = nvars(base_ring(R))
-Nemo.parent(f::MPolyRingElemLoc) = f.parent
+base_ring(R::MPolyRingLoc) = R.base_ring
+symbols(R::MPolyRingLoc) = symbols(base_ring(R))
+number_of_variables(R::MPolyRingLoc) = number_of_variables(base_ring(R))
+parent(f::MPolyRingElemLoc) = f.parent
 Nemo.numerator(f::MPolyRingElemLoc) = numerator(f.frac)
 Nemo.denominator(f::MPolyRingElemLoc) = denominator(f.frac)
 

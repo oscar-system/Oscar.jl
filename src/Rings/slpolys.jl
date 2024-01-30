@@ -40,7 +40,7 @@ end
 gens(S::SLPolyRing) = [S(SLP.Gen(s)) for s in symbols(S)]
 
 number_of_generators(S::SLPolyRing) = length(symbols(S))
-nvars(S::SLPolyRing) = number_of_generators(S)
+number_of_variables(S::SLPolyRing) = number_of_generators(S)
 
 # TODO: how to name this function? namespace it?
 function SLPolynomialRing(R::Ring, s; cached::Bool = false)
