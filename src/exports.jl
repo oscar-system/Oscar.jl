@@ -1063,7 +1063,7 @@ export normalize!
 export normalized_volume
 export normalizer
 export number_of_patches
-export npoints
+export number_of_points
 export npolyhedra
 export nrays
 export nullity

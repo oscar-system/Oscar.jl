@@ -95,7 +95,7 @@ using Oscar: _integer_variables
               @test loaded isa SubdivisionOfPoints
               @test Base.propertynames(MOAE) == Base.propertynames(loaded)
               @test number_of_maximal_cells(MOAE) == number_of_maximal_cells(loaded)
-              @test npoints(MOAE) == npoints(loaded)
+              @test number_of_points(MOAE) == number_of_points(loaded)
             end
         end
 

@@ -40,7 +40,7 @@
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
         @test moaeimnonreg0 == maximal_cells(IncidenceMatrix, MOAE)
-        @test npoints(MOAE) == 6
+        @test number_of_points(MOAE) == 6
         @test length(points(MOAE)) == 6
         @test collect(points(MOAE))[3] == [0,0,4]
         @test gkz_vector(fulldim_MOAE) == [9,9,9,7,7,7]
