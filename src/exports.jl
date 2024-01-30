@@ -1036,7 +1036,7 @@ export negwdeglex
 export negwdegrevlex
 export neighbors
 export newton_polytope
-export nfacets
+export number_of_facets
 export ngens
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization

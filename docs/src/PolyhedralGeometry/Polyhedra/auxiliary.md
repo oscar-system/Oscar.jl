@@ -29,7 +29,7 @@ relative_interior_point(P::Polyhedron{T}) where T<:scalar_types
 ## Combinatorial data
 
 ```@docs
-nfacets(P::Polyhedron)
+number_of_facets(P::Polyhedron)
 nvertices(P::Polyhedron)
 f_vector(P::Polyhedron)
 facet_sizes(P::Polyhedron)

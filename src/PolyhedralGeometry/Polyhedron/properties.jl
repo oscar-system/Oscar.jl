@@ -468,7 +468,7 @@ rays(P::Polyhedron) = rays(RayVector, P)
 _rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc raw"""
-    nfacets(P::Polyhedron)
+    number_of_facets(P::Polyhedron)
 
 Return the number of facets of `P`.
 
@@ -476,11 +476,11 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> nfacets(cross_polytope(5))
+julia> number_of_facets(cross_polytope(5))
 32
 ```
 """
-function nfacets(P::Polyhedron)
+function number_of_facets(P::Polyhedron)
   n = size(pm_object(P).FACETS, 1)::Int
   return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end

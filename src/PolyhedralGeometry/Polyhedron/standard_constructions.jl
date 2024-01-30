@@ -792,7 +792,7 @@ below.
 julia> T = platonic_solid("icosahedron")
 Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 20
 ```
 """
@@ -853,7 +853,7 @@ julia> sum([nvertices(F) for F in faces(T, 2)] .== 3)
 julia> sum([nvertices(F) for F in faces(T, 2)] .== 4)
 6
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 14
 ```
 """
@@ -912,7 +912,7 @@ julia> T = catalan_solid("triakis_tetrahedron");
 julia> count(F -> nvertices(F) == 3, faces(T, 2))
 12
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 12
 ```
 """
