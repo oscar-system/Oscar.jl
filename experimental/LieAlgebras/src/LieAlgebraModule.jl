@@ -1044,9 +1044,12 @@ function exterior_power(
   elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
-    [Symbol(join(s, " ∧ ")) for s in combinations(symbols(V), k)]
+    [Symbol(join(s, (is_unicode_allowed() ? "∧" : "^"))) for s in combinations(symbols(V), k)]
   else
-    [Symbol(join((x -> "($x)").(s), " ∧ ")) for s in combinations(symbols(V), k)]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "∧" : "^"))) for
+      s in combinations(symbols(V), k)
+    ]
   end
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
