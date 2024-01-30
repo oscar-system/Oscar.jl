@@ -1076,7 +1076,7 @@ export number_of_partitions
 export number_of_perfect_groups, has_number_of_perfect_groups
 export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_small_groups, has_number_of_small_groups
-export number_transitive_groups, has_number_transitive_groups
+export number_of_transitive_groups, has_number_of_transitive_groups
 export numerator
 export nv
 export nvertices

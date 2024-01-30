@@ -1,9 +1,9 @@
 @testset "Transitive groups" begin
-   @test number_transitive_groups(4)==5
-   @test number_transitive_groups(10)==45
+   @test number_of_transitive_groups(4)==5
+   @test number_of_transitive_groups(10)==45
 
    for i in 1:10
-       @test number_transitive_groups(i) == length(all_transitive_groups(degree => i))
+       @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end
 
    G = symmetric_group(4)

@@ -25,10 +25,10 @@ should be safe to refer to particular (classes of) groups by their index numbers
 
 ```@docs
 all_transitive_groups
-has_number_transitive_groups
+has_number_of_transitive_groups
 has_transitive_group_identification
 has_transitive_groups
-number_transitive_groups
+number_of_transitive_groups
 transitive_group
 transitive_group_identification
 ```
