@@ -668,3 +668,4 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate num_positive_roots number_of_positive_roots
 @deprecate num_roots number_of_roots
 @deprecate num_simple_roots number_of_simple_roots
+@deprecate num_standard_tableaux number_of_standard_tableaux

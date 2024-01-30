@@ -26,7 +26,7 @@ export hook_lengths
 export is_semistandard
 export is_standard
 export number_of_partitions, npartitions    # aliases do not work in experimental
-export num_standard_tableaux
+export number_of_standard_tableaux
 export partition
 export partitions
 export reading_word
