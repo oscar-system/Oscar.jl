@@ -1067,7 +1067,7 @@ export number_of_points
 export number_of_polyhedra
 export number_of_rays
 export nullity
-export number_atlas_groups
+export number_of_atlas_groups
 export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
 export number_moved_points, has_number_moved_points, set_number_moved_points
 export number_of_complement_equations
