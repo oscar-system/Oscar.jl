@@ -467,7 +467,7 @@ If `I` is an ideal of a localized multivariate polynomial ring  `Rloc`, then
 
 - `base_ring(I)` refers to `Rloc`,
 - `gens(I)` to the generators of `I`,
-- `ngens(I)` to the number of these generators, and
+- `number_of_generators(I)` / `ngens(I)` to the number of these generators, and
 - `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
 Similarly, if `I` is an ideal of a localized quotient of a multivariate polynomial ring.

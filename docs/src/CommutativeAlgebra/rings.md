@@ -222,10 +222,10 @@ we follow the former book.
     asking that $G$ is free and that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
 
 !!! note
-    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && ngens(G) == rank(G) == m`
+    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && number_of_generators(G) == rank(G) == m`
     evaluates to `true`. In this case, conversion routines allow one to switch back and forth between elements
     of `G` and integer vectors of length `m`. Specifically, if `R` is *$\mathbb Z$-graded*, that is,
-    `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
+    `is_free(G) && number_of_generators(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
     to integers and vice versa.
 
 ### Types
@@ -292,7 +292,7 @@ Given a multivariate polynomial ring `R` with coefficient ring `C`,
 
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
-- `ngens(R)` to the number of these generators, and
+- `number_of_generators(R)` / `ngens(R)` to the number of these generators, and
 - `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -316,7 +316,7 @@ y
 julia> R[3]
 z
 
-julia> ngens(R)
+julia> number_of_generators(R)
 3
 
 ```

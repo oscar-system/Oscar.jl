@@ -237,7 +237,7 @@ end
 
 
 
-function ngens(R::PBWAlgRing)
+function number_of_generators(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
 
@@ -599,8 +599,8 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
-function ngens(a::PBWAlgIdeal)
-  return ngens(a.sdata)
+function number_of_generators(a::PBWAlgIdeal)
+  return number_of_generators(a.sdata)
 end
 
 function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}

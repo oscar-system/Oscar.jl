@@ -54,7 +54,7 @@ Return the Lie algebra `V` is a module over.
 """
 base_lie_algebra(V::LieAlgebraModule) = V.L
 
-ngens(L::LieAlgebraModule) = dim(L)
+number_of_generators(L::LieAlgebraModule) = dim(L)
 
 gens(L::LieAlgebraModule) = basis(L)
 

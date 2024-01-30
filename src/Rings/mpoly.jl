@@ -20,7 +20,9 @@ function _variables_for_singular(n::Int)
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
+function number_of_generators(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem}
+  return number_of_generators(base_ring(F))
+end
 
 function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
   return F(gen(base_ring(F)))

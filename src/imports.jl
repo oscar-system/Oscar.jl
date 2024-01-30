@@ -99,7 +99,7 @@ import AbstractAlgebra:
   MPolyRingElem,
   NCRing,
   NCRingElem,
-  ngens,
+  number_of_generators,
   nvars,
   ordering,
   parent_type,

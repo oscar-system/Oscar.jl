@@ -63,7 +63,7 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
-  ngens,
+  number_of_generators, ngens,
   normalizer,
   order,
   parent_type,

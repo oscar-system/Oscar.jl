@@ -107,7 +107,7 @@ affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
 gens(U::SpecOpen) = affine_patches(U)
 gen(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
-ngens(U::SpecOpen) = npatches(U)
+number_of_generators(U::SpecOpen) = npatches(U)
 
 function getindex(U::SpecOpen, X::AbsSpec) 
   for i in 1:npatches(U)

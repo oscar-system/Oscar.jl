@@ -1037,7 +1037,7 @@ export negwdegrevlex
 export neighbors
 export newton_polytope
 export number_of_facets
-export ngens
+export number_of_generators
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid

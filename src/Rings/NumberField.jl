@@ -130,7 +130,7 @@ gens(K::NfNSGen) = [K(x) for x = gens(polynomial_ring(K))]
 
 gen(K::NfNSGen, i::Int) = K(gen(polynomial_ring(K), i))
 
-ngens(K::NfNSGen) = ngens(polynomial_ring(K))
+number_of_generators(K::NfNSGen) = number_of_generators(polynomial_ring(K))
 
 symbols(K::NfNSGen) = K.S
 

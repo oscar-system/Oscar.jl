@@ -26,7 +26,7 @@ the scheme ``X`` on which ``𝒪`` is defined.
 scheme(R::SpecOpenRing) = R.scheme
 
 gens(R::SpecOpenRing) = R.(gens(ambient_coordinate_ring(scheme(R))))
-ngens(R::SpecOpenRing) = ngens(ambient_coordinate_ring(scheme(R)))
+number_of_generators(R::SpecOpenRing) = number_of_generators(ambient_coordinate_ring(scheme(R)))
 gen(R::SpecOpenRing, i::Int) = R(gen(ambient_coordinate_ring(scheme(R)), i))
 
 

@@ -462,14 +462,14 @@ function gen(G::GAPGroup, i::Int)
 end
 
 """
-    ngens(G::GAPGroup) -> Int
+    number_of_generators(G::GAPGroup) -> Int
 
 Return the length of the vector [`gens`](@ref)`(G)`.
 
 !!! warning "WARNING:"
     this is *NOT*, in general, the minimum number of generators for G.
 """
-ngens(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
+number_of_generators(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
 
 """
     small_generating_set(G::GAPGroup)

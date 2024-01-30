@@ -842,11 +842,11 @@ function gen(M::SubquoModule{T}, i::Int) where T
 end
 
 @doc raw"""
-    ngens(M::SubquoModule)
+    number_of_generators(M::SubquoModule)
 
 Return the number of generators of `M`.
 """
-ngens(M::SubquoModule) = ngens(M.sub)
+number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 @doc raw"""
     base_ring(M::SubquoModule)

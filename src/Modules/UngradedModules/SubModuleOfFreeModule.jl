@@ -324,12 +324,12 @@ function length(M::SubModuleOfFreeModule)
 end
 
 @doc raw"""
-    ngens(M::SubModuleOfFreeModule)
+    number_of_generators(M::SubModuleOfFreeModule)
 
 Return the number of generators of `M`.
 """
-function ngens(M::SubModuleOfFreeModule)
-  return ngens(M.gens)
+function number_of_generators(M::SubModuleOfFreeModule)
+  return number_of_generators(M.gens)
 end
 
 @doc raw"""

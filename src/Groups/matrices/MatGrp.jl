@@ -507,7 +507,7 @@ end
 
 gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
-ngens(G::MatrixGroup) = length(gens(G))
+number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))

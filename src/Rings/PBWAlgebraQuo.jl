@@ -114,8 +114,8 @@ end
 
 ####
 
-function ngens(Q::PBWAlgQuo)
-  return ngens(base_ring(Q))  # EQUIV  ngens(Q.sring)  ???
+function number_of_generators(Q::PBWAlgQuo)
+  return number_of_generators(base_ring(Q))  # EQUIV  number_of_generators(Q.sring)  ???
 end
 
 function gens(Q::PBWAlgQuo)

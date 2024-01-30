@@ -358,7 +358,7 @@ function _compute_inherited_gluing(gd::InheritGluingData)
   return SimpleGluing(X, Y, ff, gg, check=false)
 end
 
-ngens(Q::MPolyQuoLocRing) = ngens(base_ring(Q))
+number_of_generators(Q::MPolyQuoLocRing) = number_of_generators(base_ring(Q))
 
 @doc raw"""
     inherit_gluings!(ref::Covering, orig::Covering)
