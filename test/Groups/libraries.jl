@@ -101,15 +101,15 @@ end
    @test_throws ArgumentError perfect_group(60, 2)
 
    @test is_isomorphic(perfect_group(60,1),G)
-   @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
+   @test [number_of_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_group_identification(alternating_group(5))
    @test is_isomorphic(perfect_group(x[1],x[2]),alternating_group(5))
    @test_throws ArgumentError perfect_group_identification(symmetric_group(5))
 
-   @test sum(number_perfect_groups, 1:59) == 1
-   @test number_perfect_groups(ZZRingElem(60)^3) == 1
-   @test_throws ArgumentError number_perfect_groups(0) # invalid argument
-   @test_throws ArgumentError number_perfect_groups(ZZRingElem(60)^10)  # result not known
+   @test sum(number_of_perfect_groups, 1:59) == 1
+   @test number_of_perfect_groups(ZZRingElem(60)^3) == 1
+   @test_throws ArgumentError number_of_perfect_groups(0) # invalid argument
+   @test_throws ArgumentError number_of_perfect_groups(ZZRingElem(60)^10)  # result not known
 
    # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
    #@test perfect_group(1376256, 1) isa PermGroup

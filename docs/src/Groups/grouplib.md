@@ -76,10 +76,10 @@ not have a faithful permutation representation of small degree.
 Computations in these groups may be rather time consuming.
 
 ```@docs
-has_number_perfect_groups
+has_number_of_perfect_groups
 has_perfect_group_identification
 has_perfect_groups
-number_perfect_groups
+number_of_perfect_groups
 orders_perfect_groups
 perfect_group
 perfect_group_identification

@@ -676,3 +676,5 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate number_moved_points number_of_moved_points
 @deprecate has_number_moved_points has_number_of_moved_points
 @deprecate set_number_moved_points set_number_of_moved_points
+@deprecate number_perfect_groups number_of_perfect_groups
+@deprecate has_number_perfect_groups has_number_of_perfect_groups
