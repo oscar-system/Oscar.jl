@@ -1359,6 +1359,11 @@ function induce_shift(B::Dict{Tuple{Int, Any}, Int})
 end
 
 function Base.show(io::IO, b::BettiTable)
+  if isempty(b.B)
+    print(io, "Empty table")
+    return
+  end
+
   T = induce_shift(b.B)
   x = collect(keys(T))
   if isempty(x)
