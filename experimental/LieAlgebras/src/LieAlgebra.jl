@@ -26,7 +26,7 @@ abstract type LieAlgebraElem{C<:FieldElem} end
 
 coefficient_ring(x::LieAlgebraElem) = coefficient_ring(parent(x))
 
-ngens(L::LieAlgebra) = dim(L)
+number_of_generators(L::LieAlgebra) = dim(L)
 
 gens(L::LieAlgebra) = basis(L)
 

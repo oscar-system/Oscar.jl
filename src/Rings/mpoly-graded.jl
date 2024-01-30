@@ -561,8 +561,8 @@ end
 
 parent(a::MPolyDecRingElem{T, S}) where {T, S} = a.parent::MPolyDecRing{T, parent_type(S)}
 
-Nemo.symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
-Nemo.nvars(R::MPolyDecRing) = nvars(forget_decoration(R))
+symbols(R::MPolyDecRing) = symbols(forget_decoration(R))
+number_of_variables(R::MPolyDecRing) = number_of_variables(forget_decoration(R))
 
 elem_type(::Type{MPolyDecRing{T, S}}) where {T, S} = MPolyDecRingElem{T, elem_type(S)}
 parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, parent_type(S)}
@@ -1132,9 +1132,9 @@ function homogeneous_component(a::MPolyDecRingElem, g::Vector{<:IntegerUnion})
 end
 
 base_ring(W::MPolyDecRing) = base_ring(forget_decoration(W))
-Nemo.ngens(W::MPolyDecRing) = Nemo.ngens(forget_decoration(W))
-Nemo.gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
-Nemo.gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
+number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
+gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
+gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
 
 base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 

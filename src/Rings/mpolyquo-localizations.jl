@@ -1627,7 +1627,7 @@ base_ring(I::MPolyQuoLocalizedIdeal) = I.W
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
 pre_image_ideal(I::MPolyQuoLocalizedIdeal) = I.J
-ngens(I::MPolyQuoLocalizedIdeal) = length(I.gens)
+number_of_generators(I::MPolyQuoLocalizedIdeal) = length(I.gens)
 
 ### a shorthand notation for any MPolyIdeal 
 const MPolyAnyIdeal = Union{MPolyIdeal, MPolyQuoIdeal,

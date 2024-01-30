@@ -462,14 +462,14 @@ function gen(G::GAPGroup, i::Int)
 end
 
 """
-    ngens(G::GAPGroup) -> Int
+    number_of_generators(G::GAPGroup) -> Int
 
 Return the length of the vector [`gens`](@ref)`(G)`.
 
 !!! warning "WARNING:"
     this is *NOT*, in general, the minimum number of generators for G.
 """
-ngens(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
+number_of_generators(G::GAPGroup) = length(GAPWrap.GeneratorsOfGroup(G.X))
 
 """
     small_generating_set(G::GAPGroup)
@@ -622,13 +622,13 @@ end
 
 
 """
-    number_conjugacy_classes(G::GAPGroup)
+    number_of_conjugacy_classes(G::GAPGroup)
 
 Return the number of conjugacy classes of elements in `G`.
 """
-@gapattribute number_conjugacy_classes(G::GAPGroup) = ZZRingElem(GAP.Globals.NrConjugacyClasses(G.X)::GapInt)
+@gapattribute number_of_conjugacy_classes(G::GAPGroup) = ZZRingElem(GAP.Globals.NrConjugacyClasses(G.X)::GapInt)
 
-number_conjugacy_classes(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAPWrap.NrConjugacyClasses(G.X))
+number_of_conjugacy_classes(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(GAPWrap.NrConjugacyClasses(G.X))
 
 """
     conjugacy_classes(G::Group)

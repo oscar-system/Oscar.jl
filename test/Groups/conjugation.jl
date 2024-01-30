@@ -33,11 +33,11 @@
   @test !is_conjugate_with_data(G,x,z)[1]
 
 
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(4))
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(40))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(4))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(40))
 
 # something in smaller dimension
-  @test number_conjugacy_classes(symmetric_group(4)) == 5
+  @test number_of_conjugacy_classes(symmetric_group(4)) == 5
   G = symmetric_group(4)
   x = perm(G,[3,4,1,2])
   cc = conjugacy_class(G,x)

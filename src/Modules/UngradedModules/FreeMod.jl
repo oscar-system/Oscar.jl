@@ -150,14 +150,14 @@ end
 
 @doc raw"""
     rank(F::FreeMod)
-    ngens(F::AbstractFreeMod)
+    number_of_generators(F::AbstractFreeMod)
     dim(F::AbstractFreeMod)
 
 Return the rank of `F`.
 """
 dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
-ngens(F::AbstractFreeMod) = rank(F)
+number_of_generators(F::AbstractFreeMod) = rank(F)
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

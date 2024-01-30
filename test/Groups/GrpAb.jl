@@ -53,8 +53,8 @@ end
     @test images(iso, frattini_subgroup(G1)[1]) == frattini_subgroup(G2)
     @test is_pgroup_with_prime(G1) == is_pgroup_with_prime(G2)
     @test nilpotency_class(G1) == nilpotency_class(G2)
-    @test number_conjugacy_classes(G1) == order(G1)
-    @test number_conjugacy_classes(Int, G1) isa Int
+    @test number_of_conjugacy_classes(G1) == order(G1)
+    @test number_of_conjugacy_classes(Int, G1) isa Int
     @test order(G1) == order(G2)
     @test images(iso, socle(G1)[1]) == socle(G2)
     @test images(iso, solvable_radical(G1)[1]) == solvable_radical(G2)

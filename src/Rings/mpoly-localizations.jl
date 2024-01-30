@@ -1140,7 +1140,7 @@ inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
-ngens(W::MPolyLocRing) = ngens(base_ring(W))
+number_of_generators(W::MPolyLocRing) = number_of_generators(base_ring(W))
 
 ### required extension of the localization function
 @doc raw"""
@@ -1659,7 +1659,7 @@ ideal_type(L::MPolyLocRing) = ideal_type(typeof(L))
 ### additional getter functions 
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
 is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
-ngens(I::MPolyLocalizedIdeal) = length(I.gens)
+number_of_generators(I::MPolyLocalizedIdeal) = length(I.gens)
 
 function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)

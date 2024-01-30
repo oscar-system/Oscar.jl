@@ -1,19 +1,19 @@
 """
-    has_number_transitive_groups(deg::Int)
+    has_number_of_transitive_groups(deg::Int)
 
 Return whether the number transitive groups groups of degree `deg` are available for
-use via `number_transitive_groups`.
+use via `number_of_transitive_groups`.
 
 # Examples
 ```jldoctest
-julia> has_number_transitive_groups(30)
+julia> has_number_of_transitive_groups(30)
 true
 
-julia> has_number_transitive_groups(64)
+julia> has_number_of_transitive_groups(64)
 false
 ```
 """
-has_number_transitive_groups(deg::Int) = has_transitive_groups(deg)
+has_number_of_transitive_groups(deg::Int) = has_transitive_groups(deg)
 
 """
     has_transitive_group_identification(deg::Int)
@@ -55,22 +55,22 @@ end
 
 
 """
-    number_transitive_groups(deg::Int)
+    number_of_transitive_groups(deg::Int)
 
 Return the number of transitive groups of degree `deg`,
 up to permutation isomorphism.
 
 # Examples
 ```jldoctest
-julia> number_transitive_groups(30)
+julia> number_of_transitive_groups(30)
 5712
 
-julia> number_transitive_groups(64)
+julia> number_of_transitive_groups(64)
 ERROR: ArgumentError: the number of transitive groups of degree 64 is not available
 ```
 """
-function number_transitive_groups(deg::Int)
-  @req has_number_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
+function number_of_transitive_groups(deg::Int)
+  @req has_number_of_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
   return GAP.Globals.NrTransitiveGroups(deg)::Int
 end
 
@@ -92,7 +92,7 @@ ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 """
 function transitive_group(deg::Int, i::Int)
   @req has_transitive_groups(deg) "transitive groups of degree $deg are not available"
-  N = number_transitive_groups(deg)
+  N = number_of_transitive_groups(deg)
   @req i <= N "there are only $N transitive groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.TransitiveGroup(deg,i), deg)
 end
@@ -173,8 +173,8 @@ The following functions are currently supported as values for `func`:
 - `is_solvable`
 - `is_supersolvable`
 - `is_transitive`
-- `number_conjugacy_classes`
-- `number_moved_points`
+- `number_of_conjugacy_classes`
+- `number_of_moved_points`
 - `order`
 - `transitivity`
 

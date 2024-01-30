@@ -44,7 +44,7 @@ julia> matrix(QQ, rays(NF))
 ```
 """
 rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
-_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _number_of_rays(PF))
 
 _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
@@ -118,7 +118,7 @@ the 3-cube and use that `maximal_cones` returns an iterator.
 julia> PF = face_fan(cube(3));
 
 julia> for c in maximal_cones(PF)
-       println(nrays(c))
+         println(number_of_rays(c))
        end
 4
 4
@@ -128,7 +128,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, nmaxcones(PF))
 
 _ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
 
@@ -239,7 +239,7 @@ julia> dim(PF)
 dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM::Int
 
 @doc raw"""
-    n_maximal_cones(PF::PolyhedralFan)
+    number_of_maximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
 
@@ -249,14 +249,14 @@ maximal cones.
 ```jldoctest
 julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
-julia> n_maximal_cones(PF)
+julia> number_of_maximal_cones(PF)
 2
 ```
 """
-n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
+number_of_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
-    n_cones(PF::PolyhedralFan)
+    number_of_cones(PF::PolyhedralFan)
 
 Return the number of cones of `PF`.
 
@@ -267,11 +267,11 @@ cones in this fan.
 julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
-julia> n_cones(PF)
+julia> number_of_cones(PF)
 4
 ```
 """
-n_cones(PF::_FanLikeType) = nrows(cones(PF))
+number_of_cones(PF::_FanLikeType) = nrows(cones(PF))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)
@@ -292,19 +292,19 @@ julia> ambient_dim(normal_fan(cube(4)))
 ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM::Int
 
 @doc raw"""
-    nrays(PF::PolyhedralFan)
+    number_of_rays(PF::PolyhedralFan)
 
 Return the number of rays of `PF`.
 
 # Examples
 The 3-cube has 8 vertices. Accordingly, its face fan has 8 rays.
 ```jldoctest
-julia> nrays(face_fan(cube(3)))
+julia> number_of_rays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
-_nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+number_of_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _number_of_rays(PF) : 0
+_number_of_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc raw"""

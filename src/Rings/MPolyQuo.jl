@@ -62,7 +62,7 @@ function Base.show(io::IO, Q::MPolyQuoRing)
 end
 
 gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
-ngens(Q::MPolyQuoRing) = ngens(base_ring(Q))
+number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
@@ -349,7 +349,7 @@ end
 gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
 
 @doc raw"""
-    ngens(a::MPolyQuoIdeal)
+    number_of_generators(a::MPolyQuoIdeal)
 
 Return the number of generators of `a`.
 
@@ -364,11 +364,11 @@ julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
 julia> a = ideal(A, [x-y])
 ideal(x - y)
 
-julia> ngens(a)
+julia> number_of_generators(a)
 1
 ```
 """
-function ngens(a::MPolyQuoIdeal)
+function number_of_generators(a::MPolyQuoIdeal)
   oscar_assure(a)
   return length(a.gens.O)
 end

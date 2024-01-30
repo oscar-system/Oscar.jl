@@ -476,7 +476,7 @@ julia> spor_names = all_character_table_names(is_sporadic_simple,
 julia> println(spor_names[1:5])
 ["M11", "M12", "J1", "M22", "J2"]
 
-julia> length(all_character_table_names(number_conjugacy_classes => 1))
+julia> length(all_character_table_names(number_of_conjugacy_classes => 1))
 1
 ```
 """
@@ -949,9 +949,9 @@ end
 ##############################################################################
 #
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
     order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -1721,7 +1721,7 @@ true
 """
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
-    return class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
 end
 
 @doc raw"""
@@ -1746,7 +1746,7 @@ function natural_character(G::PermGroup)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
-    vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
+    vals = [FF(n - number_of_moved_points(representative(x))) for x in ccl]
     return class_function(G, vals)
 end
 
@@ -1827,7 +1827,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       modtbl = tbl
       ccl = conjugacy_classes(tbl)
       n = degree(M)
-      vals = [FF(n - number_moved_points(rho(representative(x)))) for x in ccl]
+      vals = [FF(n - number_of_moved_points(rho(representative(x)))) for x in ccl]
     elseif M isa MatrixGroup
       p = characteristic(base_ring(M))
       if p == 0

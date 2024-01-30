@@ -45,7 +45,7 @@ complex_projective_plane()
 ## Basic properties
 
 ```@docs
-nvertices(K::SimplicialComplex)
+number_of_vertices(K::SimplicialComplex)
 dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)

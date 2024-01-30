@@ -207,8 +207,8 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
-export algebraic_polynomial
 export algebraic_pluecker_vector
+export algebraic_polynomial
 export algebraic_set
 export all_atlas_group_infos
 export all_blocks
@@ -671,10 +671,9 @@ export indicator
 export induce
 export induce_shift
 export induced_automorphism
-export induced_map_on_exterior_power
 export induced_cyclic
+export induced_map_on_exterior_power
 export induced_ring_ordering
-export induce_shift
 export inequations
 export initial
 export inneighbors
@@ -843,8 +842,8 @@ export is_square
 export is_standard_basis
 export is_standard_graded
 export is_strongly_connected
-export is_subset
 export is_subscheme
+export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
 export is_ternary
@@ -872,15 +871,15 @@ export isqrtrem
 export issubset
 export iszero
 export iterate_basis
+export jacobi_symbol
 export jacobian_ideal
 export jacobian_matrix
-export jacobi_symbol
 export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
-export katsura
 export kaehler_differentials
+export katsura
 export kernel
 export klee_minty_cube
 export klein_bottle
@@ -1016,17 +1015,10 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
-export n_cones
-export n_connected_components
 export n_gon
-export n_maximal_cells
-export n_maximal_cones
-export n_maximal_polyhedra
 export name
 export names_of_fusion_sources
 export natural_character
-export ne
-export nedges
 export nef_cone
 export negbias
 export negdeglex
@@ -1037,8 +1029,6 @@ export negwdeglex
 export negwdegrevlex
 export neighbors
 export newton_polytope
-export nfacets
-export ngens
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid
@@ -1063,24 +1053,31 @@ export normalization_with_delta
 export normalize!
 export normalized_volume
 export normalizer
-export npatches
-export npoints
-export npolyhedra
-export nrays
 export nullity
-export number_atlas_groups
-export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
-export number_moved_points, has_number_moved_points, set_number_moved_points
+export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_cones
+export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
+export number_of_connected_components
+export number_of_edges
+export number_of_facets
 export number_of_factors
+export number_of_generators
+export number_of_maximal_cells
+export number_of_maximal_cones
+export number_of_maximal_polyhedra
+export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_partitions
-export number_perfect_groups, has_number_perfect_groups
-export number_primitive_groups, has_number_primitive_groups
-export number_small_groups, has_number_small_groups
-export number_transitive_groups, has_number_transitive_groups
+export number_of_patches
+export number_of_perfect_groups, has_number_of_perfect_groups
+export number_of_points
+export number_of_polyhedra
+export number_of_primitive_groups, has_number_of_primitive_groups
+export number_of_rays
+export number_of_small_groups, has_number_of_small_groups
+export number_of_transitive_groups, has_number_of_transitive_groups
+export number_of_vertices
 export numerator
-export nv
-export nvertices
 export objective_function
 export omega_group
 export on_indeterminates
@@ -1138,10 +1135,10 @@ export pitman_stanley_polytope
 export plane_curve
 export platonic_solid
 export pluecker_indices
+export point
 export point_coordinates
 export point_matrix
 export point_vector
-export point
 export points
 export pol_elementary_divisors
 export polarize
@@ -1176,12 +1173,12 @@ export proj
 export project_full
 export projection
 export projection_to_base
+export projective_closure
+export projective_curve
 export projective_general_linear_group
 export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
-export projective_closure
-export projective_curve
 export projective_plane
 export projective_scheme
 export projective_space
@@ -1203,16 +1200,16 @@ export R10_matroid
 export radical
 export radical_membership
 export rand
-export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_homogeneous
 export rand_metric
 export rand_metric_int
 export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
-export rand_homogeneous
+export rand01_polytope
 export rank
 export rank_action
 export rational_equivalence_class
@@ -1387,8 +1384,8 @@ export symplectic_group
 export syz
 export syzygy_generators
 export tail
-export tangent_space
 export tangent_lines
+export tangent_space
 export tensor_product
 export terms
 export tetrahedron
@@ -1422,8 +1419,8 @@ export trivial_divisor_class
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_matrix
-export tropical_polynomial
 export tropical_pluecker_vector
+export tropical_polynomial
 export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
@@ -1464,16 +1461,16 @@ export vertices_and_rays
 export vf_group
 export visualize
 export volume
-export volume_map
 export volume_form
+export volume_map
 export walls
 export wdeglex
 export wdegrevlex
 export weakly_connected_components
 export wedge
+export wedge_generator_decompose_function
 export wedge_multiplication_map
 export wedge_pure_function
-export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering

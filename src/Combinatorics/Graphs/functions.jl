@@ -23,10 +23,10 @@ Make a directed graph with 5 vertices and print the number of nodes and edges.
 ```jldoctest
 julia> g = Graph{Directed}(5);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 5
 
-julia> ne(g)
+julia> number_of_edges(g)
 0
 ```
 """
@@ -80,7 +80,7 @@ function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where
 end
 
 
-_has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
+_has_node(G::Graph, node::Int64) = 0 < node <= nvertices(G)
 
 @doc raw"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -98,7 +98,7 @@ true
 julia> add_edge!(g, 1, 2)
 false
 
-julia> ne(g)
+julia> number_of_edges(g)
 1
 ```
 """
@@ -124,13 +124,13 @@ julia> g = Graph{Directed}(2);
 julia> add_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> number_of_edges(g)
 1
 
 julia> rem_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> number_of_edges(g)
 0
 ```
 """
@@ -152,21 +152,21 @@ added.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 2
 
 julia> add_vertex!(g)
 true
 
-julia> nv(g)
+julia> number_of_vertices(g)
 3
 ```
 """
 function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g)
-    old_nvertices = nv(g)
+    old_nvertices = nvertices(g)
     Polymake._add_vertex(pmg)
-    return nv(g) - 1 == old_nvertices
+    return nvertices(g) - 1 == old_nvertices
 end
 
 
@@ -180,23 +180,23 @@ was actually removed, `false` otherwise.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 2
 
 julia> rem_vertex!(g, 1)
 true
 
-julia> nv(g)
+julia> number_of_vertices(g)
 1
 ```
 """
 function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
   _has_node(g, v) || return false
   pmg = pm_object(g)
-  old_nvertices = nv(g)
+  old_nvertices = nvertices(g)
   result = Polymake._rem_vertex(pmg, v-1)
   Polymake._squeeze(pmg)
-  return nv(g) + 1 == old_nvertices
+  return nvertices(g) + 1 == old_nvertices
 end
 
 
@@ -210,12 +210,12 @@ were actually added to the graph `g`.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 2
 
 julia> add_vertices!(g, 5);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 7
 ```
 """
@@ -334,10 +334,8 @@ end
 ##  Accessing properties
 ################################################################################
 ################################################################################
-@alias nv nvertices
-
 @doc raw"""
-    nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    number_of_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of vertices of a graph.
 
@@ -348,16 +346,16 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 8
 ```
 """
-function nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function number_of_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
 end
 
 @doc raw"""
-    ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
 
@@ -368,15 +366,13 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """
-function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
-
-@alias nedges ne
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -398,7 +394,7 @@ julia> collect(edges(g))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), ne(g))
+    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), number_of_edges(g))
 end
 
 
@@ -638,7 +634,7 @@ julia> automorphism_group_generators(g)
 function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
-    return _pm_arr_arr_to_group_generators(result, nv(g))
+    return _pm_arr_arr_to_group_generators(result, nvertices(g))
 end
 
 
@@ -921,10 +917,10 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 8
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """
@@ -952,10 +948,10 @@ julia> c = cube(3);
 
 julia> g = dualgraph(c);
 
-julia> nv(g)
+julia> number_of_vertices(g)
 6
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """

@@ -27,11 +27,11 @@ julia> IM[:, 4]
 """
 IncidenceMatrix
 
-nrows(i::IncidenceMatrix) = Polymake.nrows(i)
-ncols(i::IncidenceMatrix) = Polymake.ncols(i)
+number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
+number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
 
-nrows(A::Polymake.Matrix) = Polymake.nrows(A)
-ncols(A::Polymake.Matrix) = Polymake.ncols(A)
+number_of_rows(A::Polymake.Matrix) = Polymake.nrows(A)
+number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 
 @doc raw"""
      row(i::IncidenceMatrix, n::Int)
@@ -120,7 +120,7 @@ linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) = assure_matrix_
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
-nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
+number_of_rows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatrix{Oscar.QQFieldElem}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)

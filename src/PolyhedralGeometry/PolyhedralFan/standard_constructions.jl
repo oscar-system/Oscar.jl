@@ -46,7 +46,7 @@ julia> C = cross_polytope(3);
 julia> FF = face_fan(C)
 Polyhedral fan in ambient dimension 3
 
-julia> n_maximal_cones(FF) == nfacets(C)
+julia> number_of_maximal_cones(FF) == number_of_facets(C)
 true
 ```
 """
@@ -121,7 +121,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   for nc in new_cones
     push!(nc, new_ray_index)
   end
-  for i in 1:n_maximal_cones(Sigma)
+  for i in 1:nmaxcones(Sigma)
     if !(i in refinable_cones)
       push!(new_cones, Vector{Int}(Polymake.row(mc_old, i)))
     end

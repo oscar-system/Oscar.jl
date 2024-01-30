@@ -237,8 +237,8 @@ function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm:
 end
 
 # TODO: The method below is missing. It should be made better and put to the correct place (AA).
-ngens(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-ngens(P::PolyRing) = 1
+number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
+number_of_generators(P::PolyRing) = 1
 
 
 @doc raw"""

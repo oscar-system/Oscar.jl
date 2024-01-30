@@ -438,18 +438,18 @@ matrix(x::MatrixGroupElem) = x.elm
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
-    nrows(x::MatrixGroupElem)
+    number_of_rows(x::MatrixGroupElem)
 
 Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = nrows(matrix(x))
+number_of_rows(x::MatrixGroupElem) = number_of_rows(matrix(x))
 
 """
-    ncols(x::MatrixGroupElem)
+    number_of_columns(x::MatrixGroupElem)
 
 Return the number of columns of the underlying matrix of `x`.
 """
-ncols(x::MatrixGroupElem) = ncols(matrix(x))
+number_of_columns(x::MatrixGroupElem) = number_of_columns(matrix(x))
 
 #
 size(x::MatrixGroupElem) = size(matrix(x))
@@ -507,7 +507,7 @@ end
 
 gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
-ngens(G::MatrixGroup) = length(gens(G))
+number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))

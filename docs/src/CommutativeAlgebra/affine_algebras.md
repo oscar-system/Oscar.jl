@@ -62,7 +62,7 @@ If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
 - `gens(A)` to the generators of `A`,
-- `ngens(A)` to the number of these generators, and
+- `number_of_generators(A)` / `ngens(A)` to the number of these generators, and
 - `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -87,7 +87,7 @@ julia> gens(A)
  y
  z
 
-julia> ngens(A)
+julia> number_of_generators(A)
 3
 
 julia> gen(A, 2)
@@ -216,7 +216,7 @@ If `a` is an ideal of the affine algebra `A`, then
 
 - `base_ring(a)` refers to `A`,
 - `gens(a)` to the generators of `a`,
-- `ngens(a)` to the number of these generators,  and
+- `number_of_generators(a)` / `ngens(a)` to the number of these generators,  and
 - `gen(a, i)` as well as `a[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -240,7 +240,7 @@ julia> gens(a)
  x - y
  z^4
 
-julia> ngens(a)
+julia> number_of_generators(a)
 2
 
 julia> gen(a, 2)

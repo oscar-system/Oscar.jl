@@ -68,7 +68,7 @@ end
 
 function _is_full_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
   _is_triangulation(sop) || return false
-  length(Base.union(maximal_cells(sop)...)) == npoints(sop) || return false
+  length(Base.union(maximal_cells(sop)...)) == number_of_points(sop) || return false
   return true
 end
 

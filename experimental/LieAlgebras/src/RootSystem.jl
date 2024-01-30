@@ -100,10 +100,10 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= nposroots(R)
     return positive_coroot(R, i)
   else
-    return negative_coroot(R, i - num_positive_roots(R))
+    return negative_coroot(R, i - nposroots(R))
   end
 end
 
@@ -191,40 +191,36 @@ function negative_coroots(R::RootSystem)
 end
 
 @doc raw"""
-    num_positive_roots(R::RootSystem) -> Int
+    number_of_positive_roots(R::RootSystem) -> Int
 
 Returns the number of positive roots of `R`. This is the same as the number of negative roots.
 
 Also see: `positive_roots`, `negative_roots`.
 """
-function num_positive_roots(R::RootSystem)
+function number_of_positive_roots(R::RootSystem)
   return length(positive_roots(R))
 end
 
 @doc raw"""
-    num_roots(R::RootSystem) -> Int
+    number_of_roots(R::RootSystem) -> Int
 
 Returns the number of roots of `R`.
 
 Also see: `roots`.
 """
-function num_roots(R::RootSystem)
-  return 2 * num_positive_roots(R)
+function number_of_roots(R::RootSystem)
+  return 2 * number_of_positive_roots(R)
 end
 
 @doc raw"""
-    num_simple_roots(R::RootSystem) -> Int
+    number_of_simple_roots(R::RootSystem) -> Int
 
 Returns the number of simple roots of `R`.
 
 Also see: `simple_roots`.
 """
-function num_simple_roots(R::RootSystem)
+function number_of_simple_roots(R::RootSystem)
   return rank(R)
-end
-
-function nroots(R::RootSystem)
-  return num_roots(R)
 end
 
 @doc raw"""
@@ -245,7 +241,7 @@ end
 Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`,
 and then increasing in height.
 
-Also see: `positive_root`, `num_positive_roots`.
+Also see: `positive_root`, `number_of_positive_roots`.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -301,10 +297,10 @@ This is a more efficient version for `roots(R)[i]`.
 Also see: `roots`.
 """
 function root(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= nposroots(R)
     return positive_root(R, i)
   else
-    return negative_root(R, i - num_positive_roots(R))
+    return negative_root(R, i - nposroots(R))
   end
 end
 
