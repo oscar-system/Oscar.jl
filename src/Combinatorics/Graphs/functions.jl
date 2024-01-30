@@ -26,7 +26,7 @@ julia> g = Graph{Directed}(5);
 julia> nv(g)
 5
 
-julia> ne(g)
+julia> number_of_edges(g)
 0
 ```
 """
@@ -98,7 +98,7 @@ true
 julia> add_edge!(g, 1, 2)
 false
 
-julia> ne(g)
+julia> number_of_edges(g)
 1
 ```
 """
@@ -124,13 +124,13 @@ julia> g = Graph{Directed}(2);
 julia> add_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> number_of_edges(g)
 1
 
 julia> rem_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> number_of_edges(g)
 0
 ```
 """
@@ -357,7 +357,7 @@ function nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
 
@@ -368,15 +368,13 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """
-function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
-
-@alias nedges ne
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -398,7 +396,7 @@ julia> collect(edges(g))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), ne(g))
+    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), number_of_edges(g))
 end
 
 
@@ -924,7 +922,7 @@ julia> g = edgegraph(c);
 julia> nv(g)
 8
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """
@@ -955,7 +953,7 @@ julia> g = dualgraph(c);
 julia> nv(g)
 6
 
-julia> ne(g)
+julia> number_of_edges(g)
 12
 ```
 """

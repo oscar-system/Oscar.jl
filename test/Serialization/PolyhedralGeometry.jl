@@ -8,7 +8,7 @@ using Oscar: _integer_variables
               @test loaded isa Graph{Undirected}
               @test Base.propertynames(G) == Base.propertynames(loaded)
               @test nv(G) == nv(loaded)
-              @test ne(G) == ne(loaded)
+              @test nedges(G) == nedges(loaded)
             end
         end
 

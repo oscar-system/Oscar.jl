@@ -26,10 +26,12 @@ include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
 
 # add some shorthands for our functions
 function number_of_cones end
+function number_of_edges end
 function number_of_maximal_cells end
 function number_of_maximal_cones end
 function number_of_maximal_polyhedra end
 @alias ncones number_of_cones
+@alias nedges number_of_edges
 @alias nmaxcells number_of_maximal_cells            # decided to have but not used anywhere
 @alias nmaxcones number_of_maximal_cones
 @alias nmaxpolyhedra number_of_maximal_polyhedra    # decided to have but not used anywhere

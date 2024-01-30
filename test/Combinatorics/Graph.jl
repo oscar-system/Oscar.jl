@@ -3,12 +3,12 @@
     @testset "core functionality" begin
         g = Graph{Directed}(5)
         @test nv(g) == 5
-        @test ne(g) == 0
+        @test nedges(g) == 0
         add_edge!(g, 1, 2)
-        @test ne(g) == 1
+        @test nedges(g) == 1
         @test has_edge(g, 1, 2)
         rem_edge!(g, 1, 2)
-        @test ne(g) == 0
+        @test nedges(g) == 0
         @test !has_edge(g, 1, 2)
         @test add_vertex!(g)
         @test nv(g) == 6
@@ -38,13 +38,13 @@
     
     @testset "graphs from polytopes" begin
         @test nv(egtriangle) == 3
-        @test ne(egtriangle) == 3
+        @test nedges(egtriangle) == 3
         @test nv(dgtriangle) == 3
-        @test ne(dgtriangle) == 3
+        @test nedges(dgtriangle) == 3
         @test nv(egcube) == 8
-        @test ne(egcube) == 12
+        @test nedges(egcube) == 12
         @test nv(dgcube) == 6
-        @test ne(dgcube) == 12
+        @test nedges(dgcube) == 12
 
         @test is_isomorphic(dgtriangle, egtriangle)
 

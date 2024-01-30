@@ -1025,8 +1025,7 @@ export number_of_maximal_polyhedra
 export name
 export names_of_fusion_sources
 export natural_character
-export ne
-export nedges
+export number_of_edges
 export nef_cone
 export negbias
 export negdeglex
