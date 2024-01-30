@@ -100,7 +100,7 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
     ordtbl = ordinary_table(tbl)
   end
   id = identifier(ordtbl)
-  res = fill("", number_conjugacy_classes(tbl))
+  res = fill("", number_of_conjugacy_classes(tbl))
   if haskey(OD_simple_names, id)
     simp = OD_simple_names[id]
     data = OD_data[simp]

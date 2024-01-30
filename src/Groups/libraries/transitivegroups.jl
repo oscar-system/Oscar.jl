@@ -173,7 +173,7 @@ The following functions are currently supported as values for `func`:
 - `is_solvable`
 - `is_supersolvable`
 - `is_transitive`
-- `number_conjugacy_classes`
+- `number_of_conjugacy_classes`
 - `number_moved_points`
 - `order`
 - `transitivity`

@@ -670,3 +670,6 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate num_simple_roots number_of_simple_roots
 @deprecate num_standard_tableaux number_of_standard_tableaux
 @deprecate number_atlas_groups number_of_atlas_groups
+@deprecate number_conjugacy_classes number_of_conjugacy_classes
+@deprecate has_number_conjugacy_classes has_number_of_conjugacy_classes
+@deprecate set_number_conjugacy_classes set_number_of_conjugacy_classes

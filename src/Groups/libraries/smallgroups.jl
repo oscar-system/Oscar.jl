@@ -176,7 +176,7 @@ The following functions are currently supported as values for `func`:
 - `is_sporadic_simple`
 - `is_solvable`
 - `is_supersolvable`
-- `number_conjugacy_classes`
+- `number_of_conjugacy_classes`
 - `order`
 
 The type of the returned groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.

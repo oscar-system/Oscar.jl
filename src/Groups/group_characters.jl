@@ -476,7 +476,7 @@ julia> spor_names = all_character_table_names(is_sporadic_simple,
 julia> println(spor_names[1:5])
 ["M11", "M12", "J1", "M22", "J2"]
 
-julia> length(all_character_table_names(number_conjugacy_classes => 1))
+julia> length(all_character_table_names(number_of_conjugacy_classes => 1))
 1
 ```
 """
@@ -951,7 +951,7 @@ end
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
     order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -1721,7 +1721,7 @@ true
 """
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
-    return class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
 end
 
 @doc raw"""
