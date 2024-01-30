@@ -20,7 +20,7 @@ mutable struct PBWAlgElem{T, S} <: NCRingElem
   sdata::Singular.spluralg{S}
 end
 
-mutable struct PBWAlgIdeal{D, T, S}
+mutable struct PBWAlgIdeal{D, T, S} <: Ideal{PBWAlgElem{T, S}}
   basering::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal, always defined
   sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
@@ -247,10 +247,6 @@ end
 
 function gen(R::PBWAlgRing, i::Int)
   return PBWAlgElem(R, gen(R.sring, i))
-end
-
-function Base.getindex(R::PBWAlgRing, i::Int)
-  return gen(R, i)
 end
 
 function var_index(a::PBWAlgElem)
@@ -616,8 +612,6 @@ function gen(a::PBWAlgIdeal, i::Int)
   R = base_ring(a)
   return PBWAlgElem(R, a.sdata[i])
 end
-
-getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
 
 function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal

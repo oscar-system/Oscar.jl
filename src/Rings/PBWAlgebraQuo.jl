@@ -126,10 +126,6 @@ function gen(Q::PBWAlgQuo, i::Int)
   return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, gen(Q.sring, i)))
 end
 
-function Base.getindex(Q::PBWAlgQuo, i::Int)
-  return gen(Q, i)
-end
-
 function zero(Q::PBWAlgQuo)
   return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, zero(Q.sring)))
 end

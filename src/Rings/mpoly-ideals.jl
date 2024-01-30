@@ -1652,7 +1652,6 @@ function gens(I::MPolyIdeal)
 end
 
 gen(I::MPolyIdeal, i::Int) = I.gens[Val(:O), i]
-getindex(I::MPolyIdeal, i::Int) = gen(I, i)
 
 #######################################################
 @doc raw"""

@@ -560,7 +560,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
   source_degrees = Vector{eltype(G)}()
   for i in 1:nrows(A)
       for j in 1:ncols(A)
-          if A[i, j] != R[0]
+          if !is_zero(A[i, j])
               push!(source_degrees, degree(A[i, j]) + degree(F[j]))
               break
           end
@@ -580,7 +580,7 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T
   source_degrees = Vector{eltype(G)}()
   for i in 1:nrows
     for j in 1:ncols
-      if coordinates(V[i])[j] != R[0]
+      if !is_zero(coordinates(V[i])[j])
         push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]))
         break
       end
@@ -599,7 +599,7 @@ function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}) where {T <
   source_degrees = Vector{eltype(G)}()
   for i in 1:nrows
     for (j, coord_val) in coordinates(V[i])
-      if coord_val != R[0]
+      if !is_zero(coord_val)
         push!(source_degrees, degree(coord_val) + degree(F[j]))
         break
       end
@@ -2258,7 +2258,7 @@ function tensor_product(G::FreeMod_dec...; task::Symbol = :none)
   if task == :none
     return F
   end
-  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
 

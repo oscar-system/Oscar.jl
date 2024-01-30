@@ -899,16 +899,6 @@ function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
 end
 
-@doc raw"""
-    getindex(F::SubquoModule, i::Int)
-
-Return the `i`th generator of `F`.
-"""
-function getindex(F::SubquoModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 function iterate(F::ModuleGens, i::Int = 1)
   if i>length(F)
     return nothing

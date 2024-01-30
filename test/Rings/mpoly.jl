@@ -295,7 +295,6 @@ end
   @test gen(F, 2) == F(y)
   @test gens(F) == elem_type(F)[ F(x), F(y), F(z) ]
   @test F[1] == F(x)
-  @test F[0] == zero(F)
 end
 
 @testset "Grassmann Plücker Relations" begin

@@ -64,7 +64,6 @@ end
 gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
 ngens(Q::MPolyQuoRing) = ngens(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
-Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
@@ -348,7 +347,6 @@ function gens(a::MPolyQuoIdeal)
 end
 
 gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
-getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
     ngens(a::MPolyQuoIdeal)
