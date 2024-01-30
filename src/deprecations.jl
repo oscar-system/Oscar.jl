@@ -659,3 +659,4 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate projection(W::WreathProductGroup) canonical_projection(W)
 
 @deprecate n_cones number_of_cones
+@deprecate n_connected_components number_of_connected_components

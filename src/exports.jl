@@ -1017,7 +1017,7 @@ export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
 export number_of_cones
-export n_connected_components
+export number_of_connected_components
 export n_gon
 export n_maximal_cells
 export n_maximal_cones
