@@ -376,7 +376,7 @@ number_of_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_rays(P) 
 _number_of_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
-    nvertices(P::Polyhedron)
+    number_of_vertices(P::Polyhedron)
 
 Return the number of vertices of `P`.
 
@@ -385,12 +385,12 @@ The 3-cube's number of vertices can be obtained with this input:
 ```jldoctest
 julia> C = cube(3);
 
-julia> nvertices(C)
+julia> number_of_vertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
-_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _number_of_rays(P)
+number_of_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_vertices(P) : 0
+_number_of_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _number_of_rays(P)
 
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)

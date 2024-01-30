@@ -146,13 +146,13 @@ end
 ################################################################################
 
 # @doc raw"""
-#     nv(tc::TropicalCurve)
+#     number_of_vertices(tc::TropicalCurve)
 
 # Return the number of vertices of an abstract tropical curve `tc`.
 # """
-# function nv(tc::TropicalCurve)
+# function number_of_vertices(tc::TropicalCurve)
 #     G = graph(tc)
-#     return nv(G)
+#     return number_of_vertices(G)
 # end
 
 
@@ -181,7 +181,7 @@ end
 # ```
 # """
 # function divisor_on_tropical_curve(tc::TropicalCurve{minOrMax, false}, coeffs::Vector{Int}) where minOrMax
-#     @req nv(tc)==length(coeffs) "Wrong number coefficients"
+#     @req nvertices(tc)==length(coeffs) "Wrong number coefficients"
 #     return DivisorOnTropicalCurve{minOrMax, false}(tc, coeffs)
 # end
 
@@ -317,7 +317,7 @@ end
 # function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 #     tc = base_curve(dtc)
 #     G = graph(base_curve(dtc))
-#     n = nv(G)
+#     n = nvertices(G)
 #     newcoeff = Vector{Int}(coefficients(dtc))
 #     S = Set{Int}(1:n)
 #     W = setdiff(S,vertex)
@@ -478,7 +478,7 @@ end
 # ```
 # """
 # function structure_tropical_jacobian(TropC::TropicalCurve)
-#     gg=Graph{Undirected}(nv(TropC))
+#     gg=Graph{Undirected}(nvertices(TropC))
 #     IM = graph(TropC)
 #     for i in 1:nedges(IM)
 #         row = Vector{Int}(Polymake.row(incidence_matrix(IM),i))

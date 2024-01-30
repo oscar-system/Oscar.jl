@@ -170,12 +170,12 @@ end
 
 
 @doc raw"""
-    nvertices(TropV::TropicalVariety)
+    number_of_vertices(TropV::TropicalVariety)
 
 Return the number of vertices of `TropV`.
 """
-function nvertices(TropV::TropicalVarietySupertype)
-    return nvertices(TropV.polyhedralComplex)
+function number_of_vertices(TropV::TropicalVarietySupertype)
+    return number_of_vertices(TropV.polyhedralComplex)
 end
 
 

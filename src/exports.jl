@@ -1078,8 +1078,7 @@ export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_small_groups, has_number_of_small_groups
 export number_of_transitive_groups, has_number_of_transitive_groups
 export numerator
-export nv
-export nvertices
+export number_of_vertices
 export objective_function
 export omega_group
 export on_indeterminates

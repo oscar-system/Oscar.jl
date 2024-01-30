@@ -7,7 +7,7 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, G) do loaded
               @test loaded isa Graph{Undirected}
               @test Base.propertynames(G) == Base.propertynames(loaded)
-              @test nv(G) == nv(loaded)
+              @test nvertices(G) == nvertices(loaded)
               @test nedges(G) == nedges(loaded)
             end
         end

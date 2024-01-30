@@ -40,7 +40,7 @@ minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types
 number_of_maximal_polyhedra(PC::PolyhedralComplex)
 number_of_polyhedra(PC::PolyhedralComplex)
 number_of_rays(PC::PolyhedralComplex)
-nvertices(PC::PolyhedralComplex)
+number_of_vertices(PC::PolyhedralComplex)
 polyhedra_of_dim
 rays(PC::PolyhedralComplex{T}) where T<:scalar_types
 rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types

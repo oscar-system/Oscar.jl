@@ -98,7 +98,7 @@ function transition_graph(C::Covering)
     edge_dict = Dict{Tuple{Int, Int}, Int}()
     edge_count = 1::Int
     C.transition_graph = Graph{Undirected}(0)
-    for v in 1:nv(gluing_graph(C))
+    for v in 1:nvertices(gluing_graph(C))
       W = neighbors(gluing_graph(C), v)
       for i in 1:length(W)-1
         for j in i+1:length(W)
@@ -134,7 +134,7 @@ function fill_transitions!(C::Covering)
   dirty = true
   while dirty
     dirty = false
-    for v in 1:nv(gg)
+    for v in 1:nvertices(gg)
       W = neighbors(gg, v)
       for i in 1:length(W)-1
         for j in i+1:length(W)
