@@ -31,6 +31,7 @@ function number_of_facets end
 function number_of_maximal_cells end
 function number_of_maximal_cones end
 function number_of_maximal_polyhedra end
+function number_of_partitions end                   # from experimental/JuLie
 function number_of_patches end
 function number_of_points end
 function number_of_polyhedra end
@@ -41,6 +42,7 @@ function number_of_rays end
 @alias nmaxcells number_of_maximal_cells            # decided to have but not used anywhere
 @alias nmaxcones number_of_maximal_cones
 @alias nmaxpolyhedra number_of_maximal_polyhedra    # decided to have but not used anywhere
+@alias npartitions number_of_partitions             # decided to have but not used anywhere
 @alias npatches number_of_patches
 @alias npoints number_of_points                     # decided to have but not used anywhere
 @alias npolyhedra number_of_polyhedra               # decided to have but not used anywhere

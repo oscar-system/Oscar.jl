@@ -664,3 +664,4 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate n_maximal_cones number_of_maximal_cones
 @deprecate n_maximal_polyhedra number_of_maximal_polyhedra
 @deprecate ne number_of_edges
+@deprecate num_partitions number_of_partitions
