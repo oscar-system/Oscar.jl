@@ -140,7 +140,7 @@ end
 @testset "Primitive groups" begin
    @test has_primitive_groups(50)
    @test_throws ArgumentError primitive_group(1, 1)
-   @test number_primitive_groups(50) == 9
+   @test number_of_primitive_groups(50) == 9
 end
 
 @testset "Atlas groups" begin

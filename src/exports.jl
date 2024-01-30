@@ -1074,7 +1074,7 @@ export number_of_complement_equations
 export number_of_factors
 export number_of_partitions
 export number_of_perfect_groups, has_number_of_perfect_groups
-export number_primitive_groups, has_number_primitive_groups
+export number_of_primitive_groups, has_number_of_primitive_groups
 export number_small_groups, has_number_small_groups
 export number_transitive_groups, has_number_transitive_groups
 export numerator

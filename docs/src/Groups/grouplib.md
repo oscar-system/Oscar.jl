@@ -41,10 +41,10 @@ TODO: give proper attribution to the primitive groups library (in particular, ci
 
 ```@docs
 all_primitive_groups
-has_number_primitive_groups
+has_number_of_primitive_groups
 has_primitive_group_identification
 has_primitive_groups
-number_primitive_groups
+number_of_primitive_groups
 primitive_group
 primitive_group_identification
 ```
