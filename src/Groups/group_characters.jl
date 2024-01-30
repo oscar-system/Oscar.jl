@@ -950,7 +950,7 @@ end
 #
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
