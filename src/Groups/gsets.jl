@@ -42,7 +42,7 @@ abstract type GSet{T} end
     function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where T<:GAPGroup
         @assert ! isempty(seeds)
         Omega = new{T}(G, fun, seeds, Dict{Symbol,Any}())
-        closed && set_attribute!(Omega, :elements => collect(seeds))
+        closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
     end
 end
