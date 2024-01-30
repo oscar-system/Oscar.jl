@@ -1016,7 +1016,7 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
-export n_cones
+export number_of_cones
 export n_connected_components
 export n_gon
 export n_maximal_cells

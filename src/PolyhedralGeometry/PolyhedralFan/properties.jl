@@ -256,7 +256,7 @@ julia> n_maximal_cones(PF)
 n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
-    n_cones(PF::PolyhedralFan)
+    number_of_cones(PF::PolyhedralFan)
 
 Return the number of cones of `PF`.
 
@@ -267,11 +267,11 @@ cones in this fan.
 julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
-julia> n_cones(PF)
+julia> number_of_cones(PF)
 4
 ```
 """
-n_cones(PF::_FanLikeType) = nrows(cones(PF))
+number_of_cones(PF::_FanLikeType) = nrows(cones(PF))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)

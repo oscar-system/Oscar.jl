@@ -657,3 +657,5 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate projection(G::SemidirectProductGroup) canonical_projection(G)
 @deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
 @deprecate projection(W::WreathProductGroup) canonical_projection(W)
+
+@deprecate n_cones number_of_cones

@@ -23,3 +23,7 @@ include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
 @alias is_valid isvalid
+
+# add some shorthands for our functions
+function number_of_cones end
+@alias ncones number_of_cones

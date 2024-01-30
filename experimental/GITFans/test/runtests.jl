@@ -77,7 +77,7 @@
     @test nrays(fanobj) == 20
     @test dim(fanobj) == 5
     @test n_maximal_cones(fanobj) == 76
-    @test n_cones(fanobj) == 671
+    @test number_of_cones(fanobj) == 671
     @test !is_complete(fanobj)
     @test is_pointed(fanobj)
     @test !is_regular(fanobj)
