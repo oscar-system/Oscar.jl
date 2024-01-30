@@ -812,7 +812,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s), -w.vec[s])
+  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s:s), -w.vec[s])
   return w
 end
 
