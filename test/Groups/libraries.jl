@@ -131,8 +131,8 @@ end
    @test length(all_small_groups(16, exponent=>[2,4]))==8
    @test length(all_small_groups(16, exponent=>5))==0
    @test length(all_small_groups(order => 16, !is_abelian))==9
-   @test number_small_groups(16)==14
-   @test number_small_groups(17)==1
+   @test number_of_small_groups(16)==14
+   @test number_of_small_groups(17)==1
 
    @test_throws ArgumentError small_group(1, 2)
 end

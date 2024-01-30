@@ -93,10 +93,10 @@ TODO: give proper attribution to the smallgrp package and other things used (in 
 
 ```@docs
 all_small_groups
-has_number_small_groups
+has_number_of_small_groups
 has_small_group_identification
 has_small_groups
-number_small_groups
+number_of_small_groups
 small_group
 small_group_identification
 ```

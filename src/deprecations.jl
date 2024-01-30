@@ -680,3 +680,5 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate has_number_perfect_groups has_number_of_perfect_groups
 @deprecate number_primitive_groups number_of_primitive_groups
 @deprecate has_number_primitive_groups has_number_of_primitive_groups
+@deprecate number_small_groups number_of_small_groups
+@deprecate has_number_small_groups has_number_of_small_groups
