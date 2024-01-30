@@ -43,8 +43,8 @@ import ..Oscar:
   gen,
   gens,
   height,
-  hom,
   hom_tensor,
+  hom,
   ideal,
   identity_map,
   image,
@@ -63,11 +63,11 @@ import ..Oscar:
   kernel,
   lower_central_series,
   matrix,
+  normalizer,
   number_of_generators, ngens,
   number_of_positive_roots, nposroots,        # aliases do not work in experimental
   number_of_roots, nroots,                    # aliases do not work in experimental
   number_of_simple_roots, nsimpleroots,       # aliases do not work in experimental
-  normalizer,
   order,
   parent_type,
   rank,
@@ -171,9 +171,9 @@ export reflect, reflect!
 export root_system_type, has_root_system_type
 export root_system, has_root_system
 export show_dynkin_diagram
-export simple_module
 export simple_coroot
 export simple_coroots
+export simple_module
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
@@ -295,9 +295,9 @@ export root_system_type, has_root_system_type
 export root_system, has_root_system
 export roots
 export show_dynkin_diagram
-export simple_module
 export simple_coroot
 export simple_coroots
+export simple_module
 export simple_root
 export simple_roots
 export special_linear_lie_algebra
