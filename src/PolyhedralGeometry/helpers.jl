@@ -79,7 +79,7 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        t = typeof(m[i])
+        t = i === nothing ? QQFieldElem : typeof(m[i])
         if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
@@ -101,8 +101,8 @@ assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rati
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
-    v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
-    return v
+    T = i === nothing ? QQFieldElem : typeof(v[i])
+    return Polymake.Vector{_scalar_type_to_polymake(T)}(v)
 end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
