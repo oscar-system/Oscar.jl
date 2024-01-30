@@ -160,12 +160,12 @@ end
 
 
 @doc raw"""
-    npolyhedra(TropV::TropicalVariety)
+    number_of_polyhedra(TropV::TropicalVariety)
 
 Return the number of polyhedra of `TropV`.
 """
-function npolyhedra(TropV::TropicalVarietySupertype)
-    return npolyhedra(TropV.polyhedralComplex)
+function number_of_polyhedra(TropV::TropicalVarietySupertype)
+    return number_of_polyhedra(TropV.polyhedralComplex)
 end
 
 

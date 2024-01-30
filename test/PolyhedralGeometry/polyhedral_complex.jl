@@ -82,7 +82,7 @@
     # Since there is lineality, there are no rays or vertices
     @test nrays(PCFL) == 0
     @test nvertices(PCFL) == 0
-    @test npolyhedra(PCL) == 9
+    @test number_of_polyhedra(PCL) == 9
     @test codim(PCF) == 0
     @test is_embedded(PC)
 

@@ -1064,7 +1064,7 @@ export normalized_volume
 export normalizer
 export number_of_patches
 export number_of_points
-export npolyhedra
+export number_of_polyhedra
 export nrays
 export nullity
 export number_atlas_groups

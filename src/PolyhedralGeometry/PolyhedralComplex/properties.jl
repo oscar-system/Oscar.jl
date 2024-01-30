@@ -566,7 +566,7 @@ nvertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nvertices(PC) : 0
 _nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _nrays(PC)
 
 @doc raw"""
-    npolyhedra(PC::PolyhedralComplex)
+    number_of_polyhedra(PC::PolyhedralComplex)
 
 Return the total number of polyhedra in the polyhedral complex `PC`.
 
@@ -580,11 +580,11 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
-julia> npolyhedra(PC)
+julia> number_of_polyhedra(PC)
 6
 ```
 """
-npolyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
+number_of_polyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
 
 @doc raw"""
     codim(PC::PolyhedralComplex)

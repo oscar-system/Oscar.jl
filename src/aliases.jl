@@ -33,6 +33,7 @@ function number_of_maximal_cones end
 function number_of_maximal_polyhedra end
 function number_of_patches end
 function number_of_points end
+function number_of_polyhedra end
 @alias ncones number_of_cones
 @alias nedges number_of_edges
 @alias nfacets number_of_facets
@@ -41,3 +42,4 @@ function number_of_points end
 @alias nmaxpolyhedra number_of_maximal_polyhedra    # decided to have but not used anywhere
 @alias npatches number_of_patches
 @alias npoints number_of_points                     # decided to have but not used anywhere
+@alias npolyhedra number_of_polyhedra               # decided to have but not used anywhere
