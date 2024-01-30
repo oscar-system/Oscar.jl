@@ -1062,7 +1062,7 @@ export normalization_with_delta
 export normalize!
 export normalized_volume
 export normalizer
-export npatches
+export number_of_patches
 export npoints
 export npolyhedra
 export nrays

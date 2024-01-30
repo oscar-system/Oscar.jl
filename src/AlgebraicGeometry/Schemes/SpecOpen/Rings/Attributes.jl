@@ -55,7 +55,7 @@ scheme(f::SpecOpenRingElem) = scheme(parent(f))
 domain(f::SpecOpenRingElem) = domain(parent(f))
 restrictions(f::SpecOpenRingElem) = f.restrictions
 affine_patches(f::SpecOpenRingElem) = affine_patches(domain(f))
-npatches(f::SpecOpenRingElem) = length(restrictions(f))
+number_of_patches(f::SpecOpenRingElem) = length(restrictions(f))
 getindex(f::SpecOpenRingElem, i::Int) = getindex(restrictions(f), i)
 getindex(f::SpecOpenRingElem, U::AbsSpec) = restrictions(f)[domain(f)[U]]
 
