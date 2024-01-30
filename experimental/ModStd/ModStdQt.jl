@@ -1090,7 +1090,7 @@ end
 
 Base.size(V::Vandermonde) = (length(V.val), V.val)
 Base.getindex(V::Vandermonde, i::Int, j::Int) = V.val[i]^(j-1)
-Oscar.nrows(V::Vandermonde) = size(V)[1]
+Oscar.number_of_rows(V::Vandermonde) = size(V)[1]
 Oscar.number_of_columns(V::Vandermonde) = size(V)[1]
 Oscar.base_ring(V::Vandermonde) = parent(V.val[1])
 
@@ -1100,7 +1100,7 @@ end
 
 Base.size(V::VandermondeT) = size(V.V)
 Base.getindex(V::VandermondeT, i::Int, j::Int) = V.V[j,i]
-Oscar.nrows(V::VandermondeT) = size(V)[1]
+Oscar.number_of_rows(V::VandermondeT) = size(V)[1]
 Oscar.number_of_columns(V::VandermondeT) = size(V)[1]
 Oscar.base_ring(V::VandermondeT) = base_ring(V.V)
 
@@ -1111,7 +1111,7 @@ struct Hankel{T} <: MatElem{T}
   v::Vector{T}
 end
 Base.size(V::Hankel) = (div(length(V.v)+1, 2), div(length(V.v)+1, 2))
-Oscar.nrows(V::Hankel) = size(V)[1]
+Oscar.number_of_rows(V::Hankel) = size(V)[1]
 Oscar.number_of_columns(V::Hankel) = size(V)[1]
 Oscar.base_ring(V::Hankel) = parent(V.v[1])
 Base.getindex(V::Hankel, i::Int, j::Int)  = V.v[j+i-1]

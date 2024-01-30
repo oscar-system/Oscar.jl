@@ -438,11 +438,11 @@ matrix(x::MatrixGroupElem) = x.elm
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
-    nrows(x::MatrixGroupElem)
+    number_of_rows(x::MatrixGroupElem)
 
 Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = nrows(matrix(x))
+number_of_rows(x::MatrixGroupElem) = number_of_rows(matrix(x))
 
 """
     number_of_columns(x::MatrixGroupElem)
