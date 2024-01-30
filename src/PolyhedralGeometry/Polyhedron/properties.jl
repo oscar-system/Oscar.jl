@@ -350,7 +350,7 @@ vertices(P::Polyhedron) = vertices(PointVector, P)
 _vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 @doc raw"""
-    nrays(P::Polyhedron)
+    number_of_rays(P::Polyhedron)
 
 Return the number of rays of `P`, i.e. the number of rays of the recession cone
 of `P`.
@@ -361,19 +361,19 @@ The two-dimensional positive orthant has two rays.
 julia> PO = convex_hull([0 0],[1 0; 0 1])
 Polyhedron in ambient dimension 2
 
-julia> nrays(PO)
+julia> number_of_rays(PO)
 2
 ```
 The upper half-plane has no ray, since it has lineality.
 ```jldoctest
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
-julia> nrays(UH)
+julia> number_of_rays(UH)
 0
 ```
 """
-nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
-_nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+number_of_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_rays(P) : 0
+_number_of_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
     nvertices(P::Polyhedron)
@@ -390,7 +390,7 @@ julia> nvertices(C)
 ```
 """
 nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
-_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
+_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _number_of_rays(P)
 
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)

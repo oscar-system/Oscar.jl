@@ -50,7 +50,7 @@ is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
 number_of_facets(C::Cone)
-nrays(C::Cone)
+number_of_rays(C::Cone)
 rays(C::Cone{T}) where T<:scalar_types
 rays_modulo_lineality(C::Cone{T}) where T<:scalar_types
 ray_degrees(C::Cone)

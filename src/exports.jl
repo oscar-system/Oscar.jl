@@ -1065,7 +1065,7 @@ export normalizer
 export number_of_patches
 export number_of_points
 export number_of_polyhedra
-export nrays
+export number_of_rays
 export nullity
 export number_atlas_groups
 export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes

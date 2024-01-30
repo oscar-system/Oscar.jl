@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
   lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
 _rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _ray_cone, _nrays(C))
+  SubObjectIterator{as}(C, _ray_cone, _number_of_rays(C))
 
 _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
@@ -229,23 +229,23 @@ julia> number_of_facets(C)
 number_of_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc raw"""
-    nrays(C::Cone)
+    number_of_rays(C::Cone)
 
 Return the number of rays of `C`.
 
 # Examples
-Here a cone is constructed from three rays. Calling `nrays` reveals that one of these was redundant:
+Here a cone is constructed from three rays. Calling `number_of_rays` reveals that one of these was redundant:
 ```jldoctest
 julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> nrays(PO)
+julia> number_of_rays(PO)
 2
 ```
 """
-nrays(C::Cone) = lineality_dim(C) == 0 ? _nrays(C) : 0
-_nrays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+number_of_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
+_number_of_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc raw"""
     dim(C::Cone)
