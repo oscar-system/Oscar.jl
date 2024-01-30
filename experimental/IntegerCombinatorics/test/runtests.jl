@@ -4,7 +4,7 @@
     for a in [ :ks, :m ]
       P = Oscar.ascending_partitions(n,algorithm=a)
       # check that number of partitions is correct
-      @test length(P) == num_partitions(n)
+      @test length(P) == number_of_partitions(n)
       # check that all partitions are distinct
       @test P == unique(P)
       # check that partitions are really partitions of n

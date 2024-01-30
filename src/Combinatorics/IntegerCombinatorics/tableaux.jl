@@ -9,26 +9,51 @@
 
 ################################################################################
 #
-#  Constructor and basic functionality
+#  Constructor and printing
 #
 ################################################################################
 
 @doc raw"""
-    young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion
+    young_tableau([::Type{T}], v::Vector{Vector{<:IntegerUnion}}; check::Bool = true) where T <: IntegerUnion
 
 Return the Young tableau given by `v` as an object of type `YoungTableau{T}`.
 
-See[`YoungTableau`](@ref) for more details and examples.
+The element type `T` may be optionally specified, see also the examples below.
 
 If `check` is `true` (default), it is checked whether `v` defines a tableau,
 that is, whether the structure of `v` defines a partition.
+
+# Examples
+```jldoctest
+julia> young_tableau([[1, 2, 3], [4, 5], [6]])
++---+---+---+
+| 1 | 2 | 3 |
++---+---+---+
+| 4 | 5 |
++---+---+
+| 6 |
++---+
+
+julia> young_tableau(Int8, [[1, 2, 3], [4, 5], [6]]) # save the elements in 8-bit integers
++---+---+---+
+| 1 | 2 | 3 |
++---+---+---+
+| 4 | 5 |
++---+---+
+| 6 |
++---+
+```
 """
-function young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion
+young_tableau
+
+function young_tableau(::Type{T}, v::Vector{Vector{TT}}; check::Bool = true) where {T <: IntegerUnion, TT <: IntegerUnion}
   if check
     @req _defines_partition(map(length, v)) "The input does not define a Young tableau"
   end
-  return YoungTableau(v)
+  return YoungTableau{T}(v)
 end
+
+young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion = young_tableau(T, v, check = check)
 
 data(tab::YoungTableau) = tab.t
 
@@ -193,10 +218,10 @@ push!(tab::YoungTableau{T}, r::Vector{T}) where T <: IntegerUnion = push!(tab.t,
 ################################################################################
 
 @doc raw"""
-    shape(tab::YoungTableau{T})
+    shape(tab::YoungTableau)
 
-Return the shape of a tableau, i.e. the partition given by the lengths of the
-rows of the tableau.
+Return the shape of the tableau `tab`, i.e. the partition given by the lengths
+of the rows of the tableau.
 """
 function shape(tab::YoungTableau{T}) where T
   return partition(T[ length(tab[i]) for i = 1:length(tab) ], check = false)
@@ -205,9 +230,8 @@ end
 @doc raw"""
     weight(tab::YoungTableau)
 
-The **weight** of a tableau is the number of times each number appears in the
-tableau. The return value is an array whose `i`-th element gives the number of
-times the integer `i` appears in the tableau.
+Return the weight of the tableau `tab` as an array whose `i`-th element gives
+the number of times the integer `i` appears in the tableau.
 """
 function weight(tab::YoungTableau)
   if isempty(tab)
@@ -233,13 +257,12 @@ end
 @doc raw"""
     reading_word(tab::YoungTableau)
 
-The **reading word** of a tableau is the word obtained by concatenating the
-fillings of the rows, starting from the *bottom* row. The word is here
-returned as an array.
+Return the reading word of the tableau `tab` as an array, i.e. the word obtained
+by concatenating the fillings of the rows, starting from the *bottom* row.
 
 # Examples
 ```jldoctest
-julia> reading_word(young_tableau([ [1, 2, 3] , [4, 5] , [6] ]))
+julia> reading_word(young_tableau([[1, 2, 3], [4, 5], [6]]))
 6-element Vector{Int64}:
  6
  4
@@ -270,8 +293,12 @@ end
 @doc raw"""
     is_semistandard(tab::YoungTableau)
 
+Return `true` if the tableau `tab` is semistandard and `false` otherwise.
+
 A tableau is called **semistandard** if the entries weakly increase along each
 row and strictly increase down each column.
+
+See also [`is_standard`](@ref).
 """
 function is_semistandard(tab::YoungTableau)
   s = shape(tab)
@@ -313,11 +340,15 @@ end
 
 @doc raw"""
     semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
+    semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
 
-Return a list of all semistandard tableaux of given shape and filling
-elements bounded by `max_val`. By default, `max_val` is equal to the sum
-of the shape partition (the number of boxes in the Young diagram). The
-list of tableaux is in lexicographic order from left to right and top
+Return all semistandard Young tableaux of given shape `shape` and filling elements
+bounded by `max_val`.
+
+By default, `max_val` is equal to the sum of the shape partition (the number of
+boxes in the Young diagram).
+
+The list of tableaux is in lexicographic order from left to right and top
 to bottom.
 """
 function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
@@ -380,11 +411,6 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) whe
   end
 end
 
-@doc raw"""
-    semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
-
-Shortcut for `semistandard_tableaux(Partition(shape), max_val)`.
-"""
 function semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
   return semistandard_tableaux(partition(shape, check = false), max_val)
 end
@@ -392,8 +418,8 @@ end
 @doc raw"""
     semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
 
-Return a list of all semistandard tableaux consisting of `box_num`
-boxes and filling elements bounded by `max_val`.
+Return all semistandard Young tableaux consisting of `box_num` boxes and
+filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
   @req box_num >= 0 "box_num >= 0 required"
@@ -414,9 +440,10 @@ end
 
 
 @doc raw"""
+    semistandard_tableaux(s::Partition{T}, weight::Vector{T}) where T <: Integer
     semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
 
-Return a list of all semistandard tableaux with shape `s` and given weight. This
+Return all semistandard Young tableaux with shape `s` and given weight. This
 requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
@@ -529,8 +556,12 @@ end
 @doc raw"""
     is_standard(tab::YoungTableau)
 
+Return `true` if the tableau `tab` is standard and `false` otherwise.
+
 A tableau is called **standard** if it is semistandard and the entries
-are in bijection with ``1, …, n``, where ``n`` is the number of boxes.
+are in bijection with `1, ..., n`, where `n` is the number of boxes.
+
+See also [`is_semistandard`](@ref).
 """
 function is_standard(tab::YoungTableau)
   s = shape(tab)
@@ -589,7 +620,7 @@ end
     standard_tableaux(s::Partition)
     standard_tableaux(s::Vector{Integer})
 
-Return a list of all standard tableaux of a given shape.
+Return all standard Young tableaux of a given shape `s`.
 """
 function standard_tableaux(s::Partition)
   tabs = Vector{YoungTableau}()
@@ -648,7 +679,7 @@ end
 @doc raw"""
     standard_tableaux(n::Integer)
 
-Return a list of all standard tableaux with n boxes.
+Return all standard Young tableaux with `n` boxes.
 """
 function standard_tableaux(n::Integer)
   @req n >= 0 "n >= 0 required"
@@ -666,14 +697,19 @@ end
 ################################################################################
 
 @doc raw"""
+    hook_length(tab::YoungTableau, i::Integer, j::Integer)
     hook_length(lambda::Partition, i::Integer, j::Integer)
 
-Consider the Young diagram of a partition ``λ``. The **hook length** of a
-box, is the number of boxes to the right in the same row + the number
-of boxes below in the same column + 1. The function returns the hook
-length of the box with coordinates `(i, j)`. The functions assumes that
-the box exists.
+Return the hook length of the box with coordinates `(i, j)` in the Young tableau
+`tab` respectively the Young diagram of shape `lambda`.
+
+The **hook length** of a box is the number of boxes to the right in the same
+row + the number of boxes below in the same column + 1.
+
+See also [`hook_lengths`](@ref).
 """
+hook_length
+
 function hook_length(lambda::Partition, i::Integer, j::Integer)
   h = lambda[i] - j + 1
   k = i + 1
@@ -684,11 +720,6 @@ function hook_length(lambda::Partition, i::Integer, j::Integer)
   return h
 end
 
-@doc raw"""
-    hook_length(tab::YoungTableau, i::Integer, j::Integer)
-
-Shortcut for `hook_length(shape(tab), i, j)`.
-"""
 function hook_length(tab::YoungTableau, i::Integer, j::Integer)
   return hook_length(shape(tab), i, j)
 end
@@ -696,8 +727,10 @@ end
 @doc raw"""
     hook_lengths(lambda::Partition)
 
-Return the tableau of shape ``λ`` in which the entry at position `(i, j)`
-is equal to the hook length of the corresponding box.
+Return the Young tableau of shape `lambda` in which the entry at position
+`(i, j)` is equal to the hook length of the corresponding box.
+
+See also [`hook_length`](@ref).
 """
 function hook_lengths(lambda::Partition)
   if isempty(lambda)
@@ -710,15 +743,7 @@ end
 @doc raw"""
     number_of_standard_tableaux(lambda::Partition)
 
-Return the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
-
-$$f^λ = \frac{n!}{\prod_{i, j} h_λ(i, j)}, $$
-
-where the product is taken over all boxes in the Young diagram of ``λ`` and
-``h_λ`` denotes the hook length of the box (i, j).
-
-# References
-1. Wikipedia, [Hook length formula](https://en.wikipedia.org/wiki/Hook_length_formula).
+Return the number of standard Young tableaux of shape `lambda`.
 """
 function number_of_standard_tableaux(lambda::Partition)
   n = sum(lambda)
@@ -741,11 +766,9 @@ end
     schensted(sigma::Vector{<:IntegerUnion})
     schensted(sigma::PermGroupElem)
 
-The Robinson–Schensted correspondence is a bijection between
-permutations and pairs of standard Young tableaux of the same shape. For
-a permutation sigma (given as an array), this function performs the
-Schensted algorithm and returns the corresponding pair of standard
-tableaux (the insertion and recording tableaux).
+Return the pair of standard Young tableaux (the insertion and the recording
+tableau) corresponding to the permutation `sigma` under the Robinson-Schensted
+correspondence.
 
 # Examples
 ```jldoctest
@@ -770,10 +793,9 @@ julia> Q
 +---+
 
 ```
-
-# References
-1. Wikipedia, [Robinson–Schensted correspondence](https://en.wikipedia.org/wiki/Robinson–Schensted_correspondence)
 """
+schensted
+
 function schensted(sigma::Vector{T}) where T <: IntegerUnion
   if isempty(sigma)
     return young_tableau(Vector{T}[], check = false), young_tableau(Vector{T}[], check = false)
@@ -795,11 +817,8 @@ schensted(sigma::PermGroupElem) = schensted(Int, sigma)
 @doc raw"""
     bump!(tab::YoungTableau, x::Int)
 
-Inserts the integer `x` into the tableau `tab` according to the bumping
+Insert the integer `x` into the tableau `tab` according to the bumping
 algorithm by applying the Schensted insertion.
-
-# References
-1. Wolfram MathWorld, [Bumping Algorithm](https://mathworld.wolfram.com/BumpingAlgorithm.html)
 """
 function bump!(tab::YoungTableau, x::Integer)
   if isempty(tab)
@@ -832,9 +851,9 @@ end
 @doc raw"""
     bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
 
-Inserts `x` into tab according to the bumping algorithm by applying the
-Schensted insertion. Traces the change with `Q` by inserting `y` at the same
-position in `Q` as `x` in tab.
+Insert the integer `x` into `tab` according to the bumping algorithm by applying
+the Schensted insertion and insert the integer `y` into `Q` at the same position
+as `x` in `tab`.
 """
 function bump!(tab::YoungTableau, x::Integer, Q::YoungTableau, y::Integer)
   if isempty(tab)

@@ -8,16 +8,15 @@
 ################################################################################
 
 @doc raw"""
-    schur_polynomial(lambda::Partition{T}, n::Int = length(lambda)) where T <: IntegerUnion
-    schur_polynomial(R::ZZMPolyRing, lambda::Partition{T}, n::Int = length(lambda)) where T <: IntegerUnion
+    schur_polynomial([R::ZZMPolyRing], lambda::Partition, n::Int = length(lambda))
 
-Return the Schur polynomial ``s_λ(x_1, x_2, ..., x_n)`` in `n` variables.
+Return the Schur polynomial `s` of the partition `lambda` in `n` variables.
 
-If `R` is not given, the Schur polynomial will be over `polynomial_ring(ZZ, n)`.
+The ambient ring of `s` may optionally be supplied as a first argument.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(ZZ, ["a", "b", "c"]);
+julia> R, _ = ZZ[:a, :b, :c];
 
 julia> schur_polynomial(R, partition([2, 1]))
 a^2*b + a*b^2
@@ -27,29 +26,6 @@ a^2*b + a^2*c + a*b^2 + 2*a*b*c + a*c^2 + b^2*c + b*c^2
 
 julia> schur_polynomial(partition([2]))
 x1^2
-```
-
-# Algorithm
-We use two different Algorithms, depending on the size of the input.
-The Combinatorial Algorithm is used for Partitions of small integers, or if
-``n ≥ 10``. In the other cases we use Cauchy's bialternant formula.
-
-**Combinatorial Algorithm**
-```math
-s_λ := ∑_T x_1^{m_1}…x_n^{m_n}
-```
-where the sum is taken over all semistandard tableaux ``T`` of shape ``λ``,
-and ``m_i`` gives the weight of ``i`` in ``T``.
-
-**Cauchy's bialternant formula**
-```math
-s_\lambda(x_1, \dots, x_n) = \prod_{1\leq i < j \leq n} (x_i - x_j)^{-1}
-\begin{vmatrix}
-x_1^{λ_1 + n - 1} & x_2^{λ_1 + n - 1} & … & x_n^{λ_1 + n - 1} \\
-x_1^{λ_2 + n - 2} & x_2^{λ_2 + n - 2} & … & x_n^{λ_2 + n - 2} \\
-⋮ & ⋮ & ⋱ & ⋮ \\
-x_1^{λ_n} & x_2^{λ_n} & … & x_n^{λ_n}
-\end{vmatrix}
 ```
 """
 function schur_polynomial(lambda::Partition{T}, n::Int = length(lambda)) where T <: IntegerUnion
