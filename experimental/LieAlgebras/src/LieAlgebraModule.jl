@@ -923,7 +923,7 @@ function tensor_product(
     symbols(Vs[1])
   else
     [
-      Symbol(join(s, " ⊗ ")) for s in
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for s in
       reverse.(
         ProductIterator([
           is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
@@ -1295,15 +1295,15 @@ over special linear Lie algebra of degree 3 over QQ
 
 julia> basis(T)
 9-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
- (v_1∧v_2) ⊗ (v_1∧v_2)
- (v_1∧v_2) ⊗ (v_1∧v_3)
- (v_1∧v_2) ⊗ (v_2∧v_3)
- (v_1∧v_3) ⊗ (v_1∧v_2)
- (v_1∧v_3) ⊗ (v_1∧v_3)
- (v_1∧v_3) ⊗ (v_2∧v_3)
- (v_2∧v_3) ⊗ (v_1∧v_2)
- (v_2∧v_3) ⊗ (v_1∧v_3)
- (v_2∧v_3) ⊗ (v_2∧v_3)
+ (v_1^v_2)(x)(v_1^v_2)
+ (v_1^v_2)(x)(v_1^v_3)
+ (v_1^v_2)(x)(v_2^v_3)
+ (v_1^v_3)(x)(v_1^v_2)
+ (v_1^v_3)(x)(v_1^v_3)
+ (v_1^v_3)(x)(v_2^v_3)
+ (v_2^v_3)(x)(v_1^v_2)
+ (v_2^v_3)(x)(v_1^v_3)
+ (v_2^v_3)(x)(v_2^v_3)
 ```
 """
 function tensor_power(
@@ -1337,9 +1337,15 @@ function tensor_power(
   elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
-    [Symbol(join(s, " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+    [
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   else
-    [Symbol(join((x -> "($x)").(s), " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   end
 
   T = LieAlgebraModule{C}(L, dim_T, transformation_matrices, s; check=false)
