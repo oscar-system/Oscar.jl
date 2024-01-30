@@ -673,3 +673,6 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate number_conjugacy_classes number_of_conjugacy_classes
 @deprecate has_number_conjugacy_classes has_number_of_conjugacy_classes
 @deprecate set_number_conjugacy_classes set_number_of_conjugacy_classes
+@deprecate number_moved_points number_of_moved_points
+@deprecate has_number_moved_points has_number_of_moved_points
+@deprecate set_number_moved_points set_number_of_moved_points

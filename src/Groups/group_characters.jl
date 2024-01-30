@@ -1746,7 +1746,7 @@ function natural_character(G::PermGroup)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
-    vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
+    vals = [FF(n - number_of_moved_points(representative(x))) for x in ccl]
     return class_function(G, vals)
 end
 
@@ -1827,7 +1827,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       modtbl = tbl
       ccl = conjugacy_classes(tbl)
       n = degree(M)
-      vals = [FF(n - number_moved_points(rho(representative(x)))) for x in ccl]
+      vals = [FF(n - number_of_moved_points(rho(representative(x)))) for x in ccl]
     elseif M isa MatrixGroup
       p = characteristic(base_ring(M))
       if p == 0

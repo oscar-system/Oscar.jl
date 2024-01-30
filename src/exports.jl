@@ -1069,7 +1069,7 @@ export number_of_rays
 export nullity
 export number_of_atlas_groups
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
-export number_moved_points, has_number_moved_points, set_number_moved_points
+export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_complement_equations
 export number_of_factors
 export number_of_partitions
