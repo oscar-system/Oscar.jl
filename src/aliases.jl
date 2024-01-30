@@ -35,7 +35,10 @@ function number_of_partitions end                   # from experimental/JuLie
 function number_of_patches end
 function number_of_points end
 function number_of_polyhedra end
+function number_of_positive_roots end               # from experimental/LieAlgebras
 function number_of_rays end
+function number_of_roots end                        # from experimental/LieAlgebras
+function number_of_simple_roots end                 # from experimental/LieAlgebras
 @alias ncones number_of_cones
 @alias nedges number_of_edges
 @alias nfacets number_of_facets
@@ -46,4 +49,7 @@ function number_of_rays end
 @alias npatches number_of_patches
 @alias npoints number_of_points                     # decided to have but not used anywhere
 @alias npolyhedra number_of_polyhedra               # decided to have but not used anywhere
+@alias nposroots number_of_positive_roots
 @alias nrays number_of_rays
+@alias nroots number_of_roots
+@alias nsimpleroots number_of_simple_roots
