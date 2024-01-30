@@ -150,12 +150,12 @@ end
 
 
 @doc raw"""
-    n_maximal_polyhedra(TropV::TropicalVariety)
+    number_of_maximal_polyhedra(TropV::TropicalVariety)
 
 Return the number of maximal polyhedra of `TropV`.
 """
-function n_maximal_polyhedra(TropV::TropicalVarietySupertype)
-    return n_maximal_polyhedra(TropV.polyhedralComplex)
+function number_of_maximal_polyhedra(TropV::TropicalVarietySupertype)
+    return number_of_maximal_polyhedra(TropV.polyhedralComplex)
 end
 
 

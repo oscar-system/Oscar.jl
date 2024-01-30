@@ -660,3 +660,6 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 
 @deprecate n_cones number_of_cones
 @deprecate n_connected_components number_of_connected_components
+@deprecate n_maximal_cells number_of_maximal_cells
+@deprecate n_maximal_cones number_of_maximal_cones
+@deprecate n_maximal_polyhedra number_of_maximal_polyhedra

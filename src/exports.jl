@@ -1019,9 +1019,9 @@ export multiplicity
 export number_of_cones
 export number_of_connected_components
 export n_gon
-export n_maximal_cells
-export n_maximal_cones
-export n_maximal_polyhedra
+export number_of_maximal_cells
+export number_of_maximal_cones
+export number_of_maximal_polyhedra
 export name
 export names_of_fusion_sources
 export natural_character

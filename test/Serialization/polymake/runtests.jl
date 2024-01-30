@@ -9,7 +9,7 @@
         nf = load(joinpath(@__DIR__, "nf_square.fan"))
         @test nf isa PolyhedralFan{QQFieldElem}
         @test nrays(nf) == 4
-        @test n_maximal_cones(nf) == 4
+        @test number_of_maximal_cones(nf) == 4
 
         g = load(joinpath(@__DIR__, "square_graph.graph"))
         @test g isa Graph{Undirected}

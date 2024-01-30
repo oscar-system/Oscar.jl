@@ -61,7 +61,7 @@
     @test maximal_polyhedra(PC) isa SubObjectIterator{Polyhedron{T}}
     @test length(maximal_polyhedra(PC)) == 2
     @test maximal_polyhedra(PC) == convex_hull.([f], [P[1:3, :], P[[2, 4], :]])
-    @test n_maximal_polyhedra(PC) == 2
+    @test number_of_maximal_polyhedra(PC) == 2
     @test is_simplicial(PC)
     @test !is_pure(PCL)
     @test dim(PCL) == 3

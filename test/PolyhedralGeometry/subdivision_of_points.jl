@@ -33,9 +33,9 @@
     @testset "core functionality" begin
         @test !is_regular(MOAE)
         @test is_regular(SOP0)
-        @test n_maximal_cells(MOAE) == 7
-        @test n_maximal_cells(SOP0) == 1
-        @test n_maximal_cells(SOP1) == 1
+        @test number_of_maximal_cells(MOAE) == 7
+        @test number_of_maximal_cells(SOP0) == 1
+        @test number_of_maximal_cells(SOP1) == 1
         @test min_weights(SOP1) == [0,0,0,1,1,1]
         @test dim(C1) == 6
         @test dim(CMOAE) == 4

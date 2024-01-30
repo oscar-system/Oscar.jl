@@ -17,7 +17,7 @@
                 test_save_load_roundtrip(path, TC) do loaded
                     loaded_PC = polyhedral_complex(loaded)
                     @test nrays(PC) == nrays(loaded_PC)
-                    @test n_maximal_polyhedra(PC) == n_maximal_polyhedra(loaded_PC)
+                    @test number_of_maximal_polyhedra(PC) == number_of_maximal_polyhedra(loaded_PC)
                     @test dim(PC) == dim(loaded_PC)
                 end
             end

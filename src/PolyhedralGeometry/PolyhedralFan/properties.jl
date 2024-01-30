@@ -128,7 +128,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, nmaxcones(PF))
 
 _ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
 
@@ -239,7 +239,7 @@ julia> dim(PF)
 dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM::Int
 
 @doc raw"""
-    n_maximal_cones(PF::PolyhedralFan)
+    number_of_maximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
 
@@ -249,11 +249,11 @@ maximal cones.
 ```jldoctest
 julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
-julia> n_maximal_cones(PF)
+julia> number_of_maximal_cones(PF)
 2
 ```
 """
-n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
+number_of_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
     number_of_cones(PF::PolyhedralFan)

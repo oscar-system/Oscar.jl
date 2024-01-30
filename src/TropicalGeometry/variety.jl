@@ -52,7 +52,7 @@ Polyhedral complex in ambient dimension 1
 julia> tropical_variety(Sigma)
 Min tropical variety
 
-julia> mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+julia> mult = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
 2-element Vector{ZZRingElem}:
  1
  1
@@ -74,7 +74,7 @@ function tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, mi
     return TropicalVariety{typeof(minOrMax),true}(Sigma,mult)
 end
 function tropical_variety(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    mult = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
     return tropical_variety(Sigma,mult,minOrMax)
 end
 
@@ -305,7 +305,7 @@ function tropical_variety_linear(I::MPolyIdeal,nu::TropicalSemiringMap; weighted
         TropLh = tropical_linear_space(Ih,nu,weighted_polyhedral_complex_only=true)
         Sigma = dehomogenize_post_tropicalization(polyhedral_complex(TropLh))
 
-        multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+        multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
         TropV = tropical_variety(Sigma,multiplicities)
         if !weighted_polyhedral_complex_only
             set_attribute!(TropV,:algebraic_ideal,I)

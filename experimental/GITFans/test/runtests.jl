@@ -76,7 +76,7 @@
     c = cones(fanobj, 5)[1]
     @test nrays(fanobj) == 20
     @test dim(fanobj) == 5
-    @test n_maximal_cones(fanobj) == 76
+    @test number_of_maximal_cones(fanobj) == 76
     @test number_of_cones(fanobj) == 671
     @test !is_complete(fanobj)
     @test is_pointed(fanobj)

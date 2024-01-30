@@ -66,7 +66,7 @@ julia> rayIndices = [2,3,4];
 julia> Sigma = polyhedral_complex(incidenceMatrix, verticesAndRays, rayIndices)
 Polyhedral complex in ambient dimension 2
 
-julia> multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+julia> multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
 3-element Vector{ZZRingElem}:
  1
  1
@@ -81,7 +81,7 @@ function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingE
     return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 

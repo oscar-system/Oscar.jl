@@ -311,10 +311,10 @@ julia> maximal_polyhedra(PC)
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
-  SubObjectIterator{Polyhedron{T}}(PC, _maximal_polyhedron, n_maximal_polyhedra(PC))
+  SubObjectIterator{Polyhedron{T}}(PC, _maximal_polyhedron, number_of_maximal_polyhedra(PC))
 
 @doc raw"""
-    n_maximal_polyhedra(PC::PolyhedralComplex)
+    number_of_maximal_polyhedra(PC::PolyhedralComplex)
 
 Return the number of maximal polyhedra of `PC`
 
@@ -336,11 +336,11 @@ julia> VR = [0 0; 1 0; 1 1; 0 1]
 julia> PC = polyhedral_complex(IM, VR, [2])
 Polyhedral complex in ambient dimension 2
 
-julia> n_maximal_polyhedra(PC)
+julia> number_of_maximal_polyhedra(PC)
 2
 ```
 """
-n_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
+number_of_maximal_polyhedra(PC::PolyhedralComplex) = pm_object(PC).N_MAXIMAL_POLYTOPES
 
 @doc raw"""
     is_simplicial(PC::PolyhedralComplex)
