@@ -233,7 +233,7 @@ function normal_toric_variety_from_star_triangulation(P::Polyhedron)
 
   # Change order of lattice points s.t. zero is the first point
   tmp = pts[1:1,:]
-  pts[1:1,:] = pts[indices[1],:]
+  pts[1:1,:] = pts[indices[1]:indices[1],:]
   pts[indices[1]:indices[1],:] = tmp
 
   # Find one triangulation and turn it into the maximal cones of the toric variety in question. Note that:
