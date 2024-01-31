@@ -162,7 +162,7 @@ end
 
 
 """
-    normal_subgroups(G::Group)
+    normal_subgroups(G::GAPGroup)
 
 Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 
@@ -188,7 +188,7 @@ julia> normal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
 
 """
-    subgroups(G::Group)
+    subgroups(G::GAPGroup)
 
 Return all subgroups of `G`.
 
@@ -220,7 +220,7 @@ function subgroups(G::GAPGroup)
 end
 
 """
-    maximal_subgroups(G::Group)
+    maximal_subgroups(G::GAPGroup)
 
 Return all maximal subgroups of `G`.
 
@@ -244,7 +244,7 @@ julia> maximal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
 
 """
-    maximal_normal_subgroups(G::Group)
+    maximal_normal_subgroups(G::GAPGroup)
 
 Return all maximal normal subgroups of `G`, i.e., those proper
 normal subgroups of `G` that are maximal among the proper normal
@@ -267,7 +267,7 @@ julia> maximal_normal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
 
 """
-    minimal_normal_subgroups(G::Group)
+    minimal_normal_subgroups(G::GAPGroup)
 
 Return all minimal normal subgroups of `G`, i.e., of those
 nontrivial normal subgroups of `G` that are minimal among the
@@ -288,7 +288,7 @@ julia> minimal_normal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
 
 """
-    characteristic_subgroups(G::Group)
+    characteristic_subgroups(G::GAPGroup)
 
 Return the list of characteristic subgroups of `G`,
 i.e., those subgroups that are invariant under all automorphisms of `G`.
@@ -315,7 +315,7 @@ julia> characteristic_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
 
 @doc raw"""
-    center(G::Group)
+    center(G::GAPGroup)
 
 Return the center of `G`, i.e.,
 the subgroup of all $x$ in `G` such that $x y$ equals $y x$ for every $y$
@@ -333,7 +333,7 @@ julia> center(quaternion_group(8))
 @gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
 
 @doc raw"""
-    centralizer(G::Group, H::Group)
+    centralizer(G::GAPGroup, H::GAPGroup)
 
 Return the centralizer of `H` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
@@ -344,7 +344,7 @@ function centralizer(G::T, H::T) where T <: GAPGroup
 end
 
 @doc raw"""
-    centralizer(G::Group, x::GroupElem)
+    centralizer(G::GAPGroup, x::GAPGroupElem)
 
 Return the centralizer of `x` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
@@ -1159,8 +1159,8 @@ julia> derived_length(dihedral_group(8))
 ################################################################################
 
 @doc raw"""
-    intersect(V::T...) where T <: Group
-    intersect(V::AbstractVector{T}) where T <: Group
+    intersect(V::T...) where T <: GAPGroup
+    intersect(V::AbstractVector{T}) where T <: GAPGroup
 
 If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,

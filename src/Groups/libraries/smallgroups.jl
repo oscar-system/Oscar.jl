@@ -101,7 +101,7 @@ end
 
 
 """
-    small_group_identification(G::Group)
+    small_group_identification(G::GAPGroup)
 
 Return a pair of integer `(n, m)`, where `G` is isomorphic with `small_group(n, m)`.
 

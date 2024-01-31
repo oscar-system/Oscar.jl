@@ -161,7 +161,7 @@ end
 =#
 
 @doc raw"""
-    abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
+    abelian_group(::Type{T}, v::Vector{Int}) where T <: GAPGroup -> PcGroup
 
 Return the direct product of cyclic groups of the orders
 `v[1]`, `v[2]`, $\ldots$, `v[n]`, as an instance of `T`.
@@ -188,7 +188,7 @@ function abelian_group(::Type{PcGroup}, v::Vector{T}) where T <: IntegerUnion
 end
 
 @doc raw"""
-    is_abelian(G::Group)
+    is_abelian(G::GAPGroup)
 
 Return `true` if `G` is abelian (commutative),
 that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
@@ -196,7 +196,7 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 @gapattribute is_abelian(G::GAPGroup) = GAP.Globals.IsAbelian(G.X)::Bool
 
 @doc raw"""
-    is_elementary_abelian(G::Group)
+    is_elementary_abelian(G::GAPGroup)
 
 Return `true` if `G` is a abelian (see [`is_abelian`](@ref))
 and if there is a prime `p` such that the order of each element in `G`

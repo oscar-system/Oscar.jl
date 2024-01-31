@@ -459,7 +459,7 @@ end
 
 """
     wreath_product(G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup})
-    wreath_product(G::T, H::PermGroup) where T<: Group
+    wreath_product(G::T, H::PermGroup) where T<: GAPGroup
 
 Return the wreath product of the group `G` and the group `H`, where `H` acts
 on `n` copies of `G` through the homomorphism `a` from `H` to a permutation

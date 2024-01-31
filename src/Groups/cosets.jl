@@ -1,6 +1,6 @@
 # T=type of the group, S=type of the element
 """
-    GroupCoset{T<: Group, S <: GAPGroupElem}
+    GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
 
 Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H`
 (left cosets), where `H` is a subgroup of a group `G` and `x` is an element of
@@ -49,8 +49,8 @@ end
 
 
 """
-    right_coset(H::Group, g::GAPGroupElem)
-    *(H::Group, g::GAPGroupElem)
+    right_coset(H::GAPGroup, g::GAPGroupElem)
+    *(H::GAPGroup, g::GAPGroupElem)
 
 Return the coset `Hg`.
 
@@ -78,8 +78,8 @@ function right_coset(H::GAPGroup, g::GAPGroupElem)
 end
 
 """
-    left_coset(H::Group, g::GAPGroupElem)
-    *(g::GAPGroupElem, H::Group)
+    left_coset(H::GAPGroup, g::GAPGroupElem)
+    *(g::GAPGroupElem, H::GAPGroup)
 
 Return the coset `gH`.
 !!! note
@@ -357,7 +357,7 @@ end
 
 
 """
-    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_transversal(G::T, H::T; check::Bool=true) where T <: GAPGroup
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
@@ -394,7 +394,7 @@ function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
 end
 
 """
-    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
+    left_transversal(G::T, H::T; check::Bool=true) where T <: GAPGroup
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
@@ -444,7 +444,7 @@ end
 
 
 """
-    GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
+    GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 
 Group double coset. It is displayed as `H * x * K`, where `H` and `K` are
 subgroups of a group `G` and `x` is an element of `G`. Two double cosets are
@@ -476,8 +476,8 @@ end
 
 
 """
-    double_coset(H::Group, x::GAPGroupElem, K::Group)
-    *(H::Group, x::GAPGroupElem, K::Group)
+    double_coset(H::GAPGroup, x::GAPGroupElem, K::GAPGroup)
+    *(H::GAPGroup, x::GAPGroupElem, K::GAPGroup)
 
 Return the double coset `HxK`.
 
