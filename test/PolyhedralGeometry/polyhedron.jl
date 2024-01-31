@@ -12,6 +12,7 @@
   CR = cube(f, 2, 0, 3//2)
   Pos = polyhedron(f, [-1 0 0; 0 -1 0; 0 0 -1], [0,0,0])
   L = polyhedron(f, [-1 0 0; 0 -1 0], [0,0])
+  full = polyhedron(f, zero_matrix(f, 0, 3), [])
   point = convex_hull(f, [0 1 0])
   # this is to make sure the order of some matrices below doesn't change
   Polymake.prefer("beneath_beyond") do
@@ -184,6 +185,9 @@
     @test length(vertex_sizes(Q2)) == 0
 
     @test length(unique([cube(2), cube(2), simplex(2), simplex(2)])) == 2
+
+    @test dim(full) == ambient_dim(full)
+    @test lineality_dim(full) == 3
   end
 
   @testset "volume" begin

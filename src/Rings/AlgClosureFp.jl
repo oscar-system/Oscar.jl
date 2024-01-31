@@ -20,6 +20,10 @@ import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
   elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
+if isdefined(Oscar, :algebraic_closure)
+  import ..Oscar: algebraic_closure
+end
+
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
   k::T

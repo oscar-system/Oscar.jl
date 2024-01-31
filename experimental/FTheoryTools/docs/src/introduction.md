@@ -6,35 +6,56 @@ CurrentModule = Oscar
 
 ## Goal
 
-We aim to automate a number of recurring and (at least in part) tedious computations in F-theory model building
-as described in large detail in [Wei18](@cite). Specifically, we focus on the following setups:
-* 4d F-theory compactifications,
-* defined by a global and singular Weierstrass model as codimension 1 locus of a toric ambient space $Y$,
-* which can be crepantly resolved.
-Some of the techniques/algorithms extend naturally to more general settings. For example, it is not at all necessary to restrict to 4-dimensional settings (or alternatively, base spaces of dimension 3). Indeed, the current implementation does allow for *arbitrary* base dimension. For more extensions that we might address in the future, please take a look at the section "possible future extensions" below.
+We aim to automate numerous recurring and, at least in part, tedious computations in F-theory model building, as
+detailed extensively in [Wei18](@cite). The primary focus of our software is on (complex) elliptic fibrations with
+singularities. Those singularities hold significant importance. In essence, the absence of these singularities
+implies that the geometry encodes trivial or uninteresting physics. Therefore, the smooth case is typically not explored.
 
-We aim for the following workflow:
-* User input:
-    * Weierstrass polynomial $P_W$,
-    * Data defining the toric ambient space $Y$ (if applicable),
-    * Choice of resolved phase (if applicable),
-    * Generating sections (for $\operatorname{U}(1)$ symmetries).
-* Output:
-    * Singular loci in codimension 1, 2, and 3,
-    * Defining data of resolved geometry,
-    * (Pictures of) fibre diagrams of resolved fibre over the originally singular loci, including intersections of $\operatorname{U}(1)$-sections,
-    * Gauge group,
-    * Topological data (e.g., Euler number).
+A substantial amount of information about the physics is encoded in the geometry of this singular fibration. To some
+extend it is clear what geometric quantities are to be considered, to some extend this is an unsettled question. Regardless,
+computing quantities of interest, such as intersection theory and Chern classes, on singular spaces is challenging. However,
+it is possible to link the physics encoded by the singular geometry to the physics encoded by related smooth geometries.
+Consequently, almost all F-Theory studies begin by computing a smooting-out, i.e. a resolution, of the singular geometry in
+question.
+
+In order to easily link the physics on the singular geometry to the physics of one of its resolution, the resolution in question
+must be crepant, i.e. must preserve the Calabi-Yau condition. However, this restriction to crepant resolutions introduces additional challenges:
+1. A crepant resolution cannot resolve all singularities, meaning certain singularities may persist. This is an area of interest in recent F-Theory investigations.
+2. The existence of a crepant resolution is not guaranteed.
+3. Exploring whether different resolutions provide insights into different aspects of the singular geometry poses further questions.However, just as it is unclear whether a single crepant resolution is known, there is currently no way to confirm that all crepant resolutions have been identified.
+
+*FTheoryTools* may not (yet) answer these profound and fundamental questions. Instead, the goal of this suite of computer tools is to streamline and simplify the crepant singularity resolution process as much as possible, as well as subsequent extraction of geometric
+features of the resolved space.
+
+With *FTheoryTools*, you can create elliptic fibrations using one of the following models:
+* Weierstrass model,
+* global Tate model,
+* Hypersurface model.
+In each case, the base space can be a family of spaces (as used in the literature when an explicit base is not specified) or a toric space. We anticipate an extension to schemes as bases. The dimension of those bases is not limited to $1$, $2$, or $3$, but of course includes those cases important to the physics.
+
+We also offer a database of models frequently studied in the literature. Those model we term 'literature_models.' In essence, you should be able to create a model described in a paper at the click of a button. We anticipate that this feature will greatly simplify future research in F-Theory.
 
 
 ## Status
 
-This project just began, and is therefore in its experimental stage. Upcoming tasks include, but are not limited, to the following:
-* The irrelevant ideal, SR ideal, and ideal of linear relations may need to be modified when the exceptional coordinate "e" is included in the blowup. They are currently set up to work when e is eliminated.
-* Decide whether to stick with global blowups or use charts.
-* Consolidate notation about sections and line bundles in the documentation.
-* The Kodaira type function assumes that the singular locus is given by a single coordinate.
-* The Kodaira type function only works for codimension 1.
+We anticipate the following workflow:
+
+### User Input:
+- Create your desired F-theory model by using one of the methods described above.
+- Choose a resolved phase/crepant resolution.
+- Select generating sections for $\operatorname{U}(1)$ symmetries.
+
+### Output:
+- (Crepantly) resolved geometry.
+- Singular loci in suitable codimension (e.g., $1$, $2$, and $3$ if the base space has dimension $3$).
+- Fiber diagrams of the resolved fiber over the originally singular loci, including intersections of $\operatorname{U}(1)$-sections.
+- Gauge group.
+- Topological data (e.g., Euler number)
+
+Currently, our primary focus is on the Elephant in the room, that is the crepant resolution. While already functional for numerous setups, especially literature models, it is far from complete. At this point, the largest functionality exists for toric cases, with ongoing work to extend those toric resolution techniques to families of spaces and schemes.
+
+We are also actively expanding our database of supported literature models. At this point, our database includes the models discussed in [LS13](@cite). Consequently, we are already covering infinite families of models (e.g., with $SU(k)$ gauge group, where $k \geq 1`).
+Still, the total number of papers in our database is at this point limited to about $5$. This is to be extended a lot.
 
 
 ## Tutorial
@@ -47,7 +68,7 @@ We provide a [tutorial for FTheoryTools in OSCAR](https://www.oscar-system.org/t
 Future extensions include, but are not necessarily limited to, the following:
 * Specify a $G_4$-flux and work out the chiral spectra,
 * Specify a gauge potential and work out (candidates for) the line bundles whose cohomologies encode the vector-like spectra,
-* Other singularity types (non-minimal, terminal, etc.,
+* Other singularity types (non-minimal, terminal, etc.,)
 * Base blowups for singularity resolution.
 
 

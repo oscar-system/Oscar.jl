@@ -15,7 +15,6 @@ import Hecke.orbit
 # - conjugacy classes of group elements
 # - conjugacy classes of subgroups
 # - block system
-abstract type GSet{T} end
 
 
 # TODO: add lots of concrete subtypes constructors, e.g. for
@@ -42,7 +41,7 @@ abstract type GSet{T} end
     function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where T<:GAPGroup
         @assert ! isempty(seeds)
         Omega = new{T}(G, fun, seeds, Dict{Symbol,Any}())
-        closed && set_attribute!(Omega, :elements => collect(seeds))
+        closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
     end
 end
@@ -70,6 +69,15 @@ end
 # TODO: document `acting_group`, `action_function`
 acting_group(Omega::GSetByElements) = Omega.group
 action_function(Omega::GSetByElements) = Omega.action_function
+
+# The following works for all G-set types that support attributes
+# and for which the number of elements is an `Int`.
+function action_range(Omega::GSet)
+  return get_attribute!(Omega, :action_range) do
+    return symmetric_group(length(Int, Omega))
+  end
+end
+
 
 #############################################################################
 ##
@@ -443,10 +451,7 @@ function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGrou
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
 
-    sym = get_attribute!(Omega, :action_range) do
-      return symmetric_group(length(Omega))
-    end
-    return group_element(sym, pi)
+    return group_element(action_range(Omega), pi)
 end
 
 
@@ -502,6 +507,8 @@ function Base.in(omega::GroupCoset, Omega::GSetByRightTransversal)
 end
 
 Base.length(Omega::GSetByRightTransversal) = index(Int, Omega.group, Omega.subgroup)
+Base.length(::Type{T}, Omega::GSetByRightTransversal) where T <: IntegerUnion = index(T, Omega.group, Omega.subgroup)
+
 Base.lastindex(Omega::GSetByRightTransversal) = length(Omega)
 
 Base.keys(Omega::GSetByRightTransversal) = keys(1:length(Omega))
@@ -540,10 +547,7 @@ end
 function permutation(Omega::GSetByRightTransversal{T, S, E}, g::E) where T <: GAPGroup where S <: GAPGroup where E
   # The following works because GAP uses its `PositionCanonical`.
   pi = GAP.Globals.PermutationOp(g.X, Omega.transversal.X, GAP.Globals.OnRight)::GapObj
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return group_element(sym, pi)
+  return group_element(action_range(Omega), pi)
 end
 
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByRightTransversal{T, S, E}) where T <: GAPGroup where S <: GAPGroup where E
@@ -556,10 +560,7 @@ end
   # for `GSetByElements`.
   GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return GAPGroupHomomorphism(G, sym, acthom)
+  return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
 
@@ -629,10 +630,7 @@ true
   # which uses `permutation` or something better for mapping elements.)
   GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return GAPGroupHomomorphism(G, sym, acthom)
+  return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
 # for convenience: create the G-set on the fly
@@ -718,6 +716,7 @@ end
 acting_domain(Omega::GSet) = acting_group(Omega)
 
 Base.length(Omega::GSetByElements) = length(elements(Omega))
+Base.length(::Type{T}, Omega::GSetByElements) where T <: IntegerUnion = T(length(elements(Omega)))
 
 representative(Omega::GSetByElements) = first(Omega.seeds)
 

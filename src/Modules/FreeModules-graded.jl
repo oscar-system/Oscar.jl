@@ -156,11 +156,6 @@ function gen(F::FreeModule_dec, i::Int)
   return FreeModuleElem_dec(s, F)
 end
 
-function Base.getindex(F::FreeModule_dec, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 base_ring(F::FreeModule_dec) = F.R
 
 #TODO: Parent - checks everywhere!!!
@@ -703,11 +698,6 @@ zero(SQ::SubquoDecModule) = SubquoDecModuleElem(zero(SQ.F), SQ)
 
 function Base.iszero(F::SubquoDecModule)
   return all(iszero, gens(F))
-end
-
-function Base.getindex(F::SubquoDecModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 function Base.iterate(F::BiModArray, i::Int = 1)
@@ -1294,7 +1284,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
   end
 
-  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)

@@ -1,6 +1,6 @@
 @testset "residue rings" begin
    @testset for n in [2, 3, 6]
-      for R in [residue_ring(ZZ, n), residue_ring(ZZ, ZZRingElem(n))]
+      for R in [residue_ring(ZZ, n)[1], residue_ring(ZZ, ZZRingElem(n))[1]]
          f = Oscar.iso_oscar_gap(R)
          a = one(R)
          b = -one(R)
@@ -14,7 +14,7 @@
             end
          end
          n2 = n + 1
-         one2 = one(residue_ring(ZZ, n2))
+         one2 = one(residue_ring(ZZ, n2)[1])
          @test_throws ErrorException f(one2)
          @test_throws ErrorException image(f, one2)
          @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
@@ -22,7 +22,7 @@
    end
 
    n = ZZRingElem(2)^100
-   R = residue_ring(ZZ, n)
+   R = residue_ring(ZZ, n)[1]
    f = Oscar.iso_oscar_gap(R)
    a = -one(R)
    @test f(a) == -f(one(R))

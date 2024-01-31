@@ -91,7 +91,7 @@ julia> I = ideal([x^2, y]);
 julia> X = algebraic_set(I)
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(x^2, y)
+defined by ideal (x^2, y)
 
 julia> fat_ideal(X) === I
 true

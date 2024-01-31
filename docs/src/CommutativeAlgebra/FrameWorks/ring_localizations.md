@@ -66,7 +66,7 @@ For a concrete instance, the constructors to be implemented are:
    ideal(W::AbsLocalizedRing, v::Vector{LocalizedRingElemType}) where {LocalizedRingElemType<:AbsLocalizedRingElem}
 ```
 
-The usual getter functions  `base_ring`, `gens`, `ngens`, and `gen`   must be realized.
+The usual getter functions  `base_ring`, `gens`, `number_of_generators`, and `gen`   must be realized.
 
 Moreover, a method for ideal membership via the `in` function is required.
 

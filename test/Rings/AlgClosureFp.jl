@@ -54,7 +54,13 @@ end
 
   @testset "Printing for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F)
-    @test sprint(show, "text/plain", K) == "Algebraic Closure of finite field of degree 1 over GF(3)"
+    if F isa FqField
+      @test sprint(show, "text/plain", K) == "Algebraic Closure of prime field of characteristic 3"
+    elseif F isa fqPolyRepField
+      @test sprint(show, "text/plain", K) == "Algebraic Closure of finite field of degree 1 over GF(3)"
+    else
+      error("unreachable")
+    end
 
     for x in F
       @test sprint(show, "text/plain", K(x)) == sprint(show, "text/plain", x)

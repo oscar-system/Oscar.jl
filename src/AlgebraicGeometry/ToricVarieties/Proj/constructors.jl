@@ -62,12 +62,12 @@ function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{Tor
     length(keys(modified_ray_gens)) == nrays(v) && break
   end
 
-  new_maximal_cones = Vector{Vector{Int64}}(undef, n_maximal_cones(v) * n_maximal_cones(PF_fiber))
+  new_maximal_cones = Vector{Vector{Int64}}(undef, nmaxcones(v) * nmaxcones(PF_fiber))
   index = 1
 
-  for a in 1:n_maximal_cones(v)
+  for a in 1:nmaxcones(v)
     first = [row(ray_indices(maximal_cones(v)), a)...]
-    for b in 1:n_maximal_cones(PF_fiber)
+    for b in 1:nmaxcones(PF_fiber)
       second = [row(ray_indices(maximal_cones(PF_fiber)), b)...] .+ nrays(v)
       new_maximal_cones[index] = vcat(first, second)
       index += 1

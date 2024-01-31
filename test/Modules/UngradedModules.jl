@@ -588,7 +588,7 @@ end
 
   M3 = SubquoModule(F2,R[x*y^2 x^3+2*y; x^4 y^3; x*y+y^2 x*y],R[x^3-y^2 y^4-x-y])
   elems = [M3(sparse_row(R[0 6 0])),M3(sparse_row(R[9 0 -x])),M3(sparse_row(R[0 0 -42]))]
-  S3,i3 = sub(M3,elems, cache_morphism=true)
+  S3,i3 = sub(M3,elems,:cache_morphism)
 
   @test S3 == M3
   for k=1:5
@@ -1197,4 +1197,14 @@ end
   # However, even removing that and calling gc() again does not remove the entry in J.outgoing.
   # So there is still a memory leak somewhere!
   @test_broken length(keys(J.outgoing)) == 0 
+end
+
+
+@testset "issue 3107" begin
+  X = veronese();
+  I = defining_ideal(X);
+  Pn = base_ring(I)
+  FI = free_resolution(I)
+  F = graded_free_module(Pn, 1)
+  dualFIC = hom(FI.C, F)
 end

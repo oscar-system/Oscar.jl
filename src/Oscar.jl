@@ -207,9 +207,8 @@ include("assertions.jl")
 
 include("exports.jl")
 
-# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
-@alias characteristic_polynomial charpoly  # FIXME
-@alias minimal_polynomial minpoly  # FIXME
+include("aliases.jl")
+
 
 include("printing.jl")
 include("fallbacks.jl")
@@ -266,9 +265,6 @@ if is_dev
 #  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
 end
-
-
-include("aliases.jl")
 
 include("deprecations.jl")
 

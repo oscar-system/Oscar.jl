@@ -506,14 +506,14 @@ One realization is given by
   [0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
 in the multivariate polynomial ring in 1 variable over GF(2)
 within the vanishing set of the ideal
-ideal(x1^2 + x1 + 1)
+Ideal (x1^2 + x1 + 1)
 
 julia> realization(uniform_matroid(3,6), char=5)
 One realization is given by
   [1   0   0   1   1   1]
   [0   1   0   1   4   3]
   [0   0   1   1   3   2]
-in the finite field of degree 1 over GF(5)
+in the prime field of characteristic 5
 ```
 """
 function realization(

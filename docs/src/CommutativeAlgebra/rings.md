@@ -126,10 +126,10 @@ Rational field
 
 ```jldoctest
 julia> GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> GF(ZZ(2)^127 - 1)
-Finite field of degree 1 over GF(170141183460469231731687303715884105727)
+Prime field of characteristic 170141183460469231731687303715884105727
 
 ```
 
@@ -137,7 +137,7 @@ Finite field of degree 1 over GF(170141183460469231731687303715884105727)
 
 ```jldoctest
 julia> finite_field(2, 70, "a")
-(Finite field of degree 70 over GF(2), a)
+(Finite field of degree 70 and characteristic 2, a)
 
 ```
 
@@ -151,13 +151,13 @@ julia> K, a = number_field(t^2 + 1, "a")
 (Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
 (Univariate polynomial ring in t over GF(3), t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
-(Finite field of degree 2 over GF(3), a)
+(Finite field of degree 2 and characteristic 3, a)
 
 ```
 
@@ -222,10 +222,10 @@ we follow the former book.
     asking that $G$ is free and that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
 
 !!! note
-    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && ngens(G) == rank(G) == m`
+    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && number_of_generators(G) == rank(G) == m`
     evaluates to `true`. In this case, conversion routines allow one to switch back and forth between elements
     of `G` and integer vectors of length `m`. Specifically, if `R` is *$\mathbb Z$-graded*, that is,
-    `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
+    `is_free(G) && number_of_generators(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
     to integers and vice versa.
 
 ### Types
@@ -292,7 +292,7 @@ Given a multivariate polynomial ring `R` with coefficient ring `C`,
 
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
-- `ngens(R)` to the number of these generators, and
+- `number_of_generators(R)` / `ngens(R)` to the number of these generators, and
 - `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -316,7 +316,7 @@ y
 julia> R[3]
 z
 
-julia> ngens(R)
+julia> number_of_generators(R)
 3
 
 ```
@@ -459,7 +459,7 @@ x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
 Multivariate polynomial ring in 2 variables x, y
-  over finite field of degree 1 over GF(5)
+  over prime field of characteristic 5
 
 julia> total_degree(f)
 5

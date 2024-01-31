@@ -1,7 +1,10 @@
 module JuLie
 
 using ..Oscar
-import Oscar: IntegerUnion, weight
+import Oscar: 
+  IntegerUnion,
+  number_of_partitions, npartitions,      # aliases do not work in experimental
+  weight
 
 include("partitions.jl")
 include("schur_polynomials.jl")
@@ -22,8 +25,8 @@ export hook_length
 export hook_lengths
 export is_semistandard
 export is_standard
-export num_partitions
-export num_standard_tableaux
+export number_of_partitions, npartitions    # aliases do not work in experimental
+export number_of_standard_tableaux
 export partition
 export partitions
 export reading_word

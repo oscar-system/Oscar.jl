@@ -161,9 +161,9 @@ Effective cartier divisor
     3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
-    1: ideal(-(y//x)^2*(z//x) + 1)
-    2: ideal((x//y)^3 - (z//y))
-    3: ideal((x//z)^3 - (y//z)^2)
+    1: Ideal (-(y//x)^2*(z//x) + 1)
+    2: Ideal ((x//y)^3 - (z//y))
+    3: Ideal ((x//z)^3 - (y//z)^2)
 
 julia> cartier_divisor(E)
 Cartier divisor
@@ -227,9 +227,9 @@ Effective cartier divisor
     3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
-    1: ideal(-(y//x)^2*(z//x) + 1)
-    2: ideal((x//y)^3 - (z//y))
-    3: ideal((x//z)^3 - (y//z)^2)
+    1: Ideal (-(y//x)^2*(z//x) + 1)
+    2: Ideal ((x//y)^3 - (z//y))
+    3: Ideal ((x//z)^3 - (y//z)^2)
 ```
 """
 effective_cartier_divisor(I::IdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)

@@ -93,7 +93,7 @@ function _canonical_matrix(w)
     if is_zero_row(w, i)
       continue
     end
-    nw = w[i, :]
+    nw = w[i:i, :]
     c = content(nw)
     if !isone(c)
       nw = divexact(nw, c)
@@ -101,7 +101,7 @@ function _canonical_matrix(w)
     for j in 1:nrows(ww)
       h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
       if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j, :]
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
       end
     end
     if !iszero(nw)
@@ -1954,7 +1954,7 @@ end
 
 function _opposite_ordering(nvars::Int, o::MatrixOrdering)
   M = o.matrix
-  M = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
+  M = reduce(hcat, [M[:,i:i] for i in ncols(M):-1:1])
   return MatrixOrdering(reverse(nvars+1 .- o.vars), M, false)
 end
 

@@ -1,3 +1,10 @@
+import Oscar.AbstractAlgebra
+import Oscar.AbstractAlgebra: Group
+
+include(
+  joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl")
+)
+
 @testset "LieAlgebras.WeylGroup" begin
   b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
   b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
@@ -41,6 +48,46 @@
 
     @test_throws ArgumentError weyl_group((:F, 2), (:B, 4))
     @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
+  end
+
+  @testset "WeylGroup Group conformace test for $(Gname)" for (Gname, G) in [
+    ("A1", weyl_group(:A, 1)),
+    ("B4", weyl_group(root_system(:B, 4))),
+    ("D5", weyl_group(cartan_matrix(:D, 5))),
+    ("F4+G2", weyl_group((:F, 4), (:G, 2))),
+    ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
+    (
+      "complicated case 1",
+      begin
+        cm = cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2))
+        for _ in 1:50
+          i, j = rand(1:nrows(cm), 2)
+          if i != j
+            swap_rows!(cm, i, j)
+            swap_cols!(cm, i, j)
+          end
+        end
+        weyl_group(cm)
+      end,
+    ),
+    (
+      "complicated case 2",
+      begin
+        cm = cartan_matrix((:F, 4), (:B, 2), (:E, 7), (:G, 2))
+        for _ in 1:50
+          i, j = rand(1:nrows(cm), 2)
+          if i != j
+            swap_rows!(cm, i, j)
+            swap_cols!(cm, i, j)
+          end
+        end
+        weyl_group(root_system(cm))
+      end,
+    ),
+  ]
+    # TODO: @felix-roehrich make this work
+    # test_Group_interface(G)
+    # test_GroupElem_interface(rand(G, 2)...)
   end
 
   @testset "inv(x::WeylGroupElem)" begin

@@ -7,7 +7,7 @@ Ky, y = K["y"]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
+Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
 Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
@@ -19,7 +19,7 @@ FF, r = finite_field(s^2 + o * s + 1, "r")
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
   (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
-  (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
+  (residue_ring(ZZ, 6)[1], 3, 5, "Integers Modulo 6"),
   (L, e, f, "Non Simple Extension"),
   (K, a, a + 1, "Simple Extension"),
   (Tow, a^2 * b, a + b, "Tower Extension"),

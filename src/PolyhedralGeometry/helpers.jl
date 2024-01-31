@@ -27,11 +27,11 @@ julia> IM[:, 4]
 """
 IncidenceMatrix
 
-nrows(i::IncidenceMatrix) = Polymake.nrows(i)
-ncols(i::IncidenceMatrix) = Polymake.ncols(i)
+number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
+number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
 
-nrows(A::Polymake.Matrix) = Polymake.nrows(A)
-ncols(A::Polymake.Matrix) = Polymake.ncols(A)
+number_of_rows(A::Polymake.Matrix) = Polymake.nrows(A)
+number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 
 @doc raw"""
      row(i::IncidenceMatrix, n::Int)
@@ -79,7 +79,7 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        t = typeof(m[i])
+        t = i === nothing ? QQFieldElem : typeof(m[i])
         if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
@@ -93,7 +93,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
-assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+assure_matrix_polymake(m::MatElem) = Polymake.Matrix{_scalar_type_to_polymake(eltype(m))}(m)
 
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
@@ -101,8 +101,8 @@ assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rati
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
-    v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
-    return v
+    T = i === nothing ? QQFieldElem : typeof(v[i])
+    return Polymake.Vector{_scalar_type_to_polymake(T)}(v)
 end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
@@ -120,7 +120,7 @@ linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) = assure_matrix_
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
-nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
+number_of_rows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatrix{Oscar.QQFieldElem}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)

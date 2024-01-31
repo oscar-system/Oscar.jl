@@ -123,7 +123,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   I = identity_matrix(QQ,degree(L))
   # prS: L --> S^\vee given with respect to the standard basis of L and the basis of S
   prS = ibSR*I[:,1:rank(S)]#*basis_matrix(S)
-  @assert prS[rank(S)+1,:]==0
+  @assert prS[[rank(S)+1],:]==0
 
 
   if compute_OR
@@ -486,7 +486,7 @@ function _possible(D::K3Chamber, per, I, J)
     end
 
     for i in 1:I
-      if (vectorsj*T[:,i])[1,1] != gramB[J,per[i]]
+      if (vectorsj*T[:,i:i])[1,1] != gramB[J,per[i]]
         good_scalar = false
         break
       end
@@ -617,7 +617,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   ch = QQ((h*gram*transpose(h))[1,1])
   cv = QQ((h*gram*transpose(v))[1,1])
   b = basis_matrix(L)
-  prW = reduce(vcat,[b[i,:] - (b[i,:]*gram*transpose(h))*ch^-1*h for i in 1:n])
+  prW = reduce(vcat,[b[i:i,:] - (b[i:i,:]*gram*transpose(h))*ch^-1*h for i in 1:n])
   W = lattice(ambient_space(L), prW, isbasis=false)
   bW = basis_matrix(W)
   # set up the quadratic triple for SW
@@ -747,7 +747,7 @@ function alg319(D::K3Chamber, E::K3Chamber)
       k = nrows(img)
       gi = gram*transpose(img)
       for r in raysE
-        if (r*gram*transpose(r))[1,1] != gram_basis[k+1,k+1] || (k>0 && r*gi != gram_basis[k+1,1:k])
+        if (r*gram*transpose(r))[1,1] != gram_basis[k+1,k+1] || (k>0 && r*gi != gram_basis[k+1:k+1,1:k])
           continue
         end
         # now r has the correct inner products with what we need
@@ -816,7 +816,7 @@ function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::QQMatrix, raysD::
       k = nrows(img)
       gi = gram*transpose(img)
       for r in raysE
-        if (r*gram*transpose(r))[1,1] != gram_basis[k+1,k+1] || (k>0 && r*gi != gram_basis[k+1,1:k])
+        if (r*gram*transpose(r))[1,1] != gram_basis[k+1,k+1] || (k>0 && r*gi != gram_basis[k+1:k+1,1:k])
           continue
         end
         # now r has the correct inner products with what we need
@@ -1732,8 +1732,8 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
       v = (v + 2*x)*basis_matrix(R)
       @hassert :K3Auto 1 mod(inner_product(V,v,v)[1,1], 8)==0
       u = basis_matrix(U)
-      f1 = u[1,:]
-      e1 = u[2,:] + u[1,:]
+      f1 = u[1:1,:]
+      e1 = u[2:2,:] + u[1:1,:]
       f2 = -inner_product(V, v, v)*1//4*f1 + 2*e1 + v
       @hassert :K3Auto 1 inner_product(V, f2, f2)==0
 
@@ -1759,8 +1759,8 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
         @vprint :K3Auto 1 "found a lattice of minimum $(m) \n"
         if m==4
           # R is isomorphic to the Leech lattice
-          fu = basis_matrix(U)[1,:]
-          zu = basis_matrix(U)[2,:]
+          fu = basis_matrix(U)[1:1,:]
+          zu = basis_matrix(U)[2:2,:]
           u0 = 3*fu+zu
           return fu,u0
         end
@@ -1770,8 +1770,8 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
         # with the attached hyperbolic planes this can be engineered to give an isometry
         @hassert :K3Auto 1 mod(inner_product(V,v,v)[1,1],2*h^2)==0
         u = basis_matrix(U)
-        f1 = u[1,:]
-        e1 = u[2,:] + u[1,:]
+        f1 = u[1:1,:]
+        e1 = u[2:2,:] + u[1:1,:]
         f2 = -inner_product(V, v, v)*1//(2*h)*f1 + h*e1 + v
         @hassert :K3Auto 1 inner_product(V, f2, f2)==0
 
@@ -1821,7 +1821,7 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
     u = u2*u1
     @assert g2 == u*G*transpose(u)
     B = u*basis_matrix(L)
-    B = vcat(B[1,:],B[end,:]-B[1,:])
+    B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
     if inner_product(V,B,B) != QQ[0 1; 1 -2]
       # find an isotropic vector
       if gram_matrix(S)[1,1]==0
@@ -1882,7 +1882,7 @@ function ample_class(S::ZZLat)
   u = basis_matrix(S)[1:2,:]
   if inner_product(V,u,u) == QQ[0 1; 1 -2]
     h = zero_matrix(QQ,1,rank(S))
-    v = 3*u[1,:] + u[2,:]
+    v = 3*u[1:1,:] + u[2:2,:]
     fudge = 1
     nt = 0
     while true
@@ -1913,7 +1913,7 @@ function ample_class(S::ZZLat)
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
   i = findfirst(x->x, [d>0 for d in diagonal(D)])
-  v = B[i,:]
+  v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
   @assert vsq > 0
@@ -2020,7 +2020,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
     i = findfirst(x->x==1,g)
-    s = basis_matrix(L)[i,:]
+    s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else
     # search a smallish section using a cvp
