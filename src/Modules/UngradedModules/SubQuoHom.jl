@@ -541,7 +541,7 @@ Return the image of `a` as an object of type `SubquoModule`.
 Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
 function image(h::SubQuoHom)
-  s = submodule(codomain(h), images_of_generators(h))
+  s = sub_object(codomain(h), images_of_generators(h))
   inc = hom(s, codomain(h), images_of_generators(h), check=false)
   return s, inc
 end
@@ -724,7 +724,7 @@ function kernel(h::SubQuoHom)
   @assert codomain(inc_K) === F
   v = gens(D)
   imgs = Vector{elem_type(D)}(filter(!iszero, [sum(a*v[i] for (i, a) in coordinates(g); init=zero(D)) for g in images_of_generators(inc_K)]))
-  k = submodule(D, imgs)
+  k = sub_object(D, imgs)
   return k, hom(k, D, imgs, check=false)
 end
 

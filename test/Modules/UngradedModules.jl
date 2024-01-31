@@ -26,7 +26,7 @@ end
   v = [x, x^2*y+z^3, R(-1)]
   @test v == Vector(F(v))
 
-  M = submodule(F, [F(v), F([z, R(1), R(0)])])
+  M = sub_object(F, [F(v), F([z, R(1), R(0)])])
   N = quo(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)], :none)
   AN, ai = ambient_module(N, :with_morphism)
   @test AN.quo === N.quo
@@ -1010,10 +1010,10 @@ end
     H = element_to_homomorphism(H)
 
     u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-    image_of_u = submodule(M,map(x -> H(x),u))
-    preimage_test_module = image_of_u + submodule(M,[M[1]])
+    image_of_u = sub_object(M,map(x -> H(x),u))
+    preimage_test_module = image_of_u + sub_object(M,[M[1]])
     _,emb = preimage(H,preimage_test_module,:with_morphism)
-    @test issubset(submodule(N,u), image(emb)[1])
+    @test issubset(sub_object(N,u), image(emb)[1])
   end
 end
 

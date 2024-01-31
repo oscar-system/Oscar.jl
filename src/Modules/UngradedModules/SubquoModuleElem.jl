@@ -409,7 +409,7 @@ and its inclusion map `inc : I ↪ F`.
 When `cache_morphism` is set to true, then `inc` will be cached and available 
 for `transport` and friends.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where {T}
   s = SubquoModule(F, V)
@@ -419,7 +419,7 @@ function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=fa
   return s, emb
 end
 
-function submodule(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T}
+function sub_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T}
   return SubquoModule(F, V)
 end
 
@@ -434,7 +434,7 @@ together with its inclusion map `inc : I ↪ F`.
 When `cache_morphism` is set to true, then `inc` will be cached and available 
 for `transport` and friends.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
   M = SubquoModule(SubModuleOfFreeModule(F, A)) 
@@ -446,7 +446,7 @@ function sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
   return M, emb
 end
 
-function submodule(F::FreeMod{T}, A::MatElem{T}) where {T}
+function sub_object(F::FreeMod{T}, A::MatElem{T}) where {T}
   return SubquoModule(SubModuleOfFreeModule(F, A)) 
 end
 
@@ -462,14 +462,14 @@ morphism `inc : I ↪ F`.
 When `cache_morphism` is set to true, then `inc` will be cached and available 
 for `transport` and friends.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   s = SubquoModule(F, [repres(x) for x = O])
   return sub(F, s; cache_morphism)
 end
 
-function submodule(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
+function sub_object(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
   return SubquoModule(F, [repres(x) for x = O])
 end
 
@@ -485,7 +485,7 @@ for `transport` and friends.
 The `ambient_free_module` of `M` needs to be `F` and `M` has to have no 
 relations.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) where T
   @assert !isdefined(s, :quo)
@@ -497,7 +497,7 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) wher
   return s, emb
 end
 
-function submodule(F::FreeMod{T}, s::SubquoModule{T}) where T
+function sub_object(F::FreeMod{T}, s::SubquoModule{T}) where T
   @assert !isdefined(s, :quo)
   @assert s.F === F
   return s
@@ -512,7 +512,7 @@ together with its inclusion map `inc : I ↪ M.
 When `cache_morphism` is set to true, then `inc` will be cached and available 
 for `transport` and friends.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   @assert all(x -> x.parent === M, V)
@@ -527,7 +527,7 @@ function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphis
   return t, emb
 end
 
-function submodule(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
+function sub_object(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
   @assert all(x -> x.parent === M, V)
   t = SubquoModule(M.F, FreeModElem[repres(x) for x in V])
   if isdefined(M, :quo)
@@ -546,7 +546,7 @@ together with its inclusion map `inc : I ↪ M.
 When `cache_morphism` is set to true, then `inc` will be cached and available 
 for `transport` and friends.
 
-If only the submodule itself is desired, use `submodule` instead.
+If only the submodule itself is desired, use `sub_object` instead.
 
 # Examples
 ```jldoctest
