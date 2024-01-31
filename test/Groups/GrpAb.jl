@@ -98,7 +98,8 @@ end
       K = representative(C2)
       @test is_conjugate(G1, H, K) == (H == K)
       @test is_conjugate_with_data(G1, H, K)[1] == (H == K)
-      @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
+      @test is_conjugate_subgroup(G1, H, K) == is_subset(K, H)
+      @test is_conjugate_subgroup_with_data(G1, H, K) == (is_subset(K, H), zero(G1))
     end
     C = CC[1]
     for H in C

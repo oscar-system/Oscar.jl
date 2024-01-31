@@ -89,6 +89,10 @@
      @test is_conjugate_with_data(G,x,y)[1]
      z = is_conjugate_with_data(G,x,y)[2]
      @test x^z == y
+     @test is_conjugate_subgroup(G, x, y)
+     @test is_conjugate_subgroup_with_data(G, x, y)[1]
+     z = is_conjugate_subgroup_with_data(G,x,y)[2]
+     @test y^z == x
      y = rand(CC[(i % length(CC))+1])
      @test !is_conjugate(G,x,y)
      @test !is_conjugate_with_data(G,x,y)[1]

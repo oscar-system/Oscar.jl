@@ -907,7 +907,14 @@ end
 """
     is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
 
-Return whether a conjugate of `V` by some element in `G` is a subgroup of `U`.
+Return `true` if a conjugate of `V` by some element in `G` is a subgroup of `U`,
+and `false` otherwise.
+
+If one needs a conjugating element then one can use
+ [`is_conjugate_subgroup_with_data`](@ref).
+
+In order to check whether `U` and `V` are conjugate in `G`.
+use [`is_conjugate`](@ref) or [`is_conjugate_with_data`](@ref).
 
 # Examples
 ```jldoctest
@@ -920,17 +927,46 @@ julia> V = sub(G, [G([2,1,3,4])])[1]
 Permutation group of degree 4
 
 julia> is_conjugate_subgroup(G, U, V)
-(false, ())
+false
 
 julia> V = sub(G, [G([2, 1, 4, 3])])[1]
 Permutation group of degree 4
 
 julia> is_conjugate_subgroup(G, U, V)
-(true, ())
-
+true
 ```
 """
-function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
+is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup = is_conjugate_subgroup_with_data(G, U, V)[1]
+
+
+"""
+    is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: GAPGroup
+
+If a conjugate of `V` by some element in `G` is a subgroup of `U`,
+return `true, z` where `V^z` is a subgroup of `U`;
+otherwise, return `false, one(G)`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> U = derived_subgroup(G)[1]
+Alt(4)
+
+julia> V = sub(G, [G([2,1,3,4])])[1]
+Permutation group of degree 4
+
+julia> is_conjugate_subgroup_with_data(G, U, V)
+(false, ())
+
+julia> V = sub(G, [G([2, 1, 4, 3])])[1]
+Permutation group of degree 4
+
+julia> is_conjugate_subgroup_with_data(G, U, V)
+(true, ())
+```
+"""
+function is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: GAPGroup
   if order(V) == 1
     return true, one(U)
   end
@@ -947,7 +983,7 @@ function is_conjugate_subgroup(G::T, U::T, V::T) where T <: GAPGroup
       return true, inv(t)
     end
   end
-  return false, one(U)
+  return false, one(G)
 end
 
 @doc raw"""

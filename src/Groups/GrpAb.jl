@@ -182,7 +182,7 @@ function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
 end
 
 is_conjugate_subgroup(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1]
-
+is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1], zero(G)
 
 Base.IteratorSize(::Type{<:GrpAbFinGenConjClass}) = Base.HasLength()
 
