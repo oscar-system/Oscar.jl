@@ -1248,18 +1248,10 @@ function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
    return _as_subgroup(G, GAPWrap.SylowSubgroup(G.X, GAP.Obj(p)))
 end
 
-# no longer documented, better use `hall_subgroup_reps`
-function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
-   P = unique(P)
-   @req all(is_prime, P) "The integers must be prime"
-   @req is_solvable(G) "The group is not solvable"
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true))::GapObj)
-end
-
 """
-    hall_subgroup_reps(G::Group, P::AbstractVector{<:IntegerUnion})
+    hall_subgroups(G::Group, P::AbstractVector{<:IntegerUnion})
 
-Return a vector that contains representatives of conjugacy classes of
+Return a vector that contains the conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
 A Hall `P`-subgroup of `G` is a subgroup the order of which is only divisible
 by primes in `P` and whose index in `G` is coprime to all primes in `P`.
@@ -1272,34 +1264,34 @@ up to conjugacy.
 ```jldoctest
 julia> g = dihedral_group(30);
 
-julia> h = hall_subgroup_reps(g, [2, 3]);
+julia> h = hall_subgroups(g, [2, 3]);
 
-julia> (length(h), order(h[1]))
+julia> (length(h), order(representative(h[1])))
 (1, 6)
 
 julia> g = GL(3, 2)
 GL(3,2)
 
-julia> h = hall_subgroup_reps(g, [2, 3]);
+julia> h = hall_subgroups(g, [2, 3]);
 
-julia> (length(h), order(h[1]))
+julia> (length(h), order(representative(h[1])))
 (2, 24)
 
-julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
+julia> h = hall_subgroups(g, [2, 7]); length(h)
 0
-
 ```
 """
-function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroups(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P, recursive = true))::GapObj
    if res_gap == GAP.Globals.fail
-     return typeof(G)[]
+     T = typeof(G)
+     return GAPGroupConjClass{T, T}[]
    elseif GAPWrap.IsList(res_gap)
-     return _as_subgroups(G, res_gap)
+     return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
    else
-     return [_as_subgroup_bare(G, res_gap)]
+     return [conjugacy_class(G, _as_subgroup_bare(G, res_gap))]
    end
 end
 

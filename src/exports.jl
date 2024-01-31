@@ -608,7 +608,7 @@ export h_vector
 export halfspace
 export halfspace_matrix_pair
 export hall_subgroup
-export hall_subgroup_reps
+export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_du_val_singularities
 export has_edge

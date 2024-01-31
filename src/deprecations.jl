@@ -70,3 +70,12 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate has_number_small_groups has_number_of_small_groups
 @deprecate number_transitive_groups number_of_transitive_groups
 @deprecate has_number_transitive_groups has_number_of_transitive_groups
+
+@deprecate hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) map(representative, hall_subgroups(G, P))
+@deprecate hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) map(representative, hall_subgroups(G, P))
+
+function hall_subgroup(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, GrpAbFinGen}
+  Base.depwarn("The function hall_subgroup is deprecated. Please use hall_subgroups.", :hall_subgroup)
+  @req is_solvable(G) "The group is not solvable"
+  return representative(hall_subgroups(G, P)[1])
+end

@@ -138,8 +138,8 @@ end
 
     # operations depending on sets of primes
     for P in subsets(Set(primes))
-      @test [images(iso, S)[1] for S in hall_subgroup_reps(G1, collect(P))] ==
-            hall_subgroup_reps(G2, collect(P))
+      @test [images(iso, representative(C))[1] for C in hall_subgroups(G1, collect(P))] ==
+            map(representative, hall_subgroups(G2, collect(P)))
     end
     @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
           sort!([order(S) for S in hall_system(G2)])

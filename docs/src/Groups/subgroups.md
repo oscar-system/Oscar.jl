@@ -51,7 +51,7 @@ minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
-hall_subgroup_reps
+hall_subgroups
 hall_system
 complement_class_reps
 complement_system

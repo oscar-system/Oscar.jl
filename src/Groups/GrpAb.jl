@@ -291,10 +291,7 @@ function sylow_system(G::FinGenAbGroup)
    return result
 end
 
-# no longer documented, better use `hall_subgroup_reps`
-hall_subgroup(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion}) = hall_subgroup_reps(G, P)[1]
-
-function hall_subgroup_reps(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroups(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
    @req is_finite(G) "G is not finite"
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
@@ -312,7 +309,7 @@ function hall_subgroup_reps(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
        end
      end
    end
-   return [sub(G, subgens)[1]]
+   return [conjugacy_class(G, sub(G, subgens)[1])]
 end
 
 function hall_system(G::FinGenAbGroup)
@@ -320,7 +317,7 @@ function hall_system(G::FinGenAbGroup)
    primes = [p for (p, e) in factor(order(G))]
    result = FinGenAbGroup[]
    for P in subsets(Set(primes))
-     push!(result, hall_subgroup_reps(G, collect(P))[1])
+     push!(result, representative(hall_subgroups(G, collect(P))[1]))
    end
    return result
 end

@@ -327,15 +327,15 @@ end
    end
    L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
    @testset for l in L
-      h = hall_subgroup_reps(G, l)
+      h = hall_subgroups(G, l)
       @test length(h) == 1
-      @test h[1] == sub(G,[g^(210÷lcm(l))])[1]
+      @test representative(h[1]) == sub(G,[g^(210÷lcm(l))])[1]
    end
-   h = hall_subgroup_reps(G, Int64[])
+   h = hall_subgroups(G, Int64[])
    @test length(h) == 1
-   @test h[1] == sub(G, [one(G)])[1]
-   @test length(hall_subgroup_reps(symmetric_group(5), [2, 5])) == 0
-   @test_throws ArgumentError hall_subgroup_reps(G, [4])
+   @test representative(h[1]) == sub(G, [one(G)])[1]
+   @test length(hall_subgroups(symmetric_group(5), [2, 5])) == 0
+   @test_throws ArgumentError hall_subgroups(G, [4])
 
    L = sylow_system(G)
    Lo = [order(l) for l in L]
