@@ -310,6 +310,11 @@ compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
 
 
 ################################################################################
+
+abstract type GSet{T} end
+
+
+################################################################################
 #
 #   Conjugacy Classes
 #
@@ -320,14 +325,8 @@ compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
 
 It can be either the conjugacy class of an element or of a subgroup of type `S`
 in a group `G` of type `T`.
-It is displayed as
-```
-     cc = x ^ G
-```
-where `G` is a group and `x` = `representative`(`cc`) is either an element
-or a subgroup of `G`.
 """
-abstract type GroupConjClass{T, S} end
+abstract type GroupConjClass{T, S} <: GSet{T} end
 
 
 ################################################################################

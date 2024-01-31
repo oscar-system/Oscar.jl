@@ -15,7 +15,6 @@ import Hecke.orbit
 # - conjugacy classes of group elements
 # - conjugacy classes of subgroups
 # - block system
-abstract type GSet{T} end
 
 
 # TODO: add lots of concrete subtypes constructors, e.g. for
