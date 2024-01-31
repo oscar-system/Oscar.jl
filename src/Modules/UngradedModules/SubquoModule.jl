@@ -755,6 +755,7 @@ function set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
 end
 
 function standard_basis(M::SubquoModule; ordering::ModuleOrdering = default_ordering(M))
+  @req is_exact_type(elem_type(base_ring(M))) "This functionality is only supported over exact fields."
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)

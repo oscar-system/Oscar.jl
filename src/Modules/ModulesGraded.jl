@@ -2448,13 +2448,7 @@ function generators_of_degree(
 end
 
 function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
-  result = Vector{Int}()
-  for (i, g) in enumerate(gens(F))
-    if degree(g) == d
-      push!(result, i)
-    end
-  end
-  return result
+  return Int[i for (i, g) in enumerate(gens(F)) if degree(g) == d]
 end
 
 function _constant_sub_matrix(
@@ -2470,10 +2464,13 @@ function _constant_sub_matrix(
   m = length(ind_dom)
   n = length(ind_cod)
   result = zero_matrix(kk, m, n)
-  for i in 1:m
-    for j in 1:n
-      c = (images_of_generators(phi)[ind_dom[i]])[ind_cod[j]]
-      result[i, j] = iszero(c) ? zero(kk) : first(coefficients(c))
+  img_gens = images_of_generators(phi)
+  for (i, l) in enumerate(ind_dom)
+    v = coordinates(img_gens[l])
+    for (j, k) in enumerate(ind_cod)
+      success, c = _has_index(v, k)
+      !success && continue
+      result[i, j] = first(coefficients(c))
     end
   end
   return ind_dom, ind_cod, result
