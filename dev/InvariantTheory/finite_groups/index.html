@@ -11,16 +11,12 @@ julia&gt; M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 julia&gt; G = matrix_group(M1, M2);
 
 julia&gt; IRm = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; IRp = invariant_ring(symmetric_group(3))
-Invariant ring of
-  Sym(3)
-with generators
-  PermGroupElem[(1,2,3), (1,2)]
+Invariant ring
+  of Sym(3)
 
 julia&gt; coefficient_ring(IRp)
 Rational field</code></pre></div></section></article><h2 id="Basic-Data-Associated-to-Invariant-Rings"><a class="docs-heading-anchor" href="#Basic-Data-Associated-to-Invariant-Rings">Basic Data Associated to Invariant Rings</a><a id="Basic-Data-Associated-to-Invariant-Rings-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Data-Associated-to-Invariant-Rings" title="Permalink"></a></h2><p>If <code>IR</code> is the invariant ring <span>$K[x_1,..., x_n]^G$</span> of a finite matrix group <span>$G$</span>, then</p><ul><li><code>group(IR)</code> refers to <span>$G$</span>,</li><li><code>coefficient_ring(IR)</code> to <span>$K$</span>, and</li><li><code>polynomial_ring(IR)</code> to <span>$K[x_1,..., x_n]$</span>.</li></ul><p>Moreover, <code>is_modular(IR)</code> returns <code>true</code> in the modular case, and <code>false</code> otherwise.</p><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; K, a = cyclotomic_field(3, &quot;a&quot;)
@@ -41,10 +37,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; group(IR)
 Matrix group of degree 3
@@ -86,10 +80,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
@@ -119,10 +111,8 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia&gt; R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -199,10 +189,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; basis(IR, 6)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -221,10 +209,8 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia&gt; basis(IR, 2)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -282,17 +268,12 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; B = iterate_basis(IR, 6)
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 
 julia&gt; collect(B)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -311,17 +292,12 @@ Matrix group of degree 3
   over prime field of characteristic 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia&gt; B = iterate_basis(IR, 2)
-Iterator over a basis of the component of degree 2 of
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  FqMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Iterator over a basis of the component of degree 2
+  of invariant ring of matrix group
 
 julia&gt; collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -337,11 +313,8 @@ julia&gt; G = matrix_group(M1, M2);
 julia&gt; IR = invariant_ring(G);
 
 julia&gt; B = iterate_basis(IR, 6, trivial_character(G))
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of matrix group
 relative to a character
 
 julia&gt; collect(B)
@@ -361,11 +334,8 @@ julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in c
 class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 
 julia&gt; B = iterate_basis(R, 3, chi)
-Iterator over a basis of the component of degree 3 of
-Invariant ring of
-  Sym(2)
-with generators
-  PermGroupElem[(1,2)]
+Iterator over a basis of the component of degree 3
+  of invariant ring of Sym(2)
 relative to a character
 
 julia&gt; collect(B)
@@ -489,10 +459,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; fundamental_invariants(IR)
 4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
@@ -518,13 +486,11 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia&gt; IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia&gt; affine_algebra(IR)
-(Quotient of multivariate polynomial ring by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2), Hom: quotient of multivariate polynomial ring -&gt; graded multivariate polynomial ring)</code></pre></div></section></article><h2 id="Semi-invariants-/-relative-invariants"><a class="docs-heading-anchor" href="#Semi-invariants-/-relative-invariants">Semi-invariants / relative invariants</a><a id="Semi-invariants-/-relative-invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Semi-invariants-/-relative-invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}" href="#semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}"><code>semi_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -&gt; graded multivariate polynomial ring)</code></pre></div></section></article><h2 id="Semi-invariants-/-relative-invariants"><a class="docs-heading-anchor" href="#Semi-invariants-/-relative-invariants">Semi-invariants / relative invariants</a><a id="Semi-invariants-/-relative-invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Semi-invariants-/-relative-invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}" href="#semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}"><code>semi_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
 relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)</code></pre><p>Given an irreducible character <code>chi</code> of the underlying group, return a system of semi-invariants (or relative invariants) with respect to <code>chi</code>. By this, we mean a set of free generators of the isotypic component of the of the polynomial ring with respect to <code>chi</code> as a module over the algebra generated by primary invariants for <code>IR</code>. See also [<a href="../../references/#Gat96">Gat96</a>] and [<a href="../../references/#Sta79">Sta79</a>].</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If <code>coefficient_ring(IR)</code> does not contain all character values of <code>chi</code>, an error is raised.</p></div></div><p>This function is so far only implemented in the case of characteristic zero.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S2 = symmetric_group(2);
 
 julia&gt; RS2 = invariant_ring(S2);
@@ -537,4 +503,4 @@ class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
 julia&gt; semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1] - x[2]
-</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Saturday 27 January 2024 14:18">Saturday 27 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Tuesday 30 January 2024 20:19">Tuesday 30 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
