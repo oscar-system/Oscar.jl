@@ -48,7 +48,7 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
             group: 'short'
-            os: macOS-latest
+            os: macOS-14
           - julia-version: '1.10'
             group: 'long'
             os: macOS-latest
@@ -73,7 +73,7 @@ jobs:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v1
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }}
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
@@ -120,7 +120,7 @@ jobs:
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
-            os: macOS-latest
+            os: macOS-14
 
     steps:
       - uses: actions/checkout@v3
@@ -134,7 +134,7 @@ jobs:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v1
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }}
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
