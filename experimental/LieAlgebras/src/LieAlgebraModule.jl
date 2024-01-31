@@ -923,7 +923,7 @@ function tensor_product(
     symbols(Vs[1])
   else
     [
-      Symbol(join(s, " ⊗ ")) for s in
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for s in
       reverse.(
         ProductIterator([
           is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
@@ -995,20 +995,26 @@ together with a map that computes the wedge product of `k` elements of `V`.
 
 # Examples
 ```jldoctest
-julia> L = special_linear_lie_algebra(QQ, 3);
+julia> L = special_linear_lie_algebra(QQ, 2);
 
-julia> V = symmetric_power(standard_module(L), 3)[1]; # some module
+julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 45 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
+(Exterior power module of dimension 3 over sl_2, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
 
 julia> E
 Exterior power module
-  of dimension 45
+  of dimension 3
   2nd exterior power of
-    3rd symmetric power of
+    2nd symmetric power of
       standard module
-over special linear Lie algebra of degree 3 over QQ
+over special linear Lie algebra of degree 2 over QQ
+
+julia> basis(E)
+3-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^2)^(v_1*v_2)
+ (v_1^2)^(v_2^2)
+ (v_1*v_2)^(v_2^2)
 ```
 """
 function exterior_power(
@@ -1044,9 +1050,12 @@ function exterior_power(
   elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
-    [Symbol(join(s, " ∧ ")) for s in combinations(symbols(V), k)]
+    [Symbol(join(s, (is_unicode_allowed() ? "∧" : "^"))) for s in combinations(symbols(V), k)]
   else
-    [Symbol(join((x -> "($x)").(s), " ∧ ")) for s in combinations(symbols(V), k)]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "∧" : "^"))) for
+      s in combinations(symbols(V), k)
+    ]
   end
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
@@ -1115,20 +1124,33 @@ together with a map that computes the product of `k` elements of `V`.
 
 # Examples
 ```jldoctest
-julia> L = special_linear_lie_algebra(QQ, 3);
+julia> L = special_linear_lie_algebra(QQ, 4);
 
-julia> V = exterior_power(standard_module(L), 2)[1]; # some module
+julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
-julia> S, map = symmetric_power(V, 3)
-(Symmetric power module of dimension 10 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
+julia> S, map = symmetric_power(V, 2)
+(Symmetric power module of dimension 10 over sl_4, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
 
 julia> S
 Symmetric power module
   of dimension 10
-  3rd symmetric power of
-    2nd exterior power of
+  2nd symmetric power of
+    3rd exterior power of
       standard module
-over special linear Lie algebra of degree 3 over QQ
+over special linear Lie algebra of degree 4 over QQ
+
+julia> basis(S)
+10-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^v_2^v_3)^2
+ (v_1^v_2^v_3)*(v_1^v_2^v_4)
+ (v_1^v_2^v_3)*(v_1^v_3^v_4)
+ (v_1^v_2^v_3)*(v_2^v_3^v_4)
+ (v_1^v_2^v_4)^2
+ (v_1^v_2^v_4)*(v_1^v_3^v_4)
+ (v_1^v_2^v_4)*(v_2^v_3^v_4)
+ (v_1^v_3^v_4)^2
+ (v_1^v_3^v_4)*(v_2^v_3^v_4)
+ (v_2^v_3^v_4)^2
 ```
 """
 function symmetric_power(
@@ -1260,16 +1282,28 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
-julia> T, map = tensor_power(V, 3)
-(Tensor power module of dimension 27 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
+julia> T, map = tensor_power(V, 2)
+(Tensor power module of dimension 9 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
 
 julia> T
 Tensor power module
-  of dimension 27
-  3rd tensor power of
+  of dimension 9
+  2nd tensor power of
     2nd exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
+
+julia> basis(T)
+9-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^v_2)(x)(v_1^v_2)
+ (v_1^v_2)(x)(v_1^v_3)
+ (v_1^v_2)(x)(v_2^v_3)
+ (v_1^v_3)(x)(v_1^v_2)
+ (v_1^v_3)(x)(v_1^v_3)
+ (v_1^v_3)(x)(v_2^v_3)
+ (v_2^v_3)(x)(v_1^v_2)
+ (v_2^v_3)(x)(v_1^v_3)
+ (v_2^v_3)(x)(v_2^v_3)
 ```
 """
 function tensor_power(
@@ -1303,9 +1337,15 @@ function tensor_power(
   elseif k == 1
     symbols(V)
   elseif is_standard_module(V)
-    [Symbol(join(s, " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+    [
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   else
-    [Symbol(join((x -> "($x)").(s), " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   end
 
   T = LieAlgebraModule{C}(L, dim_T, transformation_matrices, s; check=false)
