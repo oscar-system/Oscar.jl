@@ -120,6 +120,20 @@
 
 end
 
+@testset "Conjugacy classes as G-sets" begin
+  G = symmetric_group(4)
+  x = G(cperm([3, 4]))
+  y = G(cperm([1, 4, 2]))
+  C = conjugacy_class(G, x)
+  @test x in C
+  @test orbits(C) == [C]
+  @test C == orbit(G, x)
+  mp = action_homomorphism(C)
+  @test permutation(C, y) == mp(y)
+  @test length(C) == 6
+  @test order(image(mp)[1]) == 24
+end
+
 function TestConjCentr(G,x)
    Cx = centralizer(G,x)[1]
    cc = conjugacy_class(G,x)
