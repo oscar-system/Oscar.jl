@@ -622,7 +622,7 @@ function quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=fa
   return Q, phi
 end
 
-function quotient_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
+function quotient_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, V)
   return Q
@@ -649,7 +649,7 @@ function quo(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
   return Q, phi
 end
 
-function quo_object(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
+function quo_object(F::FreeMod{T}, A::MatElem{T}) where {T}
   E = identity_matrix(base_ring(F), rank(F))
   Q = SubquoModule(F, E, A)
   return Q
@@ -678,7 +678,7 @@ function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bo
   return Q, phi
 end
 
-function quo_object(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
+function quo_object(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, [repres(x) for x = O])
   return Q
@@ -706,7 +706,9 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bo
     singular_assure(F.quo.gens)
     s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
     Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
-    return return_quo_wrt_task(F, Q, task)
+    phi = hom(F, Q, gens(Q), check=false)
+    cache_morphism && register_morphism!(phi)
+    return Q, phi
   end
   Q = SubquoModule(F, O)
   phi = hom(F, Q, gens(Q), check=false)
@@ -714,7 +716,7 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bo
   return Q, phi
 end
 
-function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
+function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}) where T
   if length(O) > 0
     @assert parent(O[1]) === F.F
   end
@@ -722,8 +724,7 @@ function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morph
     oscar_assure(F.quo.gens)
     singular_assure(F.quo.gens)
     s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
-    Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
-    return return_quo_wrt_task(F, Q, task)
+    return SubquoModule(F.F, singular_generators(F.sub.gens), s)
   end
   return SubquoModule(F, O)
 end
@@ -742,7 +743,7 @@ function quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphis
   return quo(M, [repres(x) for x = V]; cache_morphism)
 end
 
-function quo_object(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
+function quo_object(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
   return quo_object(M, [repres(x) for x = V])
 end
 
@@ -820,7 +821,7 @@ function quo(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false)
   return Q, pr
 end
 
-function quo_object(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false) where T
+function quo_object(M::SubquoModule{T}, U::SubquoModule{T}) where T
   if isdefined(M, :quo) && isdefined(U, :quo)
     F = ambient_free_module(M)
     @assert F === ambient_free_module(U)
@@ -845,7 +846,7 @@ function quo(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false)
   return Q, pr
 end
 
-function quo_object(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false) where {T<:MPolyRingElem}
+function quo_object(M::SubquoModule{T}, U::SubquoModule{T}) where {T<:MPolyRingElem}
   if isdefined(M, :quo) && isdefined(U, :quo)
     @assert M.quo == U.quo
   else
@@ -867,6 +868,11 @@ If `cache_morphism` is set to `true`, the projection is cached and available to 
 function quo(F::FreeMod{R}, T::SubquoModule{R}; cache_morphism::Bool=false) where R
   @assert !isdefined(T, :quo)
   return quo(F, gens(T); cache_morphism)
+end
+
+function quo_object(F::FreeMod{R}, T::SubquoModule{R}) where R
+  @assert !isdefined(T, :quo)
+  return quo_object(F, gens(T))
 end
 
 #=
