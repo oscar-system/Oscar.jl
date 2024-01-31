@@ -1195,6 +1195,7 @@ export pyramid
 export quadratic_form
 export quaternion_group
 export quo
+export quo_object
 export quotient
 export quotient_ring_as_module
 export R10_matroid
@@ -1368,7 +1369,7 @@ export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
 export subgroup_reps
-export submodule
+export sub_object
 export subquo_type
 export subquotient
 export subscheme
