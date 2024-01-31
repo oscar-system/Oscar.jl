@@ -17,12 +17,12 @@ via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
@@ -502,12 +502,12 @@ julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
@@ -782,7 +782,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -821,7 +821,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -903,7 +903,7 @@ Number of vertices in each facet.
 # Example
 ```jldoctest
 julia> p = johnson_solid(4) 
-Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
 julia> facet_sizes(p)
 10-element Vector{Int64}:
@@ -1052,7 +1052,7 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -1074,7 +1074,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -1094,7 +1094,7 @@ Compute the $h^*$ polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
@@ -1116,7 +1116,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
@@ -1138,13 +1138,13 @@ Check whether `P` is a lattice polytope, i.e. it is bounded and has integral ver
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 true
 
 julia> c = cube(3, 0, 4//3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 false
@@ -1165,7 +1165,7 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_very_ample(c)
 true
@@ -1203,10 +1203,10 @@ Check whether `P` is a subset of the polyhedron `Q`.
 # Examples
 ```jldoctest
 julia> P = cube(3,0,1)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> Q = cube(3,-1,2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> issubset(P, Q)
 true
@@ -1263,7 +1263,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_normal(C)
 true
@@ -1301,7 +1301,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> is_simple(c)
 true
@@ -1409,7 +1409,7 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> relative_interior_point(square)
 2-element PointVector{QQFieldElem}:
