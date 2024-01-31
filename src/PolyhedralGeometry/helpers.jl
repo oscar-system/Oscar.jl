@@ -93,7 +93,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
-assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+assure_matrix_polymake(m::MatElem) = Polymake.Matrix{_scalar_type_to_polymake(eltype(m))}(m)
 
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
