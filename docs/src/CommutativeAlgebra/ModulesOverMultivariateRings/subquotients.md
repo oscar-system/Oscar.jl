@@ -363,7 +363,7 @@ sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
 ```@docs
-quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 ```
 
 ## Homomorphisms From Subqotients
