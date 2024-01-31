@@ -34,7 +34,7 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> grading_group(R)
-GrpAb: Z
+Z
 ```
 """
 grading_group(R::MPolyDecRing) = R.D
@@ -261,8 +261,12 @@ Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
 # Examples
 ```jldoctest
 julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+Finitely generated abelian group
+  with 4 generators and 4 relations and relation matrix
+  [0   0   0   0]
+  [0   0   0   0]
+  [0   0   2   0]
+  [0   0   0   2]
 
 julia> W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
@@ -275,7 +279,7 @@ false
 julia> G = abelian_group(ZZMatrix([1 -1]));
 
 julia> g = gen(G, 1)
-Element of G with components [0 1]
+Abelian group element [0, 1]
 
 julia> W = [g, g, g, g];
 
@@ -314,13 +318,15 @@ julia> is_positively_graded(S)
 false
 
 julia> G = abelian_group([0, 2])
-(General) abelian group with relation matrix
-[0 0; 0 2]
+Finitely generated abelian group
+  with 2 generators and 2 relations and relation matrix
+  [0   0]
+  [0   2]
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
 2-element Vector{FinGenAbGroupElem}:
- Element of G with components [1 1]
- Element of G with components [1 0]
+ Abelian group element [1, 1]
+ Abelian group element [1, 0]
 
 julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights = W)
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
@@ -460,10 +466,10 @@ julia>  typeof(x)
 QQMPolyRingElem
 
 julia> G = abelian_group([0])
-GrpAb: Z
+Z
 
 julia> g = gen(G, 1)
-Element of G with components [1]
+Abelian group element [1]
 
 julia> S, (t, x, y) = grade(R, [-g, g, g])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[t, x, y])
@@ -481,12 +487,12 @@ julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3)
 (Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
 
 julia> G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia> g = gens(G)
 2-element Vector{FinGenAbGroupElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+ Abelian group element [1, 0]
+ Abelian group element [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -514,18 +520,22 @@ julia> R, x = polynomial_ring(QQ, "x" => 1:5)
 (Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+Finitely generated abelian group
+  with 4 generators and 4 relations and relation matrix
+  [0   0   0   0]
+  [0   0   0   0]
+  [0   0   2   0]
+  [0   0   0   2]
 
 julia> g = gens(G);
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
 5-element Vector{FinGenAbGroupElem}:
- Element of G with components [1 0 1 1]
- Element of G with components [0 1 0 1]
- Element of G with components [1 0 1 0]
- Element of G with components [0 1 0 0]
- Element of G with components [1 1 0 0]
+ Abelian group element [1, 0, 1, 1]
+ Abelian group element [0, 1, 0, 1]
+ Abelian group element [1, 0, 1, 0]
+ Abelian group element [0, 1, 0, 0]
+ Abelian group element [1, 1, 0, 0]
 
 julia> S, x = grade(R, W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
@@ -826,8 +836,12 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded multivariate ring, retur
 # Examples
 ```jldoctest
 julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+Finitely generated abelian group
+  with 4 generators and 4 relations and relation matrix
+  [0   0   0   0]
+  [0   0   0   0]
+  [0   0   2   0]
+  [0   0   0   2]
 
 julia> W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
@@ -838,7 +852,7 @@ julia> f = x[2]^2+2*x[4]^2
 x[2]^2 + 2*x[4]^2
 
 julia> degree(f)
-Element of G with components [0 2 0 0]
+Abelian group element [0, 2, 0, 0]
 
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
@@ -981,8 +995,12 @@ Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 e
   [3] => z
 
 julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+Finitely generated abelian group
+  with 4 generators and 4 relations and relation matrix
+  [0   0   0   0]
+  [0   0   0   0]
+  [0   0   2   0]
+  [0   0   0   2]
 
 julia> W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
@@ -994,8 +1012,8 @@ x[1]^2 + x[3]^2 + x[5]^2
 
 julia> homogeneous_components(f)
 Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
-  [2 2 0 0] => x[5]^2
-  [2 0 0 0] => x[1]^2 + x[3]^2
+  Abelian group element [2, 2, 0, 0] => x[5]^2
+  Abelian group element [2, 0, 0, 0] => x[1]^2 + x[3]^2
 ```
 """
 function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
@@ -1058,8 +1076,12 @@ homogeneous component of `f` whose degree is that element.
 # Examples
 ```jldoctest
 julia> G = abelian_group([0, 0, 2, 2])
-(General) abelian group with relation matrix
-[0 0 0 0; 0 0 0 0; 0 0 2 0; 0 0 0 2]
+Finitely generated abelian group
+  with 4 generators and 4 relations and relation matrix
+  [0   0   0   0]
+  [0   0   0   0]
+  [0   0   2   0]
+  [0   0   0   2]
 
 julia> W = [G[1]+G[3]+G[4], G[2]+G[4], G[1]+G[3], G[2], G[1]+G[2]];
 
@@ -1177,7 +1199,7 @@ group of `R` and proceed as above.
 julia> T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> G = grading_group(T)
-GrpAb: Z
+Z
 
 julia> L = monomial_basis(T, 2)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -1263,7 +1285,7 @@ julia> W = [1 1 0 0 0; 0 0 1 1 1]
 julia> S, _ = graded_polynomial_ring(QQ, "x" => 1:2, "y" => 1:3; weights = W);
 
 julia> G = grading_group(S)
-GrpAb: Z^2
+Z^2
 
 julia> L = homogeneous_component(S, [1, 1]);
 

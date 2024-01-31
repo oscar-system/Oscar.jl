@@ -260,7 +260,7 @@ by Submodule with 3 generators
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL = free_module(RQL, 1)
-Free module of rank 1 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
+Free module of rank 1 over Localization of RQ at complement of prime ideal
 
 julia> ARQL = RQL[x; y]
 [x]

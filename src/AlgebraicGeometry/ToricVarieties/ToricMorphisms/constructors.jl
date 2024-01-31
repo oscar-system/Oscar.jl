@@ -97,8 +97,8 @@ julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 
 julia> grid_morphism = hom(character_lattice(domain), character_lattice(codomain), mapping_matrix)
 Map
-  from GrpAb: Z
-  to GrpAb: Z^2
+  from Z
+  to Z^2
 
 julia> toric_morphism(domain, grid_morphism, codomain)
 Toric morphism

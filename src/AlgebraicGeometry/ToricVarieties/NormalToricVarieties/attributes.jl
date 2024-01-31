@@ -617,7 +617,7 @@ Return the character lattice of a normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> character_lattice(p2)
-GrpAb: Z^2
+Z^2
 ```
 """
 @attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
@@ -633,7 +633,7 @@ Return the torusinvariant divisor group of a normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> torusinvariant_weil_divisor_group(p2)
-GrpAb: Z^3
+Z^3
 ```
 """
 @attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(nrays(v))
@@ -650,8 +650,8 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_character_lattice_to_torusinvariant_weil_divisor_group(p2)
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^3
+  from Z^2
+  to Z^3
 ```
 """
 @attr FinGenAbGroupHom function map_from_character_lattice_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
@@ -698,7 +698,7 @@ Return the class group of the normal toric variety `v`.
 julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> class_group(p2)
-GrpAb: Z
+Z
 ```
 """
 @attr FinGenAbGroup class_group(v::NormalToricVarietyType) = codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(v))
@@ -715,8 +715,8 @@ julia> p2 = projective_space(NormalToricVariety, 2);
 
 julia> map_from_torusinvariant_weil_divisor_group_to_class_group(p2)
 Map
-  from GrpAb: Z^3
-  to GrpAb: Z
+  from Z^3
+  to Z
 ```
 """
 @attr FinGenAbGroupHom function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -739,8 +739,8 @@ Normal toric variety
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(p2)
 Map
-  from GrpAb: Z^3
-  to GrpAb: Z^3
+  from Z^3
+  to Z^3
 ```
 """
 @attr Map{FinGenAbGroup, FinGenAbGroup} function map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
@@ -815,7 +815,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> torusinvariant_cartier_divisor_group(p2)
-GrpAb: Z^3
+Z^3
 ```
 """
 @attr FinGenAbGroup function torusinvariant_cartier_divisor_group(v::NormalToricVarietyType)
@@ -835,8 +835,8 @@ Normal toric variety
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_class_group(p2)
 Map
-  from GrpAb: Z^3
-  to GrpAb: Z
+  from Z^3
+  to Z
 ```
 """
 @attr FinGenAbGroupHom function map_from_torusinvariant_cartier_divisor_group_to_class_group(v::NormalToricVarietyType)
@@ -862,8 +862,8 @@ Normal toric variety
 
 julia> map_from_torusinvariant_cartier_divisor_group_to_picard_group(p2)
 Map
-  from GrpAb: Z^3
-  to GrpAb: Z
+  from Z^3
+  to Z
 ```
 """
 @attr FinGenAbGroupHom function map_from_torusinvariant_cartier_divisor_group_to_picard_group(v::NormalToricVarietyType)
@@ -888,7 +888,7 @@ julia> p2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> picard_group(p2)
-GrpAb: Z
+Z
 ```
 """
 @attr FinGenAbGroup function picard_group(v::NormalToricVarietyType)
@@ -907,8 +907,8 @@ Normal toric variety
 
 julia> map_from_picard_group_to_class_group(p2)
 Map
-  from GrpAb: Z
-  to GrpAb: Z
+  from Z
+  to Z
 ```
 """
 @attr FinGenAbGroupHom function map_from_picard_group_to_class_group(v::NormalToricVarietyType)

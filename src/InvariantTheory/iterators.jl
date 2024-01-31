@@ -205,11 +205,11 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> B = iterate_basis(IR, 6)
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia> collect(B)
 4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
@@ -233,7 +233,7 @@ Invariant ring
 
 julia> B = iterate_basis(IR, 2)
 Iterator over a basis of the component of degree 2
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia> collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -306,7 +306,7 @@ julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 relative to a character
 
 julia> collect(B)
@@ -323,11 +323,11 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3
-  of invariant ring of Sym(2)
+  of invariant ring of S2
 relative to a character
 
 julia> collect(B)

@@ -30,7 +30,7 @@ julia> graded_free_module(R,3)
 Graded free module R^3([0]) of rank 3 over R
 
 julia> G = grading_group(R)
-GrpAb: Z
+Z
 
 julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
@@ -156,12 +156,12 @@ As above, with all weights set to `zero(G)`.
 julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
 
 julia> G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia> g = gens(G)
 2-element Vector{FinGenAbGroupElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+ Abelian group element [1, 0]
+ Abelian group element [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -172,7 +172,7 @@ julia> F = free_module(S, 3)
 Free module of rank 3 over S
 
 julia> FF = grade(F)
-Graded free module S^3([0 0]) of rank 3 over S
+Graded free module S^3(Abelian group element [0, 0]) of rank 3 over S
 
 julia> F
 Free module of rank 3 over S
@@ -240,7 +240,7 @@ julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of multivariate polynomial ring by ideal (x*y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x*y), Map: R -> S)
 
 julia> F = free_module(S, 2)
 Free module of rank 2 over S
@@ -291,7 +291,7 @@ julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
 
 julia> grading_group(F)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(M::FreeMod)
@@ -824,7 +824,7 @@ julia> is_graded(a)
 true
 
 julia> grading_group(a)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(f::FreeModuleHom)
@@ -938,7 +938,7 @@ julia> a2 = hom(F2, G, V2);
 julia> M = subquotient(a1,a2);
 
 julia> grading_group(M)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(M::SubquoModule)
@@ -1275,7 +1275,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> grading_group(a)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(f::SubQuoHom)

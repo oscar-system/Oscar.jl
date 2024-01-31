@@ -1015,16 +1015,16 @@ This is an abelian group whose abelian invariants can be computed with
 # Examples
 ```jldoctest
 julia> schur_multiplier(symmetric_group(4))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
 
 julia> schur_multiplier(abelian_group([2, 12]))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(cyclic_group(5))
-GrpAb: Z/1
+Z/1
 ```
 """
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)

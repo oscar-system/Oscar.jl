@@ -775,10 +775,10 @@ Sym(3)
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
@@ -829,8 +829,8 @@ julia> G = symmetric_group(3);
 
 julia> conjugacy_classes_maximal_subgroups(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)

@@ -263,10 +263,10 @@ Right cosets of
 
 julia> collect(rc)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Right coset of Sym(3) with representative ()
- Right coset of Sym(3) with representative (1,4)
- Right coset of Sym(3) with representative (1,4,2)
- Right coset of Sym(3) with representative (1,4,3)
+ Right coset of H with representative ()
+ Right coset of H with representative (1,4)
+ Right coset of H with representative (1,4,2)
+ Right coset of H with representative (1,4,3)
 ```
 """
 function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
@@ -290,10 +290,10 @@ Sym(3)
 
 julia> left_cosets(G, H)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Left coset of Sym(3) with representative ()
- Left coset of Sym(3) with representative (1,4)
- Left coset of Sym(3) with representative (1,2,4)
- Left coset of Sym(3) with representative (1,3,4)
+ Left coset of H with representative ()
+ Left coset of H with representative (1,4)
+ Left coset of H with representative (1,2,4)
+ Left coset of H with representative (1,3,4)
 ```
 """
 function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup

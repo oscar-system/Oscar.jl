@@ -205,7 +205,7 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> fundamental_invariants(IR)
 4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
