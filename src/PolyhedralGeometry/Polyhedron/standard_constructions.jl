@@ -17,7 +17,7 @@ Use `even = true` to get the vertices only for the even permutation matrices.
 # Examples
 ```jldoctest
 julia> b = birkhoff_polytope(3)
-Polyhedron in ambient dimension 9
+Polytope in ambient dimension 9
 
 julia> vertices(b)
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -45,7 +45,7 @@ is the distance between the vertex barycenter and `v`.
 # Examples
 ```jldoctest
 julia> c = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(pyramid(c,5))
 5-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -83,7 +83,7 @@ vertex barycenter of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(bipyramid(c,2))
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -130,7 +130,7 @@ attain their minimum at the `i`-th vertex.
 Build the normal cones at the first vertex of the square (in this case [-1,-1]).
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(square)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -453,10 +453,10 @@ Return the Cartesian product of `P` and `Q`.
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> S=cube(1)
-Polyhedron in ambient dimension 1
+Polytope in ambient dimension 1
 
 julia> length(vertices(product(T,S)))
 6
@@ -476,10 +476,10 @@ Return the Cartesian product of `P` and `Q` (see also `product`).
 The Cartesian product of a triangle and a line segment is a triangular prism.
 ```jldoctest
 julia> T=simplex(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> S=cube(1)
-Polyhedron in ambient dimension 1
+Polytope in ambient dimension 1
 
 julia> length(vertices(T*S))
 6
@@ -668,7 +668,7 @@ parent `Field`.
 Here we take a look at the facets of the 7-simplex and a scaled 7-simplex:
 ```jldoctest
 julia> s = simplex(7)
-Polyhedron in ambient dimension 7
+Polytope in ambient dimension 7
 
 julia> facets(s)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
@@ -682,7 +682,7 @@ julia> facets(s)
 x_1 + x_2 + x_3 + x_4 + x_5 + x_6 + x_7 <= 1
 
 julia> t = simplex(7, 5)
-Polyhedron in ambient dimension 7
+Polytope in ambient dimension 7
 
 julia> facets(t)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
@@ -724,7 +724,7 @@ Here we print the facets of a non-scaled and a scaled 3-dimensional cross
 polytope:
 ```jldoctest
 julia> C = cross_polytope(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> facets(C)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
@@ -738,7 +738,7 @@ x_1 - x_2 - x_3 <= 1
 -x_1 - x_2 - x_3 <= 1
 
 julia> D = cross_polytope(3, 2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> facets(D)
 8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
@@ -790,7 +790,7 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
 julia> number_of_facets(T)
 20
@@ -845,7 +845,7 @@ exact; Vertex-facet-incidences are correct in all cases.
 # Examples
 ```jldoctest
 julia> T = archimedean_solid("cuboctahedron")
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> sum([number_of_vertices(F) for F in faces(T, 2)] .== 3)
 8
@@ -979,10 +979,10 @@ whose evaluation on `P` does not exceed 1.
 # Examples
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> P = polarize(square)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(P)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1170,7 +1170,7 @@ The normal toric variety associated with its face fan is smooth.
 # Examples
 ```jldoctest
 julia> S = fano_simplex(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> X = normal_toric_variety(face_fan(S))
 Normal toric variety
@@ -1190,7 +1190,7 @@ the cross polytope together with the all-ones and minus all-ones vector.
 # Examples
 ```jldoctest
 julia> DP = del_pezzo_polytope(4)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{ZZRingElem}:
@@ -1211,7 +1211,7 @@ moment curve in dimension $d$.
 # Examples
 ```jldoctest
 julia> cp = cyclic_polytope(3, 20)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> number_of_vertices(cp)
 20
@@ -1242,13 +1242,13 @@ Almost surely this is a simplicial polytope.
 # Examples
 ```jldoctest
 julia> rsph = rand_spherical_polytope(3, 20)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_simplicial(rsph)
 true
 
 julia> rsph = rand_spherical_polytope(3, 4; precision=5, seed=132)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{QQFieldElem}:
@@ -1258,7 +1258,7 @@ julia> map(x->dot(x,x), vertices(rsph))
  8281//8192
 
 julia> rsph = rand_spherical_polytope(3, 4; distribution=:exact)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> map(x->dot(x,x), vertices(rsph))
 4-element Vector{QQFieldElem}:
@@ -1443,7 +1443,7 @@ The $3$-dimensional dwarfed cube is illustrated in [Jos03](@cite).
 
 ```jldoctest
 julia> c = dwarfed_cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(c)
 10-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1473,7 +1473,7 @@ It must be $d\geq4$ and even as well as $s\geq 3$.
 # Example
 ```jldoctest
 julia> p = dwarfed_product_polygons(4,3)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> vertices(p)
 11-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1509,7 +1509,7 @@ also construct the symmetry group of the simplex.
 The $3$-dimensional lecture hall simplex:
 ```jldoctest
 julia> S = lecture_hall_simplex(3) 
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(S)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1562,7 +1562,7 @@ due to Gale's evenness criterion. The coordinates are chosen on the trigonometri
 # Example
 ```jldoctest
 julia> C= cyclic_caratheodory_polytope(4,5)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> vertices(C)
 5-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1588,7 +1588,7 @@ Produce a knapsack polytope defined by one linear inequality (and non-negativity
 # Example 
 ```jldoctest
 julia> f = fractional_knapsack_polytope([10,-2,-3,-5])
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> print_constraints(f)
 2*x_1 + 3*x_2 + 5*x_3 <= 10
@@ -1614,10 +1614,10 @@ Produce the hypersimplex $\Delta(k,d)$, that is the the convex hull of all $0/1$
 # Example
 ```jldoctest
 julia> H = hypersimplex(3,4)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> G = hypersimplex(3,4,no_facets=true)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> facets(G)
 4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
@@ -1701,7 +1701,7 @@ in particular for $e=g=0$ we obtain the standard cube.
 The following produces a $3$-dimensional Klee-Minty cube for $e=\frac{1}{3}$.
 ```jldoctest
 julia> c = goldfarb_cube(3,1//3,0)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(c)
 8-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1737,7 +1737,7 @@ see [GS79](@cite).
 # Examples
 ```jldoctest
 julia> c = goldfarb_sit_cube(3,1//3,1//2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(c) 
 8-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1771,7 +1771,7 @@ Produce a $d$-dimensional hypertruncated cube with symmetric linear objective fu
 # Example
 ```jldoctest
 julia> H = hypertruncated_cube(3,2,3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> print_constraints(H)
 -x_1 <= 0
@@ -1810,7 +1810,7 @@ not a $k-$cyclic polytope! More information see [Sch95](@cite).
 To produce a (not exactly) regular pentagon, type this:
 ```jldoctest
 julia> p = k_cyclic_polytope(5,[1])
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> dim(p) 
 2
@@ -1831,7 +1831,7 @@ Uses the `goldfarb_cube` method with the argument $\texttt{g} = 0$.
 #Example
 ```jldoctest
 julia> k = klee_minty_cube(3,1//8)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> print_constraints(k)
 -x_1 <= 0
@@ -1859,7 +1859,7 @@ Construction due to Pokutta and Schulz, see [PS11](@cite).
 # Example
 ```jldoctest
 julia> c = max_GC_rank_polytope(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(c)
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1887,10 +1887,10 @@ and initial angle divided by pi `alpha_0` (defaults to $0$).
 To store the regular pentagon in the variable p, do this:
 ```jldoctest
 julia> p = n_gon(3)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> n_gon(3,r=3)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 ```
 """
 function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
@@ -1906,7 +1906,7 @@ Create an $8$-dimensional polytope without rational realizations due to Perles. 
 # Example
 ```jldoctest
 julia> perles_nonrational_8_polytope()
-Polyhedron in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
+Polytope in ambient dimension 8 with EmbeddedElem{nf_elem} type coefficients
 ```
 """
 perles_nonrational_8_polytope() =
@@ -1921,7 +1921,7 @@ The vertices correspond to the elements of the symmetric group of degree `d`$+1$
 #Example
 ```jldoctest
 julia> p = permutahedron(2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(p)
 6-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -1983,7 +1983,7 @@ together with the all-ones vector. All coordinates are plus or minus one.
 # Example
 ```jldoctest
 julia> DP = pseudo_del_pezzo_polytope(4)
-Polyhedron in ambient dimension 4
+Polytope in ambient dimension 4
 
 julia> f_vector(DP)
 4-element Vector{ZZRingElem}:
@@ -2009,7 +2009,7 @@ Produce a `d`-dimensional $0/1$-polytope with `n` random vertices. Uniform distr
 # Example
 ```jldoctest
 julia> s = rand01_polytope(2, 4; seed=3)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(s)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -2083,7 +2083,7 @@ generating a Gale diagram whose cocircuits have alternating signs.
 # Examples
 ```jldoctest
 julia> r = rand_cyclic_polytope(3, 5)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> f_vector(r)
 3-element Vector{ZZRingElem}:
@@ -2162,7 +2162,7 @@ normally distributed in the unit ball.
 # Example
 ```jldoctest
 julia> rnp = rand_normal_polytope(2,4; seed=42, precision=4)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> is_simplicial(rnp)
 true
@@ -2248,7 +2248,7 @@ Contrary to the classical permutahedron, the signed permutahedron is full-dimens
 To produce the $2$-dimensional signed permutahedron, do: 
 ```jldoctest
 julia> P = signed_permutahedron(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> vertices(P)
 8-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -2285,7 +2285,7 @@ julia> G = Graph{Undirected}(3)
 Undirected graph with 3 nodes and no edges
 
 julia> S = stable_set_polytope(G)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(S)
 8-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -2305,7 +2305,7 @@ julia> add_edge!(G, 1, 3);
 julia> add_edge!(G, 2, 3);
 
 julia> S = stable_set_polytope(G)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> vertices(S)
 5-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -2337,7 +2337,7 @@ julia> r = c = [15,15,15]
  15
 
 julia> t = transportation_polytope(r,c) 
-Polyhedron in ambient dimension 9
+Polytope in ambient dimension 9
 
 julia> dim(t) 
 4
