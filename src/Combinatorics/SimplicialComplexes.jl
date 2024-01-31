@@ -205,7 +205,7 @@ Recall that the 0-th homology group is trivial if and only if `K` is connected.
 # Examples
 ```jldoctest
 julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
-3-element Vector{GrpAbFinGen}:
+3-element Vector{FinGenAbGroup}:
  GrpAb: Z/1
  GrpAb: Z/2
  GrpAb: Z/1

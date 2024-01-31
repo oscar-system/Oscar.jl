@@ -95,7 +95,7 @@ julia> haspreimage(f,x)
 ```
 
 !!! warning
-    Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `GrpGenToGrpGenMor`.
+    Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `MultTableGroupHom`.
 
 ## Operations on homomorphisms
 
@@ -161,7 +161,7 @@ isomorphism(G::GAPGroup, H::GAPGroup)
 
 ```@docs
 isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
 

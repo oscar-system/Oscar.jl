@@ -11,8 +11,8 @@
 
         nuMin = tropical_semiring_map(QQ,2)
         nuMax = tropical_semiring_map(QQ,2,max)
-        @test issetequal(groebner_basis(I,nuMin,w),[x^2-8*x*y,x+y]) # padic, min
-        @test issetequal(groebner_basis(I,nuMax,w),[y^2,x+y]) # padic, max
+        @test issetequal(groebner_basis(I,nuMin,w),[x^2-8*x*y,x+y]) # PadicFieldElem, min
+        @test issetequal(groebner_basis(I,nuMax,w),[y^2,x+y]) # PadicFieldElem, max
 
         K,t = rational_function_field(GF(2),"t")
         R,(x,y) = K["x","y"]

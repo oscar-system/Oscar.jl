@@ -903,7 +903,7 @@ Number of vertices in each facet.
 # Example
 ```jldoctest
 julia> p = johnson_solid(4) 
-Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+Polyhedron in ambient dimension 3 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
 
 julia> facet_sizes(p)
 10-element Vector{Int64}:

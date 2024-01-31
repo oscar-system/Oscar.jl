@@ -107,10 +107,10 @@ end
 
 
 @doc raw"""
-    monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+    monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
 Given an affine algebra `A` over a field which is graded by a free
-group of type `GrpAbFinGen`, and given an element `g` of that group,
+group of type `FinGenAbGroup`, and given an element `g` of that group,
 return a vector of monomials of `R` such that the residue classes of 
 these monomials form a `K`-basis of the graded part of `A` of degree `g`.
 
@@ -146,7 +146,7 @@ julia> L = monomial_basis(A, 3)
  x*y^2
 ```
 """
-function monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+function monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   R = base_ring(A)
   @req is_graded(R) "The ring must be graded"
@@ -752,7 +752,7 @@ function _monomial_ideal_membership(m::MPolyRingElem, I::MPolyIdeal)
 end
 
 @doc raw"""
-    multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
+    multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
 Given a positively graded affine algebra $A$ over a field $K$ with grading group $G$,
 say, and given an element $g$ of $G$, return the value $H(A, g)$ of the Hilbert function
@@ -811,7 +811,7 @@ julia> multi_hilbert_function(A, 7*g)
 22
 ```
 """
-function multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
+function multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
     R = base_ring(A)
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     

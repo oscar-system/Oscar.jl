@@ -68,7 +68,7 @@ Map
   to GrpAb: Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
     d = domain(tm)
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
@@ -101,7 +101,7 @@ Map
   to GrpAb: Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
@@ -128,7 +128,7 @@ Map
   to GrpAb: Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_class_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
@@ -155,7 +155,7 @@ Map
   to GrpAb: Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_picard_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))

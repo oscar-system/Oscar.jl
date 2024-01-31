@@ -1,6 +1,6 @@
 
 @attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
-  defining_ideal::Union{Ideal,NumFieldOrdIdl}
+  defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
   realization_matrix::Union{MatElem,Nothing}
@@ -13,7 +13,7 @@
   underlying_scheme::AbsSpec{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
-    I::Union{Ideal,NumFieldOrdIdl},
+    I::Union{Ideal,NumFieldOrderIdeal},
     ineqs::Vector{<:RingElem},
     R::Ring,
     mat::Union{MatElem,Nothing},

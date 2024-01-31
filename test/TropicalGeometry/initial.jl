@@ -12,7 +12,7 @@
         nuMin = tropical_semiring_map(QQ,2)
         nuMax = tropical_semiring_map(QQ,2,max)
         S,(x,y) = GF(2)["x","y"]
-        @test initial(f,nuMin,w) == x^2+y^2 # padic, min
+        @test initial(f,nuMin,w) == x^2+y^2 # PadicFieldElem, min
         @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
 
         K,t = rational_function_field(GF(2),"t")

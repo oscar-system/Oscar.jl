@@ -187,7 +187,7 @@ We follow the conventions of Miranda and Morrison that the quadratic form is def
 
 # Arguments
 - `G::QQMatrix`: a diagonal matrix
-- `T::QQMatrix`: an isometry up to some padic precision
+- `T::QQMatrix`: an isometry up to some PadicFieldElem precision
 - `p`: a prime number
 - `nu`: an integer giving the valuation of the approximation error of `T`
 """

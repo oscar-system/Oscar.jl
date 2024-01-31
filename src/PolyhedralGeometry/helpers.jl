@@ -381,8 +381,8 @@ _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 const scalar_types = Union{FieldElem, Float64}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
-                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
                                                  ("Float", Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
@@ -450,7 +450,7 @@ function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     return (f, T)
 end
 
-function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
+function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
     propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
@@ -467,7 +467,7 @@ function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::P
         elseif eltype(prop) <: Polymake.OscarNumber
             for el in prop
                 on = Polymake.unwrap(el)
-                if on isa Hecke.EmbeddedNumFieldElem{nf_elem}
+                if on isa Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
                     return parent(on)
                 end
             end
@@ -549,15 +549,15 @@ end
 
 # oscarnumber helpers
 
-function Polymake._fieldelem_to_rational(e::EmbeddedElem)
+function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
    return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::EmbeddedElem)
+function Polymake._fieldelem_is_rational(e::EmbeddedNumFieldElem)
    return is_rational(e)
 end
 
-function Polymake._fieldelem_to_float(e::EmbeddedElem)
+function Polymake._fieldelem_to_float(e::EmbeddedNumFieldElem)
    return Float64(real(embedding(parent(e))(data(e), 32)))
 end
 

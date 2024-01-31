@@ -79,7 +79,7 @@ G-module for G acting on vector space of dimension 8 over rational field
 ```
 """
 function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FieldElem}}, phi::Map)
-  #works iff relative_field above works. At least for AnticNumberField and 
+  #works iff relative_field above works. At least for AbsSimpleNumField and 
   #finite fields
   @assert codomain(phi) == base_ring(M)
   d = divexact(degree(codomain(phi)), degree(domain(phi)))
@@ -89,7 +89,7 @@ function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.F
   return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x = transpose(matrix(y))]...)) for y = M.ac])
 end
 
-function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, ::QQField)
+function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
@@ -264,18 +264,18 @@ function irreducible_modules(G::Oscar.GAPGroup)
 end
 
 @doc raw"""
-    trivial_gmodule(G::Group, M::GrpAbFinGen)
+    trivial_gmodule(G::Group, M::FinGenAbGroup)
     trivial_gmodule(G::Group, M::AbstractAlgebra.FPModule)
 
 Return the `G`-module over the underlying set `M` with trivial `G`-action,
 i.e., `g(m) == m` for all $g\in G$ and $m\in M$.
 """
-function trivial_gmodule(G::Oscar.GAPGroup, M::Union{GrpAbFinGen, AbstractAlgebra.FPModule})
+function trivial_gmodule(G::Oscar.GAPGroup, M::Union{FinGenAbGroup, AbstractAlgebra.FPModule})
   I = hom(M, M, gens(M))
   return Oscar.gmodule(M, G, typeof(I)[I for x = gens(G)])
 end
 
-function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{nf_elem}})
+function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k, mk = Hecke.subfield(base_ring(M), vec(collect(reduce(vcat, map(matrix, M.ac)))))
   if k != base_ring(M)
     F = free_module(k, dim(M))
@@ -284,16 +284,16 @@ function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:
   return M
 end
 
-function Oscar.gmodule(::Type{AnticNumberField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQAbElem{nf_elem}}})
-  return gmodule(AnticNumberField, gmodule(CyclotomicField, M))
+function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}})
+  return gmodule(AbsSimpleNumField, gmodule(CyclotomicField, M))
 end
 
-function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
+function irreducible_modules(::Type{AbsSimpleNumField}, G::Oscar.GAPGroup; minimal_degree::Bool = false)
   z = irreducible_modules(G)
   Z = GModule[]
   for m in z
     a = gmodule(CyclotomicField, m)
-    b = gmodule(AnticNumberField, a)
+    b = gmodule(AbsSimpleNumField, a)
     push!(Z, b)
   end
 
@@ -305,7 +305,7 @@ function irreducible_modules(::Type{AnticNumberField}, G::Oscar.GAPGroup; minima
   end
 end
 
-function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{nf_elem}})
+function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k, m = _character_field(V)
   chi = character(V)
   d = schur_index(chi)
@@ -377,14 +377,14 @@ function gmodule(::typeof(CyclotomicField), C::GModule)
   return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
 end
 
-function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, GrpAbFinGen})
+function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
   @assert absolute_degree(k) == 1
   q, mq = quo(C.M, characteristic(k))
   s, ms = snf(q)
 
   r = ngens(s)
   F = free_module(k, r)
-  mp = [GrpAbFinGenMap(ms*pseudo_inv(mq)*x*mq*pseudo_inv(ms)) for x= C.ac]
+  mp = [FinGenAbGroupHom(ms*pseudo_inv(mq)*x*mq*pseudo_inv(ms)) for x= C.ac]
   return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = mp])
 end
 
@@ -392,7 +392,7 @@ function gmodule(k::Nemo.fpField, mC::Hecke.MapClassGrp)
   return gmodule(k, gmodule(ray_class_field(mC)))
 end
 
-function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, phi::Map{AnticNumberField, AnticNumberField})
+function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, phi::Map{AbsSimpleNumField, AbsSimpleNumField})
   F = free_module(codomain(phi), dim(C))
   return GModule(group(C), [hom(F, F, map_entries(phi, matrix(x))) for x = C.ac])
 end
@@ -406,7 +406,7 @@ function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem}}, phi::M
   return GModule(F, group(C), [hom(F, F, map_entries(phi, matrix(x))) for x = C.ac])
 end
 
-function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
@@ -455,7 +455,7 @@ function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
              y->ge[Int(y)])
 end
 
-function natural_gmodule(::Type{GrpAbFinGen}, G::Oscar.GAPGroup, ::ZZRing)
+function natural_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
   M = free_abelian_group(order(Int, G))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -466,17 +466,17 @@ end
 
 Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}) = QQ
 
-function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
   return k, mkK
 end
 
-function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _character_field(C)[1]
 end
 
-function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   chr = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
   A = maximal_abelian_subfield(ClassField, k)
@@ -555,7 +555,7 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   return C
 end
 
-function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _minimize(C) 
 end
 
@@ -620,7 +620,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
 end
 
 #...now the same for number fields - and non-cyclic fields.
-function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}; do_error::Bool = true)
+function gmodule_over(em::Map{AbsSimpleNumField, AbsSimpleNumField}, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true)
   K = base_ring(C)
   k = domain(em)
   @assert codomain(em) == K
@@ -640,7 +640,7 @@ function gmodule_over(em::Map{AnticNumberField, AnticNumberField}, C::GModule{<:
   return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
 end
 
-function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}; do_error::Bool = true)
+function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true)
   K = base_ring(C)
   A, mA = automorphism_group(PermGroup, K)
   ac = _two_cocycle(mA, C, do_error = do_error)  
@@ -659,7 +659,7 @@ function Oscar.hom(M::MultGrp, N::MultGrp, h::Map)
   return MapFromFunc(M, N, x->N(h(x.data)), y->M(preimage(h, y.data)))
 end
 
-function Oscar.content_ideal(M::MatElem{nf_elem})
+function Oscar.content_ideal(M::MatElem{AbsSimpleNumFieldElem})
   zk = maximal_order(base_ring(M))
   C = fractional_ideal(zk, 1*zk)
   if nrows(M)*ncols(M) == 0
@@ -682,7 +682,7 @@ module of the automorphism group over the character field.
 If `mA` is given, it needs to map the automorphism group over the
 character field into the the automorphisms of the base ring.
 """
-function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, mA::Union{Map, Nothing} = nothing)
+function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, mA::Union{Map, Nothing} = nothing)
   K = base_ring(C)
   if mA === nothing
     k, mkK = _character_field(C)
@@ -698,7 +698,7 @@ function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, mA::
   return c
 end
 
-function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}; do_error::Bool = true, two_cycle::Bool = false)
+function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true, two_cycle::Bool = false)
   G = domain(mA)
   K = base_ring(C)
 
@@ -743,7 +743,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_e
 
   @vprint :MinField 1 "now the 2-cocycle (scalars)\n"
   MK = MultGrp(K)
-  sigma = Dict{Tuple{PermGroupElem, PermGroupElem}, nf_elem}()
+  sigma = Dict{Tuple{PermGroupElem, PermGroupElem}, AbsSimpleNumFieldElem}()
   for g = G
     for h = G
       if isone(g)
@@ -761,7 +761,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_e
 
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
-  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{nf_elem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
+  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
   if two_cycle
     return Sigma
   end
@@ -803,7 +803,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_e
   return r
 end
 
-function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{nf_elem}}, mA)
+function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{AbsSimpleNumFieldElem}}, mA)
   G = domain(mA)
   for g = G
     for h = G
@@ -812,7 +812,7 @@ function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{nf_elem}}, mA)
   end
 end
 
-function isone_cochain(X::Dict{<:GAPGroupElem, nf_elem}, mA)
+function isone_cochain(X::Dict{<:GAPGroupElem, AbsSimpleNumFieldElem}, mA)
   G = domain(mA)
   for g = G
     for h = G
@@ -927,14 +927,14 @@ function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{Q
   return GModule(group(C), [hom(F, F, map_entries(k, matrix(x))) for x=C.ac])
 end
 
-function gmodule(mk::Map{AnticNumberField, <:FinField}, C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function gmodule(mk::Map{AbsSimpleNumField, <:FinField}, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k = codomain(mk)
   @assert domain(mk) == base_ring(C)
   F = free_module(k, dim(C))
   return GModule(group(C), [hom(F, F, map_entries(mk, matrix(x))) for x=C.ac])
 end
 
-function Hecke.modular_proj(C::GModule{T, <:AbstractAlgebra.FPModule{nf_elem}}, me::Hecke.modular_env) where T
+function Hecke.modular_proj(C::GModule{T, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, me::Hecke.modular_env) where T
   R = []
   z = map(x->(Hecke.modular_proj(x.matrix, me)), C.ac)
   for i=1:length(z[1])
@@ -1027,7 +1027,7 @@ end
 
 #a bad implementation of hom: as the fix module of ghom
 #but we don't have he meataxe in general.
-function Hecke.hom(C::GModule{T, GrpAbFinGen}, D::GModule{T, GrpAbFinGen}) where {T}
+function Hecke.hom(C::GModule{T, FinGenAbGroup}, D::GModule{T, FinGenAbGroup}) where {T}
 
  H, mH = Oscar.GModuleFromGap.ghom(C, D)
  q, mq = H_zero(H)
@@ -1056,7 +1056,7 @@ C = gmodule(G, [hom(A, A, [A[1], A[1]+A[2]])])
 is_consistent(C)
 
 zg, ac = Oscar.GModuleFromGap.natural_gmodule(G, ZZ)
-zg = gmodule(GrpAbFinGen, zg)
+zg = gmodule(FinGenAbGroup, zg)
 H, mH = Oscar.GModuleFromGap.ghom(zg, C)
 inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)])) for c = gens(C.M)])
 
@@ -1140,7 +1140,7 @@ on return.
 
 Currently assumes no bad primes.
 """
-function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}}, D::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function hom_base(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, D::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   @assert base_ring(C) == base_ring(D)
 
   p = Hecke.p_start
@@ -1271,7 +1271,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
   end
 end
 
-function gmodule(K::AnticNumberField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{nf_elem}})
+function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   F = free_module(K, dim(M))
   return gmodule(F, group(M), [hom(F, F, map_entries(K, matrix(x))) for x = M.ac])
 end
@@ -1366,17 +1366,17 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
 end
 
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
   A = free_abelian_group(rank(C.M))
   return Oscar.gmodule(Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModule{FpFieldElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{FpFieldElem}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, <:AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:dim(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
@@ -1386,7 +1386,7 @@ function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
   return A, MapFromFunc(A, M, x->M(x.coeff), y->A(y.v))
 end
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
   A, mA = abelian_group(C.M)
   return Oscar.gmodule(A, Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
@@ -1405,7 +1405,7 @@ function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
     end
     return A(a)
   end
-  function to_M(a::GrpAbFinGenElem)
+  function to_M(a::FinGenAbGroupElem)
     m = fqPolyRepFieldElem[]
     for i=1:dim(M)
       push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
@@ -1424,11 +1424,11 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   return gmodule(group(chi), [hom(F, F, x) for x = z])
 end
 
-function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AnticNumberField}}, chi::Oscar.GAPGroupClassFunction)
+function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}}, chi::Oscar.GAPGroupClassFunction)
   return gmodule(T, gmodule(chi))
 end
 
-function Oscar.gmodule(::Type{GrpAbFinGen}, C::GModule{T, AbstractAlgebra.FPModule{fqPolyRepFieldElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{fqPolyRepFieldElem}}) where {T <: Oscar.GAPGroup}
   k = base_ring(C)
   A, mA = abelian_group(C.M)
 
@@ -1486,7 +1486,7 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
  end
 end
 
-function Hecke.induce_crt(a::Generic.MatSpaceElem{nf_elem}, b::Generic.MatSpaceElem{nf_elem}, p::ZZRingElem, q::ZZRingElem)
+function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, p::ZZRingElem, q::ZZRingElem)
   c = parent(a)()
   pi = invmod(p, q)
   mul!(pi, pi, p)
@@ -1501,7 +1501,7 @@ function Hecke.induce_crt(a::Generic.MatSpaceElem{nf_elem}, b::Generic.MatSpaceE
   return c
 end
 
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{nf_elem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
+function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
   c = parent(a)()
   for i=1:nrows(a)
     for j=1:ncols(a)

@@ -612,7 +612,7 @@ julia> ambient_free_module(M) === F
 true
 
 julia> degrees_of_generators(M)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  [8]
  [8]
 ```
@@ -694,7 +694,7 @@ julia> ambient_free_module(M) === F
 true
 
 julia> degrees_of_generators(M)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  [9]
  [10]
 ```

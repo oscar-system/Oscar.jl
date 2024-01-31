@@ -111,7 +111,7 @@ Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 gra
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]

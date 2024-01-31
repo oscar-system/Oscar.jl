@@ -1322,7 +1322,7 @@ julia> degree(f)
 [4]
 
 julia> typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia> degree(Int, f)
 4
@@ -1352,7 +1352,7 @@ is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
 is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
 @doc raw"""
-    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
 grading group of that algebra, return the homogeneous component of `f` of degree `g`.
@@ -1382,7 +1382,7 @@ julia> homogeneous_component(f, 4)
 z^4
 ```
 """
-function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   simplify(a)
   return homogeneous_component(a.f, d)
 end
@@ -1412,7 +1412,7 @@ julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
   [4] => z^4
   [3] => y^2*z
 ```
@@ -1489,10 +1489,10 @@ end
 ################################################################
 
 @doc raw"""
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
-where the grading group is free of type `GrpAbFinGen`, and given an element `g` of 
+where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
 that group, return the homogeneous component of `A` of degree `g`. Additionally, return
 the embedding of the component into `A`.
 
@@ -1615,7 +1615,7 @@ x[1]^2*y[3]
 x[1]^2*y[2]
 ```
 """
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   D = parent(d)

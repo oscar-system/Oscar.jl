@@ -212,7 +212,7 @@ Iterator over a basis of the component of degree 6
   of invariant ring of matrix group
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -310,7 +310,7 @@ Iterator over a basis of the component of degree 6
 relative to a character
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -323,7 +323,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of Sym(2), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3

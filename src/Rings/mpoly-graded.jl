@@ -1,10 +1,10 @@
 
 @attributes mutable struct MPolyDecRing{T, S} <: AbstractAlgebra.MPolyRing{T}
   R::S
-  D::GrpAbFinGen
-  d::Vector{GrpAbFinGenElem}
+  D::FinGenAbGroup
+  d::Vector{FinGenAbGroupElem}
   lt::Any
-  function MPolyDecRing(R::S, d::Vector{GrpAbFinGenElem}) where {S}
+  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -12,7 +12,7 @@
     r.d = d
     return r
   end
-  function MPolyDecRing(R::S, d::Vector{GrpAbFinGenElem}, lt) where {S}
+  function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}, lt) where {S}
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
     r.R = R
@@ -111,7 +111,7 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `GrpAbFinGen` 
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `FinGenAbGroup` 
 given by one free generator, and convert the entries of `W` to elements of that group. Then 
 create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
 of `R`, and return the new ring, together with the vector of variables.
@@ -152,7 +152,7 @@ end
     grade(R::MPolyRing, W::AbstractVector{<:AbstractVector{<:IntegerUnion}})
  
 Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
-abelian group of type `GrpAbFinGen` given by `m` free generators, and convert the vectors in
+abelian group of type `FinGenAbGroup` given by `m` free generators, and convert the vectors in
 `W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
 elements as weights to the variables of `R`, and return the new ring, together with the vector
 of variables.
@@ -318,7 +318,7 @@ julia> G = abelian_group([0, 2])
 [0 0; 0 2]
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  Element of G with components [1 1]
  Element of G with components [1 0]
 
@@ -391,7 +391,7 @@ function graded_polynomial_ring(C::Ring, args...; weights=nothing, kwargs...)
   if weights === nothing
     # no weights kwarg given: for backwards compatibility also check if
     # the last regular argument might be a weight vector and if so, use it.
-    if args[end] isa Union{Vector{<:IntegerUnion}, Vector{<:Vector{<:IntegerUnion}}, Matrix{<:IntegerUnion}, ZZMatrix, Vector{GrpAbFinGenElem}}
+    if args[end] isa Union{Vector{<:IntegerUnion}, Vector{<:Vector{<:IntegerUnion}}, Matrix{<:IntegerUnion}, ZZMatrix, Vector{FinGenAbGroupElem}}
       weights = args[end]
       args = args[1:end-1]
     end
@@ -421,7 +421,7 @@ _map_recursive(S::NCRing, a::Tuple) = map(x -> _map_recursive(S, x), a)
 
 filtrate(R::MPolyRing) = decorate(R)
 
-function show_special_elem_grad(io::IO, a::GrpAbFinGenElem)
+function show_special_elem_grad(io::IO, a::FinGenAbGroupElem)
   if get(io, :compact, false)
     print(io, a.coeff)
   else
@@ -436,13 +436,13 @@ function filtrate(R::MPolyRing, v::Vector{Int})
   return S, map(S, gens(R))
 end
 
-function filtrate(R::MPolyRing, v::Vector{GrpAbFinGenElem}, lt)
+function filtrate(R::MPolyRing, v::Vector{FinGenAbGroupElem}, lt)
   S = MPolyDecRing(R, v, lt)
   return S, map(S, gens(R))
 end
 
 @doc raw"""
-    grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
+    grade(R::MPolyRing, W::Vector{FinGenAbGroupElem})
 
 Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
 `G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
@@ -484,7 +484,7 @@ julia> G = abelian_group([0, 0])
 GrpAb: Z^2
 
 julia> g = gens(G)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  Element of G with components [1 0]
  Element of G with components [0 1]
 
@@ -520,7 +520,7 @@ julia> G = abelian_group([0, 0, 2, 2])
 julia> g = gens(G);
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
-5-element Vector{GrpAbFinGenElem}:
+5-element Vector{FinGenAbGroupElem}:
  Element of G with components [1 0 1 1]
  Element of G with components [0 1 0 1]
  Element of G with components [1 0 1 0]
@@ -531,7 +531,7 @@ julia> S, x = grade(R, W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 ```
 """
-function grade(R::MPolyRing, v::AbstractVector{GrpAbFinGenElem})
+function grade(R::MPolyRing, v::AbstractVector{FinGenAbGroupElem})
   S = MPolyDecRing(R, v)
   return S, map(S, gens(R))
 end
@@ -871,7 +871,7 @@ julia> degree(f)
 [6]
 
 julia> typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia> degree(Int, f)
 6
@@ -976,7 +976,7 @@ julia> f = x^2+y+z
 x^2 + y + z
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   [2] => x^2 + y
   [3] => z
 
@@ -993,7 +993,7 @@ julia> f = x[1]^2+x[3]^2+x[5]^2
 x[1]^2 + x[3]^2 + x[5]^2
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
   [2 2 0 0] => x[5]^2
   [2 0 0 0] => x[1]^2 + x[3]^2
 ```
@@ -1016,7 +1016,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
       tmat[1, i] = e[i]
     end
     mul!(res_mat, tmat, dmat)
-    u = GrpAbFinGenElem(D, res_mat)
+    u = FinGenAbGroupElem(D, res_mat)
     if haskey(hh, u)
       ctx = hh[u]
       push_term!(ctx, c, e)
@@ -1038,7 +1038,7 @@ function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}
 end
 
 @doc raw"""
-    homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
+    homogeneous_component(f::MPolyDecRingElem, g::FinGenAbGroupElem)
 
 Given an element `f` of a graded multivariate ring, and given an element 
 `g` of the grading group of that ring, return the homogeneous component of `f` of degree `g`.
@@ -1104,7 +1104,7 @@ julia> homogeneous_component(f, 3)
 z
 ```
 """
-function homogeneous_component(a::MPolyDecRingElem, g::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyDecRingElem, g::FinGenAbGroupElem)
   R = forget_decoration(parent(a))
   r = R(0)
   d = parent(a).d
@@ -1151,10 +1151,10 @@ function show_homo_comp(io::IO, M)
 end
 
 @doc raw"""
-    monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+    monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
-group of type `GrpAbFinGen`, and given an element `g` of that group,
+group of type `FinGenAbGroup`, and given an element `g` of that group,
 return the monomials of degree `g` in `R`.
 
     monomial_basis(R::MPolyDecRing, W::Vector{<:IntegerUnion})
@@ -1189,7 +1189,7 @@ julia> L = monomial_basis(T, 2)
  x^2
 ```
 """
-function monomial_basis(W::MPolyDecRing, d::GrpAbFinGenElem)
+function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
@@ -1230,10 +1230,10 @@ function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
 end
 
 @doc raw"""
-    homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem) 
+    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
-group of type `GrpAbFinGen`, and given an element `g` of that group,
+group of type `FinGenAbGroup`, and given an element `g` of that group,
 return the homogeneous component of `R` of degree `g` as a standard
 vector space. Additionally, return the map which sends an element
 of that vector space to the corresponding monomial in `R`.
@@ -1286,7 +1286,7 @@ x[1]*y[2]
 x[1]*y[1]
 ```
 """
-function homogeneous_component(W::MPolyDecRing, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyDecRing, d::FinGenAbGroupElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   #TODO: in the presence of torsion, this is wrong. The component
@@ -2336,7 +2336,7 @@ Generic.ordering(S::MPolyDecRing) = ordering(S.R)
 #############truncation#############
 
 @doc raw"""
-    truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+    truncate(I::MPolyIdeal, g::FinGenAbGroupElem)
 
 Given a (homogeneous) ideal `I` in a $\mathbb Z$-graded multivariate polynomial ring
 with positive weights, return the truncation of `I` at degree `g`.
@@ -2390,7 +2390,7 @@ Ideal generated by
   y^4
 ```
 """
-function truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+function truncate(I::MPolyIdeal, g::FinGenAbGroupElem)
   return truncate(I, Int(g[1]))
 end
 

@@ -31,7 +31,7 @@ Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polyto
 """
 function polyhedron(p::Polymake.BigObject)
   T, f = _detect_scalar_and_field(Polyhedron, p)
-  if T == EmbeddedElem{nf_elem} && Hecke.isquadratic_type(number_field(f))[1] && Polymake.bigobject_eltype(p) == "QuadraticExtension"
+  if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem} && Hecke.isquadratic_type(number_field(f))[1] && Polymake.bigobject_eltype(p) == "QuadraticExtension"
     p = _polyhedron_qe_to_on(p, f)
   end 
   return Polyhedron{T}(p, f)

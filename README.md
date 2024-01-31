@@ -52,10 +52,10 @@ julia> k, a = quadratic_field(-5)
 
 julia> zk = maximal_order(k)
 Maximal order of Imaginary quadratic field defined by x^2 + 5
-with basis nf_elem[1, sqrt(-5)]
+with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
 
 julia> factorisations(zk(6))
-2-element Vector{Fac{NfOrdElem}}:
+2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
  -1 * -3 * 2
 

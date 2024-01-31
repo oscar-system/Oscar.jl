@@ -117,7 +117,7 @@ julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> D = ProjectivePlaneCurve(x^2 + 2*y^2 + 5*z^2 - 4*x*y + 3*x*z + 17*y*z);
 
 julia> P = rational_point_conic(D)
-3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+3-element Vector{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}:
  -1//4*a
  -1//4*a + 1//4
  0
