@@ -35,7 +35,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 #import ..Oscar.AbstractAlgebra: promote_rule
 
 import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
-                has_preimage, is_root_of_unity, is_unit, mul!, parent,
+                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
 using Hecke
@@ -940,7 +940,7 @@ end
 
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
-function has_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbElem{AbsSimpleNumFieldElem})
+function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbElem{AbsSimpleNumFieldElem})
   pre = mp.g(x, check = true)
   if isnothing(pre)
     return false, zero(domain(mp))

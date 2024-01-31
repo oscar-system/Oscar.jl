@@ -6,7 +6,7 @@ function restrict_codomain(f::FinGenAbGroupHom)
   H, Htocd = image(f, false)
   imgs = elem_type(H)[]
   for g in gens(G)
-    fl, h = haspreimage(Htocd, f(g))
+    fl, h = has_preimage_with_preimage(Htocd, f(g))
     @assert fl
     push!(imgs, h)
   end
