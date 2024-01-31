@@ -76,8 +76,8 @@ equal `max_length` and not equal to the empty partition.
 Note that this is a helper function for the `construct_category` algorithm.
 """
 function _is_worth_composition(p::T, q::T, max_length::Int) where {T <: AbstractPartition}
-    return num_upper_points(p) != max_length && 
-        num_lower_points(p) + num_upper_points(q) <= max_length
+    return number_of_upper_points(p) != max_length && 
+        number_of_lower_points(p) + number_of_upper_points(q) <= max_length
 end
 
 """
@@ -112,14 +112,14 @@ function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) wher
                                                                 {T <: AbstractPartition}
 
     # add right partition in first dict for top size
-    add_apbs_top = vector[1][num_upper_points(p)]
+    add_apbs_top = vector[1][number_of_upper_points(p)]
     push!(add_apbs_top, p)
-    vector[1][num_upper_points(p)] = add_apbs_top
+    vector[1][number_of_upper_points(p)] = add_apbs_top
 
     # add right partition in first dict for bottom size
-    add_apbs_bottom = vector[2][num_upper_points(p)]
+    add_apbs_bottom = vector[2][number_of_upper_points(p)]
     push!(add_apbs_bottom, p)
-    vector[2][num_lower_points(p)] = add_apbs_bottom
+    vector[2][number_of_lower_points(p)] = add_apbs_bottom
 
     return vector
 end

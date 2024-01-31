@@ -30,8 +30,8 @@ export is_pair
 export levels
 export lower_colors
 export lower_points
-export num_lower_points
-export num_upper_points
+export number_of_lower_points
+export number_of_upper_points
 export print_trace
 export reflect_vertical
 export rotate_top_right
@@ -69,8 +69,8 @@ export is_pair
 export levels
 export lower_colors
 export lower_points
-export num_lower_points
-export num_upper_points
+export number_of_lower_points
+export number_of_upper_points
 export print_trace
 export reflect_vertical
 export rotate_top_right

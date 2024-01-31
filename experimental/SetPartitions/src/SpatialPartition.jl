@@ -10,8 +10,8 @@ struct SpatialPartition <: AbstractPartition
     levels::Int
 
     function SpatialPartition(partition::SetPartition, levels::Int)
-        @req num_upper_points(partition) % levels == 0 "number of upper points not divisible by levels"
-        @req num_lower_points(partition) % levels == 0 "number of lower points not divisible by levels"
+        @req number_of_upper_points(partition) % levels == 0 "number of upper points not divisible by levels"
+        @req number_of_lower_points(partition) % levels == 0 "number of lower points not divisible by levels"
         @req levels > 0 "levels needs to be greater than 0"
 
         return new(partition, levels)

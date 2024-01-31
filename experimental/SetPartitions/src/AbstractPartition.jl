@@ -29,20 +29,20 @@ function adjoint(p::AbstractPartition)
 end
 
 """
-    num_upper_points(p::AbstractPartition)
+    number_of_upper_points(p::AbstractPartition)
 
 Return the number of upper points of `p`.
 """
-function num_upper_points(p::AbstractPartition)
+function number_of_upper_points(p::AbstractPartition)
 	return length(upper_points(p))
 end
 
 """
-    num_lower_points(p::AbstractPartition)
+    number_of_lower_points(p::AbstractPartition)
 
 Return the number of lower points of `p`.
 """
-function num_lower_points(p::AbstractPartition)
+function number_of_lower_points(p::AbstractPartition)
 	return length(lower_points(p))
 end
 
@@ -52,5 +52,5 @@ end
 Return the total number of points of `p`.
 """
 function size(p::AbstractPartition)
-    return num_upper_points(p) + num_lower_points(p)
+    return number_of_upper_points(p) + number_of_lower_points(p)
 end

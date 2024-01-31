@@ -269,7 +269,7 @@ false
 ```
 """
 function is_composable(p::SetPartition, q::SetPartition)
-    return num_upper_points(p) == num_lower_points(q)
+    return number_of_upper_points(p) == number_of_lower_points(q)
 end
 
 """
