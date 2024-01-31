@@ -29,7 +29,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   a_rays[1:nrows(b_rays), 1:ncols(b_rays)] = b_rays
   a_rays[1:nrows(b_rays), 1+ncols(b_rays):ncols(a_rays)] = transpose(u_matrix)
   a_rays[1+nrows(b_rays):nrows(a_rays), 1+ncols(b_rays):ncols(a_rays)] = f_rays
-  a_cones = [hcat([b for b in b_cones[i,:]], [c for c in f_cones[j,:]]) for i in 1:nrows(b_cones), j in 1:nrows(f_cones)]
+  a_cones = [hcat([b for b in b_cones[i:i,:]], [c for c in f_cones[j:j,:]]) for i in 1:nrows(b_cones), j in 1:nrows(f_cones)]
   a_space = normal_toric_variety(IncidenceMatrix(vcat(a_cones...)), a_rays; non_redundant = true)
   set_coordinate_names(a_space, vcat(b_var_names, f_var_names))
   

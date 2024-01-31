@@ -244,7 +244,7 @@ function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
   sym = cartan_symmetrizer(gcm; check)
   bil = deepcopy(gcm)
   for i in 1:length(sym)
-    mul!(view(bil, i, :), sym[i])
+    mul!(view(bil, i:i, :), sym[i])
   end
   return bil
 end

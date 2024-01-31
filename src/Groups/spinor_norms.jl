@@ -124,7 +124,7 @@ function reflection(gram::MatElem, v::MatElem)
   c = base_ring(gram)(2) * ((v * gram * transpose(v)))[1,1]^(-1)
   ref = zero_matrix(base_ring(gram), n, n)
   for k in 1:n
-    ref[k,:] = E[k,:] - c*(E[k,:] * gram * transpose(v))*v
+    ref[k:k,:] = E[k:k,:] - c*(E[k:k,:] * gram * transpose(v))*v
   end
   return ref
 end
@@ -206,7 +206,7 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
 
   k = 1
   while k <= l
-    g = T[k,:]
+    g = T[k:k,:]
     # error estimates
     lambd = valuation(g, p)
     rho = min(delta + nu + gamma, 2*nu + gamma)
@@ -216,20 +216,20 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
       # precision too low
       return ZZ(0), QQ(0)
     end
-    bm = g - E[k,:]
+    bm = g - E[k:k,:]
     qm = bm * G * transpose(bm)
     if valuation(qm, p) <= gammaL[k] + 2*delta
       tau1 = reflection(G, bm)
       push!(reflection_vectors, bm)
       tau2 = E
     else
-      bp = g + E[k,:]
+      bp = g + E[k:k,:]
       qp = bp * G * transpose(bp)
       @assert valuation(qp, p) <= gammaL[k] + 2*delta
       tau1 = reflection(G, bp)
-      tau2 = reflection(G, E[k,:])
+      tau2 = reflection(G, E[k:k,:])
       push!(reflection_vectors,bp)
-      push!(reflection_vectors,E[k,:])
+      push!(reflection_vectors,E[k:k,:])
     end
     lambdaT = valuation(T, p)
     alpha = valuation(tau1, p)

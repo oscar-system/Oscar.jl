@@ -228,13 +228,13 @@ function normal_toric_variety_from_star_triangulation(P::Polyhedron)
   # Find position of origin in the lattices points of the polyhedron P
   pts = matrix(ZZ, lattice_points(P))
   zero = [0 for i in 1:ambient_dim(P)]
-  indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+  indices = findall(k -> pts[k:k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
   @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
 
   # Change order of lattice points s.t. zero is the first point
-  tmp = pts[1,:]
-  pts[1,:] = pts[indices[1],:]
-  pts[indices[1],:] = tmp
+  tmp = pts[1:1,:]
+  pts[1:1,:] = pts[indices[1]:indices[1],:]
+  pts[indices[1]:indices[1],:] = tmp
 
   # Find one triangulation and turn it into the maximal cones of the toric variety in question. Note that:
   # (a) needs to be converted to incidence matrix
@@ -242,7 +242,7 @@ function normal_toric_variety_from_star_triangulation(P::Polyhedron)
   max_cones = IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in _find_full_star_triangulation(pts)])
 
   # Rays are all but the zero vector at the first position of pts
-  integral_rays = reduce(vcat, [pts[k,:] for k in 2:nrows(pts)])
+  integral_rays = reduce(vcat, [pts[k:k,:] for k in 2:nrows(pts)])
 
   # construct the variety
   return normal_toric_variety(max_cones, integral_rays; non_redundant = true)
@@ -280,7 +280,7 @@ function normal_toric_varieties_from_star_triangulations(P::Polyhedron)
   # find position of origin in the lattices points of the polyhedron P
   pts = matrix(ZZ, lattice_points(P))
   zero = [0 for i in 1:ambient_dim(P)]
-  indices = findall(k -> pts[k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
+  indices = findall(k -> pts[k:k,:] == matrix(ZZ, [zero]), 1:nrows(pts))
   @req length(indices) == 1 "Polyhedron must contain origin (exactly once)"
   
   # change order of lattice points s.t. zero is the first point
@@ -408,7 +408,7 @@ function normal_toric_varieties_from_glsm(charges::ZZMatrix)
   pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, pts))
   
   # construct varieties
-  integral_rays = reduce(vcat, [pts[k,:] for k in 2:nrows(pts)])
+  integral_rays = reduce(vcat, [pts[k:k,:] for k in 2:nrows(pts)])
   max_cones = [IncidenceMatrix([[c[i]-1 for i in 2:length(c)] for c in t]) for t in star_triangulations(pts; full = true)]
   varieties = [normal_toric_variety(cones, integral_rays; non_redundant = true) for cones in max_cones]
   
