@@ -589,13 +589,10 @@ orbits(C::GAPGroupConjClass) = [C]
 
 function permutation(C::GAPGroupConjClass, g::GAPGroupElem)
   pi = GAP.Globals.Permutation(g.X, C.CC, GAP.Globals.OnPoints)::GapObj
-  sym = get_attribute!(C, :action_range) do
-    return symmetric_group(length(Int, C))
-  end
-  return group_element(sym, pi)
+  return group_element(action_range(C), pi)
 end
 
-@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(C::GAPGroupConjClass{T, S}) where T where S
+@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(C::GAPGroupConjClass{T}) where T
   G = C.X
   acthom = GAP.Globals.ActionHomomorphism(G.X, C.CC, GAP.Globals.OnPoints)::GapObj
 
@@ -603,10 +600,7 @@ end
   # for `GSetByElements`.
   GAP.Globals.SetJuliaData(acthom, GAP.Obj([C, G]))
 
-  sym = get_attribute!(C, :action_range) do
-    return symmetric_group(length(Int, C))
-  end
-  return GAPGroupHomomorphism(G, sym, acthom)
+  return GAPGroupHomomorphism(G, action_range(C), acthom)
 end
 
 
