@@ -1312,9 +1312,9 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc raw"""
-    complement_class_reps(G::T, N::T) where T <: GAPGroup
+    complement_classes(G::T, N::T) where T <: GAPGroup
 
-Return a vector of representatives of the conjugacy classes of complements
+Return a vector of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
 This function may throw an error exception if both `N` and `G/N` are
 nonsolvable.
@@ -1326,19 +1326,24 @@ together with `N` generates `G`.
 ```jldoctest
 julia> G = symmetric_group(3);
 
-julia> complement_class_reps(G, derived_subgroup(G)[1])
-1-element Vector{PermGroup}:
- Permutation group of degree 3
+julia> complement_classes(G, derived_subgroup(G)[1])
+1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in Sym(3)
 
 julia> G = dihedral_group(8)
 Pc group of order 8
 
-julia> complement_class_reps(G, center(G)[1])
-PcGroup[]
+julia> complement_classes(G, center(G)[1])
+GAPGroupConjClass{PcGroup, PcGroup}[]
 ```
 """
-function complement_class_reps(G::T, N::T) where T <: GAPGroup
-   return _as_subgroups(G, GAP.Globals.ComplementClassesRepresentatives(G.X, N.X))
+function complement_classes(G::T, N::T) where T <: GAPGroup
+   res_gap = GAP.Globals.ComplementClassesRepresentatives(G.X, N.X)::GapObj
+   if length(res_gap) == 0
+     return GAPGroupConjClass{T, T}[]
+   else
+     return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
+   end
 end
 
 @doc raw"""

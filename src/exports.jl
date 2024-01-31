@@ -348,7 +348,7 @@ export comm!
 export common_components
 export common_refinement
 export complement
-export complement_class_reps
+export complement_classes
 export complement_equation
 export complement_equations
 export complement_ideal

@@ -53,7 +53,7 @@ derived_series
 sylow_system
 hall_subgroups
 hall_system
-complement_class_reps
+complement_classes
 complement_system
 chief_series
 composition_series

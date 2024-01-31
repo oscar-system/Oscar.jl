@@ -81,3 +81,5 @@ function hall_subgroup(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union
 end
 
 @deprecate low_index_subgroup_reps(G::GAPGroup, n::Int) map(representative, low_index_subgroups(G, n))
+
+@deprecate complement_class_reps(G::T, N::T) where T <: GAPGroup map(representative, complement_classes(G, N))

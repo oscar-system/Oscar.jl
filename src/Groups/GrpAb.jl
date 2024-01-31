@@ -279,7 +279,7 @@ solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 ################################################################################
 
 #TODO: how to compute complements?
-# complement_class_reps(G::T, N::T) where T <: FinGenAbGroup
+# complement_classes(G::T, N::T) where T <: FinGenAbGroup
 # complement_system(G::FinGenAbGroup)
 
 function sylow_system(G::FinGenAbGroup)
