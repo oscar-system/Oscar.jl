@@ -294,7 +294,7 @@ function present_as_cokernel(SQ::SubquoModule, task::Symbol = :none)
   R_b = obj(chainComplex, 0)
   f = map(chainComplex, 1)
   g = map(chainComplex, 0)
-  presentation_module = quo(R_b, image(f)[1], :module)
+  presentation_module = quo_object(R_b, image(f)[1])
 
   if task == :none
     return presentation_module

@@ -22,7 +22,7 @@ julia> F = FreeMod(R, 2);
 
 julia> V = [x*F[1], y^2*F[2]];
 
-julia> M = quo(F, V)[1]
+julia> M = quo_object(F, V)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -78,7 +78,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   kDelta = kernel(delta)
 
   projected_kernel::Vector{elem_type(H_s0_t0)} = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
-  H = quo(submodule(H_s0_t0, projected_kernel), image(rho_prime)[1], :module)
+  H = quo_object(sub_object(H_s0_t0, projected_kernel), image(rho_prime)[1])
 
   H_simplified, s_inj, s_proj = simplify_light(H)
 
@@ -115,7 +115,7 @@ julia> F = FreeMod(R, 2);
 
 julia> V = [x*F[1], y^2*F[2]];
 
-julia> M = quo(F, V)[1]
+julia> M = quo_object(F, V)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -181,7 +181,7 @@ julia> F = FreeMod(R, 2);
 
 julia> V = [x*F[1], y^2*F[2]];
 
-julia> M = quo(F, V)[1]
+julia> M = quo_object(F, V)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]

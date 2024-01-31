@@ -524,9 +524,9 @@ function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
     return cokernel(f)    
   elseif i in chain_range
     if Hecke.is_chain_complex(C)
-      return quo(kernel(map(C,i))[1], image(map(C,i+1))[1], :module)
+      return quo_object(kernel(map(C,i))[1], image(map(C,i+1))[1])
     else
-      return quo(kernel(map(C,i))[1], image(map(C,i-1))[1], :module)
+      return quo_object(kernel(map(C,i))[1], image(map(C,i-1))[1])
     end
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
@@ -549,7 +549,7 @@ julia> F = FreeMod(R, 1);
 
 julia> V = [x*F[1], y*F[1]];
 
-julia> M = quo(F, V)[1]
+julia> M = quo_object(F, V)
 Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 2 generators

@@ -2787,7 +2787,7 @@ function quotient_ring_as_module(I::MPolyIdeal)
   R = base_ring(I)
   F = is_graded(R) ? graded_free_module(R, 1) : free_module(R, 1)
   e1 = F[1]
-  return quo(F, [x * e1 for x = gens(I)], :module)
+  return quo_object(F, [x * e1 for x = gens(I)])
 end
 
 #####ideals as modules#####

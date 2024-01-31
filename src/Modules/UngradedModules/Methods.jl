@@ -637,7 +637,7 @@ function vector_space_dimension(M::SubquoModule{T}
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1])
+  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
 function vector_space_dimension(M::SubquoModule{T},d::Int64
@@ -649,7 +649,7 @@ function vector_space_dimension(M::SubquoModule{T},d::Int64
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1],d)
+  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
 function vector_space_dimension(M::SubquoModule{T}
@@ -754,7 +754,7 @@ function vector_space_basis(M::SubquoModule{T}
   end
   LM = leading_module(M_shift,o)
 
-  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
+  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
@@ -771,7 +771,7 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
   end
   LM = leading_module(M_shift,o)
 
-  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
+  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
 function vector_space_basis(M::SubquoModule{T}
