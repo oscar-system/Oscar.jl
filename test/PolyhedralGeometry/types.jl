@@ -66,6 +66,20 @@
 
         end
 
+        if f != ENF
+          let h = Int
+            Ah = h.(A)
+            @test Ah isa Vector{Int}
+            @test Ah == [1, 2, 3]
+          end
+          
+          let h = ENF
+            Ah = h.(A)
+            @test Ah isa T{elem_type(ENF)}
+            @test Ah == [1, 2, 3]
+          end
+        end
+
       end
     end
 
