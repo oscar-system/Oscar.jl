@@ -6,6 +6,8 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
+import Oscar: pretty, Lowercase
+
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
 export local_index, units_mod_ideal
@@ -1324,7 +1326,8 @@ mutable struct RelativeBrauerGroup
 end
 
 function Base.show(io::IO, B::RelativeBrauerGroup)
-  print(io, "Relative Brauer group for $(B.K) over $(B.k)")
+  io = pretty(io)
+  print(io, "Relative Brauer group for ", Lowercase(), B.K, " over ", Lowercase(), B.k)
 end
 
 """
@@ -1394,17 +1397,17 @@ function Base.show(io::IO, a::RelativeBrauerGroupElem)
 end
 
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, "Element of relative Brauer group of $(parent(a).k)\n")
   ioC = IOContext(io, :supercompact => true, :compact => true)
-  print(io, AbstractAlgebra.Indent())
+  print(io, Indent())
   for (p,v) = a.data
     show(ioC, p)
     print(io, " -> ")
     show(ioC, v)
     print(io, "\n")
   end
-  print(io, AbstractAlgebra.Dedent())
+  print(io, Dedent())
 end
 
 function local_invariants(B::RelativeBrauerGroup, CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{nf_elem}})
