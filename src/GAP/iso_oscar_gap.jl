@@ -402,8 +402,8 @@ Admissible values of `R` and the corresponding `S` are currently as follows.
 |:------------------------------------ |:---------------------------------- |
 | `ZZ`                                 | `Integers`                         |
 | `QQ`                                 | `Rationals`                        |
-| `residue_ring(ZZ, n)`                | `mod(Integers, n)`                 |
-| `finite_field(p, d)[1]`               | `GF(p, d)`                        |
+| `residue_ring(ZZ, n)[1]`             | `mod(Integers, n)`                 |
+| `finite_field(p, d)[1]`              | `GF(p, d)`                        |
 | `cyclotomic_field(n)[1]`             | `CF(n)`                            |
 | `number_field(f::QQPolyRingElem)[1]` | `AlgebraicExtension(Rationals, g)` |
 | `abelian_closure(QQ)[1]`             | `Cyclotomics`                      |
@@ -495,8 +495,6 @@ end
 #
 # Multivariate polynomial rings
 #
-@attributes AbstractAlgebra.Generic.MPolyRing # TODO: port this to AA
-
 function _iso_oscar_gap_polynomial_ring_functions(RO::MPolyRing{T}, RG::GAP.GapObj, coeffs_iso::MapFromFunc) where T
    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(RG))
    n = nvars(RO)

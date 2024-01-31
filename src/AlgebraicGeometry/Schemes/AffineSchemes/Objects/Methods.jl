@@ -13,12 +13,12 @@ end
 
 function ==(X::AbsSpec, Y::AbsSpec)
   X === Y && return true
-  return issubset(X, Y) && issubset(Y, X)
+  return is_subscheme(X, Y) && is_subscheme(Y, X)
 end
 
 
 function ==(X::AbsSpec, Y::EmptyScheme)
-  return issubset(X, Y)
+  return is_subscheme(X, Y)
 end
 
 
@@ -266,7 +266,7 @@ function base_change(phi::Any, X::AbsSpec)
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
   Y = Spec(R_red)
-  return Y, SpecMor(Y, X, Phi)
+  return Y, morphism(Y, X, Phi)
 end
 
 ### Some helper functions

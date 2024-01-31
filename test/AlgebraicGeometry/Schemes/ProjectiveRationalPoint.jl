@@ -13,7 +13,7 @@
   A = algebraic_set(X)
   @test A([1,1,1]) == X([1,1,1])
 
-  @test issubset(scheme(A([1,1,1])), A)
+  @test is_subscheme(scheme(A([1,1,1])), A)
 
 
   P2Z = projective_space(ZZ, 2)

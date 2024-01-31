@@ -10,11 +10,11 @@
 # necessarily be confined to a degree bound.
 
 @doc raw"""
-    mutable struct FreeAssAlgIdeal{T} <: FreeAssAlgIdeal{T}
+    mutable struct FreeAssAlgIdeal{T}
 
 Two-sided ideal of a free associative algebra with elements of type `T`.
 """
-mutable struct FreeAssAlgIdeal{T}
+mutable struct FreeAssAlgIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
   gb::IdealGens{T}
 
@@ -61,7 +61,7 @@ function base_ring(I::FreeAssAlgIdeal{T}) where T
   return I.gens.Ox::parent_type(T)
 end
 
-function ngens(a::FreeAssAlgIdeal)
+function number_of_generators(a::FreeAssAlgIdeal)
   return length(a.gens)
 end
 
@@ -89,7 +89,7 @@ end
 @doc raw"""
     ideal_membership(a::FreeAssAlgElem, I::FreeAssAlgIdeal, deg_bound::Int)
 
-Return `true` if calucations with intermediate degrees bounded by `deg_bound`
+Return `true` if calculations with intermediate degrees bounded by `deg_bound`
 prove that $a$ is in $I$. Otherwise, a return of `false` indicates an
 inconclusive answer, but larger `deg_bound`s give more confidence in a negative
 answer.

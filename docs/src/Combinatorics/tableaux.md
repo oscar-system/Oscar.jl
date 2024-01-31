@@ -26,7 +26,7 @@ semistandard_tableaux
 ```@docs
 is_standard
 standard_tableaux
-num_standard_tableaux
+number_of_standard_tableaux
 schensted
 bump!
 ```

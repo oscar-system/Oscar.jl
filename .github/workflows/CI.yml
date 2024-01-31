@@ -7,6 +7,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# needed to allow julia-actions/cache to delete old caches that it has created
+permissions:
+  actions: write
+  contents: read
+
 concurrency:
   # group by workflow and ref; the last slightly strange component ensures that for pull
   # requests, we limit to 1 concurrent job, but for the master branch we don't
@@ -43,16 +48,18 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
             group: 'short'
-            os: macOS-latest
+            os: macOS-14
           - julia-version: '1.10'
             group: 'long'
             os: macOS-latest
-          - julia-version: 'nightly'
-            group: 'short'
-            os: macOS-latest
-          - julia-version: 'nightly'
-            group: 'long'
-            os: macOS-latest
+          # nightly on macos is disabled for now since the macos jobs take too long
+          # with just 5 runners
+          #- julia-version: 'nightly'
+          #  group: 'short'
+          #  os: macOS-latest
+          #- julia-version: 'nightly'
+          #  group: 'long'
+          #  os: macOS-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -64,6 +71,10 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v1
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"
@@ -109,7 +120,7 @@ jobs:
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
-            os: macOS-latest
+            os: macOS-14
 
     steps:
       - uses: actions/checkout@v3
@@ -121,6 +132,10 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
+      - uses: julia-actions/cache@v1
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
+          include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "limit OpenMP threads"

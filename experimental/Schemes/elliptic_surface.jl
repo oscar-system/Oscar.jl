@@ -468,7 +468,7 @@ function _separate_singularities!(X::EllipticSurface)
 
 
   Cref = Covering(refined_charts)
-  inherit_glueings!(Cref, P[1])
+  inherit_gluings!(Cref, P[1])
   push!(P.coverings, Cref)
   @assert has_decomposition_info(default_covering(P))
   inherit_decomposition_info!(P, Cref)
@@ -1077,7 +1077,7 @@ function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
     yn = numerator(P[2])
     yd = denominator(P[2])
 
-    I = ambient_closure_ideal(U)
+    I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
     issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 

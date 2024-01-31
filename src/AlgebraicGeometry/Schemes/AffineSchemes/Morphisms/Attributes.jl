@@ -39,7 +39,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
@@ -55,7 +55,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 ```
 """
 domain(f::AbsSpecMor) = domain(underlying_morphism(f))
@@ -88,7 +88,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
@@ -136,12 +136,12 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> pullback(inclusion_morphism(X, Y))
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal(x1)
+  to quotient of multivariate polynomial ring by ideal (x1)
 defined by
   x1 -> 0
   x2 -> x2
@@ -183,7 +183,7 @@ function preimage(
   )
   X = domain(phi)
   Y = codomain(phi)
-  check && (issubset(Z, Y) || (Z = intersect(Y, Z)))
+  check && (is_subscheme(Z, Y) || (Z = intersect(Y, Z)))
   IZ = modulus(underlying_quotient(OO(Z)))
   a = denominators(inverted_set(OO(Z)))
   R = ambient_coordinate_ring(X)
@@ -247,7 +247,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism

@@ -530,16 +530,16 @@ end
 
 ################################################################################
 # Padic Field
-@register_serialization_type FlintPadicField
+@register_serialization_type PadicField
 
-function save_object(s::SerializerState, P::FlintPadicField)
+function save_object(s::SerializerState, P::PadicField)
   save_data_dict(s) do
     save_object(s, prime(P), :prime)
     save_object(s, precision(P), :precision)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{FlintPadicField})
+function load_object(s::DeserializerState, ::Type{PadicField})
   prime_num = load_node(s, :prime) do node
     return parse(ZZRingElem, node)
   end
@@ -550,14 +550,14 @@ function load_object(s::DeserializerState, ::Type{FlintPadicField})
 end
 
 #elements
-@register_serialization_type padic uses_params
+@register_serialization_type PadicFieldElem uses_params
 
-function save_object(s::SerializerState, obj::padic)
-  # currently it seems padics do not store the underlying polynomial
+function save_object(s::SerializerState, obj::PadicFieldElem)
+  # currently it seems PadicFieldElems do not store the underlying polynomial
   save_object(s, lift(QQ, obj))
 end
 
-function load_object(s::DeserializerState, ::Type{padic}, parent_field::FlintPadicField)
+function load_object(s::DeserializerState, ::Type{PadicFieldElem}, parent_field::PadicField)
   rational_rep = load_object(s, QQFieldElem)
   return parent_field(rational_rep)
 end

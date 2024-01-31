@@ -425,7 +425,7 @@ julia> Q = cross_polytope(2);
 julia> M = minkowski_sum(P, Q)
 Polyhedron in ambient dimension 2
 
-julia> nvertices(M)
+julia> number_of_vertices(M)
 8
 ```
 """
@@ -533,7 +533,7 @@ julia> Q = cross_polytope(2);
 julia> M = minkowski_sum(P, Q)
 Polyhedron in ambient dimension 2
 
-julia> nvertices(M)
+julia> number_of_vertices(M)
 8
 ```
 """
@@ -792,7 +792,7 @@ below.
 julia> T = platonic_solid("icosahedron")
 Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 20
 ```
 """
@@ -847,13 +847,13 @@ exact; Vertex-facet-incidences are correct in all cases.
 julia> T = archimedean_solid("cuboctahedron")
 Polyhedron in ambient dimension 3
 
-julia> sum([nvertices(F) for F in faces(T, 2)] .== 3)
+julia> sum([number_of_vertices(F) for F in faces(T, 2)] .== 3)
 8
 
-julia> sum([nvertices(F) for F in faces(T, 2)] .== 4)
+julia> sum([number_of_vertices(F) for F in faces(T, 2)] .== 4)
 6
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 14
 ```
 """
@@ -909,10 +909,10 @@ exact. However, vertex-facet-incidences are correct in all cases.
 ```jldoctest
 julia> T = catalan_solid("triakis_tetrahedron");
 
-julia> count(F -> nvertices(F) == 3, faces(T, 2))
+julia> count(F -> number_of_vertices(F) == 3, faces(T, 2))
 12
 
-julia> nfacets(T)
+julia> number_of_facets(T)
 12
 ```
 """
@@ -1213,7 +1213,7 @@ moment curve in dimension $d$.
 julia> cp = cyclic_polytope(3, 20)
 Polyhedron in ambient dimension 3
 
-julia> nvertices(cp)
+julia> number_of_vertices(cp)
 20
 ```
 """
@@ -1308,7 +1308,7 @@ The polyhedron $P$ must be bounded, and the number $n$ must not exceed the numbe
 
 # Examples
 ```jldoctest
-julia> nvertices(rand_subpolytope(cube(3), 5))
+julia> number_of_vertices(rand_subpolytope(cube(3), 5))
 5
 
 ```
@@ -1815,7 +1815,7 @@ Polyhedron in ambient dimension 2
 julia> dim(p) 
 2
 
-julia> nv(p)
+julia> number_of_vertices(p)
 5
 ```
 """

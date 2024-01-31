@@ -265,7 +265,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
   return allR
 end
 
-Base.getindex(M::AbstractAlgebra.FPModule, i::Int) = i==0 ? zero(M) : gens(M)[i]
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
 Oscar.is_free(M::Generic.FreeModule) = true

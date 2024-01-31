@@ -50,7 +50,7 @@ julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
 julia> C = projective_scheme(B)
 Projective scheme
   over rational field
-defined by ideal(x^2 + y^2)
+defined by ideal (x^2 + y^2)
 
 julia> is_smooth(C)
 false
@@ -94,7 +94,7 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
       aff, _ = affine_cone(P)
       sing, _ = singular_locus(aff)
       origin = ideal(gens(ambient_coordinate_ring(sing)))
-      return isone(saturation(ambient_closure_ideal(sing), origin))
+      return isone(saturation(saturated_ideal(defining_ideal(sing)), origin))
     elseif algorithm == :projective_jacobian
       return _projective_jacobian_criterion(P)
     end
@@ -116,7 +116,7 @@ function _projective_jacobian_criterion(P::AbsProjectiveScheme)
   end
   R = base_ring(homogeneous_coordinate_ring(P))
   I = defining_ideal(P)
-  mat = jacobi_matrix(R, gens(I))
+  mat = jacobian_matrix(R, gens(I))
   sing_locus = ideal(R, minors(mat, codim(P)))
   return dim(sing_locus + I) <= 0
 end

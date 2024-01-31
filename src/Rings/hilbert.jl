@@ -1099,7 +1099,7 @@ function _hilbert_series_ring(parent::Union{Nothing, Ring}, m::Int)
   if m == 1
     VAR = [:t]
   else
-    VAR = [_make_variable("t", i) for i = 1:m]
+    VAR = [Symbol("t[$i]") for i = 1:m]
   end
   HSRing, _ = laurent_polynomial_ring(ZZ, VAR)
   return HSRing

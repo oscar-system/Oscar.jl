@@ -11,7 +11,7 @@ CurrentModule = Oscar
 ### General constructors
 
 ```@docs
-SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
+morphism(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 ```
 
 ### Special constructors 

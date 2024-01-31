@@ -40,9 +40,9 @@ include("UserFunctions.jl")
 
 export basis_lie_highest_weight_operators
 export basis_lie_highest_weight
+export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
-export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string
 
 end
@@ -53,7 +53,7 @@ export BasisLieHighestWeight
 
 export basis_lie_highest_weight_operators
 export basis_lie_highest_weight
+export basis_lie_highest_weight_ffl
 export basis_lie_highest_weight_lusztig
 export basis_lie_highest_weight_nz
-export basis_lie_highest_weight_pbw
 export basis_lie_highest_weight_string

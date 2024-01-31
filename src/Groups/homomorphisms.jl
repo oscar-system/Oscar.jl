@@ -323,9 +323,15 @@ If `check` is set to `false` then the test whether `x` is an element of
 `image(f)` is omitted.
 """
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.map, domain(f), image(f)[1], x, check = check)
+end
+
+# helper function for computing `haspreimage` for
+# both `GAPGroupHomomorphism` (fieldnames `domain`, `codomain`, `map`)
+# and `AutomorphismGroupElem{T}` (fieldnames `parent`, `X`)
+function _haspreimage(mp::GapObj, dom::GAPGroup, img::GAPGroup, x::GAPGroupElem; check::Bool = true)
   # `GAP.Globals.PreImagesRepresentative` does not promise anything
   # if the given element is not in the codomain of the map.
-# check && ! (x in codomain(f)) && return false, one(domain(f))
 #TODO:
 # Apparently the documentation of `GAP.Globals.PreImagesRepresentative`
 # is wrong in the situation that `x` is not in the *image* of `f`,
@@ -333,14 +339,15 @@ function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = tru
 # see https://github.com/gap-system/gap/issues/4088.
 # Until this problem gets fixed on the GAP side, we perform a membership test
 # before calling `GAP.Globals.PreImagesRepresentative`.
-  check && ! (x in image(f)[1]) && return false, one(domain(f))
-  r = GAP.Globals.PreImagesRepresentative(f.map, x.X)::GapObj
+  check && ! (x in img) && return false, one(dom)
+  r = GAP.Globals.PreImagesRepresentative(mp, x.X)::GapObj
   if r == GAP.Globals.fail
-    return false, one(domain(f))
+    return false, one(dom)
   else
-    return true, group_element(domain(f), r)
+    return true, group_element(dom, r)
   end
 end
+
 
 """
     preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
@@ -370,7 +377,7 @@ homomorphism.
 # Examples
 ```jldoctest
 julia> is_isomorphic_with_map(symmetric_group(3), dihedral_group(6))
-(true, Hom: permutation group -> pc group)
+(true, Hom: Sym(3) -> pc group)
 ```
 """
 function is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
@@ -440,7 +447,7 @@ Otherwise throw an exception.
 ```jldoctest
 julia> isomorphism(symmetric_group(3), dihedral_group(6))
 Group homomorphism
-  from permutation group of degree 3 and order 6
+  from Sym(3)
   to pc group of order 6
 ```
 """
@@ -867,7 +874,7 @@ Groups of automorphisms over a group `G` have parametric type `AutomorphismGroup
 # Examples
 ```jldoctest
 julia> S = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> typeof(S)
 PermGroup
@@ -884,7 +891,7 @@ it can be obtained by typing either `f(x)` or `x^f`.
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -906,7 +913,7 @@ It is possible to turn an automorphism `f` into a homomorphism by typing `hom(f)
 
 ```jldoctest
 julia> S = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -928,15 +935,15 @@ automorphisms, is shown in Section [Inner_automorphisms](@ref inner_automorphism
 # Examples
 ```jldoctest
 julia> S = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> a = perm(S,[2,1,4,3])
 (1,2)(3,4)
 
 julia> f = hom(S,S,x ->x^a)
 Group homomorphism
-  from permutation group of degree 4 and order 24
-  to permutation group of degree 4 and order 24
+  from Sym(4)
+  to Sym(4)
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
@@ -980,15 +987,15 @@ true
 In Oscar it is possible to multiply homomorphisms and automorphisms (whenever it makes sense); in such cases, the output is always a variable of type `GAPGroupHomomorphism{S,T}`.
 ```jldoctest
 julia> S = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> A = automorphism_group(S)
 Aut( Sym( [ 1 .. 4 ] ) )
 
 julia> g = hom(S,S,x->x^S[1])
 Group homomorphism
-  from permutation group of degree 4 and order 24
-  to permutation group of degree 4 and order 24
+  from Sym(4)
+  to Sym(4)
 
 julia> f = A(g)
 MappingByFunction( Sym( [ 1 .. 4 ] ), Sym( [ 1 .. 4 ] ), <Julia: gap_fun> )
@@ -1019,6 +1026,16 @@ domain(A::AutomorphismGroup) = A.G
 Return the domain of this automorphism.
 """
 domain(f::AutomorphismGroupElem) = domain(parent(f))
+
+function haspreimage(f::AutomorphismGroupElem, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.X, domain(parent(f)), domain(parent(f)), x, check = check)
+end
+
+function preimage(f::AutomorphismGroupElem, x::GAPGroupElem)
+  fl, p = haspreimage(f, x)
+  @assert fl
+  return p
+end
 
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T

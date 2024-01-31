@@ -379,8 +379,8 @@ dim(c::ShiftedHyperComplex) = dim(original_complex(c))
 is_complete(c::ShiftedHyperComplex) = is_complete(original_complex(c))
 has_upper_bound(c::ShiftedHyperComplex, p::Int) = has_upper_bound(original_complex(c), p)
 has_lower_bound(c::ShiftedHyperComplex, p::Int) = has_lower_bound(original_complex(c), p)
-upper_bound(c::ShiftedHyperComplex, p::Int) = upper_bound(original_complex(c)) - shift(c)[p]
-lower_bound(c::ShiftedHyperComplex, p::Int) = lower_bound(original_complex(c)) - shift(c)[p]
+upper_bound(c::ShiftedHyperComplex, p::Int) = upper_bound(original_complex(c), p) - shift(c)[p]
+lower_bound(c::ShiftedHyperComplex, p::Int) = lower_bound(original_complex(c), p) - shift(c)[p]
 
 ########################################################################
 # Hypercomplex views                                                   #
