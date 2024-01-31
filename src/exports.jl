@@ -735,6 +735,7 @@ export is_complete
 export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
+export is_conjugate_subgroup_with_data
 export is_conjugate_with_data
 export is_connected
 export is_cyclic, has_is_cyclic, set_is_cyclic
