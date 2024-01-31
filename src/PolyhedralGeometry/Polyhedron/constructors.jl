@@ -234,7 +234,12 @@ convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayV
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
-    known_to_be_bounded = Polymake.exists(pm_object(P), "BOUNDED") ? pm_object(P).BOUNDED : false
+    pm_P = pm_object(P)
+    known_to_be_bounded = false
+    # if the vertices and rays are known, then it is easy to check if the polyhedron is bounded
+    if Polymake.exists(pm_P, "VERTICES") || Polymake.exists(pm_P, "BOUNDED")
+        known_to_be_bounded = pm_P.BOUNDED
+    end
     poly_word = known_to_be_bounded ? "Polytope" : "Polyhedron"
     try
         ad = ambient_dim(P)
