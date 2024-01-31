@@ -114,8 +114,8 @@ end
       @test length(S1) == length(S2)
     end
     for n in 1:4
-      S1 = low_index_subgroup_reps(G1, n)
-      S2 = low_index_subgroup_reps(G2, n)
+      S1 = low_index_subgroups(G1, n)
+      S2 = low_index_subgroups(G2, n)
       @test length(S1) == length(S2)
     end
     S1 = conjugacy_classes_maximal_subgroups(G1)

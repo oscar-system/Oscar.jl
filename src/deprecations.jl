@@ -79,3 +79,5 @@ function hall_subgroup(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union
   @req is_solvable(G) "The group is not solvable"
   return representative(hall_subgroups(G, P)[1])
 end
+
+@deprecate low_index_subgroup_reps(G::GAPGroup, n::Int) map(representative, low_index_subgroups(G, n))

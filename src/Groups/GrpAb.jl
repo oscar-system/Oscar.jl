@@ -71,24 +71,24 @@ end
 #
 ################################################################################
 
-struct GrpAbFinGenConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
+struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
    X::T
    repr::S
 end
 
-function Base.hash(C::GrpAbFinGenConjClass, h::UInt)
+function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
   return Base.hash(Representative(C), h)
 end
 
-function Base.show(io::IO, C::GrpAbFinGenConjClass)
+function Base.show(io::IO, C::FinGenAbGroupConjClass)
   print(io, string(representative(C)), " ^ ", string(C.X))
 end
 
-==(a::GrpAbFinGenConjClass, b::GrpAbFinGenConjClass) = representative(a) == representative(b)
+==(a::FinGenAbGroupConjClass, b::FinGenAbGroupConjClass) = representative(a) == representative(b)
 
-Base.length(::Type{T}, C::GrpAbFinGenConjClass) where T <: IntegerUnion = T(1)
+Base.length(::Type{T}, C::FinGenAbGroupConjClass) where T <: IntegerUnion = T(1)
 
-Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
+Base.length(C::FinGenAbGroupConjClass) = ZZRingElem(1)
 
 
 ################################################################################
@@ -97,19 +97,19 @@ Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
 #
 ################################################################################
 
-conjugacy_class(G::FinGenAbGroup, g::FinGenAbGroupElem) = GrpAbFinGenConjClass(G, g)
+conjugacy_class(G::FinGenAbGroup, g::FinGenAbGroupElem) = FinGenAbGroupConjClass(G, g)
 
-Base.eltype(::Type{GrpAbFinGenConjClass{T,S}}) where {T,S} = S
+Base.eltype(::Type{FinGenAbGroupConjClass{T,S}}) where {T,S} = S
 
-Base.rand(C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(C::FinGenAbGroupConjClass) = representative(C)
 
-Base.rand(rng::Random.AbstractRNG, C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(rng::Random.AbstractRNG, C::FinGenAbGroupConjClass) = representative(C)
 
 number_of_conjugacy_classes(G::FinGenAbGroup) = order(ZZRingElem, G)
 
 number_of_conjugacy_classes(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion = order(T, G)
 
-conjugacy_classes(G::FinGenAbGroup) = [GrpAbFinGenConjClass(G, x) for x in G]
+conjugacy_classes(G::FinGenAbGroup) = [FinGenAbGroupConjClass(G, x) for x in G]
 
 is_conjugate(G::FinGenAbGroup, x::FinGenAbGroupElem, y::FinGenAbGroupElem) = (x == y)
 
@@ -123,7 +123,7 @@ end
 #
 ################################################################################
 
-conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = GrpAbFinGenConjClass(G, H)
+conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = FinGenAbGroupConjClass(G, H)
 
 function conjugacy_classes_subgroups(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
@@ -138,13 +138,13 @@ function subgroup_reps(G::FinGenAbGroup; order::ZZRingElem = ZZRingElem(-1))
    return [H for (H, mp) in subgroups(G, order = order)]
 end
 
-function low_index_subgroup_reps(G::FinGenAbGroup, n::Int)
+function low_index_subgroups(G::FinGenAbGroup, n::Int)
    @req (n > 0) "index must be positive"
-   res = [G]
+   res = [conjugacy_class(G, G)]
    ord = order(G)
    for i in 2:n
      if mod(ord, i) == 0
-       append!(res, [H for (H, mp) in subgroups(G, index = i)])
+       append!(res, [conjugacy_class(G, H) for (H, mp) in subgroups(G, index = i)])
      end
    end
    return res
@@ -184,11 +184,11 @@ end
 is_conjugate_subgroup(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1]
 is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1], zero(G)
 
-Base.IteratorSize(::Type{<:GrpAbFinGenConjClass}) = Base.HasLength()
+Base.IteratorSize(::Type{<:FinGenAbGroupConjClass}) = Base.HasLength()
 
-Base.iterate(C::GrpAbFinGenConjClass) = iterate(C, 0)
+Base.iterate(C::FinGenAbGroupConjClass) = iterate(C, 0)
 
-function Base.iterate(C::GrpAbFinGenConjClass, state::Int)
+function Base.iterate(C::FinGenAbGroupConjClass, state::Int)
   if state == 0
     return representative(C), 1
   else

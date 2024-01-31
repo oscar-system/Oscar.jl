@@ -943,7 +943,7 @@ export load_mps
 export localization
 export localized_ring
 export loops
-export low_index_subgroup_reps
+export low_index_subgroups
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map

@@ -304,9 +304,11 @@ function Base.show(io::IO, G::PermGroup)
 
   # Treat groups specially which know that they are nat. symmetric/alternating.
   io = pretty(io)
-  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G)
+  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
+     number_of_moved_points(G) == degree(G)
     print(io, LowercaseOff(), "Sym(", degree(G), ")")
-  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G)
+  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
+     number_of_moved_points(G) == degree(G)
     print(io, LowercaseOff(), "Alt(", degree(G), ")")
   else
     print(io, "Permutation group")
@@ -851,26 +853,25 @@ function maximal_subgroup_reps(G::GAPGroup)
 end
 
 """
-    low_index_subgroup_reps(G::GAPGroup, n::Int)
+    low_index_subgroups(G::GAPGroup, n::Int)
 
-Return a vector of representatives (under conjugation) for all subgroups
-of index at most `n` in `G`.
+Return a vector of conjugacy classes of subgroups of index at most `n` in `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5);
 
-julia> low_index_subgroup_reps(G, 5)
-3-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
- Sym(5)
-
+julia> low_index_subgroups(G, 5)
+3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of Sym(5) in Sym(5)
+ Conjugacy class of Alt(5) in Sym(5)
+ Conjugacy class of permutation group in Sym(5)
 ```
 """
-function low_index_subgroup_reps(G::GAPGroup, n::Int)
-  ll = GAP.Globals.LowIndexSubgroups(G.X, n)
-  return [Oscar._as_subgroup(G, x)[1] for x = ll]
+function low_index_subgroups(G::GAPGroup, n::Int)
+  @req (n > 0) "index must be positive"
+  ll = GAP.Globals.LowIndexSubgroups(G.X, n)::GapObj
+  return [conjugacy_class(G, H) for H in _as_subgroups(G, ll)]
 end
 
 """
