@@ -264,7 +264,7 @@ function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Sy
 
   invars = elem_type(R)[ forget_grading(StoR(x)) for x in gens(S) ]
 
-  if istrivial(A)
+  if is_trivial(A)
     T = grade(forget_grading(S), [ zero(A) for i in 1:ngens(S) ])[1]
 
     relsT = elem_type(T)[ T(forget_grading(r)) for r in gens(modulus(Q)) ]

@@ -150,11 +150,11 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    K = base_ring(matrices[1])
    matrices_Fq = Vector{FqMatrix}(undef, length(matrices))
    if p == 2
-      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    O = EquationOrder(K)
    if mod(discriminant(O), p) == 0
-      return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+      return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
    end
    for M in matrices
       for i = 1:nrows(M)
@@ -164,7 +164,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
             end
 
             if mod(denominator(M[i, j]), p) == 0
-               return false, Nemo._GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
+               return false, GF(p, cached = false), matrices_Fq, Hecke.NfOrdToFqMor()
             end
          end
       end
@@ -178,7 +178,7 @@ function test_modulus(matrices::Vector{T}, p::Int) where T <: MatrixElem{nf_elem
    # I don't want to invert everything in char 0, so I just check whether the
    # matrices are still invertible mod p.
    for i = 1:length(matrices)
-      matrices_Fq[i] = matrix(Fq, [ OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))) for a in matrices[i] ])
+      matrices_Fq[i] = map_entries(a -> OtoFq(O(numerator(a)))//OtoFq(O(denominator(a))), matrices[i])
       if rank(matrices_Fq[i]) != nrows(matrices_Fq[i])
          return false, Fq, matrices_Fq, Hecke.NfOrdToFqMor()
       end

@@ -40,7 +40,7 @@ end
     # properties
     @test is_abelian(G1) == is_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
-    @test is_finitelygenerated(G1) == is_finitelygenerated(G2)
+    @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)
     @test is_pgroup(G1) == is_pgroup(G2)
     @test is_quasisimple(G1) == is_quasisimple(G2)
@@ -53,8 +53,8 @@ end
     @test images(iso, frattini_subgroup(G1)[1]) == frattini_subgroup(G2)
     @test is_pgroup_with_prime(G1) == is_pgroup_with_prime(G2)
     @test nilpotency_class(G1) == nilpotency_class(G2)
-    @test number_conjugacy_classes(G1) == order(G1)
-    @test number_conjugacy_classes(Int, G1) isa Int
+    @test number_of_conjugacy_classes(G1) == order(G1)
+    @test number_of_conjugacy_classes(Int, G1) isa Int
     @test order(G1) == order(G2)
     @test images(iso, socle(G1)[1]) == socle(G2)
     @test images(iso, solvable_radical(G1)[1]) == solvable_radical(G2)
@@ -98,7 +98,8 @@ end
       K = representative(C2)
       @test is_conjugate(G1, H, K) == (H == K)
       @test is_conjugate_with_data(G1, H, K)[1] == (H == K)
-      @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
+      @test is_conjugate_subgroup(G1, H, K) == is_subset(K, H)
+      @test is_conjugate_subgroup_with_data(G1, H, K) == (is_subset(K, H), zero(G1))
     end
     C = CC[1]
     for H in C

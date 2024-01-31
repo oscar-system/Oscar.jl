@@ -77,6 +77,12 @@ over the same `base_ring`, with underlying ring homomorphism
     return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
 end
+  
+function morphism(X::DomainType, Y::CodomainType, pullback::PullbackType;
+    check::Bool=true
+  ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
+  return SpecMor(X, Y, pullback; check)
+end
 
 ########################################################################
 # A special type for open inclusions                                   #

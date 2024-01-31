@@ -283,7 +283,7 @@ then `nothing` is returned.
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3)))
        end;
-Character table of permutation group of degree 3 and order 6
+Character table of Sym(3)
 
  2  1  1  .
  3  1  .  1
@@ -299,7 +299,7 @@ Character table of permutation group of degree 3 and order 6
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3), 2))
        end;
-2-modular Brauer table of permutation group of degree 3 and order 6
+2-modular Brauer table of Sym(3)
 
  2  1  .
  3  1  1
@@ -476,7 +476,7 @@ julia> spor_names = all_character_table_names(is_sporadic_simple,
 julia> println(spor_names[1:5])
 ["M11", "M12", "J1", "M22", "J2"]
 
-julia> length(all_character_table_names(number_conjugacy_classes => 1))
+julia> length(all_character_table_names(number_of_conjugacy_classes => 1))
 1
 ```
 """
@@ -891,7 +891,9 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :group)
-      headerstring = lowercasefirst(string(group(tbl)))
+      str_io = IOBuffer()
+      print(pretty(str_io), Lowercase(), group(tbl))
+      headerstring = String(take!(str_io))
       if characteristic(tbl) != 0
         headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
       else
@@ -947,9 +949,9 @@ end
 ##############################################################################
 #
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
     order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -1369,7 +1371,6 @@ julia> subtbl = character_table("A5"); tbl = character_table("A6");
 
 julia> println(approximate_class_fusion(subtbl, tbl))
 Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
-
 ```
 """
 function approximate_class_fusion(subtbl::GAPGroupCharacterTable,
@@ -1431,6 +1432,34 @@ function possible_class_fusions(subtbl::GAPGroupCharacterTable,
             GapObj(cond))
   return [Vector{Int}(x::GapObj) for x in fus]
 end
+
+
+@doc raw"""
+    block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+
+Return a dictionary with the keys
+`:defect` (the vector containing at position `i` the defect of the
+`i`-th `p`-block of `tbl`) and
+`:block` (the vector containing at position `i` the number `j`
+such that `tbl[i]` belongs to the `j`-th `p`-block).
+
+An exception is thrown if `tbl` is not an ordinary character table.
+
+# Examples
+```jldoctest
+julia> block_distribution(character_table("A5"), 2)
+Dict{Symbol, Vector{Int64}} with 2 entries:
+  :block  => [1, 1, 1, 2, 1]
+  :defect => [2, 0]
+```
+"""
+function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+  @req characteristic(tbl) == 0 "character table must be ordinary"
+  blocks = GAP.Globals.PrimeBlocks(GAPTable(tbl), GAP.Obj(p))
+  return Dict(:defect => Vector{Int}(blocks.defect),
+              :block => Vector{Int}(blocks.block))
+end
+
 
 #############################################################################
 ##
@@ -1599,6 +1628,19 @@ function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharact
     end
 end
 
+@doc raw"""
+    known_class_fusions(tbl::GAPGroupCharacterTable)
+
+Return the vector of pairs `(name, fus)` where `name` is the identifier of
+a character table
+and `fus` is the stored class fusion from `tbl` to this table,
+see [`known_class_fusion`](@ref).
+"""
+function known_class_fusions(tbl::GAPGroupCharacterTable)
+    return Tuple{String, Vector{Int64}}[(String(r.name), Vector{Int}(r.map))
+             for r in GAPWrap.ComputedClassFusions(GAPTable(tbl))]
+end
+
 
 #############################################################################
 ##
@@ -1679,7 +1721,7 @@ true
 """
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
-    return class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
 end
 
 @doc raw"""
@@ -1704,7 +1746,7 @@ function natural_character(G::PermGroup)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
-    vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
+    vals = [FF(n - number_of_moved_points(representative(x))) for x in ccl]
     return class_function(G, vals)
 end
 
@@ -1785,7 +1827,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       modtbl = tbl
       ccl = conjugacy_classes(tbl)
       n = degree(M)
-      vals = [FF(n - number_moved_points(rho(representative(x)))) for x in ccl]
+      vals = [FF(n - number_of_moved_points(rho(representative(x)))) for x in ccl]
     elseif M isa MatrixGroup
       p = characteristic(base_ring(M))
       if p == 0
@@ -2053,7 +2095,7 @@ The result is an instance of `Vector{T}`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> chi = natural_character(g);
 
@@ -2448,7 +2490,7 @@ function character_field(chi::GAPGroupClassFunction)
       q = order_field_of_definition(chi)
       flag, e, pp = is_prime_power_with_data(q)
       (flag && p == pp) || error("something is wrong with 'GAPWrap.SizeOfFieldOfDefinition'")
-      F = Nemo._GF(p, e)
+      F = GF(p, e)
       return (F, identity_map(F))
     end
 

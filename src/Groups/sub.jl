@@ -112,7 +112,7 @@ together with its embedding morphism into `G`.
 # Examples
 ```jldoctest
 julia> trivial_subgroup(symmetric_group(5))
-(Permutation group of degree 5 and order 1, Hom: permutation group -> permutation group)
+(Permutation group of degree 5 and order 1, Hom: permutation group -> Sym(5))
 ```
 """
 @gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X)::GapObj)
@@ -170,8 +170,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
+ Sym(5)
+ Alt(5)
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -254,7 +254,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{PcGroup}:
@@ -324,7 +324,7 @@ in `G`, together with its embedding morphism into `G`.
 # Examples
 ```jldoctest
 julia> center(symmetric_group(3))
-(Permutation group of degree 3 and order 1, Hom: permutation group -> permutation group)
+(Permutation group of degree 3 and order 1, Hom: permutation group -> Sym(3))
 
 julia> center(quaternion_group(8))
 (Pc group of order 2, Hom: pc group -> pc group)
@@ -376,7 +376,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -459,11 +459,11 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
@@ -504,8 +504,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Permutation group of degree 4 and order 24
- Permutation group of degree 4 and order 12
+ Sym(4)
+ Alt(4)
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(G.X))
@@ -839,7 +839,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> N = pcore(G, 2)[1];
 
@@ -860,8 +860,7 @@ function quo(G::T, N::T) where T <: GAPGroup
   S = elem_type(G)
   S1 = _get_type(cod)
   codom = S1(cod)
-  mp_julia = __create_fun(mp, codom, S)
-  return codom, hom(G, codom, mp_julia)
+  return codom, GAPGroupHomomorphism(G, codom, mp)
 end
 
 function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
@@ -1063,7 +1062,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group
-  to permutation group of degree 4 and order 24
+  to Sym(4)
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
@@ -1096,7 +1095,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Permutation group of degree 5 and order 60, Hom: permutation group -> permutation group)
+(Alt(5), Hom: Alt(5) -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1113,15 +1112,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Permutation group of degree 4 and order 24
- Permutation group of degree 4 and order 12
+ Sym(4)
+ Alt(4)
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
+ Sym(5)
+ Alt(5)
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{PcGroup}:
@@ -1167,13 +1166,8 @@ If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
 together with the embeddings of $K into $G_i$.
 """
-function intersect(V::T...) where T<:GAPGroup
-   L = GapObj([G.X for G in V])
-   K = GAP.Globals.Intersection(L)::GapObj
-   Embds = [_as_subgroup(G, K)[2] for G in V]
-   K = _as_subgroup(V[1], K)[1]
-   Arr = Tuple(vcat([K],Embds))
-   return Arr
+function intersect(G1::T, V::T...) where T<:GAPGroup
+   return intersect([G1, V...])
 end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
@@ -1184,4 +1178,3 @@ function intersect(V::AbstractVector{T}) where T<:GAPGroup
    Arr = Tuple(vcat([K],Embds))
    return Arr
 end
-#T why duplicate this code?

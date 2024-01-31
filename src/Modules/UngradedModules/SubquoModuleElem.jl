@@ -97,8 +97,10 @@ end
 
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   reduced = reduce(el.repres, parent(el).quo)
   result = SubquoModuleElem(reduced, parent(el), is_reduced=true)
@@ -107,8 +109,10 @@ end
 
 function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
-  !isdefined(parent(el), :quo) && return el
-  iszero(parent(el).quo) && return el
+  if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
+    el.is_reduced = true
+    return el
+  end
   !isdefined(el, :repres) && repres(el) # Make sure the field is filled
   el.repres = reduce(el.repres, parent(el).quo)
   el.is_reduced = true
@@ -177,6 +181,7 @@ If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
+  @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
   singular_assure(F)
   if reduced
     @assert Singular.has_global_ordering(base_ring(F.SF))
@@ -748,6 +753,20 @@ If `task = :only_morphism`, return only the projection map.
 """
 function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where T
   if isdefined(M, :quo) && isdefined(U, :quo)
+    F = ambient_free_module(M)
+    @assert F === ambient_free_module(U)
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general, 
+    # so we deflect to the Subquo-layer instead.
+    @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
+  else
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
+  end
+  Q = SubquoModule(M, gens(U.sub))
+  return return_quo_wrt_task(M, Q, task)
+end
+
+function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where {T<:MPolyRingElem}
+  if isdefined(M, :quo) && isdefined(U, :quo)
     @assert M.quo == U.quo
   else
     @assert !isdefined(M, :quo) && !isdefined(U, :quo)
@@ -823,18 +842,18 @@ function gen(M::SubquoModule{T}, i::Int) where T
 end
 
 @doc raw"""
-    ngens(M::SubquoModule)
+    number_of_generators(M::SubquoModule)
 
 Return the number of generators of `M`.
 """
-ngens(M::SubquoModule) = ngens(M.sub)
+number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 @doc raw"""
     base_ring(M::SubquoModule)
 
 Given an `R`-module `M`, return `R`.
 """
-base_ring(M::SubquoModule) = base_ring(M.F)
+base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M.F)
 
 @doc raw"""
     zero(M::SubquoModule)
@@ -878,16 +897,6 @@ false
 """
 function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
-end
-
-@doc raw"""
-    getindex(F::SubquoModule, i::Int)
-
-Return the `i`th generator of `F`.
-"""
-function getindex(F::SubquoModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 function iterate(F::ModuleGens, i::Int = 1)

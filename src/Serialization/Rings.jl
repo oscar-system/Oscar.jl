@@ -115,18 +115,31 @@ function load_object(s::DeserializerState,
     poly_ring = UniversalPolynomialRing(base_ring, cached=false)
     gens(poly_ring, symbols)
     return poly_ring
-  elseif T <: MPolyDecRing
-    # the order in the symbols reflects the grading
-    return graded_polynomial_ring(base_ring, symbols)[1]
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
     return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
   end
   return polynomial_ring(base_ring, symbols, cached=false)[1]
 end
 
+# with grading
+
+function save_object(s::SerializerState, R::MPolyDecRing)
+  save_data_dict(s) do
+    save_typed_object(s, _grading(R), :grading)
+    save_typed_object(s, forget_grading(R), :ring)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRing})
+  ring = load_typed_object(s, :ring)
+  grading = load_typed_object(s, :grading)
+  return grade(ring, grading)[1]
+end
+
 ################################################################################
 #  Polynomial Ring Elem Types
 @register_serialization_type MPolyRingElem uses_params
+@register_serialization_type MPolyDecRingElem uses_params
 @register_serialization_type UniversalPolyRingElem uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params
 const PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
@@ -260,6 +273,14 @@ function load_object(s::DeserializerState,
     return finish(polynomial)
   end
 end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parents::Vector)
+  parent_ring = parents[end]
+  new_parents = push!(parents[1:end - 1], forget_grading(parent_ring))
+  poly = load_object(s, MPolyRingElem, new_parents)
+  return parent_ring(poly)
+end
+
 
 ################################################################################
 # Polynomial Ideals

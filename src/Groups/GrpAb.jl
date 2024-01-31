@@ -18,6 +18,8 @@ end
 # (This is analogous to `issubset`.)
 is_element(x::GrpAbFinGenElem, G::GrpAbFinGen) = issubset(sub([x])[1], G)
 
+_coeff(x::GrpAbFinGenElem) = x.coeff
+
 function is_finiteorder(a::GrpAbFinGenElem)
   G, m = snf(a.parent)
   b = preimage(m, a)
@@ -103,9 +105,9 @@ Base.rand(C::GrpAbFinGenConjClass) = representative(C)
 
 Base.rand(rng::Random.AbstractRNG, C::GrpAbFinGenConjClass) = representative(C)
 
-number_conjugacy_classes(G::GrpAbFinGen) = order(ZZRingElem, G)
+number_of_conjugacy_classes(G::GrpAbFinGen) = order(ZZRingElem, G)
 
-number_conjugacy_classes(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion = order(T, G)
+number_of_conjugacy_classes(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion = order(T, G)
 
 conjugacy_classes(G::GrpAbFinGen) = [GrpAbFinGenConjClass(G, x) for x in G]
 
@@ -180,7 +182,7 @@ function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
 end
 
 is_conjugate_subgroup(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1]
-
+is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1], zero(G)
 
 Base.IteratorSize(::Type{<:GrpAbFinGenConjClass}) = Base.HasLength()
 
@@ -280,23 +282,6 @@ solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
 # complement_class_reps(G::T, N::T) where T <: GrpAbFinGen
 # complement_system(G::GrpAbFinGen)
 
-function sylow_subgroup(G::GrpAbFinGen, p::IntegerUnion)
-   @req is_finite(G) "G is not finite"
-   @req is_prime(p) "p is not a prime"
-   subgens = GrpAbFinGenElem[]
-   for x in gens(G)
-     ord = order(x)
-     while mod(ord, p) == 0
-       ord = divexact(ord, p)
-     end
-     x = ord*x
-     if !is_zero(x)
-       push!(subgens, x)
-     end
-   end
-   return sub(G, subgens)
-end
-
 function sylow_system(G::GrpAbFinGen)
    @req is_finite(G) "G is not finite"
    result = GrpAbFinGen[]
@@ -346,9 +331,9 @@ end
 #
 ################################################################################
 
-is_almostsimple(G::GrpAbFinGen) = false
+is_almost_simple(G::GrpAbFinGen) = false
 
-is_finitelygenerated(G::GrpAbFinGen) = true
+is_finitely_generated(G::GrpAbFinGen) = true
 
 is_perfect(G::GrpAbFinGen) = is_trivial(G)
 

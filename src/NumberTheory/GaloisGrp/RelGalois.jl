@@ -170,7 +170,7 @@ function Oscar.roots(C::GaloisCtx{Hecke.vanHoeijCtx}, pr::Int = 5; raw::Bool = t
 end
   
 
-function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}, x::qadic)
+function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}, x::QadicFieldElem)
   P = C.C.P
   zk = order(P)
   if any(i->!iszero(coeff(x, i)), 1:length(x)-1)

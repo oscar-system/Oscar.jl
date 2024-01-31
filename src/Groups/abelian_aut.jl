@@ -15,7 +15,7 @@ Return the automorphism group of `G`.
 """
 function automorphism_group(G::GrpAbFinGen)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
-  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   aut = AutomorphismGroup(AutGAP, G)
   set_attribute!(aut, :to_gap => to_gap, :to_oscar => to_oscar)
   return aut
@@ -33,7 +33,7 @@ function apply_automorphism(f::AutGrpAbTorElem, x::AbTorElem, check::Bool=true)
   A = parent(f)
   domGap = parent(xgap)
   imgap = typeof(xgap)(domGap, GAPWrap.Image(f.X,xgap.X))
-  return to_oscar(imgap)
+  return to_oscar(imgap)::typeof(x)
 end
  
 (f::AutGrpAbTorElem)(x::AbTorElem)  = apply_automorphism(f, x, true)
@@ -64,7 +64,7 @@ function hom(f::AutGrpAbTorElem)
 end
 
 
-function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModuleMor};check::Bool=true)
+function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModuleMap};check::Bool=true)
   !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -104,7 +104,7 @@ end
 
 Return the underlying matrix of `f` as a module homomorphism.
 """
-matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = hom(f).map
+matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = matrix(hom(f))
 
 
 @doc raw"""
@@ -139,7 +139,7 @@ function _orthogonal_group(T::TorQuadModule, gensOT::Vector{ZZMatrix}; check::Bo
   As_to_T = Hecke.map_from_func(toT, As, T)
   to_oscar = compose(to_oscar, As_to_T)
   to_gap = compose(T_to_As, to_gap)
-  AutGAP = GAP.Globals.AutomorphismGroup(Ggap.X)
+  AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   ambient = AutomorphismGroup(AutGAP, T)
   set_attribute!(ambient, :to_gap => to_gap, :to_oscar => to_oscar)
   gens_aut = GapObj([ambient(g, check=check).X for g in gensOT])  # performs the checks
@@ -165,7 +165,7 @@ end
 
 Return a matrix inducing `f`.
 """
-matrix(f::AutomorphismGroupElem{TorQuadModule}) = hom(f).map_ab.map
+matrix(f::AutomorphismGroupElem{TorQuadModule}) = matrix(hom(f))
 
 @doc raw"""
     defines_automorphism(G::TorQuadModule, M::ZZMatrix) -> Bool
@@ -209,7 +209,7 @@ end
 
 Return the full orthogonal group of this torsion quadratic module.
 """
-@attr AutomorphismGroup function orthogonal_group(T::TorQuadModule)
+@attr AutomorphismGroup{TorQuadModule} function orthogonal_group(T::TorQuadModule)
   if is_trivial(abelian_group(T))
     return _orthogonal_group(T, ZZMatrix[identity_matrix(ZZ, ngens(T))], check = false)
   elseif is_semi_regular(T)
@@ -218,7 +218,7 @@ Return the full orthogonal group of this torsion quadratic module.
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
     gensOT = ZZMatrix[compose(compose(i,g),j).map_ab.map for g in gensOT]
     unique!(gensOT)
     length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
@@ -237,14 +237,14 @@ Return the full orthogonal group of this torsion quadratic module.
 end
 
 @doc raw"""
-    embedding_orthogonal_group(i::TorQuadModuleMor) -> GAPGroupHomomorphism
+    embedding_orthogonal_group(i::TorQuadModuleMap) -> GAPGroupHomomorphism
 
 Given an embedding $i\colon A \to D$ between two torsion quadratic modules,
 such that `A` admits a complement `B` in $D \cong A \oplus B$ to which it is
 orthogonal, return the embedding $O(A) \to O(D)$ obtained by extending the
 isometries of `A` by the identity on `B`.
 """
-function embedding_orthogonal_group(i::TorQuadModuleMor)
+function embedding_orthogonal_group(i::TorQuadModuleMap)
   @req is_injective(i) "i must be injective"
   ok, j = has_complement(i)
   @req ok "The domain of i must have a complement in the codomain"
@@ -275,14 +275,14 @@ end
 ###############################################################################
 
 @doc raw"""
-    is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor) -> Bool
+    is_invariant(f::TorQuadModuleMap, i::TorQuadModuleMap) -> Bool
 
 Given an abelian group morphism $i\colon S \to T$ form a torsion quadratic module
 `S` to a torsion quadratic module `T`, and an abelian group endomorphism `f`
 of `T`, return whether `f` preserves the image of `i` in `T`, i.e. whether
 $f(i(s)) \in i(S)$ for all $s \in S$.
 """
-function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor)
+function is_invariant(f::TorQuadModuleMap, i::TorQuadModuleMap)
   @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
   U = domain(i)
   for a in gens(U)
@@ -293,7 +293,7 @@ function is_invariant(f::TorQuadModuleMor, i::TorQuadModuleMor)
 end
 
 @doc raw"""
-    is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
+    is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap)
                                                                         -> Bool
 
 Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
@@ -301,13 +301,13 @@ Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic modul
 whether `f` preserves the image of `i` in `T`, i.e. whether
 $f(i(s)) \in i(S)$ for all $s \in S$.
 """
-function is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor)
+function is_invariant(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap)
   @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
   return is_invariant(hom(f), i)
 end
 
 @doc raw"""
-    is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
+    is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
                                                                         -> Bool
 
 Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic module
@@ -315,14 +315,14 @@ Given an abelian group morphism $i\colon S \to T$ from a torsion quadratic modul
 return whether the image of `i` in `T` is preserved by every element in
 `G`, i.e. whether $f(i(s)) \in i(S)$ for all $s \in S$ and all $f \in G$
 """
-function is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor)
+function is_invariant(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
   @req domain(G) === codomain(i) "G must consist of automorphisms of the target of i"
   return all(f -> is_invariant(f, i), gens(G))
 end
 
 @doc raw"""
-    restrict_endomorphism(f::TorQuadModule, i::TorQuadModuleMor)
-                                                            -> TorQuadModuleMor
+    restrict_endomorphism(f::TorQuadModule, i::TorQuadModuleMap)
+                                                            -> TorQuadModuleMap
 
 Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic
 module `S` in a torsion quadratic module `T`, and an abelian group endomorphism
@@ -330,7 +330,7 @@ of `T`, return the restriction of `f` to `S`.
 
 If `S` is not invariant under the action of `f`, then an error is thrown.
 """
-function restrict_endomorphism(f::TorQuadModuleMor, i::TorQuadModuleMor; check::Bool = true)
+function restrict_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::Bool = true)
   @req !check || is_injective(i) "i must be an injection"
   @req domain(f) === codomain(f) === codomain(i) "f must be an endomorphism of the target of i"
   imgs = TorQuadModuleElem[]
@@ -346,7 +346,7 @@ end
 
 @doc raw"""
     restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule},
-                          i::TorQuadModuleMor)   -> TorQuadModuleMor
+                          i::TorQuadModuleMap)   -> TorQuadModuleMap
 
 Given an abelian group embedding $i\colon S \to T$ of a torsion quadratic
 module `S` in a torsion quadratic module `T`, and an automorphism `f` of `T`,
@@ -354,7 +354,7 @@ return the restriction of `f` to `S`.
 
 If `S` is not invariant under the action of `f`, then an error is thrown.
 """
-function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
+function restrict_automorphism(f::AutomorphismGroupElem{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
   @req !check || is_injective(i) "i must be an injection"
   @req domain(parent(f)) === codomain(i) "f must be an automorphism of the target of i"
   return restrict_endomorphism(hom(f), i, check = false)
@@ -362,7 +362,7 @@ end
 
 @doc raw"""
     restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule},
-                                i::TorQuadModuleMor; check::Bool = true)
+                                i::TorQuadModuleMap; check::Bool = true)
                                             -> AutomorphismGroup{TorQuadModule},
                                                GAPGroupHomomorphism
 
@@ -377,7 +377,7 @@ By default, the function checks whether `i` is injective and whether `i`
 is a torsion quadratic module morphism. One can disable these checks
 by setting `check = false`.
 """
-function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor; check::Bool = true)
+function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap; check::Bool = true)
 
   if check
     @req is_injective(i) "i must be an injection"
@@ -400,3 +400,96 @@ function restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::Tor
   return H, res
 end
 
+###############################################################################
+#
+#  Action on submodules
+#
+###############################################################################
+
+@doc raw"""
+    is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
+                           i::TorQuadModuleMap,
+                           j::TorQuadModuleMap)
+                                  -> Bool, AutomorphismGroupElem{TorQuadModule}
+
+Return whether the images of `i` and `j` in the domain of `O` lies in the same
+orbit of `O` under its action on subgroups.
+If yes, return `(true, g)` where `g` is an element of `O` mapping the image of `i`
+to the image of `j`.
+
+Otherwise return `(false, nothing)`.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]))
+Finite quadratic module
+  over integer ring
+Abelian group: Z/15
+Bilinear value module: Q/Z
+Quadratic value module: Q/2Z
+Gram matrix quadratic form:
+[4//15]
+
+julia> OT = orthogonal_group(T)
+Group of isometries of Finite quadratic module: Z/15 -> Q/2Z generated by 2 elements
+
+julia> T3inT = primary_part(T, 3)[2]
+Map
+  from finite quadratic module: Z/3 -> Q/2Z
+  to finite quadratic module: Z/15 -> Q/2Z
+
+julia> T5inT = primary_part(T, 5)[2]
+Map
+  from finite quadratic module: Z/5 -> Q/2Z
+  to finite quadratic module: Z/15 -> Q/2Z
+
+julia> is_conjugate_with_data(OT, T3inT, T5inT)
+(false, [1])
+```
+"""
+function is_conjugate_with_data(O::AutomorphismGroup{TorQuadModule},
+                                i::TorQuadModuleMap,
+                                j::TorQuadModuleMap)
+  @req domain(O) === codomain(i) === codomain(j) "Wrong parents"
+
+  to_gap = get_attribute(O, :to_gap)
+  Agap = codomain(to_gap)
+  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+  G = GSetByElements(O, on_subgroups, typeof(Hgap)[Hgap])
+  Kgap, _ = sub(Agap, elem_type(Agap)[to_gap(j(a)) for a in gens(domain(j))])
+  return is_conjugate_with_data(G, Hgap, Kgap)
+end
+
+@doc raw"""
+    stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
+                                           -> AutomorphismGroup{TorQuadModule},
+                                              GAPGroupHomomorphism
+
+Return the stabilizer of the image of `i` under the action of `O` on the subgroups
+of the codomain of `i`.
+
+# Examples
+```jldoctest
+julia> T = torsion_quadratic_module(matrix(QQ, 2, 2, [2//3 0; 0 2//5]));
+
+julia> OT = orthogonal_group(T)
+Group of isometries of Finite quadratic module: Z/15 -> Q/2Z generated by 2 elements
+
+julia> T3inT = primary_part(T, 3)[2]
+Map
+  from finite quadratic module: Z/3 -> Q/2Z
+  to finite quadratic module: Z/15 -> Q/2Z
+
+julia> S, _ = stabilizer(OT, T3inT)
+(Group of isometries of Finite quadratic module: Z/15 -> Q/2Z generated by 2 elements, Hom: group of isometries of Finite quadratic module generated by 2 elements -> group of isometries of Finite quadratic module generated by 2 elements)
+
+julia> order(S)
+4
+```
+"""
+function stabilizer(O::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap)
+  to_gap = get_attribute(O, :to_gap)
+  Agap = codomain(to_gap)
+  Hgap, _ = sub(Agap, elem_type(Agap)[to_gap(i(a)) for a in gens(domain(i))])
+  return stabilizer(O, Hgap.X, on_subgroups)
+end

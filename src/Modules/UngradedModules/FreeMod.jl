@@ -49,7 +49,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
+Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -151,14 +151,14 @@ end
 
 @doc raw"""
     rank(F::FreeMod)
-    ngens(F::AbstractFreeMod)
+    number_of_generators(F::AbstractFreeMod)
     dim(F::AbstractFreeMod)
 
 Return the rank of `F`.
 """
 dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
-ngens(F::AbstractFreeMod) = rank(F)
+number_of_generators(F::AbstractFreeMod) = rank(F)
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

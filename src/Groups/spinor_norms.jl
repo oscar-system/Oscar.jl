@@ -124,7 +124,7 @@ function reflection(gram::MatElem, v::MatElem)
   c = base_ring(gram)(2) * ((v * gram * transpose(v)))[1,1]^(-1)
   ref = zero_matrix(base_ring(gram), n, n)
   for k in 1:n
-    ref[k,:] = E[k,:] - c*(E[k,:] * gram * transpose(v))*v
+    ref[k:k,:] = E[k:k,:] - c*(E[k:k,:] * gram * transpose(v))*v
   end
   return ref
 end
@@ -206,7 +206,7 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
 
   k = 1
   while k <= l
-    g = T[k,:]
+    g = T[k:k,:]
     # error estimates
     lambd = valuation(g, p)
     rho = min(delta + nu + gamma, 2*nu + gamma)
@@ -216,20 +216,20 @@ function det_spin(G::QQMatrix, T::QQMatrix, p, nu)
       # precision too low
       return ZZ(0), QQ(0)
     end
-    bm = g - E[k,:]
+    bm = g - E[k:k,:]
     qm = bm * G * transpose(bm)
     if valuation(qm, p) <= gammaL[k] + 2*delta
       tau1 = reflection(G, bm)
       push!(reflection_vectors, bm)
       tau2 = E
     else
-      bp = g + E[k,:]
+      bp = g + E[k:k,:]
       qp = bp * G * transpose(bp)
       @assert valuation(qp, p) <= gammaL[k] + 2*delta
       tau1 = reflection(G, bp)
-      tau2 = reflection(G, E[k,:])
+      tau2 = reflection(G, E[k:k,:])
       push!(reflection_vectors,bp)
-      push!(reflection_vectors,E[k,:])
+      push!(reflection_vectors,E[k:k,:])
     end
     lambdaT = valuation(T, p)
     alpha = valuation(tau1, p)
@@ -413,7 +413,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
       # change to the user basis
       g = u * fp * inv(u)
       while true
-        R = residue_ring(ZZ, p^(prec+3))
+        R = residue_ring(ZZ, p^(prec+3))[1]
         conv = MapFromFunc(QQ, R, x -> R(numerator(x)) * R(denominator(x)^(-1)))
         _g = Hecke.hensel_qf(map_entries(conv, q0), change_base_ring(R, g), prec0, prec, p)
         g = change_base_ring(ZZ, _g)
@@ -446,7 +446,6 @@ julia> imOL,inj = image_in_Oq(L);
 
 julia> order(imOL)
 1152
-
 ```
 
 By using the strong approximation theorem, we can also deal with
@@ -458,33 +457,54 @@ julia> gram = ZZ[0 2 0; 2 0 0; 0 0 4]
 [2   0   0]
 [0   0   4]
 
-julia> L = integer_lattice(gram=gram)
+julia> L = integer_lattice(; gram)
 Quadratic lattice of rank 3 and degree 3 over the rationals
 
 julia> Oq, inj = image_in_Oq(L);
 
 julia> order(Oq)
 12
-
 ```
 """
 @attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
-  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req is_integral(L) "L must be integral"
+  flag = is_even(L)
+
   if rank(L) > 2 && !is_definite(L)
-    # use strong approximation
-    f = det_spin_homomorphism(L,signed=false)
-    return kernel(f)
+    if flag
+      f = det_spin_homomorphism(L; signed = false)
+      return kernel(f)
+    else
+      f = det_spin_homomorphism(rescale(L, 2); signed = false)
+      K, _ = kernel(f)
+      qL = domain(K)
+      q = discriminant_group(L)
+      Oq = orthogonal_group(q)
+      gq = elem_type(Oq)[Oq(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
+      return sub(Oq, gq)
+    end
   end
   # we can compute the orthogonal group of L
   Oq = orthogonal_group(discriminant_group(L))
   G = orthogonal_group(L)
-  return sub(Oq, unique!([Oq(g, check=false) for g in gens(G)]))
+  return sub(Oq, unique!([Oq(g; check = false) for g in gens(G)]))
 end
 
 @attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
-  @req iseven(L) "Implemented only for even lattices so far. If you really need this, you can rescale the lattice to make it even and then project the orthogonal group down."
+  @req is_integral(L) "L must be integral"
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
-  # use strong approximation
-  f = det_spin_homomorphism(L,signed=true)
-  return kernel(f)
+  flag = is_even(L)
+
+  if flag
+    f = det_spin_homomorphism(L; signed = true)
+    return kernel(f)
+  else
+    f = det_spin_homomorphism(rescale(L, 2); signed = true)
+    K, _ = kernel(f)
+    qL = domain(K)
+    q = discriminant_group(L)
+    Oq = orthogonal_group(q)
+    gq = elem_type(Oq)[Oq(hom(q, q, elem_type(q)[q(lift(g(qL(lift(a))))) for a in gens(q)]); check = false) for g in gens(K)]
+    return sub(Oq, gq)
+  end
 end

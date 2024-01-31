@@ -46,7 +46,7 @@ julia> C = cross_polytope(3);
 julia> FF = face_fan(C)
 Polyhedral fan in ambient dimension 3
 
-julia> n_maximal_cones(FF) == nfacets(C)
+julia> number_of_maximal_cones(FF) == number_of_facets(C)
 true
 ```
 """
@@ -106,7 +106,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   
   old_rays = matrix(ZZ, rays(Sigma))
   # In case the new ray is an old ray.
-  new_ray_index = findfirst(i->vec(old_rays[i,:])==new_ray, 1:nrows(old_rays))
+  new_ray_index = findfirst(i->vec(old_rays[i:i,:])==new_ray, 1:nrows(old_rays))
   new_rays = old_rays
   if isnothing(new_ray_index)
     new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
@@ -121,7 +121,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   for nc in new_cones
     push!(nc, new_ray_index)
   end
-  for i in 1:n_maximal_cones(Sigma)
+  for i in 1:nmaxcones(Sigma)
     if !(i in refinable_cones)
       push!(new_cones, Vector{Int}(Polymake.row(mc_old, i)))
     end
@@ -236,19 +236,20 @@ end
 Get the image of a fan `F` under the matrix `A`. The default is to check
 whether the images of the maximal cones really form a fan.
 """
-function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}; check=true) where {U<:FieldElem}
+function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{<:FieldElem}}; check::Bool=true)
   @req ncols(A) == ambient_dim(F) "Incompatible dimension of fan and transformation matrix"
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
-  return _transform(F, Polymake.Matrix{OT}(A); check=check)
+  return _transform(F, Polymake.Matrix{OT}(A); check)
 end
-function _transform(F::_FanLikeType, A::Polymake.Matrix; check)
+
+function _transform(F::_FanLikeType, A::Polymake.Matrix; check::Bool)
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
   FT = typeof(F)
   R = pm_object(F).RAYS * transpose(A)
   L = pm_object(F).LINEALITY_SPACE * transpose(A)
   MC = pm_object(F).MAXIMAL_CONES
   opt = Polymake.OptionSet(Dict(["lineality_space" => L]))
-  if(check)
+  if check
     result = Polymake.fan.check_fan(R, MC, opt)
     return FT(result, coefficient_field(F))
   else

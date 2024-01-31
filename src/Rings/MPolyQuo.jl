@@ -20,7 +20,12 @@
   end
 end
 
-function groebner_basis(r::MPolyQuoRing)
+function _groebner_basis(r::MPolyQuoRing)
+  # Assure that the correspondence to Singular is set up
+  # Note that this is the only way to create the Singular quotient ring:
+  # 1. Translate the modulus to a Singular ideal
+  # 2. Create the quotient ring (rQuotientRing) on the Singular side
+  # 3. Create a Singular.PolyRing (create_ring_from_singular_ring).
   if isdefined(r, :SQRGB)
     return true
   end
@@ -39,7 +44,7 @@ function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
    print(io, Indent(), "of ", Lowercase())
    show(io, MIME("text/plain"), base_ring(Q))
    println(io)
-   print(io, "by ", modulus(Q))
+   print(io, "by ", Lowercase(), modulus(Q))
    print(io, Dedent())
 end
 
@@ -51,21 +56,21 @@ function Base.show(io::IO, Q::MPolyQuoRing)
     print(io, "Quotient of multivariate polynomial ring")
   else
     # nested printing allowed
-    print(io, "Quotient of multivariate polynomial ring by ", modulus(Q))
+    io = pretty(io)
+    print(io, "Quotient of multivariate polynomial ring by ", Lowercase(), modulus(Q))
   end
 end
 
 gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
-ngens(Q::MPolyQuoRing) = ngens(base_ring(Q))
+number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
-Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
-oscar_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.I.gb[Q.ordering].O
-singular_quotient_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && return Q.SQRGB
-singular_origin_groebner_basis(Q::MPolyQuoRing) = groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
-singular_quotient_ring(Q::MPolyQuoRing) = groebner_basis(Q) && Q.SQR
+oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.I.gb[Q.ordering].O
+singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
+singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gens.S
+singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
 singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
 singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
@@ -286,7 +291,7 @@ julia> base_ring(a)
 Quotient
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
-  by ideal(-x^2 + y, -x^3 + z)
+  by ideal (-x^2 + y, -x^3 + z)
 ```
 """
 function base_ring(a::MPolyQuoIdeal)
@@ -301,7 +306,8 @@ function oscar_assure(a::MPolyQuoIdeal)
   a.gens.gens.O = [r(g) for g = gens(a.gens.gens.S)]
 end
 
-function groebner_basis(a::MPolyQuoIdeal)
+function _groebner_basis(a::MPolyQuoIdeal)
+  # Make sure that a has a Groebner basis?
   if !isdefined(a, :gb)
     a.gb = IdealGens(base_ring(a), Singular.std(singular_generators(a.gens)))
     a.gb.gens.S.isGB = a.gb.isGB = true
@@ -309,7 +315,7 @@ function groebner_basis(a::MPolyQuoIdeal)
 end
 
 function singular_groebner_generators(a::MPolyQuoIdeal)
-  groebner_basis(a)
+  _groebner_basis(a)
 
   return a.gb.S
 end
@@ -325,7 +331,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -341,10 +347,9 @@ function gens(a::MPolyQuoIdeal)
 end
 
 gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
-getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
-    ngens(a::MPolyQuoIdeal)
+    number_of_generators(a::MPolyQuoIdeal)
 
 Return the number of generators of `a`.
 
@@ -354,16 +359,16 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
 
-julia> ngens(a)
+julia> number_of_generators(a)
 1
 ```
 """
-function ngens(a::MPolyQuoIdeal)
+function number_of_generators(a::MPolyQuoIdeal)
   oscar_assure(a)
   return length(a.gens.O)
 end
@@ -942,13 +947,14 @@ end
 @doc raw"""
     quo(R::MPolyRing, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
-Create the quotient ring `R/I` and return the new
-ring as well as the projection map `R` $\to$ `R/I`. Computations inside `R/I` are
-done w.r.t. `ordering`.
+Create the quotient ring `R/I` and return the new ring as well as the projection map `R` $\to$ `R/I`.
 
-    quo(R::MPolyRing, V::Vector{MPolyRingElem}) -> MPolyQuoRing, Map
+    quo(R::MPolyRing, V::Vector{MPolyRingElem}; ordering::MonomialOrdering = default_ordering(R)) -> MPolyQuoRing, Map
 
 As above, where `I` is the ideal of `R` generated by the polynomials in `V`.
+
+!!! note
+    Once `R/I` is created,  all computations within `R/I` relying on division with remainder and/or Gröbner bases are done with respect to `ordering`.
 
 # Examples
 ```jldoctest
@@ -960,7 +966,7 @@ julia> A
 Quotient
   of multivariate polynomial ring in 2 variables x, y
     over rational field
-  by ideal(x^2 - y^3, x - y)
+  by ideal (x^2 - y^3, x - y)
 
 julia> typeof(A)
 MPolyQuoRing{QQMPolyRingElem}
@@ -971,7 +977,7 @@ QQMPolyRingElem
 julia> p
 Map defined by a julia-function with inverse
   from multivariate polynomial ring in 2 variables over QQ
-  to quotient of multivariate polynomial ring by ideal(x^2 - y^3, x - y)
+  to quotient of multivariate polynomial ring by ideal (x^2 - y^3, x - y)
 
 julia> p(x)
 x
@@ -983,7 +989,7 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of multivariate polynomial ring by ideal(x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
@@ -1281,9 +1287,9 @@ end
 #
 ################################################################################
 
-function grading(R::MPolyQuoRing)
+function _grading(R::MPolyQuoRing)
   if base_ring(R) isa MPolyDecRing
-    return grading(base_ring(R))
+    return _grading(base_ring(R))
   else
     error("Underlying polynomial ring must be graded")
   end
@@ -1307,7 +1313,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -1545,7 +1551,7 @@ julia> EMB = L[2]
 Map defined by a julia-function with inverse
   from quotient space over:
   Rational field with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+  to quotient of multivariate polynomial ring by ideal (-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1597,7 +1603,7 @@ julia> EMB = L[2]
 Map defined by a julia-function with inverse
   from quotient space over:
   Rational field with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal(x[1]*y[1] - x[2]*y[2])
+  to quotient of multivariate polynomial ring by ideal (x[1]*y[1] - x[2]*y[2])
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]

@@ -1,6 +1,6 @@
 @testset "residue rings" begin
    @testset for n in [2, 3, 6]
-      for R in [residue_ring(ZZ, n), residue_ring(ZZ, ZZRingElem(n))]
+      for R in [residue_ring(ZZ, n)[1], residue_ring(ZZ, ZZRingElem(n))[1]]
          f = Oscar.iso_oscar_gap(R)
          a = one(R)
          b = -one(R)
@@ -14,7 +14,7 @@
             end
          end
          n2 = n + 1
-         one2 = one(residue_ring(ZZ, n2))
+         one2 = one(residue_ring(ZZ, n2)[1])
          @test_throws ErrorException f(one2)
          @test_throws ErrorException image(f, one2)
          @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
@@ -22,7 +22,7 @@
    end
 
    n = ZZRingElem(2)^100
-   R = residue_ring(ZZ, n)
+   R = residue_ring(ZZ, n)[1]
    f = Oscar.iso_oscar_gap(R)
    a = -one(R)
    @test f(a) == -f(one(R))
@@ -115,7 +115,6 @@ end
    end
    @test GAP.Globals.DefiningPolynomial(codomain(f)) ==
          GAP.Globals.ConwayPolynomial(p, 2)
-   @test F.is_conway == 0
    p2 = next_prime(p)
    @test_throws ErrorException f(GF(p2)(1))
    @test_throws ErrorException image(f, GF(p2)(1))
@@ -281,11 +280,11 @@ end
 @testset "univariate polynomial rings" begin
    baserings = [QQ,                           # yields `QQPolyRing`
                 ZZ,                           # yields `ZZPolyRing`
-                GF(2,2),                      # yields `fqPolyRepPolyRing`
-                FqField(ZZRingElem(2),3,:x), # yields `FqPolyRing`
+                GF(2,3),                      # yields `FqPolyRing`
+                Nemo.Native.GF(2,2),          # yields `fqPolyRepPolyRing`
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `FqPolyRepPolyRing`
-                GF(ZZRingElem(2)),                  # yields `FpPolyRing`
-                GF(2),                        # yields `fpPolyRing`
+                Nemo.Native.GF(ZZRingElem(2)),# yields `FpPolyRing`
+                Nemo.Native.GF(2),            # yields `fpPolyRing`
                 Nemo.zzModRing(UInt64(6)),     # yields `zzModPolyRing`
                 Nemo.ZZModRing(ZZRingElem(6)),    # yields `ZZModPolyRing`
                ]
@@ -308,9 +307,11 @@ end
 @testset "multivariate polynomial rings" begin
    baserings = [QQ,                           # yields `QQMPolyRing`
                 ZZ,                           # yields `ZZMPolyRing`
-                GF(2,2),                      # yields `fqPolyRepMPolyRing`
-                GF(ZZRingElem(2)),                  # yields `AbstractAlgebra.Generic.MPolyRing{FpFieldElem}`
-                GF(2),                        # yields `fpMPolyRing`
+                GF(2,3),                      # yields `FqMPolyRing`
+                Nemo.Native.GF(2,2),          # yields `fqPolyRepMPolyRing`
+                FqPolyRepField(ZZRingElem(2),2,:z),  # yields `AbstractAlgebra.Generic.MPolyRing{FqPolyRepFieldElem}`
+                Nemo.Native.GF(ZZRingElem(2)),# yields `FpMPolyRing`
+                Nemo.Native.GF(2),            # yields `fpMPolyRing`
                 Nemo.zzModRing(UInt64(6)),     # yields `zzModMPolyRing`
                ]
 #TODO: How to get `FpMPolyRing`, `FqMPolyRing`?

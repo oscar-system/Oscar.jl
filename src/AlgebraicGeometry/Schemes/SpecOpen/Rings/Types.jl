@@ -21,7 +21,7 @@ mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
       U::OpenType;
       check::Bool=true
     ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
-    @check issubset(U, X) "open set does not lay in the scheme"
+    @check is_subscheme(U, X) "open set does not lay in the scheme"
     return new{SpecType, OpenType}(X, U)
   end
 end
