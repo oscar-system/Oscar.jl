@@ -374,7 +374,7 @@ existing block.
     - decorated -> `Dec`
     - group -> `Group`
     - ideal -> `Ideal`
-    - localized -> `LocalizedEuclideanRing`
+    - localized -> `Loc`
     - matrix -> `Matrix`
     - module -> `Module`
     - multivariate polynomial -> `MPoly`

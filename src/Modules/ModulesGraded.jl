@@ -2043,7 +2043,7 @@ function show(io::IO, F::FreeMod_dec)
   end
 end
 
-# Generic specialized show methods (formely in Hecke)
+# Generic specialized show methods (formerly in Hecke)
 
 function Hecke.show_hom(io::IO, G)
   D = get_attribute(G, :hom)

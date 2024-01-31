@@ -928,8 +928,8 @@ function _map_last_var(Qx::MPolyRing, I::Singular.sideal, start, a)
     p = I[i]
     g = MPolyBuildCtx(Qx)
     for (c, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
-      CalciumFieldElem = QQ(c)*a^pop!(e)
-      push_term!(g, CalciumFieldElem, e)
+      ca = QQ(c)*a^pop!(e)
+      push_term!(g, ca, e)
     end
     push!(newgens, finish(g))
   end

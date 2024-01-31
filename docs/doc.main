@@ -53,8 +53,8 @@
      "Hecke/class_fields/intro.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
-        "Nemo/PadicFieldElem.md",
-        "Nemo/QadicFieldElem.md",
+        "Nemo/padic.md",
+        "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
      "Fields/algebraic_closure_fp.md",

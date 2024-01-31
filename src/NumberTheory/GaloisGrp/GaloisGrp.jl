@@ -447,7 +447,7 @@ function bound_to_precision(G::GaloisCtx{T}, B::BoundRingElem{Tuple{ZZRingElem, 
   r = G.data[1]
   #so power series prec need to be floor(Int, d)
   n = floor(ZZRingElem, d+1)
-  #PadicFieldElem: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
+  #padic: we ne |a_i| for i=0:n and |a_i| <= C (i+1)^k/r^i
   #and then log_p()
   #according to the Qt file, a_i is maximal around k/log(r) -1
   if G.data[3] #we're simulating CC, so we don't care about the p-adics (too much)
