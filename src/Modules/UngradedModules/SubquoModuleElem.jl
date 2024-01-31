@@ -105,6 +105,12 @@ end
 
 #######################################################
 
+# simplify modifies the representative v of el as follows:
+#
+#  - if el is zero, v is zero
+#  - if el is homogeneous, but the current representative is not
+#    then a homogeneous representative is returned.
+#  - it sets the field is_reduced to true. 
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
