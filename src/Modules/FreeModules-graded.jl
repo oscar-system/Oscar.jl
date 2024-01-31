@@ -113,6 +113,39 @@ function show(io::IO, F::FreeModule_dec)
   =#
 end
 
+###
+# Generic specialized show methods (formely in Hecke)
+
+function Hecke.show_hom(io::IO, G)
+  D = get_attribute(G, :hom)
+  D === nothing && error("only for hom")
+  print(io, "hom of ")
+  print(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_direct_product(io::IO, G)
+  D = get_attribute(G, :direct_product)
+  D === nothing && error("only for direct products")
+  print(io, "direct product of ")
+  show(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_direct_sum(io::IO, G)
+  D = get_attribute(G, :direct_product)
+  D === nothing && error("only for direct sums")
+  print(io, "direct sum of ")
+  show(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_tensor_product(io::IO, G)
+  D = get_attribute(G, :tensor_product)
+  D === nothing && error("only for tensor products")
+  print(io, "tensor product of ")
+  show(IOContext(io, :compact => true), D)
+end
+
+###
+
 dim(F::FreeModule_dec)  = length(F.d)
 ngens(F::FreeModule_dec) = dim(F)
 
