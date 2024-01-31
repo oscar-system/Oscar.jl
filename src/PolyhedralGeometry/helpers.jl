@@ -363,7 +363,7 @@ Return the parent `Field` of the coefficients of `P`.
 # Examples
 ```jldoctest
 julia> c = cross_polytope(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> coefficient_field(c)
 Rational field

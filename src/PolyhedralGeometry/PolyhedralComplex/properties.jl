@@ -307,7 +307,7 @@ Polyhedral complex in ambient dimension 2
 julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
+ Polytope in ambient dimension 2
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
@@ -417,11 +417,11 @@ julia> PC = polyhedral_complex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
 5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
 
 julia> for p in P1s
        println(dim(p))
