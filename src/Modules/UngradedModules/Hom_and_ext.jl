@@ -69,11 +69,11 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 
   H_s1_t0, mH_s1_t0 = hom(domain(f1), domain(g0))
 
-  delta = hom(D, H_s1_t0, Vector{elem_type(H_s1_t0)}([preimage(mH_s1_t0, f1*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*g1) for g = gens(D)]))
+  delta = hom(D, H_s1_t0, elem_type(H_s1_t0)[preimage(mH_s1_t0, f1*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*g1) for g = gens(D)])
 
   H_s0_t1, mH_s0_t1 = hom(domain(f0), domain(g1))
 
-  rho_prime = hom(H_s0_t1, H_s0_t0, Vector{elem_type(H_s0_t0)}([preimage(mH_s0_t0, mH_s0_t1(C)*g1) for C in gens(H_s0_t1)]))
+  rho_prime = hom(H_s0_t1, H_s0_t0, elem_type(H_s0_t0)[preimage(mH_s0_t0, mH_s0_t1(C)*g1) for C in gens(H_s0_t1)])
  
   kDelta = kernel(delta)
 
@@ -85,7 +85,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   function im(x::SubquoModuleElem)
     #@assert parent(x) === H
     @assert parent(x) === H_simplified
-    return hom(M, N, Vector{elem_type(N)}([g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)]))
+    return hom(M, N, elem_type(N)[g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)])
   end
 
   function pre(f::ModuleFPHom)
@@ -93,7 +93,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
     @assert codomain(f) === N
     Rs0 = domain(f0)
     Rt0 = domain(g0)
-    g = hom(Rs0, Rt0, Vector{elem_type(Rt0)}([preimage(g0, f(f0(g))) for g = gens(Rs0)]))
+    g = hom(Rs0, Rt0, elem_type(Rt0)[preimage(g0, f(f0(g))) for g = gens(Rs0)])
 
     return s_proj(SubquoModuleElem(repres(preimage(mH_s0_t0, g)), H))
   end

@@ -903,6 +903,16 @@ function degree(a::MPolyDecRingElem)
   return w
 end
 
+function _degree_fast(a::MPolyDecRingElem)
+  f = forget_grading(a)
+  w = parent(a).d
+  z = zero(grading_group(parent(a)))
+  is_zero(f) && return z
+  for (c, e) in zip(coefficients(f), exponents(f))
+    !iszero(c) && return sum(b*w[i] for (i, b) in enumerate(e); init=z)
+  end
+end
+
 function degree(::Type{Int}, a::MPolyDecRingElem)
   @assert is_z_graded(parent(a))
   return Int(degree(a)[1])

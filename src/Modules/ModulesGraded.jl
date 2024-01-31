@@ -416,7 +416,7 @@ end
 
 function degrees(M::FreeMod)
   @assert is_graded(M)
-  return M.d
+  return M.d::Vector{GrpAbFinGenElem}
 end
 
 @doc raw"""
@@ -540,8 +540,13 @@ function is_homogeneous(el::FreeModElem)
   return isa(el.d, GrpAbFinGenElem)
 end
 
+AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
+                          <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
+                          <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
+                         }
+
 @doc raw"""
-    degree(f::FreeModElem)
+    degree(f::FreeModElem{T}) where {T<:AnyGradedRingElem}
 
 Given a homogeneous element `f` of a graded free module, return the degree of `f`.
 
@@ -573,13 +578,8 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(f::FreeModElem)
-  !is_graded(parent(f)) && error("The parent module is not graded.")
-  A = grading_group(base_ring(parent(f)))
-  iszero(f) && return A[0]
-  f.d = isa(f.d, GrpAbFinGenElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
-  isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
-  return f.d::GrpAbFinGenElem
+function degree(f::FreeModElem{T}) where {T<:AnyGradedRingElem}
+  return _determine_degree_fast(coordinates(f), degrees(parent(f)))
 end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
@@ -591,6 +591,12 @@ end
 function degree(::Type{Int}, f::FreeModElem)
   @assert is_z_graded(parent(f))
   return Int(degree(f)[1])
+end
+
+function _determine_degree_fast(coords::SRow, w::Vector{GrpAbFinGenElem})
+  iszero(coords) && return zero(grading_group(base_ring(coords)))
+  (i, c) = first(coords)
+  return (_degree_fast(c) + w[i])::GrpAbFinGenElem
 end
 
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
@@ -738,7 +744,7 @@ function degree(f::FreeModuleHom)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
@@ -1106,6 +1112,25 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem)
+  # In general we can not assume that we have a groebner basis reduction available 
+  # as a backend to bring the element to normal form. 
+  # In particular, this may entail that `coordinates` produces non-homogeneous 
+  # vectors via differently implemented liftings. 
+  # Thus, the only thing we can do is to assume that the representative is 
+  # homogeneous.
+  return degree(repres(el))
+end
+
+# When there is a Groebner basis backend, we can reduce to normal form.
+function degree(
+    el::SubquoModuleElem{T}
+  ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
+  !el.is_reduced && return degree(simplify(el))
+  # TODO: Can we always assume the representative to be homogeneous if it is defined???
+  isdefined(el, :repres) && return degree(repres(el))
+  return _determine_degree_fast(coordinates(el), degrees_of_generators(parent(el)))
+
+  # Old code below for reference
   if !iszero(coordinates(el))
     result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
       if result === nothing
@@ -1194,7 +1219,7 @@ function degree(f::SubQuoHom)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
