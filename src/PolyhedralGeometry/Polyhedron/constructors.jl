@@ -234,12 +234,14 @@ convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayV
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
+    known_to_be_bounded = Polymake.exists(pm_object(P), "BOUNDED") ? pm_object(P).BOUNDED : false
+    poly_word = known_to_be_bounded ? "Polytope" : "Polyhedron"
     try
         ad = ambient_dim(P)
-        print(io, "Polyhedron in ambient dimension $(ad)")
+        print(io, "$(poly_word) in ambient dimension $(ad)")
         T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
-        print(io, "Polyhedron without ambient dimension")
+        print(io, "$(poly_word) without ambient dimension")
     end
 end
 
