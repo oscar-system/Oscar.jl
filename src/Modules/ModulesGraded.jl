@@ -493,6 +493,8 @@ Given a homogeneous element `f` of a $\mathbb Z^m$-graded free module, return th
 
 Given a homogeneous element `f` of a $\mathbb Z$-graded free module, return the degree of `f`, converted to an integer number.
 
+If `check` is set to `false`, then there is no check for homegeneity. This should be called 
+internally on provably sane input, as it speeds up computation significantly. 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
@@ -592,7 +594,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T 
       for j in 1:ncols(A)
           if A[i, j] != R[0]
             # TODO: use check=false for the ring elements, too. When it's available
-              push!(source_degrees, degree(A[i, j]) + degree(F[j]; check))
+              push!(source_degrees, degree(A[i, j]; check) + degree(F[j]; check))
               break
           end
       end
@@ -613,7 +615,7 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
     for j in 1:ncols
       if coordinates(V[i])[j] != R[0]
         # TODO: use check=false for the ring elements, too. When it's available
-        push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]; check))
+        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
@@ -634,7 +636,7 @@ function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Boo
       if coord_val != R[0]
         # TODO: adjust to also use check=false for the ring element 
         # once this is available.
-        push!(source_degrees, degree(coord_val) + degree(F[j]; check))
+        push!(source_degrees, degree(coord_val; check) + degree(F[j]; check))
         break
       end
     end
@@ -648,11 +650,11 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
-  f.d = degree(f)
+  f.d = degree(f; check)
   return f
 end
 
@@ -1067,7 +1069,7 @@ function is_homogeneous(el::SubquoModuleElem)
 end
 
 @doc raw"""
-    degree(m::SubquoModuleElem)
+    degree(m::SubquoModuleElem; check::Bool=true)
 
 Given a homogeneous element `m` of a graded subquotient, return the degree of `m`.
 
@@ -1176,7 +1178,7 @@ function set_grading(f::SubQuoHom; check::Bool=true)
 end
 
 @doc raw"""
-    degree(a::SubQuoHom)
+    degree(a::SubQuoHom; check::Bool=true)
 
 If `a` is graded, return the degree of `a`.
 
@@ -2491,7 +2493,7 @@ end
 
 
 @doc raw"""
-    minimal_betti_table(F::FreeResolution{T}) where {T<:ModuleFP}
+    minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
 
 Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2535,7 +2537,7 @@ julia> minimal_betti_table(FA)
 total: 1  5  5  1  
 ```
 """
-function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
@@ -2549,18 +2551,18 @@ function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
-    dom_degs = unique!([degree(g) for g in gens(F)])
-    cod_degs = unique!([degree(g) for g in gens(G)])
+    dom_degs = unique!([degree(g; check) for g in gens(F)])
+    cod_degs = unique!([degree(g; check) for g in gens(G)])
     for d in cod_degs
       d::GrpAbFinGenElem
       if d in dom_degs
-        _, _, sub_mat = _constant_sub_matrix(phi, d)
+        _, _, sub_mat = _constant_sub_matrix(phi, d; check)
         r = rank(sub_mat)
         c = ncols(sub_mat) - r - get(offsets, d, 0)
         !iszero(c) && (betti_hash_table[(i-1, d)] = c)
         offsets[d] = r
       else
-        c = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+        c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
         !iszero(c) && (betti_hash_table[(i-1, d)] = c)
       end
     end
@@ -2572,29 +2574,32 @@ function hash_table(B::BettiTable)
   return B.B
 end
 
+# TODO: Where is this called??? Adjust the use of `check` there!
 function generators_of_degree(
     C::FreeResolution{T},
     i::Int,
-    d::GrpAbFinGenElem
+    d::GrpAbFinGenElem;
+    check::Bool=true
   ) where {T<:ModuleFP}
   F = C[i]
-  return [g for g in gens(F) if degree(g) == d]
+  return [g for g in gens(F) if degree(g; check) == d]
 end
 
-function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
-  return Int[i for (i, g) in enumerate(gens(F)) if degree(g) == d]
+function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem; check::Bool=true) where {T<:MPolyDecRingElem}
+  return Int[i for (i, g) in enumerate(gens(F)) if degree(g; check) == d]
 end
 
 function _constant_sub_matrix(
     phi::FreeModuleHom{T, T},
-    d::GrpAbFinGenElem
+    d::GrpAbFinGenElem;
+    check::Bool=true
   ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
   S = base_ring(domain(phi))::MPolyDecRing
   kk = coefficient_ring(S)::Field
   F = domain(phi)
   G = codomain(phi)
-  ind_dom = _indices_of_generators_of_degree(F, d)
-  ind_cod = _indices_of_generators_of_degree(G, d)
+  ind_dom = _indices_of_generators_of_degree(F, d; check)
+  ind_cod = _indices_of_generators_of_degree(G, d; check)
   m = length(ind_dom)
   n = length(ind_cod)
   result = zero_matrix(kk, m, n)
@@ -2622,7 +2627,7 @@ end
 #############truncation#############
 
 @doc raw"""
-    truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+    truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism; check::Bool=true)
 
 Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivariate 
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
@@ -2676,11 +2681,11 @@ by submodule of F generated by
 3 -> z^5*e[1]
 ```
 """
-function truncate(I::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
-  return truncate(I, Int(g[1]), task)
+function truncate(I::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism; check::Bool=true)
+  return truncate(I, Int(g[1]), task; check)
 end
 
-function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
+function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism; check::Bool=true)
   @req I isa FreeMod || I isa SubquoModule "Not implemented for the given type"
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -2691,18 +2696,18 @@ function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
   if is_zero(I)
      return I
   end
-  dmin = minimum(degree(Int, x) for x in gens(I))
+  dmin = minimum(degree(Int, x; check) for x in gens(I))
   if  d <= dmin
      return I
   end
-  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  V = sort(gens(I), lt = (a, b) -> degree(Int, a; check) <= degree(Int, b; check))
   RES = elem_type(I)[]
   s = dmin
   B = monomial_basis(R, d-s)
   for i = 1:length(V)
-    if degree(Int, V[i]) < d
-      if degree(Int, V[i]) > s
-        s = degree(Int, V[i])
+    if degree(Int, V[i]; check) < d
+      if degree(Int, V[i]; check) > s
+        s = degree(Int, V[i]; check)
         B = monomial_basis(R, d-s)
       end
       append!(RES, [x*V[i] for x in B])
@@ -2710,20 +2715,20 @@ function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
       push!(RES, V[i])
     end
   end
-  return sub(I, RES, task) 
+  return sub(I, RES, task; check) 
 end
 
 
 ##################regularity#######################
 
 @doc raw"""
-    cm_regularity(M::ModuleFP)
+    cm_regularity(M::ModuleFP; check::Bool=true)
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
 Castelnuovo-Mumford regularity of `M`.
 
-    cm_regularity(I::MPolyIdeal)
+    cm_regularity(I::MPolyIdeal; check::Bool=true)
 
 Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2777,22 +2782,22 @@ julia> minimal_betti_table(A)
 total: 1 3 2 
 ```
 """
-function cm_regularity(M::ModuleFP)
+function cm_regularity(M::ModuleFP; check::Bool=true)
  error("Not implemented for the given type")
 end
 
-function cm_regularity(M::FreeMod)
+function cm_regularity(M::FreeMod; check::Bool=true)
    R = base_ring(M)
    @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
    @req is_standard_graded(R) "The base ring is not standard ZZ-graded"
    return 0
 end
 
-function cm_regularity(M::SubquoModule)
+function cm_regularity(M::SubquoModule; check::Bool=true)
    R = base_ring(M)
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_standard_graded(R) "The base ring is not standard ZZ-graded"
-   B = minimal_betti_table(M)
+   @check coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+   @check is_standard_graded(R) "The base ring is not standard ZZ-graded"
+   B = minimal_betti_table(M; check)
    S = as_dictionary(B)
    V = [x[2][1] - x[1] for x in keys(S)] 
   return maximum(V)
@@ -3006,11 +3011,11 @@ function _regularity_bound(M::SubquoModule)
   S = base_ring(M)
   G = grading_group(S)
   @assert is_free(G) && isone(rank(G)) "base ring must be ZZ-graded"
-  @assert all(x->degree(x)[1] >= 0, gens(S)) "base ring variables must be non-negatively graded"
+  @assert all(x->degree(Int, x; check=false) >= 0, gens(S)) "base ring variables must be non-negatively graded"
   res = free_resolution(M)
-  result = maximum((x->degree(x)[1]).(gens(res[0])))
+  result = maximum((x->degree(Int, x; check=false)).(gens(res[0])))
   for i in 0:first(chain_range(res))
-    result = maximum(push!((x->degree(x)[1]).(gens(res[i])), result))
+    result = maximum(push!((x->degree(Int, x; check=false)).(gens(res[i])), result))
   end
   return result
 end
