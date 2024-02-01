@@ -87,7 +87,7 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
   pro_quo = nothing
   if length(q) != 0
-    s, pro_quo = quo(s, q, :both)
+    s, pro_quo = quo(s, q)
   end
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
   projection_dictionary = IdDict{Int,ModuleFPHom}()
