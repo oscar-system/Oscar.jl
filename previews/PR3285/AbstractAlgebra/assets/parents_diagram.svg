@@ -8,7 +8,7 @@ class Module{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" 
 class FPModule{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="FPModule{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="116" x="127" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="110" x="130" y="282.8">FPModule{T}</text><!--MD5=[7e83e4cda25fdf8cd023ad6aa25bce7b]
 class MatSpace{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="MatSpace{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="116" x="278" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="110" x="281" y="282.8">MatSpace{T}</text><!--MD5=[bbf50daa07d2d91e59f473396f280904]
 class NCRing--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="NCRing" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="66" x="550" y="93"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="60" x="553" y="110.8">NCRing</text><!--MD5=[92046d790d6705f3ef44c0fa084e960c]
-class MatAlgebra{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="MatAlgebra{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="429" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="432" y="282.8">MatAlgebra{T}</text><!--MD5=[642539ca4e684886b806882765df101e]
+class MatRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="MatRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="429" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="432" y="282.8">MatRing{T}</text><!--MD5=[642539ca4e684886b806882765df101e]
 class NCPolyRing{T}--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="NCPolyRing{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="600" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="603" y="282.8">NCPolyRing{T}</text><!--MD5=[3fdda2b21354ce4f4119709bccb2aac0]
 class Ring--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="Ring" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="46" x="821" y="179"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="40" x="824" y="196.8">Ring</text><!--MD5=[d9427b671d7d049aff2d6f2fe36a13b3]
 class Field--><rect fill="#F8F8F8" filter="url(#fryxebi1j7yfh)" height="26" id="Field" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="56" x="761" y="437"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="50" x="764" y="454.8">Field</text><!--MD5=[d82769b5523c4ca2f36a57dfee73417a]
@@ -29,7 +29,7 @@ link AdditiveGroup to Module{T}--><path codeLine="16" d="M336,119.04 C336,133.38
 link Module{T} to FPModule{T}--><path codeLine="17" d="M314.37,205.04 C287.12,220.19 240.34,246.21 211.13,262.47 " fill="none" id="Module{T}-to-FPModule{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="206.59,264.99,216.4,264.1158,210.9608,262.5618,212.5148,257.1226,206.59,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[c55068334bce1cae8ceb3b3c0fba92d8]
 link Module{T} to MatSpace{T}--><path codeLine="18" d="M336,205.04 C336,219.38 336,243.46 336,259.78 " fill="none" id="Module{T}-to-MatSpace{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="336,264.99,340,255.99,336,259.99,332,255.99,336,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[03a2332ed46cb324cfd14661f7210fef]
 link Set to NCRing--><path codeLine="21" d="M288.18,25.88 C337.9,39.22 476.93,76.53 544.78,94.74 " fill="none" id="Set-to-NCRing" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="549.93,96.13,542.2794,89.9278,545.1019,94.8301,540.1996,97.6527,549.93,96.13" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[8d8b8eee8a7bddd341ee3ec176550552]
-link NCRing to MatAlgebra{T}--><path codeLine="22" d="M576.82,119.23 C561.69,149.12 522.82,225.97 505.52,260.16 " fill="none" id="NCRing-to-MatAlgebra{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="503.13,264.88,510.7565,258.6481,505.3832,260.4165,503.6149,255.0431,503.13,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[b8f1c4adcedaa0e58fa2bb368fdc45f5]
+link NCRing to MatRing{T}--><path codeLine="22" d="M576.82,119.23 C561.69,149.12 522.82,225.97 505.52,260.16 " fill="none" id="NCRing-to-MatRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="503.13,264.88,510.7565,258.6481,505.3832,260.4165,503.6149,255.0431,503.13,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[b8f1c4adcedaa0e58fa2bb368fdc45f5]
 link NCRing to NCPolyRing{T}--><path codeLine="23" d="M589.11,119.23 C604.06,149.12 642.48,225.97 659.58,260.16 " fill="none" id="NCRing-to-NCPolyRing{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="661.94,264.88,661.4802,255.0419,659.6982,260.4107,654.3294,258.6287,661.94,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[ad8fe4b0420a9c7b2b8d8f36b85b30ff]
 link NCRing to Ring--><path codeLine="24" d="M616.06,117.64 C667.91,134.33 767.45,166.36 815.99,181.99 " fill="none" id="NCRing-to-Ring" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="820.81,183.54,813.4651,176.9785,816.0497,182.0104,811.0178,184.595,820.81,183.54" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[3f7eb00af51d06dd0583618c117d905b]
 link Ring to Field--><path codeLine="27" d="M841.42,205 C832.53,246.4 803.12,383.29 792.7,431.78 " fill="none" id="Ring-to-Field" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="791.64,436.72,797.4306,428.7533,792.6837,431.8302,789.6069,427.0833,791.64,436.72" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[6aafd22ffa1a38dbb34cc29fc1522473]
@@ -64,7 +64,7 @@ skinparam RoundCorner 15
 
 ' Non-commutative rings
 "Set" -down-> "NCRing"
-"NCRing" -down- -> "MatAlgebra{T}"
+"NCRing" -down- -> "MatRing{T}"
 "NCRing" -down- -> "NCPolyRing{T}"
 "NCRing" -down-> "Ring"
 
@@ -105,7 +105,7 @@ skinparam RoundCorner 15
 "Module{T}" -down-> "MatSpace{T}"
 
 "Set" -down-> "NCRing"
-"NCRing" -down- -> "MatAlgebra{T}"
+"NCRing" -down- -> "MatRing{T}"
 "NCRing" -down- -> "NCPolyRing{T}"
 "NCRing" -down-> "Ring"
 

@@ -13,7 +13,7 @@ class ModuleElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="
 class FPModuleElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="FPModuleElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="156" x="271" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="150" x="274" y="282.8">FPModuleElem{T}</text><!--MD5=[90cc10176a8b434ce3ff4ca3ea09aa5c]
 class MatElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="MatElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="106" x="462" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="100" x="465" y="282.8">MatElem{T}</text><!--MD5=[c83e51695945a4a24d7eea26eff66f96]
 class NCRingElem--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="NCRingElem" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="106" x="715" y="93"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="100" x="718" y="110.8">NCRingElem</text><!--MD5=[20677bfcf96c43e8272146aa4b7b91d2]
-class MatAlgElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="MatAlgElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="603" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="606" y="282.8">MatAlgElem{T}</text><!--MD5=[6472abbb30c4a0b8507e69e97f268900]
+class MatRingElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="MatRingElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="603" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="606" y="282.8">MatRingElem{T}</text><!--MD5=[6472abbb30c4a0b8507e69e97f268900]
 class NCPolyRingElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="NCPolyRingElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="136" x="774" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="130" x="777" y="282.8">NCPolyRingElem{T}</text><!--MD5=[344ba750aff02ce8d82ebd3626142b70]
 class RingElem--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="RingElem" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="86" x="993" y="179"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="80" x="996" y="196.8">RingElem</text><!--MD5=[7757f1648dd37c32a2ec1748f0256268]
 class PolyRingElem{T}--><rect fill="#F8F8F8" filter="url(#fh3s9elwmawy0)" height="26" id="PolyRingElem{T}" rx="7.5" ry="7.5" style="stroke:#383838;stroke-width:1.5;" width="116" x="1034" y="265"/><text fill="#000000" font-family="monospace" font-size="16" lengthAdjust="spacing" textLength="110" x="1037" y="282.8">PolyRingElem{T}</text><!--MD5=[93b3a323c853cf347945f67000f27ec4]
@@ -39,7 +39,7 @@ link AdditiveGroupElem to ModuleElem{T}--><path codeLine="25" d="M517.57,119.04 
 link ModuleElem{T} to FPModuleElem{T}--><path codeLine="26" d="M491.22,205.04 C461.14,220.26 409.41,246.43 377.33,262.67 " fill="none" id="ModuleElem{T}-to-FPModuleElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="372.74,264.99,382.5763,264.4925,377.2006,262.7311,378.962,257.3554,372.74,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[a8b0988c52e6622229d1fafa9da45ba2]
 link ModuleElem{T} to MatElem{T}--><path codeLine="27" d="M515,205.04 C515,219.38 515,243.46 515,259.78 " fill="none" id="ModuleElem{T}-to-MatElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="515,264.99,519,255.99,515,259.99,511,255.99,515,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[7257f7ad5a5507e43bd2832b643dacaa]
 link SetElem to NCRingElem--><path codeLine="30" d="M385.1,28.6 C458.93,43.33 621.88,75.85 709.51,93.33 " fill="none" id="SetElem-to-NCRingElem" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="714.66,94.36,706.6224,88.6681,709.7576,93.3767,705.0491,96.5119,714.66,94.36" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[e34cdcdd9847f81251e3cd0855731ec8]
-link NCRingElem to MatAlgElem{T}--><path codeLine="31" d="M761.02,119.23 C743.97,149.12 700.12,225.97 680.61,260.16 " fill="none" id="NCRingElem-to-MatAlgElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="677.91,264.88,685.8523,259.056,680.3938,260.5405,678.9092,255.082,677.91,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[adc693c774601589ec0c33d87c9740b5]
+link NCRingElem to MatRingElem{T}--><path codeLine="31" d="M761.02,119.23 C743.97,149.12 700.12,225.97 680.61,260.16 " fill="none" id="NCRingElem-to-MatRingElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="677.91,264.88,685.8523,259.056,680.3938,260.5405,678.9092,255.082,677.91,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[adc693c774601589ec0c33d87c9740b5]
 link NCRingElem to NCPolyRingElem{T}--><path codeLine="32" d="M773.32,119.23 C786.34,149.12 819.79,225.97 834.67,260.16 " fill="none" id="NCRingElem-to-NCPolyRingElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="836.73,264.88,836.7985,255.0314,834.7312,260.2969,829.4656,258.2295,836.73,264.88" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[d271a3b885bd44ccdf340d57dd6fb9eb]
 link NCRingElem to RingElem--><path codeLine="33" d="M806.4,119.04 C855.75,134.5 941.21,161.29 992.79,177.46 " fill="none" id="NCRingElem-to-RingElem" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="997.67,178.99,990.2839,172.475,992.9001,177.4905,987.8847,180.1068,997.67,178.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[d1ac0d1c94b63bbe3ba4e6221e460eba]
 link RingElem to PolyRingElem{T}--><path codeLine="36" d="M1044.02,205.04 C1053.75,219.63 1070.2,244.3 1081.08,260.62 " fill="none" id="RingElem-to-PolyRingElem{T}" style="stroke:#A9A9A9;stroke-width:1.0;"/><polygon fill="#A9A9A9" points="1083.99,264.99,1082.3259,255.2827,1081.2165,260.8297,1075.6695,259.7203,1083.99,264.99" style="stroke:#A9A9A9;stroke-width:1.0;"/><!--MD5=[5b31a14d50adb6663d9f589217fe6a4c]
@@ -83,7 +83,7 @@ skinparam RoundCorner 15
 
 ' Non-commutative rings
 "SetElem" -down-> "NCRingElem"
-"NCRingElem" -down- -> "MatAlgElem{T}"
+"NCRingElem" -down- -> "MatRingElem{T}"
 "NCRingElem" -down- -> "NCPolyRingElem{T}"
 "NCRingElem" -down-> "RingElem"
 
@@ -131,7 +131,7 @@ skinparam RoundCorner 15
 "ModuleElem{T}" -down-> "MatElem{T}"
 
 "SetElem" -down-> "NCRingElem"
-"NCRingElem" -down- -> "MatAlgElem{T}"
+"NCRingElem" -down- -> "MatRingElem{T}"
 "NCRingElem" -down- -> "NCPolyRingElem{T}"
 "NCRingElem" -down-> "RingElem"
 

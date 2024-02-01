@@ -12,7 +12,7 @@ julia&gt; G = matrix_group(M1, M2);
 
 julia&gt; IRm = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; IRp = invariant_ring(symmetric_group(3))
 Invariant ring
@@ -38,7 +38,7 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; group(IR)
 Matrix group of degree 3
@@ -49,13 +49,13 @@ Number field with defining polynomial _$^2 + _$ + 1
   over rational field
 
 julia&gt; R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -&gt; [1]
   x[2] -&gt; [1]
   x[3] -&gt; [1]
 
 julia&gt; x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]
@@ -81,16 +81,16 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -&gt; [1]
   x[2] -&gt; [1]
   x[3] -&gt; [1]
 
 julia&gt; x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]
@@ -168,7 +168,7 @@ julia&gt; x = gens(R);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia&gt; reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]</code></pre></div></section></article><h2 id="Invariants-of-a-Given-Degree"><a class="docs-heading-anchor" href="#Invariants-of-a-Given-Degree">Invariants of a Given Degree</a><a id="Invariants-of-a-Given-Degree-1"></a><a class="docs-heading-anchor-permalink" href="#Invariants-of-a-Given-Degree" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="basis" href="#basis"><code>basis</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs"> basis(IR::InvRing, d::Int, algorithm::Symbol = :default)</code></pre><p>Given an invariant ring <code>IR</code> and an integer <code>d</code>, return a basis for the invariants in degree <code>d</code>.</p><p>The optional argument <code>algorithm</code> specifies the algorithm to be used. If <code>algorithm = :reynolds</code>, the Reynolds operator is utilized (this method is only available in the non-modular case). Setting <code>algorithm = :linear_algebra</code> means that plain linear algebra is used. The default option <code>algorithm = :default</code> asks to select the heuristically best algorithm.</p><p>See also <a href="#iterate_basis"><code>iterate_basis</code></a>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; K, a = cyclotomic_field(3, &quot;a&quot;)
@@ -190,10 +190,10 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; basis(IR, 6)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -231,7 +231,7 @@ julia&gt; G = matrix_group(M1, M2);
 julia&gt; IR = invariant_ring(G);
 
 julia&gt; basis(IR, 6, trivial_character(G))
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -244,7 +244,7 @@ julia&gt; R = invariant_ring(QQ, S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia&gt; basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -269,14 +269,14 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; B = iterate_basis(IR, 6)
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia&gt; collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -297,7 +297,7 @@ Invariant ring
 
 julia&gt; B = iterate_basis(IR, 2)
 Iterator over a basis of the component of degree 2
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia&gt; collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -314,11 +314,11 @@ julia&gt; IR = invariant_ring(G);
 
 julia&gt; B = iterate_basis(IR, 6, trivial_character(G))
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 relative to a character
 
 julia&gt; collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -331,11 +331,11 @@ julia&gt; R = invariant_ring(QQ, S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia&gt; B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3
-  of invariant ring of Sym(2)
+  of invariant ring of S2
 relative to a character
 
 julia&gt; collect(B)
@@ -367,7 +367,7 @@ julia&gt; IR = invariant_ring(QQ, S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia&gt; molien_series(IR)
 1//(t^3 - t^2 - t + 1)
@@ -386,7 +386,7 @@ julia&gt; G = matrix_group(M1, M2);
 julia&gt; IR = invariant_ring(G);
 
 julia&gt; primary_invariants(IR)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -394,7 +394,7 @@ julia&gt; primary_invariants(IR)
 julia&gt; IR = invariant_ring(G); # &quot;New&quot; ring to avoid caching
 
 julia&gt; primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]*x[2]*x[3]
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^6 + x[2]^6 + x[3]^6
@@ -409,7 +409,7 @@ julia&gt; G = matrix_group(M1, M2);
 julia&gt; IR = invariant_ring(G);
 
 julia&gt; secondary_invariants(IR)
-2-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+2-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  1
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="irreducible_secondary_invariants-Tuple{Oscar.InvRing}" href="#irreducible_secondary_invariants-Tuple{Oscar.InvRing}"><code>irreducible_secondary_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">irreducible_secondary_invariants(IR::InvRing)</code></pre><p>Return a system of irreducible secondary invariants for <code>IR</code> as a <code>Vector</code> sorted by increasing degree. The result is cached, so calling this function again will be fast and give the same result. Here, a secondary invariant is called irreducible, if it cannot be written as a polynomial expression in the primary invariants and the other secondary invariants.</p><p>Note that the secondary invariants and hence the irreducible secondary invariants are defined with respect to the currently cached system of primary invariants for <code>IR</code> (if no system of primary invariants for <code>IR</code> is cached, such a system is  computed and cached first).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(QQ, [0 -1 0 0 0; 1 -1 0 0 0; 0 0 0 0 1; 0 0 1 0 0; 0 0 0 1 0]);
 
@@ -460,10 +460,10 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; fundamental_invariants(IR)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]*x[2]*x[3]
  x[1]^6 + x[2]^6 + x[3]^6
@@ -487,7 +487,7 @@ Matrix group of degree 3
 
 julia&gt; IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia&gt; affine_algebra(IR)
 (Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -&gt; graded multivariate polynomial ring)</code></pre></div></section></article><h2 id="Semi-invariants-/-relative-invariants"><a class="docs-heading-anchor" href="#Semi-invariants-/-relative-invariants">Semi-invariants / relative invariants</a><a id="Semi-invariants-/-relative-invariants-1"></a><a class="docs-heading-anchor-permalink" href="#Semi-invariants-/-relative-invariants" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}" href="#semi_invariants-Tuple{Oscar.InvRing, Oscar.GAPGroupClassFunction}"><code>semi_invariants</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
@@ -498,9 +498,9 @@ julia&gt; RS2 = invariant_ring(S2);
 julia&gt; F = abelian_closure(QQ)[1];
 
 julia&gt; chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia&gt; semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x[1] - x[2]
-</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Wednesday 31 January 2024 18:30">Wednesday 31 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../intro/">« Introduction</a><a class="docs-footer-nextpage" href="../reductive_groups/">Invariants of Linearly Reductive Groups »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 1 February 2024 17:26">Thursday 1 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

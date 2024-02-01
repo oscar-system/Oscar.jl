@@ -27,7 +27,7 @@ julia&gt; typeof(p(x))
 MPolyQuoRingElem{QQMPolyRingElem}</code></pre><pre><code class="language-julia-repl hljs">julia&gt; S, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
 
 julia&gt; B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -&gt; quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: S -&gt; B)
 
 julia&gt; typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}</code></pre></div></section></article><h2 id="Data-Associated-to-Affine-Algebras"><a class="docs-heading-anchor" href="#Data-Associated-to-Affine-Algebras">Data Associated to Affine Algebras</a><a id="Data-Associated-to-Affine-Algebras-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Affine-Algebras" title="Permalink"></a></h2><h3 id="Basic-Data"><a class="docs-heading-anchor" href="#Basic-Data">Basic Data</a><a id="Basic-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Data" title="Permalink"></a></h3><p>If <code>A=R/I</code> is the quotient of a multivariate polynomial ring <code>R</code> modulo an ideal <code>I</code> of <code>R</code>, then</p><ul><li><code>base_ring(A)</code> refers to <code>R</code>,</li><li><code>modulus(A)</code> to <code>I</code>,</li><li><code>gens(A)</code> to the generators of <code>A</code>,</li><li><code>number_of_generators(A)</code> / <code>ngens(A)</code> to the number of these generators, and</li><li><code>gen(A, i)</code> as well as <code>A[i]</code> to the <code>i</code>-th such generator.</li></ul><h6 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h6><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
@@ -59,19 +59,19 @@ y
 julia&gt; A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
 
 julia&gt; grading_group(A)
-GrpAb: Z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="monomial_basis-Tuple{MPolyQuoRing, GrpAbFinGenElem}" href="#monomial_basis-Tuple{MPolyQuoRing, GrpAbFinGenElem}"><code>monomial_basis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)</code></pre><p>Given an affine algebra <code>A</code> over a field which is graded by a free group of type <code>GrpAbFinGen</code>, and given an element <code>g</code> of that group, return a vector of monomials of <code>R</code> such that the residue classes of  these monomials form a <code>K</code>-basis of the graded part of <code>A</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">monomial_basis(A::MPolyQuoRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded affine algebra <code>A</code> over a field and a vector <code>W</code> of <span>$m$</span> integers, convert <code>W</code> into an element <code>g</code> of the grading group of <code>A</code> and proceed as above.</p><pre><code class="nohighlight hljs">monomial_basis(A::MPolyQuoRing, d::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded  affine algebra <code>A</code> over a field and an integer <code>d</code>, convert <code>d</code> into an element <code>g</code> of the grading group of <code>A</code> and proceed as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component of the given degree is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;]);
+Z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="monomial_basis-Tuple{MPolyQuoRing, FinGenAbGroupElem}" href="#monomial_basis-Tuple{MPolyQuoRing, FinGenAbGroupElem}"><code>monomial_basis</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)</code></pre><p>Given an affine algebra <code>A</code> over a field which is graded by a free group of type <code>FinGenAbGroup</code>, and given an element <code>g</code> of that group, return a vector of monomials of <code>R</code> such that the residue classes of  these monomials form a <code>K</code>-basis of the graded part of <code>A</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">monomial_basis(A::MPolyQuoRing, W::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded affine algebra <code>A</code> over a field and a vector <code>W</code> of <span>$m$</span> integers, convert <code>W</code> into an element <code>g</code> of the grading group of <code>A</code> and proceed as above.</p><pre><code class="nohighlight hljs">monomial_basis(A::MPolyQuoRing, d::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded  affine algebra <code>A</code> over a field and an integer <code>d</code>, convert <code>d</code> into an element <code>g</code> of the grading group of <code>A</code> and proceed as above.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component of the given degree is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;]);
 
 julia&gt; I = ideal(R, [x^2])
 Ideal generated by
   x^2
 
 julia&gt; A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal (x^2), Map: graded multivariate polynomial ring -&gt; quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2), Map: R -&gt; A)
 
 julia&gt; L = monomial_basis(A, 3)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  y^3
- x*y^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyQuoRing{&lt;:MPolyDecRingElem}, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyQuoRing{&lt;:MPolyDecRingElem}, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::GrpAbFinGenElem)</code></pre><p>Given a graded quotient <code>A</code> of a multivariate polynomial ring over a field,  where the grading group is free of type <code>GrpAbFinGen</code>, and given an element <code>g</code> of  that group, return the homogeneous component of <code>A</code> of degree <code>g</code>. Additionally, return the embedding of the component into <code>A</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded quotient <code>A</code> of a multivariate polynomial ring over a field,  and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>A</code> whose degree  is that element. Additionally, return the embedding of the component into <code>A</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded quotient <code>A</code> of a multivariate polynomial ring over a field,  and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>A</code>,  and return the homogeneous component of <code>A</code> whose degree is that element. Additionally, return the embedding of the component into <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = graded_polynomial_ring(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+ x*y^2</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyQuoRing{&lt;:MPolyDecRingElem}, FinGenAbGroupElem}" href="#homogeneous_component-Tuple{MPolyQuoRing{&lt;:MPolyDecRingElem}, FinGenAbGroupElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::FinGenAbGroupElem)</code></pre><p>Given a graded quotient <code>A</code> of a multivariate polynomial ring over a field,  where the grading group is free of type <code>FinGenAbGroup</code>, and given an element <code>g</code> of  that group, return the homogeneous component of <code>A</code> of degree <code>g</code>. Additionally, return the embedding of the component into <code>A</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a <span>$\mathbb  Z^m$</span>-graded quotient <code>A</code> of a multivariate polynomial ring over a field,  and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>A</code> whose degree  is that element. Additionally, return the embedding of the component into <code>A</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(A::MPolyQuoRing{&lt;:MPolyDecRingElem}, g::IntegerUnion)</code></pre><p>Given a <span>$\mathbb  Z$</span>-graded quotient <code>A</code> of a multivariate polynomial ring over a field,  and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>A</code>,  and return the homogeneous component of <code>A</code> whose degree is that element. Additionally, return the embedding of the component into <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If the component is not finite dimensional, an error message will be thrown.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (w, x, y, z) = graded_polynomial_ring(QQ, [&quot;w&quot;, &quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[w, x, y, z])
 
 julia&gt; L = homogeneous_component(R, 2);
@@ -117,7 +117,7 @@ w*z
 w*y
 w*x
 w^2</code></pre><pre><code class="language-julia-repl hljs">julia&gt; G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia&gt; W = [G[1], G[1], G[2], G[2], G[2]];
 
@@ -129,7 +129,7 @@ julia&gt; HC = gens(L[1]);
 
 julia&gt; EMB = L[2]
 Map defined by a julia-function with inverse
-  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2 1]
+  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2, 1]
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia&gt; for i in 1:length(HC) println(EMB(HC[i])) end
@@ -196,7 +196,7 @@ Ideal generated by
   y^3
 
 julia&gt; A, _ = quo(R, I)
-(Quotient of multivariate polynomial ring by ideal (x^2, y^3), Map: graded multivariate polynomial ring -&gt; quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2, y^3), Map: R -&gt; A)
 
 julia&gt; L = monomial_basis(A)
 6-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -261,9 +261,9 @@ julia&gt; f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
 
 julia&gt; homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
   [4] =&gt; z^4
-  [3] =&gt; y^2*z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}, GrpAbFinGenElem}" href="#homogeneous_component-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}, GrpAbFinGenElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::GrpAbFinGenElem)</code></pre><p>Given an element <code>f</code> of a graded affine algebra, and given an element <code>g</code> of the grading group of that algebra, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded affine algebra <code>A</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded affine algebra <code>A</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+  [3] =&gt; y^2*z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="homogeneous_component-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}, FinGenAbGroupElem}" href="#homogeneous_component-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}, FinGenAbGroupElem}"><code>homogeneous_component</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::FinGenAbGroupElem)</code></pre><p>Given an element <code>f</code> of a graded affine algebra, and given an element <code>g</code> of the grading group of that algebra, return the homogeneous component of <code>f</code> of degree <code>g</code>.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z^m$</span>-graded affine algebra <code>A</code>, say, and given a vector <code>g</code> of <span>$m$</span> integers, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><pre><code class="nohighlight hljs">homogeneous_component(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem}, g::IntegerUnion)</code></pre><p>Given an element <code>f</code> of a <span>$\mathbb  Z$</span>-graded affine algebra <code>A</code>, say, and given an integer <code>g</code>, convert <code>g</code> into an element of the grading group of <code>A</code>, and return the homogeneous component of <code>f</code> whose degree is that element.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
 
 julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]));
 
@@ -274,7 +274,7 @@ julia&gt; homogeneous_component(f, 4)
 z^4</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}}" href="#degree-Tuple{MPolyQuoRingElem{&lt;:MPolyDecRingElem}}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(f::MPolyQuoRingElem{&lt;:MPolyDecRingElem})</code></pre><p>Given a homogeneous element <code>f</code> of a graded affine algebra, return the degree of <code>f</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, f::MPolyQuoRingElem{&lt;:MPolyDecRingElem})</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z^m$</span>-graded affine algebra, return the degree of <code>f</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, f::MPolyQuoRingElem{&lt;:MPolyDecRingElem})</code></pre><p>Given a homogeneous element <code>f</code> of a <span>$\mathbb Z$</span>-graded affine algebra, return the degree of <code>f</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;] );
 
 julia&gt; A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -&gt; quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -&gt; A)
 
 julia&gt; f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -283,7 +283,7 @@ julia&gt; degree(f)
 [4]
 
 julia&gt; typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia&gt; degree(Int, f)
 4
@@ -1014,16 +1014,16 @@ julia&gt; H[1][2]
 (-t[1] + 1)^2*(-t[1]*t[2]^-1 + 1)^1
 
 julia&gt; H[2][1]
-GrpAb: Z^2
+Z^2
 
 julia&gt; H[2][2]
 Identity map
-  of GrpAb: Z^2
+  of Z^2
 
 julia&gt; G = abelian_group(ZZMatrix([1 -1]));
 
 julia&gt; g = gen(G, 1)
-Element of G with components [0 1]
+Abelian group element [0, 1]
 
 julia&gt; W = [g, g, g, g];
 
@@ -1040,14 +1040,12 @@ julia&gt; den
 (-t + 1)^4
 
 julia&gt; H
-GrpAb: Z
+Z
 
 julia&gt; iso
 Map
-  from GrpAb: Z
-  to (General) abelian group with relation matrix
-  [1 -1]
-  with structure of GrpAb: Z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multi_hilbert_series_reduced-Tuple{MPolyQuoRing}" href="#multi_hilbert_series_reduced-Tuple{MPolyQuoRing}"><code>multi_hilbert_series_reduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)</code></pre><p>Return the reduced Hilbert series of the positively graded affine algebra <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The advanced user can select a <code>algorithm</code> for the computation;  see the code for details.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
+  from Z
+  to finitely generated abelian group with 2 generators and 1 relation</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multi_hilbert_series_reduced-Tuple{MPolyQuoRing}" href="#multi_hilbert_series_reduced-Tuple{MPolyQuoRing}"><code>multi_hilbert_series_reduced</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)</code></pre><p>Return the reduced Hilbert series of the positively graded affine algebra <code>A</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The advanced user can select a <code>algorithm</code> for the computation;  see the code for details.</p></div></div><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
 
 julia&gt; R, x = graded_polynomial_ring(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;], W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -1066,16 +1064,16 @@ julia&gt; H[1][2]
 -t[1] + 1
 
 julia&gt; H[2][1]
-GrpAb: Z^2
+Z^2
 
 julia&gt; H[2][2]
 Identity map
-  of GrpAb: Z^2
+  of Z^2
 
 julia&gt; G = abelian_group(ZZMatrix([1 -1]));
 
 julia&gt; g = gen(G, 1)
-Element of G with components [0 1]
+Abelian group element [0, 1]
 
 julia&gt; W = [g, g, g, g];
 
@@ -1092,14 +1090,12 @@ julia&gt; H[1][2]
 t^2 - 2*t + 1
 
 julia&gt; H[2][1]
-GrpAb: Z
+Z
 
 julia&gt; H[2][2]
 Map
-  from GrpAb: Z
-  to (General) abelian group with relation matrix
-  [1 -1]
-  with structure of GrpAb: Z</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multi_hilbert_function-Tuple{MPolyQuoRing, GrpAbFinGenElem}" href="#multi_hilbert_function-Tuple{MPolyQuoRing, GrpAbFinGenElem}"><code>multi_hilbert_function</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)</code></pre><p>Given a positively graded affine algebra <span>$A$</span> over a field <span>$K$</span> with grading group <span>$G$</span>, say, and given an element <span>$g$</span> of <span>$G$</span>, return the value <span>$H(A, g)$</span> of the Hilbert function</p><p class="math-container">\[H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).\]</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuoRing, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a positively <span>$\mathbb  Z^m$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given a vector <span>$g$</span> of <span>$m$</span> integers, convert <span>$g$</span> into an element  of the grading group of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuoRing, g::IntegerUnion)</code></pre><p>Given a positively <span>$\mathbb  Z$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given an integer <span>$g$</span>, convert <span>$g$</span> into an element of the grading group  of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
+  from Z
+  to finitely generated abelian group with 2 generators and 1 relation</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multi_hilbert_function-Tuple{MPolyQuoRing, FinGenAbGroupElem}" href="#multi_hilbert_function-Tuple{MPolyQuoRing, FinGenAbGroupElem}"><code>multi_hilbert_function</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)</code></pre><p>Given a positively graded affine algebra <span>$A$</span> over a field <span>$K$</span> with grading group <span>$G$</span>, say, and given an element <span>$g$</span> of <span>$G$</span>, return the value <span>$H(A, g)$</span> of the Hilbert function</p><p class="math-container">\[H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).\]</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuoRing, g::Vector{&lt;:IntegerUnion})</code></pre><p>Given a positively <span>$\mathbb  Z^m$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given a vector <span>$g$</span> of <span>$m$</span> integers, convert <span>$g$</span> into an element  of the grading group of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><pre><code class="nohighlight hljs">multi_hilbert_function(A::MPolyQuoRing, g::IntegerUnion)</code></pre><p>Given a positively <span>$\mathbb  Z$</span>-graded affine algebra <span>$A$</span> over a field <span>$K$</span>, and given an integer <span>$g$</span>, convert <span>$g$</span> into an element of the grading group  of <span>$A$</span>, and return the value <span>$H(A, g)$</span> as above.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; W = [1 1 1; 0 0 -1];
 
 julia&gt; R, x = graded_polynomial_ring(QQ, [&quot;x[1]&quot;, &quot;x[2]&quot;, &quot;x[3]&quot;], W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
@@ -1150,4 +1146,4 @@ Graded subquotient of submodule of S^1 generated by
 by submodule of S^1 generated by
 1 -&gt; x^2*e[1]
 2 -&gt; y^3*e[1]
-</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../ideals/">« Ideals in Multivariate Rings</a><a class="docs-footer-nextpage" href="../localizations/">Localized Rings and Their Ideals »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Wednesday 31 January 2024 12:57">Wednesday 31 January 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../ideals/">« Ideals in Multivariate Rings</a><a class="docs-footer-nextpage" href="../localizations/">Localized Rings and Their Ideals »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 1 February 2024 17:52">Thursday 1 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
