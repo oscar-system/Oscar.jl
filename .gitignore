@@ -7,3 +7,4 @@ profile.pb.gz
 LocalPreferences.toml
 Manifest.toml
 .DS_Store
+*~

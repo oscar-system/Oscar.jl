@@ -65,7 +65,7 @@ x*g[1]
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL =  free_module(RQL, 2, "h")
-Free module of rank 2 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
+Free module of rank 2 over Localization of RQ at complement of prime ideal
 
 julia> RQL(x)*FRQL[1]
 x*h[1]

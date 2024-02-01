@@ -108,7 +108,7 @@ end
 #
 ################################################################################
 
-AbstractAlgebra.promote_rule(::Type{nf_elem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
+AbstractAlgebra.promote_rule(::Type{AbsSimpleNumFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
 
 AbstractAlgebra.promote_rule(::Type{QQFieldElem}, ::Type{Singular.n_transExt}) = Singular.n_transExt
 
