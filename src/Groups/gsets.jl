@@ -23,16 +23,19 @@ import Hecke.orbit
 # - ...
 
 
-#############################################################################
-##
-##  GSetByElements:
-##  a G-set that is willing to write down complete orbits and elements lists;
-##  fields are
-##  - the group that acts, of type `T`,
-##  - the Julia function (like `on_tuples`) that describes the action,
-##  - the seeds (something iterable) whose closure under the action is the G-set
-##  - the dictionary used to store attributes (orbits, elements, ...)
+"""
+    GSetByElements{T} <: GSet{T}
 
+Objects of this type represent G-sets that are willing to write down
+orbits and elements lists as vectors.
+These G-sets are created by default by [`gset`](@ref).
+
+The fields are
+- the group that acts, of type `T`,
+- the Julia function (for example `on_tuples`) that describes the action,
+- the seeds (something iterable) whose closure under the action is the G-set
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
 @attributes mutable struct GSetByElements{T} <: GSet{T}
     group::T
     action_function::Function
@@ -455,32 +458,48 @@ function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGrou
 end
 
 
-#############################################################################
-##
-##  GSetByRightTransversal:
-##  a G-set that describes the right cosets of a subgroup $H$ in a group $G$,
-##  on which $G$ acts by multiplication from the right.
-##  The G-set stores just a right transversal, not the coset objects;
-##  fields are
-##  - the group that acts, of type `T`, with elements of type `E`,
-##  - the subgroup whose cosets are the elements, of type `S`,
-##  - the right transversal, of type `SubgroupTransversal{T, S, E}`,
-##  - the dictionary used to store attributes (orbits, elements, ...)
+@doc raw"""
+    GSetBySubgroupTransversal{T, S, E} <: GSet{T}
 
-@attributes mutable struct GSetByRightTransversal{T, S, E} <: GSet{T}
+Objects of this type represent G-sets that describe the left or right cosets
+of a subgroup $H$ in a group $G$.
+The group $G$ acts on the G-set by multiplication from the right or (after
+taking inverses) from the left.
+These G-sets store just transversals,
+see [`right_transversal`](@ref) and [`left_transversal`](@ref).
+The construction of explicit right or left cosets is not necessary in order
+to compute the permutation action of elements of $G$ on the cosets.
+
+The fields are
+- the group that acts, of type `T`, with elements of type `E`,
+- the subgroup whose cosets are the elements, of type `S`,
+- the side from which the group acts (`:right` or `:left`),
+- the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T}
     group::T
     subgroup::S
+    side::Symbol
     transversal::SubgroupTransversal{T, S, E}
 
-    function GSetByRightTransversal(G::T, H::S; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
+    function GSetBySubgroupTransversal(G::T, H::S, side::Symbol; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
         check && @req is_subgroup(H, G)[1] "H must be a subgroup of G"
         E = eltype(G)
-        return new{T, S, E}(G, H, right_transversal(G, H), Dict{Symbol,Any}())
+        if side == :right
+          tr = right_transversal(G, H)
+        elseif side == :left
+          tr = left_transversal(G, H)
+        else
+          throw(ArgumentError("side must be :right or :left"))
+        end
+        return new{T, S, E}(G, H, side, tr, Dict{Symbol,Any}())
     end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", x::GSetByRightTransversal)
-  println(io, "Right cosets of")
+function Base.show(io::IO, ::MIME"text/plain", x::GSetBySubgroupTransversal)
+  side = (x.side == :right ? "Right" : "Left")
+  println(io, "$side cosets of")
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.subgroup, " in")
@@ -488,72 +507,91 @@ function Base.show(io::IO, ::MIME"text/plain", x::GSetByRightTransversal)
   print(io, Dedent())
 end
 
-function Base.show(io::IO, x::GSetByRightTransversal)
+function Base.show(io::IO, x::GSetBySubgroupTransversal)
+  side = (x.side == :right ? "Right" : "Left")
   if get(io, :supercompact, false)
-    print(io, "Right cosets of groups")
+    print(io, "$side cosets of groups")
   else
-    print(io, "Right cosets of ")
+    print(io, "$side cosets of ")
     io = pretty(io)
     print(IOContext(io, :supercompact => true), Lowercase(), x.subgroup, " in ", Lowercase(), x.group)
   end
 end
 
-acting_group(Omega::GSetByRightTransversal) = Omega.group
-action_function(Omega::GSetByRightTransversal) = *
+acting_group(Omega::GSetBySubgroupTransversal) = Omega.group
+action_function(Omega::GSetBySubgroupTransversal) = ((Omega.side == :right) ? (Base.:*) : function(omega, g) return inv(g)*omega; end)
 
-function Base.in(omega::GroupCoset, Omega::GSetByRightTransversal)
-    return omega.G == Omega.group && omega.H == Omega.subgroup &&
-           omega.side == :right
+function Base.in(omega::GroupCoset, Omega::GSetBySubgroupTransversal)
+    return omega.side == Omega.side &&
+           omega.G == Omega.group && omega.H == Omega.subgroup
 end
 
-Base.length(Omega::GSetByRightTransversal) = index(Int, Omega.group, Omega.subgroup)
-Base.length(::Type{T}, Omega::GSetByRightTransversal) where T <: IntegerUnion = index(T, Omega.group, Omega.subgroup)
+Base.length(Omega::GSetBySubgroupTransversal) = index(Int, Omega.group, Omega.subgroup)
+Base.length(::Type{T}, Omega::GSetBySubgroupTransversal) where T <: IntegerUnion = index(T, Omega.group, Omega.subgroup)
 
-Base.lastindex(Omega::GSetByRightTransversal) = length(Omega)
+Base.lastindex(Omega::GSetBySubgroupTransversal) = length(Omega)
 
-Base.keys(Omega::GSetByRightTransversal) = keys(1:length(Omega))
+Base.keys(Omega::GSetBySubgroupTransversal) = keys(1:length(Omega))
 
-representative(Omega::GSetByRightTransversal) = right_coset(Omega.subgroup, one(Omega.group))
+function representative(Omega::GSetBySubgroupTransversal)
+  if Omega.side == :right
+    return right_coset(Omega.subgroup, one(Omega.group))
+  else
+    return left_coset(Omega.subgroup, one(Omega.group))
+  end
+end
 
-function Base.iterate(Omega::GSetByRightTransversal, state = 1)
+function Base.iterate(Omega::GSetBySubgroupTransversal, state = 1)
   T = Omega.transversal
   state > length(T) && return nothing
-  return (right_coset(Omega.subgroup, T[state]), state+1)
+  if Omega.side == :right
+    return (right_coset(Omega.subgroup, T[state]), state+1)
+  else
+    return (left_coset(Omega.subgroup, T[state]), state+1)
+  end
 end
 
-Base.eltype(Omega::GSetByRightTransversal{T, S, E}) where {S, T, E} = GroupCoset{T, E}
+Base.eltype(Omega::GSetBySubgroupTransversal{T, S, E}) where {S, T, E} = GroupCoset{T, E}
 
-Base.getindex(Omega::GSetByRightTransversal, i::Int) = right_coset(Omega.subgroup, Omega.transversal[i])
+function Base.getindex(Omega::GSetBySubgroupTransversal, i::Int)
+  if Omega.side == :right
+    return right_coset(Omega.subgroup, Omega.transversal[i])
+  else
+    return left_coset(Omega.subgroup, Omega.transversal[i])
+  end
+end
 
-is_transitive(Omega::GSetByRightTransversal) = true
+is_transitive(Omega::GSetBySubgroupTransversal) = true
 
 function orbit(G::T, omega::GroupCoset{T, S}) where T <: GAPGroup where S
-    @req G == omega.G "omega must be a right coset in G"
-    return GSetByRightTransversal(G, omega.H, check = false)
+    @req G == omega.G "omega must be a left or right coset in G"
+    return GSetBySubgroupTransversal(G, omega.H, omega.side, check = false)
 end
 # We could admit the more general `is_subset(G, omega.G)`.
 # One problem would be that `omega` would not be a point in the orbit,
 # according to the definition of equality for cosets.
 
-function orbit(Omega::GSetByRightTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
-    @req Omega.group == omega.G && Omega.subgroup == omega.H "omega is not in Omega"
-    return Omega
+function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
+  @req (Omega.group == omega.G && Omega.subgroup == omega.H && Omega.side == omega.side) "omega is not in Omega"
+  return Omega
 end
 
-function orbits(Omega::GSetByRightTransversal)
-    return [Omega]
-end
+orbits(Omega::GSetBySubgroupTransversal) = [Omega]
 
-function permutation(Omega::GSetByRightTransversal{T, S, E}, g::E) where T <: GAPGroup where S <: GAPGroup where E
+function permutation(Omega::GSetBySubgroupTransversal{T, S, E}, g::E) where T <: GAPGroup where S <: GAPGroup where E
   # The following works because GAP uses its `PositionCanonical`.
+  # Note that we use `GAP.Globals.OnRight` also for the case of
+  # a left transversal, since a right transversal is used on the GAP side.
   pi = GAP.Globals.PermutationOp(g.X, Omega.transversal.X, GAP.Globals.OnRight)::GapObj
   return group_element(action_range(Omega), pi)
 end
 
-@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByRightTransversal{T, S, E}) where T <: GAPGroup where S <: GAPGroup where E
+@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetBySubgroupTransversal{T, S, E}) where T <: GAPGroup where S <: GAPGroup where E
   G = Omega.group
 
   # The following works because GAP uses its `PositionCanonical`.
+  # Note that we use `GAP.Globals.OnRight` also for the case of
+  # a left transversal, since a right transversal is used on the GAP side.
   acthom = GAP.Globals.ActionHomomorphism(G.X, Omega.transversal.X, GAP.Globals.OnRight)::GapObj
 
   # See the comment about `SetJuliaData` in the `action_homomorphism` method
