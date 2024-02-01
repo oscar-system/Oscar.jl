@@ -1116,7 +1116,7 @@ Creates a graph from a list of edges.
 ```
 # Examples 1
 ```jldoctest
-julia> G = complete_graph(Undirected, [[5,6],[7,8],[11,12]],);
+julia> G = graph_from_edges(Undirected, [[5,6],[7,8],[11,12]],[24]);
 
 julia> collect(edges(G))
 3-element Vector{Edge}:
@@ -1128,7 +1128,7 @@ julia> collect(edges(G))
 The Function will return a isomorphic graph with vertex labels in the range 1 to n, where n is the minimum number of vertices necessary to represent the graph.
 # Examples 2
 ```jldoctest
-julia> G = complete_graph(Undirected, [[11,3],[3,5],[4,5],[2,4],[2,3]]);
+julia> G = graph_from_edges(Undirected, [[11,3],[3,5],[4,5],[2,4],[2,3]]);
 
 julia> collect(edges(G))
 5-element Vector{Edge}:
