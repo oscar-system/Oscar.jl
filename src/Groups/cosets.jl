@@ -1,10 +1,9 @@
 # T=type of the group, S=type of the element
-"""
+@doc raw"""
     GroupCoset{T<: Group, S <: GAPGroupElem}
 
-Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H`
-(left cosets), where `H` is a subgroup of a group `G` and `x` is an element of
-`G`. Two cosets are equal if, and only if, they are both left (resp. right)
+Type of group cosets.
+Two cosets are equal if, and only if, they are both left (resp. right)
 and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
@@ -270,13 +269,13 @@ julia> collect(rc)
 ```
 """
 function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-  return GSetByRightTransversal(G, H, check = check)
+  return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
 """
     left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
 
-Return the vector of the left cosets of `H` in `G`.
+Return the G-set that describes the left cosets of `H` in `G`.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
@@ -289,23 +288,26 @@ julia> H = symmetric_group(3)
 Sym(3)
 
 julia> left_cosets(G, H)
-4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Left coset of Sym(3) with representative ()
- Left coset of Sym(3) with representative (1,4)
- Left coset of Sym(3) with representative (1,2,4)
- Left coset of Sym(3) with representative (1,3,4)
+Left cosets of
+  Sym(3) in
+  Sym(4)
 ```
 """
 function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-  t = left_transversal(G, H, check = check)
-  return [left_coset(H, x) for x in t]
+  return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
 
-# SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
-#
-# Type of left/right transversals of subgroups in groups.
-# The elements are encoded via a right transversal object in GAP.
+@doc raw"""
+    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
+
+Type of left/right transversals of subgroups in groups.
+The elements are encoded via a right transversal object in GAP.
+(Note that GAP does not support left transversals.)
+
+Objects of this type are created by [`right_transversal`](@ref) and
+[`left_transversal`](@ref).
+"""
 struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
    G::T                    # big group containing the subgroup
    H::S                    # subgroup
@@ -443,12 +445,11 @@ end
 
 
 
-"""
+@doc raw"""
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
 
-Group double coset. It is displayed as `H * x * K`, where `H` and `K` are
-subgroups of a group `G` and `x` is an element of `G`. Two double cosets are
-equal if, and only if, they contain the same elements.
+Group double coset.
+Two double cosets are equal if, and only if, they contain the same elements.
 """
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
@@ -466,12 +467,25 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.X == y.X
 end
 
+function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
+  io = pretty(io)
+  println(io, "Double coset of ", Lowercase(), x.H)
+  print(io, Indent())
+  println(io, "and ", Lowercase(), x.K)
+  println(io, "with representative ", x.repr)
+  print(io, "in ", Lowercase(), x.G)
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, x::GroupDoubleCoset)
-  print(io, String(GAPWrap.StringViewObj(x.H.X)),
-            " * ",
-            String(GAPWrap.StringViewObj(x.repr.X)),
-            " * ",
-            String(GAPWrap.StringViewObj(x.K.X)))
+  if get(io, :supercompact, false)
+    print(io, "Double coset of a group")
+  else
+    print(io, "Double coset of ")
+    io = pretty(io)
+    print(IOContext(io, :supercompact => true), Lowercase(), x.H,
+      " and ", Lowercase(), x.K, " with representative ", x.repr)
+  end
 end
 
 
@@ -496,7 +510,10 @@ julia> K = symmetric_group(2)
 Sym(2)
 
 julia> double_coset(H,g,K)
-Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
+Double coset of Sym(3)
+  and Sym(2)
+  with representative (1,3,5,2,4)
+  in Sym(5)
 ```
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
@@ -526,9 +543,9 @@ Sym(2)
 
 julia> double_cosets(G,H,K)
 3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
- Sym( [ 1 .. 3 ] ) * () * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4,3) * Sym( [ 1 .. 2 ] )
+ Double coset of Sym(3) and Sym(2) with representative ()
+ Double coset of Sym(3) and Sym(2) with representative (1,4)
+ Double coset of Sym(3) and Sym(2) with representative (1,4,3)
 ```
 """
 function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
