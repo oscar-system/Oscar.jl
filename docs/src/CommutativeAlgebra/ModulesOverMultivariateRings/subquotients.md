@@ -86,7 +86,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over multivariate polynomial ring
 
 julia> A = R[x; y]
 [x]
@@ -98,10 +98,10 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 3 generators
+by submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
@@ -136,9 +136,9 @@ julia> relations(M)
  z^4*e[1]
 
 julia> ambient_module(M)
-Subquotient of Submodule with 1 generator
+Subquotient of submodule with 1 generator
 1 -> e[1]
-by Submodule with 3 generators
+by submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
@@ -181,7 +181,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over multivariate polynomial ring
 
 julia> A = R[x; y]
 [x]
@@ -193,10 +193,10 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 3 generators
+by submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
@@ -237,7 +237,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over multivariate polynomial ring
 
 julia> A = R[x; y]
 [x]
@@ -249,10 +249,10 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 3 generators
+by submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
@@ -261,10 +261,10 @@ julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
 julia> parent(m)
-Subquotient of Submodule with 2 generators
+Subquotient of submodule with 2 generators
 1 -> x*e[1]
 2 -> y*e[1]
-by Submodule with 3 generators
+by submodule with 3 generators
 1 -> x^2*e[1]
 2 -> y^3*e[1]
 3 -> z^4*e[1]
@@ -285,7 +285,7 @@ julia> parent(fm) === ambient_free_module(M)
 true
 
 julia> F = ambient_free_module(M)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over multivariate polynomial ring
 
 julia> f = x*F[1]
 x*e[1]
