@@ -658,7 +658,7 @@ function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: Fr
   return f
 end
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod_dec, T2 <: FreeMod_dec}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod_dec, T2 <: FreeMod_dec}
   return f
 end
 # for decorations: add SubquoModule_dec for codomain once it exists
@@ -2470,24 +2470,24 @@ julia> minimal_betti_table(A)
 total: 1  5  5  1
 ```
 """
-function minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}
+function minimal_betti_table(M::ModuleFP{T}; check::Bool=true) where {T<:MPolyDecRingElem}
  error("Not implemented for the given type")
 end
 
-function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(M))
+function minimal_betti_table(M::SubquoModule{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M); check)
 end
 
-function minimal_betti_table(F::FreeMod{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(M))
+function minimal_betti_table(F::FreeMod{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M); check)
 end
 
-function minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(A))
+function minimal_betti_table(A::MPolyQuoRing{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(A); check)
 end
 
-function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(I))
+function minimal_betti_table(I::MPolyIdeal{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(I); check)
 end
 
 
@@ -3002,7 +3002,7 @@ function change_base_ring(f::RingFlattening{DomType, CodType}, M::SubquoModule) 
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), f)
+  map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
 

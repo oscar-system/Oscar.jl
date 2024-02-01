@@ -350,7 +350,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::SubquoModule, im::Vector;
@@ -366,7 +366,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(D::SubquoModule, C::ModuleFP, im::Vector;
@@ -382,7 +382,7 @@ mutable struct SubQuoHom{
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   # Constructors for maps with change of base ring
@@ -404,7 +404,7 @@ mutable struct SubQuoHom{
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -425,7 +425,7 @@ mutable struct SubQuoHom{
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   function SubQuoHom{T1,T2,RingMapType}(
@@ -446,7 +446,7 @@ mutable struct SubQuoHom{
     r.im = Vector{elem_type(C)}(im)
     r.ring_map = h
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
 end
@@ -539,7 +539,8 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
   # generate homomorphism of free modules from F to G where the vector a contains the images of
   # the generators of F
   function FreeModuleHom(
-      F::AbstractFreeMod, G::S, a::Vector{ModuleElemType}
+      F::AbstractFreeMod, G::S, a::Vector{ModuleElemType};
+      check::Bool=true
     ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
     ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
@@ -568,11 +569,12 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
     r.imgs_of_gens = Vector{elem_type(G)}(a)
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
   function FreeModuleHom(
-      F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType
+      F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType;
+      check::Bool=true
     ) where {T2, ModuleElemType<:ModuleFPElem, RingMapType}
     ###@assert is_graded(F) == is_graded(G)
     @assert all(x->parent(x) === G, a)
@@ -599,50 +601,54 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     r.ring_map = h
     r.imgs_of_gens = Vector{elem_type(G)}(a)
     r.generators_map_to_generators = nothing
-    return set_grading(r)
+    return set_grading(r; check)
   end
 
 end
 
 # Further constructors taking matrices as input
 function FreeModuleHom(
-    F::AbstractFreeMod{T}, G::S, mat::MatElem{T}
+    F::AbstractFreeMod{T}, G::S, mat::MatElem{T};
+    check::Bool=true
   ) where {T<:RingElem,S<:AbstractFreeMod}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)]; check)
   hom.matrix = mat
   return hom
 end
 
 function FreeModuleHom(
-    F::AbstractFreeMod{T}, G::S, mat::MatElem{T}
+    F::AbstractFreeMod{T}, G::S, mat::MatElem{T};
+    check::Bool=true
   ) where {T<:RingElem, S<:ModuleFP}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)]; check)
   hom.matrix = mat
   return hom
 end
 
 function FreeModuleHom(
-    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType
+    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType;
+    check::Bool=true
   ) where {S<:AbstractFreeMod, RingMapType}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h; check)
   hom.matrix = mat
   return hom
 end
 
 function FreeModuleHom(
-    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType
+    F::AbstractFreeMod, G::S, mat::MatElem, h::RingMapType;
+    check::Bool=true
   ) where {S<:ModuleFP, RingMapType}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h; check)
   hom.matrix = mat
   return hom
 end

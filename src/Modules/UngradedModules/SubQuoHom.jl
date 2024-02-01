@@ -3,7 +3,7 @@
 ###############################################################################
 
 @doc raw"""
-    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}) where T
+    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
 
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
 In particular, `length(im) == ngens(D)` must hold.
@@ -12,7 +12,7 @@ SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check:
 SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
 
 @doc raw"""
-    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
+    SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool=true)
 
 Return the morphism $D \to C$ corresponding to the given matrix, where $D$ is a subquotient.
 `mat` must have `ngens(D)` many rows and `ngens(C)` many columns.
@@ -21,10 +21,10 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
-    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)]; check)
     return hom
   else
-    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)]; check)
     return hom
   end
 end
@@ -33,10 +33,10 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapT
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
-    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h; check)
     return hom
   else
-    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h)
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h; check)
     return hom
   end
 end

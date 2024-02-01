@@ -1323,8 +1323,8 @@ function sum(M::SubquoModule{T},N::SubquoModule{T}) where T
     end
   end
 
-  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)])
-  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)])
+  iM = SubQuoHom(M,SQ,[SQ[i] for i=1:ngens(M)]; check=false)
+  iN = SubQuoHom(N,SQ,[SQ[i] for i=ngens(M)+1:ngens(SQ)]; check=false)
 
   register_morphism!(iM)
   register_morphism!(iN)
@@ -1596,7 +1596,7 @@ function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 
     F1 = FreeMod(R, ngens(M.sub) + ngens(N.sub) + ngens(M_quo))
     F2 = ambient_free_module(M)
-    phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)))
+    phi = FreeModuleHom(F1,F2,vcat(gens(M.sub),gens(N.sub),gens(M_quo)); check=false)
     K,i = kernel(phi)
 
     intersection_gens_array_with_zeros = [sum([repres(k)[i]*M.sub[i] for i=1:ngens(M.sub)]; init=zero(ambient_free_module(M))) for k in gens(K)]
@@ -1606,8 +1606,8 @@ function intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
     SQ = SubquoModule(intersection_gens,M_quo)
 
     m = ngens(M)
-    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array])
-    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array])
+    M_hom = SubQuoHom(SQ,M,[sum([repres(k)[i]*M[i] for i=1:m]; init=zero(M)) for k in gens(K)][iszero_array]; check=false)
+    N_hom = SubQuoHom(SQ,N,[sum([repres(k)[i]*N[i-m] for i=m+1:m+ngens(N)]; init=zero(N)) for k in gens(K)][iszero_array]; check=false)
 
     register_morphism!(M_hom)
     register_morphism!(N_hom)
