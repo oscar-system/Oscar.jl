@@ -833,6 +833,7 @@ true
 """
 function is_graded(f::ModuleFPHom)
   isdefined(f, :d) && return true
+  (is_graded(domain(f)) && is_graded(codomain(f))) || return false
   T1 = domain(f)
   T2 = codomain(f)
   domain_degrees = degrees_of_generators(T1)
