@@ -1158,11 +1158,23 @@ julia> newick(tree_mat)
 "Gorilla:4,(Human:3,(Bonobo:1,Chimpanzee:1):2):1;"
 ```
 """
-function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
+function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
   pm_ptree = Polymake.graph.PhylogeneticTree{T}(COPHENETIC_MATRIX = M, TAXA = taxa)
   return PhylogeneticTree{T}(pm_ptree)
+end
+
+function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
+  n_taxa = length(taxa)
+  @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
+  pm_T = Polymake.convert_to_pm_type(QQFieldElem)
+  cp_M = convert(Matrix{pm_T}, Matrix{QQFieldElem}(M))
+
+  pm_ptree = Polymake.graph.PhylogeneticTree{pm_T}(
+    COPHENETIC_MATRIX = M, TAXA = taxa
+  )
+  return PhylogeneticTree{QQFieldElem}(pm_ptree)
 end
 
 @doc raw"""

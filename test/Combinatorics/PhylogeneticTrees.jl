@@ -7,7 +7,7 @@
   @test equidistant(ptree1) == true
 
   # this will need a conversion
-  M = matrix(QQ, [0 4 9; 4 0 9; 9 9//2 0])
+  M = matrix(QQ, [0 4 9; 4 0 9; 9 9 0])
   ptree2 = phylogenetic_tree(M, ["a", "b", "c"])
 
   cophenetic_matrix(ptree2)
