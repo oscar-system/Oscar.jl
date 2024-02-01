@@ -1082,9 +1082,6 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
   end
 end
 
-
-
-
 function graph_from_edges(::Type{T}, edges::Vector{Edge}) where {T <: Union{Directed, Undirected}}
   verts = [[src(e),dst(e)] for e in edges]
   n = maximum(reduce(append!, verts))
