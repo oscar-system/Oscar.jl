@@ -231,6 +231,7 @@
       "Combinatorics/partitions.md",
       "Combinatorics/tableaux.md",
       "Combinatorics/schur_polynomials.md",
+      "Combinatorics/phylogenetic_trees.md"
   ],
 
   "Straight Line Programs" => [

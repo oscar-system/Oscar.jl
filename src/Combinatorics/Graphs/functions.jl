@@ -1105,7 +1105,6 @@ end
 function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
-
   pm_ptree = Polymake.graph.PhylogeneticTree{T}(COPHENETIC_MATRIX = M, TAXA = taxa)
   return PhylogeneticTree{T}(pm_ptree)
 end
@@ -1130,11 +1129,11 @@ function newick(ptree::PhylogeneticTree)
   return convert(String, ptree.pm_ptree.NEWICK)
 end
 
-function tropical_median_consensus(arr::Array{PhylogeneticTree{T}}) where
+function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where
   T <: Union{Float64, QQFieldElem}
 
   n = length(arr)
-  @req n > 0 "The array must not be empty"
+  @req n > 0 "The vector must not be empty"
 
   phylo_type = Polymake.bigobject_type(arr[1].pm_ptree)
   pm_arr = Polymake.Array{Polymake.BigObject}(phylo_type, n)
