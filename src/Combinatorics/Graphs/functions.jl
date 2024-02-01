@@ -1082,14 +1082,19 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
   end
 end
 
-function graph_from_edges(::Type{T}, edges::Vector{Edge}) where {T <: Union{Directed, Undirected}}
-  verts = [[src(e),dst(e)] for e in edges]
-  n = maximum(reduce(append!, verts))
-  edges  
+function graph_from_edges(::Type{T}, edges::Vector{Edge}, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}}
+  edges_as_vector_int = [[src(e),dst(e)] for e in edges]
+  verts = reduce(union, edges_as_vector_int) 
+  verts = union(verts, additional_vertices)
+
+  n = maximum(verts)
 
   g = Graph{T}(n)
   for e in edges
     add_edge!(g, src(e), dst(e))
+  end
+  for v in additional_vertices
+    add_vertex!(g)
   end
 
   vertices_to_remove = setdiff(collect(1:nv(g)),reduce(union, verts))
@@ -1101,7 +1106,7 @@ function graph_from_edges(::Type{T}, edges::Vector{Edge}) where {T <: Union{Dire
   return g
 end
 
-graph_from_edges(::Type{T}, edges::EdgeIterator) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges))
+graph_from_edges(::Type{T}, edges::EdgeIterator, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), additional_vertices)
 
 @doc raw"""
   graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
@@ -1111,7 +1116,7 @@ Creates a graph from a list of edges.
 ```
 # Examples 1
 ```jldoctest
-julia> G = complete_graph(Undirected, [[5,6],[7,8],[11,12]]);
+julia> G = complete_graph(Undirected, [[5,6],[7,8],[11,12]],);
 
 julia> collect(edges(G))
 3-element Vector{Edge}:
@@ -1135,4 +1140,4 @@ julia> collect(edges(G))
 
 ```
 """
-graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges])
+graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], additional_vertices)

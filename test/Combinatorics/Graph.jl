@@ -133,9 +133,10 @@
         @test ne(G1) == 3
       
         x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
-        G2 = graph_from_edges(Undirected, x2)
+        G2 = graph_from_edges(Undirected, x3,[22,45])
 
-        @test nv(G2) == 5
+        @test nv(G2) == 7
         @test ne(G2) == 5
+
     end
 end
