@@ -1541,7 +1541,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over P
+Free module of rank 2 over R
 
 julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1

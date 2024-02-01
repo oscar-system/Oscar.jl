@@ -121,7 +121,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over P
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -187,7 +187,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over P
+Free module of rank 1 over R
 
 julia> A = R[x; y];
 
@@ -588,7 +588,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over P
+Free module of rank 2 over R
 ```
 
 ```jldoctest
@@ -766,7 +766,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over P
+Free module of rank 3 over R
 ```
 
 ```jldoctest

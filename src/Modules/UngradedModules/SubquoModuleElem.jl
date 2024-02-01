@@ -722,7 +722,7 @@ julia> proj
 Map with following data
 Domain:
 =======
-Free module of rank 1 over P
+Free module of rank 1 over R
 Codomain:
 =========
 Subquotient of Submodule with 1 generator
@@ -873,7 +873,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over P
+Free module of rank 1 over R
 
 julia> A = R[x^2+y^2;]
 [x^2 + y^2]
@@ -929,7 +929,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over P
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
