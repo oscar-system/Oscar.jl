@@ -85,7 +85,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
     for m in hilbert_basis(weight_cone(U))
       img = one(help_ring)
       for j in 1:length(indices)
-        u_rho = matrix(ZZ,rays(X))[indices[j],:]
+        u_rho = matrix(ZZ,rays(X))[indices[j]:(indices[j]),:]
         expo = (u_rho*m)[1]
         img = img * x_rho[j]^expo
       end

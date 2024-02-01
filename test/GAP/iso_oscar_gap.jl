@@ -167,7 +167,7 @@ end
 @testset "cyclotomic fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
@@ -198,7 +198,7 @@ end
 @testset "quadratic number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    @testset for N in [ 5, -3, 12, -8 ]
       F, z = quadratic_field(N)

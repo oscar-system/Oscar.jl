@@ -93,6 +93,7 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations
 test_large = [
+              "test/Aqua.jl",
               "experimental/FTheoryTools/test/weierstrass.jl",
               "test/PolyhedralGeometry/timing.jl",
               "experimental/GITFans/test/runtests.jl",
@@ -105,6 +106,8 @@ test_large = [
               "test/Modules/UngradedModules.jl",
               "test/GAP/oscarinterface.jl",
               "test/AlgebraicGeometry/Schemes/CoveredProjectiveSchemes.jl",
+              "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
+              "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
               "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
               "experimental/QuadFormAndIsom/test/runtests.jl",
               "experimental/GModule/test/runtests.jl",

@@ -1032,7 +1032,7 @@ Construct the fractional cut polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_cut_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_cut_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
@@ -1049,7 +1049,7 @@ Construct the fractional matching polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_matching_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))

@@ -80,7 +80,7 @@ julia> x^f
 
 A sort of "inverse" of the evaluation is the following
 ```@docs
-haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 ```
   **Example:**
 ```jldoctest
@@ -90,12 +90,9 @@ julia> f=hom(S,S,x->x^S[1]);
 
 julia> x=cperm(S,[1,2]);
 
-julia> haspreimage(f,x)
+julia> has_preimage_with_preimage(f,x)
 (true, (1,4))
 ```
-
-!!! warning
-    Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `GrpGenToGrpGenMor`.
 
 ## Operations on homomorphisms
 
@@ -161,7 +158,7 @@ isomorphism(G::GAPGroup, H::GAPGroup)
 
 ```@docs
 isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
 

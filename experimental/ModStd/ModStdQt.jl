@@ -741,7 +741,7 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
       if isa(base_ring(fg[2][1][1]), QQField)
         return nothing
       end
-      @assert isa(base_ring(fg[2][1][1]), AnticNumberField)
+      @assert isa(base_ring(fg[2][1][1]), AbsSimpleNumField)
       MM = vcat([collect(coefficients(minpoly(coeff(fg[2][1][1], i)))) for i=1:length(fg[2][1][1])]...)
       if frst
         degs = [degree(minpoly(coeff(fg[2][1][1], i))) for i=1:length(fg[2][1][1])]
@@ -851,7 +851,7 @@ function my_reduce(A, d)
   return parent(A)(parent(a)(b))
 end
 
-function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::nf_elem, b::nf_elem, V::Vector{QQFieldElem})
+function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::AbsSimpleNumFieldElem, b::AbsSimpleNumFieldElem, V::Vector{QQFieldElem})
   S = base_ring(f) # should be a Frac{MPoly}
   R = base_ring(S)
 

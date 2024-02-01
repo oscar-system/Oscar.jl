@@ -177,7 +177,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
-    ia = gmodule(GrpAbFinGen, ib)
+    ia = gmodule(FinGenAbGroup, ib)
     a, b = Oscar.GrpCoh.H_one_maps(ia)
 #    da = Oscar.dual(a)
 #    db = Oscar.dual(b)
@@ -270,7 +270,7 @@ Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 Oscar.is_free(M::Generic.FreeModule) = true
 Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
 
-function Oscar.dual(h::Map{GrpAbFinGen, GrpAbFinGen})
+function Oscar.dual(h::Map{FinGenAbGroup, FinGenAbGroup})
   A = domain(h)
   B = codomain(h)
   @assert is_free(A) && is_free(B)

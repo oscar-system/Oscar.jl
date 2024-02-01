@@ -44,8 +44,8 @@ Normal toric variety
 
 julia> grid_morphism(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
@@ -64,11 +64,11 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
     d = domain(tm)
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
@@ -77,8 +77,8 @@ Map
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:nmaxcones(cod)])
-      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
+      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:nrays(cod)])
+      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :])))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
 end
@@ -97,11 +97,11 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
@@ -124,11 +124,11 @@ Normal toric variety
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_class_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
@@ -151,11 +151,11 @@ Normal toric variety
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_picard_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))

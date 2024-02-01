@@ -79,7 +79,7 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        t = typeof(m[i])
+        t = i === nothing ? QQFieldElem : typeof(m[i])
         if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
@@ -93,7 +93,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
-assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+assure_matrix_polymake(m::MatElem) = Polymake.Matrix{_scalar_type_to_polymake(eltype(m))}(m)
 
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
@@ -101,8 +101,8 @@ assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rati
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
-    v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
-    return v
+    T = i === nothing ? QQFieldElem : typeof(v[i])
+    return Polymake.Vector{_scalar_type_to_polymake(T)}(v)
 end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
@@ -363,7 +363,7 @@ Return the parent `Field` of the coefficients of `P`.
 # Examples
 ```jldoctest
 julia> c = cross_polytope(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> coefficient_field(c)
 Rational field
@@ -381,8 +381,8 @@ _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 const scalar_types = Union{FieldElem, Float64}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
-                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
                                                  ("Float", Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
@@ -450,7 +450,7 @@ function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
     return (f, T)
 end
 
-function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
+function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
     propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
@@ -467,7 +467,7 @@ function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::P
         elseif eltype(prop) <: Polymake.OscarNumber
             for el in prop
                 on = Polymake.unwrap(el)
-                if on isa Hecke.EmbeddedNumFieldElem{nf_elem}
+                if on isa Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
                     return parent(on)
                 end
             end
@@ -549,15 +549,15 @@ end
 
 # oscarnumber helpers
 
-function Polymake._fieldelem_to_rational(e::EmbeddedElem)
+function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
    return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::EmbeddedElem)
+function Polymake._fieldelem_is_rational(e::EmbeddedNumFieldElem)
    return is_rational(e)
 end
 
-function Polymake._fieldelem_to_float(e::EmbeddedElem)
+function Polymake._fieldelem_to_float(e::EmbeddedNumFieldElem)
    return Float64(real(embedding(parent(e))(data(e), 32)))
 end
 

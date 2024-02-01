@@ -606,12 +606,12 @@ export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
+export has_preimage_with_preimage
 export has_primitive_groups
 export has_small_groups
 export has_torusfactor
 export has_transitive_groups
 export has_vertex
-export haspreimage
 export height
 export hermitian_form
 export hessian
@@ -735,6 +735,7 @@ export is_complete
 export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
+export is_conjugate_subgroup_with_data
 export is_conjugate_with_data
 export is_connected
 export is_cyclic, has_is_cyclic, set_is_cyclic

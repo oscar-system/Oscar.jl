@@ -512,7 +512,7 @@ number_of_generators(G::MatrixGroup) = length(gens(G))
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
 
-function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, QQFieldElem}}
+function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the Rationals or over a number field,
     the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.

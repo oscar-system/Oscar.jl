@@ -223,12 +223,12 @@ end
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
 # in Oscar and GAP, respectively.
 # (Cyclotomic fields are easier to handle than general number fields.)
-function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::GAP.GapObj)
    N = conductor(FO)
    cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 
-   f = function(x::Nemo.nf_elem)
+   f = function(x::Nemo.AbsSimpleNumFieldElem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
       return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
    end
@@ -251,7 +251,7 @@ end
 # Assume that `FO` and `FG` are quadratic fields with the same square root
 # in Oscar and GAP, respectively.
 # (Quadratic fields are easier to handle than general number fields.)
-function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+function _iso_oscar_gap_field_quadratic_functions(FO::AbsSimpleNumField, FG::GAP.GapObj)
    flag, N = Hecke.is_quadratic_type(FO)
    @assert flag
 
@@ -261,7 +261,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    zG = GAPWrap.Sqrt(GAP.Obj(N))
    B = GAPWrap.BasisNC(FG, GapObj([oG, zG]))
 
-   f = function(x::Nemo.nf_elem)
+   f = function(x::Nemo.AbsSimpleNumFieldElem)
       return GAP.Obj(coeff(x,0)) * oG + GAP.Obj(coeff(x,1)) * zG
    end
 

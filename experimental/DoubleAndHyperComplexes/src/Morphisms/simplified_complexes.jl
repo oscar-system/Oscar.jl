@@ -587,3 +587,85 @@ function _has_index(a::SMat, i::Int, j::Int)
   return _has_index(a[i], j)
 end
 
+### Taylormade functionality for modules
+# Provided as a hotfix for issue #3108.
+function _alt_simplify(M::SubquoModule)
+  res, aug = free_resolution(SimpleFreeResolution, M)
+  simp = simplify(res)
+  simp_to_orig = map_to_original_complex(simp)
+  orig_to_simp = map_from_original_complex(simp)
+  result, Z0_to_result = homology(simp, 0)
+  Z0, inc_Z0 = kernel(simp, 0)
+
+  result_to_M = hom(result, M, 
+                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)])
+  M_to_result = hom(M, result,
+                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)])
+  return result, M_to_result, result_to_M
+end
+
+# Some special shortcuts
+function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+  # try to find the boundary already computed
+  und = underlying_complex(c)::HyperComplex
+  if !isdefined(und, :boundary_cache) 
+    und.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(und.boundary_cache, (i, p))
+    inc = und.boundary_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  # compute the boundary from scratch
+  orig_boundary, orig_inc = boundary(c.original_complex, p, i)
+  from_orig = map_from_original_complex(c)[i]
+  result, inc = sub(c[i], from_orig.(orig_inc.(gens(orig_boundary))))
+
+  # Cache the result
+  und.boundary_cache[(i, p)] = inc
+
+  return result, inc
+end
+
+function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+  c = underlying_complex(simp)::HyperComplex
+
+  if !isdefined(c, :kernel_cache) 
+    c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.kernel_cache, (i, p))
+    inc = c.kernel_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  if !can_compute_map(simp, p, i)
+    M = simp[i]
+    K, inc = sub(simp[i], gens(simp[i]))
+    c.kernel_cache[(i, p)] = inc
+    return K, inc
+  end
+
+  psi = map_to_original(simp)[i]
+  phi = map(c, p, i)
+  K, inc = kernel(compose(psi, phi))
+  c.kernel_cache[(i, p)] = inc
+  return K, inc
+end
+
+function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+  c = underlying_complex(simp)::HyperComplex
+  
+  if !isdefined(c, :homology_cache) 
+    c.homology_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.homology_cache, (i, p))
+    pr = c.homology_cache[(i, p)]
+    return codomain(pr), pr
+  end
+
+  H, pr = quo(kernel(simp, p, i)[1], boundary(simp, p, i)[1])
+  c.homology_cache[(i, p)] = pr
+  return H, pr
+end
+
+homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))

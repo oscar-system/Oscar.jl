@@ -253,7 +253,7 @@ While the `grade` function allows one to create a graded ring by assigning a gra
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
-grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
+grade(R::MPolyRing, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -328,11 +328,11 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
-monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
-homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
+homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -472,7 +472,7 @@ homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 ```
 
 ```@docs
-homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
+homogeneous_component(f::MPolyDecRingElem, g::FinGenAbGroupElem)
 ```
 
 ```@docs

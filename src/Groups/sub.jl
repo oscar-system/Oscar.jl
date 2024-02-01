@@ -125,7 +125,7 @@ julia> trivial_subgroup(symmetric_group(5))
 ###############################################################################
 
 """
-    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, GrpAbFinGen}
+    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return the index of `H` in `G`, as an instance of type `I`.
 
@@ -137,7 +137,7 @@ julia> index(G,H)
 2
 ```
 """
-index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen} = index(ZZRingElem, G, H)
+index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup} = index(ZZRingElem, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
    i = GAP.Globals.Index(G.X, H.X)::GapInt
@@ -874,7 +874,7 @@ function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
 end
 
 """
-    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
+    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
@@ -917,7 +917,7 @@ function maximal_abelian_quotient(G::GAPGroup)
   return F, GAPGroupHomomorphism(G, F, map)
 end
 
-function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
+function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
     map = isomorphism(Q, F)
@@ -938,7 +938,7 @@ end
 @gapattribute _abelian_invariants(G::GAPGroup) = GAP.Globals.AbelianInvariants(G.X)
 
 """
-    abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+    abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants of the commutator factor group
 of `G` (see [`maximal_abelian_quotient`](@ref)).
@@ -972,7 +972,7 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
 @gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
 
 """
-    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
 (see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
@@ -1006,7 +1006,7 @@ abelian_invariants_schur_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUn
 
 
 """
-    schur_multiplier(::Type{T} = GrpAbFinGen, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+    schur_multiplier(::Type{T} = FinGenAbGroup, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return the Schur multiplier of `G`.
 This is an abelian group whose abelian invariants can be computed with
@@ -1015,21 +1015,21 @@ This is an abelian group whose abelian invariants can be computed with
 # Examples
 ```jldoctest
 julia> schur_multiplier(symmetric_group(4))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
 
 julia> schur_multiplier(abelian_group([2, 12]))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(cyclic_group(5))
-GrpAb: Z/1
+Z/1
 ```
 """
-schur_multiplier(G::Union{GAPGroup, GrpAbFinGen}) = schur_multiplier(GrpAbFinGen, G)
+schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)
 
-function schur_multiplier(::Type{T}, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
   eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
   M = abelian_group(eldiv)
   (M isa T) && return M

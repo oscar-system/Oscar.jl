@@ -313,7 +313,7 @@ julia> f_vector(C)
  4
 
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> f_vector(square)
 2-element Vector{ZZRingElem}:

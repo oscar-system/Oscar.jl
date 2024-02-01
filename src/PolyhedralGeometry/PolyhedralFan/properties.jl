@@ -318,7 +318,7 @@ The f-vector of the normal fan of a polytope is the reverse of the f-vector of
 the polytope.
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> f_vector(c)
 3-element Vector{ZZRingElem}:

@@ -29,7 +29,7 @@ end
 @testset "Linear representations" begin
   E = small_group(8, 4)
   RR = @inferred representation_ring(E)
-  @test base_field(RR) isa AnticNumberField
+  @test base_field(RR) isa AbsSimpleNumField
   @test underlying_group(RR) === E
   @test order(Oscar.character_table_underlying_group(RR)) == 8
   @test all(chi -> is_irreducible(chi), Oscar.irreducible_characters_underlying_group(RR))
