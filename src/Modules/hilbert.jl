@@ -32,7 +32,7 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
     end
   end
   IdealList = [ideal(P,G)  for G in L];
-  HSeriesList = [multi_hilbert_series(quo_object(P,I); parent=HSRing, backend=backend)[1][1]  for I in IdealList];
+  HSeriesList = [multi_hilbert_series(quo(P,I)[1]; parent=HSRing, backend=backend)[1][1]  for I in IdealList];
   shifts = [degree(phi(g))  for g in gens(F)];
   @vprintln :hilbert 1 "HSNum_module: shifts are $(shifts)";
   shift_expv = [gen_repr(d)  for d in shifts];
