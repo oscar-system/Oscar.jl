@@ -367,16 +367,10 @@ comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
-function Base.iterate(G::GAPGroup)
-  L = GAPWrap.Iterator(G.X)::GapObj
-  i = GAPWrap.NextIterator(L)::GapObj
-  return group_element(G, i), L
-end
+Base.iterate(G::GAPGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GAPGroup, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G, i), state
 end
@@ -680,9 +674,7 @@ Base.IteratorSize(::Type{<:GAPGroupConjClass}) = Base.SizeUnknown()
 Base.iterate(cc::GAPGroupConjClass) = iterate(cc, GAPWrap.Iterator(cc.CC))
 
 function Base.iterate(cc::GAPGroupConjClass{S,T}, state::GapObj) where {S,T}
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
