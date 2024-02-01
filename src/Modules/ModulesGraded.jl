@@ -584,6 +584,14 @@ Int64
 function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
   !isnothing(f.d) && return f.d::GrpAbFinGenElem
   @check is_graded(parent(f)) "the parent module is not graded"
+  @show is_homogeneous(f) "the element is not homogeneous"
+  if !iszero(f) && (f.d != _degree_fast(f))
+    @show f
+    @show f.d
+    @show _degree_fast(f)
+    error()
+  end
+  @assert is_homogeneous(f) "the element is not homogeneous"
   @check is_homogeneous(f) "the element is not homogeneous"
   f.d = _degree_fast(f)
   return f.d::GrpAbFinGenElem
