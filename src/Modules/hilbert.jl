@@ -18,7 +18,7 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
   P = base_ring(C.quo);
   # short-cut for module R^0 (to avoid problems with empty sum below)
   if iszero(r)
-    return multi_hilbert_series(quo(P,ideal(P, one(P))[1]); parent=HSRing, backend=backend)[1][1]
+    return multi_hilbert_series(quo(P,ideal(P, one(P)))[1]; parent=HSRing, backend=backend)[1][1]
   end
   GensLM = gens(LM);
   L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th coord
