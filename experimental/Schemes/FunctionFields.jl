@@ -1,4 +1,3 @@
-export FunctionField
 export function_field
 export representative
 export representative_field
@@ -77,15 +76,6 @@ represented by
 ```
 """
 @attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
-
-@doc raw"""
-    FunctionField(X::AbsCoveredScheme; kw...)
-
-Return the function field of the irreducible variety `X`.
-
-See [`function_field(X::AbsCoveredScheme)`](@ref).
-"""
-FunctionField(X::AbsCoveredScheme; kw... ) = function_field(X; kw...)
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #
@@ -177,7 +167,7 @@ end
 # try to avoid a groebner basis computation
 iszero(a::VarietyFunctionFieldElem) = iszero(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a)))
 isone(a::VarietyFunctionFieldElem) = isone(representative(a)) || iszero(OO(representative_patch(parent(a)))(numerator(a) - denominator(a)))
-isunit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
+is_unit(a::VarietyFunctionFieldElem) = !iszero(representative(a))
 
 ########################################################################
 # Conversion of rational functions on arbitrary patches                #
@@ -275,8 +265,8 @@ function move_representative(
     C::Covering
   )
   G = C[U, V]
-  f, _ = glueing_morphisms(G)
-  A, B = glueing_domains(G)
+  f, _ = gluing_morphisms(G)
+  A, B = gluing_domains(G)
   pba = pullback(f)(OO(B)(a))
   pbb = pullback(f)(OO(B)(b))
   iszero(pbb) && error("pullback of denominator is zero")

@@ -44,6 +44,11 @@ An `AbsCoveredScheme` may have different properties such as
     is_smooth(X::AbsCoveredScheme)
 ```
 
+## Methods
+```@docs
+    fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+```
+
 ## The modeling of covered schemes and their expected behaviour 
 
 Any `AbsCoveredScheme` may possess several `Covering`s. This is necessary for 
@@ -63,7 +68,7 @@ Every element $U$ of the `affine_charts` of $D$ is either
   * a `SimplifiedSpec` with some original in the `affine_charts` of $C$.
 
 In all these cases, the affine subsets in the refinements form a tree and thus remember 
-their origins and ambient spaces. In particular, affine patches and also their glueings can be recycled 
+their origins and ambient spaces. In particular, affine patches and also their gluings can be recycled 
 and reused in different coverings and the latter should be merely seen as lists pointing 
 to the objects involved. 
 

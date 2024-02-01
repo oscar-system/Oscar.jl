@@ -51,27 +51,27 @@
     @testset "gl_4(CF(4))" begin
       L = general_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
     @testset "sl_4(CF(4))" begin
       L = special_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
     @testset "so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
   end
 
   @testset "so_n correctness regression" begin
-    function lie_algebra_struct_const(L::LieAlgebra{C}) where {C<:RingElement}
+    function lie_algebra_struct_const(L::LieAlgebra{C}) where {C<:FieldElem}
       R = coefficient_ring(L)
       dimL = dim(L)
       struct_const_L = Matrix{Vector{Tuple{elem_type(R),Int}}}(undef, dimL, dimL)

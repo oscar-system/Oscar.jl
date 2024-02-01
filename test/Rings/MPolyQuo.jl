@@ -131,7 +131,7 @@ end
   @test intersect(I,J,K) == ideal(Q, [y+1, x])
   @test intersect(I,J,K) == intersect([I,J,K])
 
-  R, (x, y) = grade(polynomial_ring(QQ, [ "x", "y"])[1], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y" ], [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
@@ -168,32 +168,6 @@ end
   @test !is_prime(J2)
 end
 
-@testset "modulus - MPAnyQuoRing MPAnyNonQuoRing" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
-  I = ideal(R, [x+y+z])
-  A, _ = quo(R,I)
-  @test modulus(R) == ideal(R,[zero(R)])
-  @test modulus(A) == I
-  U=MPolyComplementOfKPointIdeal(R,[0,0,0])
-  Rl,_ = Localization(R,U)
-  Il = Rl(I)
-  Al, _ = quo(Rl, Il)
-  @test modulus(Rl) == ideal(Rl,[zero(Rl)])
-  @test modulus(Al) == Il
-  U2=MPolyComplementOfPrimeIdeal(ideal(R,[x^2+1,y-x,z]))
-  Rl2,_ = Localization(R,U2)
-  Il2 = Rl2(I)
-  Al2,_ = quo(Rl2,Il2)
-  @test modulus(Rl2) == ideal(Rl2,[zero(Rl2)])
-  @test modulus(Al2) == Il2
-  U3=MPolyPowersOfElement(x+y)
-  Rl3,_ = Localization(R,U3)
-  Il3 = Rl3(I)
-  Al3,_ = quo(Rl3,Il3)
-  @test modulus(Rl3) == ideal(Rl3,[zero(Rl3)])
-  @test modulus(Al3) == Il3
-end
-
 @testset "saturated ideal compatibility" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   I = ideal(R, [x+y+z])
@@ -213,7 +187,7 @@ end
 
 @testset "issue #1901" begin
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-  L, _ = Localization(R, powers_of_element(R[1]))
+  L, _ = localization(R, powers_of_element(R[1]))
   S, (s0, s1, s2) = polynomial_ring(L, ["s0", "s1", "s2"])
   I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
   Q, _ = quo(S, I)
@@ -263,8 +237,8 @@ end
 @testset "divides hack" begin
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, 1-x*y)
-  o = revlex([x, y])
-  Q = MPolyQuo(R, I, o)
+  o = invlex([x, y])
+  Q = MPolyQuoRing(R, I, o)
   @test Oscar._divides_hack(one(Q), Q(y))[2] == Q(x)
 end
 

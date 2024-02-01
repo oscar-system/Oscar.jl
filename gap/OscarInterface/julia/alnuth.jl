@@ -2,6 +2,6 @@ module Alnuth
 
 using Oscar
 
-const _Vector_nf_elem = Vector{nf_elem}
+const _Vector_nf_elem = Vector{AbsSimpleNumFieldElem}
 
 end # end module

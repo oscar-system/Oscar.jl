@@ -11,7 +11,7 @@ CurrentModule = Oscar
 ### Generic constructors
 
 ```@docs
-toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::FinGenAbGroupElem)
 toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
 toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
 toric_line_bundle(d::ToricDivisor)
@@ -41,8 +41,9 @@ Equality of toric line bundles can be tested via `==`.
 To check if a toric line bundle is trivial, one can invoke `is_trivial`. Beyond this,
 we support the following properties of toric line bundles:
 ```@docs
-is_basepoint_free(l::ToricLineBundle)
 is_ample(l::ToricLineBundle)
+is_basepoint_free(l::ToricLineBundle)
+is_immaculate(l::ToricLineBundle)
 is_very_ample(l::ToricLineBundle)
 ```
 
@@ -63,4 +64,5 @@ toric_variety(l::ToricLineBundle)
 ```@docs
 basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
 basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
+generic_section(l::ToricLineBundle)
 ```

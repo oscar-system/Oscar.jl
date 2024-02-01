@@ -11,9 +11,9 @@
 #
 ##################################################################################
 
-# The tuples in output are pairs of positive integers!
+# We collect the pairs `(d', d/d')` for all divisors `d'` of `d`.
 function _tuples_divisors(d::T) where T <: IntegerUnion
-  return Tuple{T, T}[(dd,abs(divexact(d,dd))) for dd in divisors(d)]
+  return Tuple{T, T}[(dd, abs(divexact(d, dd))) for dd in divisors(d)]
 end
 
 # This is line 8 of Algorithm 1, they correspond to the possible
@@ -59,7 +59,8 @@ function _find_L(pG::Int, nG::Int, r::Int, d::RationalUnion, s::ZZRingElem, l::Z
     filter!(G -> is_divisible_by(p*l, numerator(level(G))), gen)
   else
     gen = ZZGenus[]
-    for (s1, s2) in Tuple{Int, Int}[(s,t) for s=0:pG for t=0:nG if s+t==r]
+    for s1 in max(0, r-nG):min(pG, r)
+      s2 = r-s1
       L = integer_genera((s1,s2), d; even)
       filter!(G -> is_divisible_by(numerator(scale(G)), s), L)
       filter!(G -> is_divisible_by(p*l, numerator(level(G))), L)
@@ -72,9 +73,9 @@ end
 @doc raw"""
     is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::Integer) -> Bool
 
-Given a triple of $\mathbb Z$-genera `(A,B,C)` and a prime number `p`, such
-that the rank of `B` is divisible by $p-1$, return whether `(A,B,C)` is
-`p`-admissible.
+Given a triple of $\mathbb Z$-genera $(A, B, C)$ and a prime number $p$, such
+that the rank of $B$ is divisible by $p-1$, return whether $(A, B, C)$ is
+$p$-admissible.
 
 # Examples
 A standard example is the following: let $(L, f)$ be a lattice with isometry of
@@ -109,7 +110,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     # C can be always glued with the empty genus to obtain C
     return true
   elseif (A == zg) || (B == zg)
-    # If A or B is empty but the other is not C, then there is no glueing
+    # If A or B is empty but the other is not C, then there is no gluing
     return false
   end
 
@@ -141,7 +142,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     return false
   end
 
-  # At this point, if C is unimodular at p, the glueing condition is equivalent to have 
+  # At this point, if C is unimodular at p, the gluing condition is equivalent to have 
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
@@ -154,7 +155,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   Bp = local_symbol(B, p)
   a_max = symbol(Ap, l+1)[2]
   b_max = symbol(Bp, l+1)[2]
-  # For the glueing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
+  # For the gluing, rho_{l+1}(A_p) and rho_{l+1}(B_p) are anti-isometric, so they must have the
   # same order
   if a_max != b_max
     return false
@@ -210,11 +211,11 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
       return false
     end
   end
-  Cp = symbol(Cp)
-  for s in Cp
+  _Cp = deepcopy(symbol(Cp))
+  for s in _Cp
     s[1] += 2
   end
-  Cp = ZZLocalGenus(p, Cp)
+  Cp = ZZLocalGenus(p, _Cp)
   
   if !represents(local_symbol(AperpB, p), Cp)
     return false
@@ -235,11 +236,17 @@ function is_admissible_triple(A::T, B::T, C::T, p::IntegerUnion) where T <: Unio
 end
 
 @doc raw"""
-    admissible_triples(C::ZZGenus, p::Integer) -> Vector{Tuple{ZZGenus, ZZGenus}}
+    admissible_triples(C::ZZGenus, p::Integer; pA::Int = -1
+                                               pB::Int = -1)
+                                               -> Vector{Tuple{ZZGenus, ZZGenus}}
 
-Given a $\mathbb Z$-genus `C` and a prime number `p`, return all tuples of
-$\mathbb Z$-genera `(A, B)` such that `(A, B, C)` is `p`-admissible and
-`B` is of rank divisible by $p-1$.
+Given a $\mathbb Z$-genus $C$ and a prime number $p$, return all tuples of
+$\mathbb Z$-genera $(A, B)$ such that $(A, B, C)$ is $p$-admissible and
+$B$ is of rank divisible by $p-1$.
+
+One can choose the positive signatures for the genera $A$ and $B$ in output
+respectively by setting `pA` and `pB` to the desired values. The function
+returns an error if the choice of these values is inconsistent.
 
 # Examples
 ```jldoctest
@@ -305,10 +312,8 @@ function admissible_triples(G::ZZGenus, p::IntegerUnion; pA::Int = -1, pB::Int =
       d1, dp = pop!(D)
       L1 = _find_L(pG, nG, r1, d1, sG, lG, p, even; pos = pA)
       Lp = _find_L(pG, nG, rp, dp, sG, lG, p, even; pos = pB)
-      for (A, B) in Hecke.cartesian_product_iterator([L1, Lp]; inplace = false)
-        if is_admissible_triple(A, B, G, p)
-          push!(L, (A, B))
-        end
+      for A in L1, B in Lp
+        is_admissible_triple(A, B, G, p) && push!(L, (A, B))
       end
     end
   end
@@ -317,13 +322,15 @@ end
 
 admissible_triples(L::T, p::IntegerUnion; pA::Int = -1, pB::Int = -1) where T <: Union{ZZLat, ZZLatWithIsom} = admissible_triples(genus(L), p; pA, pB)
 
-##################################################################################
+###############################################################################
 #
 # Representatives of lattices with isometry
 #
-##################################################################################
+###############################################################################
 
 # we compute ideals of E/K whose absolute norm is equal to d
+# The first function covers the general case and dispatch to the second function
+# for `d` integral.
 
 function _ideals_of_norm(E::Field, d::QQFieldElem)
   OE = maximal_order(E)
@@ -332,14 +339,14 @@ function _ideals_of_norm(E::Field, d::QQFieldElem)
   elseif numerator(d) == 1
     return Hecke.fractional_ideal_type(OE)[inv(I) for I in _ideals_of_norm(E, denominator(d))]
   else
-    return Hecke.fractional_ideal_type(OE)[I*inv(J) for (I, J) in Hecke.cartesian_product_iterator(Vector{Hecke.fractional_ideal_type(OE)}[_ideals_of_norm(E, numerator(d)), _ideals_of_norm(E, denominator(d))]; inplace=false)]
+    return Hecke.fractional_ideal_type(OE)[I*inv(J) for I in _ideals_of_norm(E, numerator(d)), J in _ideals_of_norm(E, denominator(d))]
   end
 end
 
 function _ideals_of_norm(E::Field, d::ZZRingElem)
   OE = maximal_order(E)
   isone(d) && return Hecke.fractional_ideal_type(OE)[fractional_ideal(OE, one(E))]
-  @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
+  @hassert :ZZLatWithIsom 1 E isa Hecke.RelSimpleNumField
   K = base_field(E)
   OK = maximal_order(K)
   DE = different(OE)
@@ -358,7 +365,7 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
       push!(primes, Hecke.ideal_type(OE)[P^e for e in 0:divrem(v, nv)[1]])
     end
   end
-  for I in Hecke.cartesian_product_iterator(primes; inplace=false)
+  for I in Hecke.cartesian_product_iterator(primes)
     I = prod(I)
     if absolute_norm(I) == d
       push!(ids, fractional_ideal(OE, I))
@@ -370,9 +377,12 @@ end
 # given a cyclotomic field (as cm extension) E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, whose trace lattice has signature (s1, s2).
+# if `fix_root`, we do not consider permutations of a set of signatures since
+# any permutation correspond to a change of a choice of a primitive root of
+# unity.
 
-function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion)
-  @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
+function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
+  @hassert :ZZLatWithIsom 1 E isa Hecke.RelSimpleNumField
   ok, q = Hecke.is_cyclotomic_type(E)
   @hassert :ZZLatWithIsom 1 ok
   @hassert :ZZLatWithIsom 1 iseven(s2)
@@ -383,7 +393,9 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
   s = length(inf)
   signs = Dict{typeof(inf[1]), Int}[]
   parts = Vector{Int}[]
-  perm = AllPerms(s)
+  if !fix_root
+    perm = AllPerms(s)
+  end
   for v in AllParts(l)
     if any(i -> i > rk, v)
       continue
@@ -394,9 +406,12 @@ function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::
     while length(v) != s
       push!(v, 0)
     end
-    for vv in perm
-      v2 = v[vv.d]
-      v2 in parts ? continue : push!(parts, v2)
+    push!(parts, copy(v))
+    if !fix_root
+      for vv in perm
+        v2 = v[vv.d]
+        v2 in parts ? continue : push!(parts, v2)
+      end
     end
   end
   for v in parts
@@ -409,12 +424,13 @@ end
     representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
                                             -> Vector{ZZLatWithIsom}
 
-Given a lattice with isometry $(L, f)$ of hermitian type (i.e. the minimal
-polynomial of `f` is irreducible cyclotomic) and a positive integer `m`, return
-a set of representatives of isomorphism classes of lattices with isometry of
-hermitian type $(M, g)$ and such that the type of $(B, g^m)$ is equal to the
-type of $(L, f)$. Note that in this case, the isometries `g`'s are of
-order $nm$.
+Given a lattice with isometry $(L, f)$ of finite hermitian type (i.e. the
+minimal polynomial of $f$ is irreducible cyclotomic) and a positive integer $m$,
+return a set of representatives of isomorphism classes of lattices with isometry
+$(M, g)$ of finite hermitian type such that the type of $(M, g^m)$ is equal to the
+type of $(L, f)$.
+
+Note that in this case, the isometries $g$'s are of order $nm$.
 
 # Examples
 ```jldoctest
@@ -430,7 +446,7 @@ julia> is_of_hermitian_type(reps[1])
 true
 ```
 """
-function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
+function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1, fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   @req m >= 1 "m must be a positive integer"
@@ -439,13 +455,16 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   rk = rank(Lf)
   d = det(Lf)
   n = order_of_isometry(Lf)
+  @req is_finite(n) "Isometry must be of finite order"
   s1, _, s2 = signature_tuple(Lf)
 
   reps = ZZLatWithIsom[]
 
-  if n*m < 3
+  nm = n*m
+
+  if nm < 3
     @vprintln :ZZLatWithIsom 1 "Order smaller than 3"
-    f = (-1)^(n*m+1)*identity_matrix(QQ, rk)
+    f = (-1)^(nm+1)*identity_matrix(QQ, rk)
     G = genus(Lf)
     repre = representatives(G)
     @vprintln :ZZLatWithIsom 1 "$(length(repre)) representative(s)"
@@ -459,10 +478,10 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
   !iseven(s2) && return reps
 
   @vprintln :ZZLatWithIsom 1 "Order bigger than 3"
-  ok, rk = divides(rk, euler_phi(n*m))
+  ok, rk = divides(rk, euler_phi(nm))
   ok || return reps
 
-  E, b = cyclotomic_field_as_cm_extension(n*m)
+  E, b = cyclotomic_field_as_cm_extension(nm)
   gene = Hecke.genus_herm_type(E)[]
   Eabs, EabstoE = absolute_simple_field(E)
   DE = EabstoE(different(maximal_order(Eabs)))
@@ -474,7 +493,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
 
   @vprintln :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
-  signatures = _possible_signatures(s1, s2, E, rk)
+  signatures = _possible_signatures(s1, s2, E, rk, fix_root)
 
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
   for dd in detE, sign in signatures
@@ -497,7 +516,7 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
     det(M) == d || continue
     MfM = integer_lattice_with_isometry(M, fM; check = false)
     @hassert :ZZLatWithIsom 1 is_of_hermitian_type(MfM)
-    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == n*m
+    @hassert :ZZLatWithIsom 1 order_of_isometry(MfM) == nm
     if is_even(M) != is_even(Lf)
       continue
     end
@@ -514,14 +533,39 @@ function representatives_of_hermitian_type(Lf::ZZLatWithIsom, m::Int = 1)
 end
 
 @doc raw"""
+    representatives_of_hermitian_type(G::ZZGenus, m::Int) -> Vector{ZZLatWithIsom}
+    representatives_of_hermitian_type(L::ZZLat, m::Int) -> Vector{ZZLatWithIsom}
+
+Given an non-empty genus of integer lattices $G$, return a list of
+representatives of isomorphic classes of pairs $(L, f)$ consisting of a lattice
+$L$ in $G$ and $f \in O(L)$ is an isometry of minimal polynomial $\Phi_m(X)$,
+the $m-$th cyclotomic polynomial.
+
+If $m = 1,2$, this goes back to enumerate $G$ as a genus of integer lattices.
+
+One can also provide directly a representative $L$ of $G$ instead.
+"""
+representatives_of_hermitian_type(::Union{ZZGenus, ZZLat}, ::Int)
+
+function representatives_of_hermitian_type(G::ZZGenus, m::Int, fix_root::Bool = false)
+  Lf = integer_lattice_with_isometry(representative(G))
+  return representatives_of_hermitian_type(Lf, m, fix_root)
+end
+
+function representatives_of_hermitian_type(L::ZZLat, m::Int, fix_root::Bool = false)
+  Lf = integer_lattice_with_isometry(L)
+  return representatives_of_hermitian_type(Lf, m, fix_root)
+end
+
+@doc raw"""
     splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::Int) -> Vector{ZZLatWithIsom}
 
-Given a lattice with isometry $(L, f)$ of hermitian type with `f` of order $q^e$
-for some prime number `q`, and given another prime number $p \neq q$, return a
+Given a lattice with isometry $(L, f)$ of hermitian type with $f$ of order $q^e$
+for some prime number $q$, and given another prime number $p \neq q$, return a
 set of representatives of the isomorphism classes of lattices with isometry
 $(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
-Note that `e` can be 0.
+Note that $e$ can be `0`.
 
 # Examples
 ```jldoctest
@@ -549,13 +593,19 @@ julia> is_of_same_type(Lf, reps[2]^2)
 true
 ```
 """
-function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion; pA::Int = -1, pB::Int = -1)
+function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion;
+                                                               pA::Int = -1,
+                                                               pB::Int = -1,
+                                                               fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   @req is_prime(p) "p must be a prime number"
   @req is_of_hermitian_type(Lf) "Lf must be of hermitian type"
 
-  ok, e, q = is_prime_power_with_data(order_of_isometry(Lf))
+  n = order_of_isometry(Lf)
+  @req is_finite(n) "Isometry must be of finite order"
+
+  ok, e, q = is_prime_power_with_data(n)
 
   @req ok || e == 0 "Order of isometry must be a prime power"
   @req p != q "Prime numbers must be distinct"
@@ -567,13 +617,13 @@ function splitting_of_hermitian_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion; 
   while !is_empty(atp)
     A, B = pop!(atp)
     LB = integer_lattice_with_isometry(representative(B))
-    RB = representatives_of_hermitian_type(LB, p*q^e)
+    RB = representatives_of_hermitian_type(LB, p*q^e, fix_root)
     is_empty(RB) && continue
     LA = integer_lattice_with_isometry(representative(A))
     RA = representatives_of_hermitian_type(LA, q^e)
     is_empty(RA) && continue
-    for (L1, L2) in Hecke.cartesian_product_iterator([RA, RB]; inplace=false)
-      E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p)
+    for L1 in RA, L2 in RB
+      E = admissible_equivariant_primitive_extensions(L1, L2, Lf, p; check = false)
       append!(reps, E)
     end
   end
@@ -584,15 +634,15 @@ end
     splitting_of_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 0)
                                                        -> Vector{ZZLatWithIsom}
 
-Given a lattice with isometry $(L, f)$ with `f` of order $q^e$ for some
-prime number `q`, a prime number $p \neq q$ and an integer $b = 0, 1$, return
+Given a lattice with isometry $(L, f)$ with $f$ of order $q^e$ for some
+prime number $q$, a prime number $p \neq q$ and an integer $b = 0, 1$, return
 a set of representatives of the isomorphism classes of lattices with isometry
 $(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
-If `b == 1`, return only the lattices with isometry $(M, g)$ where `g` is of
+If `b == 1`, return only the lattices with isometry $(M, g)$ where $g$ has
 order $pq^e$.
 
-Note that `e` can be 0.
+Note that $e$ can be `0`.
 
 # Examples
 ```jldoctest
@@ -612,7 +662,10 @@ julia> splitting_of_prime_power(Lf, 3, 1)
  Integer lattice with isometry of finite order 3
 ```
 """
-function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0)
+function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0;
+                                                                      p_inv::Int = -1,
+                                                                      pB::Int = -1,
+                                                                      fix_root::Bool = false)
   if rank(Lf) == 0
     (b == 0) && return ZZLatWithIsom[Lf]
     return ZZLatWithIsom[]
@@ -632,7 +685,7 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0
   reps = ZZLatWithIsom[]
 
   if e == 0
-    reps = splitting_of_hermitian_prime_power(Lf, p)
+    reps = splitting_of_hermitian_prime_power(Lf, p; pA = p_inv, pB, fix_root)
     (b == 1) && filter!(M -> order_of_isometry(M) == p, reps)
     return reps
   end
@@ -640,13 +693,15 @@ function splitting_of_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 0
   x = gen(Hecke.Globals.Qx)
   A0 = kernel_lattice(Lf, q^e)
   B0 = kernel_lattice(Lf, x^(q^(e-1))-1)
-  A = splitting_of_hermitian_prime_power(A0, p)
-  is_empty(A) && return reps
-  B = splitting_of_prime_power(B0, p)
-  is_empty(B) && return reps
-  for (L1, L2) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
-    b == 1 && !is_divisible_by(order_of_isometry(L1), p) && !is_divisible_by(order_of_isometry(L2), p) && continue
-    E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p)
+  RA = splitting_of_hermitian_prime_power(A0, p; pB, fix_root)
+  is_empty(RA) && return reps
+  RB = splitting_of_prime_power(B0, p; p_inv)
+  is_empty(RB) && return reps
+  for L1 in RA, L2 in RB
+    n1 = order_of_isometry(L1)::Int
+    n2 = order_of_isometry(L2)::Int
+    b == 1 && !is_divisible_by(n1, p) && !is_divisible_by(n2, p) && continue
+    E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p; check = false)
     @hassert :ZZLatWithIsom 1 b == 0 || all(LL -> order_of_isometry(LL) == p*q^e, E)
     append!(reps, E)
   end
@@ -657,15 +712,18 @@ end
     splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, p::Int)
                                                  -> Vector{ZZLatWithIsom}
 
-Given a lattice with isometry $(L, f)$ and a prime number `p`, such that
+Given a lattice with isometry $(L, f)$ and a prime number $p$, such that
 $\prod_{i=0}^e\Phi_{p^dq^i}(f)$ is trivial for some $d > 0$ and $e \geq 0$,
 return a set of representatives of the isomorphism classes of lattices with
 isometry $(M, g)$ such that the type of $(M, g^p)$ is equal to the type
 of $(L, f)$.
 
-Note that `e` can be 0, while `d` has to be positive.
+Note that $e$ can be `0`, while $d$ has to be positive.
 """
-function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion)
+function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion;
+                                                                p_inv::Int = -1,
+                                                                pB::Int = -1,
+                                                                fix_root::Bool = false)
   rank(Lf) == 0 && return ZZLatWithIsom[Lf]
 
   n = order_of_isometry(Lf)
@@ -697,20 +755,23 @@ function splitting_of_pure_mixed_prime_power(Lf::ZZLatWithIsom, _p::IntegerUnion
   reps = ZZLatWithIsom[]
 
   if e == 0
-    return representatives_of_hermitian_type(Lf, p)
+    return representatives_of_hermitian_type(Lf, p, fix_root)
   end
 
   A0 = kernel_lattice(Lf, p^d*q^e)
+  if pB >= 0 && signature_tuple(A0)[3] != pB
+    return reps
+  end
   bool, r = divides(phi, cyclotomic_polynomial(p^d*q^e, parent(phi)))
   @hassert :ZZLatWithIsom 1 bool
 
   B0 = kernel_lattice(Lf, r)
-  A = representatives_of_hermitian_type(A0, p)
-  is_empty(A) && return reps
-  B = splitting_of_pure_mixed_prime_power(B0, p)
-  is_empty(B) && return reps
-  for (LA, LB) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
-    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, q, p)
+  RA = representatives_of_hermitian_type(A0, p, fix_root)
+  is_empty(RA) && return reps
+  RB = splitting_of_pure_mixed_prime_power(B0, p; p_inv)
+  is_empty(RB) && return reps
+  for L1 in RA, L2 in RB
+    E = admissible_equivariant_primitive_extensions(L2, L1, Lf, q, p; check = false)
     append!(reps, E)
   end
   return reps
@@ -720,15 +781,15 @@ end
     splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::Int, b::Int = 1)
                                           -> Vector{ZZLatWithIsom}
 
-Given a lattice with isometry $(L, f)$ and a prime number `p` such that
-`f` is of order $p^dq^e$ for some prime number $q \neq p$, return a set
+Given a lattice with isometry $(L, f)$ and a prime number $p$ such that
+$f$ has order $p^dq^e$ for some prime number $q \neq p$, return a set
 of representatives of the isomorphism classes of lattices with isometry
 $(M, g)$ such that the type of $(M, g^p)$ is equal to the type of $(L, f)$.
 
-If `b == 1`, return only the lattices with isometry $(M, g)$ where `g` is
-of order $p^{d+1}q^e$. 
+If `b == 1`, return only the lattices with isometry $(M, g)$ where $g$ has
+order $p^{d+1}q^e$.
 
-Note that `d` and `e` can be both zero.
+Note that $d$ and $e$ can be both `0`.
 
 # Examples
 ```jldoctest
@@ -763,7 +824,10 @@ julia> all(LL -> is_of_same_type(Lf, LL^2), reps)
 true
 ```
 """
-function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 1)
+function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::Int = 1;
+                                                                            p_inv::Int = -1,
+                                                                            pB::Int = -1,
+                                                                            fix_root::Bool = false)
   if rank(Lf) == 0
     b == 0 && return ZZLatWithIsom[Lf]
     return ZZLatWithIsom[]
@@ -778,7 +842,7 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::I
   @req length(pd) <= 2 "Order must have at most 2 prime divisors"
 
   if !(p in pd)
-    return splitting_of_prime_power(Lf, p, b)
+    return splitting_of_prime_power(Lf, p, b; p_inv, pB, fix_root)
   end
 
   d = valuation(n, p)
@@ -789,12 +853,12 @@ function splitting_of_mixed_prime_power(Lf::ZZLatWithIsom, p::IntegerUnion, b::I
   x = gen(parent(minimal_polynomial(Lf)))
   B0 = kernel_lattice(Lf, x^(divexact(n, p)) - 1)
   A0 = kernel_lattice(Lf, prod(cyclotomic_polynomial(p^d*q^i) for i in 0:e))
-  A = splitting_of_pure_mixed_prime_power(A0, p)
-  isempty(A) && return reps
-  B = splitting_of_mixed_prime_power(B0, p, 0)
-  is_empty(B) && return reps
-  for (LA, LB) in Hecke.cartesian_product_iterator([A, B]; inplace=false)
-    E = admissible_equivariant_primitive_extensions(LB, LA, Lf, p)
+  RA = splitting_of_pure_mixed_prime_power(A0, p; pB, fix_root)
+  isempty(RA) && return reps
+  RB = splitting_of_mixed_prime_power(B0, p, 0; p_inv)
+  is_empty(RB) && return reps
+  for L1 in RA, L2 in RB
+    E = admissible_equivariant_primitive_extensions(L2, L1, Lf, p; check = false)
     b == 1 && filter!(LL -> order_of_isometry(LL) == p^(d+1)*q^e, E)
     append!(reps, E)
   end
@@ -807,14 +871,15 @@ end
     enumerate_classes_of_lattices_with_isometry(G::ZZGenus, order::IntegerUnion)
                                                             -> Vector{ZZLocalGenus}
 
-Given an integral integer lattice `L`, return representatives of isomorphism classes
-of lattice with isometry $(M ,g)$ where `M` is in the genus of `L`, and `g` has order
-`order`. Alternatively, one can input a given genus symbol `G` for integral integer
-lattices as an input - the function first computes a representative of `G`.
+Given an even integer lattice $L$, return representatives of isomorphism classes
+of lattice with isometry $(M ,g)$ where $M$ is in the genus of $L$, and $g$ has order
+`order`. Alternatively, one can input a given genus symbol $G$ for even integer
+lattices as an input - the function first computes a representative of $G$.
 
 Note that currently we support only orders which admit at most 2 prime divisors.
 """
 function enumerate_classes_of_lattices_with_isometry(L::ZZLat, order::IntegerUnion)
+  @req is_even(L) "For now we support only the case where L is even"
   @req is_finite(order) && order >= 1 "order must be positive and finite"
   if order == 1
     reps = representatives_of_hermitian_type(integer_lattice_with_isometry(L))
@@ -937,7 +1002,7 @@ function _test_isometry_enumeration(L::ZZLat, k::Int = 2*rank(L)^2)
   n = rank(L)
   ord = filter(m -> euler_phi(m) <= n && length(prime_divisors(m)) <= 2, 2:k)
   pds = unique!(reduce(vcat, prime_divisors.(ord)))
-  vals = Int[maximum([valuation(x, p) for x in ord]) for p in pds]
+  vals = Int[maximum(Int[valuation(x, p) for x in ord]) for p in pds]
   D = Dict{Int, Vector{ZZLatWithIsom}}()
   D[1] = ZZLatWithIsom[integer_lattice_with_isometry(L)]
   for i in 1:length(vals)

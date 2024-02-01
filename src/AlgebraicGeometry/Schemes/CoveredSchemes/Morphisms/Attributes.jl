@@ -24,7 +24,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 julia> Y = variety(ideal([x^3-y^2*z]))
 Projective variety
   in projective 2-space over QQ with coordinates [x, y, z]
-defined by ideal(x^3 - y^2*z)
+defined by ideal (x^3 - y^2*z)
 
 julia> Ycov = covered_scheme(Y)
 Scheme
@@ -56,8 +56,8 @@ given by the pullback function
     (y//z) -> 0
 ```
 """
-function covering_morphism(f::AbsCoveredSchemeMorphism)::CoveringMorphism
-  return covering_morphism(underlying_morphism(f))
+function covering_morphism(f::AbsCoveredSchemeMorphism)
+  return covering_morphism(underlying_morphism(f))::CoveringMorphism
 end
 
 ### generically derived getters

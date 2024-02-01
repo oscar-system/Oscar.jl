@@ -27,7 +27,7 @@
     V = matrix(E, v)
     sd = convex_hull(E, v; non_redundant = true)
     
-    @test sd isa Polyhedron{Hecke.EmbeddedNumFieldElem{Hecke.NfRelElem{nf_elem}}}
+    @test sd isa Polyhedron{Hecke.EmbeddedNumFieldElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}}
     @test point_matrix(vertices(sd)) == V
     # volume formula from source
     @test volume(sd) == 8r//12 * (6pq2 + 2*r*q)
@@ -45,7 +45,7 @@
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
     nf = normal_fan(sd)
-    nfc =  polyhedral_fan(E, rays(nf), maximal_cones(IncidenceMatrix,nf))
+    nfc =  polyhedral_fan(E, maximal_cones(IncidenceMatrix,nf), rays(nf))
     @test is_regular(nfc)
 
     @testset "Scalar detection" begin
@@ -54,15 +54,15 @@
             s = vertices(j)[1][1]
             @test s isa QQFieldElem
         end
-        let j = johnson_solid(64)
+        let j = polyhedron(Polymake.polytope.johnson_solid(64))
             @test j isa Polyhedron{Float64}
             s = vertices(j)[1][1]
             @test s isa Float64
         end
         let a = archimedean_solid("truncated_cube")
-            @test a isa Polyhedron{Hecke.EmbeddedNumFieldElem{nf_elem}}
+            @test a isa Polyhedron{Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}
             s = vertices(a)[1][1]
-            @test s isa Hecke.EmbeddedNumFieldElem{nf_elem}
+            @test s isa Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
             f = coefficient_field(a)
             F = number_field(f)
             isq = Hecke.is_quadratic_type(F)
@@ -196,7 +196,7 @@
       for i in 1:nfacets(j)
         @test normal_vector(affine_hull(f[i])[]) in fj
       end
-      @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedElem{nf_elem}}, Vector{EmbeddedElem{nf_elem}}}}
+      @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, Vector{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}}}
       g = halfspace_matrix_pair(f)
       @test affine_halfspace(coefficient_field(j), g.A[1, :], g.b[1]) in facets(j)
     end

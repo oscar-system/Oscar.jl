@@ -458,8 +458,10 @@ end
     @test SLP.aslazyrec(p) == (x+2)*3.0-big(4)
 
     @test_throws InexactError SLP.addeq!(p, SLProgram(Const(1.2)))
-    @assert length(p.cs) == 4 # p.cs was resized before append! failed
-    pop!(p.cs) # set back consistent state
+    # for julia 1.10 and older append! did resize before failing
+    # https://github.com/JuliaLang/julia/pull/51903
+    VERSION < v"1.11.0-DEV.884" && pop!(p.cs) # set back consistent state
+    @assert length(p.cs) == 3
     @assert length(p.lines) == 3 # p.lines was *not* resized before append! failed
     @test SLP.aslazyrec(p) == (x+2)*3.0-big(4)
 

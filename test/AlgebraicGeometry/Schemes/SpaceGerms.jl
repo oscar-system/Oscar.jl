@@ -12,8 +12,8 @@
   @test defining_ring_element(Z0) isa elem_type(Oscar.localized_ring_type(ring_type(Z0)))
   Z1 = CompleteIntersectionGerm(X,[1,2,1])
   @test defining_ring_elements(Z1) isa Vector{elem_type(Oscar.localized_ring_type(ring_type(Z0)))}
-  U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
-  U1 = MPolyComplementOfKPointIdeal(R,[1,2,1])
+  U0 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U1 = Oscar.MPolyComplementOfKPointIdeal(R,[1,2,1])
   @test U0 == inverted_set(OO(X0))
   @test U1 == inverted_set(OO(X1))
   @test X0 == Y0
@@ -55,8 +55,8 @@ end
 @testset "Space Germ constructors Spec-Ideal" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   J = ideal(R, [x-y])
-  U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
-  U1 = MPolyComplementOfKPointIdeal(R,[1,2,2])
+  U0 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U1 = Oscar.MPolyComplementOfKPointIdeal(R,[1,2,2])
   Xg = Spec(R)
   Xgq = Spec(R,J)
   Xl1 = Spec(R, U0)
@@ -80,8 +80,8 @@ end
   X1 = SpaceGerm(X,ideal(R,[x-1,y-2,z-2]))
   Y0 = SpaceGerm(Y,ideal(R,[x,y,z]))
   Y1 = SpaceGerm(Y,ideal(R,[x-1,y-2,z-2]))
-  U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
-  U1 = MPolyComplementOfKPointIdeal(R,[1,2,2])
+  U0 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U1 = Oscar.MPolyComplementOfKPointIdeal(R,[1,2,2])
   @test U0 == inverted_set(OO(X0))
   @test U1 == inverted_set(OO(X1))
   @test X0 == Y0
@@ -118,7 +118,7 @@ end
   X0,phi0 = germ_at_point(X,ideal(R,[x,y,z]))
   X1 = SpaceGerm(X,ideal(R,[x,y,z]))
   X2,phi2 = germ_at_point(X,[0,0,0])
-  U0 = MPolyComplementOfKPointIdeal(R,[0,0,0])
+  U0 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
   @test U0 == inverted_set(OO(X0))
   @test U0 == inverted_set(OO(X2))
   @test X0 == X1
@@ -161,7 +161,7 @@ end
   @test defining_ideal(X0) != ideal(R,zero(R))
   @test defining_ideal(X0) == ideal(OO(X0),[0])
   @test defining_ideal(X2) == ideal(localized_ring(OO(X2)),[x,y])
-  @test inverted_set(OO(ambient_germ(X2))) == MPolyComplementOfKPointIdeal(R,[0,0,0])
+  @test inverted_set(OO(ambient_germ(X2))) == Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
   @test ambient_germ(X0) == X0
 end
 

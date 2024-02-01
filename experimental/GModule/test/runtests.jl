@@ -27,13 +27,13 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(z) == 5
 
-  l = irreducible_modules(AnticNumberField, small_group(48, 17), minimal_degree = true)
+  l = irreducible_modules(AbsSimpleNumField, small_group(48, 17), minimal_degree = true)
   ds = degree.(base_ring.(l))
   @test length(l) == 12
   @test count(isequal(1), ds) == 8
   @test count(isequal(2), ds) == 4
 
-  l = irreducible_modules(AnticNumberField, small_group(48, 29), minimal_degree = true)
+  l = irreducible_modules(AbsSimpleNumField, small_group(48, 29), minimal_degree = true)
   ds = degree.(base_ring.(l))
   @test length(l) == 8
   @test count(isequal(1), ds) == 6
@@ -146,6 +146,14 @@ end
   C = gmodule(GF(5), C)
   i = indecomposition(C)
   @test length(i) == 8
+
+  G = dihedral_group(8)
+  z = irreducible_modules(G)
+  @test dim((z[1] ⊕ z[2]) ⊗ z[3]) == 2
+ 
+  k, a = quadratic_field(3)
+  r, mr = ray_class_group(7*5*maximal_order(k), n_quo = 2)
+  z = gmodule(automorphism_group(PermGroup, k)[1], mr)
 end
 
 @testset "H^3" begin
@@ -158,7 +166,13 @@ end
   F = free_abelian_group(7);
   M1, M2 = matrix(ZZ, 7, 7, mats[1]), matrix(ZZ, 7, 7, mats[2]);
   C = gmodule(G, [hom(F, F, M1), hom(F, F, M2)]);
-  q = cohomology_group(C, 3)
+  q = cohomology_group(C, 3)[1]
   @test order(q) == 8
   @test is_cyclic(q)
+  C = gmodule(GF(5), C)
+  i = indecomposition(C)
+  @test length(i) == 5
+
+  C, _ = Oscar.GModuleFromGap.ghom(C, C)
+  @test dim(C) == 49
 end

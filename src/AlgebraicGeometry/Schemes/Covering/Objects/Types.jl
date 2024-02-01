@@ -14,7 +14,7 @@ in any covering!
 """
 mutable struct Covering{BaseRingType}
   patches::Vector{<:AbsSpec} # the basic affine patches of X
-  glueings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing} # the glueings of the basic affine patches
+  gluings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGluing} # the gluings of the basic affine patches
   affine_refinements::IdDict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements
       # of the basic affine patches.
       # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen,
@@ -25,14 +25,14 @@ mutable struct Covering{BaseRingType}
       # we store them in an extra tuple.
 
   # fields for caching
-  glueing_graph::Graph{Undirected}
+  gluing_graph::Graph{Undirected}
   transition_graph::Graph{Undirected}
   edge_dict::Dict{Tuple{Int, Int}, Int}
   decomp_info::IdDict{<:AbsSpec, <:Vector{<:RingElem}}
 
   function Covering(
       patches::Vector{<:AbsSpec},
-      glueings::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGlueing};
+      gluings::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGluing};
       check::Bool=true,
       affine_refinements::IdDict{
           <:AbsSpec,
@@ -51,13 +51,13 @@ mutable struct Covering{BaseRingType}
         patches[i] === patches[j] && error("affine schemes must not appear twice among the patches")
       end
     end
-    for (X, Y) in keys(glueings)
-      any(x->x===X, patches) || error("glueings are not compatible with the patches")
-      any(y->y===Y, patches) || error("glueings are not compatible with the patches")
-      if haskey(glueings, (Y, X))
-        @check inverse(glueings[(X, Y)]) == glueings[(Y, X)] "glueings are not inverse of each other"
+    for (X, Y) in keys(gluings)
+      any(x->x===X, patches) || error("gluings are not compatible with the patches")
+      any(y->y===Y, patches) || error("gluings are not compatible with the patches")
+      if haskey(gluings, (Y, X))
+        @check inverse(gluings[(X, Y)]) == gluings[(Y, X)] "gluings are not inverse of each other"
       else
-        glueings[(Y, X)] = inverse(glueings[(X, Y)])
+        gluings[(Y, X)] = inverse(gluings[(X, Y)])
       end
     end
 
@@ -69,12 +69,12 @@ mutable struct Covering{BaseRingType}
         @check isone(OO(U)(sum([c*g for (c, g) in zip(a, gens(U))]))) "the patch $V does not cover $U"
       end
     end
-    return new{base_ring_type(patches[1])}(patches, glueings, affine_refinements)
+    return new{base_ring_type(patches[1])}(patches, gluings, affine_refinements)
   end
 
   ### the empty covering
   function Covering(kk::Ring)
-    return new{typeof(kk)}(Vector{AbsSpec}(), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}(),
+    return new{typeof(kk)}(Vector{AbsSpec}(), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}(),
                            IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}())
   end
 end

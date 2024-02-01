@@ -1,6 +1,6 @@
 ###########################
 # (1) Special attributes of toric varieties
-###########################
+###########################R
 
 @doc raw"""
     vanishing_sets(variety::NormalToricVarietyType)
@@ -12,9 +12,54 @@ Compute the vanishing sets of an abstract toric variety `v` by use of the cohomC
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
         list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
-        push!(vs, ToricVanishingSet(variety, list_of_polyhedra, i-1))
+        push!(vs, ToricVanishingSet(variety, list_of_polyhedra, [i-1]))
     end
     return vs::Vector{ToricVanishingSet}
+end
+
+
+@doc raw"""
+    immaculate_line_bundles(variety::NormalToricVarietyType)
+
+Computes all immaculate line bundles as a toric vanishing set by
+intersecting the vanishing sets for all cohomology indices.
+
+# Examples
+```jldoctest
+julia> dP1 = del_pezzo_surface(NormalToricVariety, 1)
+Normal toric variety
+
+julia> ilb = immaculate_line_bundles(dP1)
+Toric vanishing set for cohomology indices [0, 1, 2]
+
+julia> polyhedra(ilb)
+4-element Vector{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+
+julia> print_constraints(polyhedra(ilb)[1])
+-x_1 <= 0
+-x_1 + x_2 <= 0
+
+julia> print_constraints(polyhedra(ilb)[2])
+-x_1 + x_2 <= 0
+x_2 <= -2
+
+julia> print_constraints(polyhedra(ilb)[3])
+-x_2 <= -1
+x_1 - x_2 <= -2
+
+julia> print_constraints(polyhedra(ilb)[4])
+x_1 - x_2 <= -2
+x_1 <= -3
+```
+"""
+@attr function immaculate_line_bundles(variety::NormalToricVarietyType)
+    denominator_contributions = reduce(vcat, contributing_denominators(variety))
+    list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
+    return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))
 end
 
 
@@ -33,7 +78,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 # Examples
 ```jldoctest
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> all_cohomologies(toric_line_bundle(dP3, [1, 2, 3, 4]))
 3-element Vector{ZZRingElem}:
@@ -163,7 +208,7 @@ toric line bundle `l` by use of the cohomCalg algorithm
 # Examples
 ```jldoctest
 julia> dP3 = del_pezzo_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> cohomology(toric_line_bundle(dP3, [4, 1, 1, 1]), 0)
 12

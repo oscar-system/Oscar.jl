@@ -5,9 +5,10 @@
 ################################################################################
 
 const AffAlgHom = MPolyAnyMap{DT, CT, Nothing} where {T <: FieldElem,
-                                                       U <: MPolyRingElem{T},
-                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U}},
-                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U}}}
+                                                       U1 <: MPolyRingElem{T},
+                                                       U2 <: MPolyRingElem{T}, # types in domain an codomain might differ: one might be decorated, the other not.
+                                                       DT <: Union{MPolyRing{T}, MPolyQuoRing{U1}},
+                                                       CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
 
 affine_algebra_morphism_type(::Type{T}) where {T <: Union{MPolyRing, MPolyQuoRing}} = morphism_type(T, T)
 
@@ -80,7 +81,7 @@ end
 Return `true` if `F` is surjective, `false` otherwise.
 """
 function is_surjective(F::AffAlgHom)
-  return all(x -> has_preimage(F, x)[1], gens(codomain(F)))
+  return all(x -> has_preimage_with_preimage(F, x)[1], gens(codomain(F)))
 end
 
 ################################################################################
@@ -157,7 +158,7 @@ true
 julia> G = inverse(F)
 Ring homomorphism
   from multivariate polynomial ring in 1 variable over QQ
-  to quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z)
+  to quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z)
 defined by
   t -> x
 
@@ -173,7 +174,7 @@ function inverse(F::AffAlgHom)
 
   preimgs = elem_type(R)[]
   for i in 1:ngens(S)
-    fl, p = has_preimage(F, gen(S, i))
+    fl, p = has_preimage_with_preimage(F, gen(S, i))
     fl || error("Homomorphism is not surjective")
     push!(preimgs, p)
   end
@@ -186,12 +187,12 @@ function preimage_with_kernel(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRing
 end
 
 function preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
-  fl, g = has_preimage(F, f)
+  fl, g = has_preimage_with_preimage(F, f)
   !fl && error("Element not contained in image")
   return g
 end
 
-function has_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
+function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQuoRingElem})
   # Basically [GP09, p. 86, Solution 2]
   @req parent(f) === codomain(F) "Polynomial is not element of the codomain"
 

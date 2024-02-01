@@ -11,7 +11,6 @@ The algebraic geometry part of OSCAR provides functionality for dealing with
 * schemes
 * toric varieties,
 * toric schemes,
-* tropical geometry.
 
 Computations in affine and projective algebraic geometry rely on [Commutative Algebra](@ref).
 

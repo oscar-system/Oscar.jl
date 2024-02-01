@@ -16,21 +16,21 @@
 
    G,emb,proj = direct_product(S,C; morphisms=true)
    @test G==direct_product(S,C)
-   @test emb[1]==embedding(G,1)
-   @test emb[2]==embedding(G,2)
-   @test proj[1]==projection(G,1)
-   @test proj[2]==projection(G,2)
+   @test emb[1]==canonical_injection(G,1)
+   @test emb[2]==canonical_injection(G,2)
+   @test proj[1]==canonical_projection(G,1)
+   @test proj[2]==canonical_projection(G,2)
 
    x = rand(G)
    @test x in G
-   @test projection(G,1)(x) in S
-   @test projection(G,2)(x) in C
-   @test embedding(G,1)(rand(S)) in G
-   @test embedding(G,2)(rand(C)) in G
-   @test x==G(projection(G,1)(x), projection(G,2)(x))
-   @test x==embedding(G,1)(projection(G,1)(x))*embedding(G,2)(projection(G,2)(x))
-   S1 = image(embedding(G,1))[1]
-   C1 = image(embedding(G,2))[1]
+   @test canonical_projection(G,1)(x) in S
+   @test canonical_projection(G,2)(x) in C
+   @test canonical_injection(G,1)(rand(S)) in G
+   @test canonical_injection(G,2)(rand(C)) in G
+   @test x==G(canonical_projection(G,1)(x), canonical_projection(G,2)(x))
+   @test x==canonical_injection(G,1)(canonical_projection(G,1)(x))*canonical_injection(G,2)(canonical_projection(G,2)(x))
+   S1 = image(canonical_injection(G,1))[1]
+   C1 = image(canonical_injection(G,2))[1]
    @test intersect(G,S1)[1]==S1
    @test is_isomorphic(S1,S)
    @test is_isomorphic(quo(G,S1)[1],C)
@@ -150,7 +150,7 @@ end
    @test is_subset(H, G)
    @test index(G,H)==4
    @test !is_full_semidirect_product(H)
-   @test projection(G)(x)==projection(H)(x)
+   @test canonical_projection(G)(x)==canonical_projection(H)(x)
    @test H==center(G)[1]
    y=G(Q[1],one(C))
    K = sub(G,gens(G))[1]
@@ -158,12 +158,12 @@ end
    K = sub(G,[y])[1]
    @test K==sub(y)[1]
    @test K==sub(y)[1]
-   @test y == embedding(G,1)(Q[1])
-   @test_throws ArgumentError embedding(G,3)(Q[1])
-   @test codomain(projection(K))==C
-   @test order(image(projection(K))[1])==1
-   @test embedding(G,2)*projection(G)==id_hom(C)
-   @test image(embedding(G,1))[1]==kernel(projection(G))[1]
+   @test y == canonical_injection(G,1)(Q[1])
+   @test_throws ArgumentError canonical_injection(G,3)(Q[1])
+   @test codomain(canonical_projection(K))==C
+   @test order(image(canonical_projection(K))[1])==1
+   @test canonical_injection(G,2)*canonical_projection(G)==id_hom(C)
+   @test image(canonical_injection(G,1))[1]==kernel(canonical_projection(G))[1]
 end
 
 
@@ -186,13 +186,13 @@ end
    @test rand(W) isa elem_type(WreathProductGroup)
    f1 = C[1]
    x = W(f1,one(C),f1,one(C),cperm([1,4,2]))
-   @test embedding(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
-   @test embedding(W,4)(f1)==W(one(C),one(C),one(C),f1,one(H))
-   @test_throws ArgumentError embedding(W,7)(f1) in W
-   @test embedding(W,5)(cperm([1,4,2]))==W(one(C),one(C),one(C),one(C),cperm([1,4,2]))
-   @test projection(W)(x)==cperm([1,4,2])
-   @test codomain(projection(W))==H
-   @test domain(embedding(W,2))==C
+   @test canonical_injection(W,1)(f1)==W(f1,one(C),one(C),one(C),one(H))
+   @test canonical_injection(W,4)(f1)==W(one(C),one(C),one(C),f1,one(H))
+   @test_throws ArgumentError canonical_injection(W,7)(f1) in W
+   @test canonical_injection(W,5)(cperm([1,4,2]))==W(one(C),one(C),one(C),one(C),cperm([1,4,2]))
+   @test canonical_projection(W)(x)==cperm([1,4,2])
+   @test codomain(canonical_projection(W))==H
+   @test domain(canonical_injection(W,2))==C
    K = sub(W,gens(W))[1]
 #   @test is_full_wreath_product(K)
    K = sub(W,[x])[1]
@@ -202,7 +202,7 @@ end
    @test order(K)==6
    @test is_cyclic(K)
    @test index(W,K)==8
-   @test_throws ArgumentError embedding(K,1)(f1) in K
+   @test_throws ArgumentError canonical_injection(K,1)(f1) in K
 
    C = cyclic_group(3)
    a = hom(C,H,[C[1]],[cperm([1,2,4])])
@@ -212,8 +212,8 @@ end
    @test is_isomorphic(normal_subgroup(W),C)
    @test is_isomorphic(acting_subgroup(W),C)
    @test homomorphism_of_wreath_product(W)==a
-   @test embedding(W,1)(C[1]) in W
+   @test canonical_injection(W,1)(C[1]) in W
    @test W(C[1],one(C),one(C),C[1]) isa elem_type(WreathProductGroup)
-   @test image(projection(W))[1]==C
-   @test_throws ArgumentError embedding(W,5)(C[1])
+   @test image(canonical_projection(W))[1]==C
+   @test_throws ArgumentError canonical_injection(W,5)(C[1])
 end

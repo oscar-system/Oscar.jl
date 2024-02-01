@@ -10,11 +10,11 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:M
   println(io, "Affine algebraic set")
   println(io, Indent(), "in ", Lowercase(), ambient_space(X))
   if isdefined(X, :Xred)
-    I = ambient_closure_ideal(X)
+    I = saturated_ideal(defining_ideal(X))
   else
     I = fat_ideal(X)
   end
-  print(io, Dedent(), "defined by ", I)
+  print(io, Dedent(), "defined by ", Lowercase(), I)
 end
 
 # As a set, corresponding the fat ideal or the radical does not change anything.
@@ -34,7 +34,7 @@ function Base.show(io::IO, X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   else
     io = pretty(io)
     if isdefined(X, :Xred)
-      I = ambient_closure_ideal(X)
+      I = saturated_ideal(defining_ideal(X))
     else
       I = fat_ideal(X)
     end

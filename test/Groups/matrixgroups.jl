@@ -97,7 +97,7 @@ end
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
       @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == matrix(one(G))
-      if F isa AnticNumberField
+      if F isa AbsSimpleNumField
          flag, n = Hecke.is_cyclotomic_type(F)
          @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
       end
@@ -449,7 +449,7 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*matrix(y) isa fqPolyRepMatrix
+   @test x*matrix(y) isa typeof(matrix(y))
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
@@ -629,6 +629,8 @@ end
    G = isometry_group(L)
    @test order(G) == 12
    @test isometry_group(L) == orthogonal_group(L)
+   L = lattice(q, QQ[1 0; 0 1]) # avoid caching
+   @test isometry_group(L, depth = 1, bacher_depth = 0) == orthogonal_group(L)
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 

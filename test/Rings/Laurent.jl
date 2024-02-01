@@ -1,12 +1,12 @@
 @testset "Laurent" begin
   for K in [QQ, GF(5)]
-    Kx, x = LaurentPolynomialRing(K, 2, "x")
+    Kx, x = laurent_polynomial_ring(K, 2, "x")
     I = ideal(Kx, [x[1]])
     @test gens(I) == [x[1]]
     @test one(Kx) in I
     @test x[1]^-1 in I
     @test base_ring(I) === Kx
-    _Kx, _x = LaurentPolynomialRing(K, 3, "xx")
+    _Kx, _x = laurent_polynomial_ring(K, 3, "xx")
     @test !(_x[1] in I)
 
     f = hom(Kx, K, [K(2), K(3)])

@@ -44,7 +44,7 @@ julia> matrix(QQ, rays(NF))
 ```
 """
 rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
-_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _number_of_rays(PF))
 
 _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
@@ -118,7 +118,7 @@ the 3-cube and use that `maximal_cones` returns an iterator.
 julia> PF = face_fan(cube(3));
 
 julia> for c in maximal_cones(PF)
-       println(nrays(c))
+         println(number_of_rays(c))
        end
 4
 4
@@ -128,7 +128,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, nmaxcones(PF))
 
 _ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
 
@@ -230,7 +230,7 @@ Return the dimension of `PF`.
 This fan in the plane contains a 2-dimensional cone and is thus 2-dimensional
 itself.
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> dim(PF)
 2
@@ -239,7 +239,7 @@ julia> dim(PF)
 dim(PF::_FanLikeType) = pm_object(PF).FAN_DIM::Int
 
 @doc raw"""
-    n_maximal_cones(PF::PolyhedralFan)
+    number_of_maximal_cones(PF::PolyhedralFan)
 
 Return the number of maximal cones of `PF`.
 
@@ -247,16 +247,16 @@ Return the number of maximal cones of `PF`.
 The cones given in this construction are non-redundant. Thus there are two
 maximal cones.
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
-julia> n_maximal_cones(PF)
+julia> number_of_maximal_cones(PF)
 2
 ```
 """
-n_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
+number_of_maximal_cones(PF::_FanLikeType) = pm_object(PF).N_MAXIMAL_CONES::Int
 
 @doc raw"""
-    n_cones(PF::PolyhedralFan)
+    number_of_cones(PF::PolyhedralFan)
 
 Return the number of cones of `PF`.
 
@@ -264,14 +264,14 @@ Return the number of cones of `PF`.
 The cones given in this construction are non-redundant. There are six
 cones in this fan.
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]))
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
-julia> n_cones(PF)
+julia> number_of_cones(PF)
 4
 ```
 """
-n_cones(PF::_FanLikeType) = nrows(cones(PF))
+number_of_cones(PF::_FanLikeType) = nrows(cones(PF))
 
 @doc raw"""
     ambient_dim(PF::PolyhedralFan)
@@ -292,19 +292,19 @@ julia> ambient_dim(normal_fan(cube(4)))
 ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM::Int
 
 @doc raw"""
-    nrays(PF::PolyhedralFan)
+    number_of_rays(PF::PolyhedralFan)
 
 Return the number of rays of `PF`.
 
 # Examples
 The 3-cube has 8 vertices. Accordingly, its face fan has 8 rays.
 ```jldoctest
-julia> nrays(face_fan(cube(3)))
+julia> number_of_rays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
-_nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+number_of_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _number_of_rays(PF) : 0
+_number_of_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc raw"""
@@ -318,7 +318,7 @@ The f-vector of the normal fan of a polytope is the reverse of the f-vector of
 the polytope.
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> f_vector(c)
 3-element Vector{ZZRingElem}:
@@ -386,7 +386,7 @@ This fan consists of two cones, one containing all the points with $y ≤ 0$ and
 one containing all the points with $y ≥ 0$. The fan's lineality is the common
 lineality of these two cones, i.e. in $x$-direction.
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 0; 0 -1], IncidenceMatrix([[1, 2, 3], [3, 4, 1]]))
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2, 3], [3, 4, 1]]), [1 0; 0 1; -1 0; 0 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
@@ -441,7 +441,7 @@ Determine whether `PF` is smooth.
 Even though the cones of this fan cover the positive orthant together, one of
 these und thus the whole fan is not smooth.
 ```jldoctest
-julia> PF = polyhedral_fan([0 1; 2 1; 1 0], IncidenceMatrix([[1, 2], [2, 3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [2, 3]]), [0 1; 2 1; 1 0]);
 
 julia> is_smooth(PF)
 false
@@ -457,7 +457,7 @@ Determine whether `PF` is regular, i.e. the normal fan of a polytope.
 # Examples
 This fan is not complete and thus not regular.
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_regular(PF)
 false
@@ -473,7 +473,7 @@ Determine whether `PF` is pure, i.e. all maximal cones have the same dimension.
 
 # Examples
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_pure(PF)
 false
@@ -490,7 +490,7 @@ dimension.
 
 # Examples
 ```jldoctest
-julia> PF = polyhedral_fan([1 0; 0 1; -1 -1], IncidenceMatrix([[1, 2], [3]]));
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_fulldimensional(PF)
 true
@@ -553,7 +553,7 @@ julia> primitive_collections(normal_fan(simplex(3)))
 function primitive_collections(PF::_FanLikeType)
     @req is_simplicial(PF) "PolyhedralFan must be simplicial."
     I = ray_indices(maximal_cones(PF))
-    K = SimplicialComplex(I)
+    K = simplicial_complex(I)
     return minimal_nonfaces(K)
 end
 

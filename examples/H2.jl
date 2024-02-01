@@ -13,7 +13,7 @@ end
 """
 Should compute
     H^2(G, Q/Z)
-for "any" Gap-group G. For abelian (GrpAbFinGen), there is a more
+for "any" Gap-group G. For abelian (FinGenAbGroup), there is a more
 direct implementation in Hecke.
 """
 function H2_G_QmodZ(G::Oscar.GAPGroup)

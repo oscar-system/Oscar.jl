@@ -14,7 +14,7 @@ export hook_length
 export hook_lengths
 export is_semistandard
 export is_standard
-export num_standard_tableaux
+export number_of_standard_tableaux
 export reading_word
 export schensted
 export semistandard_tableaux
@@ -597,7 +597,7 @@ end
 
 
 @doc raw"""
-    num_standard_tableaux(lambda::Partition)
+    number_of_standard_tableaux(lambda::Partition)
 
 Return the number $f^λ$ of standard tableaux of shape ``λ`` using the hook length formula
 
@@ -609,7 +609,7 @@ where the product is taken over all boxes in the Young diagram of ``λ`` and
 # References
 1. Wikipedia, [Hook length formula](https://en.wikipedia.org/wiki/Hook_length_formula).
 """
-function num_standard_tableaux(lambda::Partition)
+function number_of_standard_tableaux(lambda::Partition)
   n = sum(lambda)
   h=factorial(ZZ(n))
   for i = 1:length(lambda)

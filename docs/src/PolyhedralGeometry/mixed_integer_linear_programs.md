@@ -28,6 +28,8 @@ mixed_integer_linear_program
 
 ## Functions
 ```@docs
+feasible_region(milp::MixedIntegerLinearProgram)
+ambient_dim(milp::MixedIntegerLinearProgram)
 optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 optimal_solution
 solve_milp

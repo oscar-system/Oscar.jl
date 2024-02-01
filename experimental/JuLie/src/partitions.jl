@@ -15,7 +15,7 @@ export ascending_partitions
 export conjugate
 export dominates
 export getindex_safe
-export num_partitions
+export number_of_partitions, npartitions      # aliases do not work in experimental
 export partition
 export partitions
 
@@ -166,14 +166,15 @@ end
 # Generating and counting unrestricted partitions
 ################################################################################
 
+# TODO: convert back to doctest
 @doc raw"""
-    num_partitions(n::IntegerUnion)
+    number_of_partitions(n::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n`. 
 
 # Examples
-```jldoctest
-julia> num_partitions(1000)
+```julia
+julia> number_of_partitions(1000)
 24061467864032622473692149727991
 ```
 
@@ -188,7 +189,7 @@ formula, see [Joh12](@cite) for details.
 1. [Knu11](@cite), Section 7.2.1.4 (starting on page 395).
 2. [OEIS](@cite), [A000041](https://oeis.org/A000041)
 """
-function num_partitions(n::IntegerUnion)
+function number_of_partitions(n::IntegerUnion) # does not get called due to a more specific method in Nemo
   @req n >= 0 "n >= 0 required"
   n = ZZ(n)
   z = ZZ()
@@ -413,7 +414,7 @@ end
 ################################################################################
 
 @doc raw"""
-    num_partitions(n::IntegerUnion, k::IntegerUnion)
+    number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
 The number of integer partitions of the non-negative integer `n` into `k >= 0` parts. 
 
@@ -425,7 +426,7 @@ denotes the number of partitions of ``n`` into ``k`` parts; see [Knu11](@cite), 
 # References
 1. [OEIS](@cite), [A008284](https://oeis.org/A008284)
 """
-function num_partitions(n::IntegerUnion, k::IntegerUnion)
+function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
   
   @req n >= 0 "n >= 0 required"
   @req k >= 0 "k >= 0 required"
@@ -443,13 +444,13 @@ function num_partitions(n::IntegerUnion, k::IntegerUnion)
 
   # See https://oeis.org/A008284
   elseif n < 2*k
-    return num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+    return number_of_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
 
   # See https://oeis.org/A008284
   elseif n <= 2+3*k
-    p = num_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
+    p = number_of_partitions(n-k) #n-k>=0 holds since the case n<k was already handled
     for i=0:Int(n)-2*Int(k)-1
-      p = p - num_partitions(ZZ(i))
+      p = p - number_of_partitions(ZZ(i))
     end
     return p
 

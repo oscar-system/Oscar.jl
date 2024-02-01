@@ -61,13 +61,13 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  @check issubset(Cf, V) "maps are not compatible"
+  @check is_subscheme(Cf, V) "maps are not compatible"
   W = codomain(g)
   X = ambient_scheme(U)
   Y = ambient_scheme(V)
   Z = ambient_scheme(W)
   pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_coordinate_ring(Z))]
-  maps_on_patches = [SpecMor(A, Z, [restrict(h, A, check=check) for h in pb_coords], check=check) for A in affine_patches(U)]
+  maps_on_patches = [morphism(A, Z, [restrict(h, A, check=check) for h in pb_coords], check=check) for A in affine_patches(U)]
   return SpecOpenMor(U, W, maps_on_patches, check=check)
 end
 

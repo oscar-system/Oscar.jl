@@ -33,14 +33,14 @@
     @testset "core functionality" begin
         @test !is_regular(MOAE)
         @test is_regular(SOP0)
-        @test n_maximal_cells(MOAE) == 7
-        @test n_maximal_cells(SOP0) == 1
-        @test n_maximal_cells(SOP1) == 1
+        @test number_of_maximal_cells(MOAE) == 7
+        @test number_of_maximal_cells(SOP0) == 1
+        @test number_of_maximal_cells(SOP1) == 1
         @test min_weights(SOP1) == [0,0,0,1,1,1]
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
         @test moaeimnonreg0 == maximal_cells(IncidenceMatrix, MOAE)
-        @test npoints(MOAE) == 6
+        @test number_of_points(MOAE) == 6
         @test length(points(MOAE)) == 6
         @test collect(points(MOAE))[3] == [0,0,4]
         @test gkz_vector(fulldim_MOAE) == [9,9,9,7,7,7]

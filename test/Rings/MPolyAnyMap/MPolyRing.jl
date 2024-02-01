@@ -89,7 +89,7 @@
     # Noncommutative image
     
     A, (x, y) = K["x", "y"]
-    S = MatrixAlgebra(K, 2)
+    S = matrix_ring(K, 2)
     a = S([1 1; 0 1])
     b = S([0 1; 1 0])
     @test_throws ArgumentError hom(A, S, [a, b])
@@ -167,4 +167,11 @@
   f = hom(Qix, Qi, x -> x, [i, 0])
   @test fh(x) == h(f(x)) 
   f = hom(Qix, Qi, x -> x, [i, 0])
+end
+
+@testset "coefficient maps" begin
+  R, (x, y) = QQ[:x, :y]
+  L, _ = QQ[:t]
+  phi = hom(R, R, x->zero(L), [x, y])
+  @test_throws ErrorException compose(phi, phi)
 end

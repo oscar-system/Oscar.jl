@@ -32,6 +32,7 @@ A geometrically integral subscheme of a projective space over a field.
 """
 abstract type AbsProjectiveVariety{BaseField<:Field, GradedRingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, GradedRingType} end
 
+
 @doc raw"""
     AbsCoveredVariety <: Scheme
 
@@ -46,27 +47,27 @@ abstract type AbsCoveredVariety{BaseField<:Field} <: AbsCoveredScheme{BaseField}
 ################################################################################
 
 @doc raw"""
-    AbsAffineCurve <: AbsAffineVariety
+    AbsAffineCurve <: AbsAffineAlgebraicSet
 
 A curve in affine space.
 
-An affine curve is an affine variety of dimension one.
+An affine curve is an affine algebraic set of dimension one.
 """
-abstract type AbsAffineCurve{BaseField<:Field, RingType<:Ring} <: AbsAffineVariety{BaseField, RingType} end
+abstract type AbsAffineCurve{BaseField<:Field, RingType<:Ring} <: AbsAffineAlgebraicSet{BaseField, RingType} end
 
 @doc raw"""
     AbsProjectiveCurve <: AbsProjectiveVariety
 
 A projective curve embedded in an ambient projective space.
 """
-abstract type AbsProjectiveCurve{BaseField<:Field, RingType<:Ring} <: AbsProjectiveVariety{BaseField, RingType} end
+abstract type AbsProjectiveCurve{BaseField<:Field, RingType<:Ring} <: AbsProjectiveAlgebraicSet{BaseField, RingType} end
 
 @doc raw"""
     AbsCoveredCurve
 
 A curve represented in terms of a covering.
 
-A curve is a geometrically integral scheme of dimension 1 of finite type over a field.
+A curve is a reduced scheme of dimension 1 of finite type over a field.
 """
 abstract type AbsCoveredCurve{BaseField} <: Scheme{BaseField} end
 

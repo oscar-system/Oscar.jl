@@ -6,20 +6,20 @@ K, a = number_field(q)
 Ky, y = K["y"]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
-Qu, u = RationalFunctionField(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
-Fin, d = finite_field(t^2 + t + 1)
+Qu, u = rational_function_field(QQ, "u")
+Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
+Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
-T = TropicalSemiring()
-F, o  = Hecke.Nemo._FiniteField(4)
+T = tropical_semiring()
+F, o  = finite_field(4)
 Fs, s = F["s"]
-FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
+FF, r = finite_field(s^2 + o * s + 1, "r")
 
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
   (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
-  (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
+  (residue_ring(ZZ, 6)[1], 3, 5, "Integers Modulo 6"),
   (L, e, f, "Non Simple Extension"),
   (K, a, a + 1, "Simple Extension"),
   (Tow, a^2 * b, a + b, "Tower Extension"),
@@ -38,7 +38,24 @@ cases = [
     @testset "Empty Ideal" begin
       i = Oscar.ideal(QQ[:x, :y][1], [])
       test_save_load_roundtrip(path, i) do loaded
-        loaded == i
+        @test loaded == i
+      end
+    end
+
+    @testset "Graded Ring" begin
+      R, (x, y) = QQ[:x, :y]
+      A = [1 3; 2 1]
+      M, (m1, m2) = grade(R, A)
+
+      test_save_load_roundtrip(path, m1 * m2) do loaded
+        @test loaded == m1 * m2
+        @test grading_group(parent(loaded)) == grading_group(M)
+      end
+
+      GM, _ = grade(M, A)
+      test_save_load_roundtrip(path, GM) do loaded
+        @test loaded == GM
+        @test forget_grading(loaded) == forget_grading(GM)
       end
     end
 
@@ -56,8 +73,8 @@ cases = [
           end
         end
       end
-      
-      @testset "Multivariate Polynomial over $(case[4])"  begin 
+
+      @testset "Multivariate Polynomial over $(case[4])"  begin
         R, (z, w) = polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
@@ -106,9 +123,9 @@ cases = [
 
       # Tropical Semirings currently can't have formal power series
       filter!(case-> case[4] != "Tropical Semiring", cases)
-
+      
       @testset "Multivariate Laurent Polynomial over $(case[4])" begin
-        R, (z, w) = LaurentPolynomialRing(case[1], ["z", "w"])
+        R, (z, w) = laurent_polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)

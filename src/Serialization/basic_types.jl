@@ -1,6 +1,3 @@
-# This type should not be exported
-const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
-                       Number, ZZRingElem, TropicalSemiringElem}
 function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, VersionNumber}
   save_data_basic(s, x)
 end
@@ -25,35 +22,25 @@ end
 # ZZRingElem
 @register_serialization_type ZZRingElem
 
-function load_object(s::DeserializerState, ::Type{ZZRingElem}, str::String)
-  return ZZRingElem(str)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{ZZRingElem},
-                                   str::String,
-                                   parent::ZZRing)
-  return parent(ZZRingElem(str))
+function load_object(s::DeserializerState, ::Type{ZZRingElem})
+  load_node(s) do str
+    return ZZRingElem(str)
+  end
 end
 
 ################################################################################
 # QQFieldElem
 @register_serialization_type QQFieldElem
 
-function load_object(s::DeserializerState, ::Type{QQFieldElem}, q::String)
+function load_object(s::DeserializerState, ::Type{QQFieldElem})
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
-  fraction_parts = collect(map(String, split(q, "//")))
-  fraction_parts = [ZZRingElem(s) for s in fraction_parts]
-
-  return QQFieldElem(fraction_parts...)
-end
-
-function load_internal_with_parent(s::DeserializerState,
-                                   ::Type{QQFieldElem},
-                                   str::String,
-                                   parent::QQField)
-  return parent(load_internal(s, QQFieldElem, str))
+  load_node(s) do q
+    fraction_parts = String.(split(q, "//"))
+    fraction_parts = parse.(ZZRingElem, fraction_parts)
+    
+    return QQFieldElem(fraction_parts...)
+  end
 end
 
 ################################################################################
@@ -76,23 +63,27 @@ end
 @register_serialization_type Float32
 @register_serialization_type Float64
 
-function load_object(s::DeserializerState, ::Type{T}, str::String) where {T<:Number}
-  return parse(T, str)
+function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
+  load_node(s) do str
+    parse(T, str)
+  end
 end
 
 ################################################################################
 # Strings
 @register_serialization_type String
 
-function load_object(s::DeserializerState, ::Type{String}, str::String)
-  return str
+function load_object(s::DeserializerState, ::Type{String})
+  return s.obj
 end
 
 ################################################################################
 # Symbol
 @register_serialization_type Symbol
 
-function load_object(s::DeserializerState, ::Type{Symbol}, str::String)
-  return Symbol(str)
+function load_object(s::DeserializerState, ::Type{Symbol})
+  load_node(s) do str
+    Symbol(str)
+  end
 end
 

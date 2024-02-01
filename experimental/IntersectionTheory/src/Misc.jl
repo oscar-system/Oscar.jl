@@ -27,7 +27,7 @@ function _total_degree(x::MPolyDecRingElem)
   max([Int(sum(d .* degrees(t))[1]) for t in terms(f)]...)
 end
 
-function Base.getindex(x::MPolyDecRingOrQuoElem, d::GrpAbFinGenElem)
+function Base.getindex(x::MPolyDecRingOrQuoElem, d::FinGenAbGroupElem)
   parent(x)(homogeneous_component(x, d))
 end
 
@@ -37,7 +37,7 @@ function Base.getindex(x::MPolyDecRingOrQuoElem, d::Int)
   getindex(x, D([d]))
 end
 
-function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{GrpAbFinGenElem})
+function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{FinGenAbGroupElem})
   R = parent(x)
   comps = homogeneous_components(x)
   ans = typeof(x)[]

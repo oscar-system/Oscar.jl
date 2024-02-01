@@ -25,7 +25,9 @@ jobs:
           sudo apt-get install -y bibtool
       - name: Execute bibtool and check for changes
         run: |
-          bibtool docs/oscar_references.bib -o docs/oscar_references.bib
+          bibtool docs/oscar_references.bib -o docs/oscar_references.bib 2>&1 | tee bibtool.log
+          test \! -s bibtool.log
+          rm bibtool.log
           if [ -n "$(git status --porcelain)" ]; then
             echo "We employ bibtool to standardize the bibtex entries of our reference list."
             echo "Your changes to the bibliography do not follow this standard."

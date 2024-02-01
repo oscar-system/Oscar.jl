@@ -20,7 +20,7 @@ one(x::GAPGroupElem)
 is_finiteorder(x::GAPGroupElem)
 gens(::GAPGroup)
 has_gens(::GAPGroup)
-ngens(G::GAPGroup)
+number_of_generators(G::GAPGroup)
 gen(::GAPGroup, i::Int)
 small_generating_set(G::GAPGroup)
 Base.rand(G::GAPGroup)
@@ -78,10 +78,10 @@ is_supersolvable
 is_solvable
 is_perfect
 is_simple(G::GAPGroup)
-is_almostsimple
+is_almost_simple(G::GAPGroup)
 is_quasisimple
 is_sporadic_simple
-is_finitelygenerated
+is_finitely_generated(G::GAPGroup)
 ```
 
 
@@ -89,9 +89,13 @@ is_finitelygenerated
 
 ```@docs
 order(::Type{T}, x::Union{GAPGroupElem, GAPGroup}) where T <: IntegerUnion
+abelian_invariants(G::GAPGroup)
+abelian_invariants_schur_multiplier(G::GAPGroup)
 cyclic_generator(G::GAPGroup)
 exponent(G::GAPGroup)
 describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
 prime_of_pgroup
+derived_length
+schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
 ```

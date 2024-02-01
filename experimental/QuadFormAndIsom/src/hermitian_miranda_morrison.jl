@@ -10,7 +10,7 @@
 
 # Split case
 
-function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
+function _get_quotient_split(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
   E = nf(OE)
   Eabs, EabstoE = absolute_simple_field(E)
@@ -20,7 +20,7 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
   RPabs, mRPabs = quo(OEabs, Pabs^i)
   URPabs, mURPabs = unit_group(RPabs)
 
-  function dlog(x::Hecke.NfRelElem)
+  function dlog(x::Hecke.RelSimpleNumFieldElem)
     @hassert :ZZLatWithIsom 1 parent(x) == E
     d = denominator(x, OE)
     xabs = d*(EabstoE\(x))
@@ -42,7 +42,7 @@ function _get_quotient_split(P::Hecke.NfRelOrdIdl, i::Int)
     return ret
   end
 
-  function exp(k::GrpAbFinGenElem)
+  function exp(k::FinGenAbGroupElem)
     @hassert :ZZLatWithIsom 1 parent(k) === URPabs
     x = EabstoE(Eabs(mRPabs\mURPabs(k)))
     @hassert :ZZLatWithIsom 1 dlog(x) == k
@@ -54,7 +54,7 @@ end
 
 # Inert case
 
-function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
+function _get_quotient_inert(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
   OK = base_ring(OE)
   E = nf(OE)
@@ -75,12 +75,12 @@ function _get_quotient_inert(P::Hecke.NfRelOrdIdl, i::Int)
 
   S, mS = snf(K)
 
-  function exp(k::GrpAbFinGenElem)
+  function exp(k::FinGenAbGroupElem)
     @hassert :ZZLatWithIsom 1 parent(k) === S
     return EabstoE(elem_in_nf(mRPabs\(mURPabs(mK(mS(k))))))
   end
 
-  function dlog(x::Hecke.NfRelElem)
+  function dlog(x::Hecke.RelSimpleNumFieldElem)
     @hassert :ZZLatWithIsom 1 parent(x) === E
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
@@ -107,7 +107,7 @@ end
 
 # Ramified case
 
-function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
+function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
   E = nf(OE)
   p = minimum(P)
@@ -146,12 +146,12 @@ function _get_quotient_ramified(P::Hecke.NfRelOrdIdl, i::Int)
 
   S, mS = snf(K)
 
-  function exp(k::GrpAbFinGenElem)
+  function exp(k::FinGenAbGroupElem)
     @hassert :ZZLatWithIsom 1 parent(k) === S
     return EabstoE(elem_in_nf(mRPabs\(mURPabs(mK(mS(k))))))
   end
 
-  function dlog(x::Hecke.NfRelElem)
+  function dlog(x::Hecke.RelSimpleNumFieldElem)
     @hassert :ZZLatWithIsom 1 parent(x) === E
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
@@ -178,7 +178,7 @@ end
 # We obtain the quotient here: we first check what the ramification type of p
 # in O is to distribute to the appropriate function above.
 
-function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
+function _get_quotient(O::Hecke.RelNumFieldOrder, p::Hecke.AbsSimpleNumFieldOrderIdeal, i::Int)
   @hassert :ZZLatWithIsom 1 is_prime(p)
   @hassert :ZZLatWithIsom 1 is_maximal(order(p))
   @hassert :ZZLatWithIsom 1 order(p) === base_ring(O)
@@ -187,8 +187,8 @@ function _get_quotient(O::Hecke.NfRelOrd, p::Hecke.NfOrdIdl, i::Int)
   P = F[1][1]
   if i == 0
     A = abelian_group()
-    function dlog_0(x::Hecke.NfRelElem); return id(A); end;
-    function dexp_0(x::GrpAbFinGenElem); return one(E); end;
+    function dlog_0(x::Hecke.RelSimpleNumFieldElem); return id(A); end;
+    function dexp_0(x::FinGenAbGroupElem); return one(E); end;
     return A, dexp_0, dlog_0, P
   end
   if length(F) == 2
@@ -205,17 +205,17 @@ end
 # abelian group where one do the local determinants computations
 # for the hermitian version of Miranda-Morrison theory
 
-function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}})
+function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{AbsSimpleNumFieldOrderIdeal, Int}})
   OE = maximal_order(E)
-  groups = GrpAbFinGen[]
+  groups = FinGenAbGroup[]
   exps = Function[]
   dlogs = Function[]
   Ps = Hecke.ideal_type(OE)[]
 
   if length(Fac) == 0
     A = abelian_group()
-    function dlog_0(x::Vector{<:Hecke.NfRelElem}); return id(A); end;
-    function exp_0(x::GrpAbFinGenElem); return one(E); end;
+    function dlog_0(x::Vector{<:Hecke.RelSimpleNumFieldElem}); return id(A); end;
+    function exp_0(x::FinGenAbGroupElem); return one(E); end;
     return A, dlog_0, exp_0
   end
 
@@ -230,7 +230,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
 
   G, proj, inj = biproduct(groups...)
 
-  function dlog(x::Vector{<:Hecke.NfRelElem})
+  function dlog(x::Vector{<:Hecke.RelSimpleNumFieldElem})
     if length(x) == 1
       return sum(inj[i](dlogs[i](x[1])) for i in 1:length(Fac)) 
     else
@@ -239,7 +239,7 @@ function _get_product_quotient(E::Hecke.NfRel, Fac::Vector{Tuple{NfOrdIdl, Int}}
     end
   end
 
-  function exp(x::GrpAbFinGenElem)
+  function exp(x::FinGenAbGroupElem)
     v = elem_type(E)[exps[i](proj[i](x)) for i in 1:length(Fac)]
     @hassert :ZZLatWithIsom 1 dlog(v) == x
     return v
@@ -268,9 +268,9 @@ end
 #  - or L is P^{-a}-modular where P is largest prime ideal
 #    over p fixed the canonical involution, and a is the valuation of D at P. 
 
-function _elementary_divisors(L::HermLat, D::Hecke.NfRelOrdIdl)
+function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
   Ps = collect(keys(factor(D)))
-  primess = NfOrdIdl[]
+  primess = AbsSimpleNumFieldOrderIdeal[]
   for P in Ps
     p = minimum(P)
     ok, a = is_modular(L, p)
@@ -375,7 +375,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # Note that here the products can be constructed since there are only finitely
   # many primes in both cases for which the local quotients are non-trivial.
 
-  Fsharpdata = Tuple{NfOrdIdl, Int}[]
+  Fsharpdata = Tuple{AbsSimpleNumFieldOrderIdeal, Int}[]
   for p in S
     lp = prime_decomposition(OE, p)
     P = lp[1][1]
@@ -396,7 +396,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # avoid computing unnecessary crt. This will hold for the rest of the code, we
   # for those particular objects, the `dlog` maps take vectors, corresponding to
   # finite adeles.
-  Fdata = Tuple{NfOrdIdl, Int}[]
+  Fdata = Tuple{AbsSimpleNumFieldOrderIdeal, Int}[]
   for p in S
     if !_is_special(H, p)
       push!(Fdata, (p, 0))
@@ -487,7 +487,7 @@ end
 # This function is an import of a function written by Markus Kirschmer in the
 # Magma package about hermitian lattices.
 
-function _is_special(L::HermLat, p::NfOrdIdl)
+function _is_special(L::HermLat, p::AbsSimpleNumFieldOrderIdeal)
   OE = base_ring(L)
   E = nf(OE)
   lp = prime_decomposition(OE, p)
@@ -521,7 +521,7 @@ end
 #
 ###############################################################################
 
-Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
+Oscar.canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
 
 # Once we have fixed good local basis matrices if D^{-1}H^# and H, at the prime
 # ideal p below P, we transfer any g\in O(D_L, D_f) via the trace construction
@@ -532,8 +532,8 @@ Oscar.canonical_unit(x::NfOrdQuoRingElem) = one(parent(x))
 function _transfer_discriminant_isometry(res::AbstractSpaceRes,
                                          g::AutomorphismGroupElem{TorQuadModule},
                                          Bp::T,
-                                         P::Hecke.NfRelOrdIdl,
-                                         BHp::T) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+                                         P::Hecke.RelNumFieldOrderIdeal,
+                                         BHp::T) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   E = base_ring(codomain(res))
   Eabs, EabstoE = absolute_simple_field(E)
   Pabs = EabstoE\P
@@ -587,14 +587,14 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes,
 end
 
 # the minimum P-valuation among all the non-zero entries of M
-function _scale_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _scale_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(M) && return inf
   return minimum(valuation(v, P) for v in collect(M) if !iszero(v))
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
-function _norm_valuation(M::T, P::Hecke.NfRelOrdIdl) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _norm_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
   iszero(diagonal(M)) && return inf
   r =  minimum(valuation(v, P) for v in diagonal(M) if !iszero(v))
@@ -610,7 +610,7 @@ end
 # We use this method iteratively to lift isometries (along a surjective map), by
 # looking at better representatives until we reach a good enough precision for
 # our purpose.
-function _local_hermitian_lifting(G::T, F::T, rho::Hecke.NfRelElem, l::Int, P::Hecke.NfRelOrdIdl, e::Int, a::Int; check = true) where T <: MatrixElem{Hecke.NfRelElem{nf_elem}}
+function _local_hermitian_lifting(G::T, F::T, rho::Hecke.RelSimpleNumFieldElem, l::Int, P::Hecke.RelNumFieldOrderIdeal, e::Int, a::Int; check = true) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   @hassert :ZZLatWithIsom 1 trace(rho) == 1
   E = base_ring(G)
   # G here is a local gram matrix
@@ -669,7 +669,7 @@ end
 #    D_L (H is the hermitian structure associated to (L, f) along res) which
 #    aims to approximately transfer to H2 along res at P
 #
-function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.NfRelOrdIdl, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
+function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.RelNumFieldOrderIdeal, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
   @hassert :ZZLatWithIsom 1 nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
@@ -708,7 +708,7 @@ end
 # the jordan decomposition of D^{-1}H^# at p. From that point, we massage a bit
 # the basis matrices of the other jordan blocks to obtain local basis matrices
 # which span sublattices of D^{-1}H^#.
-function _local_basis_modular_submodules(H::HermLat, p::NfOrdIdl, a::Int, res::AbstractSpaceRes)
+function _local_basis_modular_submodules(H::HermLat, p::AbsSimpleNumFieldOrderIdeal, a::Int, res::AbstractSpaceRes)
   L = restrict_scalars(H, res)
   B, _ , exps = jordan_decomposition(H, p)
   if exps[end] == -a
@@ -741,7 +741,7 @@ end
 #    exactly what we look for (a unit at P with trace 1);
 #  - p is ramified, and then we cook up a good element. The actual code from
 #    that part is taken from the Sage implementation of Simon Brandhorst
-function _find_rho(P::Hecke.NfRelOrdIdl, e::Int)
+function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
   OE = order(P)
   E = nf(OE)
   lp = prime_decomposition(OE, minimum(P))

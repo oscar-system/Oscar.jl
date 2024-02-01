@@ -29,9 +29,9 @@
   ref = domain(phi)
   double_ref = restrict(g_cov, ref)
   @test double_ref === restrict(g_cov, ref)
-  K = keys(glueings(domain(double_ref)))
+  K = keys(gluings(domain(double_ref)))
   for k in K
-      @test underlying_glueing(glueings(domain(double_ref))[k]) isa SimpleGlueing
+      @test underlying_gluing(gluings(domain(double_ref))[k]) isa SimpleGluing
   end
 
   D2 = pullback(g_cov)(C) # The same thing

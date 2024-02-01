@@ -11,11 +11,13 @@ export scheme
 #
 # Abstract type for algebraic cycles on a separated scheme X.
 ########################################################################
-abstract type AbsAlgebraicCycle{
-                                CoveredSchemeType<:AbsCoveredScheme, 
-                                CoefficientRingType<:AbstractAlgebra.Ring
-                               }
-end
+
+### The following declaration has been moved to src/forward_declarations.jl
+#abstract type AbsAlgebraicCycle{
+#                                CoveredSchemeType<:AbsCoveredScheme, 
+#                                CoefficientRingType<:AbstractAlgebra.Ring
+#                               }
+#end
 
 ### type getters 
 scheme_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = S
@@ -491,8 +493,8 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
     end
   else
     # Make sure all generators are actually prime so that they can be compared. 
-    all(I->isprime(I), keys(coefficient_dict(D))) || return irreducible_decomposition(D) == E
-    all(I->isprime(I), keys(coefficient_dict(E))) || return D == irreducible_decomposition(E)
+    all(is_prime, keys(coefficient_dict(D))) || return irreducible_decomposition(D) == E
+    all(is_prime, keys(coefficient_dict(E))) || return D == irreducible_decomposition(E)
 
     keys_D = collect(keys(coefficient_dict(D)))
     keys_E = collect(keys(coefficient_dict(E)))

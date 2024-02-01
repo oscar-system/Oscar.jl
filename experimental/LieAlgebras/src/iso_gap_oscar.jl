@@ -56,7 +56,7 @@ function _abstract_lie_algebra_from_GAP(
       entry -> (entry[1], Vector{elem_type(RO)}(map(coeffs_iso, entry[2])))
     ).(
       Matrix{Tuple{Vector{Int},Vector{GAP.Obj}}}(
-        (GAP.Globals.StructureConstantsTable(GAPWrap.Basis(LG)))[1:dimL]
+        (GAPWrap.StructureConstantsTable(GAPWrap.Basis(LG)))[1:dimL]
       )
     )
 

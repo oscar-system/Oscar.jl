@@ -153,27 +153,37 @@ lex(R::MPolyRing)
 
 The *degree lexicographical ordering* `deglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\; (\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i).$
 
 ```@docs
 deglex(R::MPolyRing)
 ```
 
-#### The Reverse Lexicographical Ordering
+#### The Inverse Lexicographical Ordering
 
-The *reverse lexicographical ordering* `revlex` is defined by setting
+The *inverse lexicographical ordering* `invlex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i.$
 
 ```@docs
-revlex(R::MPolyRing)
+invlex(R::MPolyRing)
+```
+
+#### The Degree Inverse Lexicographical Ordering
+
+The *degree inverse lexicographical ordering* `deginvlex` is defined by setting
+
+$x^\alpha > x^\beta \;  \Leftrightarrow \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  > \beta_i).$
+
+```@docs
+deginvlex(R::MPolyRing)
 ```
 
 #### The Degree Reverse Lexicographical Ordering
 
 The *degree reverse lexicographical ordering* `degrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) > \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i).$
 
 ```@docs
 degrevlex(R::MPolyRing)
@@ -219,27 +229,27 @@ neglex(R::MPolyRing)
 
 The *negative degree lexicographical ordering* `negdeglex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\; \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \;  \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\; (\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\;  \exists \; 1 \leq i \leq n: \alpha_1 = \beta_1, \dots, \alpha_{i-1} = \beta_{i-1}, \alpha_i > \beta_i).$
 
 ```@docs
 negdeglex(R::MPolyRing)
 ```
 
-#### The Negative Reverse Lexicographical Ordering
+#### The Negative Inverse Lexicographical Ordering
 
-The *negative reverse lexicographical ordering* `negrevlex` is defined by setting
+The *negative inverse lexicographical ordering* `neginvlex` is defined by setting
 
 $x^\alpha > x^\beta \;  \Leftrightarrow \;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i  < \beta_i.$
 
 ```@docs
-negrevlex(R::MPolyRing)
+neginvlex(R::MPolyRing)
 ```
 
 #### The Negative Degree Reverse Lexicographical Ordering
 
 The *negative degree reverse lexicographical ordering* `negdegrevlex` is defined by setting $\;\deg(x^\alpha) = \alpha_1 + \cdots + \alpha_n\;$ and
 
-$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\;\exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i.$
+$x^\alpha > x^\beta \;  \Leftrightarrow \; \deg(x^\alpha) < \deg(x^\beta)  \;\text{ or }\;(\deg(x^\alpha) = \deg(x^\beta) \;\text{ and }\; \exists \; 1 \leq i \leq n: \alpha_n = \beta_n, \dots, \alpha_{i+1} = \beta_{i+1}, \alpha_i < \beta_i).$
 
 ```@docs
 negdegrevlex(R::MPolyRing)
@@ -392,7 +402,7 @@ Alternatively, we may wish to use $i < j$ instead of $i > j$ in this definition.
 
 In other words, these orderings are obtained by concatenating a monomial ordering on the monomials of $R$
 with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i < j$ ordering on the
-basis vectors as *lex*, and to the $i > j$ ordering as *revlex*. And, we use the `*` operator for concatenation. 
+basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the `*` operator for concatenation. 
 
 ##### Examples
 
@@ -402,11 +412,11 @@ julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 julia> F = free_module(R, 3)
 Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
-julia> o1 = degrevlex(R)*revlex(gens(F))
-degrevlex([w, x, y, z])*revlex([gen(1), gen(2), gen(3)])
+julia> o1 = degrevlex(R)*invlex(gens(F))
+degrevlex([w, x, y, z])*invlex([gen(1), gen(2), gen(3)])
 
-julia> o2 = revlex(gens(F))*degrevlex(R)
-revlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
+julia> o2 = invlex(gens(F))*degrevlex(R)
+invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
 
 ```
 

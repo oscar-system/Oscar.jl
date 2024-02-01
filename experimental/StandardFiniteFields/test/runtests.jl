@@ -9,11 +9,12 @@ GAP.Packages.load("StandardFF")
     poly = GAP.Globals.StandardFiniteField(Int(p), n)
     poly = GAP.Globals.DefiningPolynomial(poly)
     poly = GAP.Globals.CoefficientsOfUnivariatePolynomial(poly)
-    poly = polynomial(GF(p), map(GF(p), Vector{GAP.FFE}(poly)))
+    k = Nemo.Native.GF(p)
+    poly = polynomial(k, map(k, Vector{GAP.FFE}(poly)))
   end
 
   function compare_poly(p, n)
-    F = GF(p)
+    F = Nemo.Native.GF(p)
     F.(collect(coefficients(MyPoly(p, n)))) == F.(collect(coefficients(GAPPoly(p, n))))
   end
 

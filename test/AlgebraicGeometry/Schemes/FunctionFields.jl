@@ -3,7 +3,7 @@
   @test is_irreducible(Spec(R))
   @test is_irreducible(Spec(R, ideal(R, x)))
   @test !is_irreducible(Spec(R, ideal(R, x*y)))
-  @test is_irreducible(Spec(Localization(R, units_of(R))[1]))
+  @test is_irreducible(Spec(localization(R, units_of(R))[1]))
   @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
@@ -25,8 +25,7 @@ end
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  S, _ = grade(R, [1, 1])
+  S, _ = graded_polynomial_ring(kk, ["s", "t"])
 
   base_P1 = ProjectiveScheme(S)
 
@@ -57,10 +56,10 @@ end
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 

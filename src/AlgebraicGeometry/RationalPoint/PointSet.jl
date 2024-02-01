@@ -24,7 +24,7 @@ function Base.show(io::IO, X::RationalPointSet)
   io = pretty(io)
   print(io, "Set of rational points ")
   print(io, "over " , Lowercase(), domain(X))
-  print(io, "of " , Lowercase(), codomain(X))
+  print(io, " of " , Lowercase(), codomain(X))
 end
 
 

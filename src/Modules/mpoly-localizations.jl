@@ -10,7 +10,7 @@
 
 
 function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check::Bool=true)
-  R = ambient_ring(U)
+  R = ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
 
   d = prod(denominators(U); init=one(R))
@@ -22,7 +22,7 @@ function has_nonempty_intersection(U::MPolyPowersOfElement, I::MPolyIdeal; check
 end
 
 function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal; check::Bool=true)
-  R = ambient_ring(U)
+  R = ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   P = prime_ideal(U)
   candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(f in P)]
@@ -40,7 +40,7 @@ function has_nonempty_intersection(U::MPolyComplementOfPrimeIdeal, I::MPolyIdeal
 end
 
 function has_nonempty_intersection(U::MPolyComplementOfKPointIdeal, I::MPolyIdeal; check::Bool=true)
-  R = ambient_ring(U)
+  R = ring(U)
   R == base_ring(I) || error("the multiplicative set and the ideal must be defined over the same ring")
   a = point_coordinates(U)
   candidates = [(f, i) for (f, i) in zip(gens(I), 1:ngens(I)) if !(iszero(evaluate(f, a)))]
@@ -59,7 +59,7 @@ end
 
 function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; check::Bool=true)
   J = I
-  R = ambient_ring(U) 
+  R = ring(U) 
   R == base_ring(I) || error("rings not compatible")
   Usets = sets(U)
   if length(Usets) == 1 
@@ -75,7 +75,7 @@ function has_nonempty_intersection(U::MPolyProductOfMultSets, I::MPolyIdeal; che
     return false, zero(R), zero_matrix(R, 1, ngens(I))
   end
   T = pre_saturation_data(Iloc)
-  Bext = transpose(mul(T, transpose(B)))
+  Bext = transpose(T * transpose(A))
   #Bext = A*T
   u = lcm(vec(denominator.(Bext)))
   B = map_entries(x->preimage(map_from_base_ring(Iloc), x), u*Bext)

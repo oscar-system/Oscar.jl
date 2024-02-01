@@ -67,7 +67,7 @@ julia> S, (s, t) = polynomial_ring(QQ, ["s", "t"]);
 
 julia> F = hom(A, S, [s, s^2, s^3])
 Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z)
+  from quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z)
   to multivariate polynomial ring in 2 variables over QQ
 defined by
   x -> s

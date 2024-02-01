@@ -60,14 +60,14 @@ the information that the intersection of $X$ and $Y$ is tangential in $(0,0)$.
 
 Therefore we have two methods
 - [`set_theoretic_intersection(::AbsAffineAlgebraicSet)`](@ref) which can be thought of as $X(K)\cap Y(K)$
-- [`intersection(::AbsAffineAlgebraicSet)`](@ref) which is the scheme theoretic intersection
+- [`intersect(::AbsAffineAlgebraicSet)`](@ref) which is the scheme theoretic intersection
 
 !!! note
     If a construction returns a scheme $Z$, but you want to ignore the scheme
     structure, call the function `algebraic_set(Z)` to convert the scheme
     $Z$ to an affine algebraic set.
 
-For example `algebraic_set(intersection(X, Y))`
+For example `algebraic_set(intersect(X, Y))`
 is equivalent to `set_theoretic_intersection(X, Y)`.
 
 Internally an `AffineAlgebraicSet` is constructed from a possibly
@@ -91,8 +91,8 @@ AbsAffineAlgebraicSet
 ## Constructors
 One can create an algebraic set from an ideal or a multivariate polynomial.
 ```@docs
-algebraic_set(I::MPolyIdeal{<:MPolyElem}; check::Bool=true)
-algebraic_set(f::MPolyElem; check::Bool=true)
+algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; check::Bool=true)
+algebraic_set(f::MPolyRingElem; check::Bool=true)
 ```
 Convert an affine scheme to an affine algebraic set in order to ignore
 its (non-reduced) scheme structure.

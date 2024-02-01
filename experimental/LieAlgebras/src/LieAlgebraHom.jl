@@ -45,7 +45,7 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:RingElement}
+function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:FieldElem}
   return (h.matrix)::dense_matrix_type(C2)
 end
 
@@ -255,7 +255,7 @@ julia> [(x, h(x)) for x in basis(L1)]
 """
 function hom(
   L1::LieAlgebra{C}, L2::LieAlgebra{C}, imgs::Vector{<:LieAlgebraElem{C}}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraHom(L1, L2, imgs; check)
 end
 
@@ -288,7 +288,7 @@ julia> [(x, h(x)) for x in basis(L1)]
 """
 function hom(
   L1::LieAlgebra{C}, L2::LieAlgebra{C}, mat::MatElem{C}; check::Bool=true
-) where {C<:RingElement}
+) where {C<:FieldElem}
   return LieAlgebraHom(L1, L2, mat; check)
 end
 
@@ -333,7 +333,7 @@ Lie algebra morphism
   to special linear Lie algebra of degree 3 over QQ
 ```
 """
-function zero_map(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:RingElement}
+function zero_map(L1::LieAlgebra{C}, L2::LieAlgebra{C}) where {C<:FieldElem}
   return hom(L1, L2, zero_matrix(coefficient_ring(L2), dim(L1), dim(L2)); check=false)
 end
 

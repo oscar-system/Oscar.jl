@@ -73,7 +73,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z
       over rational field
-    by ideal(x^3 - y^2*z)
+    by ideal (x^3 - y^2*z)
 
 julia> complement(A, Y)
 Open subset

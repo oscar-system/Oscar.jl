@@ -1,10 +1,10 @@
-Hecke.minpoly(a::qqbar) = minpoly(Hecke.Globals.Qx, a)
+Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
 
-function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
+function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   Qx = parent(k.pol)
-  function to_k(x::qqbar)
+  function to_k(x::QQBarFieldElem)
     if x == a
       return b
     end
@@ -13,8 +13,8 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
     pr = 10
     while true
       C = AcbField(pr)
-      ca = C(a)
-      lp = findall(i->contains_zero(Qx(i)(ca) - C(x)), r)
+      CalciumFieldElem = C(a)
+      lp = findall(i->contains_zero(Qx(i)(CalciumFieldElem) - C(x)), r)
       if length(lp) == 1
         return r[lp[1]]
       end
@@ -25,7 +25,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
       @assert pr < 2^16
     end
   end
-  function to_qqbar(x::nf_elem)
+  function to_qqbar(x::AbsSimpleNumFieldElem)
     return Qx(x)(a)
   end
   #TODO: make map canonical?
@@ -33,7 +33,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   return k, MapFromFunc(k, parent(a), to_qqbar, to_k)
 end
 
-Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
+Base.getindex(::QQField, a::QQBarFieldElem) = number_field(QQ, a)
 
 function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   g = parent()
@@ -41,7 +41,7 @@ function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Z
   return g
 end
 
-function cyclo_fixed_group_gens(a::nf_elem)
+function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
   C = parent(a)
   fl, f = Hecke.is_cyclotomic_type(C)
   @assert fl
@@ -112,7 +112,7 @@ function cyclo_fixed_group_gens(a::nf_elem)
   return gn
 end
 
-function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
+function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
   if length(A) == 0
     return [(1,1)]
   end

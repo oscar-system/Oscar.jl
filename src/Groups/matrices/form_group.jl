@@ -36,7 +36,7 @@ function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(vcat(M))
+   r,K = nullspace(reduce(vcat, M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -67,7 +67,7 @@ function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(vcat(M))
+   r,K = nullspace(reduce(vcat, M))
    
    return [matrix(F,n,n,[K[i,j] for i in 1:n^2]) for j in 1:r]
 end
@@ -100,7 +100,7 @@ function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(vcat(M))
+   r,K = nullspace(reduce(vcat, M))
    M = T[]
    for i in 1:r
       push!(M,upper_triangular_matrix(K[1:div(n*(n+1),2),i]))
@@ -155,7 +155,7 @@ function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
       push!(M,MM)
    end
 
-   r,K = nullspace(vcat(M))
+   r,K = nullspace(reduce(vcat, M))
 
    L = T[]
    for j in 1:r
@@ -373,7 +373,7 @@ function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
       end
    end
 
-   n_gens,K = nullspace(vcat(M))
+   n_gens,K = nullspace(reduce(vcat, M))
    N = div(n*(n-1),2)
    L = T[]
 
@@ -621,16 +621,21 @@ function isometry_group(f::SesquilinearForm{T}) where T
    Xf = is_congruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
-   if Xf==nothing && isodd(r)
+   if Xf === nothing && isodd(r)
       Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
    end
 
 
-   if f.descr==:hermitian G = GU(r,Int(characteristic(F)^div(degree(F),2)))
-   elseif f.descr==:alternating G = Sp(r, F)
-   elseif isodd(r) G = GO(0,r,F)
-   elseif witt_index(f)==div(r,2) G=GO(1,r,F)
-   else G=GO(-1,r,F)
+   if f.descr === :hermitian
+      G = GU(r,Int(characteristic(F)^div(degree(F),2)))
+   elseif f.descr === :alternating
+      G = Sp(r, F)
+   elseif isodd(r)
+      G = GO(0,r,F)
+   elseif 2*witt_index(f) == r
+      G = GO(1,r,F)
+   else
+      G = GO(-1,r,F)
    end
 
 # 2x2 block matrix. The four blocks are: group of isometries for fn,
@@ -664,58 +669,85 @@ function isometry_group(f::SesquilinearForm{T}) where T
 end
 
 """
-    isometry_group(L::AbstractLat) -> MatrixGroup
+    isometry_group(L::AbstractLat; depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
 
 Return the group of isometries of the lattice `L`.
 
 The transformations are represented with respect to the ambient space of `L`.
+
+Setting the parameters `depth` and `bacher_depth` to a positive value may improve
+performance. If set to `-1` (default), the used value of `depth` is chosen
+heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
 """
-@attr MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))} function isometry_group(L::Hecke.AbstractLat)
-   gens = Hecke.automorphism_group_generators(L)
-   G = matrix_group(gens)
-   return G
+function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int = 0)
+  get_attribute!(L, :isometry_group) do
+    gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
+    G = matrix_group(gens)
+    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
+  end
 end
 
-@attr MatrixGroup{QQFieldElem,QQMatrix} function isometry_group(L::ZZLat)
-  # corner case
-  if rank(L) == 0
-     return matrix_group(identity_matrix(QQ,degree(L)))
-  end
+@doc raw"""
+    isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0) -> MatrixGroup
 
-  if !is_definite(L) && (rank(L) == 2)
-    gene = automorphism_group_generators(L)
-    return matrix_group([change_base_ring(QQ, m) for m in gene])
-  end
+Given an integer lattice $L$ which is definite or of rank 2, return the
+isometry group $O(L)$ of $L$.
 
-  @req is_definite(L) "Lattice must be definite or of rank at most 2"
-  G, _ = _isometry_group_via_decomposition(L)
-  return G
+One can choose which algorithm to use to compute $O(L)$. For now, we
+only support the following algorithms:
+- `:direct`: compute generators of $O(L)$ using Plesken-Souvignier;
+- `:decomposition`: compute iteratively $O(L)$ by decomposing $L$ into
+  invariant sublattices.
+
+Setting the parameters `depth` and `bacher_depth` to a positive value may improve
+performance. If set to `-1` (default), the used value of `depth` is chosen
+heuristically depending on the rank of `L`. By default, `bacher_depth` is set to `0`.
+"""
+function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_depth::Int = 0)
+  get_attribute!(L, :isometry_group) do
+
+    # corner case
+    @req rank(L) <= 2 || is_definite(L) "Lattice must be definite or of rank at most 2"
+    if rank(L) == 0
+      G = matrix_group(identity_matrix(QQ,degree(L)))
+    end
+
+    if !is_definite(L) && (rank(L) == 2)
+      gene = automorphism_group_generators(L)
+      G = matrix_group(QQMatrix[change_base_ring(QQ, m) for m in gene])
+    end
+
+    if algorithm == :direct
+      gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
+      G = matrix_group(gens)
+    elseif algorithm == :decomposition
+      G, _ = _isometry_group_via_decomposition(L, depth = depth, bacher_depth = bacher_depth)
+    else
+      error("Unknown algorithm: for the moment, we support :direct or :decomposition")
+    end
+    return G::MatrixGroup{QQFieldElem, QQMatrix}
+  end
 end
 
 """
-    _isometry_group_via_decomposition(L::ZZLat) -> Tuple{MatrixGroup, Vector{QQMatrix}}
+    _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
 Compute the group of isometries of the definite lattice `L` using an orthogonal decomposition.
 """
-function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
+function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true, depth::Int = -1, bacher_depth::Int = 0)
   # TODO: adapt the direct decomposition approach for AbstractLat
   # in most examples `direct=true` seems to be faster by a factor of 7
   # but in some examples it is also slower ... up to a factor of 15
-  if gram_matrix(L)[1,1]<0
+  if gram_matrix(L)[1,1] < 0
     L = rescale(L, -1)
   end
   # construct the sublattice M1 of L generated by the shortest vectors
   V = ambient_space(L)
   # for simplicity we work with the ambient representation
   # TODO: Swap to action on vectors once Hecke 0.15.3 is released
-  _sv = shortest_vectors(L)
-  if eltype(_sv) === Vector{ZZRingElem}
-    sv = ZZMatrix[matrix(ZZ, 1, length(v), v) for v in _sv]
-  else
-    sv = _sv
-  end
+  sv = shortest_vectors(L)
   bL = basis_matrix(L)
-  sv1 = QQMatrix[v*bL for v in sv]
+  sv1 = Vector{QQFieldElem}[v*bL for v in sv]
   h = _row_span!(sv)*bL
   M1 = lattice(V, h)
   if closed
@@ -730,7 +762,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
   #=
   # the following is slower than computing the automorphism_group generators of
   # M1primitive outright
-  gensOM1 = Hecke.automorphism_group_generators(M1)
+  gensOM1 = automorphism_group_generators(M1, depth = depth, bacher_depth = bacher_depth)
   OM1 = matrix_group(gensOM1)
   if M1primitive == M1
     O1 = OM1
@@ -740,28 +772,28 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
     O1,_ = stabilizer(OM1, M1primitive, on_lattices)
   end
   =#
-  O1 = matrix_group(Hecke.automorphism_group_generators(M1primitive))
-  _set_nice_monomorphism!(O1, sv1, closed=closed)
+  O1 = matrix_group(automorphism_group_generators(M1primitive, depth = depth, bacher_depth = bacher_depth))
+  _set_nice_monomorphism!(O1, sv1; closed)
   if rank(M1) == rank(L)
     @hassert :Lattice 2 M1primitive == L
     return O1, sv1
   end
 
   # decompose as a primitive extension: M1primitive + M2 \subseteq L
-  M2 = Hecke.orthogonal_submodule(L, M1)
+  M2 = orthogonal_submodule(L, M1)
 
   @vprint :Lattice 3 "Computing orthogonal groups via an orthogonal decomposition\n"
   # recursion
-  O2, sv2 = _isometry_group_via_decomposition(M2, closed=closed,direct=direct)
+  O2, sv2 = _isometry_group_via_decomposition(M2; closed, direct, depth, bacher_depth)
 
 
   # In what follows we compute the stabilizer of L in O1 x O2
   if direct
-    gens12 = vcat(gens(O1),gens(O2))
+    gens12 = vcat(gens(O1), gens(O2))
     G = matrix_group(gens12)
     sv = append!(sv1, sv2)
     S,_ = stabilizer(G, L, on_lattices)
-    _set_nice_monomorphism!(S, sv, closed=closed)
+    _set_nice_monomorphism!(S, sv; closed)
     return S, sv
   end
 
@@ -783,38 +815,38 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true)
   # now we may alter sv1
   sv = append!(sv1, sv2)
 
-  G1q =  _orthogonal_group(H1, ZZMatrix[hom(H1, H1, TorQuadModuleElem[H1(lift(x) * matrix(g)) for x in gens(H1)]).map_ab.map for g in gens(G1)])
-  G2q =  _orthogonal_group(H2, ZZMatrix[hom(H2, H2, TorQuadModuleElem[H2(lift(x) * matrix(g)) for x in gens(H2)]).map_ab.map for g in gens(G2)])
+  G1q =  _orthogonal_group(H1, ZZMatrix[matrix(hom(H1, H1, TorQuadModuleElem[H1(lift(x) * matrix(g)) for x in gens(H1)])) for g in gens(G1)]; check = false)
+  G2q =  _orthogonal_group(H2, ZZMatrix[matrix(hom(H2, H2, TorQuadModuleElem[H2(lift(x) * matrix(g)) for x in gens(H2)])) for g in gens(G2)]; check = false)
 
-  psi1 = hom(G1, G1q, gens(G1q), check=false)
-  psi2 = hom(G2, G2q, gens(G2q), check=false)
+  psi1 = hom(G1, G1q, gens(G1q); check=false)
+  psi2 = hom(G2, G2q, gens(G2q); check=false)
   @vprint :Lattice 2 "Computing the kernel of $(psi1)\n"
   K = gens(kernel(psi1)[1])
   @vprint :Lattice 2 "Computing the kernel of $(psi2)\n"
   append!(K, gens(kernel(psi2)[1]))
   @vprint :Lattice 2 "Lifting \n"
 
-  T = _orthogonal_group(H1, [(phi * hom(g) * inv(phi)).map_ab.map for g in gens(G2q)])
-  S = _as_subgroup(G1q, GAP.Globals.Intersection(T.X, G1q.X))[1]
-  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi)) for g in gens(S)])
+  T = _orthogonal_group(H1, ZZMatrix[matrix(phi * hom(g) * inv(phi)) for g in gens(G2q)]; check = false)
+  S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(T.X, G1q.X))
+  append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi; check = false)) for g in gens(S)])
   G = matrix_group(matrix.(K))
-  @hassert :Lattice 2 all(on_lattices(L,g)==L for g in gens(G))
-  _set_nice_monomorphism!(G, sv, closed=closed)
+  @hassert :Lattice 2 all(on_lattices(L, g) == L for g in gens(G))
+  _set_nice_monomorphism!(G, sv; closed)
   @vprint :Lattice 2 "Done \n"
   return G, sv
 end
 
 function on_lattices(L::ZZLat, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   V = ambient_space(L)
-  return lattice(V, basis_matrix(L) * matrix(g), check=false)
+  return lattice(V, basis_matrix(L) * matrix(g); check=false)
 end
 
 """
-    on_matrix(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+    on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
 
 Return `x*g`.
 """
-function on_matrix(x, g::MatrixGroupElem{QQFieldElem,QQMatrix})
+function on_vector(x::Vector{QQFieldElem}, g::MatrixGroupElem{QQFieldElem,QQMatrix})
   return x*matrix(g)
 end
 
@@ -832,20 +864,20 @@ Setting `closed = true` assumes that `G` actually preserves `short_vectors`.
 """
 #
 function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
-  phi = action_homomorphism(gset(G, on_matrix, short_vectors, closed=closed))
+  phi = action_homomorphism(gset(G, on_vector, short_vectors; closed))
   GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
   GAP.Globals.SetIsHandledByNiceMonomorphism(G.X, true)
   GAP.Globals.SetNiceMonomorphism(G.X, phi.map)
 end
 
-function _row_span!(L::Vector{ZZMatrix})
+function _row_span!(L::Vector{Vector{ZZRingElem}})
   l = length(L)
-  d = ncols(L[1])
+  d = length(L[1])
   m = min(2*d,l)
-  B = sparse_matrix(reduce(vcat, L[1:m]))
-  h = matrix(hnf(B, truncate = true))
+  B = sparse_matrix(matrix(ZZ, m, d, reduce(vcat, L[1:m])))
+  h = matrix(hnf(B; truncate = true))
   for i in (m+1):l
-    b = L[i]
+    b = matrix(ZZ, 1, d, L[i])
     Hecke.reduce_mod_hnf_ur!(b, h)
     if iszero(b)
       continue
@@ -857,12 +889,11 @@ function _row_span!(L::Vector{ZZMatrix})
   return h[1:rank(h),:]
 end
 
-automorphism_group(L::Hecke.AbstractLat) = isometry_group(L)
+automorphism_group(L::Hecke.AbstractLat; kwargs...) = isometry_group(L; kwargs...)
 
-orthogonal_group(L::Hecke.ZZLat) = isometry_group(L)
+orthogonal_group(L::Hecke.ZZLat; kwargs...) = isometry_group(L; kwargs...)
 
-orthogonal_group(L::Hecke.QuadLat) = isometry_group(L)
+orthogonal_group(L::Hecke.QuadLat; kwargs...) = isometry_group(L; kwargs...)
 
-unitary_group(L::Hecke.HermLat) = isometry_group(L)
-
+unitary_group(L::Hecke.HermLat; kwargs...) = isometry_group(L; kwargs...)
 

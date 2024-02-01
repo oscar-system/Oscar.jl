@@ -1,23 +1,87 @@
-
 ################################################################################
 #
 #  All Monomials
 #
 ################################################################################
 
-# Return an iterator over all monomials of R of degree d
-all_monomials(R::MPolyRing, d::Int) = AllMonomials(R, d)
+@doc raw"""
+    monomials_of_degree(R::MPolyRing, d::Int)
+    monomials_of_degree(R::MPolyRing, d::Int, vars::Vector{Int})
+    monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int})
+
+Return an iterator over all monomials in `R` of degree `d`.
+An additional vector or range of integers may be given to specify a subset of
+variables of `R` to be used.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = QQ["x", "y", "z"];
+
+julia> collect(monomials_of_degree(R, 3))
+10-element Vector{QQMPolyRingElem}:
+ x^3
+ x^2*y
+ x^2*z
+ x*y^2
+ x*y*z
+ x*z^2
+ y^3
+ y^2*z
+ y*z^2
+ z^3
+
+julia> sum(monomials_of_degree(R, 4, 1:2))
+x^4 + x^3*y + x^2*y^2 + x*y^3 + y^4
+
+julia> sum(monomials_of_degree(R, 4, [1, 3]))
+x^4 + x^3*z + x^2*z^2 + x*z^3 + z^4
+```
+"""
+monomials_of_degree
+
+monomials_of_degree(R::MPolyRing, d::Int) = AllMonomials(R, d)
+monomials_of_degree(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials(R, d, vars)
+monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int}) = AllMonomials(R, d, collect(r))
 
 AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
+AllMonomials(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials{typeof(R)}(R, d, vars)
+
+function AllMonomials(R::MPolyDecRing, d::Int)
+  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
+  return AllMonomials{typeof(R)}(R, d)
+end
+
+function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
+  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
+  return AllMonomials{typeof(R)}(R, d, vars)
+end
 
 Base.eltype(AM::AllMonomials) = elem_type(AM.R)
 
 # We are basically doing d-multicombinations of n here and those are "the same"
 # as d-combinations of n + d - 1 (according to Knuth).
-Base.length(AM::AllMonomials) = binomial(nvars(AM.R) + AM.d - 1, AM.d)
+Base.length(AM::AllMonomials) = binomial(AM.n_vars + AM.d - 1, AM.d)
+
+function _build_monomial(AM::AllMonomials, c::Vector{Int})
+  if AM.on_all_vars
+    return set_exponent_vector!(one(AM.R), 1, c)
+  end
+
+  for i in 1:AM.n_vars
+    AM.tmp[AM.used_vars[i]] = c[i]
+  end
+  f = set_exponent_vector!(one(AM.R), 1, AM.tmp)
+  for i in 1:AM.n_vars
+    AM.tmp[AM.used_vars[i]] = 0
+  end
+  return f
+end
 
 function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
-  n = nvars(AM.R)
+  n = AM.n_vars
+  if n == 0
+    return nothing
+  end
   if AM.d == 0
     s = zeros(Int, n)
     s[n] = AM.d + 1
@@ -29,16 +93,16 @@ function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
   s = zeros(Int, n)
   if isone(n)
     s[1] = AM.d + 1
-    return (set_exponent_vector!(one(AM.R), 1, c), s)
+    return (_build_monomial(AM, c), s)
   end
 
   s[1] = AM.d - 1
   s[2] = 1
-  return (set_exponent_vector!(one(AM.R), 1, c), s)
+  return (_build_monomial(AM, c), s)
 end
 
 function Base.iterate(AM::AllMonomials, s::Vector{Int})
-  n = nvars(AM.R)
+  n = AM.n_vars
   d = AM.d
   if s[n] == d + 1
     return nothing
@@ -46,7 +110,7 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
   c = copy(s)
   if s[n] == d
     s[n] += 1
-    return (set_exponent_vector!(one(AM.R), 1, c), s)
+    return (_build_monomial(AM, c), s)
   end
 
   for i = n - 1:-1:1
@@ -61,14 +125,25 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
           s[n] = 0
         end
       end
-      return (set_exponent_vector!(one(AM.R), 1, c), s)
+      return (_build_monomial(AM, c), s)
     end
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
+  io = pretty(io)
+  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
+end
+
 function Base.show(io::IO, AM::AllMonomials)
-  println(io, "Iterator over the monomials of degree $(AM.d) of")
-  print(io, AM.R)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the monomials of degree $(AM.d) of")
+    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+  end
 end
 
 ################################################################################
@@ -110,7 +185,7 @@ all at once when calling the function.
 See also [`basis`](@ref).
 
 # Examples
-```
+```jldoctest
 julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
@@ -125,23 +200,19 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> B = iterate_basis(IR, 6)
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of G
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -153,23 +224,19 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
-with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> B = iterate_basis(IR, 2)
-Iterator over a basis of the component of degree 2 of
-Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
-with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Iterator over a basis of the component of degree 2
+  of invariant ring of G
 
 julia> collect(B)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 ```
@@ -226,7 +293,7 @@ This function is only implemented in the case of characteristic zero.
 See also [`basis`](@ref).
 
 # Examples
-```
+```jldoctest
 julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
@@ -238,15 +305,12 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of G
 relative to a character
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -259,14 +323,11 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
-Iterator over a basis of the component of degree 3 of
-Invariant ring of
-Sym( [ 1 .. 2 ] )
-with generators
-PermGroupElem[(1,2)]
+Iterator over a basis of the component of degree 3
+  of invariant ring of S2
 relative to a character
 
 julia> collect(B)
@@ -290,7 +351,7 @@ function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunc
     reynolds = nothing
   end
 
-  monomials = all_monomials(polynomial_ring(R), d)
+  monomials = monomials_of_degree(polynomial_ring(R), d)
 
   k = dimension_via_molien_series(Int, R, d, chi)
   @assert k != -1
@@ -310,15 +371,15 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if k == 0
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
-    dummy_mons = all_monomials(R, 0)
+    dummy_mons = monomials_of_degree(R, 0)
     return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
   end
 
-  mons_iterator = all_monomials(R, d)
+  mons_iterator = monomials_of_degree(R, d)
   mons = collect(mons_iterator)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
-    dummy_mons = all_monomials(R, 0)
+    dummy_mons = monomials_of_degree(R, 0)
     return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
   end
 
@@ -358,12 +419,23 @@ Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
 Base.length(BI::InvRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
-  println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
-  print(io, BI.R)
+function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
+  io = pretty(io)
+  println(io, "Iterator over a basis of the component of degree $(BI.degree)")
+  print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
   if BI.reynolds_operator !== nothing
     # We don't save the character in the iterator unfortunately
     print(io, "\nrelative to a character")
+  end
+end
+
+function Base.show(io::IO, BI::InvRingBasisIterator)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over a graded component of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
   end
 end
 
@@ -404,7 +476,9 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     if iszero(g)
       continue
     end
-    g = inv(leading_coefficient(g))*g
+    # Cancelling the leading coefficient is not mathematically necessary and
+    # should be done with the ordering that is used for the printing
+    g = inv(AbstractAlgebra.leading_coefficient(g))*g
     B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ])
     return g, (B, state)
   end
@@ -437,7 +511,9 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     end
 
     if add_to_basis!(B, g)
-      return inv(leading_coefficient(g))*g, (B, monomial_state)
+      # Cancelling the leading coefficient is not mathematically necessary and
+      # should be done with the ordering that is used for the printing
+      return inv(AbstractAlgebra.leading_coefficient(g))*g, (B, monomial_state)
     end
   end
 end
@@ -459,7 +535,9 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
   # Have to (should...) divide by the leading coefficient again:
   # The matrix was in echelon form, but the columns were not necessarily sorted
   # w.r.t. the monomial ordering.
-  return inv(leading_coefficient(f))*f, 2
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  return inv(AbstractAlgebra.leading_coefficient(f))*f, 2
 end
 
 function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
@@ -476,7 +554,9 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
     end
     f += N[i, state]*BI.monomials_collected[i]
   end
-  return inv(leading_coefficient(f))*f, state + 1
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  return inv(AbstractAlgebra.leading_coefficient(f))*f, state + 1
 end
 
 ################################################################################
@@ -485,7 +565,7 @@ end
 #
 ################################################################################
 
-function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField}, IteratorT}
+function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField, FqField}, IteratorT}
   return VectorSpaceIteratorFiniteField(K, basis_iterator)
 end
 

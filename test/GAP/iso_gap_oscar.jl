@@ -19,7 +19,7 @@
     x = GAP.Globals.ZmodnZObj(1, GAP.Obj(n2))
     @test_throws ErrorException iso(x)
     @test_throws ErrorException image(iso, x)
-    @test_throws ErrorException preimage(iso, one(residue_ring(ZZ, n2)))
+    @test_throws ErrorException preimage(iso, one(residue_ring(ZZ, n2)[1]))
   end
 end
 

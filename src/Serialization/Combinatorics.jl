@@ -14,8 +14,8 @@ function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed,
 end
 
 
-function load_object(s::DeserializerState, g::Type{Graph{T}}, dict::Dict) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
   return g(smallobj)
 end
 
@@ -30,8 +30,8 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
   save_data_json(s, jsonstr)
 end
 
-function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix}, dict::Dict)
-  IM = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
+  IM = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
   return IM
 end
 
@@ -45,7 +45,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
   save_object(s, pm_object(K))
 end
 
-function load_object(s::DeserializerState, K::Type{SimplicialComplex}, dict::Dict)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+function load_object(s::DeserializerState, K::Type{SimplicialComplex})
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
   return K(bigobject)
 end

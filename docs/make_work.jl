@@ -7,6 +7,7 @@ module BuildDoc
 using Documenter, DocumenterCitations
 
 include("documenter_helpers.jl")
+include("citation_style.jl")
 
 # Overwrite printing to make the header not full of redundant nonsense
 # Turns
@@ -110,7 +111,7 @@ end
 
 function doit(
   Oscar::Module;
-  strict::Bool=true,
+  warnonly=false,
   local_build::Bool=false,
   doctest::Union{Bool,Symbol}=true,
 )
@@ -135,7 +136,7 @@ function doit(
 
   # Load the bibliography
   bib = CitationBibliography(
-    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); sorting=:nyt
+    joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
   # Copy documentation from Hecke, Nemo, AnstratAlgebra
@@ -181,16 +182,23 @@ function doit(
       Documenter.doctest(Oscar, fix = doctest === :fix)
     end
 
-    makedocs(
-      bib;
-      format=Documenter.HTML(; prettyurls=!local_build, collapselevel=1),
+    makedocs(;
+      format=Documenter.HTML(;
+        prettyurls=!local_build,
+        collapselevel=1,
+        size_threshold=409600,
+        size_threshold_warn=204800,
+        size_threshold_ignore=["manualindex.md"],
+      ),
       sitename="Oscar.jl",
       modules=[Oscar, Oscar.Hecke, Oscar.Nemo, Oscar.AbstractAlgebra, Oscar.Singular],
       clean=true,
       doctest=false,
-      strict=strict,
+      warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
+      remotes=nothing,  # TODO: make work with Hecke, Nemo, AbstractAlgebra, see https://github.com/oscar-system/Oscar.jl/issues/588
+      plugins=[bib],
     )
   end
 

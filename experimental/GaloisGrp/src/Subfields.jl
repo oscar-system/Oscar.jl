@@ -291,7 +291,7 @@ end
 # van Hoeij, Novacin, Klueners
 ###################################
 
-function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
+function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   Zx = Hecke.Globals.Zx
 
   f = Zx(mapreduce(denominator, lcm, coefficients(defining_polynomial(K)), init = ZZRingElem(1))*defining_polynomial(K))
@@ -367,7 +367,7 @@ function _subfields(K::AnticNumberField; pStart = 2*degree(K)+1, prime = 0)
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the 
         #      van Hoeij factoring)
-        @time r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
+        @time r, M = lll_with_removal(M, B, LLLContext(0.501, 0.75))
         M = M[1:r, :]
         @show r, i, pr
 

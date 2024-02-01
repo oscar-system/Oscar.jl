@@ -36,7 +36,7 @@ end
 function syz(A::MatrixElem{<:MPolyQuoLocRingElem})
   B, D = clear_denominators(A)
   L = syz(vcat(B, modulus_matrix(base_ring(A), ncols(B))))
-  return map_entries(base_ring(A), transpose(mul(transpose(D), transpose(L[:,1:nrows(D)]))))
+  return map_entries(base_ring(A), transpose(transpose(D) * transpose(L[:,1:nrows(D)])))
 end
 
 function ann(b::MatrixType, A::MatrixType) where {T<:MPolyQuoLocRingElem, MatrixType<:MatrixElem{T}}
@@ -65,7 +65,7 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingEle
   # Now [y z]⋅B = v⋅c ⇔ [y z]⋅D ⋅Aext = v ⋅ u ⋅ b ⇔ v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D ⋅ Aext = b.
   # Take v⁻¹ ⋅ u⁻¹ ⋅ [y z] ⋅ D to be the solution x of x ⋅ Aext = b. 
   # Then for the first m components x' of x we have x' ⋅ A ≡ b mod I
-  x = S(one(R), v*u[1,1])*map_entries(S, transpose(mul(transpose(D), transpose(y))))
+  x = S(one(R), v*u[1,1])*map_entries(S, transpose(transpose(D) * transpose(y)))
   #x = S(one(R), v*u[1,1])*map_entries(S, y*D)
   xpart = zero_matrix(S, 1, nrows(A))
   for i in 1:nrows(A)
@@ -118,8 +118,8 @@ function kernel(
   ffb = compose(fb, p)
   Kb, incb = kernel(ffb)
   Cb = representing_matrix(incb)
-  C = change_base_ring(S, transpose(mul(transpose(D), transpose(Cb))))
-  C = change_base_ring(S, transpose(mul(transpose(D), transpose(Cb))))
+  C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
+  C = change_base_ring(S, transpose(transpose(D) * transpose(Cb)))
   #C = change_base_ring(S, Cb*D)
   K, inc = sub(domain(f), C)
   return K, inc

@@ -27,11 +27,11 @@ julia> R, (x,y) = GF(2)[:x,:y];
 julia> X = algebraic_set(ideal([y^2+y+x^3+1,x]))
 Affine algebraic set
   in affine 2-space over GF(2) with coordinates [x, y]
-defined by ideal(x^3 + y^2 + y + 1, x)
+defined by ideal (x^3 + y^2 + y + 1, x)
 
 ```
 """
-function algebraic_set(I::MPolyIdeal{<:MPolyElem}; is_radical::Bool=false, check::Bool=true)
+function algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; is_radical::Bool=false, check::Bool=true)
   X = Spec(base_ring(I), I)
   return algebraic_set(X, is_reduced=is_radical, check=check)
 end
@@ -47,18 +47,18 @@ julia> R, (x,y) = QQ[:x,:y];
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
+defined by ideal (x^5 + x^2*y^2 + x^2*y + x^2)
 
 julia> R, (x,y) = GF(2)[:x,:y];
 
 julia> X = algebraic_set((y^2+y+x^3+1)*x^2)
 Affine algebraic set
   in affine 2-space over GF(2) with coordinates [x, y]
-defined by ideal(x^5 + x^2*y^2 + x^2*y + x^2)
+defined by ideal (x^5 + x^2*y^2 + x^2*y + x^2)
 
 ```
 """
-function algebraic_set(p::MPolyRingElem, is_radical::Bool =false, check::Bool=true)
+function algebraic_set(p::MPolyRingElem; is_radical::Bool =false, check::Bool=true)
   I = ideal(parent(p), p)
   return algebraic_set(I, check=check, is_radical=is_radical)
 end
@@ -86,17 +86,17 @@ julia> (x, y) = coordinates(A)
 julia> X = algebraic_set(ideal([y - x^2]))
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(-x^2 + y)
+defined by ideal (-x^2 + y)
 
 julia> Y = algebraic_set(ideal([y]))
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(y)
+defined by ideal (y)
 
 julia> Zred = set_theoretic_intersection(X, Y)
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(-x^2 + y, y)
+defined by ideal (-x^2 + y, y)
 
 
 ```
@@ -109,7 +109,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^2 - y, y)
+    by ideal (x^2 - y, y)
 
 julia> Zred == Z
 false
@@ -121,6 +121,11 @@ true
 """
 function set_theoretic_intersection(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
   Z = intersect(fat_scheme(X), fat_scheme(Y))
+  return algebraic_set(Z)
+end
+
+function union(X::AbsAffineAlgebraicSet, Y::AbsAffineAlgebraicSet)
+  Z = union(fat_scheme(X), fat_scheme(Y))
   return algebraic_set(Z)
 end
 

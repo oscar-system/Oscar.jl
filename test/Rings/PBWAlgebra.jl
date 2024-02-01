@@ -179,7 +179,7 @@ end
 
   r, (a, h, f, e) = QQ["a", "h", "f", "e"]
   rel = @pbw_relations(e*f == f*e-h, e*h == h*e+2*e, f*h == h*f-2*f)
-  for o in [revlex(r), deglex(r)]
+  for o in [invlex(r), deglex(r)]
     R, (a, h, f, e) = pbw_algebra(r, rel, o)
     I = right_ideal([e^3, f^3, h^3-4*h, 4*f*e+h^2-2*h-a])
     @test eliminate(I, [e, f, h]) == right_ideal([a^3 - 32*a^2 + 192*a])

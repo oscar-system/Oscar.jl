@@ -11,7 +11,7 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
   
   # This method only works if the model is defined over a toric variety over toric scheme
-  @req typeof(base_space(model)) <: NormalToricVariety "Analysis of fibers currently only supported for toric scheme/variety as base space"
+  @req base_space(model) isa NormalToricVariety "Analysis of fibers currently only supported for toric variety as base space"
   
   # Ideal of the defining polynomial
   hypersurface_ideal = ideal([tate_polynomial(model)])
@@ -69,4 +69,109 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   
   return loci_fiber_intersections
 
+end
+
+
+#####################################################
+# 2: Tune a Tate model
+#####################################################
+
+@doc raw"""
+    tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+
+Tune a Tate model by fixing a special choice for the model sections.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => x1^8
+  "a1" => x1^4
+
+julia> tuned_t = tune(t, my_choice)
+Global Tate model over a concrete base
+
+julia> tate_section_a1(tuned_t) == x1^4
+true
+```
+"""
+function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+  # Consistency checks
+  @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
+  isempty(input_sections) && return t
+  secs_names = collect(keys(explicit_model_sections(t)))
+  tuned_secs_names = collect(keys(input_sections))
+  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+
+  # 0. Prepare for computation by setting up some information
+  explicit_secs = deepcopy(explicit_model_sections(t))
+  def_secs_param = deepcopy(defining_section_parametrization(t))
+  tate_sections = ["a1", "a2", "a3", "a4", "a6"]
+
+  # 1. Tune model sections different from Tate sections
+  for x in setdiff(tuned_secs_names, tate_sections)
+    section_parent = parent(input_sections[x])
+    section_degree = degree(input_sections[x])
+    @req section_parent == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
+    @req section_degree == degree(explicit_model_sections(t)[x]) "Degree mismatch between given and existing model section"
+    explicit_secs[x] = input_sections[x]
+  end
+
+  # 2. Use model sections to reevaluate the Tate sections via their known parametrization
+  parametrization_keys = collect(keys(def_secs_param))
+  if !isempty(parametrization_keys) && !isempty(secs_names)
+    R = parent(def_secs_param[parametrization_keys[1]])
+    S = parent(explicit_secs[secs_names[1]])
+    vars = [string(k) for k in gens(R)]
+    images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+    map = hom(R, S, images)
+    for section in tate_sections
+      haskey(def_secs_param, section) && (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
+    end
+  end
+
+  # 3. Does the user want to set some Tate sections? If so, overwrite existing choice with desired value.
+  for sec in tate_sections
+    if haskey(input_sections, sec)
+      @req parent(input_sections[sec]) == parent(explicit_model_sections(t)[sec]) "Parent mismatch between given and existing Tate section"
+      @req degree(input_sections[sec]) == degree(explicit_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
+      explicit_secs[sec] = input_sections[sec]
+      delete!(def_secs_param, sec)
+    end
+  end
+
+  # 4. There could be unused model sections...
+  if !isempty(parametrization_keys)
+    polys = [eval_poly(string(def_secs_param[section]), R) for section in tate_sections if haskey(def_secs_param, section)]
+    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
+    all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
+    potentially_redundant_sections = gens(R)
+    for k in 1:length(potentially_redundant_sections)
+      string(potentially_redundant_sections[k]) in tate_sections && continue
+      is_used = any(all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents))
+      is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
+    end
+  end
+  
+  # 5. Build the new model
+  return global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
 end

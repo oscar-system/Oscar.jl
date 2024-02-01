@@ -1,36 +1,23 @@
-###
-# Tropical hypersurfaces in Oscar
-###
-
-################################################################################
+###############################################################################
 #
-#  Definition
+#  Tropical hypersurfaces
+#  ======================
+#  concrete subtype of TropicalVarietySupertype in variety_supertype.jl
 #
-################################################################################
+###############################################################################
 
-# We use M to record whether we are in the min/max case
-# M is either typeof(min) or typeof(max)
-# We use EMB to record whether the hypersurface is embedded or abstract
-# EMB is either true or false:
-#   embedded tropical variety = weighted polyhedral complex in euclidean space
-#   abstract tropical variety = weighted hypergraph with enumerated vertices
-
-@attributes mutable struct TropicalHypersurface{M,EMB} <: TropicalVarietySupertype{M,EMB}
+@attributes mutable struct TropicalHypersurface{minOrMax,isEmbedded} <: TropicalVarietySupertype{minOrMax,isEmbedded}
     polyhedralComplex::PolyhedralComplex
-    function TropicalHypersurface{M,EMB}(Sigma::PolyhedralComplex) where {M,EMB}
-        if codim(Sigma)!=1
-            error("TropicalHypersurface: input polyhedral complex not one-codimensional")
-        end
-        return new{M,EMB}(Sigma)
+    multiplicities::Vector{ZZRingElem}
+
+    # tropical hypersurfaces need to be embedded
+    function TropicalHypersurface{minOrMax,true}(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingElem}) where {minOrMax<:Union{typeof(min),typeof(max)}}
+        @req codim(Sigma)==1 "input polyhedral complex not one-codimensional"
+        return new{minOrMax,true}(Sigma,multiplicities)
     end
 end
 
-function pm_object(T::TropicalHypersurface)
-    if has_attribute(T,:polymake_bigobject)
-        return get_attribute(T,:polymake_bigobject)
-    end
-    error("pm_object(T::TropicalHypersurface): Has no polymake bigobject")
-end
+
 
 ################################################################################
 #
@@ -38,241 +25,240 @@ end
 #
 ################################################################################
 
-
-function Base.show(io::IO, th::TropicalHypersurface{M, EMB}) where {M, EMB}
-    if EMB
-        print(io, "$(repr(M)) tropical hypersurface embedded in $(ambient_dim(th))-dimensional Euclidean space")
-    else
-        print(io, "Abstract $(repr(M)) tropical hypersurface of dimension $(dim(th))")
-    end
+function Base.show(io::IO, th::TropicalHypersurface{typeof(min),true})
+    print(io, "Min tropical hypersurface")
+end
+function Base.show(io::IO, th::TropicalHypersurface{typeof(max),true})
+    print(io, "Max tropical hypersurface")
 end
 
+
+
 ################################################################################
 #
-#  Constructors for tropical hypersurfaces
+#  Constructors
 #
 ################################################################################
+
+function tropical_hypersurface(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
+    return TropicalHypersurface{typeof(minOrMax),true}(Sigma,mult)
+end
+
+
+function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
+    @req codim(TropV)==1 "tropical variety codimension not one"
+    @req is_pure(TropV) "tropical variety not pure"
+    return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
+end
+
+# Decompose a tropical polynomial into parts that Polymake can eat.
+# First function deals with the coefficients,
+# Second function then deals with the entire polynomial.
+function homogenize_and_convert_to_pm(t::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(max), typeof(min)}}
+   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
+   if isinf(t)
+      return Polymake.TropicalNumber{Add}()
+   else
+      return Polymake.TropicalNumber{Add}(Polymake.new_rational_from_fmpq(data(t)))
+   end
+end
+
+function homogenize_and_convert_to_pm(f::Oscar.MPolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(max), typeof(min)}}
+   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
+   coeffs = Polymake.TropicalNumber{Add}[]
+   td = total_degree(f)
+   exps = Vector{Int}[]
+   for (c,alpha) in zip(coefficients(f),exponents(f))
+      push!(coeffs, homogenize_and_convert_to_pm(c))
+      prepend!(alpha, td-sum(alpha))
+      push!(exps, alpha)
+   end
+   exps = matrix(ZZ, exps)
+   coeffs = Polymake.Vector{Polymake.TropicalNumber{Add, Polymake.Rational}}(coeffs)
+   return coeffs, exps
+end
 
 @doc raw"""
-    TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}})
+    tropical_hypersurface(f::MPolyRingElem{<:TropicalSemiringElem}, weighted_polyhedral_complex_only::Bool=false)
 
-Return the tropical hypersurface of a tropical polynomial `f`.
+Return the tropical hypersurface of the tropical polynomial `f`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 ```jldoctest
-julia> T = TropicalSemiring(min)
-Tropical semiring (min)
+julia> T = tropical_semiring()
+Min tropical semiring
 
-julia> Txy,(x,y) = T["x","y"]
-(Multivariate polynomial ring in 2 variables over tropical semiring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
+julia> R,(x,y) = T["x","y"];
 
 julia> f = x+y+1
 x + y + (1)
 
-julia> Tf = TropicalHypersurface(f)
-min tropical hypersurface embedded in 2-dimensional Euclidean space
+julia> tropical_hypersurface(f)
+Min tropical hypersurface
+
 ```
 """
-function TropicalHypersurface(f::AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{T}}) where T
-    if total_degree(f) <= 0
-        error("Tropical hypersurfaces of constant polynomials not supported.")
-    end
-    M = convention(base_ring(f))
+function tropical_hypersurface(f::MPolyRingElem{<:TropicalSemiringElem}; weighted_polyhedral_complex_only::Bool=false)
+    @req total_degree(f)>0 "polynomial needs to be non-constant"
+
+    # Construct hypersurface in polymake
+    minOrMax = convention(f)
     coeffs, exps = homogenize_and_convert_to_pm(f)
-    pmhypproj = Polymake.tropical.Hypersurface{M}(MONOMIALS=exps, COEFFICIENTS=coeffs)
+    pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
-    Vf = TropicalHypersurface{M, true}(polyhedral_complex(pmhyp))
-    w = pmhypproj.WEIGHTS
-    set_attribute!(Vf,:polymake_bigobject,pmhypproj)
-    set_attribute!(Vf,:tropical_polynomial,f)
-    set_attribute!(Vf,:weights,w)
-    return Vf
+
+    # Convert to Oscar objects
+    polyhedralComplex = polyhedral_complex(pmhyp)
+    multiplicities = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
+
+    TropH = tropical_hypersurface(polyhedralComplex,multiplicities,minOrMax)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropH,:polymake_bigobject,pmhypproj)
+        set_attribute!(TropH,:tropical_polynomial,f)
+    end
+    return TropH
 end
 
-# @doc raw"""
-#     tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
-#                               AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
-
-# Return the tropical variety defined by a tropical polynomial in form of a TropicalHypersurface
-
-# # Examples
-# ```jldoctest
-# julia> T = TropicalSemiring(min)
-# Tropical ring (min)
-
-# julia> Txy,(x,y) = T["x","y"]
-# (Multivariate Polynomial Ring in x, y over Tropical ring (min), AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}}[x, y])
-
-# julia> f = x+y+1
-# x + y + (1)
-
-# julia> Tf = TropicalHypersurface(f)
-# A min tropical hypersurface embedded in 2-dimensional Euclidean space
-# ```
-# """
-# function tropical_variety(f::Union{AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(min)}},
-#                                    AbstractAlgebra.Generic.MPoly{Oscar.TropicalSemiringElem{typeof(max)}}})
-#     return TropicalHypersurface(f)
-# end
 
 @doc raw"""
-    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
+    tropical_hypersurface(f::MPolyRingElem, val::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
 
-Given a polynomial `f` over a field with an intrinsic valuation (i.e., a field
-on which a function `valuation` is defined such as `PadicField(7,2)`),
-return the tropical hypersurface of `f` under the convention specified by `M`.
+Return the tropical hypersurface of the tropical polynomial that is the image of `f` under coefficient-wise `val`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 ```jldoctest
-julia> K = PadicField(7, 2);
+julia> R,(x,y) = QQ["x","y"];
 
-julia> Kxy, (x,y) = K["x", "y"]
-(Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+julia> val = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
-julia> f = 7*x+y+49;
+julia> f = x+y+2
+x + y + 2
 
-julia> TropicalHypersurface(f, min)
-min tropical hypersurface embedded in 2-dimensional Euclidean space
+julia> tropical_hypersurface(f,val)
+Min tropical hypersurface
 
-julia> TropicalHypersurface(f, max)
-max tropical hypersurface embedded in 2-dimensional Euclidean space
 ```
 """
-function TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
-    tropf = tropical_polynomial(f,M)
-    Tf = TropicalHypersurface(tropf)
-    w = pm_object(Tf).WEIGHTS
-    set_attribute!(Tf,:algebraic_polynomial,f)
-    set_attribute!(Tf,:tropical_polynomial,tropf)
-    set_attribute!(Tf,:weights,w)
-    return Tf
+function tropical_hypersurface(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing;
+                               weighted_polyhedral_complex_only::Bool=false)
+    # initialise nu as the trivial valuation if not specified by user
+    isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(f)))
+
+    tropf = tropical_polynomial(f,nu)
+    TropH = tropical_hypersurface(tropf,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropH,:algebraic_polynomial,f)
+        set_attribute!(TropH,:tropical_semiring_map,nu)
+    end
+    return TropH
 end
 
-@doc raw"""
-    TropicalHypersurface(f::MPolyRingElem,M::Union{typeof(min),typeof(max)}=min)
 
-Construct the tropical hypersurface from a polynomial `f` and a map to the
-tropical semiring `val`.
+@doc raw"""
+    tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min; weighted_polyhedral_complex_only::Bool=false)
+
+Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax` using the minimal weights that give rise to it.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+!!! warning
+    There is a known bug when the subdivision is too easy, e.g., see example below.
 
 # Examples
 ```jldoctest
-julia> Kx, (x1,x2) = polynomial_ring(QQ,2)
-(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
+julia> Delta = subdivision_of_points(simplex(2),[0,0,1])
+Subdivision of points in ambient dimension 2
 
-julia> val = TropicalSemiringMap(QQ,7)
-The 7-adic valuation on Rational field
-
-julia> f = 7*x1+x2+49;
-
-julia> TropicalHypersurface(f, val)
-min tropical hypersurface embedded in 2-dimensional Euclidean space
+julia> # tropical_hypersurface(Delta) # issue 2628
 ```
 """
-function TropicalHypersurface(f::MPolyRingElem, val::TropicalSemiringMap)
-    tropf = tropical_polynomial(f,val)
-    Tf = TropicalHypersurface(tropf)
-    w = pm_object(Tf).WEIGHTS
-    set_attribute!(Tf,:algebraic_polynomial,f)
-    set_attribute!(Tf,:tropical_polynomial,tropf)
-    set_attribute!(Tf,:weights,w)
-    return Tf
+function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min;
+                               weighted_polyhedral_complex_only::Bool=false)
+
+    PMinOrMax =  (minOrMax==typeof(min)) ? Polymake.Min : Polymake.Max
+    coeffs = Polymake.TropicalNumber{PMinOrMax}.(Polymake.new_integer_from_fmpz.(min_weights(Delta)))
+    exps = ZZ.(matrix(QQ,points(Delta)))
+    pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
+    pmhyp = Polymake.tropical.affine_chart(pmhypproj)
+
+    # Convert to Oscar objects
+    polyhedralComplex = polyhedral_complex(pmhyp)
+    multiplicities = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
+
+    TropH = tropical_hypersurface(polyhedralComplex,multiplicities,minOrMax)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropH,:polymake_object,pmhypproj)
+        set_attribute!(TropH,:subdivision_of_points,Delta)
+        set_attribute!(TropH,:convention,minOrMax)
+    end
+    return TropH
 end
 
 
-# @doc raw"""
-#     tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
-
-# Return the tropical variety of an algebraic polynomial in the form of a TropicalHypersurface.
-# If M=min, the tropical hypersurface will obey the min-convention.
-# If M=max, the tropical hypersurface will obey the max-convention.
-# If coefficient ring has a valuation, the tropical hypersurface will be constructed with respect to it.
-# If coefficient ring has no valuation, the tropical hypersurface will be constructed with respect to the trivial valuation.
-# The function is the same as TropicalHypersurface{M}(f).
-
-# # Examples
-# julia> K = PadicField(7, 2)
-
-# julia> Kxy, (x,y) = K["x", "y"]
-
-# julia> f = 7*x+y+49
-
-# julia> tropical_variety(f,min)
-
-# julia> tropical_variety(f,max)
-# """
-# function tropical_variety(f::MPolyRingElem, M::Union{typeof(min),typeof(max)})
-#     return TropicalHypersurface{M}(f)
-# end
 
 ################################################################################
 #
-#  Basic properties for tropical hypersurfaces
+#  Properties
 #
 ################################################################################
-
-# todo: add examples for varieties, curves and linear spaces
 @doc raw"""
-    dual_subdivision(TH::TropicalHypersurface{M, EMB})
+    algebraic_polynomial(TropH::TropicalHypersurface)
 
-Return the dual subdivision of `TH` if it is embedded. Otherwise an error is thrown.
-
-# Examples
-A tropical hypersurface in $\mathbb{R}^n$ is always of dimension n-1.
-```jldoctest
-julia> T = TropicalSemiring(min);
-
-julia> Txy,(x,y) = T["x","y"];
-
-julia> f = x+y+1;
-
-julia> tropicalLine = TropicalHypersurface(f);
-
-julia> dual_subdivision(tropicalLine)
-Subdivision of points in ambient dimension 3
-```
+Return the polynomial over a valued field used to construct `TropH`.  Raises an error, if it is not cached.
 """
-function dual_subdivision(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
-    if !EMB
-        error("tropical hypersurface not embedded")
+function algebraic_polynomial(TropH::TropicalHypersurface)
+    @req has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
+    return get_attribute(TropH,:algebraic_polynomial)
+end
+
+
+# @doc raw"""
+#     convention(TropH::TropicalHypersurface)
+
+# Return min or max depending on the convention of `TropH`.  Raises an error, if neither it nor a tropical semiring map is cached.
+# """
+# function convention(TropH::TropicalHypersurface)
+#     if has_attribute(TropH,:convention)
+#         return get_attribute(TropH,:convention)
+#     elseif has_attribute(TropH,:tropical_semiring_map)
+#         return convention(get_attribute(TropH,:tropical_semiring_map))
+#     end
+#     error("neither convention nor tropical semiring map cached")
+# end
+
+
+@doc raw"""
+    dual_subdivision(TropH::TropicalHypersurface)
+
+Return the dual subdivision of `TropH`.  Raises an error, if neither it nor the the internal polymake object is cached.
+"""
+function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
+    if has_attribute(TropH,:dual_subdivision)
+        return get_attribute(TropH,:dual_subdivision)
+    elseif has_attribute(TropH,:polymake_bigobject)
+        return get_attribute(TropH,:polymake_bigobject)
     end
-
-    return subdivision_of_points(pm_object(TH).DUAL_SUBDIVISION)
+    error("neither dual subdivision nor polymake object cached")
 end
 
 
 @doc raw"""
-    polynomial(TH::TropicalHypersurface{M, EMB})
+    tropical_polynomial(TropH::TropicalHypersurface)
 
-Return the tropical polynomial of `TH` if it is embedded. Otherwise an error is thrown.
-
-# Examples
-```jldoctest
-julia> T = TropicalSemiring(min);
-
-julia> Txy,(x,y) = T["x","y"];
-
-julia> f = x+y+1;
-
-julia> TH = TropicalHypersurface(f);
-
-julia> polynomial(TH)
-x + y + (1)
-```
+Return the tropical polynomial used to construct `TropH`.  Raises an error, if it is not cached.
 """
-function polynomial(TH::TropicalHypersurface{M,EMB}) where {M,EMB}
-    if !EMB
-        error("tropical hypersurface not embedded")
-    end
-    return get_attribute(TH,:tropical_polynomial)
+function tropical_polynomial(TropH::TropicalHypersurface)
+    @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
+    return get_attribute(TropH,:tropical_polynomial)
 end
 
 
-@doc raw"""
-    minpoly(T::TropicalHypersurface)
+# @doc raw"""
+#     tropical_semiring_map(TropH::TropicalHypersurface)
 
-Return the minimal polynomial with smallest possible coefficients of a hypersurface.
-"""
-function minpoly(T::TropicalHypersurface)
-    error("function not implemented yet")
-    return
-end
+# Return the tropical semiring map used to construct `TropH`.  Raises an error, if it is not cached.
+# """
+# function tropical_semiring_map(TropH::TropicalHypersurface)
+#     @req has_attribute(TropH,:tropical_semiring_map) "no tropical semiring map cached"
+#     return get_attribute(TropH,:tropical_semiring_map)
+# end

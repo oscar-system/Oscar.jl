@@ -403,27 +403,40 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
             if n1 > 0
               write(io, " & ")
             end
-            write(io, join(rightpart[i,:][crange], " & "), " \\\\\n")
+            write(io, join(rightpart[i,:][crange], " & "), " \\\\")
+            if i != rrange[end]
+              write(io, " \n")
+            end
           else
             write(io, join(map(mylpad, leftpart[i,:], widths_leftpart), " "),
                       cprefix,
-                      join(join.(collect(zip(map(mylpad, rightpart[i,:][crange], widths_rightpart[crange]), cpattern)))), "\n")
+                      join(join.(collect(zip(map(mylpad, rightpart[i,:][crange], widths_rightpart[crange]), cpattern)))))
+            if i != rrange[end]
+              write(io, "\n")
+            end
           end
           if i in separators_row
-            write(io, hline, "\n")
+            if i == rrange[end]
+              write(io, "\n")
+            end
+            write(io, hline)
+            if i != rrange[end]
+              write(io, "\n")
+            end
           end
         end
         if TeX
-          write(io, "\\end{array}\n")
+          write(io, "\n\\end{array}")
         end
         if ci != length(portions_col) || ri != length(portions_row)
-          write(io, "\n")
+          write(io, "\n\n")
         end
       end
     end
 
     # footer (vector of strings)
     if length(footer) > 0
+      write(io, "\n")
       if TeX
         write(io, "\n\\begin{array}{l}\n")
         # Omit a separating empty line.
@@ -433,16 +446,17 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
         for line in footer[2:end]
           write(io, line, " \\\\\n")
         end
-        write(io, "\\end{array}\n")
+        write(io, "\\end{array}")
       else
-        for line in footer
+        for line in footer[1:end - 1]
           write(io, line, "\n")
         end
+        write(io, footer[end])
       end
     end
 
     if TeX
-      print(io, "\$")
+      print(io, "\n\$")
     end
 
     return

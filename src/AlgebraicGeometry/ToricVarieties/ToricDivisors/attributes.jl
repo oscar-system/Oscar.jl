@@ -13,7 +13,7 @@ the other moves it across. In the latter case there are no global sections
 anymore and the polyhedron becomes empty.
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> td0 = toric_divisor(F4, [0,0,0,0])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -37,7 +37,7 @@ julia> is_feasible(polyhedron(td2))
 false
 ```
 """
-@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
+@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_object(td).SECTION_POLYTOPE)
 
 
 @doc raw"""
@@ -48,7 +48,7 @@ Identify the coefficients of a toric divisor in the group of torus invariant Wei
 # Examples
 ```jldoctest
 julia> F4 = hirzebruch_surface(NormalToricVariety, 4)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> D = toric_divisor(F4, [1, 2, 3, 4])
 Torus-invariant, non-prime divisor on a normal toric variety
@@ -76,7 +76,14 @@ julia> F4 = hirzebruch_surface(NormalToricVariety, 4);
 julia> D = toric_divisor(F4, [1, 2, 3, 4]);
 
 julia> toric_variety(D)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 ```
 """
 toric_variety(td::ToricDivisor) = td.toric_variety
+
+########################################################################
+# Implement the interface for AbsAlgebraicCycle and Divisors           
+#
+# Implementation still experimental; see 
+# experimental/Schemes/WeilDivisor.jl.
+########################################################################

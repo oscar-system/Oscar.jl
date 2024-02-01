@@ -153,7 +153,7 @@ objective function of `MILP`, or `nothing` if no such point exists.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
@@ -197,7 +197,7 @@ on convention.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
@@ -232,7 +232,7 @@ may be `inf` or `-inf` in which case `v` is `nothing`.
 Take the square $[-1/2,3/2]^2$ and optimize $[1,1]$ in different settings.
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
@@ -248,3 +248,10 @@ julia> solve_milp(milp)
 ```
 """
 solve_milp(milp::MixedIntegerLinearProgram) = optimal_value(milp), optimal_solution(milp)
+
+@doc raw"""
+    ambient_dim(MILP::MixedIntegerLinearProgram)
+
+Return the ambient dimension of the feasible reagion of `MILP`.
+"""
+ambient_dim(milp::MixedIntegerLinearProgram) = ambient_dim(feasible_region(milp))

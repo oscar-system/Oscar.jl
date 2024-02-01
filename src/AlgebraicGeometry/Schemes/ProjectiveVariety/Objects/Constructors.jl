@@ -33,7 +33,7 @@ julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 julia> X = variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
+defined by ideal (s0^3 + s1^3 + s2^3 + s3^3)
 
 julia> dim(X)
 2
@@ -41,7 +41,7 @@ julia> dim(X)
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0, s1^3 + s2^3 + s3^3)
+defined by ideal (s0, s1^3 + s2^3 + s3^3)
 
 julia> dim(Y)
 1
@@ -94,8 +94,7 @@ end
 
 function projective_space(A::Field, var_symb::Vector{VarName})
   n = length(var_symb)
-  R, _ = polynomial_ring(A, var_symb)
-  S, _ = grade(R, [1 for i in 1:n ])
+  S, _ = graded_polynomial_ring(A, var_symb)
   return variety(projective_scheme(S), check=false)
 end
 
@@ -105,7 +104,6 @@ function projective_space(
     r::Int;
     var_name::VarName=:s
   ) where {CoeffRingType<:Field}
-  R, _ = polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
-  S, _ = grade(R, [1 for i in 0:r ])
+  S, _ = graded_polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
   return variety(projective_scheme(S), check=false)
 end

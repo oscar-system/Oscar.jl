@@ -41,9 +41,9 @@ Sheaf of ideals
     2: [(x//y), (z//y)]   affine 2-space
     3: [(x//z), (y//z)]   affine 2-space
 with restrictions
-  1: ideal(-(y//x)^2*(z//x) + 1)
-  2: ideal((x//y)^3 - (z//y))
-  3: ideal((x//z)^3 - (y//z)^2)
+  1: Ideal (-(y//x)^2*(z//x) + 1)
+  2: Ideal ((x//y)^3 - (z//y))
+  3: Ideal ((x//z)^3 - (y//z)^2)
 ```
 """
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal) 
@@ -54,8 +54,8 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  for i in 0:r
-    I[C[i+1]] = ideal(OO(C[i+1]), dehomogenization_map(X, i).(g))
+  for U in patches(C)
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=true)
 end
@@ -101,9 +101,8 @@ function IdealSheaf(
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  U = basic_patches(default_covering(X_covered))
-  for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
+  for U in patches(default_covering(X_covered))
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end
@@ -115,9 +114,8 @@ function IdealSheaf(
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
   I = IdDict{AbsSpec, Ideal}()
-  U = basic_patches(default_covering(X_covered))
-  for i in 1:length(U)
-    I[U[i]] = ideal(OO(U[i]), dehomogenization_map(X, i-1).(g))
+  for U in patches(default_covering(X_covered))
+    I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
   return IdealSheaf(X_covered, I, check=false)
 end
@@ -314,22 +312,22 @@ function subscheme(I::IdealSheaf)
   X = space(I)
   C = default_covering(X)
   new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
-  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
-  for (U, V) in keys(glueings(C))
+  for (U, V) in keys(gluings(C))
     i = C[U]
     j = C[V]
     Unew = new_patches[i]
     Vnew = new_patches[j]
     G = C[U, V]
-    #new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
-    new_glueings[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+    #new_gluings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
+    new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction, 
                                              RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
                                             )
-    #new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
-    new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
+    #new_gluings[(Vnew, Unew)] = inverse(new_gluings[(Unew, Vnew)])
+    new_gluings[(Vnew, Unew)] = LazyGluing(Vnew, Unew, inverse, new_gluings[(Unew, Vnew)])
   end
-  Cnew = Covering(new_patches, new_glueings, check=false)
+  Cnew = Covering(new_patches, new_gluings, check=false)
 
   # Inherit decomposition information if applicable
   if has_decomposition_info(C)
@@ -352,7 +350,7 @@ collection of polynomials over all patches in a compatible way;
 meaning that on the overlaps the restrictions of either two sets 
 of polynomials coincides.
 
-This proceeds by crawling through the glueing graph and taking 
+This proceeds by crawling through the gluing graph and taking 
 closures in the patches ``Uⱼ`` of the subschemes 
 ``Zᵢⱼ = V(I) ∩ Uᵢ ∩ Uⱼ`` in the intersection with a patch ``Uᵢ`` 
 on which ``I`` had already been described.
@@ -373,7 +371,7 @@ function extend!(
   # Nodes to which we might need to extend
   leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = AbsSpec[U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  neighbors = AbsSpec[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
   # All other nodes
   leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
   while length(neighbors) > 0
@@ -381,7 +379,7 @@ function extend!(
     for V in neighbors
       for U in fat
         G = C[U, V]
-        if (G isa SimpleGlueing || (G isa LazyGlueing && is_computed(G)))
+        if (G isa SimpleGluing || (G isa LazyGluing && is_computed(G)))
           push!(good_pairs, (U, V))
         end
       end
@@ -394,16 +392,16 @@ function extend!(
       # In case we find a good neighboring pair, use that
       (U, V) = first(good_pairs)
     else
-      # If there is no good neighboring pair, compute a new glueing
+      # If there is no good neighboring pair, compute a new gluing
       V = first(neighbors)
-      k = findfirst(U->haskey(glueings(C), (U, V)), fat)
+      k = findfirst(U->haskey(gluings(C), (U, V)), fat)
       U = fat[k]
     end
-    f, _ = glueing_morphisms(C[V, U])
-    if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+    f, _ = gluing_morphisms(C[V, U])
+    if C[V, U] isa SimpleGluing || (C[V, U] isa LazyGluing && first(gluing_domains(C[V, U])) isa PrincipalOpenSubset)
 
       # Take a shortcut if possible
-      _, UV = glueing_domains(C[V, U])
+      _, UV = gluing_domains(C[V, U])
       if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
         D[V] = ideal(OO(V), one(OO(V)))
         # Register this patch as a leaf
@@ -414,7 +412,7 @@ function extend!(
       end
 
       # if not, extend D to this patch
-      f, _ = glueing_morphisms(C[V, U])
+      f, _ = gluing_morphisms(C[V, U])
       pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
       J = ideal(OO(V), lifted_numerator.(pbI_gens))
       #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
@@ -435,7 +433,7 @@ function extend!(
     else
       push!(fat, V)
       for W in leftover
-        if haskey(glueings(C), (V, W))
+        if haskey(gluings(C), (V, W))
           push!(neighbors, W)
         end
       end
@@ -519,7 +517,7 @@ end
 #  h = vcat(f, g)
 #  r = length(f)
 #  s = length(g)
-#  Dh = jacobi_matrix(h)
+#  Dh = jacobian_matrix(h)
 #  (ll, ql, rl, cl) = _non_degeneration_cover(subscheme(U, g), Dh, codimension + codim(U), 
 #                          verbose=verbose, check=check, 
 #                          restricted_columns=[collect(1:r), [r + k for k in 1:s]])
@@ -672,7 +670,7 @@ function order_on_divisor(
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
-  K = ambient_closure_ideal(V)
+  K = saturated_ideal(defining_ideal(V))
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))
@@ -682,10 +680,10 @@ function order_on_divisor(
   den_mult = _minimal_power_such_that(J, x->(issubset(quotient(x+K, bR), J)))[1]-1
   return num_mult - den_mult
 #    # Deprecated code computing symbolic powers explicitly:
-#    L, map = Localization(OO(U), 
+#    L, map = localization(OO(U),
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
-#    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+#    L isa Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                        <:MPolyComplementOfPrimeIdeal},
 #                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                           <:MPolyComplementOfPrimeIdeal}
@@ -907,7 +905,7 @@ function match_on_intersections(
 ## run through all known patches of the component
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
-      VU, UV = glueing_domains(G)
+      VU, UV = gluing_domains(G)
       if UV isa SpecOpen && VU isa SpecOpen
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
@@ -1145,7 +1143,7 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
     end
   end
   new_cov = Covering(new_patches)
-  inherit_glueings!(new_cov, covering)
+  inherit_gluings!(new_cov, covering)
   return new_cov
 end
 
@@ -1153,7 +1151,7 @@ function _cofactors(comp::Vector{<:Ideal})
   R = base_ring(first(comp))
   all(x->base_ring(x)===R, comp) || error("ideals must be defined over the same ring")
   n = length(comp)
-  pairwise_cof = one(MatrixSpace(R, n, n))
+  pairwise_cof = identity_matrix(R, n)
   for i in 1:n-1
     for j in i+1:n
       I = ideal(R, vcat(gens(comp[i]), gens(comp[j])))
@@ -1200,7 +1198,7 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf}
   end
   new_patches2 = append!(new_patches2, patches_todo)
   new_cov = Covering(new_patches2)
-  inherit_glueings!(new_cov, covering)
+  inherit_gluings!(new_cov, covering)
   return new_cov
 end
 
@@ -1216,7 +1214,6 @@ end
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end
 
-
 function saturation(I::IdealSheaf, J::IdealSheaf)
   X = scheme(I)
   K = IdDict{AbsSpec, Ideal}()
@@ -1226,82 +1223,27 @@ function saturation(I::IdealSheaf, J::IdealSheaf)
   return IdealSheaf(X, K, check=false)
 end
 
-
-@doc raw"""
-    IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
-
-Create a sheaf of ideals on a toric variety ``X`` from a homogeneous ideal 
-`I` in its `cox_ring`.
-
-# Examples
-```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, fano, 3-dimensional toric variety without torusfactor
-
-julia> (x1,x2,x3,x4) = gens(cox_ring(P3));
-
-julia> I = ideal([x2,x3])
-ideal(x2, x3)
-
-julia> IdealSheaf(P3, I);
-```
-"""
-function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
-  @req base_ring(I) === cox_ring(X) "ideal must live in the cox ring of the variety"
-
-  # We currently only support this provided that the following conditions are met:
-  # 1. All maximal cones are smooth, i.e. the fan is smooth/X is smooth.
-  # 2. The dimension of all maximal cones matches the dimension of the fan.
-  @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
-  @req ispure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
-
+function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
+  f_cov = covering_morphism(f)
+  dom_cov = domain(f_cov)
+  cod_cov = codomain(f_cov)
   ideal_dict = IdDict{AbsSpec, Ideal}()
-
-  # We need to dehomogenize the ideal I in the Cox ring S to the local
-  # charts U_sigma, with sigma a cone in the fan of the variety.
-  # To this end we use Proposition 5.2.10 from Cox-Little-Schenck, p. 223ff.
-  # Abstractly, the chart U_sigma is isomorphic to C^n with n the number
-  # of ray generators of sigma, owing to the assumptions 1 an 2 above.
-  # Note however that the coordinates of C^n are not one to one to
-  # the homogeneous coordinates of the Cox ring. Rather, the coordinates 
-  # of the affine pieces correspond to the `hilbert_basis(polarize(sigma))`.
-
-  # TODO: In the long run we should think about making the creation of the 
-  # following dictionary lazy. But this requires partial rewriting of the 
-  # ideal sheaves as a whole, so we postpone it for the moment.
-
-  IM = maximal_cones(IncidenceMatrix, X)
-  for (k, U) in enumerate(affine_charts(X))
-
-    # We first create the morphism \pi_s* from p. 224, l. 3.
-    indices = [k for k in row(IM, k)]
-    help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
-    phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
-
-    # Now we need to create the inverse of alpha*.
-    imgs_alpha_star = elem_type(help_ring)[]
-    for m in hilbert_basis(weight_cone(U))
-      img = one(help_ring)
-      for j in 1:length(indices)
-        u_rho = matrix(ZZ,rays(X))[indices[j],:]
-        expo = (u_rho*m)[1]
-        img = img * x_rho[j]^expo
-      end
-      push!(imgs_alpha_star, img)
-    end
-    alpha_star = hom(OO(U), help_ring, imgs_alpha_star)
-
-    # TODO: There should be better ways to create this map!
-    # Presumably, one can invert the matrix with the `expo`s as entries?
-    # @larskastner If you can confirm this, let's change this.
-    alpha_star_inv = inverse(alpha_star)
-    ideal_dict[U] = ideal(OO(U), [alpha_star_inv(phi_s_star(g)) for g in gens(I)])
+  for V in cod_cov
+    f_loc = maps_with_given_codomain(f_cov, V)
+    I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
+    ideal_dict[V] = intersect(I_loc...)
   end
-
-  return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
+  return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
 end
 
-function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
-  return blow_up(IdealSheaf(v, I))
+function Base.:^(II::IdealSheaf, k::IntegerUnion)
+  k < 0 && error("negative powers of ideal sheaves are not allowed")
+  if iszero(k) 
+    X = scheme(II)
+    return IdealSheaf(X, IdDict{AbsSpec, Ideal}([U => ideal(OO(U), one(OO(U))) for U in affine_charts(X)]), check=false)
+  end
+  isone(k) && return II
+  b = div(k, 2)
+  r = k - b
+  return II^b * II^r
 end

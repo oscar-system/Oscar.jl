@@ -8,18 +8,18 @@ export underlying_presheaf
 # The AbsPreSheaf interface                                               #
 ########################################################################
 @doc raw"""
-    space(F::AbsPreSheaf) 
+    space(F::AbsPreSheaf)
 
 For a sheaf ``ℱ`` on a space ``X`` return ``X``.
 """
-function space(F::AbsPreSheaf) 
+function space(F::AbsPreSheaf)
   return space(underlying_presheaf(F))
 end
 
 @doc raw"""
-    (F::AbsPreSheaf)(U; cached=true) 
+    (F::AbsPreSheaf)(U; cached=true)
 
-For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set 
+For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set
 ``U ⊂ X`` check whether ``U`` is open in ``X`` and return ``ℱ(U)``.
 """
 function (F::AbsPreSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) where {OpenType, OutputType, T<:OpenType}
@@ -29,8 +29,8 @@ end
 @doc raw"""
     restriction_map(F::AbsPreSheaf, U, V)
 
-For a sheaf ``ℱ`` on a space ``X`` and an (admissible) pair of 
-open sets ``U, V ⊂ X`` check whether ``U ⊂ V ⊂ X`` are open and 
+For a sheaf ``ℱ`` on a space ``X`` and an (admissible) pair of
+open sets ``U, V ⊂ X`` check whether ``U ⊂ V ⊂ X`` are open and
 return the restriction map ``ℱ(V) → ℱ(U)``.
 """
 function restriction_map(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
@@ -49,11 +49,11 @@ end
 @doc raw"""
     is_open_func(F::AbsPreSheaf)
 
-For a sheaf ``ℱ`` on a space ``X`` return a function `f` on two 
+For a sheaf ``ℱ`` on a space ``X`` return a function `f` on two
 arguments such that `f(U, V)` returns `true` whenever ``U ⊂ V ⊂ X``
 are open inclusions and `false` otherwise.
 
-***Note:*** This function is expected to accept ``X`` as the second argument 
+***Note:*** This function is expected to accept ``X`` as the second argument
 to check whether ``U ⊂ X`` is open in ``X``!
 """
 function is_open_func(F::AbsPreSheaf)
@@ -79,7 +79,7 @@ restriction_func(F::PreSheafOnScheme) = F.restriction_func
 ### Production and caching of the values of F on admissible open sets
 function (F::PreSheafOnScheme{<:Any, OpenType, OutputType})(U::T; cached::Bool=true, check::Bool=false) where {OpenType, OutputType, T<:OpenType}
   #First look whether or not the asked for result has been computed before
-  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType 
+  haskey(object_cache(F), U) && return (object_cache(F)[U])::OutputType
 
   # Testing openness might be expensive, so it can be skipped
   check && (is_open_func(F)(U, space(F)) || error("the given set is not open or admissible"))
@@ -101,13 +101,13 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
     check::Bool=false
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
   # First, look up whether this restriction had already been asked for previously.
-  inc = incoming_restrictions(F, F(V)) 
+  inc = incoming_restrictions(F, F(V))
   inc !== nothing && haskey(inc, U) && return (inc[U])::RestrictionType
 
   # Check whether the given pair is even admissible.
   check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
 
-  # Hand the production of the restriction over to the internal method 
+  # Hand the production of the restriction over to the internal method
   rho = restriction_func(F)(F, U, V)
 
   # Sanity checks
@@ -121,18 +121,18 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
 end
 
 @doc raw"""
-  add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType}, 
+  add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType},
     U::OpenType,
     rho::RestrictionType
   ) where {OpenType, RestrictionType}
 
-**Note:** This is a method for internal use! 
+**Note:** This is a method for internal use!
 
-For an `AbsPreSheaf` `F`, a pair of open sets ``U ⊃ V`` and a manually computed 
-morphism ``ρ : F(U) → F(V)``, this method stores the map `rho` in the internal caching system as 
+For an `AbsPreSheaf` `F`, a pair of open sets ``U ⊃ V`` and a manually computed
+morphism ``ρ : F(U) → F(V)``, this method stores the map `rho` in the internal caching system as
 the restriction map for `F` from `U` to `V`.
 """
-function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType}, 
+function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
     U::OpenType,
     M::OutputType,
     rho::RestrictionType
@@ -140,7 +140,7 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
   # First, look up the incoming restriction maps for F(V).
   # This will create the dictionary, if necessary.
   incoming_res = incoming_restrictions(F, M)
-  incoming_res === nothing && return F # This indicates that no 
+  incoming_res === nothing && return F # This indicates that no
   incoming_res::IdDict{<:OpenType, <:RestrictionType}
   # sanity checks
   domain(rho) === F(U) || error("domain is not correct")
@@ -150,14 +150,14 @@ function add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, OutputType, R
 end
 
 @doc raw"""
-    incoming_restrictions(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType, M::OutputType) 
+    incoming_restrictions(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType, M::OutputType)
 
-Supposing `M` is the value `M = F(U)` of some `AbsPreSheaf` `F` on an admissible open 
-set `U`, return an `IdDict` whose keys `V` are those admissible open sets for `F` 
-for which a restriction map `ρ : F(V) → F(U)` has already been computed and cached. 
+Supposing `M` is the value `M = F(U)` of some `AbsPreSheaf` `F` on an admissible open
+set `U`, return an `IdDict` whose keys `V` are those admissible open sets for `F`
+for which a restriction map `ρ : F(V) → F(U)` has already been computed and cached.
 The values of the dictionary are precisely those restriction maps for the respective keys.
 
-**Note:** This 
+**Note:** This
 """
 function incoming_restrictions(
     F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
@@ -185,13 +185,13 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
   #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-  #    and U and V contained in the glueing domains of their ambient schemes
+  #    and U and V contained in the gluing domains of their ambient schemes
   #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
   #  * U::AbsSpec ⊂ X for U in the basic charts
   #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
   #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -204,8 +204,8 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     if A === B
       is_subset(Udirect, Vdirect) || return false
     else
-      G = default_covering(X)[A, B] # Get the glueing
-      f, g = glueing_morphisms(G)
+      G = default_covering(X)[A, B] # Get the gluing
+      f, g = gluing_morphisms(G)
       is_subset(Udirect, domain(f)) || return false
       gU = preimage(g, Udirect)
       is_subset(gU, Vdirect) || return false
@@ -213,7 +213,7 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     return true
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       Y::AbsCoveredScheme
     )
     return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
@@ -221,7 +221,7 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
     return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
-  # The following is implemented for the sake of completeness for boundary cases. 
+  # The following is implemented for the sake of completeness for boundary cases.
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
@@ -229,26 +229,26 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     any(x->x===U, affine_charts(X)) || return false
     any(x->x===U, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
-    return issubset(U, glueing_domains(G)[1])
+    return is_subscheme(U, gluing_domains(G)[1])
   end
   function is_open_func(
       U::AbsSpec,
       V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
     )
-    issubset(U, V) && return true
+    is_subscheme(U, V) && return true
     any(x->x===U, affine_charts(X)) || return false
     inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
     A = ambient_scheme(codomain(inc_V_flat))
     Vdirect = codomain(inc_V_flat)
     W = ambient_scheme(Vdirect)
-    haskey(glueings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
+    haskey(gluings(default_covering(X)), (W, U)) || return false # In this case, they are not glued
     G = default_covering(X)[W, U]
-    f, g = glueing_morphisms(G)
+    f, g = gluing_morphisms(G)
     pre_V = preimage(g, V)
     return is_subset(U, pre_V)
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       V::AbsSpec
     )
     any(x->x===V, affine_charts(X)) || return false
@@ -256,9 +256,9 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
     W = ambient_scheme(Udirect)
-    haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
+    haskey(gluings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
     G = default_covering(X)[W, V]
-    return is_subset(Udirect, glueing_domains(G)[1])
+    return is_subset(Udirect, gluing_domains(G)[1])
   end
   function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
     return Y === X && ambient_scheme(W) in default_covering(X)
@@ -270,10 +270,10 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     U = ambient_scheme(W)
     U in default_covering(X) || return false
     G = default_covering(X)[U, V]
-    return is_subset(W, glueing_domains(G)[1])
+    return is_subset(W, gluing_domains(G)[1])
   end
   function is_open_func(
-      W::SpecOpen, 
+      W::SpecOpen,
       V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
     )
     PW = ambient_scheme(W)
@@ -283,12 +283,12 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     PW in default_covering(X) || return false
     PV in default_covering(X) || return false
     if PW === PV
-      return issubset(W, V)
+      return is_subscheme(W, V)
     else
-      haskey(glueings(default_covering(X)), (PW, PV)) || return false
+      haskey(gluings(default_covering(X)), (PW, PV)) || return false
       G = default_covering(X)[PW, PV]
-      preV = preimage(glueing_morphisms(G)[1], Vdirect)
-      return issubset(W, preV)
+      preV = preimage(gluing_morphisms(G)[1], Vdirect)
+      return is_subscheme(W, preV)
     end
   end
   function is_open_func(W::SpecOpen, V::SpecOpen)
@@ -297,28 +297,28 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     PW in default_covering(X) || return false
     PV in default_covering(X) || return false
     if PW === PV
-      return issubset(W, V)
+      return is_subscheme(W, V)
     else
       G = default_covering(X)[PW, PV]
-      preV = preimage(glueing_morphisms(G)[1], V)
-      return issubset(W, preV)
+      preV = preimage(gluing_morphisms(G)[1], V)
+      return is_subscheme(W, preV)
     end
   end
   function is_open_func(U::AbsSpec, W::SpecOpen)
     U in default_covering(X) || return false
     if U === ambient_scheme(W)
       # in this case W must be equal to U
-      return issubset(W, U)
+      return is_subscheme(W, U)
       #return one(OO(U)) in complement_ideal(W)
     else
       G = default_covering(X)[ambient_scheme(W), U]
-      issubset(U, glueing_domains(G)[2]) || return false
-      preU = preimage(glueing_morphisms(G)[1], U)
-      return issubset(preU, W)
+      is_subscheme(U, gluing_domains(G)[2]) || return false
+      preU = preimage(gluing_morphisms(G)[1], U)
+      return is_subscheme(preU, W)
     end
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       W::SpecOpen
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -328,12 +328,12 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     PU = ambient_scheme(U_flat)
     if PU === ambient_scheme(W)
       # in this case W must be equal to U
-      return issubset(W, U_flat)
+      return is_subscheme(W, U_flat)
     else
       G = default_covering(X)[ambient_scheme(W), PU]
-      issubset(U_flat, glueing_domains(G)[2]) || return false
-      preU = preimage(glueing_morphisms(G)[1], U_flat)
-      return issubset(preU, W)
+      is_subscheme(U_flat, gluing_domains(G)[2]) || return false
+      preU = preimage(gluing_morphisms(G)[1], U_flat)
+      return is_subscheme(preU, W)
     end
   end
 
@@ -349,12 +349,12 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
   #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
-  #    and U and V contained in the glueing domains of their ambient schemes
+  #    and U and V contained in the gluing domains of their ambient schemes
   #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
   #  * U::AbsSpec ⊂ X for U in the basic charts
   #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -367,16 +367,16 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
     if A === B
       is_subset(Udirect, Vdirect) || return false
     else
-      G = default_covering(X)[A, B] # Get the glueing
-      f, g = glueing_morphisms(G)
-      is_subset(Udirect, domain(f)) || return false
+      G = default_covering(X)[A, B] # Get the gluing
+      f, g = gluing_morphisms(G)
+      is_subscheme(Udirect, domain(f)) || return false
       gU = preimage(g, Udirect)
-      is_subset(gU, Vdirect) || return false
+      is_subscheme(gU, Vdirect) || return false
     end
     return true
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       Y::AbsCoveredScheme
     )
     return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
@@ -384,7 +384,7 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
   function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
     return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
-  # The following is implemented for the sake of completeness for boundary cases. 
+  # The following is implemented for the sake of completeness for boundary cases.
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
@@ -392,10 +392,10 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
     U in affine_charts(X) || return false
     V in affine_charts(X) || return false
     G = default_covering(X)[U, V]
-    return issubset(U, glueing_domains(G)[1])
+    return is_subscheme(U, gluing_domains(G)[1])
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}, 
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
       V::AbsSpec
     )
     V in affine_charts(X) || return false
@@ -403,9 +403,9 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
     A = ambient_scheme(codomain(inc_U_flat))
     Udirect = codomain(inc_U_flat)
     W = ambient_scheme(Udirect)
-    haskey(glueings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
+    haskey(gluings(default_covering(X)), (W, V)) || return false # In this case, they are not glued
     G = default_covering(X)[W, V]
-    return is_subset(Udirect, glueing_domains(G)[1])
+    return is_subset(Udirect, gluing_domains(G)[1])
   end
   return is_open_func
 end
@@ -472,7 +472,7 @@ function Base.show(io::IO, ::MIME"text/plain", R::StructureSheafOfRings)
   print(io, Dedent())
 end
 
-### Missing methods for compatibility of SimpleGlueings with Glueings
+### Missing methods for compatibility of SimpleGluings with Gluings
 function restrict(
     a::MPolyRingElem,
     U::PrincipalOpenSubset;
@@ -492,7 +492,7 @@ function restrict(
 end
 
 function restrict(
-    a::MPolyQuoRingElem, 
+    a::MPolyQuoRingElem,
     U::PrincipalOpenSubset;
     check::Bool=true
   )
@@ -501,7 +501,7 @@ function restrict(
 end
 
 function restrict(
-    a::MPolyQuoLocRingElem, 
+    a::MPolyQuoLocRingElem,
     U::PrincipalOpenSubset;
     check::Bool=true
   )
@@ -510,8 +510,8 @@ function restrict(
 end
 
 function restrict(
-    a::Union{MPolyRingElem, MPolyQuoRingElem, 
-             MPolyLocRingElem, MPolyQuoLocRingElem}, 
+    a::Union{MPolyRingElem, MPolyQuoRingElem,
+             MPolyLocRingElem, MPolyQuoLocRingElem},
     U::SpecOpen;
     check::Bool=true
   )
@@ -523,9 +523,9 @@ end
 # Sections of sheaves                                                  #
 ########################################################################
 
-abstract type AbsPreSheafSection{SpaceType, 
-                                 ParentType<:AbsPreSheaf, 
-                                 OpenType, 
+abstract type AbsPreSheafSection{SpaceType,
+                                 ParentType<:AbsPreSheaf,
+                                 OpenType,
                                  ElemType
                                 } end
 
@@ -535,7 +535,7 @@ abstract type AbsPreSheafSection{SpaceType,
 @doc raw"""
     (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
 
-For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible 
+For a section ``v`` in a presheaf ``ℱ`` on ``X`` and an admissible
 open subset ``U ⊂ X`` return an element ``s ∈ ℱ(U)`` representing the section.
 """
 function (v::AbsPreSheafSection{<:Any, <:AbsPreSheaf, OpenType})(U::OpenType) where {OpenType}
@@ -547,28 +547,28 @@ end
 # The sheaf in which this is a section
 parent(v::AbsPreSheafSection) = parent(underlying_section(v))
 
-# The space on which the section is defined 
+# The space on which the section is defined
 space(v::AbsPreSheafSection) = space(underlying_section(v))
 
 # The dictionary with cached representatives of that section;
 # for internal use only!
 cache_dict(v::AbsPreSheafSection) = cache_dict(underlying_section(v))
 
-# A function to produce a representative of that section on an 
-# admissible open subset which is not yet cached; 
+# A function to produce a representative of that section on an
+# admissible open subset which is not yet cached;
 # for internal use only!
 #
-# The signature of this function should be 
+# The signature of this function should be
 #
 #   production_func(w::PreSheafSection, U::OpenType) where {OpenType}
-# 
-# where OpenType is any admissible type for the open sets considered. 
-# In the internal calls, the first argument w will always be the internal 
-# representative of the section v itself. 
 #
-# This function should then take care of producing a representative 
+# where OpenType is any admissible type for the open sets considered.
+# In the internal calls, the first argument w will always be the internal
+# representative of the section v itself.
+#
+# This function should then take care of producing a representative
 # of v on U from the data already provided by w.
-# 
+#
 production_func(v::AbsPreSheafSection) = production_func(underlying_section(v))
 
 
@@ -576,14 +576,14 @@ production_func(v::AbsPreSheafSection) = production_func(underlying_section(v))
 # Minimal concrete type for sections in presheaves                     #
 ########################################################################
 
-# This type is for internal use in the user-facing concrete instances 
+# This type is for internal use in the user-facing concrete instances
 # of AbsPreSheafSection; to be returned via underlying_section().
-mutable struct PreSheafSection{SpaceType, 
-                               ParentType<:AbsPreSheaf, 
+mutable struct PreSheafSection{SpaceType,
+                               ParentType<:AbsPreSheaf,
                                OpenType,
                                ElemType
-                              } <: AbsPreSheafSection{SpaceType, 
-                                                      ParentType, 
+                              } <: AbsPreSheafSection{SpaceType,
+                                                      ParentType,
                                                       OpenType,
                                                       ElemType
                                                      }
@@ -592,7 +592,7 @@ mutable struct PreSheafSection{SpaceType,
   D::IdDict{OpenType, ElemType}
   production_func
 
-  function PreSheafSection(F::AbsPreSheaf, 
+  function PreSheafSection(F::AbsPreSheaf,
       D::IdDict{OpenType, ElemType},
       production_func
     ) where {OpenType, ElemType}
@@ -610,7 +610,7 @@ function (v::PreSheafSection{<:Any, <:AbsPreSheaf, OpenType, ElemType})(U::OpenT
   # First, look up whether this local representative has already been cached
   haskey(cache_dict(v), U) && return cache_dict(v)[U]
   # If not, delegate to the production function.
-  # These can restrict from suitable bigger sets, assemble from compatible 
+  # These can restrict from suitable bigger sets, assemble from compatible
   # sections on refinements, extend trivially from other patches...
   s = production_func(v)(v, U)
   #cache_dict(v)[U] = s #TODO: Really cache all local representatives?

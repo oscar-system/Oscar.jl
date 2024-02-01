@@ -89,7 +89,7 @@ vertices (or rather vertex indices) of $P$.
 The 3-dimensional cube has 48 linear symmetries.
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> G = linear_symmetries(c)
 Permutation group of degree 8
@@ -141,7 +141,7 @@ permuting the vertices, and `:on_facets` for the facets.
 Compute the automorphisms of the 3dim cube:
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> automorphism_group_generators(c)
 Dict{Symbol, Vector{PermGroupElem}} with 2 entries:
@@ -226,7 +226,7 @@ The optional parameter `action` takes three values:
 Compute the automorphisms of the incidence matrix of the 3dim cube:
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> IM = vertex_indices(facets(c))
 6×8 IncidenceMatrix

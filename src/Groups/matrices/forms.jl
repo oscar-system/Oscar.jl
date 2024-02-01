@@ -382,7 +382,7 @@ The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
 function radical(f::SesquilinearForm{T}) where T
    V = VectorSpace(base_ring(f), nrows(gram_matrix(f)) )
    R = GAP.Globals.RadicalOfForm(f.X)
-   GAP.Globals.Dimension(R)==0 && return sub(V,[])
+   GAPWrap.Dimension(R) == 0 && return sub(V, [])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]
    for l in GAP.Globals.GeneratorsOfVectorSpace(R)
       v = V([preimage(f.ring_iso, t) for t in l])

@@ -66,7 +66,7 @@ end
   R, (x, y) = polynomial_ring(GF(2), ["x", "y"])
   @test_throws ArgumentError integral_basis(x*y^5-x^3*(x+1)^4, 2)
 
-  R, (x, y) = polynomial_ring(RationalFunctionField(QQ, ["s", "t"])[1], ["x", "y"])
+  R, (x, y) = polynomial_ring(rational_function_field(QQ, ["s", "t"])[1], ["x", "y"])
   @test_throws NotImplementedError integral_basis(y^5-x^3*(x+1)^4, 2)
 end
 
@@ -130,10 +130,18 @@ end
   end
 end
 
-@testset "are_algebraically_independent" begin
+@testset "algebraicaic independence" begin
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   V = [x, y]
-  fl, I = are_algebraically_independent(V)
+  fl, I = is_algebraically_independent_with_relations(V)
   @test fl
   @test is_zero(I)
+  @test fl == is_algebraically_independent(V)
+
+  V = [2x, 3y+x^3, y]
+  fl, I = is_algebraically_independent_with_relations(V)
+  @test !fl
+  t1, t2, t3 = gens(base_ring(I))
+  @test I == ideal([t2 - 1//8*t1^3 - 3t3])
+  @test fl == is_algebraically_independent(V)
 end

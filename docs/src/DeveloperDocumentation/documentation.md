@@ -92,18 +92,23 @@ Please also read the section below on repairing the `jldoctest`s using
 It is possible to have julia fix the output of all `jldoctest`s when your
 changes to the code entail changes to the output. Just run the following
 command:
-```
+```julia
 build_doc(doctest = :fix)
 ```
+If you just want to fix some of the `jldoctest`s, and do not want to build
+the documentation, you can also use `Oscar.doctest_fix`:
+```@docs
+Oscar.doctest_fix
+```
 !!! danger
-    Please use this command carefully:
+    Please use these commands carefully:
     - Make sure to only commit the changes to the doctests originating from
       your changes to the code.
     - The doctests also serve as actual tests, so make absolutely sure that the
       output is still mathematically correct.
 
 !!! tip
-    If this command fails with an error message indicating lacking permissions
+    If these commands fail with an error message indicating lacking permissions
     to change `AbstractAlgebra.jl` related docs, it may help to run the
     following command:
     ```
@@ -125,3 +130,11 @@ changes in the bibliography. If so, this test fails and indicates that the
 (recently) added bibliography entries are not standardized. For a merge, it
 is not required that this test is passed. Still, please feel encouraged to fix
 this failure by running `bibtool` locally as explained above.
+
+Please follow the additional guidelines below, that are not checked by bibtool:
+
+- Do not escape special characters like umlauts or accented characters. Instead, use the unicode character directly.
+- You do not need to use braces to preserve capitalization as `DocumenterCitations.jl` keeps entries as is (in contrast to `bibtex`). In some cases, braces can even be harmful, i.e., show up in the output.
+- If a DOI is available for your reference, please add it as a `doi` field to the BibTeX entry. In this case, please refrain from adding an additional `url` field.
+- If your reference has no DOI or the paper is not open-access, but is available as an arXiv preprint, you can add the arXiv link as a `eprint` field (even additionally to a `doi` field). For other preprint servers (e.g. HAL), please refer to the [DocumenterCitations.jl docs](https://juliadocs.org/DocumenterCitations.jl/stable/syntax/#Preprint-support).
+- Documents available only as an arXiv preprint should be added as `@Article` entries with, e.g., `arXiv:2003.10132` in the `journal` field, and, e.g., `10.48550/arxiv.2003.10132` in the `doi` field, but without an `eprint` field.

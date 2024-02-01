@@ -89,14 +89,19 @@ Ordinary and ``p``-modular Brauer tables in OSCAR are distinguished by
 their [`characteristic(tbl::GAPGroupCharacterTable)`](@ref);
 its value is `0` for ordinary tables and ``p`` otherwise.
 
+The character table to which a character `chi` belongs
+can be fetched as `parent(chi)`.
+
+
 ```@docs
 GAPGroupCharacterTable
-character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
+character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
 characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
+quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
 ```
 
@@ -119,6 +124,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 ## Attributes of character tables
 
 ```@docs
+block_distribution
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters
@@ -140,7 +146,7 @@ trivial_character(tbl::GAPGroupCharacterTable)
 
 ```@docs
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
@@ -204,6 +210,7 @@ symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
 ```@docs
 class_multiplication_coefficient
 known_class_fusion
+known_class_fusions
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
 approximate_class_fusion
@@ -224,6 +231,7 @@ class_positions_of_center(chi::GAPGroupClassFunction)
 class_positions_of_derived_subgroup
 kernel(chi::GAPGroupClassFunction)
 class_positions_of_kernel
+class_positions_of_normal_subgroups
 pcore(tbl::GAPGroupCharacterTable, p::IntegerUnion)
 class_positions_of_pcore
 class_positions_of_solvable_residuum

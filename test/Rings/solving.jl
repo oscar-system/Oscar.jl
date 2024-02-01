@@ -71,7 +71,8 @@ end
 end
 
 @testset "Rational solutions for homogeneous ideals" begin
-  Q, x = proj_space(QQ, 2)
+  Q = projective_space(QQ, 2)
+  x = homogeneous_coordinates(Q)
   i = ideal([x[1]-2*x[3], x[2]-3*x[3]])
   @test length(rational_solutions(i)) == 1
 end

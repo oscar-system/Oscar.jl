@@ -21,10 +21,21 @@ abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
     AbsCoveredScheme{BaseRingType}
 
 An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
-`BaseRingType`, given by means of affine charts and their glueings.
+`BaseRingType`, given by means of affine charts and their gluings.
 """
 abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 
+### Algebraic cycles and divisors 
+# CAUTION: This has been moved here from experimental!!!
+abstract type AbsAlgebraicCycle{
+                                CoveredSchemeType<:AbsCoveredScheme, 
+                                CoefficientRingType<:AbstractAlgebra.Ring
+                               }
+end
+
+abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
+
+### END Algebraic cycles and divisors
 
 ###########################################
 # (2) Toric Varieties

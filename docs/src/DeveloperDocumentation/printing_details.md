@@ -19,6 +19,13 @@ print(IOContext(io, :supercompact => true), x) # supercompact printing
 For reference, string interpolation `"$(x)"` uses one line printing via `print(io, x)`,
 while on the REPL detailed printing is used to show top level objects.
 
+!!! warning "display"
+    Please do not use `display`! From the [Julia documentation of
+    `display`](https://docs.julialang.org/en/v1/base/io-network/#Base.Multimedia.display):
+    "In general, you cannot assume that `display` output goes to `stdout`
+    [...]". In particular, the output of `display` will not work in the
+    `jldoctest`s.
+
 ### Mockup
 
 #### Detailed printing with a new line
@@ -180,18 +187,18 @@ struct A{T}
 end
 
 function Base.show(io::IO, a::A)
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   println(io, "Something of type A")
-  print(io, AbstractAlgebra.Indent(), "over ", AbstractAlgebra.Lowercase(), a.x)
-  print(io, AbstractAlgebra.Dedent()) # don't forget to undo the indentation!
+  print(io, Indent(), "over ", Lowercase(), a.x)
+  print(io, Dedent()) # don't forget to undo the indentation!
 end
 
 struct B
 end
 
 function Base.show(io::IO, b::B)
-  io = AbstractAlgebra.pretty(io)
-  print(io, AbstractAlgebra.LowercaseOff(), "Hilbert thing")
+  io = pretty(io)
+  print(io, LowercaseOff(), "Hilbert thing")
 end
 ```
 
@@ -226,7 +233,7 @@ julia> struct C{T}
 julia> function Base.show(io::IO, c::C{T}) where T
        x = c.x
        n = length(x)
-       print(io, "Something with ", AbstractAlgebra.ItemQuantity(n, "element"), " of type $T")
+       print(io, "Something with ", ItemQuantity(n, "element"), " of type $T")
        end
 ```
 
@@ -273,6 +280,11 @@ This will then be used for users which enabled Unicode using
 - there must be a default ASCII only output, since this is the default setting
   for new users, and
 - OSCAR library code is not allowed to call `Oscar.allow_unicode`.
+
+Objects may follow the value of `Oscar.is_unicode_allowed()` at the time of their
+creation for their printing, i.e. ignore later changes of the setting.
+This is useful for objects storing a string representation of themselves, e.g.
+generators of a module.
 
 Here is an example with and without output using Unicode:
 

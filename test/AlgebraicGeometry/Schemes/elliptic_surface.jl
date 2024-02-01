@@ -8,7 +8,7 @@
   kt, t = polynomial_ring(k, :t)
   kP1 = fraction_field(kt)
   t = gen(kP1)
-  E = EllipticCurve(kP1, [3*t^8 + 10*t^7 + 6*t^6 + 17*t^5 + 25*t^4 + 4*t^3 + 23*t^2 + 9*t + 14, 5*t^12 + 25*t^11 + 2*t^10 + 28*t^9 + 28*t^8 + 19*t^7 + 3*t^6 + 17*t^5 + 19*t^4 + 12*t^3 + 25*t^2 + 12*t + 6])
+  E = elliptic_curve(kP1, [3*t^8 + 10*t^7 + 6*t^6 + 17*t^5 + 25*t^4 + 4*t^3 + 23*t^2 + 9*t + 14, 5*t^12 + 25*t^11 + 2*t^10 + 28*t^9 + 28*t^8 + 19*t^7 + 3*t^6 + 17*t^5 + 19*t^4 + 12*t^3 + 25*t^2 + 12*t + 6])
   # A basis for the Mordell-Weil group of E
   mwl_basis = [E(collect(i)) for i in [
   (12*t^4 + 21*t^3 + 5*t^2 + 12*t + 18, 23*t^5 + 7*t^4 + 22*t^3 + 13*t^2),
@@ -19,7 +19,7 @@
   weierstrass_model(S)
   weierstrass_contraction(S)
 
-  E = EllipticCurve(kP1, [0,0,0,1,t^10])
+  E = elliptic_curve(kP1, [0,0,0,1,t^10])
   X = elliptic_surface(E, 2)
   triv = trivial_lattice(X)
   =#
@@ -34,7 +34,7 @@
     kP1 = fraction_field(kt)
     t = gen(kP1)
 
-    E = EllipticCurve(kP1, [0, 2*t^4 + 28*t^2, 0, 27*t^6 + 19, 10*t^2])
+    E = elliptic_curve(kP1, [0, 2*t^4 + 28*t^2, 0, 27*t^6 + 19, 10*t^2])
     P = E([0,sqrt(k(10))*t,1])
     X = elliptic_surface(E, 2, [P])
     triv = trivial_lattice(X)
@@ -50,7 +50,7 @@
   # probably because it is over QQ
   Qt, t = polynomial_ring(QQ, :t)
   Qtf = fraction_field(Qt)
-  E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2])
+  E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
   X3 = elliptic_surface(E, 2)
   weierstrass_contraction(X3)
   trivial_lattice(X3)
@@ -60,7 +60,7 @@
     k = GF(29)
     kt, _ = polynomial_ring(k, :t)
     kP1 = fraction_field(kt); t = gen(kP1)
-    E = EllipticCurve(kP1, [(21*t^7+6*t^6+11*t^4),(21*t^10+15*t^9+17*t^7+18*t^6+t^5)])
+    E = elliptic_curve(kP1, [(21*t^7+6*t^6+11*t^4),(21*t^10+15*t^9+17*t^7+18*t^6+t^5)])
     mwl_basis = E.([
     [t^3 + 24*t^2 + 22*t + 5, 10*t^5 + 6*t^4 + 6*t^3 + 8*t^2 + 14*t + 3],
     [7*t^3 + 24*t^2 + 9, 9*t^5 + 18*t^4 + 12*t^3 + 8*t^2 + 2],
@@ -112,7 +112,7 @@ end
   K = GF(7)
   Kt, t = polynomial_ring(K, :t)
   Ktf = fraction_field(Kt)
-  E = EllipticCurve(Ktf, [0, -t^3, 0, t^3, 0])
+  E = elliptic_curve(Ktf, [0, -t^3, 0, t^3, 0])
   P = E([t^3, t^3])
   X2 = elliptic_surface(E, 2, [P]);
   KX2 = function_field(X2)

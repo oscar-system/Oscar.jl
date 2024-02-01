@@ -10,7 +10,7 @@ Construct the trivial divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> trivial_divisor_class(v)
 Divisor class on a normal toric variety
@@ -27,7 +27,7 @@ Construct the anticanonical divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> anticanonical_divisor_class(v)
 Divisor class on a normal toric variety
@@ -44,7 +44,7 @@ Construct the canonical divisor class of a normal toric variety.
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> canonical_divisor_class(v)
 Divisor class on a normal toric variety

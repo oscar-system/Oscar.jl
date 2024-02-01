@@ -1,4 +1,4 @@
-module DiscLog
+module DiscLog  # TODO: move to Hecke
 
 using Oscar
 import Oscar.Nemo
@@ -18,7 +18,7 @@ end
 # (maybe not all, but at least some?)
 # see Hecke/src/Misc/UnitsModM: for BS-GS, cache the BS Array
 # sort the types...
-# move to Hecke/Nemo/AA?
+# TODO: move to Hecke/Nemo/AA?
 ###############################################################
 #TODO: consolidate with Hecke: is_primitive_root?
 

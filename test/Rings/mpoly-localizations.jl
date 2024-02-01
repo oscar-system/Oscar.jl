@@ -7,10 +7,10 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2 -1
   m = ideal(R, [x, y])
   I = ideal(R, f)
-  S = MPolyComplementOfPrimeIdeal(I)
-  V, _ = Localization(S)
-  T = MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
-  W, _ = Localization(T)
+  S = Oscar.MPolyComplementOfPrimeIdeal(I)
+  V, _ = localization(S)
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
+  W, _ = localization(T)
   
   k = QQ
   R, variab = k["x", "y"]
@@ -21,20 +21,20 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2 - p^2 - q^2
   m = ideal(R, [x, y])
   I = ideal(R, f)
-  S = MPolyComplementOfPrimeIdeal(I)
-  @test ambient_ring(S) == R
+  S = Oscar.MPolyComplementOfPrimeIdeal(I)
+  @test ring(S) == R
   @test !( f in S )
   @test x in S
-  V, _ = Localization(S)
+  V, _ = localization(S)
   @test base_ring(V) == R
   @test inverted_set(V) == S
 
-  T = MPolyComplementOfKPointIdeal(R, [k(p), k(q)])
-  @test ambient_ring(T) == R
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [k(p), k(q)])
+  @test ring(T) == R
   @test typeof(point_coordinates(T)) == Vector{elem_type(k)}
   @test x in T
   @test !(x-p in T)
-  W, _ = Localization(T)
+  W, _ = localization(T)
 
   a = W(R(1))
   b = W(2)
@@ -55,8 +55,8 @@ const rng = Oscar.get_seeded_rng()
   J = ideal(W, [W(x-3), W(y-4)])
 
   J = ideal(W, [f, y-q])
-  @test I_loc + J isa MPolyLocalizedIdeal
-  @test I_loc * J isa MPolyLocalizedIdeal
+  @test I_loc + J isa Oscar.MPolyLocalizedIdeal
+  @test I_loc * J isa Oscar.MPolyLocalizedIdeal
 
  # @test reduce(W(x)//W(y-q+1), lbpa) == W(p)//W(y-q+1)
 
@@ -72,23 +72,23 @@ const rng = Oscar.get_seeded_rng()
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)^2
-  S = MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
-  T = MPolyPowersOfElement(R, [f])
-  U = MPolyProductOfMultSets(R, [S, T])
+  S = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
+  T = Oscar.MPolyPowersOfElement(R, [f])
+  U = Oscar.MPolyProductOfMultSets(R, [S, T])
   @test f in U
   @test (f*(x-1) in U)
   @test !(f*x in U)
 
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   o = degrevlex([x, y])*negdegrevlex([z])
-  S, _ = Localization(R, o)
+  S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
 
   R, (x, y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(R, [x])
-  L = MPolyLocRing(R, U)
+  U = Oscar.MPolyPowersOfElement(R, [x])
+  L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y*(y-x)])
   J = ideal(L, [x*(y-x)])
   @test y in quotient(I, J)
@@ -97,8 +97,8 @@ const rng = Oscar.get_seeded_rng()
   R, (x, y) = QQ["x", "y"]
   f = x^2 + y^3- 2
   I = ideal(R, [f])
-  U = MPolyComplementOfPrimeIdeal(I)
-  L = MPolyLocRing(R, U)
+  U = Oscar.MPolyComplementOfPrimeIdeal(I)
+  L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [f^4])
   J = ideal(L, [f^2])
   @test f^2 in quotient(I, J)
@@ -108,8 +108,8 @@ const rng = Oscar.get_seeded_rng()
   R, (x, y) = QQ["x", "y"]
   f = x^2 + y^2- 2
   I = ideal(R, [f])
-  U = MPolyComplementOfKPointIdeal(R, [1, 1])
-  L = MPolyLocRing(R, U)
+  U = Oscar.MPolyComplementOfKPointIdeal(R, [1, 1])
+  L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y^2*f^4])
   J = ideal(L, [x*f^2])
   @test f^2 in quotient(I, J)
@@ -122,7 +122,7 @@ end
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
-  S = MPolyPowersOfElement(R, [x, y, f])
+  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # 5 is not a unit in R
   @test !(5*f in S)
@@ -131,13 +131,13 @@ end
   x = variabs[1]
   y = variabs[2]
   f = x^2 + y^4-120
-  S = MPolyPowersOfElement(R, [x, y, f])
+  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   # Now 5 is a unit in R
   @test (5*f in S)
   @test x^3*y in S
   @test !(x^19*(x+y) in S)
-  W, _ = Localization(S)
+  W, _ = localization(S)
   @test x*y^2 in S
   @test !(x*(x+y) in S)
   @test W(1//x) == 1/W(x)
@@ -154,23 +154,23 @@ end
   x = variab[1]
   y = variab[2] 
   f = x^2 + y^2 -1
-  S = MPolyPowersOfElement(R, [x, y, f])
+  S = Oscar.MPolyPowersOfElement(R, [x, y, f])
   @test f in S
   @test !(5*f in S)
 
-  U, _ = Localization(R, f)
-  V, _ = Localization(U, x)
-  W, _ = Localization(V, 5*f)
+  U, _ = localization(R, f)
+  V, _ = localization(U, x)
+  W, _ = localization(V, 5*f)
 
-  phi = MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
+  phi = Oscar.MPolyLocalizedRingHom(R, W, [W(1//x), W(y//f)])
   @test phi(x*f) == phi(domain(phi)(x*f))
   @test phi(ZZ(9)) == W(ZZ(9))
 
-  psi = MPolyLocalizedRingHom(U, R, [R(0), R(0)])
+  psi = Oscar.MPolyLocalizedRingHom(U, R, [R(0), R(0)])
   @test psi(U(-1//f))==one(codomain(psi))
 end
 
-function test_elem(W::MPolyLocRing) 
+function test_elem(W::Oscar.MPolyLocRing) 
   f = rand(rng, W, 0:3, 0:4, 0:3)
   return f
 end
@@ -185,13 +185,13 @@ end
 #
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-# S = MPolyPowersOfElement(R, d)
-# T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-# U = MPolyComplementOfPrimeIdeal(I)
+# S = Oscar.MPolyPowersOfElement(R, d)
+# T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+# U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(Localization(S)[1])
-# test_Ring_interface_recursive(Localization(T)[1])
-# test_Ring_interface_recursive(Localization(U)[1])
+# test_Ring_interface_recursive(localization(S)[1])
+# test_Ring_interface_recursive(localization(T)[1])
+# test_Ring_interface_recursive(localization(U)[1])
 
 # should be unnecessary: https://github.com/oscar-system/Oscar.jl/pull/1459#issuecomment-1230185617
 #  AbstractAlgebra.promote_rule(::Type{fpMPolyRingElem}, ::Type{ZZRingElem}) = fpMPolyRingElem
@@ -209,13 +209,13 @@ end
     f = rand(rng, R, 1:3, 0:3, 1:10)::elem_type(R)
     iszero(f) || push!(d, f)
   end
-  S = MPolyPowersOfElement(R, d)
-  T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-  U = MPolyComplementOfPrimeIdeal(I)
+  S = Oscar.MPolyPowersOfElement(R, d)
+  T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+  U = Oscar.MPolyComplementOfPrimeIdeal(I)
 
-  test_Ring_interface_recursive(Localization(S)[1])
-  test_Ring_interface_recursive(Localization(T)[1])
-  test_Ring_interface_recursive(Localization(U)[1])
+  test_Ring_interface_recursive(localization(S)[1])
+  test_Ring_interface_recursive(localization(T)[1])
+  test_Ring_interface_recursive(localization(U)[1])
 
 # kk = ZZ
 # R, v = kk["x", "y"]
@@ -226,22 +226,22 @@ end
 #
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
-# S = MPolyPowersOfElement(R, d)
-# T = MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
-# U = MPolyComplementOfPrimeIdeal(I)
+# S = Oscar.MPolyPowersOfElement(R, d)
+# T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
+# U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
-# test_Ring_interface_recursive(Localization(S)[1])
-# test_Ring_interface_recursive(Localization(T)[1])
-# test_Ring_interface_recursive(Localization(U)[1])
+# test_Ring_interface_recursive(localization(S)[1])
+# test_Ring_interface_recursive(localization(T)[1])
+# test_Ring_interface_recursive(localization(U)[1])
 end
 
 @testset "localization_at_orderings_1" begin
   R, (x,y) = QQ["x", "y"]
   o = degrevlex([x])*negdegrevlex([y])
-  U = MPolyLeadingMonOne(R, o)
+  U = Oscar.MPolyLeadingMonOne(R, o)
   @test y-1 in U
   @test !(x in U)
-  L, _ = Localization(R, U)
+  L, _ = localization(R, U)
   I = ideal(L, [x^2, y*(y-1)])
   @test !(x in I)
   @test x^2 in I
@@ -252,7 +252,7 @@ end
 @testset "localization_at_orderings_2" begin
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
   o = degrevlex([x, y])*negdegrevlex([z])
-  S, _ = Localization(R, o)
+  S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, (z+1)*(x^2 + y^2 + z^3)])
@@ -264,9 +264,9 @@ end
 @testset "localizations at k-points" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   p = [-5, 8, 1//2]
-  U = MPolyComplementOfKPointIdeal(R, p)
+  U = Oscar.MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(x+5), (y-8)*y-z*(x+5)])
-  L, _ = Localization(R, U)
+  L, _ = localization(R, U)
   LI = L(I)
   @test x+5 in LI
   @test y-8 in LI
@@ -283,23 +283,23 @@ end
 @testset "successive localizations" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   p = [0,0,0]
-  U = MPolyComplementOfKPointIdeal(R, p)
+  U = Oscar.MPolyComplementOfKPointIdeal(R, p)
   I = ideal(R, [x*(y-1)-z*(x-2), y*x])
-  L, _ = Localization(R, U)
+  L, _ = localization(R, U)
   LI = L(I)
   W, _ = quo(L, LI)
-  S = MPolyPowersOfElement(R, [y])
-  RS, _ = Localization(R, S)
+  S = Oscar.MPolyPowersOfElement(R, [y])
+  RS, _ = localization(R, S)
   RSI = RS(I)
   saturated_ideal(RSI, with_generator_transition=true)
   J = L(Oscar.pre_saturated_ideal(RSI))
   z in J
   W, _ = quo(L, LI)
-  S = MPolyPowersOfElement(R, [y])
-  WS, _ = Localization(W, S)
+  S = Oscar.MPolyPowersOfElement(R, [y])
+  WS, _ = localization(W, S)
   @test !iszero(W(z))
   @test iszero(WS(z))
-  LS, _ = Localization(L, S)
+  LS, _ = localization(L, S)
   LSI = LS(LI)
   @test dot(coordinates(z, LSI), gens(LSI)) == LS(z)
   @test !(z in Oscar.pre_saturated_ideal(LSI))
@@ -310,8 +310,8 @@ end
 @testset "saturated_ideals" begin
   R, (x, y) = QQ["x", "y"]
   I = ideal(R, [x, y^2+1])
-  U = MPolyComplementOfPrimeIdeal(I)
-  L = MPolyLocRing(R, U)
+  U = Oscar.MPolyComplementOfPrimeIdeal(I)
+  L = Oscar.MPolyLocRing(R, U)
   J = ideal(L,[y*(x^2+(y^2+1)^2)])
   J_sat = ideal(R,[(x^2+(y^2+1)^2)])
   @test saturated_ideal(J) == J_sat

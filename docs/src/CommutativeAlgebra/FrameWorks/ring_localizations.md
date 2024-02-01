@@ -21,7 +21,7 @@ localized rings should belong to the `AbsLocalizedRing` abstract type.
 The basic functionality that has to be realized for any concrete instance of `AbsMultSet`
 is the containment check for elements in multiplicatively closed subsets via the `in` function.
 
-For each concrete instance of `AbsLocalizedRing`, the `Localization` constructor as well as the
+For each concrete instance of `AbsLocalizedRing`, the `localization` constructor as well as the
 functions `base_ring` and `inverted_set` need to be implemented. Moreover, as for any other type
 of rings in OSCAR, methods for the standardized set of functions of OSCAR's
 general [Ring Interface](@ref) must be supplied.
@@ -66,7 +66,7 @@ For a concrete instance, the constructors to be implemented are:
    ideal(W::AbsLocalizedRing, v::Vector{LocalizedRingElemType}) where {LocalizedRingElemType<:AbsLocalizedRingElem}
 ```
 
-The usual getter functions  `base_ring`, `gens`, `ngens`, and `gen`   must be realized.
+The usual getter functions  `base_ring`, `gens`, `number_of_generators`, and `gen`   must be realized.
 
 Moreover, a method for ideal membership via the `in` function is required.
 

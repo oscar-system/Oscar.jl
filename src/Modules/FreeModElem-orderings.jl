@@ -6,8 +6,8 @@ function Orderings.lex(F::ModuleFP)
    return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :lex))
 end
 
-function Orderings.revlex(F::ModuleFP)
-   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :revlex))
+function Orderings.invlex(F::ModuleFP)
+   return Orderings.ModuleOrdering(F, Orderings.ModOrdering(1:ngens(F), :invlex))
 end
 
 @doc raw"""

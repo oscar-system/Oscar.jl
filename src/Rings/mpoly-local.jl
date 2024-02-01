@@ -31,7 +31,7 @@ mutable struct MPolyRingLoc{T} <: AbstractAlgebra.Ring where T <: AbstractAlgebr
   end
 end
 
-function Oscar.Localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
+function Oscar.localization(R::MPolyRing{S}, m::Oscar.MPolyIdeal) where S
   return MPolyRingLoc(R, m)
 end
 
@@ -70,13 +70,13 @@ end
 
 function MPolyRingElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   R = parent(f)
-  return MPolyRingElemLoc{T}(f//R(1), Localization(R, m), false)
+  return MPolyRingElemLoc{T}(f//R(1), localization(R, m), false)
 end
 
 function MPolyRingElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
-  return MPolyRingElemLoc{elem_type(B)}(f, Localization(R, m))
+  return MPolyRingElemLoc{elem_type(B)}(f, localization(R, m))
 end
 
 ###############################################################################
@@ -95,14 +95,13 @@ function Base.show(io::IO, w::MPolyRingElemLoc)
   show(io, w.frac)
 end
 
-Nemo.base_ring(R::MPolyRingLoc) = R.base_ring
-Nemo.symbols(R::MPolyRingLoc) = symbols(base_ring(R))
-Nemo.nvars(R::MPolyRingLoc) = nvars(base_ring(R))
-Nemo.parent(f::MPolyRingElemLoc) = f.parent
+base_ring(R::MPolyRingLoc) = R.base_ring
+symbols(R::MPolyRingLoc) = symbols(base_ring(R))
+number_of_variables(R::MPolyRingLoc) = number_of_variables(base_ring(R))
+parent(f::MPolyRingElemLoc) = f.parent
 Nemo.numerator(f::MPolyRingElemLoc) = numerator(f.frac)
 Nemo.denominator(f::MPolyRingElemLoc) = denominator(f.frac)
 
-elem_type(::MPolyRingLoc{T}) where {T} = MPolyRingElemLoc{T}
 elem_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyRingElemLoc{T}
 parent_type(::Type{MPolyRingElemLoc{T}}) where {T} = MPolyRingLoc{T}
 

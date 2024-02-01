@@ -7,8 +7,8 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, G) do loaded
               @test loaded isa Graph{Undirected}
               @test Base.propertynames(G) == Base.propertynames(loaded)
-              @test nv(G) == nv(loaded)
-              @test ne(G) == ne(loaded)
+              @test nvertices(G) == nvertices(loaded)
+              @test nedges(G) == nedges(loaded)
             end
         end
 
@@ -42,7 +42,7 @@ using Oscar: _integer_variables
               @test loaded isa PolyhedralComplex
               @test Base.propertynames(PC) == Base.propertynames(loaded)
               @test nrays(PC) == nrays(loaded)
-              @test n_maximal_polyhedra(PC) == n_maximal_polyhedra(loaded)
+              @test number_of_maximal_polyhedra(PC) == number_of_maximal_polyhedra(loaded)
               @test dim(PC) == dim(loaded)
             end
         end
@@ -53,7 +53,7 @@ using Oscar: _integer_variables
               @test loaded isa PolyhedralFan
               @test Base.propertynames(nfsquare) == Base.propertynames(loaded)
               @test nrays(nfsquare) == nrays(loaded)
-              @test n_maximal_cones(nfsquare) == n_maximal_cones(loaded)
+              @test number_of_maximal_cones(nfsquare) == number_of_maximal_cones(loaded)
               @test dim(nfsquare) == dim(loaded)
             end
         end
@@ -94,8 +94,8 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, MOAE) do loaded
               @test loaded isa SubdivisionOfPoints
               @test Base.propertynames(MOAE) == Base.propertynames(loaded)
-              @test n_maximal_cells(MOAE) == n_maximal_cells(loaded)
-              @test npoints(MOAE) == npoints(loaded)
+              @test number_of_maximal_cells(MOAE) == number_of_maximal_cells(loaded)
+              @test number_of_points(MOAE) == number_of_points(loaded)
             end
         end
 

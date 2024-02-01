@@ -14,7 +14,7 @@ function intersect(
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   X === Y && return SpecOpen(Y, complement_equations(U), check=check)
-  if check && !issubset(Y, X)
+  if check && !is_subscheme(Y, X)
     Y = intersect(Y, X)
   end
   return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))], check=check)
@@ -42,24 +42,24 @@ end
 ########################################################################
 # Containment and equality                                             #
 ########################################################################
-function issubset(
+function is_subscheme(
     Y::AbsSpec,
     U::SpecOpen
   )
   ambient_coordinate_ring(Y) === ambient_coordinate_ring(U) || return false
-  issubset(Y, ambient_scheme(U)) || return false
+  is_subscheme(Y, ambient_scheme(U)) || return false
   return one(OO(Y)) in ideal(OO(Y), complement_equations(U))
 end
 
 
-function issubset(
+function is_subscheme(
     U::SpecOpen,
     Y::AbsSpec
   ) 
-  return all(issubset(V, Y) for V in affine_patches(U))
+  return all(is_subscheme(V, Y) for V in affine_patches(U))
 end
 
-function issubset(U::SpecOpen, V::SpecOpen)
+function is_subscheme(U::SpecOpen, V::SpecOpen)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(V) || return false
   Z = complement(V)
   # perform an implicit radical membership test (Rabinowitsch) that is way more 
@@ -68,13 +68,13 @@ function issubset(U::SpecOpen, V::SpecOpen)
     isempty(hypersurface_complement(Z, g)) || return false
   end
   return true
-  #return issubset(complement(intersect(V, ambient_scheme(U))), complement(U))
+  #return is_subscheme(complement(intersect(V, ambient_scheme(U))), complement(U))
 end
 
 # TODO: Where did the type declaration go?
 function ==(U::SpecSubset, V::SpecSubset)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(V) || return false
-  return issubset(U, V) && issubset(V, U)
+  return is_subscheme(U, V) && is_subscheme(V, U)
 end
 
 ########################################################################
@@ -115,7 +115,7 @@ function closure(
     U::SpecOpen,
     Y::AbsSpec; check::Bool=true
   )
-  @check issubset(U, Y) "the first set is not contained in the second"
+  @check is_subscheme(U, Y) "the first set is not contained in the second"
   X = closure(U)
   return intersect(X, Y)
 end
@@ -125,7 +125,7 @@ end
 ########################################################################
 
 function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
-  @check issubset(codomain(f), ambient_scheme(V)) "set is not guaranteed to be open in the codomain"
+  @check is_subscheme(codomain(f), ambient_scheme(V)) "set is not guaranteed to be open in the codomain"
   new_gens = pullback(f).(complement_equations(V))
   return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
 end

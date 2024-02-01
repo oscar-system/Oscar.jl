@@ -9,8 +9,8 @@
 
         Sigma = groebner_fan(I)
         @test isequal(f_vector(Sigma),[19,70,92,40])
-        @test issimplicial(Sigma)
-        @test !issmooth(Sigma)
+        @test is_simplicial(Sigma)
+        @test !is_smooth(Sigma)
     end
 
     @testset "nonregular Groebner fan" begin
@@ -20,6 +20,6 @@
                    a*d^4 + a*c])
         Sigma = groebner_fan(I)
         @test isequal(f_vector(Sigma),[63,206,225,81])
-        @test !issimplicial(Sigma)
+        @test !is_simplicial(Sigma)
     end
 end

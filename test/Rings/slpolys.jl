@@ -306,7 +306,7 @@ end
     @test convert(R, 2-p) == 2-q
     @test convert(R, p-2) == q-2
 
-    R = residue_ring(AbstractAlgebra.ZZ, 3)
+    R = residue_ring(AbstractAlgebra.ZZ, 3)[1]
     a = R(2)
     S = SLPolyRing(R, [:x, :y])
     x, y = gens(S)

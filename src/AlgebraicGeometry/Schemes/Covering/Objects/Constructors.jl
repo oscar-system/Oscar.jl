@@ -8,8 +8,8 @@
     Covering(patches::Vector{<:AbsSpec})
 
 Return a `Covering` with pairwise disjoint affine charts ``Uᵢ`` given by 
-the entries of `patches`. This `Covering` will have no glueings except 
-those glueings along the identity of every affine chart to itself.
+the entries of `patches`. This `Covering` will have no gluings except 
+those gluings along the identity of every affine chart to itself.
 
 # Examples
 ```jldoctest
@@ -32,11 +32,11 @@ Covering
 ```
 """
 function Covering(patches::Vector{<:AbsSpec})
-  g = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  g = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   for X in patches
     U = PrincipalOpenSubset(X)
     f = identity_map(U)
-    g[X,X] = SimpleGlueing(X, X, f, f, check=false)
+    g[X,X] = SimpleGluing(X, X, f, f, check=false)
   end
   return Covering(patches, g, check=false)
 end
@@ -52,7 +52,7 @@ empty_covering(kk::Ring) = Covering(kk)
 
 Return the `Covering` corresponding to the disjoint union of `C1` and `C2`. 
 
-The charts and glueings of the disjoint union are given by the disjoint union of the charts and glueings of the covers `C1` and `C2`.
+The charts and gluings of the disjoint union are given by the disjoint union of the charts and gluings of the covers `C1` and `C2`.
 
 # Examples
 ```jldoctest
@@ -90,11 +90,11 @@ Covering
 """
 function disjoint_union(C1::Covering, C2::Covering)
   C = Covering(vcat(patches(C1), patches(C2)))
-  for (X, Y) in keys(glueings(C1))
-    add_glueing!(C, C1[X, Y])
+  for (X, Y) in keys(gluings(C1))
+    add_gluing!(C, C1[X, Y])
   end
-  for (X, Y) in keys(glueings(C2))
-    add_glueing!(C, C2[X, Y])
+  for (X, Y) in keys(gluings(C2))
+    add_gluing!(C, C2[X, Y])
   end
   return C
 end

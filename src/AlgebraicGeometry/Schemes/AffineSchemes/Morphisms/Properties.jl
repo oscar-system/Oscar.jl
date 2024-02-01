@@ -12,7 +12,7 @@ This method checks if a morphism is an isomorphism.
 @attr Bool function is_isomorphism(f::AbsSpecMor)
   has_attribute(f, :inverse) && return true
   is_isomorphism(pullback(f)) || return false
-  set_attribute!(f, :inverse, SpecMor(codomain(f), domain(f), inverse(pullback(f))))
+  set_attribute!(f, :inverse, morphism(codomain(f), domain(f), inverse(pullback(f))))
   return true
 end
 
@@ -52,7 +52,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false

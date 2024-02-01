@@ -13,7 +13,7 @@
                                  ToricMorphism
                                 }
   domain::NormalToricVarietyType
-  grid_morphism::GrpAbFinGenMap
+  grid_morphism::FinGenAbGroupHom
   codomain::NormalToricVarietyType
   function ToricMorphism(domain, grid_morphism, codomain)
     result = new{typeof(domain), typeof(codomain), Nothing}(domain, grid_morphism, codomain)
@@ -42,16 +42,16 @@ All checks can be disabled with `check=false`.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> mapping_matrix = matrix(ZZ, [0 1])
 [0   1]
 
 julia> toric_morphism(domain, mapping_matrix, codomain)
-A toric morphism
+Toric morphism
 ```
 """
 function toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
@@ -73,7 +73,7 @@ toric_morphism(domain::NormalToricVarietyType, mapping_matrix::Vector{Vector{T}}
 
 
 @doc raw"""
-    toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
+    toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbGroupHom, codomain::NormalToricVarietyType; check=true)
 
 Construct the toric morphism from the `domain` to the `codomain` with map given
 by the `grid_morphism`.
@@ -87,22 +87,24 @@ All checks can be disabled with `check=false`.
 # Examples
 ```jldoctest
 julia> domain = projective_space(NormalToricVariety, 1)
-Normal, non-affine, smooth, projective, gorenstein, fano, 1-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> codomain = hirzebruch_surface(NormalToricVariety, 2)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> mapping_matrix = matrix(ZZ, [[0, 1]])
 [0   1]
 
 julia> grid_morphism = hom(character_lattice(domain), character_lattice(codomain), mapping_matrix)
-Map: GrpAb: Z -> GrpAb: Z^2
+Map
+  from Z
+  to Z^2
 
 julia> toric_morphism(domain, grid_morphism, codomain)
-A toric morphism
+Toric morphism
 ```
 """
-function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
+function toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbGroupHom, codomain::NormalToricVarietyType; check=true)
     # avoid empty mapping
     @req (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) "The mapping matrix must not be empty"
 
@@ -120,7 +122,7 @@ function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinG
     end
     return ToricMorphism(domain, grid_morphism, codomain)
 end
-function toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap; check=true)
+function toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbGroupHom; check=true)
   image = transform(domain, matrix(grid_morphism); check=check)
   return ToricMorphism(domain, grid_morphism, image)
 end
@@ -138,7 +140,7 @@ Construct the toric identity morphism from `variety` to `variety`.
 # Examples
 ```jldoctest
 julia> toric_identity_morphism(hirzebruch_surface(NormalToricVariety, 2))
-A toric morphism
+Toric morphism
 ```
 """
 function toric_identity_morphism(variety::NormalToricVarietyType)
@@ -205,7 +207,8 @@ end
 ######################
 
 function Base.show(io::IO, tm::ToricMorphism)
-    join(io, "A toric morphism")
+    join(io, "Toric morphism")
 end
 
 Base.show(io::IO, ::MIME"text/plain", tm::ToricMorphism) = Base.show(pretty(io), tm)
+

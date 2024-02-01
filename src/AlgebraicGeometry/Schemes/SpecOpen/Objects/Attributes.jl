@@ -79,11 +79,11 @@ Return the coordinates of the ambient affine space of ``U``.
 ambient_coordinates(U::SpecOpen) = coordinates(ambient_space(U))
 
 @doc raw"""
-    npatches(U::SpecOpen)
+    number_of_patches(U::SpecOpen)
 
 Return the number of generators stored for describing the complement of ``U``.
 """
-npatches(U::SpecOpen) = length(U.gens)
+number_of_patches(U::SpecOpen) = length(U.gens)
 
 @doc raw"""
     complement_equations(U::SpecOpen)
@@ -107,7 +107,7 @@ affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
 gens(U::SpecOpen) = affine_patches(U)
 gen(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
-ngens(U::SpecOpen) = npatches(U)
+number_of_generators(U::SpecOpen) = number_of_patches(U)
 
 function getindex(U::SpecOpen, X::AbsSpec) 
   for i in 1:npatches(U)

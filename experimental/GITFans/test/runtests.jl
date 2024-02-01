@@ -17,10 +17,9 @@
      ]
 
     n = nrows(Q)
-    Qt, T = polynomial_ring(QQ, :T => 1:n)
     D = free_abelian_group(ncols(Q))
     w = [D(Q[i, :]) for i = 1:n]
-    R, T = grade(Qt, w)
+    R, T = graded_polynomial_ring(QQ, :T => 1:n, w)
     a = ideal([
         T[5]*T[10] - T[6]*T[9] + T[7]*T[8],
         T[1]*T[9]  - T[2]*T[7] + T[4]*T[5],
@@ -77,8 +76,8 @@
     c = cones(fanobj, 5)[1]
     @test nrays(fanobj) == 20
     @test dim(fanobj) == 5
-    @test n_maximal_cones(fanobj) == 76
-    @test n_cones(fanobj) == 671
+    @test number_of_maximal_cones(fanobj) == 76
+    @test number_of_cones(fanobj) == 671
     @test !is_complete(fanobj)
     @test is_pointed(fanobj)
     @test !is_regular(fanobj)

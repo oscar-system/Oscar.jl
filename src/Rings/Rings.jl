@@ -8,7 +8,6 @@ include("mpoly-ideals.jl")
 include("groebner.jl")
 include("solving.jl")
 include("MPolyQuo.jl")
-include("mpoly-nested.jl")
 include("FractionalIdeal.jl")
 
 include("mpoly-affine-algebras.jl")
@@ -36,4 +35,4 @@ include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")
 include("FreeAssAlgIdeal.jl")
 include("hilbert.jl")
-
+include("primary_decomposition_helpers.jl")

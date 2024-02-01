@@ -37,7 +37,7 @@ direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
 ## Truncation
 
 ```@docs
-truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
 ```
 
 ## Twists
@@ -45,5 +45,5 @@ truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
 In the graded case, we have:
 
 ```@docs
-twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
 ```

@@ -138,7 +138,7 @@ map_entries(R::Ring, obj::GapObj) = matrix(R, obj)
 # TODO: cache conversion tables
 
 ## single GAP cyclotomic to element of cyclotomic field
-function (F::AnticNumberField)(obj::GapInt)
+function (F::AbsSimpleNumField)(obj::GapInt)
     @req Nemo.is_cyclo_type(F) "F is not a cyclotomic field"
     @req GAPWrap.IsCyc(obj) "input is not a GAP cyclotomic"
     N = get_attribute(F, :cyclo)
@@ -165,7 +165,7 @@ GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 (::QQAbField)(a::GAP.GapObj) = GAP.gap_to_julia(QQAbElem, a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
-function matrices_over_cyclotomic_field(F::AnticNumberField, gapmats::GapObj)
+function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)
     @req Nemo.is_cyclo_type(F) "F is not a cyclotomic field"
     @req GAPWrap.IsList(gapmats) "gapmats is not a GAP list"
     @req !GAPWrap.IsEmpty(gapmats) "gapmats is empty"
@@ -188,7 +188,7 @@ end
 matrices_over_cyclotomic_field(gapmats::GapObj) = matrices_over_field(gapmats)
 
 ## single GAP matrix of cyclotomics
-function matrix(F::AnticNumberField, mat::GapObj)
+function matrix(F::AbsSimpleNumField, mat::GapObj)
     __ensure_gap_matrix(mat)
     @req Nemo.is_cyclo_type(F) "F is not a cyclotomic field"
     @req GAPWrap.IsCyclotomicCollColl(mat) "mat is not a GAP matrix of cyclotomics"
@@ -217,7 +217,7 @@ function matrices_over_field(gapmats::GapObj)
       # (This is more Oscar-like, but the reason why we use this field
       # is that subfields are not supported on the GAP side;
       # for example, already 'FieldOfMatrixList' would not work.)
-      gapF = GAP.getbangproperty(GAP.Globals.FamilyObj(gapmats[1][1,1]), :wholeField)
+      gapF = GAP.getbangproperty(GAPWrap.FamilyObj(gapmats[1][1,1]), :wholeField)
     else
       throw(ArgumentError("gapmats is not a GAP list of matrices over a finite field"))
     end

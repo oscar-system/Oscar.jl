@@ -27,19 +27,19 @@
 function AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)
     Base.depwarn("'AffineNormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
     "'affine_normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
-    affine_normal_toric_variety(C; set_attributes = set_attributes)
+    affine_normal_toric_variety(C)
 end
 
 function AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)
     Base.depwarn("'AffineNormalToricVariety(v::NormalToricVariety; set_attributes::Bool = true)' is deprecated, use "*
     "'affine_normal_toric_variety(v::NormalToricVariety; set_attributes::Bool = true)' instead.", :AffineNormalToricVariety)
-    affine_normal_toric_variety(v; set_attributes = set_attributes)
+    affine_normal_toric_variety(v)
 end
 
 function NormalToricVariety(C::Cone; set_attributes::Bool = true)
     Base.depwarn("'NormalToricVariety(C::Cone; set_attributes::Bool = true)' is deprecated, use "*
     "'normal_toric_variety(C::Cone; set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(C; set_attributes = set_attributes)
+    normal_toric_variety(C)
 end
 
 function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; non_redundant::Bool = false, set_attributes::Bool = true)
@@ -47,7 +47,7 @@ function NormalToricVariety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vecto
     "non_redundant::Bool = false, set_attributes::Bool = true)' is deprecated, use "*
     "'normal_toric_variety(rays::Vector{Vector{Int64}}, max_cones::Vector{Vector{Int64}}; "*
     "non_redundant::Bool = false, set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(rays, max_cones; non_redundant = non_redundant, set_attributes = set_attributes)
+    normal_toric_variety(rays, max_cones; non_redundant = non_redundant)
 end
 
 function NormalToricVariety(PF::PolyhedralFan; set_attributes::Bool = true)
@@ -59,11 +59,11 @@ end
 function NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)
     Base.depwarn("'NormalToricVariety(P::Polyhedron; set_attributes::Bool = true)' is deprecated, use"*
     "'normal_toric_variety(P::Polyhedron; set_attributes::Bool = true)' instead.", :NormalToricVariety)
-    normal_toric_variety(P; set_attributes = set_attributes)
+    normal_toric_variety(P)
 end
 
-@deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P; set_attributes = set_attributes)
-@deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges; set_attributes = set_attributes)
+@deprecate NormalToricVarietiesFromStarTriangulations(P::Polyhedron; set_attributes::Bool = true) normal_toric_varieties_from_star_triangulations(P)
+@deprecate NormalToricVarietyFromGLSM(charges::ZZMatrix; set_attributes::Bool = true) normal_toric_varieties_from_glsm(charges)
 
 function RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
     Base.depwarn("'RationalEquivalenceClass(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}'"*
@@ -224,12 +224,12 @@ end
 # Deprecated after 0.12.0
 @deprecate contains(P::Polyhedron, v::AbstractVector) Base.in(v, P)
 @deprecate contains(C::Cone, v::AbstractVector) Base.in(v, C)
-@deprecate blowup_on_ith_minimal_torus_orbit(v::NormalToricVarietyType, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name, set_attributes = set_attributes)
+@deprecate blowup_on_ith_minimal_torus_orbit(v::NormalToricVarietyType, n::Int, coordinate_name::String; set_attributes::Bool = true) blow_up(v, n; coordinate_name = coordinate_name)
 @deprecate starsubdivision(PF::_FanLikeType, n::Int) star_subdivision(PF, n)
 
 # Deprecated after 0.12.1
-@deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r; set_attributes = set_attributes)
-@deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b; set_attributes = set_attributes)
+@deprecate hirzebruch_surface(r::Int; set_attributes::Bool = true) hirzebruch_surface(NormalToricVariety, r)
+@deprecate del_pezzo_surface(b::Int; set_attributes::Bool = true) del_pezzo_surface(NormalToricVariety, b)
 
 # PolyhedralComplex -> polyhedral_complex
 function PolyhedralComplex{T}(
@@ -265,14 +265,14 @@ function PolyhedralFan{T}(Rays::AbstractCollection[RayVector],
                           Incidence::IncidenceMatrix; 
                           non_redundant::Bool = false) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, LS, Incidence; non_redundant=non_redundant)
+  return polyhedral_fan(T, Incidence, Rays, LS; non_redundant=non_redundant)
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, Incidence; non_redundant=non_redundant)
+  return polyhedral_fan(T, Incidence, Rays; non_redundant=non_redundant)
 end
-@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, LS, Incidence; non_redundant = non_redundant)
-@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Rays, Incidence; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant = non_redundant)
+@deprecate PolyhedralFan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant = non_redundant)
 function PolyhedralFan(itr::AbstractVector{Cone{T}}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan' is deprecated, use 'polyhedral_fan' instead.", :PolyhedralFan)
   return polyhedral_fan(itr)
@@ -283,11 +283,11 @@ function PolyhedralFan(C::Cone{T}) where T<:scalar_types
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, LS, Incidence)
+  return polyhedral_fan(T, Incidence, Rays, LS)
 end
 function PolyhedralFan{T}(Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) where T<:scalar_types
   Base.depwarn("'PolyhedralFan{$T}(x...)' is deprecated, use 'polyhedral_fan($T, x...)' instead.", :PolyhedralFan)
-  return polyhedral_fan(T, Rays, Incidence)
+  return polyhedral_fan(T, Incidence, Rays)
 end
 
 # SubdivisionOfPoints -> subdivision_of_points
@@ -366,7 +366,7 @@ end
 
 # Deprecated after 0.13.0
 @deprecate fan(v::NormalToricVarietyType) polyhedral_fan(v)
-@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMor, check::Bool) restrict_automorphism_group(G, i; check)
+@deprecate restrict_automorphism_group(G::AutomorphismGroup{TorQuadModule}, i::TorQuadModuleMap, check::Bool) restrict_automorphism_group(G, i; check)
 
 # Polyhedral object wrappers now require a parent field
 function Cone{T}(obj::Polymake.BigObject) where T<:scalar_types
@@ -408,3 +408,280 @@ end
 @alias issymmetric_form is_symmetric_form
 
 @deprecate dual_cone(v::AffineNormalToricVariety) weight_cone(v)
+@deprecate cohomology_index(tvs::ToricVanishingSet) cohomology_indices(tvs)
+
+@deprecate mul(x::GAPGroupElem, y::GAPGroupElem) x*y
+
+
+# see https://github.com/oscar-system/Oscar.jl/pull/2908
+function affine_normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(C)
+end
+
+function normal_toric_variety(C::Cone, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(C)
+end
+
+function affine_normal_toric_variety(v::NormalToricVariety, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_normal_toric_variety)
+  return affine_normal_toric_variety(v)
+end
+
+function normal_toric_variety(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety)
+  return normal_toric_variety(P)
+end
+
+function Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :Base.:*)
+  return v*w
+end
+
+function affine_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :affine_space)
+  return affine_space(Type{NormalToricVariety}, d)
+end
+
+function del_pezzo_surface(::Type{NormalToricVariety}, b::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :del_pezzo_surface)
+  return del_pezzo_surface(Type{NormalToricVariety}, b)
+end
+
+function hirzebruch_surface(::Type{NormalToricVariety}, r::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :hirzebruch_surface)
+  return hirzebruch_surface(Type{NormalToricVariety}, r)
+end
+
+function projective_space(::Type{NormalToricVariety}, d::Int, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :projective_space)
+  return projective_space(Type{NormalToricVariety}, d)
+end
+
+function weighted_projective_space(::Type{NormalToricVariety}, w::Vector{T}, set_attributes::Bool) where {T <: IntegerUnion}
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :weighted_projective_space)
+  return weighted_projective_space(Type{NormalToricVariety}, w)
+end
+
+function normal_toric_variety_from_star_triangulation(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_variety_from_star_triangulation)
+  return normal_toric_variety_from_star_triangulation(P)
+end
+
+function normal_toric_varieties_from_star_triangulations(P::Polyhedron, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :normal_toric_varieties_from_star_triangulations)
+  return normal_toric_varieties_from_star_triangulations(P)
+end
+
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, new_ray, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, n::Int, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, n, coordinate_name)
+end
+
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal, coordinate_name::String, set_attributes::Bool)
+  Base.depwarn("The keyword argument set_attributes is deprecated. Please use the function without the keyword.", :blow_up)
+  return blow_up(v, I, coordinate_name)
+end
+
+# Deprecated after 0.14.0
+@deprecate revlex(R::MPolyRing) invlex(R::MPolyRing)
+@deprecate revlex(v::AbstractVector{<:MPolyRingElem}) invlex(v::AbstractVector{<:MPolyRingElem})
+@deprecate negrevlex(R::MPolyRing) ngeinvlex(R::MPolyRing)
+@deprecate negrevlex(v::AbstractVector{<:MPolyRingElem}) neginvlex(v::AbstractVector{<:MPolyRingElem})
+
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(f, Incidence, Rays, nothing; non_redundant)
+@deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}, Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant)
+@deprecate polyhedral_fan(Rays::AbstractCollection[RayVector], Incidence::IncidenceMatrix; non_redundant::Bool = false) polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant)
+@deprecate polyhedral_fan(f::scalar_type_or_field,
+                        Rays::AbstractCollection[RayVector], 
+                        LS::Union{AbstractCollection[RayVector], Nothing},
+                        Incidence::IncidenceMatrix; 
+                        non_redundant::Bool = false) polyhedral_fan(f, Incidence, Rays, LS; non_redundant)
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], LS::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, LS, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+@deprecate polyhedral_fan(f::scalar_type_or_field, Rays::AbstractCollection[RayVector], Incidence::Matrix{Bool}) polyhedral_fan(f, Rays, IncidenceMatrix(Polymake.IncidenceMatrix(Incidence)))
+@deprecate normal_toric_variety(rays::AbstractCollection[RayVector], max_cones::IncidenceMatrix; non_redundant::Bool = false) normal_toric_variety(max_cones, rays; non_redundant)
+
+@deprecate components(X::AbsSpec) connected_components(X::AbsSpec)
+
+@deprecate SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}}) simplicial_complex(generators)
+@deprecate SimplicialComplex(generators::IncidenceMatrix) simplicial_complex(generators)
+
+Base.@deprecate_binding is_finitelygenerated is_finitely_generated
+Base.@deprecate_binding has_is_finitelygenerated has_is_finitely_generated
+Base.@deprecate_binding set_is_finitelygenerated set_is_finitely_generated
+
+Base.@deprecate_binding is_obviouslyabelian is_obviously_abelian false
+
+Base.@deprecate_binding is_almostsimple is_almost_simple
+Base.@deprecate_binding has_is_almostsimple has_is_almost_simple
+Base.@deprecate_binding set_is_almostsimple set_is_almost_simple
+
+# Deprecated after 0.14.*
+Base.@deprecate_binding is_isomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
+Base.@deprecate_binding has_is_isomorphic_with_symmetric_group has_is_isomorphic_to_symmetric_group
+Base.@deprecate_binding set_is_isomorphic_with_symmetric_group set_is_isomorphic_to_symmetric_group
+
+Base.@deprecate_binding is_isomorphic_with_alternating_group is_isomorphic_to_alternating_group
+Base.@deprecate_binding has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
+Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
+
+Base.@deprecate_binding proj_space projective_space
+
+Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
+
+Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
+
+Base.@deprecate_binding hall_subgroups_representatives hall_subgroup_reps
+Base.@deprecate_binding hasrelshp has_relshp
+Base.@deprecate_binding hastorusfactor has_torusfactor
+Base.@deprecate_binding inner_automorphisms_group inner_automorphism_group
+Base.@deprecate_binding isaffine is_affine
+Base.@deprecate_binding isalmostsimple is_almost_simple
+Base.@deprecate_binding isample is_ample
+Base.@deprecate_binding isbicoset is_bicoset
+Base.@deprecate_binding isbinomial is_binomial
+Base.@deprecate_binding isbounded is_bounded
+Base.@deprecate_binding iscartier is_cartier
+Base.@deprecate_binding iscellular is_cellular
+Base.@deprecate_binding iscomplete is_complete
+Base.@deprecate_binding iscongruent is_congruent
+Base.@deprecate_binding isconjugate_subgroup is_conjugate_subgroup
+Base.@deprecate_binding isdecorated is_decorated
+Base.@deprecate_binding isdihedral_group is_dihedral_group
+Base.@deprecate_binding isfano is_fano
+Base.@deprecate_binding isfeasible is_feasible
+Base.@deprecate_binding isfiltered is_filtered
+Base.@deprecate_binding isfinite_order is_finiteorder
+Base.@deprecate_binding isfinitelygenerated is_finitely_generated
+Base.@deprecate_binding isfull_direct_product is_full_direct_product
+Base.@deprecate_binding isfull_semidirect_product is_full_semidirect_product
+Base.@deprecate_binding isfull_wreath_product is_full_wreath_product
+Base.@deprecate_binding isfulldimensional is_fulldimensional
+Base.@deprecate_binding isgenerated_by_standard_unit_vectors is_generated_by_standard_unit_vectors
+Base.@deprecate_binding isglobal is_global
+Base.@deprecate_binding isgraded is_graded
+Base.@deprecate_binding isinner_automorphism is_inner_automorphism
+Base.@deprecate_binding isinvariant is_invariant
+Base.@deprecate_binding isisomorphic_with_alternating_group is_isomorphic_to_alternating_group
+Base.@deprecate_binding isisomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
+Base.@deprecate_binding isleft is_left
+Base.@deprecate_binding islocal is_local
+Base.@deprecate_binding ismixed is_mixed
+Base.@deprecate_binding ismolien_series_implemented is_molien_series_implemented
+Base.@deprecate_binding isnatural_alternating_group is_natural_alternating_group
+Base.@deprecate_binding isnatural_symmetric_group is_natural_symmetric_group
+Base.@deprecate_binding isnef is_nef
+Base.@deprecate_binding isobviouslyabelian is_obviously_abelian false
+Base.@deprecate_binding isorbifold is_orbifold
+Base.@deprecate_binding isperfect is_perfect
+Base.@deprecate_binding ispgroup is_pgroup
+Base.@deprecate_binding ispointed is_pointed
+Base.@deprecate_binding isprojective is_projective
+Base.@deprecate_binding ispure is_pure
+Base.@deprecate_binding isquaternion_group is_quaternion_group
+Base.@deprecate_binding isright is_right
+Base.@deprecate_binding issemiregular is_semiregular
+Base.@deprecate_binding issemisimple is_semisimple
+Base.@deprecate_binding issimplicial is_simplicial
+Base.@deprecate_binding issingular is_singular
+#Base.@deprecate_binding issmooth_curve is_smooth_curve
+Base.@deprecate_binding issolvable is_solvable
+Base.@deprecate_binding issupersolvable is_supersolvable
+Base.@deprecate_binding istransitive is_transitive
+Base.@deprecate_binding isunipotent is_unipotent
+Base.@deprecate_binding isunital is_unital
+Base.@deprecate_binding iswelldefined is_welldefined
+Base.@deprecate_binding representative_action is_conjugate_with_data
+Base.@deprecate_binding representative_action_in_gl_or_sl is_conjugate_with_data_in_gl_or_sl
+
+Base.@deprecate_binding has_isfinite has_is_finite
+Base.@deprecate_binding SymmetricGroup symmetric_group
+
+# Allow backwards compatibility after removal of Oscar.Graphs module.
+const Graphs = Oscar
+
+Base.@deprecate_binding MPolyElem_dec MPolyDecRingElem
+Base.@deprecate_binding MPolyRing_dec MPolyDecRing
+Base.@deprecate_binding MPolyLocalizedRingElem MPolyLocRingElem
+Base.@deprecate_binding MPolyLocalizedRing MPolyLocRing
+Base.@deprecate_binding MPolyQuoElem MPolyQuoRingElem
+Base.@deprecate_binding MPolyQuo MPolyQuoRing
+Base.@deprecate_binding MPolyQuoLocalizedRingElem MPolyQuoLocRingElem
+Base.@deprecate_binding MPolyQuoLocalizedRing MPolyQuoLocRing
+Base.@deprecate_binding SubQuoElem SubquoModuleElem
+Base.@deprecate_binding SubQuo SubquoModule
+#@alias SubQuoElem_dec SubquoDecModuleElem
+#@alias SubQuo_dec SubquoDecModule
+Base.@deprecate_binding GradedPolynomialRing graded_polynomial_ring
+
+
+# Deprecated after 0.15
+Base.@deprecate_binding _compute_glueing_base_change _compute_gluing_base_change
+Base.@deprecate_binding _compute_inherited_glueing _compute_inherited_gluing
+Base.@deprecate_binding _compute_toric_glueing _compute_toric_gluing
+Base.@deprecate_binding add_glueing! add_gluing!
+Base.@deprecate_binding base_glueing base_gluing
+Base.@deprecate_binding glueing_domains gluing_domains
+Base.@deprecate_binding glueing_graph gluing_graph
+Base.@deprecate_binding glueing_morphisms gluing_morphisms
+Base.@deprecate_binding glueings gluings
+Base.@deprecate_binding inherit_glueings! inherit_gluings!
+Base.@deprecate_binding is_connected_glueing is_connected_gluing
+Base.@deprecate_binding pruned_glueing_graph pruned_gluing_graph
+Base.@deprecate_binding underlying_glueing underlying_gluing
+Base.@deprecate_binding update_glueing_graph update_gluing_graph
+Base.@deprecate_binding AbsGlueing AbsGluing
+Base.@deprecate_binding AbsProjectiveGlueing AbsProjectiveGluing
+Base.@deprecate_binding BaseChangeGlueingData BaseChangeGluingData
+Base.@deprecate_binding CoveredProjectiveGlueingData CoveredProjectiveGluingData
+Base.@deprecate_binding Glueing Gluing
+Base.@deprecate_binding InheritGlueingData InheritGluingData
+Base.@deprecate_binding LazyProjectiveGlueing LazyProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueing ProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueingData ProjectiveGluingData
+Base.@deprecate_binding SimpleGlueing SimpleGluing
+Base.@deprecate_binding ToricGlueingData ToricGluingData
+
+Base.@deprecate_binding jacobi_matrix jacobian_matrix
+Base.@deprecate_binding jacobi_ideal jacobian_ideal
+
+@deprecate embedding(G::DirectProductGroup, j::Int) canonical_injection(G, j)
+@deprecate projection(G::DirectProductGroup, j::Int) canonical_projection(G, j)
+@deprecate embedding(G::SemidirectProductGroup, n::Int) canonical_injection(G, n)
+@deprecate projection(G::SemidirectProductGroup) canonical_projection(G)
+@deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
+@deprecate projection(W::WreathProductGroup) canonical_projection(W)
+
+@deprecate n_cones number_of_cones
+@deprecate n_connected_components number_of_connected_components
+@deprecate n_maximal_cells number_of_maximal_cells
+@deprecate n_maximal_cones number_of_maximal_cones
+@deprecate n_maximal_polyhedra number_of_maximal_polyhedra
+@deprecate ne number_of_edges
+@deprecate nv number_of_vertices
+@deprecate num_partitions number_of_partitions
+@deprecate num_positive_roots number_of_positive_roots
+@deprecate num_roots number_of_roots
+@deprecate num_simple_roots number_of_simple_roots
+@deprecate num_standard_tableaux number_of_standard_tableaux
+@deprecate number_atlas_groups number_of_atlas_groups
+@deprecate number_conjugacy_classes number_of_conjugacy_classes
+@deprecate has_number_conjugacy_classes has_number_of_conjugacy_classes
+@deprecate set_number_conjugacy_classes set_number_of_conjugacy_classes
+@deprecate number_moved_points number_of_moved_points
+@deprecate has_number_moved_points has_number_of_moved_points
+@deprecate set_number_moved_points set_number_of_moved_points
+@deprecate number_perfect_groups number_of_perfect_groups
+@deprecate has_number_perfect_groups has_number_of_perfect_groups
+@deprecate number_primitive_groups number_of_primitive_groups
+@deprecate has_number_primitive_groups has_number_of_primitive_groups
+@deprecate number_small_groups number_of_small_groups
+@deprecate has_number_small_groups has_number_of_small_groups
+@deprecate number_transitive_groups number_of_transitive_groups
+@deprecate has_number_transitive_groups has_number_of_transitive_groups

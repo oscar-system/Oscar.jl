@@ -20,7 +20,6 @@ abstract type AbstractFTheoryModel end
 @attributes mutable struct ClosedSubschemeModel <: AbstractFTheoryModel
   base_space::FTheorySpace
   ambient_space::FTheorySpace
-  #@req typeof(base_space) === typeof(ambient_space) "Base and ambient space must be of the same type"
   # total_space
   # fiber_ambient_space
   # singular_loci
@@ -50,70 +49,54 @@ end
 
 
 @attributes mutable struct HypersurfaceModel <: AbstractFTheoryModel
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
+  hypersurface_equation_parametrization::MPolyRingElem
+  hypersurface_equation::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  hypersurface_equation::MPolyRingElem
-  HypersurfaceModel(base_space::FTheorySpace, ambient_space::FTheorySpace, fiber_ambient_space::AbsCoveredScheme, hypersurface_equation::MPolyRingElem) = new(base_space, ambient_space, fiber_ambient_space, hypersurface_equation)
+  function HypersurfaceModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                             hypersurface_equation_parametrization::MPolyRingElem,
+                             hypersurface_equation::MPolyRingElem,
+                             base_space::FTheorySpace,
+                             ambient_space::FTheorySpace,
+                             fiber_ambient_space::AbsCoveredScheme)
+    return new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+  end
 end
 
 
 @attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
-  weierstrass_f::MPolyRingElem
-  weierstrass_g::MPolyRingElem
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
+  defining_section_parametrization::Dict{String, <: MPolyRingElem}
   weierstrass_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  function WeierstrassModel(weierstrass_f::MPolyRingElem,
-                            weierstrass_g::MPolyRingElem,
+  function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                            defining_section_parametrization::Dict{String, <: MPolyRingElem},
                             weierstrass_polynomial::MPolyRingElem,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
-    return new(weierstrass_f, weierstrass_g, weierstrass_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
+    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return new(explicit_model_sections, defining_section_parametrization, weierstrass_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
 end
 
 
 @attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
-  tate_a1::MPolyRingElem
-  tate_a2::MPolyRingElem
-  tate_a3::MPolyRingElem
-  tate_a4::MPolyRingElem
-  tate_a6::MPolyRingElem
+  explicit_model_sections::Dict{String, <: MPolyRingElem}
+  defining_section_parametrization::Dict{String, <: MPolyRingElem}
   tate_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
-  function GlobalTateModel(tate_a1::MPolyRingElem,
-                          tate_a2::MPolyRingElem,
-                          tate_a3::MPolyRingElem,
-                          tate_a4::MPolyRingElem,
-                          tate_a6::MPolyRingElem,
+  function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    return new(tate_a1, tate_a2, tate_a3, tate_a4, tate_a6, tate_polynomial, base_space, ambient_space, weighted_projective_space(NormalToricVariety, [2,3,1]))
+    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return new(explicit_model_sections, defining_section_parametrization, tate_polynomial, base_space, ambient_space, fiber_ambient_space)
   end
-end
-
-
-################################################
-# 3: conceptual parents
-################################################
-
-@attr ClosedSubschemeModel function conceptual_parent(cim::CompleteIntersectionModel)
-  # do something
-end
-
-@attr CompleteIntersectionModel function conceptual_parent(hm::HypersurfaceModel)
-  # do something
-end
-
-@attr HypersurfaceModel function conceptual_parent(gtm::GlobalTateModel)
-  # do something
-end
-
-@attr HypersurfaceModel function conceptual_parent(gwm::WeierstrassModel)
-  # do something
 end

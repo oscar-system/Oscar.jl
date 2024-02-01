@@ -17,7 +17,7 @@ defined over the integers, a finite field or algebraic field extensions of ``\ma
 
 ### General constructors
 
-Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or 
+Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or
 `MPolyQuoLocRing`, we have the following constructors:
 ```@docs
 Spec(R::MPolyRing, I::MPolyIdeal)
@@ -90,7 +90,7 @@ OO(X::AbsSpec)
 ### Type getters
 
 We support functions which return the types of
-schemes, associated rings, and their elements. See the 
+schemes, associated rings, and their elements. See the
 source code for details.
 
 
@@ -100,7 +100,7 @@ source code for details.
 is_open_embedding(X::AbsSpec, Y::AbsSpec)
 is_closed_embedding(X::AbsSpec, Y::AbsSpec)
 isempty(X::AbsSpec)
-issubset(X::AbsSpec, Y::AbsSpec)
+is_subscheme(X::AbsSpec, Y::AbsSpec)
 ```
 
 

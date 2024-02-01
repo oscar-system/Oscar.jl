@@ -1,6 +1,5 @@
 @testset "Projective Varieties" begin
-  P,_ = polynomial_ring(QQ, [:x, :y, :z])
-  G, (x, y, z) = grade(P)
+  G, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
   p = x^2 + y^2 + z^2
   X = variety(p)
   @test_throws ErrorException variety(p^2)

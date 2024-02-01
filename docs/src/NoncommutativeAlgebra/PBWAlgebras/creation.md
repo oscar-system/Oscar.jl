@@ -66,7 +66,7 @@ Given a PBW-algebra `A` over a field `K`,
 
 - `coefficient_ring(A)` refers to `K`,
 - `gens(A)` to the generators of `A`,
-- `ngens(A)` to the number of these generators, and
+- `number_of_generators(A)` / `ngens(A)` to the number of these generators, and
 - `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -95,7 +95,7 @@ y
 julia> A[3]
 z 
 
-julia> ngens(A)
+julia> number_of_generators(A)
 3
 
 ```

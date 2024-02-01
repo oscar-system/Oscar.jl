@@ -27,7 +27,7 @@ true
 julia> ngens(chow_ring(p2))
 3
 
-julia> v = normal_toric_variety([[1, 0], [0, 1], [-1, -1]], [[1], [2], [3]])
+julia> v = normal_toric_variety(IncidenceMatrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
 Normal toric variety
 
 julia> is_complete(v)
@@ -39,16 +39,16 @@ julia> chow_ring(v)
 Quotient
   of multivariate polynomial ring in 3 variables x_{1}, x_{2}, x_{3}
     over rational field
-  by ideal(x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
+  by ideal (x_{1} - x_{3}, x_{2} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
 
 julia> M = cycle_matroid(complete_graph(3))
 Matroid of rank 2 on 3 elements
 
 julia> chow_ring(M)
 Quotient
-  of multivariate polynomial ring in 3 variables x_{1}, x_{2}, x_{3}
+  of multivariate polynomial ring in 3 variables x_{Edge(2, 1)}, x_{Edge(3, 1)}, x_{Edge(3, 2)}
     over rational field
-  by ideal(x_{1} - x_{2}, x_{1} - x_{3}, x_{1}*x_{2}, x_{1}*x_{3}, x_{2}*x_{3})
+  by ideal with 5 generators
 ```
 """
 @attr MPolyQuoRing function chow_ring(v::NormalToricVarietyType)
@@ -90,7 +90,7 @@ julia> gens_of_rational_equivalence_classes(p2)
   cr = chow_ring(v)
   R = base_ring(cr)
   cs = cones(v)
-  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:n_cones(v)]
+  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:ncones(v)]
 end
 
 

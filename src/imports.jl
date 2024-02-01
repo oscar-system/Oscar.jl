@@ -2,6 +2,7 @@
 using Pkg
 using Random
 using RandomExtensions
+using UUIDs
 
 # our packages
 import AbstractAlgebra
@@ -55,6 +56,7 @@ import AbstractAlgebra:
   @show_name,
   @show_special,
   addeq!,
+  allow_unicode,
   base_ring,
   canonical_unit,
   codomain,
@@ -80,8 +82,12 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  has_gens,
   Ideal,
   Indent,
+  is_finiteorder,
+  is_trivial,
+  is_unicode_allowed,
   Lowercase,
   LowercaseOff,
   map,
@@ -93,8 +99,8 @@ import AbstractAlgebra:
   MPolyRingElem,
   NCRing,
   NCRingElem,
-  ngens,
-  nvars,
+  number_of_generators,
+  number_of_variables,
   ordering,
   parent_type,
   polynomial_ring,
@@ -107,13 +113,8 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
-  total_degree
-
-import AbstractAlgebra.GroupsCore
-import AbstractAlgebra.GroupsCore:
-  hasgens,
-  isfiniteorder,
-  istrivial
+  total_degree,
+  with_unicode
 
 import GAP:
   @gapattribute,
@@ -134,6 +135,7 @@ import Nemo:
   fqPolyRepFieldElem,
   fraction_field,
   height,
+  is_embedded,
   is_prime,
   is_probable_prime,
   is_square,

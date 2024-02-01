@@ -16,10 +16,10 @@ Lie algebra homomorphisms $h: L_1 \to L_2$ are constructed by providing either
 the images of the basis elements of $L_1$ or a $\dim L_1 \times \dim L_2$ matrix.
 
 ```@docs
-hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::Vector{<:LieAlgebraElem{C}}; check::Bool=true) where {C<:RingElement}
-hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::MatElem{C}; check::Bool=true) where {C<:RingElement}
+hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::Vector{<:LieAlgebraElem{C}}; check::Bool=true) where {C<:FieldElem}
+hom(::LieAlgebra{C}, ::LieAlgebra{C}, ::MatElem{C}; check::Bool=true) where {C<:FieldElem}
 identity_map(::LieAlgebra)
-zero_map(::LieAlgebra{C}, ::LieAlgebra{C}) where {C<:RingElement}
+zero_map(::LieAlgebra{C}, ::LieAlgebra{C}) where {C<:FieldElem}
 ```
 
 ## Functions
@@ -30,7 +30,7 @@ The following functions are available for `LieAlgebraHom`s:
 For a homomorphism $h: L_1 \to L_2$, `domain(h)` and `codomain(h)` return $L_1$ and $L_2$ respectively.
 
 ```@docs
-matrix(::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:RingElement}
+matrix(::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:FieldElem}
 ```
 
 ### Image

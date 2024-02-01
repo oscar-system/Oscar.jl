@@ -73,7 +73,7 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 - `base_ring(M)` refers to `R`,
 - `ambient_free_module(M)` to `F`,
 - `gens(M)` to the generators of `M`, 
-- `ngens(M)` to the number of these generators, 
+- `number_of_generators(M)` / `ngens(M)` to the number of these generators, 
 - `M[i]`, `gen(M, i)` to the `i`th such generator,
 - `ambient_representatives_generators(M)` to the ambient representatives of the generators of `M` in `F`,
 - `relations(M)` to the relations of `M`, and
@@ -118,7 +118,7 @@ julia> gens(M)
  x*e[1]
  y*e[1]
 
-julia> ngens(M)
+julia> number_of_generators(M)
 2
 
 julia> gen(M, 2)

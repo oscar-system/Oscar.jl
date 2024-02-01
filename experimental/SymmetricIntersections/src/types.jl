@@ -68,8 +68,6 @@ representations affording some of the irreducible characters (only the one neede
 
 end
 
-elem_type(RR::RepRing{S, T}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
-
 elem_type(::Type{RepRing{S, T}}) where {S, T} = LinRep{S, T, Oscar.elem_type(S)}
 
 ###############################################################################

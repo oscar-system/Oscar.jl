@@ -17,9 +17,7 @@ julia> ngens(cohomology_ring(p2))
 """
 @attr MPolyQuoRing function cohomology_ring(v::NormalToricVarietyType)
     @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
-    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
-    weights = [1 for i in 1:ngens(R)]
-    R = grade(R, weights)[1]
+    R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
     linear_relations = ideal_of_linear_relations(R, v)
     stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]
@@ -59,8 +57,7 @@ end
     generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
     
     # find combinations of those classes that we have to integrate
-    S, _ = polynomial_ring(QQ, ["g$(i)" for i in 1:length(generators)], cached=false)
-    S = grade(S, [1 for i in 1:ngens(S)])[1]
+    S, _ = graded_polynomial_ring(QQ, ["g$i" for i in 1:length(generators)], cached=false)
     hc = homogeneous_component(S, [dim(v)])
     monoms = [hc[2](x) for x in gens(hc[1])]
     combinations = reduce(vcat, [[[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for m in monoms])
@@ -86,7 +83,7 @@ associated to the torusinvariant prime divisors of the normal toric toric variet
 # Examples
 ```jldoctest
 julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
-Normal, non-affine, smooth, projective, gorenstein, non-fano, 2-dimensional toric variety without torusfactor
+Normal toric variety
 
 julia> length(intersection_form(F3))
 10

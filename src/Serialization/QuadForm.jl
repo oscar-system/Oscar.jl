@@ -9,21 +9,16 @@ function save_type_params(s::SerializerState, V::Hecke.QuadSpace)
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: Hecke.QuadSpace}, str::String)
-  return load_ref(s, str)
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:Hecke.QuadSpace}, dict::Dict)
-  return load_type_params(s, MatElem, dict[:params])
+function load_type_params(s::DeserializerState, ::Type{<: Hecke.QuadSpace})
+  return load_params_node(s)
 end
 
 function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))
 end
 
-function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace},
-                     entries::Vector, params::MatSpace)
-  gram = load_object(s, MatElem, entries, params)
+function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace}, params::MatSpace)
+  gram = load_object(s, MatElem, params)
   F =  base_ring(params)
   return quadratic_space(F, gram)
 end
@@ -39,8 +34,8 @@ function save_object(s::SerializerState, L::ZZLat)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{ZZLat}, dict::Dict)
-  B = load_typed_object(s, dict[:basis])
-  V = load_typed_object(s, dict[:ambient_space])
+function load_object(s::DeserializerState, ::Type{ZZLat})
+  B = load_typed_object(s, :basis)
+  V = load_typed_object(s, :ambient_space)
   return lattice(V, B)
 end

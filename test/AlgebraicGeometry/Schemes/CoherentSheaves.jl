@@ -6,7 +6,7 @@
   U = affine_charts(X)
   L(U[1])
   C = default_covering(X)
-  (U12, U21) = glueing_domains(C[U[1], U[2]])
+  (U12, U21) = gluing_domains(C[U[1], U[2]])
   rho = L(U[1], U21)
   @test rho(L(U[1])[1]) == inv(gens(OO(U21))[1])*L(U21)[1]
   W = PrincipalOpenSubset(U[2], [complement_equation(U21), gens(OO(U[2]))[2]])
@@ -66,8 +66,8 @@ end
   TC1 = incTC(U[1])
   @test TC1 === incTC(U[1])
   @test incTC(U[1]) isa SubquoModule
-  U21 = PrincipalOpenSubset(U[2], dehomogenization_map(IP, 1)(x))
-  U321 = PrincipalOpenSubset(U[3], dehomogenization_map(IP, 2)(x*y))
+  U21 = PrincipalOpenSubset(U[2], dehomogenization_map(IP, U[2])(x))
+  U321 = PrincipalOpenSubset(U[3], dehomogenization_map(IP, U[3])(x*y))
   @test incTC(U[1], U321)(TC1[1]) == incTC(U21, U321)(incTC(U[1], U21)(TC1[1]))
 end
 
