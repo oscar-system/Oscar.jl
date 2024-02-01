@@ -331,7 +331,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: R -> A)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -359,7 +359,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: R -> A)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)

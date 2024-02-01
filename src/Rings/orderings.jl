@@ -1541,7 +1541,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over R
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1
@@ -1826,7 +1826,7 @@ Return the ring ordering induced by `ord`.
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over R
+Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
 
 julia> o = invlex(gens(F))*degrevlex(R)
 invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])

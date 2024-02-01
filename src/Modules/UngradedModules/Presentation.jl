@@ -332,7 +332,7 @@ If `task = :only_morphism`, return only an isomorphism.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over R
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> present_as_cokernel(F)
 Submodule with 2 generators
@@ -344,7 +344,7 @@ julia> present_as_cokernel(F, :only_morphism)
 Map with following data
 Domain:
 =======
-Free module of rank 2 over R
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
 Submodule with 2 generators

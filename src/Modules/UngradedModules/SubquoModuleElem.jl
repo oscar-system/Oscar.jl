@@ -556,7 +556,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 1 over R
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
@@ -722,7 +722,7 @@ julia> proj
 Map with following data
 Domain:
 =======
-Free module of rank 1 over R
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 Codomain:
 =========
 Subquotient of Submodule with 1 generator
@@ -873,7 +873,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over R
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x^2+y^2;]
 [x^2 + y^2]
@@ -929,7 +929,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over R
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> A = R[x; y]
 [x]
