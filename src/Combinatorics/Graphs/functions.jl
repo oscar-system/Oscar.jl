@@ -1098,7 +1098,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
   return PhylogeneticTree{T}(pm_ptree)
 end
 
-function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: scalar_type_or_field
+function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
 
@@ -1107,7 +1107,7 @@ function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: scalar
 end
 
 function adjacency_tree(ptree::PhylogeneticTree)
-  return ptree.pm_ptree.ADJACENCY
+  return Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
 end
 
 function equidistant(ptree::PhylogeneticTree)
@@ -1123,7 +1123,7 @@ function taxa(ptree::PhylogeneticTree)
 end
 
 function newick(ptree::PhylogeneticTree)
-  return ptree.pm_ptree.NEWICK
+  return convert(String, ptree.pm_ptree.NEWICK)
 end
 
 function tropical_median_consensus(arr::Array{PhylogeneticTree{T}}) where
