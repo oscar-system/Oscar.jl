@@ -352,6 +352,10 @@ end
   pi = permutation(Omega, g)
   @test order(pi) == order(g)
   @test degree(parent(pi)) == length(Omega)
+  fun = Oscar.action_function(Omega)
+  for i in 1:length(Omega)
+    @test Omega[i^pi] == fun(Omega[i], g)
+  end
 
   # action homomorphism
   acthom = action_homomorphism(Omega)
@@ -371,5 +375,66 @@ end
   rep = is_conjugate_with_data(Omega, x, y)
   @test rep[1]
   @test x * rep[2] == y
+  @test Oscar.action_function(Omega)(x, rep[2]) == y
+end
+
+@testset "G-sets by left transversals" begin
+  G = symmetric_group(5)
+  H = sylow_subgroup(G, 2)[1]
+  Omega = left_cosets(G, H)
+  @test repr(Omega, context = :supercompact => true) == "Left cosets of groups"
+  @test isa(Omega, GSet)
+  @test acting_group(Omega) == G
+  @test length(Omega) == index(G, H)
+  @test Omega[end] == Omega[length(Omega)]
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+
+  @test eltype(Omega) == typeof(representative(Omega))
+
+  # iteration
+  for i in 1:length(Omega)
+    @test findfirst(is_equal(Omega[i]), Omega) == i
+  end
+  rep = representative(Omega)
+  for omega in Omega
+    @test one(G) in omega || omega != rep
+  end
+
+  # orbit
+  g = gen(G, 1)
+  pnt = left_coset(H, g)
+  @test pnt in Omega
+  @test length(orbit(Omega, pnt)) == length(Oscar.orbit_via_Julia(Omega, pnt))
+
+  # permutation
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+  fun = Oscar.action_function(Omega)
+  for i in 1:length(Omega)
+    @test Omega[i^pi] == fun(Omega[i], g)
+  end
+
+  # action homomorphism
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+  flag, pre = haspreimage(acthom, pi)
+  @test flag
+  @test pre == g
+  @test order(image(acthom)[1]) == order(G)
+  rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
+  @test ! is_bijective(rest)
+
+  # is_conjugate
+  x, y = [left_coset(H, g) for g in gens(G)]
+  @test is_conjugate(Omega, x, y)
+
+  # is_conjugate_with_data
+  rep = is_conjugate_with_data(Omega, x, y)
+  @test rep[1]
+  @test inv(rep[2]) * x == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
 end
