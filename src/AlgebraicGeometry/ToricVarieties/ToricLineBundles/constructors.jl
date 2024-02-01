@@ -6,8 +6,8 @@ abstract type ToricCoherentSheaf end
 
 @attributes mutable struct ToricLineBundle <: ToricCoherentSheaf
     toric_variety::NormalToricVarietyType
-    picard_class::GrpAbFinGenElem
-    function ToricLineBundle(toric_variety::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
+    picard_class::FinGenAbGroupElem
+    function ToricLineBundle(toric_variety::NormalToricVarietyType, picard_class::FinGenAbGroupElem)
         @req parent(picard_class) === picard_group(toric_variety) "The class must belong to the Picard group of the toric variety"
         return new(toric_variety, picard_class)
     end
@@ -19,7 +19,7 @@ end
 ########################
 
 @doc raw"""
-    toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
+    toric_line_bundle(v::NormalToricVarietyType, picard_class::FinGenAbGroupElem)
 
 Construct the line bundle on the abstract normal toric variety with given class
 in the Picard group of the toric variety in question.
@@ -33,7 +33,7 @@ julia> l = toric_line_bundle(P2, picard_group(P2)([1]))
 Toric line bundle on a normal toric variety
 ```
 """
-toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem) = ToricLineBundle(v, picard_class)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::FinGenAbGroupElem) = ToricLineBundle(v, picard_class)
 
 
 @doc raw"""

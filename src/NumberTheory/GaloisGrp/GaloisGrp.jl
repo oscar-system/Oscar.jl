@@ -354,7 +354,7 @@ mutable struct GaloisCtx{T}
   =#
   prime::Any #=can be
    - ZZRingElem/ Int: prime number, used over Q
-   - NfOrdIdl : prime ideal , used over NfAbs
+   - AbsSimpleNumFieldOrderIdeal : prime ideal , used over NfAbs
    - (Int, Int): evaluation point, prime number used over Q(t)
    =#
 
@@ -381,7 +381,7 @@ mutable struct GaloisCtx{T}
     return r
   end
 
-  function GaloisCtx(f::ZZPolyRingElem, field::Union{Nothing, AnticNumberField})
+  function GaloisCtx(f::ZZPolyRingElem, field::Union{Nothing, AbsSimpleNumField})
     r = new{SymbolicRootCtx}()
     r.f = f
     r.C = SymbolicRootCtx(f, field)
@@ -414,7 +414,7 @@ mutable struct GaloisCtx{T}
     SQqt, _ = polynomial_ring(SQq, "t", cached = false)
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
-    r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{qadic}}}()
+    r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{QadicFieldElem}}}()
     r.prime = (shft, p)
     Qt, t = rational_function_field(QQ, "t", cached = false)
     Qts, s = polynomial_ring(Qt, "s", cached = false)
@@ -435,7 +435,7 @@ mutable struct GaloisCtx{T}
   end
 end
 
-function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{qadic}}})
+function Oscar.prime(C::GaloisCtx{Hecke.MPolyFact.HenselCtxFqRelSeries{Generic.RelSeries{QadicFieldElem}}})
   return prime(base_ring(base_ring(C.C.lf[1])))
 end
 
@@ -473,7 +473,7 @@ end
 mutable struct ComplexRootCtx
   f::ZZPolyRingElem
   pr::Int
-  rt::Vector{acb}
+  rt::Vector{AcbFieldElem}
   function ComplexRootCtx(f::ZZPolyRingElem)
     @assert is_monic(f)
     rt = roots(AcbField(20), f)
@@ -521,7 +521,7 @@ function map_coeff(G::GaloisCtx{ComplexRootCtx}, a::QQFieldElem)
   return parent(G.C.rt[1])(a)
 end
 
-function Hecke.MPolyFact.block_system(a::Vector{acb}, eps = 1e-9)
+function Hecke.MPolyFact.block_system(a::Vector{AcbFieldElem}, eps = 1e-9)
   b = Dict{Int, Vector{Int}}()
   for i=1:length(a)
     cb = collect(keys(b))
@@ -538,13 +538,13 @@ end
 
 mutable struct SymbolicRootCtx
   f::ZZPolyRingElem
-  rt::Vector{nf_elem}
+  rt::Vector{AbsSimpleNumFieldElem}
   function SymbolicRootCtx(f::ZZPolyRingElem, ::Nothing)
     @assert is_monic(f)
     _, rt = splitting_field(f, do_roots = true)
     return new(f, rt)
   end
-  function SymbolicRootCtx(f::ZZPolyRingElem, field::AnticNumberField)
+  function SymbolicRootCtx(f::ZZPolyRingElem, field::AbsSimpleNumField)
     @assert is_monic(f)
     rt = roots(f, field)
     return new(f, rt)
@@ -619,8 +619,8 @@ If `raw` is set to true, the scaling is omitted.
 The bound in the `GaloisCtx` is also adjusted.
 """
 function Hecke.roots(G::GaloisCtx{Hecke.qAdicRootCtx}, pr::Int=5; raw::Bool = false)
-  a = Hecke.roots(G.C, pr)::Vector{qadic}
-  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{qadic}
+  a = Hecke.roots(G.C, pr)::Vector{QadicFieldElem}
+  b = Hecke.expand(a, all = true, flat = false, degs = Hecke.degrees(G.C.H))::Vector{QadicFieldElem}
   if isdefined(G, :rt_num)
     b = [b[G.rt_num[i]] for i=1:length(G.rt_num)]
   end
@@ -1328,12 +1328,12 @@ function sum_orbits(K, Qt_to_G, r)
   @assert all(isone, values(fg.fac))
 
   O = []
-  if isa(r[1], acb)
+  if isa(r[1], AcbFieldElem)
     mm = collect(m)
   end
   for f = keys(fg.fac)
     r = roots(map_coefficients(Qt_to_G, f))
-    if isa(r[1], acb)
+    if isa(r[1], AcbFieldElem)
       push!(O, [mm[argmin(map(x->abs(x[1]-y), mm))][2] for y = r])
     else
       push!(O, [m[x] for x = r])
@@ -1505,12 +1505,12 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
 
       gg = map_coefficients(x->map_coeff(GC, x), parent(K.pol)(ms(gen(s))))
       d = map(gg, R)
-      if isa(r[1], nf_elem)
+      if isa(r[1], AbsSimpleNumFieldElem)
         @assert parent(r[1]) == parent(R[1])
         f = _F = parent(r[1])
         mf = mF = x->x
         mfF = x->x
-      elseif isa(r[1], acb)
+      elseif isa(r[1], AcbFieldElem)
         f = _F = parent(r[1])
         mf = mF = x->x
         mfF = x->x
@@ -1558,10 +1558,10 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
   end
 
   #TODO: make generic!!!
-  if isa(c[1], acb)
+  if isa(c[1], AcbFieldElem)
     d = map(conj, c)
     si = [argmin(map(y->abs(y-x), c)) for x = d]
-  elseif isa(c[1], nf_elem) #.. and use automorphism
+  elseif isa(c[1], AbsSimpleNumFieldElem) #.. and use automorphism
     si = collect(1:length(c))
   else
     d = map(frobenius, c)
@@ -1660,7 +1660,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     if isa(pc, NumField)
       k = pc
       mk = x->x
-    elseif isa(c[1], acb)
+    elseif isa(c[1], AcbFieldElem)
       k = pc
       mk = x->x
     else
@@ -1919,7 +1919,7 @@ end
 # - more base rings
 # - applications: subfields of splitting field (done), towers, solvability by radicals
 @doc raw"""
-    galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
+    galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K)) -> PermGroup, GaloisCtx
 
 Computes the Galois group of the splitting field of the defining polynomial of `K`.
 Currently the polynomial needs to be monic.
@@ -1939,20 +1939,20 @@ julia> describe(G)
 "C4"
 
 julia> roots(C, 2)
-4-element Vector{qadic}:
+4-element Vector{QadicFieldElem}:
  (4*19^0 + 2*19^1 + O(19^2))*a + 5*19^0 + 9*19^1 + O(19^2)
  (15*19^0 + 16*19^1 + O(19^2))*a + 9*19^0 + 7*19^1 + O(19^2)
  (18*19^0 + 18*19^1 + O(19^2))*a + 12*19^0 + O(19^2)
  (19^0 + O(19^2))*a + 11*19^0 + 19^1 + O(19^2)
 ```
 """
-function galois_group(K::AnticNumberField, extra::Int = 5; 
+function galois_group(K::AbsSimpleNumField, extra::Int = 5; 
   useSubfields::Bool = true, 
   pStart::Int = 2*degree(K), 
   prime::Int = 0, 
   do_shape::Bool = true,
   algorithm::Symbol=:pAdic, 
-  field::Union{Nothing, AnticNumberField} = nothing)
+  field::Union{Nothing, AbsSimpleNumField} = nothing)
 
   @assert algorithm in [:pAdic, :Complex, :Symbolic]
 
@@ -2108,7 +2108,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       compile!(I)
       for t = lt
         e = evaluate(I, t, c)
-        if typeof(e) == acb && any(x->abs(e-x) < 1e-10, cs)
+        if typeof(e) == AcbFieldElem && any(x->abs(e-x) < 1e-10, cs)
           @vprint :GaloisGroup 2 " evaluation found duplicate, transforming...\n"
           push!(D, d[2])
           break
@@ -2201,7 +2201,7 @@ function extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}
   return function_field(f, n; cached = cached)
 end
 
-function extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
+function extension_field(f::Generic.Poly{AbsSimpleNumFieldElem}, n::String = "_a";  cached::Bool = true, check::Bool = true)
   return number_field(f, n; cached = cached)
 end
 
@@ -2472,8 +2472,11 @@ coefficients.
 julia> Qx, x = QQ["x"];
 
 julia> cauchy_ideal(x^4-2)
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4)
-
+Ideal generated by
+  x4^4 - 2
+  x3^3 + x3^2*x4 + x3*x4^2 + x4^3
+  x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2
+  x1 + x2 + x3 + x4
 ```
 """
 function cauchy_ideal(f::PolyRingElem{<:FieldElem}; parent::MPolyRing = polynomial_ring(base_ring(f), degree(f), cached = false)[1])
@@ -2502,14 +2505,22 @@ functions and the coefficients of the polynomial.
 julia> Qx, x = QQ["x"];
 
 julia> i = galois_ideal(galois_group(x^4-2)[2])
-ideal(x4^4 - 2, x3^3 + x3^2*x4 + x3*x4^2 + x4^3, x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2, x1 + x2 + x3 + x4, x1*x3 + x2*x4, x1^2*x3^2 + x2^2*x4^2 - 4, x1^4 - 2, x2^4 - 2, x3^4 - 2, x4^4 - 2)
+Ideal generated by
+  x4^4 - 2
+  x3^3 + x3^2*x4 + x3*x4^2 + x4^3
+  x2^2 + x2*x3 + x2*x4 + x3^2 + x3*x4 + x4^2
+  x1 + x2 + x3 + x4
+  x1*x3 + x2*x4
+  x1^2*x3^2 + x2^2*x4^2 - 4
+  x1^4 - 2
+  x2^4 - 2
+  x3^4 - 2
+  x4^4 - 2
 
 julia> k, _ = number_field(i);
 
-
 julia> length(roots(k, x^4-2))
 4
-
 ```
 """
 function galois_ideal(C::GaloisCtx, extra::Int = 5)

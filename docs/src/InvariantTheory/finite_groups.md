@@ -93,10 +93,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> group(IR)
 Matrix group of degree 3
@@ -107,13 +105,13 @@ Number field with defining polynomial _$^2 + _$ + 1
   over rational field
 
 julia> R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]

@@ -2,23 +2,23 @@
 
     @testset "core functionality" begin
         g = Graph{Directed}(5)
-        @test nv(g) == 5
-        @test ne(g) == 0
+        @test nvertices(g) == 5
+        @test nedges(g) == 0
         add_edge!(g, 1, 2)
-        @test ne(g) == 1
+        @test nedges(g) == 1
         @test has_edge(g, 1, 2)
         rem_edge!(g, 1, 2)
-        @test ne(g) == 0
+        @test nedges(g) == 0
         @test !has_edge(g, 1, 2)
         @test add_vertex!(g)
-        @test nv(g) == 6
+        @test nvertices(g) == 6
         @test has_vertex(g, 6)
         rem_vertex!(g, 1)
-        @test nv(g) == 5
+        @test nvertices(g) == 5
         @test has_vertex(g, 1)
         @test !has_vertex(g, 6)
         @test add_vertices!(g, 5) == 5
-        @test nv(g) == 10
+        @test nvertices(g) == 10
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
@@ -37,14 +37,14 @@
     egcr = edgegraph(cr)
     
     @testset "graphs from polytopes" begin
-        @test nv(egtriangle) == 3
-        @test ne(egtriangle) == 3
-        @test nv(dgtriangle) == 3
-        @test ne(dgtriangle) == 3
-        @test nv(egcube) == 8
-        @test ne(egcube) == 12
-        @test nv(dgcube) == 6
-        @test ne(dgcube) == 12
+        @test nvertices(egtriangle) == 3
+        @test nedges(egtriangle) == 3
+        @test nvertices(dgtriangle) == 3
+        @test nedges(dgtriangle) == 3
+        @test nvertices(egcube) == 8
+        @test nedges(egcube) == 12
+        @test nvertices(dgcube) == 6
+        @test nedges(dgcube) == 12
 
         @test is_isomorphic(dgtriangle, egtriangle)
 

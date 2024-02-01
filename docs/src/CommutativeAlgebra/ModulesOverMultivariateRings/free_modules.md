@@ -42,7 +42,7 @@ by assigning a grading to a free module already constructed, the `graded_free_mo
 meant to create a graded free module all at once.
 
 ```@docs
-grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+grade(F::FreeMod, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -50,7 +50,7 @@ grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 ```
 
 ```@docs
-graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 ```
 
 ```@docs
@@ -63,7 +63,7 @@ If `F` is a free `R`-module, then
 
 - `base_ring(F)` refers to `R`,
 - `basis(F)`, `gens(F)` to the basis vectors of `F`, 
-- `rank(F)`, `ngens(F)`, `dim(F)` to the number of these vectors, and
+- `rank(F)`, `number_of_generators(F)` / `ngens(F)`, `dim(F)` to the number of these vectors, and
 - `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`-th such vector.
 
 ###### Examples

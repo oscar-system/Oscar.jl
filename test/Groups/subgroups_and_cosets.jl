@@ -156,8 +156,11 @@ end
    C = right_coset(H, G[1])
    @test is_right(C)
    @test order(C) == length(collect(C))
+   @test repr(C, context = :supercompact => true) == "Right coset of a group"
   
-   @test length(right_transversal(G, H)) == index(G, H)
+   T = right_transversal(G, H)
+   @test length(T) == index(G, H)
+   @test repr(T, context = :supercompact => true) == "Right transversal of groups"
    @test_throws ArgumentError right_transversal(H, G)
    @test_throws ArgumentError left_transversal(H, G)
 
@@ -213,6 +216,7 @@ end
 
    H = sub(G, [cperm(G,[1,2,3]), cperm(G,[2,3,4])])[1]
    L = right_cosets(G,H)
+   @test repr(L, context = :supercompact => true) == "Right cosets of groups"
    @test_throws ArgumentError right_cosets(H, G)
    T = right_transversal(G,H)
    @test length(L)==10
@@ -299,7 +303,7 @@ end
    @test abelian_invariants(schur_multiplier(symmetric_group(4))) == [2]
    @test abelian_invariants(schur_multiplier(alternating_group(6))) == [2, 3]
 
-   @test schur_multiplier(symmetric_group(4)) isa GrpAbFinGen
+   @test schur_multiplier(symmetric_group(4)) isa FinGenAbGroup
    @test schur_multiplier(PcGroup, symmetric_group(4)) isa PcGroup
 end
 

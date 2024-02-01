@@ -25,7 +25,7 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
   return Q, identity_map(Q), identity_map(Q)
 end
 
-function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem}}
+function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}}
   K = coefficient_ring(R)
   alpha = first(gens(K))
   kk = base_field(K)
@@ -42,7 +42,7 @@ end
 
 function _expand_coefficient_field(
     R::MPolyRing{T}; rec_depth=0
-  ) where {T<:Union{<:NfAbsNSElem, <:Hecke.NfRelNSElem}}
+  ) where {T<:Union{<:AbsNonSimpleNumFieldElem, <:Hecke.RelNonSimpleNumFieldElem}}
   K = coefficient_ring(R)
   alpha = gens(K)
   r = length(alpha)
@@ -59,7 +59,7 @@ end
 
 function _expand_coefficient_field(
     A::MPolyQuoRing{S}; rec_depth::Int=0
-  ) where {T<:Union{<:NfAbsNSElem, <:Hecke.NfRelNSElem}, S<:MPolyRingElem{T}}
+  ) where {T<:Union{<:AbsNonSimpleNumFieldElem, <:Hecke.RelNonSimpleNumFieldElem}, S<:MPolyRingElem{T}}
   R = base_ring(A)
   R_exp, iso, iso_inv = _expand_coefficient_field(R; rec_depth)
   I = ideal(R_exp, iso_inv.(gens(modulus(A))))
@@ -73,7 +73,7 @@ function _expand_coefficient_field(
 end
 
 # Special dispatch for graded rings to preserve gradings
-function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {T<:Union{nf_elem, <:Hecke.NfRelElem, <:NfAbsNSElem, <:Hecke.NfRelNSElem}}
+function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {T<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem, <:AbsNonSimpleNumFieldElem, <:Hecke.RelNonSimpleNumFieldElem}}
   RR = forget_grading(R)
   # We have to do the expansion for RR and then rewrap everything as graded rings/algebras 
   # with appropriate weights
@@ -94,7 +94,7 @@ function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {
   return R_exp, iso_gr, iso_inv_gr
 end
 
-function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:Union{<:nf_elem, <:Hecke.NfRelElem}}
+function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:Union{<:AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}}
   R = base_ring(Q)
   R_flat, iso, iso_inv = _expand_coefficient_field(R; rec_depth)
   I = modulus(Q)

@@ -177,11 +177,6 @@ function basis(F::AbstractFreeMod, i::Int)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
-function getindex(F::AbstractFreeMod, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 @doc raw"""
     base_ring(F::AbstractFreeMod)
 

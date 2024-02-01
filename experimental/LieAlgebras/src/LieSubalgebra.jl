@@ -60,7 +60,7 @@ function gen(S::LieSubalgebra, i::Int)
   return S.gens[i]
 end
 
-function ngens(S::LieSubalgebra)
+function number_of_generators(S::LieSubalgebra)
   return length(gens(S))
 end
 

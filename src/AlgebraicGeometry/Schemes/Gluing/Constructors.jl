@@ -241,7 +241,7 @@ function maximal_extension(G::SimpleGluing)
   pby = pullback(f).(y)
   U2, ext_y = maximal_extension(X, fraction.(pby))
   V2, ext_x = maximal_extension(Y, fraction.(pbx))
-  issubset(U2, U) && issubset(V2, V) && return G
+  is_subscheme(U2, U) && is_subscheme(V2, V) && return G
   return maximal_extension(Gluing(G))
 end
 

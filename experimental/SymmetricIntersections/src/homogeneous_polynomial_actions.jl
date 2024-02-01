@@ -20,7 +20,7 @@ function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRing
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for m in matrix_representation(repd)
-    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i:i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     ok, k = divides(fd, f)
     if !ok || !is_constant(k)
@@ -48,7 +48,7 @@ function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
   repd = dual_representation(rep)
   coll = eltype(matrix_representation(rep))[]
   for m in matrix_representation(rep)
-    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i:i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     ok, k = divides(fd, f)
     @req ok && is_constant(k) "Polynomial is not semi-invariant"
@@ -74,7 +74,7 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDec
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for f in gene for m in matrix_representation(repd)
-    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i:i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     fd in I || return false
   end
@@ -147,7 +147,7 @@ function parametrization_data(symci::SymInter)
   for (B, n) in pd
     B2 = Vector{MPolyDecRingElem}[]
     for b in B
-      vv = elem_type(S)[j(R(reverse_cols!(b[i,:]))) for i in 1:nrows(b)]
+      vv = elem_type(S)[j(R(reverse_cols!(b[i:i,:]))) for i in 1:nrows(b)]
       push!(B2, vv)
     end
     push!(pd2, (B2, n))
@@ -169,7 +169,7 @@ function standard_element(symci::SymInter)
   std_el2 = elem_type(S)[]
   for B in std_el
     for b in B
-      vv = elem_type(S)[j(R(reverse_cols!(b[i,:]))) for i in 1:nrows(b)]
+      vv = elem_type(S)[j(R(reverse_cols!(b[i:i,:]))) for i in 1:nrows(b)]
       append!(std_el2, vv)
     end
   end

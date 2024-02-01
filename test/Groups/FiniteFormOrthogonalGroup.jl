@@ -1,5 +1,5 @@
 @testset "odd" begin
-  R = residue_ring(ZZ, ZZ(3))
+  R = residue_ring(ZZ, ZZ(3))[1]
   F = GF(3)
   G = zero_matrix(R, 0, 0)
   @test Oscar._orthogonal_grp_gens_odd(G, 3) == []
@@ -22,7 +22,7 @@
   Oscar._gens(G,2, 3)
 
 
-  R = residue_ring(ZZ, 3^5)
+  R = residue_ring(ZZ, 3^5)[1]
   F = GF(3)
   G = diagonal_matrix([R(x) for x in [3*1, 3*1]])
   L = [change_base_ring(F, lift(g)) for g in Oscar._gens_mod_p(G, 3)]
@@ -36,13 +36,13 @@
   @test order(matrix_group(L))==1259712
   #Oscar._gens(G,2, 3)
 
-  R = residue_ring(ZZ, ZZ(3)^5)  #det(::zzModMatrix) is broken and cannot be used here
+  R = residue_ring(ZZ, ZZ(3)^5)[1]  #det(::zzModMatrix) is broken and cannot be used here
   G = diagonal_matrix([R(x) for x in [2*27, 9, 3, 3, 1 ]])
   Oscar._gens(G,2, 3)
 
 end
 @testset "_gens_mod_2" begin
-  R = residue_ring(ZZ, ZZ(2)^10)
+  R = residue_ring(ZZ, ZZ(2)^10)[1]
   F = GF(2)
   U = matrix(R, 2, 2, [0, 1, 1, 0])
   V = matrix(R, 2, 2, [2, 1, 1, 2])

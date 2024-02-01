@@ -169,7 +169,7 @@ Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
 
 !!! warning
     The type need to be specified in the input of the function `abelian_group`,
-    otherwise a group of type `GrpAbFinGen` is returned,
+    otherwise a group of type `FinGenAbGroup` is returned,
     which is not a GAP group type.
     In future versions of Oscar, this may change.
 """

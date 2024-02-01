@@ -5,7 +5,7 @@
      x = gen(H, 1)
      y = image(emb, x)
      @test preimage(emb, y) == x
-     @test any(g -> ! haspreimage(emb, g)[1], gens(G))
+     @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
    end
 end
 
@@ -220,10 +220,10 @@ end
       @test H == D
    end
 
-   @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
+   @testset "Finite abelian GAPGroup to FinGenAbGroup" begin
       for invs in [[1], [2, 3, 4], [6, 8, 9, 15]], T in [PermGroup, PcGroup, FPGroup]
          G = abelian_group(T, invs)
-         iso = @inferred isomorphism(GrpAbFinGen, G)
+         iso = @inferred isomorphism(FinGenAbGroup, G)
          A = codomain(iso)
          @test order(G) == order(A)
          for x in gens(G)
@@ -233,7 +233,7 @@ end
       end
    end
 
-   @testset "Finite GrpAbFinGen to GAPGroup" begin
+   @testset "Finite FinGenAbGroup to GAPGroup" begin
 #     @testset for Agens in [Int[], [2, 4, 8], [2, 3, 4], [2, 12],
 #T problem with GAP's `AbelianGroup`;
 #T see https://github.com/gap-system/gap/issues/5430
@@ -251,7 +251,7 @@ end
       end
    end
 
-   @testset "Infinite GrpAbFinGen to GAPGroup" begin
+   @testset "Infinite FinGenAbGroup to GAPGroup" begin
       Agens = matrix(ZZ, 2, 2, [2, 3, 0, 0])
       A = abelian_group(Agens)
       for T in [FPGroup]
@@ -264,12 +264,12 @@ end
       end
    end
 
-   @testset "GrpAbFinGen to GrpAbFinGen" begin
+   @testset "FinGenAbGroup to FinGenAbGroup" begin
       A = abelian_group([2, 3, 4])
-      iso = @inferred isomorphism(GrpAbFinGen, A)
+      iso = @inferred isomorphism(FinGenAbGroup, A)
    end
 
-   @testset "GrpGen to GAPGroups" begin
+   @testset "MultTableGroup to GAPGroups" begin
       for G in [Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB()),
                 Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())]
          for T in [FPGroup, PcGroup, PermGroup]
@@ -338,7 +338,7 @@ end
       end
 
       G = cyclic_group(5)
-      T = GrpAbFinGen
+      T = FinGenAbGroup
       H = T(G)
       @test H isa T
       @test order(H) == order(G)
@@ -387,13 +387,13 @@ end
        @test is_surjective(f)
 
        G = abelian_group(PermGroup, [2, 2])
-       f = @inferred isomorphism(GrpAbFinGen, G)
-       @test codomain(f) isa GrpAbFinGen
+       f = @inferred isomorphism(FinGenAbGroup, G)
+       @test codomain(f) isa FinGenAbGroup
        @test domain(f) == G
      # @test is_injective(f)
      # @test is_surjective(f)
 
-       @test_throws ArgumentError isomorphism(GrpAbFinGen, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(FinGenAbGroup, symmetric_group(5))
        @test_throws ArgumentError isomorphism(PcGroup, symmetric_group(5))
        @test_throws ArgumentError isomorphism(PermGroup, free_group(1))
 
@@ -402,11 +402,11 @@ end
        @test permutation_group(G) isa PermGroup
        @test pc_group(G) isa PcGroup
        @test FPGroup(G) isa FPGroup
-       @test_throws ArgumentError GrpAbFinGen(G)
+       @test_throws ArgumentError FinGenAbGroup(G)
    end
 end
 
-@testset "Homomorphism GAPGroup to GrpAbFinGen" begin
+@testset "Homomorphism GAPGroup to FinGenAbGroup" begin
    # G abelian, A isomorphic to G
    G = abelian_group( PermGroup, [ 2, 4 ] )
    A = abelian_group( [ 2, 4 ] )
@@ -542,8 +542,8 @@ function test_kernel(G,H,f)
    @test preimage(f,H)==(G,id_hom(G))
    @test preimage(f,sub(H,[one(H)])[1])==(K,i)
    z=rand(Im)
-   @test haspreimage(f,z)[1]
-   @test f(haspreimage(f,z)[2])==z
+   @test has_preimage_with_preimage(f,z)[1]
+   @test f(has_preimage_with_preimage(f,z)[2])==z
 
    @test is_injective(i)
    for j in 1:ngens(K)

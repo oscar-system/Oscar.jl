@@ -29,7 +29,7 @@ end
 @testset "Linear representations" begin
   E = small_group(8, 4)
   RR = @inferred representation_ring(E)
-  @test base_field(RR) isa AnticNumberField
+  @test base_field(RR) isa AbsSimpleNumField
   @test underlying_group(RR) === E
   @test order(Oscar.character_table_underlying_group(RR)) == 8
   @test all(chi -> is_irreducible(chi), Oscar.irreducible_characters_underlying_group(RR))
@@ -146,7 +146,7 @@ end
   @test all(m -> size(m) == (n,n), mr)
   mg = matrix_group(mr)
   Z, _ = center(mg)
-  els = filter(m -> is_diagonal(matrix(m)) && (length(eigvals(matrix(m))) == 1), collect(Z))
+  els = filter(m -> is_diagonal(matrix(m)) && (length(eigenvalues(matrix(m))) == 1), collect(Z))
   Q, _ = quo(mg, els)
   @test is_isomorphic(G, Q)
 

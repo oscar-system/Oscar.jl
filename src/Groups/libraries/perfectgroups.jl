@@ -29,23 +29,23 @@ function orders_perfect_groups()
 end
 
 @doc raw"""
-    has_number_perfect_groups(n::Int)
+    has_number_of_perfect_groups(n::Int)
 
 Return `true` if the number of perfect groups of order `n` are available
-via `number_perfect_groups`, otherwise `false`.
+via `number_of_perfect_groups`, otherwise `false`.
 
 Currently the number of perfect groups is available up to order $2 \cdot 10^6$.
 
 # Examples
 ```jldoctest
-julia> has_number_perfect_groups(7200)
+julia> has_number_of_perfect_groups(7200)
 true
 
-julia> has_number_perfect_groups(2*10^6+1)
+julia> has_number_of_perfect_groups(2*10^6+1)
 false
 ```
 """
-has_number_perfect_groups(n::Int) = has_perfect_groups(n) # for now just an alias
+has_number_of_perfect_groups(n::Int) = has_perfect_groups(n) # for now just an alias
 
 @doc raw"""
     has_perfect_group_identification(n::Int)
@@ -120,7 +120,7 @@ ERROR: ArgumentError: there are only 1 perfect groups of order 60
 function perfect_group(::Type{T}, n::IntegerUnion, k::IntegerUnion) where T <: GAPGroup
    @req n >= 1 "group order must be positive, not $n"
    @req k >= 1 "group index must be positive, not $k"
-   N = number_perfect_groups(n)
+   N = number_of_perfect_groups(n)
    @req k <= N "there are only $N perfect groups of order $n"
    if T == PermGroup
       G = T(GAP.Globals.PerfectGroup(GAP.Globals.IsPermGroup, GAP.Obj(n), GAP.Obj(k)))
@@ -158,20 +158,20 @@ function perfect_group_identification(G::GAPGroup)
 end
 
 """
-    number_perfect_groups(n::IntegerUnion)
+    number_of_perfect_groups(n::IntegerUnion)
 
 Return the number of perfect groups of order `n`, up to isomorphism.
 
 # Examples
 ```jldoctest
-julia> number_perfect_groups(60)
+julia> number_of_perfect_groups(60)
 1
 
-julia> number_perfect_groups(1966080)
+julia> number_of_perfect_groups(1966080)
 7344
 ```
 """
-function number_perfect_groups(n::IntegerUnion)
+function number_of_perfect_groups(n::IntegerUnion)
    @req n >= 1 "group order must be positive, not $n"
    res = GAP.Globals.NumberPerfectGroups(GAP.Obj(n))
    @req (res !== GAP.Globals.fail) "the number of perfect groups of order $n is not available"

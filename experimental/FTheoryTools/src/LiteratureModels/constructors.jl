@@ -259,7 +259,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # Find divisor classes of the internal model sections
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
-  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   internal_model_sections = Dict{String, ToricDivisor}()
   for k in 2+length(model_sections):ngens(auxiliary_base_ring)
     divisor = sum([auxiliary_base_grading[l,k] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
@@ -399,7 +399,7 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
 
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
-  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
 

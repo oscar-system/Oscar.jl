@@ -33,7 +33,7 @@ julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 julia> X = variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
+defined by ideal (s0^3 + s1^3 + s2^3 + s3^3)
 
 julia> dim(X)
 2
@@ -41,7 +41,7 @@ julia> dim(X)
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0, s1^3 + s2^3 + s3^3)
+defined by ideal (s0, s1^3 + s2^3 + s3^3)
 
 julia> dim(Y)
 1
