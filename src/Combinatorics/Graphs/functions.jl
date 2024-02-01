@@ -1161,7 +1161,6 @@ julia> newick(tree_mat)
 function phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
-
   pm_ptree = Polymake.graph.PhylogeneticTree{T}(COPHENETIC_MATRIX = M, TAXA = taxa)
   return PhylogeneticTree{T}(pm_ptree)
 end
