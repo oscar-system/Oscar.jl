@@ -2296,8 +2296,20 @@ function grading_group(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
