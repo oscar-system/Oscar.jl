@@ -22,4 +22,5 @@ equidistant
 cophenetic_matrix
 taxa
 newick
+tropical_median_consensus
 ```
