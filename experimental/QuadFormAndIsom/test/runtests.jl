@@ -364,7 +364,7 @@ end
   B = matrix(FlintQQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
   G = matrix(FlintQQ, 5, 5 ,[3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
   L = integer_lattice(B, gram = G);
-  k = lattice_in_same_ambient_space(L, B[2, :])
+  k = lattice_in_same_ambient_space(L, B[2:2, :])
   N = orthogonal_submodule(L, k)
   ok, reps = primitive_extensions(k, N; glue_order=3)
   @test ok

@@ -114,7 +114,7 @@ end
 function _in(P::AbsAffineRationalPoint, X::AbsSpec)
   # slow fallback for affine opens
   # this should be improved
-  return issubset(scheme(P), X)
+  return is_subscheme(scheme(P), X)
 end
 
 function Base.in(P::AbsAffineRationalPoint, X::AbsSpec)

@@ -352,7 +352,7 @@ julia> length(singular_loci(t))
 2
 
 julia> singular_loci(t)[2]
-(ideal(w), (1, 2, 3), "III")
+(Ideal (w), (1, 2, 3), "III")
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)

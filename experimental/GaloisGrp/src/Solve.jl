@@ -290,12 +290,12 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Permutation group of degree 3 and order 6, Galois context for x^3 - 3*x + 17 and prime 7)
+(Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Permutation group of degree 3 and order 6
- Permutation group of degree 3 and order 3
+ Sym(3)
+ Alt(3)
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)
@@ -687,7 +687,7 @@ function conj_from_basis(C::GaloisCtx, S::SubField, a, pr)
   for i=0:degree(S.fld)-1
     d = conjugates(C, S.coeff_field, coeff(a, i), pr)
     for j=1:length(d)
-      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
+      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1:i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
     end
     res += tmp
   end

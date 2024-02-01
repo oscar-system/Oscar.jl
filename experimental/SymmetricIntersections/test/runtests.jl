@@ -146,7 +146,7 @@ end
   @test all(m -> size(m) == (n,n), mr)
   mg = matrix_group(mr)
   Z, _ = center(mg)
-  els = filter(m -> is_diagonal(matrix(m)) && (length(eigvals(matrix(m))) == 1), collect(Z))
+  els = filter(m -> is_diagonal(matrix(m)) && (length(eigenvalues(matrix(m))) == 1), collect(Z))
   Q, _ = quo(mg, els)
   @test is_isomorphic(G, Q)
 

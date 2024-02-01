@@ -25,10 +25,10 @@ should be safe to refer to particular (classes of) groups by their index numbers
 
 ```@docs
 all_transitive_groups
-has_number_transitive_groups
+has_number_of_transitive_groups
 has_transitive_group_identification
 has_transitive_groups
-number_transitive_groups
+number_of_transitive_groups
 transitive_group
 transitive_group_identification
 ```
@@ -41,10 +41,10 @@ TODO: give proper attribution to the primitive groups library (in particular, ci
 
 ```@docs
 all_primitive_groups
-has_number_primitive_groups
+has_number_of_primitive_groups
 has_primitive_group_identification
 has_primitive_groups
-number_primitive_groups
+number_of_primitive_groups
 primitive_group
 primitive_group_identification
 ```
@@ -76,10 +76,10 @@ not have a faithful permutation representation of small degree.
 Computations in these groups may be rather time consuming.
 
 ```@docs
-has_number_perfect_groups
+has_number_of_perfect_groups
 has_perfect_group_identification
 has_perfect_groups
-number_perfect_groups
+number_of_perfect_groups
 orders_perfect_groups
 perfect_group
 perfect_group_identification
@@ -93,10 +93,10 @@ TODO: give proper attribution to the smallgrp package and other things used (in 
 
 ```@docs
 all_small_groups
-has_number_small_groups
+has_number_of_small_groups
 has_small_group_identification
 has_small_groups
-number_small_groups
+number_of_small_groups
 small_group
 small_group_identification
 ```
@@ -111,7 +111,7 @@ corresponding character tables in the library of character tables,
 see [`character_table(id::String, p::Int = 0)`](@ref).
 
 ```@docs
-number_atlas_groups
+number_of_atlas_groups
 all_atlas_group_infos
 atlas_group
 atlas_subgroup

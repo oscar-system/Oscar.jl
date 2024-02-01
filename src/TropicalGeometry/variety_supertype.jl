@@ -150,32 +150,32 @@ end
 
 
 @doc raw"""
-    n_maximal_polyhedra(TropV::TropicalVariety)
+    number_of_maximal_polyhedra(TropV::TropicalVariety)
 
 Return the number of maximal polyhedra of `TropV`.
 """
-function n_maximal_polyhedra(TropV::TropicalVarietySupertype)
-    return n_maximal_polyhedra(TropV.polyhedralComplex)
+function number_of_maximal_polyhedra(TropV::TropicalVarietySupertype)
+    return number_of_maximal_polyhedra(TropV.polyhedralComplex)
 end
 
 
 @doc raw"""
-    npolyhedra(TropV::TropicalVariety)
+    number_of_polyhedra(TropV::TropicalVariety)
 
 Return the number of polyhedra of `TropV`.
 """
-function npolyhedra(TropV::TropicalVarietySupertype)
-    return npolyhedra(TropV.polyhedralComplex)
+function number_of_polyhedra(TropV::TropicalVarietySupertype)
+    return number_of_polyhedra(TropV.polyhedralComplex)
 end
 
 
 @doc raw"""
-    nvertices(TropV::TropicalVariety)
+    number_of_vertices(TropV::TropicalVariety)
 
 Return the number of vertices of `TropV`.
 """
-function nvertices(TropV::TropicalVarietySupertype)
-    return nvertices(TropV.polyhedralComplex)
+function number_of_vertices(TropV::TropicalVarietySupertype)
+    return number_of_vertices(TropV.polyhedralComplex)
 end
 
 

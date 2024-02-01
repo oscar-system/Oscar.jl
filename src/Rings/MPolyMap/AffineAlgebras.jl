@@ -158,7 +158,7 @@ true
 julia> G = inverse(F)
 Ring homomorphism
   from multivariate polynomial ring in 1 variable over QQ
-  to quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z)
+  to quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z)
 defined by
   t -> x
 

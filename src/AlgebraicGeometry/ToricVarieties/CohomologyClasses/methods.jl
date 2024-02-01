@@ -79,7 +79,7 @@ Quotient
     x3 -> [1]
     x4 -> [1]
     x5 -> [1]
-  by ideal(x1 - x2 - 2*x5, x3 - x5, x4 - x5, x1*x2, x3*x4*x5)
+  by ideal (x1 - x2 - 2*x5, x3 - x5, x4 - x5, x1*x2, x3*x4*x5)
 
 julia> integrate(cohomology_class(anticanonical_divisor(X))^3)
 62

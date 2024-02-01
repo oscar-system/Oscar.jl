@@ -362,7 +362,7 @@ function operators_by_index(
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Int},
 )
-  @req all(i -> 1 <= i <= num_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
+  @req all(i -> 1 <= i <= number_of_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
 
   return [chevalley_basis[1][i] for i in birational_sequence] # TODO: change to [2]
 end

@@ -61,13 +61,11 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over cyclotomic field of order 3
 
 julia> affine_algebra(IR)
-(Quotient of multivariate polynomial ring by ideal(y1^6 - 3*y1^4*y3 - 16*y1^3*y2^3 - 4*y1^3*y4 + 3*y1^2*y3^2 + 24*y1*y2^3*y3 + 4*y1*y3*y4 + 72*y2^6 + 24*y2^3*y4 - y3^3 + 8*y4^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
 function affine_algebra(IR::InvRing; algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)

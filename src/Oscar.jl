@@ -83,6 +83,14 @@ function __init__()
   withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
   end
+  # We want newer versions of some GAP packages than the distributed ones.
+  # (But we do not complain if the installation fails.)
+  for (pkg, version) in [
+     ("repsn", "3.1.1"),
+     ]
+    GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+  end
+  # We need some GAP packages.
   for pkg in [
      "atlasrep",
      "ctbllib",  # character tables
@@ -199,9 +207,8 @@ include("assertions.jl")
 
 include("exports.jl")
 
-# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
-@alias characteristic_polynomial charpoly  # FIXME
-@alias minimal_polynomial minpoly  # FIXME
+include("aliases.jl")
+
 
 include("printing.jl")
 include("fallbacks.jl")
@@ -258,9 +265,6 @@ if is_dev
 #  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
 end
-
-
-include("aliases.jl")
 
 include("deprecations.jl")
 

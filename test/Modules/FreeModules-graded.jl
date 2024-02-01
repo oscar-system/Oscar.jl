@@ -52,7 +52,7 @@ end
   NFx = polynomial_ring(k1, ["x", "y", "z"])[1]
   k2 = Nemo.GF(23)
   GFx = polynomial_ring(k2, ["x", "y", "z"])[1]
-  RNmodx = polynomial_ring(Nemo.residue_ring(ZZ,17), :x => 1:3)[1]
+  RNmodx = polynomial_ring(Nemo.residue_ring(ZZ,17)[1], :x => 1:3)[1]
   Rings = [Qx, NFx, GFx, RNmodx]
 
   A = abelian_group([0 3 0; 2 1 2])

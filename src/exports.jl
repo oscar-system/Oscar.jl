@@ -208,8 +208,8 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
-export algebraic_polynomial
 export algebraic_pluecker_vector
+export algebraic_polynomial
 export algebraic_set
 export all_atlas_group_infos
 export all_blocks
@@ -271,6 +271,7 @@ export binomial_exponents_to_ideal
 export binomial_primary_decomposition
 export bipyramid
 export birkhoff_polytope
+export block_distribution
 export blocks
 export bond_matroid
 export borcherds_method
@@ -673,10 +674,9 @@ export indicator
 export induce
 export induce_shift
 export induced_automorphism
-export induced_map_on_exterior_power
 export induced_cyclic
+export induced_map_on_exterior_power
 export induced_ring_ordering
-export induce_shift
 export inequations
 export initial
 export inneighbors
@@ -738,6 +738,7 @@ export is_complete
 export is_congruent
 export is_conjugate
 export is_conjugate_subgroup
+export is_conjugate_subgroup_with_data
 export is_conjugate_with_data
 export is_connected
 export is_cyclic, has_is_cyclic, set_is_cyclic
@@ -845,6 +846,7 @@ export is_square
 export is_standard_basis
 export is_standard_graded
 export is_strongly_connected
+export is_subscheme
 export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
@@ -873,19 +875,20 @@ export isqrtrem
 export issubset
 export iszero
 export iterate_basis
+export jacobi_symbol
 export jacobian_ideal
 export jacobian_matrix
-export jacobi_symbol
 export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid
 export k_cyclic_polytope
 export k_skeleton
-export katsura
 export kaehler_differentials
+export katsura
 export kernel
 export klee_minty_cube
 export klein_bottle
 export known_class_fusion
+export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
@@ -1016,17 +1019,10 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
-export n_cones
-export n_connected_components
 export n_gon
-export n_maximal_cells
-export n_maximal_cones
-export n_maximal_polyhedra
 export name
 export names_of_fusion_sources
 export natural_character
-export ne
-export nedges
 export nef_cone
 export negbias
 export negdeglex
@@ -1038,8 +1034,6 @@ export negwdegrevlex
 export neighbors
 export newick
 export newton_polytope
-export nfacets
-export ngens
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid
@@ -1064,24 +1058,31 @@ export normalization_with_delta
 export normalize!
 export normalized_volume
 export normalizer
-export npatches
-export npoints
-export npolyhedra
-export nrays
 export nullity
-export number_atlas_groups
-export number_conjugacy_classes, has_number_conjugacy_classes, set_number_conjugacy_classes
-export number_moved_points, has_number_moved_points, set_number_moved_points
+export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_cones
+export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
+export number_of_connected_components
+export number_of_edges
+export number_of_facets
 export number_of_factors
+export number_of_generators
+export number_of_maximal_cells
+export number_of_maximal_cones
+export number_of_maximal_polyhedra
+export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_partitions
-export number_perfect_groups, has_number_perfect_groups
-export number_primitive_groups, has_number_primitive_groups
-export number_small_groups, has_number_small_groups
-export number_transitive_groups, has_number_transitive_groups
+export number_of_patches
+export number_of_perfect_groups, has_number_of_perfect_groups
+export number_of_points
+export number_of_polyhedra
+export number_of_primitive_groups, has_number_of_primitive_groups
+export number_of_rays
+export number_of_small_groups, has_number_of_small_groups
+export number_of_transitive_groups, has_number_of_transitive_groups
+export number_of_vertices
 export numerator
-export nv
-export nvertices
 export objective_function
 export omega_group
 export on_indeterminates
@@ -1140,10 +1141,10 @@ export pitman_stanley_polytope
 export plane_curve
 export platonic_solid
 export pluecker_indices
+export point
 export point_coordinates
 export point_matrix
 export point_vector
-export point
 export points
 export pol_elementary_divisors
 export polarize
@@ -1178,12 +1179,12 @@ export proj
 export project_full
 export projection
 export projection_to_base
+export projective_closure
+export projective_curve
 export projective_general_linear_group
 export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
-export projective_closure
-export projective_curve
 export projective_plane
 export projective_scheme
 export projective_space
@@ -1192,6 +1193,7 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
+export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
 export pyramid
@@ -1204,16 +1206,16 @@ export R10_matroid
 export radical
 export radical_membership
 export rand
-export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
+export rand_homogeneous
 export rand_metric
 export rand_metric_int
 export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
-export rand_homogeneous
+export rand01_polytope
 export rank
 export rank_action
 export rational_equivalence_class
@@ -1325,6 +1327,7 @@ export show_subquo
 export signed_incidence_matrix
 export signed_permutahedron
 export simplex
+export simplicial_complex
 export simplified_fp_group
 export simplify
 export simplify!
@@ -1388,8 +1391,9 @@ export syz
 export syzygy_generators
 export tail
 export tangent_space
-export taxa
 export tangent_lines
+export tangent_space
+export taxa
 export tensor_product
 export terms
 export tetrahedron
@@ -1427,6 +1431,7 @@ export tropical_median_consensus
 export tropical_points
 export tropical_polynomial
 export tropical_pluecker_vector
+export tropical_polynomial
 export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
@@ -1467,16 +1472,16 @@ export vertices_and_rays
 export vf_group
 export visualize
 export volume
-export volume_map
 export volume_form
+export volume_map
 export walls
 export wdeglex
 export wdegrevlex
 export weakly_connected_components
 export wedge
+export wedge_generator_decompose_function
 export wedge_multiplication_map
 export wedge_pure_function
-export wedge_generator_decompose_function
 export weight
 export weight_cone
 export weight_ordering

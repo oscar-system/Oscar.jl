@@ -323,8 +323,8 @@ end
   X2 = subscheme(P2, ideal(R, [x0^2*x1,x0*x1^2,x0*x1*x2]))
   X3 = subscheme(P2, ideal(R,[x0]))
   @test X1 == X2
-  @test issubset(X1, P2)
-  @test issubset(X1, X2)
+  @test is_subscheme(X1, P2)
+  @test is_subscheme(X1, X2)
 end
 
 @testset "closed embeddings" begin

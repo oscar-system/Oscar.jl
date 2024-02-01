@@ -57,7 +57,7 @@ degree(x::PermGroup) = x.deg
     degree(g::PermGroupElem) -> Int
 
 Return the degree of the parent of `g`.
-This value is always greater or equal `number_moved_points(g)`
+This value is always greater or equal `number_of_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
@@ -83,8 +83,8 @@ julia> length(moved_points(gen(s, 1)))
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
 @doc raw"""
-    number_moved_points(x::PermGroupElem) -> Int
-    number_moved_points(G::PermGroup) -> Int
+    number_of_moved_points(x::PermGroupElem) -> Int
+    number_of_moved_points(G::PermGroup) -> Int
 
 Return the number of those points in `1:degree(x)` or `1:degree(G)`,
 respectively, that are moved (i.e., not fixed) under the action `^`.
@@ -93,14 +93,14 @@ respectively, that are moved (i.e., not fixed) under the action `^`.
 ```jldoctest
 julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
 
-julia> number_moved_points(s)
+julia> number_of_moved_points(s)
 3
 
-julia> number_moved_points(gen(s, 1))
+julia> number_of_moved_points(gen(s, 1))
 3
 ```
 """
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
+@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
@@ -119,7 +119,7 @@ julia> x = perm([2,4,6,1,3,5])
 (1,2,4)(3,6,5)
 
 julia> parent(x)
-Permutation group of degree 6 and order 720
+Sym(6)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -227,7 +227,7 @@ julia> x=cperm(G,[1,2,3]);
 julia> y=cperm(A,[1,2,3]);
 
 julia> z=cperm([1,2,3]); parent(z)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> x==y
 true
@@ -251,13 +251,13 @@ true
 
 ```jldoctest
 julia> G=symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> x = cperm(G,[[1,2],[3,4]])
 (1,2)(3,4)
 
 julia> parent(x)
-Permutation group of degree 5 and order 120
+Sym(5)
 ```
 
 Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
@@ -697,7 +697,7 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
 julia> parent(x)
-Permutation group of degree 8 and order 40320
+Sym(8)
 
 julia> y = cperm([1,2,3],[4,5],[6,7,8])
 (1,2,3)(4,5)(6,7,8)
@@ -754,7 +754,7 @@ julia> gens = @perm 14 [
  (1,2)(10,11)
  
 julia> parent(gens[1])
-Permutation group of degree 14 and order 87178291200
+Sym(14)
 ```
 """
 macro perm(n,gens)

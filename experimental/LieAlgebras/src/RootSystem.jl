@@ -100,10 +100,10 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= nposroots(R)
     return positive_coroot(R, i)
   else
-    return negative_coroot(R, i - num_positive_roots(R))
+    return negative_coroot(R, i - nposroots(R))
   end
 end
 
@@ -191,40 +191,36 @@ function negative_coroots(R::RootSystem)
 end
 
 @doc raw"""
-    num_positive_roots(R::RootSystem) -> Int
+    number_of_positive_roots(R::RootSystem) -> Int
 
 Returns the number of positive roots of `R`. This is the same as the number of negative roots.
 
 Also see: `positive_roots`, `negative_roots`.
 """
-function num_positive_roots(R::RootSystem)
+function number_of_positive_roots(R::RootSystem)
   return length(positive_roots(R))
 end
 
 @doc raw"""
-    num_roots(R::RootSystem) -> Int
+    number_of_roots(R::RootSystem) -> Int
 
 Returns the number of roots of `R`.
 
 Also see: `roots`.
 """
-function num_roots(R::RootSystem)
-  return 2 * num_positive_roots(R)
+function number_of_roots(R::RootSystem)
+  return 2 * number_of_positive_roots(R)
 end
 
 @doc raw"""
-    num_simple_roots(R::RootSystem) -> Int
+    number_of_simple_roots(R::RootSystem) -> Int
 
 Returns the number of simple roots of `R`.
 
 Also see: `simple_roots`.
 """
-function num_simple_roots(R::RootSystem)
+function number_of_simple_roots(R::RootSystem)
   return rank(R)
-end
-
-function nroots(R::RootSystem)
-  return num_roots(R)
 end
 
 @doc raw"""
@@ -245,7 +241,7 @@ end
 Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`,
 and then increasing in height.
 
-Also see: `positive_root`, `num_positive_roots`.
+Also see: `positive_root`, `number_of_positive_roots`.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -301,10 +297,10 @@ This is a more efficient version for `roots(R)[i]`.
 Also see: `roots`.
 """
 function root(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= nposroots(R)
     return positive_root(R, i)
   else
-    return negative_root(R, i - num_positive_roots(R))
+    return negative_root(R, i - nposroots(R))
   end
 end
 
@@ -342,6 +338,10 @@ Also see: `simple_root`.
 """
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
+end
+
+function type(R::RootSystem)
+  return R.type
 end
 
 @doc raw"""
@@ -756,6 +756,34 @@ function conjugate_dominant_weight(w::WeightLatticeElem)
   return conj
 end
 
+@doc raw"""
+    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+
+Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
+such that `x*w == dom`.
+"""
+function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
+  R = root_system(w)
+  wt = deepcopy(w)
+
+  # determine the Weyl group element taking w to the fundamental chamber
+  word = sizehint!(UInt8[], count(<(0), coefficients(wt))^2)
+  s = 1
+  while s <= rank(R)
+    if wt[s] < 0
+      push!(word, UInt8(s))
+      reflect!(wt, s)
+      s = 1
+    else
+      s += 1
+    end
+  end
+
+  # reversing word means it is in short revlex normal form
+  # and it is the element taking w to wt
+  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
+end
+
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
@@ -764,6 +792,10 @@ function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   return sum
 end
 @enable_all_show_via_expressify WeightLatticeElem
+
+function is_dominant(w::WeightLatticeElem)
+  return all(>=(0), coefficients(w))
+end
 
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
@@ -780,7 +812,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s), -w.vec[s])
+  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s:s), -w.vec[s])
   return w
 end
 
@@ -837,10 +869,11 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
 
   # sort roots by height
   perm = sortperm(roots; by=sum)
+  invp = invperm(perm)
 
-  table = zero_matrix(ZZ, rank, length(roots))
+  table = zeros(UInt, rank, length(roots))
   for i in 1:length(roots), s in 1:rank
-    table[s, i] = refl[s, perm[i]]
+    table[s, i] = iszero(refl[s, perm[i]]) ? 0 : invp[refl[s, perm[i]]]
   end
 
   roots[perm], coroots[perm], table

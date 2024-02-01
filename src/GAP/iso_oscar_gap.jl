@@ -402,8 +402,8 @@ Admissible values of `R` and the corresponding `S` are currently as follows.
 |:------------------------------------ |:---------------------------------- |
 | `ZZ`                                 | `Integers`                         |
 | `QQ`                                 | `Rationals`                        |
-| `residue_ring(ZZ, n)`                | `mod(Integers, n)`                 |
-| `finite_field(p, d)[1]`               | `GF(p, d)`                        |
+| `residue_ring(ZZ, n)[1]`             | `mod(Integers, n)`                 |
+| `finite_field(p, d)[1]`              | `GF(p, d)`                        |
 | `cyclotomic_field(n)[1]`             | `CF(n)`                            |
 | `number_field(f::QQPolyRingElem)[1]` | `AlgebraicExtension(Rationals, g)` |
 | `abelian_closure(QQ)[1]`             | `Cyclotomics`                      |
