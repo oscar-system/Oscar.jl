@@ -131,7 +131,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   q::Vector{elem_type(F)} = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
-    s, projection_map = quo(s, q, :with_morphism)
+    s, projection_map = quo(s, q)
   end
 
   tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))

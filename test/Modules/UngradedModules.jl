@@ -27,7 +27,7 @@ end
   @test v == Vector(F(v))
 
   M = sub_object(F, [F(v), F([z, R(1), R(0)])])
-  N = quo(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)], :none)
+  N = quo_object(M, [SubquoModuleElem([x+y^2, y^3*z^2+1], M)])
   AN, ai = ambient_module(N, :with_morphism)
   @test AN.quo === N.quo
   for i=1:ngens(N)
@@ -527,7 +527,7 @@ end
   F3 = FreeMod(R,3)
   M1 = SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y; 2*x^2 3*y^2*x 4],R[x^4*y^5 x*y y^4])
   N1 = SubquoModule(F3,R[x^4*y^5-4*x^2 x*y-6*y^2*x y^4-8],R[x^4*y^5 x*y y^4])
-  Q1,p1 = quo(M1,N1,:cache_morphism)
+  Q1,p1 = quo(M1,N1, cache_morphism=true)
 
   @test Q1 == SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
   @test p1 == find_morphism(M1, Q1)
@@ -539,7 +539,7 @@ end
   F2 = FreeMod(R,2)
   M2 = SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],R[x^3-y^2 y^4-x-y])
   elems = [SubquoModuleElem(sparse_row(R[x*y -x*y^2 x*y]), M2), SubquoModuleElem(sparse_row(R[x R(0) R(-1)]), M2)]
-  Q2,p2 = quo(M2,elems,:cache_morphism)
+  Q2,p2 = quo(M2,elems, cache_morphism=true)
 
   @test Q2 == SubquoModule(F2,R[x*y^2+x*y x^3+2*y; x^4 y^3; x^2*y^2+y^2 x*y],
             R[x^3-y^2 y^4-x-y; x^2*y^3+x^2*y^2+x^3*y^3+x*y^3-x^5*y^2 x^4*y+2*x*y^2-x*y^5+x^2*y^2; x^2*y-y^2 x^4+x*y])
@@ -551,9 +551,9 @@ end
   M3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1 x^4 2*x*y; y^4 3*x -1],R[y^2 x^3 y^2])
   #N3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 x^4-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
   N3 = SubquoModule(F3,R[x^2*y+13*x*y+2x-1-x*y^2 0 2*x*y-x*y^2; y^4-x*y^2 3*x-x^4 -1-x*y^2],R[2*y^2 2*x^3 2*y^2])
-  Q3,p3 = quo(M3,N3,:cache_morphism)
+  Q3,p3 = quo(M3,N3, cache_morphism=true)
 
-  @test iszero(quo(M3,M3, :none))
+  @test iszero(quo_object(M3,M3))
   @test iszero(Q3)
   for k=1:5
     elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M3)
@@ -886,7 +886,7 @@ end
   KerH,iKerH = kernel(H)
   ImH,iImH = image(H)
 
-  NmodKerH, pNmodKerH = quo(N,KerH, :cache_morphism)
+  NmodKerH, pNmodKerH = quo(N,KerH, cache_morphism=true)
   Hbar = SubQuoHom(NmodKerH,M,matrix(H))
   Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
@@ -914,7 +914,7 @@ end
 
 
   #2) H: N --> M = N/(submodule of N) canonical projection
-  M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))],:cache_morphism)
+  M,H = quo(N,[N(sparse_row(R[1 x^2-1 x*y^2])),N(sparse_row(R[y^3 y*x^2 x^3]))], cache_morphism=true)
   @test is_welldefined(H)
 
   ## test addition/subtraction of morphisms
@@ -930,7 +930,7 @@ end
   KerH,iKerH = kernel(H)
   ImH,iImH = image(H)
 
-  NmodKerH, pNmodKerH = quo(N,KerH, :cache_morphism)
+  NmodKerH, pNmodKerH = quo(N,KerH, cache_morphism=true)
   Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
   Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
@@ -970,7 +970,7 @@ end
   KerH,iKerH = kernel(H)
   ImH,iImH = image(H)
 
-  NmodKerH, pNmodKerH = quo(N,KerH, :cache_morphism)
+  NmodKerH, pNmodKerH = quo(N,KerH, cache_morphism=true)
   Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
   Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 
@@ -1003,7 +1003,7 @@ end
   KerH,iKerH = kernel(H)
   ImH,iImH = image(H)
 
-  NmodKerH, pNmodKerH = quo(N,KerH, :cache_morphism)
+  NmodKerH, pNmodKerH = quo(N,KerH, cache_morphism=true)
   Hbar = SubQuoHom(NmodKerH,M,matrix(H)) # induced map N/KerH --> M
   Hbar = restrict_codomain(Hbar,ImH) # induced map N/KerH --> ImH
 

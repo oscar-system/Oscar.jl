@@ -1082,7 +1082,7 @@ function preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol 
   cod_coker,i_cod_coker_inv = present_as_cokernel(codomain(H), :with_morphism)
   i_cod_coker = inv(i_cod_coker_inv) # this is cheap
   elems_in_coker = map(x->i_cod_coker(x),elems)
-  cokernel_modulo_elmes,projection = quo(cod_coker,elems_in_coker,:with_morphism)
+  cokernel_modulo_elmes,projection = quo(cod_coker,elems_in_coker)
   preimage, emb = kernel(H*i_cod_coker*projection)
   
   if task != :none
