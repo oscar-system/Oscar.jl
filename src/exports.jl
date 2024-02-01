@@ -369,7 +369,6 @@ export cone_from_inequalities
 export cones
 export conjugacy_class
 export conjugacy_classes
-export conjugacy_classes_maximal_subgroups
 export conjugacy_classes_subgroups
 export conjugate
 export conjugate_group
@@ -981,7 +980,6 @@ export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
-export maximal_subgroup_reps
 export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
 export metadata
 export milnor_algebra

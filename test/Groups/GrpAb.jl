@@ -118,8 +118,8 @@ end
       S2 = low_index_subgroups(G2, n)
       @test length(S1) == length(S2)
     end
-    S1 = conjugacy_classes_maximal_subgroups(G1)
-    S2 = conjugacy_classes_maximal_subgroups(G2)
+    S1 = maximal_subgroups(G1)
+    S2 = maximal_subgroups(G2)
     @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
 
     # operations

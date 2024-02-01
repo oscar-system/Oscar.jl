@@ -45,7 +45,6 @@ The following functions return a vector of subgroups.
 ```@docs
 subgroups(G::GAPGroup)
 normal_subgroups
-maximal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
@@ -95,7 +94,7 @@ conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
 conjugacy_classes_subgroups(G::GAPGroup)
-conjugacy_classes_maximal_subgroups(G::GAPGroup)
+maximal_subgroups(G::GAPGroup)
 ```
 
 

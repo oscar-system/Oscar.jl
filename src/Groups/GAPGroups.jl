@@ -813,7 +813,7 @@ function subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
 end
 
 """
-    conjugacy_classes_maximal_subgroups(G::Group)
+    maximal_subgroups(G::Group)
 
 Return the vector of all conjugacy classes of maximal subgroups of G.
 
@@ -821,35 +821,17 @@ Return the vector of all conjugacy classes of maximal subgroups of G.
 ```jldoctest
 julia> G = symmetric_group(3);
 
-julia> conjugacy_classes_maximal_subgroups(G)
+julia> maximal_subgroups(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
 ```
 """
-function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = Vector{GapObj}(GAPWrap.ConjugacyClassesMaximalSubgroups(G.X))
-  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
-end
-
-"""
-    maximal_subgroup_reps(G::GAPGroup)
-
-Return a vector of representatives (under conjugation) for all maximal
-subgroups of `G`.
-
-# Examples
-```jldoctest
-julia> maximal_subgroup_reps(symmetric_group(4))
-3-element Vector{PermGroup}:
- Permutation group of degree 4
- Permutation group of degree 4 and order 8
- Permutation group of degree 4 and order 6
-
-```
-"""
-function maximal_subgroup_reps(G::GAPGroup)
-  return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
+@gapattribute function maximal_subgroups(G::GAPGroup)
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
+  T = typeof(G)
+  LL = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+  return Vector{GAPGroupConjClass{T, T}}(LL)
 end
 
 """

@@ -1227,7 +1227,7 @@ mutable struct DescentEnv
   #a more select choice of group....
 
   function DescentEnv(G::PermGroup, f::GroupFilter = GroupFilter())
-    s = maximal_subgroup_reps(G)
+    s = map(representative, maximal_subgroups(G))
     r = new()
     r.G = G
     @vprint :GaloisGroup 1 "starting with $(length(s)) maximal subgroup classes\n"

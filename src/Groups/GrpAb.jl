@@ -150,18 +150,14 @@ function low_index_subgroups(G::FinGenAbGroup, n::Int)
    return res
 end
 
-function maximal_subgroup_reps(G::FinGenAbGroup)
+function maximal_subgroups(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    primes = [p for (p, e) in factor(order(G))]
    res = typeof(G)[]
    for p in primes
      append!(res, [H for (H, mp) in subgroups(G, index = p)])
    end
-   return res
-end
-
-function conjugacy_classes_maximal_subgroups(G::FinGenAbGroup)
-   return [conjugacy_class(G, H) for H in maximal_subgroup_reps(G)]
+   return [conjugacy_class(G, H) for H in res]
 end
 
 conjugate_group(G::FinGenAbGroup, x::FinGenAbGroupElem) = G

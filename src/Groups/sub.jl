@@ -220,30 +220,6 @@ function subgroups(G::GAPGroup)
 end
 
 """
-    maximal_subgroups(G::Group)
-
-Return all maximal subgroups of `G`.
-
-# Examples
-```jldoctest
-julia> maximal_subgroups(symmetric_group(3))
-4-element Vector{PermGroup}:
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
-
-julia> maximal_subgroups(quaternion_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
-```
-"""
-@gapattribute maximal_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
-
-"""
     maximal_normal_subgroups(G::Group)
 
 Return all maximal normal subgroups of `G`, i.e., those proper
@@ -617,7 +593,7 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
     t = right_transversal(G, H)[2:end] #drop the identity
     return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
   end
-  return any(M -> is_conjugate(G, M, H), maximal_subgroup_reps(G))
+  return any(C -> H in C, maximal_subgroups(G))
 end
 
 """
