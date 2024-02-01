@@ -585,6 +585,7 @@ export graded_polynomial_ring
 export grading_group
 export graph
 export graph_from_adjacency_matrix
+export graph_from_edges
 export grassmann_pluecker_ideal
 export grid_morphism
 export groebner_basis
@@ -1483,3 +1484,5 @@ export wreath_product
 export write_as_full
 export zonotope
 export zonotope_vertices_fukuda_matrix
+
+

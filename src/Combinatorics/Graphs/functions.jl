@@ -1081,3 +1081,61 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
     print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
   end
 end
+
+
+
+
+function graph_from_edges(::Type{T}, edges::Vector{Edge}) where {T <: Union{Directed, Undirected}}
+  verts = [[src(e),dst(e)] for e in edges]
+  n = maximum(reduce(append!, verts))
+  edges  
+
+  g = Graph{T}(n)
+  for e in edges
+    add_edge!(g, src(e), dst(e))
+  end
+
+  vertices_to_remove = setdiff(collect(1:nv(g)),reduce(union, verts))
+  while length(vertices_to_remove)>0
+    rem_vertex!(g, vertices_to_remove[1])
+    vertices_to_remove = vertices_to_remove .- 1
+    popfirst!(vertices_to_remove)
+  end
+  return g
+end
+
+graph_from_edges(::Type{T}, edges::EdgeIterator) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges))
+
+@doc raw"""
+  graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
+
+Creates a graph from a list of edges.
+
+```
+# Examples 1
+```jldoctest
+julia> G = complete_graph(Undirected, [[5,6],[7,8],[11,12]]);
+
+julia> collect(edges(G))
+3-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(4, 3)
+ Edge(6, 5)
+
+```
+The Function will return a isomorphic graph with vertex labels in the range 1 to n, where n is the minimum number of vertices necessary to represent the graph.
+# Examples 2
+```jldoctest
+julia> G = complete_graph(Undirected, [[11,3],[3,5],[4,5],[2,4],[2,3]]);
+
+julia> collect(edges(G))
+5-element Vector{Edge}:
+ Edge(2, 1)
+ Edge(3, 1)
+ Edge(4, 2)
+ Edge(4, 3)
+ Edge(5, 2)
+
+```
+"""
+graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges])
