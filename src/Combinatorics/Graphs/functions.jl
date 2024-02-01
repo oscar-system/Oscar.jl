@@ -1159,8 +1159,8 @@ julia> newick(tree_mat)
 function phylogenetic_tree(M::Matrix{Float64}, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
-  pm_ptree = Polymake.graph.PhylogeneticTree{T}(COPHENETIC_MATRIX = M, TAXA = taxa)
-  return PhylogeneticTree{T}(pm_ptree)
+  pm_ptree = Polymake.graph.PhylogeneticTree{Float64}(COPHENETIC_MATRIX = M, TAXA = taxa)
+  return PhylogeneticTree{Float64}(pm_ptree)
 end
 
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
@@ -1195,6 +1195,9 @@ function adjacency_tree(ptree::PhylogeneticTree)
   return Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
 end
 
+function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
+  print(io, "Phylogenetic tree with $T type coefficients")
+end
 
 @doc raw"""
     equidistant(ptree::PhylogeneticTree)
