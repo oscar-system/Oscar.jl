@@ -5,14 +5,14 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+    graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 
 Given a graded ring `R` with grading group `G`, say,
 and given a vector `W` with `p` elements of `G`, create the free module $R^p$ 
 equipped with its basis of standard unit vectors, and assign weights to these 
 vectors according to the entries of `W`. Return the resulting graded free module.
 
-    graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
+    graded_free_module(R::Ring, W::Vector{FinGenAbGroupElem}, name::String="e")
 
 As above, with `p = length(W)`.
 
@@ -30,13 +30,13 @@ julia> graded_free_module(R,3)
 Graded free module R^3([0]) of rank 3 over R
 
 julia> G = grading_group(R)
-GrpAb: Z
+Z
 
 julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
   all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
@@ -48,12 +48,12 @@ end
 function graded_free_module(R::Ring, p::Int, W::Vector{Any}, name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
-  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
-  W = GrpAbFinGenElem[]
+  p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
+  W = FinGenAbGroupElem[]
   return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::Ring, W::Vector{GrpAbFinGenElem}, name::String="e")
+function graded_free_module(R::Ring, W::Vector{FinGenAbGroupElem}, name::String="e")
   p = length(W)
   return graded_free_module(R, p, W, name)
 end
@@ -61,8 +61,8 @@ end
 function graded_free_module(R::Ring, W::Vector{Any}, name::String="e")
   p = length(W)
   @assert is_graded(R)
-  p == 0 || error("W should be either an empty array or a Vector{GrpAbFinGenElem}")
-  W = GrpAbFinGenElem[]
+  p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
+  W = FinGenAbGroupElem[]
   return graded_free_module(R, p, W, name)
 end
 
@@ -137,7 +137,7 @@ function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e"
 end
 
 @doc raw"""
-    grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+    grade(F::FreeMod, W::Vector{FinGenAbGroupElem})
 
 Given a free module `F` over a graded ring with grading group `G`, say, and given
 a vector `W` of `ngens(F)` elements of `G`, create a `G`-graded free module
@@ -156,12 +156,12 @@ As above, with all weights set to `zero(G)`.
 julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
 
 julia> G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia> g = gens(G)
-2-element Vector{GrpAbFinGenElem}:
- Element of G with components [1 0]
- Element of G with components [0 1]
+2-element Vector{FinGenAbGroupElem}:
+ Abelian group element [1, 0]
+ Abelian group element [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -172,13 +172,13 @@ julia> F = free_module(S, 3)
 Free module of rank 3 over S
 
 julia> FF = grade(F)
-Graded free module S^3([0 0]) of rank 3 over S
+Graded free module S^3([0, 0]) of rank 3 over S
 
 julia> F
 Free module of rank 3 over S
 ```
 """
-function grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+function grade(F::FreeMod, W::Vector{FinGenAbGroupElem})
   @assert length(W) == ngens(F)
   @assert is_graded(base_ring(F))
   R = base_ring(F)
@@ -240,7 +240,7 @@ julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
-(Quotient of multivariate polynomial ring by ideal (x*y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x*y), Map: R -> S)
 
 julia> F = free_module(S, 2)
 Free module of rank 2 over S
@@ -291,7 +291,7 @@ julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
 
 julia> grading_group(F)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(M::FreeMod)
@@ -367,7 +367,7 @@ end
 
 # Dangerous: Only for internal use with care!!!
 @doc raw"""
-    set_grading!(F::FreeMod, W::Vector{GrpAbFinGenElem})
+    set_grading!(F::FreeMod, W::Vector{FinGenAbGroupElem})
 
     set_grading!(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 
@@ -380,7 +380,7 @@ Assign weights to the generators of `F` according to the entries of `W`.
 See the `grade` and `graded_free_module` functions.
 ```
 """
-function set_grading!(M::FreeMod, W::Vector{GrpAbFinGenElem})
+function set_grading!(M::FreeMod, W::Vector{FinGenAbGroupElem})
   @assert length(W) == ngens(M)
   @assert is_graded(base_ring(M))
   R = base_ring(F)
@@ -432,7 +432,7 @@ julia> F = graded_free_module(R, 2)
 Graded free module R^2([0]) of rank 2 over R
 
 julia> degrees_of_generators(F)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  [0]
  [0]
 ```
@@ -536,8 +536,8 @@ true
 function is_homogeneous(el::FreeModElem)
   !is_graded(parent(el)) && error("The parent module is not graded.")
   iszero(el) && return true
-  el.d = isa(el.d, GrpAbFinGenElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
-  return isa(el.d, GrpAbFinGenElem)
+  el.d = isa(el.d, FinGenAbGroupElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
+  return isa(el.d, FinGenAbGroupElem)
 end
 
 @doc raw"""
@@ -564,7 +564,7 @@ julia> degree(f)
 [3]
 
 julia> typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia> degree(Int, f)
 3
@@ -577,9 +577,9 @@ function degree(f::FreeModElem)
   !is_graded(parent(f)) && error("The parent module is not graded.")
   A = grading_group(base_ring(parent(f)))
   iszero(f) && return A[0]
-  f.d = isa(f.d, GrpAbFinGenElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
-  isa(f.d, GrpAbFinGenElem) || error("The specified element is not homogeneous.")
-  return f.d::GrpAbFinGenElem
+  f.d = isa(f.d, FinGenAbGroupElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
+  isa(f.d, FinGenAbGroupElem) || error("The specified element is not homogeneous.")
+  return f.d::FinGenAbGroupElem
 end
 
 function degree(::Type{Vector{Int}}, f::FreeModElem)
@@ -593,7 +593,7 @@ function degree(::Type{Int}, f::FreeModElem)
   return Int(degree(f)[1])
 end
 
-function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{GrpAbFinGenElem})
+function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{FinGenAbGroupElem})
   element_degree = nothing
   for (position, coordval) in coords
       if !is_homogeneous(coordval)
@@ -824,7 +824,7 @@ julia> is_graded(a)
 true
 
 julia> grading_group(a)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(f::FreeModuleHom)
@@ -938,7 +938,7 @@ julia> a2 = hom(F2, G, V2);
 julia> M = subquotient(a1,a2);
 
 julia> grading_group(M)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(M::SubquoModule)
@@ -971,7 +971,7 @@ julia> a2 = hom(F2, G, V2);
 julia> M = subquotient(a1,a2);
 
 julia> degrees_of_generators(M)
-3-element Vector{GrpAbFinGenElem}:
+3-element Vector{FinGenAbGroupElem}:
  [2]
  [2]
  [2]
@@ -984,7 +984,7 @@ julia> gens(M)
 ```
 """
 function degrees_of_generators(M::SubquoModule{T}) where T
-  isempty(gens(M)) ? GrpAbFinGenElem[] : map(gen -> degree(repres(gen)), gens(M))
+  isempty(gens(M)) ? FinGenAbGroupElem[] : map(gen -> degree(repres(gen)), gens(M))
 end
 
 ###############################################################################
@@ -1275,7 +1275,7 @@ y*e[1] -> x^2*y*e[1]
 Graded module homomorphism of degree [2]
 
 julia> grading_group(a)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(f::SubQuoHom)
@@ -1385,7 +1385,7 @@ julia> betti_table(FM)
 total: 1  3  2
 ```
 """
-function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
   rng = Hecke.map_range(C)
@@ -1401,7 +1401,7 @@ function betti_table(F::FreeResolution; project::Union{GrpAbFinGenElem, Nothing}
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-function betti(b::FreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool = false)
+function betti(b::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool = false)
   return betti_table(b; project, reverse_direction)
 end
 
@@ -1897,7 +1897,7 @@ end
 ##################################
 
 function is_graded(M::FreeMod)
-  return isa(M.d, Vector{GrpAbFinGenElem})
+  return isa(M.d, Vector{FinGenAbGroupElem})
 end
 
 function is_graded(M::SubquoModule)
@@ -1972,7 +1972,7 @@ free_module_dec(R::CRing_dec, n::Int, name::VarName = :e; cached::Bool = false) 
 
 
 @doc raw"""
-    FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) 
+    FreeMod_dec(R::CRing_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false) 
 
 Construct a decorated (graded or filtered) free module over the ring `R` 
 with rank `n` where `n` is the length of `d`. `d` is the vector of degrees for the 
@@ -1982,12 +1982,12 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) 
+function FreeMod_dec(R::CRing_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false) 
   return FreeMod_dec{elem_type(R)}(R, [Symbol("$name[$i]") for i=1:length(d)],d)
 end
 
 @doc raw"""
-    free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
+    free_module_dec(R::CRing_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false)
 
 Create the decorated free module $R^n$ (`n` is the length of `d`)
 equipped with its basis of standard unit vectors where the 
@@ -1995,10 +1995,10 @@ i-th standard unit vector has degree `d[i]`.
 
 The string `name` specifies how the basis vectors are printed. 
 """
-free_module_dec(R::CRing_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
+free_module_dec(R::CRing_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false) = FreeMod_dec(R, d, name, cached = cached)
 
 
-function FreeMod_dec(F::FreeMod, d::Vector{GrpAbFinGenElem})
+function FreeMod_dec(F::FreeMod, d::Vector{FinGenAbGroupElem})
   return FreeMod_dec{elem_type(base_ring(F))}(F, d)
 end
 
@@ -2041,6 +2041,36 @@ function show(io::IO, F::FreeMod_dec)
     end
     i += j
   end
+end
+
+# Generic specialized show methods (formerly in Hecke)
+
+function Hecke.show_hom(io::IO, G)
+  D = get_attribute(G, :hom)
+  D === nothing && error("only for hom")
+  print(io, "hom of ")
+  print(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_direct_product(io::IO, G)
+  D = get_attribute(G, :direct_product)
+  D === nothing && error("only for direct products")
+  print(io, "direct product of ")
+  show(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_direct_sum(io::IO, G)
+  D = get_attribute(G, :direct_product)
+  D === nothing && error("only for direct sums")
+  print(io, "direct sum of ")
+  show(IOContext(io, :compact => true), D)
+end
+
+function Hecke.show_tensor_product(io::IO, G)
+  D = get_attribute(G, :tensor_product)
+  D === nothing && error("only for tensor products")
+  print(io, "tensor product of ")
+  show(IOContext(io, :compact => true), D)
 end
 
 function forget_decoration(F::FreeMod_dec)
@@ -2252,7 +2282,7 @@ The keys are those group elements for which `a` has a component
 having this element as its degree.
 """
 function homogeneous_components(a::FreeModElem_dec)
-  res = Dict{GrpAbFinGenElem, FreeModElem_dec}()
+  res = Dict{FinGenAbGroupElem, FreeModElem_dec}()
   F = parent(a)
   for (p,v) in coordinates(a)
     c = homogeneous_components(v)
@@ -2269,11 +2299,11 @@ function homogeneous_components(a::FreeModElem_dec)
 end
 
 @doc raw"""
-    homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
+    homogeneous_component(a::FreeModElem_dec, g::FinGenAbGroupElem)
 
 Return the homogeneous component of `a` which has degree `g`.
 """
-function homogeneous_component(a::FreeModElem_dec, g::GrpAbFinGenElem)
+function homogeneous_component(a::FreeModElem_dec, g::FinGenAbGroupElem)
   F = parent(a)
   x = zero(F)
   for (p,v) in coordinates(a)
@@ -2492,7 +2522,7 @@ function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
   rng = range(C)
   # The following needs the resolution to be complete to be true
   res_length = first(rng)-1
-  offsets = Dict{GrpAbFinGenElem, Int}()
+  offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
   for i in 1:res_length+1
     phi = map(C, i)
@@ -2501,7 +2531,7 @@ function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
     dom_degs = unique!([degree(g) for g in gens(F)])
     cod_degs = unique!([degree(g) for g in gens(G)])
     for d in cod_degs
-      d::GrpAbFinGenElem
+      d::FinGenAbGroupElem
       if d in dom_degs
         _, _, sub_mat = _constant_sub_matrix(phi, d)
         r = rank(sub_mat)
@@ -2524,19 +2554,19 @@ end
 function generators_of_degree(
     C::FreeResolution{T},
     i::Int,
-    d::GrpAbFinGenElem
+    d::FinGenAbGroupElem
   ) where {T<:ModuleFP}
   F = C[i]
   return [g for g in gens(F) if degree(g) == d]
 end
 
-function _indices_of_generators_of_degree(F::FreeMod{T}, d::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+function _indices_of_generators_of_degree(F::FreeMod{T}, d::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
   return Int[i for (i, g) in enumerate(gens(F)) if degree(g) == d]
 end
 
 function _constant_sub_matrix(
     phi::FreeModuleHom{T, T},
-    d::GrpAbFinGenElem
+    d::FinGenAbGroupElem
   ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
   S = base_ring(domain(phi))::MPolyDecRing
   kk = coefficient_ring(S)::Field
@@ -2571,7 +2601,7 @@ end
 #############truncation#############
 
 @doc raw"""
-    truncate(M::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+    truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
 
 Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivariate 
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
@@ -2625,7 +2655,7 @@ by submodule of F generated by
 3 -> z^5*e[1]
 ```
 """
-function truncate(I::ModuleFP, g::GrpAbFinGenElem, task::Symbol = :with_morphism)
+function truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
   return truncate(I, Int(g[1]), task)
 end
 
@@ -2853,7 +2883,7 @@ end
 ##########################################################################
 
 @doc raw"""
-    twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:MPolyDecRingElem}
+    twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
 
 Return the twisted module `M(g)`.
 
@@ -2893,11 +2923,11 @@ julia> degree(gen(N, 1))
 
 ```
 """
-function twist(M::ModuleFP{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
+function twist(M::ModuleFP{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  error("Not implemented for the given type")
 end
 
-function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
+function twist(M::SubquoModule{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  R = base_ring(M)
  @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
  F = ambient_free_module(M)
@@ -2912,7 +2942,7 @@ function twist(M::SubquoModule{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecR
  return N
 end
 
-function twist(F::FreeMod{T}, g::GrpAbFinGenElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
+function twist(F::FreeMod{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDecRingElem, MPolyQuoRingElem{<:MPolyDecRingElem}}}
  R = base_ring(F)
  @req parent(g) == grading_group(R) "Group element not contained in grading group of base ring"
  W = [x-g for x in F.d]

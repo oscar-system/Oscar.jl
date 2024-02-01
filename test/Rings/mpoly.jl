@@ -500,7 +500,7 @@ end
   @test is_prime(I) == false
 end
 
-@testset "primary decomposition over NfAbsNS" begin
+@testset "primary decomposition over AbsNonSimpleNumField" begin
   _, x = QQ[:x]
   K, a = number_field([x - 1, x - 2]);
   Kt, t = K["t"];
@@ -513,14 +513,14 @@ end
   primary_decomposition(ideal(S, [gen(S, 1)]))
 end
 
-@testset "primary decomposition over NfRelNS" begin
+@testset "primary decomposition over RelNonSimpleNumField" begin
   Pt, t = QQ[:t]
   f = t^2 + 1
   kk, i = number_field(f)
   _, T = kk[:T]
   g = T^3 - 5
   K, zeta = number_field([g], "zeta")
-  @test K isa Hecke.NfRelNS
+  @test K isa Hecke.RelNonSimpleNumField
   _, s = K[:s]
   h = s-1
   L, xi = number_field(h)

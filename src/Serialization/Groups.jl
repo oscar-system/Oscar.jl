@@ -87,7 +87,7 @@
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
-GrpElemUnionType = Union{GAPGroupElem, GrpAbFinGenElem}
+GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
 function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
   # this has just been more or less copied from the Rings section
@@ -231,25 +231,25 @@ function load_object(s::DeserializerState, ::Type{PcGroupElem}, parent_group::Pc
 end
 
 ##############################################################################
-# GrpAbFinGen
+# FinGenAbGroup
 
-@register_serialization_type GrpAbFinGen uses_id
+@register_serialization_type FinGenAbGroup uses_id
 
-function save_object(s::SerializerState, G::GrpAbFinGen)
+function save_object(s::SerializerState, G::FinGenAbGroup)
   save_object(s, rels(G))
 end
 
-function load_object(s::DeserializerState, ::Type{GrpAbFinGen})
+function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
   return abelian_group(load_object(s, Matrix, ZZRingElem))
 end
 
 # elems
-@register_serialization_type GrpAbFinGenElem uses_params
+@register_serialization_type FinGenAbGroupElem uses_params
 
-function save_object(s::SerializerState, g::GrpAbFinGenElem)
+function save_object(s::SerializerState, g::FinGenAbGroupElem)
   save_object(s, _coeff(g))
 end
 
-function load_object(s::DeserializerState, ::Type{GrpAbFinGenElem}, G::GrpAbFinGen)
+function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
   return G(vec(load_object(s, Matrix, ZZRingElem)))
 end

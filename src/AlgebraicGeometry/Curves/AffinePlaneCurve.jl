@@ -142,7 +142,7 @@ end
 # Helping function:
 # used to order elements to find the multiplicity.
 
-function _sort_helper_multiplicity(a::GrpAbFinGenElem)
+function _sort_helper_multiplicity(a::FinGenAbGroupElem)
   return a.coeff[1, 1]
 end
 

@@ -775,10 +775,10 @@ Sym(3)
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
@@ -829,8 +829,8 @@ julia> G = symmetric_group(3);
 
 julia> conjugacy_classes_maximal_subgroups(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
@@ -1601,7 +1601,7 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
 end
 
 # TODO/FIXME: the rank method below is disabled because it conflicts
-# with semantics of  the `rank` method for GrpAbFinGen. We'll have
+# with semantics of  the `rank` method for FinGenAbGroup. We'll have
 # to resolve this first; afterwards we can uncomment this code,
 # and possibly rename it to whatever we agreed on (if it is different from `rank`)
 #"""
@@ -2011,7 +2011,7 @@ function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
 end
 
 
-function describe(G::GrpAbFinGen)
+function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
    l_tor = filter(x -> x != 0, l)

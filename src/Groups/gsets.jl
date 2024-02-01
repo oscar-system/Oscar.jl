@@ -744,7 +744,7 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     pos2 === nothing && return false, one(G)
     img = GAP.Globals.RepresentativeAction(image(acthom)[1].X, pos1, pos2)
     img == GAP.Globals.fail && return false, one(G)
-    pre = haspreimage(acthom, group_element(image(acthom)[1], img))
+    pre = has_preimage_with_preimage(acthom, group_element(image(acthom)[1], img))
     @assert(pre[1])
     return true, pre[2]
 end

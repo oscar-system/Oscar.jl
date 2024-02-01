@@ -12,21 +12,21 @@
   @test order(codomain(g)) == 2
 end
 
-@testset "describe for GrpAbFinGen" begin
-  @test describe(abelian_group(GrpAbFinGen, Int[])) == "0"
-  @test describe(abelian_group(GrpAbFinGen, Int[0])) == "Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0])) == "Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2])) == "Z/2"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2])) == "Z/2 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2])) == "Z/2 + Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2, 4])) == "Z/2 + Z/4"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
+@testset "describe for FinGenAbGroup" begin
+  @test describe(abelian_group(FinGenAbGroup, Int[])) == "0"
+  @test describe(abelian_group(FinGenAbGroup, Int[0])) == "Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0])) == "Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2])) == "Z/2"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2])) == "Z/2 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2])) == "Z/2 + Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2, 4])) == "Z/2 + Z/4"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
 end
 
-@testset "group functions for finite GrpAbFinGen" begin
+@testset "group functions for finite FinGenAbGroup" begin
   @testset for para in [ [2, 3, 4], Int[], [2, 4] ]
-    G1 = abelian_group(GrpAbFinGen, para)
+    G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
     primes = [p for (p, e) in collect(factor(order(G1)))]
@@ -162,9 +162,9 @@ end
   end
 end
 
-@testset "abelian_invariants_schur_multiplier for GrpAbFinGen" begin
+@testset "abelian_invariants_schur_multiplier for FinGenAbGroup" begin
   for g in all_small_groups(1:50, is_abelian)
-    gg = codomain(isomorphism(GrpAbFinGen, g))
+    gg = codomain(isomorphism(FinGenAbGroup, g))
     @test abelian_invariants_schur_multiplier(g) == abelian_invariants_schur_multiplier(gg)
     @test abelian_invariants(schur_multiplier(g)) == abelian_invariants_schur_multiplier(g)
   end

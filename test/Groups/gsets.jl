@@ -121,7 +121,7 @@
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  @test haspreimage(acthom, pi)[1]
+  @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
   rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
   @test ! is_bijective(rest)
@@ -259,7 +259,7 @@ end
   Omega = gset(G)
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  @test haspreimage(acthom, pi)[1]
+  @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 48
 
   # isconjugate
@@ -360,7 +360,7 @@ end
   # action homomorphism
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  flag, pre = haspreimage(acthom, pi)
+  flag, pre = has_preimage_with_preimage(acthom, pi)
   @test flag
   @test pre == g
   @test order(image(acthom)[1]) == order(G)

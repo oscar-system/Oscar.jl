@@ -606,12 +606,12 @@ export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
+export has_preimage_with_preimage
 export has_primitive_groups
 export has_small_groups
 export has_torusfactor
 export has_transitive_groups
 export has_vertex
-export haspreimage
 export height
 export hermitian_form
 export hessian

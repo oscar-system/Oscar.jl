@@ -88,31 +88,31 @@ number_field(I::MPolyIdeal{QQMPolyRingElem}) = number_field(I, "_\$")
 
 # Now for number fields
 
-function number_field(I::MPolyIdeal{Generic.MPoly{nf_elem}}, var::Vector{Symbol})
+function number_field(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, var::Vector{Symbol})
   n = length(var)
   R = base_ring(I)
   nn = nvars(R)
   @req length(var) == nvars(R) """
       Number of symbols $(n) must be the number of variables $(nn)
       """
-  K = NfNSGen{nf_elem, Generic.MPoly{nf_elem}}(I, var)
+  K = NfNSGen{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}(I, var)
   return K, gens(K)
 end
 
-number_field(I::MPolyIdeal{Generic.MPoly{nf_elem}}, var::Vector{String}) =
+number_field(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, var::Vector{String}) =
     number_field(I, map(Symbol, var))
 
-function number_field(I::MPolyIdeal{Generic.MPoly{nf_elem}}, var::String)
+function number_field(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, var::String)
   R = base_ring(I)
   return number_field(I, String["$var$i" for i in 1:nvars(R)])
 end
 
-function number_field(I::MPolyIdeal{Generic.MPoly{nf_elem}}, var::Symbol)
+function number_field(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, var::Symbol)
   R = base_ring(I)
   return number_field(I, Symbol[Symbol(var, i) for i in 1:nvars(R)])
 end
 
-number_field(I::MPolyIdeal{Generic.MPoly{nf_elem}}) = number_field(I, "_\$")
+number_field(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}) = number_field(I, "_\$")
 
 ################################################################################
 #
@@ -318,24 +318,24 @@ end
 
 # with base type
 
-+(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
++(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::AbsSimpleNumFieldElem) =
     NfNSGenElem(Hecke.data(a) + b, parent(a))
 
-*(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
+*(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::AbsSimpleNumFieldElem) =
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
-Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) =
+Base.://(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::AbsSimpleNumFieldElem) =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem; check::Bool=true) = a//b
+divexact(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::AbsSimpleNumFieldElem; check::Bool=true) = a//b
 
-+(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = b + a
++(a::AbsSimpleNumFieldElem, b::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}) = b + a
 
-*(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = b * a
+*(a::AbsSimpleNumFieldElem, b::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}) = b * a
 
-Base.://(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a * inv(b)
+Base.://(a::AbsSimpleNumFieldElem, b::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}) = a * inv(b)
 
-divexact(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}; check::Bool=true) = a//b
+divexact(a::AbsSimpleNumFieldElem, b::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}; check::Bool=true) = a//b
 
 # with QQFieldElem
 +(a::NfNSGenElem{T, S}, b::QQFieldElem) where {S, T} =
@@ -384,10 +384,10 @@ divexact(a::ZZRingElem, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} = a
 *(a::NfNSGenElem{T, S}, b::Base.Integer) where {S, T} =
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
-Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer) =
+Base.://(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::Base.Integer) =
     NfNSGenElem(divexact(Hecke.data(a), b; check=true), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Integer; check::Bool=true) = a//b
+divexact(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::Base.Integer; check::Bool=true) = a//b
 
 +(a::Base.Integer, b::NfNSGenElem{T, S}) where {S, T} = b + a
 
@@ -404,10 +404,10 @@ divexact(a::Base.Integer, b::NfNSGenElem{T, S}; check::Bool=true) where {S, T} =
 *(a::NfNSGenElem{T, S}, b::Base.Rational{<:Base.Integer}) where {S, T} =
     NfNSGenElem(Hecke.data(a) * b, parent(a))
 
-Base.://(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}) =
+Base.://(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::Base.Rational{<:Base.Integer}) =
     NfNSGenElem(divexact(Hecke.data(a), b), parent(a))
 
-divexact(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::Base.Rational{<:Base.Integer}; check::Bool=true) =
+divexact(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::Base.Rational{<:Base.Integer}; check::Bool=true) =
     a//b
 
 +(a::Base.Rational{<:Base.Integer}, b::NfNSGenElem{T, S}) where {S, T} = b + a
@@ -478,9 +478,9 @@ for t in [Base.Integer, Base.Rational{<:Integer}, ZZRingElem, QQFieldElem]
   end
 end
 
-==(a::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}, b::nf_elem) = Hecke.data(a) == b
+==(a::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}, b::AbsSimpleNumFieldElem) = Hecke.data(a) == b
 
-==(a::nf_elem, b::NfNSGenElem{nf_elem, Generic.MPoly{nf_elem}}) = a == Hecke.data(b)
+==(a::AbsSimpleNumFieldElem, b::NfNSGenElem{AbsSimpleNumFieldElem, Generic.MPoly{AbsSimpleNumFieldElem}}) = a == Hecke.data(b)
 
 ==(a::NfNSGenElem{QQFieldElem, QQMPolyRingElem}, b::QQFieldElem) = Hecke.data(a) == b
 
@@ -521,7 +521,7 @@ for t in [Base.Integer, Base.Rational{<:Base.Integer}, ZZRingElem, QQFieldElem]
   end
 end
 
-function (K::NfNSGen{T, S})(x::NfAbsOrdElem{NfNSGen{T, S}, <:Any}) where {T, S}
+function (K::NfNSGen{T, S})(x::AbsNumFieldOrderElem{NfNSGen{T, S}, <:Any}) where {T, S}
   @req nf(parent(x)) === K "Parent of element must be an order of the number field"
   return elem_in_nf(x)
 end
@@ -892,7 +892,7 @@ function Hecke.map_data(K::NfAbsNSGen, L, x::Vector; check::Bool = true)
   return MapDataFromNfAbsNSGen{typeof(xx)}(xx)
 end 
 
-function Hecke.image_generators(f::Hecke.NumFieldMor{<:NfAbsNSGen})
+function Hecke.image_generators(f::Hecke.NumFieldHom{<:NfAbsNSGen})
   return f.image_data.images
 end
 
@@ -904,7 +904,7 @@ end
 function Hecke._compute_inverse_data(f#= image Hecke.data =#, K, LL, L::NfAbsNSGen)
   preimg_gens = elem_type(K)[]
   for g in gens(L)
-    fl, preimg = haspreimage(f, LL(g))
+    fl, preimg = has_preimage_with_preimage(f, LL(g))
     @assert fl
     push!(preimg_gens, preimg)
   end
@@ -966,7 +966,7 @@ function Hecke.map_data(K::NfNSGen, L, x...; check::Bool = true)
 
   local yy::Vector{elem_type(L)}
 
-  if Base.last(x) isa Hecke.NumFieldMor
+  if Base.last(x) isa Hecke.NumFieldHom
     domain(Base.last(x)) !== K && error("")
     _y = image_generators(Base.last(x))
     if parent(_y[1]) === L
@@ -1007,7 +1007,7 @@ end
 function Hecke._compute_inverse_data(f, K, LL, L::NfNSGen)
   preimg_gens = elem_type(K)[]
   for g in gens(L)
-    fl, preimg = haspreimage(f, LL(g))
+    fl, preimg = has_preimage_with_preimage(f, LL(g))
     push!(preimg_gens, preimg)
   end
   inverse_data_base_field = Hecke._compute_inverse_data(f, K, LL, base_field(L))
@@ -1022,6 +1022,6 @@ end
 
 # Image of generators
 
-function image_generators(f::Hecke.NumFieldMor{<:NfNSGen})
+function image_generators(f::Hecke.NumFieldHom{<:NfNSGen})
   return f.image_data.images
 end

@@ -62,7 +62,7 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> affine_algebra(IR)
 (Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
