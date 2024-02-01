@@ -381,7 +381,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     to_homomorphism = function(elem::SubquoModuleElem{T})
       elem2 = i(elem)
       A = convert_to_matrix(elem2)
-      return SubQuoHom(M,N,A)
+      return SubQuoHom(M,N,A; check=false)
     end
     to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
@@ -403,7 +403,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     end
     to_homomorphism = function(elem::SubquoModuleElem{T})
       A = convert_to_matrix(elem)
-      return SubQuoHom(M,N,A)
+      return SubQuoHom(M,N,A; check=false)
     end
 
     to_hom_map = MapFromFunc(SQ, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
@@ -437,7 +437,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)))
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
   return MS, map
 end
 
@@ -450,7 +450,7 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), f)
+  map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
 
@@ -479,7 +479,7 @@ For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
 map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
 """
-function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
   cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
   M_dual, _ = dual(M, cod=cod)
@@ -490,16 +490,16 @@ function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing) where 
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
   end
-  psi = FreeModuleHom(M, M_double_dual, psi_gens)
+  psi = FreeModuleHom(M, M_double_dual, psi_gens; check)
   return M_double_dual, psi
 end
 
-function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
   cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
   M_dual, _ = dual(M, cod=cod)
@@ -510,12 +510,12 @@ function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing) w
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
   end
-  psi = SubQuoHom(M, M_double_dual, psi_gens)
+  psi = SubQuoHom(M, M_double_dual, psi_gens; check)
   return M_double_dual, psi
 end
 

@@ -200,12 +200,12 @@ true
 ```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
-  return FreeModuleHom(F, M, V)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M); check)
+  return FreeModuleHom(F, M, V; check)
 end
 function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}; check::Bool=true) where T 
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
-  return FreeModuleHom(F, M, A)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M); check)
+  return FreeModuleHom(F, M, A; check)
 end
 
 @doc raw"""
@@ -231,8 +231,8 @@ scalars in `base_ring(F)` to their images under `h`.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
-hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
     identity_map(M::ModuleFP)
