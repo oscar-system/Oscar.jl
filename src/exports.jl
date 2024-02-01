@@ -1427,7 +1427,6 @@ export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_matrix
 export tropical_median_consensus
-export tropical_points
 export tropical_polynomial
 export tropical_pluecker_vector
 export tropical_polynomial
