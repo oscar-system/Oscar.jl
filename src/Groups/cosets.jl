@@ -510,7 +510,10 @@ julia> K = symmetric_group(2)
 Sym(2)
 
 julia> double_coset(H,g,K)
-Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
+Double coset of Sym(3)
+  and Sym(2)
+  with representative (1,3,5,2,4)
+  in Sym(5)
 ```
 """
 function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
@@ -540,9 +543,9 @@ Sym(2)
 
 julia> double_cosets(G,H,K)
 3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
- Sym( [ 1 .. 3 ] ) * () * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4,3) * Sym( [ 1 .. 2 ] )
+ Double coset of Sym(3) and Sym(2) with representative ()
+ Double coset of Sym(3) and Sym(2) with representative (1,4)
+ Double coset of Sym(3) and Sym(2) with representative (1,4,3)
 ```
 """
 function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
