@@ -1012,8 +1012,8 @@ x[1]^2 + x[3]^2 + x[5]^2
 
 julia> homogeneous_components(f)
 Dict{FinGenAbGroupElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 2 entries:
-  Abelian group element [2, 2, 0, 0] => x[5]^2
-  Abelian group element [2, 0, 0, 0] => x[1]^2 + x[3]^2
+  [2, 2, 0, 0] => x[5]^2
+  [2, 0, 0, 0] => x[1]^2 + x[3]^2
 ```
 """
 function homogeneous_components(a::MPolyDecRingElem{T, S}) where {T, S}

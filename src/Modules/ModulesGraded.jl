@@ -172,7 +172,7 @@ julia> F = free_module(S, 3)
 Free module of rank 3 over S
 
 julia> FF = grade(F)
-Graded free module S^3(Abelian group element [0, 0]) of rank 3 over S
+Graded free module S^3([0, 0]) of rank 3 over S
 
 julia> F
 Free module of rank 3 over S
