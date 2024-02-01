@@ -880,7 +880,9 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(a::MPolyDecRingElem)
+function degree(a::MPolyDecRingElem; check::Bool=true)
+  !check && !is_filtered(parent(a)) && return _degree_fast(a)
+  # TODO: Also provide a fast track for the filtered case.
   @req !iszero(a) "Element must be non-zero"
   W = parent(a)
   w = W.D[0]
@@ -913,14 +915,14 @@ function _degree_fast(a::MPolyDecRingElem)
   end
 end
 
-function degree(::Type{Int}, a::MPolyDecRingElem)
+function degree(::Type{Int}, a::MPolyDecRingElem; check::Bool=true)
   @assert is_z_graded(parent(a))
-  return Int(degree(a)[1])
+  return Int(degree(a; check)[1])
 end
 
-function degree(::Type{Vector{Int}}, a::MPolyDecRingElem)
+function degree(::Type{Vector{Int}}, a::MPolyDecRingElem); check::Bool=true
   @assert is_zm_graded(parent(a))
-  d = degree(a)
+  d = degree(a; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
