@@ -15,6 +15,9 @@
     I = ideal(R, [x])
     gb = groebner_basis_f4(I)
     @test normal_form(y, I) == y
+    @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
+    @test Oscar._normal_form_f4([y], I) == [y]
+    @test normal_form(y, I) == y
     G = groebner_basis(I)
     J = ideal(R, y)
     @test reduce(J.gens, G) == [y]
@@ -24,7 +27,9 @@
     units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
+    @test reduce(y^3, elem_type(R)[]) == y^3
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
+    @test reduce([y^3], elem_type(R)[]) == [y^3]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     f = x+y^3
     g = x
@@ -34,12 +39,20 @@
     F = [x*y^2-x,x^3-2*x*y^2]
     q, r = reduce_with_quotients(f, F)
     @test q * F + [r] == [f]
+    q, r = reduce_with_quotients(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == [f]
     q, r = reduce_with_quotients([f], F)
     @test q * F + r == [f]
+    q, r = reduce_with_quotients([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == [f]
     u, q, r = reduce_with_quotients_and_unit(f, F)
     @test q * F + [r] == u * [f]
+    u, q, r = reduce_with_quotients_and_unit(f, elem_type(R)[])
+    @test q * elem_type(R)[] + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], F)
     @test q * F + r == u * [f]
+    u, q, r = reduce_with_quotients_and_unit([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == u * [f]
     f = x
     F = [1-x]
     q, r = reduce_with_quotients(f, F, ordering=neglex(R))
@@ -77,7 +90,7 @@ end
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
    @test leading_ideal(groebner_basis(I, ordering=degrevlex([t, x, y, z]))) == ideal(R, [t, x^3])
    @test leading_ideal(groebner_basis(I, ordering=lex([t, x, y, z]))) == ideal(R, [x^3, t])
-   @test leading_ideal(groebner_basis(I, ordering=revlex([t, x, y, z]))) == ideal(R, [y^2, z])
+   @test leading_ideal(groebner_basis(I, ordering=invlex([t, x, y, z]))) == ideal(R, [y^2, z])
    @test leading_ideal(groebner_basis(I, ordering=wdeglex([t, x, y, z], [2, 3, 1, 4]))) == ideal(R, [z, t^3])
    @test leading_ideal(groebner_basis(I, ordering=wdegrevlex([t, x, y, z], [2, 1, 1, 1]))) == ideal(R, [t, x^3])
 end
@@ -88,8 +101,8 @@ end
    I = ideal(R, [x + y + z, x^2 + y^2 + z^3])
 
    @test groebner_basis(I, ordering=lex([x])*lex([y,z])) == groebner_basis(I, ordering=lex([x, y, z]))
-   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=revlex([x, y, z]))
-   @test groebner_basis(I, ordering=degrevlex([x, y, z])*revlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
+   @test groebner_basis(I, ordering=lex([z])*lex([y])*lex([x])) == groebner_basis(I, ordering=invlex([x, y, z]))
+   @test groebner_basis(I, ordering=degrevlex([x, y, z])*invlex([y])) == groebner_basis(I, ordering=degrevlex([x, y, z]))
    @test groebner_basis(I, ordering=deglex([z])*deglex([x])*deglex([y])) == groebner_basis(I, ordering=lex([z])*lex([x, y]))
    @test groebner_basis(I, ordering=deglex([x, y, z])) == groebner_basis(I, ordering=wdeglex([x, y, z], [1, 1, 1]))
    M = matrix_ordering([x, y, z], [1 1 1; 0 1 0; 1 0 0])
@@ -101,9 +114,9 @@ end
    H, V = groebner_basis_with_transformation_matrix(I, ordering=lex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=lex([z])*lex([y])*lex([x]))
-   H, V = groebner_basis_with_transformation_matrix(I, ordering=revlex([x, y, z]))
+   H, V = groebner_basis_with_transformation_matrix(I, ordering=invlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
-   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*revlex([y]))
+   G, U = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z])*invlex([y]))
    H, V = groebner_basis_with_transformation_matrix(I, ordering=degrevlex([x, y, z]))
    @test gens(G) == gens(H) && U == V
    G, U = groebner_basis_with_transformation_matrix(I, ordering=deglex([z])*deglex([x])*deglex([y]))
@@ -137,7 +150,7 @@ end
           2*x1*x2+2*x2*x3+2*x3*x4-x2,
           x2^2+2*x1*x3+2*x2*x4-x3])
   H = groebner_basis_f4(I);
-  G = fpMPolyRingElem[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
+  G = [x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
                 x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 + 191739613*x3 + 230087535*x4
                 x2*x3 + 268435457*x2*x4 + 230087533*x3*x4 + 76695842*x4^2 + 210913575*x2 + 38347923*x3 + 153391692*x4
                 x2^2 + 2*x2*x4 + 153391692*x3*x4 + 230087538*x4^2 + 230087536*x2 + 115043768*x3 + 191739613*x4
@@ -148,7 +161,7 @@ end
   @test isdefined(I, :gb)
   @test I.gb[degrevlex(gens(base_ring(I)))].O == G
   H = groebner_basis_f4(I, eliminate=2);
-  G = fpMPolyRingElem[x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
+  G = [x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]

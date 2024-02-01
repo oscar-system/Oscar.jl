@@ -727,6 +727,22 @@ $\begin{array}{rrrrr}
 \end{array}
 $
 ```
+
+Test the case where a group has a custom name where the first character
+should not be turned into lowercase
+```jldoctest group_characters.test
+julia> character_table(SL(2,2))
+Character table of SL(2,2)
+
+  2  1  1  .
+  3  1  .  1
+
+    1a 2a 3a
+
+X_1  1 -1  1
+X_2  2  . -1
+X_3  1  1  1
+```
 """
 function dummy_placeholder end
 
@@ -818,6 +834,7 @@ end
   @test ncols(t) == 5
   @test_throws ErrorException t[6]
   tr = trivial_character(t)
+  @test parent(tr) === t
   @test tr in t
   @test tr != t[1]
   @test tr == t[5]

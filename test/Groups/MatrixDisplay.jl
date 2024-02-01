@@ -157,7 +157,6 @@ julia> Oscar.with_unicode() do
 ───────
 2/1 2/2
 ───────
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :separators_row => [0, 1, 2]), mat)
 -------
@@ -181,7 +180,6 @@ julia> Oscar.with_unicode() do
 ───────
 2/1 2/2
 ───────
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :labels_col => [string(j) for j in 1:n],
          :separators_row => [0,1,2]), mat)
@@ -202,7 +200,6 @@ julia> Oscar.with_unicode() do
        end
 │1/1│1/2│
 │2/1│2/2│
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :separators_col => [0, 1, 2]), mat)
 |1/1|1/2|
@@ -219,7 +216,6 @@ julia> Oscar.with_unicode() do
        end
 1:│1/1│1/2│
 2:│2/1│2/2│
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :labels_row => [string(i)*":" for i in 1:m],
          :separators_col => [0, 1, 2]), mat)
@@ -243,7 +239,6 @@ julia> Oscar.with_unicode() do
 ──┼───┼───┼
 2:│2/1│2/2│
 ──┼───┼───┼
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :labels_row => [string(i)*":" for i in 1:m],
          :labels_col => [string(j) for j in 1:n],
@@ -284,7 +279,6 @@ julia> Oscar.with_unicode() do
   │  2
 ──┼───
 2:│2/2
-
 julia> labelled_matrix_formatted(IOContext(stdout,
          :labels_row => [string(i)*":" for i in 1:m],
          :labels_col => [string(j) for j in 1:n],

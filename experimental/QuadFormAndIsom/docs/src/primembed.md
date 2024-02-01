@@ -74,6 +74,20 @@ classified, by classifying *gluings* between anti-isometric subgroups of the
 respective discriminant groups of $M$ and $N$. The construction of an
 overlattice is determined by the graph of such gluing.
 
+## Equivariant primitive extensions
+
+An *equivariant primitive extension* of a pair of integer lattices with
+isometries $(M, f_M)$ and $(N, f_N)$ is a primitive extension of $M$ and $N$
+obtained by gluing two subgroups which are respectively $D_{f_M}$ and
+$D_{f_N}$ stable along a glue map which commutes with these two actions.
+If such a gluing exists, then the overlattice $L$ of $M\oplus N$ is equipped with
+an isometry $f_L$ which preserves both $M$ and $N$, and restricts to $f_M$ and
+$f_N$ respectively.
+
+```@docs
+equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLatWithIsom, ZZLat})
+```
+
 ## Admissible equivariant primitive extensions
 
 The following function is a major tool provided by [BH23](@cite). Given
@@ -87,10 +101,3 @@ equal to the type of $(C, c)$ (see [`type(::ZZLatWithIsom)`](@ref)).
 admissible_equivariant_primitive_extensions(::ZZLatWithIsom, ::ZZLatWithIsom, ::ZZLatWithIsom, ::IntegerUnion, ::IntegerUnion)
 ```
 
-An *equivariant primitive extension* of a pair of integer lattices with
-isometries $(M, f_M)$ and $(N, f_N)$ is a primitive extension of $M$ and $N$
-obtained by gluing two subgroups which are respectively $\overline{f_M}$ and
-$\overline{f_N}$ stable along a glue map which commutes with these two actions.
-If such a gluing exists, then the overlattice $L$ of $M\oplus N$ is equipped with
-an isometry $f_L$ which preserves both $M$ and $N$, and restricts to $f_M$ and
-$f_N$ respectively.

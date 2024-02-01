@@ -11,7 +11,7 @@ CurrentModule = Oscar
 ### General constructors
 
 ```@docs
-SpecMor(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
+morphism(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
 ```
 
 ### Special constructors 
@@ -66,7 +66,7 @@ is_identity_map(f::AbsSpecMor)
 ## Methods
 
 ```@docs
-fiber_product(f::SpecMor{SpecType, SpecType, <:Any}, g::SpecMor{SpecType, SpecType, <:Any}) where {SpecType<:StdSpec}
+fiber_product(f::AbsSpecMor, g::AbsSpecMor)
 product(X::AbsSpec, Y::AbsSpec)
 simplify(X::AbsSpec{<:AbstractAlgebra.Field})
 ```

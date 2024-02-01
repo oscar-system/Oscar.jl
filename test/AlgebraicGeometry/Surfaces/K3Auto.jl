@@ -33,7 +33,7 @@ end
 
   weyl = QQ[31   61   52   71   5   -6   5   -2   -7   8]
   weylk3 = change_base_ring(ZZ,solve_left(basis_matrix(L), weyl))
-  k3 = BorcherdsCtx(L, S, weylk3, false)
+  k3,_ = BorcherdsCtx(L, S, weylk3; compute_OR=false)
   walls = Oscar._walls_of_chamber(k3, weylk3)
   @test length(walls)==4
   walls1 =  [

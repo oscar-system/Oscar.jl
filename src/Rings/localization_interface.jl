@@ -19,12 +19,12 @@ abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
 
 ### required getter functions
 @doc raw"""
-    ambient_ring(S::AbsMultSet)
+    ring(S::AbsMultSet)
 
 Return the ambient ring `R` for a multiplicatively closed set `S ⊂ R`.
 """
-function ambient_ring(S::AbsMultSet)
-  error("method `ambient_ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
+function ring(S::AbsMultSet)
+  error("method `ring` not implemented for multiplicatively closed sets of type $(typeof(S))")
 end
 
 ### required functionality
@@ -41,7 +41,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
@@ -59,7 +59,7 @@ end
 # of the multiplicative set whenever possible. For instance, this is 
 # used to check well-definedness of homomorphisms from localized rings. 
 # By default, however, this iteration does nothing.
-Base.iterate(U::T) where {T<:AbsMultSet} = (one(ambient_ring(U)), 1)
+Base.iterate(U::T) where {T<:AbsMultSet} = (one(ring(U)), 1)
 Base.iterate(U::T, a::Tuple{<:RingElem, Int}) where {T<:AbsMultSet} = nothing
 Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 
@@ -98,12 +98,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = localization(U);
+
 
 julia> R === base_ring(Rloc)
 true
@@ -126,12 +127,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, _ = localization(U);
+
 
 julia> U === inverted_set(Rloc)
 true
@@ -160,12 +162,13 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 julia> P = ideal(R, [x])
 ideal(x)
 
-julia> U = MPolyComplementOfPrimeIdeal(P)
+julia> U = complement_of_prime_ideal(P)
 Complement
   of prime ideal(x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(R, U);
+
 
 julia> Rloc
 Localization
@@ -188,7 +191,7 @@ function localization(S::AbsMultSet)
 end
 
 function localization(R::Ring, U::AbsMultSet)
-  R == ambient_ring(U) || error("ring and multiplicative set are incompatible")
+  R == ring(U) || error("ring and multiplicative set are incompatible")
   return localization(U)
 end
 

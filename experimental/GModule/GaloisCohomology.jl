@@ -1391,7 +1391,7 @@ function Base.show(io::IO, a::RelativeBrauerGroupElem)
   print(io, a.data)
 end
 
-function Base.show(io::IO, m::MIME"text/plain",a::RelativeBrauerGroupElem)
+function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   show(io, m, a.data)
 end
 

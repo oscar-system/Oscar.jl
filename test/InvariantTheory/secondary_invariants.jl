@@ -1,8 +1,10 @@
 @testset "Secondary invariants (for matrix groups)" begin
   K, a = cyclotomic_field(3, "a")
+  # Force use of internal polynomial_ring with ordering = :lex
+  R, _ = graded_polynomial_ring(K, 3, ordering = :lex)
   M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
   M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
-  RG0 = invariant_ring(M1, M2)
+  RG0 = invariant_ring(R, matrix_group(M1, M2))
 
   # Should fail if the wrong monomial ordering is used in
   # secondary_invariants_nonmodular
@@ -109,9 +111,9 @@
 
   R, x = polynomial_ring(QQ, "x" => 1:3)
   C = Oscar.PowerProductCache(R, x)
-  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(Oscar.all_monomials(R, 3)))
+  @test Set(Oscar.all_power_products_of_degree!(C, 3, false)) == Set(collect(monomials_of_degree(R, 3)))
   mons = Oscar.all_power_products_of_degree!(C, 3, true)
-  @test Set(mons) == Set(collect(Oscar.all_monomials(R, 3)))
+  @test Set(mons) == Set(collect(monomials_of_degree(R, 3)))
   for m in mons
     @test haskey(C.exponent_vectors, m)
     @test set_exponent_vector!(one(R), 1, C.exponent_vectors[m]) == m

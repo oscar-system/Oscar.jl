@@ -132,7 +132,7 @@ with default covering
     3: [(s0//s2), (s1//s2)]
 
 julia> affine_charts(Xcov)
-3-element Vector{AbsSpec}:
+3-element Vector{Spec{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
  V((s1//s0) - (s2//s0)^2)
  V((s0//s1) - (s2//s1)^2)
  V((s0//s2)*(s1//s2) - 1)
@@ -152,7 +152,7 @@ affine_charts(X::AbsCoveredScheme) = basic_patches(default_covering(X))
 coverings(X::CoveredScheme) = X.coverings
 default_covering(X::CoveredScheme) = X.default_covering
 patches(X::CoveredScheme) = patches(default_covering(X))
-glueings(X::CoveredScheme) = glueings(default_covering(X))
+gluings(X::CoveredScheme) = gluings(default_covering(X))
 base_ring(X::CoveredScheme) = X.kk
 
 

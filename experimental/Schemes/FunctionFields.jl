@@ -265,8 +265,8 @@ function move_representative(
     C::Covering
   )
   G = C[U, V]
-  f, _ = glueing_morphisms(G)
-  A, B = glueing_domains(G)
+  f, _ = gluing_morphisms(G)
+  A, B = gluing_domains(G)
   pba = pullback(f)(OO(B)(a))
   pbb = pullback(f)(OO(B)(b))
   iszero(pbb) && error("pullback of denominator is zero")

@@ -16,8 +16,6 @@ function annihilator(M::SubquoModule)
   return I
 end
 
-iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
-
 @doc raw"""
     is_projective(M::SubquoModule)
 
@@ -87,14 +85,14 @@ function _is_projective_without_denominators(A::MatElem;
   I = ideal(R, [a[1] for a in entry_list])
   if !(one(R) in I)
     # If I is not the unit ideal, it might still be the case that this holds true for the 
-    # restriction to the components of Spec(R). 
+    # restriction to the connected components of Spec(R).
     R isa Union{MPolyRing, MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing} || error("method not implemented")
     # TODO: Work this out without schemes on the purely algebraic side.
     # This is a temporary hotfix to address a particular boundary case, see #1882. 
     # The code below is also not generic and should eventually be adjusted.
 
     X = Spec(R)
-    U = components(X)
+    U = connected_components(X)
     l = length(U)
     l == 1 && return false, zero_matrix(R, n, n), 0
     projectors = MatElem[] # The local projectors on each component
@@ -118,7 +116,7 @@ function _is_projective_without_denominators(A::MatElem;
     result = sum([c[k]*projectors[k] for k in 1:length(projectors)])
 
     # Copied from below
-    d = lcm(_lifted_denominator.(result))
+    d = reduce(lcm, _lifted_denominator.(result))
     if isone(d)
       return true, result, 0
     end
@@ -220,7 +218,7 @@ function _is_projective_without_denominators(A::MatElem;
     end
 
     # pull the denominator u from the result and make the matrix liftable. 
-    d = lcm(_lifted_denominator.(result))
+    d = reduce(lcm, _lifted_denominator.(result))
     if isone(d)
       return true, result, 0
     end

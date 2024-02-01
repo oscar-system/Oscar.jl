@@ -323,9 +323,15 @@ If `check` is set to `false` then the test whether `x` is an element of
 `image(f)` is omitted.
 """
 function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.map, domain(f), image(f)[1], x, check = check)
+end
+
+# helper function for computing `haspreimage` for
+# both `GAPGroupHomomorphism` (fieldnames `domain`, `codomain`, `map`)
+# and `AutomorphismGroupElem{T}` (fieldnames `parent`, `X`)
+function _haspreimage(mp::GapObj, dom::GAPGroup, img::GAPGroup, x::GAPGroupElem; check::Bool = true)
   # `GAP.Globals.PreImagesRepresentative` does not promise anything
   # if the given element is not in the codomain of the map.
-# check && ! (x in codomain(f)) && return false, one(domain(f))
 #TODO:
 # Apparently the documentation of `GAP.Globals.PreImagesRepresentative`
 # is wrong in the situation that `x` is not in the *image* of `f`,
@@ -333,14 +339,15 @@ function haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = tru
 # see https://github.com/gap-system/gap/issues/4088.
 # Until this problem gets fixed on the GAP side, we perform a membership test
 # before calling `GAP.Globals.PreImagesRepresentative`.
-  check && ! (x in image(f)[1]) && return false, one(domain(f))
-  r = GAP.Globals.PreImagesRepresentative(f.map, x.X)::GapObj
+  check && ! (x in img) && return false, one(dom)
+  r = GAP.Globals.PreImagesRepresentative(mp, x.X)::GapObj
   if r == GAP.Globals.fail
-    return false, one(domain(f))
+    return false, one(dom)
   else
-    return true, group_element(domain(f), r)
+    return true, group_element(dom, r)
   end
 end
+
 
 """
     preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
@@ -1019,6 +1026,16 @@ domain(A::AutomorphismGroup) = A.G
 Return the domain of this automorphism.
 """
 domain(f::AutomorphismGroupElem) = domain(parent(f))
+
+function haspreimage(f::AutomorphismGroupElem, x::GAPGroupElem; check::Bool = true)
+  return _haspreimage(f.X, domain(parent(f)), domain(parent(f)), x, check = check)
+end
+
+function preimage(f::AutomorphismGroupElem, x::GAPGroupElem)
+  fl, p = haspreimage(f, x)
+  @assert fl
+  return p
+end
 
 """
     hom(f::GAPGroupElem{AutomorphismGroup{T}}) where T

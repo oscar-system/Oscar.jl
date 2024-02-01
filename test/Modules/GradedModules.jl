@@ -77,7 +77,56 @@ end
 
   for d in -4:4
     amm = Oscar.all_monomials(F, d)
+    length(amm)
+    eltype(amm)
     @test d < -1 || !isempty(amm)
     @test all(x->degree(x) == grading_group(F)([d]), amm)
+    ae = Oscar.all_exponents(F, d)
+    @test d < -1 || !isempty(ae)
+    @test all(x->sum(x[1]) + Int(degree(F[x[2]])[1]) == d, ae)
   end
 end
+
+#= Disabled for the moment, but continued soon.
+@testset "monomials of subquos" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+
+  S1 = graded_free_module(S, [0])
+  I = ideal(S, [u^2 for u in gens(S)])
+  IS1, inc = I*S1
+  M = cokernel(inc)
+
+  a = Oscar.AllSubquoMonomials(M, 3)
+  b = Oscar.all_exponents(M, 3)
+
+  v = collect(a)
+  @test length(v) == length(a) == 1 == length(collect(b))
+  @test !(M(x^3 * S1[1]) in v)
+  @test M(x*y*z * S1[1]) in v
+
+  I = ideal(S, [u^3 for u in gens(S)])
+  IS1, inc = I*S1
+  M = cokernel(inc)
+
+  a = Oscar.AllSubquoMonomials(M, 3)
+  b = Oscar.all_exponents(M, 3)
+
+  v = collect(a)
+  @test length(v) == length(a) == length(collect(b))
+  @test !(M(x^3 * S1[1]) in v)
+  @test M(x*y*z * S1[1]) in v
+  @test M(x^2*y * S1[1]) in v
+
+  J, _ = sub(S1, [x*y*z*S1[1]])
+  I = ideal(S, [u^4 for u in gens(S)])
+  IS1, inc = I*S1
+  M, _ = quo(J, IS1)
+  a = Oscar.AllSubquoMonomials(M, 4)
+  b = Oscar.all_exponents(M, 4)
+  @test length(collect(a)) == length(a) == 3 == length(collect(b))
+
+  a = Oscar.AllSubquoMonomials(M, 6)
+  b = Oscar.all_exponents(M, 6)
+  @test length(collect(a)) == length(a) == 7 == length(collect(b))
+end
+=#

@@ -92,18 +92,23 @@ Please also read the section below on repairing the `jldoctest`s using
 It is possible to have julia fix the output of all `jldoctest`s when your
 changes to the code entail changes to the output. Just run the following
 command:
-```
+```julia
 build_doc(doctest = :fix)
 ```
+If you just want to fix some of the `jldoctest`s, and do not want to build
+the documentation, you can also use `Oscar.doctest_fix`:
+```@docs
+Oscar.doctest_fix
+```
 !!! danger
-    Please use this command carefully:
+    Please use these commands carefully:
     - Make sure to only commit the changes to the doctests originating from
       your changes to the code.
     - The doctests also serve as actual tests, so make absolutely sure that the
       output is still mathematically correct.
 
 !!! tip
-    If this command fails with an error message indicating lacking permissions
+    If these commands fail with an error message indicating lacking permissions
     to change `AbstractAlgebra.jl` related docs, it may help to run the
     following command:
     ```

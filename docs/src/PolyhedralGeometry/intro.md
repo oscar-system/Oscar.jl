@@ -86,7 +86,7 @@ matrices are generally allowed.
 
 Type                               | A `PointVector` corresponds to...
 :--------------------------------- | :-------------------------------------------------------
-`AbstractVector{<:ṔointVector}`    | an element of the vector.
+`AbstractVector{<:PointVector}`    | an element of the vector.
 `AbstractVector{<:AbstractVector}` | an element of the vector.
 `AbstractMatrix`/`MatElem`         | a row of the matrix.
 `AbstractVector`/`PointVector`     | the vector itself (only one `PointVector` is described).

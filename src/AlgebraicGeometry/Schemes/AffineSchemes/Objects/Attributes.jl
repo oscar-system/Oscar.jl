@@ -543,7 +543,7 @@ Spectrum
       over rational field
     by ideal(x^2 - 2*x*y + y^2)
 
-julia> U = MPolyComplementOfKPointIdeal(R,[0,0])
+julia> U = complement_of_point_ideal(R, [0,0])
 Complement
   of maximal ideal corresponding to rational point with coordinates (0, 0)
   in multivariate polynomial ring in 2 variables over QQ
@@ -646,7 +646,7 @@ julia> singular_locus(A3)
 julia> singular_locus(X)
 (V(x^2 - y^2 + z^2, z, y, x), Hom: V(x^2 - y^2 + z^2, z, y, x) -> V(x^2 - y^2 + z^2))
 
-julia> U = MPolyComplementOfKPointIdeal(R,[0,0,0])
+julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement
   of maximal ideal corresponding to rational point with coordinates (0, 0, 0)
   in multivariate polynomial ring in 3 variables over QQ
@@ -751,7 +751,7 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   empty = typeof(X)[]
   result = empty
 
-# equidimensional decomposition to allow Jacobi criterion on each component
+# equidimensional decomposition to allow Jacobian criterion on each component
   P = Ideal[]
 
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced 
@@ -764,12 +764,12 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
     end
   end
 
-# if irreducible, just do Jacobi criterion
+# if irreducible, just do Jacobian criterion
   if length(P)==1 && !reduced
     d = dim(X)
     R = base_ring(I)
     n = nvars(R) 
-    M = _jacobi_matrix_modulus(X)
+    M = _jacobian_matrix_modulus(X)
     minvec = minors(M, n-d)
     J = ideal(R, minvec)
     JX = ideal(OO(X),minvec)
@@ -795,11 +795,11 @@ function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing},
   return result
 end
 
-## cheaper version of jacobi_matrix specifically for Jacobi matrix of modulus
-## compute *some* representative of the jacobian matrix of gens(modulus),
+## cheaper version of jacobian_matrix specifically for Jacobian matrix of modulus
+## compute *some* representative of the Jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
 
-function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))
   L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)
@@ -808,18 +808,25 @@ function _jacobi_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
 end
 
 ########################################################################
-# (X) Attributes for AbsSpec   to be deleted
+# (X) Attributes for AbsSpec
 #     
 ########################################################################
 
-# TODO: ambient_closure_ideal should be deleted
-
 @doc raw"""
-    ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing})
+    defining_ideal(X::AbsSpec)
 
-Return the defining ideal of the closure of ``X`` in its ambient affine space.
+Return the ideal `I` defining `X` in an appropriate ambient space.
 
-# Examples
+If `X = Spec(R)` and `R` is...
+
+  - a polynomial ring, then this returns the zero ideal in `R` itself;
+  - a quotient ring `P/J` of a polynomial ring `P`, then this returns `J`;
+  - a localized polynomial ring `R[U⁻¹]`, then this returns the zero ideal in that ring;
+  - a quotient of a localized polynomial ring `(R[U⁻¹])/J`, then this returns the ideal `J` in the ring `R[U⁻¹]`.
+
+This behaviour is streamlined with the return values of `modulus` on the algebraic side.
+If you are looking for an ideal `I` in the polynomial `ambient_ring` of `X` defining 
+the closure of `X` in its `ambient_space`, use for instance `saturated_ideal(defining_ideal(X))`.
 ```jldoctest
 julia> X = affine_space(QQ,3)
 Affine space of dimension 3
@@ -843,7 +850,7 @@ Spectrum
       over rational field
     by ideal(x1*x2)
 
-julia> I = Oscar.ambient_closure_ideal(Y)
+julia> I = defining_ideal(Y)
 ideal(x1*x2)
 
 julia> base_ring(I) == OO(Y)
@@ -853,11 +860,11 @@ julia> base_ring(I) == R
 true
 ```
 """
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
-@attr ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])
-ambient_closure_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = saturated_ideal(modulus(OO(X)))
-
+defining_ideal(X::AbsSpec) = error("method not implemented for input of type $(typeof(X))")
+@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = modulus(OO(X))
+defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
 
 ########################################################################
 # (4) Implementation of the AbsSpec interface for the basic Spec

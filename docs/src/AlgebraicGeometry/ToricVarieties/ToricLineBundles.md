@@ -64,4 +64,5 @@ toric_variety(l::ToricLineBundle)
 ```@docs
 basis_of_global_sections_via_rational_functions(l::ToricLineBundle)
 basis_of_global_sections_via_homogeneous_component(l::ToricLineBundle)
+generic_section(l::ToricLineBundle)
 ```

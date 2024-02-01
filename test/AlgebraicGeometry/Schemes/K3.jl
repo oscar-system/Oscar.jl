@@ -150,7 +150,7 @@
 # ref_patches = vcat(ref_patches, [V11, V12, V21, V22])
 #
 # ref = Covering(ref_patches)
-# Oscar.inherit_glueings!(ref, Oscar.simplified_covering(X4))
+# Oscar.inherit_gluings!(ref, Oscar.simplified_covering(X4))
 # push!(coverings(X4), ref)
 #
 # J = IdealSheaf(X4, id_dict, check=false)

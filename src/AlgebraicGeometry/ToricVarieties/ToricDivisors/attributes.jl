@@ -37,7 +37,7 @@ julia> is_feasible(polyhedron(td2))
 false
 ```
 """
-@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_tdivisor(td).SECTION_POLYTOPE)
+@attr Polyhedron polyhedron(td::ToricDivisor) = polyhedron(pm_object(td).SECTION_POLYTOPE)
 
 
 @doc raw"""
@@ -80,3 +80,10 @@ Normal toric variety
 ```
 """
 toric_variety(td::ToricDivisor) = td.toric_variety
+
+########################################################################
+# Implement the interface for AbsAlgebraicCycle and Divisors           
+#
+# Implementation still experimental; see 
+# experimental/Schemes/WeilDivisor.jl.
+########################################################################

@@ -1,3 +1,7 @@
+###############################################
+# 1. Ideal sheaves from toric divisors
+###############################################
+
 @doc raw"""
     ideal_sheaf(td::ToricDivisor)
 
@@ -36,6 +40,12 @@ with restrictions
   prime_divisors = torusinvariant_prime_divisors(X)
   return prod(II^k for (II, k) in zip(ideal_sheaf.(prime_divisors), coeffs))
 end
+
+
+
+###############################################
+# 2. Ideal sheaves from ideals in the Cox ring
+###############################################
 
 function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   @req base_ring(I) === cox_ring(X) "ideal must live in the cox ring of the variety"
@@ -113,6 +123,12 @@ julia> IdealSheaf(P3, I);
 ```
 """
 ideal_sheaf(X::NormalToricVariety, I::MPolyIdeal) = IdealSheaf(X, I)
+
+
+
+###############################################
+# 3. Ideal sheaves from cones in the fan
+###############################################
 
 @doc raw"""
     ideal_sheaf(X::NormalToricVariety, tau::Cone)

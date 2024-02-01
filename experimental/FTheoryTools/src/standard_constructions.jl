@@ -154,27 +154,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base
 
 julia> v = ambient_space(tm)
-Normal toric variety
-
-julia> a10,a21,a32,a43,a65,w,x,y,z = gens(cox_ring(v));
-
-julia> I = ideal([x,y,w]);
-
-julia> v2 = domain(blow_up(v,I))
-Normal toric variety
-
-julia> cox_ring(v2)
-Multivariate polynomial ring in 10 variables over QQ graded by 
-  a10 -> [1 0 0 0]
-  a21 -> [0 1 0 0]
-  a32 -> [-1 2 0 0]
-  a43 -> [-2 3 0 0]
-  a65 -> [-4 5 0 0]
-  w -> [0 0 1 0]
-  x -> [0 1 1 2]
-  y -> [1 1 1 3]
-  z -> [0 0 0 1]
-  e -> [2 -1 -1 0]
+A family of spaces of dimension d = 5
 ```
 """
 function su5_tate_model_over_arbitrary_3d_base()

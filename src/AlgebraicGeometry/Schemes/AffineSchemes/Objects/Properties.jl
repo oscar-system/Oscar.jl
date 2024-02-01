@@ -121,7 +121,7 @@ function issubset(
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(ambient_closure_ideal(Y))
+  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(saturated_ideal(defining_ideal(Y)))
 end
 
 
@@ -143,7 +143,7 @@ function issubset(
   ) where {BRT, RT<:MPolyQuoRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(ambient_closure_ideal(Y), ambient_closure_ideal(X))
+  return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
 end
 
 
@@ -666,7 +666,7 @@ Spectrum
 julia> is_smooth(Y)
 false
 
-julia> U = MPolyComplementOfKPointIdeal(R,[1,1])
+julia> U = complement_of_point_ideal(R, [1,1])
 Complement
   of maximal ideal corresponding to rational point with coordinates (1, 1)
   in multivariate polynomial ring in 2 variables over QQ
@@ -690,7 +690,7 @@ true
   L = localized_ring(OO(X))
   I = modulus(OO(X))
   f = gens(saturated_ideal(I))
-  Df = jacobi_matrix(f)
+  Df = jacobian_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
@@ -700,7 +700,7 @@ end
   R = base_ring(OO(X))
   I = modulus(OO(X))
   f = gens(I)
-  Df = jacobi_matrix(f)
+  Df = jacobian_matrix(f)
   A = map_entries(x->OO(X)(x), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
@@ -762,7 +762,7 @@ end
 
 @attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
   is_integral(X) || return false
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   AI = absolute_primary_decomposition(I)
   @assert length(AI)==1 # it is prime since X is integral
   return AI[1][4]==1

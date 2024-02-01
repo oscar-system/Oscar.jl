@@ -1,3 +1,5 @@
+#TODO: remove once combinatorics functionalities are available in Oscar
+
 ###############################################################################
 #
 # Accessors
@@ -18,13 +20,13 @@ function _iterate_size(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
     return (lbs[1] <= d <= ubs[1]) ? 1 : 0
   end
 
-  absd = d-sum(lbs)
+  absd = d - sum(lbs)
   if absd == 0
     return 1
   elseif absd < 0
     return 0
   else
-    ubs = sort([ubs[i]-lbs[i] for i in 1:length(lbs)])
+    ubs = sort(Int[ubs[i]-lbs[i] for i in 1:length(lbs)])
     return _iterate_size_no_lbs(ubs, absd)
   end
 end
@@ -65,51 +67,51 @@ end
   fLu = unique(fL)
   __k = size(it)[1]
   for i in 1:__k
-    s = it[end-i+1]
-    s = [fLu[i] for i in 1:length(s) for j in 1:s[i]]
+    _s = it[end-i+1]::PointVector{ZZRingElem}
+    s = [fLu[i] for i in 1:length(_s) for j in 1:_s[i]]::Vector{ZZRingElem}
     if length(s) == 1
-      for j in [i for i in 1:length(L) if fL[i] == s[1] && lbs[i] <= 1 <= ubs[i]]
-        any(k -> k != j && lbs[k] > 0, 1:length(L)) ? continue : nothing
+      for j in Int[i for i in 1:length(L) if fL[i] == s[1] && lbs[i] <= 1 <= ubs[i]]
+        any(k -> k != j && lbs[k] > 0, 1:length(L)) && continue
         len += 1
         push!(sumsum, s)
       end
       continue
     end
-    ms = MSet(s)
+    ms = multiset(s)
     val = sort(unique(ms))
-    LL = copy(fL)
+    LL = deepcopy(fL)
     _lbs = deepcopy(lbs)
     _ubs = deepcopy(ubs)
     _iter = 0
     while val[1] in LL
-      j = indexin([val[1]], LL)[1]
+      j = findfirst(j -> val[1] == LL[j], 1:length(LL))
       if !(_lbs[j] <= multiplicity(ms, val[1])) || any(i -> lbs[i] > 0, 1:_iter+j-1)
-        LL = LL[j+1:end]
-        _lbs = _lbs[j+1:end]
-        _ubs = _ubs[j+1:end]
-        _iter += j
+        splice!(LL, 1:j)
+        splice!(_lbs, 1:j)
+        splice!(_ubs, 1:j)
+        _iter += Int(j)
         continue
       end
       aug = 0
       for k in max(1, _lbs[j]):min(multiplicity(ms, val[1]), _ubs[j])
         if k == multiplicity(ms, val[1])
-          _p = any(i -> lbs[i] > 0, [i for i in _iter+j+1:length(lbs) if L[i] == val[1]]) ? Int(0) : Int(1)
+          _p = any(i -> L[i] == val[1] && lbs[i] > 0, _iter+j+1:length(lbs)) ? Int(0) : Int(1)
         else
-          _p = 1
+          _p = Int(1)
         end
-        ms2 = MSet(s[k+1:end])
+        ms2 = multiset(s[k+1:end])
         val2 = sort(unique(ms2))
         for l in val2
           idx = filter(m -> LL[m] == l, j+1:length(LL))
-          _p *= _iterate_size(_lbs[idx], _ubs[idx], multiplicity(ms2, l))
+          _p *= Int(_iterate_size(_lbs[idx], _ubs[idx], multiplicity(ms2, l)))
         end
-        len += _p
-        aug += _p
+        len += Int(_p)
+        aug += Int(_p)
       end
-      LL = LL[j+1:end]
-      _lbs = _lbs[j+1:end]
-      _ubs = _ubs[j+1:end]
-      _iter += j
+      splice!(LL, 1:j)
+      splice!(_lbs, 1:j)
+      splice!(_ubs, 1:j)
+      _iter += Int(j)
       if aug > 0
         push!(sumsum, s)
       end
@@ -238,14 +240,14 @@ function _first(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   L = underlying_list(EC)
   f = associated_function(EC)
   fL = f.(L)
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for l in val
     j = findfirst(j -> fL[j] == l, 1:length(L))
     idx = filter(m -> fL[m] == l, 1:length(L))
     sl = _first_homog(lbs[idx], ubs[idx], multiplicity(ms, l))
-    append!(s, [k+j-1 for k in sl])
+    append!(s, k+j-1 for k in sl)
   end
   return s
 end
@@ -271,13 +273,13 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
 
   i = 1
   while length(s) != d
-    if count(j -> j == i,s) < ubs[i]
+    if count(j -> j == i, s) < ubs[i]
       push!(s, i)
     else
       i += 1
     end
   end
-  return sort(s)
+  return sort!(s)
 end
 
 # we keep track of the first elevation
@@ -293,14 +295,14 @@ function _last(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   L = underlying_list(EC)
   f = associated_function(EC)
   fL = f.(L)
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for l in val
     j = findfirst(j -> fL[j] == l, 1:length(L))
     idx = filter(m -> fL[m] == l, 1:length(L))
     sl = _last_homog(lbs[idx], ubs[idx], multiplicity(ms, l))
-    append!(s, [k+j-1 for k in sl])
+    append!(s, k+j-1 for k in sl)
   end
   return s
 end
@@ -332,7 +334,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
       i -= 1
     end
   end
-  return sort(s)
+  return sort!(s)
 end
 
 # we keep track of the last elevation
@@ -351,17 +353,17 @@ function _next(EC::ElevCtx, elev::Vector{Int})
     return _first(EC, sumsum[j+1])
   end
 
-  ms = MSet(sumtype)
+  ms = multiset(sumtype)
   val = sort(unique(ms))
   s = Int[]
   for i in length(val):-1:1
     l = val[i]
     j = findfirst(j -> fL[j] == l, 1:length(L))
     idx = filter(m -> fL[m] == l, 1:length(L))
-    sl, change = _next_homog(lbs[idx], ubs[idx], [k-j+1 for k in elev if fL[k] == l])
-    prepend!(s, [k+j-1 for k in sl])
+    sl, change = _next_homog(lbs[idx], ubs[idx], Int[k-j+1 for k in elev if fL[k] == l])
+    prepend!(s, k+j-1 for k in sl)
     if !change
-      prepend!(s, [k for k in elev if fL[k] < l])
+      prepend!(s, k for k in elev if fL[k] < l)
       break
     end    
   end
@@ -383,8 +385,8 @@ function _next_homog(lbs::Vector{Int}, ubs::Vector{Int}, elh::Vector{Int})
   end
 
   s = Int[i for i in 1:length(lbs) for j in 1:lbs[i]]
-  ubs = [ubs[i]-lbs[i] for i in 1:length(lbs)]
-  s2 = deepcopy(s)
+  ubs = Int[ubs[i]-lbs[i] for i in 1:length(lbs)]
+  s2 = deepcopy(s)::Vector{Int}
   adj = Int[]
   while s2 != elh
     j = findfirst(j -> s2[j] != elh[j], 1:length(s2))
@@ -393,11 +395,12 @@ function _next_homog(lbs::Vector{Int}, ubs::Vector{Int}, elh::Vector{Int})
       append!(s2, elh[length(s2)+1:end])
     else
       push!(adj, elh[j])
-      s2 = append!(s2[1:j-1], [elh[j]], s2[j:end])
+      append!(s2[1:j-1], Int[elh[j]], s2[j:end])
     end
   end
-  s2 = _next_homog_no_lbs(ubs, adj)
-  s = sort(append!(s, s2))
+  s3 = _next_homog_no_lbs(ubs, adj)
+  append!(s, s3)
+  sort!(s)
   return s, false
 end
 
@@ -407,7 +410,7 @@ function _next_homog_no_lbs(ubs::Vector{Int}, elhn::Vector{Int})
   if length(elhn) == 1
     j = findfirst(j -> j > elhn[1] && ubs[j] != 0, 1:length(ubs))
     if j === nothing
-      return findfirst(k -> ubs[k] > 0, 1:length(ubs))
+      return Int[findfirst(k -> ubs[k] > 0, 1:length(ubs))]
     else
       return Int[j]
     end
