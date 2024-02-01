@@ -16,7 +16,7 @@ getindex_safe
 
 ```@docs
 partitions(::Oscar.IntegerUnion)
-num_partitions(::Oscar.IntegerUnion)
+number_of_partitions(::Oscar.IntegerUnion)
 ```
 
 ### Partitions with restrictions
@@ -58,7 +58,7 @@ julia> length(partitions(100,[1,5,10,25,50]))
 ```@docs
 partitions(::T, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
 partitions(::T, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
-num_partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
+number_of_partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
 partitions(::T, ::Oscar.IntegerUnion, ::Vector{T}, ::Vector{S}) where {T <: Oscar.IntegerUnion, S<:Oscar.IntegerUnion}
 partitions(::T, ::Vector{T}, ::Vector{S}) where {T <: Oscar.IntegerUnion, S<:Oscar.IntegerUnion}
 partitions(::T, ::Vector{T}) where T <: Oscar.IntegerUnion

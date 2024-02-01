@@ -20,7 +20,7 @@ basic_patches(C::Covering) = C.patches
 Return the list of affine charts that make up the `Covering` `C`.
 """
 affine_charts(C::Covering) = C.patches
-npatches(C::Covering) = length(C.patches)
+number_of_patches(C::Covering) = length(C.patches)
 @doc raw"""
     gluings(C::Covering)
 

@@ -438,18 +438,18 @@ matrix(x::MatrixGroupElem) = x.elm
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
-    nrows(x::MatrixGroupElem)
+    number_of_rows(x::MatrixGroupElem)
 
 Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = nrows(matrix(x))
+number_of_rows(x::MatrixGroupElem) = number_of_rows(matrix(x))
 
 """
-    ncols(x::MatrixGroupElem)
+    number_of_columns(x::MatrixGroupElem)
 
 Return the number of columns of the underlying matrix of `x`.
 """
-ncols(x::MatrixGroupElem) = ncols(matrix(x))
+number_of_columns(x::MatrixGroupElem) = number_of_columns(matrix(x))
 
 #
 size(x::MatrixGroupElem) = size(matrix(x))
@@ -507,7 +507,7 @@ end
 
 gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
-ngens(G::MatrixGroup) = length(gens(G))
+number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
@@ -566,7 +566,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -600,7 +600,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -635,7 +635,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -672,7 +672,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -724,7 +724,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -777,7 +777,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)

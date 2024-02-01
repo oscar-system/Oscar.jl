@@ -42,7 +42,7 @@ function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
    if n isa GAP.GapObj
      n = ZZRingElem(n)
    end
-   RO = residue_ring(ZZ, n)
+   RO = residue_ring(ZZ, n)[1]
 
    finv, f = _iso_oscar_gap_residue_ring_functions(RO, RG)
 
@@ -245,7 +245,7 @@ Admissible values of `R` and the corresponding `S` are currently as follows.
 |:---------------------------------- |:-------------------------- |
 | `Integers`                         | `ZZ`                       |
 | `Rationals`                        | `QQ`                       |
-| `mod(Integers, n)`                 | `residue_ring(ZZ, n)`      |
+| `mod(Integers, n)`                 | `residue_ring(ZZ, n)[1]`   |
 | `GF(p, d)`                         | `finite_field(p, d)[1]`    |
 | `CF(n)`                            | `cyclotomic_field(n)[1]`   |
 | `AlgebraicExtension(Rationals, f)` | `number_field(g)[1]`       |

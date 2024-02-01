@@ -61,7 +61,7 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
-  @check issubset(Cf, V) "maps are not compatible"
+  @check is_subscheme(Cf, V) "maps are not compatible"
   W = codomain(g)
   X = ambient_scheme(U)
   Y = ambient_scheme(V)

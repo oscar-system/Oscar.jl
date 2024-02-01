@@ -30,15 +30,15 @@ is_empty(X::EmptyScheme) = true
 
 
 ####################################################################################
-# (2) IsSubset for all other schemes
+# (2) is_subscheme for all other schemes
 ####################################################################################
 
 
-# (2.0) For empty schemes and whenever issubset cannot be implemented
+# (2.0) For empty schemes and whenever is_subscheme cannot be implemented
 
 
 @doc raw"""
-    is_subset(X::AbsSpec, Y::AbsSpec)
+    is_subscheme(X::AbsSpec, Y::AbsSpec)
 
 Check whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
 See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding morphism.
@@ -65,29 +65,29 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
-julia> is_subset(X, Y)
+julia> is_subscheme(X, Y)
 false
 
-julia> is_subset(Y, X)
+julia> is_subscheme(Y, X)
 true
 ```
 """
-function issubset(X::AbsSpec, Y::AbsSpec)
-  error("method `issubset(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
+function is_subscheme(X::AbsSpec, Y::AbsSpec)
+  error("method `is_subscheme(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
 end
 
-issubset(X::EmptyScheme{BRT}, Y::Scheme{BRT}) where {BRT} = true
+is_subscheme(X::EmptyScheme{BRT}, Y::Scheme{BRT}) where {BRT} = true
 
-function issubset(Y::AbsSpec{BRT, <:Any}, X::EmptyScheme{BRT}) where {BRT}
+function is_subscheme(Y::AbsSpec{BRT, <:Any}, X::EmptyScheme{BRT}) where {BRT}
   return iszero(one(OO(Y)))
 end
 
 
 # (2.1) MPolyRing in first argument
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyRing}
@@ -95,8 +95,8 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyRing}, 
+function is_subscheme(
+    X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = OO(X)
@@ -105,7 +105,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyLocRing}
   ) where {BRT}
@@ -115,7 +115,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
@@ -127,7 +127,7 @@ end
 
 # (2.2) MPolyQuoRing in first argument
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
@@ -137,7 +137,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoRing}
@@ -147,7 +147,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoRing},
     Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
@@ -158,7 +158,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
@@ -171,7 +171,7 @@ end
 
 # (2.3) MPolyLocRing in first argument
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
@@ -181,7 +181,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
@@ -191,7 +191,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyLocRing}
@@ -203,7 +203,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyLocRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
@@ -217,7 +217,7 @@ end
 
 # (2.4) MPolyQuoLocRing in first argument
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:MPolyRing}
   ) where {BRT}
@@ -227,7 +227,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:MPolyQuoRing}
   ) where {BRT}
@@ -238,7 +238,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
@@ -256,7 +256,7 @@ function issubset(
 end
 
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, RT},
     Y::AbsSpec{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
@@ -274,7 +274,7 @@ function issubset(
   return issubset(J, modulus(OO(X)))
 end
 
-function issubset(
+function is_subscheme(
     X::AbsSpec{BRT, <:MPolyQuoLocRing},
     Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
   R = ambient_coordinate_ring(X)
@@ -320,7 +320,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
 julia> is_open_embedding(Y, X)
 false
@@ -352,7 +352,7 @@ function is_open_embedding(
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
   J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
-  return modulus(OO(X)) == J 
+  return modulus(OO(X)) == J
 end
 
 
@@ -396,7 +396,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
 julia> is_closed_embedding(Y, X)
 true
@@ -456,7 +456,7 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                                             <:MPolyPowersOfElement}},
 
     Y::AbsSpec{<:Ring, <:MPolyRing}
@@ -471,14 +471,14 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                               <:MPolyPowersOfElement}},
 
     Y::AbsSpec{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  for x in inverted_set(OO(X)) 
+  for x in inverted_set(OO(X))
     is_unit(OO(Y)(x)) || return false
   end
   for g in gens(modulus(OO(Y)))
@@ -527,7 +527,7 @@ end
 # TODO: projective schemes, covered schemes
 
 @doc raw"""
-   is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
+   is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing})
 
 Check whether the scheme `X` is equidimensional.
 
@@ -541,24 +541,27 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
-ideal(x - y)
+Ideal generated by
+  x - y
 
 julia> J = ideal(R,[x-1,y-2])
-ideal(x - 1, y - 2)
+Ideal generated by
+  x - 1
+  y - 2
 
 julia> X = Spec(R,I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x - y)
+    by ideal (x - y)
 
 julia> Y = Spec(R,I*J)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
+    by ideal (x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
 
 julia> is_equidimensional(X)
 true
@@ -616,7 +619,7 @@ end
 ########################################################################
 # (7) Smoothness test based on projective modules.
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
-# is locally free over 𝒪(X) and returns `true` if this is the case. 
+# is locally free over 𝒪(X) and returns `true` if this is the case.
 ########################################################################
 # TODO: is_regular using Hironaka's criterion
 
@@ -625,7 +628,7 @@ end
 
 Check whether the scheme `X` is smooth.
 
-Note that smoothness and regularity do not coincide over non-perfect fields. 
+Note that smoothness and regularity do not coincide over non-perfect fields.
 Smoothness implies regularity, but regular non-smooth schemes exist.
 
 See also [`singular_locus`](@ref), [`singular_locus_reduced`](@ref).
@@ -641,17 +644,19 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
-ideal(x - y^2)
+Ideal generated by
+  x - y^2
 
 julia> J = ideal(R,[x^2-y^2])
-ideal(x^2 - y^2)
+Ideal generated by
+  x^2 - y^2
 
 julia> X = Spec(R, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x - y^2)
+    by ideal (x - y^2)
 
 julia> is_smooth(X)
 true
@@ -661,7 +666,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^2 - y^2)
+    by ideal (x^2 - y^2)
 
 julia> is_smooth(Y)
 false
@@ -677,7 +682,7 @@ Spectrum
     of quotient
       of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal(x^2 - y^2)
+      by ideal (x^2 - y^2)
     at complement of maximal ideal of point (1, 1)
 
 julia> is_smooth(Z)
@@ -727,7 +732,7 @@ Check whether the affine scheme `X` is irreducible.
 """
 @attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
-  !get_attribute(X, :is_integral, false) || return true 
+  !get_attribute(X, :is_integral, false) || return true
                                            ## integral = irreducible + reduced
   return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
 end

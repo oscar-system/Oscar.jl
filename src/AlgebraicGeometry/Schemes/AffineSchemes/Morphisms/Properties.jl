@@ -52,7 +52,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> is_identity_map(inclusion_morphism(Y, X))
 false

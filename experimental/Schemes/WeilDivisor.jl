@@ -570,7 +570,7 @@ function weil_divisor(L::LinearSystem)
   return L.D
 end
 gens(L::LinearSystem) = L.f
-ngens(L::LinearSystem) = length(L.f)
+number_of_generators(L::LinearSystem) = length(L.f)
 gen(L::LinearSystem,i::Int) = L.f[i]
 
 @doc raw"""

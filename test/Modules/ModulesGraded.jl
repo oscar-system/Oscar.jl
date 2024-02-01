@@ -1193,3 +1193,30 @@ end
   @test length(collect(a)) == length(a) == 7 == length(collect(b))
 end
 =#
+
+@testset "simplification of graded subquos, issue #3108" begin
+  X = rational_d10_pi9_quart_1();
+  I = defining_ideal(X);
+  Pn = base_ring(I)
+  n = ngens(Pn)-1
+  c = codim(I)
+  FI = free_resolution(I)
+  FIC = FI.C;
+  r = range(FIC)
+  C = shift(FIC[first(r):-1:1], -c)
+  F = free_module(Pn, 1)
+  OmegaPn = grade(F, [n+1])
+  D = hom(C, OmegaPn)
+  Omega = homology(D, 0);
+  is_graded(Omega)
+  SOmega, a, b = Oscar._alt_simplify(Omega)
+  @test is_graded(SOmega)
+  @test is_isomorphism(a)
+  @test is_isomorphism(b)
+  M, iso = forget_grading(Omega)
+  @test is_isomorphism(iso)
+  inv_iso = get_attribute(iso, :inverse)
+  @test is_isomorphism(inv_iso)
+  M, _ = forget_grading(Omega)
+  prune_with_map(M)
+end
