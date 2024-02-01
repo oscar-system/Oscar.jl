@@ -622,7 +622,7 @@ function quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=fa
   return Q, phi
 end
 
-function quotient_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where T
+function quo_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, V)
   return Q
