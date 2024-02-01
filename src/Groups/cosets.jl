@@ -436,9 +436,7 @@ Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
@@ -614,9 +612,7 @@ Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupDoubleCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
