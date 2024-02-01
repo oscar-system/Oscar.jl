@@ -2,6 +2,7 @@
 # named model*.json in the Models directory
 
 # Currently, this stores the following data for quick searching of models:
+#    * model_index
 #    * arXiv data
 #        -arXiv ID
 #        -arXiv DOI
@@ -26,6 +27,8 @@ function _create_literature_model_index()
   index = Vector{Dict{String,Union{String,Vector{Any}}}}()
   for model in models
     model_data = JSON.parsefile(model_directory * model)
+
+    model_index_dict = Dict("model_index" => get(model_data, "model_index", ""))
 
     arxiv_data = get(model_data, "arxiv_data", false)
     if arxiv_data != false
@@ -59,7 +62,7 @@ function _create_literature_model_index()
       metadata_dict = Dict{String,Union{String,Vector{Any}}}()
     end
 
-    index_entry = merge(arxiv_dict, journal_dict, metadata_dict)
+    index_entry = merge(model_index_dict, arxiv_dict, journal_dict, metadata_dict)
     index_entry["file"] = model
     if !isempty(index_entry)
       push!(index, index_entry)

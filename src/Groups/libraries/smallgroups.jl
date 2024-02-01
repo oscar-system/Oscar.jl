@@ -167,7 +167,7 @@ order, otherwise an exception is thrown.
 The following functions are currently supported as values for `func`:
 - `exponent`
 - `is_abelian`
-- `is_almostsimple`
+- `is_almost_simple`
 - `is_cyclic`
 - `is_nilpotent`
 - `is_perfect`

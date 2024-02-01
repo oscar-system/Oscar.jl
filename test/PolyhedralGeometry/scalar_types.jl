@@ -45,7 +45,7 @@
         @test recession_cone(ms) == positive_hull(E, [0 0 0 1])
     end
     nf = normal_fan(sd)
-    nfc =  polyhedral_fan(E, rays(nf), maximal_cones(IncidenceMatrix,nf))
+    nfc =  polyhedral_fan(E, maximal_cones(IncidenceMatrix,nf), rays(nf))
     @test is_regular(nfc)
 
     @testset "Scalar detection" begin
@@ -54,7 +54,7 @@
             s = vertices(j)[1][1]
             @test s isa QQFieldElem
         end
-        let j = johnson_solid(64)
+        let j = polyhedron(Polymake.polytope.johnson_solid(64))
             @test j isa Polyhedron{Float64}
             s = vertices(j)[1][1]
             @test s isa Float64

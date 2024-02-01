@@ -295,17 +295,23 @@ end
   M, _ = quo(F, [u^5*F[1], v*F[1]])
   M_flat, iso, iso_inv = Oscar.flatten(M)
   res = free_resolution(M)
-  @test Oscar._regularity_bound(M) == 2
+  @test Oscar._regularity_bound(M) == 4
 end
 
 @testset "garbage collection" begin
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
   S, _ = polynomial_ring(R, ["s", "t"], cached=false)
   phi = Oscar.flatten(S)
-  a = x^2 + y^2
-  b = phi(a)
-  @test phi(a) === b
-  a = 5
+  # julia might not consider `x^2+y^2` as being unused until the end of the scope
+  # see https://github.com/JuliaLang/julia/issues/51818
+  # so we put this into a function
+  function use_it(phi)
+    a = x^2 + y^2
+    b = phi(a)
+    @test phi(a) === b
+    a = nothing
+  end
+  use_it(phi)
   GC.gc()
   @test isempty(keys(Oscar.flat_counterparts(phi)))
 end

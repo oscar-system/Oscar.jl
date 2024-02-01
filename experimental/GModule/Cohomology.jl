@@ -38,7 +38,7 @@ struct MultGrp{T} <: Oscar.Hecke.GrpAb
 end
 
 function Base.show(io::IO, M::MultGrp)
-  println(io, "multiplicative group of $(M.data)")
+  print(io, "multiplicative group of $(M.data)")
 end
 
 struct MultGrpElem{T} <: Oscar.Hecke.GrpAbElem
@@ -53,8 +53,8 @@ end
 (M::MultGrp{T})(a::T) where {T}  = MultGrpElem{T}(a, M)
 
 Oscar.parent(a::MultGrpElem) = a.parent
-Oscar.elem_type(::MultGrp{T}) where T = MultGrpElem{T}
 Oscar.elem_type(::Type{MultGrp{T}}) where T = MultGrpElem{T}
+Oscar.parent_type(::Type{MultGrpElem{T}}) where T = MultGrp{T}
 Oscar.zero(a::MultGrpElem) = parent(a)(one(a.data))
 
 import Base: ==, +, -, *
@@ -551,16 +551,19 @@ end
 
 struct CoChain{N, G, M}
   C::GModule
-  d::Dict{NTuple{N, G}, M} 
+  d::Dict{NTuple{N, G}, M}
+
+  function CoChain{N, G, M}(C::GModule, d::Dict{NTuple{N, G}, M}) where {N, G, M}
+    return new{N, G, M}(C, d)
+  end
 end
 
 function Base.show(io::IO, C::CoChain{N}) where {N}
   print(io, "$N-cochain with values in ", C.C.M)
 end
 
-Oscar.Nemo.elem_type(::AllCoChains{N,G,M}) where {N,G,M} = CoChain{N,G,M}
 Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
-Oscar.Nemo.parent_type(::CoChain{N,G,M})  where {N,G,M}= AllCoChains{N,G,M}
+Oscar.Nemo.parent_type(::Type{CoChain{N,G,M}}) where {N,G,M} = AllCoChains{N,G,M}
 Oscar.parent(::CoChain{N,G,M}) where {N, G, M} = AllCoChains{N, G, M}()
 
 function differential(C::CoChain{N, G, M}) where {N, G, M}
@@ -1673,7 +1676,7 @@ function Oscar.hom(V::Module, W::Module, v::Vector{<:ModuleElem}; check::Bool = 
   if ngens(V) == 0
     return Generic.ModuleHomomorphism(V, W, zero_matrix(base_ring(V), ngens(V), ngens(W)))
   end
-  return Generic.ModuleHomomorphism(V, W, vcat([x.v for x = v]))
+  return Generic.ModuleHomomorphism(V, W, reduce(vcat, [x.v for x = v]))
 end
 function Oscar.hom(V::Module, W::Module, v::MatElem; check::Bool = true)
   return Generic.ModuleHomomorphism(V, W, v)
@@ -1711,7 +1714,7 @@ function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)
-  return Generic.ModuleIsomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
+  return Generic.ModuleHomomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
 end
 ###########################################################
 
@@ -1831,7 +1834,7 @@ function (k::Nemo.fpField)(a::Vector)
 end
 
 function (k::fqPolyRepField)(a::Vector)
-  return k(polynomial(GF(Int(characteristic(k))), a))
+  return k(polynomial(Native.GF(Int(characteristic(k))), a))
 end
 
 function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
@@ -1851,12 +1854,14 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   B = PcGroup(GAP.Globals.GroupByRws(C))
   FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
 
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
+    F = base_ring(parent(a))
+    @assert absolute_degree(F) == 1
     r = ZZRingElem[]
     for i=1:ngens(M)
       if !iszero(a[i])
         push!(r, i)
-        push!(r, lift(a[i]))
+        push!(r, lift(ZZ, a[i]))
       end
     end
     g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))

@@ -1019,8 +1019,8 @@ end
 
 @testset "change of base rings" begin
   R, (x,y) = QQ["x", "y"]
-  U = MPolyPowersOfElement(x)
-  S = MPolyLocRing(R, U)
+  U = Oscar.MPolyPowersOfElement(x)
+  S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
   FS, mapF = change_base_ring(S, F)
   @test 1//x*mapF(x*F[1]) == FS[1]
@@ -1049,7 +1049,7 @@ end
 
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi)
   
   M, inc = sub(F2, [x*F2[1], y*F2[1]])
   F1 = FreeMod(R, 1)
@@ -1071,7 +1071,7 @@ end
   
   FF, psi = Oscar.double_dual(F2)
   @test is_injective(psi) 
-  @test_broken is_surjective(psi) # fails! Why?
+  @test is_surjective(psi) 
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
   Mv, ev = Oscar.dual(M, cod=F1)
@@ -1091,6 +1091,19 @@ end
   Mk1 = Mk[1]
   fr = free_resolution(Mk1)
   @test rank(domain(map(fr.C,1))) == 0
+end
+
+@testset "length of free resolution" begin
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), ["x0", "x1", "x2", "x3", "x4"]);
+  m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0,
+            x1*x3+(-x1+x4+x0)*x0,
+            x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0,
+            x2*x3+(x1-x2+x3+x4-x0)*x0, x2*x4+(x1+x2-x3-x4-x0)*x0,
+            x3^2+(x3+x4-x0)*x0,x3*x4+(-x3-x4+x0)*x0,
+            x4^2+(x1+x3-x4-x0)*x0]);
+  A, _ = quo(S, m);
+  FA = free_resolution(A)
+  @test length(FA.C.maps) == 9
 end
 
 @testset "vector_space_dimension and vector_space_basis" begin

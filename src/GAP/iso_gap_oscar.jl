@@ -50,7 +50,7 @@ function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
 end
 
 function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
-   FO = Nemo._GF(characteristic(FG), GAPWrap.DegreeOverPrimeField(FG))
+   FO = GF(characteristic(FG), GAPWrap.DegreeOverPrimeField(FG))
 
    finv, f = _iso_oscar_gap_field_finite_functions(FO, FG)
 

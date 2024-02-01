@@ -23,10 +23,8 @@ end
 function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   @assert !is_modular(RG)
 
-  Rgraded = polynomial_ring(RG)
+  Rgraded = _internal_polynomial_ring(RG)
   R = forget_grading(Rgraded)
-  # R needs to have the correct ordering for application of divrem
-  @assert ordering(R) == :degrevlex
   ordR = degrevlex(gens(R))
 
   S = elem_type(R)[]
@@ -74,7 +72,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
     end
 
     for m in mons
-      f = forget_grading(reynolds_operator(RG, Rgraded(m)))
+      f = forget_grading(_cast_in_internal_poly_ring(RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, Rgraded(m)))))
       if is_zero(f)
         continue
       end
@@ -84,7 +82,7 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
         continue
       end
 
-      push!(S, inv(leading_coefficient(f))*f)
+      push!(S, f)
       push!(GO, g)
     end
 
@@ -92,7 +90,10 @@ function fundamental_invariants_via_king(RG::InvRing, beta::Int = 0)
   end
 
   invars_cache = FundamentalInvarsCache{elem_type(Rgraded), typeof(Rgraded)}()
-  invars_cache.invars = [ Rgraded(f) for f in S ]
+  polys_ext = [ _cast_in_external_poly_ring(RG, Rgraded(f)) for f in S ]
+  # Cancelling the leading coefficient is not mathematically necessary and
+  # should be done with the ordering that is used for the printing
+  invars_cache.invars = [ inv(AbstractAlgebra.leading_coefficient(f))*f for f in polys_ext ]
   invars_cache.via_primary_and_secondary = false
   invars_cache.S = graded_polynomial_ring(coefficient_ring(R), [ "y$i" for i = 1:length(S) ], [ total_degree(f) for f in S ])[1]
   return invars_cache

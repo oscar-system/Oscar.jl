@@ -10,7 +10,7 @@ provides a map `f[U']` of type `SpecMorType` from ``U' ⊂ U`` to
 some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``.
 
 **Note:** For two affine patches ``U₁, U₂ ⊂ U`` the codomains of `f[U₁]` and `f[U₂]`
-do not need to coincide! However, given the glueings in `C` and `D`, all affine maps
+do not need to coincide! However, given the gluings in `C` and `D`, all affine maps
 have to coincide on their overlaps.
 """
 mutable struct CoveringMorphism{DomainType<:Covering, 
@@ -59,14 +59,14 @@ mutable struct CoveringMorphism{DomainType<:Covering,
           U === V && continue
           phi_U = mor[U]
           phi_V = mor[V]
-          !haskey(glueings(dom), (U, V)) && continue
+          !haskey(gluings(dom), (U, V)) && continue
           glue = dom[U, V]
-          f, g = glueing_morphisms(glue)
-          !haskey(glueings(cod), (codomain(phi_U), codomain(phi_V))) && error("glueing not found in the codomain")
+          f, g = gluing_morphisms(glue)
+          !haskey(gluings(cod), (codomain(phi_U), codomain(phi_V))) && error("gluing not found in the codomain")
           U_cod = codomain(phi_U)
           V_cod = codomain(phi_V)
           glue_cod = cod[U_cod, V_cod]
-          f_cod, g_cod = glueing_morphisms(glue_cod)
+          f_cod, g_cod = gluing_morphisms(glue_cod)
           phi_U_res = restrict(phi_U, domain(f), domain(f_cod))
           phi_V_res = restrict(phi_V, domain(g), domain(g_cod))
           compose(f, phi_V_res) == compose(phi_U_res, f_cod) || error("restrictions do not commute")

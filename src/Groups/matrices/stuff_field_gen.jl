@@ -14,6 +14,12 @@ function _change_type(f::PolyRingElem{T}) where T <: FinFieldElem
    return sum([t^i*F(lift(coeff(f,i))) for i in 0:degree(f)])
 end
 
+function _change_type(f::PolyRingElem{<: FqFieldElem})
+   e,p = is_power(order(base_ring(f)))
+   F = GF(Int(p),Int(e))
+   t = polynomial_ring(F,"t")[2]
+   return sum([t^i*F(lift(ZZ, coeff(f,i))) for i in 0:degree(f)])
+end
 
 # if f in F[x] and z is a root of f in the splitting field of f over F,
 # then return a polynomial g such that g(z) is a generator for the unit group of F(z)

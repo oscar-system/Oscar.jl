@@ -71,7 +71,7 @@ with character `chi` of a module `V`, return `chi`.
 """
 submodule_character(M::IsotGrass) = M.chi
 
-submodule_dimension(M::IsotGrass) = Int(degree(M.chi))
+submodule_dimension(M::IsotGrass) = degree(Int, M.chi)
 
 module_representation(M::IsotGrass) = M.rep_mod
 
@@ -86,13 +86,13 @@ function defining_ideal(M::IsotGrass)
   F = base_field(representation_ring(rep))
   chi = submodule_character(M)
   cd = character_decomposition(chi)[1]
-  n = Int(scalar_product(character_representation(rep), cd[2]))
+  n = scalar_product(Int, character_representation(rep), cd[2])
   t = cd[1]
-  if t in [1, n-1, n]
-    return defining_ideal(projective_space(F, binomial(n,t)-1))
+  if t in Int[1, n-1, n]
+    return defining_ideal(projective_space(F, binomial(n, t)-1))
   end
   t = cd[1]
-  S, _ = graded_polynomial_ring(F, ["x[$j]" for j in 0:binomial(n, t)-1], [1 for i in 1:binomial(n,t)])
+  S, _ = graded_polynomial_ring(F, String["x[$j]" for j in 0:binomial(n, t)-1])
   return grassmann_pluecker_ideal(S, t, n)
 end
 
@@ -113,8 +113,7 @@ function describe(M::IsotGrass)
 end
 
 @doc raw"""
-    parametrization_data(M::IsotGrass)
-                                        -> Tuple{Vector{MatSpaceElem}, Int}
+    parametrization_data(M::IsotGrass) -> Vector{MatSpaceElem}, Int
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
 given isotypical character `chi`, return a tuple `(B, n)` where `B` is a basis
@@ -133,8 +132,7 @@ function parametrization_data(M::IsotGrass{S, T, U}) where {S, T, U}
 end
 
 @doc raw"""
-    standard_element(M::IsotGrass)
-                                             -> Vector{MatSpaceElem}
+    standard_element(M::IsotGrass) -> Vector{MatSpaceElem}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
 given isotypical character, return a specific elements parametrized by `M`
@@ -144,7 +142,7 @@ function standard_element(M::IsotGrass)
   B, n = parametrization_data(M)
   std_el = eltype(B)[]
   for i in 1:n
-    push!(std_el, sum([B[j] for j in i:length(B)]))
+    push!(std_el, sum(B[j] for j in i:length(B)))
   end
   return std_el
 end
@@ -200,7 +198,7 @@ with character `chi` of a module `V`, return `chi`.
 """
 submodule_character(M::CharGrass) = sum(M.dec)
 
-submodule_dimension(M::CharGrass) = Int(degree(sum(M.dec)))
+submodule_dimension(M::CharGrass) = degree(Int, sum(M.dec))
 
 module_representation(M::CharGrass) = module_representation(isotypical_factors(M)[1])
 
@@ -263,8 +261,7 @@ The elements of `B` are given by matrices in the standard coordinates of `V` and
 parametrization_data(M::CharGrass) = parametrization_data.(isotypical_factors(M))
 
 @doc raw"""
-    standard_element(M::CharGrass)
-                                             -> Vector{Vector{MatSpaceElem}}
+    standard_element(M::CharGrass) -> Vector{Vector{MatSpaceElem}}
 
 Given a symmetric Grassmannian parametrizing submodules of a module `V` with
 given character, return a list whose entries are specific elements parametrized
@@ -282,7 +279,7 @@ module_representation(M::DetGrass) = M.rep
 
 @doc raw"""
     submodule_determinant_character(M::DetGrass)
-                                                 -> Oscar.GAPGroupClassFunction
+                                                 -> GAPGroupClassFunction
 
 Given the determinant Grassmannian `M` parametrizing `d`-dimensional submodule
 of a module `V` with determinant character `chi`, return `chi`.
@@ -371,10 +368,10 @@ function _submodules_space_isotypical_as_vs(rep::LinRep{S, T, U},
   d = length(B)
   @assert alpha <= d
   F = base_field(RR)
-  V = VectorSpace(F, d)
+  V = vector_space(F, d)
 
   function _basis_parametrisation(v)
-    return sum([v[i]*B[i] for i in 1:length(B)])
+    return sum(v[i]*B[i] for i in 1:length(B))
   end
 
   return MapFromFunc(V, parent(B[1]), _basis_parametrisation)
@@ -495,33 +492,34 @@ determinant_grassmannian(prep::ProjRep, chi::Oscar.GAPGroupClassFunction, t::Int
 
 ###  Intersections with Grassmannians
 
-function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int; S = nothing) where T
+function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
+                                         S::Union{MPolyDecRing, Nothing} = nothing) where T
   F = base_ring(V[1])
   
   if S === nothing
     S, _ = graded_polynomial_ring(F, "x" => 0:binomial(n, t)-1)
   end
   
-  X = ProjectiveScheme(S)
+  X = projective_scheme(S)
   if t == 1
-    ideal_Gr = ideal(S, [S(0)])
+    ideal_Gr = ideal(S, elem_type(S)[zero(S)])
   else
     ideal_Gr = grassmann_pluecker_ideal(S, t, n)
   end
   Grtn = subscheme(X, ideal_Gr)
   B = reduce(vcat, V)
   _, K = right_kernel(B)
-  
+ 
   if ncols(K) == 0
     return ideal_Gr
   end
   
-  ideal_PV = ideal(S, vec(collect(transpose(matrix(gens(S)))*K)))
+  ideal_PV = ideal(S, vec(collect(matrix(S, 1, nvars(S), gens(S))*K)))
   PV = subscheme(X, ideal_PV)
-  J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
-  J = ideal(S, [map_coefficients(x -> F(x), p, parent = S) for p in gens(J)])
-  J = saturation(J, ideal(S, gens(S)))
-  return J
+  _J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
+  J = ideal(S, elem_type(S)[map_coefficients(x -> F(x), p; parent = S) for p in gens(_J)])
+  J = saturation(J)
+  return J::ideal_type(S)
 end
 
 ### For invariant and determinant grassmannians
@@ -535,9 +533,9 @@ function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroup
   S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
   bas = basis_isotypical_component(rt, chi)
   if length(bas) == 0
-    return ideal(S, [S(1)])
+    return ideal(S, elem_type(S)[one(S)])
   end
-  return _intersection_with_grassmannian(bas, dimension_representation(r), t, S = S)::ideal_type(S)
+  return _intersection_with_grassmannian(bas, dimension_representation(r), t; S)::ideal_type(S)
 end
 
 function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
@@ -547,12 +545,11 @@ function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   chis = [cd[2] for cd in cds if Int(degree(cd[2])) == 1]
   k = dimension_representation(rt)
   S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
-  irre = ideal(S, gens(S))
-  I = ideal(S, [S(1)])
+  I = ideal(S, elem_type(S)[S(1)])
   for chi in chis
     bas = basis_isotypical_component(rt, chi)
-    J = _intersection_with_grassmannian(bas, dimension_representation(r), t, S=S)
-    I = saturation(I*J, irre)
+    J = _intersection_with_grassmannian(bas, dimension_representation(r), t; S)
+    I = saturation(I*J)
   end
   return I
 end

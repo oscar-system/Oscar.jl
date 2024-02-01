@@ -217,8 +217,13 @@ end
    T = right_transversal(G,H)
    @test length(L)==10
    @test length(T)==10
+   @test T[end] == T[length(T)]
+   @test T == collect(T)
    @testset for t in T
        @test sum([t in l for l in L]) == 1
+   end
+   @testset for i in 1:length(T)
+       @test findfirst(isequal(T[i]), T) == i
    end
    rc = L[1]
    r = representative(rc)
@@ -230,8 +235,13 @@ end
    T = left_transversal(G,H)
    @test length(L)==10
    @test length(T)==10
+   @test T[end] == T[length(T)]
+   @test T == collect(T)
    @testset for t in T
        @test sum([t in l for l in L]) == 1
+   end
+   @testset for i in 1:length(T)
+       @test findfirst(isequal(T[i]), T) == i
    end
    lc = L[1]
    r = representative(lc)
@@ -259,7 +269,7 @@ end
    @test is_simple(alternating_group(5))
    @test is_simple(quo(SL(4,3), center(SL(4,3))[1])[1])
 
-   @test is_almostsimple(symmetric_group(5))
+   @test is_almost_simple(symmetric_group(5))
    @test !is_simple(symmetric_group(5))
 
    @test is_perfect(alternating_group(5))
@@ -363,7 +373,7 @@ end
    # `complement_class_reps` can be changed)
    G = alternating_group(5)
    W = wreath_product(G, G)
-   N = kernel(projection(W))[1]
+   N = kernel(canonical_projection(W))[1]
    @test_throws ErrorException complement_class_reps(W, N)
 end
 

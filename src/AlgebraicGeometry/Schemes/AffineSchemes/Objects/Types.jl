@@ -36,7 +36,7 @@
 An affine scheme ``X = Spec(R)`` with ``R`` a Noetherian ring of type `RingType`
 over a base ring ``𝕜`` of type `BaseRingType`.
 """
-@attributes mutable struct Spec{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
+@attributes mutable struct Spec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
   # the basic fields
   OO::RingType
   kk::BaseRingType

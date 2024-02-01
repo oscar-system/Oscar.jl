@@ -1,208 +1,113 @@
-###
-# Computing initial forms and initial ideals in Oscar
-# ===================================================
-###
+################################################################################
+#
+#  Initial forms and initial ideals
+#
+################################################################################
 
 @doc raw"""
-    valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
+    initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
 
-Return the valued weighted degree of a polynomial `f` with respect to valuation
-`val` and weight vector `w`. In other words, returns the tropicalized
-polynomial of `f` with respect to valuation `val` evaluated at `w`.
+Return the initial form of `f` with respect to the tropical semiring map `nu` and weight vector `w`.
 
-If `return_vector=true`, returns a vector whose i-th entry is the valued
-weighted degree of the i-th term of `f`.
-
-# Examples
+# Examples (trivial and $p$-adic valuation)
 ```jldoctest
-julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
+julia> R,(x,y) = QQ["x", "y"];
 
-julia> val_2 = TropicalSemiringMap(QQ,2);
+julia> nu_0 = tropical_semiring_map(QQ,max);
 
-julia> val_trivial = TropicalSemiringMap(QQ);
+julia> nu_2 = tropical_semiring_map(QQ,2);
 
-julia> w = [1,1];
+julia> w = [0,0];
 
-julia> f = 2*x+2*y+1;
+julia> f = x+y+2;
 
-julia> valued_weighted_degree(f, val_2, w)
-(0)
+julia> initial(f,nu_2,w) # polynomial over GF(2)
+x + y
 
-julia> valued_weighted_degree(f, val_2, w, return_vector=true)
-((0), Oscar.TropicalSemiringElem{typeof(min)}[(2), (2), (0)])
-
-julia> valued_weighted_degree(f, val_trivial, w, return_vector=true)
-((0), Oscar.TropicalSemiringElem{typeof(min)}[(1), (1), (0)])
+julia> initial(f,nu_0,w) # polynomial over QQ
+x + y + 2
 
 ```
-"""
-function valued_weighted_degree(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[], return_vector::Bool=false)
-  # compute the weighted degrees shifted by the coefficient valuations
-  vwds = [val(c)*TropicalSemiring(val)(dot(w,alpha)) for (c,alpha) in zip(AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))]
 
-  # compute the minimal degree
-  # (note: max tropical semiring is reversely ordered, so min in the semiring is max in the conventional sense)
-  vwd = min(vwds...)
-
-  if isempty(perturbation)
-    # if no perturbation is specified, compute the maximum and return vector if required
-    if return_vector
-      return vwd,vwds
-    end
-    return vwd
-  else
-    # if perturbation is specified, then compute the pertubed degrees
-    vwdsPerp = [TropicalSemiring(val)(dot(perturbation,alpha)) for alpha in AbstractAlgebra.exponent_vectors(f)]
-    # compute the minimum amongst all perturbations with maximal original degree
-    vwdPerp = min([vwdsPerp[i] for i in 1:length(vwds) if vwds[i]==vwd]...)
-
-    if return_vector
-      return vwd,vwdPerp,vwds,vwdsPerp
-    end
-    return vwd,vwdPerp
-  end
-
-end
-
-
-
-# # not wrong, but not sure whether needed
-# function weighted_degree(f::AbstractAlgebra.Generic.MPoly{<:RingElement}, w::Vector; return_vector::Bool=false)
-#   trivial_val = TropicalSemiringMap(coefficient_ring(f))
-#   return valued_weighted_degree(f, trivial_val, w, return_vector=return_vector)
-# end
-
-
-
-@doc raw"""
-    initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector, convention::Union{typeof(min),typeof(max)}=min; perturbation::Vector=[])
-
-Return the initial form of `f` with respect to valuation `val` and weight `w`.
-If convention==min (default), it is computed in the min convention. If
-convention==max, it is computed in the max convention.
-
-For the definition of initial form in the min-convention, see
-Section 2.4 of [MS15](@cite).
-
-# Examples
+# Examples ($t$-adic valuation)
 ```jldoctest
-julia> Kxy, (x,y) = polynomial_ring(QQ,["x", "y"]);
+julia> K,t = rational_function_field(GF(2),"t");
 
-julia> w = [1,1];
+julia> nu_t = tropical_semiring_map(K,t,max);
 
-julia> val_2 = TropicalSemiringMap(QQ,2);
-
-julia> val_trivial = TropicalSemiringMap(QQ);
-
-julia> f = 2*x+2*y+1;
-
-julia> initial(f,val_2,w)       # polynomial over GF(2)
-1
-
-julia> initial(f,val_trivial,w)
-1
-```
-```jldoctest
-julia> Kt,t = rational_function_field(QQ,"t");
-
-julia> w = [1,1];
-
-julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
-
-julia> f = t*x+t*y+1;
-
-julia> val_t = TropicalSemiringMap(Kt,t);
-
-julia> initial(f,val_t,w)       # polynomial over QQ
-1
-```
-```jldoctest
-julia> Kt,t = rational_function_field(GF(32003),"t");
-
-julia> Ktxy, (x,y) = polynomial_ring(Kt,["x", "y"]);
+julia> R,(x,y) = K["x", "y"];
 
 julia> w = [1,1];
 
 julia> f = t*x+t*y+1;
 
-julia> val_t = TropicalSemiringMap(Kt,t);
+julia> initial(f,nu_t,w) # polynomial over GF(2)
+x + y + 1
 
-julia> initial(f,val_t,w)       # polynomial over QQ
-1
 ```
 """
-function initial(f::MPolyRingElem, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
-  # compute the maximal weighted degrees
-  # todo (optional):
-  # currently, we iterate over the entire polynomial to compute the (terms with) maximal valuated weighted degrees
-  # often this is not necessary as the polynomial is already sorted w.r.t. it
-  if isempty(perturbation)
-    vwd,vwds = valued_weighted_degree(f, val, w, return_vector=true)
-  else
-    vwd,vwdPerp,vwds,vwdsPerp = valued_weighted_degree(f, val, w, perturbation=perturbation, return_vector=true)
-  end
+function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}; perturbation::Union{Nothing,Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}}=nothing)
 
-  # initial(f) is the sum over all pi(c_alpha*t^-val(c_alpha))x^alpha
-  # where c_alpha x^alpha is a term of maximal valued weighted degree
-  # and pi is the map from the valued field to the residue field
-  if is_valuation_trivial(val)
-    t = val.valued_field(1)
-  else
-    t = val.valued_field(val.uniformizer_field)
-  end
-  kx, x = polynomial_ring(val.residue_field,[repr(x) for x in gens(parent(f))])
-  R = val.valued_ring
-  pi = val.residue_map
+    ###
+    # Evaluate the tropicalization of f and all its terms at w,
+    # mark the terms which attain the evaluated value
+    ###
+    coeffs = collect(coefficients(f))
+    expvs = collect(exponents(f))
+    tropTermsEvaluated = [nu(c)*dot(w,alpha) for (c,alpha) in zip(coeffs,expvs)]
+    tropPolyEvaluated = sum(tropTermsEvaluated)
+    termsAttainingValue = findall(isequal(tropPolyEvaluated),tropTermsEvaluated)
+    coeffs = coeffs[termsAttainingValue]
+    expvs = expvs[termsAttainingValue]
 
-  initialf = MPolyBuildCtx(kx)
-  if isempty(perturbation)
-    for (vwdi,cf,expv) in zip(vwds,AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
-      if vwdi == vwd
-        vcf = Int(val(cf),preserve_ordering=true)
-        c = t^-vcf*cf   # make coefficient valuation 0
-        cNum = numerator(c) # split up numerator and denominator as pi is only defined on the valued ring
-        cDen = denominator(c)
-        push_term!(initialf, pi(cNum)//pi(cDen), expv) # apply pi to both and divide the result
-      end
+    # if perturbation passed, further filter the marked terms
+    if !isnothing(perturbation)
+        tropTermsEvaluated = [tropical_semiring(nu)(dot(w,alpha)) for (c,alpha) in zip(coeffs,expvs)]
+        tropPolyEvaluated = sum(tropTermsEvaluated)
+        termsAttainingValue = findall(isequal(tropPolyEvaluated),tropTermsEvaluated)
+        coeffs = coeffs[termsAttainingValue]
+        expvs = expvs[termsAttainingValue]
     end
-  else
-    for (vwdi,vwdiPerp,cf,expv) in zip(vwds,vwdsPerp,AbstractAlgebra.coefficients(f),AbstractAlgebra.exponent_vectors(f))
-      if vwdi == vwd && vwdiPerp == vwdPerp
-        vcf = Int(val(cf),preserve_ordering=true)
-        c = t^-vcf*cf
-        cNum = numerator(c)
-        cDen = denominator(c)
-        push_term!(initialf, pi(cNum)//pi(cDen), expv)
-      end
+
+    ###
+    # Construct the initial form
+    ###
+    kx,_ = polynomial_ring(residue_field(nu),symbols(parent(f)))
+    initialForm = MPolyBuildCtx(kx)
+    for (c,alpha) in zip(coeffs,expvs)
+        push_term!(initialForm,initial(c,nu),alpha)
     end
-  end
-
-  return finish(initialf)
+    return finish(initialForm)
 end
-function initial(G::Vector, val::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
-  return [initial(g,val,w,perturbation=perturbation) for g in G]
-end
-
 
 
 
 @doc raw"""
-    initial(I::MPolyIdeal, val::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false, skip_legality_check::Bool=false)
+    initial(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false)
 
-Return the initial ideal of `I` with respect to valuation `val` and weight `w`.
-For the definition of initial ideal, see Section 2.4 of [MS15](@cite).
+Return the initial ideal of `I` with respect to the tropical semiring map `nu` and weight vector `w`.  If `skip_groebner_basis_computation=true`, skips the necessary Groebner basis computation and returns the ideal generated by the initial forms of `gens(I)`.
 
-Use at your own risk: If `skip_groebner_basis_computation=true`, skips Groebner
-basis computation. If `skip_legality_check=true`, skips check whether valuation
-and weight vector are legal, i.e., if `I` is non-homogeneous, then `val` may
-only be trivial and `w` may only have non-negative entries.
+# Examples
+```jldoctest
+julia> R,(x,y) = QQ["x","y"];
 
+julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y]);
+
+julia> nu_2 = tropical_semiring_map(QQ,2);
+
+julia> nu_0 = tropical_semiring_map(QQ);
+
+julia> w = [0,0];
+
+julia> initial(I,nu_2,w)
+ideal(x^3 + x^2*y, y^3)
+
+julia> initial(I,nu_0,w)
+ideal(2*x^2*y - 3*y^3, x^3 - 5*x^2*y, x*y^3 - 5*y^4, y^5)
+
+```
 """
-function initial(I::MPolyIdeal, val::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false)
-  if !skip_groebner_basis_computation
-    G = groebner_basis(I,val,w)
-  else
-    G = gens(G)
-  end
-  return ideal(initial(G,val,w))
+function initial(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}; skip_groebner_basis_computation::Bool=false)
+    G = (skip_groebner_basis_computation ? gens(G) : groebner_basis(I,nu,w))
+    return ideal(initial.(G,Ref(nu),Ref(w)))
 end

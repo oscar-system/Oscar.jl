@@ -127,7 +127,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
     end
   end
   
-  return polyhedral_fan(coefficient_field(Sigma), new_rays, IncidenceMatrix([nc for nc in new_cones]); non_redundant=true)
+  return polyhedral_fan(coefficient_field(Sigma), IncidenceMatrix([nc for nc in new_cones]), new_rays; non_redundant=true)
 end
 
 function _get_refinable_facets(Sigma::_FanLikeType, new_ray::AbstractVector{<:IntegerUnion}, refinable_cones::Vector{Int}, facet_normals::AbstractMatrix, mc_old::IncidenceMatrix)
@@ -137,10 +137,12 @@ function _get_refinable_facets(Sigma::_FanLikeType, new_ray::AbstractVector{<:In
   hd = pm_object(Sigma).HASSE_DIAGRAM
   hd_graph = Graph{Directed}(hd.ADJACENCY)
   hd_maximal_cones = inneighbors(hd_graph, hd.TOP_NODE+1)
+  Sfacets = pm_object(Sigma).MAXIMAL_CONES_FACETS
   for mc_index in refinable_cones
     mc_indices = Polymake.row(mc_old, mc_index)
+    mc_facet_indices = Polymake.findnz(Sfacets[mc_index,:])[1]
     mc_hd_index = hd_maximal_cones[findfirst(i -> Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, i-1)) == mc_indices, hd_maximal_cones)]
-    refinable_facets = _get_refinable_facets_of_cone(mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R)
+    refinable_facets = _get_refinable_facets_of_cone(mc_hd_index, facet_normals, hd, hd_graph, v_facet_signs, R, mc_facet_indices)
     append!(new_cones, refinable_facets)
     # If all facets contain new_ray, then the current maximal cone is just
     # new_ray.
@@ -149,14 +151,15 @@ function _get_refinable_facets(Sigma::_FanLikeType, new_ray::AbstractVector{<:In
   return unique(new_cones)
 end
 
-function _get_refinable_facets_of_cone(mc_hd_index::Int, facet_normals::AbstractMatrix, hd, hd_graph::Graph{Directed}, v_facet_signs::AbstractVector, R::AbstractMatrix)
+function _get_refinable_facets_of_cone(mc_hd_index::Int, facet_normals::AbstractMatrix, hd, hd_graph::Graph{Directed}, v_facet_signs::AbstractVector, R::AbstractMatrix, mcfi::Vector{Int})
   refinable_facets = Vector{Int}[]
+  mc_indices = Vector{Int}(Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, mc_hd_index-1)))
   for fc_index in inneighbors(hd_graph, mc_hd_index)
     fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index-1))
     length(fc_indices) > 0 || return refinable_facets # The only facet was 0
     inner_ray = sum([R[i,:] for i in fc_indices])
     fc_facet_signs = _facet_signs(facet_normals, inner_ray)
-    if(!_check_containment_via_facet_signs(v_facet_signs, fc_facet_signs))
+    if(!_check_containment_via_facet_signs(v_facet_signs[mcfi], fc_facet_signs[mcfi]))
       push!(refinable_facets, Vector{Int}(fc_indices))
     end
   end
@@ -170,9 +173,9 @@ _facet_signs(F::AbstractMatrix, v::AbstractVector) = [_int_sign(e) for e in (F*v
 function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int})
   for a in zip(smaller, bigger)
     p = prod(a)
-      if p == 0
-        a[1] == 0 || return false
-      end
+    if p == 0
+      a[1] == 0 || return false
+    end
     p >= 0 || return false # Both facet vectors must point in the same direction.
   end
   return true
@@ -233,19 +236,20 @@ end
 Get the image of a fan `F` under the matrix `A`. The default is to check
 whether the images of the maximal cones really form a fan.
 """
-function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}; check=true) where {U<:FieldElem}
+function transform(F::_FanLikeType, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{<:FieldElem}}; check::Bool=true)
   @req ncols(A) == ambient_dim(F) "Incompatible dimension of fan and transformation matrix"
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
-  return _transform(F, Polymake.Matrix{OT}(A); check=check)
+  return _transform(F, Polymake.Matrix{OT}(A); check)
 end
-function _transform(F::_FanLikeType, A::Polymake.Matrix; check)
+
+function _transform(F::_FanLikeType, A::Polymake.Matrix; check::Bool)
   OT = _scalar_type_to_polymake(_get_scalar_type(F))
   FT = typeof(F)
   R = pm_object(F).RAYS * transpose(A)
   L = pm_object(F).LINEALITY_SPACE * transpose(A)
   MC = pm_object(F).MAXIMAL_CONES
   opt = Polymake.OptionSet(Dict(["lineality_space" => L]))
-  if(check)
+  if check
     result = Polymake.fan.check_fan(R, MC, opt)
     return FT(result, coefficient_field(F))
   else

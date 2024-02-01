@@ -20,7 +20,7 @@ function is_semi_invariant_polynomial(rep::LinRep, f::S) where S <: MPolyDecRing
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for m in matrix_representation(repd)
-    poly_m = [R1toR(R1(reverse(vec(collect(m[i,:]))))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     ok, k = divides(fd, f)
     if !ok || !is_constant(k)
@@ -48,11 +48,11 @@ function linear_representation(rep::LinRep, f::S) where S <: MPolyDecRingElem
   repd = dual_representation(rep)
   coll = eltype(matrix_representation(rep))[]
   for m in matrix_representation(rep)
-    poly_m = [R1toR(R1(reverse((vec(collect(m[i,:])))))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     ok, k = divides(fd, f)
     @req ok && is_constant(k) "Polynomial is not semi-invariant"
-    push!(coll, matrix(base_ring(R),1,1,[collect(coefficients(k))[1]])::eltype(matrix_representation(rep)))
+    push!(coll, matrix(base_ring(R), 1, 1, [constant_coefficient(k)])::eltype(matrix_representation(rep)))
   end
   return Oscar._linear_representation(representation_ring(rep), coll)
 end
@@ -74,7 +74,7 @@ function is_invariant_ideal(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPolyDec
   R1, R1toR = homogeneous_component(R, 1)
   repd = dual_representation(rep)
   for f in gene for m in matrix_representation(repd)
-    poly_m = [R1toR(R1(reverse(vec(collect(m[i,:]))))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
     fd = evaluate(f, poly_m)
     fd in I || return false
   end
@@ -101,8 +101,8 @@ function linear_representation(rep::LinRep, I::S) where S <: MPolyIdeal{<: MPoly
   @req is_invariant_ideal(rep, I) "I is not invariant"
   rd = homogeneous_polynomial_representation(rep, d)
   Rd, RdtoR = homogeneous_component(R, d)
-  M = [transpose(matrix(reverse(vec(collect((RdtoR\f).v))))) for f in gene]
-  M = reduce(vcat, M)
+  _M = MatElem{elem_type(base_ring(R))}[reverse_cols!((RdtoR\f).v) for f in gene]
+  M = reduce(vcat, _M)
   return action_on_submodule(rd, M)
 end
 
@@ -141,13 +141,14 @@ and `n` is the size of a sample in the factor space spanned by `B` to be taken.
 function parametrization_data(symci::SymInter)
   pd = parametrization_data(symci.para)
   j = symci.j
+  R = domain(j)
+  S = codomain(j)
   pd2 = Tuple{Vector{Vector{MPolyDecRingElem}}, Int}[]
   for (B, n) in pd
     B2 = Vector{MPolyDecRingElem}[]
     for b in B
-      _vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
-      vv = domain(j).(_vv)
-      push!(B2, j.(vv))
+      vv = elem_type(S)[j(R(reverse_cols!(b[i,:]))) for i in 1:nrows(b)]
+      push!(B2, vv)
     end
     push!(pd2, (B2, n))
   end
@@ -163,12 +164,12 @@ return an specific ideal in `symci` made from all possible samples.
 function standard_element(symci::SymInter)
   std_el = standard_element(symci.para)
   j = symci.j
+  R = domain(j)
   S = codomain(j)
   std_el2 = elem_type(S)[]
   for B in std_el
     for b in B
-      _vv = reverse.(vec.(collect.([b[i,:] for i in 1:nrows(b)])))
-      vv = j.(domain(j).(_vv))::typeof(std_el2)
+      vv = elem_type(S)[j(R(reverse_cols!(b[i,:]))) for i in 1:nrows(b)]
       append!(std_el2, vv)
     end
   end
@@ -195,7 +196,7 @@ The output is given under the form of a dictionary whose keys are degree `t` `F`
 of a fixed Schur cover `E` of `G` and the corresponding values are parametrizing space for ideals
 for which the action of `E` on a set of generators is given by `chi`.
 """
-function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j = nothing, check::Bool = true)
+function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j::Union{MapFromFunc, Nothing} = nothing, check::Bool = true)
   RR = representation_ring_linear_lift(prep)
   F = base_field(RR)
   if j === nothing
@@ -254,7 +255,7 @@ function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   S, _ = graded_polynomial_ring(F, "x" => 0:n-1)
   _, j = homogeneous_component(S, d)
   for prep in pfr
-    D = symmetric_intersections(prep, d, t, j = j, check = false)
+    D = symmetric_intersections(prep, d, t; j, check = false)
     push!(res, (prep, D))
   end
   return res

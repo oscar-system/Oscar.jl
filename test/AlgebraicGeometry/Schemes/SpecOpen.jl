@@ -159,7 +159,7 @@ end
 
   S, (u, v) = QQ["u", "v"]
   B = Spec(S)
-  p = SpecMor(X, B, [x, y])
+  p = morphism(X, B, [x, y])
   U = SpecOpen(X, [x, y])
   V = SpecOpen(B, [u, v])
   pres = restrict(p, U, V)

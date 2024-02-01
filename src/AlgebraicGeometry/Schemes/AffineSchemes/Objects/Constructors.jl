@@ -4,6 +4,8 @@
 # (1) Generic constructors
 ########################################################
 
+spec(R::Ring) = Spec(R)
+
 @doc raw"""
     Spec(R::MPolyRing, I::MPolyIdeal)
 
@@ -199,7 +201,7 @@ transform to a `Spec` of an `MPolyQuoLocRing`.
 
 # Examples
 ```jldoctest
-julia> standard_spec(affine_space(QQ,5))
+julia> Oscar.standard_spec(affine_space(QQ,5))
 Spectrum
   of localization
     of quotient
@@ -219,7 +221,7 @@ Spectrum
       over rational field
     by ideal(x)
 
-julia> standard_spec(X)
+julia> Oscar.standard_spec(X)
 Spectrum
   of localization
     of quotient
@@ -239,7 +241,7 @@ Spectrum
       over rational field
     at complement of prime ideal(x)
 
-julia> standard_spec(X)
+julia> Oscar.standard_spec(X)
 Spectrum
   of localization
     of quotient
@@ -361,6 +363,15 @@ function subscheme(X::AbsSpec, I::Ideal)
   return Y
 end
 
+function sub(X::AbsSpec, a)
+  (a isa RingElem && parent(a) === OO(X)) || return sub(X, OO(X)(a))
+  return sub(X, ideal(OO(X), a))
+end
+
+function sub(X::AbsSpec, a::Vector)
+  all(a->a isa RingElem && parent(a) === OO(X), a) || return sub(X, OO(X).(a))
+  return sub(X, ideal(OO(X), a))
+end
 
 
 ########################################################
@@ -802,7 +813,7 @@ function closure(
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   return Spec(base_ring(I),I)
 end
 
@@ -812,7 +823,7 @@ function closure(
     check::Bool=true
   ) where {BRT}
   @check issubset(X, Y) "the first argument is not a subset of the second"
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
   return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
 end
@@ -838,3 +849,27 @@ end
 Return the closure of `X` in its ambient affine space.
 """
 closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)
+
+
+
+######################################################################
+# Unions
+######################################################################
+
+function union(X::AbsSpec{BRT,RT}, Y::AbsSpec{BRT,RT}) where {BRT, RT<:MPolyQuoRing}
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
+  IX = modulus(OO(X))
+  IY = modulus(OO(Y))
+  return Spec(R, intersect(IX, IY))
+end
+
+function union(X::AbsSpec{BRT,<:MPolyQuoRing}, Y::AbsSpec{BRT,<:MPolyRing}) where {BRT}
+  R = ambient_coordinate_ring(X)
+  R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
+  return X
+end
+
+function union(X::AbsSpec{BRT,<:MPolyRing}, Y::AbsSpec{BRT,<:MPolyQuoRing}) where {BRT}
+  return union(Y,X)
+end

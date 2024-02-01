@@ -1,0 +1,36 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: OSCAR -- Open Source Computer Algebra Research system
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: The OSCAR Team
+identifiers:
+  - type: url
+    value: 'https://www.oscar-system.org'
+repository-code: 'https://github.com/oscar-system/Oscar.jl'
+url: 'https://www.oscar-system.org'
+abstract: >-
+  A comprehensive open source computer algebra system for
+  computations in algebra, geometry, and number theory. 
+license: GPL-3.0+
+preferred-citation:
+  type: book
+  authors:
+  - family-names: "Decker"
+    given-names: "Wolfram"
+  - family-names: "Eder"
+    given-names: "Christian"
+  - family-names: "Fieker"
+    given-names: "Claus"
+  - family-names: "Horn"
+    given-names: "Max"
+  - family-names: "Joswig"
+    given-names: "Michael"
+  title: The OSCAR book
+  year: 2024
+

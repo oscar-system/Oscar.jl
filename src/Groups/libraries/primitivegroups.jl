@@ -166,7 +166,7 @@ may be of one of the following forms:
 The following functions are currently supported as values for `func`:
 - `degree`
 - `is_abelian`
-- `is_almostsimple`
+- `is_almost_simple`
 - `is_cyclic`
 - `is_nilpotent`
 - `is_perfect`
