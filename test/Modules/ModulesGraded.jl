@@ -652,10 +652,8 @@ end
             @test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
         end
     end
-    #= temporarily disabled because of failure
     hom_hom_resolution = hom(hom_resolution,N)
     @test chain_range(hom_hom_resolution) == chain_range(free_res)
-    =#
 end
 
 @testset "Hom resolution module" begin
