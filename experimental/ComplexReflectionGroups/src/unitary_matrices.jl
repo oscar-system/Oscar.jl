@@ -1,5 +1,8 @@
-
 export is_unitary
+
+# Unitary matrices
+#
+# Ulrich Thiel, 2023
 
 function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem})
 
@@ -31,4 +34,17 @@ function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsNonSimpleNumField
 
     return is_unitary(ML)
 
+end
+
+function is_unitary(M::MatrixGroupElem{AbsSimpleNumFieldElem})
+    return is_unitary(matrix(M))
+end
+
+function is_unitary(G::MatrixGroup{AbsSimpleNumFieldElem})
+    for g in gens(G)
+        if is_unitary(g) == false
+            return false
+        end
+    end
+    return true
 end

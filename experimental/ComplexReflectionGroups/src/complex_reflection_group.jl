@@ -32,7 +32,33 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
         # we now create the list "gens" of matrix generators for C in the selected model
         if isa(t, Int)
-            return true
+            
+            # Set default model for this case (we take the unitary models from LT)
+            if model === nothing
+                Cmodel = :LT
+            else
+                Cmodel = model
+            end
+
+            # G4
+            if t == 4
+
+                if Cmodel == :LT
+                    # See Lehrer & Taylor (2009), Theorem 5.14 (page 78)
+                    K,i = quadratic_field(-1)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    r = 1//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+                    s = matspace(K[-i 0 ; 0 i])
+
+                    push!(gens, r)
+                    push!(gens, s)
+                end
+
+            end
+
+
         else
             (m,p,n) = t
 
