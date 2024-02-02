@@ -44,13 +44,29 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             if t == 4
 
                 if Cmodel == :LT
-                    # See Lehrer & Taylor (2009), Theorem 5.14 (page 78)
-                    K,i = quadratic_field(-1)
+                    # See Lehrer & Taylor (2009), page 85-86
+                    R,x = polynomial_ring(QQ)
+                    K,i = number_field(x^2+1, "i")
+                    R,x = polynomial_ring(K)
+                    K,ω = number_field(x^2+x+1, "ω")
+                    i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
-                    r = 1//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-                    s = matspace(K[-i 0 ; 0 i])
+                    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+                    r1prime = ω//2 * matspace(K[-1-i -1+i ; 1+i -1+i])
+
+                    push!(gens, r1)
+                    push!(gens, r1prime)
+                
+                    
+                elseif Cmodel == :Magma
+                    K,z = cyclotomic_field(3)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    r = matspace(K[z 0 ; -z-1 1])
+                    s = matspace(K[1 z+1 ; 0 z])
 
                     push!(gens, r)
                     push!(gens, s)

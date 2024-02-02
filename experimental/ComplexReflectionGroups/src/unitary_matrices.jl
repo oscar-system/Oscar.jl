@@ -30,7 +30,8 @@ function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsNonSimpleNumField
     K = base_ring(M)
     n = ncols(M)
     L, f = absolute_simple_field(K)
-    ML = matrix(L, n, n, [f(x) for x in M])
+    g = inv(f)
+    ML = matrix(L, n, n, [g(x) for x in M])
 
     return is_unitary(ML)
 
