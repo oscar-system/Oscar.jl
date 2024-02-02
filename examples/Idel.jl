@@ -3,9 +3,9 @@ module Idel
 using Oscar
 
 mutable struct IdelParent
-  k::AnticNumberField
+  k::AbsSimpleNumField
   mG::Map # AutGrp -> Automorohisms
-  S::Vector{NfAbsOrdIdl} # for each prime number ONE ideal above
+  S::Vector{AbsNumFieldOrderIdeal} # for each prime number ONE ideal above
   C::Vector{Map} # the completions at S
   L::Vector{Map} # the mult. group map at C
 
@@ -18,7 +18,7 @@ mutable struct IdelParent
   # completion at P^s is C[P] but with the map twisted by s
 
   mU::Map #S-unit group map
-  M::GrpAbFinGen  # the big module
+  M::FinGenAbGroup  # the big module
 
   function IdelParent()
     return new()
@@ -27,14 +27,14 @@ end
 
 mutable struct Idel
   parent::IdelParent
-  m::GrpAbFinGenElem #in parent.M
+  m::FinGenAbGroupElem #in parent.M
 end
 
 function support(a::Idel)
   #the full galois orbit of parent.S
 end
 
-function getindex(a::Idel, P::NfAbsOrdIdl)
+function getindex(a::Idel, P::AbsNumFieldOrderIdeal)
   #element at place P as an element in the completion
   #needs to find the "correct" P in parent.S, the (index) of the coset
   #and return the component of the induced module

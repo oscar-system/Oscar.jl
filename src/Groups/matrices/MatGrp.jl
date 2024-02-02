@@ -242,17 +242,10 @@ end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-function Base.iterate(G::MatrixGroup)
-  L=GAPWrap.Iterator(G.X)::GapObj
-  @assert ! GAPWrap.IsDoneIterator(L)
-  i = GAPWrap.NextIterator(L)::GapObj
-  return MatrixGroupElem(G, i), L
-end
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return MatrixGroupElem(G, i), state
 end
@@ -512,7 +505,7 @@ number_of_generators(G::MatrixGroup) = length(gens(G))
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
 
-function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, QQFieldElem}}
+function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the Rationals or over a number field,
     the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.

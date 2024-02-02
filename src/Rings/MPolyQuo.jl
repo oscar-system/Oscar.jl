@@ -331,7 +331,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -359,7 +359,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -989,7 +989,7 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: S -> B)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
@@ -1313,7 +1313,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -> A)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -1322,7 +1322,7 @@ julia> degree(f)
 [4]
 
 julia> typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia> degree(Int, f)
 4
@@ -1352,7 +1352,7 @@ is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
 is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
 @doc raw"""
-    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
 grading group of that algebra, return the homogeneous component of `f` of degree `g`.
@@ -1382,7 +1382,7 @@ julia> homogeneous_component(f, 4)
 z^4
 ```
 """
-function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   simplify(a)
   return homogeneous_component(a.f, d)
 end
@@ -1412,7 +1412,7 @@ julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
   [4] => z^4
   [3] => y^2*z
 ```
@@ -1461,7 +1461,7 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
 
 julia> grading_group(A)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
@@ -1489,10 +1489,10 @@ end
 ################################################################
 
 @doc raw"""
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
-where the grading group is free of type `GrpAbFinGen`, and given an element `g` of 
+where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
 that group, return the homogeneous component of `A` of degree `g`. Additionally, return
 the embedding of the component into `A`.
 
@@ -1565,7 +1565,7 @@ w^2
 
 ```jldoctest
 julia> G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia> W = [G[1], G[1], G[2], G[2], G[2]];
 
@@ -1577,7 +1577,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2 1]
+  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2, 1]
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
@@ -1615,7 +1615,7 @@ x[1]^2*y[3]
 x[1]^2*y[2]
 ```
 """
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   D = parent(d)

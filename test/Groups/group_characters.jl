@@ -782,7 +782,7 @@ end
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
 
-  # table with `GrpAbFinGen` group
+  # table with `FinGenAbGroup` group
   g = abelian_group([2, 4])
   t = character_table(g)
   @test Oscar.GAPTable(t) === t.GAPTable
@@ -1065,9 +1065,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 
@@ -1079,9 +1079,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 end
@@ -1183,9 +1183,9 @@ end
     @test symplectic_components(empty, 2) == empty
 end
 
-@testset "character functions for GrpAbFinGen" begin
+@testset "character functions for FinGenAbGroup" begin
   @testset for para in [ Int[], [2, 3, 4], [2, 4] ]
-    G1 = abelian_group(GrpAbFinGen, para)
+    G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
     n = Int(order(G1))

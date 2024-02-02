@@ -51,7 +51,7 @@ end
 
 
 @doc raw"""
-    reduce_mod_squares(val::nf_elem)
+    reduce_mod_squares(val::AbsSimpleNumFieldElem)
 
 Return an element of `F = parent(val)` that is equal to `val`
 modulo squares in `F`.
@@ -71,7 +71,7 @@ julia> Oscar.OrthogonalDiscriminants.reduce_mod_squares(-8*z^0)
 -2
 ```
 """
-function reduce_mod_squares(val::nf_elem)
+function reduce_mod_squares(val::AbsSimpleNumFieldElem)
   is_zero(val) && return val
   d = denominator(val)
   if ! isone(d)

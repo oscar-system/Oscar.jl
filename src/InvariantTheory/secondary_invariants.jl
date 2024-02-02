@@ -21,7 +21,7 @@ function secondary_invariants_modular(RG::InvRing)
   Rgraded = polynomial_ring(RG)
   # We have to compute a lot with these polynomials and the grading only
   # gets in the way (one cannot ask for total_degree and even if one could
-  # the answer would be a GrpAbFinGenElem where it could be an Int)
+  # the answer would be a FinGenAbGroupElem where it could be an Int)
   R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
@@ -327,7 +327,7 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-2-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+2-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  1
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
@@ -428,7 +428,7 @@ julia> RS2 = invariant_ring(S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
