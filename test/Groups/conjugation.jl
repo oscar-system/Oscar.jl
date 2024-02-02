@@ -78,8 +78,8 @@
      @test length(C) == index(G, normalizer(G, representative(C))[1])
      @test degree(representative(C)) == degree(G)
   end
-  H=rand(subgroups(G))
-  @test sum([length(c) for c in CC]) == length(subgroups(G))
+  H = rand(rand(CC))
+  @test sum([length(c) for c in CC]) == length(collect(Iterators.flatten(CC)))
   @test count(c -> H in c, CC) == 1          # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)
      c = CC[i]
