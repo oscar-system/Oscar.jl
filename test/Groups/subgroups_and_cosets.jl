@@ -44,8 +44,9 @@
    for H in L1
       @test H in K
    end
-   @test length(maximal_subgroups(G))==8
-   @test A in maximal_subgroups(G)
+   @test length(maximal_subgroups(G)) == 3
+   @test sum(map(length, maximal_subgroups(G))) == 8
+   @test any(C -> A in C, maximal_subgroups(G))
    @test maximal_normal_subgroups(G)==[A]
    H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]
    @test minimal_normal_subgroups(G)==[H]
@@ -388,7 +389,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
+   @test frattini_subgroup(G)[1]==intersect(collect(Iterators.flatten(maximal_subgroups(G))))[1]
    @test frattini_subgroup(G)==center(G)
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
