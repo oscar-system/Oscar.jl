@@ -20,7 +20,7 @@ function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldEle
 
 end
 
-function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsNonSimpleNumFieldElem})
+function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{T}) where T <: Union{Hecke.RelSimpleNumFieldElem, AbsNonSimpleNumFieldElem}
 
     if !is_square(M)
         return false
@@ -37,11 +37,11 @@ function is_unitary(M::AbstractAlgebra.Generic.MatSpaceElem{AbsNonSimpleNumField
 
 end
 
-function is_unitary(M::MatrixGroupElem{AbsSimpleNumFieldElem})
+function is_unitary(M::MatrixGroupElem{T}) where T <: Union{Hecke.RelSimpleNumFieldElem, AbsSimpleNumFieldElem, AbsNonSimpleNumFieldElem}
     return is_unitary(matrix(M))
 end
 
-function is_unitary(G::MatrixGroup{AbsSimpleNumFieldElem})
+function is_unitary(G::MatrixGroup{T}) where T <: Union{Hecke.RelSimpleNumFieldElem, AbsSimpleNumFieldElem, AbsNonSimpleNumFieldElem}
     for g in gens(G)
         if is_unitary(g) == false
             return false
