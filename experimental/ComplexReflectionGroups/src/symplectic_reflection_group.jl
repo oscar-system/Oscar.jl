@@ -23,7 +23,7 @@ function symplectic_reflection_group(W::MatrixGroup)
 
     W_symp = matrix_group(gens_symp)
 
-    set_attribute!(W_symp, :order, order(C))
+    set_attribute!(W_symp, :order, order(W))
     set_attribute!(W_symp, :is_symplectic_reflection_group, true)
 
     return W_symp
