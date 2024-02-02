@@ -26,7 +26,7 @@
 
   # For some random large numbers, checked with Sage
   # Partitions(991).cardinality()
-  @test_broken number_of_partitions(991) == ZZ(16839773100833956878604913215477)
+  @test number_of_partitions(991) == ZZ(16839773100833956878604913215477)
 
   ############################################################################
   # partitions(n)

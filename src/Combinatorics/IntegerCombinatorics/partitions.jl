@@ -129,23 +129,23 @@ end
 #
 ################################################################################
 
-# TODO: convert back to doctest
 @doc raw"""
     number_of_partitions(n::IntegerUnion)
 
-Return the number of integer partitions of the non-negative integer `n`.
+Return the number of integer partitions of `n`.
 
 # Examples
-```julia
+```jldoctest
 julia> number_of_partitions(1000)
 24061467864032622473692149727991
 ```
 """
-function number_of_partitions(n::IntegerUnion) # does not get called due to a more specific method in Nemo
-  @req n >= 0 "n >= 0 required"
-  z = ZZ()
-  ccall((:arith_number_of_partitions, Nemo.libflint), Cvoid, (Ref{ZZRingElem}, Culong), z, UInt(n))
-  return z
+function number_of_partitions(n::IntegerUnion)
+  # This function should always return a ZZRingElem, see the discussion here:
+  # https://github.com/oscar-system/Oscar.jl/pull/3159 .
+  # We hence "overwrite" the Nemo function number_of_partitions(::Int) which
+  # returns an Int (or throws an InexactError).
+  return Nemo.number_of_partitions(ZZ(n))
 end
 
 @doc raw"""
