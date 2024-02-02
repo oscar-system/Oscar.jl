@@ -9,7 +9,7 @@ mutable struct ReductiveGroup
     group::Tuple{Symbol, Int}
     group_ideal::MPolyIdeal
     reynolds_operator::Function
-    canonical_representation::AbstractAlgebra.Generic.MatSpaceElem
+    canonical_representation::MatElem
 
     function ReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
         #check char(fld)
@@ -51,7 +51,7 @@ function Base.show(io::IO, G::ReductiveGroup)
         print(io, "Reductive group ", G.group[1], G.group[2])
     else
         println(io, "Torus of rank ", group(G)[2])
-        print(IOContext(io, :supercompact => true), Indent(), "over the field ", field(G))
+        print(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(G))
         print(io, Dedent())
     end
 end
@@ -71,7 +71,7 @@ natural_representation(G::ReductiveGroup) = G.canonical_representation
 
 mutable struct RepresentationReductiveGroup
     group::ReductiveGroup
-    rep_mat::AbstractAlgebra.Generic.MatSpaceElem
+    rep_mat::MatElem
     sym_deg::Tuple{Bool, Int}
     reynolds_v::Function
 
@@ -96,7 +96,7 @@ mutable struct RepresentationReductiveGroup
     end
     
     #matrix M is the representation matrix. does not check M.
-    function RepresentationReductiveGroup(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem)
+    function RepresentationReductiveGroup(G::ReductiveGroup, M::MatElem)
         @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
         R = new()
         R.group = G
@@ -108,7 +108,7 @@ mutable struct RepresentationReductiveGroup
 end
 
 #representation_reductive_group(G::ReductiveGroup, d::Int) = RepresentationReductiveGroup(G, d)
-representation_reductive_group(G::ReductiveGroup, M::AbstractAlgebra.Generic.MatSpaceElem) = RepresentationReductiveGroup(G,M)
+representation_reductive_group(G::ReductiveGroup, M::MatElem) = RepresentationReductiveGroup(G,M)
 group(R::RepresentationReductiveGroup) = R.group
 
 function representation_on_forms(G::ReductiveGroup, d::Int)
@@ -119,13 +119,13 @@ end
 function representation_from_weights(G::ReductiveGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
     @assert G.group[1] == :torus
     V = Vector{Vector{ZZRingElem}}()
-    if typeof(W) <: Vector
-        G.group[2] == 1 || @error("Incompatible weights")
+    if W isa Vector
+        G.group[2] == 1 || error("Incompatible weights")
         for i in 1:length(W)
             push!(V, [ZZRingElem(W[i])])
         end
     else
-        G.group[2] == ncols(W) || @error("Incompatible weights")
+        G.group[2] == ncols(W) || error("Incompatible weights")
         #assume columns = G.group[2]
         for i in 1:nrows(W)
             push!(V, [ZZRingElem(W[i,j]) for j in 1:ncols(W)])
@@ -180,7 +180,7 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
         end
     else
         println(io, "Representation of torus of rank ", group(group(R))[2])
-        println(IOContext(io, :supercompact => true), Indent(), "over the field ", field(group(R)), " and weights ")
+        println(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
         if isdefined(R, :weights)
             print(io, R.weights)
         elseif isdefined(R, :rep_mat)
@@ -353,8 +353,19 @@ end
 
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
 invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = InvariantRing(R, ring)
-null_cone_ideal(R::InvariantRing) = R.NullConeIdeal
+function null_cone_ideal(R::InvariantRing) 
+    if isdefined(R, :NullConeIdeal) 
+        return R.NullConeIdeal
+    else
+        Z = R.representation
+        I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
+        R.NullConeIdeal = ideal(generators(Z.group, I, Z.rep_mat))
+        return R.NullConeIdeal
+    end
+end
 poly_ring(R::InvariantRing) = R.poly_ring
+group(R::InvariantRing) = R.group
+representation(R::InvariantRing) = R.representation
 
 function fundamental_invariants(z::InvariantRing)
     if isdefined(z, :fundamental)
@@ -366,22 +377,24 @@ function fundamental_invariants(z::InvariantRing)
             return z.fundamental
         end
         I, M = proj_of_image_ideal(R.group, R.rep_mat)
-        z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
+        if !isdefined(z, :NullConeIdeal)
+            z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
+        end
         z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
         return z.fundamental
     end
 end
 
 function Base.show(io::IO, R::InvariantRing) 
-    io = AbstractAlgebra.pretty(io)
+    io = pretty(io)
     println(io, "Invariant Ring of")
     show(io, R.poly_ring)
-    print(io, AbstractAlgebra.Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
-    print(io, AbstractAlgebra.Dedent())
+    print(io, Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
+    print(io, Dedent())
 end
 
 #computing the graph Gamma from Derksens paper
-function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
+function image_ideal(G::ReductiveGroup, rep_mat::MatElem)
     R = base_ring(rep_mat)
     n = ncols(rep_mat)
     m = G.group[2]
@@ -397,7 +410,7 @@ function image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpac
 end
 
 #computing I_{\Bar{B}}
-function proj_of_image_ideal(G::ReductiveGroup, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
+function proj_of_image_ideal(G::ReductiveGroup, rep_mat::MatElem)
     W = image_ideal(G, rep_mat)
     mixed_ring_xy = base_ring(W[2])
     n = ncols(rep_mat)
@@ -408,7 +421,7 @@ end
 
 
 #evaluate at y = 0 
-function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::AbstractAlgebra.Generic.MatSpaceElem)
+function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
     m = G.group[2]
     gbasis = gens(X) 
@@ -430,7 +443,7 @@ end
 #computing the invariant generators.
 #now we have to perform reynolds operation. This will happen in mixed_ring_xy. 
 #the elements returned will be in the polynomial ring K[X]
-function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::AbstractAlgebra.Generic.MatSpaceElem, X::MPolyIdeal, reynolds_function::Function)
+function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::MatElem, X::MPolyIdeal, reynolds_function::Function)
     genss = gens(I)
     if length(genss) == 0
         return Vector{elem_type(ringg)}()
@@ -478,7 +491,7 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::A
     return new_gens_
 end
 
-function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Generic.MatSpaceElem, new_det::MPolyDecRingElem, m::Int)
+function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::MatElem, new_det::MPolyDecRingElem, m::Int)
     mixed_ring_xy = parent(elem)
     n = ncols(new_rep_mat)
     new_vars = new_rep_mat*gens(mixed_ring_xy)[1:n]
@@ -486,7 +499,7 @@ function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::AbstractAlgebra.Gen
     phi = hom(mixed_ring_xy, mixed_ring_xy, vcat(new_vars, [0 for i in 1:ncols(new_rep_mat)+m^2]))
     sum_ = phi(elem)
     t = needed_degree(sum_, m)
-    if !divides(t, m)[1]
+    if !is_divisible_by(t, m)
         return parent(elem)()
     else
         p = divexact(t, m)
@@ -556,7 +569,6 @@ function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyRingElem)
     n == ncols(X.rep_mat) || error("group not compatible with element")
     m = G.group[2]
     R, _ = graded_polynomial_ring(G.field,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m))
-    #R, _ = grade(PolynomialRing(G.field,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m))[1])
     map1 = hom(vector_ring, R, gens(R)[1:n])
     new_elem = map1(elem)
     group_ring = base_ring(X.rep_mat)
@@ -637,7 +649,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                         index = findfirst(item -> item == v, C)
                         c = true
                         for elem in S[index]
-                            if divides(u, elem)[1]
+                            if is_divisible_by(u, elem)
                                 c = false
                                 break
                             end
