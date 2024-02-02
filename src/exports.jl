@@ -1390,7 +1390,6 @@ export symplectic_group
 export syz
 export syzygy_generators
 export tail
-export tangent_space
 export tangent_lines
 export tangent_space
 export taxa
