@@ -233,8 +233,9 @@ end
 
 function augment(vec::AbstractVector, val)
     s = size(vec)
+    @req s[1] > 0 "cannot homogenize empty vector"
     res = similar(vec, (s[1] + 1,))
-    res[1] = val
+    res[1] = val + zero(first(vec))
     res[2:end] = vec
     return assure_vector_polymake(res)
 end
