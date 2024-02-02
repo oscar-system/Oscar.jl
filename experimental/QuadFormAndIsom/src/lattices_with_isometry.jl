@@ -1754,49 +1754,8 @@ julia> order(G)
     psi = divs[end]
 
     M = kernel_lattice(Lf, psi)
-    qM, fqM = discriminant_group(M)
-    GM, _ = image_centralizer_in_Oq(M)
-
     N = orthogonal_submodule(Lf, basis_matrix(M))
-    qN, fqN = discriminant_group(N)
-    GN, _ = image_centralizer_in_Oq(N)
-
-    phi, HMinqM, HNinqN = glue_map(L, lattice(M), lattice(N); check = false)
-
-    # Since M and N are obtained by cutting some parts of `f \in O(L)`, the glue
-    # map should be equivariant!
-    @hassert :ZZLatWithIsom 1 is_invariant(fqM, HMinqM)
-    @hassert :ZZLatWithIsom 1 is_invariant(fqN, HNinqN)
-    @hassert :ZZLatWithIsom 1 matrix(compose(restrict_automorphism(fqM, HMinqM; check = false), phi)) == matrix(compose(phi, restrict_automorphism(fqN, HNinqN; check = false)))
-
-    HM = domain(HMinqM)
-    OHM = orthogonal_group(HM)
-
-    HN = domain(HNinqN)
-    OHN = orthogonal_group(HN)
-
-    _, qMinD, qNinD, _, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
-    HMinD = compose(HMinqM, qMinD)
-    HNinD = compose(HNinqN, qNinD)
-
-    stabM, _ = stabilizer(GM, HMinqM)
-    stabN, _ = stabilizer(GN, HNinqN)
-
-    actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false)) for x in gens(stabM)])
-    actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false)) for x in gens(stabN)])
-
-    _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N); same_ambient = true)
-    disc, stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
-    qL, fqL = discriminant_group(Lf)
-    OqL = orthogonal_group(qL)
-    phi = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
-    @hassert :ZZLatWithIsom 1 is_isometry(phi)
-    @hassert :ZZLatWithIsom 1 qL == disc
-
-    stab = sub(OqL, elem_type(OqL)[OqL(compose(phi, compose(g, inv(phi))); check = false) for g in stab])
-
-    @hassert :ZZLatWithIsom 1 fqL in stab[1]
-    return stab
+    return _glue_stabilizers(Lf, M, N)
   end
 end
 

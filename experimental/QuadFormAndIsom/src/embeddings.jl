@@ -646,8 +646,9 @@ function _primitive_extensions_generic(
 
     if elM || elN || (ok && ek == 1)
       # We look for a glue kernel which is an elementary p-group
-      _, VMinqM = _get_V(id_hom(qM), minimal_polynomial(identity_matrix(QQ, 1)), max(pM, pN, pk))
-      subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(VMinqM, GM, k, fqM)
+      _p = max(pM, pN, pk)
+      _, VMinqM = _get_V(id_hom(qM), minimal_polynomial(identity_matrix(QQ, 1)), _p)
+      subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(VMinqM, GM, k, _p, fqM)
     elseif prM || prN || ok
       # We look for a glue kernel which is a p-group
       _, VMinqM = primary_part(qM, max(pM, pN, pk))
@@ -848,43 +849,27 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::IntegerUnion,
                                                                      f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
+                                                                     p::IntegerUnion,
                                                                      l::IntegerUnion = -1)
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
   V = domain(Vinq)
 
-  # If V is trivial, then we ignore f and l, we just need to ensure that the
-  # order wanted is also 1
   if ord > order(V)
     return res
   end
 
   q = codomain(Vinq)
-  p = elementary_divisors(V)[1]
   pq, pqtoq = primary_part(q, p)
   l = l < 0 ? valuation(order(pq), p) : l
   g = valuation(ord, p)
 
-  all(a -> has_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq)) || return res
-
-  # some other trivial cases: if ord is 1, then l should be null (-1 by default)
-  # Otherwise, if ord == order(V), since V is preserved by f and contained the
-  # good subgroup of q, we just return V
-  if ord == 1
-    l < valuation(order(pq), p) && (return res)
-    _, triv = sub(codomain(Vinq), TorQuadModuleElem[])
-    push!(res, (triv, G))
-    return res
-  elseif ord == order(V)
-    push!(res, (Vinq, G))
-    return res
-  end
-
   # In theory, V should contain H0 := p^l*pq where pq is the p-primary part of q
+  all(a -> has_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq)) || return res
   H0, H0inq = sub(q, elem_type(q)[q(lift((p^l)*a)) for a in gens(pq)])
   @hassert :ZZLatWithIsom 1 is_invariant(f, H0inq)
 
-  # H0 should be contained in the group we want. So either H0 is the only one
+  # H0 should be contained in the groups we want. So either H0 is the only one
   # and we return it, or if order(H0) > ord, there are no subgroups as wanted
   if order(H0) >= ord
     order(H0) > ord && return res
@@ -892,6 +877,15 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
     return res
   end
 
+  # Now the groups we look for should strictly contain H0.
+  # If ord == order(V), then there is only V satisfying the given
+  # conditions, and V is stabilized by the all G
+  if ord == order(V)
+    push!(res, (Vinq, G))
+    return res
+  end
+
+  # Now the groups we look for are strictly contained between H0 and V
   H0inV = hom(H0, V, elem_type(V)[V(lift(a)) for a in gens(H0)])
   @hassert :ZZLatWithIsom 1 is_injective(H0inV)
 
@@ -981,7 +975,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
   if ok
     if e == 1
       _, Vinq = _get_V(id_hom(q), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, f)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq, O, ordH, p, f)
     else
       _, Vinq = primary_part(q, p)
       sors = _subgroups_orbit_representatives_and_stabilizers(Vinq, O, ordH, f)
@@ -1026,7 +1020,7 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     fqp = restrict_endomorphism(f, qpinq; check = false)
     if ordHp == p || (!isnothing(H) && is_elementary(T, p))
       _, j = _get_V(id_hom(qp), minimal_polynomial(identity_matrix(QQ, 1)), p)
-      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, fqp)
+      sors = _subgroups_orbit_representatives_and_stabilizers_elementary(j, Oqp, ordHp, p, fqp)
     else
       sors = _subgroups_orbit_representatives_and_stabilizers(id_hom(qp), Oqp, ordHp, fqp)
     end
@@ -1353,9 +1347,6 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
     return (length(results) > 0), results
   end
 
-  if cs != :none && cs != :first
-    cs = :subsub
-  end
   # Now we go on the harder case, which relies on the previous one
   # We follow the proof of Nikulin: we create `T` unique in its genus and with
   # surjective O(T) -> O(qT), and such that qT and q are anti-isometric
@@ -1385,9 +1376,60 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   end
   # M2 is M seen in V, and T2 is T seen in V
   for (V, M2, T2) in Vs
-    okV, resV = primitive_embeddings(GL, V; classification)
-    !okV && continue
-    classification == :none && return okV, results
+    resV = Tuple{ZZLat, ZZLat, ZZLat}[]
+    if rank(V) == rank(GL)
+      genus(V) != genus(GL) && continue
+      push!(resV, (V, V, orthogonal_submodule(V, V)))
+      continue
+    end
+
+    # We need to classify the primitive embeddings of V in GL up to the actions
+    # of O(T) and O(M) (for sublattices; otherwise only up to O(T))
+    #
+    # For this, we need the representation of the subgroup of isometries of V
+    # which preserve the primitive extension M\oplus T \subseteq V. This
+    # correspond to the diagonal in \bar{O(T)}\times GM where GM is trivial
+    # for embedding classification, \bar{O(M)} otherwise.
+    #
+    # We use `_glue_stabilizers` which has been designed especially to compute
+    # such diagonal subgroup.
+    GV, _ = _glue_stabilizers(V, M2, T2)
+    qV = domain(GV)
+    qK = rescale(qV, -1) # Bilinear form of a complement of V in GL
+
+    GKS = ZZGenus[]
+    posK = signature_tuple(GL)[1] - signature_tuple(V)[1]
+    negK = signature_tuple(GL)[1] - signature_tuple(V)[1]
+    if even
+      _G = try genus(qK, (posK, negK))
+           catch
+           nothing
+      end
+      !isnothing(_G) && push!(GKs, _G)
+    else
+      _Ge = try genus(qK, (posK, negK); parity=2)
+            catch
+            nothing
+      end
+      !isnothing(_Ge) && push!(GKs, _Ge)
+      _Go = try genus(qK, (posK, negK); parity=1)
+            catch
+            nothing
+      end
+      !isnothing(_Go) && push!(GKs, _Go)
+    end
+    is_empty(GKs) && continue
+    unique!(GKs)
+    orths = reduce(vcat, Vector{ZZLat}[representatives(_GK) for _GK in GKs])
+    for K in orths
+      GK, _ = image_in_Oq(K)
+      ok, pe = _primitive_extensions_generic(V, K, GV, GK, (:plain, :plain); even, exist_only=(classification == :none), first=(classification == :first), q=discriminant_group(GL))
+      !ok && continue
+      classification == :none && true, results
+      !isempty(pe) && append!(resV, Vector{ZZLat}[lattice.(t) for t in pe])
+    end
+    isempty(resV) && continue
+
     for (S, V2, W2) in resV
       # This is T seen in S
       T3 = lattice_in_same_ambient_space(S, hcat(basis_matrix(T2), zero_matrix(QQ, rank(T2), degree(W2)-degree(T2))))
@@ -1712,10 +1754,10 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   # This is done by computing orbits and stabilisers of VA/lpqA (resp VB/lpqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
-  subsA = _subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fqA, ZZ(l))
+  subsA = _subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fqA, p, ZZ(l))
   is_empty(subsA) && return results
 
-  subsB = _subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, fqB, ZZ(l))
+  subsB = _subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, fqB, p, ZZ(l))
   is_empty(subsB) && return results
 
   # now, for each pair of anti-isometric potential kernels, we need to massage the gluing
@@ -1997,4 +2039,50 @@ function _glue_stabilizers(phi::TorQuadModuleMap,
   stab = TorQuadModuleMap[hom(disc, disc, elem_type(disc)[disc(lift(g(perp(lift(l))))) for l in gens(disc)]) for g in stab]
   unique!(stab)
   return disc, stab
+end
+
+function _glue_stabilizers(L::ZZLatWithIsom, M::ZZLatWithIsom, N::ZZLatWithIsom; subM::Bool = true, subN::Bool = true)
+  qM, fqM = discriminant_group(M)
+  GM = subM ? image_centralizer_in_Oq(M)[1] : Oscar._orthogonal_group(qM, ZZMatrix[matrix(id_hom(qM))]; check=false)
+
+  qN, fqN = discriminant_group(N)
+  GN = subN ? image_centralizer_in_Oq(N)[1] : Oscar._orthogonal_group(qN, ZZMatrix[matrix(id_hom(qN))]; check=false)
+
+  phi, HMinqM, HNinqN = glue_map(lattice(L), lattice(M), lattice(N); check=false)
+  HM = domain(HMinqM)
+  OHM = orthogonal_group(HM)
+
+  HN = domain(HNinqN)
+  OHN = orthogonal_group(HN)
+
+  _, qMinD, qNinD, _, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
+  HMinD = compose(HMinqM, qMinD)
+  HNinD = compose(HNinqN, qNinD)
+
+  stabM, _ = stabilizer(GM, HMinqM)
+  stabN, _ = stabilizer(GN, HNinqN)
+
+  actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check=false)) for x in gens(stabM)])
+  actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check=false)) for x in gens(stabN)])
+
+  _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N); same_ambient=true)
+  disc, _stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
+  qL, fqL = discriminant_group(L)
+  OqL = orthogonal_group(qL)
+
+  psi = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
+  @hassert :ZZLatWithIsom 1 is_isometry(psi)
+  @hassert :ZZLatWithIsom 1 qL == disc
+
+  iphi = inv(phi)
+  stab = sub(OqL, elem_type(OqL)[OqL(compose(phi, compose(g, iphi)); check=false) for g in _stab])
+  @hassert :ZZLatWithIsom 1 fqL in stab[1]
+  return stab
+end
+
+function _glue_stabilizers(L::ZZLat, M::ZZLat, N::ZZLat; subM::Bool = true, subN::Bool = true)
+  Lf = integer_lattice_with_isometry(L)
+  Mg = integer_lattice_with_isometry(M)
+  Nh = integer_lattice_with_isometry(N)
+  return _glue_stabilizers(Lf, Mg, Nh; subM, subN)
 end

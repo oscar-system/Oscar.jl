@@ -321,8 +321,8 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
     @hassert :ZZLatWithIsom 1 ok
     ok, g0 = is_conjugate_with_data(OqL, OqL(compose(phi12, compose(hom(fqL2), inv(phi12))); check = false), fqL)
     @hassert :ZZLatWithIsom 1 ok
-    phi12 = compose(hom(OqL(g0)), phi12)
-    #@hassert :ZZLatWithIsom 1 matrix(compose(hom(fqL), phi12)) == matrix(compose(phi12, hom(fqL2)))
+    phi12 = compose(hom(inv(OqL(g0))), phi12)
+    @hassert :ZZLatWithIsom 1 matrix(compose(hom(fqL), phi12)) == matrix(compose(phi12, hom(fqL2)))
     @hassert :ZZLatWithIsom 1 is_isometry(phi12)
   else
     Lf2 = Lf
@@ -339,6 +339,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   G, GinOqL = sub(OqL, gensG)
   @hassert :ZZLatWithIsom 1 fqL in G
   GtoG2 = hom(G, G2, gensG, gensG2; check = false)
+  @hassert :ZZLatWithIsom 1 GtoG2(fqL) == fqL2
 
   # This is the associated hermitian O_E-lattice to (L, f): we want to make qL
   # (aka D_L) correspond to the quotient D^{-1}H^#/H by the trace construction,
@@ -396,15 +397,24 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # avoid computing unnecessary crt. This will hold for the rest of the code, we
   # for those particular objects, the `dlog` maps take vectors, corresponding to
   # finite adeles.
+
+  list_ker = eltype(S)[]
   Fdata = Tuple{NfOrdIdl, Int}[]
-  for p in S
+  for _i in 1:length(S)
+    p = S[_i]
     if !_is_special(H, p)
       push!(Fdata, (p, 0))
+      if Fsharpdata[_i][2] == 0
+        push!(list_ker, p)
+      end
     else
       lp = prime_decomposition(OE, p)
       P = lp[1][1]
       e = valuation(DEK, P)
       push!(Fdata, (p, e))
+      if Fsharpdata[_i][2] == e
+        push!(list_ker, p)
+      end
     end
   end
 
@@ -452,7 +462,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   for g in gensG2
     ds = elem_type(E)[]
     for p in S
-      if !_is_special(H, p)
+      if p in list_ker
         push!(ds, one(E))
       else
         lp = prime_decomposition(OE, p)
@@ -682,7 +692,7 @@ function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem
   Bps = _local_basis_modular_submodules(H2, minimum(P), a, res)
   Bp = reduce(vcat, Bps)
   Gp = Bp*gram_matrix(ambient_space(H))*map_entries(involution(E), transpose(Bp))
-  Fp = block_diagonal_matrix(typeof(Gp)[_transfer_discriminant_isometry(res, g, Bps[i], P, BHp_inv) for i in 1:length(Bps)])
+  Fp = _transfer_discriminant_isometry(res, g, Bp, P, BHp_inv)
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(involution(E), transpose(Fp))
