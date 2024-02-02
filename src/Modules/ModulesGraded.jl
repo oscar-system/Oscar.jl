@@ -584,10 +584,16 @@ Int64
 function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
   !isnothing(f.d) && return f.d::GrpAbFinGenElem
   @check is_graded(parent(f)) "the parent module is not graded"
-  @show is_homogeneous(f) "the element is not homogeneous"
-  if !iszero(f) && (f.d != _degree_fast(f))
+  if !isnothing(f.d) && !iszero(f) && (f.d != _degree_fast(f))
     @show f
     @show f.d
+    @show _degree_fast(f)
+    error()
+  end
+  if !is_homogeneous(f)
+    @show f
+    @show f.d
+    @show degree.(gens(parent(f)))
     @show _degree_fast(f)
     error()
   end
@@ -1189,7 +1195,6 @@ julia> degree(m3)
 ```
 """
 function degree(el::SubquoModuleElem; check::Bool=true)
-#=
   # In general we can not assume that we have a groebner basis reduction available 
   # as a backend to bring the element to normal form. 
   # In particular, this may entail that `coordinates` produces non-homogeneous 
@@ -1201,10 +1206,10 @@ end
 
 # When there is a Groebner basis backend, we can reduce to normal form.
 function degree(
-    el::SubquoModuleElem{T}
+    el::SubquoModuleElem{T};
+    check::Bool=true
   ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
-  =#
-  !el.is_reduced && return degree(simplify(el); check)
+  !el.is_reduced && return degree(simplify!(el); check)
   # TODO: Can we always assume the representative to be homogeneous if it is defined???
   return degree(repres(el); check)
 

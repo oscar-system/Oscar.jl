@@ -61,6 +61,12 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   f1 = map(p1, 1)
   g0 = map(p2, 0)
   g1 = map(p2, 1)
+  if is_graded(M) && is_graded(N)
+    @assert is_graded(f0)
+    @assert is_graded(f1)
+    @assert is_graded(g0)
+    @assert is_graded(g1)
+  end
 
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(f0), domain(g0))

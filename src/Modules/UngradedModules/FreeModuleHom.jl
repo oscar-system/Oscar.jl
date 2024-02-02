@@ -459,6 +459,56 @@ Homogeneous module homomorphism)
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
+  if is_zero(codomain(h))
+    return domain(f), identity_map(domain(f))
+  end
+  is_graded(h) && return _graded_kernel(h)
+  return _simple_kernel(h)
+end
+
+function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  if is_zero(h)
+    F = domain(h)
+    S = base_ring(F)
+    Z = FreeMod(S, 0)
+    return Z, hom(Z, F, elem_type(F)[]; check=false)
+  end
+  F = domain(h)
+  G = codomain(h)
+  g = images_of_generators(h)
+  b = ModuleGens(g, G, default_ordering(G))
+  M = syzygy_module(b)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v); init=zero(F)) for v in gens(M)]
+  return sub(F, v)
+end
+
+function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+  if is_zero(h)
+    F = domain(h)
+    S = base_ring(F)
+    G = grading_group(S)
+    Z = graded_free_module(S, elem_type(G)[])
+    return Z, hom(Z, F, elem_type(F)[]; check=false)
+  end
+  F = domain(h)
+  M = codomain(h)
+  G = ambient_free_module(M)
+  g = images_of_generators(h)
+  g = vcat(g, relations(M))
+  b = ModuleGens(g, G, default_ordering(G))
+  M = syzygy_module(b)
+  r = ngens(F)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in gens(M)]
+  return sub(F, v)
+end
+
+function _graded_kernel(h::FreeModuleHom)
+  I, inc = _simple_kernel(h)
+  @assert is_graded(I)
+  @assert is_homogeneous(inc)
+  return I, inc
+end
+#=
   G = domain(h)
   R = base_ring(G)
   if ngens(G) == 0
@@ -489,6 +539,7 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   c = collect(k.sub.gens)
   return k, hom(k, parent(c[1]), c, check=false)
 end
+=#
 
 @doc raw"""
     image(a::FreeModuleHom)
