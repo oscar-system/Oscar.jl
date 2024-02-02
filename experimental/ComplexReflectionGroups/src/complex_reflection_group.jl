@@ -74,12 +74,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
 
                 elseif Cmodel == :CHEVIE
-                    K,z = cyclotomic_field(3)
+                    K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
-                    s1 = matspace(K[1 0 ; 0 z])
-                    s2 = 1//3 * matspace(K[(2*z + 1) (2*z - 2) ; (z - 1) (z + 2)])
+                    s1 = matspace(K[1 0 ; 0 zeta_3])
+                    s2 = matspace(K[1//3*(2*zeta_3 + 1) 1//3*(2*zeta_3 - 2) ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2)])
 
                     push!(gens, s1)
                     push!(gens, s2)
@@ -118,13 +118,13 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
 
                 elseif Cmodel == :CHEVIE
-                    K,z = cyclotomic_field(3)
+                    K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
-                    s1 = matspace(K[1 0 ; 0 z])
-                    s2 = 1//3 * matspace(K[(z + 2) (-2*z + 2) ; (-z + 1) (2*z + 1)])
-
+                    s1 = matspace(K[1 0 ; 0 zeta_3])
+                    s2 = matspace(K[1//3*(zeta_3 + 2) 1//3*(-2*zeta_3 + 2) ; 1//3*(-zeta_3 + 1) 1//3*(2*zeta_3 + 1)])
+                    
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -157,6 +157,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[-1 0 ; -zeta_12^3 - 2*zeta_12^2 + 1 1])
                     s2 = matspace(K[1 zeta_12^2 ; 0 zeta_12^2 - 1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_12 = cyclotomic_field(12)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//3*(-zeta_12^3 + 2*zeta_12) 1//3*(-2*zeta_12^3 + 4*zeta_12) ; 1//3*(-zeta_12^3 + 2*zeta_12) 1//3*(zeta_12^3 - 2*zeta_12)])
+                    s2 = matspace(K[1 0 ; 0 zeta_12^2 - 1])
+                    
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -196,6 +207,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_12 = cyclotomic_field(12)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 -1])
+                    s2 = matspace(K[1//2*(-zeta_12^3 + zeta_12^2 + zeta_12) 1//2*(-zeta_12^3 - zeta_12^2 + zeta_12) ; 1//2*(-zeta_12^3 + zeta_12^2 + zeta_12) 1//2*(zeta_12^3 + zeta_12^2 - zeta_12)])
+                    s3 = matspace(K[1//2*(-zeta_12^3 + zeta_12^2 + zeta_12) 1//2*(-zeta_12^3 + zeta_12^2 + zeta_12) ; 1//2*(-zeta_12^3 - zeta_12^2 + zeta_12) 1//2*(zeta_12^3 + zeta_12^2 - zeta_12)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end   
                 
             # G8
@@ -222,6 +246,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[zeta_4 0 ; -zeta_4 1])
                     s2 = matspace(K[1 1 ; 0 zeta_4])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_4 = cyclotomic_field(4)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 zeta_4])
+                    s2 = matspace(K[1//2*(zeta_4 + 1) 1//2*(zeta_4 - 1) ; 1//2*(zeta_4 - 1) 1//2*(zeta_4 + 1)])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -257,6 +292,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_8 = cyclotomic_field(8)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//2*(-zeta_8^3 + zeta_8) 1//2 ; 1 1//2*(zeta_8^3 - zeta_8)])
+                    s2 = matspace(K[1 0 ; 0 zeta_8^2])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+
                 end  
 
             # G10
@@ -286,6 +332,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[-zeta_12^3 0 ; -zeta_12^2 + zeta_12 1])
                     s2 = matspace(K[1 zeta_12^2 ; 0 zeta_12^2 - 1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_12 = cyclotomic_field(12)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 zeta_12^2 - 1])
+                    s2 = matspace(K[1//3*(zeta_12^3 - zeta_12^2 + zeta_12 + 2) 1//3*(zeta_12^3 + 2*zeta_12^2 - 2*zeta_12 - 1) ; 1//6*(zeta_12^3 + 2*zeta_12^2 - 2*zeta_12 - 1) 1//3*(2*zeta_12^3 + zeta_12^2 - zeta_12 + 1)])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -328,6 +385,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_24 = cyclotomic_field(24)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//3*(2*zeta_24^7 - zeta_24^5 - zeta_24^3 - zeta_24) 1//3*(-zeta_24^7 + 2*zeta_24^5 + 2*zeta_24^3 - zeta_24) ; 1//6*(-zeta_24^7 - zeta_24^5 - zeta_24^3 + 2*zeta_24) 1//3*(-2*zeta_24^7 + zeta_24^5 + zeta_24^3 + zeta_24)])
+                    s2 = matspace(K[1 0 ; 0 zeta_24^4 - 1])
+                    s3 = matspace(K[1//3*(zeta_24^6 - zeta_24^4 + zeta_24^2 + 2) 1//3*(zeta_24^6 + 2*zeta_24^4 - 2*zeta_24^2 - 1) ; 1//6*(zeta_24^6 + 2*zeta_24^4 - 2*zeta_24^2 - 1) 1//3*(2*zeta_24^6 + zeta_24^4 - zeta_24^2 + 1)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end 
 
             # G12
@@ -360,6 +430,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s2 = matspace(K[1 zeta_8^3 + zeta_8 + 1 ; 0 -1])
                     s3 = matspace(K[zeta_8^3 + zeta_8 - 1 -2 ; -zeta_8^3 - zeta_8 - 1 -zeta_8^3 - zeta_8 + 1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_8 = cyclotomic_field(8)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//2 1//2*(zeta_8^3 + zeta_8 + 2) ; 1//4*(-zeta_8^3 - zeta_8 + 2) -1//2])
+                    s2 = matspace(K[1//2 1//2*(-zeta_8^3 - zeta_8 + 2) ; 1//4*(zeta_8^3 + zeta_8 + 2) -1//2])
+                    s3 = matspace(K[1 0 ; 0 -1])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
@@ -400,6 +483,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_8 = cyclotomic_field(8)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 -1])
+                    s2 = matspace(K[1//2*(-zeta_8^3 + zeta_8) 1//2*(zeta_8^3 - zeta_8) ; 1//2*(zeta_8^3 - zeta_8) 1//2*(zeta_8^3 - zeta_8)])
+                    s3 = matspace(K[1//2*(-zeta_8^3 + zeta_8) 1//2*(zeta_8^3 + zeta_8) ; 1//2*(-zeta_8^3 - zeta_8) 1//2*(zeta_8^3 - zeta_8)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end 
 
             # G14
@@ -432,6 +528,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[zeta_24^4 - 1 0 ; -zeta_24^4 1])
                     s2 = matspace(K[1 -zeta_24^5 + 2*zeta_24^4 - zeta_24^3 + zeta_24 - 1 ; 0 -1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_24 = cyclotomic_field(24)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 -1])
+                    s2 = matspace(K[1//2*(-zeta_24^7 + zeta_24^4 + zeta_24) 1//2*zeta_24^4 ; -1//2*zeta_24^4 1//2*(zeta_24^7 + zeta_24^4 - zeta_24)])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -474,6 +581,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_24 = cyclotomic_field(24)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//3*(2*zeta_24^7 - zeta_24^5 - zeta_24^3 - zeta_24) 1//3*(-zeta_24^7 + 2*zeta_24^5 + 2*zeta_24^3 - zeta_24) ; 1//6*(-zeta_24^7 - zeta_24^5 - zeta_24^3 + 2*zeta_24) 1//3*(-2*zeta_24^7 + zeta_24^5 + zeta_24^3 + zeta_24)])
+                    s2 = matspace(K[1 0 ; 0 zeta_24^4 - 1])
+                    s3 = matspace(K[1//3*(-zeta_24^6 + 2*zeta_24^2) 1//3*(2*zeta_24^6 - 4*zeta_24^2) ; 1//3*(zeta_24^6 - 2*zeta_24^2) 1//3*(zeta_24^6 - 2*zeta_24^2)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end 
 
             # G16
@@ -504,6 +624,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[zeta_5 0 ; 1 1])
                     s2 = matspace(K[1 -zeta_5 ; 0 zeta_5])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_5 = cyclotomic_field(5)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 zeta_5])
+                    s2 = matspace(K[1//5*(-zeta_5^3 - 2*zeta_5^2 + 2*zeta_5 + 1) 1//5*(2*zeta_5^3 - zeta_5^2 + zeta_5 - 2) ; 1//5*(-3*zeta_5^3 - zeta_5^2 + zeta_5 - 2) 1//5*(zeta_5^3 + 2*zeta_5^2 + 3*zeta_5 + 4)])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -540,6 +671,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_20 = cyclotomic_field(20)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//5*(-3*zeta_20^7 + zeta_20^5 + zeta_20^3 + 2*zeta_20) 1//5*(zeta_20^7 - 2*zeta_20^5 + 3*zeta_20^3 - 4*zeta_20) ; 1//5*(zeta_20^7 - 2*zeta_20^5 + 3*zeta_20^3 - 4*zeta_20) 1//5*(3*zeta_20^7 - zeta_20^5 - zeta_20^3 - 2*zeta_20)])
+                    s2 = matspace(K[1 0 ; 0 zeta_20^4])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+
                 end 
 
             # G18
@@ -573,6 +715,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[zeta_15^5 0 ; zeta_15^7 - 2*zeta_15^6 - zeta_15^3 + zeta_15^2 - zeta_15 - 1 1])
                     s2 = matspace(K[1 -zeta_15^7 + zeta_15^6 + zeta_15^3 - zeta_15^2 + 1 ; 0 zeta_15^3])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_15 = cyclotomic_field(15)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//5*(-3*zeta_15^7 + 4*zeta_15^5 - 2*zeta_15^4 - zeta_15 + 4) 1//5*(zeta_15^7 + 2*zeta_15^5 - zeta_15^4 - 3*zeta_15 + 2) ; 1//5*(zeta_15^7 - 3*zeta_15^5 + 4*zeta_15^4 + 2*zeta_15 - 3) 1//5*(3*zeta_15^7 + zeta_15^5 + 2*zeta_15^4 + zeta_15 + 1)])
+                    s2 = matspace(K[1 0 ; 0 zeta_15^3])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -616,6 +769,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_60 = cyclotomic_field(60)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//5*(zeta_60^15 - 3*zeta_60^11 + zeta_60^9 + 2*zeta_60^3 + 3*zeta_60) 1//5*(-2*zeta_60^15 + zeta_60^11 + 3*zeta_60^9 - 4*zeta_60^3 - zeta_60) ; 1//5*(-2*zeta_60^15 + zeta_60^11 + 3*zeta_60^9 - 4*zeta_60^3 - zeta_60) 1//5*(-zeta_60^15 + 3*zeta_60^11 - zeta_60^9 - 2*zeta_60^3 - 3*zeta_60)])
+                    s2 = matspace(K[1//5*(-zeta_60^14 - 3*zeta_60^12 + 2*zeta_60^10 + zeta_60^8 + zeta_60^6 + 2*zeta_60^4 + 2*zeta_60^2 - 1) 1//5*(2*zeta_60^14 + zeta_60^12 + zeta_60^10 - 2*zeta_60^8 - 2*zeta_60^6 - 4*zeta_60^4 + zeta_60^2 + 2) ; 1//5*(-3*zeta_60^14 + zeta_60^12 + zeta_60^10 + 3*zeta_60^8 + 3*zeta_60^6 + zeta_60^4 - 4*zeta_60^2 - 3) 1//5*(zeta_60^14 + 3*zeta_60^12 + 3*zeta_60^10 - zeta_60^8 - zeta_60^6 - 2*zeta_60^4 - 2*zeta_60^2 + 1)])
+                    s3 = matspace(K[1 0 ; 0 zeta_60^12])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
                 
             # G20
@@ -652,6 +818,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_15 = cyclotomic_field(15)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 ; 0 zeta_15^5])
+                    s2 = matspace(K[1//3*(-2*zeta_15^7 + 2*zeta_15^5 - zeta_15^4 + 2*zeta_15^3 - 2*zeta_15^2 - zeta_15 + 3) 1//3*(4*zeta_15^7 - zeta_15^5 + 2*zeta_15^4 - 4*zeta_15^3 + 4*zeta_15^2 + 2*zeta_15 - 3) ; 1//15*(4*zeta_15^7 - zeta_15^5 + 2*zeta_15^4 - 4*zeta_15^3 + 4*zeta_15^2 + 2*zeta_15 - 3) 1//3*(2*zeta_15^7 + zeta_15^5 + zeta_15^4 - 2*zeta_15^3 + 2*zeta_15^2 + zeta_15)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+
                 end
 
             # G21
@@ -685,6 +862,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s1 = matspace(K[-1 0 ; zeta_60^11 - 2*zeta_60^10 + zeta_60^9 - zeta_60 + 1 1])
                     s2 = matspace(K[1 zeta_60^10 ; 0 zeta_60^10 - 1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_60 = cyclotomic_field(60)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//3*(-2*zeta_60^15 - 2*zeta_60^13 + zeta_60^11 + zeta_60^9 + 2*zeta_60^7 + 2*zeta_60^5 - zeta_60) 1//3*(zeta_60^15 - 2*zeta_60^13 + zeta_60^11 + zeta_60^9 + 2*zeta_60^7 - 4*zeta_60^5 - zeta_60) ; 1//15*(zeta_60^15 - 2*zeta_60^13 + zeta_60^11 + zeta_60^9 + 2*zeta_60^7 - 4*zeta_60^5 - zeta_60) 1//3*(2*zeta_60^15 + 2*zeta_60^13 - zeta_60^11 - zeta_60^9 - 2*zeta_60^7 - 2*zeta_60^5 + zeta_60)])
+                    s2 = matspace(K[1 0 ; 0 zeta_60^10 - 1])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
 
@@ -725,6 +913,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
+                elseif Cmodel == :CHEVIE
+                    K,zeta_20 = cyclotomic_field(20)
+                    matspace = matrix_space(K, 2, 2)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//5*(zeta_20^7 - 2*zeta_20^5 + 3*zeta_20^3 - 4*zeta_20) 1//5*(3*zeta_20^7 - zeta_20^5 - zeta_20^3 - 2*zeta_20) ; 1//5*(3*zeta_20^7 - zeta_20^5 - zeta_20^3 - 2*zeta_20) 1//5*(-zeta_20^7 + 2*zeta_20^5 - 3*zeta_20^3 + 4*zeta_20)])
+                    s2 = matspace(K[0 -zeta_20 ; zeta_20^7 - zeta_20^5 + zeta_20^3 - zeta_20 0])
+                    s3 = matspace(K[0 zeta_20^7 - zeta_20^5 + zeta_20^3 - zeta_20 ; -zeta_20 0])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
 
             # G23
@@ -745,6 +946,20 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_5 = cyclotomic_field(5)
+                    matspace = matrix_space(K, 3, 3)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 -zeta_5^3 - zeta_5^2 0 ; 0 1 0 ; 0 0 1])
+                    s2 = matspace(K[1 0 0 ; -zeta_5^3 - zeta_5^2 -1 1 ; 0 0 1])
+                    s3 = matspace(K[1 0 0 ; 0 1 0 ; 0 1 -1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
                 
            
@@ -766,6 +981,20 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_7 = cyclotomic_field(7)
+                    matspace = matrix_space(K, 3, 3)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//2 1//14*(6*zeta_7^4 + 6*zeta_7^2 + 6*zeta_7 + 3) 0 ; 1//2*(-2*zeta_7^4 - 2*zeta_7^2 - 2*zeta_7 - 1) -1//2 0 ; 0 0 1])
+                    s2 = matspace(K[1//2 1//14*(-6*zeta_7^4 - 6*zeta_7^2 - 6*zeta_7 - 3) 0 ; 1//2*(2*zeta_7^4 + 2*zeta_7^2 + 2*zeta_7 + 1) -1//2 0 ; 0 0 1])
+                    s3 = matspace(K[0 1//7*(-zeta_7^4 - zeta_7^2 - zeta_7 - 4) 1//4*(-zeta_7^4 - zeta_7^2 - zeta_7 - 1) ; 1//3*(zeta_7^4 + zeta_7^2 + zeta_7 - 3) 1//3 1//12*(-3*zeta_7^4 - 3*zeta_7^2 - 3*zeta_7 - 5) ; 1//3*(2*zeta_7^4 + 2*zeta_7^2 + 2*zeta_7) 1//21*(6*zeta_7^4 + 6*zeta_7^2 + 6*zeta_7 - 4) 2//3])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
 
             # G25
@@ -786,6 +1015,20 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_3 = cyclotomic_field(3)
+                    matspace = matrix_space(K, 3, 3)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 0 ; 0 1 0 ; 0 0 zeta_3])
+                    s2 = matspace(K[1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2)])
+                    s3 = matspace(K[1 0 0 ; 0 zeta_3 0 ; 0 0 1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
 
             # G26
@@ -806,6 +1049,20 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_3 = cyclotomic_field(3)
+                    matspace = matrix_space(K, 3, 3)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 0 ; 0 0 1 ; 0 1 0])
+                    s2 = matspace(K[1 0 0 ; 0 1 0 ; 0 0 zeta_3])
+                    s3 = matspace(K[1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
 
             # G27
@@ -826,6 +1083,20 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_15 = cyclotomic_field(15)
+                    matspace = matrix_space(K, 3, 3)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1//2 1//10*(-2*zeta_15^7 + 2*zeta_15^6 + 2*zeta_15^5 - 6*zeta_15^4 + 4*zeta_15^3 + 2*zeta_15^2 + 2*zeta_15 + 3) 1//10*(-7*zeta_15^7 + 2*zeta_15^6 + 2*zeta_15^5 - zeta_15^4 - zeta_15^3 - 3*zeta_15^2 - 3*zeta_15 + 3) ; 1//10*(-8*zeta_15^7 + 6*zeta_15^6 + 2*zeta_15^5 - 6*zeta_15^4 + 2*zeta_15^3 - 4*zeta_15^2 + 2*zeta_15 + 5) 1//10*(2*zeta_15^7 - 2*zeta_15^3 + 2*zeta_15^2 - 1) 1//10*(7*zeta_15^7 + 5*zeta_15^4 - 7*zeta_15^3 + 7*zeta_15^2 + 5*zeta_15 - 1) ; 1//15*(2*zeta_15^7 - 4*zeta_15^6 + 2*zeta_15^5 - zeta_15^4 + 2*zeta_15^3 + 6*zeta_15^2 - 3*zeta_15) 1//15*(2*zeta_15^7 - 5*zeta_15^4 - 2*zeta_15^3 + 2*zeta_15^2 - 5*zeta_15 + 4) 1//5*(-zeta_15^7 + zeta_15^3 - zeta_15^2 + 3)])
+                    s2 = matspace(K[0 1//5*(2*zeta_15^7 - zeta_15^5 + 3*zeta_15^4 - zeta_15 - 1) 1//10*(-11*zeta_15^7 + 10*zeta_15^6 + 3*zeta_15^5 - 4*zeta_15^4 + 5*zeta_15^3 - 5*zeta_15^2 - 2*zeta_15 + 8) ; 1//5*(3*zeta_15^7 - 4*zeta_15^6 - zeta_15^5 + 3*zeta_15^4 - 3*zeta_15^3 + zeta_15^2 - zeta_15 - 3) 1//5*(zeta_15^7 - zeta_15^3 + zeta_15^2 + 2) 1//10*(-3*zeta_15^7 + 5*zeta_15^5 + 3*zeta_15^3 - 3*zeta_15^2 + 4) ; 1//15*(zeta_15^7 - 8*zeta_15^6 + 3*zeta_15^5 - 4*zeta_15^4 - zeta_15^3 + 7*zeta_15^2 - 2*zeta_15 - 1) 1//15*(-3*zeta_15^7 - 5*zeta_15^5 + 3*zeta_15^3 - 3*zeta_15^2 - 1) 1//5*(-zeta_15^7 + zeta_15^3 - zeta_15^2 + 3)])
+                    s3 = matspace(K[-1 0 0 ; 0 1 0 ; 0 0 1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+
                 end
 
             # G28
@@ -844,6 +1115,21 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s3 = matspace(K[1 0 0 0 ; 0 1 2 0 ; 0 0 -1 0 ; 0 0 1 1])
                     s4 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 0 1 1 ; 0 0 0 -1])
 
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+
+                elseif Cmodel == :CHEVIE
+                    K = QQ
+                    matspace = matrix_space(K, 4, 4)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 1 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 ; 1 -1 1 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 2 -1 1 ; 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 1 -1])
+                                        
                     push!(gens, s1)
                     push!(gens, s2)
                     push!(gens, s3)
@@ -871,6 +1157,22 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
                     push!(gens, s4)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_4 = cyclotomic_field(4)
+                    matspace = matrix_space(K, 4, 4)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 0 -1])
+                    s2 = matspace(K[1//2 1//2 1//2*zeta_4 1//2*zeta_4 ; 1//2 1//2 -1//2*zeta_4 -1//2*zeta_4 ; -1//2*zeta_4 1//2*zeta_4 1//2 -1//2 ; -1//2*zeta_4 1//2*zeta_4 -1//2 1//2])
+                    s3 = matspace(K[0 1 0 0 ; 1 0 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 ; 0 0 1 0 ; 0 1 0 0 ; 0 0 0 1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+
                 end
 
             # G30
@@ -893,6 +1195,22 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
                     push!(gens, s4)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_5 = cyclotomic_field(5)
+                    matspace = matrix_space(K, 4, 4)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 -zeta_5^3 - zeta_5^2 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 ; -zeta_5^3 - zeta_5^2 -1 1 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 1 -1 1 ; 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 1 -1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+
                 end
 
             # G31
@@ -917,6 +1235,24 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s3)
                     push!(gens, s4)
                     push!(gens, s5)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_4 = cyclotomic_field(4)
+                    matspace = matrix_space(K, 4, 4)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 0 0 0 ; 0 1 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s2 = matspace(K[0 zeta_4 0 0 ; -zeta_4 0 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s3 = matspace(K[0 1 0 0 ; 1 0 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s4 = matspace(K[1//2 -1//2 -1//2 -1//2 ; -1//2 1//2 -1//2 -1//2 ; -1//2 -1//2 1//2 -1//2 ; -1//2 -1//2 -1//2 1//2])
+                    s5 = matspace(K[1 0 0 0 ; 0 0 1 0 ; 0 1 0 0 ; 0 0 0 1])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+
                 end
 
             # G32
@@ -939,6 +1275,22 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
                     push!(gens, s4)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_3 = cyclotomic_field(3)
+                    matspace = matrix_space(K, 4, 4)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[1 0 0 0 ; 0 1 0 0 ; 0 0 zeta_3 0 ; 0 0 0 1])
+                    s2 = matspace(K[1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) 0 ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2) 1//3*(zeta_3 - 1) 0 ; 1//3*(zeta_3 - 1) 1//3*(zeta_3 - 1) 1//3*(zeta_3 + 2) 0 ; 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 ; 0 zeta_3 0 0 ; 0 0 1 0 ; 0 0 0 1])
+                    s4 = matspace(K[1//3*(zeta_3 + 2) 1//3*(-zeta_3 + 1) 0 1//3*(-zeta_3 + 1) ; 1//3*(-zeta_3 + 1) 1//3*(zeta_3 + 2) 0 1//3*(zeta_3 - 1) ; 0 0 1 0 ; 1//3*(-zeta_3 + 1) 1//3*(zeta_3 - 1) 0 1//3*(zeta_3 + 2)])
+                                        
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+
                 end
 
             # G3
@@ -957,6 +1309,23 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s3 = matspace(K[1 0 0 0 0 ; 0 1 1 0 0 ; 0 0 -1 0 0 ; 0 0 1 1 0 ; 0 0 0 0 1])
                     s4 = matspace(K[1 0 0 0 0 ; 0 1 0 zeta_3 0 ; 0 0 1 1 0 ; 0 0 0 -1 0 ; 0 0 0 1 1])
                     s5 = matspace(K[1 0 0 0 0 ; 0 1 0 0 0 ; 0 0 1 0 0 ; 0 0 0 1 1 ; 0 0 0 0 -1])
+
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_3 = cyclotomic_field(3)
+                    matspace = matrix_space(K, 5, 5)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[0 1 0 0 0 ; 1 0 0 0 0 ; 0 0 1 0 0 ; 0 0 0 1 0 ; 0 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 0 ; 0 0 0 0 1 ; 0 0 1 0 0 ; 0 0 0 1 0 ; 0 1 0 0 0])
+                    s3 = matspace(K[1 0 0 0 0 ; 0 1 0 0 0 ; 0 0 1 0 0 ; 0 0 0 0 1 ; 0 0 0 1 0])
+                    s4 = matspace(K[1 0 0 0 0 ; 0 1 0 0 0 ; 0 0 1 0 0 ; 0 0 0 0 -zeta_3 - 1 ; 0 0 0 zeta_3 0])
+                    s5 = matspace(K[2//3 -1//3 1//3 -1//3 -1//3 ; -1//3 2//3 1//3 -1//3 -1//3 ; 2//3 2//3 1//3 2//3 2//3 ; -1//3 -1//3 1//3 2//3 -1//3 ; -1//3 -1//3 1//3 -1//3 2//3])
 
                     push!(gens, s1)
                     push!(gens, s2)
@@ -990,6 +1359,26 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s4)
                     push!(gens, s5)
                     push!(gens, s6)
+
+                elseif Cmodel == :CHEVIE
+                    K,zeta_3 = cyclotomic_field(3)
+                    matspace = matrix_space(K, 6, 6)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[0 1 0 0 0 0 ; 1 0 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 0 0 ; 0 0 0 0 0 1 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 1 0 0 0 0])
+                    s3 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 0 1 ; 0 0 0 0 1 0])
+                    s4 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 0 -zeta_3 - 1 ; 0 0 0 0 zeta_3 0])
+                    s5 = matspace(K[2//3 -1//3 1//3*(zeta_3 + 1) -1//3*zeta_3 -1//3 -1//3 ; -1//3 2//3 1//3*(zeta_3 + 1) -1//3*zeta_3 -1//3 -1//3 ; -1//3*zeta_3 -1//3*zeta_3 2//3 1//3*(zeta_3 + 1) -1//3*zeta_3 -1//3*zeta_3 ; 1//3*(zeta_3 + 1) 1//3*(zeta_3 + 1) -1//3*zeta_3 2//3 1//3*(zeta_3 + 1) 1//3*(zeta_3 + 1) ; -1//3 -1//3 1//3*(zeta_3 + 1) -1//3*zeta_3 2//3 -1//3 ; -1//3 -1//3 1//3*(zeta_3 + 1) -1//3*zeta_3 -1//3 2//3])
+                    s6 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 0 zeta_3 0 0 ; 0 0 -zeta_3 - 1 0 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+                    push!(gens, s6)
+
                 end
 
             # G35
@@ -1016,6 +1405,26 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s4)
                     push!(gens, s5)
                     push!(gens, s6)
+
+                elseif Cmodel == :CHEVIE
+                    K = QQ
+                    matspace = matrix_space(K, 6, 6)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 0 1 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 0 0 ; 0 -1 0 1 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 1 0 -1 1 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 1 1 -1 1 0 ; 0 0 0 0 1 0 ; 0 0 0 0 0 1])
+                    s5 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 1 -1 1 ; 0 0 0 0 0 1])
+                    s6 = matspace(K[1 0 0 0 0 0 ; 0 1 0 0 0 0 ; 0 0 1 0 0 0 ; 0 0 0 1 0 0 ; 0 0 0 0 1 0 ; 0 0 0 0 1 -1])
+
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+                    push!(gens, s6)
+
                 end
 
             # G36
@@ -1036,6 +1445,27 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     s5 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 1 0 0 ; 0 0 0 0 -1 0 0 ; 0 0 0 0 1 1 0 ; 0 0 0 0 0 0 1])
                     s6 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 1 0 ; 0 0 0 0 0 -1 0 ; 0 0 0 0 0 1 1])
                     s7 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 1 ; 0 0 0 0 0 0 -1])
+
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+                    push!(gens, s6)
+                    push!(gens, s7)
+
+                elseif Cmodel == :CHEVIE
+                    K = QQ
+                    matspace = matrix_space(K, 7, 7)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 0 1 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 0 0 0 ; 0 -1 0 1 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 1 0 -1 1 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 1 1 -1 1 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1])
+                    s5 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 1 -1 1 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1])
+                    s6 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 1 -1 1 ; 0 0 0 0 0 0 1])
+                    s7 = matspace(K[1 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 ; 0 0 1 0 0 0 0 ; 0 0 0 1 0 0 0 ; 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 0 ; 0 0 0 0 0 1 -1])
 
                     push!(gens, s1)
                     push!(gens, s2)
@@ -1075,6 +1505,30 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s6)
                     push!(gens, s7)
                     push!(gens, s8)
+
+                elseif Cmodel == :CHEVIE
+                    K = QQ
+                    matspace = matrix_space(K, 8, 8)
+                    gens = elem_type(matspace)[]
+
+                    s1 = matspace(K[-1 0 1 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s2 = matspace(K[1 0 0 0 0 0 0 0 ; 0 -1 0 1 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s3 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 1 0 -1 1 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s4 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 1 1 -1 1 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s5 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 1 -1 1 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s6 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 1 -1 1 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 0 1])
+                    s7 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 1 -1 1 ; 0 0 0 0 0 0 0 1])
+                    s8 = matspace(K[1 0 0 0 0 0 0 0 ; 0 1 0 0 0 0 0 0 ; 0 0 1 0 0 0 0 0 ; 0 0 0 1 0 0 0 0 ; 0 0 0 0 1 0 0 0 ; 0 0 0 0 0 1 0 0 ; 0 0 0 0 0 0 1 0 ; 0 0 0 0 0 0 1 -1])
+
+                    push!(gens, s1)
+                    push!(gens, s2)
+                    push!(gens, s3)
+                    push!(gens, s4)
+                    push!(gens, s5)
+                    push!(gens, s6)
+                    push!(gens, s7)
+                    push!(gens, s8)
+
                 end
             
             end
@@ -1082,7 +1536,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
         else
             # The infinite series
-            
+
             (m,p,n) = t
 
             # Symmetric group case needs special care
