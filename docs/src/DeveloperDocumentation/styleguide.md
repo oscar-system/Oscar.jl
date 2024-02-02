@@ -60,7 +60,7 @@ Here is a summary of the naming convention followed in OSCAR:
   Julia functions, e.g. `is_one` as alias for `isone`.
 - A function returning the number of some things should be named `number_of_things`.
   For some very common things, like the number of generators, we additionally
-  provide an alias `ngens` for `number_of_generators`. These aliases should be
+  provide a shorter alias, e.g. `ngens` for `number_of_generators`. These aliases should be
   short (< 15 chararacters) and without underscores, and one should only use
   them inside of functions, not in the user interface and documentation.
 - For generic concepts choose generic names, based on general algebraic
