@@ -91,8 +91,8 @@ conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
 complement_classes
-hall_subgroups
-maximal_subgroups(G::GAPGroup)
+hall_subgroup_classes
+maximal_subgroup_classes(G::GAPGroup)
 subgroup_classes(G::GAPGroup)
 ```
 

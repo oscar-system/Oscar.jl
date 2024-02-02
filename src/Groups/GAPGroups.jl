@@ -789,7 +789,7 @@ function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: Int
 end
 
 """
-    maximal_subgroups(G::Group)
+    maximal_subgroup_classes(G::Group)
 
 Return the vector of all conjugacy classes of maximal subgroups of G.
 
@@ -797,13 +797,13 @@ Return the vector of all conjugacy classes of maximal subgroups of G.
 ```jldoctest
 julia> G = symmetric_group(3);
 
-julia> maximal_subgroups(G)
+julia> maximal_subgroup_classes(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
 ```
 """
-@gapattribute function maximal_subgroups(G::GAPGroup)
+@gapattribute function maximal_subgroup_classes(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
   T = typeof(G)
   LL = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
@@ -811,7 +811,7 @@ julia> maximal_subgroups(G)
 end
 
 """
-    low_index_subgroups(G::GAPGroup, n::Int)
+    low_index_subgroup_classes(G::GAPGroup, n::Int)
 
 Return a vector of conjugacy classes of subgroups of index at most `n` in `G`.
 
@@ -819,14 +819,14 @@ Return a vector of conjugacy classes of subgroups of index at most `n` in `G`.
 ```jldoctest
 julia> G = symmetric_group(5);
 
-julia> low_index_subgroups(G, 5)
+julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in Sym(5)
  Conjugacy class of Alt(5) in Sym(5)
  Conjugacy class of permutation group in Sym(5)
 ```
 """
-function low_index_subgroups(G::GAPGroup, n::Int)
+function low_index_subgroup_classes(G::GAPGroup, n::Int)
   @req (n > 0) "index must be positive"
   ll = GAP.Globals.LowIndexSubgroups(G.X, n)::GapObj
   return [conjugacy_class(G, H) for H in _as_subgroups(G, ll)]
@@ -1208,7 +1208,7 @@ function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
 end
 
 """
-    hall_subgroups(G::Group, P::AbstractVector{<:IntegerUnion})
+    hall_subgroup_classes(G::Group, P::AbstractVector{<:IntegerUnion})
 
 Return a vector that contains the conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
@@ -1223,7 +1223,7 @@ up to conjugacy.
 ```jldoctest
 julia> g = dihedral_group(30);
 
-julia> h = hall_subgroups(g, [2, 3]);
+julia> h = hall_subgroup_classes(g, [2, 3]);
 
 julia> (length(h), order(representative(h[1])))
 (1, 6)
@@ -1231,16 +1231,16 @@ julia> (length(h), order(representative(h[1])))
 julia> g = GL(3, 2)
 GL(3,2)
 
-julia> h = hall_subgroups(g, [2, 3]);
+julia> h = hall_subgroup_classes(g, [2, 3]);
 
 julia> (length(h), order(representative(h[1])))
 (2, 24)
 
-julia> h = hall_subgroups(g, [2, 7]); length(h)
+julia> h = hall_subgroup_classes(g, [2, 7]); length(h)
 0
 ```
 """
-function hall_subgroups(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_classes(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P, recursive = true))::GapObj

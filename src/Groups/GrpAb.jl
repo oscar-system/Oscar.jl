@@ -134,7 +134,7 @@ function subgroup_classes(G::FinGenAbGroup; order::T = ZZRingElem(-1)) where T <
    return [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, order = order)]
 end
 
-function low_index_subgroups(G::FinGenAbGroup, n::Int)
+function low_index_subgroup_classes(G::FinGenAbGroup, n::Int)
    @req (n > 0) "index must be positive"
    res = [conjugacy_class(G, G)]
    ord = order(G)
@@ -146,7 +146,7 @@ function low_index_subgroups(G::FinGenAbGroup, n::Int)
    return res
 end
 
-function maximal_subgroups(G::FinGenAbGroup)
+function maximal_subgroup_classes(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    primes = [p for (p, e) in factor(order(G))]
    res = typeof(G)[]
@@ -283,7 +283,7 @@ function sylow_system(G::FinGenAbGroup)
    return result
 end
 
-function hall_subgroups(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_classes(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
    @req is_finite(G) "G is not finite"
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
@@ -309,7 +309,7 @@ function hall_system(G::FinGenAbGroup)
    primes = [p for (p, e) in factor(order(G))]
    result = FinGenAbGroup[]
    for P in subsets(Set(primes))
-     push!(result, representative(hall_subgroups(G, collect(P))[1]))
+     push!(result, representative(hall_subgroup_classes(G, collect(P))[1]))
    end
    return result
 end

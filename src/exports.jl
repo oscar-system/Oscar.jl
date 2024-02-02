@@ -607,7 +607,7 @@ export h_vector
 export halfspace
 export halfspace_matrix_pair
 export hall_subgroup
-export hall_subgroups
+export hall_subgroup_classes
 export hall_system, has_hall_system, set_hall_system
 export has_du_val_singularities
 export has_edge
@@ -942,7 +942,7 @@ export load_mps
 export localization
 export localized_ring
 export loops
-export low_index_subgroups
+export low_index_subgroup_classes
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
@@ -980,7 +980,7 @@ export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
-export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
+export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export metadata
 export milnor_algebra
 export milnor_number

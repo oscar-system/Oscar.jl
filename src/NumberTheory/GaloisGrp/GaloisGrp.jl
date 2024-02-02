@@ -894,7 +894,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
-  l = map(representative, low_index_subgroups(H, 2*degree(G)^2))
+  l = map(representative, low_index_subgroup_classes(H, 2*degree(G)^2))
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
@@ -1227,7 +1227,7 @@ mutable struct DescentEnv
   #a more select choice of group....
 
   function DescentEnv(G::PermGroup, f::GroupFilter = GroupFilter())
-    s = map(representative, maximal_subgroups(G))
+    s = map(representative, maximal_subgroup_classes(G))
     r = new()
     r.G = G
     @vprint :GaloisGroup 1 "starting with $(length(s)) maximal subgroup classes\n"

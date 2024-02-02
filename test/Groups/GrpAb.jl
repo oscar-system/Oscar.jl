@@ -114,12 +114,12 @@ end
       @test length(S1) == length(S2)
     end
     for n in 1:4
-      S1 = low_index_subgroups(G1, n)
-      S2 = low_index_subgroups(G2, n)
+      S1 = low_index_subgroup_classes(G1, n)
+      S2 = low_index_subgroup_classes(G2, n)
       @test length(S1) == length(S2)
     end
-    S1 = maximal_subgroups(G1)
-    S2 = maximal_subgroups(G2)
+    S1 = maximal_subgroup_classes(G1)
+    S2 = maximal_subgroup_classes(G2)
     @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
 
     # operations
@@ -138,8 +138,8 @@ end
 
     # operations depending on sets of primes
     for P in subsets(Set(primes))
-      @test [images(iso, representative(C))[1] for C in hall_subgroups(G1, collect(P))] ==
-            map(representative, hall_subgroups(G2, collect(P)))
+      @test [images(iso, representative(C))[1] for C in hall_subgroup_classes(G1, collect(P))] ==
+            map(representative, hall_subgroup_classes(G2, collect(P)))
     end
     @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
           sort!([order(S) for S in hall_system(G2)])

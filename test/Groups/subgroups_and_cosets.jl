@@ -44,9 +44,9 @@
    for H in L1
       @test H in K
    end
-   @test length(maximal_subgroups(G)) == 3
-   @test sum(map(length, maximal_subgroups(G))) == 8
-   @test any(C -> A in C, maximal_subgroups(G))
+   @test length(maximal_subgroup_classes(G)) == 3
+   @test sum(map(length, maximal_subgroup_classes(G))) == 8
+   @test any(C -> A in C, maximal_subgroup_classes(G))
    @test maximal_normal_subgroups(G)==[A]
    H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]
    @test minimal_normal_subgroups(G)==[H]
@@ -328,15 +328,15 @@ end
    end
    L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
    @testset for l in L
-      h = hall_subgroups(G, l)
+      h = hall_subgroup_classes(G, l)
       @test length(h) == 1
       @test representative(h[1]) == sub(G,[g^(210÷lcm(l))])[1]
    end
-   h = hall_subgroups(G, Int64[])
+   h = hall_subgroup_classes(G, Int64[])
    @test length(h) == 1
    @test representative(h[1]) == sub(G, [one(G)])[1]
-   @test length(hall_subgroups(symmetric_group(5), [2, 5])) == 0
-   @test_throws ArgumentError hall_subgroups(G, [4])
+   @test length(hall_subgroup_classes(symmetric_group(5), [2, 5])) == 0
+   @test_throws ArgumentError hall_subgroup_classes(G, [4])
 
    L = sylow_system(G)
    Lo = [order(l) for l in L]
@@ -389,7 +389,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersect(collect(Iterators.flatten(maximal_subgroups(G))))[1]
+   @test frattini_subgroup(G)[1]==intersect(collect(Iterators.flatten(maximal_subgroup_classes(G))))[1]
    @test frattini_subgroup(G)==center(G)
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
