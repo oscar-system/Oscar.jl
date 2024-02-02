@@ -460,7 +460,7 @@ Homogeneous module homomorphism)
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
   if is_zero(codomain(h))
-    return domain(f), identity_map(domain(f))
+    return domain(h), identity_map(domain(h))
   end
   is_graded(h) && return _graded_kernel(h)
   return _simple_kernel(h)
@@ -478,7 +478,8 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   g = images_of_generators(h)
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v); init=zero(F)) for v in gens(M)]
+  v = first(gens(M))
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
   return sub(F, v)
 end
 
@@ -493,13 +494,33 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
-  g = images_of_generators(h)
+  g = [repres(v) for v in images_of_generators(h)]
   g = vcat(g, relations(M))
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
   r = ngens(F)
   v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in gens(M)]
   return sub(F, v)
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
+  @show phi
+  @show iszero(phi)
+  psi = compose(g, phi)
+  @show images_of_generators(psi)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
 end
 
 function _graded_kernel(h::FreeModuleHom)

@@ -141,7 +141,7 @@ function _presentation_graded(SQ::SubquoModule)
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
-  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check = true, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
   return M
 end
@@ -179,7 +179,7 @@ function _presentation_simple(SQ::SubquoModule)
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
-  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check = false, seed = -2)
+  M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check = true, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
   return M
 end

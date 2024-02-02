@@ -307,15 +307,29 @@ Return `true` if `a` is well-defined, and `false` otherwise.
 hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, V, h; check)
 hom(M::SubquoModule, N::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom(M, N, A, h; check)
 
-function is_welldefined(H::ModuleFPHom)
-  if H isa Union{FreeModuleHom,FreeModuleHom_dec}
-    return true
-  end
+function is_welldefined(H::Union{FreeModuleHom,FreeModuleHom_dec})
+  return true
+end
+
+function is_welldefined(H::SubQuoHom)
   M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
+  
   C = present_as_cokernel(M).quo
   n = ngens(C)
   m = rank(C.F)
-  ImH = map(x -> H(x), gens(M))
+  ImH = images_of_generators(H)
   for i=1:n
     if !iszero(sum([C[i][j]*ImH[j] for j=1:m]; init=zero(codomain(H))))
       return false
