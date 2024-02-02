@@ -562,6 +562,15 @@ function Polymake._fieldelem_to_float(e::EmbeddedNumFieldElem)
    return Float64(real(embedding(parent(e))(data(e), 32)))
 end
 
+function Polymake._fieldelem_to_float(e::QQBarFieldElem)
+   return Float64(ArbField(64)(e))
+end
+
+function Polymake._fieldelem_from_rational(::QQBarField, r::Rational{BigInt})
+  return QQBarFieldElem(QQFieldElem(r))
+end
+
+
 # convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
 
 function _polyhedron_qe_to_on(x::Polymake.BigObject, f::Field)
