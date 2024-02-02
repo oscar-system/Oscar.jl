@@ -80,7 +80,7 @@ end
             FPGroup(small_group(2, 1))
             GL(2,2)
            ]
-    H = first(subgroups(G))
+    H = rand(rand(subgroup_classes(G)))
     @test parent(one(H)) === H
     @test parent(G(one(H))) === G
   end
