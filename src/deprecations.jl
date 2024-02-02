@@ -85,4 +85,6 @@ end
 @deprecate complement_class_reps(G::T, N::T) where T <: GAPGroup map(representative, complement_classes(G, N))
 
 @deprecate maximal_subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, maximal_subgroups(G))
+@deprecate subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, subgroup_classes(G))
 @deprecate conjugacy_classes_maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} maximal_subgroups(G)
+@deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)

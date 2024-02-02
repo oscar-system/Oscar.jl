@@ -2374,7 +2374,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   if order(G) % degree(Q) != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), degree(Q)))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), degree(Q))))
   res = []
   for U = s
     phi = right_coset_action(G, U)
@@ -2413,7 +2413,7 @@ function galois_quotient(C::GaloisCtx, d::Int)
   if order(G) % d != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), d))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), d)))
   res = []
   for U = s
     phi = right_coset_action(G, U)

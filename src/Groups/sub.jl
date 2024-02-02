@@ -188,38 +188,6 @@ julia> normal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
 
 """
-    subgroups(G::Group)
-
-Return all subgroups of `G`.
-
-# Examples
-```jldoctest
-julia> subgroups(symmetric_group(3))
-6-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
-
-julia> subgroups(quaternion_group(8))
-6-element Vector{PcGroup}:
- Pc group of order 1
- Pc group of order 2
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
- Pc group of order 8
-```
-"""
-function subgroups(G::GAPGroup)
-  # TODO: this is super inefficient. Slightly better would be to return an iterator
-  # which iterates over the (elements of) the conjugacy classes of subgroups
-  return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
-end
-
-"""
     maximal_normal_subgroups(G::Group)
 
 Return all maximal normal subgroups of `G`, i.e., those proper

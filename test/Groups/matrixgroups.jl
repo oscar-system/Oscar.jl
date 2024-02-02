@@ -547,7 +547,7 @@ end
 
    G = GL(2,3)
    @test length(conjugacy_classes(G))==8
-   @test length(@inferred conjugacy_classes_subgroups(G))==16
+   @test length(@inferred subgroup_classes(G))==16
    @test length(@inferred maximal_subgroups(G))==3
 end
 

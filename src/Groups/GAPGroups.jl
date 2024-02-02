@@ -758,58 +758,34 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    conjugacy_classes_subgroups(G::Group)
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
 
-Return the vector of all conjugacy classes of subgroups of G.
+Return the vector of all conjugacy classes of subgroups of G or,
+if `order` is positive, the classes of subgroups of this order.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
 Sym(3)
 
-julia> conjugacy_classes_subgroups(G)
+julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
+
+julia> subgroup_classes(G, order = ZZRingElem(2))
+4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
 ```
 """
-function conjugacy_classes_subgroups(G::GAPGroup)
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
   L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(G.X))
-  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
-end
-
-"""
-    subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
-
-Return a vector of representatives (under conjugation) for all subgroups of `G`.
-If given, only subgroups of a certain order are returned.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(3);
-
-julia> subgroup_reps(G)
-4-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
-
-julia> subgroup_reps(G, order = ZZRingElem(2))
-1-element Vector{PermGroup}:
- Permutation group of degree 3 and order 2
-
-```
-"""
-function subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
-  C = GAPWrap.ConjugacyClassesSubgroups(G.X)
-  C = map(GAPWrap.Representative, C)
   if order != -1
-    C = [x for x = C if GAPWrap.Order(x) == order]
+    L = [x for x in L if GAPWrap.Order(GAPWrap.Representative(x)) == order]
   end
-  return [Oscar._as_subgroup(G, x)[1] for x = C]
+  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
 end
 
 """

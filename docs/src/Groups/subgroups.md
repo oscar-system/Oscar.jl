@@ -43,16 +43,13 @@ intersect(::T, V::T...) where T<:GAPGroup
 The following functions return a vector of subgroups.
 
 ```@docs
-subgroups(G::GAPGroup)
 normal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
-hall_subgroups
 hall_system
-complement_classes
 complement_system
 chief_series
 composition_series
@@ -93,8 +90,10 @@ number_of_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
-conjugacy_classes_subgroups(G::GAPGroup)
+complement_classes
+hall_subgroups
 maximal_subgroups(G::GAPGroup)
+subgroup_classes(G::GAPGroup)
 ```
 
 

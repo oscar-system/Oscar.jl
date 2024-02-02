@@ -83,8 +83,8 @@ end
     end
 
     # conjugacy classes of subgroups
-    CC = conjugacy_classes_subgroups(G1)
-    @test length(CC) == length(conjugacy_classes_subgroups(G2))
+    CC = subgroup_classes(G1)
+    @test length(CC) == length(subgroup_classes(G2))
     @test all(C -> length(C) == 1, CC)
     @test rand(CC[1]) == representative(CC[1])
     @test acting_group(CC[1]) == G1
@@ -105,12 +105,12 @@ end
     for H in C
       @test H == representative(C)
     end
-    S1 = subgroup_reps(G1)
-    S2 = subgroup_reps(G2)
-    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    S1 = map(representative, subgroup_classes(G1))
+    S2 = map(representative, subgroup_classes(G2))
+    @test sort!([order(x) for x in S1]) == sort!([order(x) for x in S2])
     for n in 2:4
-      S1 = subgroup_reps(G1, order = ZZ(n))
-      S2 = subgroup_reps(G2, order = ZZ(n))
+      S1 = subgroup_classes(G1, order = n)
+      S2 = subgroup_classes(G2, order = n)
       @test length(S1) == length(S2)
     end
     for n in 1:4

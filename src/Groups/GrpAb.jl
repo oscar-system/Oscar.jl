@@ -125,17 +125,13 @@ end
 
 conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = FinGenAbGroupConjClass(G, H)
 
-function conjugacy_classes_subgroups(G::FinGenAbGroup)
+function subgroup_classes(G::FinGenAbGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
    @req is_finite(G) "G is not finite"
-   return [conjugacy_class(G, H) for (H, mp) in subgroups(G)]
-end
-
-function subgroup_reps(G::FinGenAbGroup; order::ZZRingElem = ZZRingElem(-1))
    if order > 0 && mod(Hecke.order(G), order) != 0
      # `subgroups` would throw an error
-     return FinGenAbGroup[]
+     return FinGenAbGroupConjClass{FinGenAbGroup, FinGenAbGroup}[]
    end
-   return [H for (H, mp) in subgroups(G, order = order)]
+   return [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, order = order)]
 end
 
 function low_index_subgroups(G::FinGenAbGroup, n::Int)
@@ -144,7 +140,7 @@ function low_index_subgroups(G::FinGenAbGroup, n::Int)
    ord = order(G)
    for i in 2:n
      if mod(ord, i) == 0
-       append!(res, [conjugacy_class(G, H) for (H, mp) in subgroups(G, index = i)])
+       append!(res, [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, index = i)])
      end
    end
    return res
@@ -155,7 +151,7 @@ function maximal_subgroups(G::FinGenAbGroup)
    primes = [p for (p, e) in factor(order(G))]
    res = typeof(G)[]
    for p in primes
-     append!(res, [H for (H, mp) in subgroups(G, index = p)])
+     append!(res, [H for (H, mp) in Hecke.subgroups(G, index = p)])
    end
    return [conjugacy_class(G, H) for H in res]
 end

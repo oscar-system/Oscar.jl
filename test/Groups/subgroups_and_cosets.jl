@@ -35,7 +35,7 @@
 
    G = symmetric_group(4)
    A = alternating_group(4)
-   L = subgroups(G)
+   L = collect(Iterators.flatten(subgroup_classes(G)))
    @test length(L)==30
    @test L[1] isa PermGroup
    L1 = [x for x in L if is_normal_subgroup(x, G)]

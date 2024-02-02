@@ -1392,7 +1392,7 @@ export structure_sheaf
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
-export subgroup_reps
+export subgroup_classes
 export subquo_type
 export subquotient
 export subscheme
