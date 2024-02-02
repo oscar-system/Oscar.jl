@@ -2190,3 +2190,5 @@ function is_obviously_abelian(G::FPGroup)
     end
     return true
 end
+
+describe(G::MultTableGroup) = describe(PermGroup(G))
