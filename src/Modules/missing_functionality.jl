@@ -42,7 +42,7 @@ function coordinates(f::MPolyQuoRingElem, I::MPolyQuoIdeal)
   J = modulus(Q)
   R = base_ring(Q)
   K = ideal(R, vcat(lift.(gens(I)), gens(J)))
-  return Q.(coordinates(lift(f), K)[1, 1:ngens(I)])
+  return Q.(coordinates(lift(f), K)[1:1, 1:ngens(I)])
 end
 
 function lift(f::MPolyRingElem, I::MPolyIdeal, o::MonomialOrdering)

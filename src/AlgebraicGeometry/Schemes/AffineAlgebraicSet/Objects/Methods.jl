@@ -14,7 +14,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineAlgebraicSet{<:Field,<:M
   else
     I = fat_ideal(X)
   end
-  print(io, Dedent(), "defined by ", I)
+  print(io, Dedent(), "defined by ", Lowercase(), I)
 end
 
 # As a set, corresponding the fat ideal or the radical does not change anything.

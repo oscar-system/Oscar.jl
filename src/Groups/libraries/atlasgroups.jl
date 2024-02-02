@@ -267,29 +267,29 @@ end
 
 
 """
-    number_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
+    number_of_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
 
 Return the number of groups from the Atlas of Group Representations
 whose isomorphism type is given by `name` and have the type `T`.
 
 # Examples
 ```jldoctest
-julia> number_atlas_groups("A5")
+julia> number_of_atlas_groups("A5")
 18
 
-julia> number_atlas_groups(PermGroup, "A5")
+julia> number_of_atlas_groups(PermGroup, "A5")
 3
 
-julia> number_atlas_groups(MatrixGroup, "A5")
+julia> number_of_atlas_groups(MatrixGroup, "A5")
 15
 
 ```
 """
-function number_atlas_groups(name::String)
+function number_of_atlas_groups(name::String)
   return length(GAP.Globals.AllAtlasGeneratingSetInfos(GapObj(name))::GapObj)
 end
 
-function number_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
+function number_of_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
   if T === PermGroup
     return length(GAP.Globals.AllAtlasGeneratingSetInfos(
                     GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj)

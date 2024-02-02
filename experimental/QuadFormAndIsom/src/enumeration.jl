@@ -346,7 +346,7 @@ end
 function _ideals_of_norm(E::Field, d::ZZRingElem)
   OE = maximal_order(E)
   isone(d) && return Hecke.fractional_ideal_type(OE)[fractional_ideal(OE, one(E))]
-  @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
+  @hassert :ZZLatWithIsom 1 E isa Hecke.RelSimpleNumField
   K = base_field(E)
   OK = maximal_order(K)
   DE = different(OE)
@@ -382,7 +382,7 @@ end
 # unity.
 
 function _possible_signatures(s1::IntegerUnion, s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
-  @hassert :ZZLatWithIsom 1 E isa Hecke.NfRel
+  @hassert :ZZLatWithIsom 1 E isa Hecke.RelSimpleNumField
   @hassert :ZZLatWithIsom 1 iseven(s2)
   @hassert :ZZLatWithIsom 1 divides(2*(s1+s2), absolute_degree(E))[1]
   l = divexact(s2, 2)

@@ -112,7 +112,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x1, x2
       over rational field
-    by ideal(0)
+    by ideal (0)
 ```
 """
 @attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
@@ -183,12 +183,12 @@ end
 
 # Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative 
 # coefficients for the vectors vᵢ of `degs1` with index i ∈ `non_local_indices`.
-function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int64})
+function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int})
   result = Vector{ZZMatrix}()
   for i in 1:nrows(degs2)
     C = identity_matrix(ZZ, nrows(degs1))[non_local_indices_1,:]
-    S = solve_mixed(transpose(degs1), transpose(degs2[i,:]), C; permit_unbounded=true)  
-    push!(result, S[1, :])
+    S = solve_mixed(transpose(degs1), transpose(degs2[i:i,:]), C; permit_unbounded=true)
+    push!(result, S[1:1, :])
   end
   return result
 end

@@ -156,11 +156,11 @@ function longest_element(W::WeylGroup)
 end
 
 @doc raw"""
-    ngens(W::WeylGroup) -> Int
+    number_of_generators(W::WeylGroup) -> Int
 
 Returns the number of generators of the `W`, i.e. the rank of the underyling root system.
 """
-function ngens(W::WeylGroup)
+function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
 end
 

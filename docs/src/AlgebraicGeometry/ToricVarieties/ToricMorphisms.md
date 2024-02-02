@@ -26,7 +26,7 @@ morphisms are exactly the toric morphisms.
 
 ```@docs
 toric_morphism(domain::NormalToricVarietyType, mapping_matrix::ZZMatrix, codomain::NormalToricVarietyType; check=true)
-toric_morphism(domain::NormalToricVarietyType, grid_morphism::GrpAbFinGenMap, codomain::NormalToricVarietyType; check=true)
+toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbGroupHom, codomain::NormalToricVarietyType; check=true)
 ```
 
 ### Special constructors

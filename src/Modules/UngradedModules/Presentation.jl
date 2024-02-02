@@ -409,10 +409,18 @@ e[2]
 ```
 """
 function prune_with_map(M::ModuleFP)
+  # TODO: take special care of graded modules 
+  # by stripping off the grading and rewrapping it afterwards.
+  N, a, b = _alt_simplify(M)
+  return N, b
+end
+
+function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # The case that can be handled by Singular
 
   # Singular presentation
   pm = presentation(M)
-  krnel = image(pm.maps[1])[1]
+  pres_map = map(pm, 1)
+  krnel = SubquoModule(pm[0], pres_map.(gens(pm[1]))) # Create the image of pres_map without the inclusion map
   s_fmod  = Oscar.singular_module(ambient_free_module(krnel))
   s_mod = Singular.Module(base_ring(s_fmod),
                           [s_fmod(repres(g)) for g in gens(krnel)]...)
@@ -423,8 +431,8 @@ function prune_with_map(M::ModuleFP)
 
   # find which generators were scratched
   img_inds = [findlast(j -> j == i, p) for i in 1:new_rk]
-  @assert all(i -> !isnothing(i), img_inds) "Something went wrong when trying to construct the map."
-  phi2 = pm.maps[2]
+  @assert all(i -> !isnothing(i), img_inds) "something went wrong when trying to construct the map"
+  phi2 = map(pm, 0)
   F2 = domain(phi2)
 
   # convert s_mod_new to Oscar

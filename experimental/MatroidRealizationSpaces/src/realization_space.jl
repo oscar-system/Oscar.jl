@@ -1,6 +1,6 @@
 
 @attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
-  defining_ideal::Union{Ideal,NumFieldOrdIdl}
+  defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
   realization_matrix::Union{MatElem,Nothing}
@@ -13,7 +13,7 @@
   underlying_scheme::AbsSpec{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
-    I::Union{Ideal,NumFieldOrdIdl},
+    I::Union{Ideal,NumFieldOrderIdeal},
     ineqs::Vector{<:RingElem},
     R::Ring,
     mat::Union{MatElem,Nothing},
@@ -394,7 +394,7 @@ function realization_space(
     RS = reduce_realization_space(RS)
   end
 
-  if q != nothing
+  if q != nothing && RS.ambient_ring isa MPolyRing
     I = RS.defining_ideal
     R = RS.ambient_ring
     eqs = Vector{RingElem}()
@@ -506,7 +506,7 @@ One realization is given by
   [0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
 in the multivariate polynomial ring in 1 variable over GF(2)
 within the vanishing set of the ideal
-ideal(x1^2 + x1 + 1)
+Ideal (x1^2 + x1 + 1)
 
 julia> realization(uniform_matroid(3,6), char=5)
 One realization is given by
@@ -820,11 +820,14 @@ function reduce_realization_space(
       normal_Sgens = Vector{RingElem}()
     else
       Sgens_new = phi.(Sgens)
-      normal_Sgens = gens_2_prime_divisors([normal_form(g, Inew) for g in Sgens_new])
+      normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
+      if !(ambR(0) in normal_Sgens)
+        normal_Sgens = gens_2_prime_divisors(Sgens_new)
+      end
     end
   end
 
-  if isone(Inew)
+  if isone(Inew) || ambR(0) in normal_Sgens
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, nothing, MRS.char, MRS.q, MRS.ground_ring)
     set_attribute!(MRS_new, :is_realizable, :false)
     return MRS_new

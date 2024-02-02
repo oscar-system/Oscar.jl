@@ -842,11 +842,11 @@ function gen(M::SubquoModule{T}, i::Int) where T
 end
 
 @doc raw"""
-    ngens(M::SubquoModule)
+    number_of_generators(M::SubquoModule)
 
 Return the number of generators of `M`.
 """
-ngens(M::SubquoModule) = ngens(M.sub)
+number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 @doc raw"""
     base_ring(M::SubquoModule)
@@ -897,16 +897,6 @@ false
 """
 function is_zero(M::SubquoModule)
   return all(iszero, gens(M))
-end
-
-@doc raw"""
-    getindex(F::SubquoModule, i::Int)
-
-Return the `i`th generator of `F`.
-"""
-function getindex(F::SubquoModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 function iterate(F::ModuleGens, i::Int = 1)

@@ -9,7 +9,7 @@
     @test degree(A) == n
 
     @test length(moved_points(G)) == n
-    nmp = number_moved_points(G)
+    nmp = number_of_moved_points(G)
     @test nmp == n
     @test nmp isa Int
 

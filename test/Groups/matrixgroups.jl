@@ -97,7 +97,7 @@ end
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
       @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == matrix(one(G))
-      if F isa AnticNumberField
+      if F isa AbsSimpleNumField
          flag, n = Hecke.is_cyclotomic_type(F)
          @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
       end

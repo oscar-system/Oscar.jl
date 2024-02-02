@@ -56,10 +56,10 @@ complete_bipartite_graph(n::Int64, m::Int64)
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+number_of_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 shortest_path_dijkstra
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}

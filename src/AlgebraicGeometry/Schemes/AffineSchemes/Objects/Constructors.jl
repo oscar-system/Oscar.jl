@@ -23,7 +23,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x)
+    by ideal (x)
 ```
 """
 Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
@@ -49,7 +49,7 @@ Spectrum
   of localization
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    at complement of prime ideal(x)
+    at complement of prime ideal (x)
 ```
 """
 Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(localization(R, U)[1])
@@ -77,8 +77,8 @@ Spectrum
     of quotient
       of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal(x)
-    at complement of prime ideal(y)
+      by ideal (x)
+    at complement of prime ideal (y)
 ```
 """
 Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, I, U))
@@ -108,14 +108,14 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x)
+    by ideal (x)
 
 julia> Y = Spec(X)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x)
+    by ideal (x)
 ```
 """
 Spec(X::Spec) = Spec(OO(X))
@@ -207,7 +207,7 @@ Spectrum
     of quotient
       of multivariate polynomial ring in 5 variables x1, x2, x3, x4, x5
         over rational field
-      by ideal(0)
+      by ideal (0)
     at products of (1)
 
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
@@ -219,7 +219,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x)
+    by ideal (x)
 
 julia> Oscar.standard_spec(X)
 Spectrum
@@ -227,7 +227,7 @@ Spectrum
     of quotient
       of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal(x)
+      by ideal (x)
     at products of (1)
 
 julia> I = ideal(R, [x]);
@@ -239,7 +239,7 @@ Spectrum
   of localization
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    at complement of prime ideal(x)
+    at complement of prime ideal (x)
 
 julia> Oscar.standard_spec(X)
 Spectrum
@@ -247,8 +247,8 @@ Spectrum
     of quotient
       of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal(0)
-    at complement of prime ideal(x)
+      by ideal (0)
+    at complement of prime ideal (x)
 ```
 """
 function standard_spec(X::AbsSpec)
@@ -307,14 +307,14 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> subscheme(X,[x1,x2])
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1, x2)
+    by ideal (x1, x2)
 ```
 """
 subscheme(X::AbsSpec, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
@@ -353,7 +353,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 ```
 """
 function subscheme(X::AbsSpec, I::Ideal)
@@ -582,21 +582,21 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> Y2 = subscheme(X,[x2])
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x2)
+    by ideal (x2)
 
 julia> intersect(Y1, Y2)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1, x2)
+    by ideal (x1, x2)
 ```
 """
 function Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
@@ -765,14 +765,14 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 
 julia> closure(H, X)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1)
+    by ideal (x1)
 ```
 """
 function closure(X::AbsSpec, Y::AbsSpec, check= true)
@@ -784,7 +784,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return X
 end
 
@@ -793,7 +793,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return Y
 end
 
@@ -802,7 +802,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   return Y
 end
 
@@ -812,7 +812,7 @@ function closure(
     Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   return Spec(base_ring(I),I)
 end
@@ -822,7 +822,7 @@ function closure(
     Y::AbsSpec{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
   return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
@@ -834,7 +834,7 @@ function closure(
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                     <:MPolyPowersOfElement}}
-  @check issubset(X, Y) "the first argument is not a subset of the second"
+  @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   #is_closed_embedding(X, Y) && return X
   W, _ = localization(inverted_set(OO(X))*inverted_set(OO(Y)))
   I = ideal(W, W.(gens(modulus(OO(X)))))

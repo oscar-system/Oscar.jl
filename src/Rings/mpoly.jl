@@ -20,12 +20,9 @@ function _variables_for_singular(n::Int)
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-function Base.getindex(R::MPolyRing, i::Int)
-  i == 0 && return zero(R)
-  return gen(R, i)
+function number_of_generators(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem}
+  return number_of_generators(base_ring(F))
 end
-
-ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
 
 function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
   return F(gen(base_ring(F)))
@@ -37,11 +34,6 @@ end
 
 function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
   return map(F, gens(base_ring(F)))
-end
-
-function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 ######################################################################
@@ -433,7 +425,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -646,12 +638,6 @@ Fields:
     end
     return r
   end
-end
-
-@enable_all_show_via_expressify MPolyIdeal
-
-function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
 end
 
 function ideal(g::Vector{Any})

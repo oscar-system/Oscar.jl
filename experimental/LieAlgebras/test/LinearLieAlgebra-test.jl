@@ -51,21 +51,21 @@
     @testset "gl_4(CF(4))" begin
       L = general_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
     @testset "sl_4(CF(4))" begin
       L = special_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
     @testset "so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
-        L, LinearLieAlgebra{nf_elem}, LinearLieAlgebraElem{nf_elem}
+        L, LinearLieAlgebra{AbsSimpleNumFieldElem}, LinearLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
   end

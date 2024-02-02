@@ -5,17 +5,29 @@ end
 
 function homology(hc::AbsHyperComplex, i::Int)
   dim(hc) == 1 || error("dimension of the hypercomplex must be one")
-  return homology(underlying_complex(hc), 1, (i,))
+  return homology(hc, 1, (i,))
 end
 
 function kernel(hc::AbsHyperComplex, i::Int)
   dim(hc) == 1 || error("dimension of the hypercomplex must be one")
-  return kernel(underlying_complex(hc), 1, (i,))
+  return kernel(hc, 1, (i,))
 end
 
 function boundary(hc::AbsHyperComplex, i::Int)
   dim(hc) == 1 || error("dimension of the hypercomplex must be one")
-  return boundary(underlying_complex(hc), 1, (i,))
+  return boundary(hc, 1, (i,))
+end
+
+function homology(hc::AbsHyperComplex, p::Int, i::Tuple)
+  return homology(underlying_complex(hc), p, i)
+end
+
+function kernel(hc::AbsHyperComplex, p::Int, i::Tuple)
+  return kernel(underlying_complex(hc), p, i)
+end
+
+function boundary(hc::AbsHyperComplex, p::Int, i::Tuple)
+  return boundary(underlying_complex(hc), p, i)
 end
 
 function tor(M1::ModuleFP{T}, M2::ModuleFP{T}, i::Int) where {U<:MPolyComplementOfPrimeIdeal, T<:MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, U}}

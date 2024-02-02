@@ -352,13 +352,13 @@ julia> range(D)
 3:5
 ```
 """
-function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
+function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
   chain_range = Hecke.map_range(C)
-  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  hom_modules = Tuple{ModuleFP, Map}[hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, Tuple{ModuleFP, Map}[hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
