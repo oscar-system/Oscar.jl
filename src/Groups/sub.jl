@@ -239,14 +239,11 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 
 # Examples
 ```jldoctest
-julia> subgroups(symmetric_group(3))
-6-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
+julia> characteristic_subgroups(symmetric_group(3))
+3-element Vector{PermGroup}:
+ Sym(3)
  Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
+ Permutation group of degree 3 and order 1
 
 julia> characteristic_subgroups(quaternion_group(8))
 3-element Vector{PcGroup}:

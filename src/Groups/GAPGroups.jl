@@ -776,7 +776,7 @@ julia> subgroup_classes(G)
  Conjugacy class of permutation group in G
 
 julia> subgroup_classes(G, order = ZZRingElem(2))
-4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
 ```
 """
@@ -821,9 +821,9 @@ julia> G = symmetric_group(5);
 
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of Sym(5) in Sym(5)
- Conjugacy class of Alt(5) in Sym(5)
- Conjugacy class of permutation group in Sym(5)
+ Conjugacy class of Sym(5) in G
+ Conjugacy class of Alt(5) in G
+ Conjugacy class of permutation group in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
@@ -1286,7 +1286,7 @@ julia> G = symmetric_group(3);
 
 julia> complement_classes(G, derived_subgroup(G)[1])
 1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
 
 julia> G = dihedral_group(8)
 Pc group of order 8
