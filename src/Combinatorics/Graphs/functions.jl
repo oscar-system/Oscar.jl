@@ -1082,62 +1082,61 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
   end
 end
 
-function graph_from_edges(::Type{T}, edges::Vector{Edge}, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}}
-  edges_as_vector_int = [[src(e),dst(e)] for e in edges]
-  verts = reduce(union, edges_as_vector_int) 
-  verts = union(verts, additional_vertices)
+function graph_from_edges(::Type{T},
+  edges::Vector{Edge},
+  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} 
 
-  n = maximum(verts)
-
-  g = Graph{T}(n)
+  n = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  
+  g = Graph{T}(max(n,n_vertices))
   for e in edges
     add_edge!(g, src(e), dst(e))
   end
-  for v in additional_vertices
-    add_vertex!(g)
-  end
 
-  vertices_to_remove = setdiff(collect(1:nv(g)),reduce(union, verts))
-  while length(vertices_to_remove)>0
-    rem_vertex!(g, vertices_to_remove[1])
-    vertices_to_remove = vertices_to_remove .- 1
-    popfirst!(vertices_to_remove)
-  end
   return g
 end
 
-graph_from_edges(::Type{T}, edges::EdgeIterator, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), additional_vertices)
+graph_from_edges(::Type{T},
+edges::EdgeIterator,
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
 
 @doc raw"""
   graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
 
-Creates a graph from a list of edges.
+Creates a graph from a vector of edges.
+
+# Examples 2
+```jldoctest
+julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
+
+```
+
+If the 
 
 ```
 # Examples 1
 ```jldoctest
-julia> G = graph_from_edges(Undirected, [[5,6],[7,8],[11,12]],[24]);
-
-julia> collect(edges(G))
-3-element Vector{Edge}:
- Edge(2, 1)
- Edge(4, 3)
- Edge(6, 5)
+julia> G = graph_from_edges(Undirected,[[1,3]])
+Undirected graph with 3 nodes and the following edges:
+(3, 1))
 
 ```
-The Function will return a isomorphic graph with vertex labels in the range 1 to n, where n is the minimum number of vertices necessary to represent the graph.
-# Examples 2
-```jldoctest
-julia> G = graph_from_edges(Undirected, [[11,3],[3,5],[4,5],[2,4],[2,3]]);
 
-julia> collect(edges(G))
-5-element Vector{Edge}:
- Edge(2, 1)
- Edge(3, 1)
- Edge(4, 2)
- Edge(4, 3)
- Edge(5, 2)
+# Examples 3
+```jldoctest
+julia> G = graph_from_edges(Undirected,[[1,2]], 4)
+Undirected graph with 4 nodes and the following edges:
+(4, 1))
 
 ```
 """
-graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, additional_vertices::Vector{Int}=Int[]) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], additional_vertices)
+graph_from_edges(::Type{T},
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
+
+graph_from_edges(
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) = graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
+
