@@ -1341,32 +1341,9 @@ function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where {T <:
 end
 
 
-@doc raw"""
-    tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
-
-Computes the tropical median consensus tree of any number of phylogenetic trees
-given as parameters.
-
-# Examples
-Compute the tropical median consensus of three trees and print one of its
-Newick representations.
-
-```jldoctest
-julia> t1 = phylogenetic_tree(Float64, "((H:30,(C:10,B:10):20):10,G:40);");
-
-julia> t2 = phylogenetic_tree(Float64, "(((H:10,C:10):20,B:30):10,G:40);");
-
-julia> t3 = phylogenetic_tree(Float64, "((H:25,C:25):15,(B:15,G:15):25);");
-
-julia> tc = tropical_median_consensus(t1, t2, t3);
-
-julia> newick(tc)
-"G:40,(B:35,(C:30,H:30):5):5;"
-```
-"""
-function tropical_median_consensus(trees...)
-  return tropical_median_consensus(trees)
-end
+#function tropical_median_consensus(trees...)
+#  return tropical_median_consensus(trees)
+#end
 
 function directed_adjacency(ptree::PhylogeneticTree{T}) where T <: Union{Float64, QQFieldElem}
   udir_tree = adjacency_tree(ptree)
