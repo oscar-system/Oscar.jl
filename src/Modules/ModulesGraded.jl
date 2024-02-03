@@ -1125,7 +1125,7 @@ x*e[1] + (y - z)*e[2]
 """
 function is_homogeneous(el::SubquoModuleElem)
   el.is_reduced && return is_homogeneous(repres(el))
-  return is_homogeneous(repres(simplify!(el)))
+  return is_homogeneous(repres(simplify(el)))
 
   # The following call checks for homogeneity on the way and stores the degree thus determined.
   degree = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
@@ -1209,7 +1209,7 @@ function degree(
     el::SubquoModuleElem{T};
     check::Bool=true
   ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
-  !el.is_reduced && return degree(simplify!(el); check)
+  !el.is_reduced && return degree(simplify(el); check)
   # TODO: Can we always assume the representative to be homogeneous if it is defined???
   return degree(repres(el); check)
 

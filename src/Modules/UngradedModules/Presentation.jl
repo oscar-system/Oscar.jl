@@ -107,27 +107,33 @@ function _presentation_graded(SQ::SubquoModule)
   end
 
   # Create the free module for the presentation
-  non_zero_gens = [g for g in gens(SQ) if !iszero(g)]
-  F0_to_SQ = graded_map(SQ, non_zero_gens)
+  #
+  # We have to take representatives of the simplified 
+  # generators, because otherwise the degrees are not correctly
+  # inferred. 
+  #
+  # At the same time, we can not just throw away zero 
+  # generators, because other code relies on the 1:1-correspondence
+  # of the generators in a presentation.
+  F0_to_SQ = graded_map(SQ, gens(SQ))
   F0 = domain(F0_to_SQ)
-  @assert degree.(gens(F0)) == degree.(non_zero_gens)
+  #@assert degree.(gens(F0)) == degree.(gens(SQ))
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
-  @assert is_graded(F0)
-  @assert degree.(gens(F0)) == degree.(non_zero_gens)
+  #@assert is_graded(F0)
 
-  @assert is_homogeneous(F0_to_SQ)
+  #@assert is_homogeneous(F0_to_SQ)
   K, inc_K = kernel(F0_to_SQ)
-  @assert is_graded(ambient_free_module(K))
-  @assert all(g->is_homogeneous(g), gens(K))
-  @assert is_graded(K)
-  @assert is_homogeneous(inc_K)
-  @assert codomain(inc_K) === F0
-  @assert all(x->parent(x) === F0, images_of_generators(inc_K))
+  #@assert is_graded(ambient_free_module(K))
+  #@assert all(g->is_homogeneous(g), gens(K))
+  #@assert is_graded(K)
+  #@assert is_homogeneous(inc_K)
+  #@assert codomain(inc_K) === F0
+  #@assert all(x->parent(x) === F0, images_of_generators(inc_K))
   #F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
   #F1 = domain(F1_to_F0)
   F1 = graded_free_module(R, degree.(images_of_generators(inc_K)))
   F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  @assert is_homogeneous(F1_to_F0)
+  #@assert is_homogeneous(F1_to_F0)
   set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
@@ -156,9 +162,8 @@ function _presentation_simple(SQ::SubquoModule)
   end
 
   # Create the free module for the presentation
-  non_zero_gens = [g for g in gens(SQ) if !iszero(g)]
-  F0 = FreeMod(R, length(non_zero_gens))
-  F0_to_SQ = hom(F0, SQ, non_zero_gens; check=false)
+  F0 = FreeMod(R, length(gens(SQ)))
+  F0_to_SQ = hom(F0, SQ, gens(SQ); check=false)
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)

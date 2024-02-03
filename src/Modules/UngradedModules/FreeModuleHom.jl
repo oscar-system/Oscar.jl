@@ -480,6 +480,7 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   M = syzygy_module(b)
   v = first(gens(M))
   v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
+  I, inc = sub(F, v)
   return sub(F, v)
 end
 
@@ -494,12 +495,38 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
-  g = [repres(v) for v in images_of_generators(h)]
+  # We have to take the representatives of the reduced elements!
+  # Otherwise we might get wrong degrees.
+  g = [repres(simplify(v)) for v in images_of_generators(h)]
   g = vcat(g, relations(M))
-  b = ModuleGens(g, G, default_ordering(G))
-  M = syzygy_module(b)
+  H = FreeMod(R, length(g))
+  phi = hom(H, G, g)
+  K, inc = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in gens(M)]
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
+  return sub(F, v)
+end
+
+function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+  if is_zero(h)
+    F = domain(h)
+    S = base_ring(F)
+    G = grading_group(S)
+    Z = graded_free_module(S, elem_type(G)[])
+    return Z, hom(Z, F, elem_type(F)[]; check=false)
+  end
+  F = domain(h)
+  M = codomain(h)
+  G = ambient_free_module(M)
+  # We have to take the representatives of the reduced elements!
+  # Otherwise we might get wrong degrees.
+  g = [repres(simplify(v)) for v in images_of_generators(h)]
+  g = vcat(g, relations(M))
+  phi = graded_map(G, g)
+  H = domain(phi)
+  K, inc = kernel(phi)
+  r = ngens(F)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
   return sub(F, v)
 end
 
@@ -523,7 +550,14 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   return iszero(compose(g, phi))
 end
 
-function _graded_kernel(h::FreeModuleHom)
+function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  if is_zero(h)
+    F = domain(h)
+    S = base_ring(F)
+    G = grading_group(S)
+    Z = graded_free_module(S, elem_type(G)[])
+    return Z, hom(Z, F, elem_type(F)[]; check=false)
+  end
   I, inc = _simple_kernel(h)
   @assert is_graded(I)
   @assert is_homogeneous(inc)
