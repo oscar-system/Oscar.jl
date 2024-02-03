@@ -1368,5 +1368,27 @@ function tropical_median_consensus(trees::Tuple{T, Vararg{T}}) where T <: Phylog
   return tropical_median_consensus(collect(trees))
 end
 
+function directed_adjacency(ptree::PhylogeneticTree{T}) where T <: Union{Float64, QQFieldElem}
+  udir_tree = adjacency_tree(ptree)
+  n = nv(udir_tree)
+  # list_edges = collect(edges(udir_tree))
+  dir_tree = Graph{Directed}(n)
+  
+  queue = [1]
+  visited = fill(false, n)
+  visited[1] = true
+  while length(queue) > 0
+    x = popfirst!(queue)
+    for y in neighbors(udir_tree, x)
+      if visited[y] == false
+        add_edge!(dir_tree, x, y)
+        push!(queue, y)
+        visited[y] = true
+      end
+    end
+  end
+  
+  return dir_tree
+end
 
 
