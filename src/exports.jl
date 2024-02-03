@@ -57,6 +57,7 @@ export Edge
 export EmptyScheme
 export FPGroup
 export FPGroupElem
+export flag_pluecker_ideal
 export FreeMod
 export FreeModElem
 export FreeModElem_dec

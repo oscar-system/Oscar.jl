@@ -2003,3 +2003,38 @@ function Base.show(io::IO, I::MPolyIdeal)
     print(io, "Ideal ", _get_generators_string_one_line(I))
   end
 end
+
+
+
+
+sgn(a::Vector{Int},b::Vector{Int},t::Int) = count(z->z>t,a)+count(z->z<t,b)
+    
+
+function flag_pluecker_ideal(dimensions::Vector{Int},n::Int)
+    
+    N = collect(1:n)
+    
+    L = reduce(union,[subsets(N,d) for d in dimensions])
+    
+    L1 = reduce(union,[subsets(N,d-1) for d in dimensions])
+    
+    L2 = reduce(union,[subsets(N,d+1) for d in dimensions])
+    
+    R,x = polynomial_ring(QQ,"x"=>L)
+    
+    xdict = Dict{Vector{Int}, MPolyElem}([L[i] => x[i] for i in 1:length(L)])
+    
+    pairs = [[a,b] for a in L1, b in L2]
+    
+    X = [t for t in pairs if length(t[2])-length(t[1])>=2]
+    
+    T = [[(-1)^(sgn(z[1],z[2],t))*xdict[sort(union(z[1],t))]*xdict[setdiff(z[2],t)] 
+            for t in setdiff(z[2],z[1])] for z in X]
+    
+    genz = [sum(t) for t in T]
+    
+    gg = unique([g for g in genz if !(g == 0)])
+        
+    return ideal(gg)
+    
+end
