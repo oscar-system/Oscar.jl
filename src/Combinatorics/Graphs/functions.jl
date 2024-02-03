@@ -1103,9 +1103,9 @@ n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(
 @doc raw"""
   graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
 
-Creates a graph from a vector of edges.
+Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
 
-# Examples 2
+# Examples 1
 ```jldoctest
 julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
 Undirected graph with 5 nodes and the following edges:
@@ -1113,22 +1113,12 @@ Undirected graph with 5 nodes and the following edges:
 
 ```
 
-If the 
-
 ```
-# Examples 1
+# Examples 2
 ```jldoctest
 julia> G = graph_from_edges(Undirected,[[1,3]])
 Undirected graph with 3 nodes and the following edges:
 (3, 1))
-
-```
-
-# Examples 3
-```jldoctest
-julia> G = graph_from_edges(Undirected,[[1,2]], 4)
-Undirected graph with 4 nodes and the following edges:
-(4, 1))
 
 ```
 """
