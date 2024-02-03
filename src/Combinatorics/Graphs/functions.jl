@@ -1364,10 +1364,9 @@ julia> newick(tc)
 "G:40,(B:35,(C:30,H:30):5):5;"
 ```
 """
-function tropical_median_consensus(trees::Vararg{T}) where T <: PhylogeneticTree
+function tropical_median_consensus(trees::Tuple{T, Vararg{T}}) where T <: PhylogeneticTree
   return tropical_median_consensus(collect(trees))
 end
-
 
 
 
