@@ -2725,7 +2725,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 
@@ -2822,7 +2822,7 @@ julia> TL, _ =  localization(T, UT);
 
 julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]))
 Ring homomorphism
-  from localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  from localization of RQ at complement of maximal ideal
   to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
 defined by
   x -> t
@@ -2832,7 +2832,7 @@ defined by
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 
@@ -2893,7 +2893,7 @@ defined by
 julia> psi = restricted_map(PSI)
 Ring homomorphism
   from multivariate polynomial ring in 1 variable over QQ
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 ```

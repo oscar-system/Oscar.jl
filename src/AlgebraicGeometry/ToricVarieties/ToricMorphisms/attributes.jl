@@ -44,8 +44,8 @@ Normal toric variety
 
 julia> grid_morphism(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
@@ -64,11 +64,11 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
     d = domain(tm)
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
@@ -97,11 +97,11 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
@@ -124,11 +124,11 @@ Normal toric variety
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_class_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
@@ -151,11 +151,11 @@ Normal toric variety
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_picard_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))

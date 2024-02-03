@@ -296,20 +296,20 @@ julia> V =  [x*y, x*z, y*z]
 
 julia> koszul_homology(V, F, 0)
 Subquotient of Submodule with 1 generator
-1 -> e[1]∧e[2]∧e[3]
+1 -> e[1]^e[2]^e[3]
 by Submodule with 3 generators
-1 -> y*z*e[1]∧e[2]∧e[3]
-2 -> -x*z*e[1]∧e[2]∧e[3]
-3 -> x*y*e[1]∧e[2]∧e[3]
+1 -> y*z*e[1]^e[2]^e[3]
+2 -> -x*z*e[1]^e[2]^e[3]
+3 -> x*y*e[1]^e[2]^e[3]
 
 julia> koszul_homology(V, F, 1)
 Subquotient of Submodule with 2 generators
-1 -> y*e[1]∧e[3] \otimes e[1] + z*e[2]∧e[3] \otimes e[1]
-2 -> x*e[1]∧e[2] \otimes e[1] - z*e[2]∧e[3] \otimes e[1]
+1 -> y*e[1]^e[3] \otimes e[1] + z*e[2]^e[3] \otimes e[1]
+2 -> x*e[1]^e[2] \otimes e[1] - z*e[2]^e[3] \otimes e[1]
 by Submodule with 3 generators
-1 -> -x*z*e[1]∧e[2] \otimes e[1] - y*z*e[1]∧e[3] \otimes e[1]
-2 -> x*y*e[1]∧e[2] \otimes e[1] - y*z*e[2]∧e[3] \otimes e[1]
-3 -> x*y*e[1]∧e[3] \otimes e[1] + x*z*e[2]∧e[3] \otimes e[1]
+1 -> -x*z*e[1]^e[2] \otimes e[1] - y*z*e[1]^e[3] \otimes e[1]
+2 -> x*y*e[1]^e[2] \otimes e[1] - y*z*e[2]^e[3] \otimes e[1]
+3 -> x*y*e[1]^e[3] \otimes e[1] + x*z*e[2]^e[3] \otimes e[1]
 
 julia> koszul_homology(V, F, 2)
 Subquotient of Submodule with 1 generator
@@ -327,20 +327,20 @@ julia> F = free_module(R, 1);
 
 julia> koszul_homology(gens(TC), F, 0)
 Subquotient of Submodule with 1 generator
-1 -> e[1]∧e[2]∧e[3]
+1 -> e[1]^e[2]^e[3]
 by Submodule with 3 generators
-1 -> (w*y - x^2)*e[1]∧e[2]∧e[3]
-2 -> (-w*z + x*y)*e[1]∧e[2]∧e[3]
-3 -> (x*z - y^2)*e[1]∧e[2]∧e[3]
+1 -> (w*y - x^2)*e[1]^e[2]^e[3]
+2 -> (-w*z + x*y)*e[1]^e[2]^e[3]
+3 -> (x*z - y^2)*e[1]^e[2]^e[3]
 
 julia> koszul_homology(gens(TC), F, 1)
 Subquotient of Submodule with 2 generators
-1 -> z*e[1]∧e[2] \otimes e[1] + y*e[1]∧e[3] \otimes e[1] + x*e[2]∧e[3] \otimes e[1]
-2 -> y*e[1]∧e[2] \otimes e[1] + x*e[1]∧e[3] \otimes e[1] + w*e[2]∧e[3] \otimes e[1]
+1 -> z*e[1]^e[2] \otimes e[1] + y*e[1]^e[3] \otimes e[1] + x*e[2]^e[3] \otimes e[1]
+2 -> y*e[1]^e[2] \otimes e[1] + x*e[1]^e[3] \otimes e[1] + w*e[2]^e[3] \otimes e[1]
 by Submodule with 3 generators
-1 -> (-w*z + x*y)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[1]∧e[3] \otimes e[1]
-2 -> (x*z - y^2)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[2]∧e[3] \otimes e[1]
-3 -> (x*z - y^2)*e[1]∧e[3] \otimes e[1] + (w*z - x*y)*e[2]∧e[3] \otimes e[1]
+1 -> (-w*z + x*y)*e[1]^e[2] \otimes e[1] + (-w*y + x^2)*e[1]^e[3] \otimes e[1]
+2 -> (x*z - y^2)*e[1]^e[2] \otimes e[1] + (-w*y + x^2)*e[2]^e[3] \otimes e[1]
+3 -> (x*z - y^2)*e[1]^e[3] \otimes e[1] + (w*z - x*y)*e[2]^e[3] \otimes e[1]
 
 julia> koszul_homology(gens(TC), F, 2)
 Subquotient of Submodule with 1 generator

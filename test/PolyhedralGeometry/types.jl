@@ -66,6 +66,30 @@
 
         end
 
+        for op in [+, -]
+          @test op(A, b) isa T
+          @test op(A, b) isa T{U}
+          @test op(A, b) == op(a, b)
+        end
+
+        @test 3 * A isa T
+        @test 3 * A isa T{U}
+        @test 3 * A == 3 * a
+
+        if f != ENF
+          let h = Int
+            Ah = h.(A)
+            @test Ah isa Vector{Int}
+            @test Ah == [1, 2, 3]
+          end
+          
+          let h = ENF
+            Ah = h.(A)
+            @test Ah isa T{elem_type(ENF)}
+            @test Ah == [1, 2, 3]
+          end
+        end
+
       end
     end
 

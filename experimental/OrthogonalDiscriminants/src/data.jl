@@ -219,7 +219,7 @@ function is_equal_field(emb1, emb2)
   p == characteristic(dom2) || return false
   degree(dom1) == degree(dom2) || return false
   p == 0 || return order(dom1) == order(dom2)
-  return has_preimage(emb2, emb1(gen(dom1)))[1]
+  return has_preimage_with_preimage(emb2, emb1(gen(dom1)))[1]
 end
 
 

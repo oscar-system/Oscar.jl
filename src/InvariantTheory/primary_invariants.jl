@@ -277,7 +277,7 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> primary_invariants(IR)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]*x[2]*x[3]
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -285,7 +285,7 @@ julia> primary_invariants(IR)
 julia> IR = invariant_ring(G); # "New" ring to avoid caching
 
 julia> primary_invariants(IR, primary_degrees = [ 3, 6, 6 ])
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]*x[2]*x[3]
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^6 + x[2]^6 + x[3]^6
