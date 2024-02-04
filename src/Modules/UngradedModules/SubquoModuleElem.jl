@@ -123,7 +123,7 @@ function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   return result
 end
 
-function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
+function simplify!(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
     el.is_reduced = true
@@ -134,6 +134,28 @@ function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced = true
   return el
 end
+
+# The default only checks whether an element is zero.
+function simplify(el::SubquoModuleElem)
+  el.is_reduced && return el
+  if is_zero(el) 
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+  end
+  return el
+end
+
+function simplify!(el::SubquoModuleElem)
+  el.is_reduced && return el
+  if is_zero(el) 
+    el.coeffs = sparse_row(base_ring(parent(el)))
+    el.repres = zero(ambient_free_module(parent(el)))
+    el.is_reduced = true
+    return el
+  end
+  return el
+end
+
 
 #######################################################
 @doc raw"""
