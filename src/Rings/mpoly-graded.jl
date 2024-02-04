@@ -325,8 +325,8 @@ Finitely generated abelian group
 
 julia> W = [gen(G, 1)+gen(G, 2), gen(G, 1)]
 2-element Vector{FinGenAbGroupElem}:
- Abelian group element [1, 1]
- Abelian group element [1, 0]
+ [1, 1]
+ [1, 0]
 
 julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]; weights = W)
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
@@ -491,8 +491,8 @@ Z^2
 
 julia> g = gens(G)
 2-element Vector{FinGenAbGroupElem}:
- Abelian group element [1, 0]
- Abelian group element [0, 1]
+ [1, 0]
+ [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -531,11 +531,11 @@ julia> g = gens(G);
 
 julia> W = [g[1]+g[3]+g[4], g[2]+g[4], g[1]+g[3], g[2], g[1]+g[2]]
 5-element Vector{FinGenAbGroupElem}:
- Abelian group element [1, 0, 1, 1]
- Abelian group element [0, 1, 0, 1]
- Abelian group element [1, 0, 1, 0]
- Abelian group element [0, 1, 0, 0]
- Abelian group element [1, 1, 0, 0]
+ [1, 0, 1, 1]
+ [0, 1, 0, 1]
+ [1, 0, 1, 0]
+ [0, 1, 0, 0]
+ [1, 1, 0, 0]
 
 julia> S, x = grade(R, W)
 (Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
