@@ -47,6 +47,9 @@ julia> relations(H)
 ```
 """
 function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
+  # This method is now deprecated and overwritten by the new methods below.
+  # The code is still kept for reference and debugging.
+
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
     if is_graded(M) && is_graded(N)
@@ -107,6 +110,189 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
   return H_simplified, to_hom_map
 end
+
+### New and hopefully more maintainable code
+function hom(F::FreeMod, G::ModuleFP)
+  R = base_ring(F)
+  R === base_ring(G) || error("base rings must be the same")
+  
+  # We construct Hom(F, G) as Hom(F, R¹) ⊗ G.
+  # Then we can use coordinate independent methods to construct 
+  # induced homomorphisms.
+  Fdual, interp = dual(F)
+  H, mult_map = tensor_product(Fdual, G; task=:with_map)
+
+  function _elem_to_hom1(v::ModuleFPElem)
+    result = hom(F, G, elem_type(G)[zero(G) for i in 1:ngens(F)]; check=false)
+    for (i, c) in coordinates(v)
+      # decompose the i-th generator as ψ : F → R¹ and g ∈ G
+      (u, g) = preimage(mult_map, H[i])
+      psi = element_to_homomorphism(u)
+      # construct the homomorphism by applying it manually 
+      # to the generators; psi(w)[1] is the value considered 
+      # as an element of the ring R ≅ R¹.
+      result = result + hom(F, G, elem_type(G)[c*psi(w)[1] * g for w in gens(F)]; check=false)
+    end
+    return result
+  end
+
+  function _hom_to_elem1(phi::ModuleFPHom)
+    @assert domain(phi) === F
+    @assert codomain(phi) === G
+    return sum(mult_map((Fdual[i], phi(v))) for (i, v) in enumerate(gens(F)); init=zero(H))
+  end
+  
+  to_hom_map1 = MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), _elem_to_hom1, _hom_to_elem1)
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map1)
+  return H, to_hom_map1
+end
+
+function hom(M::SubquoModule, N::ModuleFP)
+  R = base_ring(M)
+  R === base_ring(N) || error("base rings must coincide")
+  pres = presentation(M)
+  # pres :   F1 --phi--> F0 --eps--> M --> 0
+  # Construct the induced hom-sequence
+  # hom(pres, N) : hom(F1, N) <--phi^T-- hom(F0, N) <--eps^T-- hom(M, N) <-- 0
+  F0 = pres[0]::FreeMod
+  F1 = pres[1]::FreeMod
+  phi = map(pres, 1)
+  @assert codomain(phi) === F0
+  @assert domain(phi) === F1
+  eps = map(pres, 0)
+
+  phi_transp = hom(phi, N) # The induced map in the first argument
+  hom_F0_N = domain(phi_transp)
+  @assert get_attribute(hom_F0_N, :hom) === (F0, N)
+  hom_F1_N = codomain(phi_transp)
+  @assert get_attribute(hom_F1_N, :hom) === (F1, N)
+
+  K, inc = kernel(phi_transp)
+  
+  # The output will look horribly difficult in general. Simplification is indicated.
+  # H, iso = prune_with_map(K) # Still buggy
+  # H, iso_inv, iso = Oscar._alt_simplify(K) # Takes too long in some cases
+  H, iso, iso_inv = simplify_light(K)
+
+
+  function _elem_to_hom2(v::ModuleFPElem)
+    w = inc(iso(v)) 
+    @assert parent(w) === hom_F0_N
+    psi = element_to_homomorphism(w)
+    img_gens = elem_type(N)[psi(preimage(eps, g)) for g in gens(M)]
+    return hom(M, N, img_gens; check=false)
+  end
+
+  function _hom_to_elem2(phi::ModuleFPHom)
+    # phi : M --> N
+    @assert domain(phi) === M
+    @assert codomain(phi) === N
+    # The following is using that we have a 1:1-correspondence of the generators 
+    # of M with those of F0 due to the implementation of `presentation`.
+    phi_lift = hom(F0, N, images_of_generators(phi); check=false)::FreeModuleHom{<:FreeMod}
+    w = homomorphism_to_element(hom_F0_N, phi_lift)
+    return preimage(iso, preimage(inc, w))
+  end
+
+  to_hom_map2 = MapFromFunc(H, Hecke.MapParent(M, N, "homomorphisms"), _elem_to_hom2, _hom_to_elem2)
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map2)
+  return H, to_hom_map2
+end
+
+# The induced hom on the first argument
+function hom(
+    phi::FreeModuleHom{<:FreeMod, <:FreeMod}, N::ModuleFP; 
+    domain::ModuleFP=hom(Oscar.codomain(phi), N)[1],
+    codomain::ModuleFP=hom(Oscar.domain(phi), N)[1]
+  )
+  R = base_ring(N)
+  R === base_ring(domain) === base_ring(codomain) || error("base rings must coincide")
+
+  img_gens = elem_type(codomain)[]
+  for (i, g) in enumerate(gens(domain))
+    # The map codomain(phi) --> N
+    psi = element_to_homomorphism(g)
+    comp = compose(phi, psi)
+    push!(img_gens, homomorphism_to_element(codomain, comp))
+  end
+  return hom(domain, codomain, img_gens)
+end
+
+function hom(F::FreeMod, G::FreeMod)
+  if is_graded(F) && is_graded(G)
+    return _hom_graded(F, G)
+  else
+    return _hom_simple(F, G)
+  end
+end
+
+function _hom_simple(F::FreeMod, G::FreeMod)
+  R = base_ring(F)
+  R === base_ring(G) || error("base rings must be the same")
+  m = ngens(F)
+  n = ngens(G)
+
+  mn = m*n
+  H = FreeMod(R, mn)
+
+  # We think of elements of H as matrices A ∈ Rᵐˣⁿ stored 
+  # in concatenated lines: 
+  # v = (a₁₁, a₁₂, …, a₁ₙ, a₂₁, …)
+
+  function _elem_to_hom3(v::FreeModElem)
+    img_gens = [sum(c*G[j] for (j, c) in coordinates(v)[(i-1)*n+1:i*n]; init=zero(G)) for i in 1:m]
+    return hom(F, G, img_gens)
+  end
+
+  function _hom_to_elem3(phi::FreeModuleHom)
+    @assert domain(phi) === F
+    @assert codomain(phi) === G
+    v = zero(H)
+    for (i, g) in enumerate(images_of_generators(phi))
+      v = v + sum(c*H[(i-1)*n + j] for (j, c) in coordinates(g); init=zero(H))
+    end
+    return v
+  end
+  
+  to_hom_map3 = MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), _elem_to_hom3, _hom_to_elem3)
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map3)
+  return H, to_hom_map3
+end
+
+function _hom_graded(F::FreeMod, G::FreeMod)
+  R = base_ring(F)
+  GG = grading_group(R)
+  R === base_ring(G) || error("base rings must be the same")
+  m = ngens(F)
+  n = ngens(G)
+
+  mn = m*n
+  H = graded_free_module(R, [degree(G[j]) - degree(F[i]) for i in 1:m for j in 1:n])
+
+  # We think of elements of H as matrices A ∈ Rᵐˣⁿ stored 
+  # in concatenated lines: 
+  # v = (a₁₁, a₁₂, …, a₁ₙ, a₂₁, …)
+
+  function _elem_to_hom4(v::FreeModElem)
+    img_gens = [sum(c*G[j] for (j, c) in coordinates(v)[(i-1)*n+1:i*n]; init=zero(G)) for i in 1:m]
+    return hom(F, G, img_gens)
+  end
+
+  function _hom_to_elem4(phi::FreeModuleHom)
+    @assert domain(phi) === F
+    @assert codomain(phi) === G
+    v = zero(H)
+    for (i, g) in enumerate(images_of_generators(phi))
+      v = v + sum(c*H[(i-1)*n + j] for (j, c) in coordinates(g); init=zero(H))
+    end
+    return v
+  end
+  
+  to_hom_map4 = MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), _elem_to_hom4, _hom_to_elem4)
+  set_attribute!(H, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map4)
+  return H, to_hom_map4
+end
+
 
 @doc raw"""
     element_to_homomorphism(f::ModuleFPElem)
@@ -227,7 +413,7 @@ julia> m = homomorphism_to_element(H, a)
 function homomorphism_to_element(H::ModuleFP, a::ModuleFPHom)
   to_hom_map = get_attribute(H, :module_to_hom_map)
   to_hom_map === nothing && error("module must be a hom module")
-  map_to_hom = to_hom_map.g
+  map_to_hom = pseudo_inv(to_hom_map)
   return map_to_hom(a)
 end
 
