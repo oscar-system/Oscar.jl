@@ -102,11 +102,11 @@ grading_group(q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 
 ```@docs
-monomial_basis(A::MPolyQuoRing, g::GrpAbFinGenElem)
+monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
-homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 ```
 
 ### Dimension
@@ -187,7 +187,7 @@ In the graded case,  we also have:
 ```
 
 ```@docs
-homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -665,7 +665,7 @@ degree(A::MPolyQuoRing)
 ```@docs
 multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
-multi_hilbert_function(A::MPolyQuoRing, g::GrpAbFinGenElem)
+multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
 
 ## Affine Algebras as Modules

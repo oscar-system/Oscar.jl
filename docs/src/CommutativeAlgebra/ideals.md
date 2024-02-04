@@ -148,7 +148,7 @@ eliminate(I::MPolyIdeal{T}, V::Vector{T}) where T <: MPolyRingElem
 ### Truncation
 
 ```@docs
-truncate(I::MPolyIdeal, g::GrpAbFinGenElem)
+truncate(I::MPolyIdeal, g::FinGenAbGroupElem)
 ```
 
 ## Tests on Ideals

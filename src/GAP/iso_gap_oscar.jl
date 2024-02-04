@@ -126,7 +126,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      powers = GapObj([z^i for i in 0:(N-1)])::GapObj
      B = GAPWrap.Basis(FG, powers)
 
-     finv = function(x::Nemo.nf_elem)
+     finv = function(x::Nemo.AbsSimpleNumFieldElem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
         return (coeffs * powers)::GAP.Obj
      end
@@ -136,7 +136,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
         return FO(coeffs)
      end
    elseif GAPWrap.IsAlgebraicExtension(FG)
-     # This is the analogon of `_iso_oscar_gap(FO::AnticNumberField)`.
+     # This is the analogon of `_iso_oscar_gap(FO::AbsSimpleNumField)`.
      pol = GAPWrap.DefiningPolynomial(FG)
      cfs = GAPWrap.CoefficientsOfUnivariatePolynomial(pol)
      R = Hecke.Globals.Qx
@@ -144,7 +144,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      FO, _ = number_field(polFO, "z")
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
-     finv = function(x::Nemo.nf_elem)
+     finv = function(x::Nemo.AbsSimpleNumFieldElem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
         return GAPWrap.ObjByExtRep(fam, coeffs)
      end
@@ -183,7 +183,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      A = inv(GapObj([GAPWrap.Coefficients(C, m) for m in Mpowers]))
      Mpowers = GapObj(Mpowers)
 
-     finv = function(x::Nemo.nf_elem)
+     finv = function(x::Nemo.AbsSimpleNumFieldElem)
         coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
         return GAPWrap.LinearCombination(coeffs, Mpowers)
      end

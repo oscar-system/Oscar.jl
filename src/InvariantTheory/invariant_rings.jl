@@ -104,7 +104,7 @@ julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> IRp = invariant_ring(symmetric_group(3))
 Invariant ring
@@ -245,16 +245,16 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]
@@ -390,7 +390,7 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -444,10 +444,10 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> basis(IR, 6)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -506,7 +506,7 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> basis(IR, 6, trivial_character(G))
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -519,7 +519,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -650,7 +650,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)

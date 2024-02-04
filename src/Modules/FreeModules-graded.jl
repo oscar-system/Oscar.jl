@@ -13,7 +13,7 @@ const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRi
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
 @attributes mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
-  d::Vector{GrpAbFinGenElem}
+  d::Vector{FinGenAbGroupElem}
   R::Ring_dec
   S::Vector{Symbol}
 
@@ -31,10 +31,10 @@ function FreeModule(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = fals
 end
 free_module(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
+function FreeModule(R::Ring_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
+free_module(R::Ring_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - FreeModule(R, n)
@@ -62,7 +62,7 @@ function AbstractAlgebra.extra_name(F::FreeModule_dec)
   return nothing
 end
 
-function (F::FreeModule_dec)(a::GrpAbFinGenElem) 
+function (F::FreeModule_dec)(a::FinGenAbGroupElem) 
   G = FreeModule(F.R, [x-a for x = F.d])
   set_attribute!(G, :twist => (F, a))
   return G
@@ -212,7 +212,7 @@ function degree(a::FreeModuleElem_dec)
 end
 
 function homogeneous_components(a::FreeModuleElem_dec)
-  res = Dict{GrpAbFinGenElem, FreeModuleElem_dec}()
+  res = Dict{FinGenAbGroupElem, FreeModuleElem_dec}()
   F = parent(a)
   for (p,v) = a.r
     c = homogeneous_components(v)
@@ -228,7 +228,7 @@ function homogeneous_components(a::FreeModuleElem_dec)
   return res
 end
 
-function homogeneous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
+function homogeneous_component(a::FreeModuleElem_dec, g::FinGenAbGroupElem)
   F = parent(a)
   x = zero(F)
   for (p,v) = a.r
@@ -243,7 +243,7 @@ function is_homogeneous(a::FreeModuleElem_dec)
   end
   F = parent(a)
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   for (p,v) = a.r
     is_homogeneous(v) || return false
     if first
@@ -422,7 +422,7 @@ end
 
 function is_homogeneous(h::T) where {T <: Map_dec}
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   for i = gens(domain(h))
     hi = h(i)
     iszero(hi) && continue
@@ -438,7 +438,7 @@ end
 
 function degree(h::T) where {T <: Map_dec}
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   D = domain(h)
   R = base_ring(D)
   for i = gens(domain(h))
@@ -464,8 +464,8 @@ function degree(h::T) where {T <: Map_dec}
 end
 
 function homogeneous_components(h::T) where {T <: Map_dec}
-  c = Dict{GrpAbFinGenElem, typeof(h)}()
-  d = Dict{GrpAbFinGenElem, Vector{Int}}()
+  c = Dict{FinGenAbGroupElem, typeof(h)}()
+  d = Dict{FinGenAbGroupElem, Vector{Int}}()
   F = domain(h)
   im = elem_type(codomain(h))[]
   for i = 1:ngens(F)
@@ -731,7 +731,7 @@ function presentation(SQ::SubquoDecModule)
   R = base_ring(SQ)
   F = FreeModule(R, [degree(x) for x = collect(SQ.sub)])
   q = elem_type(F)[]
-  w = GrpAbFinGenElem[]
+  w = FinGenAbGroupElem[]
 
   for x = c
     b = sparse_row(R)
@@ -757,14 +757,14 @@ function presentation(SQ::SubquoDecModule)
   @assert iszero(h_G_F) || iszero(degree(h_G_F))
   h_F_SQ = hom(F, SQ, gens(SQ))
   @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
-  Z = FreeModule(F.R, GrpAbFinGenElem[])
+  Z = FreeModule(F.R, FinGenAbGroupElem[])
   set_attribute!(Z, :name => "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ComplexOfMorphisms(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
 function presentation(F::FreeModule_dec)
-  Z = FreeModule(F.R, GrpAbFinGenElem[])
+  Z = FreeModule(F.R, FinGenAbGroupElem[])
   set_attribute!(Z, :name => "Zero")
   return Hecke.ComplexOfMorphisms(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
@@ -777,7 +777,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
 
-    local deg::GrpAbFinGenElem
+    local deg::FinGenAbGroupElem
     b = gens(D)
     for i=1:length(im)
       if iszero(im[i])
@@ -1048,7 +1048,7 @@ function free_resolution(S::SubquoDecModule, limit::Int = -1)
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeModule(base_ring(S), GrpAbFinGenElem[])
+      Z = FreeModule(base_ring(S), FinGenAbGroupElem[])
       set_attribute!(Z, :name => "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
       insert!(mp, 1, h)
@@ -1073,9 +1073,9 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   k, mk = kernel(map(p2, 1))
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
-  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
+  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/CalciumFieldElem.pdf
   D = grading_group(M)
-  F = FreeModule(base_ring(M), GrpAbFinGenElem[iszero(x) ? D[0] : degree(x) for x = gens(k)])
+  F = FreeModule(base_ring(M), FinGenAbGroupElem[iszero(x) ? D[0] : degree(x) for x = gens(k)])
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -1331,7 +1331,7 @@ end
 #################################################
 #
 #################################################
-function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubquoDecModule, MPolyIdeal{<:MPolyDecRingElem}}}
+function homogeneous_component(F::T, d::FinGenAbGroupElem) where {T <: Union{FreeModule_dec, SubquoDecModule, MPolyIdeal{<:MPolyDecRingElem}}}
 
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points

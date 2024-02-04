@@ -33,7 +33,7 @@ Computationally, this means first defining a linear program:
 
 ```jldoctest
 julia> P = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min)
 Linear program

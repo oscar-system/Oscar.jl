@@ -12,6 +12,23 @@
     x1 = gens(R1)
     x2 = gens(R2)
     x3 = gens(R3)
+
+    @testset "is_realizable" begin
+        @test is_realizable(M1) == true
+        @test is_realizable(M2) == true
+        @test is_realizable(M3) == false
+        @test is_realizable(M4) == true
+
+        @test is_realizable(M1, char = 2) == true
+        @test is_realizable(M1, char = 3) == false
+        @test is_realizable(M1, q = 2) == true
+        @test is_realizable(M1, q = 3) == false
+
+        @test is_realizable(M2, char = 2) == true
+        @test is_realizable(M2, char = 3) == true
+        @test is_realizable(M2, q = 2) == false
+        @test is_realizable(M2, q = 7) == true
+    end
       
     @testset "realization_space_matrix" begin
         

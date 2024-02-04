@@ -131,10 +131,10 @@ end
 augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 
 ### Additional functionality
-function betti(b::SimpleFreeResolution; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool = false)
+function betti(b::SimpleFreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool = false)
   return betti_table(b; project, reverse_direction)
 end
-function betti_table(C::AbsHyperComplex; project::Union{GrpAbFinGenElem, Nothing} = nothing, reverse_direction::Bool=false)
+function betti_table(C::AbsHyperComplex; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
   @assert dim(C) == 1 "complex must be one-dimensional"
   @assert has_upper_bound(C) "no upper bound known for this resolution"
   generator_count = Dict{Tuple{Int, Any}, Int}()
@@ -154,7 +154,7 @@ end
 function minimal_betti_table(C::AbsHyperComplex)
   @assert dim(C) == 1 "complex must be one-dimensional"
   @assert has_lower_bound(C) && has_upper_bound(C) "resolution must be bounded"
-  offsets = Dict{GrpAbFinGenElem, Int}()
+  offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
   for i in 1:upper_bound(C)+1
     phi = map(C, i)
@@ -167,7 +167,7 @@ function minimal_betti_table(C::AbsHyperComplex)
     dom_degs = unique!([degree(g) for g in gens(F)])
     cod_degs = unique!([degree(g) for g in gens(G)])
     for d in cod_degs
-      d::GrpAbFinGenElem
+      d::FinGenAbGroupElem
       if d in dom_degs
         _, _, sub_mat = _constant_sub_matrix(phi, d)
         r = rank(sub_mat)
