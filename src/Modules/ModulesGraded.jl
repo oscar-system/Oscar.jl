@@ -160,8 +160,8 @@ Z^2
 
 julia> g = gens(G)
 2-element Vector{FinGenAbGroupElem}:
- Abelian group element [1, 0]
- Abelian group element [0, 1]
+ [1, 0]
+ [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 

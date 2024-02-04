@@ -790,7 +790,7 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-Polytope in ambient dimension 3 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
 julia> number_of_facets(T)
 20
@@ -1906,7 +1906,7 @@ Create an $8$-dimensional polytope without rational realizations due to Perles. 
 # Example
 ```jldoctest
 julia> perles_nonrational_8_polytope()
-Polytope in ambient dimension 8 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
+Polytope in ambient dimension 8 with EmbeddedAbsSimpleNumFieldElem type coefficients
 ```
 """
 perles_nonrational_8_polytope() =
