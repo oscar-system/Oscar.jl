@@ -117,23 +117,13 @@ function _presentation_graded(SQ::SubquoModule)
   # of the generators in a presentation.
   F0_to_SQ = graded_map(SQ, gens(SQ))
   F0 = domain(F0_to_SQ)
-  #@assert degree.(gens(F0)) == degree.(gens(SQ))
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
-  #@assert is_graded(F0)
 
-  #@assert is_homogeneous(F0_to_SQ)
   K, inc_K = kernel(F0_to_SQ)
-  #@assert is_graded(ambient_free_module(K))
-  #@assert all(g->is_homogeneous(g), gens(K))
-  #@assert is_graded(K)
-  #@assert is_homogeneous(inc_K)
-  #@assert codomain(inc_K) === F0
-  #@assert all(x->parent(x) === F0, images_of_generators(inc_K))
   #F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
   #F1 = domain(F1_to_F0)
   F1 = graded_free_module(R, degree.(images_of_generators(inc_K)))
   F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  #@assert is_homogeneous(F1_to_F0)
   set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
