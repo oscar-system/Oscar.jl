@@ -633,7 +633,8 @@ function FreeModuleHom(
 end
 
 function FreeModuleHom(
-    F::AbstractFreeMod{T}, G::S, mat::MatElem{T}
+    F::AbstractFreeMod{T}, G::S, mat::MatElem{T};
+    check::Bool=true
   ) where {T<:RingElem, S<:ModuleFP}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
