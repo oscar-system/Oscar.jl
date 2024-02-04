@@ -313,6 +313,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   end
 end
 
+#=
 @doc raw"""
     hom(F::FreeMod, G::FreeMod)
 
@@ -399,6 +400,7 @@ function hom(F::FreeMod, G::FreeMod)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
+=#
 
 @doc raw"""
     kernel(a::FreeModuleHom)
@@ -459,20 +461,12 @@ Homogeneous module homomorphism)
 ```
 """
 function kernel(h::FreeModuleHom)  #ONLY for free modules...
-  if is_zero(codomain(h))
-    return domain(h), identity_map(domain(h))
-  end
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return _simple_kernel(h)
 end
 
 function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
-  if is_zero(h)
-    F = domain(h)
-    S = base_ring(F)
-    Z = FreeMod(S, 0)
-    return Z, hom(Z, F, elem_type(F)[]; check=false)
-  end
   F = domain(h)
   G = codomain(h)
   g = images_of_generators(h)
@@ -485,13 +479,6 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
 end
 
 function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
-  if is_zero(h)
-    F = domain(h)
-    S = base_ring(F)
-    G = grading_group(S)
-    Z = graded_free_module(S, elem_type(G)[])
-    return Z, hom(Z, F, elem_type(F)[]; check=false)
-  end
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
@@ -499,6 +486,7 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   # Otherwise we might get wrong degrees.
   g = [repres(simplify(v)) for v in images_of_generators(h)]
   g = vcat(g, relations(M))
+  R = base_ring(G)
   H = FreeMod(R, length(g))
   phi = hom(H, G, g)
   K, inc = kernel(phi)
@@ -508,13 +496,6 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
 end
 
 function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
-  if is_zero(h)
-    F = domain(h)
-    S = base_ring(F)
-    G = grading_group(S)
-    Z = graded_free_module(S, elem_type(G)[])
-    return Z, hom(Z, F, elem_type(F)[]; check=false)
-  end
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
@@ -542,22 +523,12 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   N = codomain(H)
   # the induced map phi : F0 --> N
   phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
-  @show phi
-  @show iszero(phi)
   psi = compose(g, phi)
-  @show images_of_generators(psi)
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))
 end
 
 function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
-  if is_zero(h)
-    F = domain(h)
-    S = base_ring(F)
-    G = grading_group(S)
-    Z = graded_free_module(S, elem_type(G)[])
-    return Z, hom(Z, F, elem_type(F)[]; check=false)
-  end
   I, inc = _simple_kernel(h)
   @assert is_graded(I)
   @assert is_homogeneous(inc)
