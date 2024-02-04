@@ -148,6 +148,8 @@ function _presentation_graded(SQ::SubquoModule)
 
   # compile the presentation complex
   M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check = true, seed = -2)
+  @assert M[0] === F0::FreeMod
+  @assert M[1] === F1::FreeMod
   set_attribute!(M, :show => Hecke.pres_show)
   return M
 end
