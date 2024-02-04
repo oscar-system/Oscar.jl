@@ -2808,11 +2808,11 @@ function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
-     return _return_wrt_to_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, identity_map(I)), task)
   end
   dmin = minimum(degree(Int, x; check) for x in gens(I))
   if  d <= dmin
-     return _return_wrt_to_task((I, identity_map(I)), task)
+     return _return_wrt_task((I, identity_map(I)), task)
   end
   V = sort(gens(I), lt = (a, b) -> degree(Int, a; check) <= degree(Int, b; check))
   RES = elem_type(I)[]
@@ -2829,7 +2829,7 @@ function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=
       push!(RES, V[i])
     end
   end
-  return _return_wrt_to_task(sub(I, RES), task)
+  return _return_wrt_task(sub(I, RES), task)
 end
 
 function _return_wrt_task(result, task)
