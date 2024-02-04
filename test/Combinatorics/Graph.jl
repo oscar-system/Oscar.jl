@@ -129,14 +129,14 @@
         x1 = [[5,6],[7,8],[11,12]]
         G1 = graph_from_edges(x1)
 
-        @test nv(G1) == 12
-        @test ne(G1) == 3
+        @test nvertices(G1) == 12
+        @test nedges(G1) == 3
       
         x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
         G2 = graph_from_edges(Undirected, x2, 13)
 
-        @test nv(G2) == 13
-        @test ne(G2) == 5
+        @test nvertices(G2) == 13
+        @test nedges(G2) == 5
 
     end
 end
