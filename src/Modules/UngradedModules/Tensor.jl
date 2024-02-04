@@ -163,7 +163,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   end
 
-  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure)
+  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure, decompose_generator)
 end
 
 
