@@ -690,14 +690,19 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
   ncols = rank(F)
   
   source_degrees = Vector{eltype(G)}()
-  for i in 1:nrows
-    for j in 1:ncols
-      if !is_zero(coordinates(V[i])[j])
+  for (i, v) in enumerate(V)
+    if is_zero(v)
+      push!(source_degrees, zero(G))
+      continue
+    end
+    for (j, c) in coordinates(v)
+      if !iszero(c)
         push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
   end
+  @assert length(source_degrees) == nrows
   Fcdm = graded_free_module(R, source_degrees)
   phi = hom(Fcdm, F, V)
   return phi
@@ -709,10 +714,14 @@ function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Boo
   G = grading_group(R)
   nrows = length(V)
   source_degrees = Vector{eltype(G)}()
-  for i in 1:nrows
-    for (j, coord_val) in coordinates(V[i])
-      if !is_zero(coord_val)
-        push!(source_degrees, degree(coord_val; check) + degree(F[j]; check))
+  for (i, v) in enumerate(V)
+    if is_zero(v)
+      push!(source_degrees, zero(G))
+      continue
+    end
+    for (j, c) in coordinates(v)
+      if !iszero(c)
+        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
