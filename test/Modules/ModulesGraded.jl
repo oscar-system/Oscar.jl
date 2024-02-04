@@ -387,7 +387,8 @@ end
     H, f = hom(M, M)
     @test is_graded(H)
     @test degrees_of_generators(H) == [Z[0], Z[0]]
-    @test degrees_of_generators(H.quo) == [Z[1], Z[1], 2*Z[1], 2*Z[1]]
+    @test degrees_of_generators(H.quo) == [Z[1], 2*Z[1], Z[1], 2*Z[1]] # with old hom
+    #@test degrees_of_generators(H.quo) == [Z[1], Z[1], 2*Z[1], 2*Z[1]] # with new hom
     @test is_homogeneous(f(H[1]))
     a = element_to_homomorphism(x*H[1] + y*H[2])
     @test matrix(a) == Rg[x 0; 0 y]
@@ -463,7 +464,8 @@ end
     R_as_module = graded_free_module(Rg,1)
     phi = multiplication_induced_morphism(R_as_module, End_M)
     @test is_homogeneous(phi)
-    @test matrix(phi) == Rg[1;]
+    @test matrix(phi) == Rg[1 0] # with old hom
+    #@test matrix(phi) == Rg[1;] # with new hom
 end
 
 @testset "Graded tensor product of graded free modules" begin
@@ -650,8 +652,10 @@ end
             @test element_to_homomorphism(hom_f(v)) == f*element_to_homomorphism(v)
         end
     end
+    #=
     hom_hom_resolution = hom(hom_resolution,N)
     @test chain_range(hom_hom_resolution) == chain_range(free_res)
+    =#
 end
 
 @testset "Hom resolution module" begin
@@ -881,15 +885,17 @@ end
     M2_to_N2 = SubQuoHom(M2, N2, [0*N2[1],0*N2[1],0*N2[1]])
     @test degree(M1_to_N1) == Z[0]
     @test degree(M1_to_N2) == 6*Z[1]
-    @test degree(M2_to_N1) == 8*Z[1]
+    @test degree(M2_to_N1) == 6*Z[1] # with old hom
+    #@test degree(M2_to_N1) == 8*Z[1] # with new hom
     @test degree(M2_to_N2) == Z[0]
     @test is_welldefined(M1_to_N1)
     @test is_welldefined(M1_to_N2)
     @test is_welldefined(M2_to_N1)
     @test is_welldefined(M2_to_N2)
 
-    #= generators of H21 got mixed up by new code. 
+    #= generators of H21 got mixed up by the new hom
     # the tests below depend on their order and particular form, so they are broken now.
+    =#
     phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
     @test degree(phi) == 6*Z[1]
     for g in gens(M1)
@@ -912,7 +918,6 @@ end
     for g in gens(N2)
       @test g == prod[2](emb[2](g))
     end
-    =#
 end
 
 @testset "Coordinates" begin
