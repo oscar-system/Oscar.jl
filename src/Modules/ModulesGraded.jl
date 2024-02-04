@@ -590,7 +590,7 @@ function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem
 end
 
 function _degree_of_parent_generator(f::FreeModElem, i::Int)
-  return f.parent.d[i]::GrpAbFinGenElem
+  return f.parent.d[i]::FinGenAbGroupElem
 end
 
 # TODO: This has the potential to be a "hot" function. 
@@ -598,7 +598,7 @@ end
 # Or is it enough that things are cached in the generators 
 # of the `sub`?
 function _degree_of_parent_generator(f::SubquoModuleElem, i::Int)
-  return _degree_fast(gen(parent(f), i))::GrpAbFinGenElem
+  return _degree_fast(gen(parent(f), i))::FinGenAbGroupElem
 end
 
 # Fast method only to be used on sane input; returns a `GrbAbFinGenElem`.
@@ -606,7 +606,7 @@ end
 function _degree_fast(f::FreeModElem)
   iszero(f) && return zero(grading_group(base_ring(f)))
   for (i, c) in coordinates(f)
-    !iszero(c) && return (_degree_fast(c) + _degree_of_parent_generator(f, i))::GrpAbFinGenElem
+    !iszero(c) && return (_degree_fast(c) + _degree_of_parent_generator(f, i))::FinGenAbGroupElem
   end
   error("this line should never be reached")
 end
@@ -769,7 +769,7 @@ julia> degree(a)
 function degree(f::FreeModuleHom; check::Bool=true)
   # TODO: isdefined should not be necessary here. Can it be kicked?
   isdefined(f, :d) && isnothing(f.d) && return nothing # This stands for the map being not homogeneous
-  isdefined(f, :d) && return f.d::GrpAbFinGenElem
+  isdefined(f, :d) && return f.d::FinGenAbGroupElem
 
   @check (is_graded(domain(f)) && is_graded(codomain(f))) "both domain and codomain must be graded"
   @check is_graded(f) "map is not graded"
@@ -778,11 +778,11 @@ function degree(f::FreeModuleHom; check::Bool=true)
       continue
     end
     f.d = degree(image_of_generator(f, i); check) - degree(domain(f)[i]; check)
-    return f.d::GrpAbFinGenElem
+    return f.d::FinGenAbGroupElem
   end
 
   # If we got here, the map is the zero map. Return degree zero in this case
-  return zero(grading_group(domain(f)))::GrpAbFinGenElem
+  return zero(grading_group(domain(f)))::FinGenAbGroupElem
 
   # Old code left for debugging
   return degree(image_of_generator(f, 1))
@@ -1297,12 +1297,12 @@ function degree(f::SubQuoHom; check::Bool=true)
   for (i, v) in enumerate(gens(T1))
     (is_zero(v) || is_zero(image_of_generator(f, i))) && continue
     f.d = degree(image_of_generator(f, i); check) - degree(v; check)
-    return f.d::GrpAbFinGenElem
+    return f.d::FinGenAbGroupElem
   end
 
   # If we get here, we have the zero map
   f.d = zero(grading_group(T1))
-  return f.d::GrpAbFinGenElem
+  return f.d::FinGenAbGroupElem
 
   # Old code left here for debugging
   domain_degrees = degrees_of_generators(T1)
