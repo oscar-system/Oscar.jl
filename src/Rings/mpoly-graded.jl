@@ -1163,10 +1163,10 @@ base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
   n = get_attribute(W, :name)
+  io = pretty(io)
   if n !== nothing
-    print(io, "$(n)_$(d.coeff) of dim $(dim(M))")
+    print(io, LowercaseOff(), "$(n)_$(d.coeff) of dim $(dim(M))")
   else
-    io = pretty(io)
     print(io, "homogeneous component of ", Lowercase(), W, " of degree ")
     print(IOContext(io, :compact => true), d)
   end
@@ -1296,7 +1296,7 @@ julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from s_[1 1] of dim 6
+  from S_[1 1] of dim 6
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
