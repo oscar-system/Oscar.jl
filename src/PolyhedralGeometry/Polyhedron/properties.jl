@@ -1383,7 +1383,7 @@ end
     g_vector(P::Polyhedron)
 
 Return the (toric) $g$-vector of a polytope.
-Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Defined by $g_0 = 1$ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
 Undefined for unbounded polyhedra.
 
 # Examples
