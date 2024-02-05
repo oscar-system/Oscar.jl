@@ -186,7 +186,7 @@ Group homomorphism
 
 ```
 
-Note that $\rho(\pi)$, for $\pi \in $`G`, satisfies
+Note that $\rho(\pi)$, for $\pi \in$ `G`, satisfies
 `Q`$^\pi$ = `Q` * $\rho(\pi^{-1})$, where `Q`$^\pi$ is the matrix obtained
 from `Q` by permuting its rows by $\pi$.
 
