@@ -313,6 +313,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   end
 end
 
+#=
 @doc raw"""
     hom(F::FreeMod, G::FreeMod)
 
@@ -399,6 +400,7 @@ function hom(F::FreeMod, G::FreeMod)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
+=#
 
 @doc raw"""
     kernel(a::FreeModuleHom)

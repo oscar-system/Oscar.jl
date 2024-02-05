@@ -112,7 +112,6 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
 end
 
 ### New and hopefully more maintainable code
-#=
 function hom(F::FreeMod, G::ModuleFP)
   R = base_ring(F)
   R === base_ring(G) || error("base rings must be the same")
@@ -293,7 +292,7 @@ function _hom_graded(F::FreeMod, G::FreeMod)
   set_attribute!(H, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map4)
   return H, to_hom_map4
 end
-=#
+
 
 @doc raw"""
     element_to_homomorphism(f::ModuleFPElem)
