@@ -56,15 +56,15 @@ is_filtered(R::MPolyDecRing) = isdefined(R, :lt)
 is_filtered(::MPolyRing) = false
 
 function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
-  Hecke.@show_name(io, W)
-  Hecke.@show_special(io, W)
+  AbstractAlgebra.@show_name(io, W)
+  AbstractAlgebra.@show_special(io, W)
   io = pretty(io)
   R = forget_decoration(W)
   print(io, R)
   if is_filtered(W)
-    println(io, " filtrated by ")
+    println(io, " filtrated by")
   else
-    println(io, " graded by ")
+    println(io, " graded by")
   end
   g = gens(R)
   print(io, Indent())
@@ -1162,7 +1162,7 @@ base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
-  n = AbstractAlgebra.find_name(W)
+  n = AbstractAlgebra.get_name(W)
   io = pretty(io)
   if n !== nothing
     print(io, LowercaseOff(), "$(n)_$(d.coeff) of dim $(dim(M))")
