@@ -404,17 +404,17 @@ end
     Z = grading_group(Rg)
     F1 = graded_free_module(Rg, 1)
     F2 = graded_free_module(Rg, 2)
-    F2v, ev = dual(F2, cod=F1)
+    F2v, ev = dual(F2, codomain=F1)
     @test ev(F2v[1])(F2[1]) == F1[1] 
     FF, psi = double_dual(F2)
     @test degrees_of_generators(FF) == [Z[0], Z[0]]
     @test is_injective(psi) 
     M, inc = sub(F2, [x*F2[1], y*F2[1]])
     F1 = graded_free_module(Rg, 1)
-    Mv, ev = dual(M, cod=F1)
+    Mv, ev = dual(M, codomain=F1)
     @test degrees_of_generators(Mv) == [Z[0]]
     @test ev(Mv[1])(M[1]) == x*F1[1]
-    Mvv, psi = double_dual(M, cod=F1)
+    Mvv, psi = double_dual(M, codomain=F1)
     @test matrix(psi) == Rg[x; y]
     F = graded_free_module(Rg, 2);
     V = [x*F[1], y^2*F[2]];

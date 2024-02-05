@@ -521,7 +521,7 @@ end
 
 
 @doc raw"""
-    dual(f::ModuleFPHom; cod::FreeMod)
+    dual(f::ModuleFPHom; codomain::FreeMod)
 
 Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
@@ -530,13 +530,13 @@ The optional argument allows to specify a free module of rank one over the
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
 function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
-    cod::FreeMod=FreeMod(base_ring(domain(f)), 1), 
-    domain_dual::ModuleFP=dual(domain(f), cod=cod)[1],
-    codomain_dual::ModuleFP=dual(codomain(f), cod=cod)[1]
+    codomain::FreeMod=FreeMod(base_ring(domain(f)), 1), 
+    domain_dual::ModuleFP=dual(domain(f), codomain=codomain)[1],
+    codomain_dual::ModuleFP=dual(codomain(f), codomain=codomain)[1]
   )
-  M = domain(f)
-  N = codomain(f)
-  R = base_ring(domain(f))
+  M = Oscar.domain(f)
+  N = Oscar.codomain(f)
+  R = base_ring(Oscar.domain(f))
   R === base_ring(N) || error("modules must be defined over the same rings")
 
   M_dual = domain_dual
@@ -544,7 +544,7 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
 
   return hom(N_dual, M_dual, 
              [homomorphism_to_element(M_dual, 
-                                      hom(M, cod, 
+                                      hom(M, codomain, 
                                           [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
                                          )
                                      )
