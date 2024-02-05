@@ -645,7 +645,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2)
 given by the pullback function
   x1 -> x1
   x2 -> x2
@@ -723,7 +723,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2)
 given by the pullback function
   x1 -> x1
   x2 -> x2
@@ -798,7 +798,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2, x1*x2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2, x1*x2)
 given by the pullback function
   x1 -> x1
   x2 -> x2

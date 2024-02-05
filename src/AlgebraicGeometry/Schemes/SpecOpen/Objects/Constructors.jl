@@ -163,7 +163,7 @@ Spec open morphism
   to   [x2, y2, z2]              complement to V(x2^2 - y2^2 + z2^2)
 defined by the map
   affine scheme morphism
-    from [x2, y2, z2, x1, y1, z1]  V(x1^3 - y1^2*z1) \ V(x2^2 - y2^2 + z2^2)
+    from [x2, y2, z2, x1, y1, z1]  scheme(x1^3 - y1^2*z1) \ scheme(x2^2 - y2^2 + z2^2)
     to   [x2, y2, z2]              affine 3-space
   given by the pullback function
     x2 -> x2
@@ -176,8 +176,8 @@ Spec open morphism
   to   [x1, y1, z1]              complement to V(1)
 defined by the map
   affine scheme morphism
-    from [x2, y2, z2, x1, y1, z1]  V(x1^3 - y1^2*z1) \ V(x2^2 - y2^2 + z2^2)
-    to   [x1, y1, z1]              V(x1^3 - y1^2*z1)
+    from [x2, y2, z2, x1, y1, z1]  scheme(x1^3 - y1^2*z1) \ scheme(x2^2 - y2^2 + z2^2)
+    to   [x1, y1, z1]              scheme(x1^3 - y1^2*z1)
   given by the pullback function
     x1 -> x1
     y1 -> y1

@@ -42,7 +42,7 @@ Regular function
     of affine scheme with coordinates [x, y, z]
   complement to V(x^3 - y^2*z)
   covered by 1 affine patch
-    1: [x, y, z]   AA^3 \ V(x^3 - y^2*z)
+    1: [x, y, z]   AA^3 \ scheme(x^3 - y^2*z)
 with restriction
   patch 1: 1
 ```

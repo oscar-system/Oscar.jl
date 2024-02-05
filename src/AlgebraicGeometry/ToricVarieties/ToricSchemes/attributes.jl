@@ -17,7 +17,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
 julia> forget_toric_structure(antv)
-(V(0), Hom: V(0) -> normal toric variety)
+(scheme(0), Hom: scheme(0) -> normal toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
