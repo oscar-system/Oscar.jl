@@ -34,8 +34,8 @@ projective_special_unitary_group
 ## Operations for permutation groups
 
 All operations, properties and attributes for general groups
-describe in the previous sections are supported for permutation
-groups. In addition there are some specific to permutation group.
+described in the previous sections are supported for permutation
+groups. In addition there are some specific to permutation groups.
 
 In OSCAR, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
 
