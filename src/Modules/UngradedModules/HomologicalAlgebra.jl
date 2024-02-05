@@ -214,8 +214,9 @@ by Submodule with 4 generators
 4 -> x*y*e[1] \otimes e[1]
 
 julia> T1 = tor(Q, M, 1)
-Subquotient of Submodule with 1 generator
-1 -> -x*e[1] \otimes e[1]
+Subquotient of Submodule with 2 generators
+1 -> x*e[1] \otimes e[1]
+2 -> x*y*e[1] \otimes e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1] \otimes e[1]
 2 -> y^3*e[1] \otimes e[1]
@@ -558,28 +559,29 @@ by Submodule with 2 generators
 
 julia> ext(M, M, 0)
 Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
+1 -> (e[1])* \otimes e[1]
 by Submodule with 2 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
+1 -> x*(e[1])* \otimes e[1]
+2 -> y*(e[1])* \otimes e[1]
 
 julia> ext(M, M, 1)
 Subquotient of Submodule with 2 generators
-1 -> (e[2] -> e[1])
-2 -> (e[1] -> e[1])
-by Submodule with 4 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
-3 -> x*(e[2] -> e[1])
-4 -> y*(e[2] -> e[1])
+1 -> (e[1])* \otimes e[1]
+2 -> (e[2])* \otimes e[1]
+by Submodule with 5 generators
+1 -> x*(e[1])* \otimes e[1]
+2 -> x*(e[2])* \otimes e[1]
+3 -> y*(e[1])* \otimes e[1]
+4 -> y*(e[2])* \otimes e[1]
+5 -> y*(e[1])* \otimes e[1] + x*(e[2])* \otimes e[1]
 
 julia> ext(M, M, 2)
 Subquotient of Submodule with 1 generator
-1 -> (e[1] -> e[1])
+1 -> (e[1])* \otimes e[1]
 by Submodule with 3 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
-3 -> -x*(e[1] -> e[1])
+1 -> x*(e[1])* \otimes e[1]
+2 -> y*(e[1])* \otimes e[1]
+3 -> -x*(e[1])* \otimes e[1]
 
 julia> ext(M, M, 3)
 Submodule with 0 generators
