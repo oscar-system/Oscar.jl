@@ -1290,7 +1290,7 @@ Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
+S_[1 1] of dim 6
 
 julia> FG = gens(L[1]);
 
