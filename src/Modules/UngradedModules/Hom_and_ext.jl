@@ -382,15 +382,15 @@ julia> H = hom(M, M)[1];
 
 julia> gens(H)
 2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
- (e[1] -> e[1])
- (e[2] -> e[2])
+ (e[1])* \otimes e[1]
+ (e[2])* \otimes e[2]
 
 julia> relations(H)
 4-element Vector{FreeModElem{QQMPolyRingElem}}:
- x*(e[1] -> e[1])
- y^2*(e[1] -> e[2])
- x*(e[2] -> e[1])
- y^2*(e[2] -> e[2])
+ x*(e[1])* \otimes e[1]
+ x*(e[2])* \otimes e[1]
+ y^2*(e[1])* \otimes e[2]
+ y^2*(e[2])* \otimes e[2]
 
 julia> a = element_to_homomorphism(H[1]+y*H[2])
 Map with following data
