@@ -400,6 +400,20 @@ function fundamental_group(K::SimplicialComplex)
 end
 
 ################################################################################
+###  Sphere recognition heuristics
+################################################################################
+
+"""
+    is_manifold(K::SimplicialComplex)
+
+Check if the abstract simplicial complex `K` is a combinatorial manifold.
+Returns true if recognized as a manifold.
+Returns false if not a manifold or not recognized as a manifold. 
+Heuristics for sphere recognition are applied to all links; see [JLLT22](@cite).
+"""
+is_manifold(K::SimplicialComplex) = pm_object(K).MANIFOLD
+
+################################################################################
 ###  Surface examples
 ################################################################################
 

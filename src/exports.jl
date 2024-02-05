@@ -794,6 +794,7 @@ export is_lattice_polytope
 export is_left
 export is_local
 export is_loopless
+export is_manifold
 export is_maximal_subgroup
 export is_minor
 export is_mixed
