@@ -1196,7 +1196,8 @@ function degree(el::SubquoModuleElem; check::Bool=true)
   # vectors via differently implemented liftings. 
   # Thus, the only thing we can do is to assume that the representative is 
   # homogeneous.
-  return degree(repres(el); check)
+  !el.is_reduced && return degree(simplify!(el); check)
+  return degree(repres(simplify!(el)); check)
 end
 
 # When there is a Groebner basis backend, we can reduce to normal form.
@@ -1204,24 +1205,9 @@ function degree(
     el::SubquoModuleElem{T};
     check::Bool=true
   ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
-  !el.is_reduced && return degree(simplify(el); check)
+  !el.is_reduced && return degree(simplify!(el); check)
   # TODO: Can we always assume the representative to be homogeneous if it is defined???
   return degree(repres(el); check)
-
-  # Old code below for reference
-  if !iszero(coordinates(el))
-    result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
-      if result === nothing
-          reduced_el = simplify(el)
-          result_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
-          @assert result_reduced !== nothing "the specified element is not homogeneous"
-          return result_reduced
-      else
-          return result
-      end
-  else
-      return degree(repres(el))
-  end
 end
 
 function degree(::Type{Vector{Int}}, el::SubquoModuleElem; check::Bool=true)
@@ -1326,67 +1312,6 @@ function degree(f::SubQuoHom; check::Bool=true)
   end
   return df
 end
-
-#=
-@doc raw"""
-    is_graded(a::SubQuoHom)
-
-Return `true` if `a` is graded, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> F = graded_free_module(Rg, 1);
-
-julia> A = Rg[x; y];
-
-julia> B = Rg[x^2; y^3; z^4];
-
-julia> M = SubquoModule(F, A, B);
-
-julia> N = M;
-
-julia> V = [y^2*N[1], x^2*N[2]];
-
-julia> a = hom(M, N, V)
-M -> M
-x*e[1] -> x*y^2*e[1]
-y*e[1] -> x^2*y*e[1]
-Graded module homomorphism of degree [2]
-
-julia> is_graded(a)
-true
-```
-"""
-function is_graded(f::SubQuoHom)
-  isdefined(f, :d) && return true
-  T1 = domain(f)
-  T2 = codomain(f)
-  domain_degrees = degrees_of_generators(T1)
-  df = nothing
-  for i in 1:length(domain_degrees)
-    image_vector = f(T1[i])
-    if isempty(coordinates(image_vector)) || is_zero(image_vector)
-      continue
-    end
-    current_df = degree(image_vector) - domain_degrees[i]
-    if df === nothing
-      df = current_df
-    elseif df != current_df
-      return false
-    end
-  end
-  if df === nothing
-    R = base_ring(T1)
-    G = grading_group(R)
-    f.d = zero(G)
-    return true
-  end
-  f.d = df
-  return true
-end
-=#
 
 @doc raw"""
     grading_group(a::SubQuoHom)
@@ -2916,16 +2841,14 @@ function cm_regularity(M::ModuleFP; check::Bool=true)
  error("Not implemented for the given type")
 end
 
-function cm_regularity(M::FreeMod; check::Bool=true)
+function cm_regularity(M::FreeMod{T}; check::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
    R = base_ring(M)
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_standard_graded(R) "The base ring is not standard ZZ-graded"
+   @check is_standard_graded(R) "The base ring is not standard ZZ-graded"
    return 0
 end
 
-function cm_regularity(M::SubquoModule; check::Bool=true)
+function cm_regularity(M::SubquoModule{T}; check::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
    R = base_ring(M)
-   @check coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
    @check is_standard_graded(R) "The base ring is not standard ZZ-graded"
    B = minimal_betti_table(M; check)
    S = as_dictionary(B)

@@ -14,6 +14,9 @@ Return the module `Hom(M,N)` as an object of type `SubquoModule`.
 
 Additionally, if `H` is that object, return the map which sends an element of `H` to the corresponding homomorphism `M` $\to$ `N`.
 
+In case both `M` and `N` are `SubquoModules` an additional keyword argument `algorithm` can be set to `:matrices` 
+to indicate that another algorithm should be used. 
+
 # Examples
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
@@ -47,68 +50,7 @@ julia> relations(H)
 ```
 """
 function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
-  # This method is now deprecated and overwritten by the new methods below.
-  # The code is still kept for reference and debugging.
-
-  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
-  if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
-    if is_graded(M) && is_graded(N)
-      error("This algorithm is not implemented for graded modules.")
-    end
-    return hom_matrices(M,N,false)
-  end
-  p1 = presentation(M)
-  p2 = presentation(N)
-
-  f0 = map(p1, 0)
-  f1 = map(p1, 1)
-  g0 = map(p2, 0)
-  g1 = map(p2, 1)
-  if is_graded(M) && is_graded(N)
-    @assert is_graded(f0)
-    @assert is_graded(f1)
-    @assert is_graded(g0)
-    @assert is_graded(g1)
-  end
-
-  #step 2
-  H_s0_t0, mH_s0_t0 = hom(domain(f0), domain(g0))
-  H_s1_t1, mH_s1_t1 = hom(domain(f1), domain(g1))
-  D, pro = direct_product(H_s0_t0, H_s1_t1, task = :prod)
-
-  H_s1_t0, mH_s1_t0 = hom(domain(f1), domain(g0))
-
-  delta = hom(D, H_s1_t0, elem_type(H_s1_t0)[preimage(mH_s1_t0, f1*mH_s0_t0(pro[1](g))-mH_s1_t1(pro[2](g))*g1) for g = gens(D)])
-
-  H_s0_t1, mH_s0_t1 = hom(domain(f0), domain(g1))
-
-  rho_prime = hom(H_s0_t1, H_s0_t0, elem_type(H_s0_t0)[preimage(mH_s0_t0, mH_s0_t1(C)*g1) for C in gens(H_s0_t1)])
- 
-  kDelta = kernel(delta)
-
-  projected_kernel::Vector{elem_type(H_s0_t0)} = filter(v -> !is_zero(v), FreeModElem[pro[1](repres(AB)) for AB in gens(kDelta[1])])
-  H = quo_object(sub_object(H_s0_t0, projected_kernel), image(rho_prime)[1])
-
-  H_simplified, s_inj, s_proj = simplify_light(H)
-
-  function im(x::SubquoModuleElem)
-    #@assert parent(x) === H
-    @assert parent(x) === H_simplified
-    return hom(M, N, elem_type(N)[g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)])
-  end
-
-  function pre(f::ModuleFPHom)
-    @assert domain(f) === M
-    @assert codomain(f) === N
-    Rs0 = domain(f0)
-    Rt0 = domain(g0)
-    g = hom(Rs0, Rt0, elem_type(Rt0)[preimage(g0, f(f0(g))) for g = gens(Rs0)])
-
-    return s_proj(SubquoModuleElem(repres(preimage(mH_s0_t0, g)), H))
-  end
-  to_hom_map = MapFromFunc(H_simplified, Hecke.MapParent(M, N, "homomorphisms"), im, pre)
-  set_attribute!(H_simplified, :show => Hecke.show_hom, :hom => (M, N), :module_to_hom_map => to_hom_map)
-  return H_simplified, to_hom_map
+  error("method not implemented")
 end
 
 ### New and hopefully more maintainable code
@@ -147,7 +89,11 @@ function hom(F::FreeMod, G::ModuleFP)
   return H, to_hom_map1
 end
 
-function hom(M::SubquoModule, N::ModuleFP)
+function hom(M::SubquoModule, N::ModuleFP; algorithm::Symbol=:maps)
+  if algorithm == :matrices 
+    !(is_graded(M) && is_graded(N)) || error("algorithm not implemented for graded modules")
+    return hom_matrices(M, N, false)
+  end
   R = base_ring(M)
   R === base_ring(N) || error("base rings must coincide")
   pres = presentation(M)

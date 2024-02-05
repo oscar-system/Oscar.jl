@@ -46,12 +46,10 @@ function presentation(SQ::SubquoModule)
 
     for x = c
       b = sparse_row(R)
-      #e = zero(SQ.F)
       for (i,v) = x.coords
         if i>ngens(SQ)
           break
         end
-        #e += v*repres(gen(SQ, i))
         push!(b.pos, i)
         push!(b.values, v)
       end
