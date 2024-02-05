@@ -134,6 +134,7 @@ function _presentation_graded(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = graded_free_module(R, elem_type(grading_group(R))[])
+  set_attribute!(Z, :name => "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
@@ -173,6 +174,7 @@ function _presentation_simple(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = FreeMod(R, 0)
+  set_attribute!(Z, :name => "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex

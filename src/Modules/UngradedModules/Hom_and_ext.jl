@@ -121,6 +121,8 @@ function hom(F::FreeMod, G::ModuleFP)
   # induced homomorphisms.
   Fdual, interp = dual(F)
   H, mult_map = tensor_product(Fdual, G; task=:with_map)
+  # Custom printing of hom-modules
+  H.S = [Symbol("($i "*(is_unicode_allowed() ? "→" : "->")*" $j)") for i = F.S for j = G.S]
 
   function _elem_to_hom1(v::ModuleFPElem)
     result = hom(F, G, elem_type(G)[zero(G) for i in 1:ngens(F)]; check=false)
@@ -218,6 +220,57 @@ function hom(
   return hom(domain, codomain, img_gens)
 end
 
+@doc raw"""
+    hom(F::FreeMod, G::FreeMod)
+
+Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
+that converts elements from $S$ into morphisms $F \to G$.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = free_module(R, 3)
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> F2 = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
+
+julia> f(V[1])
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = graded_free_module(Rg, [1,2,2])
+Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
+
+julia> F2 = graded_free_module(Rg, [3,5])
+Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
+
+julia> f(V[1])
+F1 -> F2
+e[1] -> e[1]
+e[2] -> 0
+e[3] -> 0
+Graded module homomorphism of degree [2]
+
+```
+"""
 function hom(F::FreeMod, G::FreeMod)
   if is_graded(F) && is_graded(G)
     return _hom_graded(F, G)
@@ -234,6 +287,12 @@ function _hom_simple(F::FreeMod, G::FreeMod)
 
   mn = m*n
   H = FreeMod(R, mn)
+  # Custom printing of hom-module generators
+  if rank(G) == 1
+    H.S = [Symbol("($i)*") for i = F.S]
+  else
+    H.S = [Symbol("($i "*(is_unicode_allowed() ? "→" : "->")*" $j)") for i = F.S for j = G.S]
+  end
 
   # We think of elements of H as matrices A ∈ Rᵐˣⁿ stored 
   # in concatenated lines: 
@@ -268,6 +327,12 @@ function _hom_graded(F::FreeMod, G::FreeMod)
 
   mn = m*n
   H = graded_free_module(R, [degree(G[j]) - degree(F[i]) for i in 1:m for j in 1:n])
+  # Custom printing of hom-module generators
+  if rank(G) == 1 && iszero(degree(G[1]))
+    H.S = [Symbol("($i)*") for i = F.S]
+  else
+    H.S = [Symbol("($i "*(is_unicode_allowed() ? "→" : "->")*" $j)") for i = F.S for j = G.S]
+  end
 
   # We think of elements of H as matrices A ∈ Rᵐˣⁿ stored 
   # in concatenated lines: 

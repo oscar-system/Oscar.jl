@@ -456,7 +456,7 @@ end
 
 ### Duals of modules
 @doc raw"""
-    dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+    dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
 interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
@@ -465,11 +465,11 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; cod::Union{FreeMod, Nothing}=nothing)
+function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  base_ring(cod) === R && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
-  return hom(M, cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  base_ring(codomain) === R && rank(codomain) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+  return hom(M, codomain)
 end
 
 @doc raw"""
@@ -479,18 +479,18 @@ For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
 map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
 """
-function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
+function double_dual(M::FreeMod{T}; codomain::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  M_dual, _ = dual(M, cod=cod)
-  M_double_dual, _ = dual(M_dual, cod=cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  M_dual, _ = dual(M, codomain=codomain)
+  M_double_dual, _ = dual(M_dual, codomain=codomain)
   if length(gens(M_dual)) == 0
     psi_gens = [zero(M_double_dual) for _ in gens(M)]
   else
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        FreeModuleHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
@@ -499,18 +499,18 @@ function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing, check:
   return M_double_dual, psi
 end
 
-function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
+function double_dual(M::SubquoModule{T}; codomain::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  M_dual, _ = dual(M, cod=cod)
-  M_double_dual, _ = dual(M_dual, cod=cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  M_dual, _ = dual(M, codomain=codomain)
+  M_double_dual, _ = dual(M_dual, codomain=codomain)
   if length(gens(M_dual)) == 0
     psi_gens = [zero(M_double_dual) for _ in gens(M)]
   else
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
+        SubQuoHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
