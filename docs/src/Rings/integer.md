@@ -716,7 +716,7 @@ julia> binomial(ZZ(72), ZZ(15))
 
 ### Integer partitions
 
-* `number_of_partitions(n::Int) -> Int`
+* `number_of_partitions(n::Int) -> ZZRingElem`
 * `number_of_partitions(n::ZZRingElem) -> ZZRingElem`
 
 Return the number of integer partitions ``p(n)`` of ``n``, i.e. the number
