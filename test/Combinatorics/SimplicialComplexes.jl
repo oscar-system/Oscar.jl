@@ -20,7 +20,7 @@
     @test minimal_nonfaces(sphere) == [Set{Int}([1, 2, 3, 4])]
     R, _ = polynomial_ring(ZZ, ["a", "x", "i_7", "n"])
     @test stanley_reisner_ideal(R, sphere) == ideal([R([1], [[1, 1, 1, 1]])])
-    @test is_isomorphic(fundamental_group(sphere), free_group())
+    @test is_trivial(fundamental_group(sphere))
 
     # from #1440, make sure empty columns at the end are kept
     sc = simplicial_complex([[1, 2, 4], [2, 3, 4]])

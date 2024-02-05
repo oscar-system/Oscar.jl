@@ -902,7 +902,7 @@ true
 julia> typeof(F)
 PcGroup
 
-julia> typeof(maximal_abelian_quotient(free_group(1))[1])
+julia> typeof(maximal_abelian_quotient(free_group(1)[1])[1])
 FPGroup
 
 julia> typeof(maximal_abelian_quotient(PermGroup, G)[1])

@@ -129,7 +129,7 @@ end
   @test_throws ArgumentError mathieu_group(25)
 
 
-  F = free_group("x","y")
+  F, = free_group(["x","y"])
   @test F isa FPGroup
   @test_throws InfiniteOrderError{FPGroup} order(F)
   @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
@@ -137,7 +137,7 @@ end
   @test !is_finite(F)
   @test !is_abelian(F)
 
-  F = free_group(:x,:y)
+  F, = free_group([:x,:y])
   @test F isa FPGroup
   @test_throws InfiniteOrderError{FPGroup} order(F)
   @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
@@ -145,22 +145,22 @@ end
   @test !is_finite(F)
   @test !is_abelian(F)
 
-  F = free_group("x",:y)
+  F, = free_group("x"=>1:3)
   @test F isa FPGroup
   
-  F = free_group(2)
+  F, = free_group(2)
   @test F isa FPGroup
   
-  F = free_group(["x","y"])
+  F, = free_group(["x","y"])
   @test F isa FPGroup
   
-  F = free_group([:x,:y])
+  F, = free_group([:x,:y])
   @test F isa FPGroup
   
-  F = free_group(3,"y")
+  F, = free_group(3,"y")
   @test F isa FPGroup
   
-  F = free_group(3,:y)
+  F, = free_group(3,:y)
   @test F isa FPGroup
 
   @test_throws ArgumentError free_group(-1)

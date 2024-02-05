@@ -45,12 +45,12 @@ end
 end
 
 @testset "describe() for free groups" begin
-   @test describe(free_group(0)) == "1"
-   @test describe(free_group(1)) == "Z"
-   @test describe(free_group(2)) == "a free group of rank 2"
-   @test describe(free_group(3)) == "a free group of rank 3"
+   @test describe(free_group(0)[1]) == "1"
+   @test describe(free_group(1)[1]) == "Z"
+   @test describe(free_group(2)[1]) == "a free group of rank 2"
+   @test describe(free_group(3)[1]) == "a free group of rank 3"
 
-   F = free_group(4)
+   F, _ = free_group(4)
    subs = [sub(F, gens(F)[1:n])[1] for n in 0:4]
    @test describe(subs[1]) == "1"
    @test describe(subs[2]) == "Z"
@@ -60,16 +60,16 @@ end
 end
 
 @testset "describe() for finitely presented groups" begin
-   F = free_group(1)
+   F, _ = free_group(1)
    @test describe(direct_product(F, F)) == "Z x Z"
 
-   F = free_group(2)
+   F, _ = free_group(2)
    G = quo(F, [gen(F,2)])[1]
    @test describe(G) == "Z"
    G = quo(F, [gen(F,2)/gen(F,1)])[1]
    @test describe(G) == "Z"
 
-   F = free_group(3)
+   F, _ = free_group(3)
    G, _ = quo(F, [gen(F,1)^2,gen(F,2)^2])
    @test describe(G) == "a finitely presented infinite group"
    is_abelian(G)

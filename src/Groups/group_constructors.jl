@@ -455,6 +455,9 @@ projective_omega_group(n::Int, q::Int) = projective_omega_group(0, n, q)
     free_group(L::Vector{<:VarName}) -> FPGroup
     free_group(L::VarName...) -> FPGroup
 
+TODO: update the list of argument variants to match new reality; maybe also point to
+point to relevant AA docs
+
 The first form returns the free group of rank `n`, where the generators are
 printed as `s1`, `s2`, ..., the default being `f1`, `f2`, ...
 If `eltype` has the value `:syllable` then each element in the free group is
@@ -472,30 +475,21 @@ where the `i`-th generator is printed as `L[i]`.
 !!! warning "Note"
     Variables named like the group generators are *not* created by this function.
 """
-function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
-   @req n >= 0 "n must be a non-negative integer"
+function free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
+   J = GAP.GapObj(L, recursive = true)
    if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+   elseif eltype == :letter
+     G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    else
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
+     error("eltype must be :letter or :letter, not ", eltype)
    end
-   GAP.Globals.SetRankOfFreeGroup(G.X, n)
-   return G
+   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
+   return G, gens(G)
 end
 
-function free_group(L::Vector{<:VarName})
-   J = GAP.GapObj(L, recursive = true)
-   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
-   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
-   return G
-end
+AbstractAlgebra.@varnames_interface free_group(s)
 
-function free_group(L::VarName...)
-   J = GAP.GapObj(L, recursive = true)
-   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
-   GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
-   return G
-end
 
 # FIXME: a function `free_abelian_group` with the same signature is
 # already being defined by Hecke
