@@ -1162,7 +1162,7 @@ base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
-  n = get_attribute(W, :name)
+  n = AbstractAlgebra.find_name(W)
   io = pretty(io)
   if n !== nothing
     print(io, LowercaseOff(), "$(n)_$(d.coeff) of dim $(dim(M))")
