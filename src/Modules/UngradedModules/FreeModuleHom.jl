@@ -460,7 +460,7 @@ Homogeneous module homomorphism)
 
 ```
 """
-function kernel(h::FreeModuleHom)  #ONLY for free modules...
+function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})  #ONLY for free modules...
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return _simple_kernel(h)
@@ -478,7 +478,15 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   return sub(F, v)
 end
 
-function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  I, inc = _simple_kernel(h)
+  @assert is_graded(I)
+  @assert is_homogeneous(inc)
+  return I, inc
+end
+
+function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
   F = domain(h)
   M = codomain(h)
   G = ambient_free_module(M)
@@ -489,22 +497,6 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   R = base_ring(G)
   H = FreeMod(R, length(g))
   phi = hom(H, G, g)
-  K, inc = kernel(phi)
-  r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
-  return sub(F, v)
-end
-
-function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
-  F = domain(h)
-  M = codomain(h)
-  G = ambient_free_module(M)
-  # We have to take the representatives of the reduced elements!
-  # Otherwise we might get wrong degrees.
-  g = [repres(simplify(v)) for v in images_of_generators(h)]
-  g = vcat(g, relations(M))
-  phi = graded_map(G, g)
-  H = domain(phi)
   K, inc = kernel(phi)
   r = ngens(F)
   v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
@@ -528,13 +520,8 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   return iszero(compose(g, phi))
 end
 
-function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
-  I, inc = _simple_kernel(h)
-  @assert is_graded(I)
-  @assert is_homogeneous(inc)
-  return I, inc
-end
 #=
+# Old code of kernel left for debugging
   G = domain(h)
   R = base_ring(G)
   if ngens(G) == 0
