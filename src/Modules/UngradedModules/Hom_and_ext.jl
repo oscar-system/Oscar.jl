@@ -121,8 +121,6 @@ function hom(F::FreeMod, G::ModuleFP)
   # induced homomorphisms.
   Fdual, interp = dual(F)
   H, mult_map = tensor_product(Fdual, G; task=:with_map)
-  # Custom printing of hom-modules
-  H.S = [Symbol("($i "*(is_unicode_allowed() ? "→" : "->")*" $j)") for i = F.S for j = G.S]
 
   function _elem_to_hom1(v::ModuleFPElem)
     result = hom(F, G, elem_type(G)[zero(G) for i in 1:ngens(F)]; check=false)
