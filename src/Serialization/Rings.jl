@@ -699,6 +699,7 @@ function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPoly
   return result
 end
 
+# we will need to extend this to more orderings at some point
 @register_serialization_type Orderings.SymbOrdering
 
 function save_object(s::SerializerState, o::Orderings.SymbOrdering{S}) where {S}
