@@ -1162,7 +1162,7 @@ base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
 
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
-  n = get_attribute(W, :name)
+  n = AbstractAlgebra.find_name(W)
   io = pretty(io)
   if n !== nothing
     print(io, LowercaseOff(), "$(n)_$(d.coeff) of dim $(dim(M))")
@@ -1290,7 +1290,7 @@ Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
+S_[1 1] of dim 6
 
 julia> FG = gens(L[1]);
 
