@@ -1,4 +1,4 @@
-@testset "Experimental/JuLie/partitions.jl" begin
+@testset "Integer Partitions" begin
 
   ############################################################################
   # Partition constructor
@@ -20,75 +20,32 @@
   ############################################################################
 
   # From https://oeis.org/A000041
-  @test [ number_of_partitions(i) for i in 0:49 ] == 
+  @test [ number_of_partitions(i) for i in 0:49 ] ==
     ZZRingElem[ 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134, 105558, 124754, 147273, 173525 ]
 
 
   # For some random large numbers, checked with Sage
   # Partitions(991).cardinality()
-  @test_broken number_of_partitions(991) == ZZ(16839773100833956878604913215477)
+  @test number_of_partitions(991) == ZZ(16839773100833956878604913215477)
 
   ############################################################################
   # partitions(n)
   ############################################################################
-  check = true
-  for n=0:20
+  for n = 0:20
     P = partitions(n)
 
     # Check that the number of partitions is correct
     # Note that number_of_partitions(n) is computed independently of partitions(n)
-    if length(P) != number_of_partitions(n)
-      check = false
-      break
-    end
+    @test length(P) == number_of_partitions(n)
 
     # Check that all partitions are distinct
-    if P != unique(P)
-      check = false
-      break
-    end
+    @test P == unique(P)
 
     # Check that partitions are really partitions of n
     for lambda in P
-      if sum(lambda) != n
-        check = false
-        break
-      end
+      @test sum(lambda) == n
     end
   end
-  @test check==true
-
-  ############################################################################
-  # ascending_partitions(n)
-  ############################################################################
-  check = true
-  for n in 0:20
-    # go through all algorithms
-    for a in [ :ks, :m ]
-      P = ascending_partitions(n,algorithm=a)
-      # check that number of partitions is correct
-      if length(P) != number_of_partitions(n)
-        check = false
-        break
-      end
-      # check that all partitions are distinct
-      if P != unique(P)
-        check = false
-        break
-      end
-      # check that partitions are really partitions of n
-      for lambda in P
-        if sum(lambda) != n
-          check = false
-          break
-        end
-      end
-    end
-    if check==false
-      break
-    end
-  end
-  @test check==true
 
   ############################################################################
   # number_of_partitions(n,k)
@@ -117,7 +74,6 @@
   ############################################################################
   # partitions(n,k)
   ############################################################################
-  check = true
   for n in 0:20
     for k = 0:n+1
       P = partitions(n,k)
@@ -127,29 +83,17 @@
       filter!( Q->length(Q) == k, Q)
 
       # Check that P and Q coincide (up to reordering)
-      if length(P) != length(Q) || Set(P) != Set(Q)
-        check = false
-        break
-      end
+      @test length(P) == length(Q)
+      @test Set(P) == Set(Q)
 
       # Compare length with number_of_partitions(n,k)
-      if length(P) != number_of_partitions(n,k)
-        check = false
-        break
-      end
-
-    end
-    if check==false
-      break
+      @test length(P) == number_of_partitions(n,k)
     end
   end
-  @test check==true
-
 
   ############################################################################
   # partitions(n,k,l1,l2)
   ############################################################################
-  check = true
   for n in 0:20
     for k = 0:n+1
       for l1 = 0:n
@@ -160,25 +104,18 @@
           Q = partitions(n,k)
           filter!( Q->all(>=(l1),Q), Q)
           filter!( Q->all(<=(l2),Q), Q)
-        
+
           # Check that P and Q coincide (up to reordering)
-          if length(P) != length(Q) || Set(P) != Set(Q)
-            check = false
-            break
-          end
+          @test length(P) == length(Q)
+          @test Set(P) == Set(Q)
         end
       end
     end
-    if check==false
-      break
-    end
   end
-  @test check==true
 
   ############################################################################
   # partitions(n,k,l1,l2; only_distinct_parts=true)
   ############################################################################
-  check = true
   for n in 0:20
     for k = 0:n+1
       for l1 = 0:n
@@ -188,20 +125,14 @@
           # Create the same by filtering all partitions
           Q = partitions(n,k, l1, l2)
           filter!( Q->Q==unique(Q), Q )
-        
+
           # Check that P and Q coincide (up to reordering)
-          if length(P) != length(Q) || Set(P) != Set(Q)
-            check = false
-            break
-          end
+          @test length(P) == length(Q)
+          @test Set(P) == Set(Q)
         end
       end
     end
-    if check==false
-      break
-    end
   end
-  @test check==true
 
   ############################################################################
   # partitions(m,n,v,mu)
@@ -226,28 +157,19 @@
   @test length(partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])) == 1
 
   # Special cases
-  check = true
   for n=0:20
     for k=0:n+1
       P = partitions(n,k, [i for i in 1:n], [n for i in 1:n])
       Q = partitions(n,k)
-      if length(P) != length(Q) || Set(P) != Set(Q)
-        println((n,k,P,Q))
-        check = false
-        break
-      end
+      @test length(P) == length(Q)
+      @test Set(P) == Set(Q)
 
       P = partitions(n,k, [i for i in 1:n], [1 for i in 1:n])
       Q = partitions(n,k,1,n;only_distinct_parts=true)
-      if length(P) != length(Q) || Set(P) != Set(Q)
-        println("HERE")
-        check = false
-        break
-      end
-
+      @test length(P) == length(Q)
+      @test Set(P) == Set(Q)
     end
   end
-  @test check==true
 
   # From https://www.maa.org/frank-morgans-math-chat-293-ways-to-make-change-for-a-dollar
   @test length(partitions(100, [1,5,10,25,50])) == 292
@@ -290,13 +212,7 @@
   @test conjugate(partition([])) == partition([])
 
   # Check if conjugate is an involution
-  check = true
   for p in partitions(10)
-    if conjugate(conjugate(p)) != p
-      check = false
-      break
-    end
+    @test conjugate(conjugate(p)) == p
   end
-  @test check==true
-
 end

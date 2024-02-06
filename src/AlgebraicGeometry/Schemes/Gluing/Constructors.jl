@@ -27,8 +27,8 @@ Gluing
   of affine 2-space
   and affine 2-space
 along the open subsets
-  [x, y]   AA^2 \ V(x)
-  [u, v]   AA^2 \ V(u)
+  [x, y]   AA^2 \ scheme(x)
+  [u, v]   AA^2 \ scheme(u)
 given by the pullback function
   u -> 1/x
   v -> y/x
@@ -53,7 +53,7 @@ along the open subsets
   [u, v]   complement to V(u) in affine scheme with coordinates [u, v]
 defined by the map
   affine scheme morphism
-    from [x, y]  AA^2 \ V(x)
+    from [x, y]  AA^2 \ scheme(x)
     to   [u, v]  affine 2-space
   given by the pullback function
     u -> 1/x

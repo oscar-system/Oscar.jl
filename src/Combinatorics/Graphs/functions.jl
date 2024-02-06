@@ -1081,3 +1081,53 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
     print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
   end
 end
+
+function graph_from_edges(::Type{T},
+  edges::Vector{Edge},
+  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} 
+
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
+   
+  g = Graph{T}(max(n_needed, n_vertices))
+  for e in edges
+    add_edge!(g, src(e), dst(e))
+  end
+
+  return g
+end
+
+graph_from_edges(::Type{T},
+edges::EdgeIterator,
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
+
+@doc raw"""
+  graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
+
+Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
+
+# Examples 1
+```jldoctest
+julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
+
+```
+
+```
+# Examples 2
+```jldoctest
+julia> G = graph_from_edges(Undirected,[[1,3]])
+Undirected graph with 3 nodes and the following edges:
+(3, 1))
+
+```
+"""
+graph_from_edges(::Type{T},
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
+
+graph_from_edges(
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) = graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
+
