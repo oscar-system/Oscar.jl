@@ -89,17 +89,23 @@ cases = [
 
         if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
           @testset "MPoly Ideals over $(case[4])" begin
-            q = w^2 + z
+            q = z
             i = Oscar.ideal(R, [p, q])
             test_save_load_roundtrip(path, i) do loaded_i
               S = parent(loaded_i[1])
               h = hom(R, S, gens(S))
               @test h(i) == loaded_i
             end
-
+            
             S = parent(i[1])
             test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test i == loaded_i
+            end
+
+            gb = groebner_basis(i)
+            test_save_load_roundtrip(path, gb;) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
             end
           end
         end
