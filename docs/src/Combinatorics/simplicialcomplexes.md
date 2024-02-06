@@ -65,6 +65,14 @@ cohomology(K::SimplicialComplex, i::Int)
 fundamental_group(K::SimplicialComplex)
 ```
 
+## Recognizing topological spaces
+
+```@docs
+is_sphere(K::SimplicialComplex)
+is_ball(K::SimplicialComplex)
+is_manifold(K::SimplicialComplex)
+```
+
 ## Connection to commutative algebra
 
 The complements of the minimal non-faces form the facets of the Alexander dual.
