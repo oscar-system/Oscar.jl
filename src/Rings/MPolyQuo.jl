@@ -1524,7 +1524,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from r_[2] of dim 10
+  from R_[2] of dim 10
   to graded multivariate polynomial ring in 4 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
