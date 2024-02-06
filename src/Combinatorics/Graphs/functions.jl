@@ -1238,8 +1238,12 @@ julia> cophenetic_matrix(ptree)
  6.0  6.0  8.0  0.0
 ```
 """
-function cophenetic_matrix(ptree::PhylogeneticTree)
+function cophenetic_matrix(ptree::PhylogeneticTree{Float64})
   return convert(Matrix, ptree.pm_ptree.COPHENETIC_MATRIX)
+end
+
+function cophenetic_matrix(ptree::PhylogeneticTree{QQFieldElem})
+  return matrix(QQ, convert(Matrix{QQFieldElem}, ptree.pm_ptree.COPHENETIC_MATRIX))
 end
 
 @doc raw"""
@@ -1364,8 +1368,8 @@ julia> newick(tc)
 "G:40,(B:35,(C:30,H:30):5):5;"
 ```
 """
-function tropical_median_consensus(trees...)
-  return tropical_median_consensus(trees)
+function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
+  return tropical_median_consensus(collect(trees))
 end
 
 function graph_from_edges(::Type{T},
