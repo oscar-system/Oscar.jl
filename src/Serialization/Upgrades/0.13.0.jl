@@ -86,6 +86,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     elseif contains(type_string, "PolyRingElem")
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
         upgraded_parents = dict[:data][:parents][end]
+        println(upgraded_parents)
         params = upgraded_parents
         upgraded_dict[:data] = upgrade_terms(dict[:data][:terms])
       else
@@ -161,7 +162,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       end
       upgraded_dict[:data] = matrix_data
     end
-
 
     if contains(type_string, "Field")
       if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)
