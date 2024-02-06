@@ -1009,7 +1009,54 @@ function complete_bipartite_graph(n::Int64, m::Int64)
     return Graph{Undirected}(bigobj.ADJACENCY)
 end
 
+function graph_from_edges(::Type{T},
+  edges::Vector{Edge},
+  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} 
 
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
+   
+  g = Graph{T}(max(n_needed, n_vertices))
+  for e in edges
+    add_edge!(g, src(e), dst(e))
+  end
+
+  return g
+end
+
+graph_from_edges(::Type{T},
+edges::EdgeIterator,
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
+
+@doc raw"""
+  graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
+
+Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
+
+# Examples 1
+```jldoctest
+julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
+
+```
+
+```
+# Examples 2
+```jldoctest
+julia> G = graph_from_edges(Undirected,[[1,3]])
+Undirected graph with 3 nodes and the following edges:
+(3, 1))
+
+```
+"""
+graph_from_edges(::Type{T},
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
+
+graph_from_edges(
+edges::Vector{Vector{Int}},
+n_vertices::Int=-1) = graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 
 @doc raw"""
     visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
@@ -1020,8 +1067,6 @@ function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Un
     BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
     Polymake.visual(BigGraph)
 end
-
-
 
 # Some standard polytopes from graphs
 @doc raw"""
@@ -1178,7 +1223,7 @@ end
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
-Returns the underlying graph of the phylogenetic tree `ptree`.
+Returns the underlying graph of the phylogenetic tree `ptree`. It will be an directed tree with edges directed away from the root (labeled with 1).
 
 # Examples
 Make a phylogenetic tree with given Newick format and print its underlying graph.
@@ -1187,12 +1232,31 @@ Make a phylogenetic tree with given Newick format and print its underlying graph
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
 julia> adjacency_tree(ptree)
-Undirected graph with 7 nodes and the following edges:
-(2, 1)(3, 2)(4, 2)(5, 4)(6, 4)(7, 1)
+Directed graph with 7 nodes and the following edges:
+(1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
 function adjacency_tree(ptree::PhylogeneticTree)
-  return Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
+  udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
+  n = nv(udir_tree)
+  # list_edges = collect(edges(udir_tree))
+  dir_tree = Graph{Directed}(n)
+  
+  queue = [1]
+  visited = fill(false, n)
+  visited[1] = true
+  while length(queue) > 0
+    x = popfirst!(queue)
+    for y in neighbors(udir_tree, x)
+      if visited[y] == false
+        add_edge!(dir_tree, x, y)
+        push!(queue, y)
+        visited[y] = true
+      end
+    end
+  end
+  
+  return dir_tree
 end
 
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
@@ -1344,7 +1408,6 @@ function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where {T <:
   return PhylogeneticTree{T}(pm_cons_tree)
 end
 
-
 @doc raw"""
     tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
 
@@ -1371,52 +1434,3 @@ julia> newick(tc)
 function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
   return tropical_median_consensus(collect(trees))
 end
-
-function graph_from_edges(::Type{T},
-  edges::Vector{Edge},
-  n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} 
-
-  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
-  @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
-   
-  g = Graph{T}(max(n_needed, n_vertices))
-  for e in edges
-    add_edge!(g, src(e), dst(e))
-  end
-
-  return g
-end
-
-graph_from_edges(::Type{T},
-edges::EdgeIterator,
-n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
-
-@doc raw"""
-  graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
-
-Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
-
-# Examples 1
-```jldoctest
-julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
-Undirected graph with 5 nodes and the following edges:
-(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
-
-```
-
-```
-# Examples 2
-```jldoctest
-julia> G = graph_from_edges(Undirected,[[1,3]])
-Undirected graph with 3 nodes and the following edges:
-(3, 1))
-
-```
-"""
-graph_from_edges(::Type{T},
-edges::Vector{Vector{Int}},
-n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
-
-graph_from_edges(
-edges::Vector{Vector{Int}},
-n_vertices::Int=-1) = graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)

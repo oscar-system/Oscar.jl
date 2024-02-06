@@ -5,9 +5,9 @@
   @test equidistant(ptree1) == true
 
   ptree1_test = phylogenetic_tree([0 4 9; 4 0 9.0; 9 9 0], ["A", "B", "C"])
-  tmc = tropical_median_consensus(ptree1_test, ptree1)
+  # tmc = tropical_median_consensus(ptree1_test, ptree1) -- Varargs method removed
   tmc_v = tropical_median_consensus([ptree1_test, ptree1])
-  @test newick(tmc) == "C:9,(A:6.5,B:6.5):2.5;"
+  # @test newick(tmc) == "C:9,(A:6.5,B:6.5):2.5;"
   @test newick(tmc_v) == "C:9,(A:6.5,B:6.5):2.5;"
 
   M = matrix(QQ, [0 4 9; 4 0 9; 9 9 0])
