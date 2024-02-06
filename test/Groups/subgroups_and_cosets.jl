@@ -303,7 +303,7 @@ end
    @test abelian_invariants(schur_multiplier(symmetric_group(4))) == [2]
    @test abelian_invariants(schur_multiplier(alternating_group(6))) == [2, 3]
 
-   @test schur_multiplier(symmetric_group(4)) isa GrpAbFinGen
+   @test schur_multiplier(symmetric_group(4)) isa FinGenAbGroup
    @test schur_multiplier(PcGroup, symmetric_group(4)) isa PcGroup
 end
 

@@ -4,8 +4,8 @@
 
 @attributes mutable struct ToricDivisorClass
     toric_variety::NormalToricVarietyType
-    class::GrpAbFinGenElem
-    function ToricDivisorClass(toric_variety::NormalToricVarietyType, class::GrpAbFinGenElem)
+    class::FinGenAbGroupElem
+    function ToricDivisorClass(toric_variety::NormalToricVarietyType, class::FinGenAbGroupElem)
         @req parent(class) === class_group(toric_variety) "The class must belong to the class group of the toric variety"
         return new(toric_variety, class)
     end
@@ -17,7 +17,7 @@ end
 ######################
 
 @doc raw"""
-    toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem)
+    toric_divisor_class(v::NormalToricVarietyType, class::FinGenAbGroupElem)
 
 Construct the toric divisor class associated to a group
 element of the class group of the normal toric variety `v`.
@@ -31,7 +31,7 @@ julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
 ```
 """
-toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem) = ToricDivisorClass(v, class)
+toric_divisor_class(v::NormalToricVarietyType, class::FinGenAbGroupElem) = ToricDivisorClass(v, class)
 
 
 @doc raw"""

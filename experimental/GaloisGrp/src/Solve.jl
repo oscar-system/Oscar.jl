@@ -25,8 +25,8 @@ mutable struct SubField
   basis_abs::Vector
 
   #Caches:
-  num_basis::MatElem{<:RingElem} # qadic or power series
-  num_dual_basis::Vector{Vector{<:RingElem}} #padic or power series
+  num_basis::MatElem{<:RingElem} # QadicFieldElem or power series
+  num_dual_basis::Vector{Vector{<:RingElem}} #PadicFieldElem or power series
 
   function SubField()
     return new()
@@ -366,7 +366,7 @@ function length_bound(C::GaloisCtx, S::SubField, x::AbstractAlgebra.Generic.Func
 end
 
 
-function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = arb)
+function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = ArbFieldElem)
   return sum(x^2 for x = Oscar.conjugates(x, abs_tol, T))
 end
 
@@ -483,7 +483,7 @@ julia> K, r = solve(x^3+3*x+5)
 julia> #z_3 indicates the 3-rd root-of-1 used
 
 julia> map(x^3+3*x+5, r)
-3-element Vector{Hecke.NfRelElem{Hecke.NfRelElem{nf_elem}}}:
+3-element Vector{Hecke.RelSimpleNumFieldElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}}:
  0
  0
  0

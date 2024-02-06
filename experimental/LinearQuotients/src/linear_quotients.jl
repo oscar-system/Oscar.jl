@@ -34,7 +34,7 @@ function fixed_root_of_unity(L::LinearQuotient)
   elseif e == 2
     L.root_of_unity = (K(-1), e)
   else
-    K isa AnticNumberField || throw(Hecke.NotImplemented())
+    K isa AbsSimpleNumField || throw(Hecke.NotImplemented())
     fl, l = Hecke.is_cyclotomic_type(K)
     fl || throw(Hecke.NotImplemented())
     if is_odd(l)
@@ -81,7 +81,7 @@ function class_group(L::LinearQuotient)
   else
     K = G
   end
-  A, KtoA = maximal_abelian_quotient(GrpAbFinGen, K)
+  A, KtoA = maximal_abelian_quotient(FinGenAbGroup, K)
   snfA, snfAtoA = snf(A)
   A = snfA
   KtoA = compose(KtoA, inv(snfAtoA))

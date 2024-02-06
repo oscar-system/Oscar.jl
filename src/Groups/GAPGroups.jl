@@ -367,16 +367,10 @@ comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
-function Base.iterate(G::GAPGroup)
-  L = GAPWrap.Iterator(G.X)::GapObj
-  i = GAPWrap.NextIterator(L)::GapObj
-  return group_element(G, i), L
-end
+Base.iterate(G::GAPGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GAPGroup, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G, i), state
 end
@@ -680,9 +674,7 @@ Base.IteratorSize(::Type{<:GAPGroupConjClass}) = Base.SizeUnknown()
 Base.iterate(cc::GAPGroupConjClass) = iterate(cc, GAPWrap.Iterator(cc.CC))
 
 function Base.iterate(cc::GAPGroupConjClass{S,T}, state::GapObj) where {S,T}
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
@@ -775,10 +767,10 @@ Sym(3)
 
 julia> conjugacy_classes_subgroups(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_subgroups(G::GAPGroup)
@@ -829,8 +821,8 @@ julia> G = symmetric_group(3);
 
 julia> conjugacy_classes_maximal_subgroups(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
- Conjugacy class of permutation group in Sym(3)
- Conjugacy class of permutation group in Sym(3)
+ Conjugacy class of permutation group in G
+ Conjugacy class of permutation group in G
 ```
 """
 function conjugacy_classes_maximal_subgroups(G::GAPGroup)
@@ -1601,7 +1593,7 @@ function set_prime_of_pgroup(G::GAPGroup, p::IntegerUnion)
 end
 
 # TODO/FIXME: the rank method below is disabled because it conflicts
-# with semantics of  the `rank` method for GrpAbFinGen. We'll have
+# with semantics of  the `rank` method for FinGenAbGroup. We'll have
 # to resolve this first; afterwards we can uncomment this code,
 # and possibly rename it to whatever we agreed on (if it is different from `rank`)
 #"""
@@ -1746,7 +1738,7 @@ If `g` is an element of a free group $G$, say, then the rank of $G$ must be
 equal to the length of `genimgs`, `g` is a product of the form
 $g_{i_1}^{e_i} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
-and $R_j = $`imgs[`$i_j$`]`$^{e_j}$.
+and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of a finitely presented group then the result is
 defined as `map_word` applied to a representing element of the underlying
@@ -1755,7 +1747,7 @@ free group.
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
 then the absolute values of the $k_i$ must be at most the length of `genimgs`,
-and $R_j = $`imgs[`$|k_i|$`]`$^{\epsilon_i}$
+and $R_j =$ `imgs[`$|k_i|$`]`$^{\epsilon_i}$
 where $\epsilon_i$ is the `sign` of $k_i$ (times $e_i$).
 
 If a vector `genimgs_inv` is given then its assigned entries are expected
@@ -2011,7 +2003,7 @@ function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
 end
 
 
-function describe(G::GrpAbFinGen)
+function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
    l_tor = filter(x -> x != 0, l)
@@ -2198,3 +2190,5 @@ function is_obviously_abelian(G::FPGroup)
     end
     return true
 end
+
+describe(G::MultTableGroup) = describe(PermGroup(G))

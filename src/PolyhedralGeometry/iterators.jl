@@ -50,9 +50,13 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     _parent_or_coefficient_field(po::$T) = coefficient_field(po)
 
+    function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType<:scalar_types_extended
+      e = bc.f(first.(bc.args)...)
+      return $_t(parent(e), axes(bc)...)
+    end
+
     function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType
-      U, f = _promote_scalar_field(_parent_or_coefficient_field.(bc.args)...)
-      return $_t(f, axes(bc)...)
+      return Vector{ElType}(undef, length(axes(bc)...))
     end
 
     Base.:*(k::scalar_types_extended, po::$T) = k .* po

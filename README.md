@@ -52,12 +52,12 @@ julia> k, a = quadratic_field(-5)
 
 julia> zk = maximal_order(k)
 Maximal order of Imaginary quadratic field defined by x^2 + 5
-with basis nf_elem[1, sqrt(-5)]
+with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
 
 julia> factorisations(zk(6))
-2-element Vector{Fac{NfOrdElem}}:
- -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
+2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * -3 * 2
+ -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
 
 julia> Qx, x = polynomial_ring(QQ, [:x1,:x2])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x1, x2])
@@ -85,12 +85,7 @@ julia> H, mH = hom(s, quo(F, s)[1])
 (hom of (s, Subquotient of
 1 -> e[1]
 by
-1 -> (x1^2 + x2)*e[1]), Map: hom of (s, Subquotient of
-1 -> e[1]
-by
-1 -> (x1^2 + x2)*e[1]) -> set of all homomorphisms from Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
-represented as subquotient with no relations. to Subquotient of Submodule with 1 generator
+1 -> (x1^2 + x2)*e[1]), Map: H -> set of all homomorphisms from s to subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 1 generator
 1 -> (x1^2 + x2)*e[1])

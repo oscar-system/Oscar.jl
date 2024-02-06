@@ -17,9 +17,9 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
 """
 @attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredSurface{BaseField}
   Y::CoveredScheme{BaseField}  # the underlying_scheme
-  E::EllCrv{BaseCurveFieldType}
-  MWL::Vector{EllCrvPt{BaseCurveFieldType}} # basis for the mordell weil group
-  MWLtors::Vector{EllCrvPt{BaseCurveFieldType}} # torsion sections
+  E::EllipticCurve{BaseCurveFieldType}
+  MWL::Vector{EllipticCurvePoint{BaseCurveFieldType}} # basis for the mordell weil group
+  MWLtors::Vector{EllipticCurvePoint{BaseCurveFieldType}} # torsion sections
   Weierstrasschart::AbsSpec
   Weierstrassmodel::CoveredScheme
   inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
@@ -33,7 +33,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   ambient_blowups::Vector{<:BlowupMorphism}
   ambient_exceptionals::Vector{<:EffectiveCartierDivisor}
 
-  function EllipticSurface(generic_fiber::EllCrv{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}) where F
+  function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
     S = new{B,F}()
     S.E = generic_fiber
@@ -50,14 +50,14 @@ end
 base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
 
 @doc raw"""
-    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllCrvPt})
+    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllipticCurvePoint})
 
 Set generators for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
 
 This invalidates previous computations depending on the generators of the
 mordell weil lattice such as the `algebraic_lattice`. Use with care.
 """
-function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllCrvPt})
+function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
   @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
   X.MWL = mwl_basis
   # clear old computations
@@ -70,7 +70,7 @@ function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllCrvP
 end
 
 @doc raw"""
-    elliptic_surface(generic_fiber::EllCrv, euler_characteristic::Int, mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) -> EllipticSurface
+    elliptic_surface(generic_fiber::EllipticCurve, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[]) -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
 
@@ -82,7 +82,7 @@ julia> Qt, t = polynomial_ring(QQ, :t);
 
 julia> Qtf = fraction_field(Qt);
 
-julia> E = EllipticCurve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
+julia> E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2]);
 
 julia> X3 = elliptic_surface(E, 2)
 Elliptic surface
@@ -94,15 +94,15 @@ julia> Base.show(stdout, X3)
 Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 ```
 """
-function elliptic_surface(generic_fiber::EllCrv{BaseField}, euler_characteristic::Int,
-                          mwl_basis::Vector{<:EllCrvPt}=EllCrvPt[]) where {
+function elliptic_surface(generic_fiber::EllipticCurve{BaseField}, euler_characteristic::Int,
+                          mwl_basis::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[]) where {
                           BaseField <: Frac{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, euler_characteristic, mwl_basis)
   return S
 end
 
-kodaira_neron_model(E::EllCrv) = elliptic_surface(E)
+kodaira_neron_model(E::EllipticCurve) = elliptic_surface(E)
 
 function underlying_scheme(S::EllipticSurface)
   if isdefined(S,:Y)
@@ -114,7 +114,7 @@ function underlying_scheme(S::EllipticSurface)
 end
 
 @doc raw"""
-    generic_fiber(S::EllipticSurface) -> EllCrv
+    generic_fiber(S::EllipticSurface) -> EllipticCurve
 
 Return the generic fiber as an elliptic curve.
 """
@@ -221,7 +221,7 @@ The third is ``L``.
 end
 
 @doc raw"""
-    mordell_weil_lattice(S::EllipticSurface) -> Vector{EllCrvPt}, ZZLat
+    mordell_weil_lattice(S::EllipticSurface) -> Vector{EllipticCurvePoint}, ZZLat
 
 Return the (sublattice) of the Mordell-Weil lattice of ``S``  spanned
 by the sections of ``S`` supplied at its construction.
@@ -239,7 +239,7 @@ by the sections of ``S`` supplied at its construction.
 end
 
 @doc raw"""
-    mordell_weil_torsion(S::EllipticSurface) -> Vector{EllCrvPt}
+    mordell_weil_torsion(S::EllipticSurface) -> Vector{EllipticCurvePoint}
 
 Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
 """
@@ -247,7 +247,7 @@ Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
   E = generic_fiber(S)
   O = E([0,1,0])
   N = trivial_lattice(S)[2]
-  tors = EllCrvPt[]
+  tors = EllipticCurvePoint[]
   d = det(N)
   for p in prime_divisors(d)
     if valuation(d, p) == 1
@@ -907,19 +907,19 @@ function irreducible_fiber(S::EllipticSurface)
 end
 
 @doc raw"""
-    section(X::EllipticSurface, P::EllCrvPt)
+    section(X::EllipticSurface, P::EllipticCurvePoint)
 
 Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \to C$,
 return its closure in $X$ as a `WeilDivisor`.
 """
-function section(X::EllipticSurface, P::EllCrvPt)
+function section(X::EllipticSurface, P::EllipticCurvePoint)
   if iszero(P[1])&&iszero(P[3])
     return zero_section(X)
   end
   return _section(X, P)
 end
 
-function _section(X::EllipticSurface, P::EllCrvPt)
+function _section(X::EllipticSurface, P::EllipticCurvePoint)
   @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
   S0,incS0 = weierstrass_model(X)
   X0 = codomain(incS0)
@@ -960,7 +960,7 @@ fibration \pi\colon X \to C$.
 ################################################################################
 
 @doc raw"""
-    _prop217(E::EllCrv, P::EllCrvPt, k)
+    _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
 
 Compute a basis for the linear system
 ``|O + P + kF|``
@@ -980,7 +980,7 @@ julia> bk = [((17*t^4 + 23*t^3 + 18*t^2 + 2*t + 6, 8*t^5 + 2*t^4 + 6*t^3 + 25*t^
              ((17*t^6 + 10*t^5 + 24*t^4 + 15*t^3 + 22*t^2 + 27*t + 5)//(t^2 + 16*t + 6), (20*t^8 + 24*t^7 + 22*t^6 + 12*t^5 + 21*t^4 + 21*t^3 + 9*t^2 + 21*t + 12)//(t^3 + 24*t^2 + 18*t + 19) ),
              ((17*t^8 + 21*t^7 + 20*t^5 + 24*t^4 + 21*t^3 + 4*t^2 + 9*t + 13)//(t^4 + 17*t^3 + 12*t^2 + 28*t + 28), (23*t^11 + 25*t^10 + 8*t^9 + 7*t^8 + 28*t^7 + 16*t^6 + 7*t^5 + 23*t^4 + 9*t^3 + 27*t^2 + 13*t + 13)//(t^6 + 11*t^5 + 14*t^4 + 13*t^3 + 6*t^2 + 18*t + 12) )];
 
-julia> E = EllipticCurve(ktfield,[3*t^8+24*t^7+22*t^6+15*t^5+28*t^4+20*t^3+16*t^2+26*t+16, 24*t^12+27*t^11+28*t^10+8*t^9+6*t^8+16*t^7+2*t^6+10*t^5+3*t^4+22*t^3+27*t^2+10*t+3]);
+julia> E = elliptic_curve(ktfield,[3*t^8+24*t^7+22*t^6+15*t^5+28*t^4+20*t^3+16*t^2+26*t+16, 24*t^12+27*t^11+28*t^10+8*t^9+6*t^8+16*t^7+2*t^6+10*t^5+3*t^4+22*t^3+27*t^2+10*t+3]);
 
 julia> bk = [E(collect(i)) for i in bk];
 
@@ -998,7 +998,7 @@ julia> Oscar._prop217(E,bk[1],1)
  (t, 0)
 ```
 """
-function _prop217(E::EllCrv, P::EllCrvPt, k)
+function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   @req !iszero(P[3]) "P must not be torsion" # seems like we cannot check this
   xn = numerator(P[1])
   xd = denominator(P[1])
@@ -1047,12 +1047,12 @@ function _prop217(E::EllCrv, P::EllCrvPt, k)
   return result
 end
 
-function iszero(P::EllCrvPt)
+function iszero(P::EllipticCurvePoint)
   return iszero(P[1]) && isone(P[2]) && iszero(P[3])
 end
 
 @doc raw"""
-    linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64) -> LinearSystem
+    linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64) -> LinearSystem
 
 Compute the linear system ``|O + P + k F|`` on the elliptic surface ``X``.
 Here ``F`` is the class of the fiber over ``[0:1]``, ``O`` the zero section
@@ -1060,7 +1060,7 @@ and ``P`` any section given as a point on the generic fiber.
 
 The linear system is represented in terms of the Weierstrass coordinates.
 """
-function linear_system(X::EllipticSurface, P::EllCrvPt, k::Int64)
+function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
   euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
   #FS = function_field(weierstrass_model(X)[1])
   FS = function_field(X)
@@ -1177,7 +1177,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllCrvPt
+    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllipticCurvePoint
 
 Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
@@ -1304,7 +1304,7 @@ where V is vertical and `l` is the coefficient of the fiber class.
 Assumes `D` nef and `D^2=0`.
 Typically ``D`` is the output of `horizontal_decomposition`.
 """
-function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllCrvPt, l::Int, c)
+function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllipticCurvePoint, l::Int, c)
   S, piS = weierstrass_model(X);
   piX = weierstrass_contraction(X)
   c = function_field(X)(c)
@@ -1621,7 +1621,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
   R = ambient_coordinate_ring(U)
   x, y, t = gens(R)
   loc_eqn = first(gens(modulus(OO(U))))
-  E = generic_fiber(X)::EllCrv
+  E = generic_fiber(X)::EllipticCurve
   f = equation(E)
   kk = base_ring(X)
   kkt_frac_XY = parent(f)::MPolyRing

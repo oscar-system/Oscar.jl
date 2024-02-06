@@ -31,7 +31,7 @@ function number_of_facets end
 function number_of_maximal_cells end
 function number_of_maximal_cones end
 function number_of_maximal_polyhedra end
-function number_of_partitions end                   # from experimental/JuLie
+function number_of_partitions end
 function number_of_patches end
 function number_of_points end
 function number_of_polyhedra end

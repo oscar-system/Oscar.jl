@@ -103,7 +103,7 @@ end
         #@test (5::Integer)*((4::Int)* (-(FreeModElems[1]))) == QQ(-20) * FreeModElems[1]
         Oscar.BiModArray(FreeModElems, F)
         Hom_FreeModElemst = []
-        len = Dict{GrpAbFinGenElem, Int64}()
+        len = Dict{FinGenAbGroupElem, Int64}()
         for c = 1:6
           for k in keys(homogeneous_components(FreeModElems[c]))
             if haskey(len, k)
