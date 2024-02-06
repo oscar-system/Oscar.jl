@@ -404,12 +404,35 @@ end
 ################################################################################
 
 """
+    is_sphere(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a sphere.
+Returns false if not a sphere.
+Returns nothing if heuristics unsuccessful.
+"""
+is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE
+
+"""
+    is_ball(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a ball.
+Returns false if not a ball.
+Returns nothing if heuristics unsuccessful.
+"""
+is_ball(K::SimplicialComplex) = pm_object(K).BALL
+
+"""
     is_manifold(K::SimplicialComplex)
 
 Check if the abstract simplicial complex `K` is a combinatorial manifold.
+Note that this is undecidable in general.
 Returns true if recognized as a manifold.
-Returns false if not a manifold or not recognized as a manifold. 
-Heuristics for sphere recognition are applied to all links; see [JLLT22](@cite).
+Returns false if not a manifold.
+Returns nothing if heuristics unsuccessful.
 """
 is_manifold(K::SimplicialComplex) = pm_object(K).MANIFOLD
 
