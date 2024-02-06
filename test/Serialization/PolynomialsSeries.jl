@@ -96,7 +96,7 @@ cases = [
               h = hom(R, S, gens(S))
               @test h(i) == loaded_i
             end
-            
+
             S = parent(i[1])
             test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test i == loaded_i
@@ -104,6 +104,11 @@ cases = [
 
             gb = groebner_basis(i)
             test_save_load_roundtrip(path, gb;) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
+            end
+
+            test_save_load_roundtrip(path, gb; params=S) do loaded_gb
               @test gens(gb) == gens(loaded_gb)
               @test ordering(gb) == ordering(loaded_gb)
             end
