@@ -2007,7 +2007,7 @@ end
 
 
 
-sgn(a::Vector{Int},b::Vector{Int},t::Int) = count(z->z>t,a)+count(z->z<t,b)
+_pluecker_sgn(a::Vector{Int},b::Vector{Int},t::Int) = count(z->z>t,a)+count(z->z<t,b)
     
 @doc raw"""
     flag_pluecker_ideal(dimensions::Vector{Int},n::Int)
@@ -2058,7 +2058,7 @@ function flag_pluecker_ideal(dimensions::Vector{Int},n::Int)
     
     X = [t for t in pairs if length(t[2])-length(t[1])>=2]
     
-    T = [[(-1)^(sgn(z[1],z[2],t))*xdict[sort(union(z[1],t))]*xdict[setdiff(z[2],t)] 
+    T = [[(-1)^(_pluecker_sgn(z[1],z[2],t))*xdict[sort(union(z[1],t))]*xdict[setdiff(z[2],t)] 
             for t in setdiff(z[2],z[1])] for z in X]
     
     genz = [sum(t) for t in T]
