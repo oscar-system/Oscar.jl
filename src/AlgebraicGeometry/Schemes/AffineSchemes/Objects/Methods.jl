@@ -64,7 +64,7 @@ end
 
 function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
   io = pretty(io)
-  print(io, LowercaseOff(), "V(")
+  print(io, "scheme(")
   I = modulus(OO(X))
   join(io, gens(I), ", ")
   print(io, ")")
@@ -72,11 +72,11 @@ end
 
 function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
   io = pretty(io)
-  print(io, LowercaseOff(), "V(")
+  print(io, "scheme(")
   I = modulus(OO(X))
   S = inverted_set(OO(X))
   join(io, gens(I), ", ")
-  print(io, raw") \ V(")
+  print(io, raw") \ scheme(")
   join(io, denominators(S), ",")
   print(io, ")")
 end
@@ -85,7 +85,7 @@ function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:A
   io = pretty(io)
   print(io, LowercaseOff(), "AA^", ngens(OO(X)))
   S = inverted_set(OO(X))
-  print(io, raw" \ V(")
+  print(io, raw" \ scheme(")
   join(io, denominators(S), ",")
   print(io, ")")
 end

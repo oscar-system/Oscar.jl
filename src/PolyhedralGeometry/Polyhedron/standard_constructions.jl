@@ -1057,7 +1057,7 @@ Construct the Demazure character indexed by a weakly decreasing vector `lambda` 
 
 # Examples
 ```jldoctest
-julia> lambda = Partition([3,1,1])
+julia> lambda = partition([3,1,1])
 [3, 1, 1]
 
 julia> w0 = @perm (1,3,2)

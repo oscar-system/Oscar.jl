@@ -1577,7 +1577,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2, 1]
+  from S_[2 1] of dim 9
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
