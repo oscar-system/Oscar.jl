@@ -536,11 +536,11 @@ end
 @testset "flag pluecker ideal" begin
   dimension_vector = [2]
   ambient_dimension = 4
-  I = flag_pluecker_ideal(dimension_vector, ambient_dimension)
+  field = QQ	
+  I = flag_pluecker_ideal(dimension_vector, ambient_dimension,field)
   R = base_ring(I)
   @test dim(R) == 6
   x = gens(R)
   f1 = -x[1]*x[5]+x[2]*x[4]-x[3]*x[6] 
-  f2 = -f1
-  @test [f1,f2] == gens(I)
+  @test [f1] == gens(I)
 end
