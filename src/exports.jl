@@ -432,6 +432,7 @@ export degrees_of_generators
 export degrevlex
 export dehomogenization
 export dehomogenization_map
+export dehomogenizer
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
@@ -641,6 +642,7 @@ export homogeneous_coordinates
 export homogenization
 export homogenization_map
 export homogenize
+export homogenizer
 export homology
 export homomorphism_of_semidirect_product
 export homomorphism_of_wreath_product
