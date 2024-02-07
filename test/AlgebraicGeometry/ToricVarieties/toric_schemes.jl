@@ -114,9 +114,27 @@ end
 end
 
 @testset "toric divisors to weil divisors" begin
-  IP = weighted_projective_space(NormalToricVariety, [3, 4, 23])
+  IP = weighted_projective_space(NormalToricVariety, [3, 2, 5])
   w = canonical_divisor(IP)
   D = Oscar.underlying_divisor(w; check=true)
+  D2 = Oscar.underlying_divisor(w; algorithm=:via_polymake, check=true)
+  D3 = Oscar.underlying_divisor(w; algorithm=:via_oscar, check=true)
+  @test D == D2 == D3
   @test w == forget_toric_structure(w)
-  @test w + D == 2*w
+  @test w + D == 2*Oscar.underlying_divisor(w)
+
+  prim = Oscar._torusinvariant_weil_divisors(IP; check=true)
+  # Delete the cache manually
+  delete!(IP.__attrs, :_torusinvariant_weil_divisors)
+  prim2 = Oscar._torusinvariant_weil_divisors(IP; check=true, algorithm=:via_oscar)
+  @test prim == prim2
+  @test prim[1] !== prim2[1]
+
+  D = WeilDivisor(Oscar._ideal_sheaf_via_polymake(IP, ZZ.([-2, -3, -7])))
+  D2 = 2 * prim[1] + 3 * prim[2] + 7 * prim[3]
+  
+  @test is_effective(D)
+  @test is_effective(D2)
+
+  #@test D == D2 # Test takes too long
 end
