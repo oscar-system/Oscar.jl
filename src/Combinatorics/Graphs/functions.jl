@@ -80,7 +80,6 @@ function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where
 end
 
 
-
 _has_node(G::Graph, node::Int64) = 0 < node <= nvertices(G)
 
 @doc raw"""
