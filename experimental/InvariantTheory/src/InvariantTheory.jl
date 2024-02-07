@@ -353,6 +353,7 @@ end
 
 invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
 invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = InvariantRing(R, ring)
+
 function null_cone_ideal(R::InvariantRing) 
     if isdefined(R, :NullConeIdeal) 
         return R.NullConeIdeal
