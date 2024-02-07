@@ -429,7 +429,7 @@ function _guess_fieldelem_type(x...)
   for t in types
     if t == Float64
       return Float64
-    elseif promote_type(t, QQFieldElem) != QQFieldElem
+    elseif promote_type(t, T) != T
       T = t
     end
   end
