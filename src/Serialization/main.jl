@@ -552,7 +552,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = upgrade(file_version, jsondict)
     s.obj = JSON3.read(json(jsondict))
     
-    if isnothing(s.refs) && haskey(s.obj, refs_key)
+    if haskey(s.obj, refs_key)
       s.refs = s.obj[refs_key]
     end
   end
