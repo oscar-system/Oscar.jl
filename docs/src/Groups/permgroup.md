@@ -43,6 +43,8 @@ In OSCAR, every permutation group has a degree `n`, that corresponds to the size
 degree(x::PermGroup)
 ```
 
+
+The following functions deal with the natural action of a given permutation group $G$.
 ```@docs
 is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
 transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
@@ -55,6 +57,8 @@ maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
 all_blocks(G::PermGroup)
 ```
+
+The following functions allow efficiently "recognizing" certain permutation groups as alternating or symmetric groups.
 
 ```@docs
 is_natural_symmetric_group(G::GAPGroup)
