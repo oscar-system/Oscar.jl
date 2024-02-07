@@ -1719,7 +1719,10 @@ function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::
 end
 
 function Base.hash(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, h::UInt)
-  return hash(matrix(a), h)
+  h = hash(domain(a), h)
+  h = hash(codomain(a), h)
+  h = hash(matrix(a), h)
+  return h
 end
 
 function Oscar.id_hom(A::AbstractAlgebra.FPModule)
