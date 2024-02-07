@@ -1102,7 +1102,7 @@ edges::EdgeIterator,
 n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
 
 @doc raw"""
-  graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
+     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
 
 Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
 
