@@ -95,7 +95,7 @@ can be fetched as `parent(chi)`.
 
 ```@docs
 GAPGroupCharacterTable
-character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
+character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
@@ -124,6 +124,7 @@ order_field_of_definition(chi::GAPGroupClassFunction)
 ## Attributes of character tables
 
 ```@docs
+block_distribution
 character_parameters
 class_names(tbl::GAPGroupCharacterTable)
 class_parameters
@@ -145,7 +146,7 @@ trivial_character(tbl::GAPGroupCharacterTable)
 
 ```@docs
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
@@ -209,6 +210,7 @@ symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int)
 ```@docs
 class_multiplication_coefficient
 known_class_fusion
+known_class_fusions
 order(tbl::GAPGroupCharacterTable)
 possible_class_fusions
 approximate_class_fusion

@@ -4,7 +4,7 @@
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T} end
+abstract type ModuleFP{T} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
@@ -72,7 +72,7 @@ option is set in suitable functions.
   R::Ring
   n::Int
   S::Vector{Symbol}
-  d::Union{Vector{GrpAbFinGenElem}, Nothing}
+  d::Union{Vector{FinGenAbGroupElem}, Nothing}
 
   incoming_morphisms::Vector{<:ModuleFPHom}
   outgoing_morphisms::Vector{<:ModuleFPHom}
@@ -121,7 +121,7 @@ true
 mutable struct FreeModElem{T} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
-  d::Union{GrpAbFinGenElem, Nothing}
+  d::Union{FinGenAbGroupElem, Nothing}
 
   function FreeModElem{T}(coords::SRow{T}, parent::FreeMod{T}) where T
       r = new{T}(coords, parent, nothing)
@@ -328,11 +328,11 @@ mutable struct SubQuoHom{
     RingMapType<:Any
   } <: ModuleFPHom{T1, T2, RingMapType}
   matrix::MatElem
-  header::Hecke.MapHeader
+  header::MapHeader{T1,T2}
   im::Vector # The images of the generators; use `images_of_generators` as a getter.
   inverse_isomorphism::ModuleFPHom
   ring_map::RingMapType
-  d::GrpAbFinGenElem
+  d::FinGenAbGroupElem
   generators_map_to_generators::Union{Bool, Nothing} # A flag to allow for shortcut in evaluation;
                                                      # value `nothing` by default and to be set manually.
 
@@ -345,7 +345,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -361,7 +361,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -377,7 +377,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, Nothing}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -398,7 +398,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -419,7 +419,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -440,7 +440,7 @@ mutable struct SubQuoHom{
     @assert all(x-> parent(x) === C, im)
 
     r = new{T1, T2, RingMapType}()
-    r.header = Hecke.MapHeader(D, C)
+    r.header = MapHeader(D, C)
     r.header.image = x->image(r, x)
     r.header.preimage = x->preimage(r, x)
     r.im = Vector{elem_type(C)}(im)
@@ -471,15 +471,15 @@ option is set in suitable functions.
 """
 @attributes mutable struct FreeMod_dec{T <: CRingElem_dec} <: AbstractFreeMod{T}
   F::FreeMod{T}
-  d::Vector{GrpAbFinGenElem}
+  d::Vector{FinGenAbGroupElem}
 
-  function FreeMod_dec{T}(F::FreeMod, d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
+  function FreeMod_dec{T}(F::FreeMod, d::Vector{FinGenAbGroupElem}) where T <: CRingElem_dec
     @assert length(d) == rank(F)
     r = new{elem_type(base_ring(F))}(F, d)
     return r
   end
 
-  function FreeMod_dec{T}(R::CRing_dec,S::Vector{Symbol},d::Vector{GrpAbFinGenElem}) where T <: CRingElem_dec
+  function FreeMod_dec{T}(R::CRing_dec,S::Vector{Symbol},d::Vector{FinGenAbGroupElem}) where T <: CRingElem_dec
     r = new{elem_type(R)}()
     r.F = FreeMod{T}(length(d),R,S)
     r.d = d
@@ -525,9 +525,9 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     T1 <: AbstractFreeMod,
     T2 <: ModuleFP,
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType} 
-  header::MapHeader
+  header::MapHeader{T1, T2}
   ring_map::RingMapType
-  d::GrpAbFinGenElem
+  d::FinGenAbGroupElem
   imgs_of_gens::Vector # stored here for easy evaluation; use `images_of_generators` as getter
   
   matrix::MatElem
@@ -610,7 +610,7 @@ function FreeModuleHom(
   ) where {T<:RingElem,S<:AbstractFreeMod}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)])
   hom.matrix = mat
   return hom
 end
@@ -620,7 +620,7 @@ function FreeModuleHom(
   ) where {T<:RingElem, S<:ModuleFP}
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)])
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)])
   hom.matrix = mat
   return hom
 end
@@ -631,7 +631,7 @@ function FreeModuleHom(
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [FreeModElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)], h)
   hom.matrix = mat
   return hom
 end
@@ -642,7 +642,7 @@ function FreeModuleHom(
   @assert nrows(mat) == ngens(F)
   @assert ncols(mat) == ngens(G)
   @assert base_ring(mat) === base_ring(G)
-  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i,:]), G) for i=1:ngens(F)], h)
+  hom = FreeModuleHom(F, G, [SubquoModuleElem(sparse_row(mat[i:i,:]), G) for i=1:ngens(F)], h)
   hom.matrix = mat
   return hom
 end
@@ -652,7 +652,7 @@ struct FreeModuleHom_dec{
     T2 <: ModuleFP,
     RingMapType <: Any} <: ModuleFPHom{T1, T2, RingMapType}
   f::FreeModuleHom{T1,T2, RingMapType}
-  header::MapHeader
+  header::MapHeader{T1,T2}
   # TODO degree and homogeneity
 
   function FreeModuleHom_dec(F::FreeMod_dec{T}, G::ModuleFP_dec{T}, a::Vector) where {T}
@@ -687,7 +687,6 @@ Data structure for free resolutions.
 """
 mutable struct FreeResolution{T}
     C::Hecke.ComplexOfMorphisms
-    complete::Bool
 
     function FreeResolution(C::Hecke.ComplexOfMorphisms{T}) where {T}
         FR = new{T}()
@@ -706,9 +705,9 @@ end
 
 mutable struct BettiTable
   B::Dict{Tuple{Int, Any}, Int}
-  project::Union{GrpAbFinGenElem, Nothing}
+  project::Union{FinGenAbGroupElem, Nothing}
   reverse_direction::Bool
-  function BettiTable(B::Dict{Tuple{Int, Any}, Int}; project::Union{GrpAbFinGenElem, Nothing}=nothing, reverse_direction::Bool=false)
+  function BettiTable(B::Dict{Tuple{Int, Any}, Int}; project::Union{FinGenAbGroupElem, Nothing}=nothing, reverse_direction::Bool=false)
       return new(B, project, reverse_direction)
   end
 end

@@ -117,8 +117,6 @@ end
 
 elem_type(::Type{FreeMod{T}}) where {T} = FreeModElem{T}
 parent_type(::Type{FreeModElem{T}}) where {T} = FreeMod{T}
-elem_type(::FreeMod{T}) where {T} = FreeModElem{T}
-parent_type(::FreeModElem{T}) where {T} = FreeMod{T}
 
 function generator_symbols(F::FreeMod)
   return F.S
@@ -179,17 +177,12 @@ function basis(F::AbstractFreeMod, i::Int)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
-function getindex(F::AbstractFreeMod, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 @doc raw"""
     base_ring(F::AbstractFreeMod)
 
 Return the underlying ring of `F`.
 """
-base_ring(F::FreeMod) = F.R
+base_ring(F::FreeMod) = (F.R)::base_ring_type(F)
 
 #TODO: Parent - checks everywhere!!!
 
@@ -225,7 +218,7 @@ end
 
 # A special method for the case where we can safely assume 
 # that the coordinates of elements allow hashing.
-function hash(a::AbstractFreeModElem{<:MPolyElem{<:FieldElem}}, h::UInt)
+function hash(a::AbstractFreeModElem{<:MPolyRingElem{<:FieldElem}}, h::UInt)
   b = 0xaa2ba4a32dd0b431 % UInt
   h = hash(typeof(a), h)
   h = hash(parent(a), h)

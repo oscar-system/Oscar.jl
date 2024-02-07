@@ -26,7 +26,7 @@ the scheme ``X`` on which ``𝒪`` is defined.
 scheme(R::SpecOpenRing) = R.scheme
 
 gens(R::SpecOpenRing) = R.(gens(ambient_coordinate_ring(scheme(R))))
-ngens(R::SpecOpenRing) = ngens(ambient_coordinate_ring(scheme(R)))
+number_of_generators(R::SpecOpenRing) = number_of_generators(ambient_coordinate_ring(scheme(R)))
 gen(R::SpecOpenRing, i::Int) = R(gen(ambient_coordinate_ring(scheme(R)), i))
 
 
@@ -45,11 +45,7 @@ domain(R::SpecOpenRing) = R.domain
 # Type getters                                                         #
 ########################################################################
 elem_type(::Type{SpecOpenRing{S, T}}) where {S, T} = SpecOpenRingElem{SpecOpenRing{S, T}}
-
-elem_type(R::SpecOpenRing) = elem_type(typeof(R))
-
 parent_type(::Type{SpecOpenRingElem{S}}) where {S} = S
-parent_type(f::SpecOpenRingElem) = parent_type(typeof(f))
 
 ########################################################################
 # Basic getters                                                        #
@@ -59,7 +55,7 @@ scheme(f::SpecOpenRingElem) = scheme(parent(f))
 domain(f::SpecOpenRingElem) = domain(parent(f))
 restrictions(f::SpecOpenRingElem) = f.restrictions
 affine_patches(f::SpecOpenRingElem) = affine_patches(domain(f))
-npatches(f::SpecOpenRingElem) = length(restrictions(f))
+number_of_patches(f::SpecOpenRingElem) = length(restrictions(f))
 getindex(f::SpecOpenRingElem, i::Int) = getindex(restrictions(f), i)
 getindex(f::SpecOpenRingElem, U::AbsSpec) = restrictions(f)[domain(f)[U]]
 

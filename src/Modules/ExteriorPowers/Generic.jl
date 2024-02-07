@@ -1,6 +1,6 @@
 # We need to cache eventually created exterior powers.
-@attr Dict{Int, Tuple{T, <:Map}} function _exterior_powers(F::T) where {T<:ModuleFP}
-  return Dict{Int, Tuple{typeof(F), Map}}()
+@attr Dict{Int, Tuple{typeof(F), MapFromFunc}} function _exterior_powers(F::ModuleFP)
+  return Dict{Int, Tuple{typeof(F), MapFromFunc}}()
 end
 
 # User facing method to ask whether F = ⋀ ᵖ M for some M.
@@ -8,7 +8,7 @@ end
 # and `(false, F, 0)` otherwise.
 function is_exterior_power(M::ModuleFP)
   if has_attribute(M, :is_exterior_power)
-    MM, p = get_attribute(M, :is_exterior_power)
+    MM, p = get_attribute(M, :is_exterior_power)::Tuple{typeof(M), Int}
     return (true, MM, p)
   end
   return (false, M, 0)
@@ -18,14 +18,22 @@ end
 function show_exterior_product(io::IO, M::ModuleFP)
   success, F, p = is_exterior_power(M)
   success || error("module is not an exterior power")
-  print(io, "⋀^$p($F)")
+  if is_unicode_allowed()
+    print(io, "⋀^$p($F)")
+  else
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
+  end
 end
 
 function show_exterior_product(io::IO, ::MIME"text/html", M::ModuleFP)
   success, F, p = is_exterior_power(M)
   success || error("module is not an exterior power")
   io = IOContext(io, :compact => true)
-  print(io, "⋀^$p$F")
+  if is_unicode_allowed()
+    print(io, "⋀^$p($F)")
+  else
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
+  end
 end
 
 function multiplication_map(M::ModuleFP)
@@ -148,7 +156,10 @@ function wedge(u::Vector{T};
     end
   ) where {T<:ModuleFPElem}
   isempty(u) && error("list must not be empty")
-  isone(length(u)) && return first(u)
+  if isone(length(u))
+    Oscar.parent(first(u)) === parent && return first(u)
+    return parent(coordinates(first(u)))
+  end
   k = div(length(u), 2)
   result = wedge(wedge(u[1:k]), wedge(u[k+1:end]), parent=parent)
   @assert Oscar.parent(result) === parent
@@ -172,13 +183,13 @@ end
 # The induced map on exterior powers
 function hom(M::FreeMod, N::FreeMod, phi::FreeModuleHom)
   success, F, p = is_exterior_power(M)
-  success || error("module is not an exterior power")
+  @req success "module is not an exterior power"
   success, FF, q = is_exterior_power(N)
-  success || error("module is not an exterior power")
-  F === domain(phi) || error("map not compatible")
-  FF === codomain(phi) || error("map not compatible")
-  p == q || error("exponents must agree")
-  return induced_map_on_exterior_power(phi, p, domain=M, codomain=N)
+  @req success "module is not an exterior power"
+  @req F === domain(phi) "map not compatible"
+  @req FF === codomain(phi) "map not compatible"
+  @req p == q "exponents must agree"
+  return induced_map_on_exterior_power(phi, p; domain=M, codomain=N)
 end
 
 

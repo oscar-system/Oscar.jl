@@ -131,13 +131,10 @@ In this case, it is useful to consider the polynomial ring with indeterminates
 ``a_{10}``, ``a_{21}``, ``a_{32}``, ``a_{43}``, ``a_{65}`` and ``w``.
 In theory, one can consider these indeterminates as local coordinate of an
 auxiliary base space. Indeed, for our computer implementation the polynomial
-ring with these indeterminates serve as the coordinate ring of an auxiliary *toric*
-base space. Despite this auxiliary base space being toric, the predictions from
-such an analysis are not limited to the world of toric varieties.
-
-For constructions along these lines, we support the following constructor:
+ring with these indeterminates serves as coordinate ring for the family of base
+spaces. We support the following constructor:
 ```@docs
-global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}; toric_sample = true) where {T<:MPolyRingElem}
+global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
 ```
 
 
@@ -166,24 +163,11 @@ tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
 ```
-In case the global Tate model is constructed over a not fully specified base,
-recall that we construct an auxiliary (toric) base space as well as an
-auxiliary (toric) ambient space. The (auxiliary) base and ambient space can
-be accessed with the following functions:
-```@docs
-base_space(t::GlobalTateModel)
-ambient_space(t::GlobalTateModel)
-fiber_ambient_space(t::GlobalTateModel)
-```
-The following method allows to tell if the base/ambient space is auxiliary or not:
-```@docs
-base_fully_specified(t::GlobalTateModel)
-```
-The user can decide to get an information whenever an auxiliary base space,
-auxiliary ambient space or auxiliary hypersurface have been computed.
-To this end, one invokes `set_verbosity_level(:GlobalTateModel, 1)`.
-More background information is available
-[here](http://www.thofma.com/Hecke.jl/dev/features/macros/).
+The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
+fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
+tell if the model has been constructed over a concrete space (in which case the function returns
+`true`) or a family of spaces (returning `false`).
+
 
 ### Advanced attributes
 
@@ -205,14 +189,20 @@ singular_loci(t::GlobalTateModel)
 
 ### Blowup
 
-We can blow up a global Tate model:
+We can blow up a global Tate model with the `blow_up` function. The resulting model
+will thereafter be partially resolved. No checks are currently implemented to test
+if a model is completely resolved. However, `is_partially_resolved` will return `true`
+if a blowup has been applied to the model in question.
+
+
+### Tuning
+
+Often, one wishes to tune an existing model, e.g. in an attempt to engineer a
+larger gauge group. We support the following functionality:
 ```@docs
-blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+tune(t::GlobalTateModel, special_ai_choices::Dict{String, <:Any}; completeness_check::Bool = true)
 ```
-Consequently, the model will thereafter be partially resolved.
-```@docs
-is_partially_resolved(t::GlobalTateModel)
-```
+See also the `tune` function described in [Functionality for all F-theory models](@ref).
 
 
 ### Fiber study

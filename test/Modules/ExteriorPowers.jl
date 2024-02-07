@@ -129,13 +129,15 @@ end
   v = (F[1], F[3], F[4])
   u = (F[1], F[4], F[3])
 
-  @test "$(mm(v))" == "e[1]∧e[3]∧e[4]"
-  @test "$(F3)" == "⋀^3(Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ)"
+  @test "$(mm(v))" == "e[1]^e[3]^e[4]"
+  #@test "$(F3)" == "⋀^3(Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ)"
+  @test "$(F3)" == "3rd exterior power of Free module of rank 5 over Multivariate polynomial ring in 5 variables over QQ"
 
   eu = sum(f*e for (f, e) in zip(gens(R), gens(F)))
   K = koszul_complex(eu)
   for i in 1:5
-    @test "$(K[i])" == "⋀^$(5-i)($F)"
+    #@test "$(K[i])" == "⋀^$(5-i)($F)"
+    @test "$(K[i])" == "$(Oscar.ordinal_number_string(5-i)) exterior power of $F"
   end
 end
 

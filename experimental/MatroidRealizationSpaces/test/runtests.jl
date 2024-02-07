@@ -12,6 +12,23 @@
     x1 = gens(R1)
     x2 = gens(R2)
     x3 = gens(R3)
+
+    @testset "is_realizable" begin
+        @test is_realizable(M1) == true
+        @test is_realizable(M2) == true
+        @test is_realizable(M3) == false
+        @test is_realizable(M4) == true
+
+        @test is_realizable(M1, char = 2) == true
+        @test is_realizable(M1, char = 3) == false
+        @test is_realizable(M1, q = 2) == true
+        @test is_realizable(M1, q = 3) == false
+
+        @test is_realizable(M2, char = 2) == true
+        @test is_realizable(M2, char = 3) == true
+        @test is_realizable(M2, q = 2) == false
+        @test is_realizable(M2, q = 7) == true
+    end
       
     @testset "realization_space_matrix" begin
         
@@ -101,14 +118,14 @@
         @test Oscar.n_new_Igens(y,t,[y^3-x-2, y+z^3], newSgens ,R,[x,y,z]) == [x^7 + 2*x^6 - z^9 + 18*z^6 - 108*z^3 + 216, x^2*z^3 + z^3 - 6]
     end
 
-    X = matrix(FractionField(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
+    X = matrix(fraction_field(R), [x//(z-1) y//(x+1) z; -y+1 x//z 2*x*y ]) 
 
     @testset "matrix_clear_den_in_col" begin
-        @test Oscar.matrix_clear_den_in_col(X, 2) == matrix(FractionField(R), [x//(z-1) y*z z; -y+1 x^2+x 2*x*y]) 
+        @test Oscar.matrix_clear_den_in_col(X, 2) == matrix(fraction_field(R), [x//(z-1) y*z z; -y+1 x^2+x 2*x*y]) 
     end
 
     @testset "matrix_clear_den" begin
-        @test Oscar.matrix_clear_den(X) == matrix(FractionField(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
+        @test Oscar.matrix_clear_den(X) == matrix(fraction_field(R), [x y*z z; (-y+1)*(z-1) x^2+x 2*x*y]) 
     end
 
 
@@ -119,7 +136,7 @@ end
   @test X isa AbsSpec
   @test !isdefined(X, :underlying_scheme)
   R = OO(X)
-  @test R isa MPolyQuoLocRing
+  @test R isa Oscar.MPolyQuoLocRing
   f = sum(gens(R))
   U = PrincipalOpenSubset(X, f)
   @test U isa AbsSpec

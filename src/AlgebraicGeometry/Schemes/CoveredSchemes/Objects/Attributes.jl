@@ -61,16 +61,16 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I)
 Projective scheme
   over rational field
-defined by ideal(s0*s1 - s2^2)
+defined by ideal (s0*s1 - s2^2)
 
 julia> Xcov = covered_scheme(X)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: V((s1//s0) - (s2//s0)^2)
-    2: V((s0//s1) - (s2//s1)^2)
-    3: V((s0//s2)*(s1//s2) - 1)
+    1: scheme((s1//s0) - (s2//s0)^2)
+    2: scheme((s0//s1) - (s2//s1)^2)
+    3: scheme((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -79,9 +79,9 @@ with default covering
 julia> default_covering(Xcov)
 Covering
   described by patches
-    1: V((s1//s0) - (s2//s0)^2)
-    2: V((s0//s1) - (s2//s1)^2)
-    3: V((s0//s2)*(s1//s2) - 1)
+    1: scheme((s1//s0) - (s2//s0)^2)
+    2: scheme((s0//s1) - (s2//s1)^2)
+    3: scheme((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -116,16 +116,16 @@ julia> I = ideal(S, [S[1]*S[2]-S[3]^2]);
 julia> X = subscheme(P, I)
 Projective scheme
   over rational field
-defined by ideal(s0*s1 - s2^2)
+defined by ideal (s0*s1 - s2^2)
 
 julia> Xcov = covered_scheme(X)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: V((s1//s0) - (s2//s0)^2)
-    2: V((s0//s1) - (s2//s1)^2)
-    3: V((s0//s2)*(s1//s2) - 1)
+    1: scheme((s1//s0) - (s2//s0)^2)
+    2: scheme((s0//s1) - (s2//s1)^2)
+    3: scheme((s0//s2)*(s1//s2) - 1)
   in the coordinate(s)
     1: [(s1//s0), (s2//s0)]
     2: [(s0//s1), (s2//s1)]
@@ -133,9 +133,9 @@ with default covering
 
 julia> affine_charts(Xcov)
 3-element Vector{Spec{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
- V((s1//s0) - (s2//s0)^2)
- V((s0//s1) - (s2//s1)^2)
- V((s0//s2)*(s1//s2) - 1)
+ scheme((s1//s0) - (s2//s0)^2)
+ scheme((s0//s1) - (s2//s1)^2)
+ scheme((s0//s2)*(s1//s2) - 1)
 
 ```
 """
@@ -152,7 +152,7 @@ affine_charts(X::AbsCoveredScheme) = basic_patches(default_covering(X))
 coverings(X::CoveredScheme) = X.coverings
 default_covering(X::CoveredScheme) = X.default_covering
 patches(X::CoveredScheme) = patches(default_covering(X))
-glueings(X::CoveredScheme) = glueings(default_covering(X))
+gluings(X::CoveredScheme) = gluings(default_covering(X))
 base_ring(X::CoveredScheme) = X.kk
 
 
@@ -216,16 +216,16 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 julia> Y = variety(ideal([x^3-y^2*z]))
 Projective variety
   in projective 2-space over QQ with coordinates [x, y, z]
-defined by ideal(x^3 - y^2*z)
+defined by ideal (x^3 - y^2*z)
 
 julia> Ycov = covered_scheme(Y)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: V(-(y//x)^2*(z//x) + 1)
-    2: V((x//y)^3 - (z//y))
-    3: V((x//z)^3 - (y//z)^2)
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -239,18 +239,18 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: V((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1: scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
 julia> s
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to scheme over QQ covered with 3 patches
-    1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3b: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 given by the pullback function
   1a -> 3b
     (x//z) -> 0

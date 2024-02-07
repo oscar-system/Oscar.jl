@@ -12,21 +12,21 @@
   @test order(codomain(g)) == 2
 end
 
-@testset "describe for GrpAbFinGen" begin
-  @test describe(abelian_group(GrpAbFinGen, Int[])) == "0"
-  @test describe(abelian_group(GrpAbFinGen, Int[0])) == "Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0])) == "Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2])) == "Z/2"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2])) == "Z/2 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2])) == "Z/2 + Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2, 4])) == "Z/2 + Z/4"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
+@testset "describe for FinGenAbGroup" begin
+  @test describe(abelian_group(FinGenAbGroup, Int[])) == "0"
+  @test describe(abelian_group(FinGenAbGroup, Int[0])) == "Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0])) == "Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2])) == "Z/2"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2])) == "Z/2 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2])) == "Z/2 + Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2, 4])) == "Z/2 + Z/4"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
 end
 
-@testset "group functions for finite GrpAbFinGen" begin
+@testset "group functions for finite FinGenAbGroup" begin
   @testset for para in [ [2, 3, 4], Int[], [2, 4] ]
-    G1 = abelian_group(GrpAbFinGen, para)
+    G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
     primes = [p for (p, e) in collect(factor(order(G1)))]
@@ -40,7 +40,7 @@ end
     # properties
     @test is_abelian(G1) == is_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
-    @test is_finitelygenerated(G1) == is_finitelygenerated(G2)
+    @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)
     @test is_pgroup(G1) == is_pgroup(G2)
     @test is_quasisimple(G1) == is_quasisimple(G2)
@@ -53,8 +53,8 @@ end
     @test images(iso, frattini_subgroup(G1)[1]) == frattini_subgroup(G2)
     @test is_pgroup_with_prime(G1) == is_pgroup_with_prime(G2)
     @test nilpotency_class(G1) == nilpotency_class(G2)
-    @test number_conjugacy_classes(G1) == order(G1)
-    @test number_conjugacy_classes(Int, G1) isa Int
+    @test number_of_conjugacy_classes(G1) == order(G1)
+    @test number_of_conjugacy_classes(Int, G1) isa Int
     @test order(G1) == order(G2)
     @test images(iso, socle(G1)[1]) == socle(G2)
     @test images(iso, solvable_radical(G1)[1]) == solvable_radical(G2)
@@ -98,7 +98,8 @@ end
       K = representative(C2)
       @test is_conjugate(G1, H, K) == (H == K)
       @test is_conjugate_with_data(G1, H, K)[1] == (H == K)
-      @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
+      @test is_conjugate_subgroup(G1, H, K) == is_subset(K, H)
+      @test is_conjugate_subgroup_with_data(G1, H, K) == (is_subset(K, H), zero(G1))
     end
     C = CC[1]
     for H in C
@@ -161,9 +162,9 @@ end
   end
 end
 
-@testset "abelian_invariants_schur_multiplier for GrpAbFinGen" begin
+@testset "abelian_invariants_schur_multiplier for FinGenAbGroup" begin
   for g in all_small_groups(1:50, is_abelian)
-    gg = codomain(isomorphism(GrpAbFinGen, g))
+    gg = codomain(isomorphism(FinGenAbGroup, g))
     @test abelian_invariants_schur_multiplier(g) == abelian_invariants_schur_multiplier(gg)
     @test abelian_invariants(schur_multiplier(g)) == abelian_invariants_schur_multiplier(g)
   end

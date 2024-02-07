@@ -16,8 +16,6 @@ function annihilator(M::SubquoModule)
   return I
 end
 
-iszero(I::Ideal) = all(x->(iszero(x)), gens(I))
-
 @doc raw"""
     is_projective(M::SubquoModule)
 
@@ -118,7 +116,7 @@ function _is_projective_without_denominators(A::MatElem;
     result = sum([c[k]*projectors[k] for k in 1:length(projectors)])
 
     # Copied from below
-    d = lcm(_lifted_denominator.(result))
+    d = reduce(lcm, _lifted_denominator.(result))
     if isone(d)
       return true, result, 0
     end
@@ -220,7 +218,7 @@ function _is_projective_without_denominators(A::MatElem;
     end
 
     # pull the denominator u from the result and make the matrix liftable. 
-    d = lcm(_lifted_denominator.(result))
+    d = reduce(lcm, _lifted_denominator.(result))
     if isone(d)
       return true, result, 0
     end

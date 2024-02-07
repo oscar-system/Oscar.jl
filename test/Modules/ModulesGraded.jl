@@ -1076,8 +1076,8 @@ end
   tbl = Oscar._sheaf_cohomology_bgg(M, -6, 2)
   lbt = sheaf_cohomology(M, -6, 2, algorithm = :bgg)
   @test tbl.values == lbt.values
-  @test tbl[0, -6] == 70
-  @test tbl[2, 0] == 1
+  @test tbl[3, -6] == 70
+  @test tbl[1, 0] == 1
   @test iszero(tbl[2, -2])
 
   F = free_module(S, 1)
@@ -1112,7 +1112,111 @@ end
 
   for d in -4:4
     amm = Oscar.all_monomials(F, d)
+    length(amm)
+    eltype(amm)
     @test d < -1 || !isempty(amm)
     @test all(x->degree(x) == grading_group(F)([d]), amm)
   end
+end
+
+##################################################################
+# Tests random elements
+##################################################################
+
+@testset "random free module hom" begin
+    Rg, (x, y, z) = graded_polynomial_ring(GF(101), ["x", "y", "z"])
+    Z = grading_group(Rg)
+    F1 = graded_free_module(Rg, [1,2,2])
+    F2 = graded_free_module(Rg, [3,5])
+    V, f = hom(F1, F2)
+    ff = rand_homogeneous(Rg,8)
+    @test is_homogeneous(ff)
+    @test degree(ff) == 8*Z[1]
+    v = rand_homogeneous(V, 8)
+    @test is_homogeneous(v)
+    @test degree(v) == 8*Z[1]
+end
+
+@testset "random subquo module hom" begin
+    Rg, (x, y) = graded_polynomial_ring(GF(101), ["x", "y"])
+    Z = grading_group(Rg)
+    F = graded_free_module(Rg, [3,5]);
+    V = [x*F[1], y^2*F[2]];
+    M = quo(F, V)[1]
+    F2 = graded_free_module(Rg, [2,2]);
+    H, f = hom(F2, M)
+    v = rand_homogeneous(H, 8)
+    @test is_homogeneous(v)
+    @test degree(v) == 8*Z[1]
+end
+
+#= Disabled for the moment but continued soon.
+@testset "monomials of subquos" begin
+  S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+
+  S1 = graded_free_module(S, [0])
+  I = ideal(S, [u^2 for u in gens(S)])
+  IS1, inc = I*S1
+  M = cokernel(inc)
+
+  a = Oscar.AllSubquoMonomials(M, 3)
+  b = Oscar.all_exponents(M, 3)
+
+  v = collect(a)
+  @test length(v) == length(a) == 1 == length(collect(b))
+  @test !(M(x^3 * S1[1]) in v)
+  @test M(x*y*z * S1[1]) in v
+
+  I = ideal(S, [u^3 for u in gens(S)])
+  IS1, inc = I*S1
+  M = cokernel(inc)
+
+  a = Oscar.AllSubquoMonomials(M, 3)
+  b = Oscar.all_exponents(M, 3)
+
+  v = collect(a)
+  @test length(v) == length(a) == length(collect(b))
+  @test !(M(x^3 * S1[1]) in v)
+  @test M(x*y*z * S1[1]) in v
+  @test M(x^2*y * S1[1]) in v
+
+  J, _ = sub(S1, [x*y*z*S1[1]])
+  I = ideal(S, [u^4 for u in gens(S)])
+  IS1, inc = I*S1
+  M, _ = quo(J, IS1)
+  a = Oscar.AllSubquoMonomials(M, 4)
+  b = Oscar.all_exponents(M, 4)
+  @test length(collect(a)) == length(a) == 3 == length(collect(b))
+
+  a = Oscar.AllSubquoMonomials(M, 6)
+  b = Oscar.all_exponents(M, 6)
+  @test length(collect(a)) == length(a) == 7 == length(collect(b))
+end
+=#
+
+@testset "simplification of graded subquos, issue #3108" begin
+  X = rational_d10_pi9_quart_1();
+  I = defining_ideal(X);
+  Pn = base_ring(I)
+  n = ngens(Pn)-1
+  c = codim(I)
+  FI = free_resolution(I)
+  FIC = FI.C;
+  r = range(FIC)
+  C = shift(FIC[first(r):-1:1], -c)
+  F = free_module(Pn, 1)
+  OmegaPn = grade(F, [n+1])
+  D = hom(C, OmegaPn)
+  Omega = homology(D, 0);
+  is_graded(Omega)
+  SOmega, a, b = Oscar._alt_simplify(Omega)
+  @test is_graded(SOmega)
+  @test is_isomorphism(a)
+  @test is_isomorphism(b)
+  M, iso = forget_grading(Omega)
+  @test is_isomorphism(iso)
+  inv_iso = get_attribute(iso, :inverse)
+  @test is_isomorphism(inv_iso)
+  M, _ = forget_grading(Omega)
+  prune_with_map(M)
 end

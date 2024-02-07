@@ -25,7 +25,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z
       over rational field
-    by ideal(x^3 - y^2*z)
+    by ideal (x^3 - y^2*z)
 
 julia> U = complement(A, Y)
 Open subset
@@ -42,7 +42,7 @@ Regular function
     of affine scheme with coordinates [x, y, z]
   complement to V(x^3 - y^2*z)
   covered by 1 affine patch
-    1: [x, y, z]   AA^3 \ V(x^3 - y^2*z)
+    1: [x, y, z]   AA^3 \ scheme(x^3 - y^2*z)
 with restriction
   patch 1: 1
 ```
@@ -63,7 +63,7 @@ end
 # Coercion                                                             #
 ########################################################################
 (R::SpecOpenRing)(f::RingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
+(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [_cast_fraction(OO(U),lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
 
 (R::SpecOpenRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
 

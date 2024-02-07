@@ -26,7 +26,7 @@ ideal ``I ⊂ R``.
   function ClosedEmbedding(X::AbsSpec, I::Ideal; check=true)
     base_ring(I) === OO(X) || error("ideal does not belong to the correct ring")
     Y = subscheme(X, I)
-    inc = SpecMor(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
+    inc = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
     return new{typeof(Y), typeof(X), pullback_type(inc)}(inc, I)
   end
 

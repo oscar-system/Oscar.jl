@@ -1,4 +1,3 @@
-
 ###############################################################################
 #
 #  Accessors
@@ -219,8 +218,6 @@ julia> f = matrix(QQ,5,5,[ 1  0  0  0  0;
 [ 0    0    1    0    0]
 
 julia> Lf = integer_lattice_with_isometry(L, f);
-
-julia> invariant_lattice(Lf);
 
 julia> I = invariant_lattice(Lf);
 
@@ -1876,7 +1873,7 @@ function signatures(Lf::ZZLatWithIsom)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
   C = CalciumField()
-  eig = eigenvalues(f, QQBar)
+  eig = eigenvalues(QQBar, f)
   j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
   lambda = C(eig[j])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
@@ -2387,6 +2384,28 @@ function is_hermitian(t::Dict)
   ke = collect(keys(t))
   n = maximum(ke)
   return all(i -> rank(t[i][1]) == rank(t[i][2]) == 0, Int[i for i in ke if i != n])
+end
+
+###############################################################################
+#
+#  Spinor norm
+#
+###############################################################################
+
+@doc raw"""
+    rational_spinor_norm(Lf::ZZLatWithIsom; b::Int = -1) -> QQFieldElem
+
+Given a lattice with isometry $(L, b, f)$, return the rational spinor norm of
+the extension of $f$ to $L\otimes \mathbb{Q}$.
+
+If $\Phi$ is the form on $L\otimes \mathbb{Q}$, then the spinor norm is computed
+with respect to $b\Phi$.
+"""
+function rational_spinor_norm(Lf::ZZLatWithIsom; b::Int = -1)
+  @req rank(Lf) > 0 "L must have positive rank"
+  D, U = Hecke._gram_schmidt(gram_matrix(Lf), QQ)
+  fD = U*isometry(Lf)*inv(U)
+  return spin(b*D, fD)
 end
 
 ###############################################################################

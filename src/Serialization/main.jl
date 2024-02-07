@@ -1,132 +1,6 @@
-################################################################################
-# Description of the saving and loading mechanisms
-#
-# We require that any types serialized through OSCAR are registered using the
-# @register_serialization_type macro. For more information, see its docstring.
-
-# There are three pairs of saving and loading functions that are used
-# during serialization:
-# 1. save_typed_object, load_typed_object;
-# 2. save_object, load_object.
-# 3. save_type_params, load_type_params;
-#
-# In the following, we discuss each pair in turn.
-
-################################################################################
-# save_type_object / load_type_object
-
-# For the most part these functions should not be touched, they are high level
-# functions and are used to (de)serialize the object with its
-# type information as well as its data. The data and type nodes are
-# set in save_typed_object resulting in a "data branch" and "type branch".
-# The usage of these functions can be used inside save_object / load_object
-# and save_type_params / load_type_params. However using save_typed_object inside
-# a save_object implementation will lead to a verbose format and should at some
-# point be move to save_type_params.
-
-################################################################################
-# save_object / load_object
-
-# These functions are at the core of the serialization and are the first functions
-# that should be implemented when working on the serialization of a new type.
-# Here is where one should use functions save_data_dict and save_data_array to structure
-# the serialization. The examples show they can be used to save data using the structure
-# of an array or dict. Each nested call to save_data_dict or save_data_array should be
-# called with a key that can be passed as the second parameter.
-
-#  Examples
-#  function save_object(s::SerializerState, obj::NewType)
-#    save_data_array(s) do
-#      save_object(s, obj.1)
-#      save_object(s, obj.2)
-#
-#      save_data_dict(s) do
-#        save_object(s, obj.3, :key1)
-#        save_object(s, obj.4, :key2)
-#      end
-#    end
-#  end
-#
-#  This will result in a data format that looks like
-#  [
-#    obj.1,
-#    obj.2,
-#    {
-#      "key1": obj.3,
-#      "key2": obj.4
-#    }
-#  ]
-
-#  function save_object(s::SerializerState, obj::NewType)
-#    save_data_dict(s) do
-#      save_object(s, obj.1, :key1)
-#      save_data_array(s, :key2) do
-#        save_object(s, obj.3)
-#        save_typed_object(s, obj.4) # This is ok
-#      end
-#    end
-#  end
-
-#  This will result in a data format that looks like
-#  {
-#    "key1": obj.1,
-#    "key2":[
-#      obj.3,
-#      {
-#        "type": "Type of obj.4",
-#        "data": obj.4
-#      }
-#    ]
-#  }
-#
-# This is ok
-# function save_object(s::SerializerState, obj:NewType)
-#   save_object(s, obj.1)
-# end
-
-# This will throw an error 
-# function save_object(s::SerializerState, obj:NewType)
-#   save_object(s, obj.1, :key)
-# end
-
-# If you insist on having a key you should, first open a save_data_dict.
-
-# function save_object(s::SerializerState, obj:NewType)
-#   save_data_dict(s) do
-#     save_object(s, obj.1, :key)
-#   end
-# end
-#
-
-# note for now save_typed_object must be wrapped in either a save_data_array or
-# save_data_dict. Otherwise you will get a key override error.
-
-# function save_object(s::SerializerState, obj:NewType)
-#   save_data_dict(s) do
-#     save_typed_object(s, obj.1, :key)
-#   end
-# end
-#
-
-
-################################################################################
-# save_type_params / load_type_params
-
-# The serialization mechanism stores data in the format of a tree, with the
-# exception that some nodes may point to a shared reference. The "data branch"
-# is anything that is a child node of a data node, whereas the "type branch" is
-# any information that is stored in a node that is a child of a type node.
-# Avoiding type information inside the data branch will lead to a more
-# efficient serialization format. When the uses_params is set while calling
-# @register_serialization_type (de)serialization will use 
-# save_type_params / load_type_params to format the type information.
-# In general we expect that implementing a save_type_params and load_type_params
-# should not always be necessary. Many types will serialize their types
-# in a similar fashion for example serialization of a FieldElem will
-# use the save_type_params / load_type_params from RingElem since in both cases
-# the only parameter needed for such types is their parent.
-
-using JSON
+# This type should not be exported and should be before serializers
+const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
+                       Number, ZZRingElem, TropicalSemiringElem}
 
 include("serializers.jl")
 
@@ -138,18 +12,29 @@ const refs_key = :_refs
 @Base.kwdef struct MetaData
   author_orcid::Union{String, Nothing} = nothing
   name::Union{String, Nothing} = nothing
+  description::Union{String, Nothing} = nothing
 end
 
 function metadata(;args...)
   return MetaData(;args...)
 end
 
+function read_metadata(filename::String)
+  open(filename) do io
+    obj = JSON3.read(io)
+    println(json(obj[:meta], 2))
+  end
+end
+
 ################################################################################
 # Serialization info
 
-function serialization_version_info(dict::Dict{Symbol, Any})
-  ns = dict[:_ns]
+function serialization_version_info(obj::Union{JSON3.Object, Dict})
+  ns = obj[:_ns]
   version_info = ns[:Oscar][2]
+  if version_info isa JSON3.Object
+    return version_number(Dict(version_info))
+  end
   return version_number(version_info)
 end
 
@@ -192,14 +77,39 @@ function encode_type(::Type{T}) where T
   error("unsupported type '$T' for encoding")
 end
 
-function decode_type(input::String)
-  get(reverse_type_map, input) do
-    error("unsupported type '$input' for decoding")
-  end
-end
+function decode_type(s::DeserializerState)
+  if s.obj isa String
+    if !isnothing(tryparse(UUID, s.obj))
+      id = s.obj
+      obj = deepcopy(s.obj)
 
-function decode_type(input::Dict{Symbol, Any})
-  return decode_type(input[:name])
+      if isnothing(s.refs)
+        return typeof(global_serializer_state.id_to_obj[UUID(id)])
+      end
+      s.obj = s.refs[Symbol(id)]
+      T = decode_type(s)
+      s.obj = obj
+      return T
+    end
+
+    return get(reverse_type_map, s.obj) do
+      unsupported_type = s.obj
+      error("unsupported type '$unsupported_type' for decoding")
+    end
+  end
+  
+  if type_key in keys(s.obj)
+    return load_node(s, type_key) do _
+      decode_type(s)
+    end
+  end
+
+  if :name in keys(s.obj)
+    return load_node(s, :name) do _
+      decode_type(s)
+    end
+  end
+  return decode_type(s.obj)
 end
 
 # ATTENTION
@@ -208,18 +118,6 @@ end
 
 ################################################################################
 # High level
-
-function load_ref(s::DeserializerState, id::String)
-  if haskey(global_serializer_state.id_to_obj, UUID(id))
-    loaded_ref = global_serializer_state.id_to_obj[UUID(id)]
-  else
-    ref_dict = s.refs[Symbol(id)]
-    ref_dict[:id] = id
-    loaded_ref = load_typed_object(s, ref_dict)
-    global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
-  end
-  return loaded_ref
-end
 
 function save_as_ref(s::SerializerState, obj::T) where T
   # find ref or create one
@@ -288,16 +186,19 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
-# general loading of a reference
-function load_type_params(s::DeserializerState, ::Type, ref::String)
-  return load_ref(s, ref)
-end
-
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
-function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
-                           override_params::Any = nothing)
-  T = decode_type(dict[type_key])
+function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
+  load_node(s, key) do node
+    if node isa String && !isnothing(tryparse(UUID, node))
+      return load_ref(s)
+    end
+    return load_typed_object(s; override_params=override_params)
+  end
+end
+
+function load_typed_object(s::DeserializerState; override_params::Any = nothing)
+  T = decode_type(s)
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
@@ -305,16 +206,30 @@ function load_typed_object(s::DeserializerState, dict::Dict{Symbol, Any};
     else
       # depending on the type, :params is either an object to be loaded or a
       # dict with keys and object values to be loaded
-      params = load_type_params(s, T, dict[type_key][:params])
+      load_node(s, type_key) do _
+        params = load_params_node(s)
+      end
     end
-    return load_object(s, T, dict[:data], params)
+    load_node(s, :data) do _
+      return load_object(s, T, params)
+    end
   else
-    return load_object(s, T, dict[:data])
+    load_node(s, :data) do _
+      return load_object(s, T)
+    end
   end
 end
 
-function load_typed_object(s::DeserializerState, id::String)
-  return load_ref(s, id)
+function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symbol, Int})
+  load_node(s, key) do _
+    load_object(s, T, params)
+  end
 end
 
 ################################################################################
@@ -361,26 +276,15 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
   reverse_type_map[str] = T
 end
 
-# @register_serialization_type NewType "String Representation of type" uses_id uses_params
-
-# register_serialization_type is a macro to ensure that the string we generate
-# matches exactly the expression passed as first argument, and does not change
-# in unexpected ways when import/export statements are adjusted.
-# The last three arguments are optional and can arise in any order. Passing a string
-# argument will override how the type is stored as a string. The last two are boolean
-# flags. When setting uses_id the object will be stored as a reference and will be
-# referred to throughout the serialization using a UUID. This should typically only
-# be used for types that do not have a fixed normal form for example PolyRing and MPolyRing.
-# Using the uses_params flag will serialize the object with a more structured type
-# description which will make the serialization more efficient see the discussion on
-# save_type_params / load_type_params below.
-
 import Serialization.serialize
 import Serialization.deserialize
 import Serialization.serialize_type
 import Distributed.AbstractSerializer
 
+# add these here so that the proper errors are thrown
+# when the type hasn't been registered
 serialize_with_id(::Type) = false
+serialize_with_params(::Type) = false
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
@@ -418,6 +322,23 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
     end)
 end
 
+"""
+    @register_serialization_type NewType "String Representation of type" uses_id uses_params
+
+`@register_serialization_type` is a macro to ensure that the string we generate
+matches exactly the expression passed as first argument, and does not change
+in unexpected ways when import/export statements are adjusted.
+
+The last three arguments are optional and can arise in any order.
+Passing a string argument will override how the type is stored as a string.
+The last two are boolean flags. When setting `uses_id` the object will be
+ stored as a reference and will be referred to throughout the serialization
+sessions using a `UUID`. This should typically only be used for types that
+ do not have a fixed normal form for example `PolyRing` and `MPolyRing`.
+Using the `uses_params` flag will serialize the object with a more structured type
+description which will make the serialization more efficient see the discussion on
+`save_type_params` / `load_type_params` below.
+"""
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
@@ -448,6 +369,7 @@ include("Combinatorics.jl")
 include("Fields.jl")
 include("ToricGeometry.jl")
 include("Rings.jl")
+include("MPolyMap.jl")
 include("Algebras.jl")
 include("polymake.jl")
 include("TropicalGeometry.jl")
@@ -455,7 +377,7 @@ include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
 
-include("upgrades/main.jl")
+include("Upgrades/main.jl")
 
 ################################################################################
 # Interacting with IO streams and files
@@ -464,7 +386,7 @@ include("upgrades/main.jl")
     save(io::IO, obj::Any; metadata::MetaData=nothing)
     save(filename::String, obj::Any, metadata::MetaData=nothing)
 
-Save an object `T` to the given io stream
+Save an object `obj` to the given io stream
 respectively to the file `filename`.
 
 See [`load`](@ref).
@@ -472,10 +394,17 @@ See [`load`](@ref).
 # Examples
 
 ```jldoctest
-julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="the meaning of life the universe and everything")
-Oscar.MetaData("0000-0000-0000-0042", "the meaning of life the universe and everything")
+julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
+Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
 julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
+
+julia> read_metadata("/tmp/fourtitwo.json")
+{
+  "author_orcid": "0000-0000-0000-0042",
+  "name": "42",
+  "description": "The meaning of life, the universe and everything"
+}
 
 julia> load("/tmp/fourtitwo.json")
 42
@@ -589,39 +518,45 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer)
   s = state(deserializer_open(io, serializer_type))
-
-  # this should be moved to the serializer at some point
-  jsondict = JSON.parse(io, dicttype=Dict{Symbol, Any})
-
-  if haskey(jsondict, :id)
-    id = jsondict[:id]
+  if haskey(s.obj, :id)
+    id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
       return global_serializer_state.id_to_obj[UUID(id)]
     end
   end
 
   # handle different namespaces
-  @req haskey(jsondict, :_ns) "Namespace is missing"
-  _ns = jsondict[:_ns]
-  if haskey(_ns, :polymake)
-    # If this is a polymake file
-    return load_from_polymake(jsondict)
+  polymake_obj = load_node(s) do d
+    @req :_ns in keys(d) "Namespace is missing"
+    load_node(s, :_ns) do _ns
+      if :polymake in keys(_ns)
+        return load_from_polymake(Dict(d))
+      end
+    end
   end
-  @req haskey(_ns, :Oscar) "Not an Oscar object"
+  if !isnothing(polymake_obj)
+    return polymake_obj
+  end
+
+  load_node(s, :_ns) do _ns
+    @req haskey(_ns, :Oscar) "Not an Oscar object"
+  end
 
   # deal with upgrades
-  file_version = serialization_version_info(jsondict)
+  file_version = load_node(s) do obj
+    serialization_version_info(obj)
+  end
 
   if file_version < VERSION_NUMBER
-    jsondict = upgrade(jsondict, file_version)
+    jsondict = JSON.parse(json(s.obj), dicttype=Dict{Symbol, Any})
+    jsondict = upgrade(file_version, jsondict)
+    s.obj = JSON3.read(json(jsondict))
+    if !isnothing(s.refs) && haskey(s.obj, refs_key)
+      s.refs = s.obj[refs_key]
+    end
   end
 
   try
-    # add refs to state for referencing during recursion
-    if haskey(jsondict, refs_key)
-      merge!(s.refs, jsondict[refs_key])
-    end
-
     if type !== nothing
       # Decode the stored type, and compare it to the type `T` supplied by the caller.
       # If they are identical, just proceed. If not, then we assume that either
@@ -629,26 +564,36 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       # concrete, and `U <: T` should hold.
       #
       # This check should maybe change to a check on the whole type tree?
-      U = decode_type(jsondict[type_key])
+      U = load_node(s, type_key) do _
+        decode_type(s)
+      end
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
       if serialize_with_params(type)
-        if isnothing(params) 
-          params = load_type_params(s, type, jsondict[type_key][:params])
+        if isnothing(params)
+          params = load_node(s, type_key) do _
+            load_params_node(s)
+          end
         end
 
-        loaded = load_object(s, type, jsondict[:data], params)
+        load_node(s, :data) do _
+          loaded = load_object(s, type, params)
+        end
       else
         Base.issingletontype(type) && return type()
-        loaded = load_object(s, type, jsondict[:data])
+        load_node(s, :data) do _
+          loaded = load_object(s, type)
+        end
       end
     else
-      loaded = load_typed_object(s, jsondict; override_params=params)
+      loaded = load_typed_object(s; override_params=params)
     end
 
-    if haskey(jsondict, :id)
-      global_serializer_state.obj_to_id[loaded] = UUID(jsondict[:id])
-      global_serializer_state.id_to_obj[UUID(jsondict[:id])] = loaded
+    if :id in keys(s.obj)
+      load_node(s, :id) do id
+        global_serializer_state.obj_to_id[loaded] = UUID(id)
+        global_serializer_state.id_to_obj[UUID(id)] = loaded
+      end
     end
     return loaded
   catch e
@@ -665,3 +610,4 @@ function load(filename::String; params::Any = nothing, type::Any = nothing)
     return load(file; params=params, type=type)
   end
 end
+

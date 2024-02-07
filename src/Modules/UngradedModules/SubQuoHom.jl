@@ -21,10 +21,10 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}; check::Bool
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
-    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)])
     return hom
   else
-    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)])
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)])
     return hom
   end
 end
@@ -334,7 +334,7 @@ function (==)(f::ModuleFPHom, g::ModuleFPHom)
   return true
 end
 
-function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyElem{U}, T<:ModuleFP{S}}
+function Base.hash(f::ModuleFPHom{T}, h::UInt) where {U<:FieldElem, S<:MPolyRingElem{U}, T<:ModuleFP{S}}
   b = 0x535bbdbb2bc54b46 % UInt
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
@@ -1116,7 +1116,7 @@ with the injection map $N \to M$ and the projection map $M \to N$. These maps ar
 isomorphisms.
 The only simplifications which are done are the following: 
 - Remove all generators which are represented by the zero element in the ambient 
-free module.
+  free module.
 - Remove all generators which are in the generating set of the relations.
 - Remove all duplicates in the generators and relations sets.
 """
@@ -1166,6 +1166,7 @@ function simplify(M::SubquoModule)
   respect_grading = is_graded(M)
   function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
     F = ambient_free_module(M)
+    !isdefined(M, :quo) && return iszero(F[i])
     return in(F[i], M.quo)
   end
 
@@ -1264,7 +1265,7 @@ function simplify(M::SubquoModule)
   for i=1:size(M_generators)[1]
     if i in to_delete
       index = findfirst(x -> x==i, to_delete)
-      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index],:], to_delete), i)
+      assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index]:(corresponding_row[index]),:], to_delete), i)
     else
       standard_unit_vector_index = i-length(filter(x -> x < i, to_delete))
       standard_unit_vector = [j == standard_unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]

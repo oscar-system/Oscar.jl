@@ -7,6 +7,7 @@
 module MBOld
 
 using Oscar
+using ..Oscar: GAPWrap
 
 struct SparseVectorSpaceBasis
   A::Vector{SRow{ZZRingElem}}
@@ -81,7 +82,7 @@ function matricesForOperators(L, hw, ops)
   M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
   mats = map(
     o -> sparse_matrix(
-      transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAP.Globals.Basis(M), o)))
+      transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))
     ),
     ops,
   )
@@ -92,7 +93,7 @@ function matricesForOperators(L, hw, ops)
 end
 
 function weightsForOperators(L, cartan, ops)
-  asVec(v) = Vector{Int}(GAP.Globals.Coefficients(GAP.Globals.Basis(L), v))
+  asVec(v) = Vector{Int}(GAPWrap.Coefficients(GAPWrap.Basis(L), v))
   if any(iszero.(asVec.(ops)))
     error("ops should be non-zero")
   end
@@ -180,7 +181,7 @@ function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--
   hwv = sparse_row(ZZ, [(1, 1)])
 
   monomials = compute(hwv, mats, wts)
-  ZZx, x = PolynomialRing(ZZ, length(monomials[1]))
+  ZZx, x = polynomial_ring(ZZ, length(monomials[1]))
   monomials = [
     finish(push_term!(MPolyBuildCtx(ZZx), ZZ(1), Int.(mon))) for mon in monomials
   ]

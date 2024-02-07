@@ -13,11 +13,11 @@ struct SubdivisionOfPoints{T} <: PolyhedralObject{T}
 end
 
 
-# default scalar type: `QQFieldElem`
+# default scalar type: guess from input, fallback to QQ
 subdivision_of_points(points::AbstractCollection[PointVector], cells) =
-  subdivision_of_points(QQFieldElem, points, cells)
+  subdivision_of_points(_guess_fieldelem_type(points), points, cells)
 subdivision_of_points(points::AbstractCollection[PointVector], weights::AbstractVector) =
-  subdivision_of_points(QQFieldElem, points, weights)
+  subdivision_of_points(_guess_fieldelem_type(points), points, weights)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -87,7 +87,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
-julia> n_maximal_cells(SOP)
+julia> number_of_maximal_cells(SOP)
 1
 ```
 """
