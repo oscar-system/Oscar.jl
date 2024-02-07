@@ -149,7 +149,9 @@ function can_be_defined_over(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinF
   K = base_ring(M)
   d = absolute_degree(k)
   @assert absolute_degree(K) != d
+
   s = absolute_frobenius(K, d)
+  mkK = embed(k, K)
   os = divexact(absolute_degree(K), d)
   hB = hom_base(M, gmodule(M.M, Group(M),
                       [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
@@ -187,6 +189,7 @@ function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPMod
   @assert absolute_degree(K) != d
 
   s = absolute_frobenius(K, d)
+  mkK = embed(k, K)
   os = divexact(absolute_degree(K), d)
   hB = hom_base(M, gmodule(M.M, Group(M),
                       [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
@@ -199,17 +202,15 @@ function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPMod
   D = norm(B, s, os)
   lambda = D[1,1]
   @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
-  alpha = norm_equation(K, preimage(phi, lambda))
+  alpha = norm_equation(K, preimage(mkK, lambda))
   B *= inv(alpha)
   @hassert :MinField 2 isone(norm(B, s, os))
   D = hilbert90_cyclic(B, s, os)
   Di = inv(D)
   F = free_module(k, dim(M))
-  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])
-  # TODO: Get this map working
-  # psi = GModuleHom(N, M, , phi)
-  psi = nothing
-  return (true, N, psi)
+  return (true,
+          gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(mkK, x), Di*matrix(x)*D)) for x = C.ac])
+          )
 end
 
 """
@@ -240,7 +241,7 @@ function descent_to(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}
   k = domain(phi)
   success, N, psi = can_be_defined_over_with_data(M, phi)
   success || error("Module cannot be written over $k")
-  return N
+  return N, psi
 end
 
 
