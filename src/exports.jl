@@ -55,7 +55,6 @@ export Edge
 export EmptyScheme
 export FPGroup
 export FPGroupElem
-export flag_pluecker_ideal
 export FreeMod
 export FreeModElem
 export FreeModElem_dec
@@ -530,6 +529,7 @@ export fitting_ideal
 export fitting_subgroup
 export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
+export flag_pluecker_ideal
 export flats
 export forget_decoration
 export forget_grading
