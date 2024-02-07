@@ -505,8 +505,6 @@ function gens(G::MatrixGroup)
    return G.gens
 end
 
-gen(G::MatrixGroup, i::Int) = gens(G)[i]
-
 number_of_generators(G::MatrixGroup) = length(gens(G))
 
 

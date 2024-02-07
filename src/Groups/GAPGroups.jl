@@ -445,15 +445,18 @@ has_gens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
 """
     gen(G::GAPGroup, i::Int)
 
-Return the `i`-th element of the vector `gens(G)`.
+Return `one(G)` if `i == 0`,
+otherwise the `i`-th element of the vector `gens(G)`.
 This is equivalent to `G[i]`, and returns `gens(G)[i]`
 but may be more efficient than the latter.
 
-An exception is thrown if `i` is larger than the length of `gens(G)`.
+An exception is thrown if `i` is negative or larger than the length of
+`gens(G)`.
 """
 function gen(G::GAPGroup, i::Int)
+   i == 0 && return one(G)
    L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
-   @assert length(L) >= i "The number of generators is lower than the given index"
+   @req 0 < i && i <= length(L) "i must be in the range 0:$(length(L))"
    return group_element(G, L[i]::GapObj)
 end
 
