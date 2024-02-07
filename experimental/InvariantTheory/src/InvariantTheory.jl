@@ -171,7 +171,7 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
     if group(group(R))[1] == :SL
         println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
         if R.sym_deg[1]
-            print(io, Indent(), "over symmetric forms of degree ", R.sym_deg[2])
+            print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
             print(io, Dedent())
         else
             println(io, Indent(), "with representation matrix")
@@ -389,7 +389,7 @@ end
 function Base.show(io::IO, R::InvariantRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
-    show(io, R.poly_ring)
+    print(io, Lowercase(), R.poly_ring)
     print(io, Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
     print(io, Dedent())
 end
