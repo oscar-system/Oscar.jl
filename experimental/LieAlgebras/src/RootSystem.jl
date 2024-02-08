@@ -340,10 +340,6 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
-function type(R::RootSystem)
-  return R.type
-end
-
 @doc raw"""
     simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
