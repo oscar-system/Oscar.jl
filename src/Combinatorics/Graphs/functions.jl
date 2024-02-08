@@ -1097,30 +1097,23 @@ function graph_from_edges(::Type{T},
   return g
 end
 
-graph_from_edges(::Type{T},
-edges::EdgeIterator,
-n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
+graph_from_edges(::Type{T}, edges::EdgeIterator,
+                 n_vertices::Int=-1) where {T <: Union{Directed, Undirected}} = graph_from_edges(T, collect(edges), n_vertices)
 
 @doc raw"""
      graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}) where {T <:Union{Directed, Undirected}}
 
 Creates a graph from a vector of edges. Optionally, you could input the number of vertices, but if this number is lower than the maximum vertex in the edges, this argument will be ignored.
 
-# Examples 1
+# Examples
 ```jldoctest
 julia> G = graph_from_edges(Undirected, [[1,3],[3,5],[4,5],[2,4],[2,3]])
 Undirected graph with 5 nodes and the following edges:
 (3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
 
-```
-
-```
-# Examples 2
-```jldoctest
 julia> G = graph_from_edges(Undirected,[[1,3]])
 Undirected graph with 3 nodes and the following edges:
-(3, 1))
-
+(3, 1)
 ```
 """
 graph_from_edges(::Type{T},
