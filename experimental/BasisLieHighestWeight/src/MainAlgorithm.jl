@@ -75,9 +75,18 @@ function basis_lie_highest_weight_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
+  # if length(reduced_expression) == 0
   return MonomialBasis(
     L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
   )
+  #else
+  #  return MonomialBasisDemazure(
+  #    reduced_expression,
+  #    MonomialBasis(
+  #      L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
+  #    ) 
+  #  )
+  #end
 end
 
 function compute_monomials(
@@ -298,6 +307,7 @@ function add_by_hand(
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
   monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
   """
+  println("add_by_hand: ", highest_weight)
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
   matrices_of_operators = tensor_matrices_of_operators(
