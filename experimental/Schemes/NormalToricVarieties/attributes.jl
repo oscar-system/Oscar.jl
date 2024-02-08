@@ -83,7 +83,7 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false,
 end
 
 function _ideal_sheaf_via_polymake(X::NormalToricVariety, i::Int; check::Bool=false)
-  return _ideal_sheaf_via_polymake(X, [i==j ? -one(ZZ) : zero(ZZ) for j in 1:nrays(polyhedral_fan(X))])
+  return _ideal_sheaf_via_polymake(X, [i==j ? one(ZZ) : zero(ZZ) for j in 1:nrays(polyhedral_fan(X))])
 end
 
 function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem}; check::Bool=false)
@@ -98,7 +98,7 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
   # The rays correspond to 'primitive divisors' from which everything 
   # else can be composed in the toric case. If we can write down ideal 
   # sheaves for these, we can hence do so for every divisor.
-  @assert all(x->x<=0, c) "divisor must be effective"
+  @assert all(x->x>=0, c) "divisor must be effective"
   ray_list = rays(polyhedral_fan(X)) # All rays of the polyhedral fan of X
   ideal_dict = IdDict{AbsSpec, Ideal}() # The final output: A list of ideals, one for each 
                                         # affine_chart of X
@@ -131,7 +131,9 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
 
     # We extract what is locally visible of the given divisor in this 
     # chart and w.r.t the local enumeration of the rays. 
-    loc_c = c[index_dict] # The local vector of the linear combination
+    loc_c = -c[index_dict] # The local vector of the linear combination
+                           # The internal representations in Polymake 
+                           # require us to switch the sign here!
     loc_div = toric_divisor(U, loc_c) # The toric local representation of this divisor
 
     # A is a matrix and its rows are the coordinates of the lattice 

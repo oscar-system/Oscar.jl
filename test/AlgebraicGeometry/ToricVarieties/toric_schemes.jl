@@ -131,11 +131,25 @@ end
   @test prim == prim2
   @test prim[1] !== prim2[1]
 
-  D = WeilDivisor(Oscar._ideal_sheaf_via_polymake(IP, ZZ.([-2, -3, -7])))
+  D = WeilDivisor(Oscar._ideal_sheaf_via_polymake(IP, ZZ.([2, 3, 7])))
   D2 = 2 * prim[1] + 3 * prim[2] + 7 * prim[3]
   
   @test is_effective(D)
   @test is_effective(D2)
 
   #@test D == D2 # Test takes too long
+  IP = projective_space(NormalToricVariety, 1)
+  w = canonical_divisor(IP)
+  K0 = Oscar.underlying_divisor(w, algorithm=:via_polymake)
+  delete!(w.__attrs, :underlying_divisor)
+  K1 = Oscar.underlying_divisor(w, algorithm=:direct)
+  delete!(w.__attrs, :underlying_divisor)
+  K2 = Oscar.underlying_divisor(w, algorithm=:via_oscar)
+  delete!(w.__attrs, :underlying_divisor)
+  
+  @test K1 == K2
+  @test K1 == K0
+  @test K2 == K0
+  
+  @test w == Oscar.underlying_divisor(w)
 end
