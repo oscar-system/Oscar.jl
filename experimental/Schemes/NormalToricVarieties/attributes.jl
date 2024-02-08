@@ -134,6 +134,11 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
     loc_c = -c[index_dict] # The local vector of the linear combination
                            # The internal representations in Polymake 
                            # require us to switch the sign here!
+                           # Reason: The MODULE_GENERATORS below give the 
+                           # monomial as a generator f of the fractional ideal 
+                           # for the divisor D. But we need a sheaf of ideals 
+                           # so that div(f) >= -D, D = V(I). That inverts the 
+                           # sign. 
     loc_div = toric_divisor(U, loc_c) # The toric local representation of this divisor
 
     # A is a matrix and its rows are the coordinates of the lattice 
