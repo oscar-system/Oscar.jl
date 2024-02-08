@@ -547,6 +547,53 @@ function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    return T(res)::T
 end
 
+"""
+    map_entries(f, G::MatrixGroup)
+
+Return the matrix group obtained by applying `f` element-wise to
+each generator of `G`.
+
+`f` can be a ring or a field, a suitable map, or a Julia function.
+
+# Examples
+```jldoctest
+julia> mat = matrix(ZZ, 2, 2, [1, 1, 0, 1]);
+
+julia> G = matrix_group(mat);
+
+julia> G2 = map_entries(x -> -x, G)
+Matrix group of degree 2
+  over integer ring
+
+julia> is_finite(G2)
+false
+
+julia> order(map_entries(GF(3), G))
+3
+```
+"""
+function map_entries(R::Ring, G::MatrixGroup)
+  imgs = [map_entries(R, matrix(x)) for x in gens(G)]
+  return matrix_group(R, degree(G), imgs)
+end
+
+function map_entries(mp::Map, G::MatrixGroup)
+  imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
+  return matrix_group(codomain(mp), degree(G), imgs)
+end
+
+function map_entries(f::Function, G::MatrixGroup)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    o = map_entries(f, matrix(one(G)))
+    return matrix_group(base_ring(o), degree(G), typeof(o)[])
+  else
+    imgs = [map_entries(f, matrix(x)) for x in gens(G)]
+    return matrix_group(imgs)
+  end
+end
+
+
 ########################################################################
 #
 # Constructors
