@@ -1117,7 +1117,7 @@ Undirected graph with 5 nodes and the following edges:
 
 julia> G = graph_from_edges(Directed, [[1,3]], 4)
 Directed graph with 4 nodes and the following edges:
-(3, 1)
+(1,1)
 ```
 """
 function graph_from_edges(::Type{T},
