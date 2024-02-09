@@ -111,9 +111,9 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
 
-Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `FinGenAbGroup` 
-given by one free generator, and convert the entries of `W` to elements of that group. Then 
-create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables 
+Given a vector `W` of `ngens(R)` integers, create a free abelian group of type `FinGenAbGroup`
+given by one free generator, and convert the entries of `W` to elements of that group. Then
+create a $\mathbb Z$-graded ring by assigning the group elements as weights to the variables
 of `R`, and return the new ring, together with the vector of variables.
 
     grade(R::MPolyRing)
@@ -137,7 +137,7 @@ julia> T, (x, y, z) = grade(R)
 function grade(R::MPolyRing, W::AbstractVector{<:IntegerUnion})
   @assert length(W) == ngens(R)
   A = abelian_group([0])
-  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad)
   S = MPolyDecRing(R, [i*A[1] for i = W])
   return S, map(S, gens(R))
 end
@@ -150,10 +150,10 @@ end
 
 @doc raw"""
     grade(R::MPolyRing, W::AbstractVector{<:AbstractVector{<:IntegerUnion}})
- 
-Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free 
+
+Given a vector `W` of `ngens(R)` integer vectors of the same size `m`, say, create a free
 abelian group of type `FinGenAbGroup` given by `m` free generators, and convert the vectors in
-`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group 
+`W` to elements of that group. Then create a $\mathbb Z^m$-graded ring by assigning the group
 elements as weights to the variables of `R`, and return the new ring, together with the vector
 of variables.
 
@@ -181,7 +181,7 @@ function grade(R::MPolyRing, W::AbstractVector{<:AbstractVector{<:IntegerUnion}}
   @assert all(x->length(x) == n, W)
 
   A = abelian_group(zeros(Int, n))
-  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad)
   S = MPolyDecRing(R, [A(w) for w = W])
   return S, map(S, gens(R))
 end
@@ -189,7 +189,7 @@ end
 function grade(R::MPolyRing, W::Union{ZZMatrix, AbstractMatrix{<:IntegerUnion}})
   @assert size(W, 2) == ngens(R)
   A = abelian_group(zeros(Int, size(W, 1)))
-  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad)
   ###S = MPolyDecRing(R, [A(view(W, :, i)) for i = 1:size(W, 2)])
   S = MPolyDecRing(R, [A(W[:, i]) for i = 1:size(W, 2)])
   return S, map(S, gens(R))
@@ -306,7 +306,7 @@ is_zm_graded(::MPolyRing) = false
 Return `true` if `R` is positively graded, `false` otherwise.
 
 !!! note
-    We say that `R` is *positively graded* by a finitely generated abelian group $G$ if the coefficient ring of `R` is a field, 
+    We say that `R` is *positively graded* by a finitely generated abelian group $G$ if the coefficient ring of `R` is a field,
     $G$ is free, and each graded part $R_g$, $g\in G$, has finite dimension.
 
 # Examples
@@ -346,7 +346,7 @@ false
        return true
     end
   end
-  try 
+  try
     homogeneous_component(R, zero(G))
   catch e
     if e isa ArgumentError && e.msg == "Polyhedron not bounded"
@@ -437,7 +437,7 @@ end
 
 function filtrate(R::MPolyRing, v::Vector{Int})
   A = abelian_group([0])
-  set_attribute!(A, :show_elem => show_special_elem_grad) 
+  set_attribute!(A, :show_elem => show_special_elem_grad)
   S = MPolyDecRing(R, [i*A[1] for i = v], (x,y) -> x[1] < y[1])
   return S, map(S, gens(R))
 end
@@ -450,7 +450,7 @@ end
 @doc raw"""
     grade(R::MPolyRing, W::Vector{FinGenAbGroupElem})
 
-Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a 
+Given a vector `W` of `ngens(R)` elements of a finitely presented group `G`, say, create a
 `G`-graded ring by assigning the entries of `W` as weights to the variables of `R`. Return
 the new ring as an object of type `MPolyDecRing`, together with the vector of variables.
 
@@ -581,8 +581,8 @@ parent_type(::Type{MPolyDecRingElem{T, S}}) where {T, S} = MPolyDecRing{T, paren
 (W::MPolyDecRing)(i::Int) = MPolyDecRingElem(forget_decoration(W)(i), W)
 (W::MPolyDecRing)(f::Singular.spoly) = MPolyDecRingElem(forget_decoration(W)(f), W)
 
-### Coercion of elements of the underlying polynomial ring 
-# into the graded ring. 
+### Coercion of elements of the underlying polynomial ring
+# into the graded ring.
 function (W::MPolyDecRing{S, T})(f::U) where {S, T, U<:MPolyRingElem}
   if parent_type(U) === T
     @assert forget_decoration(W) === parent(f)
@@ -729,7 +729,7 @@ length(a::MPolyDecRingElem) = length(forget_decoration(a))
 
 Return the total degree of `f`.
 
-Given a set of variables ``x = \{x_1, \ldots, x_n\}``, the *total degree* of a monomial ``x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)`` is the sum of the ``\alpha_i``. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials. 
+Given a set of variables ``x = \{x_1, \ldots, x_n\}``, the *total degree* of a monomial ``x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}\in\text{Mon}_n(x)`` is the sum of the ``\alpha_i``. The *total degree* of a polynomial `f`  is the maximum of the total degrees of its monomials.
 
 !!! note
     The notion of total degree does not dependent on weights given to the variables.
@@ -1058,7 +1058,7 @@ end
 @doc raw"""
     homogeneous_component(f::MPolyDecRingElem, g::FinGenAbGroupElem)
 
-Given an element `f` of a graded multivariate ring, and given an element 
+Given an element `f` of a graded multivariate ring, and given an element
 `g` of the grading group of that ring, return the homogeneous component of `f` of degree `g`.
 
     homogeneous_component(f::MPolyDecRingElem, g::Vector{<:IntegerUnion})
@@ -1070,7 +1070,7 @@ and return the homogeneous component of `f` whose degree is that element.
     homogeneous_component(f::MPolyDecRingElem, g::IntegerUnion)
 
 Given an element `f` of a $\mathbb  Z$-graded multivariate ring `R`, say, and given
-an integer `g`, convert `g` into an element of the grading group of `R`, and return the 
+an integer `g`, convert `g` into an element of the grading group of `R`, and return the
 homogeneous component of `f` whose degree is that element.
 
 # Examples
@@ -1229,7 +1229,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
      #Ax = b, Cx >= 0
      C = identity_matrix(FlintZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)
      for ee = 1:nrows(k)
        e = k[ee, :]
        a = MPolyBuildCtx(forget_decoration(W))
@@ -1252,7 +1252,7 @@ function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
 end
 
 @doc raw"""
-    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem) 
+    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `FinGenAbGroup`, and given an element `g` of that group,
@@ -1392,7 +1392,7 @@ end
 
 ###########################################
 # needs re-thought
-function (W::MPolyDecRing)(m::Generic.FreeModuleElem) 
+function (W::MPolyDecRing)(m::Generic.FreeModuleElem)
   h = has_relshp(parent(m), W)
   if h !== nothing
     return h(m)
@@ -1439,11 +1439,11 @@ mutable struct HilbertData
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
-    
+
     @req minimum(W) > 0 "The weights must be positive"
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
-    
+
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
     return new(h, W, I)
@@ -1470,13 +1470,13 @@ end
 function hilbert_polynomial(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
-  
+
   q, dn = hilbert_series_reduced(H)
   a = QQFieldElem[]
   nf = QQFieldElem(1)
   d = degree(dn)-1
   for i=1:d+1
-    push!(a, q(1)//nf)    
+    push!(a, q(1)//nf)
     nf *= i
     q = derivative(q)
   end
@@ -1494,7 +1494,7 @@ end
 function Oscar.degree(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
-  
+
   P = hilbert_polynomial(H)
   if iszero(P)
      q, _ = hilbert_series_reduced(H)
@@ -1534,7 +1534,7 @@ julia> expand(1//(1 - x^2), 5)
 ```
 """
 function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
-  T, t = power_series_ring(QQ, d+1, "t")   
+  T, t = power_series_ring(QQ, d+1, "t")
   return _rational_function_to_power_series(T, f)
 end
 
@@ -1544,7 +1544,7 @@ function (P::QQRelPowerSeriesRing)(H::HilbertData)
 end
 
 function hilbert_series_expanded(H::HilbertData, d::Int)
-   T, t = power_series_ring(QQ, d+1, "t")   
+   T, t = power_series_ring(QQ, d+1, "t")
    return T(H)
 end
 
@@ -1561,6 +1561,397 @@ end
 ############################################################################
 ### Homogenization and Dehomogenization
 ############################################################################
+
+## 2024-02-06  New UI to homogenization & dehomogenization
+## used partly the code from 2023-07 (see below)
+
+
+struct homogenizer
+  P::MPolyRing              # orignal poly ring (?not graded?)
+  P_homog::MPolyDecRing     # graded poly ring: same vars as P, plus g extra homogenizing vars
+  VarMap::Vector{Int}       # var[k] in P embeds to var[VarMap[k]] in P_homog
+  HVars::Vector{Int}        # the homogenizing vars in p_homog are var[k] with k in HVars
+  W::ZZMatrix               # weight matrix for vars in P: k-th column is degree of var[k]
+
+  # STANDARD GRADED case
+@doc raw"""
+    homogenizer(P::MPolyRing, h::VarName; pos::Int)
+
+Create a "homogenizing operator" assuming a standard grading; `h` is the name of the homogenizing variable; `pos` indivcates where to put the homogenizing variable in the list of generators of the graded polynomial ring (default is after all the other variables).
+
+# Examples
+```jldoctest
+julia> P, (x,y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> H = homogenizer(P, "h");
+
+julia> H(x^2+y)
+x^2 + y*h
+
+julia> H([x^2+y])
+1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x^2 + y*h
+
+julia> H(ideal([x^2+y]))
+Ideal generated by
+  x^2 + y*h
+```
+"""
+  function homogenizer(P::MPolyRing{T}, h::VarName; pos::Int=1+ngens(P))  where T
+    n = nvars(P)
+    @req pos in 1:n+1 "Index out of range."
+    vars = copy(symbols(P))
+    insert!(vars, pos, Symbol(h))
+    P_homog,_ = graded_polynomial_ring(base_ring(P), vars)
+    VarMap = vcat(1:pos-1, pos+1:n+1)
+    HVars = [pos]
+    return new(P, P_homog, VarMap, HVars, ZZMatrix(1,n, [1  for i in 1:n]))
+  end #function
+
+  # Grading specified by COLUMNS of W
+@doc raw"""
+    homogenizer(P::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName; pos::Int)
+
+Create a "homogenizing operator" using the grading specified by the columns of `W`; `h` is the prefix for the homogenizing variables; `pos` indicates where to put the homogenizing variables in the list of generators of the graded polynomial ring (default is after all the other variables).
+
+# Examples
+```jldoctest
+julia> P, (x,y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> W = ZZMatrix(2,2, [2,3,5,7]);
+
+julia> H = homogenizer(P, W, "h");
+
+julia> H(x^2+y)
+x^2 + y*h[1]*h[2]^3
+
+julia> H([x^2+y])
+1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x^2 + y*h[1]*h[2]^3
+
+julia> H(ideal([x^2+y]))
+Ideal generated by
+  x^2 + y*h[1]*h[2]^3
+```
+"""
+  function homogenizer(P::MPolyRing{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName; pos::Int=1+ngens(P))  where T
+    n = nvars(P)
+    @req size(W,2) == n  "Weight matrix not compatible with polynomial ring"
+    @req pos in 1:n+1 "Index out of range."
+    vars = copy(symbols(P))
+    grading_dimension = size(W,1)
+    if grading_dimension == 1
+      insert!(vars, pos, Symbol(h))
+    else
+      for i = 1:grading_dimension
+        insert!(vars, pos-1+i, Symbol("$h[$i]"))  # using names like h[1], h[2], etc
+      end
+    end
+    G = abelian_group(zeros(Int, grading_dimension))
+    W = ZZMatrix(W)
+    WH = hcat(Matrix(W[:, 1:(pos-1)]),
+              Matrix(identity_matrix(ZZ, grading_dimension)),
+              Matrix(W[:, pos:n]))
+#    println("weights $([G(WH[:, i]) for i = 1:size(WH, 2)])");
+    P_homog,_ = graded_polynomial_ring(base_ring(P), vars; weights = [G(WH[:, i]) for i = 1:size(WH, 2)])
+
+    VarMap = vcat(1:pos-1, pos+grading_dimension:n+grading_dimension)
+    HVars = collect(pos:pos+grading_dimension-1)
+    return new(P, P_homog, VarMap, HVars, W)
+  end #function
+
+  # PROBABLY NOT USEFUL (create a homogenizer from a dehomogenizer)
+  # function homogenizer(DH::dehomogenizer)
+  #   P = DH.P
+  #   P_homog = DH.P_homog
+  #   VarMap = DH.VarMap
+  #   HVars = DH.HVars;
+  # end
+end # struct
+
+# Returns a list of the homogenizing variables (elements of P_homog)
+function homogenizing_variables(H::homogenizer)
+  HVarList = [gen(H.P_homog,j)  for j in H.HVars]
+  return HVarList;
+end
+
+
+# Make a dehomogenizer from a homogenizer
+# (see comments/doc for struct homogenizer, above)
+struct dehomogenizer
+  P::MPolyRing
+  P_homog::MPolyDecRing
+  VarMap::Vector{Int}
+  HVars::Vector{Int}
+  W::ZZMatrix
+
+  function dehomogenizer(H::homogenizer)
+    return new(H.P, H.P_homog, H.VarMap, H.HVars)
+  end
+end
+
+
+# Use a homogenizer as a function/operator to actually homogenize
+function (H::homogenizer)(f::MPolyRingElem)
+  @req parent(f) == H.P  "Not in correct polynomial ring"
+  return Oscar._homogenization(f, H.P_homog, H.HVars[1])
+end
+
+function (H::homogenizer)(V::Vector{<:MPolyRingElem})
+  # Call below will check arg compatibility: if V is empty, there is nothing to check!
+  return H.(V)
+end
+
+function (H::homogenizer)(I::MPolyIdeal; extra_gens_flag::Bool = false)
+  return _homogenization(I, H; extra_gens_flag)
+end
+
+
+# Use a dehomogenizer as a function/operator to actually dehomogenize
+function (DH::dehomogenizer)(f::MPolyDecRingElem)
+  @req parent(f) == DH.P_homog   "Not in correct graded polynomial ring"
+  return Oscar._dehomogenization(f, DH.P, DH.HVars[1], length(DH.HVars))
+end
+
+function (DH::dehomogenizer)(V::Vector{<:MPolyDecRingElem})
+  # The call below checks compatibility: if V is empty, there is nothing to check!
+  return DH.(V)
+end
+
+
+function (DH::dehomogenizer)(I::MPolyIdeal{MPolyDecRingElem{T1,T2}})  where T1  where T2
+  @req base_ring(I) == DH.P_homog  "Dehomogenizer not compatible with ideal"
+  return ideal(DH(gens(I)));
+end
+
+
+## 2024-02-05  CODE BELOW COPIED FROM Oscar.jl/src/Rings/mpoly-graded.jl
+##             ALSO SIGNIFICANTLY MODIFIED
+
+## ------------------------------------------------------------------
+## Homogenization of an ideal -- works for all gradings (incl. non-positive),
+## but is slow.  If grading is positive over ZZ^1: use Singular (and wdegrevlex);
+## if grading is positive over ZZ^m (with m > 1) use new "fast/clever" code.
+## Author: John Abbott  2023-07-14
+## ------------------------------------------------------------------
+
+# To homogenize an ideal we look for some additional simple elements
+# (as redundant generators), and then apply the standard algorithm.
+# Seems wasteful, but in many cases leads to faster overall computation.
+
+
+# >>> INTERNAL FUNCTIONS <<<
+
+# Used only in _homogenization_via_saturation (immediately below).
+# This function returns gens(I) and possibly some more "small" elements of I
+# (obtained from 1 or more groebner bases of I).  If extra_gens_flag is true,
+# we compute one more groebner bases of I in the hope that they contain some small elements.
+function _gens_for_homog_via_sat(I::MPolyIdeal{T}, extra_gens_flag::Bool) where {T <: MPolyRingElem}
+  ##    @req  !is_zero(I)  "Ideal must be non-zero"
+  ##    @req  !is_one(I)   "Ideal must not be whole ring"
+  G = gens(I)
+  if isempty(G)  throw("Ideal must have at least 1 generator"); end;
+  OrigR = parent(G[1])      # Since I is not zero, it has at least 1 gen.
+  # Next few lines: we adjoin some more small, redundant gens.
+  # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
+  AveNumTerms = sum([length(g)  for g in G])/length(G) ## floating-point!
+  if extra_gens_flag
+    # compute DegRevLex GB (?and maybe DegLex GB?)
+    assume_gb_is_cached = groebner_basis(I; ordering=degrevlex(OrigR))
+    #??Good idea??        assume_gb_is_cached = groebner_basis(I; ordering=deglex(OrigR))
+  end
+  for GB in values(I.gb)
+    extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
+    G = vcat(G,  extra_gens)
+  end
+  return G
+end
+
+# Fully general, but typically much slower than specialized method below (for positive gradings)
+# Optional kwarg:
+#   extra_gens_flag: if false, inhibits computing grobner basis speculatively in _gens_for_homog_via_sat
+function _homogenization_via_saturation(I::MPolyIdeal{T},  H::homogenizer; extra_gens_flag::Bool = false) where {T <: MPolyRingElem}
+  P = base_ring(I)
+  @req P == H.P  "Homogenizer not for this ring"
+  if is_zero(I)  # special handling for ideal(0)
+    return ideal(zero(H.P_homog)) # return zero ideal in !!P_homog!!
+  end
+  Hgens = H(_gens_for_homog_via_sat(I, extra_gens_flag))
+  R = parent(Hgens[1]) # or H.P_homog
+  if length(Hgens) == 1  # short-cut for principal ideal
+    return ideal(R, Hgens)
+  end
+  DoSatByProduct = false  # true means saturate by product of homogenizing vars;
+                          # false means saturate successively by each homogenizing var (probably faster, in most cases?)
+  HVars = homogenizing_variables(H)
+  if DoSatByProduct
+    Ih = saturation(ideal(R, Hgens), ideal(R, prod(HVars)))
+  else # not DoSatByProduct, so do a cascade of saturations
+    Ih = ideal(R, Hgens)
+    for hvar in HVars
+      Ih = saturation(Ih, ideal(R, hvar))
+      # IMPROVE???  if length(gens(Ih)) == 1  return Ih;  end
+    end
+  end
+  return Ih
+end
+
+
+# ============================================
+# 2023-06-30 START: New impl of homogenization
+# By John Abbott, based on K+R Book "Computational Commutative Algebra" (see "justification" below)
+# This code delegates to _homogenization_via_saturation for non-positive gradings
+# ============================================
+
+# _sat_poly_by_var and kronecker_delta are internal auxiliary functions
+# This homogenization impl seems to be usefully faster with positive ZZ^m-grading for m > 1
+
+# Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
+function _sat_poly_by_var(f,h)
+  # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
+  # Is there a better way to implement this?
+  Ih = ideal([h]);
+  while ideal_membership(f, Ih)
+    f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
+  end
+  return f;
+  # This loop is slower (presumably because it computes the remainder always)
+  # while true
+  #     q,r = divrem(f,h);
+  #     if !is_zero(r)
+  #         return q;
+  #     end
+  #     f = q;
+  # end
+end
+
+# This function should be in a file of utilities (JAA thinks)
+function kronecker_delta(i::Int, j::Int)
+  return (i == j) ? 1 : 0
+end
+
+# MAYBE is_positively_graded makes this fn obsolete -- !!NOT SURE!!
+# # Check that W defines a positive grading: namely
+# #     each col contains a non-zero entry, and
+# #     first non-zero going down the col is positive.
+# # Follows defn 4.2.4 from R+K vol 2.
+# function is_positive_grading_matrix(W::Union{ZZMatrix, Matrix{<:IntegerUnion}})
+#   nrows = size(W,1)
+#   ncols = size(W,2)
+#   for c in 1:ncols
+#     IsGoodCol = false
+#     for r in 1:nrows
+#       if is_zero(W[r,c])
+#         continue
+#       end
+#       if W[r,c] < 0
+#         return false
+#       end
+#       IsGoodCol = true
+#       break
+#     end
+#     if !IsGoodCol
+#       return false
+#     end
+#   end
+#   return true
+# end
+
+
+# This is the main exported function (for homogenizing ideals).  It has an optional kwarg
+# (*) extra_gens_flag (relevant only for non-positive gradings); default is false, but
+#     if true it triggers computation of a "needless" groebner basis in function
+#     _gens_for_homog_via_sat which can overall speed up homogenization.
+function _homogenization(I::MPolyIdeal{T}, H::homogenizer; extra_gens_flag::Bool = false)  where {T <: MPolyRingElem}
+  ## ASSUME NumCols(W) = nvars(P)
+  P = base_ring(I) # initial polynomial ring
+  @req P == H.P  "Homogenizer not for the ring of this ideal"
+  # Handle zero ideal as special case: (quick and easy)
+  if  is_zero(I)
+    return ideal(H.P_homog, [])  # ideal(0) in correct ring
+  end
+  # The fast method below is valid only for positive gradings;
+  # so if not positive graded, delegate to _homogenization_via_saturation.
+  if !is_positively_graded(H.P_homog)
+    return _homogenization_via_saturation(I, H; extra_gens_flag=extra_gens_flag)
+  end
+  # >>> POSITIVELY GRADED <<<  case henceforth
+  if is_z_graded(H.P_homog)
+    # Case: grading is over ZZ^1, so delegate to faster special-case function.
+    # For correctness see Kreuzer+Robbiano (vol.2) Tutorial 53 part (d).
+    if all(x -> (degree(x)[1] == 1), gens(H.P_homog))
+      W_ordering = degrevlex(P)
+    else
+      W_ordering = wdegrevlex(P, [Int(H.W[1,j])  for j in 1:nvars(P)]) # or get columns from H.W ???
+    end
+    GB = groebner_basis(I; ordering=W_ordering)
+    return ideal(H(elements(GB)))
+  end
+  # Case: positive not ZZ^1-graded
+  # Handle one ideal as special case (NB is_one might be costly!)
+  if  is_one(I)
+    return ideal([one(H.P_homog)])  # ideal(1) in correct ring
+  end
+  # Case: positive grading over ZZ^k with k > 1
+  # >>> JUSTIFICATION <<<  from book Kreuzer+Robbiano "Computational Commutative Algebra"
+  # Combination of Cor 4.3.8(a) [main algorithm],  Cor 4.4.9 [saturation by indet], and
+  # Tutorial 37(g) [compute saturation by product via "cascade"]
+  G = gens(I);
+  if length(G) == 1  # short-cut for principal ideal
+    return ideal(H(G));
+  end
+  grading_dimension = nrows(H.W)   ###ngens(H.P_homog) - ngens(H.P);
+  H2 = homogenizer(P, H.W, "hh"; pos = 1+ngens(P)) # hh vars come last -- different from homogenizer H
+  G = H2(G)
+  Ph = parent(G[1])  # equiv H2.P_homog  # Ph is graded ring, "homog-extn" of P.
+  N = ngens(Ph)
+  num_x = ngens(P)
+  # Build ordering matrix: weights matrix followed by identity mat, underneath is a invlex matrix
+  Id = reduce(hcat, [[kronecker_delta(i,j)  for i in 1:grading_dimension]  for j in 1:grading_dimension])
+  RevLexMat = reduce(hcat, [[-kronecker_delta(i+j, 1+N)  for i in 1:N]  for j in 1:N])
+  W_int = reduce(hcat, [[Int(H.W[i,j])  for i in 1:grading_dimension]  for j in 1:nvars(P)])
+  M = hcat(W_int, Id)
+  for j in 1:grading_dimension
+    M_complete = vcat(M, RevLexMat)
+    JohnsOrdering = matrix_ordering(Ph, M_complete)
+    Ih = ideal(G)
+    G = groebner_basis(Ih; ordering=JohnsOrdering)  # option complete_reduction seemed to make no measurable difference
+    G = elements(G)
+    h_j = gen(Ph, ngens(Ph)+1-j)
+    G = [_sat_poly_by_var(g, h_j)  for g in G]
+    # Loop below: rotate cols in RevLexMat which correspond to the "hh" variables:
+    for i in 1:grading_dimension
+      col1 = (i+j > 1+grading_dimension) ? (N+2+grading_dimension-i-j) : (N+2-i-j)
+      col2 = (col1 == N-grading_dimension+1) ? N : col1-1
+      RevLexMat[i, col1] = 0
+      RevLexMat[i, col2] = -1
+    end
+  end
+  # NOW MAP RESULT INTO CORRECT RING
+  P_homog = H.P_homog
+  pos = H.HVars[1]
+    images = [zero(P_homog)  for i in 1:N]
+    for i in 1:pos-1
+      images[i] = gen(P_homog,i)
+    end
+    for i in pos:num_x
+      images[i] = gen(P_homog,i+grading_dimension)
+    end
+    for i in 1:grading_dimension
+      images[num_x+i] = gen(P_homog, pos+i-1)
+    end
+    reorder_variables = hom(Ph, P_homog, images)
+  G = [reorder_variables(g)  for g in G]
+  return ideal(G) # now in correct ring
+end
+
+# ============================================
+# 2024-02-06 END: New UI for homogenization
+# ============================================
+
+
+## ------------------------------------------------------------------
+
 
 ## -----------------------------------
 ## 2023-07-14   Who wrote this code?
@@ -1764,30 +2155,31 @@ end
 # Seems wasteful, but in many cases leads to faster overall computation.
 
 
-# Internal function: used only in _homogenization_via_saturation (immediately below)
-# This function returns gens(I) and possibly some more "small" elements of I
-# (obtained from 1 or more groebner bases of I).  If extra_gens_flag is true,
-# we compute one more groebner bases of I in the hope that they contain some small elements.
-function _gens_for_homog_via_sat(I::MPolyIdeal{T}, extra_gens_flag::Bool) where {T <: MPolyRingElem}
-  ##    @req  !is_zero(I)  "Ideal must be non-zero"
-  ##    @req  !is_one(I)   "Ideal must not be whole ring"
-  if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
-  OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
-  # Next few lines: we adjoin some more small, redundant gens.
-  # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
-  AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
-  G = gens(I)
-  if extra_gens_flag
-    # compute DegRevLex GB (?and maybe DegLex GB?)
-    assume_gb_is_cached = groebner_basis(I; ordering=degrevlex(OrigR))
-    #??Good idea??        assume_gb_is_cached = groebner_basis(I; ordering=deglex(OrigR))
-  end
-  for GB in values(I.gb)
-    extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
-    G = vcat(G,  extra_gens)
-  end
-  return G
-end
+# 2024-02-06 COMMENTED OUT:  code uplicated above (around line 1700)
+# # Internal function: used only in _homogenization_via_saturation (immediately below)
+# # This function returns gens(I) and possibly some more "small" elements of I
+# # (obtained from 1 or more groebner bases of I).  If extra_gens_flag is true,
+# # we compute one more groebner bases of I in the hope that they contain some small elements.
+# function _gens_for_homog_via_sat(I::MPolyIdeal{T}, extra_gens_flag::Bool) where {T <: MPolyRingElem}
+#   ##    @req  !is_zero(I)  "Ideal must be non-zero"
+#   ##    @req  !is_one(I)   "Ideal must not be whole ring"
+#   if isempty(gens(I))  throw("Ideal must have at least 1 generator"); end;
+#   OrigR = parent(gens(I)[1])      # Since I is not zero, it has at least 1 gen.
+#   # Next few lines: we adjoin some more small, redundant gens.
+#   # !!HEURISTIC!!  We use 2*AveNumTerms as size limit for redundant gens we shall adjoin.
+#   AveNumTerms = sum([length(f)  for f in gens(I)])/length(gens(I)) ## floating-point!
+#   G = gens(I)
+#   if extra_gens_flag
+#     # compute DegRevLex GB (?and maybe DegLex GB?)
+#     assume_gb_is_cached = groebner_basis(I; ordering=degrevlex(OrigR))
+#     #??Good idea??        assume_gb_is_cached = groebner_basis(I; ordering=deglex(OrigR))
+#   end
+#   for GB in values(I.gb)
+#     extra_gens = filter(f -> (length(f) < 2*AveNumTerms), elements(GB))
+#     G = vcat(G,  extra_gens)
+#   end
+#   return G
+# end
 
 # Fully general, but typically much slower than specialized method below (for positive gradings)
 # Optional kwargs:
@@ -1838,29 +2230,30 @@ end
 # sat_poly and kronecker_delta are internal auxiliary functions
 # This homogenization impl seems to be usefully faster with positive ZZ^m-grading for m > 1
 
-# Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
-function _sat_poly_by_var(f,h)
-  # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
-  # Is there a better way to implement this?
-  Ih = ideal([h]);
-  while ideal_membership(f, Ih)
-    f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
-  end
-  return f;
-  # This loop is slower (presumably because it computes the remainder always)
-  # while true
-  #     q,r = divrem(f,h);
-  #     if !is_zero(r)
-  #         return q;
-  #     end
-  #     f = q;
-  # end
-end
+# 2024-02-07  Commented out because there is a duplicate above (near line 1797)
+# # Saturate a polynomial by a variable -- equiv to  f/gcd(f,h^deg(f))
+# function _sat_poly_by_var(f,h)
+#   # ASSUMES h is a variable i.e. monic poly of deg 1 with just 1 term
+#   # Is there a better way to implement this?
+#   Ih = ideal([h]);
+#   while ideal_membership(f, Ih)
+#     f = div(f,h); ##f /= h;  but this shorter form does not work (why?)
+#   end
+#   return f;
+#   # This loop is slower (presumably because it computes the remainder always)
+#   # while true
+#   #     q,r = divrem(f,h);
+#   #     if !is_zero(r)
+#   #         return q;
+#   #     end
+#   #     f = q;
+#   # end
+# end
 
-# This function should be a file of utilities (JAA thinks)
-function kronecker_delta(i::Int, j::Int)
-  return (i == j) ? 1 : 0
-end
+# # This function should be a file of utilities (JAA thinks)
+# function kronecker_delta(i::Int, j::Int)
+#   return (i == j) ? 1 : 0
+# end
 
 # Check that W defines a positive grading: namely
 #     each col contains a non-zero entry, and
@@ -2150,8 +2543,8 @@ depending on the variables at these positions.
     dehomogenization(V::Vector{T}, pos::Int) where {T <: MPolyDecRingElem}
 
 Given a vector `V` of elements in a common graded polynomial ring, create a polynomial ring not
-depending on the variables at positions `pos`, $\dots$, `pos` $-1+m$. Dehomogenize the elements 
-of `V` correspondingly,  and return the vector of dehomogenized elements.  
+depending on the variables at positions `pos`, $\dots$, `pos` $-1+m$. Dehomogenize the elements
+of `V` correspondingly,  and return the vector of dehomogenized elements.
 
     dehomogenization(I::MPolyIdeal{T}, pos::Int) where {T <: MPolyDecRingElem}
 
@@ -2522,7 +2915,7 @@ end
 
 Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring
 with coefficients in a field, return the Castelnuovo-Mumford regularity of I.
- 
+
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
@@ -2539,7 +2932,7 @@ function cm_regularity(I::MPolyIdeal)
    @req is_standard_graded(base_ring(I)) "The base ring is not standard ZZ-graded"
    B = minimal_betti_table(I)
    S = as_dictionary(B)
-   V = [x[2][1] - x[1] for x in keys(S)] 
+   V = [x[2][1] - x[1] for x in keys(S)]
   return maximum(V)
 end
 
@@ -2548,8 +2941,8 @@ end
 @doc raw"""
     degree(I::MPolyIdeal)
 
-Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring, 
-return the degree of `I` (that is, the degree of the quotient of `base_ring(I)` modulo `I`). 
+Given a (homogeneous) ideal `I` in a standard $\mathbb Z$-graded multivariate polynomial ring,
+return the degree of `I` (that is, the degree of the quotient of `base_ring(I)` modulo `I`).
 Otherwise, return the degree of the homogenization of `I` with respect to the
 standard $\mathbb Z$-grading.
 

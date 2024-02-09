@@ -583,3 +583,22 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, Nothing}) where
 
 end
 
+@doc raw"""
+    lift(f::FreeModuleHom, g::FreeModuleHom)
+
+Supposing that `f` and  `g` have the same codomain, factorize `f` through `g`,
+i.e. return a homomorphism `h` such that `f` is the composition of `g` after `h`,
+if such a homomorphism exists. Otherwise throw an error.
+
+"""
+function lift(f::FreeModuleHom, g::FreeModuleHom)
+  @assert codomain(f) === codomain(g)
+  F_imgs = images_of_generators(f)
+  G_imgs = images_of_generators(g)
+  F_modgens = ModuleGens(F_imgs, codomain(f))
+  G_modgens = ModuleGens(G_imgs, codomain(g))
+  lifted_imgs_srow = lift(F_modgens, G_modgens)
+  lifted_imgs = [FreeModElem(c, domain(g)) for c in lifted_imgs_srow]
+  h = hom(domain(f), domain(g), lifted_imgs)
+  return h
+end
