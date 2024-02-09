@@ -97,13 +97,13 @@ Translate the expression in the tropical world.
 
 # Examples
 
-```jlexample
+```jldoctest
 julia> T = tropical_semiring(min);
 
-julia> Tx, x = Tropical.polynomial_ring(T, "x" => 1:3);
+julia> Tx, x = polynomial_ring(T, "x" => 1:3);
 
 julia> @tropical min(1, x[1], x[2], 2*x[3])
-x[1] + x[2] + x[3]^2 + (1)
+x[3]^2 + x[1] + x[2] + (1)
 ```
 """
 macro tropical(expr)
@@ -123,7 +123,7 @@ function _tropicalize(x::Expr)
             x.args[1] = :(+)
         elseif x.args[1] == :(*)
             length(x.args) <= 3 || error("Cannot convert")
-            x.args[1] = :(Tropical._tropical_mul)
+            x.args[1] = :(Oscar._tropical_mul)
         elseif x.args[1] == :(+)
             x.args[1] = :*
                 else
