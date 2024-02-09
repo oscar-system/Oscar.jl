@@ -210,7 +210,7 @@ julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
 | 10 |
 +----+
 
-julia> old_unicode = Oscar.allow_unicode(true);
+julia> old_unicode = Oscar.allow_unicode(true; temporary=true);
 
 julia> young_tableau(Vector{Int}[])
 Empty Young tableau
@@ -257,7 +257,7 @@ julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
 │ 10 │
 └────┘
 
-julia> Oscar.allow_unicode(old_unicode);
+julia> Oscar.allow_unicode(old_unicode; temporary=true);
 ```
 """
 function dummy_placeholder end
