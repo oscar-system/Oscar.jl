@@ -561,6 +561,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert length(a) == ngens(F)
     r = new{typeof(F), typeof(G), Nothing}()
     a=Vector{elem_type(G)}(a)
+    img_sub = sub_object(G, a)
     function im_func(x::AbstractFreeModElem)
      # The lines below were an attempt to speed up mapping. 
      # However, it turns out that checking the equality is more 
@@ -577,7 +578,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     function pr_func(x)
       @assert parent(x) === G
-      c = coordinates(repres(x), sub_object(G, a))
+      c = coordinates(repres(x), img_sub)
       return FreeModElem(c, F)
     end
     r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
@@ -596,6 +597,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     @assert h(one(base_ring(F))) == one(base_ring(G))
     r = new{typeof(F), T2, RingMapType}()
     a=Vector{elem_type(G)}(a)
+    img_sub = sub_object(G, a)
     function im_func(x::AbstractFreeModElem)
       iszero(x) && return zero(codomain(r))
       # See the above comment
@@ -607,7 +609,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     function pr_func(x)
       @assert parent(x) === G
-      c = coordinates(repres(x), sub_object(G, a))
+      c = coordinates(repres(x), img_sub)
       cc = map_entries(x->preimage(h, x), c)
       return FreeModElem(cc, F)
     end

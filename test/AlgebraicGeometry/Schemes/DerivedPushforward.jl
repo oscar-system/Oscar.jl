@@ -270,3 +270,26 @@ end
 
   @test iszero(map(C, 1, (-1,)))
 end
+
+@testset "elliptic singularities and blowups" begin
+  P, (x,y,z) = polynomial_ring(QQ, [:x,:y,:z])
+  J = ideal(P,[x*y*z - (x + y + z)*(x^2 + y^2 + z^2)]);
+  R,_ = quo(P,J);
+  IP = projective_space(R,[:u,:v,:w]);
+  S = homogeneous_coordinate_ring(IP);
+  (u,v,w) = gens(S);
+  f = u*v*w - (u + v + w)*(u^2 + v^2 + w^2*z);
+  g1 = u*y - x*v;
+  g2 = u*z - x*w;
+  g3 = y*w - v*z;
+  I = ideal(S,[f, g1, g2, g3]);
+  X, inc_X = sub(IP,I);
+  SX = homogeneous_coordinate_ring(X);
+  F = graded_free_module(S,[0]);
+  OX = subquotient(F,S[0;],S[f; g1; g2; g3]);
+  dOX = Oscar._derived_pushforward(OX);
+  for i in 0:2
+    @test iszero(dOX[-i])
+  end
+end
+

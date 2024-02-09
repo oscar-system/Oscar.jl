@@ -35,7 +35,7 @@ function presentation(SQ::SubquoModule)
     end
   else
     if is_graded(SQ)
-      s, _ = kernel(graded_map(ambient_free_module(SQ), gens(SQ.sum)))
+      s, _ = kernel(graded_map(ambient_free_module(SQ), filter(!iszero, gens(SQ.sum))))
     else
       s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
     end
@@ -73,6 +73,7 @@ function presentation(SQ::SubquoModule)
   #              R^a           1
   # so 0 has index -2, hence seed has to be -2
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
+  q = elem_type(F)[g for g in q if !is_zero(g)]
   if is_graded(SQ)
     h_G_F = graded_map(F, q)
     G = domain(h_G_F)

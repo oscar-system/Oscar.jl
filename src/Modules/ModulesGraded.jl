@@ -676,20 +676,17 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
   ncols = rank(F)
   
   source_degrees = Vector{eltype(G)}()
-  for (i, v) in enumerate(V)
-    if is_zero(v)
-      push!(source_degrees, zero(G))
-      continue
-    end
-    for (j, c) in coordinates(v)
-      if !iszero(c)
-        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
+  for i in 1:nrows
+    for j in 1:ncols
+      if coordinates(V[i])[j] != R[0]
+        push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]))
         break
       end
     end
   end
   @assert length(source_degrees) == nrows
   Fcdm = graded_free_module(R, source_degrees)
+  @assert ngens(Fcdm) == length(V) "number of generators must be equal to the number of images"
   phi = hom(Fcdm, F, V)
   return phi
 end
@@ -2751,11 +2748,15 @@ Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivari
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
 
 Put more precisely, return the truncation as an object of type `SubquoModule`. 
+
 Additionally, if `N` denotes this object,
+
 - return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
 - return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
 - do none of the above if `task = :none`.
+
 If `task = :only_morphism`, return only the inclusion map.
+
     truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
 
 Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
