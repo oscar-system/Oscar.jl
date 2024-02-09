@@ -357,6 +357,7 @@ mutable struct SubQuoHom{
     ###@assert is_graded(D) == is_graded(C)
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) === C, im)
+    @check true # Will throw if checks are not supposed to be enabled
 
     r = new{T1, T2, Nothing}()
     r.header = MapHeader(D, C)

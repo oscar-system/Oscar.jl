@@ -186,7 +186,7 @@ function ambient_embedding(X::AbsProjectiveScheme)
   S = homogeneous_coordinate_ring(IP)
   T = homogeneous_coordinate_ring(X)
   I = defining_ideal(X)
-  pb = hom(S, T, gens(T))
+  pb = hom(S, T, gens(T); check=false)
   inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
   return ProjectiveClosedEmbedding(inc_sub, I, check=false)
 end

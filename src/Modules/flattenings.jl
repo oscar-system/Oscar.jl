@@ -8,7 +8,7 @@ function (flat_map::RingFlattening)(F::ModuleFP{T}) where {T <: MPolyRingElem{<:
                                                                   MPolyQuoLocRingElem, MPolyLocRingElem}}}
   if !haskey(flat_counterparts(flat_map), F)
     F_flat, iso = change_base_ring(flat_map, F)
-    iso_inv = hom(F_flat, F, gens(F), inverse(flat_map))
+    iso_inv = hom(F_flat, F, gens(F), inverse(flat_map); check=false)
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
     flat_counterparts(flat_map)[F] = (F_flat, iso, iso_inv)
@@ -54,6 +54,7 @@ function coordinates(
 
   flat = flatten(base_ring(parent(a)))
   c = coordinates(flat(a), flat(M)[1])
+  is_zero(c) && return sparse_row(base_ring(a))
   return map_entries(inverse(flat), c)
 end
 
@@ -75,8 +76,8 @@ function free_resolution(
       @assert F_flat === domain(map(comp, i))
       @assert domain(last(isos)) === codomain(map(comp, i))
       F, iso_F_inv = _change_base_ring_and_preserve_gradings(inverse(flat), F_flat)
-      iso_F = hom(F, F_flat, gens(F_flat), flat)
-      push!(res_maps, hom(F, last(res_obj), last(isos).(map(comp, i).(iso_F.(gens(F))))))
+      iso_F = hom(F, F_flat, gens(F_flat), flat; check=false)
+      push!(res_maps, hom(F, last(res_obj), last(isos).(map(comp, i).(iso_F.(gens(F)))); check=false))
       push!(res_obj, F)
       push!(isos, iso_F_inv)
     end
@@ -93,9 +94,9 @@ end
 function _change_base_ring_and_preserve_gradings(phi::Any, F::FreeMod)
   R = base_ring(F)
   S = parent(phi(zero(R)))
-  FS = (is_graded(F) ? graded_free_module(S, degree.(gens(F))) : FreeMod(S, ngens(F)))
+  FS = (is_graded(F) ? graded_free_module(S, [degree(g; check=false) for g in gens(F)]) : FreeMod(S, ngens(F)))
   FS.S = F.S
-  return FS, hom(F, FS, gens(FS), phi)
+  return FS, hom(F, FS, gens(FS), phi; check=false)
 end
 
 function _change_base_ring_and_preserve_gradings(phi::Any, M::SubquoModule)
@@ -104,7 +105,7 @@ function _change_base_ring_and_preserve_gradings(phi::Any, M::SubquoModule)
   F = ambient_free_module(M)
   FF, iso_F = _change_base_ring_and_preserve_gradings(phi, F)
   MM = SubquoModule(FF, iso_F.(ambient_representatives_generators(M)), iso_F.(relations(M)))
-  return MM, hom(M, MM, gens(MM), phi)
+  return MM, hom(M, MM, gens(MM), phi; check=false)
 end
 
 function _change_base_ring_and_preserve_gradings(
@@ -114,7 +115,7 @@ function _change_base_ring_and_preserve_gradings(
   )
   D = codomain(domain_change)
   C = codomain(codomain_change)
-  result = hom(D, C, codomain_change.(f.(gens(domain(f)))))
+  result = hom(D, C, codomain_change.(f.(gens(domain(f)))); check=false)
   return result
 end
 
