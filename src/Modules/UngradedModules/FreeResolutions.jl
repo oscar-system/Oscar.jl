@@ -222,7 +222,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       SM    = SubModuleOfFreeModule(codom, res[j])
       #generator_matrix(SM)
       #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
-      map = graded_map(codom, gens(SM))
+      map = graded_map(codom, gens(SM); check=false)
       dom = domain(map)
       set_attribute!(dom, :name => "$br_name^$rk")
     else
@@ -231,7 +231,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       SM    = SubModuleOfFreeModule(codom, res[j])
       set_attribute!(dom, :name => "$br_name^$rk")
       #generator_matrix(SM)
-      map = hom(dom, codom, gens(SM))
+      map = hom(dom, codom, gens(SM); check=false)
     end
     pushfirst!(cc, map) 
     j += 1
@@ -240,7 +240,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   if slen < len
     Z = FreeMod(br, 0)
     set_attribute!(Z, :name => "0")
-    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
+    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
     cc.complete = true
   end
   set_attribute!(cc, :show => free_show)
@@ -381,7 +381,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       SM    = SubModuleOfFreeModule(codom, res[j])
       #generator_matrix(SM)
       #ff = graded_map(codom, SM.matrix)
-      ff = graded_map(codom, gens(SM))
+      ff = graded_map(codom, gens(SM); check=false)
       dom = domain(ff)
       set_attribute!(dom, :name => "$br_name^$rk")
       insert!(maps, 1, ff)
@@ -393,7 +393,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       SM    = SubModuleOfFreeModule(codom, res[j])
       #generator_matrix(SM)
       set_attribute!(dom, :name => "$br_name^$rk")
-      insert!(maps, 1, hom(dom, codom, gens(SM)))
+      insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
       j += 1
     end
   end
@@ -405,7 +405,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       Z = FreeMod(br, 0)
     end
     set_attribute!(Z, :name => "0")
-    insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
+    insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
@@ -432,7 +432,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
 
       if iszero(N) # Fill up with zero maps
         C.complete = true
-        phi = hom(N, N, elem_type(N)[])
+        phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
       end
@@ -441,7 +441,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       nz = findall(x->!iszero(x), gens(K))
       F = FreeMod(R, length(nz))
       iszero(length(nz)) && set_attribute!(F, :name => "0")
-      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]))
+      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
     end
     return first(C.maps)
@@ -468,11 +468,11 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
-        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       else
         Z = FreeMod(base_ring(M), 0)
         set_attribute!(Z, :name => "0")
-        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       end
       insert!(mp, 1, h)
       break
@@ -480,10 +480,10 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
       break
     end
     if is_graded(codomain(mk))
-      g = graded_map(codomain(mk), collect(k.sub.gens)[nz])
+      g = graded_map(codomain(mk), collect(k.sub.gens)[nz]; check=false)
     else
       F = FreeMod(base_ring(M), length(nz))
-      g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+      g = hom(F, codomain(mk), collect(k.sub.gens)[nz]; check=false)
     end
     insert!(mp, 1, g)
   end

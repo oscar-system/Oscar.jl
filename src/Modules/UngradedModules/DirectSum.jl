@@ -50,11 +50,11 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   i = 0
   for f = F
     if task in [:sum, :both]
-      push!(emb, hom(f, G, Vector{elem_type(G)}([gen(G, j+i) for j=1:ngens(f)])))
+      push!(emb, hom(f, G, Vector{elem_type(G)}([gen(G, j+i) for j=1:ngens(f)]); check=false))
       injection_dictionary[length(emb)] = emb[length(emb)]
     end
     if task in [:prod, :both]
-      push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:i], gens(f), elem_type(f)[zero(f) for j=i+ngens(f)+1:ngens(G)])))
+      push!(pro, hom(G, f, vcat(elem_type(f)[zero(f) for j=1:i], gens(f), elem_type(f)[zero(f) for j=i+ngens(f)+1:ngens(G)]); check=false))
       projection_dictionary[length(pro)] = pro[length(pro)]
     end
     i += ngens(f)
@@ -99,12 +99,12 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   if task == :prod || task != :sum
     if pro_quo === nothing
       for i=1:length(pro)
-        pro[i] = hom(s, M[i], Vector{elem_type(M[i])}([M[i](pro[i](emb_sF(gen))) for gen in gens(s)])) # TODO distinction between pro on the left and pro on the right side!
+        pro[i] = hom(s, M[i], Vector{elem_type(M[i])}([M[i](pro[i](emb_sF(gen))) for gen in gens(s)]); check=false) # TODO distinction between pro on the left and pro on the right side!
         projection_dictionary[i] = pro[i]
       end
     else
       for i=1:length(pro)
-        pro[i] = hom(s, M[i], Vector{elem_type(M[i])}([M[i](pro[i](emb_sF(preimage(pro_quo,gen)))) for gen in gens(s)]))
+        pro[i] = hom(s, M[i], Vector{elem_type(M[i])}([M[i](pro[i](emb_sF(preimage(pro_quo,gen)))) for gen in gens(s)]); check=false)
         projection_dictionary[i] = pro[i]
       end
     end
@@ -115,12 +115,12 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   if task == :sum || task != :prod
     if pro_quo === nothing
       for i=1:length(mF)
-        mF[i] = hom(M[i], s, Vector{elem_type(s)}([preimage(emb_sF, mF[i](repres(g))) for g in gens(M[i])]))
+        mF[i] = hom(M[i], s, Vector{elem_type(s)}([preimage(emb_sF, mF[i](repres(g))) for g in gens(M[i])]); check=false)
         injection_dictionary[i] = mF[i]
       end
     else
       for i=1:length(mF)
-        mF[i] = hom(M[i], s, Vector{elem_type(s)}([pro_quo(preimage(emb_sF, mF[i](repres(g)))) for g in gens(M[i])]))
+        mF[i] = hom(M[i], s, Vector{elem_type(s)}([pro_quo(preimage(emb_sF, mF[i](repres(g)))) for g in gens(M[i])]); check=false)
         injection_dictionary[i] = mF[i]
       end
     end
@@ -189,7 +189,7 @@ function canonical_injection(G::ModuleFP, i::Int)
   end
   @req 0 < i <= length(H) "index out of bound"
   j = sum(ngens(H[l]) for l in 1:i-1; init=0)
-  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]))
+  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]); check=false)
   injection_dictionary[i] = emb
   return emb
 end
@@ -220,7 +220,7 @@ function canonical_projection(G::ModuleFP, i::Int)
   end
   @req 0 < i <= length(H) "index out of bound"
   j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
-  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])))
+  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])); check=false)
   projection_dictionary[i] = pro
   return pro
 end
