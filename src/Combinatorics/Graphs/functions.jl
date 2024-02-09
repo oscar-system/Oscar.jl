@@ -1121,7 +1121,6 @@ Directed graph with 4 nodes and the following edges:
 (1, 3)
 ```
 """
-
 function graph_from_edges(::Type{T},
                           edges::Vector{Vector{Int}},
                           n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
