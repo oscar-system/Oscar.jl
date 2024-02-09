@@ -25,7 +25,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     G = grading_group(F)
     weights = elem_type(G)[]
     for ind in OrderedMultiIndexSet(p, n)
-      push!(weights, sum(degree(F[i]) for i in indices(ind); init=zero(G)))
+      push!(weights, sum(_degree_fast(F[i]) for i in indices(ind); init=zero(G)))
     end
     grade(result_, weights)
   else

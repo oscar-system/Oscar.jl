@@ -17,7 +17,7 @@ function presentation(SQ::SubquoModule)
   #the relations are A meet B? written wrt to A
   R = base_ring(SQ)
   if is_graded(SQ)
-    h_F_SQ = graded_map(SQ, gens(SQ))
+    h_F_SQ = graded_map(SQ, gens(SQ); check=false)
     F = domain(h_F_SQ)
   else
     F = FreeMod(R, ngens(SQ.sub))
@@ -35,7 +35,7 @@ function presentation(SQ::SubquoModule)
     end
   else
     if is_graded(SQ)
-      s, _ = kernel(graded_map(ambient_free_module(SQ), gens(SQ.sum)))
+      s, _ = kernel(graded_map(ambient_free_module(SQ), filter(!iszero, gens(SQ.sum)); check=false))
     else
       s, _ = kernel(hom(FreeMod(R,ngens(SQ.sum)), ambient_free_module(SQ), gens(SQ.sum)))
     end
@@ -71,8 +71,9 @@ function presentation(SQ::SubquoModule)
   #              R^a           1
   # so 0 has index -2, hence seed has to be -2
   #TODO sort decoration and fix maps, same decoration should be bundled (to match pretty printing)
+  q = elem_type(F)[g for g in q if !is_zero(g)]
   if is_graded(SQ)
-    h_G_F = graded_map(F, q)
+    h_G_F = graded_map(F, q; check=false)
     G = domain(h_G_F)
   else
     G = FreeMod(R, length(q))
@@ -113,14 +114,14 @@ function _presentation_graded(SQ::SubquoModule)
   # At the same time, we can not just throw away zero 
   # generators, because other code relies on the 1:1-correspondence
   # of the generators in a presentation.
-  F0_to_SQ = graded_map(SQ, gens(SQ))
+  F0_to_SQ = graded_map(SQ, gens(SQ); check=false)
   F0 = domain(F0_to_SQ)
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
   #F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
   #F1 = domain(F1_to_F0)
-  F1 = graded_free_module(R, degree.(images_of_generators(inc_K)))
+  F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
   F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
   set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
 
