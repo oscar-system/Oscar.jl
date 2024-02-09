@@ -8,8 +8,8 @@
 Return the morphism $D \to C$ for a subquotient $D$ where `D[i]` is mapped to `im[i]`.
 In particular, `length(im) == ngens(D)` must hold.
 """
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im)
-SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h)
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T} = SubQuoHom{typeof(D), typeof(C), Nothing}(D, C, im; check)
+SubQuoHom(D::SubquoModule, C::ModuleFP{T}, im::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = SubQuoHom{typeof(D), typeof(C), RingMapType}(D, C, im, h; check)
 
 @doc raw"""
     SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T})
@@ -554,7 +554,7 @@ Return the image of `a` as an object of type `SubquoModule`.
 
 Additionally, if `I` denotes this object, return the inclusion map `I` $\to$ `codomain(a)`.
 """
-function image(h::SubQuoHom)
+@attr Tuple{<:SubquoModule, <:ModuleFPHom} function image(h::SubQuoHom)
   s = sub_object(codomain(h), images_of_generators(h))
   inc = hom(s, codomain(h), images_of_generators(h), check=false)
   return s, inc
