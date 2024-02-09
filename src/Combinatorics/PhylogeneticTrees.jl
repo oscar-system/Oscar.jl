@@ -1,4 +1,4 @@
-mutable struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}}
+struct PhylogeneticTree{T <: Union{Float64, QQFieldElem}}
   pm_ptree::Polymake.LibPolymake.BigObjectAllocated
 end
 
