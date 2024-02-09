@@ -14,14 +14,14 @@ julia&gt; D = plane_curve(x*(x+y)*(x-y));
 
 julia&gt; common_components(C, D)
 1-element Vector{AffinePlaneCurve{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
- V(x^2 + x*y)
+ scheme(x^2 + x*y)
 </code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multiplicity-Tuple{AffinePlaneCurve, AbsAffineRationalPoint}" href="#multiplicity-Tuple{AffinePlaneCurve, AbsAffineRationalPoint}"><code>multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiplicity(C::AffinePlaneCurve, P::AbsAffineRationalPoint)</code></pre><p>Return the multiplicity of <code>C</code> at <code>P</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;]);
 
 julia&gt; C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
 julia&gt; P = C([2,-2])
 Rational point
-  of V(-x^4 - x^3*y + x^2*y^3 + x*y^4)
+  of scheme(-x^4 - x^3*y + x^2*y^3 + x*y^4)
 with coordinates (2, -2)
 
 julia&gt; multiplicity(C, P)
@@ -32,13 +32,13 @@ julia&gt; C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
 julia&gt; P = C([0, 0])
 Rational point
-  of V(-x^4 - x^3*y + x^2*y^3 + x*y^4)
+  of scheme(-x^4 - x^3*y + x^2*y^3 + x*y^4)
 with coordinates (0, 0)
 
 julia&gt; tangent_lines(C, P)
 Dict{AffinePlaneCurve{QQField, MPolyQuoRing{QQMPolyRingElem}}, Int64} with 2 entries:
-  V(x)     =&gt; 3
-  V(x + y) =&gt; 1
+  scheme(x)     =&gt; 3
+  scheme(x + y) =&gt; 1
 </code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="intersection_multiplicity-Tuple{AffinePlaneCurve, AffinePlaneCurve, AbsAffineRationalPoint}" href="#intersection_multiplicity-Tuple{AffinePlaneCurve, AffinePlaneCurve, AbsAffineRationalPoint}"><code>intersection_multiplicity</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersection_multiplicity(C::AffinePlaneCurve, D::AffinePlaneCurve, P::AbsAffineRationalPoint)</code></pre><p>Return the intersection multiplicity of <code>C</code> and <code>D</code> at <code>P</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;]);
 
 julia&gt; C = plane_curve((x^2+y^2)*(x^2 + y^2 + 2*y))
@@ -66,12 +66,12 @@ Affine plane curve
 
 julia&gt; P = C([QQ(0), QQ(0)])
 Rational point
-  of V(x^2 + x*y)
+  of scheme(x^2 + x*y)
 with coordinates (0, 0)
 
 julia&gt; Q = C([QQ(2), QQ(-2)])
 Rational point
-  of V(x^2 + x*y)
+  of scheme(x^2 + x*y)
 with coordinates (2, -2)
 
 julia&gt; is_transverse_intersection(C, D, P)
@@ -79,4 +79,4 @@ false
 
 julia&gt; is_transverse_intersection(C, D, Q)
 true
-</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="projective_closure-Tuple{AffinePlaneCurve}" href="#projective_closure-Tuple{AffinePlaneCurve}"><code>projective_closure</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">projective_closure(C::AffinePlaneCurve) -&gt; ProjectivePlaneCurve</code></pre><p>Return the projective closure of <code>C</code>.</p></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../ToricVarieties/BlowdownMorphisms/">« Toric Blowdown Morphisms (Experimental)</a><a class="docs-footer-nextpage" href="../ProjectiveCurves/">Projective Curves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Monday 5 February 2024 10:59">Monday 5 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="projective_closure-Tuple{AffinePlaneCurve}" href="#projective_closure-Tuple{AffinePlaneCurve}"><code>projective_closure</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">projective_closure(C::AffinePlaneCurve) -&gt; ProjectivePlaneCurve</code></pre><p>Return the projective closure of <code>C</code>.</p></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../ToricVarieties/BlowdownMorphisms/">« Toric Blowdown Morphisms (Experimental)</a><a class="docs-footer-nextpage" href="../ProjectiveCurves/">Projective Curves »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 9 February 2024 11:08">Friday 9 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
