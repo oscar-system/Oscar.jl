@@ -2407,6 +2407,14 @@ function Base.:(==)(
   return all(x->f(x) == g(x), gens(domain(f)))
 end
 
+function Base.hash(f::Map{<:MPolyAnyRing, <:MPolyAnyRing}, h::UInt)
+    h = hash(domain(f), h)
+    h = hash(codomain(f), h)
+    # TODO: add in coefficient_map if available
+    h = hash(f.(gens(domain(f))), h)
+    return h
+end
+
 coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))
 coefficient_map(f::MPolyQuoLocalizedRingHom) = coefficient_map(restricted_map(f))
 

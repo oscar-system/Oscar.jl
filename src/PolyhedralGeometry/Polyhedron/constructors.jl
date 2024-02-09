@@ -20,9 +20,9 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
     Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
 end
 
-# default scalar type: `QQFieldElem`
-polyhedron(A, b) = polyhedron(QQFieldElem, A, b)
-polyhedron(A) = polyhedron(QQFieldElem, A)
+# default scalar type: guess from input and fall back to `QQFieldElem`
+polyhedron(A, b) = polyhedron(_guess_fieldelem_type(A,b), A, b)
+polyhedron(A) = polyhedron(_guess_fieldelem_type(A), A)
 
 @doc raw"""
     polyhedron(P::Polymake.BigObject)
@@ -226,7 +226,7 @@ function convex_hull(f::scalar_type_or_field, V::AbstractCollection[PointVector]
   end
 end
 
-convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(QQFieldElem, V, R, L; non_redundant=non_redundant)
+convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(_guess_fieldelem_type(V,R,L), V, R, L; non_redundant=non_redundant)
 
 ###############################################################################
 ###############################################################################

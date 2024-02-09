@@ -106,13 +106,13 @@ function polyhedral_complex(f::scalar_type_or_field,
     ), parent_field)
   end
 end
-# default scalar type: `QQFieldElem`
+# default scalar type: guess from input, fallback QQ
 polyhedral_complex(polyhedra::IncidenceMatrix, 
                 vr::AbstractCollection[PointVector], 
                 far_vertices::Union{Vector{Int}, Nothing} = nothing, 
                 L::Union{AbstractCollection[RayVector], Nothing} = nothing;
                 non_redundant::Bool = false) =
-  polyhedral_complex(QQFieldElem, polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
+  polyhedral_complex(_guess_fieldelem_type(vr, L), polyhedra, vr, far_vertices, L; non_redundant=non_redundant)
 
 function polyhedral_complex(f::scalar_type_or_field, v::AbstractCollection[PointVector], vi::IncidenceMatrix, r::AbstractCollection[RayVector], ri::IncidenceMatrix, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false)
   vr = [unhomogenized_matrix(v); unhomogenized_matrix(r)]

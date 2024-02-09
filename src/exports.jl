@@ -434,6 +434,7 @@ export degrees_of_generators
 export degrevlex
 export dehomogenization
 export dehomogenization_map
+export dehomogenizer
 export del_pezzo_polytope
 export del_pezzo_surface
 export deletion
@@ -532,6 +533,7 @@ export fitting_ideal
 export fitting_subgroup
 export fitting_subgroup, has_fitting_subgroup, set_fitting_subgroup
 export fixed_field
+export flag_pluecker_ideal
 export flats
 export forget_decoration
 export forget_grading
@@ -644,6 +646,7 @@ export homogeneous_coordinates
 export homogenization
 export homogenization_map
 export homogenize
+export homogenizer
 export homology
 export homomorphism_of_semidirect_product
 export homomorphism_of_wreath_product
