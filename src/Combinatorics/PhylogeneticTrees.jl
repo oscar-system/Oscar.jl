@@ -82,10 +82,7 @@ end
 function phylogenetic_tree(M::QQMatrix, taxa::Vector{String})
   n_taxa = length(taxa)
   @req (n_taxa, n_taxa) == size(M) "Number of taxa should match the rows and columns of the given matrix"
-  pm_T = Polymake.convert_to_pm_type(QQFieldElem)
-  cp_M = convert(Matrix{pm_T}, Matrix{QQFieldElem}(M))
-
-  pm_ptree = Polymake.graph.PhylogeneticTree{pm_T}(
+  pm_ptree = Polymake.graph.PhylogeneticTree{Rational}(
     COPHENETIC_MATRIX = M, TAXA = taxa
   )
   return PhylogeneticTree{QQFieldElem}(pm_ptree)
@@ -108,7 +105,7 @@ Undirected graph with 7 nodes and the following edges:
 ```
 """
 function adjacency_tree(ptree::PhylogeneticTree)
-  return Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
+  return Graph{Undirected}(pm_object(ptree).ADJACENCY)
 end
 
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
@@ -131,7 +128,7 @@ true
 ```
 """
 function equidistant(ptree::PhylogeneticTree)
-  return ptree.pm_ptree.EQUIDISTANT
+  return pm_object(ptree).EQUIDISTANT::Bool
 end
 
 
@@ -155,11 +152,14 @@ julia> cophenetic_matrix(ptree)
 ```
 """
 function cophenetic_matrix(ptree::PhylogeneticTree{Float64})
-  return convert(Matrix, ptree.pm_ptree.COPHENETIC_MATRIX)
+  return convert(Matrix, pm_object(ptree).COPHENETIC_MATRIX)::Matrix{Float64}
 end
 
 function cophenetic_matrix(ptree::PhylogeneticTree{QQFieldElem})
-  return matrix(QQ, convert(Matrix{QQFieldElem}, ptree.pm_ptree.COPHENETIC_MATRIX))
+  return matrix(
+    QQ,
+    convert(Matrix{QQFieldElem}, pm_object(ptree).COPHENETIC_MATRIX)
+  )::QQMatrix
 end
 
 @doc raw"""
@@ -182,7 +182,7 @@ julia> taxa(ptree)
 ```
 """
 function taxa(ptree::PhylogeneticTree)
-  return convert(Array{String}, ptree.pm_ptree.TAXA)
+  return convert(Array{String}, pm_object(ptree).TAXA)::Array{String}
 end
 
 @doc raw"""
@@ -215,7 +215,7 @@ julia> newick(tree_mat)
 ```
 """
 function newick(ptree::PhylogeneticTree)
-  return convert(String, ptree.pm_ptree.NEWICK)
+  return convert(String, pm_object(ptree).NEWICK)::String
 end
 
 
@@ -249,13 +249,11 @@ function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where {T <:
   n = length(arr)
   @req n > 0 "The vector must not be empty"
 
-  phylo_type = Polymake.bigobject_type(arr[1].pm_ptree)
+  phylo_type = Polymake.bigobject_type(pm_object(first(arr)))
   pm_arr = Polymake.Array{Polymake.BigObject}(phylo_type, n)
   
-  for i in 1:n
-    pm_arr[i] = arr[i].pm_ptree
-  end
-  
+  pm_arr .= pm_object.(arr)
+    
   pm_cons_tree = Polymake.tropical.tropical_median_consensus(pm_arr)
   return PhylogeneticTree{T}(pm_cons_tree)
 end

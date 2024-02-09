@@ -7,7 +7,7 @@ CurrentModule = Oscar
 ## Introduction
 
 Phylogenetic trees represent the evolutionary history of some species of consideration.
-Here we consider phylogenetic trees with branch lengths as defined in C. Semple, M. Steel: Phylogenetics.
+Here we consider phylogenetic trees with branch lengths as defined in [SS03](@cite).
 
 ## Construction
 
