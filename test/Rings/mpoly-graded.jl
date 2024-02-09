@@ -666,42 +666,46 @@ end
   L = [x^3*y^2+x*y*z^3+x*y+y^2,  x^3*y*w+x*y*z^2*w+x^3*w^2+w^2];
   I = ideal(R,L);
   Ih = H_std(I)
-  expected = H_std([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
-                    x^3*y^2+x*y*z^3+x*y+y^2,
-                    x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
+  expected = H_std.([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                     x^3*y^2+x*y*z^3+x*y+y^2,
+                     x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
   @test Ih == ideal(expected)
   Ih = H1(I)
-  expected = H1([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
-                 x^3*y^2+x*y*z^3+x*y+y^2,
-                 x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
+  expected = H1.([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                  x^3*y^2+x*y*z^3+x*y+y^2,
+                  x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
   @test Ih == ideal(expected)
   Ih = H2(I)
-  expected = H2([x*y*z^3+x^3*y^2+y^2+x*y,
-                 x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
-                 x^3*z*w^2+x^3*y*z*w-x^3*y^2*w+z*w^2-y^2*w-x*y*w,
-                 x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2,
-                 y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2]);
-  @test Ih == ideal(expected)
-  Ih = H3(I)
-  expected = H3([x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2,
-                 x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
-                 x^3*y^2+y^2+x*y*z^3+x*y]);
-  @test Ih == ideal(expected)
-  # Ih_W4 = ????
-  # Ih = homogenization(I, W4, "h")
-  # Ih_expected = ideal(base_ring(Ih), Ih_W4)
-  # @test Ih = Ih_expected
-  Ih = H2a(I)
-  expected = H2a([x*y*z^3+x^3*y^2+y^2+x*y,
+  expected = H2.([x*y*z^3+x^3*y^2+y^2+x*y,
                   x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
                   x^3*z*w^2+x^3*y*z*w-x^3*y^2*w+z*w^2-y^2*w-x*y*w,
-                  y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2,
-                  x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2]);
+                  x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2,
+                  y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2]);
   @test Ih == ideal(expected)
-  # Ih_W2b = ????
-  # Ih = homogenization(I, W2b, "h")
-  # Ih_expected = ideal(base_ring(Ih), Ih_W2b)
-  # @test Ih == Ih_expected
+  Ih = H3(I)
+  expected = H3.([x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2,
+                  x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                  x^3*y^2+y^2+x*y*z^3+x*y]);
+  @test Ih == ideal(expected)
+  Ih = H4(I)
+  expected = H4.([x^3*y*w + x^3*w^2 + x*y*z^2*w + w^2,
+                  x^3*y^2 + x*y*z^3 + x*y + y^2,
+                  x^2*y^3*w + y^3*z^2*w - y*z^3*w^2 - y*w^2,
+                  x*y^3*z^2*w - x*y^2*z^3*w - x*y^2*w - x*y*z^3*w^2 - x*y*w^2 - y^3*w,
+                  x^5*y^2*w + x^3*y^2*z^2*w + x^3*y*w - x^3*z^3*w^2 + x^2*y^2*w + x*y*z^2*w + y^2*z^2*w - z^3*w^2,
+                  x^2*y^2*z^3*w + x^2*y^2*w + x^2*y*z^3*w^2 + x^2*y*w^2 + x*y^3*w + y^3*z^4*w - y*z^5*w^2 - y*z^2*w^2]);
+  @test Ih == ideal(expected)
+  Ih = H2a(I)
+  expected = H2a.([x*y*z^3+x^3*y^2+y^2+x*y,
+                   x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
+                   x^3*z*w^2+x^3*y*z*w-x^3*y^2*w+z*w^2-y^2*w-x*y*w,
+                   y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2,
+                   x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2]);
+  @test Ih == ideal(expected)
+  # Disabled because "expected" is quite large
+  # Ih = H2b(I)
+  # expected = H2b.([#=omitted=#]);
+  # @test Ih == ideal(expected)
 end
 
 
