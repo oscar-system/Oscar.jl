@@ -303,8 +303,8 @@ function forget_grading(F::FreeMod)
   @assert is_graded(F) "module must be graded"
   R = base_ring(F)
   result = FreeMod(R, ngens(F))
-  phi = hom(F, result, gens(result))
-  psi = hom(result, F, gens(F))
+  phi = hom(F, result, gens(result); check=false)
+  psi = hom(result, F, gens(F); check=false)
   set_attribute!(phi, :inverse=>psi)
   set_attribute!(psi, :inverse=>phi)
   return result, phi
@@ -339,16 +339,16 @@ function forget_grading(M::SubquoModule;
     new_sub = forget_grading(M.sub; ambient_forgetful_map)
     new_quo = forget_grading(M.quo; ambient_forgetful_map)
     result = SubquoModule(new_sub, new_quo)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
   elseif isdefined(M, :sub)
     new_sub = forget_grading(M.sub; ambient_forgetful_map)
     result = SubquoModule(new_sub)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
@@ -356,8 +356,8 @@ function forget_grading(M::SubquoModule;
     new_quo = forget_grading(M.quo; ambient_forgetful_map)
     pre_result = SubquoModule(new_quo)
     result, _ = quo(FF, pre_result)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
@@ -665,7 +665,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T 
       end
   end
   Fcdm = graded_free_module(R, source_degrees)
-  phi = hom(Fcdm, F, A)
+  phi = hom(Fcdm, F, A; check)
   return phi
 end
 
@@ -687,7 +687,7 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
   @assert length(source_degrees) == nrows
   Fcdm = graded_free_module(R, source_degrees)
   @assert ngens(Fcdm) == length(V) "number of generators must be equal to the number of images"
-  phi = hom(Fcdm, F, V)
+  phi = hom(Fcdm, F, V; check)
   return phi
 end
 
@@ -710,7 +710,7 @@ function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Boo
     end
   end
   Fcdm = graded_free_module(R, source_degrees)
-  phi = hom(Fcdm, F, V)
+  phi = hom(Fcdm, F, V; check)
   return phi
 end
 
@@ -1220,6 +1220,8 @@ function degree(
       return degree(repres(el))
   end
 end
+
+_degree_fast(el::SubquoModuleElem) = degree(el, check=false)
 
 function degree(::Type{Vector{Int}}, el::SubquoModuleElem; check::Bool=true)
   @assert is_zm_graded(parent(el))
@@ -2516,7 +2518,7 @@ end
 function forget_decoration(f::FreeModuleHom_dec)
   F = forget_decoration(domain(f))
   G = forget_decoration(codomain(f))
-  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))])
+  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))]; check=false)
 end
 
 function matrix(a::FreeModuleHom_dec)
@@ -3091,8 +3093,8 @@ function twist(M::SubquoModule{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDe
  FN = twist(F, g)
  GN = free_module(R, ngens(M))
  HN = free_module(R, length(relations(M)))
- a = hom(GN, F, ambient_representatives_generators(M))
- b = hom(HN, F, relations(M))
+ a = hom(GN, F, ambient_representatives_generators(M); check=false)
+ b = hom(HN, F, relations(M); check=false)
  A = matrix(a)
  B = matrix(b)
  N = subquotient(FN, A, B)
@@ -3129,7 +3131,7 @@ function change_base_ring(
   S = codomain(f)
   r = ngens(F)
   FS = grade(FreeMod(S, F.S), degree.(gens(F)))
-  map = hom(F, FS, gens(FS), f)
+  map = hom(F, FS, gens(FS), f; check=false)
   return FS, map
 end
 

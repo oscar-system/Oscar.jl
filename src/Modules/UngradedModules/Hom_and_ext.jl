@@ -94,7 +94,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   function im(x::SubquoModuleElem)
     #@assert parent(x) === H
     @assert parent(x) === H_simplified
-    return hom(M, N, elem_type(N)[g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)])
+    return hom(M, N, elem_type(N)[g0(mH_s0_t0(repres(s_inj(x)))(preimage(f0, g))) for g = gens(M)]; check=false)
   end
 
   function pre(f::ModuleFPHom)
@@ -102,7 +102,7 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
     @assert codomain(f) === N
     Rs0 = domain(f0)
     Rt0 = domain(g0)
-    g = hom(Rs0, Rt0, elem_type(Rt0)[preimage(g0, f(f0(g))) for g = gens(Rs0)])
+    g = hom(Rs0, Rt0, elem_type(Rt0)[preimage(g0, f(f0(g))) for g = gens(Rs0)]; check=false)
 
     return s_proj(SubquoModuleElem(repres(preimage(mH_s0_t0, g)), H))
   end
@@ -215,7 +215,7 @@ function hom(
     comp = compose(phi, psi)
     push!(img_gens, homomorphism_to_element(codomain, comp))
   end
-  return hom(domain, codomain, img_gens)
+  return hom(domain, codomain, img_gens; check=false)
 end
 
 @doc raw"""
@@ -298,7 +298,7 @@ function _hom_simple(F::FreeMod, G::FreeMod)
 
   function _elem_to_hom3(v::FreeModElem)
     img_gens = [sum(c*G[j] for (j, c) in coordinates(v)[(i-1)*n+1:i*n]; init=zero(G)) for i in 1:m]
-    return hom(F, G, img_gens)
+    return hom(F, G, img_gens; check=false)
   end
 
   function _hom_to_elem3(phi::FreeModuleHom)
@@ -324,9 +324,9 @@ function _hom_graded(F::FreeMod, G::FreeMod)
   n = ngens(G)
 
   mn = m*n
-  H = graded_free_module(R, [degree(G[j]) - degree(F[i]) for i in 1:m for j in 1:n])
+  H = graded_free_module(R, [_degree_fast(G[j]) - _degree_fast(F[i]) for i in 1:m for j in 1:n])
   # Custom printing of hom-module generators
-  if rank(G) == 1 && iszero(degree(G[1]))
+  if rank(G) == 1 && iszero(_degree_fast(G[1]))
     H.S = [Symbol("($i)*") for i = F.S]
   else
     H.S = [Symbol("($i "*(is_unicode_allowed() ? "→" : "->")*" $j)") for i = F.S for j = G.S]
@@ -338,7 +338,7 @@ function _hom_graded(F::FreeMod, G::FreeMod)
 
   function _elem_to_hom4(v::FreeModElem)
     img_gens = [sum(c*G[j] for (j, c) in coordinates(v)[(i-1)*n+1:i*n]; init=zero(G)) for i in 1:m]
-    return hom(F, G, img_gens)
+    return hom(F, G, img_gens; check=false)
   end
 
   function _hom_to_elem4(phi::FreeModuleHom)
@@ -487,7 +487,7 @@ Return the multiplication by `a` as an endomorphism on `M`.
 """
 function multiplication_morphism(a::RingElem, M::ModuleFP)
   @assert base_ring(M) === parent(a)
-  return hom(M, M, [a*v for v in gens(M)])
+  return hom(M, M, [a*v for v in gens(M)]; check=false)
 end
 
 @doc raw"""
@@ -515,7 +515,7 @@ function multiplication_induced_morphism(F::FreeMod, H::ModuleFP)
   M_N === nothing && error("module must be a hom module")
   M,N = M_N
   @assert M === N
-  return hom(F, H, [homomorphism_to_element(H, multiplication_morphism(F[1], M))])
+  return hom(F, H, [homomorphism_to_element(H, multiplication_morphism(F[1], M))]; check=false)
 end
 
 
