@@ -1843,9 +1843,9 @@ function _homogenization(I::MPolyIdeal{T}, H::Homogenizer; extra_gens_flag::Bool
   end
   # The fast method below is valid only for positive gradings;
   # so if not positive graded, delegate to _homogenization_via_saturation (general but slower)
-##  if !is_positively_graded(H.P_homog)
+  if !is_positively_graded(H.P_homog)
     return _homogenization_via_saturation(I, H; extra_gens_flag=extra_gens_flag)
-##  end
+  end
   # >>> POSITIVELY GRADED <<<  case henceforth
   if is_z_graded(H.P_homog)
     # Case: grading is over ZZ^1, so delegate to faster special-case function.
