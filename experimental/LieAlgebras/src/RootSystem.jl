@@ -55,11 +55,15 @@ function root_system(fam::Symbol, rk::Int)
   return R
 end
 
-function root_system(types::Tuple{Symbol,Int}...)
-  cartan = cartan_matrix(types...)
+function root_system(type::Vector{Tuple{Symbol,Int}})
+  cartan = cartan_matrix(type)
   R = root_system(cartan; check=false)
-  R.type = collect(types)
+  R.type = type
   return R
+end
+
+function root_system(type::Tuple{Symbol,Int}...)
+  return root_system(collect(type))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)

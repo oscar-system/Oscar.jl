@@ -80,6 +80,28 @@ function cartan_matrix(fam::Symbol, rk::Int)
 end
 
 @doc raw"""
+    cartan_matrix(type::Vector{Tuple{Symbol,Int}}) -> ZZMatrix
+
+Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
+For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
+
+# Example
+```jldoctest
+julia> cartan_matrix([(:A, 2), (:B, 2)])
+[ 2   -1    0    0]
+[-1    2    0    0]
+[ 0    0    2   -1]
+[ 0    0   -2    2]
+```
+"""
+function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
+  @req length(type) > 0 "At least one type is required"
+
+  blocks = [cartan_matrix(t...) for t in type]
+  return block_diagonal_matrix(blocks)
+end
+
+@doc raw"""
     cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
 Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
@@ -95,10 +117,7 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 ```
 """
 function cartan_matrix(type::Tuple{Symbol,Int}...)
-  @req length(type) > 0 "At least one type is required"
-
-  blocks = [cartan_matrix(t...) for t in type]
-  return block_diagonal_matrix(blocks)
+  return cartan_matrix(collect(type))
 end
 
 @doc raw"""

@@ -54,19 +54,28 @@ end
 @doc raw"""
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
-Returns the Weyl group defined by .
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 """
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
 end
 
 @doc raw"""
-    weyl_group(type::Tuple{Symbol, Int}...) -> WeylGroup
+    weyl_group(type::Vector{Tuple{Symbol,Int}}) -> WeylGroup
 
-Returns the Weyl group defined by .
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+"""
+function weyl_group(type::Vector{Tuple{Symbol,Int}})
+  return weyl_group(root_system(type))
+end
+
+@doc raw"""
+    weyl_group(type::Tuple{Symbol,Int}...) -> WeylGroup
+
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 """
 function weyl_group(type::Tuple{Symbol,Int}...)
-  return weyl_group(root_system(type...))
+  return weyl_group(root_system(collect(type)))
 end
 
 @doc raw"""
