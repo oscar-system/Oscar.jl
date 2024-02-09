@@ -55,9 +55,9 @@ function _regularity_bound(c::AbsHyperComplex{T}, r::UnitRange) where {T<:Module
   isone(dim(c)) || error("complex must be one-dimensional")
   isempty(r) && error("range must not be empty")
   i0 = first(r)
-  result = maximum((x->degree(x)[1]).(gens(c[i0])))
+  result = maximum((x->degree(x; check=false)[1]).(gens(c[i0])))
   for i in r
-    result = maximum(push!((x->degree(x)[1]).(gens(c[i])), result))
+    result = maximum(push!((x->degree(x; check=false)[1]).(gens(c[i])), result))
   end
   return result
 end
@@ -95,7 +95,7 @@ function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:Fie
 end
 
 
-_regularity_bound(F::FreeMod) = maximum(Int(degree(a)[1]) for a in gens(F))
+_regularity_bound(F::FreeMod) = maximum(Int(degree(a; check=false)[1]) for a in gens(F))
 
 @doc raw"""
     simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}

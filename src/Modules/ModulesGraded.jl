@@ -674,12 +674,13 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
   G = grading_group(R)
   nrows = length(V)
   ncols = rank(F)
+  @check true # Trigger an error if checks are supposed to be disabled.
   
   source_degrees = Vector{eltype(G)}()
   for i in 1:nrows
     for j in 1:ncols
-      if coordinates(V[i])[j] != R[0]
-        push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]))
+      if coordinates(V[i])[j] != zero(R)
+        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
@@ -1913,7 +1914,7 @@ function _sheaf_cohomology_bgg(M::ModuleFP{T},
                                h::Int) where {T <: MPolyDecRingElem}
 
   sing_mod, weights = _weights_and_sing_mod(M)
-  reg = Int(cm_regularity(M))
+  reg = Int(cm_regularity(M; check=false))
 
   values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
                                                    l, h, reg,
