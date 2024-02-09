@@ -1106,6 +1106,7 @@ end
 @doc raw"""
     graph_from_edges(edges::Vector{Vector{Int}})
     graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
+
 Creates a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
 ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
 
