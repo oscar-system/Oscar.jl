@@ -185,9 +185,9 @@
     is_dual(V)[1],
     is_direct_sum(V)[1],
     is_tensor_product(V)[1],
-    is_exterior_power(V)[1],
-    is_symmetric_power(V)[1],
-    is_tensor_power(V)[1],
+    is_exterior_power_with_data(V)[1],
+    is_symmetric_power_with_data(V)[1],
+    is_tensor_power_with_data(V)[1],
   )
 
   @testset "module constructions" begin
@@ -328,7 +328,7 @@
               @test E === exterior_power(V, k)[1]
               @test E !== exterior_power(V, k; cached=false)[1]
               @test type_V == module_type_bools(V) # construction of E should not change type of V
-              @test is_exterior_power(E) === (true, V, k)
+              @test is_exterior_power_with_data(E) === (true, V, k)
               @test dim(E) == binomial(dim(V), k)
               @test length(repr(E)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -386,7 +386,7 @@
               @test S === symmetric_power(V, k)[1]
               @test S !== symmetric_power(V, k; cached=false)[1]
               @test type_V == module_type_bools(V) # construction of S should not change type of V
-              @test is_symmetric_power(S) === (true, V, k)
+              @test is_symmetric_power_with_data(S) === (true, V, k)
               @test dim(S) == binomial(dim(V) + k - 1, k)
               @test length(repr(S)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -441,7 +441,7 @@
             @test T === tensor_power(V, k)[1]
             @test T !== tensor_power(V, k; cached=false)[1]
             @test type_V == module_type_bools(V) # construction of T should not change type of V
-            @test is_tensor_power(T) === (true, V, k)
+            @test is_tensor_power_with_data(T) === (true, V, k)
             @test dim(T) == dim(V)^k
             @test length(repr(T)) < 10^4 # outputs tend to be excessively long due to recursion
 

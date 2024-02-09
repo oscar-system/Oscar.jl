@@ -481,14 +481,14 @@ function hom_tensor(
 ) where {C<:FieldElem} # TODO: cleanup after refactoring tensor_product
   if ((fl, Vs) = is_tensor_product(V); fl)
     # nothing to do
-  elseif ((fl, Vb, k) = is_tensor_power(V); fl)
+  elseif ((fl, Vb, k) = is_tensor_power_with_data(V); fl)
     Vs = [Vb for _ in 1:k]
   else
     throw(ArgumentError("First module must be a tensor product or power"))
   end
   if ((fl, Ws) = is_tensor_product(W); fl)
     # nothing to do
-  elseif ((fl, Wb, k) = is_tensor_power(W); fl)
+  elseif ((fl, Wb, k) = is_tensor_power_with_data(W); fl)
     Ws = [Wb for _ in 1:k]
   else
     throw(ArgumentError("Second module must be a tensor product or power"))
@@ -515,11 +515,11 @@ $S^k h: V \to W$ (analogous for other types of powers).
 function hom(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if is_exterior_power(V)[1]
+  if is_exterior_power_with_data(V)[1]
     return induced_map_on_exterior_power(h; domain=V, codomain=W)
-  elseif is_symmetric_power(V)[1]
+  elseif is_symmetric_power_with_data(V)[1]
     return induced_map_on_symmetric_power(h; domain=V, codomain=W)
-  elseif is_tensor_power(V)[1]
+  elseif is_tensor_power_with_data(V)[1]
     return induced_map_on_tensor_power(h; domain=V, codomain=W)
   else
     throw(ArgumentError("First module must be a power module"))
@@ -553,8 +553,8 @@ function induced_map_on_exterior_power(
   domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(phi), p)[1],
   codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(phi), p)[1],
 ) where {C<:FieldElem}
-  (domain_fl, domain_base, domain_k) = is_exterior_power(domain)
-  (codomain_fl, codomain_base, codomain_k) = is_exterior_power(codomain)
+  (domain_fl, domain_base, domain_k) = is_exterior_power_with_data(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_exterior_power_with_data(codomain)
   @req domain_fl "Domain must be an exterior power"
   @req codomain_fl "Codomain must be an exterior power"
   @req domain_k == codomain_k "Exponent mismatch"
@@ -569,8 +569,8 @@ function induced_map_on_symmetric_power(
   domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(phi), p)[1],
   codomain::LieAlgebraModule{C}=symmetric_power(Oscar.codomain(phi), p)[1],
 ) where {C<:FieldElem}
-  (domain_fl, domain_base, domain_k) = is_symmetric_power(domain)
-  (codomain_fl, codomain_base, codomain_k) = is_symmetric_power(codomain)
+  (domain_fl, domain_base, domain_k) = is_symmetric_power_with_data(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_symmetric_power_with_data(codomain)
   @req domain_fl "Domain must be an symmetric power"
   @req codomain_fl "Codomain must be an symmetric power"
   @req domain_k == codomain_k "Exponent mismatch"
@@ -585,8 +585,8 @@ function induced_map_on_tensor_power(
   domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(phi), p)[1],
   codomain::LieAlgebraModule{C}=tensor_power(Oscar.codomain(phi), p)[1],
 ) where {C<:FieldElem}
-  (domain_fl, domain_base, domain_k) = is_tensor_power(domain)
-  (codomain_fl, codomain_base, codomain_k) = is_tensor_power(codomain)
+  (domain_fl, domain_base, domain_k) = is_tensor_power_with_data(domain)
+  (codomain_fl, codomain_base, codomain_k) = is_tensor_power_with_data(codomain)
   @req domain_fl "Domain must be an tensor power"
   @req codomain_fl "Codomain must be an tensor power"
   @req domain_k == codomain_k "Exponent mismatch"

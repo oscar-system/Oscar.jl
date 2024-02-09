@@ -50,7 +50,7 @@ import ..Oscar:
   induced_map_on_exterior_power,
   inv,
   is_abelian,
-  is_exterior_power,
+  is_exterior_power_with_data,
   is_finite,
   is_isomorphism,
   is_nilpotent,
@@ -143,8 +143,8 @@ export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
-export is_symmetric_power
-export is_tensor_power
+export is_symmetric_power_with_data
+export is_tensor_power_with_data
 export is_tensor_product
 export lie_algebra
 export lmul, lmul!
@@ -268,8 +268,8 @@ export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
 export is_standard_module
-export is_symmetric_power
-export is_tensor_power
+export is_symmetric_power_with_data
+export is_tensor_power_with_data
 export is_tensor_product
 export lie_algebra
 export lmul, lmul!
