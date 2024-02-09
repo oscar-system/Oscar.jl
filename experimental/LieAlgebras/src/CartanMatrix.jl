@@ -312,7 +312,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
 
   # used for traversal
   undone = trues(rk)
-  plan = zeros(Int, 3) # a root is connected to up to 3 others
+  plan = zeros(Int, 4) # a root is connected to up to 3 others
   head = 0 # index up to which we planned (cyclic)
   tail = 0 # index of plan which will be done next
 
@@ -328,7 +328,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
 
       if tail != head
         tail += 1
-        if tail == 4
+        if tail == 5
           tail = 1
         end
         i = plan[tail]
@@ -361,7 +361,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
           for i in roots
             j = adj[i][1]
             if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
-              if length(adj[j]) == 1 || (length(adj[j]) == 2 && gcm[j, adj[j][2]] == -1)
+              if length(adj[j]) == 2 && all(k -> gcm[j, k] == -1, adj[j])
                 v = i
                 break
               elseif v == 0
@@ -425,7 +425,7 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
     # plan to visit j if undone
     if undone[j]
       head += 1
-      if head == 4
+      if head == 5
         head = 1
       end
       plan[head] = j
