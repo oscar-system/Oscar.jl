@@ -112,7 +112,6 @@ function save_data_basic(s::SerializerState, x::Any,
   !isnothing(key) && set_key(s, key)
   begin_node(s)
   str = string(x)
-  #write(s.io, "\"$str\"")
   JSON.print(s.io, str)
 end
 
