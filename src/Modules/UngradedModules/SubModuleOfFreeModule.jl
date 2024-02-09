@@ -165,10 +165,19 @@ The return type is `ModuleGens`.
 """
 function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
-  gb = get!(submod.groebner_basis, ordering) do
-    return compute_standard_basis(submod, ordering)
-  end::ModuleGens
+  # The following is a hotfix given issue #3347
+  if !isempty(submod.groebner_basis)
+    return first(values(submod.groebner_basis))
+  end
+  gb = compute_standard_basis(submod, ordering)
+  submod.groebner_basis[ordering] = gb
   return gb
+
+  # Old code which is correct, but does not run at the moment
+  # due to broken comparison for module orderings:
+  return get!(submod.groebner_basis, ordering) do
+    compute_standard_basis(submod, ordering)
+  end::ModuleGens
 end
 
 @doc raw"""
