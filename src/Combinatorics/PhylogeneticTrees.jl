@@ -156,10 +156,7 @@ function cophenetic_matrix(ptree::PhylogeneticTree{Float64})
 end
 
 function cophenetic_matrix(ptree::PhylogeneticTree{QQFieldElem})
-  return matrix(
-    QQ,
-    convert(Matrix{QQFieldElem}, pm_object(ptree).COPHENETIC_MATRIX)
-  )::QQMatrix
+  return matrix(QQ, pm_object(ptree).COPHENETIC_MATRIX)::QQMatrix
 end
 
 @doc raw"""
