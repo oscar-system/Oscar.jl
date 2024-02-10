@@ -13,6 +13,19 @@ function show_dynkin_diagram(cartan_matrix::ZZMatrix)
 end
 
 @doc raw"""
+    show_dynkin_diagram(rs::RootSystem) -> Nothing
+
+Prints a string representation of the Dynkin diagram of the given root system.
+The labels of the nodes are the indices of the simple roots.
+
+Currently, only root systems of finite type are supported.
+"""
+function show_dynkin_diagram(rs::RootSystem)
+  type, label = root_system_type_with_ordering(rs)
+  return show_dynkin_diagram(type, label)
+end
+
+@doc raw"""
     show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}}) -> Nothing
 
 Prints a string representation of the Dynkin diagram of the root system of

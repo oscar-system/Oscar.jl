@@ -85,19 +85,6 @@ function root_system(L::LieAlgebra)
   return L.root_system
 end
 
-has_root_system_type(L::AbstractLieAlgebra) =
-  has_root_system(L) && has_root_system_type(L.root_system)
-
-function root_system_type(L::AbstractLieAlgebra)
-  @req has_root_system_type(L) "No root system type known."
-  return root_system_type(root_system(L))
-end
-
-function root_system_type_string(L::AbstractLieAlgebra)
-  @req has_root_system_type(L) "No root system type known."
-  return root_system_type_string(root_system(L))
-end
-
 @doc raw"""
     chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
 
@@ -128,8 +115,6 @@ function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  has_root_system_type(L) &&
-    println(io, Indent(), "of type $(root_system_type_string(L))", Dedent())
   print(io, "over ")
   print(io, Lowercase(), coefficient_ring(L))
 end

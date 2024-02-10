@@ -298,7 +298,7 @@ julia> show_dynkin_diagram([(:A, 2), (:B, 3), (:C, 4), (:D, 5), (:E, 6), (:F, 4)
 
 Dynkin diagram from cartan matrix
 
-```jldoctest show_ns_dynkin_diagram_cartan_matrix.test
+```jldoctest show_dynkin_diagram_cartan_matrix.test
 julia> using Oscar
 
 julia> show_dynkin_diagram(cartan_matrix(:A, 3))
@@ -337,6 +337,47 @@ julia> show_dynkin_diagram(transpose(cartan_matrix(:F, 4)))
 4 - 3 >=> 2 - 1
 
 julia> show_dynkin_diagram(transpose(cartan_matrix(:G, 2)))
+2 <<< 1
+```
+
+Dynkin diagram from root system
+
+```jldoctest show_dynkin_diagram_cartan_matrix.test
+julia> using Oscar
+
+julia> show_dynkin_diagram(root_system(:A, 3))
+1 - 2 - 3
+
+julia> show_dynkin_diagram(root_system([(:B, 4)]))
+1 - 2 - 3 >=> 4
+
+julia> show_dynkin_diagram(root_system(cartan_matrix(:C, 5)))
+1 - 2 - 3 - 4 <=< 5
+
+julia> show_dynkin_diagram(root_system([(:D, 8), (:E, 6), (:F, 4), (:G, 2)]))
+.                     7
+                     /
+1 - 2 - 3 - 4 - 5 - 6
+                     \
+                      8
+
+9 - 11 - 12 - 13 - 14
+         |
+         10
+
+15 - 16 >=> 17 - 18
+
+19 <<< 20
+
+julia> show_dynkin_diagram(root_system(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]))
+1 >=> 3
+
+2 <=< 4
+
+julia> show_dynkin_diagram(root_system(transpose(cartan_matrix(:F, 4))))
+4 - 3 >=> 2 - 1
+
+julia> show_dynkin_diagram(root_system(transpose(cartan_matrix(:G, 2))))
 2 <<< 1
 ```
 """

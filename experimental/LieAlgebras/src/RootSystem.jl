@@ -13,6 +13,7 @@ mutable struct RootSystem
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
+  type_ordering::Vector{Int}
 
   function RootSystem(mat::ZZMatrix)
     pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
@@ -28,19 +29,22 @@ mutable struct RootSystem
 end
 
 @doc raw"""
-    root_system(cartan_matrix::ZZMatrix; check::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{Int}; check::Bool=true) -> RootSystem
+    root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{Int}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
 Constructs the root system defined by the Cartan matrix.
 If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
+Passing `detect_type=false` will skip the detection of the root system type.
 """
-function root_system(cartan_matrix::ZZMatrix; check::Bool=true)
+function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
-  return RootSystem(cartan_matrix)
+  R = RootSystem(cartan_matrix)
+  detect_type && set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+  return R
 end
 
-function root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true)
-  return root_system(matrix(ZZ, cartan_matrix); check)
+function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
+  return root_system(matrix(ZZ, cartan_matrix); kwargs...)
 end
 
 @doc raw"""
@@ -50,15 +54,15 @@ Constructs the root system of the given type. See `cartan_matrix(fam::Symbol, rk
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
-  R = root_system(cartan; check=false)
-  R.type = [(fam, rk)]
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, [(fam, rk)])
   return R
 end
 
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
-  R = root_system(cartan; check=false)
-  R.type = type
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, type)
   return R
 end
 
@@ -137,12 +141,8 @@ function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
-function has_root_system_type(R::RootSystem)
-  return isdefined(R, :type)
-end
-
 function is_simple(R::RootSystem)
-  if has_root_system_type(R)
+  if is_finite(weyl_group(R))
     return length(root_system_type(R)) == 1
   end
   error("Not implemented") # TODO: implement is_simple
@@ -284,8 +284,27 @@ function rank(R::RootSystem)
 end
 
 function root_system_type(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
   return R.type
+end
+
+function root_system_type_with_ordering(R::RootSystem)
+  return R.type, R.type_ordering
+end
+
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+end
+
+function set_root_system_type(
+  R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
+)
+  R.type = type
+  R.type_ordering = collect(ordering)
+  return nothing
 end
 
 function root_system_type_string(R::RootSystem)
