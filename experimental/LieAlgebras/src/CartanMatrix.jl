@@ -117,6 +117,8 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 ```
 """
 function cartan_matrix(type::Tuple{Symbol,Int}...)
+  @req length(type) > 0 "At least one type is required"
+
   return cartan_matrix(collect(type))
 end
 

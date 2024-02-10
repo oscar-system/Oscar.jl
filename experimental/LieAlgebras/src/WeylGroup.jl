@@ -184,7 +184,7 @@ function order(::Type{T}, W::WeylGroup) where {T}
   end
 
   ord = T(1)
-  for (fam, rk) in type(root_system(W))
+  for (fam, rk) in root_system_type(root_system(W))
     if fam == :A
       ord *= T(factorial(rk + 1))
     elseif fam == :B || fam == :C
