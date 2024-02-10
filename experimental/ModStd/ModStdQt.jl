@@ -3,6 +3,7 @@ module ModStdQt
 using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
+import Oscar.Solve
 
 function __init__()
   Hecke.add_verbose_scope(:ModStdQt)
@@ -892,7 +893,7 @@ function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::AbsSimpleNumFieldElem, 
   for i=1:n
     mm[i, 1] = coeff(d*b, i-1)
   end
-  s = solve(m, mm)
+  s = Solve.solve(m, mm; side = :right)
   B = q(parent(f)(vec(collect(s))))
   @assert all(x->iszero(evaluate(numerator(x), V)), coefficients(lift(gg(B))))
   o = lift(inv(derivative(gg)(B)))

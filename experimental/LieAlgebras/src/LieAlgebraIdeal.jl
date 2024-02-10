@@ -23,7 +23,7 @@
       left = copy(gens)
       while !isempty(left)
         g = pop!(left)
-        can_solve(basis_matrix, _matrix(g); side=:left) && continue
+        Solve.can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for b in basis(L)
           push!(left, b * g)
         end

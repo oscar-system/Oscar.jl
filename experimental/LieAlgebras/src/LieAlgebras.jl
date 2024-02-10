@@ -13,8 +13,10 @@ using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_numb
 
 using AbstractAlgebra.PrettyPrinting
 
+
 # functions with new methods
 import ..Oscar:
+  AbstractAlgebra.Solve,
   _iso_oscar_gap,
   action,
   basis_matrix,

@@ -38,6 +38,8 @@ import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, ge
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
+import ..Oscar: Solve
+
 using Hecke
 import Hecke: conductor, data
 
@@ -923,7 +925,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      fl, sol = Solve.can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if fl
         b = transpose(sol)
         b = [b[i] for i in 1:length(b)]

@@ -1280,12 +1280,12 @@ function complement_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: M
         B2j = B2[j]
         B2jM = (B2j*M)[1:1,:]
         B1u = reduce(vcat, [BB[1:1,:] for BB in B1])
-        _Kj = solve_left(B1u, B2jM)
+        _Kj = Solve.solve(B1u, B2jM; side = :left)
         for i in 1:d, k in 1:length(B1)
           _K[(k-1)*d + i, i + (j-1)*d] = _Kj[1, k]
         end
       end
-      a, K2 = left_kernel(_K)
+      K2 = Solve.kernel(_K; side = :left)
       Borth = K2*reduce(vcat, B1)
       @assert is_submodule(rep, Borth)
       bas = vcat(bas, Borth)

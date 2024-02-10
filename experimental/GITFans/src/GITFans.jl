@@ -7,6 +7,8 @@ module GITFans
 # the necessary Julia packages
 using Oscar
 
+import Oscar: AbstractAlgebra.Solve
+
 export git_fan
 
 #############################################################################
@@ -207,7 +209,7 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     matgens = typeof(mat)[]
     for ppi in permgens
       matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
-      push!(matgens, solve(mat, matimg))
+      push!(matgens, Solve.solve(mat, matimg; side = :right))
     end
 
     # Create the matrix group.

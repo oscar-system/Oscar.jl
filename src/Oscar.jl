@@ -207,6 +207,27 @@ function build()
   system("Build.jl")
 end
 
+# temporarily
+
+import AbstractAlgebra: Solve
+
+const solve = AbstractAlgebra.Solve.solve
+const can_solve = AbstractAlgebra.Solve.can_solve
+const can_solve_with_solution = AbstractAlgebra.Solve.can_solve_with_solution
+
+kernel(args...; kw...) = Hecke.kernel(args...; kw...)
+
+export solve, can_solve, can_solve_with_solution, kernel
+
+function kernel(M::MatElem; side::Symbol = :right)
+  return AbstractAlgebra.Solve.kernel(M, side = side)
+end
+
+function kernel(R::Ring, M::MatElem; side::Symbol = :right)
+  return AbstractAlgebra.Solve.kernel(R, M, side = side)
+end
+
+
 include("assertions.jl")
 
 include("exports.jl")
