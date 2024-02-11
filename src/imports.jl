@@ -175,10 +175,6 @@ let exclude_hecke = [
     :tail,
     :terms,
     :YoungTableau,
-    :kernel,
-    :solve,
-    :can_solve,
-    :can_solve_with_solution,
   ]
   for i in names(Hecke)
     (i in exclude_hecke || !isdefined(Hecke, i)) && continue
