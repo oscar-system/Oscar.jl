@@ -2372,6 +2372,10 @@ julia> degree(I)
 ```
 """
 @attr Int function degree(I::MPolyIdeal)
-  is_standard_graded(base_ring(I)) || (I = homogenization(I, "_h"))
+  P = base_ring(I)
+  if !is_standard_graded(P)
+    H = homogenizer(P, "_h")
+    I = H(I)
+  end
   return Int(degree(HilbertData(I)))
 end
