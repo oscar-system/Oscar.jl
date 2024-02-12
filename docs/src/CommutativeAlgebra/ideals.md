@@ -267,13 +267,21 @@ homogenizer(P::MPolyRing{T}, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarN
 dehomogenizer(H::Homogenizer)
 ```
 
-```@docs
-(H::Homogenizer)(I::MPolyIdeal; extra_gens_flag::Bool = false)
+```jldoctest
+julia> P, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal([x^2+y, x*y+y^2]);
+
+julia> H = homogenizer(P, "h");
+
+julia> Ih = H(I);    # homogenization of ideal I
+
+julia> DH = dehomogenizer(H);
+
+julia> DH(Ih) == I   # dehomogenization of Ih
+true
 ```
 
-```@docs
-(DH::Dehomogenizer)(I::MPolyIdeal{MPolyDecRingElem{T1,T2}})  where T1  where T2
-```
 
 ## Ideals as Modules
 
