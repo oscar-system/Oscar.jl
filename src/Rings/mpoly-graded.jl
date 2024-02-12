@@ -1618,7 +1618,7 @@ end # struct
 
 # Duplicate constructor but with lower-case initial letter: standard graded case
 @doc raw"""
-    homogenizer(P::MPolyRing, h::VarName; pos::Int)
+    homogenizer(P::MPolyRing, h::VarName;  pos::Int=1+ngens(P))
 
 Create a "homogenizing operator" assuming a standard grading; `h` is the name of the homogenizing variable; `pos` indicates where to put the homogenizing variable in the list of generators of the graded polynomial ring (default is after all the other variables).
 
@@ -1647,7 +1647,7 @@ end
 
 # Duplicate constructor but with lower-case initial letter: W-graded case
 @doc raw"""
-    homogenizer(P::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName; pos::Int)
+    homogenizer(P::MPolyRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, h::VarName;  pos::Int=1+ngens(P))
 
 Create a "homogenizing operator" using the grading specified by the columns of `W`; `h` is the prefix for the homogenizing variables; `pos` indicates where to put the homogenizing variables in the list of generators of the graded polynomial ring (default is after all the other variables).
 
