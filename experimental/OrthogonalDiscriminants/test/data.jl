@@ -50,6 +50,13 @@ end
   end
 end
 
+@testset "orthogonal_discriminants for central extensions" begin
+  name = "2.L3(4)"
+  t = character_table(name)
+  @test orthogonal_discriminants(t) ==
+  ["","21","","","","","","","","105","","","1","1","1","1","-1","-1"]
+end
+
 using Documenter
 
 #

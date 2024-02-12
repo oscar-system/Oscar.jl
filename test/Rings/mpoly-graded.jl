@@ -61,7 +61,7 @@ end
     k2 = Nemo.GF(23)
     GFx = polynomial_ring(k2, ["x", "y", "z"])[1]
     # TODO explain why test fails if Nemo.residue_ring(ZZ,17) => Nemo.GF(17)
-    RNmodx=polynomial_ring(Nemo.residue_ring(ZZ,17), :x => 1:2)[1]
+    RNmodx=polynomial_ring(Nemo.residue_ring(ZZ,17)[1], :x => 1:2)[1]
     Rings= [Qx, NFx, GFx, RNmodx]
 
     A = abelian_group([4 3 0 1;

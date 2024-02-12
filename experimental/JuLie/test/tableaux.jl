@@ -128,7 +128,7 @@
 	end
 	@test check==true
 
-	# num_standard_tableaux
+	# number_of_standard_tableaux
 	# standard_tableaux(s::Partition)
 	check = true
 	for i = 1:10
@@ -147,7 +147,7 @@
 				end
 			end
 			#check that all tableaux where found
-			if length(ST)!=num_standard_tableaux(s)
+			if length(ST)!=number_of_standard_tableaux(s)
 				check = false
 				break
 			end

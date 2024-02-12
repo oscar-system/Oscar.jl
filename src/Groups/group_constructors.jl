@@ -20,7 +20,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> order(G)
 120
@@ -56,7 +56,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Permutation group of degree 5 and order 60
+Alt(5)
 
 julia> order(G)
 60
@@ -169,7 +169,7 @@ Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
 
 !!! warning
     The type need to be specified in the input of the function `abelian_group`,
-    otherwise a group of type `GrpAbFinGen` is returned,
+    otherwise a group of type `FinGenAbGroup` is returned,
     which is not a GAP group type.
     In future versions of Oscar, this may change.
 """

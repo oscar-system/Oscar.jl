@@ -214,7 +214,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -260,7 +260,7 @@ by Submodule with 3 generators
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL = free_module(RQL, 1)
-Free module of rank 1 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
+Free module of rank 1 over Localization of RQ at complement of prime ideal
 
 julia> ARQL = RQL[x; y]
 [x]
@@ -612,7 +612,7 @@ julia> ambient_free_module(M) === F
 true
 
 julia> degrees_of_generators(M)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  [8]
  [8]
 ```
@@ -694,7 +694,7 @@ julia> ambient_free_module(M) === F
 true
 
 julia> degrees_of_generators(M)
-2-element Vector{GrpAbFinGenElem}:
+2-element Vector{FinGenAbGroupElem}:
  [9]
  [10]
 ```
@@ -755,6 +755,7 @@ function set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
 end
 
 function standard_basis(M::SubquoModule; ordering::ModuleOrdering = default_ordering(M))
+  @req is_exact_type(elem_type(base_ring(M))) "This functionality is only supported over exact fields."
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)
       quo_gb = standard_basis(M.quo, ordering=ordering)

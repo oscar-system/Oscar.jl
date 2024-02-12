@@ -66,7 +66,7 @@ julia> rayIndices = [2,3,4];
 julia> Sigma = polyhedral_complex(incidenceMatrix, verticesAndRays, rayIndices)
 Polyhedral complex in ambient dimension 2
 
-julia> multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+julia> multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
 3-element Vector{ZZRingElem}:
  1
  1
@@ -81,7 +81,7 @@ function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingE
     return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
@@ -95,7 +95,7 @@ Return the abstract tropical curve consisting of the graph `Sigma` and multiplic
 ```jldoctest; filter = r"Edge\(.*\)"
 julia> Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
 
-julia> multiplicities = ones(ZZRingElem, ne(Sigma))
+julia> multiplicities = ones(ZZRingElem, number_of_edges(Sigma))
 3-element Vector{ZZRingElem}:
  1
  1
@@ -110,7 +110,7 @@ function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrM
    return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, ne(Sigma))
+    multiplicities = ones(ZZRingElem, number_of_edges(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
@@ -146,13 +146,13 @@ end
 ################################################################################
 
 # @doc raw"""
-#     nv(tc::TropicalCurve)
+#     number_of_vertices(tc::TropicalCurve)
 
 # Return the number of vertices of an abstract tropical curve `tc`.
 # """
-# function nv(tc::TropicalCurve)
+# function number_of_vertices(tc::TropicalCurve)
 #     G = graph(tc)
-#     return nv(G)
+#     return number_of_vertices(G)
 # end
 
 
@@ -181,7 +181,7 @@ end
 # ```
 # """
 # function divisor_on_tropical_curve(tc::TropicalCurve{minOrMax, false}, coeffs::Vector{Int}) where minOrMax
-#     @req nv(tc)==length(coeffs) "Wrong number coefficients"
+#     @req nvertices(tc)==length(coeffs) "Wrong number coefficients"
 #     return DivisorOnTropicalCurve{minOrMax, false}(tc, coeffs)
 # end
 
@@ -248,7 +248,7 @@ end
 # function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 #     G = graph(base_curve(dtc))
 #     newcoeffs = Vector{Int}(coefficients(dtc))
-#     for i in 1:ne(G)
+#     for i in 1:nedges(G)
 #         row = Polymake.row(incidence_matrix(G), i-1)
 #         if position in row
 #             newcoeffs[position] -= 1
@@ -266,7 +266,7 @@ end
 # ### This is the number of vertices not in W adjacent to v. 1,
 # function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
 #     G = graph(tc)
-#     m = ne(G) #number of edges of tc
+#     m = nedges(G) #number of edges of tc
 #     @req v in W "Vertex number $v not in $W"
 #     deg = 0 #outdeg
 #     for i in 1:m
@@ -317,7 +317,7 @@ end
 # function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 #     tc = base_curve(dtc)
 #     G = graph(base_curve(dtc))
-#     n = nv(G)
+#     n = nvertices(G)
 #     newcoeff = Vector{Int}(coefficients(dtc))
 #     S = Set{Int}(1:n)
 #     W = setdiff(S,vertex)
@@ -478,9 +478,9 @@ end
 # ```
 # """
 # function structure_tropical_jacobian(TropC::TropicalCurve)
-#     gg=Graph{Undirected}(nv(TropC))
+#     gg=Graph{Undirected}(nvertices(TropC))
 #     IM = graph(TropC)
-#     for i in 1:ne(IM)
+#     for i in 1:nedges(IM)
 #         row = Vector{Int}(Polymake.row(incidence_matrix(IM),i))
 #         add_edge!(gg, row[1],row[2])
 #     end

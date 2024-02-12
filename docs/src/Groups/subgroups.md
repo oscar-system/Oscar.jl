@@ -14,7 +14,7 @@ sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
 is_subset(H::T, G::T) where T <: GAPGroup
 is_subgroup(H::T, G::T) where T <: GAPGroup
 embedding(H::T, G::T) where T <: GAPGroup
-index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen}
+index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup}
 is_maximal_subgroup(H::T, G::T) where T <: GAPGroup
 is_normalized_by(H::T, G::T) where T <: GAPGroup
 is_normal_subgroup(H::T, G::T) where T <: GAPGroup
@@ -90,7 +90,7 @@ normal_closure(G::T, H::T) where T<:GAPGroup
 GroupConjClass{T<:GAPGroup, S<:Union{GAPGroupElem,GAPGroup}}
 representative(G::GroupConjClass)
 acting_group(G::GroupConjClass)
-number_conjugacy_classes(G::GAPGroup)
+number_of_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)

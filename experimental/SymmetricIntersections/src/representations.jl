@@ -617,14 +617,14 @@ function is_faithful(rep::LinRep)
 end
 
 @doc raw"""
-    is_projectively_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
-    is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
 Given a linear representation `rep` of the domain `E` of the cover `p` affording the
 character `chi`, return whether `rep` is `p`-faithful, i.e. `rep` reduces to a faithful
 projective representation of the codomain of `p`.
 
-This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
+This is equivalent to asking that the center of `chi` coincides with the kernel of `p`.
 """
 function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T, V}) where {T, V}
   E = group(parent(chi))::T
@@ -894,7 +894,7 @@ function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem
   bsp = reverse!(RdtoR.(gens(Rd)))
   coll = eltype(mr)[]
   for m in mr
-    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i:i,:]))) for i in 1:nrows(m)]
     @assert length(poly_m) == n
     m2 = zero_matrix(F, length(bsp), length(bsp))
     for i = 1:length(bsp)
@@ -1278,8 +1278,8 @@ function complement_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: M
       _K = zero_matrix(F, d*length(B1), d*length(B2))
       for j in 1:length(B2)
         B2j = B2[j]
-        B2jM = (B2j*M)[1,:]
-        B1u = reduce(vcat, [BB[1,:] for BB in B1])
+        B2jM = (B2j*M)[1:1,:]
+        B1u = reduce(vcat, [BB[1:1,:] for BB in B1])
         _Kj = solve_left(B1u, B2jM)
         for i in 1:d, k in 1:length(B1)
           _K[(k-1)*d + i, i + (j-1)*d] = _Kj[1, k]

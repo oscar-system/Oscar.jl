@@ -117,12 +117,13 @@ end
 ########################################################################
 
 function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  io = pretty(io)
+  print(io, LowercaseOff(), string(x.descr), "(", x.deg ,",")
   if x.descr==:GU || x.descr==:SU
-    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+    print(io, characteristic(x.ring)^(div(degree(x.ring),2)),")")
   elseif x.ring isa Field && is_finite(x.ring)
-    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+    print(io, order(x.ring),")")
   else
-    print(io, string(x.descr), "(",x.deg,",")
     print(IOContext(io, :supercompact => true), x.ring)
     print(io ,")")
   end
@@ -131,7 +132,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   println(io, "Matrix group of degree ", degree(x))
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(x))
   print(io, Dedent())
@@ -241,17 +242,10 @@ end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-function Base.iterate(G::MatrixGroup)
-  L=GAPWrap.Iterator(G.X)::GapObj
-  @assert ! GAPWrap.IsDoneIterator(L)
-  i = GAPWrap.NextIterator(L)::GapObj
-  return MatrixGroupElem(G, i), L
-end
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return MatrixGroupElem(G, i), state
 end
@@ -437,18 +431,18 @@ matrix(x::MatrixGroupElem) = x.elm
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
-    nrows(x::MatrixGroupElem)
+    number_of_rows(x::MatrixGroupElem)
 
 Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = nrows(matrix(x))
+number_of_rows(x::MatrixGroupElem) = number_of_rows(matrix(x))
 
 """
-    ncols(x::MatrixGroupElem)
+    number_of_columns(x::MatrixGroupElem)
 
 Return the number of columns of the underlying matrix of `x`.
 """
-ncols(x::MatrixGroupElem) = ncols(matrix(x))
+number_of_columns(x::MatrixGroupElem) = number_of_columns(matrix(x))
 
 #
 size(x::MatrixGroupElem) = size(matrix(x))
@@ -506,12 +500,12 @@ end
 
 gen(G::MatrixGroup, i::Int) = gens(G)[i]
 
-ngens(G::MatrixGroup) = length(gens(G))
+number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
 
-function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, QQFieldElem}}
+function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the Rationals or over a number field,
     the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
@@ -565,7 +559,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -599,7 +593,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -634,7 +628,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -671,7 +665,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -723,7 +717,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -776,7 +770,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)

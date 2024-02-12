@@ -33,11 +33,11 @@
   @test !is_conjugate_with_data(G,x,z)[1]
 
 
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(4))
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(40))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(4))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(40))
 
 # something in smaller dimension
-  @test number_conjugacy_classes(symmetric_group(4)) == 5
+  @test number_of_conjugacy_classes(symmetric_group(4)) == 5
   G = symmetric_group(4)
   x = perm(G,[3,4,1,2])
   cc = conjugacy_class(G,x)
@@ -89,6 +89,10 @@
      @test is_conjugate_with_data(G,x,y)[1]
      z = is_conjugate_with_data(G,x,y)[2]
      @test x^z == y
+     @test is_conjugate_subgroup(G, x, y)
+     @test is_conjugate_subgroup_with_data(G, x, y)[1]
+     z = is_conjugate_subgroup_with_data(G,x,y)[2]
+     @test y^z == x
      y = rand(CC[(i % length(CC))+1])
      @test !is_conjugate(G,x,y)
      @test !is_conjugate_with_data(G,x,y)[1]
@@ -114,6 +118,20 @@
   @test Set([G(y) for y in K]) == Set([G(y^z) for y in H])
 #  @test Set(K) == Set([y^z for y in H])  may not work because the parent of the elements are different
 
+end
+
+@testset "Conjugacy classes as G-sets" begin
+  G = symmetric_group(4)
+  x = G(cperm([3, 4]))
+  y = G(cperm([1, 4, 2]))
+  C = conjugacy_class(G, x)
+  @test x in C
+  @test orbits(C) == [C]
+  @test C == orbit(G, x)
+  mp = action_homomorphism(C)
+  @test permutation(C, y) == mp(y)
+  @test length(C) == 6
+  @test order(image(mp)[1]) == 24
 end
 
 function TestConjCentr(G,x)

@@ -220,8 +220,9 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
     if is_graded(dom)
       codom = dom
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      map = graded_map(codom, SM.matrix)
+      #generator_matrix(SM)
+      #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
+      map = graded_map(codom, gens(SM))
       dom = domain(map)
       set_attribute!(dom, :name => "$br_name^$rk")
     else
@@ -229,8 +230,8 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
       set_attribute!(dom, :name => "$br_name^$rk")
-      generator_matrix(SM)
-      map = hom(dom, codom, SM.matrix)
+      #generator_matrix(SM)
+      map = hom(dom, codom, gens(SM))
     end
     pushfirst!(cc, map) 
     j += 1
@@ -378,8 +379,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      ff = graded_map(codom, SM.matrix)
+      #generator_matrix(SM)
+      #ff = graded_map(codom, SM.matrix)
+      ff = graded_map(codom, gens(SM))
       dom = domain(ff)
       set_attribute!(dom, :name => "$br_name^$rk")
       insert!(maps, 1, ff)
@@ -389,9 +391,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
+      #generator_matrix(SM)
       set_attribute!(dom, :name => "$br_name^$rk")
-      insert!(maps, 1, hom(dom, codom, SM.matrix))
+      insert!(maps, 1, hom(dom, codom, gens(SM)))
       j += 1
     end
   end

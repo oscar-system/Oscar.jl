@@ -1,6 +1,6 @@
 @testset "residue rings" begin
    @testset for n in [2, 3, 6]
-      for R in [residue_ring(ZZ, n), residue_ring(ZZ, ZZRingElem(n))]
+      for R in [residue_ring(ZZ, n)[1], residue_ring(ZZ, ZZRingElem(n))[1]]
          f = Oscar.iso_oscar_gap(R)
          a = one(R)
          b = -one(R)
@@ -14,7 +14,7 @@
             end
          end
          n2 = n + 1
-         one2 = one(residue_ring(ZZ, n2))
+         one2 = one(residue_ring(ZZ, n2)[1])
          @test_throws ErrorException f(one2)
          @test_throws ErrorException image(f, one2)
          @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
@@ -22,7 +22,7 @@
    end
 
    n = ZZRingElem(2)^100
-   R = residue_ring(ZZ, n)
+   R = residue_ring(ZZ, n)[1]
    f = Oscar.iso_oscar_gap(R)
    a = -one(R)
    @test f(a) == -f(one(R))
@@ -167,7 +167,7 @@ end
 @testset "cyclotomic fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
@@ -198,7 +198,7 @@ end
 @testset "quadratic number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    @testset for N in [ 5, -3, 12, -8 ]
       F, z = quadratic_field(N)

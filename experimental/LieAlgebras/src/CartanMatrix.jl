@@ -181,38 +181,46 @@ function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
       undone[plan[head]] = false
     end
 
+    prev = head
     i = plan[head]
     for j in 1:rk
       if i == j
         continue
       end
 
-      if undone[j] && !is_zero_entry(gcm, i, j)
-        head += 1
-        plan[head] = j
-        undone[j] = false
+      if !undone[j] || is_zero_entry(gcm, i, j)
+        continue
+      end
 
-        if diag[i] * gcm[i, j] == diag[j] * gcm[j, i]
-          continue
-        elseif gcm[i, j] == gcm[j, i]
-          diag[i] = lcm(diag[i], diag[j])
-          diag[j] = diag[i]
-          continue
-        end
+      head += 1
+      plan[head] = j
+      undone[j] = false
 
-        if gcm[j, i] < -1
+      if diag[i] * gcm[i, j] == diag[j] * gcm[j, i]
+        continue
+      elseif gcm[i, j] == gcm[j, i]
+        diag[i] = lcm(diag[i], diag[j])
+        diag[j] = diag[i]
+        continue
+      end
+
+      if gcm[j, i] < -1
+        tail += 1
+        v = -gcm[j, i]
+        while tail < head
+          diag[plan[tail]] *= v
           tail += 1
-          v = -gcm[j, i]
-          while tail < head
-            diag[plan[tail]] *= v
-            tail += 1
-          end
-        end
-        if gcm[i, j] < -1
-          diag[j] *= -gcm[i, j]
-          tail = head - 1
         end
       end
+      if gcm[i, j] < -1
+        diag[j] *= -gcm[i, j]
+        tail = head - 1
+      end
+    end
+
+    # we found new roots, meaning we are done with this component of the root system
+    if prev == head
+      tail = head
     end
   end
 
@@ -222,7 +230,7 @@ end
 @doc raw"""
     cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true) -> ZZMatrix
 
-Returns the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_matrix_symmetrizer`.
+Returns the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_symmetrizer`.
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 
 # Example
@@ -233,12 +241,10 @@ julia> cartan_bilinear_form(cartan_matrix(:B, 2))
 ```
 """
 function cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true)
-  @req !check || is_cartan_matrix(gcm) "Requires a generalized Cartan matrix"
-
+  sym = cartan_symmetrizer(gcm; check)
   bil = deepcopy(gcm)
-  sym = cartan_symmetrizer(gcm; check=false)
   for i in 1:length(sym)
-    mul!(view(bil, i, :), sym[i])
+    mul!(view(bil, i:i, :), sym[i])
   end
   return bil
 end

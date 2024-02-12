@@ -143,11 +143,11 @@ Return the number of elements of the module generating set.
 length(F::ModuleGens) = length(oscar_generators(F))
 
 @doc raw"""
-    ngens(F::ModuleGens)
+    number_of_generators(F::ModuleGens)
 
 Return the number of elements of the module generating set.
 """
-ngens(F::ModuleGens) = length(oscar_generators(F))
+number_of_generators(F::ModuleGens) = length(oscar_generators(F))
 
 # i-th entry of module generating set on Oscar side
 # Todo: clean up, convert or assure

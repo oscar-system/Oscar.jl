@@ -112,7 +112,7 @@ together with its embedding morphism into `G`.
 # Examples
 ```jldoctest
 julia> trivial_subgroup(symmetric_group(5))
-(Permutation group of degree 5 and order 1, Hom: permutation group -> permutation group)
+(Permutation group of degree 5 and order 1, Hom: permutation group -> Sym(5))
 ```
 """
 @gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X)::GapObj)
@@ -125,7 +125,7 @@ julia> trivial_subgroup(symmetric_group(5))
 ###############################################################################
 
 """
-    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, GrpAbFinGen}
+    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return the index of `H` in `G`, as an instance of type `I`.
 
@@ -137,7 +137,7 @@ julia> index(G,H)
 2
 ```
 """
-index(G::T, H::T) where T <: Union{GAPGroup, GrpAbFinGen} = index(ZZRingElem, G, H)
+index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup} = index(ZZRingElem, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
    i = GAP.Globals.Index(G.X, H.X)::GapInt
@@ -170,8 +170,8 @@ Return all normal subgroups of `G` (see [`is_normal`](@ref)).
 ```jldoctest
 julia> normal_subgroups(symmetric_group(5))
 3-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
+ Sym(5)
+ Alt(5)
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
@@ -254,7 +254,7 @@ subgroups.
 ```jldoctest
 julia> maximal_normal_subgroups(symmetric_group(4))
 1-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
 
 julia> maximal_normal_subgroups(quaternion_group(8))
 3-element Vector{PcGroup}:
@@ -324,7 +324,7 @@ in `G`, together with its embedding morphism into `G`.
 # Examples
 ```jldoctest
 julia> center(symmetric_group(3))
-(Permutation group of degree 3 and order 1, Hom: permutation group -> permutation group)
+(Permutation group of degree 3 and order 1, Hom: permutation group -> Sym(3))
 
 julia> center(quaternion_group(8))
 (Pc group of order 2, Hom: pc group -> pc group)
@@ -376,7 +376,7 @@ function returns an arbitrary one.
 ```jldoctest
 julia> chief_series(alternating_group(4))
 3-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
@@ -459,11 +459,11 @@ An exception is thrown if $p$ is not a prime.
 ```jldoctest
 julia> p_central_series(alternating_group(4), 2)
 1-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
 
 julia> p_central_series(alternating_group(4), 3)
 2-element Vector{PermGroup}:
- Permutation group of degree 4 and order 12
+ Alt(4)
  Permutation group of degree 4 and order 4
 
 julia> p_central_series(alternating_group(4), 4)
@@ -504,8 +504,8 @@ julia> lower_central_series(dihedral_group(12))
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
- Permutation group of degree 4 and order 24
- Permutation group of degree 4 and order 12
+ Sym(4)
+ Alt(4)
 ```
 """
 @gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(G.X))
@@ -839,7 +839,7 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> N = pcore(G, 2)[1];
 
@@ -874,7 +874,7 @@ function quo(::Type{Q}, G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
 end
 
 """
-    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
+    maximal_abelian_quotient([::Type{Q}, ]G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
 
 Return `F, epi` such that `F` is the largest abelian factor group of `G`
 and `epi` is an epimorphism from `G` to `F`.
@@ -917,7 +917,7 @@ function maximal_abelian_quotient(G::GAPGroup)
   return F, GAPGroupHomomorphism(G, F, map)
 end
 
-function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, GrpAbFinGen}
+function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGroup, FinGenAbGroup}
   F, epi = maximal_abelian_quotient(G)
   if !(F isa Q)
     map = isomorphism(Q, F)
@@ -938,7 +938,7 @@ end
 @gapattribute _abelian_invariants(G::GAPGroup) = GAP.Globals.AbelianInvariants(G.X)
 
 """
-    abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+    abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants of the commutator factor group
 of `G` (see [`maximal_abelian_quotient`](@ref)).
@@ -972,7 +972,7 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
 @gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
 
 """
-    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, GrpAbFinGen}) where T <: IntegerUnion
+    abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
 
 Return the sorted vector of abelian invariants
 (see [`abelian_invariants`](@ref)) of the Schur multiplier of `G`.
@@ -1006,7 +1006,7 @@ abelian_invariants_schur_multiplier(::Type{T}, G::GAPGroup) where T <: IntegerUn
 
 
 """
-    schur_multiplier(::Type{T} = GrpAbFinGen, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+    schur_multiplier(::Type{T} = FinGenAbGroup, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return the Schur multiplier of `G`.
 This is an abelian group whose abelian invariants can be computed with
@@ -1015,21 +1015,21 @@ This is an abelian group whose abelian invariants can be computed with
 # Examples
 ```jldoctest
 julia> schur_multiplier(symmetric_group(4))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
 
 julia> schur_multiplier(abelian_group([2, 12]))
-GrpAb: Z/2
+Z/2
 
 julia> schur_multiplier(cyclic_group(5))
-GrpAb: Z/1
+Z/1
 ```
 """
-schur_multiplier(G::Union{GAPGroup, GrpAbFinGen}) = schur_multiplier(GrpAbFinGen, G)
+schur_multiplier(G::Union{GAPGroup, FinGenAbGroup}) = schur_multiplier(FinGenAbGroup, G)
 
-function schur_multiplier(::Type{T}, G::Union{GAPGroup, GrpAbFinGen}) where T <: Union{GAPGroup, GrpAbFinGen}
+function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T <: Union{GAPGroup, FinGenAbGroup}
   eldiv = elementary_divisors_of_vector(ZZRingElem, abelian_invariants_schur_multiplier(G))
   M = abelian_group(eldiv)
   (M isa T) && return M
@@ -1062,7 +1062,7 @@ julia> G = symmetric_group(4);
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
   from free group
-  to permutation group of degree 4 and order 24
+  to Sym(4)
 
 julia> pi = G([2,4,3,1])
 (1,2,4)
@@ -1095,7 +1095,7 @@ together with an embedding `G'` into `G`.
 # Examples
 ```jldoctest
 julia> derived_subgroup(symmetric_group(5))
-(Permutation group of degree 5 and order 60, Hom: permutation group -> permutation group)
+(Alt(5), Hom: Alt(5) -> Sym(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
@@ -1112,15 +1112,15 @@ See also [`derived_length`](@ref).
 ```jldoctest
 julia> G = derived_series(symmetric_group(4))
 4-element Vector{PermGroup}:
- Permutation group of degree 4 and order 24
- Permutation group of degree 4 and order 12
+ Sym(4)
+ Alt(4)
  Permutation group of degree 4 and order 4
  Permutation group of degree 4 and order 1
 
 julia> derived_series(symmetric_group(5))
 2-element Vector{PermGroup}:
- Permutation group of degree 5 and order 120
- Permutation group of degree 5 and order 60
+ Sym(5)
+ Alt(5)
 
 julia> derived_series(dihedral_group(8))
 3-element Vector{PcGroup}:

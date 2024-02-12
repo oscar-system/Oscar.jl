@@ -46,7 +46,7 @@ function root_system_gap(L::LieAlgebraStructure)
   return GAPWrap.RootSystem(L.lie_algebra_gap)
 end
 
-function num_positive_roots(L::LieAlgebraStructure)
+function number_of_positive_roots(L::LieAlgebraStructure)
   return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
 end
 

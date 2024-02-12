@@ -48,7 +48,7 @@
     @test ray_indices(maximal_cones(F1)) == incidence1
     @test IncidenceMatrix(maximal_cones(F1)) == incidence1
     @test maximal_cones(IncidenceMatrix, F1) == incidence1
-    @test n_maximal_cones(F1) == 2
+    @test number_of_maximal_cones(F1) == 2
     @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
     @test generator_matrix(lineality_space(F2)) == matrix(f, L)
     if T == QQFieldElem
@@ -88,14 +88,14 @@
 
     C = positive_hull(f, identity_matrix(ZZ, 0))
     pf = polyhedral_fan(C)
-    @test n_maximal_cones(pf) == 1
+    @test number_of_maximal_cones(pf) == 1
     @test dim(pf) == 0
     pfc = polyhedral_fan(maximal_cones(pf))
-    @test n_maximal_cones(pfc) == 1
+    @test number_of_maximal_cones(pfc) == 1
 
     C = positive_hull(f, vcat(identity_matrix(ZZ, 4), -identity_matrix(ZZ,4)))
     pf = polyhedral_fan(C)
-    @test n_maximal_cones(pf) == 1
+    @test number_of_maximal_cones(pf) == 1
 
     @test polyhedral_fan(maximal_cones(F2NR)) isa PolyhedralFan
     # this should just deepcopy the object
@@ -123,12 +123,12 @@ end
   nf_transformed = transform(nf_square, m_good)
   @test nf_transformed isa PolyhedralFan{T}
   @test nrays(nf_transformed) == 4
-  @test n_maximal_cones(nf_transformed) == 4
+  @test number_of_maximal_cones(nf_transformed) == 4
   @test_throws ErrorException transform(nf_square, m_bad)
   nf_unverified = transform(nf_square, m_good; check=false)
   @test nf_unverified isa PolyhedralFan{T}
   @test nrays(nf_unverified) == 4
-  @test n_maximal_cones(nf_unverified) == 4
+  @test number_of_maximal_cones(nf_unverified) == 4
 
   cdeg = convex_hull(f, [1 0 0; 0 0 0])
   nflin = normal_fan(cdeg)
@@ -136,7 +136,7 @@ end
   nflin_transformed = transform(nflin, mm)
   @test nflin_transformed isa PolyhedralFan{T}
   @test nrays(nflin_transformed) == 0
-  @test n_maximal_cones(nflin_transformed) == 2
+  @test number_of_maximal_cones(nflin_transformed) == 2
   @test lineality_dim(nflin_transformed) == 2
 end
 
@@ -150,9 +150,9 @@ end
   sf0 = star_subdivision(f, v0)
   sf1 = star_subdivision(f, v1)
   sf2 = star_subdivision(f, v2)
-  @test n_maximal_cones(sf0) == 2
-  @test n_maximal_cones(sf1) == 3
-  @test n_maximal_cones(sf2) == 4
+  @test number_of_maximal_cones(sf0) == 2
+  @test number_of_maximal_cones(sf1) == 3
+  @test number_of_maximal_cones(sf2) == 4
 
   ff = polyhedral_fan(IncidenceMatrix([[1],[2,3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
@@ -161,7 +161,7 @@ end
   w1 = [-1;1;0]
   sff0 = star_subdivision(ff, w0)
   sff1 = star_subdivision(ff, w1)
-  @test n_maximal_cones(sff0) == 2
-  @test n_maximal_cones(sff1) == 3
+  @test number_of_maximal_cones(sff0) == 2
+  @test number_of_maximal_cones(sff1) == 3
 
 end
