@@ -166,29 +166,6 @@ Hypersurface model over a not fully specified base
 """
 function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
   
-  # Is there a grading [1, 0, ..., 0]?
-  Kbar_grading_present = false
-  for i in 1:ncols(auxiliary_base_grading)
-    col = auxiliary_base_grading[:,i]
-    if length(col) == 1 && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-  end
-  
-  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
-  if Kbar_grading_present == false
-    @req ("Kbar" in auxiliary_base_vars) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
-    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
-    Kbar_grading[1] = 1
-    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
-    push!(auxiliary_base_vars, "Kbar")
-  end
-  
   # Compute simple information
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
