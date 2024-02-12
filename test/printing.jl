@@ -2,7 +2,7 @@
   old_flag = Oscar.is_unicode_allowed()
 
   @test Oscar.is_unicode_allowed() == false
-  @test allow_unicode(true) == false
+  @test allow_unicode(true; temporary=true) == false
   @test Oscar.is_unicode_allowed() == true
 
   struct AtoB
@@ -16,11 +16,11 @@
     end
   end
 
-  allow_unicode(false)
+  allow_unicode(false; temporary=true)
   @test sprint(show, AtoB()) == "A->B"
-  allow_unicode(true)
+  allow_unicode(true; temporary=true)
   @test sprint(show, AtoB()) == "A→B"
 
   # Restore old flag
-  allow_unicode(old_flag)
+  allow_unicode(old_flag; temporary=true)
 end

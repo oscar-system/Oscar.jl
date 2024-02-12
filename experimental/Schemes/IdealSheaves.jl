@@ -41,9 +41,9 @@ Sheaf of ideals
     2: [(x//y), (z//y)]   affine 2-space
     3: [(x//z), (y//z)]   affine 2-space
 with restrictions
-  1: ideal(-(y//x)^2*(z//x) + 1)
-  2: ideal((x//y)^3 - (z//y))
-  3: ideal((x//z)^3 - (y//z)^2)
+  1: Ideal (-(y//x)^2*(z//x) + 1)
+  2: Ideal ((x//y)^3 - (z//y))
+  3: Ideal ((x//z)^3 - (y//z)^2)
 ```
 """
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal) 
@@ -312,22 +312,22 @@ function subscheme(I::IdealSheaf)
   X = space(I)
   C = default_covering(X)
   new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
-  new_glueings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}()
+  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
-  for (U, V) in keys(glueings(C))
+  for (U, V) in keys(gluings(C))
     i = C[U]
     j = C[V]
     Unew = new_patches[i]
     Vnew = new_patches[j]
     G = C[U, V]
-    #new_glueings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
-    new_glueings[(Unew, Vnew)] = LazyGlueing(Unew, Vnew, _compute_restriction, 
+    #new_gluings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
+    new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction, 
                                              RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
                                             )
-    #new_glueings[(Vnew, Unew)] = inverse(new_glueings[(Unew, Vnew)])
-    new_glueings[(Vnew, Unew)] = LazyGlueing(Vnew, Unew, inverse, new_glueings[(Unew, Vnew)])
+    #new_gluings[(Vnew, Unew)] = inverse(new_gluings[(Unew, Vnew)])
+    new_gluings[(Vnew, Unew)] = LazyGluing(Vnew, Unew, inverse, new_gluings[(Unew, Vnew)])
   end
-  Cnew = Covering(new_patches, new_glueings, check=false)
+  Cnew = Covering(new_patches, new_gluings, check=false)
 
   # Inherit decomposition information if applicable
   if has_decomposition_info(C)
@@ -350,7 +350,7 @@ collection of polynomials over all patches in a compatible way;
 meaning that on the overlaps the restrictions of either two sets 
 of polynomials coincides.
 
-This proceeds by crawling through the glueing graph and taking 
+This proceeds by crawling through the gluing graph and taking 
 closures in the patches ``Uⱼ`` of the subschemes 
 ``Zᵢⱼ = V(I) ∩ Uᵢ ∩ Uⱼ`` in the intersection with a patch ``Uᵢ`` 
 on which ``I`` had already been described.
@@ -371,7 +371,7 @@ function extend!(
   # Nodes to which we might need to extend
   leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = AbsSpec[U for U in leftover if any(V->haskey(glueings(C), (U, V)), fat)]
+  neighbors = AbsSpec[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
   # All other nodes
   leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
   while length(neighbors) > 0
@@ -379,7 +379,7 @@ function extend!(
     for V in neighbors
       for U in fat
         G = C[U, V]
-        if (G isa SimpleGlueing || (G isa LazyGlueing && is_computed(G)))
+        if (G isa SimpleGluing || (G isa LazyGluing && is_computed(G)))
           push!(good_pairs, (U, V))
         end
       end
@@ -392,16 +392,16 @@ function extend!(
       # In case we find a good neighboring pair, use that
       (U, V) = first(good_pairs)
     else
-      # If there is no good neighboring pair, compute a new glueing
+      # If there is no good neighboring pair, compute a new gluing
       V = first(neighbors)
-      k = findfirst(U->haskey(glueings(C), (U, V)), fat)
+      k = findfirst(U->haskey(gluings(C), (U, V)), fat)
       U = fat[k]
     end
-    f, _ = glueing_morphisms(C[V, U])
-    if C[V, U] isa SimpleGlueing || (C[V, U] isa LazyGlueing && first(glueing_domains(C[V, U])) isa PrincipalOpenSubset)
+    f, _ = gluing_morphisms(C[V, U])
+    if C[V, U] isa SimpleGluing || (C[V, U] isa LazyGluing && first(gluing_domains(C[V, U])) isa PrincipalOpenSubset)
 
       # Take a shortcut if possible
-      _, UV = glueing_domains(C[V, U])
+      _, UV = gluing_domains(C[V, U])
       if isone(ideal(OO(UV), OO(UV).(gens(D[U]), check=false)))
         D[V] = ideal(OO(V), one(OO(V)))
         # Register this patch as a leaf
@@ -412,7 +412,7 @@ function extend!(
       end
 
       # if not, extend D to this patch
-      f, _ = glueing_morphisms(C[V, U])
+      f, _ = gluing_morphisms(C[V, U])
       pbI_gens = pullback(f).([OO(codomain(f))(x, check=false) for x in gens(D[U])])
       J = ideal(OO(V), lifted_numerator.(pbI_gens))
       #J_sat = saturation(J, ideal(OO(V), complement_equation(domain(f))))
@@ -433,7 +433,7 @@ function extend!(
     else
       push!(fat, V)
       for W in leftover
-        if haskey(glueings(C), (V, W))
+        if haskey(gluings(C), (V, W))
           push!(neighbors, W)
         end
       end
@@ -517,7 +517,7 @@ end
 #  h = vcat(f, g)
 #  r = length(f)
 #  s = length(g)
-#  Dh = jacobi_matrix(h)
+#  Dh = jacobian_matrix(h)
 #  (ll, ql, rl, cl) = _non_degeneration_cover(subscheme(U, g), Dh, codimension + codim(U), 
 #                          verbose=verbose, check=check, 
 #                          restricted_columns=[collect(1:r), [r + k for k in 1:s]])
@@ -670,7 +670,7 @@ function order_on_divisor(
   end
   R = ambient_coordinate_ring(V)
   J = saturated_ideal(I(V))
-  K = ambient_closure_ideal(V)
+  K = saturated_ideal(defining_ideal(V))
   floc = f[V]
   aR = ideal(R, numerator(floc))
   bR = ideal(R, denominator(floc))
@@ -683,7 +683,7 @@ function order_on_divisor(
 #    L, map = localization(OO(U),
 #                          MPolyComplementOfPrimeIdeal(saturated_ideal(I(U)))
 #                         )
-#    typeof(L)<:Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+#    L isa Union{MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                        <:MPolyComplementOfPrimeIdeal},
 #                     MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
 #                                           <:MPolyComplementOfPrimeIdeal}
@@ -905,7 +905,7 @@ function match_on_intersections(
 ## run through all known patches of the component
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
-      VU, UV = glueing_domains(G)
+      VU, UV = gluing_domains(G)
       if UV isa SpecOpen && VU isa SpecOpen
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
@@ -1143,7 +1143,7 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
     end
   end
   new_cov = Covering(new_patches)
-  inherit_glueings!(new_cov, covering)
+  inherit_gluings!(new_cov, covering)
   return new_cov
 end
 
@@ -1198,7 +1198,7 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf}
   end
   new_patches2 = append!(new_patches2, patches_todo)
   new_cov = Covering(new_patches2)
-  inherit_glueings!(new_cov, covering)
+  inherit_gluings!(new_cov, covering)
   return new_cov
 end
 

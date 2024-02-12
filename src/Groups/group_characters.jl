@@ -20,7 +20,7 @@
 ##  Atlas irrationalities
 ##
 @doc raw"""
-    atlas_irrationality([F::AnticNumberField, ]description::String)
+    atlas_irrationality([F::AbsSimpleNumField, ]description::String)
 
 Return the value encoded by `description`.
 If `F` is given and is a cyclotomic field that contains the value then
@@ -56,7 +56,7 @@ julia> Oscar.with_unicode() do
 -5*ζ(24)^7 - 2*ζ(24)^5 + 2*ζ(24)^3 - 3*ζ(24)
 ```
 """
-function atlas_irrationality(F::AnticNumberField, description::String)
+function atlas_irrationality(F::AbsSimpleNumField, description::String)
     return F(GAPWrap.AtlasIrrationality(GapObj(description)))
 end
 
@@ -122,10 +122,10 @@ in a `p`-modular table.
 @attributes mutable struct GAPGroupCharacterTable <: GroupCharacterTable
     GAPTable::GapObj  # the GAP character table object
     characteristic::T where T <: IntegerUnion
-    group::Union{GAPGroup, GrpAbFinGen}    # the underlying group, if any
+    group::Union{GAPGroup, FinGenAbGroup}    # the underlying group, if any
     isomorphism::Map  # isomorphism from `group` to a group in GAP
 
-    function GAPGroupCharacterTable(G::Union{GAPGroup, GrpAbFinGen}, tab::GapObj, iso::Map, char::T) where T <: IntegerUnion
+    function GAPGroupCharacterTable(G::Union{GAPGroup, FinGenAbGroup}, tab::GapObj, iso::Map, char::T) where T <: IntegerUnion
       return new(tab, char, G, iso)
     end
 
@@ -182,7 +182,7 @@ end
 #
 # - For `GAPGroup`, we compute images and preimages by unwrapping and
 #   wrapping the groups elements, respectively.
-# - For `GrpAbFinGen`, we compose this unwrapping/wrapping with
+# - For `FinGenAbGroup`, we compose this unwrapping/wrapping with
 #   an isomorphism to a `PcGroup` .
 #
 function isomorphism_to_GAP_group(G::GAPGroup)
@@ -191,7 +191,7 @@ function isomorphism_to_GAP_group(G::GAPGroup)
     return MapFromFunc(G, G.X, f, finv)
 end
 
-function isomorphism_to_GAP_group(G::GrpAbFinGen)
+function isomorphism_to_GAP_group(G::FinGenAbGroup)
     @req isfinite(G) "the group is not finite"
     iso = isomorphism(PcGroup, G)
     C = codomain(iso)
@@ -283,7 +283,7 @@ then `nothing` is returned.
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3)))
        end;
-Character table of permutation group of degree 3 and order 6
+Character table of Sym(3)
 
  2  1  1  .
  3  1  .  1
@@ -299,7 +299,7 @@ Character table of permutation group of degree 3 and order 6
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), character_table(symmetric_group(3), 2))
        end;
-2-modular Brauer table of permutation group of degree 3 and order 6
+2-modular Brauer table of Sym(3)
 
  2  1  .
  3  1  1
@@ -312,7 +312,7 @@ julia> Oscar.with_unicode() do
 χ₂  2 -1
 ```
 """
-function character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
+function character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
     tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
     return get!(tbls, p) do
       p != 0 && return mod(character_table(G, 0), p)
@@ -412,9 +412,9 @@ function preimages(iso::MapFromFunc{T, GapObj}, H::GapObj) where T <: GAPGroup
 end
 
 # Use the isomorphism.
-function preimages(iso::MapFromFunc{GrpAbFinGen, GapObj}, H::GapObj)
+function preimages(iso::MapFromFunc{FinGenAbGroup, GapObj}, H::GapObj)
   return sub(domain(iso),
-             GrpAbFinGenElem[preimage(iso, x) for x in GAPWrap.GeneratorsOfGroup(H)])
+             FinGenAbGroupElem[preimage(iso, x) for x in GAPWrap.GeneratorsOfGroup(H)])
 end
 
 
@@ -476,7 +476,7 @@ julia> spor_names = all_character_table_names(is_sporadic_simple,
 julia> println(spor_names[1:5])
 ["M11", "M12", "J1", "M22", "J2"]
 
-julia> length(all_character_table_names(number_conjugacy_classes => 1))
+julia> length(all_character_table_names(number_of_conjugacy_classes => 1))
 1
 ```
 """
@@ -521,13 +521,13 @@ end
 
 
 @doc raw"""
-    as_sum_of_roots(val::nf_elem, root::String)
+    as_sum_of_roots(val::AbsSimpleNumFieldElem, root::String)
 
 Return a string representing the element `val` of a cyclotomic field
 as a sum of multiples of powers of the primitive root which is printed as
 `root`.
 """
-function as_sum_of_roots(val::nf_elem, root::String)
+function as_sum_of_roots(val::AbsSimpleNumFieldElem, root::String)
     F = parent(val)
     flag, N = Hecke.is_cyclotomic_type(F)
     @req flag "$val is not an element of a cyclotomic field"
@@ -891,7 +891,9 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     emptycol = ["" for i in 1:n]
 
     if isdefined(tbl, :group)
-      headerstring = lowercasefirst(string(group(tbl)))
+      str_io = IOBuffer()
+      print(pretty(str_io), Lowercase(), group(tbl))
+      headerstring = String(take!(str_io))
       if characteristic(tbl) != 0
         headerstring = "$(characteristic(tbl))-modular Brauer table of $(headerstring)"
       else
@@ -947,9 +949,9 @@ end
 ##############################################################################
 #
 length(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-nrows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-ncols(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
-number_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_rows(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_columns(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
+number_of_conjugacy_classes(tbl::GAPGroupCharacterTable) = GAPWrap.NrConjugacyClasses(GAPTable(tbl))::Int
 
 @doc raw"""
     order(::Type{T} = ZZRingElem, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
@@ -1369,7 +1371,6 @@ julia> subtbl = character_table("A5"); tbl = character_table("A6");
 
 julia> println(approximate_class_fusion(subtbl, tbl))
 Union{Int64, Vector{Int64}}[1, 2, [3, 4], [6, 7], [6, 7]]
-
 ```
 """
 function approximate_class_fusion(subtbl::GAPGroupCharacterTable,
@@ -1431,6 +1432,34 @@ function possible_class_fusions(subtbl::GAPGroupCharacterTable,
             GapObj(cond))
   return [Vector{Int}(x::GapObj) for x in fus]
 end
+
+
+@doc raw"""
+    block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+
+Return a dictionary with the keys
+`:defect` (the vector containing at position `i` the defect of the
+`i`-th `p`-block of `tbl`) and
+`:block` (the vector containing at position `i` the number `j`
+such that `tbl[i]` belongs to the `j`-th `p`-block).
+
+An exception is thrown if `tbl` is not an ordinary character table.
+
+# Examples
+```jldoctest
+julia> block_distribution(character_table("A5"), 2)
+Dict{Symbol, Vector{Int64}} with 2 entries:
+  :block  => [1, 1, 1, 2, 1]
+  :defect => [2, 0]
+```
+"""
+function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
+  @req characteristic(tbl) == 0 "character table must be ordinary"
+  blocks = GAP.Globals.PrimeBlocks(GAPTable(tbl), GAP.Obj(p))
+  return Dict(:defect => Vector{Int}(blocks.defect),
+              :block => Vector{Int}(blocks.block))
+end
+
 
 #############################################################################
 ##
@@ -1599,6 +1628,19 @@ function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharact
     end
 end
 
+@doc raw"""
+    known_class_fusions(tbl::GAPGroupCharacterTable)
+
+Return the vector of pairs `(name, fus)` where `name` is the identifier of
+a character table
+and `fus` is the stored class fusion from `tbl` to this table,
+see [`known_class_fusion`](@ref).
+"""
+function known_class_fusions(tbl::GAPGroupCharacterTable)
+    return Tuple{String, Vector{Int64}}[(String(r.name), Vector{Int}(r.map))
+             for r in GAPWrap.ComputedClassFusions(GAPTable(tbl))]
+end
+
 
 #############################################################################
 ##
@@ -1679,7 +1721,7 @@ true
 """
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
-    return class_function(G, [val for i in 1:Int(number_conjugacy_classes(G))])
+    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
 end
 
 @doc raw"""
@@ -1704,12 +1746,12 @@ function natural_character(G::PermGroup)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
     n = degree(G)
-    vals = [FF(n - number_moved_points(representative(x))) for x in ccl]
+    vals = [FF(n - number_of_moved_points(representative(x))) for x in ccl]
     return class_function(G, vals)
 end
 
 @doc raw"""
-    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+    natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 
 Return the character that maps each element of `G` to its trace.
 We assume that the entries of the elements of `G` are either of type `QQFieldElem`
@@ -1720,10 +1762,10 @@ or contained in a cyclotomic field.
 julia> g = matrix_group(matrix(ZZ, [0 1; 1 0]));
 
 julia> println(values(natural_character(g)))
-QQAbElem{nf_elem}[2, 0]
+QQAbElem{AbsSimpleNumFieldElem}[2, 0]
 ```
 """
-function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+function natural_character(G::Union{MatrixGroup{ZZRingElem}, MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
     tbl = character_table(G)
     ccl = conjugacy_classes(tbl)
     FF = abelian_closure(QQ)[1]
@@ -1743,7 +1785,7 @@ to its Brauer character value.
 julia> g = general_linear_group(2, 2);
 
 julia> println(values(natural_character(g)))
-QQAbElem{nf_elem}[2, -1]
+QQAbElem{AbsSimpleNumFieldElem}[2, -1]
 ```
 """
 function natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
@@ -1772,7 +1814,7 @@ julia> g = symmetric_group(3);  h = general_linear_group(2, 2);
 julia> mp = hom(g, h, [g([2,1]), g([1, 3, 2])], gens(h));
 
 julia> println(values(natural_character(mp)))
-QQAbElem{nf_elem}[2, -1]
+QQAbElem{AbsSimpleNumFieldElem}[2, -1]
 ```
 """
 function natural_character(rho::GAPGroupHomomorphism)
@@ -1785,7 +1827,7 @@ function natural_character(rho::GAPGroupHomomorphism)
       modtbl = tbl
       ccl = conjugacy_classes(tbl)
       n = degree(M)
-      vals = [FF(n - number_moved_points(rho(representative(x)))) for x in ccl]
+      vals = [FF(n - number_of_moved_points(rho(representative(x)))) for x in ccl]
     elseif M isa MatrixGroup
       p = characteristic(base_ring(M))
       if p == 0
@@ -1864,11 +1906,11 @@ function _induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, G_chi:
   return GAPGroupClassFunction(tbl, ind)
 end
 
-# If `GrpAbFinGen` groups are stored then we have to work with explicit
+# If `FinGenAbGroup` groups are stored then we have to work with explicit
 # embeddings.
 function _induce(chi::GAPGroupClassFunction,
               tbl::GAPGroupCharacterTable,
-              G_chi::GrpAbFinGen, G_tbl::GrpAbFinGen)
+              G_chi::FinGenAbGroup, G_tbl::FinGenAbGroup)
   H, emb = is_subgroup(G_chi, G_tbl)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(parent(chi))]
   Greps = [representative(C) for C in conjugacy_classes(tbl)]
@@ -1944,11 +1986,11 @@ function _restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable, G
   return GAPGroupClassFunction(subtbl, rest)
 end
 
-# If `GrpAbFinGen` groups are stored then we have to work with explicit
+# If `FinGenAbGroup` groups are stored then we have to work with explicit
 # embeddings.
 function _restrict(chi::GAPGroupClassFunction,
               subtbl::GAPGroupCharacterTable,
-              G_chi::GrpAbFinGen, G_subtbl::GrpAbFinGen)
+              G_chi::FinGenAbGroup, G_subtbl::FinGenAbGroup)
   H, emb = is_subgroup(G_subtbl, G_chi)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(subtbl)]
   Greps = [representative(C) for C in conjugacy_classes(parent(chi))]
@@ -1973,7 +2015,7 @@ Nemo.degree(::Type{QQFieldElem}, chi::GAPGroupClassFunction) = Nemo.coeff(values
 
 Nemo.degree(::Type{ZZRingElem}, chi::GAPGroupClassFunction) = ZZ(Nemo.coeff(values(chi)[1].data, 0))::ZZRingElem
 
-Nemo.degree(::Type{QQAbElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbElem{nf_elem}
+Nemo.degree(::Type{QQAbElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAbElem{AbsSimpleNumFieldElem}
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(ZZRingElem, chi))::T
 
@@ -2053,7 +2095,7 @@ The result is an instance of `Vector{T}`.
 # Examples
 ```jldoctest
 julia> g = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> chi = natural_character(g);
 
@@ -2107,7 +2149,7 @@ such that $m_j$ is the multiplicity of $\zeta_n^j$ as an eigenvalue of $M$.
 julia> t = character_table("A5");  chi = t[4];
 
 julia> println(values(chi))
-QQAbElem{nf_elem}[4, 0, 1, -1, -1]
+QQAbElem{AbsSimpleNumFieldElem}[4, 0, 1, -1, -1]
 
 julia> println(multiplicities_eigenvalues(chi, 5))
 [1, 1, 1, 1, 0]
@@ -2132,7 +2174,7 @@ function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     return induce(chi, tbl)
 end
 
-function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, GrpAbFinGenElem})
+function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, FinGenAbGroupElem})
     tbl = parent(chi)
     ccl = conjugacy_classes(tbl)
     reps = [representative(c) for c in ccl]
@@ -2235,7 +2277,7 @@ function is_faithful(chi::GAPGroupClassFunction)
 end
 
 # Apply a class function to a group element.
-function(chi::GAPGroupClassFunction)(g::Union{GAPGroupElem, GrpAbFinGenElem})
+function(chi::GAPGroupClassFunction)(g::Union{GAPGroupElem, FinGenAbGroupElem})
     tbl = parent(chi)
 
     # Identify the conjugacy class of `g`.

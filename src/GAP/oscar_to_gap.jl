@@ -24,7 +24,7 @@ GAP.julia_to_gap(obj::ZZMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true
 GAP.julia_to_gap(obj::QQMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true)
 
 ## element of cyclotomic field to GAP cyclotomic
-function GAP.julia_to_gap(obj::nf_elem)
+function GAP.julia_to_gap(obj::AbsSimpleNumFieldElem)
     F = parent(obj)
     @req Nemo.is_cyclo_type(F) "the element does not lie in a cyclotomic field"
     N = get_attribute(F, :cyclo)
@@ -41,7 +41,7 @@ function GAP.julia_to_gap(elm::QQAbElem)
 end
 
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
-function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
+function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem})
     F = base_ring(obj)
     @req Nemo.is_cyclo_type(F) "the matrix entries do not lie in a cyclotomic field"
     mat = [GAP.julia_to_gap(obj[i,j]) for i in 1:nrows(obj), j in 1:ncols(obj)]

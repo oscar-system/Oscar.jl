@@ -17,13 +17,13 @@ julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
 julia> forget_toric_structure(antv)
-(V(0), Hom: V(0) -> normal toric variety)
+(scheme(0), Hom: scheme(0) -> normal toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
   Y = underlying_scheme(X)
-  iso = SpecMor(Y, X, identity_map(OO(X)), check=true)
-  iso_inv = SpecMor(X, Y, identity_map(OO(X)), check=true)
+  iso = morphism(Y, X, identity_map(OO(X)), check=true)
+  iso_inv = morphism(X, Y, identity_map(OO(X)), check=true)
   set_attribute!(iso, :inverse => iso_inv)
   set_attribute!(iso_inv, :inverse => iso)
   return Y, iso
@@ -58,11 +58,11 @@ function forget_toric_structure(X::NormalToricVariety)
     iso_dict_covariant[domain(phi)] = phi
   end
 
-  # Recreate all the glueings with the new patches
+  # Recreate all the gluings with the new patches
   for U in affine_charts(X), V in affine_charts(X)
     glue = default_covering(X)[U, V]
     new_glue = restrict(glue, inverse(iso_dict[U]), inverse(iso_dict[V]), check=true)
-    add_glueing!(cov, new_glue)
+    add_gluing!(cov, new_glue)
   end
 
   # Prepare the underlying covering morphisms for the identifying isomorphisms
@@ -107,19 +107,19 @@ Polyhedral cone in ambient dimension 2
 julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
-julia> underlying_scheme(antv)
+julia> Oscar.underlying_scheme(antv)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x1, x2
       over rational field
-    by ideal(0)
+    by ideal (0)
 ```
 """
 @attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
 
 ### 
-# Some additional structure to make computation of toric glueings lazy
-struct ToricGlueingData
+# Some additional structure to make computation of toric gluings lazy
+struct ToricGluingData
   X::NormalToricVariety
   U::AffineNormalToricVariety
   V::AffineNormalToricVariety
@@ -127,7 +127,7 @@ struct ToricGlueingData
 # j::Int
 end
 
-function _compute_toric_glueing(gd::ToricGlueingData)
+function _compute_toric_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
@@ -149,7 +149,7 @@ function _compute_toric_glueing(gd::ToricGlueingData)
   # given by localization maps. The cone τ ̌ has lineality L. 
   # We need to find a Hilbert basis for both L ∩ σ₁̌ and L ∩ σ₂̌.
   # Then the localization maps are given by inverting the 
-  # elements of these Hilbert bases. The glueing isomorphisms 
+  # elements of these Hilbert bases. The gluing isomorphisms 
   # are then obtained by expressing the generators on the one 
   # side in terms of the others. 
 
@@ -172,23 +172,23 @@ function _compute_toric_glueing(gd::ToricGlueingData)
 
   xx = gens(OO(UV))
   yy = gens(OO(VU))
-  f = SpecMor(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
-  g = SpecMor(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
+  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
+  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
-  result = Glueing(U, V, f, g, check=true)
+  result = Gluing(U, V, f, g, check=true)
   return result
 end
 
 # Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative 
 # coefficients for the vectors vᵢ of `degs1` with index i ∈ `non_local_indices`.
-function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int64})
+function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int})
   result = Vector{ZZMatrix}()
   for i in 1:nrows(degs2)
     C = identity_matrix(ZZ, nrows(degs1))[non_local_indices_1,:]
-    S = solve_mixed(transpose(degs1), transpose(degs2[i,:]), C; permit_unbounded=true)  
-    push!(result, S[1, :])
+    S = solve_mixed(transpose(degs1), transpose(degs2[i:i,:]), C; permit_unbounded=true)
+    push!(result, S[1:1, :])
   end
   return result
 end
@@ -207,7 +207,7 @@ its toric origin.
 julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> underlying_scheme(P2)
+julia> Oscar.underlying_scheme(P2)
 Scheme
   over rational field
 with default covering
@@ -236,20 +236,20 @@ with default covering
     for j in i+1:length(patch_list)
       X = patch_list[i]
       Y = patch_list[j]
-      gd = ToricGlueingData(Z, X, Y)
-      add_glueing!(cov, LazyGlueing(X, Y, _compute_toric_glueing, gd))
+      gd = ToricGluingData(Z, X, Y)
+      add_gluing!(cov, LazyGluing(X, Y, _compute_toric_gluing, gd))
       continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue
       vmat = _find_localization_element(cone(X), cone(Y), facet)
       U = _localize_affine_toric_variety(X, vmat)
       V = _localize_affine_toric_variety(Y, (-1)*vmat)
-      add_glueing!(cov, _compute_gluings(X, Y, vmat, U, V))
+      add_gluing!(cov, _compute_gluings(X, Y, vmat, U, V))
     end
   end
   
   # TODO: Improve the gluing (lazy gluing) or try to use the Hasse diagram.
-  # TODO: For now, we conjecture, that the composition of the computed glueings is sufficient to deduce all glueings.
+  # TODO: For now, we conjecture, that the composition of the computed gluings is sufficient to deduce all gluings.
   #fill_transitions!(cov)
   return CoveredScheme(cov)
 end
@@ -288,11 +288,11 @@ function _compute_gluings(X::AffineNormalToricVariety, Y::AffineNormalToricVarie
   gres = hom(OO(U), OO(V), [prod([(k >= 0 ? x^k : inv(x)^(-k)) for (x, k) in zip(gens(OO(V)), w)]) for w in img_gens])
   set_attribute!(gres, :inverse, fres)
   set_attribute!(fres, :inverse, gres)
-  f = SpecMor(U, V, fres)
-  g = SpecMor(V, U, gres)
+  f = morphism(U, V, fres)
+  g = morphism(V, U, gres)
   set_attribute!(g, :inverse, f)
   set_attribute!(f, :inverse, g)
-  return SimpleGlueing(X, Y, f, g)
+  return SimpleGluing(X, Y, f, g)
 end
 
 

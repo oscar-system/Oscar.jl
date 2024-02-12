@@ -27,11 +27,11 @@ julia> IM[:, 4]
 """
 IncidenceMatrix
 
-nrows(i::IncidenceMatrix) = Polymake.nrows(i)
-ncols(i::IncidenceMatrix) = Polymake.ncols(i)
+number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
+number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
 
-nrows(A::Polymake.Matrix) = Polymake.nrows(A)
-ncols(A::Polymake.Matrix) = Polymake.ncols(A)
+number_of_rows(A::Polymake.Matrix) = Polymake.nrows(A)
+number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 
 @doc raw"""
      row(i::IncidenceMatrix, n::Int)
@@ -79,7 +79,7 @@ function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{Fie
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
-        t = typeof(m[i])
+        t = i === nothing ? QQFieldElem : typeof(m[i])
         if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
@@ -93,7 +93,7 @@ end
 
 assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(m)
 
-assure_matrix_polymake(m::MatElem) = Polymake.OscarNumber.(m)
+assure_matrix_polymake(m::MatElem) = Polymake.Matrix{_scalar_type_to_polymake(eltype(m))}(m)
 
 assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
 
@@ -101,8 +101,8 @@ assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rati
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
-    v = Polymake.Vector{_scalar_type_to_polymake(typeof(v[i]))}(v)
-    return v
+    T = i === nothing ? QQFieldElem : typeof(v[i])
+    return Polymake.Vector{_scalar_type_to_polymake(T)}(v)
 end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
@@ -120,7 +120,7 @@ linear_matrix_for_polymake(x::AbstractVector{<:AbstractVector}) = assure_matrix_
 
 matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = assure_matrix_polymake(x)
 
-nrows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
+number_of_rows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
 function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatrix{Oscar.QQFieldElem}})
     res = Polymake.Matrix{Polymake.Rational}(size(x)...)
@@ -233,8 +233,9 @@ end
 
 function augment(vec::AbstractVector, val)
     s = size(vec)
+    @req s[1] > 0 "cannot homogenize empty vector"
     res = similar(vec, (s[1] + 1,))
-    res[1] = val
+    res[1] = val + zero(first(vec))
     res[2:end] = vec
     return assure_vector_polymake(res)
 end
@@ -363,7 +364,7 @@ Return the parent `Field` of the coefficients of `P`.
 # Examples
 ```jldoctest
 julia> c = cross_polytope(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> coefficient_field(c)
 Rational field
@@ -381,8 +382,8 @@ _get_scalar_type(::NormalToricVarietyType) = QQFieldElem
 const scalar_types = Union{FieldElem, Float64}
 
 const scalar_type_to_oscar = Dict{String, Type}([("Rational", QQFieldElem),
-                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{nf_elem}),
-                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{nf_elem}),
+                                                 ("QuadraticExtension<Rational>", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
+                                                 ("QuadraticExtension", Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}),
                                                  ("Float", Float64)])
 
 const scalar_types_extended = Union{scalar_types, ZZRingElem}
@@ -407,50 +408,79 @@ function _embedded_quadratic_field(r::ZZRingElem)
     end
 end
 
-function _find_parent_field(::Type{T}, x, y...) where T <: scalar_types
-    f = _find_parent_field(T, x)
-    elem_type(f) == T && return f
-    return _find_parent_field(T, y...)
-end
-function _find_parent_field(::Type{T}, x::AbstractArray{<:FieldElem}) where T <: scalar_types
-    for el in x
-        el isa T && return parent(el)
-    end
-    return QQ
-end
-function _find_parent_field(::Type{T}, x::MatElem{<:FieldElem}) where T <: scalar_types
-    f = base_ring(x)
-    elem_type(f) == T && return f
-    return QQ
-end
-_find_parent_field(::Type{T}, x::Tuple{<:AnyVecOrMat, <:Any}) where T <: scalar_types = _find_parent_field(T, x...)
-_find_parent_field(::Type{T}, x::FieldElem) where T <: scalar_types = x isa T ? parent(x) : QQ
-_find_parent_field(::Type{T}, x::Number) where T <: scalar_types = QQ
-_find_parent_field(::Type{T}) where T <: scalar_types = QQ
-# _find_parent_field() = QQ
-_find_parent_field(::Type{T}, x::AbstractArray{<:AbstractArray}) where T <: scalar_types = _find_parent_field(T, x...)
-function _find_parent_field(::Type{T}, x::AbstractArray) where T <: scalar_types
-    for el in x
-        el isa T && return parent(el)
-    end
-    return QQ
+function _check_field_polyhedral(::Type{T}) where T
+  @req !(T <: NumFieldElem) "Number fields must be embedded, e.g. via `embedded_number_field`."
+  @req hasmethod(isless, (T, T)) "Field must be ordered and have `isless` method."
 end
 
-_determine_parent_and_scalar(f::Union{Field, ZZRing}, x...) = (f, elem_type(f))
-# isempty(x) => standard/trivial field?
+_find_elem_type(x::Nothing) = Any
+_find_elem_type(x::Any) = typeof(x)
+_find_elem_type(x::Type) = x
+_find_elem_type(x::Polymake.Rational) = QQFieldElem
+_find_elem_type(x::Polymake.Integer) = ZZRingElem
+_find_elem_type(x::AbstractArray) = reshape(_find_elem_type.(x), :)
+_find_elem_type(x::Tuple) = vcat(_find_elem_type.(x)...)
+_find_elem_type(x::AbstractArray{<:AbstractArray}) = vcat(_find_elem_type.(x)...)
+_find_elem_type(x::MatElem) = elem_type(base_ring(x))
+
+function _guess_fieldelem_type(x...)
+  types = filter(!=(Any), vcat(_find_elem_type.(x)...))
+  T = QQFieldElem
+  for t in types
+    if t == Float64
+      return Float64
+    elseif promote_type(t, T) != T
+      T = t
+    end
+  end
+  return T
+end
+
+_parent_or_coefficient_field(::Type{Float64}, x...) = AbstractAlgebra.Floats{Float64}()
+_parent_or_coefficient_field(::Type{ZZRingElem}, x...) = ZZ
+
+_parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}, x...) = parent(r.x)
+_parent_or_coefficient_field(v::AbstractArray{T}) where T<:Union{FieldElem, ZZRingElem} = _parent_or_coefficient_field(T, v)
+
+# QQ is done as a special case here to avoid ambiguities
+function _parent_or_coefficient_field(::Type{T}, e::Any) where T<:FieldElem
+  hasmethod(parent, (typeof(e),)) && elem_type(parent(e)) <: T ?
+    parent(e) :
+    missing
+end
+
+function _parent_or_coefficient_field(::Type{T}, c::MatElem) where T<:FieldElem
+  elem_type(base_ring(c)) <: T ? base_ring(c) : missing
+end
+
+function _parent_or_coefficient_field(::Type{T}, c::AbstractArray) where T<:FieldElem
+  first([collect(skipmissing(_parent_or_coefficient_field.(Ref(T), c))); missing])
+end
+
+function _parent_or_coefficient_field(::Type{T}, x, y...) where T <: scalar_types
+  for c in (x, y...)
+    p = _parent_or_coefficient_field(T, c)
+    if p !== missing && elem_type(p) <: T
+      return p
+    end
+  end
+  missing
+end
+
+function _determine_parent_and_scalar(f::Union{Field, ZZRing}, x...)
+  _check_field_polyhedral(elem_type(f))
+  return (f, elem_type(f))
+end
+
 function _determine_parent_and_scalar(::Type{T}, x...) where T <: scalar_types
-    if T == QQFieldElem
-        f = QQ
-    elseif T == Float64
-        f = AbstractAlgebra.Floats{Float64}()
-    else
-        pf = _find_parent_field(T, x...)
-        f = pf == QQ ? throw(ArgumentError("Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data.")) : pf
-    end
-    return (f, T)
+  T == QQFieldElem && return (QQ, QQFieldElem)
+  p = _parent_or_coefficient_field(T, x...)
+  @req p !== missing "Scalars of type $T require specification of a parent field. Please pass the desired Field instead of the type or have a $T contained in your input data."
+  _check_field_polyhedral(elem_type(p))
+  return (p, elem_type(p))
 end
 
-function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::Polymake.BigObject)
+function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, p::Polymake.BigObject)
     # we only want to check existing properties
     f = x -> Polymake.exists(p, string(x))
     propnames = intersect(propertynames(p), [:INPUT_RAYS, :POINTS, :RAYS, :VERTICES, :VECTORS, :INPUT_LINEALITY, :LINEALITY_SPACE, :FACETS, :INEQUALITIES, :EQUATIONS, :LINEAR_SPAN, :AFFINE_HULL])
@@ -467,7 +497,7 @@ function _detect_default_field(::Type{Hecke.EmbeddedNumFieldElem{nf_elem}}, p::P
         elseif eltype(prop) <: Polymake.OscarNumber
             for el in prop
                 on = Polymake.unwrap(el)
-                if on isa Hecke.EmbeddedNumFieldElem{nf_elem}
+                if on isa Hecke.EmbeddedNumFieldElem{AbsSimpleNumFieldElem}
                     return parent(on)
                 end
             end
@@ -539,27 +569,32 @@ function _promote_scalar_field(a::AbstractArray{<:FieldElem})
     return _promote_scalar_field(parent.(a)...)
 end
 
-_parent_or_coefficient_field(r::Base.RefValue{<:Union{FieldElem, ZZRingElem}}) = parent(r.x)
-
-_parent_or_coefficient_field(v::AbstractVector{T}) where T<:Union{FieldElem, ZZRingElem} = _determine_parent_and_scalar(T, v)[1]
-
 function _promoted_bigobject(::Type{T}, obj::PolyhedralObject{U}) where {T <: scalar_types, U <: scalar_types}
   T == U ? pm_object(obj) : Polymake.common.convert_to{_scalar_type_to_polymake(T)}(pm_object(obj))
 end
 
 # oscarnumber helpers
 
-function Polymake._fieldelem_to_rational(e::EmbeddedElem)
+function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
    return Rational{BigInt}(QQ(e))
 end
 
-function Polymake._fieldelem_is_rational(e::EmbeddedElem)
+function Polymake._fieldelem_is_rational(e::EmbeddedNumFieldElem)
    return is_rational(e)
 end
 
-function Polymake._fieldelem_to_float(e::EmbeddedElem)
+function Polymake._fieldelem_to_float(e::EmbeddedNumFieldElem)
    return Float64(real(embedding(parent(e))(data(e), 32)))
 end
+
+function Polymake._fieldelem_to_float(e::QQBarFieldElem)
+   return Float64(ArbField(64)(e))
+end
+
+function Polymake._fieldelem_from_rational(::QQBarField, r::Rational{BigInt})
+  return QQBarFieldElem(QQFieldElem(r))
+end
+
 
 # convert a Polymake.BigObject's scalar from QuadraticExtension to OscarNumber (Polytope only)
 

@@ -23,7 +23,7 @@ function inverse_on_image(inc::PrincipalOpenEmbedding)
   Y = codomain(inc)
   U = image(inc)
 
-  res = SpecMor(X, U, pullback(inc).(gens(OO(Y))), check=false)
+  res = morphism(X, U, pullback(inc).(gens(OO(Y))), check=false)
   result = inverse(res)
   inc.inverse_on_image = result
   return result

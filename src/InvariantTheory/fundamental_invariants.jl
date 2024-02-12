@@ -204,13 +204,11 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> fundamental_invariants(IR)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^3 + x[2]^3 + x[3]^3
  x[1]*x[2]*x[3]
  x[1]^6 + x[2]^6 + x[3]^6

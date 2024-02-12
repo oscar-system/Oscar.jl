@@ -68,7 +68,7 @@ Every element $U$ of the `affine_charts` of $D$ is either
   * a `SimplifiedSpec` with some original in the `affine_charts` of $C$.
 
 In all these cases, the affine subsets in the refinements form a tree and thus remember 
-their origins and ambient spaces. In particular, affine patches and also their glueings can be recycled 
+their origins and ambient spaces. In particular, affine patches and also their gluings can be recycled 
 and reused in different coverings and the latter should be merely seen as lists pointing 
 to the objects involved. 
 

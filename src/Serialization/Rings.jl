@@ -520,7 +520,7 @@ end
 
 ################################################################################
 # Laurent Series
-@register_serialization_type Generic.LaurentSeriesRing  "LaurentSeriesRing" uses_id
+@register_serialization_type Generic.LaurentSeriesRing "LaurentSeriesRing" uses_id
 @register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
 @register_serialization_type ZZLaurentSeriesRing uses_id
 

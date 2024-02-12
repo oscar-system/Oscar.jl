@@ -1,9 +1,10 @@
 @testset "affine schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   deepcopy(A3)
   set_name!(A3, "𝔸³")
-  @test iszero(Oscar.ambient_closure_ideal(A3))
+  @test iszero(Oscar.saturated_ideal(defining_ideal(A3)))
+  @test iszero(defining_ideal(A3))
   f = x*y-z^2
   I = ideal(R, f)
   J = ideal(R, [f, x])
@@ -12,38 +13,41 @@
   @test (A3empty==absempty)
   @test (absempty==A3empty)
   X = subscheme(A3, I)
+  @test defining_ideal(X) isa Oscar.MPolyIdeal
   @test_broken !is_non_zero_divisor(f,X)
   @test is_non_zero_divisor(f,A3)
   Xsub = subscheme(A3,J)
   @test !is_open_embedding(X,A3)
-  @test issubset(Xsub,X)
-  @test !issubset(X, Xsub)
+  @test is_subscheme(Xsub,X)
+  @test !is_subscheme(X, Xsub)
   set_name!(X, "X")
   @test iszero(OO(X)(f))
   U = hypersurface_complement(A3, x)
+  @test defining_ideal(U) isa Oscar.MPolyLocalizedIdeal
   UX = hypersurface_complement(X,x)
   @test is_non_zero_divisor(f,U)
   @test !is_non_zero_divisor(f,UX)
   @test !is_open_embedding(UX,U)
   @test_broken is_closed_embedding(UX,U)
   @test !is_open_embedding(UX,A3)
-  @test issubset(UX,U)
-  @test issubset(UX,X)
-  @test issubset(U,A3)
-  @test !issubset(A3,U)
+  @test is_subscheme(UX,U)
+  @test is_subscheme(UX,X)
+  @test is_subscheme(U,A3)
+  @test !is_subscheme(A3,U)
   line = subscheme(A3, x)
   line_complement = hypersurface_complement(A3,x)
-  @test !issubset(line,line_complement)
-  @test !issubset(line_complement,line)
-  @test !issubset(line, X)
-  @test issubset(Xsub, line)
+  @test !is_subscheme(line,line_complement)
+  @test !is_subscheme(line_complement,line)
+  @test !is_subscheme(line, X)
+  @test is_subscheme(Xsub, line)
   U1 = hypersurface_complement(A3, [x])
   @test ambient_coordinate_ring(U) === R
   set_name!(U, "U")
   UX = intersect(X, U)
+  @test defining_ideal(UX) isa Oscar.MPolyLocalizedIdeal
   set_name!(UX, "U ∩ X")
-  @test issubset(UX, X)
-  @test issubset(UX, U)
+  @test is_subscheme(UX, X)
+  @test is_subscheme(UX, U)
   @test name(UX) == "U ∩ X"
   @test X == closure(UX, A3)
   @test is_open_embedding(UX, X)
@@ -52,31 +56,31 @@
   subscheme(UX, [y^2])
   Z = subscheme(X, y^2)
   @test closure(UZ, X)==Z
-  
+
   S, (u,v) = QQ["u", "v"]
   A2 = Spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
-  phi = SpecMor(UX, A2, [y//z, z])
+  phi = morphism(UX, A2, [y//z, z])
   L = subscheme(A2, u-v)
   phi_L = preimage(phi, L)
   @test OO(phi_L)(y//z) == OO(phi_L)(z)
   psi = restrict(phi, phi_L, L)
   Gamma_psi, p, q = graph(psi)
   @test iszero(pullback(p)(OO(phi_L)(y//z)) - pullback(q)(OO(L)(v)))
-  
+
   Xstd = Oscar.standard_spec(X)
-  mirr = SpecMor(Xstd, Xstd, [y, x, z])
+  mirr = morphism(Xstd, Xstd, [y, x, z])
   @test is_isomorphism(mirr)
   @test pullback(compose(inverse(mirr), mirr))(OO(Xstd)(x^2-34*z)) == OO(Xstd)(x^2-34*z+ f^2)
   @test is_empty(EmptyScheme(QQ))
-  @test issubset(EmptyScheme(QQ),A3)
-  @test issubset(EmptyScheme(QQ),U)
-  @test !issubset(U,EmptyScheme(QQ))
-  @test issubset(X,A3)
-  @test !issubset(A3, X)
-  @test issubset(A3,A3)
-  @test issubset(intersect(A3,A3), A3)
+  @test is_subscheme(EmptyScheme(QQ),A3)
+  @test is_subscheme(EmptyScheme(QQ),U)
+  @test !is_subscheme(U,EmptyScheme(QQ))
+  @test is_subscheme(X,A3)
+  @test !is_subscheme(A3, X)
+  @test is_subscheme(A3,A3)
+  @test is_subscheme(intersect(A3,A3), A3)
 end
 
 # Tests for dimension when localizing with respect to either a prime
@@ -98,8 +102,8 @@ end
   @test dim(plane) == 2
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
-  
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
+
   S = complement_of_point_ideal(R, [1, 1, 1])
   I = ideal(R, [x-1, y-1])*ideal(R, z)
   L, _ = localization(R, S)
@@ -123,7 +127,7 @@ end
   @test dim(plane) == 3
   A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
-  @test dim(standard_spec(A3_localized_along_line)) == 2
+  @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   P = ideal(R, R(5))
   @test is_prime(P)
   S = complement_of_prime_ideal(P)
@@ -183,25 +187,25 @@ end
   set_name!(X, "X")
   @test iszero(OO(X)(f))
   U = hypersurface_complement(A3, x)
-  @test issubset(intersect(A3,U),intersect(U,A3))
+  @test is_subscheme(intersect(A3,U),intersect(U,A3))
   V  = PrincipalOpenSubset(U)
   @test dim(V) == 3
-  @test issubset(U,V)
-  @test issubset(V,V)
+  @test is_subscheme(U,V)
+  @test is_subscheme(V,V)
 
-  @test_broken issubset(intersect(A3,V),intersect(V,A3))
-  @test issubset(intersect(U,A3),V)
-  @test_broken issubset(intersect(A3,V),A3)
+  @test_broken is_subscheme(intersect(A3,V),intersect(V,A3))
+  @test is_subscheme(intersect(U,A3),V)
+  @test_broken is_subscheme(intersect(A3,V),A3)
   @test ambient_coordinate_ring(V)===R
   @test ambient_coordinate_ring(U) === R
-  @test ring_type(V) == typeof(OO(V))
-  @test base_ring_type(typeof(V)) == typeof(QQ)
-  @test base_ring_elem_type(V) == QQFieldElem
+  @test Oscar.ring_type(V) == typeof(OO(V))
+  @test Oscar.base_ring_type(typeof(V)) == typeof(QQ)
+  @test Oscar.base_ring_elem_type(V) == QQFieldElem
   @test base_ring(V) == QQ
-  @test issubset(V,U)
-  @test issubset(U,V)
-  @test issubset(V,A3)
-  @test !issubset(A3, V)
+  @test is_subscheme(V,U)
+  @test is_subscheme(U,V)
+  @test is_subscheme(V,A3)
+  @test !is_subscheme(A3, V)
   h = gens(OO(V))[1]
   hypersurface_complement(V, h)
   hypersurface_complement(V, [h])
@@ -225,8 +229,8 @@ end
   B = Oscar.standard_spec(Spec(T))
   phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
   phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
-  Phi1 = SpecMor(X, B, phi1)
-  Phi2 = SpecMor(Y, B, phi2)
+  Phi1 = morphism(X, B, phi1)
+  Phi2 = morphism(Y, B, phi2)
   Z = fiber_product(Phi1, Phi2)[1]
   A = ambient_coordinate_ring(Z)
   a = gens(A)
@@ -279,7 +283,7 @@ end
   m2 = compose(phi4, inclusion_morphism(V, IA2));
   @test m1 == m2
 
-  # Testing morphisms 
+  # Testing morphisms
   inc_U = inclusion_morphism(V, X)
   (a, b, c) = base_change(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)

@@ -156,7 +156,7 @@ end
 # tangent lines
 
  @doc raw"""
-      tangent_lines(C::ProjectivePlaneCurve{S}, P::Geometry.ProjSpcElem{S}) where S <: FieldElem
+      tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
 """

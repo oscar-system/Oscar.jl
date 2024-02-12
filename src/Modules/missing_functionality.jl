@@ -6,11 +6,6 @@
 # places, eventually.
 #
 
-# iterators over singular modules
-Base.iterate(L::Singular.smodule) = iterate(L, 1)
-Base.eltype(::Type{Singular.smodule}) = Singular.svector
-Base.length(L::Singular.smodule) = ngens(L)
-
 # the default module ordering assumes that we're computing in a global ring
 function default_ordering(F::FreeMod{T}) where {T<:MPolyLocRingElem}
   return default_ordering(base_ring_module(F))
@@ -47,7 +42,7 @@ function coordinates(f::MPolyQuoRingElem, I::MPolyQuoIdeal)
   J = modulus(Q)
   R = base_ring(Q)
   K = ideal(R, vcat(lift.(gens(I)), gens(J)))
-  return Q.(coordinates(lift(f), K)[1, 1:ngens(I)])
+  return Q.(coordinates(lift(f), K)[1:1, 1:ngens(I)])
 end
 
 function lift(f::MPolyRingElem, I::MPolyIdeal, o::MonomialOrdering)

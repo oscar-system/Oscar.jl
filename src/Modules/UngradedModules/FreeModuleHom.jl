@@ -330,7 +330,7 @@ julia> F2 = free_module(R, 2)
 Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 
 julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ to Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
 Map with following data
@@ -353,7 +353,7 @@ julia> F2 = graded_free_module(Rg, [3,5])
 Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
 
 julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map: hom of (F1, F2) -> set of all homomorphisms from Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg to Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
 F1 -> F2
@@ -583,3 +583,22 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, Nothing}) where
 
 end
 
+@doc raw"""
+    lift(f::FreeModuleHom, g::FreeModuleHom)
+
+Supposing that `f` and  `g` have the same codomain, factorize `f` through `g`,
+i.e. return a homomorphism `h` such that `f` is the composition of `g` after `h`,
+if such a homomorphism exists. Otherwise throw an error.
+
+"""
+function lift(f::FreeModuleHom, g::FreeModuleHom)
+  @assert codomain(f) === codomain(g)
+  F_imgs = images_of_generators(f)
+  G_imgs = images_of_generators(g)
+  F_modgens = ModuleGens(F_imgs, codomain(f))
+  G_modgens = ModuleGens(G_imgs, codomain(g))
+  lifted_imgs_srow = lift(F_modgens, G_modgens)
+  lifted_imgs = [FreeModElem(c, domain(g)) for c in lifted_imgs_srow]
+  h = hom(domain(f), domain(g), lifted_imgs)
+  return h
+end

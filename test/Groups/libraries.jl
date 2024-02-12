@@ -1,9 +1,9 @@
 @testset "Transitive groups" begin
-   @test number_transitive_groups(4)==5
-   @test number_transitive_groups(10)==45
+   @test number_of_transitive_groups(4)==5
+   @test number_of_transitive_groups(10)==45
 
    for i in 1:10
-       @test number_transitive_groups(i) == length(all_transitive_groups(degree => i))
+       @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end
 
    G = symmetric_group(4)
@@ -101,15 +101,15 @@ end
    @test_throws ArgumentError perfect_group(60, 2)
 
    @test is_isomorphic(perfect_group(60,1),G)
-   @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
+   @test [number_of_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_group_identification(alternating_group(5))
    @test is_isomorphic(perfect_group(x[1],x[2]),alternating_group(5))
    @test_throws ArgumentError perfect_group_identification(symmetric_group(5))
 
-   @test sum(number_perfect_groups, 1:59) == 1
-   @test number_perfect_groups(ZZRingElem(60)^3) == 1
-   @test_throws ArgumentError number_perfect_groups(0) # invalid argument
-   @test_throws ArgumentError number_perfect_groups(ZZRingElem(60)^10)  # result not known
+   @test sum(number_of_perfect_groups, 1:59) == 1
+   @test number_of_perfect_groups(ZZRingElem(60)^3) == 1
+   @test_throws ArgumentError number_of_perfect_groups(0) # invalid argument
+   @test_throws ArgumentError number_of_perfect_groups(ZZRingElem(60)^10)  # result not known
 
    # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
    #@test perfect_group(1376256, 1) isa PermGroup
@@ -131,8 +131,8 @@ end
    @test length(all_small_groups(16, exponent=>[2,4]))==8
    @test length(all_small_groups(16, exponent=>5))==0
    @test length(all_small_groups(order => 16, !is_abelian))==9
-   @test number_small_groups(16)==14
-   @test number_small_groups(17)==1
+   @test number_of_small_groups(16)==14
+   @test number_of_small_groups(17)==1
 
    @test_throws ArgumentError small_group(1, 2)
 end
@@ -140,7 +140,7 @@ end
 @testset "Primitive groups" begin
    @test has_primitive_groups(50)
    @test_throws ArgumentError primitive_group(1, 1)
-   @test number_primitive_groups(50) == 9
+   @test number_of_primitive_groups(50) == 9
 end
 
 @testset "Atlas groups" begin
