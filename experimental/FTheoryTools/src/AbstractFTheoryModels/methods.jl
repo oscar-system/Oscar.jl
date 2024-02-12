@@ -508,7 +508,7 @@ end
 ##########################################
 
 function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
@@ -518,14 +518,14 @@ function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{V
 end
 
 function set_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
   set_attribute!(m, :resolution_generating_sections => result)
 end
 
 function set_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
   set_attribute!(m, :resolution_zero_sections => result)
@@ -536,21 +536,21 @@ function set_weighted_resolutions(m::AbstractFTheoryModel, desired_value::Vector
 end
 
 function set_weighted_resolution_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{Vector{String}}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   result = [[[[f(eval_poly(a, R)) for a in b] for b in c] for c in d] for d in vs]
   set_attribute!(m, :weighted_resolution_generating_sections => result)
 end
 
 function set_weighted_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Vector{String}}})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   result = [[[f(eval_poly(a, R)) for a in b] for b in c] for c in vs]
   set_attribute!(m, :weighted_resolution_zero_sections => result)
 end
 
 function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String})
-  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))))
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
@@ -674,7 +674,7 @@ function resolve(m::AbstractFTheoryModel, index::Int)
   
   # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
   resolved_ambient_space = ambient_space(m)
-  R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals))
+  R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals), cached = false)
   for center in centers
     blow_up_center = center
     if has_attribute(m, :explicit_model_sections)
