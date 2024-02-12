@@ -40,15 +40,15 @@
     "model_data": {
         "base_dim": 3,
         "model_sections": ["ζ0"],
-        "base_coordinates": ["Kbar", "ζ0", "b1", "b2", "b3", "b4", "b6"],
+        "base_coordinates": ["ζ0", "b1", "b2", "b3", "b4", "b6"],
         "a1": "b1*ζ0",
         "a2": "b2*ζ0^2",
         "a3": "b3*ζ0^3",
         "a4": "b4*ζ0^3",
         "a6": "b6*ζ0^5",
         "auxiliary_base_grading": [
-            [1, 0, 1, 2, 3, 4, 6],
-            [0, 1, -1, -2, -3, -3, -5]
+            [0, 1, 2, 3, 4, 6],
+            [1, -1, -2, -3, -3, -5]
         ],
         "resolutions": [
             [
