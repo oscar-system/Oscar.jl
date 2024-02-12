@@ -131,17 +131,16 @@ Assuming that the first row of the given grading is the grading under Kbar
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia&gt; explicit_model_sections(t)
-Dict{String, QQMPolyRingElem} with 10 entries:
-  &quot;a6&quot;   =&gt; 0
-  &quot;a21&quot;  =&gt; a21
-  &quot;a3&quot;   =&gt; w^2*a32
-  &quot;w&quot;    =&gt; w
-  &quot;Kbar&quot; =&gt; Kbar
-  &quot;a2&quot;   =&gt; w*a21
-  &quot;a1&quot;   =&gt; a1
-  &quot;a4&quot;   =&gt; w^3*a43
-  &quot;a43&quot;  =&gt; a43
-  &quot;a32&quot;  =&gt; a32</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="defining_section_parametrization-Tuple{AbstractFTheoryModel}" href="#defining_section_parametrization-Tuple{AbstractFTheoryModel}"><code>defining_section_parametrization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">defining_section_parametrization(m::AbstractFTheoryModel)</code></pre><p>Return the model sections in explicit form, that is as polynomials of the base space coordinates.</p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
+Dict{String, QQMPolyRingElem} with 9 entries:
+  &quot;a6&quot;  =&gt; 0
+  &quot;a21&quot; =&gt; a21
+  &quot;a3&quot;  =&gt; w^2*a32
+  &quot;w&quot;   =&gt; w
+  &quot;a2&quot;  =&gt; w*a21
+  &quot;a1&quot;  =&gt; a1
+  &quot;a4&quot;  =&gt; w^3*a43
+  &quot;a43&quot; =&gt; a43
+  &quot;a32&quot; =&gt; a32</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="defining_section_parametrization-Tuple{AbstractFTheoryModel}" href="#defining_section_parametrization-Tuple{AbstractFTheoryModel}"><code>defining_section_parametrization</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">defining_section_parametrization(m::AbstractFTheoryModel)</code></pre><p>Return the model sections in explicit form, that is as polynomials of the base space coordinates.</p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;)
 Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -230,4 +229,27 @@ julia&gt; hypersurface_equation(tuned_t) == new_tate_polynomial
 true
 
 julia&gt; base_space(tuned_t) == base_space(t)
-true</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../introduction/">« Welcome to FTheoryTools</a><a class="docs-footer-nextpage" href="../weierstrass/">Weierstrass models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Sunday 11 February 2024 19:47">Sunday 11 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+true</code></pre></div></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="put_over_concrete_base-Tuple{AbstractFTheoryModel, Dict{String}}" href="#put_over_concrete_base-Tuple{AbstractFTheoryModel, Dict{String}}"><code>put_over_concrete_base</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, &lt;:Any}; completeness_check::Bool = true)</code></pre><p>Put an F-theory model defined over a family of spaces over a concrete base.</p><p>Currently, this functionality is limited to Tate and Weierstrass models.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; t = literature_model(arxiv_id = &quot;1109.3454&quot;, equation = &quot;3.1&quot;, completeness_check = false)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia&gt; B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia&gt; w_bundle = toric_line_bundle(torusinvariant_prime_divisors(B3)[1])
+Toric line bundle on a normal toric variety
+
+julia&gt; kbar = anticanonical_bundle(B3)
+Toric line bundle on a normal toric variety
+
+julia&gt; w = basis_of_global_sections(w_bundle)[1];
+
+julia&gt; a21 = generic_section(kbar^2 * w_bundle^(-1));
+
+julia&gt; a32 = generic_section(kbar^3 * w_bundle^(-2));
+
+julia&gt; a43 = generic_section(kbar^4 * w_bundle^(-3));
+
+julia&gt; t2 = put_over_concrete_base(t, Dict(&quot;base&quot; =&gt; B3, &quot;w&quot; =&gt; w, &quot;a21&quot; =&gt; a21, &quot;a32&quot; =&gt; a32, &quot;a43&quot; =&gt; a43), completeness_check = false)
+Global Tate model over a concrete base</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../introduction/">« Welcome to FTheoryTools</a><a class="docs-footer-nextpage" href="../weierstrass/">Weierstrass models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Monday 12 February 2024 22:09">Monday 12 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

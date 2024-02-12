@@ -14,7 +14,7 @@ julia&gt; v = ambient_space(t)
 A family of spaces of dimension d = 5
 
 julia&gt; coordinate_ring(v)
-Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
+Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
   over rational field</code></pre><p>It is also possible to construct a literature model over a particular base. Currently, this feature is only supported for toric base spaces.</p><pre><code class="language-julia-repl hljs">julia&gt; B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
@@ -57,13 +57,12 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia&gt; explicit_model_sections(h)
-Dict{String, MPolyRingElem} with 6 entries:
-  &quot;c2&quot;   =&gt; c2
-  &quot;c1&quot;   =&gt; c1
-  &quot;Kbar&quot; =&gt; Kbar
-  &quot;c3&quot;   =&gt; c3
-  &quot;b&quot;    =&gt; b
-  &quot;c0&quot;   =&gt; c0
+Dict{String, MPolyRingElem} with 5 entries:
+  &quot;c2&quot; =&gt; c2
+  &quot;c1&quot; =&gt; c1
+  &quot;c3&quot; =&gt; c3
+  &quot;b&quot;  =&gt; b
+  &quot;c0&quot; =&gt; c0
 
 julia&gt; B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -329,4 +328,4 @@ Multivariate polynomial ring in 12 variables over QQ graded by
   e4 -&gt; [0 0 0 0 0 0 1]
   e2 -&gt; [-1 -3 -1 1 -1 -1 0]
   e3 -&gt; [0 4 1 -1 1 0 -1]
-  s -&gt; [2 6 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LinearQuotients/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Sunday 11 February 2024 19:48">Sunday 11 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+  s -&gt; [2 6 -1 0 2 1 1]</code></pre></div></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../hypersurface/">« Hypersurface models</a><a class="docs-footer-nextpage" href="../../LinearQuotients/introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Monday 12 February 2024 22:09">Monday 12 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
