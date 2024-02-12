@@ -1722,9 +1722,9 @@ x^2 + y*h
 julia> DH(F)
 x^2 + y
 
-julia> V = H.([x^2+y, x*y+y^2]);
+julia> V = [x^2+y, x*y+y^2]; HV = H.(V);
 
-julia> parent(DH(V[1])) == P  &&  parent(DH(V[2])) == P
+julia> parent(DH(HV[1])) == P  &&  parent(DH(HV[2])) == P
 true
 
 julia> DH(H(ideal(V)))
