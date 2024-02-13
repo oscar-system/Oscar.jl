@@ -1066,6 +1066,7 @@ end
   I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
   A, _ = quo(R, I)
   @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n-----------------\ntotal: 1  5  5  1\n"
+end
 
 @testset "sheaf cohomology" begin
   S, _ = graded_polynomial_ring(QQ, "x" => 1:4)
