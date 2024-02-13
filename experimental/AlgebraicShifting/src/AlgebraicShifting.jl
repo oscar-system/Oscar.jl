@@ -59,32 +59,48 @@ function shift_basis_ext(F::Field, K::SimplicialComplex)
 end
 
 @doc raw"""
-     exterior_shift(K::SimplicialComplex)
+     exterior_shift(F::Field, K::SimplicialComplex)
 
 Returns the exterior shift of `K`
 """
-function exterior_shift(F::Field, K::SimplicialComplex)
+function exterior_shift(F::Field, K::SimplicialComplex;
+                        change_of_basis::T = nothing) where T <: Union{Nothing, MatrixGroupElem}
   n = nvertices(K)
+  if isnothing(change_of_basis)
+    Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+    change_of_basis = matrix(Fx, hcat(x))
+    matrix_base = Fx
+  else
+    change_of_basis = matrix(change_of_basis)
+    matrix_base = base_ring(change_of_basis)
+  end
+
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+
   input_faces = apply_on_faces(K) do (dim_face, faces)
-    println("shifting faces of dim $dim_face")
     sort!(faces; lt=cmp)
-    X = matrix(Fx, hcat(x))
     nCk = sort(subsets(n, dim_face + 1))
-    sub_compound_matrix = Vector{MPolyRingElem}[]
+    entry_type = elem_type(matrix_base)
+
+    sub_compound_matrix = Vector{entry_type}[]
 
     for col_subset in nCk
-      row_minors = MPolyRingElem[]
+      row_minors = entry_type[]
       for row_subset in faces
         ri = collect(row_subset)
         ci = collect(col_subset)
-        push!(row_minors, det(X[ri, ci]))
+        push!(row_minors, det(change_of_basis[ri, ci]))
       end
       push!(sub_compound_matrix, row_minors)
     end
-    A = matrix(Fx, sub_compound_matrix)
-    Oscar.ModStdQt.ref_ff_rc!(A)
+    
+    A = matrix(matrix_base, sub_compound_matrix)
+
+    if isnothing(change_of_basis)
+      Oscar.ModStdQt.ref_ff_rc!(A)
+    else
+      rref!(A)
+    end
     delta_k = independent_columns(A)
     return nCk[delta_k]
   end
@@ -93,7 +109,7 @@ function exterior_shift(F::Field, K::SimplicialComplex)
 end
 
 @doc raw"""
-   symmetric_shift(K::SimplicialComplex)
+   symmetric_shift(F::Field, K::SimplicialComplex)
 
 Returns the symmetric shift of `K`
 """
