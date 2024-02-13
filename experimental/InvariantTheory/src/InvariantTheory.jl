@@ -191,14 +191,14 @@ end
 #computes symmetric degree basis (of the first m variables) WITH multinomial coefficients!
 function degree_basis(R::MPolyRing, t::Int)
     m = ngens(R)
-    C = zero_matrix(Int, m, m)
+    C = zero_matrix(ZZ, m, m)
     for i in 1:m
       C[i,i] = -1 
     end
     d = zeros(m)
     A = ones(m)
     b = [t]
-    P = Polyhedron((C, d), (A, b))
+    P = polyhedron((C, d), (A, b))
     L = lattice_points(P)
     W = Vector{MPolyRingElem}(undef,0)
     for l in L
