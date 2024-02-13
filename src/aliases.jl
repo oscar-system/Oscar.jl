@@ -41,7 +41,6 @@ function number_of_roots end                        # from experimental/LieAlgeb
 function number_of_simple_roots end                 # from experimental/LieAlgebras
 function number_of_vertices end
 @alias ncones number_of_cones
-@alias ne number_of_edges
 @alias nedges number_of_edges
 @alias nfacets number_of_facets
 @alias nmaxcells number_of_maximal_cells            # decided to have but not used anywhere
@@ -55,5 +54,8 @@ function number_of_vertices end
 @alias nrays number_of_rays
 @alias nroots number_of_roots
 @alias nsimpleroots number_of_simple_roots
-@alias nv number_of_vertices
 @alias nvertices number_of_vertices
+
+# these are kept for compatibility with Graphs.jl / GraphsBase.jl
+@alias ne number_of_edges
+@alias nv number_of_vertices
