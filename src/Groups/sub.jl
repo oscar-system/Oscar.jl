@@ -455,7 +455,7 @@ julia> lower_central_series(symmetric_group(4))
     upper_central_series(G::GAPGroup)
 
 Return the vector $[ G_1, G_2, \ldots ]$ where the last entry is the
-trivial group, and $G_i$ is defined as the overgroup of $G_{i+1}
+trivial group, and $G_i$ is defined as the overgroup of $G_{i+1}$
 satisfying $G_i / G_{i+1} = Z(G/G_{i+1})$. The series ends as soon as
 it is repeating (e.g. when the whole group $G$ is reached, which
 happens if and only if $G$ is nilpotent).
@@ -554,9 +554,12 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
   if check
     @req is_subset(H, G) "H is not a subgroup of G"
   end
-  if order(G) // order(H) < 100
+  ind = index(G, H)
+  is_prime(ind) && return true
+  if ind < 100
+    # Do not unpack the right transversal object.
     t = right_transversal(G, H)[2:end] #drop the identity
-    return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
+    return all(i -> order(sub(G, vcat(gens(H), [t[i]]))[1]) == order(G), 2:ind)
   end
   return any(C -> H in C, maximal_subgroup_classes(G))
 end

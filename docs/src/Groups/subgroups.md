@@ -67,6 +67,18 @@ upper_central_series
     one can type `embedding(G,H)`.
 
 
+The following functions return an iterator of subgroups.
+Usually it is more efficient to work with (representatives of) the
+underlying conjugacy classes of subgroups instead.
+
+```@docs
+complements(G::T, N::T) where T <: GAPGroup
+hall_subgroups
+low_index_subgroups
+maximal_subgroups
+subgroups(G::GAPGroup)
+```
+
 ## Conjugation action of elements and subgroups
 
 ```@docs

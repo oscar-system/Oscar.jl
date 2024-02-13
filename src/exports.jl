@@ -356,6 +356,7 @@ export complement_of_point_ideal
 export complement_of_prime_ideal
 export complement_scheme
 export complement_system, has_complement_system, set_complement_system
+export complements
 export complete_bipartite_graph
 export complete_graph
 export complete_intersection_germ
@@ -608,6 +609,7 @@ export halfspace
 export halfspace_matrix_pair
 export hall_subgroup
 export hall_subgroup_classes
+export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_du_val_singularities
 export has_edge
@@ -943,6 +945,7 @@ export localization
 export localized_ring
 export loops
 export low_index_subgroup_classes
+export low_index_subgroups
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
@@ -981,6 +984,7 @@ export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
+export maximal_subgroups
 export metadata
 export milnor_algebra
 export milnor_number

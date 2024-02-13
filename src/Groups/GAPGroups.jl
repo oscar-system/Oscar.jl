@@ -789,6 +789,23 @@ function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: Int
 end
 
 """
+    subgroups(G::GAPGroup)
+
+Return an iterator of all subgroups in `G`.
+Very likely it is better to use [`subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> println([order(H) for H in subgroups(symmetric_group(3))])
+ZZRingElem[1, 2, 2, 2, 3, 6]
+
+julia> println([order(H) for H in subgroups(quaternion_group(8))])
+ZZRingElem[1, 2, 4, 4, 4, 8]
+```
+"""
+subgroups(G::GAPGroup) = Iterators.flatten(subgroup_classes(G))
+
+"""
     maximal_subgroup_classes(G::Group)
 
 Return the vector of all conjugacy classes of maximal subgroups of G.
@@ -811,6 +828,23 @@ julia> maximal_subgroup_classes(G)
 end
 
 """
+    maximal_subgroups(G::Group)
+
+Return an iterator of the maximal subgroups in `G`.
+Very likely it is better to use [`maximal_subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> println([order(H) for H in maximal_subgroups(symmetric_group(3))])
+ZZRingElem[3, 2, 2, 2]
+
+julia> println([order(H) for H in maximal_subgroups(quaternion_group(8))])
+ZZRingElem[4, 4, 4]
+```
+"""
+maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(maximal_subgroup_classes(G))
+
+"""
     low_index_subgroup_classes(G::GAPGroup, n::Int)
 
 Return a vector of conjugacy classes of subgroups of index at most `n` in `G`.
@@ -831,6 +865,22 @@ function low_index_subgroup_classes(G::GAPGroup, n::Int)
   ll = GAP.Globals.LowIndexSubgroups(G.X, n)::GapObj
   return [conjugacy_class(G, H) for H in _as_subgroups(G, ll)]
 end
+
+"""
+    low_index_subgroups(G::Group, n::Int)
+
+Return an iterator of the subgroups of index at most `n` in `G`.
+Very likely it is better to use [`low_index_subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> G = alternating_group(6);
+
+julia> length(collect(low_index_subgroups(G, 6)))
+13
+```
+"""
+low_index_subgroups(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(low_index_subgroup_classes(G, n))
 
 """
     conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
@@ -1254,6 +1304,22 @@ function hall_subgroup_classes(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    end
 end
 
+"""
+    hall_subgroups(G::Group, P::AbstractVector{<:IntegerUnion})
+
+Return an iterator of the Hall `P`-subgroups in `G`.
+Very likely it is better to use [`hall_subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> g = GL(3, 2);
+
+julia> describe(first(hall_subgroups(g, [2, 3])))
+"S4"
+```
+"""
+hall_subgroups(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(hall_subgroup_classes(G, P))
+
 @doc raw"""
     sylow_system(G::Group)
 
@@ -1303,6 +1369,22 @@ function complement_classes(G::T, N::T) where T <: GAPGroup
      return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
    end
 end
+
+@doc raw"""
+    complements(G::T, N::T) where T <: GAPGroup
+
+Return an iterator of the complements of the normal subgroup `N` in `G`.
+Very likely it is better to use [`complement_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> describe(first(complements(G, derived_subgroup(G)[1])))
+"C2"
+```
+"""
+complements(G::T, N::T) where T <: GAPGroup = Iterators.flatten(complement_classes(G, N))
 
 @doc raw"""
     complement_system(G::Group)

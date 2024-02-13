@@ -85,6 +85,7 @@ end
     # conjugacy classes of subgroups
     CC = subgroup_classes(G1)
     @test length(CC) == length(subgroup_classes(G2))
+    @test length(CC) == length(collect(subgroups(G1)))
     @test all(C -> length(C) == 1, CC)
     @test rand(CC[1]) == representative(CC[1])
     @test acting_group(CC[1]) == G1
@@ -117,10 +118,12 @@ end
       S1 = low_index_subgroup_classes(G1, n)
       S2 = low_index_subgroup_classes(G2, n)
       @test length(S1) == length(S2)
+      @test length(S1) == length(collect(low_index_subgroups(G1, n)))
     end
     S1 = maximal_subgroup_classes(G1)
     S2 = maximal_subgroup_classes(G2)
     @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    @test length(S1) == length(collect(maximal_subgroups(G1)))
 
     # operations
     x = representative(rand(cc))
@@ -140,6 +143,8 @@ end
     for P in subsets(Set(primes))
       @test [images(iso, representative(C))[1] for C in hall_subgroup_classes(G1, collect(P))] ==
             map(representative, hall_subgroup_classes(G2, collect(P)))
+      @test [images(iso, C)[1] for C in hall_subgroups(G1, collect(P))] ==
+            collect(hall_subgroups(G2, collect(P)))
     end
     @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
           sort!([order(S) for S in hall_system(G2)])
