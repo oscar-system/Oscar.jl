@@ -414,7 +414,7 @@ Returns nothing if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
-julia> julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> is_sphere(K)
 false
@@ -433,7 +433,7 @@ Returns nothing if heuristics unsuccessful.
 
 # Examples
 ```jldoctest
-julia> julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> is_ball(K)
 true
