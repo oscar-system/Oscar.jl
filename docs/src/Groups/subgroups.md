@@ -104,6 +104,7 @@ conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
 complement_classes
 hall_subgroup_classes
+low_index_subgroup_classes
 maximal_subgroup_classes(G::GAPGroup)
 subgroup_classes(G::GAPGroup)
 ```
