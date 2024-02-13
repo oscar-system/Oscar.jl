@@ -1,9 +1,17 @@
+#This code uses Derksen's algorithm to compute fundamental invariants of linearly reductive group.
+#We first set up ReductiveGroup , then we set up a representation via which the group acts on a vector space (RepresentationReductiveGroup)
+#Then we set up the invariant ring of the group. The fundamental invariants are computed using Derksen's alg.
+#As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
+
 export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
-export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix, representation_on_weights
+export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
 export InvariantRing, invariant_ring, fundamental_invariants, null_cone_ideal
 ##########################
-#Reductive Groups
+#Setting up Reductive Groups 
 ##########################
+#These are objects that carry information about a linearly reductive group. 
+#As of now it is only implemented for SLn, its direct products and tensors. 
+
 mutable struct ReductiveGroup
     field::Field #characteristic zero. implement check? 
     group::Tuple{Symbol, Int}
@@ -43,9 +51,10 @@ function Base.show(io::IO, G::ReductiveGroup)
     io = pretty(io)
     if G.group[1] == :SL
         print(io, "Reductive group ", G.group[1], G.group[2])
-    elnd
+    end
 end
 
+#getter functions
 reductive_group(sym::Symbol, m::Int, R::MPolyRing) = ReductiveGroup(sym,m,R)
 reductive_group(sym::Symbol, m::Int, F::Field) =  ReductiveGroup(sym,m,F)
 group(G::ReductiveGroup) = G.group
@@ -56,8 +65,10 @@ canonical_representation(G::ReductiveGroup) = G.canonical_representation
 natural_representation(G::ReductiveGroup) = G.canonical_representation
 
 #####################
-#Representation of Reductive Groups. Embeds SLm in GLn. 
+#Setting up Representation objects
 #####################
+#Objects of type ReductiveGroup can be embedded in GLn (for some n) via a representation. This defines the action on a vector space. 
+#We set up an object RepresentationReductiveGroup that carries information about this representation.
 
 mutable struct RepresentationReductiveGroup
     group::ReductiveGroup
