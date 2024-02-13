@@ -486,7 +486,7 @@ end
 @doc raw"""
      is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
-Checks if the given simplicial complexes are isomorphic
+Checks if the given simplicial complexes are isomorphic.
 
 # Examples
 ```jldoctest
@@ -499,6 +499,6 @@ true
 ```
 """
 function is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
-  return Polymake.topaz.isomorphic(pm_object(K1), pm_object(K2))
+  return Polymake.topaz.isomorphic(pm_object(K1), pm_object(K2))::Bool
 end
 
