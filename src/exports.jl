@@ -188,6 +188,7 @@ export add_edge!
 export add_gluing!
 export add_vertex!
 export add_vertices!
+export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
 export affine_algebra
@@ -389,6 +390,7 @@ export coordinate_names_of_torus
 export coordinate_ring
 export coordinate_ring_of_torus
 export coordinates
+export cophenetic_matrix
 export corank
 export core
 export corresponding_bilinear_form
@@ -494,6 +496,7 @@ export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
 export equidimensional_hull
 export equidimensional_hull_radical
+export equidistant
 export euler_characteristic
 export euler_phi
 export expand
@@ -1043,6 +1046,7 @@ export neglex
 export negwdeglex
 export negwdegrevlex
 export neighbors
+export newick
 export newton_polytope
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
@@ -1145,6 +1149,7 @@ export permutation_group
 export permutation_matrix
 export permutation_of_terms
 export permuted
+export phylogenetic_tree
 export picard_class
 export picard_group
 export picard_index
@@ -1410,6 +1415,7 @@ export syzygy_generators
 export tail
 export tangent_lines
 export tangent_space
+export taxa
 export tensor_product
 export terms
 export tetrahedron
@@ -1443,6 +1449,7 @@ export trivial_divisor_class
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_matrix
+export tropical_median_consensus
 export tropical_pluecker_vector
 export tropical_polynomial
 export tropical_variety
