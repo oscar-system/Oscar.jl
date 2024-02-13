@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'release-*'
     tags: '*'
   pull_request:
   workflow_dispatch:

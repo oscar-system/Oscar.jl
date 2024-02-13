@@ -143,6 +143,21 @@ end
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
 end
 
+@testset "matrix group over QQBar" begin
+   K = algebraic_closure(QQ)
+   e = one(K)
+   s, c = sinpi(2*e/5), cospi(2*e/5)
+   r = matrix([ c -s ; s c ]);
+   t = matrix(K, [ -1 0 ; 0 1 ]);
+   G = matrix_group(r, t)
+   @test order(G) == 10
+
+   p = K.([0,1])
+   orb = orbit(G, *, p)
+   @test length(orb) == 5
+
+end
+
 @testset "Type operations" begin
    G = GL(5,5)
    x = rand(G)

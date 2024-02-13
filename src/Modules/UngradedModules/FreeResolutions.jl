@@ -506,7 +506,7 @@ minimal free resolutions are returned.
 function free_resolution(I::MPolyIdeal;
                          length::Int=0, algorithm::Symbol=:fres)
   S = ideal_as_module(I)
-  n = Hecke.find_name(I)
+  n = AbstractAlgebra.find_name(I)
   if n !== nothing
     AbstractAlgebra.set_name!(S, string(n))
   end
@@ -527,7 +527,7 @@ minimal free resolutions are returned.
 function free_resolution(Q::MPolyQuoRing;
                          length::Int=0, algorithm::Symbol=:fres)
   q = quotient_ring_as_module(Q)
-  n = Hecke.find_name(Q)
+  n = AbstractAlgebra.find_name(Q)
   if n !== nothing
     AbstractAlgebra.set_name!(q, String(n))
   end
