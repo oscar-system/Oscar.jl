@@ -287,9 +287,16 @@ end
 
 @register_serialization_type MPolyIdeal uses_params
 @register_serialization_type LaurentMPolyIdeal uses_params
-const IdealUnionType = Union{MPolyIdeal, LaurentMPolyIdeal, FreeAssAlgIdeal}
 
-function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
+# we should avoid this list getting too long and find a
+# way to abstract saving params soon
+const IdealOrdUnionType = Union{MPolyIdeal,
+                                LaurentMPolyIdeal,
+                                FreeAssAlgIdeal,
+                                IdealGens,
+                                MonomialOrdering}
+
+function save_type_params(s::SerializerState, x::T) where T <: IdealOrdUnionType
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     ref = save_as_ref(s, base_ring(x))
@@ -297,15 +304,15 @@ function save_type_params(s::SerializerState, x::T) where T <: IdealUnionType
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<: IdealUnionType})
+function load_type_params(s::DeserializerState, ::Type{<: IdealOrdUnionType})
   return load_type_params(s, RingElem)
 end
 
-function save_object(s::SerializerState, I::T) where T <: IdealUnionType
+function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
   save_object(s, gens(I))
 end
 
-function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_ring::RingMatSpaceUnion)
+function load_object(s::DeserializerState, ::Type{<: IdealOrdUnionType}, parent_ring::RingMatSpaceUnion)
   gens = elem_type(parent_ring)[]
   load_node(s) do gens_data
     for i in 1:length(gens_data)
@@ -316,6 +323,35 @@ function load_object(s::DeserializerState, ::Type{<: IdealUnionType}, parent_rin
     end
   end
   return ideal(parent_ring, gens)
+end
+
+################################################################################
+# IdealGens
+
+# this will need adjustments to cover the NCRing case
+
+@register_serialization_type IdealGens uses_params
+
+function save_object(s::SerializerState, obj::IdealGens)
+  save_data_dict(s) do
+    save_object(s, ordering(obj), :ordering)
+    save_object(s, gens(obj), :gens)
+    save_object(s, is_groebner_basis(obj), :is_gb)
+    save_object(s, obj.isReduced, :is_reduced)
+    save_object(s, obj.keep_ordering, :keep_ordering)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:IdealGens}, base_ring::MPolyRing)
+  ord = load_object(s, MonomialOrdering, base_ring, :ordering)
+  generators = load_object(s, Vector{MPolyRingElem}, base_ring, :gens)
+  is_gb = load_object(s, Bool, :is_gb)
+  is_reduced = load_object(s, Bool, :is_reduced)
+  keep_ordering = load_object(s, Bool, :keep_ordering)
+  return IdealGens(base_ring, generators, ord;
+                   keep_ordering=keep_ordering,
+                   isReduced=is_reduced,
+                   isGB=is_gb)
 end
 
 ################################################################################
@@ -642,30 +678,28 @@ function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
 end
 
 ### Serialization of Monomial orderings
-@register_serialization_type MonomialOrdering
+@register_serialization_type MonomialOrdering uses_params
 
 function save_object(s::SerializerState, o::MonomialOrdering)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(o), :ring)
     save_typed_object(s, o.o, :internal_ordering) # TODO: Is there a getter for this?
     if isdefined(o, :is_total)
-      save_typed_object(s, o.is_total, :is_total)
+      save_object(s, o.is_total, :is_total)
     end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MonomialOrdering})
-  the_ring = load_typed_object(s, :ring)
-  the_ordering = load_typed_object(s, :internal_ordering)
-  result = MonomialOrdering(the_ring, the_ordering)
+function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPolyRing)
+  ord = load_typed_object(s, :internal_ordering)
+  result = MonomialOrdering(ring, ord)
 
-  println("need to come back to this")
   if haskey(s, :is_total)
-    result.is_total = load_typed_object(s, :is_total)
+    result.is_total = load_object(s, Bool, :is_total)
   end
   return result
 end
 
+# we will need to extend this to more orderings at some point
 @register_serialization_type Orderings.SymbOrdering
 
 function save_object(s::SerializerState, o::Orderings.SymbOrdering{S}) where {S}
