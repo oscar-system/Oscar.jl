@@ -21,6 +21,7 @@ function randpoly(R::Oscar.Ring,coeffs=0:9,max_exp=4,max_terms=8)
 end
 
 @testset "Modules: Constructors" begin
+  Oscar.set_seed!(235)
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   F = FreeMod(R,3)
   v = [x, x^2*y+z^3, R(-1)]
@@ -57,6 +58,7 @@ end
 end
 
 @testset "Modules: Simplify elements of subquotients" begin
+  Oscar.set_seed!(235)
     R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
     F1 = free_module(R, 3)
     F2 = free_module(R, 1)
@@ -71,6 +73,7 @@ end
 end  
 
 @testset "Intersection of modules" begin
+  Oscar.set_seed!(235)
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 
   A1 = R[x y;
@@ -126,6 +129,7 @@ end
 end
 
 @testset "Presentation" begin
+  Oscar.set_seed!(235)
 
   # over Integers
   R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
@@ -269,6 +273,7 @@ end
 end
 
 @testset "Prune With Map" begin
+  Oscar.set_seed!(235)
   # ungraded
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   M = SubquoModule(identity_matrix(R, 3), R[1 x x])
@@ -292,6 +297,7 @@ end
 end
 
 @testset "Ext, Tor" begin
+  Oscar.set_seed!(235)
   # These tests are only meant to check that the ext and tor function don't throw any error
   # These tests don't check the correctness of ext and tor
 
@@ -337,6 +343,7 @@ end
 end
 
 @testset "Gröbner bases" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   F = FreeMod(R, 1)
 
@@ -526,6 +533,7 @@ end
 end
 
 @testset "quotient modules" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   F3 = FreeMod(R,3)
@@ -567,6 +575,7 @@ end
 end
 
 @testset "submodules" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   F2 = FreeMod(R,2)
@@ -602,6 +611,7 @@ end
 end
 
 @testset "Hom module" begin
+  Oscar.set_seed!(235)
   R, (x0,x1,x2,x3,x4,x5) = polynomial_ring(QQ, ["x0", "x1", "x2", "x3", "x4", "x5"])
   f1= transpose(R[-x2*x3 -x4*x5 0; x0*x1 0 -x4*x5; 0 x0*x1 -x2*x3])
   g1 = transpose(R[x0*x1 x2*x3 x4*x5])
@@ -739,6 +749,7 @@ end
 end
 
 @testset "direct product" begin
+  Oscar.set_seed!(235)
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   
   F2 = FreeMod(R,2)
@@ -839,6 +850,7 @@ end
 end
 
 @testset "Coordinates (lift)" begin
+  Oscar.set_seed!(235)
   Z3, a = finite_field(3,1,"a")
   R, (x,y) = polynomial_ring(Z3, ["x", "y"])
   coeffs = [Z3(i) for i=0:1]
@@ -862,6 +874,7 @@ end
 end
 
 @testset "module homomorphisms" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   F3 = FreeMod(R,3)
@@ -1054,6 +1067,7 @@ end
 end
 
 @testset "change of base rings" begin
+  Oscar.set_seed!(235)
   R, (x,y) = QQ["x", "y"]
   U = Oscar.MPolyPowersOfElement(x)
   S = Oscar.MPolyLocRing(R, U)
@@ -1077,6 +1091,7 @@ end
 end
 
 @testset "duals" begin
+  Oscar.set_seed!(235)
   R, (x,y,z) = QQ["x", "y", "z"]
   F1 = FreeMod(R, 1)
   F2 = FreeMod(R, 2)
@@ -1117,6 +1132,7 @@ end
 end
 
 @testset "free resolution in case of no relations" begin
+  Oscar.set_seed!(235)
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   Z = abelian_group(0)
   F = free_module(R, 3)
@@ -1130,6 +1146,7 @@ end
 end
 
 @testset "length of free resolution" begin
+  Oscar.set_seed!(235)
   S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), ["x0", "x1", "x2", "x3", "x4"]);
   m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0,
             x1*x3+(-x1+x4+x0)*x0,
@@ -1143,6 +1160,7 @@ end
 end
 
 @testset "vector_space_dimension and vector_space_basis" begin
+  Oscar.set_seed!(235)
   R,(x,y,z,w) = QQ["x","y","z","w"]
   U=complement_of_point_ideal(R,[0,0,0,0])
   RL, loc_map = localization(R,U)
@@ -1156,6 +1174,7 @@ end
 end
 
 @testset "canonical maps and garbage collection" begin
+  Oscar.set_seed!(235)
   R, (x, y) = QQ[:x, :y]
 
   F = FreeMod(R, 1)
@@ -1207,6 +1226,7 @@ end
 
 
 @testset "issue 3107" begin
+  Oscar.set_seed!(235)
   X = veronese();
   I = defining_ideal(X);
   Pn = base_ring(I)
