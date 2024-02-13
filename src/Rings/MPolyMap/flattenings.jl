@@ -607,6 +607,47 @@ function saturation(
   return ideal(S, inverse(phi).(gens(pre_res)))
 end
 
+### primary decomposition
+function primary_decomposition(
+    I::MPolyIdeal{T}
+  ) where {T<:MPolyRingElem{<:Union{<:MPolyRingElem, MPolyQuoRingElem, MPolyLocRingElem, 
+                                <:MPolyQuoLocRingElem
+                               }}}
+  S = base_ring(I)
+  phi = flatten(S)
+  P, Q = primary_decomposition(phi(I))
+  Pb = inverse(phi).(P)
+  for (i, p) in enumerate(Pb)
+    flat_counterparts(phi)[p] = P[i]
+  end
+  Qb = inverse(phi).(Q)
+  for (i, q) in enumerate(Qb)
+    flat_counterparts(phi)[q] = Qb[i]
+  end
+  return Pb, Qb
+end
+
+function dim(
+    I::MPolyIdeal{T}
+  ) where {T<:MPolyRingElem{<:Union{<:MPolyRingElem, MPolyQuoRingElem, MPolyLocRingElem, 
+                                <:MPolyQuoLocRingElem
+                               }}}
+  S = base_ring(I)
+  phi = flatten(S)
+  return dim(phi(I))
+end
+
+function is_subset(
+    I::MPolyIdeal{T}, J::MPolyIdeal{T}
+  ) where {T<:MPolyRingElem{<:Union{<:MPolyRingElem, MPolyQuoRingElem, MPolyLocRingElem, 
+                                <:MPolyQuoLocRingElem
+                               }}}
+  S = base_ring(I)
+  phi = flatten(S)
+  return is_subset(phi(I), phi(J))
+end
+
+
 ### transferred functionality for quotient rings
 function is_invertible_with_inverse(
     a::MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
@@ -629,6 +670,22 @@ function inv(
     a::MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
                                             MPolyQuoLocRingElem, MPolyLocRingElem}
                                    }})
+  phi = flatten(parent(a))
+  a_flat = phi(a)
+  return inverse(phi)(inv(a_flat))
+end
+
+function is_unit(
+    a::MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                             MPolyQuoLocRingElem, MPolyLocRingElem}
+                    })
+  return is_unit(flatten(parent(a))(a))
+end
+
+function inv(
+    a::MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                             MPolyQuoLocRingElem, MPolyLocRingElem}
+                    })
   phi = flatten(parent(a))
   a_flat = phi(a)
   return inverse(phi)(inv(a_flat))

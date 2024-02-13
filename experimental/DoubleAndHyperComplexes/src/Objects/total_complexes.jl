@@ -119,7 +119,7 @@ function (fac::TotalComplexMapFactory)(c::AbsHyperComplex, p::Int, I::Tuple)
   next = d + inc
   dom = c[d]
   cod = c[next]
-  result = hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
+  result = hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)]; check=false)
   for (ind, J) in enumerate(index_cache(chain_fac)[d])
     for k in 1:dim(orig)
       target = collect(J) + (direction(orig, k) == :chain ? -1 : 1)*[(l == k ? 1 : 0) for l in 1:dim(orig)]

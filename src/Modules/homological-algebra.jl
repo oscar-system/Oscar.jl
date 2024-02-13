@@ -30,7 +30,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -105,7 +105,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -162,7 +162,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]

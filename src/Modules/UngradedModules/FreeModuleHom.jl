@@ -200,12 +200,12 @@ true
 ```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
-  return FreeModuleHom(F, M, V)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M); check)
+  return FreeModuleHom(F, M, V; check)
 end
 function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}; check::Bool=true) where T 
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
-  return FreeModuleHom(F, M, A)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M); check)
+  return FreeModuleHom(F, M, A; check)
 end
 
 @doc raw"""
@@ -231,8 +231,8 @@ scalars in `base_ring(F)` to their images under `h`.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
-hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
     identity_map(M::ModuleFP)
@@ -313,57 +313,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   end
 end
 
-@doc raw"""
-    hom(F::FreeMod, G::FreeMod)
-
-Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
-that converts elements from $S$ into morphisms $F \to G$.
-
-# Examples
-```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> F1 = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-
-julia> F2 = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
-
-julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
-
-julia> f(V[1])
-Map with following data
-Domain:
-=======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
-Codomain:
-=========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
-
-```
-
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> F1 = graded_free_module(Rg, [1,2,2])
-Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
-
-julia> F2 = graded_free_module(Rg, [3,5])
-Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
-
-julia> V, f = hom(F1, F2)
-(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
-
-julia> f(V[1])
-F1 -> F2
-e[1] -> e[1]
-e[2] -> 0
-e[3] -> 0
-Graded module homomorphism of degree [2]
-
-```
-"""
+#=
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
   ###@assert is_graded(F) == is_graded(G)
@@ -399,6 +349,7 @@ function hom(F::FreeMod, G::FreeMod)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
+=#
 
 @doc raw"""
     kernel(a::FreeModuleHom)
@@ -458,11 +409,72 @@ Homogeneous module homomorphism)
 
 ```
 """
-function kernel(h::FreeModuleHom)  #ONLY for free modules...
+function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})  #ONLY for free modules...
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  is_graded(h) && return _graded_kernel(h)
+  return _simple_kernel(h)
+end
+
+function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  F = domain(h)
+  G = codomain(h)
+  g = images_of_generators(h)
+  b = ModuleGens(g, G, default_ordering(G))
+  M = syzygy_module(b)
+  v = first(gens(M))
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
+  I, inc = sub(F, v)
+  return sub(F, v)
+end
+
+function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  I, inc = _simple_kernel(h)
+  @assert is_graded(I)
+  @assert is_homogeneous(inc)
+  return I, inc
+end
+
+function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  F = domain(h)
+  M = codomain(h)
+  G = ambient_free_module(M)
+  # We have to take the representatives of the reduced elements!
+  # Otherwise we might get wrong degrees.
+  g = [repres(simplify(v)) for v in images_of_generators(h)]
+  g = vcat(g, relations(M))
+  R = base_ring(G)
+  H = FreeMod(R, length(g))
+  phi = hom(H, G, g)
+  K, inc = kernel(phi)
+  r = ngens(F)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
+  return sub(F, v)
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
+  psi = compose(g, phi)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
+end
+
+#=
+# Old code of kernel left for debugging
   G = domain(h)
   R = base_ring(G)
   if ngens(G) == 0
-    s = sub(G, gens(G), :module)
+    s = sub_object(G, gens(G))
     help = hom(s, G, gens(G), check=false)
     help.generators_map_to_generators = true
     return s, help
@@ -480,15 +492,16 @@ function kernel(h::FreeModuleHom)  #ONLY for free modules...
   k = syzygy_module(b)
   if isa(codomain(h), SubquoModule)
     s = collect(k.sub.gens)
-    k = sub(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s], :module)
+    k = sub_object(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s])
   else
     #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)], :module)
+    k = sub_object(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)])
   end
   @assert k.F === G
   c = collect(k.sub.gens)
   return k, hom(k, parent(c[1]), c, check=false)
 end
+=#
 
 @doc raw"""
     image(a::FreeModuleHom)
@@ -560,7 +573,7 @@ Homogeneous module homomorphism)
 """
 function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
-  s = sub(codomain(h), si, :module)
+  s = sub_object(codomain(h), si)
   phi = hom(s, codomain(h), si, check=false)
   return s, phi
 end

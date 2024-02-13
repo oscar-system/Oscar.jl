@@ -27,7 +27,7 @@ function Base.length(amm::AllModuleMonomials)
   d = degree(amm)
   result = 0
   for i in 1:r
-    d_loc = d - Int(degree(F[i])[1])
+    d_loc = d - Int(degree(F[i]; check=false)[1])
     d_loc < 0 && continue
     result = result + length(monomials_of_degree(R, d_loc))
   end
@@ -40,9 +40,9 @@ function Base.iterate(amm::AllModuleMonomials, state::Nothing = nothing)
   d = degree(amm)
   R = base_ring(F)
 
-  i = findfirst(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F))
+  i = findfirst(i -> d - Int(degree(F[i]; check=false)[1]) >= 0, 1:ngens(F))
   i === nothing && return nothing
-  d_loc = d - Int(degree(F[i])[1])
+  d_loc = d - Int(degree(F[i]; check=false)[1])
 
   mon_it = monomials_of_degree(R, d_loc)
   res = iterate(mon_it, nothing)
@@ -60,9 +60,9 @@ function Base.iterate(amm::AllModuleMonomials, state::Tuple{Int, AllMonomials, V
   i, mon_it, s = state
   res = iterate(mon_it, s)
   if res === nothing
-    i = findnext(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F), i + 1)
+    i = findnext(i -> d - Int(degree(F[i]; check=false)[1]) >= 0, 1:ngens(F), i + 1)
     i === nothing && return nothing
-    d_loc = d - Int(degree(F[i])[1])
+    d_loc = d - Int(degree(F[i]; check=false)[1])
 
     mon_it = monomials_of_degree(R, d_loc)
     res_loc = iterate(mon_it, nothing)
@@ -106,7 +106,7 @@ function Base.length(amm::AllModuleExponents)
   d = degree(amm)
   result = 0
   for i in 1:r
-    d_loc = d - Int(degree(F[i])[1])
+    d_loc = d - Int(degree(F[i]; check=false)[1])
     d_loc < 0 && continue
     result = result + length(MultiIndicesOfDegree(n, d_loc))
   end
@@ -120,9 +120,9 @@ function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
   R = base_ring(F)
   n = ngens(R)
 
-  i = findfirst(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F))
+  i = findfirst(i -> d - Int(degree(F[i]; check=false)[1]) >= 0, 1:ngens(F))
   i === nothing && return nothing
-  d_loc = d - Int(degree(F[i])[1])
+  d_loc = d - Int(degree(F[i]; check=false)[1])
 
   exp_it = MultiIndicesOfDegree(n, d_loc)
   res = iterate(exp_it, nothing)
@@ -141,9 +141,9 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, MultiIndicesOfD
   i, exp_it, e = state
   res = iterate(exp_it, e)
   if res === nothing
-    i = findnext(i -> d - Int(degree(F[i])[1]) >= 0, 1:ngens(F), i + 1)
+    i = findnext(i -> d - Int(degree(F[i]; check=false)[1]) >= 0, 1:ngens(F), i + 1)
     i === nothing && return nothing
-    d_loc = d - Int(degree(F[i])[1])
+    d_loc = d - Int(degree(F[i]; check=false)[1])
 
     exp_it = MultiIndicesOfDegree(n, d_loc)
     res_loc = iterate(exp_it, nothing)

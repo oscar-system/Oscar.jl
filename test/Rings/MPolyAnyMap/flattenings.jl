@@ -316,3 +316,30 @@ end
   @test isempty(keys(Oscar.flat_counterparts(phi)))
 end
   
+@testset "flattenings of SubModuleOfFreeModule" begin
+  R, (x, y, z) = QQ["x", "y", "z"]
+  I = ideal(R, z)
+  A, _ = quo(R, I)
+
+  S, (u, v) = graded_polynomial_ring(A, [:u, :v])
+  S1 = graded_free_module(S, [0])
+  I, inc_I = sub(S1, [u*S1[1]])
+  @test !(S1[1] in I.sub)
+
+  flat_map = Oscar.flatten(S)
+  S1b, iso_S1 = flat_map(S1)
+  Ib, iso_I = flat_map(I)
+  @test ambient_free_module(Ib) === codomain(iso_S1)
+
+  Ib2, _ = Oscar._change_base_ring_and_preserve_gradings(flat_map, I, ambient_base_change = iso_S1)
+  @test ambient_free_module(Ib2) === codomain(iso_S1)
+
+  S1b, iso_S1 = flat_map(S1)
+  I = I.sub
+  Ib = flat_map(I)
+  @test ambient_free_module(Ib) === codomain(iso_S1)
+
+  Ib2 = Oscar._change_base_ring_and_preserve_gradings(flat_map, I, ambient_base_change = iso_S1)
+  @test ambient_free_module(Ib2) === codomain(iso_S1)
+end
+
