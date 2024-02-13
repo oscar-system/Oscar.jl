@@ -391,6 +391,7 @@ end
 
 
 @testset "Test kernel" begin
+  Oscar.set_seed!(235)
 
   # over Integers
   R, (x,y,z) = polynomial_ring(ZZ, ["x", "y", "z"])
@@ -435,6 +436,7 @@ end
 end
 
 @testset "iszero(SubquoModule)" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   A = R[x^2+2*x*y y^2*x-2*x^2*y;-y x*y]
   B = R[x^2 y^2*x;-y x*y]
@@ -448,6 +450,7 @@ end
 end
 
 @testset "simplify subquotient" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   A1 = R[x*y R(0)]
   B1 = R[R(0) R(1)]
@@ -692,6 +695,7 @@ end
 end
 
 @testset "tensoring morphisms" begin
+  Oscar.set_seed!(235)
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
 
   F2 = FreeMod(R,2)
@@ -1023,6 +1027,7 @@ end
 end
 
 @testset "preimage" begin
+  Oscar.set_seed!(235)
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 
   for _=1:10
