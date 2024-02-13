@@ -653,7 +653,7 @@ end
   A2 = R[x;]
   B2 = R[y^3;]
   M2 = SubquoModule(A2,B2)
-  SQ = hom(M1,M2,:matrices)[1]
+  SQ = hom(M1,M2, algorithm=:matrices)[1]
   for v in gens(SQ)
     @test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
   end
@@ -684,7 +684,7 @@ end
     B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
     N = SubquoModule(A1,B1)
     M = SubquoModule(A2,B2)
-    HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M,:matrices)[1]
+    HomNM = k <= 5 ? hom(N,M)[1] : hom(N,M, algorithm=:matrices)[1]
     for l=1:10
       v = sparse_row(matrix([randpoly(R,0:15,2,1) for _=1:1, j=1:AbstractAlgebra.ngens(HomNM)]))
       H = HomNM(v)
