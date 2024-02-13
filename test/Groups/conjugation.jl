@@ -109,8 +109,8 @@
   G = symmetric_group(5)
   CC = @inferred maximal_subgroup_classes(G)
   @test all(H -> degree(H) == degree(G), map(representative, CC))
-  @test all(H -> is_maximal_subgroup(G, H), map(representative, CC))
-  @test !is_maximal_subgroup(G, trivial_subgroup(G)[1])
+  @test all(H -> is_maximal_subgroup(H, G), map(representative, CC))
+  @test !is_maximal_subgroup(trivial_subgroup(G)[1], G)
 
   G = symmetric_group(10)
   x = rand(G)

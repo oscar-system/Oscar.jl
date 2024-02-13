@@ -558,8 +558,8 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
   is_prime(ind) && return true
   if ind < 100
     # Do not unpack the right transversal object.
-    t = right_transversal(G, H)[2:end] #drop the identity
-    return all(i -> order(sub(G, vcat(gens(H), [t[i]]))[1]) == order(G), 2:ind)
+    t = right_transversal(G, H)
+    return all(i -> order(sub(G, vcat(gens(H), [t[i]]))[1]) == order(G), 2:Int(ind))
   end
   return any(C -> H in C, maximal_subgroup_classes(G))
 end
