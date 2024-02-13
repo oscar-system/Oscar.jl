@@ -478,3 +478,12 @@ function Base.show(io::IO, K::SimplicialComplex)
     n = nvertices(K)
     print(io, "Abstract simplicial complex of dimension $(d) on $(n) vertices")
 end
+
+###############################################################################
+### Isomorphism
+###############################################################################
+
+function is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+  return Polymake.topaz.isomorphic(pm_object(K1), pm_object(K2))
+end
+
