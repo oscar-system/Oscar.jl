@@ -420,7 +420,7 @@ julia> is_sphere(K)
 false
 ```
 """
-is_sphere(K::SimplicialComplex)::Union{Bool,Nothing} = pm_object(K).SPHERE
+is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
 
 """
     is_ball(K::SimplicialComplex)
@@ -439,7 +439,7 @@ julia> is_ball(K)
 true
 ```
 """
-is_ball(K::SimplicialComplex)::Union{Bool,Nothing} = pm_object(K).BALL
+is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
 
 """
     is_manifold(K::SimplicialComplex)
@@ -462,7 +462,7 @@ julia> is_manifold(simplicial_complex([[1,2],[2,3],[2,4]]))
 false
 ```
 """
-is_manifold(K::SimplicialComplex)::Union{Bool,Nothing} = pm_object(K).MANIFOLD
+is_manifold(K::SimplicialComplex) = pm_object(K).MANIFOLD::Union{Bool,Nothing}
 
 ################################################################################
 ###  Surface examples
