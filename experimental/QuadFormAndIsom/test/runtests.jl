@@ -266,6 +266,15 @@ end
   @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
 end
 
+@testset "Enumeration of hermitian lattices with isometry" begin
+  G = genus(torsion_quadratic_module(QQ[0;], (9, 1)))
+  _, x = QQ["x"]
+  chi = x^(10)+x^9-x^7-x^6-x^5-x^4-x^3+x+1
+  rht = @inferred representatives_of_hermitian_type(G, chi)
+  @test !isempty(rht)
+  @test all(N -> !is_finite(order_of_isometry(N)), rht)
+end
+
 @testset "Primitive extensions and embeddings" begin
   # Compute orbits of short vectors
   k = integer_lattice(; gram=matrix(QQ,1,1,[4]))

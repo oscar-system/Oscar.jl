@@ -390,8 +390,8 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
         push!(orb_and_rep, (p, orbit(m, p)))
       end
     end
+    reporb = QQMatrix[solve_left(basis_matrix(N), basis_matrix(N)*matrix(a[1])) for a in orb_and_rep]
   end
-  reporb = QQMatrix[solve_left(basis_matrix(N), basis_matrix(N)*matrix(a[1])) for a in orb_and_rep]
   return reporb
 end
 
@@ -848,8 +848,8 @@ end
 function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModuleMap,
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::IntegerUnion,
-                                                                     f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
                                                                      p::IntegerUnion,
+                                                                     f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
                                                                      l::IntegerUnion = -1)
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
 
@@ -1754,10 +1754,10 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   # This is done by computing orbits and stabilisers of VA/lpqA (resp VB/lpqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
-  subsA = _subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fqA, p, ZZ(l))
+  subsA = _subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, p, fqA, ZZ(l))
   is_empty(subsA) && return results
 
-  subsB = _subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, fqB, p, ZZ(l))
+  subsB = _subgroups_orbit_representatives_and_stabilizers_elementary(VBinqB, GB, p^g, p, fqB, ZZ(l))
   is_empty(subsB) && return results
 
   # now, for each pair of anti-isometric potential kernels, we need to massage the gluing

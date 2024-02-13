@@ -1489,7 +1489,7 @@ true
   chi = minimal_polynomial(Lf)
   !is_irreducible(chi) && return false
   is_finite(order_of_isometry(Lf)) && return true
-  E = equation_order(number_field(chi; cached=false))
+  E = equation_order(number_field(chi; cached=false)[1])
   return is_maximal(E)
 end
 
@@ -1837,8 +1837,7 @@ function signatures(Lf::ZZLatWithIsom)
   n = order_of_isometry(Lf)
   C = CalciumField()
   eig = eigenvalues(QQBar, f)
-  j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
-  lambda = C(eig[j])
+  lambda = C(eig[1])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()
   fC = change_base_ring(C, f)
@@ -2235,9 +2234,9 @@ true
   x = gen(Qx)
   t = Dict{Integer, Tuple}()
   for l in divs
-    Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
+    _Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false)
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false)
     end
     Al = kernel_lattice(Lf, x^l-1)
     t[l] = (genus(Hl), genus(Al))
@@ -2273,10 +2272,10 @@ function is_of_type(L::ZZLatWithIsom, t::Dict)
   divs = sort(collect(keys(t)))
   x = gen(Hecke.Globals.Qx)
   for l in divs
-    Hl = kernel_lattice(L, cyclotomic_polynomial(l))
+    _Hl = kernel_lattice(L, cyclotomic_polynomial(l))
     if !(order_of_isometry(Hl) in [-1, 1, 2])
       t[l][1] isa HermGenus || return false
-      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
     end
     genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)
