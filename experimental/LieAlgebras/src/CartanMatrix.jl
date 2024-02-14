@@ -278,6 +278,9 @@ This function is left inverse to `cartan_matrix`, i.e. in the case of isomorphic
 the ordering of the roots does matter (see the example below).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
 
+The order of returned components is, in general, not unique and might change between versions.
+If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type`.
+
 # Example
 ```jldoctest
 julia> cartan_type(ZZ[2 -1; -2 2])
@@ -299,7 +302,12 @@ end
 
 Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
 of the roots in the Dynkin diagram (currently only Cartan matrices of finite type are supported).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
+The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a
+Cartan matrix of finite type.
+
+The order of returned components and the ordering is, in general, not unique and might change between versions.
+If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type` and the
+returned ordering will be the identity.
 
 # Example
 ```jldoctest
