@@ -1207,6 +1207,7 @@ function degree(
     check::Bool=true
   ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
   !el.is_reduced && return degree(simplify!(el); check)
+  return degree(repres(el); check)
 end
 
 _degree_fast(el::SubquoModuleElem) = degree(el, check=false)
