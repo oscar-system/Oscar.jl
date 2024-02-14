@@ -24,7 +24,7 @@ include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
 @alias is_subset issubset
 @alias is_valid isvalid
 
-# add some shorthands for our functions
+# predeclare some functions to allow defining aliases
 function n_cones end
 function n_connected_components end
 function n_edges end
