@@ -284,6 +284,7 @@ function rank(R::RootSystem)
 end
 
 function root_system_type(R::RootSystem)
+  has_root_system_type(R) || error("Root system type not known and cannot be determined")
   return R.type
 end
 
