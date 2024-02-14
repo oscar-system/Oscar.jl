@@ -46,10 +46,7 @@ julia> relations(H)
  y^2*(e[2])* \otimes e[2]
 ```
 """
-function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
-  # This method is now deprecated and overwritten by the new methods below.
-  # The code is still kept for reference and debugging.
-
+function hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
   #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
   if algorithm == :matrices && M isa SubquoModule && N isa SubquoModule
     if is_graded(M) && is_graded(N)
@@ -111,7 +108,10 @@ function hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
   return H_simplified, to_hom_map
 end
 
+#=
 ### New and hopefully more maintainable code
+# Disabled for the moment because of the book chapter. We want to keep code output stable.
+# Eventually we will gradually merge this in.
 function hom(F::FreeMod, G::ModuleFP)
   R = base_ring(F)
   R === base_ring(G) || error("base rings must be the same")
@@ -355,6 +355,7 @@ function _hom_graded(F::FreeMod, G::FreeMod)
   set_attribute!(H, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map4)
   return H, to_hom_map4
 end
+=#
 
 
 @doc raw"""

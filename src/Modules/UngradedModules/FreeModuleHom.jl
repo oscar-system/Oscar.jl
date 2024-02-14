@@ -313,7 +313,58 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   end
 end
 
-#=
+
+@doc raw"""
+    hom(F::FreeMod, G::FreeMod)
+
+Return a free module $S$ such that $\text{Hom}(F,G) \cong S$ along with a function 
+that converts elements from $S$ into morphisms $F \to G$.
+
+# Examples
+```jldoctest
+julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = free_module(R, 3)
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> F2 = free_module(R, 2)
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
+
+julia> f(V[1])
+Map with following data
+Domain:
+=======
+Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+
+```
+
+```jldoctest
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> F1 = graded_free_module(Rg, [1,2,2])
+Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
+
+julia> F2 = graded_free_module(Rg, [3,5])
+Graded free module Rg^1([-3]) + Rg^1([-5]) of rank 2 over Rg
+
+julia> V, f = hom(F1, F2)
+(hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
+
+julia> f(V[1])
+F1 -> F2
+e[1] -> e[1]
+e[2] -> 0
+e[3] -> 0
+Graded module homomorphism of degree [2]
+
+```
+"""
 function hom(F::FreeMod, G::FreeMod)
   @assert base_ring(F) === base_ring(G)
   ###@assert is_graded(F) == is_graded(G)
@@ -349,7 +400,7 @@ function hom(F::FreeMod, G::FreeMod)
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
   return GH, to_hom_map
 end
-=#
+
 
 @doc raw"""
     kernel(a::FreeModuleHom)
@@ -468,40 +519,6 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))
 end
-
-#=
-# Old code of kernel left for debugging
-  G = domain(h)
-  R = base_ring(G)
-  if ngens(G) == 0
-    s = sub_object(G, gens(G))
-    help = hom(s, G, gens(G), check=false)
-    help.generators_map_to_generators = true
-    return s, help
-  end
-  g = map(h, basis(G))
-  if isa(codomain(h), SubquoModule)
-    g = [repres(x) for x = g]
-    if isdefined(codomain(h), :quo)
-      append!(g, collect(codomain(h).quo.gens))
-    end
-  end
-  #TODO allow sub-quo here as well
-  ambient_free_module_codomain = ambient_free_module(codomain(h))
-  b = ModuleGens(g, ambient_free_module_codomain, default_ordering(ambient_free_module_codomain))
-  k = syzygy_module(b)
-  if isa(codomain(h), SubquoModule)
-    s = collect(k.sub.gens)
-    k = sub_object(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s])
-  else
-    #the syzygie_module creates a new free module to work in
-    k = sub_object(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)])
-  end
-  @assert k.F === G
-  c = collect(k.sub.gens)
-  return k, hom(k, parent(c[1]), c, check=false)
-end
-=#
 
 @doc raw"""
     image(a::FreeModuleHom)
