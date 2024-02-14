@@ -40,22 +40,24 @@ function number_of_rays end
 function number_of_roots end                        # from experimental/LieAlgebras
 function number_of_simple_roots end                 # from experimental/LieAlgebras
 function number_of_vertices end
-@alias ncones number_of_cones
-@alias nedges number_of_edges
-@alias nfacets number_of_facets
-@alias nmaxcells number_of_maximal_cells            # decided to have but not used anywhere
-@alias nmaxcones number_of_maximal_cones
-@alias nmaxpolyhedra number_of_maximal_polyhedra    # decided to have but not used anywhere
-@alias npartitions number_of_partitions             # decided to have but not used anywhere
-@alias npatches number_of_patches
-@alias npoints number_of_points                     # decided to have but not used anywhere
-@alias npolyhedra number_of_polyhedra               # decided to have but not used anywhere
-@alias nposroots number_of_positive_roots
-@alias nrays number_of_rays
-@alias nroots number_of_roots
-@alias nsimpleroots number_of_simple_roots
-@alias nvertices number_of_vertices
 
 # these are kept for compatibility with Graphs.jl / GraphsBase.jl
 @alias ne number_of_edges
 @alias nv number_of_vertices
+
+# aliases should (in general) also follow the usual snake case style
+@alias n_cones number_of_cones
+@alias n_edges number_of_edges
+@alias n_facets number_of_facets
+@alias n_maximal_cells number_of_maximal_cells
+@alias n_maximal_cones number_of_maximal_cones
+@alias n_maximal_polyhedra number_of_maximal_polyhedra
+@alias n_partitions number_of_partitions
+@alias n_patches number_of_patches
+@alias n_points number_of_points
+@alias n_polyhedra number_of_polyhedra
+@alias n_positive_roots number_of_positive_roots
+@alias n_rays number_of_rays
+@alias n_roots number_of_roots
+@alias n_simple_roots number_of_simple_roots
+@alias n_vertices number_of_vertices
