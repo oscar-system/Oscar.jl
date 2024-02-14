@@ -1631,7 +1631,7 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrderIdeal, Hecke.NumFiel
 end
 
 #write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
-function Oscar.cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+function cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A

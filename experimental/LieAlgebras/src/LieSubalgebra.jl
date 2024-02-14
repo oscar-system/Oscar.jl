@@ -23,7 +23,7 @@
       left = copy(gens)
       while !isempty(left)
         g = pop!(left)
-        Solve.can_solve(basis_matrix, _matrix(g); side=:left) && continue
+        can_solve(basis_matrix, _matrix(g); side=:left) && continue
         for i in 1:nrows(basis_matrix)
           push!(left, g * L(basis_matrix[i, :]))
         end
@@ -160,7 +160,7 @@ end
 Return `true` if `x` is in the Lie subalgebra `S`, `false` otherwise.
 """
 function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
-  return Solve.can_solve(basis_matrix(S), _matrix(x); side=:left)
+  return can_solve(basis_matrix(S), _matrix(x); side=:left)
 end
 
 ###############################################################################
@@ -213,7 +213,7 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  sol = Solve.kernel(mat; side = :left)
+  sol = kernel(mat; side = :left)
   sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)

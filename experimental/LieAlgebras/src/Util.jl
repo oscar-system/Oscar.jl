@@ -24,7 +24,7 @@ function coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T
   for i in 1:nr, j in 1:nc
     rhs[(i - 1) * nc + j, 1] = M[i, j]
   end
-  fl, sol = Solve.can_solve_with_solution(lgs, rhs; side = :right)
+  fl, sol = can_solve_with_solution(lgs, rhs; side = :right)
   @assert fl
   return transpose(sol)
 end

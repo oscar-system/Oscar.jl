@@ -893,7 +893,7 @@ function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::AbsSimpleNumFieldElem, 
   for i=1:n
     mm[i, 1] = coeff(d*b, i-1)
   end
-  s = Solve.solve(m, mm; side = :right)
+  s = solve(m, mm; side = :right)
   B = q(parent(f)(vec(collect(s))))
   @assert all(x->iszero(evaluate(numerator(x), V)), coefficients(lift(gg(B))))
   o = lift(inv(derivative(gg)(B)))
