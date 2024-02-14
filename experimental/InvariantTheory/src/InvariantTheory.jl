@@ -5,7 +5,7 @@
 
 export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
 export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
-export InvariantRing, invariant_ring, fundamental_invariants, null_cone_ideal
+export RedGrpInvRing, invariant_ring, fundamental_invariants, null_cone_ideal
 ##########################
 #Setting up Reductive Groups 
 ##########################
@@ -237,7 +237,7 @@ end
 ##########################
 #Invariant Rings of Reductive groups
 ##########################
-mutable struct InvariantRing
+mutable struct RedGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
@@ -253,7 +253,7 @@ mutable struct InvariantRing
     NullConeIdeal::MPolyIdeal
     
     #Invariant ring of reductive group G (in representation R), no other input.
-    function InvariantRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
+    function RedGrpInvRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
         z = new()
         n = ncols(R.rep_mat)
         z.representation = R
@@ -266,7 +266,7 @@ mutable struct InvariantRing
     end
     
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function InvariantRing(R::RepresentationReductiveGroup, ring::MPolyDecRing)
+    function RedGrpInvRing(R::RepresentationReductiveGroup, ring::MPolyDecRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
         z = new()
@@ -283,10 +283,10 @@ mutable struct InvariantRing
     end
 end
 
-invariant_ring(R::RepresentationReductiveGroup) = InvariantRing(R)
-invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = InvariantRing(R, ring)
+invariant_ring(R::RepresentationReductiveGroup) = RedGrpInvRing(R)
+invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = RedGrpInvRing(R, ring)
 
-function null_cone_ideal(R::InvariantRing) 
+function null_cone_ideal(R::RedGrpInvRing) 
     if isdefined(R, :NullConeIdeal) 
         return R.NullConeIdeal
     else
@@ -296,11 +296,11 @@ function null_cone_ideal(R::InvariantRing)
         return R.NullConeIdeal
     end
 end
-poly_ring(R::InvariantRing) = R.poly_ring
-group(R::InvariantRing) = R.group
-representation(R::InvariantRing) = R.representation
+poly_ring(R::RedGrpInvRing) = R.poly_ring
+group(R::RedGrpInvRing) = R.group
+representation(R::RedGrpInvRing) = R.representation
 
-function fundamental_invariants(z::InvariantRing)
+function fundamental_invariants(z::RedGrpInvRing)
     if isdefined(z, :fundamental)
         return z.fundamental
     else
@@ -314,7 +314,7 @@ function fundamental_invariants(z::InvariantRing)
     end
 end
 
-function Base.show(io::IO, R::InvariantRing) 
+function Base.show(io::IO, R::RedGrpInvRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
     print(io, Lowercase(), R.poly_ring)
@@ -516,7 +516,7 @@ function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyRingElem)
     return reverse_map(f)
 end
 
-function reynolds_operator(R::InvariantRing, elem::MPolyRingElem)
+function reynolds_operator(R::RedGrpInvRing, elem::MPolyRingElem)
     X = R.representation
     return reynolds_operator(X, elem)
 end
