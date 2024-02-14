@@ -122,143 +122,115 @@
   end
 
   @testset "cartan_type_with_ordering" begin
+    function test_cartan_type_with_ordering(
+      fam::Symbol, n::Int; autos::Vector{PermGroupElem}=[one(symmetric_group(n))]
+    )
+      @req all(aut -> parent(aut) == symmetric_group(n), autos) "Incompatible permutation parent"
+      cm = cartan_matrix(fam, n)
+      for perm in symmetric_group(n)
+        type, ord = cartan_type_with_ordering(
+          permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm); check=false
+        )
+        @test type == [(fam, n)]
+        @test ord in [Vector{Int}(aut * perm) for aut in autos]
+        @test !is_one(perm) || ord == 1:n
+      end
+    end
+
     @testset "A_n" begin
       @testset "A_$n" for n in 1:8
-        cm = cartan_matrix(:A, n)
-        for perm in symmetric_group(n)
-          type, ord = cartan_type_with_ordering(
-            permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm);
-            check=false,
-          )
-          @test type == [(:A, n)]
-          # automorphism group of Dynkin diagram is S_2
-          @test ord in [Vector{Int}(perm), reverse(Vector{Int}(perm))]
-          @test !is_one(perm) || ord == 1:n
-        end
+        # automorphism group of Dynkin diagram ≅ S_2 (horizontal reflection)
+        test_cartan_type_with_ordering(
+          :A,
+          n;
+          autos=[
+            cperm(symmetric_group(n), Int[]),
+            cperm(symmetric_group(n), Vector{Int}[[i, n + 1 - i] for i in 1:div(n, 2)]),
+          ],
+        )
       end
     end
 
     @testset "B_n" begin
-      @testset "B_$n" for n in 2:8
+      @testset "B_2" begin
+        n = 2
+        # B_2 is isomorphic to C_2; we decide based on the ordering
         cm = cartan_matrix(:B, n)
-        for perm in symmetric_group(n)
-          type, ord = cartan_type_with_ordering(
-            permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm);
-            check=false,
-          )
-          if n == 2
-            # B_2 is isomorphic to C_2; we decide based on the ordering
-            if is_one(perm)
-              @test type == [(:B, n)]
-              @test ord == [1, 2]
-            else
-              @test type == [(:C, 2)]
-              @test ord == [1, 2]
-            end
-          else
-            @test type == [(:B, n)]
-            # no automorphisms of Dynkin diagram
-            @test ord == Vector{Int}(perm)
-          end
-          @test !is_one(perm) || ord == 1:n
-        end
+        # identity permutation
+        type, ord = cartan_type_with_ordering(cm; check=false)
+        @test type == [(:B, n)]
+        @test ord == [1, 2]
+        # non-identity permutation
+        type, ord = cartan_type_with_ordering(transpose(cm); check=false)
+        @test type == [(:C, 2)]
+        @test ord == [1, 2]
+      end
+      @testset "B_$n" for n in 3:8
+        # no automorphisms of Dynkin diagram
+        test_cartan_type_with_ordering(:B, n)
       end
     end
 
     @testset "C_n" begin
-      @testset "C_$n" for n in 2:8
+      @testset "C_2" begin
+        n = 2
+        # C_2 is isomorphic to B_2; we decide based on the ordering
         cm = cartan_matrix(:C, n)
-        for perm in symmetric_group(n)
-          type, ord = cartan_type_with_ordering(
-            permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm);
-            check=false,
-          )
-          if n == 2
-            # C_2 is isomorphic to B_2; we decide based on the ordering
-            if is_one(perm)
-              @test type == [(:C, n)]
-              @test ord == [1, 2]
-            else
-              @test type == [(:B, 2)]
-              @test ord == [1, 2]
-            end
-          else
-            @test type == [(:C, n)]
-            # no automorphisms of Dynkin diagram
-            @test ord == Vector{Int}(perm)
-          end
-        end
+        # identity permutation
+        type, ord = cartan_type_with_ordering(cm; check=false)
+        @test type == [(:C, n)]
+        @test ord == [1, 2]
+        # non-identity permutation
+        type, ord = cartan_type_with_ordering(transpose(cm); check=false)
+        @test type == [(:B, 2)]
+        @test ord == [1, 2]
+      end
+      @testset "C_$n" for n in 3:8
+        # no automorphisms of Dynkin diagram
+        test_cartan_type_with_ordering(:C, n)
       end
     end
 
     @testset "D_n" begin
       @testset "D_$n" for n in 4:8
-        cm = cartan_matrix(:D, n)
-        for perm in symmetric_group(n)
-          type, ord = cartan_type_with_ordering(
-            permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm);
-            check=false,
+        if n == 4
+          # automorphism group of Dynkin diagram ≅ S_3
+          test_cartan_type_with_ordering(
+            :D, n; autos=(@perm 4 [(), (1, 3), (1, 4), (3, 4), (1, 3, 4), (1, 4, 3)])
           )
-          @test type == [(:D, n)]
-          if n == 4
-            # automorphism group of Dynkin diagram is S_3, only one fixpoint
-            @test ord[2] == perm(2)
-          else
-            # automorphism group of Dynkin diagram is S_2
-            aut = @perm (n - 1, n)
-            @test ord in [Vector{Int}(perm), Vector{Int}(aut * perm)]
-          end
-          @test !is_one(perm) || ord == 1:n
+        else
+          # automorphism group of Dynkin diagram ≅ S_2 (vertical reflection)
+          test_cartan_type_with_ordering(
+            :D,
+            n;
+            autos=[
+              cperm(symmetric_group(n), Int[]), cperm(symmetric_group(n), Int[n - 1, n])
+            ],
+          )
         end
       end
     end
 
     @testset "E_n" begin
       @testset "E_$n" for n in 6:8
-        cm = cartan_matrix(:E, n)
-        for perm in symmetric_group(n)
-          type, ord = cartan_type_with_ordering(
-            permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm);
-            check=false,
-          )
-          @test type == [(:E, n)]
-          if n == 6
-            # automorphism group of Dynkin diagram is S_2
-            aut = @perm (1, 6)(3, 5)
-            @test ord in [Vector{Int}(perm), Vector{Int}(aut * perm)]
-          else
-            # no automorphisms of Dynkin diagram
-            @test ord == Vector{Int}(perm)
-          end
-          @test !is_one(perm) || ord == 1:n
+        if n == 6
+          # automorphism group of Dynkin diagram ≅ S_2 (horizontal reflection)
+          test_cartan_type_with_ordering(:E, n; autos=(@perm 6 [(), (1, 6)(3, 5)]))
+        else
+          # no automorphisms of Dynkin diagram
+          test_cartan_type_with_ordering(:E, n)
         end
       end
     end
 
-    @testset "F_$n" for n in 4:4
-      cm = cartan_matrix(:F, n)
-      for perm in symmetric_group(n)
-        type, ord = cartan_type_with_ordering(
-          permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm); check=false
-        )
-        @test type == [(:F, n)]
-        # no automorphisms of Dynkin diagram
-        @test ord == Vector{Int}(perm)
-        @test !is_one(perm) || ord == 1:n
-      end
+    @testset "F_4" begin
+      # no automorphisms of Dynkin diagram
+      test_cartan_type_with_ordering(:F, 4)
     end
 
-    @testset "G_$n" for n in 2:2
-      cm = cartan_matrix(:G, n)
-      for perm in symmetric_group(n)
-        type, ord = cartan_type_with_ordering(
-          permutation_matrix(ZZ, inv(perm)) * cm * permutation_matrix(ZZ, perm); check=false
-        )
-        @test type == [(:G, n)]
-        # no automorphisms of Dynkin diagram
-        @test ord == Vector{Int}(perm)
-        @test !is_one(perm) || ord == 1:n
-      end
+    @testset "G_2" begin
+      # no automorphisms of Dynkin diagram
+      test_cartan_type_with_ordering(:G, 2)
     end
 
     @testset "non-simple cases" begin
