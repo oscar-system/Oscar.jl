@@ -163,7 +163,7 @@ julia> tropical_variety(I)
 function tropical_variety(I::Union{MPolyIdeal,MPolyRingElem}, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, skip_saturation::Bool=false, skip_primary_decomposition::Bool=false)
     ###
     # Step 0.a: convert I to ideal if poly,
-    #   initialise nu as the trivial valuation if not specified by user
+    #   initialize nu as the trivial valuation if not specified by user
     ###
     if I isa MPolyRingElem
         I = ideal(parent(I),[I])
