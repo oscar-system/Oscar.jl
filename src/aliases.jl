@@ -60,9 +60,14 @@ function number_of_simple_roots end                 # from experimental/LieAlgeb
 @alias number_of_rays n_rays
 @alias number_of_vertices n_vertices
 
-
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
 @alias n_positive_roots number_of_positive_roots
 @alias n_roots number_of_roots
 @alias n_simple_roots number_of_simple_roots
+
+# aliases for consistency with oscar style
+@alias n_gens ngens
+@alias n_rows nrows
+@alias n_cols ncols
+@alias n_digits ndigits
