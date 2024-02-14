@@ -26,6 +26,7 @@ include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
 
 # add some shorthands for our functions
 function number_of_cones end
+function number_of_connected_components end
 function number_of_edges end
 function number_of_facets end
 function number_of_maximal_cells end
@@ -47,6 +48,7 @@ function number_of_vertices end
 
 # aliases should (in general) also follow the usual snake case style
 @alias n_cones number_of_cones
+@alias n_connected_components number_of_connected_components
 @alias n_edges number_of_edges
 @alias n_facets number_of_facets
 @alias n_maximal_cells number_of_maximal_cells
