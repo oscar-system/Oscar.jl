@@ -346,7 +346,7 @@ false
        return true
     end
   end
-  try
+  try 
     homogeneous_component(R, zero(G))
   catch e
     if e isa ArgumentError && e.msg == "Polyhedron not bounded"
@@ -1241,7 +1241,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
      #Ax = b, Cx >= 0
      C = identity_matrix(FlintZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
-     k = solve_mixed(transpose(A), transpose(d.coeff), C)
+     k = solve_mixed(transpose(A), transpose(d.coeff), C)    
      for ee = 1:nrows(k)
        e = k[ee, :]
        a = MPolyBuildCtx(forget_decoration(W))
@@ -1264,7 +1264,7 @@ function monomial_basis(R::MPolyDecRing, g::IntegerUnion)
 end
 
 @doc raw"""
-    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
+    homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem) 
 
 Given a polynomial ring `R` over a field which is graded by a free
 group of type `FinGenAbGroup`, and given an element `g` of that group,
@@ -1302,13 +1302,13 @@ Z^2
 julia> L = homogeneous_component(S, [1, 1]);
 
 julia> L[1]
-S_[1 1] of dim 6
+homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
 
 julia> FG = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from S_[1 1] of dim 6
+  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [1 1]
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(FG) println(EMB(FG[i])) end
@@ -1404,7 +1404,7 @@ end
 
 ###########################################
 # needs re-thought
-function (W::MPolyDecRing)(m::Generic.FreeModuleElem)
+function (W::MPolyDecRing)(m::Generic.FreeModuleElem) 
   h = has_relshp(parent(m), W)
   if h !== nothing
     return h(m)
@@ -1451,11 +1451,11 @@ mutable struct HilbertData
 
     W = R.d
     W = [Int(W[i][1]) for i = 1:ngens(R)]
-
+    
     @req minimum(W) > 0 "The weights must be positive"
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
-
+    
     G = groebner_assure(I)
     h = Singular.hilbert_series(G.S, W)
     return new(h, W, I)
@@ -1482,13 +1482,13 @@ end
 function hilbert_polynomial(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
-
+  
   q, dn = hilbert_series_reduced(H)
   a = QQFieldElem[]
   nf = QQFieldElem(1)
   d = degree(dn)-1
   for i=1:d+1
-    push!(a, q(1)//nf)
+    push!(a, q(1)//nf)    
     nf *= i
     q = derivative(q)
   end
@@ -1506,7 +1506,7 @@ end
 function Oscar.degree(H::HilbertData)
 
   @req all(isone, H.weights) "All weights must be 1"
-
+  
   P = hilbert_polynomial(H)
   if iszero(P)
      q, _ = hilbert_series_reduced(H)
