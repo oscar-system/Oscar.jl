@@ -10,12 +10,12 @@ function getindex(C::Covering, X::AbsSpec)
 end
 
 function Base.in(U::AbsSpec, C::Covering)
-  for i in 1:npatches(C)
+  for i in 1:n_patches(C)
     U === C[i] && return true
   end
   return false
   ### Affine refinements not implemented at the moment!
-#  for i in 1:npatches(C)
+#  for i in 1:n_patches(C)
 #    if haskey(affine_refinements(C), C[i])
 #      V = affine_refinements(C)[C[i]]
 #      for (V, a) in affine_refinements(C)[C[i]]
@@ -27,12 +27,12 @@ function Base.in(U::AbsSpec, C::Covering)
 end
 
 function Base.indexin(U::AbsSpec, C::Covering)
-  for i in 1:npatches(C)
+  for i in 1:n_patches(C)
     U === C[i] && return (i, 0, 0)
   end
   return (0,0,0)
   ### Affine refinements not implemented at the moment!
-#  for i in 1:npatches(C)
+#  for i in 1:n_patches(C)
 #    if haskey(affine_refinements(C), C[i])
 #      V = affine_refinements(C)[C[i]]
 #      for j in 1:length(V)
@@ -57,7 +57,7 @@ end
 
 ## compute the gluing graph for the given covering and store it
 function update_gluing_graph(C::Covering; all_dense::Bool=false)
-  n = npatches(C)
+  n = n_patches(C)
   gg = Graph{Undirected}(n)
   for (X, Y) in keys(gluings(C))
     if all_dense
@@ -292,7 +292,7 @@ function Base.show(io::IO, C::Covering)
   if get(io, :supercompact, false)
     print(io, "Covering")
   else
-    print(io,  "Covering with ", ItemQuantity(npatches(C), "patch"))
+    print(io,  "Covering with ", ItemQuantity(n_patches(C), "patch"))
   end
 end
 

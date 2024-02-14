@@ -94,7 +94,7 @@ end
 #  U = intersect(X, domain(f), check=check)
 #  V = intersect(Y, codomain(f), check=check)
 #
-#  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
+#  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:n_patches(U)]
 #
 #  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 #end

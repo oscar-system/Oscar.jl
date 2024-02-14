@@ -206,7 +206,7 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
     V = representative_patch(KK)
     X = variety(KK)
     C = default_covering(X)
-    for i in 1:npatches(C)
+    for i in 1:n_patches(C)
       if ambient_coordinate_ring(C[i]) === R
         V = C[i]
         break

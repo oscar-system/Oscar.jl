@@ -110,7 +110,7 @@ getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 number_of_generators(U::SpecOpen) = number_of_patches(U)
 
 function getindex(U::SpecOpen, X::AbsSpec) 
-  for i in 1:npatches(U)
+  for i in 1:n_patches(U)
     X === U[i] && return i
   end
   error("scheme $X not found among the open patches in $U")
