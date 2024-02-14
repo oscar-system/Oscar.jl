@@ -540,8 +540,8 @@ julia> n_rays(PC)
 3
 ```
 """
-n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _number_of_rays(PC) : 0
-_number_of_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
+n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
+_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
 
 @doc raw"""
     n_vertices(PC::PolyhedralComplex)
@@ -562,8 +562,8 @@ julia> n_vertices(PC)
 1
 ```
 """
-n_vertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _number_of_vertices(PC) : 0
-_number_of_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _number_of_rays(PC)
+n_vertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_vertices(PC) : 0
+_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _n_rays(PC)
 
 @doc raw"""
     n_polyhedra(PC::PolyhedralComplex)

@@ -44,7 +44,7 @@ julia> matrix(QQ, rays(NF))
 ```
 """
 rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
-_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _number_of_rays(PF))
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _n_rays(PF))
 
 _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
@@ -303,8 +303,8 @@ julia> n_rays(face_fan(cube(3)))
 8
 ```
 """
-n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _number_of_rays(PF) : 0
-_number_of_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _n_rays(PF) : 0
+_n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc raw"""

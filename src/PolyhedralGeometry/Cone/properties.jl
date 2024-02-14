@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
   lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
 _rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _ray_cone, _number_of_rays(C))
+  SubObjectIterator{as}(C, _ray_cone, _n_rays(C))
 
 _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
@@ -244,8 +244,8 @@ julia> n_rays(PO)
 2
 ```
 """
-n_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
-_number_of_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+n_rays(C::Cone) = lineality_dim(C) == 0 ? _n_rays(C) : 0
+_n_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc raw"""
     dim(C::Cone)

@@ -372,8 +372,8 @@ julia> n_rays(UH)
 0
 ```
 """
-n_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_rays(P) : 0
-_number_of_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+n_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_rays(P) : 0
+_n_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
     n_vertices(P::Polyhedron)
@@ -389,8 +389,8 @@ julia> n_vertices(C)
 8
 ```
 """
-n_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_vertices(P) : 0
-_number_of_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _number_of_rays(P)
+n_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_vertices(P) : 0
+_n_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _n_rays(P)
 
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)
