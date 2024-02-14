@@ -728,6 +728,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_ball
 export is_basepoint_free
 export is_bicoset
 export is_bijective
@@ -805,6 +806,7 @@ export is_lattice_polytope
 export is_left
 export is_local
 export is_loopless
+export is_manifold
 export is_maximal_subgroup
 export is_minor
 export is_mixed
@@ -851,6 +853,7 @@ export is_simplicial
 export is_singular
 export is_smooth
 export is_solvable, has_is_solvable, set_is_solvable
+export is_sphere
 export is_sporadic_simple, has_is_sporadic_simple, set_is_sporadic_simple
 export is_square
 export is_standard
