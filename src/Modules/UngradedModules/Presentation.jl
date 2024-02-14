@@ -16,11 +16,11 @@ function presentation(SQ::SubquoModule)
     F = FreeMod(R, ngens(SQ.sub))
     h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
   end
-  br_name = AbstractAlgebra.find_name(R)
+  br_name = AbstractAlgebra.get_name(R)
   if br_name === nothing
     br_name = "br"
   end
-  set_attribute!(F,  :name => "$br_name^$(ngens(SQ.sub))")
+  AbstractAlgebra.set_name!(F, "$br_name^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -67,17 +67,17 @@ function presentation(SQ::SubquoModule)
     G = FreeMod(R, length(q))
     h_G_F = hom(G, F, q)
   end
-  br_name = AbstractAlgebra.find_name(F.R)
+  br_name = AbstractAlgebra.get_name(F.R)
   if br_name === nothing
     br_name = "br"
   end
-  set_attribute!(G, :name => "$br_name^$(length(q))")
+  AbstractAlgebra.set_name!(G, "$br_name^$(length(q))")
   if is_graded(SQ)
     Z = graded_free_module(F.R, 0)
   else
     Z = FreeMod(F.R, 0)
   end
-  set_attribute!(Z, :name => "0")
+  AbstractAlgebra.set_name!(Z, "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
   M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
@@ -95,7 +95,7 @@ function presentation(F::FreeMod)
   else
     Z = FreeMod(F.R, 0)
   end
-  set_attribute!(Z, :name => "0")
+  AbstractAlgebra.set_name!(Z, "0")
   M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
   return M

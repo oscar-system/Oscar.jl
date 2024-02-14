@@ -55,3 +55,7 @@ function number_of_vertices end
 @alias nroots number_of_roots
 @alias nsimpleroots number_of_simple_roots
 @alias nvertices number_of_vertices
+
+# these are kept for compatibility with Graphs.jl / GraphsBase.jl
+@alias ne number_of_edges
+@alias nv number_of_vertices
