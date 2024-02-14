@@ -317,7 +317,7 @@ end
 function Base.show(io::IO, R::RedGrpInvRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
-    print(io, Lowercase(), R.poly_ring)
+    println(io, Lowercase(), R.poly_ring)
     print(io, Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
     print(io, Dedent())
 end
