@@ -2053,7 +2053,7 @@ function flag_pluecker_ideal(F::Field, dimensions::Vector{Int}, n::Int)
   L2 = reduce(vcat, [subsets(n, d + 1) for d in dimensions])
 
   R, x = polynomial_ring(F, "x" => L; cached=false)
-  xdict = Dict{Vector{Int},MPolyElem}([L[i] => x[i] for i in 1:length(L)])
+  xdict = Dict{Vector{Int},MPolyRingElem}([L[i] => x[i] for i in 1:length(L)])
 
   X = [(a, b) for a in L1, b in L2 if length(b) - length(a) >= 2]
 
