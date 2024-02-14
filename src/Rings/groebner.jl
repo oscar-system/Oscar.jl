@@ -318,7 +318,7 @@ See [Fau99](@cite) for more information.
 
 # Examples
 ```jldoctest
-julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], ordering=:degrevlex)
+julia> R,(x,y,z) = polynomial_ring(GF(101), ["x","y","z"], internal_ordering=:degrevlex)
 (Multivariate polynomial ring in 3 variables over GF(101), FqMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x+2*y+2*z-1, x^2+2*y^2+2*z^2-x, 2*x*y+2*y*z-y])

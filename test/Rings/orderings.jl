@@ -168,7 +168,7 @@ end
                    (leading_coefficient(f), leading_exponent(f))
 
    Fp = GF(7)
-   R, (x, y, z) = polynomial_ring(Fp, 3, ordering = :deglex)
+   R, (x, y, z) = polynomial_ring(Fp, 3, internal_ordering = :deglex)
    f = x*y + 5*z^3
    @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
    @test leading_monomial(f; ordering = lex(R)) == x*y

@@ -53,8 +53,9 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
   field::FldT
   poly_ring::PolyRingT
 
-  # The underlying polynomial ring needs to be created with ordering = :degrevlex
-  # for the application of divrem in the secondary and fundamental invariants.
+  # The underlying polynomial ring needs to be created with
+  # internal_ordering = :degrevlex for the application of divrem in the secondary
+  # and fundamental invariants.
   # If the user gave us a polynomial ring (which is stored in poly_ring), this
   # might not be the case.
   poly_ring_internal::PolyRingT
@@ -78,7 +79,7 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
     n = degree(G)
     # We want to use divrem w.r.t. degrevlex for the computation of secondary
     # invariants and fundamental invariants
-    R, = graded_polynomial_ring(K, "x" => 1:n, cached = false, ordering = :degrevlex)
+    R, = graded_polynomial_ring(K, "x" => 1:n, cached = false, internal_ordering = :degrevlex)
     return InvRing(K, G, action, R)
   end
 
@@ -103,8 +104,8 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
 
     # We want to use divrem w.r.t. degrevlex for the computation of secondary
     # invariants and fundamental invariants
-    if ordering(poly_ring) != :degrevlex
-      z.poly_ring_internal, _ = graded_polynomial_ring(K, ngens(poly_ring), cached = false, ordering = :degrevlex)
+    if internal_ordering(poly_ring) != :degrevlex
+      z.poly_ring_internal, _ = graded_polynomial_ring(K, ngens(poly_ring), cached = false, internal_ordering = :degrevlex)
     end
 
     return z
