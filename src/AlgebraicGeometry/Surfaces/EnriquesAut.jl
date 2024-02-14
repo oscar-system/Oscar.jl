@@ -227,6 +227,12 @@ function Base.hash(D::EnriquesChamber, h::UInt)
   return hash(fingerprint(D), h)
 end
 
+function Base.in(x::ZZMatrix, D::EnriquesChamber)
+  G = D.data.gramSY
+  Gx = G*transpose(x)
+  return all((v*Gx)[1,1]>=0 for v in walls(D))
+end
+
 # inv(g)*h in G => fingerprint(g) == fingerprint(h)
 function fingerprint(D::EnriquesChamber)
   #return 0
