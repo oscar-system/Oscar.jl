@@ -72,7 +72,6 @@ export GSet
 export GU
 export Gluing
 export Graph
-export Graphs
 export GroupConjClass
 export GroupCoset
 export GroupDoubleCoset
@@ -516,7 +515,6 @@ export facet_sizes
 export facets
 export factor_of_direct_product
 export factorisations
-export fan
 export fano_matroid
 export fano_simplex
 export fat_ideal
@@ -1489,7 +1487,6 @@ export vertexindices
 export vertical_connectivity
 export vertices
 export vertices_and_rays
-export vf_group
 export visualize
 export volume
 export volume_form
