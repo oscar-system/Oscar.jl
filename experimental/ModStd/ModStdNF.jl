@@ -43,7 +43,7 @@ end
 #  the rat-reco for different polys in parallel
 #  crt in parallel
 #  use walk, tracing, ...
-function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
+function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}, ord::Symbol = :degrevlex; use_hilbert::Bool = false)
   if isdefined(I, :gb) && ord == :degrevlex
     return I.gb
   end
@@ -56,8 +56,8 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
   max_stable = 2
   stable = max_stable
 
-  local gc::Vector{Generic.MPoly{nf_elem}}
-  local gd::Vector{Generic.MPoly{nf_elem}}
+  local gc::Vector{Generic.MPoly{AbsSimpleNumFieldElem}}
+  local gd::Vector{Generic.MPoly{AbsSimpleNumFieldElem}}
   Zx = Hecke.Globals.Zx
   R = RecoCtx(K)
 
@@ -139,7 +139,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{nf_elem}}, ord::Symbol 
   end
 end
 
-function exp_groebner_basis(I::MPolyIdeal{Generic.MPoly{nf_elem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+function exp_groebner_basis(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
   return Oscar.exp_groebner_assure(I, ord)
 end
 
@@ -149,7 +149,7 @@ end
 # definitely: IdealGens as list is what we do
 # for induced stuff and majority voting and such think of data structures
 #   that allow to match monomials effectively.
-function Hecke.modular_proj(B::IdealGens{Generic.MPoly{nf_elem}}, me::Hecke.modular_env)
+function Hecke.modular_proj(B::IdealGens{Generic.MPoly{AbsSimpleNumFieldElem}}, me::Hecke.modular_env)
   g = [Vector{zzModMPolyRingElem}() for i = me.fld]
   for i=B
     h = Hecke.modular_proj(i, me)

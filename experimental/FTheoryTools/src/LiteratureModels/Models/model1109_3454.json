@@ -39,15 +39,15 @@
     "model_data": {
         "base_dim": 3,
         "model_sections": ["w"],
-        "base_coordinates": ["Kbar", "w", "a1", "a21", "a32", "a43"],
+        "base_coordinates": ["w", "a1", "a21", "a32", "a43"],
         "a1": "a1",
         "a2": "a21*w",
         "a3": "a32*w^2",
         "a4": "a43*w^3",
         "a6": "0",
         "auxiliary_base_grading": [
-            [1, 0, 1, 2, 3, 4],
-            [0, 1, 0, -1, -2, -3]
+            [0, 1, 2, 3, 4],
+            [1, 0, -1, -2, -3]
         ],
         "generating_sections": [["0", "0", "1"]],
         "resolutions": [

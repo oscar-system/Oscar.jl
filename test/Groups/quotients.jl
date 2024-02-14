@@ -61,7 +61,7 @@ end
    G = abelian_group(T, [2, 3, 4])
    @test maximal_abelian_quotient(G)[1] isa PcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
-   @test maximal_abelian_quotient(GrpAbFinGen, G)[1] isa GrpAbFinGen
+   @test maximal_abelian_quotient(FinGenAbGroup, G)[1] isa FinGenAbGroup
    G = symmetric_group(4)
    @test maximal_abelian_quotient(G)[1] isa PcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup

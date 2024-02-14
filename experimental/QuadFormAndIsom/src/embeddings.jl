@@ -881,7 +881,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   end
 
   # In theory, V should contain H0 := p^l*pq where pq is the p-primary part of q
-  all(a -> has_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq)) || return res
+  all(a -> has_preimage_with_preimage(Vinq, (p^l)*pqtoq(a))[1], gens(pq)) || return res
   H0, H0inq = sub(q, elem_type(q)[q(lift((p^l)*a)) for a in gens(pq)])
   @hassert :ZZLatWithIsom 1 is_invariant(f, H0inq)
 

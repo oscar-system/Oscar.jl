@@ -36,6 +36,7 @@ Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
 dualgraph(p::Polyhedron)
 edgegraph(p::Polyhedron)
 graph_from_adjacency_matrix
+graph_from_edges
 ```
 
 ### Modifying graphs

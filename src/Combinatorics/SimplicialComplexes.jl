@@ -205,10 +205,10 @@ Recall that the 0-th homology group is trivial if and only if `K` is connected.
 # Examples
 ```jldoctest
 julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
-3-element Vector{GrpAbFinGen}:
- GrpAb: Z/1
- GrpAb: Z/2
- GrpAb: Z/1
+3-element Vector{FinGenAbGroup}:
+ Z/1
+ Z/2
+ Z/1
 ```
 """
 homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
@@ -223,7 +223,7 @@ Return `i`-th reduced integral cohomology group of `K`.
 julia> K = simplicial_complex([[0,1],[1,2],[0,2]]);
 
 julia> cohomology(K,1)
-GrpAb: Z
+Z
 ```
 """
 cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
@@ -398,6 +398,71 @@ function fundamental_group(K::SimplicialComplex)
         return pi_1
     end
 end
+
+################################################################################
+###  Sphere recognition heuristics
+################################################################################
+
+"""
+    is_sphere(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a sphere.
+Returns false if not a sphere.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> is_sphere(K)
+false
+```
+"""
+is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
+
+"""
+    is_ball(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a ball.
+Returns false if not a ball.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> is_ball(K)
+true
+```
+"""
+is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
+
+"""
+    is_manifold(K::SimplicialComplex)
+
+Check if the abstract simplicial complex `K` is a combinatorial manifold, possibly with boundary.
+Note that this is undecidable in general.
+Returns true if recognized as a manifold.
+Returns false if not a manifold.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> is_manifold(torus())
+true
+
+julia> is_manifold(simplicial_complex([[1,2],[2,3]]))
+true
+
+julia> is_manifold(simplicial_complex([[1,2],[2,3],[2,4]]))
+false
+```
+"""
+is_manifold(K::SimplicialComplex) = pm_object(K).MANIFOLD::Union{Bool,Nothing}
 
 ################################################################################
 ###  Surface examples

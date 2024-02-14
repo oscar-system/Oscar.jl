@@ -1375,7 +1375,7 @@ a fundamental domain for the action of ``\mathrm{Aut}(X)`` on the set of nef L|S
 This is almost a fundamental domain for ``\mathrm{Aut}(X)`` on the nef cone.
 
 Here very general means that ``Num(X)`` is isomorphic to `S` and the image of
-$\mathrm{Aut}(X) \to H^0(X,\Omega^2_X)$ is $ \pm 1$.
+$\mathrm{Aut}(X) \to H^0(X,\Omega^2_X)$ is $\pm 1$.
 
 The function returns generators for the image of
 

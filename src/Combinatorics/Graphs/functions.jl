@@ -1032,7 +1032,7 @@ Construct the fractional cut polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_cut_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_cut_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
@@ -1049,7 +1049,7 @@ Construct the fractional matching polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_matching_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))
@@ -1080,4 +1080,54 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
   else
     print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
   end
+end
+
+function graph_from_edges(::Type{T},
+                          edges::Vector{Edge},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
+
+  g = Graph{T}(max(n_needed, n_vertices))
+  for e in edges
+    add_edge!(g, src(e), dst(e))
+  end
+
+  return g
+end
+
+function graph_from_edges(::Type{T},
+                          edges::EdgeIterator,
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+  return graph_from_edges(T, collect(edges), n_vertices)
+end
+
+@doc raw"""
+    graph_from_edges(edges::Vector{Vector{Int}})
+    graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
+
+Creates a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
+ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges([[1,3],[3,5],[4,5],[2,4],[2,3]])
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
+
+julia> G = graph_from_edges(Directed, [[1,3]], 4)
+Directed graph with 4 nodes and the following edges:
+(1, 3)
+```
+"""
+function graph_from_edges(::Type{T},
+                          edges::Vector{Vector{Int}},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+  return graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
+end
+
+function graph_from_edges(edges::Vector{Vector{Int}},
+                          n_vertices::Int=-1)
+  return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end

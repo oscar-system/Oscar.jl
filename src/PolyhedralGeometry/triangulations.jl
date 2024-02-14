@@ -119,7 +119,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -158,7 +158,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> all_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
@@ -271,7 +271,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -314,7 +314,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> regular_triangulations(c)
 2-element Vector{Vector{Vector{Int64}}}:
@@ -354,7 +354,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> V = vertices(c)
 4-element SubObjectIterator{PointVector{QQFieldElem}}:
@@ -398,7 +398,7 @@ the first, second, and fourth input point.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> regular_triangulation(c)
 1-element Vector{Vector{Vector{Int64}}}:
@@ -425,10 +425,10 @@ only using the vertices of `P`.
 Compute the secondary polytope of the cube.
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> sc = secondary_polytope(c)
-Polyhedron in ambient dimension 8
+Polytope in ambient dimension 8
 ```
 """
 function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
@@ -444,7 +444,7 @@ Compute whether a triangulation is regular.
 Compute whether a triangulation of the square is regular.
 ```jldoctest
 julia> c = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> cells=[[1,2,3],[2,3,4]];
 

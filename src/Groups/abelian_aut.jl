@@ -1,19 +1,19 @@
-const AutGrpAbTor = Union{AutomorphismGroup{GrpAbFinGen},AutomorphismGroup{TorQuadModule}}
-const AutGrpAbTorElem = Union{AutomorphismGroupElem{GrpAbFinGen},AutomorphismGroupElem{TorQuadModule}}
-const AbTorElem = Union{GrpAbFinGenElem,TorQuadModuleElem}
+const AutGrpAbTor = Union{AutomorphismGroup{FinGenAbGroup},AutomorphismGroup{TorQuadModule}}
+const AutGrpAbTorElem = Union{AutomorphismGroupElem{FinGenAbGroup},AutomorphismGroupElem{TorQuadModule}}
+const AbTorElem = Union{FinGenAbGroupElem,TorQuadModuleElem}
 
-function _isomorphic_gap_group(A::GrpAbFinGen; T=PcGroup)
+function _isomorphic_gap_group(A::FinGenAbGroup; T=PcGroup)
   iso = isomorphism(T, A)
   iso2 = inv(iso)
   return codomain(iso), iso, iso2
 end
 
 @doc raw"""
-    automorphism_group(G::GrpAbFinGen) -> AutomorphismGroup{GrpAbFinGen} 
+    automorphism_group(G::FinGenAbGroup) -> AutomorphismGroup{FinGenAbGroup} 
 
 Return the automorphism group of `G`.
 """
-function automorphism_group(G::GrpAbFinGen)
+function automorphism_group(G::FinGenAbGroup)
   Ggap, to_gap, to_oscar = _isomorphic_gap_group(G)
   AutGAP = GAPWrap.AutomorphismGroup(Ggap.X)
   aut = AutomorphismGroup(AutGAP, G)
@@ -41,7 +41,7 @@ Base.:^(x::AbTorElem,f::AutGrpAbTorElem) = apply_automorphism(f, x, true)
 
 # the _as_subgroup function needs a redefinition
 # to pass on the to_gap and to_oscar attributes to the subgroup
-function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadModule,GrpAbFinGen}
+function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Union{TorQuadModule,FinGenAbGroup}
   function img(x::AutomorphismGroupElem{S})
     return group_element(aut, x.X)
   end
@@ -53,9 +53,9 @@ function _as_subgroup(aut::AutomorphismGroup{S}, subgrp::GapObj) where S <: Unio
 end
 
 @doc raw"""
-    hom(f::AutomorphismGroupElem{GrpAbFinGen}) -> GrpAbFinGenMap 
+    hom(f::AutomorphismGroupElem{FinGenAbGroup}) -> FinGenAbGroupHom 
 
-Return the element `f` of type `GrpAbFinGenMap`.
+Return the element `f` of type `FinGenAbGroupHom`.
 """
 function hom(f::AutGrpAbTorElem)
   A = domain(f)
@@ -64,7 +64,7 @@ function hom(f::AutGrpAbTorElem)
 end
 
 
-function (aut::AutGrpAbTor)(f::Union{GrpAbFinGenMap,TorQuadModuleMap};check::Bool=true)
+function (aut::AutGrpAbTor)(f::Union{FinGenAbGroupHom,TorQuadModuleMap};check::Bool=true)
   !check || (domain(f) === codomain(f) === domain(aut) && is_bijective(f)) || error("Map does not define an automorphism of the abelian group.")
   to_gap = get_attribute(aut, :to_gap)
   to_oscar = get_attribute(aut, :to_oscar)
@@ -100,19 +100,19 @@ function (aut::AutGrpAbTor)(g::MatrixGroupElem{QQFieldElem, QQMatrix}; check::Bo
 end
 
 @doc raw"""
-    matrix(f::AutomorphismGroupElem{GrpAbFinGen}) -> ZZMatrix
+    matrix(f::AutomorphismGroupElem{FinGenAbGroup}) -> ZZMatrix
 
 Return the underlying matrix of `f` as a module homomorphism.
 """
-matrix(f::AutomorphismGroupElem{GrpAbFinGen}) = matrix(hom(f))
+matrix(f::AutomorphismGroupElem{FinGenAbGroup}) = matrix(hom(f))
 
 
 @doc raw"""
-    defines_automorphism(G::GrpAbFinGen, M::ZZMatrix) -> Bool
+    defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) -> Bool
 
 If `M` defines an endomorphism of `G`, return `true` if `M` defines an automorphism of `G`, else `false`.
 """ 
-defines_automorphism(G::GrpAbFinGen, M::ZZMatrix) = is_bijective(hom(G,G,M))
+defines_automorphism(G::FinGenAbGroup, M::ZZMatrix) = is_bijective(hom(G,G,M))
 
 ################################################################################
 #
@@ -287,7 +287,7 @@ function is_invariant(f::TorQuadModuleMap, i::TorQuadModuleMap)
   U = domain(i)
   for a in gens(U)
     b = f(i(a))
-    has_preimage(i, b)[1] || return false
+    has_preimage_with_preimage(i, b)[1] || return false
   end
   return true
 end
@@ -337,7 +337,7 @@ function restrict_endomorphism(f::TorQuadModuleMap, i::TorQuadModuleMap; check::
   U = domain(i)
   for a in gens(U)
     b = f(i(a))
-    ok, c = has_preimage(i, b)
+    ok, c = has_preimage_with_preimage(i, b)
     @req ok "The domain of i is not invariant under the action of f"
     push!(imgs, c)
   end

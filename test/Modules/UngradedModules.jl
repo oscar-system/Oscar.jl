@@ -1021,6 +1021,30 @@ end
   @test all([Hbar(Hbar_inv(g))==g for g in gens(ImH)])
 end
 
+
+@testset "lift of homomorphisms" begin
+  K = GF(3)
+  S, (x0, x1, x2, x3, x4) = graded_polynomial_ring(K, ["x0", "x1", "x2", "x3", "x4"]);
+  m = ideal(S, [x1^2+(-x1+x2+x3-x4)*x0, x1*x2+(x1-x3+x4)*x0, x1*x3+(-x1+x4+x0)*x0, x1*x4+(-x1+x3+x4-x0)*x0, x2^2+(x1-x2-x4-x0)*x0, x2*x3+(x1-x2+x3+x4-x0)*x0, x2*x4+(x1+x2-x3-x4-x0)*x0, x3^2+(x3+x4-x0)*x0,x3*x4+(-x3-x4+x0)*x0, x4^2+(x1+x3-x4-x0)*x0]);
+  A, _ = quo(S, m);
+  FA = free_resolution(A, algorithm = :mres, length = 2)
+  phi1 = map(FA, 1)
+  e1 = gen(codomain(phi1),1)
+  phi2 = map(FA, 2)
+  #phi3 = map(FA, 3)
+  L = monomial_basis(A, 2);
+  a = [[i == ((j-1) ÷ 5 + 1) ? S(L[((j-1) % 5) + 1]) : S(0) for i in 1:10] for j in 1:50]
+  A1 = hom(domain(phi1), codomain(phi1), [p*e1 for p in a[1]])
+  A1phi2 = phi2 * A1
+  A2 = lift(A1phi2, phi1)
+  @test matrix(A2)[1,1] == 2*x1 + 2*x2 + x3 + 2*x4
+  #A2phi3 = phi3 * A2
+  #A3 = lift2(A2phi3, phi2)
+  #A3m = matrix(A3)
+  #@test A3m[2,17]==S(2)
+end
+
+
 @testset "preimage" begin
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 

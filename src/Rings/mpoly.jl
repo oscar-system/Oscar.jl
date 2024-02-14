@@ -425,7 +425,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)

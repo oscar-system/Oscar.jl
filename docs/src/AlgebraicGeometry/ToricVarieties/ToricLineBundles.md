@@ -11,7 +11,7 @@ CurrentModule = Oscar
 ### Generic constructors
 
 ```@docs
-toric_line_bundle(v::NormalToricVarietyType, picard_class::GrpAbFinGenElem)
+toric_line_bundle(v::NormalToricVarietyType, picard_class::FinGenAbGroupElem)
 toric_line_bundle(v::NormalToricVarietyType, picard_class::Vector{T}) where {T <: IntegerUnion}
 toric_line_bundle(v::NormalToricVarietyType, d::ToricDivisor)
 toric_line_bundle(d::ToricDivisor)
