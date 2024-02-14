@@ -23,10 +23,10 @@ Make a directed graph with 5 vertices and print the number of nodes and edges.
 ```jldoctest
 julia> g = Graph{Directed}(5);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 5
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 0
 ```
 """
@@ -98,7 +98,7 @@ true
 julia> add_edge!(g, 1, 2)
 false
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 1
 ```
 """
@@ -124,13 +124,13 @@ julia> g = Graph{Directed}(2);
 julia> add_edge!(g, 1, 2)
 true
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 1
 
 julia> rem_edge!(g, 1, 2)
 true
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 0
 ```
 """
@@ -152,13 +152,13 @@ added.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 2
 
 julia> add_vertex!(g)
 true
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 3
 ```
 """
@@ -180,13 +180,13 @@ was actually removed, `false` otherwise.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 2
 
 julia> rem_vertex!(g, 1)
 true
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 1
 ```
 """
@@ -210,12 +210,12 @@ were actually added to the graph `g`.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 2
 
 julia> add_vertices!(g, 5);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 7
 ```
 """
@@ -335,7 +335,7 @@ end
 ################################################################################
 ################################################################################
 @doc raw"""
-    number_of_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of vertices of a graph.
 
@@ -346,16 +346,16 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 8
 ```
 """
-function number_of_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
 end
 
 @doc raw"""
-    number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
 
@@ -366,11 +366,11 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 12
 ```
 """
-function number_of_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
 
@@ -394,7 +394,7 @@ julia> collect(edges(g))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), number_of_edges(g))
+    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
 
@@ -917,10 +917,10 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 8
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 12
 ```
 """
@@ -948,10 +948,10 @@ julia> c = cube(3);
 
 julia> g = dualgraph(c);
 
-julia> number_of_vertices(g)
+julia> n_vertices(g)
 6
 
-julia> number_of_edges(g)
+julia> n_edges(g)
 12
 ```
 """

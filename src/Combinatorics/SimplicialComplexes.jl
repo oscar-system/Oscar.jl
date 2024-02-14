@@ -104,17 +104,17 @@ end
 ################################################################################
 
 @doc raw"""
-    number_of_vertices(K::SimplicialComplex)
+    n_vertices(K::SimplicialComplex)
 
 Return the number of vertices of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> number_of_vertices(torus())
+julia> n_vertices(torus())
 7
 ```
 """
-number_of_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
+n_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
 @doc raw"""
     facets(K::SimplicialComplex)

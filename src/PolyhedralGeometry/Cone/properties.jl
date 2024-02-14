@@ -212,7 +212,7 @@ _incidencematrix(::Val{_face_cone_facet}) = _ray_indices
 ## Scalar properties
 ###############################################################################
 @doc raw"""
-    number_of_facets(C::Cone)
+    n_facets(C::Cone)
 
 Return the number of facets of a cone `C`.
 
@@ -222,14 +222,14 @@ The cone over a square at height one has four facets.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 Polyhedral cone in ambient dimension 3
 
-julia> number_of_facets(C)
+julia> n_facets(C)
 4
 ```
 """
-number_of_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
+n_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc raw"""
-    number_of_rays(C::Cone)
+    n_rays(C::Cone)
 
 Return the number of rays of `C`.
 
@@ -240,11 +240,11 @@ julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> number_of_rays(PO)
+julia> n_rays(PO)
 2
 ```
 """
-number_of_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
+n_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
 _number_of_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc raw"""

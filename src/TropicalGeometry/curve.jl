@@ -66,7 +66,7 @@ julia> rayIndices = [2,3,4];
 julia> Sigma = polyhedral_complex(incidenceMatrix, verticesAndRays, rayIndices)
 Polyhedral complex in ambient dimension 2
 
-julia> multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+julia> multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 3-element Vector{ZZRingElem}:
  1
  1
@@ -81,7 +81,7 @@ function tropical_curve(Sigma::PolyhedralComplex, multiplicities::Vector{ZZRingE
     return TropicalCurve{typeof(minOrMax),true}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
@@ -95,7 +95,7 @@ Return the abstract tropical curve consisting of the graph `Sigma` and multiplic
 ```jldoctest; filter = r"Edge\(.*\)"
 julia> Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
 
-julia> multiplicities = ones(ZZRingElem, number_of_edges(Sigma))
+julia> multiplicities = ones(ZZRingElem, n_edges(Sigma))
 3-element Vector{ZZRingElem}:
  1
  1
@@ -110,7 +110,7 @@ function tropical_curve(Sigma::Graph, multiplicities::Vector{ZZRingElem}, minOrM
    return TropicalCurve{typeof(minOrMax), false}(Sigma,multiplicities)
 end
 function tropical_curve(Sigma::Graph,minOrMax::Union{typeof(min),typeof(max)}=min)
-    multiplicities = ones(ZZRingElem, number_of_edges(Sigma))
+    multiplicities = ones(ZZRingElem, n_edges(Sigma))
     return tropical_curve(Sigma,multiplicities,minOrMax)
 end
 
@@ -146,13 +146,13 @@ end
 ################################################################################
 
 # @doc raw"""
-#     number_of_vertices(tc::TropicalCurve)
+#     n_vertices(tc::TropicalCurve)
 
 # Return the number of vertices of an abstract tropical curve `tc`.
 # """
-# function number_of_vertices(tc::TropicalCurve)
+# function n_vertices(tc::TropicalCurve)
 #     G = graph(tc)
-#     return number_of_vertices(G)
+#     return n_vertices(G)
 # end
 
 
