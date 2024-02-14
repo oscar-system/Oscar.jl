@@ -309,7 +309,7 @@ function fundamental_invariants(z::InvariantRing)
         if !isdefined(z, :NullConeIdeal)
             z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
         end
-        z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, I, z.reynolds_operator)
+        z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, z.reynolds_operator)
         return z.fundamental
     end
 end
@@ -348,19 +348,20 @@ function proj_of_image_ideal(G::ReductiveGroup, rep_mat::MatElem)
     return eliminate(W[1], gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)]), W[2]
 end
 
-
-#evaluate at y = 0 
+#this function gets the generators of the null cone. they may or may not be invariant.
+#to do this we evaluate what is returned from proj_of_image_ideal at y = 0 
+#ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
 function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
     m = G.group[2]
     gbasis = gens(X) 
-    length(gbasis) == 0 && return gbasis,new_rep_mat
+    length(gbasis) == 0 && return gbasis
     mixed_ring_xy = parent(gbasis[1])
-    #evaluate at y=0
+    #evaluate at gens(mixed_ring_xy)[n+1:2*n] = 0
     V = vcat(gens(mixed_ring_xy)[1:n], [0 for i in 1:n], gens(mixed_ring_xy)[2*n+1:2*n+m^2])
     ev_gbasis = [evaluate(f,V)  for f in gbasis]
     #grading starts here. In the end, our invariant ring is graded.
-    mixed_ring_graded, (x,y,zz) = grade(mixed_ring_xy)
+    mixed_ring_graded, _ = grade(mixed_ring_xy)
     mapp = hom(mixed_ring_xy, mixed_ring_graded, gens(mixed_ring_graded))
     ev_gbasis_new = [mapp(ev_gbasis[i]) for i in 1:length(ev_gbasis)]
     if length(ev_gbasis_new) == 0
@@ -369,29 +370,33 @@ function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     return minimal_generating_set(ideal(ev_gbasis_new))
 end
 
-#computing the invariant generators.
-#now we have to perform reynolds operation. This will happen in mixed_ring_xy. 
-#the elements returned will be in the polynomial ring K[X]
-function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::MatElem, X::MPolyIdeal, reynolds_function::Function)
+#computing the invariant generators of the null cone by applying reynolds operator to gens(I). This is done in K[X,Y] (basering(I)).
+#the elements returned will be in the polynomial K[X] (ringg).
+function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::MatElem, reynolds_function::Function)
     genss = gens(I)
     if length(genss) == 0
         return Vector{elem_type(ringg)}()
     end
+
+    #we need the representation matrix and determinant of group matrix to be in basering(I)
     mixed_ring_xy = parent(genss[1])
     R = base_ring(M)
     m = G.group[2]
     n = ncols(M)
     mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
     new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(M[i,j]) for i in 1:n, j in 1:n])
-    #we need det_
     det_ = det(G.canonical_representation)
     mapp_ = hom(parent(det_), mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
     new_det = mapp_(det_)
+
+    #now we apply reynolds operator to genss
     if G.group[1] == :SL #TODO other types of reductive groups
         new_gens_wrong_ring = [reynolds_function(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
     else 
         return nothing
     end
+
+    #map them to the required ring, ringg. 
     img_genss = vcat(gens(ringg), zeros(ringg, n+m^2))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
     new_gens = Vector{elem_type(ringg)}()
@@ -420,6 +425,7 @@ function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::M
     return new_gens_
 end
 
+#the reynolds operator for SLm acting via new_rep_mat. 
 function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::MatElem, new_det::MPolyDecRingElem, m::Int)
     mixed_ring_xy = parent(elem)
     n = ncols(new_rep_mat)
@@ -442,6 +448,7 @@ function reynolds_v_slm(elem::MPolyDecRingElem, new_rep_mat::MatElem, new_det::M
     return reynolds_slm(sum_, new_det, p)
 end
 
+#reynolds operator for SLm using Cayleys Omega process 
 function reynolds_slm(elem::MPolyRingElem, det_::MPolyRingElem, p::Int)
     num = omegap_(p,det_, elem)
     den = omegap_(p,det_,det_^p)
