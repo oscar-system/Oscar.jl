@@ -308,7 +308,7 @@ function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiring
     x = gens(base_ring(I))
     G = gens(I)
     macaulayMatrix = matrix([[coeff(g,xi) for xi in x] for g in G])
-    A = kernel(macaulayMatrix, side = :right)
+    A = transpose(kernel(macaulayMatrix, side = :right))
     TropL = tropical_linear_space(A,nu,
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     if !weighted_polyhedral_complex_only
