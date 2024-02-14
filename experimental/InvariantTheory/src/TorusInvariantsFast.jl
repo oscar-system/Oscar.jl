@@ -2,29 +2,15 @@
 #Setting up reductive groups for fast torus algorithm
 #####################
 
-mutable struct ReductiveGroupFastTorus
+struct ReductiveGroupFastTorus
     field::Field
     rank::Int
     #weights::Vector{Vector{ZZRingElem}}
-
-    function ReductiveGroupFastTorus(F::Field, n::Int)
-        z = new()
-        z.field = F
-        z.rank = n
-        #z.weights = W
-        return z
-    end
 end
 
+torus_group(F::Field, n::Int) = ReductiveGroupFastTorus(F,n)
 rank(G::ReductiveGroupFastTorus) = G.rank
 field(G::ReductiveGroupFastTorus) = G.field
-
-#unsure of this here.
-function reductive_group(sym::Symbol, n::Int, F::Field, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
-    if sym == :torus
-        return ReuctiveGroupFastTorus(F,n)
-    end
-end
 
 function Base.show(io::IO, G::ReductiveGroupFastTorus)
     io = pretty(io)
@@ -37,16 +23,9 @@ end
 #Setting up weights for fast torus algorithm
 #####################
 
-mutable struct RepresentationReductiveGroupFastTorus
+struct RepresentationReductiveGroupFastTorus
     group::ReductiveGroupFastTorus
     weights::Vector{Vector{ZZRingElem}}
-
-    function RepresentationReductiveGroupFastTorus(G::ReductiveGroupFastTorus, W::Vector{Vector{ZZRingElem}})
-        z = new()
-        z.group = G
-        z.weights = W
-        return z
-    end
 end
 
 function representation_from_weights(G::ReductiveGroupFastTorus, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
