@@ -313,6 +313,44 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
   end
 end
 
+#=
+function hom(F::FreeMod, G::FreeMod)
+  @assert base_ring(F) === base_ring(G)
+  ###@assert is_graded(F) == is_graded(G)
+  if is_graded(F)
+    d = [y - x for x in degrees(F) for y in degrees(G)]
+    GH = graded_free_module(F.R, d)
+  else
+    GH = FreeMod(F.R, rank(F) * rank(G))
+  end
+  GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
+
+  #list is g1 - f1, g2-f1, g3-f1, ...
+  X = Hecke.MapParent(F, G, "homomorphisms")
+  n = ngens(F)
+  m = ngens(G)
+  R = base_ring(F)
+  function im(x::FreeModElem)
+    return hom(F, G, Vector{elem_type(G)}([FreeModElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n]), check=false)
+  end
+  function pre(h::FreeModuleHom)
+    s = sparse_row(F.R)
+    o = 0
+    for i=1:n
+      for (p,v) = h(gen(F, i)).coords
+        push!(s.pos, o+p)
+        push!(s.values, v)
+      end
+      o += m
+    end
+    return FreeModElem(s, GH)
+  end
+  to_hom_map = MapFromFunc(GH, X, im, pre)
+  set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G), :module_to_hom_map => to_hom_map)
+  return GH, to_hom_map
+end
+=#
+
 @doc raw"""
     kernel(a::FreeModuleHom)
 
@@ -430,6 +468,40 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))
 end
+
+#=
+# Old code of kernel left for debugging
+  G = domain(h)
+  R = base_ring(G)
+  if ngens(G) == 0
+    s = sub_object(G, gens(G))
+    help = hom(s, G, gens(G), check=false)
+    help.generators_map_to_generators = true
+    return s, help
+  end
+  g = map(h, basis(G))
+  if isa(codomain(h), SubquoModule)
+    g = [repres(x) for x = g]
+    if isdefined(codomain(h), :quo)
+      append!(g, collect(codomain(h).quo.gens))
+    end
+  end
+  #TODO allow sub-quo here as well
+  ambient_free_module_codomain = ambient_free_module(codomain(h))
+  b = ModuleGens(g, ambient_free_module_codomain, default_ordering(ambient_free_module_codomain))
+  k = syzygy_module(b)
+  if isa(codomain(h), SubquoModule)
+    s = collect(k.sub.gens)
+    k = sub_object(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s])
+  else
+    #the syzygie_module creates a new free module to work in
+    k = sub_object(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)])
+  end
+  @assert k.F === G
+  c = collect(k.sub.gens)
+  return k, hom(k, parent(c[1]), c, check=false)
+end
+=#
 
 @doc raw"""
     image(a::FreeModuleHom)

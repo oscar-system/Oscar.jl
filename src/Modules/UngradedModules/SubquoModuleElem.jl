@@ -75,6 +75,14 @@ function coordinates(m::SubquoModuleElem)
   if !isdefined(m, :coeffs)
     @assert isdefined(m, :repres) "neither coeffs nor repres is defined on a SubquoModuleElem"
     m.coeffs = coordinates(repres(m), parent(m))
+    # Code left here for debugging
+    # if is_graded(ambient_free_module(parent(m))) && is_homogeneous(m.repres)
+    #   d = degree(m.repres)
+    #   gen_deg = degrees_of_generators(parent(m))
+    #   for (i, c) in m.coeffs
+    #     _degree_fast(c) + gen_deg[i] == d || error("lifting of homogeneous element is not homogeneous")
+    #   end
+    # end
   end
   return m.coeffs
 end
@@ -906,6 +914,27 @@ function quo_object(F::FreeMod{R}, T::SubquoModule{R}) where R
   @assert !isdefined(T, :quo)
   return quo_object(F, gens(T))
 end
+
+#=
+@doc raw"""
+    return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
+
+This helper function returns the module `Q = M / N` for some `N` 
+along with the canonical projection morphism $M \to Q$ according to the 
+given `task`.
+"""
+function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
+  if task == :none || task == :module
+    return Q
+  else
+    pro = hom(M, Q, gens(Q); check=false)
+    pro.generators_map_to_generators = true # Makes evaluation of the inclusion easier
+    task == :cache_morphism && register_morphism!(pro)
+    task == :only_morphism && return pro
+    return Q, pro
+  end
+end
+=#
 
 @doc raw"""
     syzygy_module(F::ModuleGens; sub = FreeMod(base_ring(F.F), length(oscar_generators(F))))
