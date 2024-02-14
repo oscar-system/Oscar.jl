@@ -27,7 +27,7 @@ julia> F = faces(cube(3), 2)
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(P) - 1 &&
-    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
+    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, n_facets(P))
   n = face_dim - length(lineality_space(P))
   n < 0 && return nothing
   pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -522,7 +522,7 @@ x_3 <= 1
 facets(
   as::Type{T}, P::Polyhedron{S}
 ) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
-  SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
+  SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
   U::Type{AffineHalfspace{S}}, P::Polyhedron{S}, i::Base.Integer

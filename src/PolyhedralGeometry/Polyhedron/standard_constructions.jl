@@ -149,7 +149,7 @@ julia> rays(nc)
 ```
 """
 function normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types}
-  @req 1 <= i <= nvertices(P) "Vertex index out of range"
+  @req 1 <= i <= n_vertices(P) "Vertex index out of range"
   bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i - 1]))
   return Cone{T}(bigobject, coefficient_field(P))
 end
@@ -1315,7 +1315,7 @@ julia> number_of_vertices(rand_subpolytope(cube(3), 5))
 """
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where {T<:scalar_types}
   @req is_bounded(P) "Polyhedron has to be bounded"
-  nv = nvertices(P)
+  nv = n_vertices(P)
   @req n <= nv "Number of vertices requested too high"
   opts = Dict{Symbol,Any}()
   if !isnothing(seed)
@@ -2412,7 +2412,7 @@ julia> vertices(T)
 
 """
 function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scalar_types}
-  @req 1 <= n <= nvertices(P) "There is no vertex $n in this polyhedron"
+  @req 1 <= n <= n_vertices(P) "There is no vertex $n in this polyhedron"
   opts = Dict{Symbol,Any}()
   if !isnothing(cutoff)
     @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"

@@ -128,7 +128,7 @@ julia> for c in maximal_cones(PF)
 4
 ```
 """
-maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, nmaxcones(PF))
+maximal_cones(PF::_FanLikeType) = SubObjectIterator{Cone{_get_scalar_type(PF)}}(PF, _maximal_cone, n_maximal_cones(PF))
 
 _ray_indices(::Val{_maximal_cone}, PF::_FanLikeType) = pm_object(PF).MAXIMAL_CONES
 

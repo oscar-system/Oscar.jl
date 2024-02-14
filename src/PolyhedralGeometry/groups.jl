@@ -286,11 +286,11 @@ function _linear_symmetries_generators(P::Polyhedron; action = :all)
         end
         hgens = Polymake.group.induced_permutations(vaction.GENERATORS, vertex_indices(facets(P)))
         if action == :on_facets
-            return _pm_arr_arr_to_group_generators(hgens, nfacets(P))
+            return _pm_arr_arr_to_group_generators(hgens, n_facets(P))
         end
         return Dict{Symbol,  Vector{PermGroupElem}}(
                 :on_vertices => _pm_arr_arr_to_group_generators(vaction.GENERATORS, vaction.DEGREE),
-                :on_facets => _pm_arr_arr_to_group_generators(hgens, nfacets(P))
+                :on_facets => _pm_arr_arr_to_group_generators(hgens, n_facets(P))
             )
     else
         throw(ArgumentError("Linear symmetries supported for bounded polyhedra only"))

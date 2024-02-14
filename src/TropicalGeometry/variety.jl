@@ -750,7 +750,7 @@ end
 # function anchor_point(P::Polyhedron)
 #   # compute the sum of vertices and rays in homogenized coordinates
 #   pt = convert(Vector{QQFieldElem},sum([vertices(P)...,rays(P)...]))
-#   pushfirst!(pt,nvertices(P))
+#   pushfirst!(pt,n_vertices(P))
 
 #   # project to orthogonal complement of lineality space if necessary
 #   if lineality_dim(P)>0

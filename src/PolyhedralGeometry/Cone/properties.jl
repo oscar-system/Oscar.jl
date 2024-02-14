@@ -155,7 +155,7 @@ RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0]]
 """
 function faces(C::Cone{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(C) - 1 &&
-    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, nfacets(C))
+    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, n_facets(C))
   n = face_dim - length(lineality_space(C))
   n < 1 && return nothing
   return SubObjectIterator{Cone{T}}(
@@ -534,7 +534,7 @@ julia> f = facets(Halfspace, c)
 ```
 """
 facets(as::Type{<:Union{LinearHalfspace{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _facet_cone, nfacets(C))
+  SubObjectIterator{as}(C, _facet_cone, n_facets(C))
 
 _facet_cone(
   U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer

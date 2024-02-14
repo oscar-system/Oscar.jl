@@ -203,7 +203,7 @@
     let f = facets(Polyhedron, j)
       fj = normal_vector.(facets(j))
       fj = [fj; -fj]
-      for i in 1:nfacets(j)
+      for i in 1:n_facets(j)
         @test normal_vector(affine_hull(f[i])[]) in fj
       end
       @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, Vector{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}}}

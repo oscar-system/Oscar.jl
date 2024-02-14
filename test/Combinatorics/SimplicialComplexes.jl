@@ -9,7 +9,7 @@
     @test sphere isa SimplicialComplex
     @test sphere2 isa SimplicialComplex
     @test vertexindices(sphere) == [1, 2, 3, 4]
-    @test nvertices(sphere) == 4
+    @test n_vertices(sphere) == 4
     @test facets(sphere) == Set{Int}.([[1, 3, 2], [1, 4, 2], [1, 3, 4], [3, 4, 2]])
     @test facets(sphere2) == facets(sphere)
     @test dim(sphere) == 2

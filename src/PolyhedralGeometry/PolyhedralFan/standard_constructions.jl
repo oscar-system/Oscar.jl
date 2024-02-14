@@ -110,7 +110,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   new_rays = old_rays
   if isnothing(new_ray_index)
     new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
-    new_ray_index = nrays(Sigma)+1
+    new_ray_index = n_rays(Sigma)+1
   end
   mc_old = maximal_cones(IncidenceMatrix, Sigma)
   
@@ -121,7 +121,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   for nc in new_cones
     push!(nc, new_ray_index)
   end
-  for i in 1:nmaxcones(Sigma)
+  for i in 1:n_maximal_cones(Sigma)
     if !(i in refinable_cones)
       push!(new_cones, Vector{Int}(Polymake.row(mc_old, i)))
     end

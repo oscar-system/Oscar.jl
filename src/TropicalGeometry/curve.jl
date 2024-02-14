@@ -181,7 +181,7 @@ end
 # ```
 # """
 # function divisor_on_tropical_curve(tc::TropicalCurve{minOrMax, false}, coeffs::Vector{Int}) where minOrMax
-#     @req nvertices(tc)==length(coeffs) "Wrong number coefficients"
+#     @req n_vertices(tc)==length(coeffs) "Wrong number coefficients"
 #     return DivisorOnTropicalCurve{minOrMax, false}(tc, coeffs)
 # end
 
@@ -248,7 +248,7 @@ end
 # function chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 #     G = graph(base_curve(dtc))
 #     newcoeffs = Vector{Int}(coefficients(dtc))
-#     for i in 1:nedges(G)
+#     for i in 1:n_edges(G)
 #         row = Polymake.row(incidence_matrix(G), i-1)
 #         if position in row
 #             newcoeffs[position] -= 1
@@ -266,7 +266,7 @@ end
 # ### This is the number of vertices not in W adjacent to v. 1,
 # function outdegree(tc::TropicalCurve, W::Set{Int}, v::Int)
 #     G = graph(tc)
-#     m = nedges(G) #number of edges of tc
+#     m = n_edges(G) #number of edges of tc
 #     @req v in W "Vertex number $v not in $W"
 #     deg = 0 #outdeg
 #     for i in 1:m
@@ -317,7 +317,7 @@ end
 # function v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 #     tc = base_curve(dtc)
 #     G = graph(base_curve(dtc))
-#     n = nvertices(G)
+#     n = n_vertices(G)
 #     newcoeff = Vector{Int}(coefficients(dtc))
 #     S = Set{Int}(1:n)
 #     W = setdiff(S,vertex)
@@ -478,9 +478,9 @@ end
 # ```
 # """
 # function structure_tropical_jacobian(TropC::TropicalCurve)
-#     gg=Graph{Undirected}(nvertices(TropC))
+#     gg=Graph{Undirected}(n_vertices(TropC))
 #     IM = graph(TropC)
-#     for i in 1:nedges(IM)
+#     for i in 1:n_edges(IM)
 #         row = Vector{Int}(Polymake.row(incidence_matrix(IM),i))
 #         add_edge!(gg, row[1],row[2])
 #     end
