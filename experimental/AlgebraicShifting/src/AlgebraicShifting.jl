@@ -95,7 +95,7 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     
     A = matrix(matrix_base, sub_compound_matrix)
 
-    if matrix_base == Fx
+    if matrix_base isa MPolyRing
       Oscar.ModStdQt.ref_ff_rc!(A)
     else
       rref!(A)
