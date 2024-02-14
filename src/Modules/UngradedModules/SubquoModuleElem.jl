@@ -133,6 +133,7 @@ function simplify(el::SubquoModuleElem)
   if is_zero(el) 
     result = zero(parent(el))
     result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
   end
   el.is_reduced = true
   return el
