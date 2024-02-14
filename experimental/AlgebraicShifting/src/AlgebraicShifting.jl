@@ -64,14 +64,13 @@ end
 Returns the exterior shift of `K`
 """
 function exterior_shift(F::Field, K::SimplicialComplex;
-                        change_of_basis::T = nothing) where T <: Union{Nothing, MatrixGroupElem}
+                        change_of_basis::T = nothing) where T <: Union{Nothing, MatElem}
   n = nvertices(K)
   if isnothing(change_of_basis)
     Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
     change_of_basis = matrix(Fx, hcat(x))
     matrix_base = Fx
   else
-    change_of_basis = matrix(change_of_basis)
     matrix_base = base_ring(change_of_basis)
   end
 
@@ -96,7 +95,7 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     
     A = matrix(matrix_base, sub_compound_matrix)
 
-    if isnothing(change_of_basis)
+    if matrix_base == Fx
       Oscar.ModStdQt.ref_ff_rc!(A)
     else
       rref!(A)
