@@ -77,3 +77,4 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate has_number_transitive_groups has_number_of_transitive_groups
 
 @deprecate factorisations factorizations
+@deprecate centraliser centralizer
