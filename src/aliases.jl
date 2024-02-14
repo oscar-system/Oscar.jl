@@ -67,8 +67,8 @@ function number_of_simple_roots end                 # from experimental/LieAlgeb
 @alias n_simple_roots number_of_simple_roots
 
 # aliases for consistency with oscar style
-@alias n_cols ncols
+@alias n_columns ncols
 @alias n_digits ndigits
-@alias n_gens ngens
+@alias n_generators ngens
 @alias n_rows nrows
-@alias n_vars nvars
+@alias n_variables nvars
