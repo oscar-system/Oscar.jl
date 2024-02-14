@@ -43,7 +43,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -92,7 +92,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -251,7 +251,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -259,7 +259,7 @@ given by the pullback function
   x3 -> x3
 
 julia> graph(f)
-(V(x1, -x1, x2 - x2, x3 - x3), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> V(x1), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
+(scheme(x1, -x1, x2 - x2, x3 - x3), Hom: scheme(x1, -x1, x2 - x2, x3 - x3) -> scheme(x1), Hom: scheme(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
 ```
 """
 function graph(f::AbsSpecMor{<:AbsSpec{BRT}, <:AbsSpec{BRT}}) where {BRT}

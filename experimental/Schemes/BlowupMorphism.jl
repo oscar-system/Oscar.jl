@@ -217,9 +217,9 @@ Blowup
     1b: Ideal (x, y, z)
 with domain
   scheme over QQ covered with 3 patches
-    1a: [(s1//s0), (s2//s0), x]   V(0, 0, 0)
-    2a: [(s0//s1), (s2//s1), y]   V(0, 0, 0)
-    3a: [(s0//s2), (s1//s2), z]   V(0, 0, 0)
+    1a: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
+    2a: [(s0//s1), (s2//s1), y]   scheme(0, 0, 0)
+    3a: [(s0//s2), (s1//s2), z]   scheme(0, 0, 0)
 and exceptional divisor
   effective cartier divisor defined by
     sheaf of ideals with restrictions
@@ -230,9 +230,9 @@ and exceptional divisor
 julia> E = exceptional_divisor(bl)
 Effective cartier divisor
   on scheme over QQ covered with 3 patches
-    1: [(s1//s0), (s2//s0), x]   V(0, 0, 0)
-    2: [(s0//s1), (s2//s1), y]   V(0, 0, 0)
-    3: [(s0//s2), (s1//s2), z]   V(0, 0, 0)
+    1: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
+    2: [(s0//s1), (s2//s1), y]   scheme(0, 0, 0)
+    3: [(s0//s2), (s1//s2), z]   scheme(0, 0, 0)
 defined by
   sheaf of ideals with restrictions
     1: ideal(x)

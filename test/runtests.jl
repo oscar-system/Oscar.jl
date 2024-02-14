@@ -134,7 +134,7 @@ end
 # otherwise, is essentially a serial loop
 stats = reduce(merge, pmap(testlist) do x
                         println("Starting tests for $x")
-                        Oscar.test_module(x; new=false, timed=true)
+                        Oscar.test_module(x; new=false, timed=true, tempproject=false)
                       end)
 
 # this needs to run here to make sure it runs on the main process

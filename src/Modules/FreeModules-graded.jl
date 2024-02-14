@@ -48,13 +48,13 @@ thus the "category" needs to be set explicitly
 function AbstractAlgebra.extra_name(F::FreeModule_dec)
   t = get_attribute(F, :twist)
   if t !== nothing
-    n = get_attribute(t[1], :name)
+    n = AbstractAlgebra.get_name(t[1])
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = get_attribute(F.R, :name)
+    n = AbstractAlgebra.get_name(base_ring(F))
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end
@@ -758,14 +758,14 @@ function presentation(SQ::SubquoDecModule)
   h_F_SQ = hom(F, SQ, gens(SQ))
   @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
   Z = FreeModule(F.R, FinGenAbGroupElem[])
-  set_attribute!(Z, :name => "Zero")
+  AbstractAlgebra.set_name!(Z, "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ComplexOfMorphisms(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
 function presentation(F::FreeModule_dec)
   Z = FreeModule(F.R, FinGenAbGroupElem[])
-  set_attribute!(Z, :name => "Zero")
+  AbstractAlgebra.set_name!(Z, "Zero")
   return Hecke.ComplexOfMorphisms(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
@@ -1049,7 +1049,7 @@ function free_resolution(S::SubquoDecModule, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       Z = FreeModule(base_ring(S), FinGenAbGroupElem[])
-      set_attribute!(Z, :name => "Zero")
+      AbstractAlgebra.set_name!(Z, "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
       insert!(mp, 1, h)
       break

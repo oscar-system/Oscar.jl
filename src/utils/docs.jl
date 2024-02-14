@@ -67,12 +67,14 @@ function doctest_fix(f::Function; set_meta::Bool = false)
   S = Symbol(f)
   doc, doctest = get_document(set_meta)
 
-  #essentially inspired by Documenter/src/DocTests.jl
-  pm = parentmodule(f)
-  bm = Base.Docs.meta(pm)
-  md = bm[Base.Docs.Binding(pm, S)]
-  for s in md.order
-    doctest(md.docs[s], Oscar, doc)
+  with_unicode(false) do
+    #essentially inspired by Documenter/src/DocTests.jl
+    pm = parentmodule(f)
+    bm = Base.Docs.meta(pm)
+    md = bm[Base.Docs.Binding(pm, S)]
+    for s in md.order
+      doctest(md.docs[s], Oscar, doc)
+    end
   end
 end
 
@@ -92,13 +94,15 @@ julia> Oscar.doctest_fix("/Rings/")
 function doctest_fix(path::String; set_meta::Bool=false)
   doc, doctest = get_document(set_meta)
 
-  walkmodules(Oscar) do m
-    #essentially inspired by Documenter/src/DocTests.jl
-    bm = Base.Docs.meta(m)
-    for (_, md) in bm
-      for s in md.order
-        if occursin(path, md.docs[s].data[:path])
-          doctest(md.docs[s], Oscar, doc)
+  with_unicode(false) do
+    walkmodules(Oscar) do m
+      #essentially inspired by Documenter/src/DocTests.jl
+      bm = Base.Docs.meta(m)
+      for (_, md) in bm
+        for s in md.order
+          if occursin(path, md.docs[s].data[:path])
+            doctest(md.docs[s], Oscar, doc)
+          end
         end
       end
     end
@@ -211,8 +215,12 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   if !isdefined(Main, :BuildDoc)
     doc_init()
   end
-  Pkg.activate(docsproject) do
-    Base.invokelatest(Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest)
+  with_unicode(false) do
+    Pkg.activate(docsproject) do
+      Base.invokelatest(
+        Main.BuildDoc.doit, Oscar; warnonly=warnonly, local_build=true, doctest=doctest
+      )
+    end
   end
   if start_server
     start_doc_preview_server(open_browser = open_browser)

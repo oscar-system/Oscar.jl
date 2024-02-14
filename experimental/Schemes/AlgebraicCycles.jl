@@ -81,7 +81,7 @@ function coeff(D::AbsAlgebraicCycle, I::IdealSheaf)
 end
 
 function is_effective(A::AbsAlgebraicCycle)
-  return all(coeff(A, I)>=0 for A in components(A))
+  return all(coeff(A, I)>=0 for I in components(A))
 end
 
 function Base.:<=(A::AbsAlgebraicCycle,B::AbsAlgebraicCycle)
