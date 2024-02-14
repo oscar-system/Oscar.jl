@@ -30,7 +30,7 @@
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
-    @test nvertices.(faces(Q0,1)) == [2,2,2]
+    @test n_vertices.(faces(Q0,1)) == [2,2,2]
     if T == QQFieldElem
       @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
@@ -540,7 +540,7 @@
           if S == Pair{Matrix{T}, T}
             @test facets(S, D) == [Pair(A[i], b[i]) for i in 1:12]
           elseif S == Polyhedron{T}
-            @test nvertices.(facets(S, D)) == repeat([5], 12)
+            @test n_vertices.(facets(S, D)) == repeat([5], 12)
           else
             @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
           end
