@@ -813,7 +813,7 @@ Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 reduced by the underlying generators of `J` w.r.t. the monomial
 ordering `ordering` such that `M * gens(J) + res == gens(I)` if `ordering` is global.
 If `ordering` is local then this equality holds after `gens(I)` has been multiplied
-with an unknown diagonal matrix of units, see reduce_with_quotients_and_unit` to
+with an unknown diagonal matrix of units, see `reduce_with_quotients_and_unit` to
 obtain this matrix. `J` need not be a Gröbner basis. `res` will have the same number
 of elements as `I`, even if they are zero.
 

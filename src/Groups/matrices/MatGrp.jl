@@ -205,12 +205,25 @@ function assign_from_description(G::MatrixGroup)
 end
 
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-function Base.getproperty(G::MatrixGroup, sym::Symbol)
+function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
    isdefined(G,sym) && return getfield(G,sym)
 
    if sym === :ring_iso
-      G.ring_iso = iso_oscar_gap(G.ring)
+      if T === QQBarFieldElem
+         # get all matrix entries into one vector
+         entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
+         # construct a number field over which all matrices are already defined
+         nf, nf_to_QQBar = number_field(QQ, entries)
+         psi = pseudo_inv(nf_to_QQBar)
+         iso = iso_oscar_gap(nf)
+         G.ring_iso = MapFromFunc(G.ring, codomain(iso),
+                                  x -> iso(preimage(nf_to_QQBar, x)),
+                                  y -> preimage(iso,nf_to_QQBar(y))
+                                  )
+      else
+         G.ring_iso = iso_oscar_gap(G.ring)
+      end
 
    elseif sym === :X
       if isdefined(G,:descr)
@@ -242,17 +255,10 @@ end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-function Base.iterate(G::MatrixGroup)
-  L=GAPWrap.Iterator(G.X)::GapObj
-  @assert ! GAPWrap.IsDoneIterator(L)
-  i = GAPWrap.NextIterator(L)::GapObj
-  return MatrixGroupElem(G, i), L
-end
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return MatrixGroupElem(G, i), state
 end

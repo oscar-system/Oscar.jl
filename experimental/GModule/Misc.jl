@@ -1,4 +1,38 @@
+module Misc
+using Oscar
+
 Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+
+function primitive_element(a::Vector{QQBarFieldElem})
+  pe = a[1]
+  f = minpoly(pe)
+  Qx = parent(f)
+  for i = 2:length(a)
+    g = minpoly(a[i])
+    f = minpoly(pe)
+    k, _ = number_field(f, check = false, cached = false)
+    lf = collect(keys(factor(k, g).fac))
+    for j = 1:length(lf)
+      h = map_coefficients(x->Qx(x)(pe), lf[j])
+      if is_zero(h(a[i]))
+        d = degree(f) * degree(h)
+        mu = 0
+        while degree(minpoly(pe+mu*a[i])) != d
+          mu += 1
+          if mu > 10
+            error("too bad")
+          end
+        end
+        pe += mu*a[i]
+      end
+    end
+  end
+  return pe
+end
+
+function Hecke.number_field(::QQField, a::Vector{QQBarFieldElem}; cached::Bool = false)
+  return number_field(QQ, primitive_element(a))
+end
 
 function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
   f = minpoly(a)
@@ -34,6 +68,7 @@ function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
 end
 
 Base.getindex(::QQField, a::QQBarFieldElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQBarFieldElem}) = number_field(QQ, a)
 
 function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   g = parent()
@@ -148,3 +183,6 @@ function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
   end
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
+
+end # module
+using .Misc

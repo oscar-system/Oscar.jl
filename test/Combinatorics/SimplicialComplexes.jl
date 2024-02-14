@@ -6,8 +6,11 @@
 
     sphere2 = simplicial_complex(IncidenceMatrix([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]))
 
+    not_known_to_be_a_ball = SimplicialComplex(Polymake.topaz.SimplicialComplex(FACETS=[[0,1]], BALL=nothing))
+
     @test sphere isa SimplicialComplex
     @test sphere2 isa SimplicialComplex
+    @test is_ball(not_known_to_be_a_ball) === nothing
     @test vertexindices(sphere) == [1, 2, 3, 4]
     @test nvertices(sphere) == 4
     @test facets(sphere) == Set{Int}.([[1, 3, 2], [1, 4, 2], [1, 3, 4], [3, 4, 2]])

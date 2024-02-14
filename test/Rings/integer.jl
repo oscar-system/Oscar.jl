@@ -637,13 +637,6 @@ end
    @test number_of_partitions(ZZ(3)) == 3
    @test number_of_partitions(-1) == 0
    @test number_of_partitions(ZZ(-1)) == 0
-
-   @test number_of_partitions(0) isa Int
-   @test number_of_partitions(ZZ(0)) isa Oscar.ZZRingElem
-   @test number_of_partitions(3) isa Int
-   @test number_of_partitions(ZZ(3)) isa Oscar.ZZRingElem
-   @test number_of_partitions(-1) isa Int
-   @test number_of_partitions(ZZ(-1)) isa Oscar.ZZRingElem
 end
 
 @testset "Rings.ZZ.number_theoretical" begin

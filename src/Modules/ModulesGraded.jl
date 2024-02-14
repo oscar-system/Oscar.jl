@@ -160,8 +160,8 @@ Z^2
 
 julia> g = gens(G)
 2-element Vector{FinGenAbGroupElem}:
- Abelian group element [1, 0]
- Abelian group element [0, 1]
+ [1, 0]
+ [0, 1]
 
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
@@ -2074,13 +2074,13 @@ end
 function AbstractAlgebra.extra_name(F::FreeMod_dec)
   t = get_attribute(F, :twist)
   if t !== nothing
-    n = get_attribute(t[1], :name)
+    n = AbstractAlgebra.get_name(t[1])
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = get_attribute(forget_decoration(F).R, :name)
+    n = AbstractAlgebra.get_name(base_ring(forget_decoration(F)))
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end

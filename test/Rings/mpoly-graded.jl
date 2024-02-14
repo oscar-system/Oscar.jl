@@ -504,6 +504,207 @@ end
 end
 
 
+############################################
+# 2024-02-07 revised homogenization UI
+
+@testset "homogenization: ideal()" begin
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  W1 = [1 1 1 1]; # same as std graded
+  W2 = [1 2 3 4]; # positive but not std graded
+  W3 = [1 0 1 1]; # non-negative graded
+  W4 = [1 0 1 -1];# not non-negative graded
+  W2a = vcat(W1,W2); # positive grading ZZ^2
+  W2b = vcat(W4,W3); # not non-negative grading ZZ^2
+
+  H_std = homogenizer(R, "h");
+  H1 = homogenizer(R, W1, "h");
+  H2 = homogenizer(R, W2, "h");
+  H3 = homogenizer(R, W3, "h");
+  H4 = homogenizer(R, W4, "h");
+  H2a = homogenizer(R, W2a, "h");
+  H2b = homogenizer(R, W2b, "h");
+
+  I0 = ideal(R,[]);
+  Ih = H_std(I0)
+  @test is_zero(Ih)
+  Ih = H1(I0)
+  @test is_zero(Ih)
+  Ih = H2(I0)
+  @test is_zero(Ih)
+  Ih = H3(I0)
+  @test is_zero(Ih)
+  Ih = H4(I0)
+  @test is_zero(Ih)
+  Ih = H2a(I0)
+  @test is_zero(Ih)
+  Ih = H2b(I0)
+  @test is_zero(Ih)
+end
+
+@testset "homogenization: ideal(0)" begin
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  W1 = [1 1 1 1]; # same as std graded
+  W2 = [1 2 3 4]; # positive but not std graded
+  W3 = [1 0 1 1]; # non-negative graded
+  W4 = [1 0 1 -1];# not non-negative graded
+  W2a = vcat(W1,W2); # positive grading ZZ^2
+  W2b = vcat(W4,W3); # not non-negative grading ZZ^2
+
+  H_std = homogenizer(R, "h");
+  H1 = homogenizer(R, W1, "h");
+  H2 = homogenizer(R, W2, "h");
+  H3 = homogenizer(R, W3, "h");
+  H4 = homogenizer(R, W4, "h");
+  H2a = homogenizer(R, W2a, "h");
+  H2b = homogenizer(R, W2b, "h");
+
+  I0 = ideal(R, [zero(R)]);
+  Ih = H_std(I0)
+  @test is_zero(Ih)
+  Ih = H1(I0)
+  @test is_zero(Ih)
+  Ih = H2(I0)
+  @test is_zero(Ih)
+  Ih = H3(I0)
+  @test is_zero(Ih)
+  Ih = H4(I0)
+  @test is_zero(Ih)
+  Ih = H2a(I0)
+  @test is_zero(Ih)
+  Ih = H2b(I0)
+  @test is_zero(Ih)
+end
+
+@testset "homogenization: ideal(1)" begin
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  W1 = [1 1 1 1]; # same as std graded
+  W2 = [1 2 3 4]; # positive but not std graded
+  W3 = [1 0 1 1]; # non-negative graded
+  W4 = [1 0 1 -1];# not non-negative graded
+  W2a = vcat(W1,W2); # positive grading ZZ^2
+  W2b = vcat(W4,W3); # not non-negative grading ZZ^2
+
+  H_std = homogenizer(R, "h");
+  H1 = homogenizer(R, W1, "h");
+  H2 = homogenizer(R, W2, "h");
+  H3 = homogenizer(R, W3, "h");
+  H4 = homogenizer(R, W4, "h");
+  H2a = homogenizer(R, W2a, "h");
+  H2b = homogenizer(R, W2b, "h");
+
+  I1 = ideal(R, [one(R)]);
+  Ih = H_std(I1)
+  @test is_one(Ih)
+  Ih = H1(I1)
+  @test is_one(Ih)
+  Ih = H2(I1)
+  @test is_one(Ih)
+  Ih = H3(I1)
+  @test is_one(Ih)
+  Ih = H4(I1)
+  @test is_one(Ih)
+  Ih = H2a(I1)
+  @test is_one(Ih)
+  Ih = H2b(I1)
+  @test is_one(Ih)
+end
+
+
+
+@testset "homogenization: big principal ideal" begin
+  # It is easy to honogenize a principal ideal: just homogenize the gen!
+  # Do not really need lots of vars; just a "large" single polynomial
+  LotsOfVars = 250;
+  Rbig, v = polynomial_ring(GF(32003), ["v$k"  for k in 1:LotsOfVars]);
+  WW1 = ones(Int64, 1,LotsOfVars);                               # std graded
+  WW2 = Matrix{Int64}(reshape(1:LotsOfVars, (1,LotsOfVars)));    # positive graded
+  WW3 = Matrix{Int64}(reshape([(is_prime(k)) ? 0 : 1  for k in 1:LotsOfVars], (1,LotsOfVars))); # non-neg graded
+  WW4 = Matrix{Int64}(reshape([moebius_mu(k)  for k in 1:LotsOfVars], (1,LotsOfVars))); # not non-neg graded
+  WWW = vcat(WW1,WW2,WW3,WW4);
+
+  H_std = homogenizer(Rbig, "h");
+  HH1 = homogenizer(Rbig, WW1, "h");
+  HH2 = homogenizer(Rbig, WW2, "h");
+  HH3 = homogenizer(Rbig, WW3, "h");
+  HH4 = homogenizer(Rbig, WW4, "h");
+  HHH = homogenizer(Rbig, WWW, "h");
+
+  f = (1 + sum(v));
+  Iprinc = ideal(Rbig, [f]);
+  Ih = H_std(Iprinc)
+  @test length(gens(Ih)) == 1
+  Ih = HH1(Iprinc)
+  @test length(gens(Ih)) == 1
+  Ih = HH2(Iprinc)
+  @test length(gens(Ih)) == 1
+  Ih = HH3(Iprinc)
+  @test length(gens(Ih)) == 1
+  Ih = HH4(Iprinc)
+  @test length(gens(Ih)) == 1
+  Ih = HHH(Iprinc)
+  @test length(gens(Ih)) == 1
+end
+
+
+@testset "homogenization: random ideal" begin
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  W1 = [1 1 1 1]; # same as std graded
+  W2 = [1 2 3 4]; # positive but not std graded
+  W3 = [1 0 1 1]; # non-negative graded
+  W4 = [1 0 1 -1];# not non-negative graded
+  W2a = vcat(W1,W2); # positive grading ZZ^2
+  W2b = vcat(W4,W3); # not non-negative grading ZZ^2
+
+  H_std = homogenizer(R, "h");
+  H1 = homogenizer(R, W1, "h");
+  H2 = homogenizer(R, W2, "h");
+  H3 = homogenizer(R, W3, "h");
+  H4 = homogenizer(R, W4, "h");
+  H2a = homogenizer(R, W2a, "h");
+  H2b = homogenizer(R, W2b, "h");
+
+  L = [x^3*y^2+x*y*z^3+x*y+y^2,  x^3*y*w+x*y*z^2*w+x^3*w^2+w^2];
+  I = ideal(R,L);
+  Ih = H_std(I)
+  expected = H_std([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                    x^3*y^2+x*y*z^3+x*y+y^2,
+                    x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
+  @test Ih == ideal(expected)
+  Ih = H1(I)
+  expected = H1([x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                 x^3*y^2+x*y*z^3+x*y+y^2,
+                 x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2]);
+  @test Ih == ideal(expected)
+  Ih = H2(I)
+  expected = H2([x*y*z^3+x^3*y^2+y^2+x*y,
+                 x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
+                 x^3*z*w^2+x^3*y*z*w-x^3*y^2*w+z*w^2-y^2*w-x*y*w,
+                 x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2,
+                 y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2]);
+  @test Ih == ideal(expected)
+  Ih = H3(I)
+  expected = H3([x^2*y^3*w+y^3*z^2*w-y*z^3*w^2-y*w^2,
+                 x^3*y*w+x*y*z^2*w+x^3*w^2+w^2,
+                 x^3*y^2+y^2+x*y*z^3+x*y]);
+  @test Ih == ideal(expected)
+  # Ih_W4 = ????
+  # Ih = homogenization(I, W4, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W4)
+  # @test Ih = Ih_expected
+  Ih = H2a(I)
+  expected = H2a([x*y*z^3+x^3*y^2+y^2+x*y,
+                  x*y*z^2*w+x^3*w^2+x^3*y*w+w^2,
+                  x^3*z*w^2+x^3*y*z*w-x^3*y^2*w+z*w^2-y^2*w-x*y*w,
+                  y*z^3*w^2-y^3*z^2*w-x^2*y^3*w+y*w^2,
+                  x^5*w^3+x^3*y^3*z*w-y*z^2*w^2+2*x^5*y*w^2+x^2*w^3+x^5*y^2*w+y^3*z*w+x*y^2*z*w+x^2*y*w^2]);
+  @test Ih == ideal(expected)
+  # Ih_W2b = ????
+  # Ih = homogenization(I, W2b, "h")
+  # Ih_expected = ideal(base_ring(Ih), Ih_W2b)
+  # @test Ih == Ih_expected
+end
+
+
 # expanding rational function
 
 let

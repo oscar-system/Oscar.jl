@@ -421,7 +421,7 @@ end
   # action homomorphism
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  flag, pre = haspreimage(acthom, pi)
+  flag, pre = has_preimage_with_preimage(acthom, pi)
   @test flag
   @test pre == g
   @test order(image(acthom)[1]) == order(G)

@@ -18,14 +18,22 @@ end
 function show_exterior_product(io::IO, M::ModuleFP)
   success, F, p = is_exterior_power(M)
   success || error("module is not an exterior power")
-  print(io, "⋀^$p($F)")
+  if is_unicode_allowed()
+    print(io, "⋀^$p($F)")
+  else
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
+  end
 end
 
 function show_exterior_product(io::IO, ::MIME"text/html", M::ModuleFP)
   success, F, p = is_exterior_power(M)
   success || error("module is not an exterior power")
   io = IOContext(io, :compact => true)
-  print(io, "⋀^$p$F")
+  if is_unicode_allowed()
+    print(io, "⋀^$p($F)")
+  else
+    print(io, "$(ordinal_number_string(p)) exterior power of $F")
+  end
 end
 
 function multiplication_map(M::ModuleFP)

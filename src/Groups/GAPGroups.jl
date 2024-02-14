@@ -367,16 +367,10 @@ comm(x::GAPGroupElem, y::GAPGroupElem) = x^-1*x^y
 Base.IteratorSize(::Type{<:GAPGroup}) = Base.SizeUnknown()
 Base.IteratorSize(::Type{PermGroup}) = Base.HasLength()
 
-function Base.iterate(G::GAPGroup)
-  L = GAPWrap.Iterator(G.X)::GapObj
-  i = GAPWrap.NextIterator(L)::GapObj
-  return group_element(G, i), L
-end
+Base.iterate(G::GAPGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GAPGroup, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G, i), state
 end
@@ -680,9 +674,7 @@ Base.IteratorSize(::Type{<:GAPGroupConjClass}) = Base.SizeUnknown()
 Base.iterate(cc::GAPGroupConjClass) = iterate(cc, GAPWrap.Iterator(cc.CC))
 
 function Base.iterate(cc::GAPGroupConjClass{S,T}, state::GapObj) where {S,T}
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   if T <: GAPGroupElem
      return group_element(cc.X, i), state
@@ -1746,7 +1738,7 @@ If `g` is an element of a free group $G$, say, then the rank of $G$ must be
 equal to the length of `genimgs`, `g` is a product of the form
 $g_{i_1}^{e_i} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
-and $R_j = $`imgs[`$i_j$`]`$^{e_j}$.
+and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of a finitely presented group then the result is
 defined as `map_word` applied to a representing element of the underlying
@@ -1755,7 +1747,7 @@ free group.
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
 then the absolute values of the $k_i$ must be at most the length of `genimgs`,
-and $R_j = $`imgs[`$|k_i|$`]`$^{\epsilon_i}$
+and $R_j =$ `imgs[`$|k_i|$`]`$^{\epsilon_i}$
 where $\epsilon_i$ is the `sign` of $k_i$ (times $e_i$).
 
 If a vector `genimgs_inv` is given then its assigned entries are expected
@@ -2198,3 +2190,5 @@ function is_obviously_abelian(G::FPGroup)
     end
     return true
 end
+
+describe(G::MultTableGroup) = describe(PermGroup(G))

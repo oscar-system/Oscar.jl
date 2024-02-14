@@ -31,7 +31,7 @@ function number_of_facets end
 function number_of_maximal_cells end
 function number_of_maximal_cones end
 function number_of_maximal_polyhedra end
-function number_of_partitions end                   # from experimental/JuLie
+function number_of_partitions end
 function number_of_patches end
 function number_of_points end
 function number_of_polyhedra end
@@ -55,3 +55,7 @@ function number_of_vertices end
 @alias nroots number_of_roots
 @alias nsimpleroots number_of_simple_roots
 @alias nvertices number_of_vertices
+
+# these are kept for compatibility with Graphs.jl / GraphsBase.jl
+@alias ne number_of_edges
+@alias nv number_of_vertices

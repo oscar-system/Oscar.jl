@@ -2364,7 +2364,7 @@ function is_isomorphism(
 end
 
 function _as_localized_quotient(R::MPolyRing)
-  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), powers_of_element(one(R)))
+  result = MPolyQuoLocRing(R, ideal(R, elem_type(R)[]), powers_of_element(one(R)))
   iso = hom(R, result, gens(result), check=false)
   iso_inv = hom(result, R, gens(R), check=false)
   return result, iso, iso_inv
@@ -2372,7 +2372,7 @@ end
 
 function _as_localized_quotient(A::MPolyQuoRing)
   R = base_ring(A)
-  result = MPolyQuoLocalizedRing(R, modulus(A), powers_of_element(one(R)))
+  result = MPolyQuoLocRing(R, modulus(A), powers_of_element(one(R)))
   iso = hom(A, result, gens(result), check=false)
   iso_inv = hom(result, A, gens(R), check=false)
   return result, iso, iso_inv
@@ -2380,7 +2380,7 @@ end
 
 function _as_localized_quotient(L::MPolyLocRing)
   R = base_ring(L)
-  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), inverted_set(L))
+  result = MPolyQuoLocRing(R, ideal(R, elem_type(R)[]), inverted_set(L))
   iso = hom(L, result, gens(result), check=false)
   iso_inv = hom(result, L, gens(R), check=false)
   return result, iso, iso_inv
@@ -2417,6 +2417,14 @@ function Base.:(==)(
   end
 
   return all(x->f(x) == g(x), gens(domain(f)))
+end
+
+function Base.hash(f::Map{<:MPolyAnyRing, <:MPolyAnyRing}, h::UInt)
+    h = hash(domain(f), h)
+    h = hash(codomain(f), h)
+    # TODO: add in coefficient_map if available
+    h = hash(f.(gens(domain(f))), h)
+    return h
 end
 
 coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))

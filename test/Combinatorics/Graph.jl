@@ -124,4 +124,19 @@
         g = Graph{Undirected}(1)
         @test !add_edge!(g,1,2)
     end
+
+    @testset "grap_from_edges" begin
+        x1 = [[5,6],[7,8],[11,12]]
+        G1 = graph_from_edges(x1)
+
+        @test nvertices(G1) == 12
+        @test nedges(G1) == 3
+      
+        x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
+        G2 = graph_from_edges(Undirected, x2, 13)
+
+        @test nvertices(G2) == 13
+        @test nedges(G2) == 5
+
+    end
 end

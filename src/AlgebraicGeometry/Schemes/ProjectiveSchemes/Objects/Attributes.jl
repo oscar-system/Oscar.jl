@@ -281,7 +281,7 @@ Projective space of dimension 2
 with homogeneous coordinates [x, y, z]
 
 julia> affine_cone(P)
-(V(u^2 + v^2), Map: S -> quotient of multivariate polynomial ring)
+(scheme(u^2 + v^2), Map: S -> quotient of multivariate polynomial ring)
 ```
 """
 affine_cone(P::AbsProjectiveScheme)
