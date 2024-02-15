@@ -232,6 +232,7 @@ end
   # are native to singular while FpFieldElem now has a proper wrapper
   for Zn in [residue_ring(ZZ, 11)[1], residue_ring(ZZ, ZZRingElem(10)^50+151)[1], GF(11),
              GF(ZZRingElem(10)^50+151)]
+    # Setting the internal_ordering is necessary for divrem to use the correct ordering
     R, (x, y) = polynomial_ring(Zn, ["x", "y"], internal_ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
     g = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
@@ -239,6 +240,7 @@ end
   end
 
   F, a = finite_field(11, 2, "a")
+  # Setting the internal_ordering is necessary for divrem to use the correct ordering
   R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], internal_ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
