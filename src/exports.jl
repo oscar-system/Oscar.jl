@@ -431,7 +431,6 @@ export deglex
 export degree
 export degrees_of_generators
 export degrevlex
-export dehomogenization
 export dehomogenization_map
 export dehomogenizer
 export del_pezzo_polytope
@@ -641,7 +640,6 @@ export homogeneity_vector
 export homogeneous_component
 export homogeneous_components
 export homogeneous_coordinates
-export homogenization
 export homogenization_map
 export homogenize
 export homogenizer

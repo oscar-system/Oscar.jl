@@ -318,11 +318,9 @@ end
 Return the projective closure of `C`.
 """
 function projective_closure(C::AffinePlaneCurve)
-   F = defining_equation(C)
-   K = base_ring(C)
-   T, (x, y, z) = graded_polynomial_ring(K, ["x", "y", "z"])
-   G = homogenization(F, T; pos=3)
-   D = plane_curve(G)
+  F = defining_equation(C)
+  H = homogenizer(parent(F), "z")
+  return plane_curve(H(F))
 end
 
 geometric_genus(C::AffinePlaneCurve) = geometric_genus(projective_closure(C))
