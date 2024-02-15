@@ -251,3 +251,24 @@ function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
     return Matrix{params[1]}(m)
   end
 end
+
+################################################################################
+# Saving and loading matrices
+@register_serialization_type Dict uses_params
+
+function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
+  save_data_dict(s) do
+    save_object(s, encode_type(Dict), :name)
+    save_data_dict(s, :params) do
+      for (k, v) in obj
+        U = typeof(v)
+        if serialize_with_params(U)
+          save_dict
+          save_type_params(s, v)
+        else
+          save_object(s, encode_type(U), Symbol(key))
+        end
+      end
+    end
+  end
+end
