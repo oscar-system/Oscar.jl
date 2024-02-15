@@ -29,7 +29,8 @@ struct RepresentationReductiveGroupFastTorus
 end
 
 function representation_from_weights(G::ReductiveGroupFastTorus, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
-    V = weights_from_matrix(W)
+    n = rank(G)
+    V = weights_from_matrix(n,W)
     return RepresentationReductiveGroupFastTorus(G,V)
 end
 
@@ -89,9 +90,11 @@ mutable struct InvariantRingFastTorus
         z.poly_ring = ring_
         z.representation = R
         z.group = group(R)
+        return z
     end
 end
 
+invariant_ring(R::RepresentationReductiveGroupFastTorus) = InvariantRingFastTorus(R)
 poly_ring(R::InvariantRingFastTorus) = R.poly_ring
 group(R::InvariantRingFastTorus) = R.group
 representation(R::InvariantRingFastTorus) = R.representation

@@ -1,10 +1,10 @@
 #This code uses Derksen's algorithm to compute fundamental invariants of linearly reductive group.
-#We first set up ReductiveGroup , then we set up a representation via which the group acts on a vector space (RepresentationReductiveGroup)
+#We first set up LinearlyReductiveGroup , then we set up a representation via which the group acts on a vector space (RepresentationLinearlyReductiveGroup)
 #Then we set up the invariant ring of the group. The fundamental invariants are computed using Derksen's alg.
 #As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
 
-export ReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
-export RepresentationReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
+export LinearlyReductiveGroup, reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
+export RepresentationLinearlyReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
 export RedGrpInvRing, invariant_ring, fundamental_invariants, null_cone_ideal
 ##########################
 #Setting up Reductive Groups 
@@ -12,22 +12,22 @@ export RedGrpInvRing, invariant_ring, fundamental_invariants, null_cone_ideal
 #These are objects that carry information about a linearly reductive group. 
 #As of now it is only implemented for SLn, its direct products and tensors. 
 
-mutable struct ReductiveGroup
+mutable struct LinearlyReductiveGroup
     field::Field #characteristic zero. implement check? 
     group::Tuple{Symbol, Int}
     group_ideal::MPolyIdeal
     reynolds_operator::Function
     canonical_representation::MatElem
 
-    function ReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
+    function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
         #check char(fld)
         if sym == :SL 
             R, _ = polynomial_ring(fld, :z => (1:m,1:m))
-            return ReductiveGroup(sym, m, R)
+            return LinearlyReductiveGroup(sym, m, R)
         end
     end
 
-    function ReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
+    function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
         #check char(field)
         G = new()
         if sym != :SL
@@ -47,7 +47,7 @@ mutable struct ReductiveGroup
     end
 end
 
-function Base.show(io::IO, G::ReductiveGroup)
+function Base.show(io::IO, G::LinearlyReductiveGroup)
     io = pretty(io)
     if G.group[1] == :SL
         print(io, "Reductive group ", G.group[1], G.group[2])
@@ -55,29 +55,29 @@ function Base.show(io::IO, G::ReductiveGroup)
 end
 
 #getter functions
-reductive_group(sym::Symbol, m::Int, R::MPolyRing) = ReductiveGroup(sym,m,R)
-reductive_group(sym::Symbol, m::Int, F::Field) =  ReductiveGroup(sym,m,F)
-group(G::ReductiveGroup) = G.group
-field(G::ReductiveGroup) = G.field
-reynolds_operator(G::ReductiveGroup) = G.reynolds_operator
-group_ideal(G::ReductiveGroup) = G.group_ideal
-canonical_representation(G::ReductiveGroup) = G.canonical_representation
-natural_representation(G::ReductiveGroup) = G.canonical_representation
+linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing) = LinearlyReductiveGroup(sym,m,R)
+linearly_reductive_group(sym::Symbol, m::Int, F::Field) =  LinearlyReductiveGroup(sym,m,F)
+group(G::LinearlyReductiveGroup) = G.group
+field(G::LinearlyReductiveGroup) = G.field
+reynolds_operator(G::LinearlyReductiveGroup) = G.reynolds_operator
+group_ideal(G::LinearlyReductiveGroup) = G.group_ideal
+canonical_representation(G::LinearlyReductiveGroup) = G.canonical_representation
+natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
 
 #####################
 #Setting up Representation objects
 #####################
-#Objects of type ReductiveGroup can be embedded in GLn (for some n) via a representation. This defines the action on a vector space. 
-#We set up an object RepresentationReductiveGroup that carries information about this representation.
+#Objects of type LinearlyReductiveGroup can be embedded in GLn (for some n) via a representation. This defines the action on a vector space. 
+#We set up an object RepresentationLinearlyReductiveGroup that carries information about this representation.
 
-mutable struct RepresentationReductiveGroup
-    group::ReductiveGroup
+mutable struct RepresentationLinearlyReductiveGroup
+    group::LinearlyReductiveGroup
     rep_mat::MatElem
     sym_deg::Tuple{Bool, Int}
     reynolds_v::Function
     
     #representation of group G over symmetric degree d
-    function RepresentationReductiveGroup(G::ReductiveGroup, d::Int)
+    function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, d::Int)
         R = new()
         R.group = G
         R.rep_mat = rep_mat_(G, d)
@@ -87,7 +87,7 @@ mutable struct RepresentationReductiveGroup
     end
     
     #matrix M is the representation matrix. does not check M.
-    function RepresentationReductiveGroup(G::ReductiveGroup, M::MatElem)
+    function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, M::MatElem)
         @req base_ring(M) == base_ring(G.group_ideal) "Group ideal and representation matrix must have same parent ring"
         R = new()
         R.group = G
@@ -98,26 +98,26 @@ mutable struct RepresentationReductiveGroup
     end
 end
 
-representation_reductive_group(G::ReductiveGroup, M::MatElem) = RepresentationReductiveGroup(G,M)
-group(R::RepresentationReductiveGroup) = R.group
+representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) = RepresentationLinearlyReductiveGroup(G,M)
+group(R::RepresentationLinearlyReductiveGroup) = R.group
 
-function representation_on_forms(G::ReductiveGroup, d::Int)
+function representation_on_forms(G::LinearlyReductiveGroup, d::Int)
     @assert G.group[1] == :SL
-        return RepresentationReductiveGroup(G, d)
+        return RepresentationLinearlyReductiveGroup(G, d)
 end
 
-function representation_reductive_group(G::ReductiveGroup)
+function representation_reductive_group(G::LinearlyReductiveGroup)
     if G.group[1] == :SL
         M = canonical_representation(G)
-        return RepresentationReductiveGroup(G,M)
+        return RepresentationLinearlyReductiveGroup(G,M)
     end
 end
 
-representation_matrix(R::RepresentationReductiveGroup) = R.rep_mat
-reductive_group(R::RepresentationReductiveGroup) = R.group
-vector_space_dimension(R::RepresentationReductiveGroup) = ncols(R.rep_mat)
+representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
+reductive_group(R::RepresentationLinearlyReductiveGroup) = R.group
+vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
 
-function Base.show(io::IO, R::RepresentationReductiveGroup)
+function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
     io = pretty(io)
     if group(group(R))[1] == :SL
         println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
@@ -132,15 +132,15 @@ function Base.show(io::IO, R::RepresentationReductiveGroup)
     end
 end
 
-function direct_sum(X::RepresentationReductiveGroup, Y::RepresentationReductiveGroup)
+function direct_sum(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
     @assert group(X) == group(Y)
     G = group(X)
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(X)), Matrix(representation_matrix(Y))])
-    return RepresentationReductiveGroup(G, Mat)
+    return RepresentationLinearlyReductiveGroup(G, Mat)
 end
 
-function direct_sum(V::Vector{RepresentationReductiveGroup})
+function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     G = group(V[1])
     for i in 2:n
@@ -148,16 +148,16 @@ function direct_sum(V::Vector{RepresentationReductiveGroup})
     end
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
-    return RepresentationReductiveGroup(G, Mat)
+    return RepresentationLinearlyReductiveGroup(G, Mat)
 end
 
-function tensor(X::RepresentationReductiveGroup, Y::RepresentationReductiveGroup)
+function tensor(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
     @assert group(X) == group(Y)
     Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
-    return RepresentationReductiveGroup(group(X), Mat)
+    return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
 
-function tensor(V::Vector{RepresentationReductiveGroup})
+function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     for i in 2:n
         @assert group(V[1]) == group(V[i])
@@ -166,13 +166,13 @@ function tensor(V::Vector{RepresentationReductiveGroup})
     for i in 2:n
         Mat = kronecker_product(Mat,representation_matrix(V[i]))
     end
-    return RepresentationReductiveGroup(group(V[1]), Mat)
+    return RepresentationLinearlyReductiveGroup(group(V[1]), Mat)
 end
 
 ###############
 
 #computes the representation matrices of SL_m acting over m-forms of symmetric degree sym_deg
-function rep_mat_(G::ReductiveGroup, sym_deg::Int)
+function rep_mat_(G::LinearlyReductiveGroup, sym_deg::Int)
     G.group[1] == :SL || error("Only implemented for SLm")
     m = G.group[2]
     R = base_ring(G.group_ideal) # TODO: probably should have a getter function for this
@@ -241,8 +241,8 @@ mutable struct RedGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
-    group::ReductiveGroup
-    representation::RepresentationReductiveGroup
+    group::LinearlyReductiveGroup
+    representation::RepresentationLinearlyReductiveGroup
     
     fundamental::Vector{MPolyDecRingElem}
     primary::Vector{MPolyDecRingElem}
@@ -253,7 +253,7 @@ mutable struct RedGrpInvRing
     NullConeIdeal::MPolyIdeal
     
     #Invariant ring of reductive group G (in representation R), no other input.
-    function RedGrpInvRing(R::RepresentationReductiveGroup) #here G already contains information n and rep_mat
+    function RedGrpInvRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
         z = new()
         n = ncols(R.rep_mat)
         z.representation = R
@@ -266,7 +266,7 @@ mutable struct RedGrpInvRing
     end
     
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function RedGrpInvRing(R::RepresentationReductiveGroup, ring::MPolyDecRing)
+    function RedGrpInvRing(R::RepresentationLinearlyReductiveGroup, ring::MPolyDecRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
         z = new()
@@ -283,8 +283,8 @@ mutable struct RedGrpInvRing
     end
 end
 
-invariant_ring(R::RepresentationReductiveGroup) = RedGrpInvRing(R)
-invariant_ring(ring::MPolyDecRing, R::RepresentationReductiveGroup) = RedGrpInvRing(R, ring)
+invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R)
+invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R, ring)
 
 function null_cone_ideal(R::RedGrpInvRing) 
     if isdefined(R, :NullConeIdeal) 
@@ -323,7 +323,7 @@ function Base.show(io::IO, R::RedGrpInvRing)
 end
 
 #computing the graph Gamma from Derksens paper
-function image_ideal(G::ReductiveGroup, rep_mat::MatElem)
+function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     R = base_ring(rep_mat)
     n = ncols(rep_mat)
     m = G.group[2]
@@ -339,7 +339,7 @@ function image_ideal(G::ReductiveGroup, rep_mat::MatElem)
 end
 
 #computing I_{\Bar{B}}
-function proj_of_image_ideal(G::ReductiveGroup, rep_mat::MatElem)
+function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     W = image_ideal(G, rep_mat)
     mixed_ring_xy = base_ring(W[2])
     n = ncols(rep_mat)
@@ -351,7 +351,7 @@ end
 #this function gets the generators of the null cone. they may or may not be invariant.
 #to do this we evaluate what is returned from proj_of_image_ideal at y = 0 
 #ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
-function generators(G::ReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
+function generators(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
     m = G.group[2]
     gbasis = gens(X) 
@@ -372,7 +372,7 @@ end
 
 #computing the invariant generators of the null cone by applying reynolds operator to gens(I). This is done in K[X,Y] (basering(I)).
 #the elements returned will be in the polynomial K[X] (ringg).
-function inv_generators(I::MPolyIdeal, G::ReductiveGroup, ringg::MPolyRing, M::MatElem, reynolds_function::Function)
+function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRing, M::MatElem, reynolds_function::Function)
     genss = gens(I)
     if length(genss) == 0
         return Vector{elem_type(ringg)}()
@@ -497,7 +497,7 @@ end
 #####################callable reynold's operator
 
 #this function returns the image of elem under the reynolds operator of group with representation X
-function reynolds_operator(X::RepresentationReductiveGroup, elem::MPolyRingElem)
+function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyRingElem)
     X.group.group[1] == :SL || error("Only implemented for SLm")
     vector_ring = parent(elem)
     G = X.group
