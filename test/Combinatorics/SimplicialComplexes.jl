@@ -60,4 +60,9 @@
     @test rank(H2) == 1
   end
 
+  @testset "is_isomorphic" begin
+    K1 = simplicial_complex([[1, 2], [2, 3]])
+    K2 = simplicial_complex([[1, 2], [2, 3]])
+    @test is_isomorphic(K1, K2)
+  end
 end

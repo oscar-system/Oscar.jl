@@ -94,6 +94,12 @@ stanley_reisner_ring(K::SimplicialComplex)
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 ```
 
+## Helpful functions
+
+```@docs
+is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+```
+
 ## Saving and loading
 
 Objects of type `SimplicialComplex` can be saved to a file and loaded with the
