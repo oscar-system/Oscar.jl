@@ -21,22 +21,19 @@ mutable struct LinearlyReductiveGroup
 
     function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
         #check char(fld)
-        if sym == :SL 
-            R, _ = polynomial_ring(fld, :z => (1:m,1:m))
-            return LinearlyReductiveGroup(sym, m, R)
-        end
+        @assert sym == :SL 
+        R, _ = polynomial_ring(fld, :z => (1:m,1:m))
+        return LinearlyReductiveGroup(sym, m, R)
     end
 
     function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
         #check char(field)
         G = new()
-        if sym != :SL
-            error("Only implemented for SLm")
-        end
+        @assert sym == :SL 
         fld = base_ring(pring)
         characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
         G.field = fld
-        @assert m^2  == ngens(pring)
+        @req m^2  == ngens(pring)
         G.group = (sym,m)
         G.reynolds_operator = reynolds_slm
         M = matrix(pring, m, m, gens(pring))
@@ -75,8 +72,11 @@ natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
 mutable struct RepresentationLinearlyReductiveGroup
     group::LinearlyReductiveGroup
     rep_mat::MatElem
-    sym_deg::Tuple{Bool, Int}
     reynolds_v::Function
+
+    #stores if the representation is on symmetric forms, and of which degree. 
+    sym_deg::Tuple{Bool, Int}
+    
     
     #representation of group G over symmetric degree d
     function RepresentationLinearlyReductiveGroup(G::LinearlyReductiveGroup, d::Int)
@@ -102,40 +102,36 @@ end
 
 representation_reductive_group(G::LinearlyReductiveGroup, M::MatElem) = RepresentationLinearlyReductiveGroup(G,M)
 group(R::RepresentationLinearlyReductiveGroup) = R.group
+representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
+vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
 
 function representation_on_forms(G::LinearlyReductiveGroup, d::Int)
     @assert G.group[1] == :SL
-        return RepresentationLinearlyReductiveGroup(G, d)
+    return RepresentationLinearlyReductiveGroup(G, d)
 end
 
 function representation_reductive_group(G::LinearlyReductiveGroup)
-    if G.group[1] == :SL
-        M = canonical_representation(G)
-        return RepresentationLinearlyReductiveGroup(G,M)
-    end
+    @assert G.group[1] == :SL
+    M = canonical_representation(G)
+    return RepresentationLinearlyReductiveGroup(G,M)
 end
-
-representation_matrix(R::RepresentationLinearlyReductiveGroup) = R.rep_mat
-reductive_group(R::RepresentationLinearlyReductiveGroup) = R.group
-vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_mat)
 
 function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
     io = pretty(io)
-    if group(group(R))[1] == :SL
-        println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
-        if R.sym_deg[1]
-            print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
-            print(io, Dedent())
-        else
-            println(io, Indent(), "with representation matrix")
-            show(io, R.rep_mat)
-            print(io, Dedent())
-        end
+    @assert group(group(R))[1] == :SL
+    println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
+    if R.sym_deg[1]
+        print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
+        print(io, Dedent())
+    else
+        println(io, Indent(), "with representation matrix")
+        show(io, R.rep_mat)
+        print(io, Dedent())
     end
 end
 
 function direct_sum(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
-    @assert group(X) == group(Y)
+    @req group(X) == group(Y)
     G = group(X)
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(X)), Matrix(representation_matrix(Y))])
@@ -146,7 +142,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     G = group(V[1])
     for i in 2:n
-        @assert G == group(V[i])
+        @req G == group(V[i])
     end
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
@@ -154,7 +150,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
 end
 
 function tensor(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
-    @assert group(X) == group(Y)
+    @req group(X) == group(Y)
     Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
     return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
@@ -162,7 +158,7 @@ end
 function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     for i in 2:n
-        @assert group(V[1]) == group(V[i])
+        @req group(V[1]) == group(V[i])
     end
     Mat = representation_matrix(V[1])
     for i in 2:n
@@ -239,20 +235,14 @@ end
 ##########################
 #Invariant Rings of Reductive groups
 ##########################
-mutable struct RedGrpInvRing
+@attributes mutable struct RedGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
     group::LinearlyReductiveGroup
     representation::RepresentationLinearlyReductiveGroup
     
-    fundamental::Vector{MPolyDecRingElem}
-    primary::Vector{MPolyDecRingElem}
-    secondary::Vector{MPolyDecRingElem}
-    
     reynolds_operator::Function
-    
-    NullConeIdeal::MPolyIdeal
     
     #Invariant ring of reductive group G (in representation R), no other input.
     function RedGrpInvRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
@@ -288,31 +278,21 @@ end
 invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R)
 invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R, ring)
 
-function null_cone_ideal(R::RedGrpInvRing) 
-    if isdefined(R, :NullConeIdeal) 
-        return R.NullConeIdeal
-    else
-        Z = R.representation
-        I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
-        R.NullConeIdeal = ideal(generators(Z.group, I, Z.rep_mat))
-        return R.NullConeIdeal
-    end
+@attr MPolyIdeal function NullConeIdeal(R::RedGrpInvRing) 
+    Z = R.representation
+    I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
+    return ideal(generators(Z.group, I, Z.rep_mat))
 end
+
 poly_ring(R::RedGrpInvRing) = R.poly_ring
 group(R::RedGrpInvRing) = R.group
 representation(R::RedGrpInvRing) = R.representation
 
-function fundamental_invariants(z::RedGrpInvRing)
-    if isdefined(z, :fundamental)
-        return z.fundamental
-    else
+@attr Vector{MPolyDecRingElem} function fundamental_invariants(z::RedGrpInvRing)
         R = z.representation
         I, M = proj_of_image_ideal(R.group, R.rep_mat)
-        if !isdefined(z, :NullConeIdeal)
-            z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
-        end
-        z.fundamental = inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, z.reynolds_operator)
-        return z.fundamental
+        z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
+        return inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, z.reynolds_operator)
     end
 end
 
@@ -471,30 +451,30 @@ function needed_degree(elem_::MPolyDecRingElem, m::Int)
     return total_degree(mapp(elem))
 end
 
- function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
-     parent(det_) == parent(f) || error("Omega process ring error")
-     action_ring = parent(det_)
-     monos = collect(monomials(det_))
-     coeffs = collect(coefficients(det_))
-     for i in 1:p
-     h = action_ring()
-     for i in 1:length(monos)
-         exp_vect = exponent_vector(monos[i], 1)
-         x = f
-         for i in 1:length(exp_vect)
-             for j in 1:exp_vect[i]
-                 x = derivative(x, i)
-                 if x == 0
-                     break
-                 end
-             end
-         end
-         h += coeffs[i]*x
-     end
-         f = h
-     end
-     return f
- end
+function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
+    parent(det_) == parent(f) || error("Omega process ring error")
+    action_ring = parent(det_)
+    monos = collect(monomials(det_))
+    coeffs = collect(coefficients(det_))
+    for i in 1:p
+        h = action_ring()
+        for i in 1:length(monos)
+            exp_vect = exponent_vector(monos[i], 1)
+            x = f
+            for i in 1:length(exp_vect)
+                for j in 1:exp_vect[i]
+                    x = derivative(x, i)
+                    if x == 0
+                        break
+                    end
+                end
+            end
+            h += coeffs[i]*x
+        end
+        f = h
+    end
+    return f
+end
 
 #####################callable reynold's operator
 
