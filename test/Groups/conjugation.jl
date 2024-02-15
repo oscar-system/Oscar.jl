@@ -70,6 +70,8 @@
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
+  CC5 = @inferred subgroup_classes(G, order = 5)
+  @test length(CC5) == 0
   CC = @inferred subgroup_classes(G)
   @test length(CC)==11
   @test all(cc -> acting_group(cc) === G, CC)

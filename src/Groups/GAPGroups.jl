@@ -698,7 +698,7 @@ number_of_conjugacy_classes(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(
 """
     conjugacy_classes(G::Group)
 
-Return the vector of all conjugacy classes of elements in `G`.
+Return a vector of all conjugacy classes of elements in `G`.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
@@ -760,7 +760,7 @@ end
 """
     subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
 
-Return the vector of all conjugacy classes of subgroups of G or,
+Return a vector of all conjugacy classes of subgroups of `G` or,
 if `order` is positive, the classes of subgroups of this order.
 
 # Examples
@@ -782,16 +782,17 @@ julia> subgroup_classes(G, order = ZZRingElem(2))
 """
 function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
   L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(G.X))
+  res = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
   if order != -1
-    L = [x for x in L if GAPWrap.Order(GAPWrap.Representative(x)) == order]
+    filter!(x -> AbstractAlgebra.order(representative(x)) == order, res)
   end
-  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+  return res
 end
 
 """
     subgroups(G::GAPGroup)
 
-Return an iterator of all subgroups in `G`.
+Return an iterator over all subgroups in `G`.
 Very likely it is better to use [`subgroup_classes`](@ref) instead.
 
 # Examples
@@ -808,7 +809,7 @@ subgroups(G::GAPGroup) = Iterators.flatten(subgroup_classes(G))
 """
     maximal_subgroup_classes(G::Group)
 
-Return the vector of all conjugacy classes of maximal subgroups of G.
+Return a vector of all conjugacy classes of maximal subgroups of `G`.
 
 # Examples
 ```jldoctest
@@ -830,7 +831,7 @@ end
 """
     maximal_subgroups(G::Group)
 
-Return an iterator of the maximal subgroups in `G`.
+Return an iterator over the maximal subgroups in `G`.
 Very likely it is better to use [`maximal_subgroup_classes`](@ref) instead.
 
 # Examples
@@ -869,7 +870,7 @@ end
 """
     low_index_subgroups(G::Group, n::Int)
 
-Return an iterator of the subgroups of index at most `n` in `G`.
+Return an iterator over the subgroups of index at most `n` in `G`.
 Very likely it is better to use [`low_index_subgroup_classes`](@ref) instead.
 
 # Examples
@@ -1307,7 +1308,7 @@ end
 """
     hall_subgroups(G::Group, P::AbstractVector{<:IntegerUnion})
 
-Return an iterator of the Hall `P`-subgroups in `G`.
+Return an iterator over the Hall `P`-subgroups in `G`.
 Very likely it is better to use [`hall_subgroup_classes`](@ref) instead.
 
 # Examples
@@ -1373,7 +1374,7 @@ end
 @doc raw"""
     complements(G::T, N::T) where T <: GAPGroup
 
-Return an iterator of the complements of the normal subgroup `N` in `G`.
+Return an iterator over the complements of the normal subgroup `N` in `G`.
 Very likely it is better to use [`complement_classes`](@ref) instead.
 
 # Examples

@@ -7,7 +7,7 @@ minimal supergroups, ie. it fails in ``C_4``.
 function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   l = [G]
   while order(l[end]) > order(U)
-    m = reduce(vcat, map(collect, maximal_subgroup_classes(l[end])))
+    m = collect(maximal_subgroups(l[end]))
     push!(l, m[findfirst(x -> is_subset(U, x), m)])
   end
   return reverse(l)
