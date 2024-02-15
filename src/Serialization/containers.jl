@@ -276,8 +276,15 @@ end
 function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
   save_data_dict(s) do 
     for (k, v) in obj
+      println(k, v)
       save_object(s, v, Symbol(k))
     end
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:Dict})
+  load_node(s, :key_type) do key_type
+    println(key_type)
   end
 end
 
