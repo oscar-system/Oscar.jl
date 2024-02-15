@@ -100,7 +100,7 @@ _pmdata_for_oscar(s::Polymake.Set, coeff::Union{Field,Nothing}) = Set(_pmdata_fo
 
 function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Union{Field,Nothing})
   data = Dict{String,Any}()
-  data["_type"] = Polymake.type_name(bo)
+  data["_type"] = String(Polymake.type_name(bo))
   data["_coeff"] = coeff
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
