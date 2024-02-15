@@ -2,6 +2,7 @@
 # execute:  LC_COLLATE=C sort < src/exports.jl > dummy ; mv dummy src/exports.jl
 export *
 export @check
+export @free_group
 export @pbw_relations
 export @perm
 export @permutation_group
