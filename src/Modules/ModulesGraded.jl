@@ -1424,12 +1424,13 @@ function induce_shift(B::Dict{Tuple{Int, Any}, Int})
   return new_B
 end
 
+#numbers are right aligned in the column
 function Base.show(io::IO, b::BettiTable)
   if isempty(b.B)
     print(io, "Empty table")
     return
   end
-
+  
   T = induce_shift(b.B)
   x = collect(keys(T))
   if isempty(x)
@@ -1441,29 +1442,27 @@ function Base.show(io::IO, b::BettiTable)
   for j in min:step:maxv
     sum_col = sum(getindex(T, x[m]) for m in 1:length(x) if x[m][1] == j)
     col_width_from_sum = ndigits(abs(sum_col))
-    col_width_from_header = ndigits(abs(j)) + (j < 0 ? 1 : 0)
+    col_width_from_header = ndigits(abs(j))# + (j < 0 ? 1 : 0)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
   end
-
+  
   if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
-      initial_padding = max(ndigits(mi) + mi < 0 ? 0 : 1, 7)
+      initial_padding = max(ndigits(mi) + mi < 0 ? 0 : 1, 7)-2
       print(io, " "^initial_padding)
       total_space_count = initial_padding
       for j in min:step:maxv
         adjustment = j < 0 ? 1 : 0
         space_count = max(0, column_widths[j] - ndigits(j) - adjustment)
+        print(io, " "^(space_count))
         print(io, j)
-        if j != maxv
-          print(io, " "^space_count)
-        end
         total_space_count = total_space_count + space_count + ndigits(j) + adjustment
       end
-      total_space_count = total_space_count - 1
+      total_space_count = total_space_count
       print(io, "\n")
       print(io, "-"^total_space_count)
       print(io, "\n")
@@ -1473,9 +1472,11 @@ function Base.show(io::IO, b::BettiTable)
         print(io, ":")
         for h in min:step:maxv
           sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
+          @assert column_widths[h] - ndigits(sum_current) >= 2
+          print(io, " "^(column_widths[h] - ndigits(sum_current) - 2))
           print(io, " ", sum_current == 0 ? "-" : sum_current)
-          if h != maxv
-            print(io, " "^(column_widths[h] - ndigits(sum_current) - 1))
+          if h!= maxv
+            print(io, " ")
           end
         end
         print(io,"\n")
@@ -1486,7 +1487,7 @@ function Base.show(io::IO, b::BettiTable)
         sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
         print(io, " ", sum_row)
         if i_total != maxv
-          print(io, " "^(column_widths[i_total] - ndigits(sum_row) - 1))
+          print(io, " "^(column_widths[i_total] - ndigits(sum_row)-1))
         end
       end
       print(io, "\n")
@@ -1540,6 +1541,8 @@ function Base.show(io::IO, b::BettiTable)
     end
   end
 end
+
+
 
 
 
