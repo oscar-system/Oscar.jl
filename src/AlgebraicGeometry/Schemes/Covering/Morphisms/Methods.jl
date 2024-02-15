@@ -22,7 +22,7 @@ resulting covering ``C'`` and the identifying isomorphism
 ``f : C' ↔ C``.
 """
 function simplify(C::Covering)
-  n = npatches(C)
+  n = n_patches(C)
   new_patches = AbsSpec[simplify(X) for X in patches(C)]
   GD = gluings(C)
   new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()

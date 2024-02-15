@@ -366,7 +366,7 @@ end
 function getindex(X::AbsProjectiveScheme, U::AbsSpec)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
-    for j in 1:npatches(C)
+    for j in 1:n_patches(C)
       if U === C[j]
         return C, j
       end

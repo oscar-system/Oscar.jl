@@ -109,7 +109,7 @@ function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVec
 
     Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{minOrMax}(valuatedMatroid))
     Sigma = add_missing_lineality_from_polymake(Sigma)
-    multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 
     TropL = tropical_linear_space(Sigma,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only
