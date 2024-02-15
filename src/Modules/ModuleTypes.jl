@@ -589,6 +589,42 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     return set_grading(r; check)
   end
 
+  # We need to introduce a separate constructor for decorated modules here
+  # because some of the generic functionality (sub_object) is not there yet. 
+  function FreeModuleHom(
+      F::FreeMod_dec, G::S, a::Vector{ModuleElemType};
+      check::Bool=true
+    ) where {S<:ModuleFP, ModuleElemType<:ModuleFPElem}
+    ###@assert is_graded(F) == is_graded(G)
+    @assert all(x->parent(x) === G, a)
+    @assert length(a) == ngens(F)
+    r = new{typeof(F), typeof(G), Nothing}()
+    a=Vector{elem_type(G)}(a)
+    function im_func(x::AbstractFreeModElem)
+     # The lines below were an attempt to speed up mapping. 
+     # However, it turns out that checking the equality is more 
+     # expensive in average than the gain for actual mappings. 
+     # Apparently, maps are likely to be used just once, or only 
+     # few times. 
+     # But the flag can (and probably should) be set by the constructors
+     # of maps whenever applicable.
+     #if r.generators_map_to_generators === nothing
+     #  r.generators_map_to_generators = images_of_generators(r) == gens(codomain(r))
+     #end
+      r.generators_map_to_generators === true && return codomain(r)(coordinates(x))
+      return sum(b*a[i] for (i, b) in coordinates(x); init=zero(codomain(r)))
+    end
+    function pr_func(x)
+      @assert parent(x) === G
+      c = coordinates(repres(simplify!(x)), sub_object(G, a))
+      return FreeModElem(c, F)
+    end
+    r.header = MapHeader{typeof(F), typeof(G)}(F, G, im_func, pr_func)
+    r.imgs_of_gens = Vector{elem_type(G)}(a)
+    r.generators_map_to_generators = nothing
+    return set_grading(r; check)
+  end
+
   function FreeModuleHom(
       F::AbstractFreeMod, G::T2, a::Vector{ModuleElemType}, h::RingMapType;
       check::Bool=true
@@ -611,7 +647,7 @@ When computed, the corresponding matrix (via `matrix()`) and inverse isomorphism
     end
     function pr_func(x)
       @assert parent(x) === G
-      r.generators_map_to_generators === true && return FreeModElem(coordinates(simplify!(x)), F)
+      #r.generators_map_to_generators === true && return FreeModElem(map_entries(x->preimage(h, x), coordinates(simplify!(x))), F)
       c = coordinates(repres(x), image_module)
       cc = map_entries(x->preimage(h, x), c)
       return FreeModElem(cc, F)

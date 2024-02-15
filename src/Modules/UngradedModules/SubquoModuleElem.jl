@@ -105,6 +105,11 @@ end
 #  - it sets the field is_reduced to true. 
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   el.is_reduced && return el
+  if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
+  end
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
     el.is_reduced = true
     return el
@@ -117,6 +122,11 @@ end
 
 function simplify!(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
+  if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
+  end
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
     el.is_reduced = true
     return el
