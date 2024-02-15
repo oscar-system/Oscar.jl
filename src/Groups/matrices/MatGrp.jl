@@ -102,13 +102,7 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   error("$x has neither :X nor :elm")
 end
 
-function change_base_ring(R::Ring, G::MatrixGroup)
-  g = dense_matrix_type(R)[]
-  for h in gens(G)
-    push!(g, map_entries(R, h.elm))
-  end
-  return matrix_group(g)
-end
+change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 
 ########################################################################
 #
@@ -572,6 +566,17 @@ julia> order(map_entries(GF(3), G))
 3
 ```
 """
+function map_entries(f, G::MatrixGroup)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    z = f(zero(base_ring(G)))
+    return matrix_group(parent(z), degree(G), MatrixGroupElem[])
+  else
+    imgs = [map_entries(f, matrix(x)) for x in gens(G)]
+    return matrix_group(imgs)
+  end
+end
+
 function map_entries(R::Ring, G::MatrixGroup)
   imgs = [map_entries(R, matrix(x)) for x in gens(G)]
   return matrix_group(R, degree(G), imgs)
@@ -580,17 +585,6 @@ end
 function map_entries(mp::Map, G::MatrixGroup)
   imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
   return matrix_group(codomain(mp), degree(G), imgs)
-end
-
-function map_entries(f::Function, G::MatrixGroup)
-  Ggens = gens(G)
-  if length(Ggens) == 0
-    o = map_entries(f, matrix(one(G)))
-    return matrix_group(base_ring(o), degree(G), typeof(o)[])
-  else
-    imgs = [map_entries(f, matrix(x)) for x in gens(G)]
-    return matrix_group(imgs)
-  end
 end
 
 

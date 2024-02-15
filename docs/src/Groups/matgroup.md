@@ -14,7 +14,7 @@ MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem
 degree(G::MatrixGroup)
 centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
-map_entries(R::Ring, G::MatrixGroup)
+map_entries(f, G::MatrixGroup)
 ```
 
 ## Elements of matrix groups
