@@ -88,13 +88,13 @@ function groebnerwalk(
 end
 
 @doc raw"""
-        groebnerwalk(
-            G::Oscar.IdealGens,
-            S::Union{Matrix{T}, MatElem{T}},
-            T::Union{Matrix{T}, MatElem{T}},
-            walktype::Symbol = :standard,
-            p::Int = 2
-        ) where T
+    groebnerwalk(
+      G::Oscar.IdealGens,
+      S::Union{Matrix{T}, MatElem{T}},
+      T::Union{Matrix{T}, MatElem{T}},
+      walktype::Symbol = :standard,
+      p::Int = 2
+    ) where T
 Computes a reduced Groebner basis w.r.t. the monomial order T by converting the reduced Groebner basis G w.r.t. the monomial order S using the Groebner Walk.
 One can choose a strategy of:
 Standard Walk (:standard) computes the Walk like it´s presented in Cox et al. (2005).
