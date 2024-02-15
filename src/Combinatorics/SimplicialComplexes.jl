@@ -90,13 +90,15 @@ function vertexindices(K::SimplicialComplex)
     end
 end
 
-function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
-    vec = zeros(Int, Polymake.betti_number(A))
-    torsion_i = Polymake.torsion(A)
-    for (p,k) in torsion_i
-        append!(vec, fill(p,k))
-    end
-    return abelian_group(vec)
+function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroup{Polymake.Integer}, h_index::Int)
+  # we return non-reduced homology and cohomology
+  betti_number = is_zero(h_index) ? Polymake.betti_number(A) + 1 : Polymake.betti_number(A)
+  vec = zeros(Int, betti_number)
+  torsion_i = Polymake.torsion(A)
+  for (p,k) in torsion_i
+    append!(vec, fill(p,k))
+  end
+  return abelian_group(vec)
 end
 
 ################################################################################
@@ -199,8 +201,7 @@ euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::
 @doc raw"""
     homology(K::SimplicialComplex, i::Int)
 
-Return `i`-th reduced integral homology group of `K`.
-Recall that the 0-th homology group is trivial if and only if `K` is connected.
+Return `i`-th integral homology group of `K`.
 
 # Examples
 ```jldoctest
@@ -211,12 +212,12 @@ julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
  Z/1
 ```
 """
-homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
+homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1], i) # index shift
 
 @doc raw"""
     cohomology(K::SimplicialComplex, i::Int)
 
-Return `i`-th reduced integral cohomology group of `K`.
+Return `i`-th integral cohomology group of `K`.
 
 # Examples
 ```jldoctest
@@ -226,7 +227,7 @@ julia> cohomology(K,1)
 Z
 ```
 """
-cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
+cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1], i) # index shift
 
 @doc raw"""
     minimal_nonfaces(K::SimplicialComplex)
