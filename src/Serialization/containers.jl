@@ -260,15 +260,23 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
+      save_object(s, encode_type(S), :key_type)
       for (k, v) in obj
         U = typeof(v)
         if serialize_with_params(U)
-          save_dict
           save_type_params(s, v)
         else
-          save_object(s, encode_type(U), Symbol(key))
+          save_object(s, encode_type(U), Symbol(k))
         end
       end
     end
   end
 end
+
+function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
+  
+  for (k, v) in obj
+    
+  end
+end
+
