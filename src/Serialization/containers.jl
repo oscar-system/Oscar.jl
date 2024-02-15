@@ -274,9 +274,10 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union
 end
 
 function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
-  
-  for (k, v) in obj
-    
+  save_data_dict(s) do 
+    for (k, v) in obj
+      save_object(s, v, Symbol(k))
+    end
   end
 end
 
