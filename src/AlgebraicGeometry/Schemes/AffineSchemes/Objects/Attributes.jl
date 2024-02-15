@@ -482,7 +482,7 @@ julia> codim(Y)
 end
 
 function degree(X::Spec{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
-  @check dim(X) == 0 "The affine scheme X needs to be zero-dimensional"
+  @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
   get_attribute!(X, :degree) do
     return vector_space_dimension(OO(X))
   end
