@@ -8,11 +8,13 @@ function iszero(f::ModuleFPHom)
 end
 
 @doc raw"""
-    hom(M::ModuleFP, N::ModuleFP)
+    hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
 
 Return the module `Hom(M,N)` as an object of type `SubquoModule`.
 
 Additionally, if `H` is that object, return the map which sends an element of `H` to the corresponding homomorphism `M` $\to$ `N`.
+
+The keyword `algorithm` can be set to `:maps` for the default algorithm or to `:matrices` for an alternative based on matrices.
 
 # Examples
 ```jldoctest
