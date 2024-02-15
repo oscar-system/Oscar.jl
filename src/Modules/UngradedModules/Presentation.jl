@@ -115,14 +115,15 @@ function _presentation_graded(SQ::SubquoModule)
   # generators, because other code relies on the 1:1-correspondence
   # of the generators in a presentation.
   F0_to_SQ = graded_map(SQ, gens(SQ); check=false)
+  F0_to_SQ.generators_map_to_generators = true
   F0 = domain(F0_to_SQ)
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
-  #F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
-  #F1 = domain(F1_to_F0)
-  F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
-  F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
+  F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
+  F1 = domain(F1_to_F0)
+  #F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
+  #F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
   set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
@@ -156,6 +157,7 @@ function _presentation_simple(SQ::SubquoModule)
   # Create the free module for the presentation
   F0 = FreeMod(R, length(gens(SQ)))
   F0_to_SQ = hom(F0, SQ, gens(SQ); check=false)
+  F0_to_SQ.generators_map_to_generators = true
   set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
