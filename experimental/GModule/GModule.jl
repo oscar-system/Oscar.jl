@@ -481,6 +481,10 @@ function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
   return _character_field(C)[1]
 end
 
+function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}})
+  return Oscar.class_function(group(C), [x[2] for x = _character(C)])
+end
+
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   chr = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = chr])
@@ -569,7 +573,7 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 end
 
 """
-    gmodule_over(Field)
+    gmodule_over(Field, GModule)
 """
 function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}; do_error::Bool = false)
   #mathematically, k needs to contain the character field
@@ -647,6 +651,10 @@ function gmodule_over(em::Map{AbsSimpleNumField, AbsSimpleNumField}, C::GModule{
   end
   F = free_module(k, dim(C))
   return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
+end
+
+function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}}; do_error::Bool = true)
+  return gmodule_over(QQ, gmodule(CyclotomicField, C); do_error)
 end
 
 function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true)
@@ -907,11 +915,17 @@ A needs to have norm 1 wrt. to s, so
 for ord(s) = os = n+1. Then this will find B s.th.
   A = B^(1-s)
 """
-function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
+function hilbert90_cyclic(A::MatElem{<:FieldElem}, s, os::Int)
   #apart from rand, this would also work over a number field
+  k= base_ring(A)
+  if isa(k, FinField)
+    rnd = ()->rand(parent(A))
+  elseif isa(k, QQField) || isa(k, AbsSimpleNumField)
+    rnd = ()->rand(parent(A), -10:10)
+  end
   cnt = 1
   while true
-    B = rand(parent(A))
+    B = rnd()
     Bs = map_entries(s, B)
     As = A
     for i=1:os-1
@@ -1237,11 +1251,11 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
   reco = 10
   while true
     p = next_prime(p)
-    z1 = gmodule(GF(p), C)
+    z1 = gmodule(Native.GF(p), C)
     if C === D
       z2 = z1
     else
-      z2 = gmodule(GF(p), D)
+      z2 = gmodule(base_ring(z1), D)
     end
 
     t = hom_base(z1, z2)
@@ -1360,8 +1374,8 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
-  return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
+  k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
+  return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:ncols(k)]
 end
 
 function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})

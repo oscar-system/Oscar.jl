@@ -11,6 +11,38 @@ function Hecke.roots(a::FinFieldElem, i::Int)
   return roots(x^i-a)
 end
 
+Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
+
+function Oscar.hom(A::AbstractAlgebra.Generic.DirectSumModule{T}, B::AbstractAlgebra.Generic.DirectSumModule{T}, M::Matrix{<:Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}}) where {T}
+  pro = canonical_projections(A)
+  im = canonical_injections(B)
+  s = hom(A, B, [zero(B) for i = 1:dim(A)])
+  for i=1:length(pro)
+    for j=1:length(im)
+      s += pro[i]*M[i,j]*im[j]
+    end
+  end
+  return s
+end
+
+function Oscar.canonical_projection(A::AbstractAlgebra.Generic.DirectSumModule, i::Int)
+  return hom(A, summands(A)[i], [Generic.direct_sum_projection(A, i, x) for x = gens(A)])
+end
+
+function Oscar.canonical_injection(A::AbstractAlgebra.Generic.DirectSumModule, i::Int)
+  B = summands(A)[i]
+  return hom(B, A, [Generic.direct_sum_injection(i, A, x) for x = gens(B)])
+end
+
+function Oscar.canonical_projections(A::AbstractAlgebra.Generic.DirectSumModule)
+  s = length(summands(A))
+  return [canonical_projection(A, i) for i=1:s]
+end
+
+function Oscar.canonical_injections(A::AbstractAlgebra.Generic.DirectSumModule)
+  s = length(summands(A))
+  return [canonical_injection(A, i) for i=1:s]
+end
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
@@ -176,7 +208,12 @@ the p is in the set.
 function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   G = domain(mp)
   Q = codomain(mp)
-  I = irreducible_modules(ZZ, Q) 
+  if order(Q) == 1
+    F = free_module(ZZ, 1)
+    I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x = gens(Q)])]
+  else
+    I = irreducible_modules(ZZ, Q) 
+  end
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
@@ -210,9 +247,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     are correct...)
     TODO: this is not (yet) implemented this way
     =#
-    q = cokernel(b)[1]
+    @show q = cokernel(b)[1]
 #    q = quo(kernel(da)[1], image(db)[1])[1]
-    t = torsion_subgroup(q)[1]
+    @show t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, collect(keys(factor(order(t)).fac))...)
     end
@@ -305,7 +342,7 @@ function Base.iterate(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
   return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
 end
 
-function Base.iterate(::AbstractAlgebra.FPModule{fqPolyRepFieldElem}, ::Tuple{Int64, Int64})
+function Base.iterate(::AbstractAlgebra.FPModule{<:FinFieldElem}, ::Tuple{Int64, Int64})
   return nothing
 end
 
@@ -402,6 +439,7 @@ function lift(C::GModule, mp::Map)
   seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
   #TODO: the projection maps seem to be rather slow - in particular
   #      as they SHOULD be trivial...
+  global last_k = k
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = mH2(pDE[2](mk(x))) #the tail data
@@ -442,11 +480,18 @@ function lift(C::GModule, mp::Map)
       end
       return d
     end
+    @show [pro[i](epi) for i=1:ngens(G)]
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-#    @show map(order, l), order(prod(l))
+    @show map(order, l), order(prod(l))
+    global last_x = l
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = hom(G, GG, gens(G), l)
+    h = try
+          hom(G, GG, gens(G), l)
+        catch
+          @show :crash
+          continue
+        end
     if !is_surjective(h)
 #      @show :darn
       continue
@@ -456,6 +501,11 @@ function lift(C::GModule, mp::Map)
     push!(allG, h)
   end
   return allG
+end
+
+function solvable_quotient(G::Oscar.GAPGroup)
+  q = pc_group(symmetric_group(1))
+  mp = hom(G, q, [one(q) for g = gens(G)])
 end
 
 end #module RepPc
