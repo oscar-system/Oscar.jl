@@ -4,8 +4,8 @@ using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
-  Hecke.add_verbose_scope(:SolveRadical)
-  Hecke.add_assert_scope(:SolveRadical)
+  Hecke.add_verbosity_scope(:SolveRadical)
+  Hecke.add_assertion_scope(:SolveRadical)
 end
 
 
@@ -420,7 +420,7 @@ a corresponding primitive n-th root of 1, find an isomorphic radical extension
 using Lagrange resolvents.
 """
 function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem; simplify::Bool = !false)
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
 
   g = gen(K)
   d = degree(K)
@@ -468,7 +468,7 @@ The necessary roots of unity are not themselves computed as radicals.
 See also [`galois_group`](@ref).
 
 # VERBOSE
-Supports `set_verbose_level(:SolveRadical, i)` to obtain information.
+Supports `set_verbosity_level(:SolveRadical, i)` to obtain information.
 
 
 # Examples
@@ -503,7 +503,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   @req is_squarefree(f) "Polynomial must be square-free"
 
   #switches check = true in hom and number_field on
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
   @vtime :SolveRadical 1 G, C = galois_group(f)
   lp = [p for p = keys(factor(order(G)).fac) if p > 2]

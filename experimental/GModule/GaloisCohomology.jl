@@ -1021,7 +1021,7 @@ julia> k, a = number_field(x^4 - 12*x^3 + 36*x^2 - 36*x + 9);
 
 julia> a = ray_class_field(8*3*maximal_order(k), n_quo = 2);
 
-julia> a = filter(isnormal, subfields(a, degree = 2));
+julia> a = filter(is_normal, subfields(a, degree = 2));
 
 julia> I = idel_class_gmodule(k);
 
@@ -1518,7 +1518,7 @@ and explicit 2-cochains.
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
   G, mG = automorphism_group(PermGroup, K)
   if k != QQ 
-    fl, mp = issubfield(k, K)
+    fl, mp = is_subfield(k, K)
     p = mp(gen(k))
     @assert fl
     s, ms = sub(G, [x for x = G if mG(x)(p) == p])
@@ -1631,7 +1631,7 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrderIdeal, Hecke.NumFiel
 end
 
 #write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
-function Oscar.cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+function cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A

@@ -78,7 +78,7 @@ Map
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
       m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :])))
+      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
 end
@@ -240,7 +240,7 @@ Covering
     hb_V_mat = matrix(ZZ, hb_V)
     hb_V_img = hb_V_mat * At
     hb_U_mat = matrix(ZZ, hb_U)
-    sol = solve_left(hb_U_mat, hb_V_img)
+    sol = solve(hb_U_mat, hb_V_img; side = :left)
     @assert sol*hb_U_mat == hb_V_img
     @assert all(x->x>=0, sol)
 

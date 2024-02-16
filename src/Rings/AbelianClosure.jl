@@ -923,7 +923,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if fl
         b = transpose(sol)
         b = [b[i] for i in 1:length(b)]

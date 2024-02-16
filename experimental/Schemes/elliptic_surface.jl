@@ -1028,7 +1028,8 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
   M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
-  kerdim, K = kernel(M)
+  K = kernel(M; side = :right)
+  kerdim = ncols(K)
   result = Tuple{elem_type(Bt),elem_type(Bt)}[]
   t = gen(Bt)
   for j in 1:kerdim
@@ -1358,7 +1359,7 @@ function extended_ade(ADE::Symbol, n::Int)
     G[n,1] = -1
   end
   @assert rank(G) == n
-  return -G, left_kernel(G)[2]
+  return -G, kernel(G; side = :left)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
