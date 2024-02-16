@@ -1401,7 +1401,8 @@ function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   print(io, "Element of relative Brauer group of ", Lowercase(), parent(a).k)
   io = IOContext(io, :supercompact => true, :compact => true)
   print(io, Indent())
-  for (p,v) in a.data
+  data = sort(a.data; by = x -> x isa AbsSimpleNumFieldEmbedding ? Inf : minimum(x))
+  for (p,v) in data
     print(io, "\n", p, " -> ", v)
   end
   print(io, Dedent())
@@ -1532,8 +1533,8 @@ Relative Brauer group for cyclotomic field of order 5 over number field of degre
 julia> b = B(S)
 Element of relative Brauer group of number field of degree 1 over QQ
   <2, 2> -> 1//2 + Z
-  Complex embedding of number field -> 1//2 + Z
   <5, 5> -> 0 + Z
+  Complex embedding of number field -> 1//2 + Z
 ```
 """
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
