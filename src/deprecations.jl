@@ -71,6 +71,9 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate number_transitive_groups number_of_transitive_groups
 @deprecate has_number_transitive_groups has_number_of_transitive_groups
 
+@deprecate factorisations factorizations
+@deprecate centraliser centralizer
+
 @deprecate hall_subgroup_reps(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, hall_subgroup_classes(G, P))
 @deprecate hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) map(representative, hall_subgroup_classes(G, P))
 

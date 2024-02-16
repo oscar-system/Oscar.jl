@@ -96,7 +96,7 @@ Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 """
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField}, euler_characteristic::Int,
                           mwl_basis::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[]) where {
-                          BaseField <: Frac{<:PolyRingElem{<:FieldElem}}}
+                          BaseField <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, euler_characteristic, mwl_basis)
   return S
@@ -1154,7 +1154,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
     # Make sure the coefficient of y² is one (or a square) so that 
     # completing the square works. 
-    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.FracFieldElem
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
@@ -1166,7 +1166,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     
     # Make sure the coefficient of y² is one (or a square) so that 
     # completing the square works. 
-    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.FracFieldElem
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
@@ -1593,11 +1593,11 @@ function _is_in_weierstrass_form(f::MPolyRingElem)
   return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
 end
 
-function evaluate(f::AbstractAlgebra.Generic.Frac{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
-function evaluate(f::AbstractAlgebra.Generic.Frac{<:PolyRingElem}, a::RingElem)
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:PolyRingElem}, a::RingElem)
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
@@ -1640,7 +1640,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
   a = a_invars(E)
 
-  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+  u_loc = u[U]::AbstractAlgebra.Generic.FracFieldElem # the representative on the Weierstrass chart
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
   kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
