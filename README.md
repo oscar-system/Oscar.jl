@@ -42,7 +42,7 @@ julia> using Oscar
  -----    -----    -----   -     -  -     -
 
 ...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 1.0.0-DEV ...
+Version 1.1.0-DEV ...
 ... which comes with absolutely no warranty whatsoever
 Type: '?Oscar' for more information
 (c) 2019-2024 by The OSCAR Development Team
@@ -128,7 +128,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.0.0-DEV, The OSCAR Team, 2024. (https://www.oscar-system.org)
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.1.0-DEV, The OSCAR Team, 2024. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
 
@@ -138,7 +138,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.0.0-DEV},
+                      Version 1.1.0-DEV},
       year         = {2024},
       url          = {https://www.oscar-system.org},
       }
