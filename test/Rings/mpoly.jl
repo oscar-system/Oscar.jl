@@ -298,9 +298,11 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3), ordering=:degrevlex)
-    test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
-    @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
+  R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
+  o = degrevlex(R)
+  single_gen = collect(grassmann_pluecker_ideal(R, 2, 4))[1]
+  ord_terms = collect(terms(single_gen; ordering=o))
+  @test ord_terms == [x[1, 2]*x[2, 2], 6*x[2, 1]*x[1, 3], x[1, 1]*x[2, 3]]
 end
 
 @testset "IdealGens" begin
