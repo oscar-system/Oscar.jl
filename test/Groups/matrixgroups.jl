@@ -379,6 +379,38 @@ end
    @test_throws ArgumentError matrix_group([x1,x3])
 end
 
+@testset "map_entries for matrix groups" begin
+  mat = matrix(ZZ, 2, 2, [1, 1, 0, 1])
+  G = matrix_group(mat)
+  T = trivial_subgroup(G)[1]
+  @test length(gens(T)) == 0
+  for R in [GF(2), GF(3, 2), residue_ring(ZZ, 6)[1]]
+    red = map_entries(R, G)
+    @test matrix(gen(red, 1)) == map_entries(R, mat)
+    red = map_entries(R, T)
+    @test matrix(one(red)) == map_entries(R, one(mat))
+  end
+
+  F = GF(2)
+  mp = MapFromFunc(ZZ, F, x -> F(x))
+  red = map_entries(mp, G)
+  @test red == map_entries(F, G)
+  red = map_entries(mp, T)
+  @test red == map_entries(F, T)
+
+  G1 = special_linear_group(2, 9)
+  G2 = map_entries(x -> x^3, G1)
+  @test gens(G1) != gens(G2)
+  @test G1 == G2
+  T = trivial_subgroup(G1)[1]
+  @test length(gens(T)) == 0
+  @test map_entries(x -> x^3, T) == trivial_subgroup(G2)[1]
+
+  mat = matrix(QQ, 2, 2, [2, 1, 0, 1])
+  G = matrix_group(mat)
+  @test_throws ArgumentError map_entries(GF(2), G)
+end
+
 @testset "Iterator" begin
    G = SL(2,3)
    N = 0
