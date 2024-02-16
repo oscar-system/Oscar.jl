@@ -894,7 +894,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
-  l = low_index_subgroup_reps(H, 2*degree(G)^2)
+  l = representative.(low_index_subgroup_classes(H, 2*degree(G)^2))
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
@@ -1227,7 +1227,7 @@ mutable struct DescentEnv
   #a more select choice of group....
 
   function DescentEnv(G::PermGroup, f::GroupFilter = GroupFilter())
-    s = maximal_subgroup_reps(G)
+    s = map(representative, maximal_subgroup_classes(G))
     r = new()
     r.G = G
     @vprint :GaloisGroup 1 "starting with $(length(s)) maximal subgroup classes\n"
@@ -2374,7 +2374,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   if order(G) % degree(Q) != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), degree(Q)))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), degree(Q))))
   res = []
   for U = s
     phi = right_coset_action(G, U)
@@ -2413,7 +2413,7 @@ function galois_quotient(C::GaloisCtx, d::Int)
   if order(G) % d != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), d))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), d)))
   res = []
   for U = s
     phi = right_coset_action(G, U)
