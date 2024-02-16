@@ -32,7 +32,7 @@
   # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
   shapes = [[3,2,1],[3,3,1],[2,2,2]]
   for s in shapes
-    SST = semistandard_tableaux(s)
+    SST = collect(semistandard_tableaux(s))
     #check that all tableaux are distinct
     @test SST == unique(SST)
 
@@ -48,7 +48,7 @@
   weights = [[1,1,1,1,1,1,1,1,1,1],[3,0,2,0,0,5],[4,3,2,1]]
   for s in shapes
     for w in weights
-      SST = semistandard_tableaux(s,w)
+      SST = collect(semistandard_tableaux(s, w))
       #check that all tableaux are distinct
       @test SST == unique(SST)
       #check that all tableaux are semistandard_tableaux
@@ -65,14 +65,14 @@
       end
     end
   end
-  @test semistandard_tableaux(Int[], Int[]) == [young_tableau(Array{Int,1}[])]
+  @test collect(semistandard_tableaux(Int[], Int[])) == [young_tableau(Array{Int,1}[])]
 
   #semistandard_tableaux(box_num, max_val)
   BoxNum = 0:5
   MaxVal = 1:6
   for box_num in BoxNum
     for max_val in MaxVal
-      SST = semistandard_tableaux(box_num, max_val)
+      SST = collect(semistandard_tableaux(box_num, max_val))
       #check that all tableaux are distinct
       @test SST == unique(SST)
       #check that all tableaux are semistandard_tableaux
@@ -96,7 +96,7 @@
   # standard_tableaux(s::Partition)
   for i = 1:10
     for s in partitions(i)
-      ST = standard_tableaux(s)
+      ST = collect(standard_tableaux(s))
       #check that all tableaux are distinct
       @test ST == unique(ST)
       #check that all tableaux are standard_tableaux
@@ -107,12 +107,12 @@
       @test length(ST) == number_of_standard_tableaux(s)
     end
   end
-  @test standard_tableaux(partition(Int[])) == [young_tableau(Array{Int,1}[])]
-  @test standard_tableaux([3,2,1]) == standard_tableaux(partition([3,2,1]))
+  @test collect(standard_tableaux(partition(Int[]))) == [young_tableau(Array{Int,1}[])]
+  @test collect(standard_tableaux([3, 2, 1])) == collect(standard_tableaux(partition([3, 2, 1])))
 
   # standard_tableaux(n::Integer)
   for n = 0:10
-    ST = standard_tableaux(n)
+    ST = collect(standard_tableaux(n))
     #check that all tableaux are distinct
     @test ST == unique(ST)
     #check that all tableaux are standard_tableaux
