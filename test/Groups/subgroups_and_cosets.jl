@@ -35,7 +35,7 @@
 
    G = symmetric_group(4)
    A = alternating_group(4)
-   L = collect(Iterators.flatten(subgroup_classes(G)))
+   L = collect(subgroups(G))
    @test length(L)==30
    @test L[1] isa PermGroup
    L1 = [x for x in L if is_normal_subgroup(x, G)]
@@ -389,7 +389,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersect(collect(Iterators.flatten(maximal_subgroup_classes(G))))[1]
+   @test frattini_subgroup(G)[1]==intersect(collect(maximal_subgroups(G)))[1]
    @test frattini_subgroup(G)==center(G)
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)
