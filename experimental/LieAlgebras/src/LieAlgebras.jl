@@ -64,9 +64,9 @@ import ..Oscar:
   matrix,
   normalizer,
   number_of_generators, ngens,
-  number_of_positive_roots, nposroots,        # aliases do not work in experimental
-  number_of_roots, nroots,                    # aliases do not work in experimental
-  number_of_simple_roots, nsimpleroots,       # aliases do not work in experimental
+  number_of_positive_roots, n_positive_roots, # aliases do not work in experimental
+  number_of_roots, n_roots,                   # aliases do not work in experimental
+  number_of_simple_roots, n_simple_roots,     # aliases do not work in experimental
   order,
   parent_type,
   rank,
@@ -156,9 +156,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, nposroots    # aliases do not work in experimental
-export number_of_roots, nroots                # aliases do not work in experimental
-export number_of_simple_roots, nsimpleroots   # aliases do not work in experimental
+export number_of_positive_roots, n_positive_roots # aliases do not work in experimental
+export number_of_roots, n_roots                   # aliases do not work in experimental
+export number_of_simple_roots, n_simple_roots     # aliases do not work in experimental
 export permutations
 export permutations_with_sign
 export positive_coroot
@@ -280,9 +280,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, nposroots    # aliases do not work in experimental
-export number_of_roots, nroots                # aliases do not work in experimental
-export number_of_simple_roots, nsimpleroots   # aliases do not work in experimental
+export number_of_positive_roots, n_positive_roots  # aliases do not work in experimental
+export number_of_roots, n_roots                    # aliases do not work in experimental
+export number_of_simple_roots, n_simple_roots      # aliases do not work in experimental
 export positive_coroot
 export positive_coroots
 export positive_root

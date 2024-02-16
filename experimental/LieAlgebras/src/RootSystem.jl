@@ -100,10 +100,10 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  if i <= nposroots(R)
+  if i <= n_positive_roots(R)
     return positive_coroot(R, i)
   else
-    return negative_coroot(R, i - nposroots(R))
+    return negative_coroot(R, i - n_positive_roots(R))
   end
 end
 
@@ -297,10 +297,10 @@ This is a more efficient version for `roots(R)[i]`.
 Also see: `roots`.
 """
 function root(R::RootSystem, i::Int)
-  if i <= nposroots(R)
+  if i <= n_positive_roots(R)
     return positive_root(R, i)
   else
-    return negative_root(R, i - nposroots(R))
+    return negative_root(R, i - n_positive_roots(R))
   end
 end
 

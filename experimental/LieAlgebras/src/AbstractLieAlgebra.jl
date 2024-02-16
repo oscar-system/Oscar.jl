@@ -108,7 +108,7 @@ to the order of the roots in the root system.
 function chevalley_basis(L::AbstractLieAlgebra)
   @req has_root_system(L) "No root system known."
 
-  npos = nposroots(root_system(L))
+  npos = n_positive_roots(root_system(L))
   b = basis(L)
   # root vectors
   r_plus = b[1:npos]
@@ -327,8 +327,8 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   cm = cartan_matrix(rs)
   @req is_cartan_matrix(cm; generalized=false) "The type does not correspond to a classical root system"
 
-  npos = nposroots(rs)
-  nsimp = nsimpleroots(rs)
+  npos = n_positive_roots(rs)
+  nsimp = n_simple_roots(rs)
   n = 2 * npos + nsimp
 
   #=

@@ -50,11 +50,6 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
 @deprecate projection(W::WreathProductGroup) canonical_projection(W)
 
-@deprecate n_cones number_of_cones
-@deprecate n_connected_components number_of_connected_components
-@deprecate n_maximal_cells number_of_maximal_cells
-@deprecate n_maximal_cones number_of_maximal_cones
-@deprecate n_maximal_polyhedra number_of_maximal_polyhedra
 @deprecate num_partitions number_of_partitions
 @deprecate num_positive_roots number_of_positive_roots
 @deprecate num_roots number_of_roots
