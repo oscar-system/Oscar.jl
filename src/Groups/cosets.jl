@@ -525,7 +525,7 @@ Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 """
     double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
 
-Return the vector of all the double cosets `HxK` for `x` in `G`.
+Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 
 # Examples
