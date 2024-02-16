@@ -290,7 +290,7 @@ function move_representative(
   return h_generic
 end
 
-function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool=true)
+function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.FracFieldElem; check::Bool=true)
   return KK(numerator(h), denominator(h), check=check)
 end
 
@@ -451,7 +451,7 @@ inv(f::VarietyFunctionFieldElem) = parent(f)(denominator(representative(f)),
                                      )
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:Integer} = T
-AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:AbstractAlgebra.Generic.Frac} = T
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:AbstractAlgebra.Generic.FracFieldElem} = T
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{T}) where {T<:VarietyFunctionFieldElem} = T
 
@@ -459,7 +459,7 @@ function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:V
   promote_rule(T, U) == T ? FFET : Union{}
 end 
 
-function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.Frac{T}}, U<:RingElement}
+function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.FracFieldElem{T}}, U<:RingElement}
   promote_rule(T, U) == T ? FFET : Union{}
 end 
 

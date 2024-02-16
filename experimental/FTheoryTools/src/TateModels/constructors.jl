@@ -168,7 +168,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   end
 
   # Compute defining_section_parametrization
-  defining_section_parametrization = Dict{String, MPolyElem}()
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
   vars_S = [string(k) for k in gens(S)]
   if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
     defining_section_parametrization["a1"] = a1
