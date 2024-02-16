@@ -1669,7 +1669,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
     GC.start = (2, O)
     
-    #the factors define a partitioning of pairs, the stabiliser of this
+    #the factors define a partitioning of pairs, the stabilizer of this
     #partition is the largest possible group...
     #code from Max...
 

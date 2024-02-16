@@ -1710,7 +1710,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
 
   # We look for the GA|GB-invariant and fA|fB-stable subgroups of VA|VB which respectively
   # contained lpqA|lpqB, where pqA and pqB are respectively the p-primary parts of qA and qB.
-  # This is done by computing orbits and stabilisers of VA/lpqA (resp VB/lpqB)
+  # This is done by computing orbits and stabilizers of VA/lpqA (resp VB/lpqB)
   # seen as a F_p-vector space under the action of GA (resp. GB). Then we check which ones
   # are fA-stable (resp. fB-stable)
   subsA = _subgroups_orbit_representatives_and_stabilizers_elementary(VAinqA, GA, p^g, fqA, ZZ(l))

@@ -1292,7 +1292,7 @@ end
 
 For `K/k` a number field, where `k` has to be Antic or QQField and `K` Antic
 return a container for the relative Brauer group parametrizing central
-simple algebras with center `k` that are split by `K` (thus can be realised
+simple algebras with center `k` that are split by `K` (thus can be realized
 as a 2-cochain with values in `K`)
 """
 mutable struct RelativeBrauerGroup
