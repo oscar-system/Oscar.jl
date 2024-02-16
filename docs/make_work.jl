@@ -1,6 +1,6 @@
 #
 # This file is included by docs/make.jl and by a helper function
-# in src/Oscar.jl
+# in src/utils/docs.jl
 #
 module BuildDoc
 
@@ -139,7 +139,7 @@ function doit(
     joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
-  # Copy documentation from Hecke, Nemo, AnstratAlgebra
+  # Copy documentation from Hecke, Nemo, AbstractAlgebra
   other_packages = [
     (Oscar.Hecke, Oscar.heckedir),
     (Oscar.Nemo, Oscar.nemodir),
