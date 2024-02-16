@@ -293,7 +293,7 @@ function load_type_params(s::DeserializerState, ::Type{<:Dict})
 
       if serialize_with_params(value_type)
         params_dict[k] = Dict{Symbol, Any}(
-          :type => value_type,
+          type_key => value_type,
           :params => load_params_node(s)
         )
       else
@@ -314,7 +314,7 @@ function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, 
     if params[k] isa Type
       dict[key_type(k)] = load_object(s, params[k], k)
     else
-      dict[key_type(k)] = load_object(s, params[k][:type], params[k][:params], k)
+      dict[key_type(k)] = load_object(s, params[k][type_key], params[k][:params], k)
     end
   end
 

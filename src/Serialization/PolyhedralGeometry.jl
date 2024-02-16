@@ -39,16 +39,32 @@ function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObjec
   end
 end
 
-function save_object(s::SerializerState, obj::PolyhedralObject)
+function save_object(s::SerializerState, obj::PolyhedralObject{QQFieldElem})
   save_object(s, pm_object(obj))
+end
+
+function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
+  save_data_dict(s) do
+    save_typed_object(s, _polyhedral_object_as_dict(obj))
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
   return load_typed_object(s)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field) 
-  return  load_from_polymake(T{elem_type(field)}, Dict{Symbol, Any}(s.obj))
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
+  polymake_dict = load_typed_object(s)
+  obj = Polymake.BigObject(Polymake.BigObjectType(polymake_dict["_type"]))
+
+  for (k, v) in polymake_dict
+    k == "_type" && continue
+    k == "_coeff" && continue
+    println(k, v)
+    Polymake.take(obj, k, convert(Polymake.PolymakeType, v))
+  end
+  
+  return obj
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
