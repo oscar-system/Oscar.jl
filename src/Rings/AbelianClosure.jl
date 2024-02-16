@@ -38,8 +38,6 @@ import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, ge
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
-import ..Oscar: Solve
-
 using Hecke
 import Hecke: conductor, data
 

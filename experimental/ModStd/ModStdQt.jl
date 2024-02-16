@@ -3,7 +3,6 @@ module ModStdQt
 using Oscar
 import Oscar.Nemo
 import Oscar.Hecke
-import Oscar.Solve
 
 function __init__()
   Hecke.add_verbosity_scope(:ModStdQt)

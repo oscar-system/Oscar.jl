@@ -7,8 +7,6 @@ module GITFans
 # the necessary Julia packages
 using Oscar
 
-import Oscar: AbstractAlgebra.Solve
-
 export git_fan
 
 #############################################################################

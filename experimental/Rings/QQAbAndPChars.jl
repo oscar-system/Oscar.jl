@@ -4,8 +4,6 @@ using ..Oscar
 
 import Oscar: IJuliaMime
 
-import Oscar: Solve
-
 ###############################################################################
 #
 #   Partial character functions

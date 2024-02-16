@@ -207,10 +207,6 @@ function build()
   system("Build.jl")
 end
 
-# temporarily
-
-import AbstractAlgebra: Solve
-
 include("assertions.jl")
 
 include("exports.jl")
