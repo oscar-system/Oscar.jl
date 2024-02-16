@@ -9,8 +9,8 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
   save_data_dict(s) do
     save_object(s, encode_type(S), :name)
     if serialize_with_params(T) && !isempty(obj)
-      if hasmethod(parent, (T,))
-        parents = map(parent, obj)
+      if hasmethod(parent, (T,)) && parent.(obj) != obj # cond avoids abstract array of julia numbers
+        parents = parent.(obj)
         parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
         @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
       end
