@@ -1401,7 +1401,7 @@ function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   print(io, "Element of relative Brauer group of ", Lowercase(), parent(a).k)
   io = IOContext(io, :supercompact => true, :compact => true)
   print(io, Indent())
-  data = sort(a.data; by = x -> x isa AbsSimpleNumFieldEmbedding ? Inf : minimum(x))
+  data = sort(collect(a.data); by =(x -> first(x) isa AbsSimpleNumFieldEmbedding ? Inf : minimum(first(x))))
   for (p,v) in data
     print(io, "\n", p, " -> ", v)
   end
