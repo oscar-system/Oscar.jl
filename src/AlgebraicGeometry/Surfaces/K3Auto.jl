@@ -1389,7 +1389,7 @@ and it is equal to $2$ if and only if $S$ is $2$-elementary.
 If an ample class is given, then the generators returned preserve it.
 
 This kind of computation can be very expensive. To print progress information
-use `set_verbose_level(:K3Auto, 2)` or higher.
+use `set_verbosity_level(:K3Auto, 2)` or higher.
 
 # Input
 - `S`: a hyperbolic lattice

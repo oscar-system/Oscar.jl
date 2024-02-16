@@ -6,7 +6,7 @@ import Oscar.Hecke
 import Oscar.Solve
 
 function __init__()
-  Hecke.add_verbose_scope(:ModStdQt)
+  Hecke.add_verbosity_scope(:ModStdQt)
 end
 
 function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)

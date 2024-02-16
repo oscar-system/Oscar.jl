@@ -112,34 +112,34 @@ function __init__()
   end
   __init_group_libraries()
 
-  add_verbose_scope(:K3Auto)
-  add_assert_scope(:K3Auto)
+  add_verbosity_scope(:K3Auto)
+  add_assertion_scope(:K3Auto)
 
-  add_verbose_scope(:EllipticSurface)
-  add_assert_scope(:EllipticSurface)
+  add_verbosity_scope(:EllipticSurface)
+  add_assertion_scope(:EllipticSurface)
 
-  add_verbose_scope(:MorphismFromRationalFunctions)
-  add_assert_scope(:MorphismFromRationalFunctions)
+  add_verbosity_scope(:MorphismFromRationalFunctions)
+  add_assertion_scope(:MorphismFromRationalFunctions)
 
-  add_verbose_scope(:Gluing)
-  add_assert_scope(:Gluing)
+  add_verbosity_scope(:Gluing)
+  add_assertion_scope(:Gluing)
 
-  add_verbose_scope(:Intersections)
-  add_assert_scope(:Intersections)
+  add_verbosity_scope(:Intersections)
+  add_assertion_scope(:Intersections)
 
-  add_verbose_scope(:MaximalAssociatedPoints)
-  add_assert_scope(:MaximalAssociatedPoints)
+  add_verbosity_scope(:MaximalAssociatedPoints)
+  add_assertion_scope(:MaximalAssociatedPoints)
 
-  add_verbose_scope(:Divisors)
-  add_assert_scope(:Divisors)
+  add_verbosity_scope(:Divisors)
+  add_assertion_scope(:Divisors)
 
-  add_verbose_scope(:Blowup)
-  add_assert_scope(:Blowup)
+  add_verbosity_scope(:Blowup)
+  add_assertion_scope(:Blowup)
 
-  add_verbose_scope(:hilbert)
-  add_assert_scope(:hilbert)
+  add_verbosity_scope(:hilbert)
+  add_assertion_scope(:hilbert)
 
-  add_verbose_scope(:FTheoryModelPrinter)
+  add_verbosity_scope(:FTheoryModelPrinter)
 
   add_verbosity_scope(:LinearQuotients)
 

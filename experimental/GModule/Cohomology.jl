@@ -11,11 +11,11 @@ import Base: parent
 import Oscar: pretty, Lowercase, @show_name, @show_special
 
 function __init__()
-  Hecke.add_verbose_scope(:GroupCohomology)
-  Hecke.add_assert_scope(:GroupCohomology)
+  Hecke.add_verbosity_scope(:GroupCohomology)
+  Hecke.add_assertion_scope(:GroupCohomology)
 
-  Hecke.add_verbose_scope(:GaloisCohomology)
-  Hecke.add_assert_scope(:GaloisCohomology)
+  Hecke.add_verbosity_scope(:GaloisCohomology)
+  Hecke.add_assertion_scope(:GaloisCohomology)
 end
 
 ######################################################################

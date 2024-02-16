@@ -2,8 +2,7 @@ module GaloisGrp
 
 using Oscar, Random
 import Base: ^, +, -, *, ==
-import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
-              upper_bound
+import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 import Oscar: pretty, LowercaseOff
@@ -17,6 +16,7 @@ export galois_quotient
 export power_sum
 export slpoly_ring
 export to_elementary_symmetric
+export upper_bound
 export valuation_of_roots
 
 import Hecke: orbit, fixed_field, extension_field
@@ -24,9 +24,9 @@ import Hecke: orbit, fixed_field, extension_field
 function __init__()
   GAP.Packages.load("ferret"; install=true)
 
-  Hecke.add_verbose_scope(:GaloisGroup)
-  Hecke.add_verbose_scope(:GaloisInvariant)
-  Hecke.add_assert_scope(:GaloisInvariant)
+  Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_verbosity_scope(:GaloisInvariant)
+  Hecke.add_assertion_scope(:GaloisInvariant)
 end
 
 """
@@ -1171,8 +1171,8 @@ end
 #TODO: Max: rank the filter function by cost, cheapest first...
 #      possibly needs a third field in the structure
 function (F::GroupFilter)(G::PermGroup)
-  do_print = Hecke.get_verbose_level(:GaloisGroup) >= 1
-  do_all = Hecke.get_verbose_level(:GaloisGroup) >= 2
+  do_print = Hecke.get_verbosity_level(:GaloisGroup) >= 1
+  do_all = Hecke.get_verbosity_level(:GaloisGroup) >= 2
 
   res = true
   for (x, s) = F.f
