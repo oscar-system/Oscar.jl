@@ -519,7 +519,7 @@ function free_resolution(Q::MPolyQuoRing;
   q = quotient_ring_as_module(Q)
   n = AbstractAlgebra.get_name(Q)
   if n !== nothing
-    AbstractAlgebra.set_name!(S, n)
+    AbstractAlgebra.set_name!(q, n)
   end
   return free_resolution(q, length = length, algorithm = algorithm)
 end
