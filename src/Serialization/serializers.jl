@@ -193,10 +193,9 @@ end
 
 function load_params_node(s::DeserializerState)
   T = decode_type(s)
-  params = load_node(s, :params) do _
+  load_node(s, :params) do _
     return load_type_params(s, T)
   end
-  return params
 end
 
 ################################################################################
