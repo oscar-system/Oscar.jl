@@ -495,9 +495,9 @@ function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes})
   end
 end
 
-@register_serialization_type Hecke.EmbeddedNumField uses_id
+@register_serialization_type EmbeddedNumField uses_id
 
-function save_object(s::SerializerState, E::Hecke.EmbeddedNumField)
+function save_object(s::SerializerState, E::EmbeddedNumField)
   K = number_field(E)
   e = embedding(E)
 
@@ -507,7 +507,7 @@ function save_object(s::SerializerState, E::Hecke.EmbeddedNumField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{Hecke.EmbeddedNumField})
+function load_object(s::DeserializerState, ::Type{EmbeddedNumField})
   K = load_typed_object(s, :num_field)
   e = load_typed_object(s, :embedding)
 

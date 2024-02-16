@@ -41,7 +41,7 @@ between `K` and `k` can be computed as well.
 
 ## Automorphism Group
 
-The automorphisms are computed using various specialised factoring
+The automorphisms are computed using various specialized factoring
 algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.

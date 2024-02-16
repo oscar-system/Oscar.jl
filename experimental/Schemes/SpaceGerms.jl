@@ -592,7 +592,7 @@ end
     CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
 
-Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighbourhood of `p`. If no `X` is specified, `Y` is used in its place.
+Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
 """
 CompleteIntersectionGerm(p::AbsAffineRationalPoint) = CompleteIntersectionGerm(codomain(p), coordinates(p))
 
@@ -645,7 +645,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2)
 given by the pullback function
   x1 -> x1
   x2 -> x2
@@ -723,7 +723,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2)
 given by the pullback function
   x1 -> x1
   x2 -> x2
@@ -798,7 +798,7 @@ Spectrum
 julia> phi
 Affine scheme morphism
   from [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
-  to   [x1, x2, x3]  V(x1^2 + x2^2 + x3^2, x1*x2)
+  to   [x1, x2, x3]  scheme(x1^2 + x2^2 + x3^2, x1*x2)
 given by the pullback function
   x1 -> x1
   x2 -> x2

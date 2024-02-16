@@ -38,7 +38,7 @@ end
 ########################################################################
 # Elements of VarietyFunctionFields                                    #
 ########################################################################
-mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac,
+mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.FracFieldElem,
                                         ParentType<:VarietyFunctionField
                                        }
   KK::ParentType
@@ -46,7 +46,7 @@ mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac,
 
   function VarietyFunctionFieldElem(
       KK::VarietyFunctionField,
-      f::AbstractAlgebra.Generic.Frac;
+      f::AbstractAlgebra.Generic.FracFieldElem;
       check::Bool=true
     )
     representative_field(KK) == parent(f) || error("element does not have the correct parent")

@@ -16,7 +16,8 @@ function linear_quotient(G::MatrixGroup)
 end
 
 function show(io::IO, L::LinearQuotient)
-  print(io, "Linear quotient by $(group(L))")
+  io = pretty(io)
+  print(io, "Linear quotient by ", Lowercase(), group(L))
 end
 
 group(L::LinearQuotient) = L.group

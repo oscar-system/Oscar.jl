@@ -22,7 +22,11 @@
     pq2 = E(roots(z^2 - (3 - r^2))[1])
     p = (pq1 + pq2)//2
     r = E(r)
-    
+
+    e = one(QQBarFieldElem)
+    s, c = sinpi(2*e/5), cospi(2*e/5)
+    pts = [ [e, e], [s,c], [c,s] ]
+
     v = [0 1 p; 0 -1 p; r 0 q; -r 0 q; 0 r -q; 0 -r -q; 1 0 -p; -1 0 -p]
     V = matrix(E, v)
     sd = convex_hull(E, v; non_redundant = true)
@@ -32,7 +36,7 @@
     # volume formula from source
     @test volume(sd) == 8r//12 * (6pq2 + 2*r*q)
     # the snub disphenoid consists of 12 triangles
-    @test nvertices.(faces(sd, 2)) == repeat([3], 12)
+    @test n_vertices.(faces(sd, 2)) == repeat([3], 12)
     # and here the 18 edges are of length 2
     @test _edge_length_for_test.(faces(sd, 1)) == repeat([4], 18)
     # scaling the Polyhedron by 3 yields edge lengths of 6
@@ -47,6 +51,12 @@
     nf = normal_fan(sd)
     nfc =  polyhedral_fan(E, maximal_cones(IncidenceMatrix,nf), rays(nf))
     @test is_regular(nfc)
+
+    @test convex_hull(pts) isa Polyhedron{QQBarFieldElem}
+    qp = convex_hull(pts)
+
+    @test number_of_vertices(qp) == 3
+    @test number_of_facets(qp) == 3
 
     @testset "Scalar detection" begin
         let j = johnson_solid(12)
@@ -193,7 +203,7 @@
     let f = facets(Polyhedron, j)
       fj = normal_vector.(facets(j))
       fj = [fj; -fj]
-      for i in 1:nfacets(j)
+      for i in 1:n_facets(j)
         @test normal_vector(affine_hull(f[i])[]) in fj
       end
       @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, Vector{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}}}

@@ -77,8 +77,8 @@ function positive_hull(f::scalar_type_or_field, R::AbstractCollection[RayVector]
 end
 # Redirect everything to the above constructor, use QQFieldElem as default for the
 # scalar type T.
-positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
-cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(QQFieldElem, R, L; non_redundant=non_redundant)
+positive_hull(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(_guess_fieldelem_type(R, L), R, L; non_redundant=non_redundant)
+cone(R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(_guess_fieldelem_type(R, L), R, L; non_redundant=non_redundant)
 cone(f::scalar_type_or_field, R::AbstractCollection[RayVector], L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = positive_hull(f, R, L; non_redundant=non_redundant)
 cone(f::scalar_type_or_field, x...) = positive_hull(f, x...)
 
@@ -166,7 +166,7 @@ end
 
 cone_from_inequalities(x...) = cone_from_inequalities(QQFieldElem, x...)
 
-cone_from_equations(E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) = cone_from_equations(QQFieldElem, E; non_redundant = non_redundant)
+cone_from_equations(E::AbstractCollection[LinearHyperplane]; non_redundant::Bool = false) = cone_from_equations(_guess_fieldelem_type(E), E; non_redundant = non_redundant)
 
 """
     pm_object(C::Cone)

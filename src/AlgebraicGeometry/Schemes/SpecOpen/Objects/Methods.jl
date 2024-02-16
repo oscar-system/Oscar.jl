@@ -158,10 +158,10 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   print(io, Dedent(), "complement to V(")
   join(io, gens(complement_ideal(U)), ", ")
   print(io, ")")
-  if npatches(U) > 0
+  if n_patches(U) > 0
     println(io)
-    l = ndigits(npatches(U))
-    print(io, "covered by ", ItemQuantity(npatches(U), "affine patch"))
+    l = ndigits(n_patches(U))
+    print(io, "covered by ", ItemQuantity(n_patches(U), "affine patch"))
     print(io, Indent())
     co_str = [""]
     for V in affine_patches(U)
@@ -170,7 +170,7 @@ function _show_semi_compact(io::IO, U::SpecOpen)
       push!(co_str, str)
     end
     k = max(length.(co_str)...)
-    for i in 1:npatches(U)
+    for i in 1:n_patches(U)
       li = ndigits(i)
       V = affine_patches(U)[i]
       println(io)
