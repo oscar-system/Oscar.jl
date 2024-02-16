@@ -163,7 +163,7 @@ julia> tropical_variety(I)
 function tropical_variety(I::Union{MPolyIdeal,MPolyRingElem}, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, skip_saturation::Bool=false, skip_primary_decomposition::Bool=false)
     ###
     # Step 0.a: convert I to ideal if poly,
-    #   initialise nu as the trivial valuation if not specified by user
+    #   initialize nu as the trivial valuation if not specified by user
     ###
     if I isa MPolyRingElem
         I = ideal(parent(I),[I])
@@ -559,8 +559,8 @@ end
 #   #   * w is a weight vector with respect to which G is a Groebner basis,
 #   #   * w is compatible with coordinate permutations if symmetries exist,
 #   #   * instead of comparing C or G it suffices to compare w.
-#   working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbours
-#   working_list_done = [] # list of groebner polyhedra with known neighbours
+#   working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbors
+#   working_list_done = [] # list of groebner polyhedra with known neighbors
 #   facet_points_done = [] # list of facet points whose tropical links were computed and traversed
 
 #   compute_starting_points = true
@@ -623,29 +623,29 @@ end
 
 #       directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse) # todo, this output can be wrong
 #       for direction_to_traverse in directions_to_traverse
-#         # compute neighbour
+#         # compute neighbor
 #         print("computing groebner_basis for ",point_to_traverse,direction_to_traverse,"... ")
-#         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
+#         G_neighbor = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
 #         println("done")
-#         C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,perturbation=direction_to_traverse)
-#         w_neighbour = anchor_point(C_neighbour)
+#         C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,perturbation=direction_to_traverse)
+#         w_neighbor = anchor_point(C_neighbor)
 
-#         # if neighbour is already in done list, skip
+#         # if neighbor is already in done list, skip
 #         i = searchsortedfirst(working_list_done,
-#                               (w_neighbour,C_neighbour,G_neighbour),
+#                               (w_neighbor,C_neighbor,G_neighbor),
 #                               by=x->x[1])
-#         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbour
+#         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
 #           continue
 #         end
-#         # if neighbour is already in todo list, skip
+#         # if neighbor is already in todo list, skip
 #         i = searchsortedfirst(working_list_todo,
-#                               (w_neighbour,C_neighbour,G_neighbour),
+#                               (w_neighbor,C_neighbor,G_neighbor),
 #                               by=x->x[1])
-#         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbour
+#         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
 #           continue
 #         end
-#         # otherwise, add neighbour to todo list
-#         insert!(working_list_todo, i, (w_neighbour,C_neighbour,G_neighbour))
+#         # otherwise, add neighbor to todo list
+#         insert!(working_list_todo, i, (w_neighbor,C_neighbor,G_neighbor))
 #       end
 #     end
 #   end

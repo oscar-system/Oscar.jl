@@ -513,7 +513,7 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
-export factorisations
+export factorizations
 export fano_matroid
 export fano_simplex
 export fat_ideal

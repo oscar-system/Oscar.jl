@@ -728,7 +728,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
   end
   I = identity_matrix(K, dim(C))
 
-  @vprint :MinField 1 "computing un-normalised 1-chain (of matrices)\n"
+  @vprint :MinField 1 "computing un-normalized 1-chain (of matrices)\n"
   # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_g^h * X_h)
   @vtime :MinField 2 
     c = closure([(gen(G, i), homs[i]) for i=1:ngens(G)], 

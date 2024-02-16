@@ -183,11 +183,11 @@ end
 =#
 
 @doc raw"""
-    factorisations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
+    factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
 
-Return all factorisations of $a$ into irreducibles.
+Return all factorizations of $a$ into irreducibles.
 """
-function factorisations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
   O = parent(a)
   S = collect(keys(factor(a*O)))
   if length(S) == 0
