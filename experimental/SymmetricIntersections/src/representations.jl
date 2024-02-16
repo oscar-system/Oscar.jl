@@ -1316,8 +1316,7 @@ function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
   for m in mr
-    ok, mm = can_solve_with_solution(proj, m*proj; side=:right)
-    @assert ok
+    mm = solve(proj, m*proj; side=:right)
     push!(coll, mm)
   end
   repQ = _linear_representation(representation_ring(rep), coll)
