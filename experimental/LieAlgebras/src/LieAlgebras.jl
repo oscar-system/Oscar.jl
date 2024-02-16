@@ -16,6 +16,7 @@ using AbstractAlgebra.PrettyPrinting
 # functions with new methods
 import ..Oscar:
   _is_exterior_power,
+  _is_tensor_product,
   _iso_oscar_gap,
   action,
   basis_matrix,
@@ -57,7 +58,6 @@ import ..Oscar:
   is_perfect,
   is_simple,
   is_solvable,
-  is_tensor_product,
   is_welldefined,
   kernel,
   lower_central_series,
@@ -99,7 +99,13 @@ export WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
+export _is_direct_sum
+export _is_dual
 export _is_exterior_power
+export _is_standard_module
+export _is_symmetric_power
+export _is_tensor_power
+export _is_tensor_product
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
@@ -132,9 +138,7 @@ export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_coroot_with_index
-export is_direct_sum
 export is_dominant
-export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -143,10 +147,6 @@ export is_root_with_index
 export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
-export is_standard_module
-export is_symmetric_power
-export is_tensor_power
-export is_tensor_product
 export lie_algebra
 export lmul, lmul!
 export longest_element
@@ -257,9 +257,7 @@ export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_coroot_with_index
-export is_direct_sum
 export is_dominant
-export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -268,10 +266,6 @@ export is_root_with_index
 export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
-export is_standard_module
-export is_symmetric_power
-export is_tensor_power
-export is_tensor_product
 export lie_algebra
 export lmul, lmul!
 export longest_element
