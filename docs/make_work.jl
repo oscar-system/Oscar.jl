@@ -166,7 +166,11 @@ function doit(
         end
         src = normpath(root, file)
         dst = normpath(dstbase, relpath(root, srcbase), file)
-        cp(src, dst; force=true)
+        if endswith(file, ".md")
+          symlink(src, dst)
+        else
+          cp(src, dst; force=true)
+        end
         chmod(dst, 0o644)
       end
     end
@@ -198,7 +202,6 @@ function doit(
 
     makedocs(;
       format=Documenter.HTML(;
-        edit_link=nothing, # TODO: make work for imported pages
         prettyurls=!local_build,
         collapselevel=1,
         size_threshold=409600,
