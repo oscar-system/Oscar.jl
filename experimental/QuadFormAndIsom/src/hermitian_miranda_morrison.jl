@@ -576,7 +576,7 @@ function _transfer_discriminant_isometry(res::AbstractSpaceRes,
   B2abs = map_entries(p, B2abs)
 
   # Our local modular solution we have to lift
-  K = solve_left(Bpabs, B2abs)
+  K = solve(Bpabs, B2abs; side = :left)
   K = map_entries(a -> EabstoE(Eabs(p\a)), K)
 
   # If what we have done is correct then K*newBp == newB2 modulo O_p, so all

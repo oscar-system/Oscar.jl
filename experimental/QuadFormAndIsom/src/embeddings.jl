@@ -175,7 +175,7 @@ function _overlattice(gamma::TorQuadModuleMap,
     _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
     C = lattice(ambient_space(A), _B[end-rank(A)-rank(B)+1:end, :])
     fC = block_diagonal_matrix(QQMatrix[fA, fB])
-    _B = solve_left(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C))
+    _B = solve(reduce(vcat, basis_matrix.([A,B])), basis_matrix(C); side = :left)
     fC = _B*fC*inv(_B)
   else
     _glue = Vector{QQFieldElem}[lift(HAinD(a)) + lift(HBinD(gamma(a))) for a in gens(domain(gamma))]
@@ -187,7 +187,7 @@ function _overlattice(gamma::TorQuadModuleMap,
     _B = QQ(1, denominator(Fakeglue))*change_base_ring(QQ, numerator(_FakeB))
     C = lattice(ambient_space(cover(D)), _B[end-rank(A)-rank(B)+1:end, :])
     fC = block_diagonal_matrix(QQMatrix[fA, fB])
-    _B = solve_left(block_diagonal_matrix(basis_matrix.(ZZLat[A, B])), basis_matrix(C))
+    _B = solve(block_diagonal_matrix(basis_matrix.(ZZLat[A, B])), basis_matrix(C); side = :left)
     fC = _B*fC*inv(_B)
   end
   @hassert :ZZLatWithIsom 1 fC*gram_matrix(C)*transpose(fC) == gram_matrix(C)
@@ -377,7 +377,7 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
   # To summarize, in the general case, we obtain representatives of fitting
   # isometries by identifying CN-conjugate isometries in the coset fNKN.
   if first
-    reporb = QQMatrix[solve_left(basis_matrix(N), basis_matrix(N)*matrix(_fN))]
+    reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(_fN); side = :left)]
   else
     KNhat, _ = discrep\(kernel(_actN)[1])
     fNKN = _fN*KNhat
@@ -391,7 +391,7 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
       end
     end
   end
-  reporb = QQMatrix[solve_left(basis_matrix(N), basis_matrix(N)*matrix(a[1])) for a in orb_and_rep]
+  reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(a[1]); side = :left) for a in orb_and_rep]
   return reporb
 end
 
@@ -925,7 +925,8 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   
   F = base_ring(Qp)
   # K is H0 but seen a subvector space of Vp (which is V)
-  k, K = kernel(VptoQp.matrix; side = :left)
+  K = kernel(VptoQp.matrix; side = :left)
+  k = nrows(K)
   gene_H0p = elem_type(Vp)[Vp(vec(collect(K[i,:]))) for i in 1:k]
   orb_and_stab = orbit_representatives_and_stabilizers(MGp, g-k)
 
@@ -1405,8 +1406,8 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       # L, M3 and N live in a very big ambient space: we redescribed them in the
       # rational span of L so that L has full rank and we keep only the
       # necessary information.
-      bM = solve_left(basis_matrix(L), basis_matrix(M3))
-      bN = solve_left(basis_matrix(L), basis_matrix(N))
+      bM = solve(basis_matrix(L), basis_matrix(M3); side = :left)
+      bN = solve(basis_matrix(L), basis_matrix(N); side = :left)
       L = integer_lattice(; gram = gram_matrix(L))
       M3 = lattice_in_same_ambient_space(L, bM)
       N = lattice_in_same_ambient_space(L, bN)

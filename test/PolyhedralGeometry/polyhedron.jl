@@ -498,7 +498,7 @@
       D = polyhedron(Polymake.polytope.dodecahedron())
       R = coefficient_field(D)
       NF = number_field(R)
-      let isq = Hecke.isquadratic_type(NF)
+      let isq = Hecke.is_quadratic_type(NF)
         @test isq[1]
         @test isq[2] == 5
       end

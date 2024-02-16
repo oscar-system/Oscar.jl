@@ -159,7 +159,9 @@ end
 Return the kernel of `h` as an ideal of the domain.
 """
 function kernel(h::LieAlgebraHom)
-  ker_dim, ker_b = left_kernel(matrix(h))
+  ker_b = kernel(matrix(h); side = :left)
+  ker_dim = nrows(ker_b)
+
   return ideal(domain(h), [domain(h)(ker_b[i, :]) for i in 1:ker_dim])
 end
 
