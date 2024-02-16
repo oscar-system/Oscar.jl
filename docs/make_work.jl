@@ -172,6 +172,20 @@ function doit(
     end
   end
 
+  function get_rev(uuid::Base.UUID)
+    deps = Documenter.Pkg.dependencies()
+    @assert haskey(deps, uuid)
+    if !isnothing(deps[uuid].git_revision)
+      return deps[uuid].git_revision
+    else
+      return "v$(deps[uuid].version)"
+    end
+  end
+  aarev = get_rev(Base.UUID("c3fe647b-3220-5bb0-a1ea-a7954cac585d"))
+  nemorev = get_rev(Base.UUID("2edaba10-b0f1-5616-af89-8c11ac63239a"))
+  heckerev = get_rev(Base.UUID("3e1990a7-5d81-5526-99ce-9ba3ff248f21"))
+  singularrev = get_rev(Base.UUID("bcd08a7b-43d2-5ff7-b6d4-c458787f915c"))
+
   cd(joinpath(Oscar.oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
     DocMeta.setdocmeta!(Oscar.Hecke, :DocTestSetup, :(using Hecke); recursive=true)
@@ -184,6 +198,7 @@ function doit(
 
     makedocs(;
       format=Documenter.HTML(;
+        edit_link=nothing, # TODO: make work for imported pages
         prettyurls=!local_build,
         collapselevel=1,
         size_threshold=409600,
@@ -197,7 +212,12 @@ function doit(
       warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
-      remotes=nothing,  # TODO: make work with Hecke, Nemo, AbstractAlgebra, see https://github.com/oscar-system/Oscar.jl/issues/588
+      remotes=Dict(
+        Oscar.aadir => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
+        Oscar.nemodir => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
+        Oscar.heckedir => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
+        Oscar.singulardir => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+      ),
       plugins=[bib],
     )
   end
