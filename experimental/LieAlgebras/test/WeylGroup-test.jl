@@ -55,6 +55,7 @@ include(
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
+    ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
     (
       "complicated case 1",
