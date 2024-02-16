@@ -2,7 +2,7 @@
     @testset "Cone" begin
         C = positive_hull(QQFieldElem, [0 1], [1 0])
         @test lineality_dim(C) == 1
-        @test nrays(C) == 0
+        @test n_rays(C) == 0
         @test length(rays(C)) == 0
         @test size(vector_matrix(rays(C))) == (0, 2)
         
@@ -18,8 +18,8 @@
     @testset "Polyhedron" begin
         P = convex_hull(QQFieldElem, [0 0 1], [0 1 0], [1 0 0])
         @test lineality_dim(P) == 1
-        @test nrays(P) == 0
-        @test nvertices(P) == 0
+        @test n_rays(P) == 0
+        @test n_vertices(P) == 0
         @test length(rays(P)) == 0
         @test size(vector_matrix(rays(P))) == (0, 3)
         @test length(vertices(P)) == 0
@@ -46,7 +46,7 @@
         P = convex_hull(QQFieldElem, [0 0; 1 0])
         NF = normal_fan(P)
         @test lineality_dim(NF) == 1
-        @test nrays(NF) == 0
+        @test n_rays(NF) == 0
         @test length(rays(NF)) == 0
         @test size(vector_matrix(rays(NF))) == (0, 2)
         

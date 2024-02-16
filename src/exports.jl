@@ -1032,7 +1032,18 @@ export multiplicative_jordan_decomposition
 export multiplicities
 export multiplicities_eigenvalues
 export multiplicity
+export n_cones
+export n_connected_components
+export n_edges
+export n_facets
 export n_gon
+export n_maximal_cells
+export n_maximal_cones
+export n_maximal_polyhedra
+export n_points
+export n_polyhedra
+export n_rays
+export n_vertices
 export name
 export names_of_fusion_sources
 export natural_character
@@ -1074,28 +1085,17 @@ export normalizer
 export nullity
 export number_of_atlas_groups
 export number_of_complement_equations
-export number_of_cones
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
-export number_of_connected_components
-export number_of_edges
-export number_of_facets
 export number_of_factors
 export number_of_generators
-export number_of_maximal_cells
-export number_of_maximal_cones
-export number_of_maximal_polyhedra
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_partitions
 export number_of_patches
 export number_of_perfect_groups, has_number_of_perfect_groups
-export number_of_points
-export number_of_polyhedra
 export number_of_primitive_groups, has_number_of_primitive_groups
-export number_of_rays
 export number_of_small_groups, has_number_of_small_groups
 export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
-export number_of_vertices
 export numerator
 export objective_function
 export omega_group

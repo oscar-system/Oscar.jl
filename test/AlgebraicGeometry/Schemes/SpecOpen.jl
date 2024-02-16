@@ -59,7 +59,7 @@ end
   f = OO(U)(x)
   @test Oscar.scheme(f) === A
   @test affine_patches(f) == affine_patches(U)
-  @test npatches(f) == 4
+  @test n_patches(f) == 4
   @test f == deepcopy(f)
   @test f^2 == f*f
   @test f^2 == f^ZZRingElem(2)

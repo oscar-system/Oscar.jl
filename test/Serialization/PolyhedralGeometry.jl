@@ -7,8 +7,8 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, G) do loaded
               @test loaded isa Graph{Undirected}
               @test Base.propertynames(G) == Base.propertynames(loaded)
-              @test nvertices(G) == nvertices(loaded)
-              @test nedges(G) == nedges(loaded)
+              @test n_vertices(G) == n_vertices(loaded)
+              @test n_edges(G) == n_edges(loaded)
             end
         end
 
@@ -17,7 +17,7 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, C) do loaded
               @test loaded isa Cone
               @test Base.propertynames(C) == Base.propertynames(loaded)
-              @test nrays(C) == nrays(loaded)
+              @test n_rays(C) == n_rays(loaded)
               @test dim(C) == dim(loaded)
               @test C == loaded
             end
@@ -28,7 +28,7 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, square) do loaded
               @test loaded isa Polyhedron
               @test Base.propertynames(square) == Base.propertynames(loaded)
-              @test nvertices(square) == nvertices(loaded)
+              @test n_vertices(square) == n_vertices(loaded)
               @test dim(square) == dim(loaded)
               @test square == loaded
             end
@@ -41,7 +41,7 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, PC) do loaded
               @test loaded isa PolyhedralComplex
               @test Base.propertynames(PC) == Base.propertynames(loaded)
-              @test nrays(PC) == nrays(loaded)
+              @test n_rays(PC) == n_rays(loaded)
               @test number_of_maximal_polyhedra(PC) == number_of_maximal_polyhedra(loaded)
               @test dim(PC) == dim(loaded)
             end
@@ -52,7 +52,7 @@ using Oscar: _integer_variables
             test_save_load_roundtrip(path, nfsquare) do loaded
               @test loaded isa PolyhedralFan
               @test Base.propertynames(nfsquare) == Base.propertynames(loaded)
-              @test nrays(nfsquare) == nrays(loaded)
+              @test n_rays(nfsquare) == n_rays(loaded)
               @test number_of_maximal_cones(nfsquare) == number_of_maximal_cones(loaded)
               @test dim(nfsquare) == dim(loaded)
             end
@@ -106,7 +106,7 @@ using Oscar: _integer_variables
               @test loaded isa SimplicialComplex
               @test Base.propertynames(cpp) == Base.propertynames(loaded)
               @test euler_characteristic(cpp) == euler_characteristic(loaded)
-              @test nvertices(cpp) == nvertices(loaded)
+              @test n_vertices(cpp) == n_vertices(loaded)
             end
         end
     end

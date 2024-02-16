@@ -83,7 +83,7 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false,
 end
 
 function _ideal_sheaf_via_polymake(X::NormalToricVariety, i::Int; check::Bool=false)
-  return _ideal_sheaf_via_polymake(X, [i==j ? one(ZZ) : zero(ZZ) for j in 1:nrays(polyhedral_fan(X))])
+  return _ideal_sheaf_via_polymake(X, [i==j ? one(ZZ) : zero(ZZ) for j in 1:n_rays(polyhedral_fan(X))])
 end
 
 function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem}; check::Bool=false)

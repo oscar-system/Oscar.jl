@@ -38,6 +38,24 @@ if Sys.iswindows()
   windows_error()
 end
 
+function _print_banner()
+  println(" -----    -----    -----      -      -----   ")
+  println("|     |  |     |  |     |    | |    |     |  ")
+  println("|     |  |        |         |   |   |     |  ")
+  println("|     |   -----   |        |     |  |-----   ")
+  println("|     |        |  |        |-----|  |   |    ")
+  println("|     |  |     |  |     |  |     |  |    |   ")
+  println(" -----    -----    -----   -     -  -     -  ")
+  println()
+  println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
+  print("Version")
+  printstyled(" $VERSION_NUMBER ", color = :green)
+  print("... \n ... which comes with absolutely no warranty whatsoever")
+  println()
+  println("Type: '?Oscar' for more information")
+  println("(c) 2019-2024 by The OSCAR Development Team")
+end
+
 
 
 function __init__()
@@ -49,21 +67,7 @@ function __init__()
   set_seed!(rand(UInt32))
 
   if isinteractive() && Base.JLOptions().banner != 0
-    println(" -----    -----    -----      -      -----   ")
-    println("|     |  |     |  |     |    | |    |     |  ")
-    println("|     |  |        |         |   |   |     |  ")
-    println("|     |   -----   |        |     |  |-----   ")
-    println("|     |        |  |        |-----|  |   |    ")
-    println("|     |  |     |  |     |  |     |  |    |   ")
-    println(" -----    -----    -----   -     -  -     -  ")
-    println()
-    println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
-    print("Version")
-    printstyled(" $VERSION_NUMBER ", color = :green)
-    print("... \n ... which comes with absolutely no warranty whatsoever")
-    println()
-    println("Type: '?Oscar' for more information")
-    println("(c) 2019-2024 by The OSCAR Development Team")
+    _print_banner()
   end
 
   append!(_gap_group_types,

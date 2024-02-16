@@ -87,7 +87,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
-julia> number_of_maximal_cells(SOP)
+julia> n_maximal_cells(SOP)
 1
 ```
 """
