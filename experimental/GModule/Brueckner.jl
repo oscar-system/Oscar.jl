@@ -209,9 +209,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     are correct...)
     TODO: this is not (yet) implemented this way
     =#
-    q = cokernel(b)[1]
+    @show q = cokernel(b)[1]
 #    q = quo(kernel(da)[1], image(db)[1])[1]
-    t = torsion_subgroup(q)[1]
+    @show t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, collect(keys(factor(order(t)).fac))...)
     end
@@ -312,8 +312,24 @@ function lift(C::GModule, mp::Map)
 
   allG = []
 
-  for h = H2
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
+  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
+  #TODO: the projection maps seem to be rather slow - in particular
+  #      as they SHOULD be trivial...
+  global last_k = k
+  for x = k
+    epi = pDE[1](mk(x)) #the map
+    chn = mH2(pDE[2](mk(x))) #the tail data
+    if (epi,chn) in seen
+      continue
+    else
+      push!(seen, (epi, chn))
+    end
+    #TODO: not all "chn" yield distinct groups - the factoring by the
+    #      co-boundaries is missing
+    #      not all "epi" are epi, ie. surjective. The part of the thm
+    #      is missing...
+    # (Thm 15, part b & c) (and the weird lemma)
+#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
     gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(GapObj(h))], zero(M)) for h = gens(N)]
@@ -342,6 +358,11 @@ function lift(C::GModule, mp::Map)
       k = q
       mk = pseudo_inv(mq)*mk
     end
+    @show [pro[i](epi) for i=1:ngens(G)]
+    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
+    @show map(order, l), order(prod(l))
+    global last_x = l
+#    @show map(order, gens(G)), order(prod(gens(G)))
 
     fl, pe = try
       true, preimage(s, K(rhs))

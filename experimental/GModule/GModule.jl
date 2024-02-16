@@ -85,7 +85,6 @@ function extension_of_scalars(M::GModule, phi::Map)
 
   d = dim(M)
   F = free_module(codomain(phi), d)
-
   return GModule(F, group(M), [hom(F, F, map_entries(phi, matrix(x))) for x in M.ac])
 end
 
