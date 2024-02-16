@@ -71,7 +71,6 @@ is_standard_module(::LieAlgebraModule)
 is_dual(::LieAlgebraModule)
 is_direct_sum(::LieAlgebraModule)
 is_tensor_product(::LieAlgebraModule)
-is_exterior_power(::LieAlgebraModule)
 is_symmetric_power(::LieAlgebraModule)
 is_tensor_power(::LieAlgebraModule)
 ```

@@ -15,6 +15,7 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
+  _is_exterior_power,
   _iso_oscar_gap,
   action,
   basis_matrix,
@@ -50,7 +51,6 @@ import ..Oscar:
   induced_map_on_exterior_power,
   inv,
   is_abelian,
-  is_exterior_power,
   is_finite,
   is_isomorphism,
   is_nilpotent,
@@ -99,6 +99,7 @@ export WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
+export _is_exterior_power
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra

@@ -158,7 +158,7 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   if is_dual(V)[1] ||
     is_direct_sum(V)[1] ||
     is_tensor_product(V)[1] ||
-    is_exterior_power(V)[1] ||
+    _is_exterior_power(V)[1] ||
     is_symmetric_power(V)[1] ||
     is_tensor_power(V)[1]
     _show_inner(io, V)
@@ -190,7 +190,7 @@ function _show_inner(io::IO, V::LieAlgebraModule)
       _show_inner(io, W)
     end
     print(io, Dedent())
-  elseif ((fl, W, k) = is_exterior_power(V); fl)
+  elseif ((fl, W, k) = _is_exterior_power(V); fl)
     println(io, "$(ordinal_number_string(k)) exterior power of")
     print(io, Indent())
     _show_inner(io, W)
@@ -229,7 +229,7 @@ function _module_type_to_string(V::LieAlgebraModule)
     return "Direct sum module"
   elseif is_tensor_product(V)[1]
     return "Tensor product module"
-  elseif is_exterior_power(V)[1]
+  elseif _is_exterior_power(V)[1]
     return "Exterior power module"
   elseif is_symmetric_power(V)[1]
     return "Symmetric power module"
@@ -365,7 +365,7 @@ function (V::LieAlgebraModule{C})(
   elseif is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
-  elseif is_exterior_power(V)[1]
+  elseif _is_exterior_power(V)[1]
     pure = get_attribute(V, :wedge_pure_function)
     return pure(a)::elem_type(V)
   elseif is_symmetric_power(V)[1]
@@ -388,7 +388,7 @@ function _is_allowed_input_length(V::LieAlgebraModule, a::Int)
     return a == length(Vs)
   elseif ((fl, Vs) = is_tensor_product(V); fl)
     return a == length(Vs)
-  elseif ((fl, W, k) = is_exterior_power(V); fl)
+  elseif ((fl, W, k) = _is_exterior_power(V); fl)
     return a == k
   elseif ((fl, W, k) = is_symmetric_power(V); fl)
     return a == k
@@ -576,13 +576,13 @@ function is_tensor_product(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_exterior_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
+    _is_exterior_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
 
 Check whether `V` has been constructed as an exterior power of a module.
 If it has, return `true`, the base module, and the power.
 If not, return `false` as the first return value, and arbitrary values for the other two.
 """
-function is_exterior_power(V::LieAlgebraModule)
+function _is_exterior_power(V::LieAlgebraModule)
   if has_attribute(V, :is_exterior_power)
     W, k = get_attribute(V, :is_exterior_power)::Tuple{typeof(V),Int}
     return (true, W, k)

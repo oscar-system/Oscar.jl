@@ -515,7 +515,7 @@ $S^k h: V \to W$ (analogous for other types of powers).
 function hom(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if is_exterior_power(V)[1]
+  if _is_exterior_power(V)[1]
     return induced_map_on_exterior_power(h; domain=V, codomain=W)
   elseif is_symmetric_power(V)[1]
     return induced_map_on_symmetric_power(h; domain=V, codomain=W)
@@ -553,8 +553,8 @@ function induced_map_on_exterior_power(
   domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(phi), p)[1],
   codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(phi), p)[1],
 ) where {C<:FieldElem}
-  (domain_fl, domain_base, domain_k) = is_exterior_power(domain)
-  (codomain_fl, codomain_base, codomain_k) = is_exterior_power(codomain)
+  (domain_fl, domain_base, domain_k) = _is_exterior_power(domain)
+  (codomain_fl, codomain_base, codomain_k) = _is_exterior_power(codomain)
   @req domain_fl "Domain must be an exterior power"
   @req codomain_fl "Codomain must be an exterior power"
   @req domain_k == codomain_k "Exponent mismatch"

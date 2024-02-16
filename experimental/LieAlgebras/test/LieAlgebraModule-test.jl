@@ -185,7 +185,7 @@
     is_dual(V)[1],
     is_direct_sum(V)[1],
     is_tensor_product(V)[1],
-    is_exterior_power(V)[1],
+    Oscar._is_exterior_power(V)[1],
     is_symmetric_power(V)[1],
     is_tensor_power(V)[1],
   )
@@ -328,7 +328,7 @@
               @test E === exterior_power(V, k)[1]
               @test E !== exterior_power(V, k; cached=false)[1]
               @test type_V == module_type_bools(V) # construction of E should not change type of V
-              @test is_exterior_power(E) === (true, V, k)
+              @test Oscar._is_exterior_power(E) === (true, V, k)
               @test dim(E) == binomial(dim(V), k)
               @test length(repr(E)) < 10^4 # outputs tend to be excessively long due to recursion
 
