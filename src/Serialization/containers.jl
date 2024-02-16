@@ -9,7 +9,7 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
   save_data_dict(s) do
     save_object(s, encode_type(S), :name)
     if serialize_with_params(T) && !isempty(obj)
-      if hasmethod(parent, (T,)) && parent.(obj) != obj # cond avoids abstract array of julia numbers
+      if !(T <: MatVecType) && hasmethod(parent, (T,))
         parents = parent.(obj)
         parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
         @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
@@ -245,6 +245,10 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
   load_node(s) do entries
+    if isempty(entries)
+      return params[1][]
+    end
+
     m = reduce(vcat, [
       permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
         ])
@@ -264,7 +268,7 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union
       for (k, v) in obj
         U = typeof(v)
         if serialize_with_params(U)
-          save_type_params(s, v)
+          save_type_params(s, v, Symbol(k))
         else
           save_object(s, encode_type(U), Symbol(k))
         end
@@ -276,15 +280,43 @@ end
 function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
   save_data_dict(s) do 
     for (k, v) in obj
-      println(k, v)
       save_object(s, v, Symbol(k))
     end
   end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:Dict})
-  load_node(s, :key_type) do key_type
-    println(key_type)
+  params_dict = Dict{Symbol, Any}()
+  for (k, _) in s.obj
+    load_node(s, k) do _
+      value_type = decode_type(s)
+
+      if serialize_with_params(value_type)
+        params_dict[k] = Dict{Symbol, Any}(
+          :type => value_type,
+          :params => load_params_node(s)
+        )
+      else
+        params_dict[k] = value_type
+      end
+    end
   end
+  return params_dict
 end
 
+function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
+  key_type = params[:key_type]
+  dict = Dict{key_type, Any}()
+  for (k, _) in s.obj
+    if k == :key_type
+      continue
+    end
+    if params[k] isa Type
+      dict[key_type(k)] = load_object(s, params[k], k)
+    else
+      dict[key_type(k)] = load_object(s, params[k][:type], params[k][:params], k)
+    end
+  end
+
+  return dict
+end
