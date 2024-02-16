@@ -161,7 +161,7 @@ end
 mutable struct Vals{T}
   v::Vector{Vector{T}}
   nd::Vector{Tuple{<:PolyRingElem{T}, <:PolyRingElem{T}}}
-  G::RingElem # can be Generic.Frac{<:MPolyRingElem{T}} or PolyRingElem
+  G::RingElem # can be Generic.FracFieldElem{<:MPolyRingElem{T}} or PolyRingElem
   function Vals(v::Vector{Vector{S}}) where {S}
     r = new{S}()
     r.v = v
@@ -275,11 +275,11 @@ function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
   v.v[i][j] = c
 end
 
-function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{QQMPolyRingElem}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracFieldElem{QQMPolyRingElem}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
   Oscar.exp_groebner_assure(I, ord, complete_reduction = complete_reduction)
 end
 
-function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.Frac{QQMPolyRingElem}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
+function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracFieldElem{QQMPolyRingElem}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
   T = QQFieldElem
   if ord == :degrevlex && isdefined(I, :gb)
     return I.gb
@@ -559,7 +559,7 @@ function _cmp(f::MPolyRingElem, g::MPolyRingElem)
 end
 
 @doc raw"""
-    factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
+    factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
 
 For an irreducible polynomial in Q[A][X], perform an absolute
 factorisation, ie. a factorisation in K[X] where K is the
@@ -599,7 +599,7 @@ Multivariate polynomial ring in 2 variables X[1], X[2]
   over residue field of univariate polynomial ring modulo t^2 + a[1]
 ```  
 """
-function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
+function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
   Qtx = parent(f)                 # Q[t1,t2][x1,x2]
   Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
   Rx, x = polynomial_ring(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
@@ -639,7 +639,7 @@ function Oscar.factor_absolute(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
   return an
 end
 
-function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.Frac{QQMPolyRingElem}})
+function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
   lf = factor_absolute(f)
   @assert length(lf) > 1
   return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
@@ -852,7 +852,7 @@ function my_reduce(A, d)
 end
 
 function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::AbsSimpleNumFieldElem, b::AbsSimpleNumFieldElem, V::Vector{QQFieldElem})
-  S = base_ring(f) # should be a Frac{MPoly}
+  S = base_ring(f) # should be a FracFieldElem{MPoly}
   R = base_ring(S)
 
   d_a = reduce(lcm, map(denominator, coefficients(f)))
