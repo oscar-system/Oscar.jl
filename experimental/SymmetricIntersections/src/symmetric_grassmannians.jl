@@ -504,7 +504,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
   if t == 1
     ideal_Gr = ideal(S, elem_type(S)[zero(S)])
   else
-    ideal_Gr = grassmann_pluecker_ideal(S, t, n)
+    ideal_Gr = ideal(grassmann_pluecker_ideal(S, t, n))
   end
   Grtn = subscheme(X, ideal_Gr)
   B = reduce(vcat, V)
