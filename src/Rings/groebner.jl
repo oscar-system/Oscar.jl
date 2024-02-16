@@ -1038,7 +1038,7 @@ julia> Oscar._normal_form_f4(A, J)
 3-element Vector{FqMPolyRingElem}:
  a^3
  2*a^3 + 2*a + 65519*c
- 65519*c^2 + 4*a + 65520*c + 5
+ 4*a + 65519*c^2 + 65520*c + 5
 ```
 """
 function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem }
