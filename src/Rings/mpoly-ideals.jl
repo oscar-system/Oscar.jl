@@ -1965,7 +1965,6 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
                                  subspace_dimension::Int,
                                  ambient_dimension::Int) 
   I = grassmann_pluecker_ideal(subspace_dimension, ambient_dimension)
-  converted_generators = elem_type(ring)[]
   coeff_ring = base_ring(ring)
   o = degrevlex(ring)
   coeffmap = c -> begin
@@ -1973,7 +1972,7 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     return coeff_ring(numerator(c))
   end
   h = hom(base_ring(I), ring, coeffmap, gens(ring))
-  converted_generators = [h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
+  converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
   ideal(IdealGens(ring, converted_generators, o;
                    keep_ordering=true,
                    isReduced=true,
