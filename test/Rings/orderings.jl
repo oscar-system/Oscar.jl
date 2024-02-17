@@ -323,7 +323,7 @@ end
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, singular(O))
-      @test O == monomial_ordering(R, ordering(singular_poly_ring(R, O)))
+      @test O == monomial_ordering(R, Singular.ordering(singular_poly_ring(R, O)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
