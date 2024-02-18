@@ -420,8 +420,16 @@ function basis_lie_highest_weight_demazure(
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
+
+  operators = operators_demazure(L, chevalley_basis, reduced_expression)
+
+  monomial_basis = basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression,
   )
+
+  return MonomialBasisDemazure(reduced_expression, monomial_basis)
+
+  #return basis_lie_highest_weight_compute(
+  #  L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression,
+  #)
 end

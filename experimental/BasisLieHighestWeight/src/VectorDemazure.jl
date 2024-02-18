@@ -12,7 +12,7 @@
 #for j in 0:s-1
 #  wj = W([i_{s+1-j},i_{s+2-j}, \ldots, i_s])
 #  l_{s-j} =  coefficients(wj*lambda)[i_{s_j}]
-#end    
+#end
 
 using ..Oscar
 using ..Oscar: GAPWrap, IntegerUnion, _is_weighted
@@ -45,13 +45,20 @@ function demazure_vw(
         for i in s:-1:(s + 1 - j)
             println("i = ", i)
             GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[i], wj_lambda)
-        
         end
 
+        println("start twist: ", wj_lambda)
         # Twist with w^{-1} = w_s ... w_1
         for k in 1:s
-            GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[s-k+1], wj_lambda)
+            print(" ", k)
+            GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], wj_lambda)
         end
+        #println("middle twist: ", wj_lambda)
+        #for k in 1:s
+        #    print(" ", s-k+1)
+        #    GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[s-k+1], wj_lambda)
+        #end
+        println("end twist: ", wj_lambda)
 
         l_smj = Int.(wj_lambda)[reduced_expression[s - j]]
         println("w_j * lambda = ", wj_lambda)
@@ -83,4 +90,3 @@ end
 #  )
 
 #println(demazure_vw(lie_alg, reduced_expression, lambda, matrices_of_operators))
-

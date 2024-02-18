@@ -75,18 +75,9 @@ function basis_lie_highest_weight_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
-  # if length(reduced_expression) == 0
   return MonomialBasis(
     L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
   )
-  #else
-  #  return MonomialBasisDemazure(
-  #    reduced_expression,
-  #    MonomialBasis(
-  #      L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
-  #    ) 
-  #  )
-  #end
 end
 
 function compute_monomials(
@@ -316,11 +307,11 @@ function add_by_hand(
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   
   # starting vector v
-  if birational_sequence === nothing
-    v0 = sparse_row(ZZ, [(1, 1)]) 
-  else # _demazure
-    v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators) 
-  end
+  #if birational_sequence === nothing
+  v0 = sparse_row(ZZ, [(1, 1)]) 
+  #else # _demazure
+    #v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators) 
+  #end
 
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
@@ -496,4 +487,34 @@ function compute_sub_weights(highest_weight::Vector{ZZRingElem})
     sort!(sub_weights_w; by=x -> sum((x) .^ 2))
     return sub_weights_w
   end
+end
+
+function operators_demazure(
+  L::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  reduced_expression::Vector{Int},
+)
+  """
+  Compute the operators associated with the demazure module.
+  s := length(w)
+  \beta_k := w^{-1} (\alpha_{i_k})
+          = s_{i_s} … s_{i_1}} (\alpha_{i_k})
+  """
+
+  println("chevalley_basis: ", chevalley_basis)
+
+  operators =  operators_by_index(L, chevalley_basis, reduced_expression)
+  println("operators: ", operators)
+
+  # Twist with w^{-1}
+  for i in 1:length(operators)
+    println("i: ", i)
+    for k in 1:length(reduced_expression)
+      println("k: ", k, " ", operators[i])
+      w_k = reduced_expression[k]
+      operators[i] = operators[k] * chevalley_basis[1][w_k]
+    end
+  end
+  println("operators: ", operators)
+  return operators
 end
