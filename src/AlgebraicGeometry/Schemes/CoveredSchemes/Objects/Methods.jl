@@ -129,7 +129,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
     _show_semi_compact(io, X, cov, l)
   else
     io = pretty(io)
-    n = npatches(cov)
+    n = n_patches(cov)
     if has_name(X)
       print(io, name(X))
     elseif get(io, :supercompact, false)

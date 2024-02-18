@@ -13,7 +13,7 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
     end
 
     Base.IndexStyle(::Type{<:$T}) = IndexLinear()
-    Base.getindex(po::$T, i::Base.Integer) = po.p[1, i]
+    Base.getindex(po::$T{U}, i::Base.Integer) where U = po.p[1, i]::U
 
     function Base.setindex!(po::$T, val, i::Base.Integer)
       @boundscheck 1 <= length(po) <= i
@@ -23,7 +23,7 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     Base.firstindex(::$T) = 1
     Base.lastindex(iter::$T) = length(iter)
-    Base.size(po::$T) = (size(po.p, 2),)
+    Base.size(po::$T) = (size(po.p, 2)::Int,)
 
     coefficient_field(po::$T) = base_ring(po.p)
 
@@ -237,7 +237,7 @@ Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
 function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
     @boundscheck 1 <= i && i <= iter.n
-    return iter.Acc(T, iter.Obj, i; iter.options...)
+    return iter.Acc(T, iter.Obj, i; iter.options...)::T
 end
 
 Base.firstindex(::SubObjectIterator) = 1

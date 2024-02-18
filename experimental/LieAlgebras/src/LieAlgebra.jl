@@ -303,7 +303,8 @@ function center(L::LieAlgebra)
     end
   end
 
-  c_dim, c_basis = left_kernel(mat)
+  c_basis = kernel(mat; side = :left)
+  c_dim = nrows(c_basis)
   return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
@@ -322,7 +323,8 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
     end
   end
 
-  c_dim, c_basis = left_kernel(mat)
+  c_basis = kernel(mat; side = :left)
+  c_dim = nrows(c_basis)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 

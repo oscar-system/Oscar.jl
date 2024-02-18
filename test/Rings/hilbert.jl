@@ -76,7 +76,8 @@ end
   # Standard graded
   R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
   J = ideal(R, [y-x^2, z-x^3]);
-  I = homogenization(J, "w");
+  H = homogenizer(R, "w")
+  I = H(J)
   A, _ = quo(base_ring(I), I);
   numer1, denom1 = hilbert_series(A);
   S, t = laurent_polynomial_ring(ZZ, "t");

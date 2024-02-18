@@ -32,7 +32,7 @@
   # partitions(n)
   ############################################################################
   for n = 0:20
-    P = partitions(n)
+    P = collect(partitions(n))
 
     # Check that the number of partitions is correct
     # Note that number_of_partitions(n) is computed independently of partitions(n)
@@ -76,10 +76,10 @@
   ############################################################################
   for n in 0:20
     for k = 0:n+1
-      P = partitions(n,k)
+      P = collect(partitions(n,k))
 
       # Create the same by filtering all partitions
-      Q = partitions(n)
+      Q = collect(partitions(n))
       filter!( Q->length(Q) == k, Q)
 
       # Check that P and Q coincide (up to reordering)
@@ -98,10 +98,10 @@
     for k = 0:n+1
       for l1 = 0:n
         for l2 = l1:n
-          P = partitions(n,k,l1,l2)
+          P = collect(partitions(n,k,l1,l2))
 
           # Create the same by filtering all partitions
-          Q = partitions(n,k)
+          Q = collect(partitions(n,k))
           filter!( Q->all(>=(l1),Q), Q)
           filter!( Q->all(<=(l2),Q), Q)
 
@@ -120,10 +120,10 @@
     for k = 0:n+1
       for l1 = 0:n
         for l2 = l1:n
-          P = partitions(n,k,l1,l2; only_distinct_parts=true)
+          P = collect(partitions(n, k, l1, l2; only_distinct_parts=true))
 
           # Create the same by filtering all partitions
-          Q = partitions(n,k, l1, l2)
+          Q = collect(partitions(n, k, l1, l2))
           filter!( Q->Q==unique(Q), Q )
 
           # Check that P and Q coincide (up to reordering)
@@ -147,40 +147,40 @@
   @test_throws ArgumentError partitions(6,3,[0,2,1],[1,2,3]) #v > 0
 
   # Issues from https://github.com/oscar-system/Oscar.jl/issues/2043
-  @test length(partitions(17, 3, [1,4], [1,4])) == 0
-  @test partitions(17, 5, [1,4], [1,4]) == [ partition(4,4,4,4,1) ]
-  @test length(partitions(17,6,[1,2], [1,7])) == 0
-  @test length(partitions(20,5,[1,2,3],[1,3,6])) == 0
+  @test length(collect(partitions(17, 3, [1, 4], [1,4]))) == 0
+  @test collect(partitions(17, 5, [1, 4], [1, 4])) == [ partition(4, 4, 4, 4, 1) ]
+  @test length(collect(partitions(17, 6, [1, 2], [1, 7]))) == 0
+  @test length(collect(partitions(20, 5, [1, 2, 3], [1, 3, 6]))) == 0
 
   # Issues UT found
-  @test length(partitions(1,1,[1],[1])) == 1
-  @test length(partitions(100, 7, [1,2,5,10,20,50], [2,2,2,2,2,2])) == 1
+  @test length(collect(partitions(1, 1, [1], [1]))) == 1
+  @test length(collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))) == 1
 
   # Special cases
-  for n=0:20
-    for k=0:n+1
-      P = partitions(n,k, [i for i in 1:n], [n for i in 1:n])
-      Q = partitions(n,k)
+  for n in 0:20
+    for k in 0:n + 1
+      P = collect(partitions(n, k, [i for i in 1:n], [n for i in 1:n]))
+      Q = collect(partitions(n, k))
       @test length(P) == length(Q)
       @test Set(P) == Set(Q)
 
-      P = partitions(n,k, [i for i in 1:n], [1 for i in 1:n])
-      Q = partitions(n,k,1,n;only_distinct_parts=true)
+      P = collect(partitions(n, k, [i for i in 1:n], [1 for i in 1:n]))
+      Q = collect(partitions(n, k, 1, n; only_distinct_parts=true))
       @test length(P) == length(Q)
       @test Set(P) == Set(Q)
     end
   end
 
   # From https://www.maa.org/frank-morgans-math-chat-293-ways-to-make-change-for-a-dollar
-  @test length(partitions(100, [1,5,10,25,50])) == 292
-  @test length(partitions(200, [1,5,10,25,50,100])) == 2728
+  @test length(collect(partitions(100, [1, 5, 10, 25, 50]))) == 292
+  @test length(collect(partitions(200, [1, 5, 10, 25, 50, 100]))) == 2728
 
   # From Knu11, Exercise 11 on page 408
-  @test length(partitions(100, [1,2,5,10,20,50], [2,2,2,2,2,2])) == 6
-  @test length(partitions(100, [1,2,5,10,20,50])) == 4562
+  @test length(collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))) == 6
+  @test length(collect(partitions(100, [1, 2, 5, 10, 20, 50]))) == 4562
 
   # From https://oeis.org/A000008
-  @test [ length(partitions(n, [1,2,5,10])) for n in 0:60 ] == 
+  @test [ length(collect(partitions(n, [1,2,5,10]))) for n in 0:60 ] == 
     [ 1, 1, 2, 2, 3, 4, 5, 6, 7, 8, 11, 12, 15, 16, 19, 22, 25, 28, 31, 34,
     40, 43, 49, 52, 58, 64, 70, 76, 82, 88, 98, 104, 114, 120, 130, 140,
     150, 160, 170, 180, 195, 205, 220, 230, 245, 260, 275, 290, 305, 320,

@@ -297,7 +297,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["a6"] = map(a6)
 
     # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyElem}()
+    defining_section_parametrization = Dict{String, MPolyRingElem}()
     if !("a1" in vars) || (a1 != eval_poly("a1", parent(a1)))
       defining_section_parametrization["a1"] = a1
     end
@@ -328,7 +328,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["g"] = map(g)
 
     # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyElem}()
+    defining_section_parametrization = Dict{String, MPolyRingElem}()
     if !("f" in vars) || (f != eval_poly("f", parent(f)))
       defining_section_parametrization["f"] = f
     end

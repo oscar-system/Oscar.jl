@@ -77,7 +77,7 @@ Localization
 """
 function matroid_realization_space(M::Matroid, A::GroundsetType, F::AbstractAlgebra.Ring=ZZ)
 
-    number_of_connected_components(M) == 1 || error("Matroid is not connected")
+    n_connected_components(M) == 1 || error("Matroid is not connected")
     is_simple(M) || error("Matroid is not simple")
     
     d = rank(M)

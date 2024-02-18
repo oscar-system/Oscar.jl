@@ -148,7 +148,7 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   end
 
   # Compute defining_section_parametrization
-  defining_section_parametrization = Dict{String, MPolyElem}()
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
   vars_S = [string(k) for k in gens(S)]
   if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
     defining_section_parametrization["f"] = f

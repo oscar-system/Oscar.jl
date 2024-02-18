@@ -6,7 +6,7 @@ import Oscar: MPolyIdeal, BiPolyArray, IdealGens, Hecke, AbstractAlgebra
 import Hecke: induce_rational_reconstruction, induce_crt
 
 function __init__()
-  Hecke.add_verbose_scope(:ModStdQ)
+  Hecke.add_verbosity_scope(:ModStdQ)
 end
 
 function (R::fpMPolyRing)(f::QQMPolyRingElem)

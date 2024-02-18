@@ -508,7 +508,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
   end
   Grtn = subscheme(X, ideal_Gr)
   B = reduce(vcat, V)
-  _, K = right_kernel(B)
+  K = kernel(B; side = :right)
  
   if ncols(K) == 0
     return ideal_Gr

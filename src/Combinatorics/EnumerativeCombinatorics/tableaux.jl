@@ -342,8 +342,8 @@ end
     semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
     semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
 
-Return all semistandard Young tableaux of given shape `shape` and filling elements
-bounded by `max_val`.
+Return an iterator over all semistandard Young tableaux of given shape `shape`
+and filling elements bounded by `max_val`.
 
 By default, `max_val` is equal to the sum of the shape partition (the number of
 boxes in the Young diagram).
@@ -355,10 +355,10 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) whe
   SST = Vector{YoungTableau{T}}()
   len = length(shape)
   if max_val < len
-    return SST
+    return (t for t in SST)
   elseif len == 0
     push!(SST, young_tableau(Vector{T}[], check = false))
-    return SST
+    return (t for t in SST)
   end
   tab = [Array{T}(fill(i, shape[i])) for i = 1:len]
   m = len
@@ -377,7 +377,7 @@ function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) whe
         m -= 1
         n = shape[m]
       else
-        return SST
+        return (t for t in SST)
       end
     end
 
@@ -418,14 +418,14 @@ end
 @doc raw"""
     semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
 
-Return all semistandard Young tableaux consisting of `box_num` boxes and
-filling elements bounded by `max_val`.
+Return an iterator over all semistandard Young tableaux consisting of `box_num`
+boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
   @req box_num >= 0 "box_num >= 0 required"
   SST = Vector{YoungTableau{T}}()
   if max_val <= 0
-    return SST
+    return (t for t in SST)
   end
   shapes = partitions(box_num)
 
@@ -435,16 +435,15 @@ function semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Inte
     end
   end
 
-  return SST
+  return (t for t in SST)
 end
-
 
 @doc raw"""
     semistandard_tableaux(s::Partition{T}, weight::Vector{T}) where T <: Integer
     semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
 
-Return all semistandard Young tableaux with shape `s` and given weight. This
-requires that `sum(s) = sum(weight)`.
+Return an iterator over all semistandard Young tableaux with shape `s` and given
+weight. This requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
   n_max = sum(s)
@@ -453,7 +452,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
   tabs = Vector{YoungTableau}()
   if isempty(s)
     push!(tabs, young_tableau(Vector{Int}[], check = false))
-    return tabs
+    return (t for t in tabs)
   end
   ls = length(s)
 
@@ -540,7 +539,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
   end #rec_sst!()
 
   rec_sst!(1)
-  return tabs
+  return (t for t in tabs)
 end
 
 function semistandard_tableaux(s::Partition{T}, weight::Partition{T}) where T <: Integer
@@ -620,13 +619,13 @@ end
     standard_tableaux(s::Partition)
     standard_tableaux(s::Vector{Integer})
 
-Return all standard Young tableaux of a given shape `s`.
+Return an iterator over all standard Young tableaux of a given shape `s`.
 """
 function standard_tableaux(s::Partition)
   tabs = Vector{YoungTableau}()
   if isempty(s)
     push!(tabs, young_tableau(Vector{Int}[], check = false))
-    return tabs
+    return (t for t in tabs)
   end
   n_max = sum(s)
   ls = length(s)
@@ -669,7 +668,7 @@ function standard_tableaux(s::Partition)
     end
   end
 
-  return tabs
+  return (t for t in tabs)
 end
 
 function standard_tableaux(s::Vector{T}) where T <: Integer
@@ -679,7 +678,7 @@ end
 @doc raw"""
     standard_tableaux(n::Integer)
 
-Return all standard Young tableaux with `n` boxes.
+Return an iterator over all standard Young tableaux with `n` boxes.
 """
 function standard_tableaux(n::Integer)
   @req n >= 0 "n >= 0 required"
@@ -687,7 +686,7 @@ function standard_tableaux(n::Integer)
   for s in partitions(n)
     append!(ST, standard_tableaux(s))
   end
-  return ST
+  return (t for t in ST)
 end
 
 ################################################################################

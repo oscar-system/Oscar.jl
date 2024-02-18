@@ -1,4 +1,4 @@
-import AbstractAlgebra: Ring, RingElem, Generic.Frac
+import AbstractAlgebra: Ring, RingElem, Generic.FracFieldElem
 import Base: issubset
 
 
@@ -363,7 +363,7 @@ function MPolyQuoLocRing(W::MPolyLocRing)
   return MPolyQuoLocRing(R, I, U, Q, W)
 end
 
-function Base.in(f::AbstractAlgebra.Generic.Frac{RET}, L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function Base.in(f::AbstractAlgebra.Generic.FracFieldElem{RET}, L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
   R === parent(numerator(f)) || error("element does not belong to the correct ring")
   denominator(f) in inverted_set(L) && return true
@@ -513,7 +513,7 @@ function (L::MPolyQuoLocRing{
 end
 
 ### additional conversions
-function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
+function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::FracFieldElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
   return L(R(numerator(f)), R(denominator(f)), check=check, is_reduced=is_reduced)
 end
@@ -680,7 +680,7 @@ end
 # to the form [f] = [c]//[dᵏ] with d∈ S.
 function convert(
     L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {BRT, BRET, RT, RET}
   a = numerator(f)
   b = denominator(f)

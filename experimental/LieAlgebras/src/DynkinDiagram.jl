@@ -1,11 +1,66 @@
 @doc raw"""
+    show_dynkin_diagram(cartan_matrix::ZZMatrix) -> Nothing
+
+Prints a string representation of the Dynkin diagram of the root system
+with the given cartan matrix.
+The labels of the nodes are the indices of the simple roots.
+
+Currently, only cartan matrices of finite type are supported.
+"""
+function show_dynkin_diagram(cartan_matrix::ZZMatrix)
+  type, label = cartan_type_with_ordering(cartan_matrix)
+  return show_dynkin_diagram(type, label)
+end
+
+@doc raw"""
+    show_dynkin_diagram(rs::RootSystem) -> Nothing
+
+Prints a string representation of the Dynkin diagram of the given root system.
+The labels of the nodes are the indices of the simple roots.
+
+Currently, only root systems of finite type are supported.
+"""
+function show_dynkin_diagram(rs::RootSystem)
+  type, label = root_system_type_with_ordering(rs)
+  return show_dynkin_diagram(type, label)
+end
+
+@doc raw"""
+    show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}}) -> Nothing
+
+Prints a string representation of the Dynkin diagram of the root system of
+the given cartan type.
+"""
+function show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}})
+  return show_dynkin_diagram(type, 1:sum(t[2] for t in type; init=0))
+end
+
+@doc raw"""
+    show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}}, labels::AbstractVector{Int}) -> Nothing
+
+Prints a string representation of the Dynkin diagram of the root system of
+the given cartan type.
+"""
+function show_dynkin_diagram(type::Vector{Tuple{Symbol,Int}}, labels::AbstractVector{Int})
+  @req length(labels) == sum(t[2] for t in type; init=0) "Invalid number of labels"
+  offset = 0
+  for (fam, rk) in type
+    show_dynkin_diagram(fam, rk, labels[(offset + 1):(offset + rk)])
+    offset += rk
+    println()
+    println()
+  end
+  return nothing
+end
+
+@doc raw"""
     show_dynkin_diagram(fam::Symbol, rk::Int) -> Nothing
 
 Prints a string representation of the Dynkin diagram of the root system of
 the given cartan type.
 """
 function show_dynkin_diagram(fam::Symbol, rk::Int)
-  show_dynkin_diagram(fam, rk, 1:rk)
+  return show_dynkin_diagram(fam, rk, 1:rk)
 end
 
 @doc raw"""
@@ -49,4 +104,5 @@ function show_dynkin_diagram(fam::Symbol, rk::Int, labels::AbstractVector{Int})
   end
   isempty(D) && error("Unreachable")
   print(D)
+  return nothing
 end
