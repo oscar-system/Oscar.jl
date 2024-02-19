@@ -390,7 +390,7 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
         push!(orb_and_rep, (p, orbit(m, p)))
       end
     end
-    reporb = QQMatrix[solve_left(basis_matrix(N), basis_matrix(N)*matrix(a[1])) for a in orb_and_rep]
+    reporb = QQMatrix[solve(basis_matrix(N), basis_matrix(N)*matrix(a[1]); side=:left) for a in orb_and_rep]
   end
   return reporb
 end
@@ -1429,7 +1429,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       ok, pe = _primitive_extensions_generic(V, K, GV, GK, (:plain, :plain); even, exist_only=(classification == :none), first=(classification == :first), q=discriminant_group(GL))
       !ok && continue
       classification == :none && true, results
-      !isempty(pe) && append!(resV, Vector{ZZLat}[lattice.(t) for t in pe])
+      !isempty(pe) && append!(resV, Tuple{ZZLat, ZZLat, ZZLat}[lattice.(t) for t in pe])
     end
     isempty(resV) && continue
 
