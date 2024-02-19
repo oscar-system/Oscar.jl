@@ -8,6 +8,10 @@ struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
 
+struct PartitionSet{T<:IntegerUnion}
+  n::T
+end
+
 ################################################################################
 #
 #  Young Tableaux
