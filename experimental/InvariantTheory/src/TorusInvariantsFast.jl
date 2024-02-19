@@ -1,3 +1,5 @@
+export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants
+
 #####################
 #Setting up reductive groups for fast torus algorithm
 #####################
