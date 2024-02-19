@@ -1351,7 +1351,7 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
+  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 
@@ -1444,11 +1444,11 @@ end
 #      make the Modules work
 
 #to bypass the vec(collect(M)) which copies twice
-function Base.vec(M::Generic.Mat)
+function _vec(M::Generic.Mat)
   return vec(M.entries)
 end
 
-function Base.vec(M::MatElem)
+function _vec(M::MatElem)
   r = elem_type(base_ring(M))[]
   sizehint!(r, nrows(M) * ncols(M))
   for j=1:ncols(M)
