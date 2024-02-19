@@ -218,7 +218,7 @@ end
 # @doc raw"""
 #    chip_firing_move(dtc::DivisorOnTropicalCurve, position::Int)
 
-# Given a divisor `dtc` and vertex labelled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
+# Given a divisor `dtc` and vertex labeled `position`, compute the linearly equivalent divisor obtained by a chip firing move from the given vertex `position`.
 
 # # Examples
 # ```jldoctest
@@ -285,7 +285,7 @@ end
 # @doc raw"""
 #    v_reduced(dtc::DivisorOnTropicalCurve, vertex::Int)
 
-# Given a divisor `dtc` and vertex labelled `vertex`, compute the unique divisor reduced with repspect to `vertex`
+# Given a divisor `dtc` and vertex labeled `vertex`, compute the unique divisor reduced with repspect to `vertex`
 # as defined in [BN07](@cite).
 # The divisor `dtc` must have positive coefficients apart from `vertex`.
 
