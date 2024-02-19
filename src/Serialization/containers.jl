@@ -310,20 +310,23 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
   key_type = params[:key_type]
+
   dict = Dict{key_type, Any}()
   for (k, _) in s.obj
     if k == :key_type
       continue
     end
+
+    if key_type == Int
+      key = parse(Int, string(k))
+    else
+      key = key_type(k)
+    end
+
     if params[k] isa Type
-      if key_type == Int
-        key = parse(Int, string(k))
-      else
-        key = key_type(k)
-      end
       dict[key] = load_object(s, params[k], k)
     else
-      dict[key_type(k)] = load_object(s, params[k][type_key], params[k][:params], k)
+      dict[key] = load_object(s, params[k][type_key], params[k][:params], k)
     end
   end
 

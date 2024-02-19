@@ -119,6 +119,22 @@
       end
     end
 
+    @testset "(de)serialization Dict{$S, Any}" for (S, keys) in
+      (
+        (String, ["a", "b"]), (Int, [1, 2]), (Symbol, [:a, :b])
+      )
+      Qx, x = QQ[:x]
+      p = x^2 + 1
+      original = Dict(keys[1] => cube(:2), keys[2] => p)
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+
+      test_save_load_roundtrip(path, original; params=Dict{S, Any}(keys[1] => Qx)) do loaded
+        @test original == loaded
+      end
+    end
+    
     @testset "Test for backwards compatibility" begin
       loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
       @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             

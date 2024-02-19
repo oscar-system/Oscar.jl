@@ -66,7 +66,7 @@ end
 ##############################################################################
 @register_serialization_type LinearProgram uses_params
 
-function save_object(s::SerializerState, lp::LinearProgram)
+function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
@@ -77,7 +77,7 @@ function save_object(s::SerializerState, lp::LinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::Field)
+function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)

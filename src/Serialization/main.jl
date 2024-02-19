@@ -202,7 +202,11 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
-      params = override_params
+      if override_params isa Dict
+        error("Unsupported override type")
+      else
+        params = override_params
+      end
     else
       # depending on the type, :params is either an object to be loaded or a
       # dict with keys and object values to be loaded
