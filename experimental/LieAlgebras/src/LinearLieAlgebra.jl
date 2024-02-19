@@ -191,7 +191,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with basis `basis` and basis element names
+Construct the Lie algebra over the field `R` with basis `basis` and basis element names
 given by `s`. The basis elements must be square matrices of size `n`.
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
 two basis elements in its span.
@@ -225,7 +225,7 @@ end
     abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
     abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
 
-Return the abelian Lie algebra of dimension `n` over the ring `R`.
+Return the abelian Lie algebra of dimension `n` over the field `R`.
 The first argument can be optionally provided to specify the type of the returned
 Lie algebra.
 """
@@ -246,7 +246,8 @@ end
 @doc raw"""
     general_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
-Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
+Return the general linear Lie algebra $\mathfrak{gl}_n(R)$,
+i.e., the Lie algebra of all $n \times n$ matrices over the field `R`.
 
 # Examples
 ```jldoctest
@@ -281,7 +282,8 @@ end
 @doc raw"""
     special_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
-Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
+Return the special linear Lie algebra $\mathfrak{sl}_n(R)$,
+i.e., the Lie algebra of all $n \times n$ matrices over the field `R` with trace zero.
 
 # Examples
 ```jldoctest
