@@ -151,8 +151,8 @@ end
 @doc raw"""
     partitions(n::IntegerUnion)
 
-Return a list of all partitions of a non-negative integer `n`, produced in
-lexicographically *descending* order.
+Return an iterator over all partitions of a non-negative integer `n`, produced
+in lexicographically *descending* order.
 Using a smaller integer type for `n` (e.g. `Int8`) may increase performance.
 
 The algorithm used is "Algorithm ZS1" by [ZS98](@cite). This algorithm is also
@@ -160,7 +160,12 @@ discussed in [Knu11](@cite), Algorithm P (page 392).
 
 # Examples
 ```jldoctest
-julia> partitions(4)
+julia> p = partitions(4);
+
+julia> first(p)
+[4]
+
+julia> collect(p)
 5-element Vector{Partition{Int64}}:
  [4]
  [3, 1]
@@ -168,7 +173,7 @@ julia> partitions(4)
  [2, 1, 1]
  [1, 1, 1, 1]
 
-julia> partitions(Int8(4)) # using less memory
+julia> collect(partitions(Int8(4))) # using less memory
 5-element Vector{Partition{Int8}}:
  Int8[4]
  Int8[3, 1]
@@ -184,9 +189,9 @@ function partitions(n::T) where T <: IntegerUnion
 
   # Some trivial cases
   if n == 0
-    return Partition{T}[ partition(T[], check = false) ]
+    return (p for p in Partition{T}[ partition(T[], check = false) ])
   elseif n == 1
-    return Partition{T}[ partition(T[1], check = false) ]
+    return (p for p in Partition{T}[ partition(T[1], check = false) ])
   end
 
   # Now, the algorithm starts
@@ -222,7 +227,7 @@ function partitions(n::T) where T <: IntegerUnion
     end
     push!(P, partition(d[1:k], check = false))
   end
-  return P
+  return (p for p in P)
 end
 
 ################################################################################
@@ -287,9 +292,10 @@ end
     partitions(m::IntegerUnion, n::IntegerUnion; only_distinct_parts::Bool = false)
     partitions(m::IntegerUnion, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
 
-Return all partitions of a non-negative integer `m` into `n >= 0` parts.
-Optionally, a lower bound `l1 >= 0` and an upper bound `l2` for the parts can be
-supplied. In this case, the partitions are produced in *decreasing* order.
+Return an iterator over all partitions of a non-negative integer `m` into
+`n >= 0` parts. Optionally, a lower bound `l1 >= 0` and an upper bound `l2` for
+the parts can be supplied. In this case, the partitions are produced in
+*decreasing* order.
 
 There are two choices for the parameter `only_distinct_parts`:
 * `false`: no further restriction (*default*);
@@ -300,7 +306,7 @@ The implemented algorithm is "parta" in [RJ76](@cite).
 # Examples
 All partitions of 7 into 3 parts:
 ```jldoctest
-julia> partitions(7, 3)
+julia> collect(partitions(7, 3))
 4-element Vector{Partition{Int64}}:
  [5, 1, 1]
  [4, 2, 1]
@@ -309,7 +315,7 @@ julia> partitions(7, 3)
 ```
 All partitions of 7 into 3 parts where all parts are between 1 and 4:
 ```jldoctest
-julia> partitions(7, 3, 1, 4)
+julia> collect(partitions(7, 3, 1, 4))
 3-element Vector{Partition{Int64}}:
  [4, 2, 1]
  [3, 3, 1]
@@ -317,7 +323,7 @@ julia> partitions(7, 3, 1, 4)
 ```
 Same as above but requiring all parts to be distinct:
 ```jldoctest
-julia> partitions(7, 3, 1, 4; only_distinct_parts = true)
+julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
 1-element Vector{Partition{Int64}}:
  [4, 2, 1]
 ```
@@ -339,15 +345,15 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
 
   # Some trivial cases
   if m == 0 && n == 0
-    return Partition{T}[ partition(T[], check = false) ]
+    return (p for p in Partition{T}[ partition(T[], check = false) ])
   end
 
   if n == 0 || n > m
-    return Partition{T}[]
+    return (p for p in Partition{T}[])
   end
 
   if l2 < l1
-    return Partition{T}[]
+    return (p for p in Partition{T}[])
   end
 
   # If l1 == 0 the algorithm parta will actually create lists containing the
@@ -411,7 +417,7 @@ function partitions(m::T, n::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
     end
   end
 
-  return P
+  return (p for p in P)
 end
 
 function partitions(m::T, n::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
@@ -420,14 +426,14 @@ function partitions(m::T, n::IntegerUnion; only_distinct_parts::Bool = false) wh
 
   # Special cases
   if m == n
-    return [ partition(T[ 1 for i in 1:m], check = false) ]
+    return (p for p in [ partition(T[ 1 for i in 1:m], check = false) ])
   elseif m < n || n == 0
-    return Partition{T}[]
+    return (p for p in Partition{T}[])
   elseif n == 1
-    return [ partition(T[m], check = false) ]
+    return (p for p in [ partition(T[m], check = false) ])
   end
 
-  return partitions(m, n, 1, m; only_distinct_parts = only_distinct_parts)
+  return (p for p in partitions(m, n, 1, m; only_distinct_parts = only_distinct_parts))
 end
 
 function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
@@ -451,15 +457,17 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
   # Special cases
   if n == 0
+    # TODO: I don't understand this distinction here
+    # (it also makes the function tabe instable)
     if m == 0
-      return [ Partition{T}[] ]
+      return (p for p in [ Partition{T}[] ])
     else
-      return Partition{T}[]
+      return (p for p in Partition{T}[])
     end
   end
 
   if isempty(mu)
-    return Partition{T}[]
+    return (p for p in Partition{T}[])
   end
 
   #This will be the list of all partitions found.
@@ -523,7 +531,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
   # This is a necessary condition for existence of a partition
   if m < 0 || m > n * (lr - ll)
-    return P #goto b3
+    return (p for p in P) #goto b3
   end
 
   # The following is a condition for when only a single partition
@@ -534,7 +542,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # Noticed on Mar 23, 2023.
   if m == 0 && x[1] != 0
     push!(P, partition(copy(x), check = false))
-    return P
+    return (p for p in P)
   end
 
   # Now, the actual algorithm starts
@@ -625,7 +633,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
     end #if gotob2
   end #while
 
-  return P
+  return (p for p in P)
 end
 
 function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
@@ -645,11 +653,12 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
   res = Partition{T}[]
 
   if isempty(v)
-    return res
+    return (p for p in res)
   end
 
   if m == 0
-    return [ Partition{T}[] ]
+    # TODO: I don't understand this return (and it is type instable)
+    return (p for p in [ Partition{T}[] ])
   end
 
   # We will loop over the number of parts.
@@ -680,7 +689,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
     append!(res, partitions(m, n, v, mu))
   end
 
-  return res
+  return (p for p in res)
 end
 
 @doc raw"""
@@ -688,8 +697,8 @@ end
     partitions(m::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
     partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
 
-Return all partitions of a non-negative integer `m` where each part is an element
-in the vector `v` of positive integers.
+Return an iterator over all partitions of a non-negative integer `m` where each
+part is an element in the vector `v` of positive integers.
 It is assumed that the entries in `v` are strictly increasing.
 
 If the optional vector `mu` is supplied, then each `v[i]` occurs a maximum of
@@ -710,7 +719,7 @@ julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
 All partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
 part is allowed to occur at most twice:
 ```jldoctest
-julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
+julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
 6-element Vector{Partition{Int64}}:
  [50, 50]
  [50, 20, 20, 10]
@@ -722,7 +731,7 @@ julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
 The partitions of 100 into seven parts, where the parts are required to be
 elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
 ```jldoctest
-julia> partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
+julia> collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
 1-element Vector{Partition{Int64}}:
  [50, 20, 20, 5, 2, 2, 1]
 ```
@@ -735,11 +744,12 @@ function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
   res = Partition{T}[]
 
   if isempty(v)
-    return res
+    return (p for p in res)
   end
 
   if m == 0
-    return [ Partition{T}[] ]
+    # TODO: I don't understand this return (and it is type instable)
+    return (p for p in [ Partition{T}[] ])
   end
 
   # We will loop over the number of parts.
@@ -755,7 +765,7 @@ function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
     append!(res, partitions(m, n, v, mu))
   end
 
-  return res
+  return (p for p in res)
 end
 
 ################################################################################

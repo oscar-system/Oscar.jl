@@ -73,3 +73,21 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 
 @deprecate factorisations factorizations
 @deprecate centraliser centralizer
+
+@deprecate hall_subgroup_reps(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, hall_subgroup_classes(G, P))
+@deprecate hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) map(representative, hall_subgroup_classes(G, P))
+
+function hall_subgroup(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup}
+  Base.depwarn("The function hall_subgroup is deprecated. Please use hall_subgroup_classes.", :hall_subgroup)
+  @req is_solvable(G) "The group is not solvable"
+  return representative(hall_subgroup_classes(G, P)[1])
+end
+
+@deprecate low_index_subgroup_reps(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, low_index_subgroup_classes(G, n))
+
+@deprecate complement_class_reps(G::T, N::T) where T <: GAPGroup map(representative, complement_classes(G, N))
+
+@deprecate maximal_subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, maximal_subgroup_classes(G))
+@deprecate subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, subgroup_classes(G))
+@deprecate conjugacy_classes_maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} maximal_subgroup_classes(G)
+@deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)

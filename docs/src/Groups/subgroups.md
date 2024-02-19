@@ -43,17 +43,13 @@ intersect(::T, V::T...) where T<:GAPGroup
 The following functions return a vector of subgroups.
 
 ```@docs
-subgroups(G::GAPGroup)
 normal_subgroups
-maximal_subgroups
 maximal_normal_subgroups
 minimal_normal_subgroups
 characteristic_subgroups
 derived_series
 sylow_system
-hall_subgroup_reps
 hall_system
-complement_class_reps
 complement_system
 chief_series
 composition_series
@@ -70,6 +66,18 @@ upper_central_series
     To get the embedding homomorphism of the subgroup `H` in `G`,
     one can type `embedding(G,H)`.
 
+
+The following functions return an iterator of subgroups.
+Usually it is more efficient to work with (representatives of) the
+underlying conjugacy classes of subgroups instead.
+
+```@docs
+complements(G::T, N::T) where T <: GAPGroup
+hall_subgroups
+low_index_subgroups
+maximal_subgroups
+subgroups(G::GAPGroup)
+```
 
 ## Conjugation action of elements and subgroups
 
@@ -94,8 +102,11 @@ number_of_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
 conjugacy_class(G::T, g::T) where T<:GAPGroup
 conjugacy_classes(G::GAPGroup)
-conjugacy_classes_subgroups(G::GAPGroup)
-conjugacy_classes_maximal_subgroups(G::GAPGroup)
+complement_classes
+hall_subgroup_classes
+low_index_subgroup_classes
+maximal_subgroup_classes(G::GAPGroup)
+subgroup_classes(G::GAPGroup)
 ```
 
 

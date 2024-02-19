@@ -260,7 +260,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     # Constructing tropical variety set-theoretically
     ###
     A = QQMatrix(A)
-    L = matrix(QQ,kernel_basis(A))
+    L = transpose(kernel(A, side = :right))
     can_solve, V = can_solve_with_solution(transpose(A),matrix(QQ,[b]),side=:left)
     @req can_solve "tropical variety cannot be empty"
     SigmaV = polyhedral_complex(IncidenceMatrix([[1]]), V, nothing, L)
@@ -456,7 +456,7 @@ function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     zk = maximal_order(k)
 
     for f = keys(lf)
-        se[f] = kernel(f(M))[2] #hopefully, this is in rref
+        se[f] = kernel(f(M), side = :right) #hopefully, this is in rref
     end
     @assert sum(ncols(x) for x = values(se)) == nrows(M)
     return se
@@ -473,8 +473,8 @@ function _intersect(M::MatElem{T}, N::MatElem{T}) where T <: Hecke.FieldElem
         end
     end
 
-    r, v = kernel(I) #precision issues...
-    l = M*v[1:ncols(M), 1:r]
+    v = kernel(I, side = :right) #precision issues...
+    l = M*v[1:ncols(M), 1:ncols(v)]
     return transpose(rref(transpose(l))[2])
 end
 
