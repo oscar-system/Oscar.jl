@@ -25,11 +25,13 @@ given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally, the
 author also provides methods to compute primitive embeddings of any even lattice
 into an even lattice of a given genus (see Proposition 1.15.1 in [Nik79](@cite)).
 In the latter proposition, it is explained how to classify such embeddings as
-isomorphic embeddings or as isomorphic sublattices.
+isomorphic embeddings or as isomorphic sublattices. Moreover, with enough,
+one can generalise the previous results for embeddings in odd lattices.
 
-Such a method can be algorithmically implemented, however it tends to be slow
-and inefficient in general for large rank or determinant. But, in the case
-where the discriminant groups are (elementary) $p$-groups, the method can be
+A general method to compute primitive embeddings between integral lattices
+can be algorithmically implemented, however it tends to be slow and inefficient
+in general for large rank or determinant. But, in the case where the
+discriminant groups are (elementary) $p$-groups, the method can be made
 more efficient.
 
 We provide 4 kinds of output:
@@ -55,7 +57,7 @@ In order to compute such primitive embeddings of a lattice $M$ into a lattice
 $L$, we follow the proof of Proposition 1.15.1 of [Nik79](@cite).
 
 Note: for the implementation of the algorithm, we construct a lattice $T$ which
-is unique in its genus, such $D_T$ and $D_M(-1)$ are isometric and
+is unique in its genus, such that $D_T$ and $D_M(-1)$ are isometric and
 $O(T)\to O(D_T)$ is surjective. We then classify all primitive
 extensions of $M\oplus T$ modulo $O(D_T)$ (and modulo $O(M)$ for a
 classification of primitive sublattices). To classify such primitive
@@ -90,13 +92,12 @@ equivariant_primitive_extensions(::Union{ZZLatWithIsom, ZZLat}, ::Union{ZZLatWit
 ## Admissible equivariant primitive extensions
 
 The following function is a major tool provided by [BH23](@cite). Given
-a triple of integer lattices with isometry $((A, a), (B, b), (C, c))$ and two prime
-numbers $p$ and $q$ (possibly equal), if $(A, B, C)$ is $p$-admissible, this
-function returns representatives of isomorphism classes of equivariant primitive
+a triple of even integer lattices with isometry $((A, a), (B, b), (C, c))$
+and two prime numbers $p$ and $q$ (possibly equal), if $(A, B, C)$ is $p$-admissible,
+this function returns representatives of isomorphism classes of equivariant primitive
 extensions $(A, a)\oplus (B, b)\to (D, d)$ such that the type of $(D, d^q)$ is
 equal to the type of $(C, c)$ (see [`type(::ZZLatWithIsom)`](@ref)).
 
 ```@docs
 admissible_equivariant_primitive_extensions(::ZZLatWithIsom, ::ZZLatWithIsom, ::ZZLatWithIsom, ::IntegerUnion, ::IntegerUnion)
 ```
-

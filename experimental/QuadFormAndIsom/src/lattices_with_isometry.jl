@@ -1730,6 +1730,7 @@ julia> order(G)
       disc = discriminant_representation(L, UL; check = false, ambient_representation = false)
       return image(disc)
     else
+      @req is_even(Lf) "Hermitian Miranda-Morrison currently available only for even lattices"
       # If L is indefinite of rank >=3, then we use the hermitian version of
       # Miranda-Morrison theory to compute the image of the centralizer f directly
       # in the centralizer of D_f.
@@ -2234,12 +2235,14 @@ true
   x = gen(Qx)
   t = Dict{Integer, Tuple}()
   for l in divs
-    _Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
-    if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false)
-    end
     Al = kernel_lattice(Lf, x^l-1)
-    t[l] = (genus(Hl), genus(Al))
+    _Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
+    if !(order_of_isometry(_Hl) in [-1,1,2])
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false)
+      t[l] = (genus(Hl), genus(Al))
+    else
+      t[l] = (genus(_Hl), genus(Al))
+    end
   end
   return t
 end
@@ -2272,14 +2275,16 @@ function is_of_type(L::ZZLatWithIsom, t::Dict)
   divs = sort(collect(keys(t)))
   x = gen(Hecke.Globals.Qx)
   for l in divs
-    _Hl = kernel_lattice(L, cyclotomic_polynomial(l))
-    if !(order_of_isometry(Hl) in [-1, 1, 2])
-      t[l][1] isa HermGenus || return false
-      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
-    end
-    genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)
     genus(Al) == t[l][2] || return false
+    _Hl = kernel_lattice(L, cyclotomic_polynomial(l))
+    if !(order_of_isometry(_Hl) in [-1, 1, 2])
+      t[l][1] isa HermGenus || return false
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
+      genus(Hl) == t[l][1] || return false
+    else
+      genus(_Hl) == t[l][1] || return false
+    end
   end
   return true
 end

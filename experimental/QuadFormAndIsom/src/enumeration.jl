@@ -376,9 +376,9 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
   return ids
 end
 
-# given a degree extension of number fields E/K, return all
+# Given a degree 2 extension of number fields E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
-# E/K of rank rk, whose trace lattice has negative s2.
+# E/K of rank rk, and whose trace lattice has negative signature s2.
 # In the cyclotomic case, if `fix_root = true`, we do not consider
 # permutations of a set of signatures since any permutation correspond
 # to a change of a choice of a primitive root of unity.
@@ -497,12 +497,15 @@ representatives_of_hermitian_type(::Union{ZZLat, ZZGenus}, ::Union{ZZPolyRingEle
 
 function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem, QQPolyRingElem}, fix_root::Bool = false)
   @req is_irreducible(chi) "Polynomial must be irreducible"
+  @req is_integral(G) "For now G must be a genus symbol for integral lattices"
 
   rk = rank(G)
   d = abs(det(G))
   s1, _, s2 = signature_tuple(G)
 
   reps = ZZLatWithIsom[]
+
+  rank(G) == 0 && return ZZLatWithIsom[integer_lattice_with_isometry(integer_lattice(; gram=QQ[;]))]
 
   if degree(chi) == 1
     @hassert :ZZLatWithIsom 1 iszero(chi(1)*chi(-1))
@@ -566,6 +569,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
       continue
     end
     @v_do :ZZLatWithIsom 3 Base.show(stdout, MIME"text/plain"(), g)
+    @vprintln :ZZLatWithIsom 1 ""
 
     H = representative(g)
     M, fM = trace_lattice_with_isometry(H)
@@ -910,10 +914,10 @@ lattices as an input - the function first computes a representative of $G$.
 Note that currently we support only orders which admit at most 2 prime divisors.
 """
 function enumerate_classes_of_lattices_with_isometry(L::ZZLat, order::IntegerUnion)
-  @req iseven(Lf) "Lattice must be even"
+  @req iseven(L) "Lattice must be even"
   @req is_finite(order) && order >= 1 "order must be positive and finite"
   if order == 1
-    reps = representatives_of_hermitian_type(integer_lattice_with_isometry(L))
+    reps = representatives_of_hermitian_type(L, 1)
     return reps
   end
   pd = prime_divisors(order)

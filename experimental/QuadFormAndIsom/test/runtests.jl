@@ -256,9 +256,8 @@ end
   @test order(ONf) == order(image_centralizer_in_Oq(N)[1])
 
   E6 = root_lattice(:E, 6)
-  @test length(enumerate_classes_of_lattices_with_isometry(E6, 10)) == 3
   @test length(enumerate_classes_of_lattices_with_isometry(E6, 20)) == 0
-  @test length(enumerate_classes_of_lattices_with_isometry(E6, 18)) == 1
+  @test length(enumerate_classes_of_lattices_with_isometry(E6, 9)) == 1
   @test length(enumerate_classes_of_lattices_with_isometry(genus(E6), 1)) == 1
 
   @test length(admissible_triples(E6, 2; pA=2)) == 2

@@ -51,7 +51,7 @@ the algorithms and the theory behind them, we refer to the reference paper
 ### The hermitian case
 
 For an irreducible reciprocal polynomial $\chi$ and a genus symbol $G$
-of even integer lattices, if the equation order $\mathbb{Z}[\chi]$ is maximal,
+of integral integer lattices, if the equation order $\mathbb{Z}[\chi]$ is maximal,
 one can compute representatives of isomorphism classes of lattices with isometry
 $(L, f)$ such that $L\in G$ and $\chi(f) = 0$.
 

@@ -848,10 +848,12 @@ end
 function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQuadModuleMap,
                                                                      G::AutomorphismGroup{TorQuadModule},
                                                                      ord::IntegerUnion,
-                                                                     p::IntegerUnion,
+                                                                     _p::IntegerUnion,
                                                                      f::Union{TorQuadModuleMap, AutomorphismGroupElem{TorQuadModule}} = id_hom(codomain(Vinq)),
                                                                      l::IntegerUnion = -1)
   res = Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}[]
+
+  p = ZZ(_p)
 
   V = domain(Vinq)
 
@@ -908,7 +910,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # generators and putting them with H0 will give us invariant subgroups as
   # wanted)
   act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
-  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[can_solve_with_solution(VptoQp.matrix, g*VptoQp.matrix)[1] for g in act_GV]
+  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[can_solve_with_solution(VptoQp.matrix, g*VptoQp.matrix)[2] for g in act_GV]
   MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
@@ -1397,9 +1399,9 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
     qV = domain(GV)
     qK = rescale(qV, -1) # Bilinear form of a complement of V in GL
 
-    GKS = ZZGenus[]
+    GKs = ZZGenus[]
     posK = signature_tuple(GL)[1] - signature_tuple(V)[1]
-    negK = signature_tuple(GL)[1] - signature_tuple(V)[1]
+    negK = signature_tuple(GL)[3] - signature_tuple(V)[3]
     if even
       _G = try genus(qK, (posK, negK))
            catch
@@ -2074,8 +2076,8 @@ function _glue_stabilizers(L::ZZLatWithIsom, M::ZZLatWithIsom, N::ZZLatWithIsom;
   @hassert :ZZLatWithIsom 1 is_isometry(psi)
   @hassert :ZZLatWithIsom 1 qL == disc
 
-  iphi = inv(phi)
-  stab = sub(OqL, elem_type(OqL)[OqL(compose(phi, compose(g, iphi)); check=false) for g in _stab])
+  ipsi = inv(psi)
+  stab = sub(OqL, elem_type(OqL)[OqL(compose(psi, compose(g, ipsi)); check=false) for g in _stab])
   @hassert :ZZLatWithIsom 1 fqL in stab[1]
   return stab
 end
