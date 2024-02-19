@@ -710,8 +710,8 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
-To also return the element $z$, use [`is_conjugate_with_data`](@ref).
+i.e., there is an element `z in `G` such that `x^z` equals `y`.
+To also return the element `z`, use [`is_conjugate_with_data`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)

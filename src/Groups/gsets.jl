@@ -687,7 +687,7 @@ end
 
 Return `true` if `omega1`, `omega2` are in the same orbit of `Omega`,
 and `false` otherwise.
-To also obtain a conjugating element $g$ use [`is_conjugate_with_data`](@ref).
+To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 
 # Examples
 ```jldoctest
@@ -713,7 +713,7 @@ Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
 If yes, return `(true, g)` where `g` is an element in the group `G` of
 `Omega` that maps `omega1` to `omega2`.
 If not, return `(false, nothing)`.
-If the conjugating element $g$ is not needed, use [`is_conjugate`](@ref).
+If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 
 # Examples
 ```jldoctest
