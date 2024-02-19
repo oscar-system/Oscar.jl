@@ -258,11 +258,11 @@ An a priori known number $k \geq 1$ with $d_1\cdots d_n \geq k \cdot |G|$, where
 $G$ is the underlying group, can be specified by `degree_bound = k`. The default value is
 `degree_bound = 1`.
 In some situations, the runtime of the algorithm might be improved by assigning
-a positive integer to `ensure_minimality`. This leads to an early cancellation of
+a positive integer to `ensure_minimality`. This leads to an early cancelation of
 loops in the algorithm and the described minimality of the degrees is not
 guaranteed anymore. A smaller (positive) value of `ensure_minimality` corresponds
-to an earlier cancellation. However, the default value `ensure_minimality = 0`
-corresponds to no cancellation.
+to an earlier cancelation. However, the default value `ensure_minimality = 0`
+corresponds to no cancelation.
 
 # Examples
 ```jldoctest

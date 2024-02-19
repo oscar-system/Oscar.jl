@@ -45,7 +45,7 @@ to set `check = false`.
 
 For any concrete instance of type `AbsLocalizedRingElem`, methods for the functions
 `parent`, `numerator`, and `denominator` must be provided. Moreover,
-if a cancellation function for the type of fractions under consideration is
+if a cancelation function for the type of fractions under consideration is
 not yet available, such a function should be implemented and named
 `reduce_fraction`.
 

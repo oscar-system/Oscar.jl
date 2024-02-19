@@ -1704,7 +1704,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 1 we expect the following cancellation to be possible:
+    # p. 45, l. 1 we expect the following cancelation to be possible:
     divisor_num = evaluate(numerator(x0), x2)
     divisor_den = evaluate(denominator(x0), x2)
     divisor = divisor_den * y2 - divisor_num
@@ -1733,7 +1733,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 15 we expect the following cancellation to be possible:
+    # p. 45, l. 15 we expect the following cancelation to be possible:
     success, eqn1 = divides(eqn1, y2)
     @assert success "equation did not come out in the anticipated form"
     return eqn1, phi
