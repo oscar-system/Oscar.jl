@@ -51,6 +51,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
   load_node(s) do v
     if serialize_with_id(params)
+
       loaded_v = params[load_ref(s, x) for x in v]
     else
       loaded_v = params[]
@@ -84,7 +85,8 @@ function load_object(s::DeserializerState, ::Type{<: Vector}, params::Tuple)
       return T[]
     else
       loaded_v = []
-      for i in 1:length(v)
+      len = length(v)
+      for i in 1:len
         load_node(s, i) do _
           push!(loaded_v, load_object(s, T, params[2]))
         end
@@ -114,7 +116,7 @@ function save_type_params(s::SerializerState, tup::T) where T <: Tuple
   save_data_dict(s) do
     save_object(s, encode_type(Tuple), :name)
     n = fieldcount(T)
-    save_data_array(s, :params) do 
+    save_data_array(s, :params) do
       for i in 1:n
         U = fieldtype(T, i)
         if serialize_with_params(U)
@@ -141,7 +143,7 @@ function load_type_params(s::DeserializerState, ::Type{Tuple})
 end
 
 function save_object(s::SerializerState, obj::Tuple)
-  save_data_array(s) do 
+  save_data_array(s) do
     for entry in obj
       if serialize_with_id(typeof(entry))
         ref = save_as_ref(s, entry)
@@ -176,7 +178,7 @@ function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
   save_data_dict(s) do
     save_object(s, encode_type(NamedTuple), :name)
     save_data_dict(s, :params) do
-      save_data_array(s, :tuple_params) do 
+      save_data_array(s, :tuple_params) do
         for (i, value) in enumerate(values(obj))
           U = fieldtype(T, i)
           if serialize_with_params(U)
@@ -221,7 +223,7 @@ end
 ################################################################################
 # Saving and loading matrices
 @register_serialization_type Matrix uses_params
-  
+
 function save_object(s::SerializerState, mat::Matrix)
   m, n = size(mat)
   save_data_array(s) do
@@ -236,8 +238,9 @@ function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
     if isempty(entries)
       return zero_matrix(parent_type(params)(), 0, 0)
     end
+    len = length(entries)
     m = reduce(vcat, [
-      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+      permutedims(load_object(s, Vector, params, i)) for i in 1:len
         ])
     return Matrix{params}(m)
   end
@@ -249,8 +252,9 @@ function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
       return params[1][]
     end
 
+    len = length(entries)
     m = reduce(vcat, [
-      permutedims(load_object(s, Vector, params, i)) for i in 1:length(entries)
+      permutedims(load_object(s, Vector, params, i)) for i in 1:len
         ])
     return Matrix{params[1]}(m)
   end
@@ -260,7 +264,7 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict uses_params
 
-function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
+function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String, Int}, T}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
@@ -273,14 +277,6 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union
           save_object(s, encode_type(U), Symbol(k))
         end
       end
-    end
-  end
-end
-
-function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}
-  save_data_dict(s) do 
-    for (k, v) in obj
-      save_object(s, v, Symbol(k))
     end
   end
 end
@@ -304,6 +300,14 @@ function load_type_params(s::DeserializerState, ::Type{<:Dict})
   return params_dict
 end
 
+function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String, Int}, T}
+  save_data_dict(s) do
+    for (k, v) in obj
+      save_object(s, v, Symbol(k))
+    end
+  end
+end
+
 function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
   key_type = params[:key_type]
   dict = Dict{key_type, Any}()
@@ -312,11 +316,98 @@ function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, 
       continue
     end
     if params[k] isa Type
-      dict[key_type(k)] = load_object(s, params[k], k)
+      if key_type == Int
+        key = parse(Int, string(k))
+      else
+        key = key_type(k)
+      end
+      dict[key] = load_object(s, params[k], k)
     else
       dict[key_type(k)] = load_object(s, params[k][type_key], params[k][:params], k)
     end
   end
 
   return dict
+end
+
+################################################################################
+# Saving and loading sets
+@register_serialization_type Set uses_params
+
+function save_type_params(s::SerializerState, obj::Set{T}) where T
+  save_data_dict(s) do
+    save_object(s, encode_type(Set), :name)
+    if serialize_with_params(T) && !isempty(obj)
+        save_type_params(s, first(obj), :params)
+      else
+        save_object(s, encode_type(T), :params)
+      end
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:Set})
+  T = decode_type(s)
+  if serialize_with_params(T) && haskey(s, :params)
+    params = load_params_node(s)
+    return (T, params)
+  end
+  return T
+end
+
+function save_object(s::SerializerState, x::Set)
+  save_data_array(s) do
+    for elem in x
+      if serialize_with_id(typeof(elem))
+        ref = save_as_ref(s, elem)
+        save_object(s, ref)
+      else
+        save_object(s, elem)
+      end
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<: Set{params}}) where params
+  load_node(s) do v
+    if serialize_with_id(params)
+      loaded_v = params[load_ref(s, x) for x in v]
+    else
+      loaded_v = params[]
+      for (i, entry) in enumerate(v)
+        push!(loaded_v, load_object(s, params, i))
+      end
+    end
+    return loaded_v
+  end
+end
+
+# handles nested
+function load_object(s::DeserializerState, ::Type{<: Set}, params::Tuple)
+  T = params[1]
+  load_node(s) do v
+    if isempty(v)
+      return Set{T}()
+    else
+      loaded_v = Set{T}()
+      len = length(v)
+      for i in 1:len
+        load_node(s, i) do _
+          push!(loaded_v, load_object(s, T, params[2]))
+        end
+      end
+      return Set{typeof(first(loaded_v))}(loaded_v)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<: Set}, params::Ring)
+  T = elem_type(params)
+  loaded_entries = load_array_node(s) do _
+    if serialize_with_params(T)
+      return load_object(s, T, params)
+    else
+      return  load_object(s, T)
+    end
+  end
+  return Set{T}(loaded_entries)
 end

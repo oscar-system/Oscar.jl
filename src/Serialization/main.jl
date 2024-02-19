@@ -42,7 +42,7 @@ function version_number(v_number::String)
   return VersionNumber(v_number)
 end
 
-# needed for older versions 
+# needed for older versions
 function version_number(dict::Dict)
   return VersionNumber(dict[:major], dict[:minor], dict[:patch])
 end
@@ -97,7 +97,7 @@ function decode_type(s::DeserializerState)
       error("unsupported type '$unsupported_type' for decoding")
     end
   end
-  
+
   if type_key in keys(s.obj)
     return load_node(s, type_key) do _
       decode_type(s)
@@ -175,7 +175,7 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
     ref = save_as_ref(s, x)
     save_object(s, ref)
   else
-    save_data_dict(s) do 
+    save_data_dict(s) do
       save_typed_object(s, x)
     end
   end
@@ -304,14 +304,13 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
-      serialize_with_id(obj::T) where T <: $ex = $uses_id 
+      serialize_with_id(obj::T) where T <: $ex = $uses_id
       serialize_with_id(T::Type{<:$ex}) = $uses_id
       serialize_with_params(T::Type{<:$ex}) = $uses_params
 
       # only extend serialize on non std julia types
-      non_oscar_types = Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple}
-      dicttype = Dict{K, V} where {K <: Union{String, Symbol}, V <: non_oscar_types}
-      if !($ex <: Union{dicttype, non_oscar_types})
+      non_oscar_types = Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set}
+      if !($ex <: non_oscar_types)
         function serialize(s::AbstractSerializer, obj::T) where T <: $ex
           serialize_type(s, T)
           save(s.io, obj; serializer_type=IPCSerializer)
@@ -428,9 +427,9 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
         global_serializer_state.id_to_obj[ref] = obj
       end
       save_object(s, string(ref), :id)
-      
+
     end
-    
+
     # this should be handled by serializers in a later commit / PR
     if !isempty(s.refs) && serializer_type == JSONSerializer
       save_data_dict(s, refs_key) do
@@ -443,7 +442,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
         end
       end
     end
-    
+
     if !isnothing(metadata)
       save_json(s, json(metadata), :meta)
     end
@@ -485,7 +484,7 @@ See [`save`](@ref).
 
 ```jldoctest
 julia> save("/tmp/fourtitwo.json", 42);
-  
+
 julia> load("/tmp/fourtitwo.json")
 42
 
@@ -612,4 +611,3 @@ function load(filename::String; params::Any = nothing, type::Any = nothing)
     return load(file; params=params, type=type)
   end
 end
-
