@@ -257,7 +257,7 @@ function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
 end
 
 ################################################################################
-# Saving and loading matrices
+# Saving and loading dicts
 @register_serialization_type Dict uses_params
 
 function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String}, T}

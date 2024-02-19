@@ -125,7 +125,6 @@ end
 function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_key::String="")
   for (k, v) in dict
     key_str = parent_key == "" ? k : parent_key * "." * k
-
     k == "_type" && continue
     k == "_coeff" && continue
 
