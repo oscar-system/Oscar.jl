@@ -1,110 +1,10 @@
 {
-  "_ns": {
-    "Oscar": [
-      "https://github.com/oscar-system/Oscar.jl",
-      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
-    ]
-  },
-  "_refs": {
-    "10570019-9bc5-43e8-ad9d-71fa164b1a0f": {
-      "_type": "MatSpace",
-      "data": {
-        "base_ring": "360515a7-e56f-4f20-b483-f30d496f381d",
-        "ncols": "4",
-        "nrows": "10"
-      }
-    },
-    "338f9a7a-47b3-4fff-ba67-d135f2b350d9": {
-      "_type": "AbsSimpleNumField",
-      "data": {
-        "def_pol": {
-          "_type": {
-            "name": "PolyRingElem",
-            "params": "548d6858-d457-4bda-85c8-30b5f7308597"
-          },
-          "data": [
-            [
-              "0",
-              "-8"
-            ],
-            [
-              "4",
-              "1"
-            ]
-          ]
-        },
-        "var": "a"
-      }
-    },
-    "360515a7-e56f-4f20-b483-f30d496f381d": {
-      "_type": "EmbeddedNumField",
-      "data": {
+  "data": {
+    "data": {
+      "_coeff": {
         "embedding": "72d2572e-a66b-40d8-a5ee-e41194c334cf",
         "num_field": "338f9a7a-47b3-4fff-ba67-d135f2b350d9"
-      }
-    },
-    "368fd68b-2d69-4380-b800-4a60d4e3c13e": {
-      "_type": "MatSpace",
-      "data": {
-        "base_ring": "360515a7-e56f-4f20-b483-f30d496f381d",
-        "ncols": "4",
-        "nrows": "0"
-      }
-    },
-    "548d6858-d457-4bda-85c8-30b5f7308597": {
-      "_type": "PolyRing",
-      "data": {
-        "base_ring": {
-          "_type": "QQField"
-        },
-        "symbols": [
-          "x"
-        ]
-      }
-    },
-    "72d2572e-a66b-40d8-a5ee-e41194c334cf": {
-      "_type": "Hecke.AbsSimpleNumFieldEmbedding",
-      "data": {
-        "data": {
-          "_type": {
-            "name": "AcbFieldElem",
-            "params": {
-              "_type": "AcbField",
-              "data": "34"
-            }
-          },
-          "data": [
-            "35d13f32b -21 20000003 -3f",
-            "0 0 0 0"
-          ]
-        },
-        "num_field": "338f9a7a-47b3-4fff-ba67-d135f2b350d9"
-      }
-    }
-  },
-  "_type": {
-    "name": "Polyhedron",
-    "params": "360515a7-e56f-4f20-b483-f30d496f381d"
-  },
-  "data": {
-    "_type": {
-      "name": "Dict",
-      "params": {
-        "LINEALITY_SPACE": {
-          "name": "MatElem",
-          "params": "368fd68b-2d69-4380-b800-4a60d4e3c13e"
-        },
-        "VERTICES": {
-          "name": "MatElem",
-          "params": "10570019-9bc5-43e8-ad9d-71fa164b1a0f"
-        },
-        "_coeff": "EmbeddedNumField",
-        "_type": "String",
-        "key_type": "String"
-      }
-    },
-    "data": {
-      "LINEALITY_SPACE": [],
+      },
       "VERTICES": [
         [
           [
@@ -335,11 +235,111 @@
           ]
         ]
       ],
-      "_coeff": {
+      "_type": "polytope::Polytope<OscarNumber>",
+      "LINEALITY_SPACE": []
+    },
+    "_type": {
+      "name": "Dict",
+      "params": {
+        "_coeff": "EmbeddedNumField",
+        "key_type": "String",
+        "VERTICES": {
+          "name": "MatElem",
+          "params": "10570019-9bc5-43e8-ad9d-71fa164b1a0f"
+        },
+        "_type": "String",
+        "LINEALITY_SPACE": {
+          "name": "MatElem",
+          "params": "368fd68b-2d69-4380-b800-4a60d4e3c13e"
+        }
+      }
+    }
+  },
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
+    ]
+  },
+  "_type": {
+    "name": "Polyhedron",
+    "params": "360515a7-e56f-4f20-b483-f30d496f381d"
+  },
+  "_refs": {
+    "360515a7-e56f-4f20-b483-f30d496f381d": {
+      "data": {
         "embedding": "72d2572e-a66b-40d8-a5ee-e41194c334cf",
         "num_field": "338f9a7a-47b3-4fff-ba67-d135f2b350d9"
       },
-      "_type": "polytope::Polytope<OscarNumber>"
+      "_type": "EmbeddedNumField"
+    },
+    "368fd68b-2d69-4380-b800-4a60d4e3c13e": {
+      "data": {
+        "nrows": "0",
+        "base_ring": "360515a7-e56f-4f20-b483-f30d496f381d",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "72d2572e-a66b-40d8-a5ee-e41194c334cf": {
+      "data": {
+        "data": {
+          "data": [
+            "35d13f32b -21 20000003 -3f",
+            "0 0 0 0"
+          ],
+          "_type": {
+            "name": "AcbFieldElem",
+            "params": {
+              "data": "34",
+              "_type": "AcbField"
+            }
+          }
+        },
+        "num_field": "338f9a7a-47b3-4fff-ba67-d135f2b350d9"
+      },
+      "_type": "Hecke.AbsSimpleNumFieldEmbedding"
+    },
+    "548d6858-d457-4bda-85c8-30b5f7308597": {
+      "data": {
+        "symbols": [
+          "x"
+        ],
+        "base_ring": {
+          "_type": "QQField"
+        }
+      },
+      "_type": "PolyRing"
+    },
+    "338f9a7a-47b3-4fff-ba67-d135f2b350d9": {
+      "data": {
+        "def_pol": {
+          "data": [
+            [
+              "0",
+              "-8"
+            ],
+            [
+              "4",
+              "1"
+            ]
+          ],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "548d6858-d457-4bda-85c8-30b5f7308597"
+          }
+        },
+        "var": "a"
+      },
+      "_type": "AbsSimpleNumField"
+    },
+    "10570019-9bc5-43e8-ad9d-71fa164b1a0f": {
+      "data": {
+        "nrows": "10",
+        "base_ring": "360515a7-e56f-4f20-b483-f30d496f381d",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
     }
   }
 }

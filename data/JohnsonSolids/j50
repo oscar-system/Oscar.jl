@@ -1,1 +1,453 @@
-{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"]},"_type":{"name":"Polyhedron","params":"c8db08db-04a1-4697-906f-3b0124231a70"},"data":{"_type":{"name":"Dict","params":{"key_type":"String","_coeff":"EmbeddedNumField","VERTICES":{"name":"MatElem","params":"4f6bda27-8e53-4c63-ae72-ed543f365c7b"},"_type":"String","LINEALITY_SPACE":{"name":"MatElem","params":"bd6419c7-230b-4306-9d65-fa0e25c81848"}}},"data":{"_coeff":{"num_field":"6239a4af-919d-4d5e-8dee-b606e8ea0d45","embedding":"e00c87f6-a40b-47ce-ad15-10bb4a631638"},"VERTICES":[[[[["0","0"],"1"]],[[["0","0"],"1//2"]],[[["0","1"],"-1//6"]],[[["0","0"],"1//2"]]],[[[["0","0"],"1"]],[[["0","0"],"1//2"]],[[["0","1"],"-1//6"]],[[["0","0"],"-1//2"]]],[[[["0","0"],"1"]],[[["0","0"],"-1//2"]],[[["0","1"],"-1//6"]],[[["0","0"],"1//2"]]],[[[["0","0"],"1"]],[[["0","0"],"-1//2"]],[[["0","1"],"-1//6"]],[[["0","0"],"-1//2"]]],[[[["0","0"],"1"]],[],[[["0","1"],"1//3"]],[[["0","0"],"1//2"]]],[[[["0","0"],"1"]],[],[[["0","1"],"1//3"]],[[["0","0"],"-1//2"]]],[[[["0","0"],"1"]],[[["1","1"],"1//4"],[["0","0"],"1//4"]],[[["1","0"],"1//4"],[["0","1"],"1//12"]],[]],[[[["0","0"],"1"]],[[["1","1"],"-1//4"],[["0","0"],"-1//4"]],[[["1","0"],"1//4"],[["0","1"],"1//12"]],[]]],"_type":"polytope::Polytope<OscarNumber>","LINEALITY_SPACE":[]}},"_refs":{"c8db08db-04a1-4697-906f-3b0124231a70":{"_type":"EmbeddedNumField","data":{"num_field":"6239a4af-919d-4d5e-8dee-b606e8ea0d45","embedding":"e00c87f6-a40b-47ce-ad15-10bb4a631638"}},"4f6bda27-8e53-4c63-ae72-ed543f365c7b":{"_type":"MatSpace","data":{"base_ring":"c8db08db-04a1-4697-906f-3b0124231a70","ncols":"4","nrows":"8"}},"bd6419c7-230b-4306-9d65-fa0e25c81848":{"_type":"MatSpace","data":{"base_ring":"c8db08db-04a1-4697-906f-3b0124231a70","ncols":"4","nrows":"0"}},"6239a4af-919d-4d5e-8dee-b606e8ea0d45":{"_type":"AbsNonSimpleNumField","data":{"def_pols":{"_type":{"name":"Vector","params":{"name":"PolyRingElem","params":"548d6858-d457-4bda-85c8-30b5f7308597"}},"data":[[["0","-2"],["2","1"]],[["0","-3"],["2","1"]]]},"vars":["sqrt(2)","sqrt(3)"]}},"e00c87f6-a40b-47ce-ad15-10bb4a631638":{"_type":"Hecke.AbsNonSimpleNumFieldEmbedding","data":{"num_field":"6239a4af-919d-4d5e-8dee-b606e8ea0d45","data":{"_type":{"name":"Tuple","params":[{"name":"AcbFieldElem","params":{"_type":"AcbField","data":"64"}},{"name":"AcbFieldElem","params":{"_type":"AcbField","data":"64"}}]},"data":[["2d413cccfe779921 -3d 16a09e69 -5b","0 0 0 0"],["ddb3d742c265539d -3f 1279a749 -5a","0 0 0 0"]]}}},"548d6858-d457-4bda-85c8-30b5f7308597":{"_type":"PolyRing","data":{"base_ring":{"_type":"QQField"},"symbols":["x"]}}}}
+{
+  "data": {
+    "data": {
+      "_coeff": {
+        "embedding": "e00c87f6-a40b-47ce-ad15-10bb4a631638",
+        "num_field": "6239a4af-919d-4d5e-8dee-b606e8ea0d45"
+      },
+      "VERTICES": [
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//2"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "-1//6"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//2"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "-1//6"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//2"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "-1//6"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//2"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "-1//6"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "1//3"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [],
+          [
+            [
+              [
+                "0",
+                "1"
+              ],
+              "1//3"
+            ]
+          ],
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//2"
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "1",
+                "1"
+              ],
+              "1//4"
+            ],
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1//4"
+            ]
+          ],
+          [
+            [
+              [
+                "1",
+                "0"
+              ],
+              "1//4"
+            ],
+            [
+              [
+                "0",
+                "1"
+              ],
+              "1//12"
+            ]
+          ],
+          []
+        ],
+        [
+          [
+            [
+              [
+                "0",
+                "0"
+              ],
+              "1"
+            ]
+          ],
+          [
+            [
+              [
+                "1",
+                "1"
+              ],
+              "-1//4"
+            ],
+            [
+              [
+                "0",
+                "0"
+              ],
+              "-1//4"
+            ]
+          ],
+          [
+            [
+              [
+                "1",
+                "0"
+              ],
+              "1//4"
+            ],
+            [
+              [
+                "0",
+                "1"
+              ],
+              "1//12"
+            ]
+          ],
+          []
+        ]
+      ],
+      "_type": "polytope::Polytope<OscarNumber>",
+      "LINEALITY_SPACE": []
+    },
+    "_type": {
+      "name": "Dict",
+      "params": {
+        "_coeff": "EmbeddedNumField",
+        "key_type": "String",
+        "VERTICES": {
+          "name": "MatElem",
+          "params": "4f6bda27-8e53-4c63-ae72-ed543f365c7b"
+        },
+        "_type": "String",
+        "LINEALITY_SPACE": {
+          "name": "MatElem",
+          "params": "bd6419c7-230b-4306-9d65-fa0e25c81848"
+        }
+      }
+    }
+  },
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
+    ]
+  },
+  "_type": {
+    "name": "Polyhedron",
+    "params": "c8db08db-04a1-4697-906f-3b0124231a70"
+  },
+  "_refs": {
+    "bd6419c7-230b-4306-9d65-fa0e25c81848": {
+      "data": {
+        "nrows": "0",
+        "base_ring": "c8db08db-04a1-4697-906f-3b0124231a70",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "4f6bda27-8e53-4c63-ae72-ed543f365c7b": {
+      "data": {
+        "nrows": "8",
+        "base_ring": "c8db08db-04a1-4697-906f-3b0124231a70",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "e00c87f6-a40b-47ce-ad15-10bb4a631638": {
+      "data": {
+        "data": {
+          "data": [
+            [
+              "2d413cccfe779921 -3d 16a09e69 -5b",
+              "0 0 0 0"
+            ],
+            [
+              "ddb3d742c265539d -3f 1279a749 -5a",
+              "0 0 0 0"
+            ]
+          ],
+          "_type": {
+            "name": "Tuple",
+            "params": [
+              {
+                "name": "AcbFieldElem",
+                "params": {
+                  "data": "64",
+                  "_type": "AcbField"
+                }
+              },
+              {
+                "name": "AcbFieldElem",
+                "params": {
+                  "data": "64",
+                  "_type": "AcbField"
+                }
+              }
+            ]
+          }
+        },
+        "num_field": "6239a4af-919d-4d5e-8dee-b606e8ea0d45"
+      },
+      "_type": "Hecke.AbsNonSimpleNumFieldEmbedding"
+    },
+    "548d6858-d457-4bda-85c8-30b5f7308597": {
+      "data": {
+        "symbols": [
+          "x"
+        ],
+        "base_ring": {
+          "_type": "QQField"
+        }
+      },
+      "_type": "PolyRing"
+    },
+    "6239a4af-919d-4d5e-8dee-b606e8ea0d45": {
+      "data": {
+        "vars": [
+          "sqrt(2)",
+          "sqrt(3)"
+        ],
+        "def_pols": {
+          "data": [
+            [
+              [
+                "0",
+                "-2"
+              ],
+              [
+                "2",
+                "1"
+              ]
+            ],
+            [
+              [
+                "0",
+                "-3"
+              ],
+              [
+                "2",
+                "1"
+              ]
+            ]
+          ],
+          "_type": {
+            "name": "Vector",
+            "params": {
+              "name": "PolyRingElem",
+              "params": "548d6858-d457-4bda-85c8-30b5f7308597"
+            }
+          }
+        }
+      },
+      "_type": "AbsNonSimpleNumField"
+    },
+    "c8db08db-04a1-4697-906f-3b0124231a70": {
+      "data": {
+        "embedding": "e00c87f6-a40b-47ce-ad15-10bb4a631638",
+        "num_field": "6239a4af-919d-4d5e-8dee-b606e8ea0d45"
+      },
+      "_type": "EmbeddedNumField"
+    }
+  }
+}

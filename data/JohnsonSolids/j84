@@ -1,1 +1,538 @@
-{"_ns":{"Oscar":["https://github.com/oscar-system/Oscar.jl","1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"]},"_type":{"name":"Polyhedron","params":"1893b139-3d01-481d-8f97-8171131ec45e"},"data":{"_type":{"name":"Dict","params":{"key_type":"String","_coeff":"EmbeddedNumField","VERTICES":{"name":"MatElem","params":"650f9865-9894-4813-8487-64db9b2c55d1"},"_type":"String","LINEALITY_SPACE":{"name":"MatElem","params":"4b2aad83-5dc8-4366-b41e-5c262f9de6ee"}}},"data":{"_coeff":{"num_field":"1ce60e12-1a11-433b-bf7f-faa17191618e","embedding":"d710ccd2-7f94-46dc-ad13-c6fb4e23a913"},"VERTICES":[[[["0",[["0","1"]]]],[["0",[["0","1//4"],["1","9//4"],["2","1//2"]]]],[],[["1",[["0","-1//2"]]]]],[[["0",[["0","1"]]]],[["0",[["0","-1//4"],["1","-9//4"],["2","-1//2"]]]],[],[["1",[["0","-1//2"]]]]],[[["0",[["0","1"]]]],[],[["0",[["0","1//4"],["1","9//4"],["2","1//2"]]]],[["1",[["0","1//2"]]]]],[[["0",[["0","1"]]]],[],[["0",[["0","-1//4"],["1","-9//4"],["2","-1//2"]]]],[["1",[["0","1//2"]]]]],[[["0",[["0","1"]]]],[["0",[["0","1//2"]]]],[],[["1",[["0","13//8"],["1","13//8"],["2","1//4"]]]]],[[["0",[["0","1"]]]],[["0",[["0","-1//2"]]]],[],[["1",[["0","13//8"],["1","13//8"],["2","1//4"]]]]],[[["0",[["0","1"]]]],[],[["0",[["0","1//2"]]]],[["1",[["0","-13//8"],["1","-13//8"],["2","-1//4"]]]]],[[["0",[["0","1"]]]],[],[["0",[["0","-1//2"]]]],[["1",[["0","-13//8"],["1","-13//8"],["2","-1//4"]]]]]],"_type":"polytope::Polytope<OscarNumber>","LINEALITY_SPACE":[]}},"_refs":{"1893b139-3d01-481d-8f97-8171131ec45e":{"_type":"EmbeddedNumField","data":{"num_field":"1ce60e12-1a11-433b-bf7f-faa17191618e","embedding":"d710ccd2-7f94-46dc-ad13-c6fb4e23a913"}},"650f9865-9894-4813-8487-64db9b2c55d1":{"_type":"MatSpace","data":{"base_ring":"1893b139-3d01-481d-8f97-8171131ec45e","ncols":"4","nrows":"8"}},"4b2aad83-5dc8-4366-b41e-5c262f9de6ee":{"_type":"MatSpace","data":{"base_ring":"1893b139-3d01-481d-8f97-8171131ec45e","ncols":"4","nrows":"0"}},"1ce60e12-1a11-433b-bf7f-faa17191618e":{"_type":"Hecke.RelSimpleNumField","data":{"def_pol":{"_type":{"name":"PolyRingElem","params":"84c32d4a-8326-4f97-8adc-2dd773ea8350"},"data":[["0",[["1","-1"]]],["2",[["0","1"]]]]},"var":"sqrt(a)"}},"d710ccd2-7f94-46dc-ad13-c6fb4e23a913":{"_type":"Hecke.RelSimpleNumFieldEmbedding","data":{"num_field":"1ce60e12-1a11-433b-bf7f-faa17191618e","base_field_emb":"0a4879e3-5c63-4527-85aa-4e826fb2110c","data":{"_type":{"name":"AcbFieldElem","params":{"_type":"AcbField","data":"32"}},"data":["d27ebb2b -21 32c7c15 -3a","0 0 0 0"]}}},"84c32d4a-8326-4f97-8adc-2dd773ea8350":{"_type":"PolyRing","data":{"base_ring":"1cda87e6-d8b3-4139-b5c3-b472c9aadff1","symbols":["y"]}},"0a4879e3-5c63-4527-85aa-4e826fb2110c":{"_type":"Hecke.AbsSimpleNumFieldEmbedding","data":{"num_field":"1cda87e6-d8b3-4139-b5c3-b472c9aadff1","data":{"_type":{"name":"AcbFieldElem","params":{"_type":"AcbField","data":"35"}},"data":["568a14e75 -25 20000003 -42","0 0 0 0"]}}},"1cda87e6-d8b3-4139-b5c3-b472c9aadff1":{"_type":"AbsSimpleNumField","data":{"def_pol":{"_type":{"name":"PolyRingElem","params":"548d6858-d457-4bda-85c8-30b5f7308597"},"data":[["0","-1"],["1","4"],["2","11"],["3","2"]]},"var":"a"}},"548d6858-d457-4bda-85c8-30b5f7308597":{"_type":"PolyRing","data":{"base_ring":{"_type":"QQField"},"symbols":["x"]}}}}
+{
+  "data": {
+    "data": {
+      "_coeff": {
+        "embedding": "d710ccd2-7f94-46dc-ad13-c6fb4e23a913",
+        "num_field": "1ce60e12-1a11-433b-bf7f-faa17191618e"
+      },
+      "VERTICES": [
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1//4"
+                ],
+                [
+                  "1",
+                  "9//4"
+                ],
+                [
+                  "2",
+                  "1//2"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "-1//4"
+                ],
+                [
+                  "1",
+                  "-9//4"
+                ],
+                [
+                  "2",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1//4"
+                ],
+                [
+                  "1",
+                  "9//4"
+                ],
+                [
+                  "2",
+                  "1//2"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "1//2"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "-1//4"
+                ],
+                [
+                  "1",
+                  "-9//4"
+                ],
+                [
+                  "2",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "1//2"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1//2"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "13//8"
+                ],
+                [
+                  "1",
+                  "13//8"
+                ],
+                [
+                  "2",
+                  "1//4"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "13//8"
+                ],
+                [
+                  "1",
+                  "13//8"
+                ],
+                [
+                  "2",
+                  "1//4"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1//2"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "-13//8"
+                ],
+                [
+                  "1",
+                  "-13//8"
+                ],
+                [
+                  "2",
+                  "-1//4"
+                ]
+              ]
+            ]
+          ]
+        ],
+        [
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          [],
+          [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "-1//2"
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "1",
+              [
+                [
+                  "0",
+                  "-13//8"
+                ],
+                [
+                  "1",
+                  "-13//8"
+                ],
+                [
+                  "2",
+                  "-1//4"
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      "_type": "polytope::Polytope<OscarNumber>",
+      "LINEALITY_SPACE": []
+    },
+    "_type": {
+      "name": "Dict",
+      "params": {
+        "_coeff": "EmbeddedNumField",
+        "key_type": "String",
+        "VERTICES": {
+          "name": "MatElem",
+          "params": "650f9865-9894-4813-8487-64db9b2c55d1"
+        },
+        "_type": "String",
+        "LINEALITY_SPACE": {
+          "name": "MatElem",
+          "params": "4b2aad83-5dc8-4366-b41e-5c262f9de6ee"
+        }
+      }
+    }
+  },
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
+    ]
+  },
+  "_type": {
+    "name": "Polyhedron",
+    "params": "1893b139-3d01-481d-8f97-8171131ec45e"
+  },
+  "_refs": {
+    "1cda87e6-d8b3-4139-b5c3-b472c9aadff1": {
+      "data": {
+        "def_pol": {
+          "data": [
+            [
+              "0",
+              "-1"
+            ],
+            [
+              "1",
+              "4"
+            ],
+            [
+              "2",
+              "11"
+            ],
+            [
+              "3",
+              "2"
+            ]
+          ],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "548d6858-d457-4bda-85c8-30b5f7308597"
+          }
+        },
+        "var": "a"
+      },
+      "_type": "AbsSimpleNumField"
+    },
+    "1ce60e12-1a11-433b-bf7f-faa17191618e": {
+      "data": {
+        "def_pol": {
+          "data": [
+            [
+              "0",
+              [
+                [
+                  "1",
+                  "-1"
+                ]
+              ]
+            ],
+            [
+              "2",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "84c32d4a-8326-4f97-8adc-2dd773ea8350"
+          }
+        },
+        "var": "sqrt(a)"
+      },
+      "_type": "Hecke.RelSimpleNumField"
+    },
+    "1893b139-3d01-481d-8f97-8171131ec45e": {
+      "data": {
+        "embedding": "d710ccd2-7f94-46dc-ad13-c6fb4e23a913",
+        "num_field": "1ce60e12-1a11-433b-bf7f-faa17191618e"
+      },
+      "_type": "EmbeddedNumField"
+    },
+    "0a4879e3-5c63-4527-85aa-4e826fb2110c": {
+      "data": {
+        "data": {
+          "data": [
+            "568a14e75 -25 20000003 -42",
+            "0 0 0 0"
+          ],
+          "_type": {
+            "name": "AcbFieldElem",
+            "params": {
+              "data": "35",
+              "_type": "AcbField"
+            }
+          }
+        },
+        "num_field": "1cda87e6-d8b3-4139-b5c3-b472c9aadff1"
+      },
+      "_type": "Hecke.AbsSimpleNumFieldEmbedding"
+    },
+    "d710ccd2-7f94-46dc-ad13-c6fb4e23a913": {
+      "data": {
+        "base_field_emb": "0a4879e3-5c63-4527-85aa-4e826fb2110c",
+        "data": {
+          "data": [
+            "d27ebb2b -21 32c7c15 -3a",
+            "0 0 0 0"
+          ],
+          "_type": {
+            "name": "AcbFieldElem",
+            "params": {
+              "data": "32",
+              "_type": "AcbField"
+            }
+          }
+        },
+        "num_field": "1ce60e12-1a11-433b-bf7f-faa17191618e"
+      },
+      "_type": "Hecke.RelSimpleNumFieldEmbedding"
+    },
+    "650f9865-9894-4813-8487-64db9b2c55d1": {
+      "data": {
+        "nrows": "8",
+        "base_ring": "1893b139-3d01-481d-8f97-8171131ec45e",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "548d6858-d457-4bda-85c8-30b5f7308597": {
+      "data": {
+        "symbols": [
+          "x"
+        ],
+        "base_ring": {
+          "_type": "QQField"
+        }
+      },
+      "_type": "PolyRing"
+    },
+    "84c32d4a-8326-4f97-8adc-2dd773ea8350": {
+      "data": {
+        "symbols": [
+          "y"
+        ],
+        "base_ring": "1cda87e6-d8b3-4139-b5c3-b472c9aadff1"
+      },
+      "_type": "PolyRing"
+    },
+    "4b2aad83-5dc8-4366-b41e-5c262f9de6ee": {
+      "data": {
+        "nrows": "0",
+        "base_ring": "1893b139-3d01-481d-8f97-8171131ec45e",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    }
+  }
+}

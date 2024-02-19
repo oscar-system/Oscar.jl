@@ -1,175 +1,10 @@
 {
-  "_ns": {
-    "Oscar": [
-      "https://github.com/oscar-system/Oscar.jl",
-      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
-    ]
-  },
-  "_refs": {
-    "065c2738-86b2-4f96-93ff-91628fcc9875": {
-      "_type": "Hecke.AbsSimpleNumFieldEmbedding",
-      "data": {
-        "data": {
-          "_type": {
-            "name": "AcbFieldElem",
-            "params": {
-              "_type": "AcbField",
-              "data": "35"
-            }
-          },
-          "data": [
-            "478dde6e5 -21 20000003 -3e",
-            "0 0 0 0"
-          ]
-        },
-        "num_field": "a69b242b-586a-475e-838d-4e8cd7de9548"
-      }
-    },
-    "086ffb90-0550-4009-a0aa-0bcbee05f720": {
-      "_type": "PolyRing",
-      "data": {
-        "base_ring": {
-          "_type": "QQField"
-        },
-        "symbols": [
-          "x"
-        ]
-      }
-    },
-    "09729bd7-80bd-4fe2-ab0c-a678570e2699": {
-      "_type": "PolyRing",
-      "data": {
-        "base_ring": "a69b242b-586a-475e-838d-4e8cd7de9548",
-        "symbols": [
-          "y"
-        ]
-      }
-    },
-    "1b01daea-8a6c-4f56-8b48-0ae804c5ce79": {
-      "_type": "MatSpace",
-      "data": {
-        "base_ring": "bc64837a-b755-41f5-96b2-6c378ea0eb5a",
-        "ncols": "4",
-        "nrows": "0"
-      }
-    },
-    "2bd3df96-f438-44c4-8d9f-8cf096912250": {
-      "_type": "Hecke.RelSimpleNumField",
-      "data": {
-        "def_pol": {
-          "_type": {
-            "name": "PolyRingElem",
-            "params": "09729bd7-80bd-4fe2-ab0c-a678570e2699"
-          },
-          "data": [
-            [
-              "0",
-              [
-                [
-                  "0",
-                  "-1//2"
-                ],
-                [
-                  "1",
-                  "-1//10"
-                ]
-              ]
-            ],
-            [
-              "2",
-              [
-                [
-                  "0",
-                  "1"
-                ]
-              ]
-            ]
-          ]
-        },
-        "var": "a"
-      }
-    },
-    "4d6a37f0-c1db-4f37-8aa4-1e1f366afdca": {
-      "_type": "MatSpace",
-      "data": {
-        "base_ring": "bc64837a-b755-41f5-96b2-6c378ea0eb5a",
-        "ncols": "4",
-        "nrows": "7"
-      }
-    },
-    "a69b242b-586a-475e-838d-4e8cd7de9548": {
-      "_type": "AbsSimpleNumField",
-      "data": {
-        "def_pol": {
-          "_type": {
-            "name": "PolyRingElem",
-            "params": "086ffb90-0550-4009-a0aa-0bcbee05f720"
-          },
-          "data": [
-            [
-              "0",
-              "-5"
-            ],
-            [
-              "2",
-              "1"
-            ]
-          ]
-        },
-        "var": "sqrt(5)"
-      }
-    },
-    "bc64837a-b755-41f5-96b2-6c378ea0eb5a": {
-      "_type": "EmbeddedNumField",
-      "data": {
+  "data": {
+    "data": {
+      "_coeff": {
         "embedding": "ff5f2d56-df5c-45de-896a-91376aaabf26",
         "num_field": "2bd3df96-f438-44c4-8d9f-8cf096912250"
-      }
-    },
-    "ff5f2d56-df5c-45de-896a-91376aaabf26": {
-      "_type": "Hecke.RelSimpleNumFieldEmbedding",
-      "data": {
-        "base_field_emb": "065c2738-86b2-4f96-93ff-91628fcc9875",
-        "data": {
-          "_type": {
-            "name": "AcbFieldElem",
-            "params": {
-              "_type": "AcbField",
-              "data": "36"
-            }
-          },
-          "data": [
-            "d9c4405a3 -24 11cc4cf3 -45",
-            "0 0 0 0"
-          ]
-        },
-        "num_field": "2bd3df96-f438-44c4-8d9f-8cf096912250"
-      }
-    }
-  },
-  "_type": {
-    "name": "Polyhedron",
-    "params": "bc64837a-b755-41f5-96b2-6c378ea0eb5a"
-  },
-  "data": {
-    "_type": {
-      "name": "Dict",
-      "params": {
-        "LINEALITY_SPACE": {
-          "name": "MatElem",
-          "params": "1b01daea-8a6c-4f56-8b48-0ae804c5ce79"
-        },
-        "VERTICES": {
-          "name": "MatElem",
-          "params": "4d6a37f0-c1db-4f37-8aa4-1e1f366afdca"
-        },
-        "_coeff": "EmbeddedNumField",
-        "_type": "String",
-        "key_type": "String"
-      }
-    },
-    "data": {
-      "LINEALITY_SPACE": [],
+      },
       "VERTICES": [
         [
           [
@@ -426,11 +261,176 @@
           ]
         ]
       ],
-      "_coeff": {
+      "_type": "polytope::Polytope<OscarNumber>",
+      "LINEALITY_SPACE": []
+    },
+    "_type": {
+      "name": "Dict",
+      "params": {
+        "_coeff": "EmbeddedNumField",
+        "key_type": "String",
+        "VERTICES": {
+          "name": "MatElem",
+          "params": "4d6a37f0-c1db-4f37-8aa4-1e1f366afdca"
+        },
+        "_type": "String",
+        "LINEALITY_SPACE": {
+          "name": "MatElem",
+          "params": "1b01daea-8a6c-4f56-8b48-0ae804c5ce79"
+        }
+      }
+    }
+  },
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.0.0-DEV-22619c92236ec3a08cd069a95ca08da707e29cd6"
+    ]
+  },
+  "_type": {
+    "name": "Polyhedron",
+    "params": "bc64837a-b755-41f5-96b2-6c378ea0eb5a"
+  },
+  "_refs": {
+    "086ffb90-0550-4009-a0aa-0bcbee05f720": {
+      "data": {
+        "symbols": [
+          "x"
+        ],
+        "base_ring": {
+          "_type": "QQField"
+        }
+      },
+      "_type": "PolyRing"
+    },
+    "1b01daea-8a6c-4f56-8b48-0ae804c5ce79": {
+      "data": {
+        "nrows": "0",
+        "base_ring": "bc64837a-b755-41f5-96b2-6c378ea0eb5a",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "4d6a37f0-c1db-4f37-8aa4-1e1f366afdca": {
+      "data": {
+        "nrows": "7",
+        "base_ring": "bc64837a-b755-41f5-96b2-6c378ea0eb5a",
+        "ncols": "4"
+      },
+      "_type": "MatSpace"
+    },
+    "ff5f2d56-df5c-45de-896a-91376aaabf26": {
+      "data": {
+        "base_field_emb": "065c2738-86b2-4f96-93ff-91628fcc9875",
+        "data": {
+          "data": [
+            "d9c4405a3 -24 11cc4cf3 -45",
+            "0 0 0 0"
+          ],
+          "_type": {
+            "name": "AcbFieldElem",
+            "params": {
+              "data": "36",
+              "_type": "AcbField"
+            }
+          }
+        },
+        "num_field": "2bd3df96-f438-44c4-8d9f-8cf096912250"
+      },
+      "_type": "Hecke.RelSimpleNumFieldEmbedding"
+    },
+    "065c2738-86b2-4f96-93ff-91628fcc9875": {
+      "data": {
+        "data": {
+          "data": [
+            "478dde6e5 -21 20000003 -3e",
+            "0 0 0 0"
+          ],
+          "_type": {
+            "name": "AcbFieldElem",
+            "params": {
+              "data": "35",
+              "_type": "AcbField"
+            }
+          }
+        },
+        "num_field": "a69b242b-586a-475e-838d-4e8cd7de9548"
+      },
+      "_type": "Hecke.AbsSimpleNumFieldEmbedding"
+    },
+    "a69b242b-586a-475e-838d-4e8cd7de9548": {
+      "data": {
+        "def_pol": {
+          "data": [
+            [
+              "0",
+              "-5"
+            ],
+            [
+              "2",
+              "1"
+            ]
+          ],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "086ffb90-0550-4009-a0aa-0bcbee05f720"
+          }
+        },
+        "var": "sqrt(5)"
+      },
+      "_type": "AbsSimpleNumField"
+    },
+    "09729bd7-80bd-4fe2-ab0c-a678570e2699": {
+      "data": {
+        "symbols": [
+          "y"
+        ],
+        "base_ring": "a69b242b-586a-475e-838d-4e8cd7de9548"
+      },
+      "_type": "PolyRing"
+    },
+    "bc64837a-b755-41f5-96b2-6c378ea0eb5a": {
+      "data": {
         "embedding": "ff5f2d56-df5c-45de-896a-91376aaabf26",
         "num_field": "2bd3df96-f438-44c4-8d9f-8cf096912250"
       },
-      "_type": "polytope::Polytope<OscarNumber>"
+      "_type": "EmbeddedNumField"
+    },
+    "2bd3df96-f438-44c4-8d9f-8cf096912250": {
+      "data": {
+        "def_pol": {
+          "data": [
+            [
+              "0",
+              [
+                [
+                  "0",
+                  "-1//2"
+                ],
+                [
+                  "1",
+                  "-1//10"
+                ]
+              ]
+            ],
+            [
+              "2",
+              [
+                [
+                  "0",
+                  "1"
+                ]
+              ]
+            ]
+          ],
+          "_type": {
+            "name": "PolyRingElem",
+            "params": "09729bd7-80bd-4fe2-ab0c-a678570e2699"
+          }
+        },
+        "var": "a"
+      },
+      "_type": "Hecke.RelSimpleNumField"
     }
   }
 }
