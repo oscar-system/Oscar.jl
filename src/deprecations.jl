@@ -50,11 +50,6 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate embedding(W::WreathProductGroup, n::Int) canonical_injection(W, n)
 @deprecate projection(W::WreathProductGroup) canonical_projection(W)
 
-@deprecate n_cones number_of_cones
-@deprecate n_connected_components number_of_connected_components
-@deprecate n_maximal_cells number_of_maximal_cells
-@deprecate n_maximal_cones number_of_maximal_cones
-@deprecate n_maximal_polyhedra number_of_maximal_polyhedra
 @deprecate num_partitions number_of_partitions
 @deprecate num_positive_roots number_of_positive_roots
 @deprecate num_roots number_of_roots
@@ -75,3 +70,24 @@ Base.@deprecate_binding jacobi_ideal jacobian_ideal
 @deprecate has_number_small_groups has_number_of_small_groups
 @deprecate number_transitive_groups number_of_transitive_groups
 @deprecate has_number_transitive_groups has_number_of_transitive_groups
+
+@deprecate factorisations factorizations
+@deprecate centraliser centralizer
+
+@deprecate hall_subgroup_reps(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, hall_subgroup_classes(G, P))
+@deprecate hall_subgroups_representatives(G::GAPGroup, P::AbstractVector{<:IntegerUnion}) map(representative, hall_subgroup_classes(G, P))
+
+function hall_subgroup(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup}
+  Base.depwarn("The function hall_subgroup is deprecated. Please use hall_subgroup_classes.", :hall_subgroup)
+  @req is_solvable(G) "The group is not solvable"
+  return representative(hall_subgroup_classes(G, P)[1])
+end
+
+@deprecate low_index_subgroup_reps(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, low_index_subgroup_classes(G, n))
+
+@deprecate complement_class_reps(G::T, N::T) where T <: GAPGroup map(representative, complement_classes(G, N))
+
+@deprecate maximal_subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, maximal_subgroup_classes(G))
+@deprecate subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, subgroup_classes(G))
+@deprecate conjugacy_classes_maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} maximal_subgroup_classes(G)
+@deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)

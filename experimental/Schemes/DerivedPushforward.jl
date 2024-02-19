@@ -75,7 +75,7 @@ end
 =#
 
 function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:FieldElem}
-  return ngens(domain(phi)) - left_kernel(sparse_matrix(phi))[1]
+  return ngens(domain(phi)) - nrows(kernel(sparse_matrix(phi), side = :left))
 end
 
 

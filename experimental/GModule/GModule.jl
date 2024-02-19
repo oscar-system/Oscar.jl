@@ -213,17 +213,17 @@ end
 
 
 function __init__()
-  add_verbose_scope(:BruecknerSQ)
-  set_verbose_level(:BruecknerSQ, 0)
+  add_verbosity_scope(:BruecknerSQ)
+  set_verbosity_level(:BruecknerSQ, 0)
 
-  add_assert_scope(:BruecknerSQ)
-  set_assert_level(:BruecknerSQ, 0)
+  add_assertion_scope(:BruecknerSQ)
+  set_assertion_level(:BruecknerSQ, 0)
 
-  add_assert_scope(:MinField)
-  set_assert_level(:MinField, 0)
+  add_assertion_scope(:MinField)
+  set_assertion_level(:MinField, 0)
 
-  add_verbose_scope(:MinField)
-  set_verbose_level(:MinField, 0)
+  add_verbosity_scope(:MinField)
+  set_verbosity_level(:MinField, 0)
 end
 
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
@@ -728,7 +728,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
   end
   I = identity_matrix(K, dim(C))
 
-  @vprint :MinField 1 "computing un-normalised 1-chain (of matrices)\n"
+  @vprint :MinField 1 "computing un-normalized 1-chain (of matrices)\n"
   # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_g^h * X_h)
   @vtime :MinField 2 
     c = closure([(gen(G, i), homs[i]) for i=1:ngens(G)], 
@@ -914,7 +914,7 @@ function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
       @hassert :MinField 2 A == B*inv(map_entries(s, B))
       return B
     else
-      if cnt > 10 && get_assert_level(:MinField) > 1
+      if cnt > 10 && get_assertion_level(:MinField) > 1
         error("")
       end
       cnt += 1
@@ -1259,7 +1259,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
           push!(S, s)
         end
       end
-      if nbits(pp) > 1000 && get_assert_level(:MinField) > 1
+      if nbits(pp) > 1000 && get_assertion_level(:MinField) > 1
         error("ndw")
       end
       if length(S) == length(T)

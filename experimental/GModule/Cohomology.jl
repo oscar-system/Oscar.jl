@@ -11,11 +11,11 @@ import Base: parent
 import Oscar: pretty, Lowercase, @show_name, @show_special
 
 function __init__()
-  Hecke.add_verbose_scope(:GroupCohomology)
-  Hecke.add_assert_scope(:GroupCohomology)
+  Hecke.add_verbosity_scope(:GroupCohomology)
+  Hecke.add_assertion_scope(:GroupCohomology)
 
-  Hecke.add_verbose_scope(:GaloisCohomology)
-  Hecke.add_assert_scope(:GaloisCohomology)
+  Hecke.add_verbosity_scope(:GaloisCohomology)
+  Hecke.add_assertion_scope(:GaloisCohomology)
 end
 
 ######################################################################
@@ -291,7 +291,7 @@ function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing
   #= C is Z[U] module, we needd
     C otimes Z[G]
 
-    any pure tensor c otimes g can be "normalised" g = u*g_i for one of the 
+    any pure tensor c otimes g can be "normalized" g = u*g_i for one of the
     reps fixed above, so c otimes g = c otimes u g_i == cu otimes g_i
 
     For the G-action we thus get
@@ -2080,7 +2080,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   # F^p = w (order relation)
   #  compute (F, 0)^p = (?, t) = (?, 0)(1, t)
   #  compute (w, 0)   = (?, s) = (?, 0)(1, s)
-  #  so (?, 0) = (w, 0)(1,s)^-1= (w, 0)(1,-s) if chain is normalised
+  #  so (?, 0) = (w, 0)(1,s)^-1= (w, 0)(1,-s) if chain is normalized
   #  thus (F, 0)^p = (?, 0)(1, t) = (w, 0)(1,-s)(1, t)
   #  the ? should be identical, namely the collected version of w
   #  then (F, 0)^p = (w, t-s) might be the answer

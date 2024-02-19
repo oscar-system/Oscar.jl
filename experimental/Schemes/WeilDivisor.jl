@@ -675,7 +675,8 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
       A[i, k] = c
     end
   end
-  r, K = left_kernel(A)
+  K = kernel(A; side = :left)
+  r = nrows(K)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
   W = weil_divisor(L)
   PW = WeilDivisor(P, check=false)

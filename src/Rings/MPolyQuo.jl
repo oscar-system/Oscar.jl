@@ -1269,7 +1269,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
-function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.Frac{T};
+function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.FracFieldElem{T};
     context = nothing) where {T <: MPolyQuoRingElem}
   n = numerator(a, false)
   d = denominator(a, false)

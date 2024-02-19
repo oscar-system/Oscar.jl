@@ -1821,7 +1821,7 @@ function _real_kernel_signatures(L::ZZLat, M::MatElem)
   C = base_ring(M)
   G = gram_matrix(L)
   GC = change_base_ring(C, G)
-  _, K = left_kernel(M)
+  K = kernel(M; side = :left)
   diag = K*GC*transpose(K)
 
   diag = Hecke._gram_schmidt(diag, C)[1]
@@ -1951,7 +1951,7 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
   f = isometry(Lf)
   M = p(f)
   d = denominator(M)
-  k, K = left_kernel(change_base_ring(ZZ, d*M))
+  K = kernel(change_base_ring(ZZ, d*M); side = :left)
   return lattice(ambient_space(Lf), K*basis_matrix(L))
 end
 
@@ -2141,7 +2141,7 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
       g_ambient = iB3*g_ambient*B3
-      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
+      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side = :left)
       push!(gene, m)
     else
       push!(gene, matrix(g))
@@ -2216,7 +2216,7 @@ function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representa
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
       g_ambient = iB3*g_ambient*B3
-      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
+      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side = :left)
       push!(gene, m)
     else
       push!(gene, matrix(g))

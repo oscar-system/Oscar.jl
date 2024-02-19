@@ -304,9 +304,11 @@ function Base.show(io::IO, G::PermGroup)
 
   # Treat groups specially which know that they are nat. symmetric/alternating.
   io = pretty(io)
-  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G)
+  if has_is_natural_symmetric_group(G) && is_natural_symmetric_group(G) &&
+     number_of_moved_points(G) == degree(G)
     print(io, LowercaseOff(), "Sym(", degree(G), ")")
-  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G)
+  elseif has_is_natural_alternating_group(G) && is_natural_alternating_group(G) &&
+     number_of_moved_points(G) == degree(G)
     print(io, LowercaseOff(), "Alt(", degree(G), ")")
   else
     print(io, "Permutation group")
@@ -696,7 +698,7 @@ number_of_conjugacy_classes(::Type{T}, G::GAPGroup) where T <: IntegerUnion = T(
 """
     conjugacy_classes(G::Group)
 
-Return the vector of all conjugacy classes of elements in `G`.
+Return a vector of all conjugacy classes of elements in `G`.
 It is guaranteed that the class of the identity is in the first position.
 """
 function conjugacy_classes(G::GAPGroup)
@@ -756,122 +758,130 @@ function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S wher
 end
 
 """
-    conjugacy_classes_subgroups(G::Group)
+    subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
 
-Return the vector of all conjugacy classes of subgroups of G.
+Return a vector of all conjugacy classes of subgroups of `G` or,
+if `order` is positive, the classes of subgroups of this order.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3)
 Sym(3)
 
-julia> conjugacy_classes_subgroups(G)
+julia> subgroup_classes(G)
 4-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
+
+julia> subgroup_classes(G, order = ZZRingElem(2))
+1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
 ```
 """
-function conjugacy_classes_subgroups(G::GAPGroup)
+function subgroup_classes(G::GAPGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
   L = Vector{GapObj}(GAPWrap.ConjugacyClassesSubgroups(G.X))
-  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+  res = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+  if order != -1
+    filter!(x -> AbstractAlgebra.order(representative(x)) == order, res)
+  end
+  return res
 end
 
 """
-    subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
+    subgroups(G::GAPGroup)
 
-Return a vector of representatives (under conjugation) for all subgroups of `G`.
-If given, only subgroups of a certain order are returned.
+Return an iterator over all subgroups in `G`.
+Very likely it is better to use [`subgroup_classes`](@ref) instead.
 
 # Examples
 ```jldoctest
-julia> G = symmetric_group(3);
+julia> println([order(H) for H in subgroups(symmetric_group(3))])
+ZZRingElem[1, 2, 2, 2, 3, 6]
 
-julia> subgroup_reps(G)
-4-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
-
-julia> subgroup_reps(G, order = ZZRingElem(2))
-1-element Vector{PermGroup}:
- Permutation group of degree 3 and order 2
-
+julia> println([order(H) for H in subgroups(quaternion_group(8))])
+ZZRingElem[1, 2, 4, 4, 4, 8]
 ```
 """
-function subgroup_reps(G::GAPGroup; order::ZZRingElem = ZZRingElem(-1))
-  C = GAPWrap.ConjugacyClassesSubgroups(G.X)
-  C = map(GAPWrap.Representative, C)
-  if order != -1
-    C = [x for x = C if GAPWrap.Order(x) == order]
-  end
-  return [Oscar._as_subgroup(G, x)[1] for x = C]
-end
+subgroups(G::GAPGroup) = Iterators.flatten(subgroup_classes(G))
 
 """
-    conjugacy_classes_maximal_subgroups(G::Group)
+    maximal_subgroup_classes(G::Group)
 
-Return the vector of all conjugacy classes of maximal subgroups of G.
+Return a vector of all conjugacy classes of maximal subgroups of `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(3);
 
-julia> conjugacy_classes_maximal_subgroups(G)
+julia> maximal_subgroup_classes(G)
 2-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of permutation group in G
  Conjugacy class of permutation group in G
 ```
 """
-function conjugacy_classes_maximal_subgroups(G::GAPGroup)
-  L = Vector{GapObj}(GAPWrap.ConjugacyClassesMaximalSubgroups(G.X))
-  return [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+@gapattribute function maximal_subgroup_classes(G::GAPGroup)
+  L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(G.X)::GapObj)
+  T = typeof(G)
+  LL = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
+  return Vector{GAPGroupConjClass{T, T}}(LL)
 end
 
 """
-    maximal_subgroup_reps(G::GAPGroup)
+    maximal_subgroups(G::Group)
 
-Return a vector of representatives (under conjugation) for all maximal
-subgroups of `G`.
+Return an iterator over the maximal subgroups in `G`.
+Very likely it is better to use [`maximal_subgroup_classes`](@ref) instead.
 
 # Examples
 ```jldoctest
-julia> maximal_subgroup_reps(symmetric_group(4))
-3-element Vector{PermGroup}:
- Permutation group of degree 4
- Permutation group of degree 4 and order 8
- Permutation group of degree 4 and order 6
+julia> println([order(H) for H in maximal_subgroups(symmetric_group(3))])
+ZZRingElem[3, 2, 2, 2]
 
+julia> println([order(H) for H in maximal_subgroups(quaternion_group(8))])
+ZZRingElem[4, 4, 4]
 ```
 """
-function maximal_subgroup_reps(G::GAPGroup)
-  return Oscar._as_subgroups(G, GAP.Globals.MaximalSubgroupClassReps(G.X))
-end
+maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(maximal_subgroup_classes(G))
 
 """
-    low_index_subgroup_reps(G::GAPGroup, n::Int)
+    low_index_subgroup_classes(G::GAPGroup, n::Int)
 
-Return a vector of representatives (under conjugation) for all subgroups
-of index at most `n` in `G`.
+Return a vector of conjugacy classes of subgroups of index at most `n` in `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5);
 
-julia> low_index_subgroup_reps(G, 5)
-3-element Vector{PermGroup}:
- Sym(5)
- Alt(5)
- Sym(5)
-
+julia> low_index_subgroup_classes(G, 5)
+3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of Sym(5) in G
+ Conjugacy class of Alt(5) in G
+ Conjugacy class of permutation group in G
 ```
 """
-function low_index_subgroup_reps(G::GAPGroup, n::Int)
-  ll = GAP.Globals.LowIndexSubgroups(G.X, n)
-  return [Oscar._as_subgroup(G, x)[1] for x = ll]
+function low_index_subgroup_classes(G::GAPGroup, n::Int)
+  @req (n > 0) "index must be positive"
+  ll = GAP.Globals.LowIndexSubgroups(G.X, n)::GapObj
+  return [conjugacy_class(G, H) for H in _as_subgroups(G, ll)]
 end
+
+"""
+    low_index_subgroups(G::Group, n::Int)
+
+Return an iterator over the subgroups of index at most `n` in `G`.
+Very likely it is better to use [`low_index_subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> G = alternating_group(6);
+
+julia> length(collect(low_index_subgroups(G, 6)))
+13
+```
+"""
+low_index_subgroups(G::T, n::Int) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(low_index_subgroup_classes(G, n))
 
 """
     conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
@@ -1248,18 +1258,10 @@ function sylow_subgroup(G::GAPGroup, p::IntegerUnion)
    return _as_subgroup(G, GAPWrap.SylowSubgroup(G.X, GAP.Obj(p)))
 end
 
-# no longer documented, better use `hall_subgroup_reps`
-function hall_subgroup(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
-   P = unique(P)
-   @req all(is_prime, P) "The integers must be prime"
-   @req is_solvable(G) "The group is not solvable"
-   return _as_subgroup(G,GAP.Globals.HallSubgroup(G.X,GAP.Obj(P, recursive=true))::GapObj)
-end
-
 """
-    hall_subgroup_reps(G::Group, P::AbstractVector{<:IntegerUnion})
+    hall_subgroup_classes(G::Group, P::AbstractVector{<:IntegerUnion})
 
-Return a vector that contains representatives of conjugacy classes of
+Return a vector that contains the conjugacy classes of
 Hall `P`-subgroups of the finite group `G`, for a vector `P` of primes.
 A Hall `P`-subgroup of `G` is a subgroup the order of which is only divisible
 by primes in `P` and whose index in `G` is coprime to all primes in `P`.
@@ -1272,36 +1274,52 @@ up to conjugacy.
 ```jldoctest
 julia> g = dihedral_group(30);
 
-julia> h = hall_subgroup_reps(g, [2, 3]);
+julia> h = hall_subgroup_classes(g, [2, 3]);
 
-julia> (length(h), order(h[1]))
+julia> (length(h), order(representative(h[1])))
 (1, 6)
 
 julia> g = GL(3, 2)
 GL(3,2)
 
-julia> h = hall_subgroup_reps(g, [2, 3]);
+julia> h = hall_subgroup_classes(g, [2, 3]);
 
-julia> (length(h), order(h[1]))
+julia> (length(h), order(representative(h[1])))
 (2, 24)
 
-julia> h = hall_subgroup_reps(g, [2, 7]); length(h)
+julia> h = hall_subgroup_classes(g, [2, 7]); length(h)
 0
-
 ```
 """
-function hall_subgroup_reps(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_classes(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
    res_gap = GAP.Globals.HallSubgroup(G.X, GAP.Obj(P, recursive = true))::GapObj
    if res_gap == GAP.Globals.fail
-     return typeof(G)[]
+     T = typeof(G)
+     return GAPGroupConjClass{T, T}[]
    elseif GAPWrap.IsList(res_gap)
-     return _as_subgroups(G, res_gap)
+     return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
    else
-     return [_as_subgroup_bare(G, res_gap)]
+     return [conjugacy_class(G, _as_subgroup_bare(G, res_gap))]
    end
 end
+
+"""
+    hall_subgroups(G::Group, P::AbstractVector{<:IntegerUnion})
+
+Return an iterator over the Hall `P`-subgroups in `G`.
+Very likely it is better to use [`hall_subgroup_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> g = GL(3, 2);
+
+julia> describe(first(hall_subgroups(g, [2, 3])))
+"S4"
+```
+"""
+hall_subgroups(G::T, P::AbstractVector{<:IntegerUnion}) where T <: Union{GAPGroup, FinGenAbGroup} = Iterators.flatten(hall_subgroup_classes(G, P))
 
 @doc raw"""
     sylow_system(G::Group)
@@ -1319,9 +1337,9 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc raw"""
-    complement_class_reps(G::T, N::T) where T <: GAPGroup
+    complement_classes(G::T, N::T) where T <: GAPGroup
 
-Return a vector of representatives of the conjugacy classes of complements
+Return a vector of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
 This function may throw an error exception if both `N` and `G/N` are
 nonsolvable.
@@ -1333,20 +1351,41 @@ together with `N` generates `G`.
 ```jldoctest
 julia> G = symmetric_group(3);
 
-julia> complement_class_reps(G, derived_subgroup(G)[1])
-1-element Vector{PermGroup}:
- Permutation group of degree 3
+julia> complement_classes(G, derived_subgroup(G)[1])
+1-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
+ Conjugacy class of permutation group in G
 
 julia> G = dihedral_group(8)
 Pc group of order 8
 
-julia> complement_class_reps(G, center(G)[1])
-PcGroup[]
+julia> complement_classes(G, center(G)[1])
+GAPGroupConjClass{PcGroup, PcGroup}[]
 ```
 """
-function complement_class_reps(G::T, N::T) where T <: GAPGroup
-   return _as_subgroups(G, GAP.Globals.ComplementClassesRepresentatives(G.X, N.X))
+function complement_classes(G::T, N::T) where T <: GAPGroup
+   res_gap = GAP.Globals.ComplementClassesRepresentatives(G.X, N.X)::GapObj
+   if length(res_gap) == 0
+     return GAPGroupConjClass{T, T}[]
+   else
+     return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
+   end
 end
+
+@doc raw"""
+    complements(G::T, N::T) where T <: GAPGroup
+
+Return an iterator over the complements of the normal subgroup `N` in `G`.
+Very likely it is better to use [`complement_classes`](@ref) instead.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> describe(first(complements(G, derived_subgroup(G)[1])))
+"C2"
+```
+"""
+complements(G::T, N::T) where T <: GAPGroup = Iterators.flatten(complement_classes(G, N))
 
 @doc raw"""
     complement_system(G::Group)

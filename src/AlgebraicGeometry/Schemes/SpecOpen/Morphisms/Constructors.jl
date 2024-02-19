@@ -94,7 +94,7 @@ end
 #  U = intersect(X, domain(f), check=check)
 #  V = intersect(Y, codomain(f), check=check)
 #
-#  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:npatches(U)]
+#  new_maps_on_patches = [restrict(f[i], U[i], Y, check=check) for i in 1:n_patches(U)]
 #
 #  return SpecOpenMor(U, V, new_maps_on_patches, check=check)
 #end
@@ -104,7 +104,7 @@ end
 # functions on the affine patches.                                     #
 ########################################################################
 @doc raw"""
-    maximal_extension(X::AbsSpec, Y::AbsSpec, f::AbstractAlgebra.Generic.Frac)
+    maximal_extension(X::AbsSpec, Y::AbsSpec, f::AbstractAlgebra.Generic.FracFieldElem)
 
 Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 
 determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X`` 
@@ -113,7 +113,7 @@ to which ``ϕ`` can be extended to a regular map ``g : U → Y`` and return ``g`
 function maximal_extension(
     X::AbsSpec,
     Y::AbsSpec,
-    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+    f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   U, g = maximal_extension(X, f)
   n = length(affine_patches(U))

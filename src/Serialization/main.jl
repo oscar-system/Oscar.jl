@@ -74,15 +74,15 @@ end
 const reverse_type_map = Dict{String, Type}()
 
 function encode_type(::Type{T}) where T
-  error("unsupported type '$T' for encoding")
+  error("Unsupported type '$T' for encoding. to add support see
+ https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/ \n")
 end
 
 function decode_type(s::DeserializerState)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
       id = s.obj
-      obj = deepcopy(s.obj)
-
+      obj = s.obj
       if isnothing(s.refs)
         return typeof(global_serializer_state.id_to_obj[UUID(id)])
       end
@@ -206,8 +206,8 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     else
       # depending on the type, :params is either an object to be loaded or a
       # dict with keys and object values to be loaded
-      load_node(s, type_key) do _
-        params = load_params_node(s)
+      params = load_node(s, type_key) do _
+        load_params_node(s)
       end
     end
     load_node(s, :data) do _
@@ -551,7 +551,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = JSON.parse(json(s.obj), dicttype=Dict{Symbol, Any})
     jsondict = upgrade(file_version, jsondict)
     s.obj = JSON3.read(json(jsondict))
-    if !isnothing(s.refs) && haskey(s.obj, refs_key)
+    
+    if haskey(s.obj, refs_key)
       s.refs = s.obj[refs_key]
     end
   end
