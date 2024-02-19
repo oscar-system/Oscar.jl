@@ -914,7 +914,7 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 # (The name is confusing because it is not clear *of which group* the result
 # shall be a subgroup.)
 
-"""
+@doc raw"""
     is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
