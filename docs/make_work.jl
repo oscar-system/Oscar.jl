@@ -185,10 +185,10 @@ function doit(
       return "v$(deps[uuid].version)"
     end
   end
-  aarev = get_rev(Base.UUID("c3fe647b-3220-5bb0-a1ea-a7954cac585d"))
-  nemorev = get_rev(Base.UUID("2edaba10-b0f1-5616-af89-8c11ac63239a"))
-  heckerev = get_rev(Base.UUID("3e1990a7-5d81-5526-99ce-9ba3ff248f21"))
-  singularrev = get_rev(Base.UUID("bcd08a7b-43d2-5ff7-b6d4-c458787f915c"))
+  aarev = get_rev(Base.PkgId(Oscar.AbstractAlgebra).uuid)
+  nemorev = get_rev(Base.PkgId(Oscar.Nemo).uuid)
+  heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
+  singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
 
   cd(joinpath(Oscar.oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
