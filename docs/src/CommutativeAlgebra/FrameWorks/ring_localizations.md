@@ -8,7 +8,7 @@ end
 # A Framework for Localizing Rings
 
 For the convenience of the developer, we outline a general framework for creating concrete instances of localized rings in OSCAR,
-addressing relevant abstract types as well as a standardized set of functions whose concrete behaviour must be implemented.
+addressing relevant abstract types as well as a standardized set of functions whose concrete behavior must be implemented.
 
 We roughly follow the outline of the previous subsection on localizing multivariate rings which provides illustrating examples.
 With regard to notation, the name `Rloc` will refer to the localization of a commutative ring `R` with 1.
