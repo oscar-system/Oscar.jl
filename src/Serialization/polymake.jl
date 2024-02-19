@@ -100,8 +100,6 @@ _pmdata_for_oscar(s::Polymake.Set, coeff::Union{Field,Nothing}) = Set(_pmdata_fo
 
 function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Union{Field,Nothing})
   data = Dict{String,Any}()
-  data["_type"] = Polymake.bigobject_qualifiedname(bo)
-  data["_coeff"] = coeff
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
     if p isa Polymake.PropertyValue
@@ -119,7 +117,11 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Union{Field,Nothing})
 end
 
 function _polyhedral_object_as_dict(x::Oscar.PolyhedralObjectUnion)
-  return _bigobject_to_dict(Oscar.pm_object(x), coefficient_field(x))
+  bo = Oscar.pm_object(x)
+  data = _bigobject_to_dict(bo, coefficient_field(x))
+  data["_type"] = Polymake.bigobject_qualifiedname(bo)
+  data["_coeff"] = coefficient_field(x)
+  return data
 end
 
 function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_key::String="")
