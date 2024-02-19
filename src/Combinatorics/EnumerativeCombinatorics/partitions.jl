@@ -199,9 +199,9 @@ end
 
 function Base.iterate(P::PartitionSet{T}) where T
   if P.n == 0
-    return Partition{T}[ partition(T[]) ], (T[], 0, 0)
+    return partition(T), (T[], 0, 0)
   elseif P.n == 1
-    return Partition{T}[ partition(T[1]) ], (T[1], 1, 0)
+    return partition(T[1]), (T[1], 1, 0)
   end
 
   d = fill( T(1), P.n )
