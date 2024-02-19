@@ -18,7 +18,7 @@
 
     #same rep mat as in rep1, only without multinomial coefficients.
     M = matrix(S,3,3,[z[1,1]^2 z[1,1]*z[2,1] z[2,1]^2 ; 2*z[1,1]*z[1,2] z[1,1]*z[2,2] + z[2,1]*z[1,2] 2*z[2,1]*z[2,2]; z[1,2]^2 z[1,2]*z[2,2] z[2,2]^2])
-    rep2 = representation_linearly_reductive_group(G, M)
+    rep2 = representation_reductive_group(G, M)
     R_rep2 = invariant_ring(R_rep1.poly_ring, rep2)
     FI_rep2 = fundamental_invariants(R_rep2) 
     x = gens(R_rep1.poly_ring)
