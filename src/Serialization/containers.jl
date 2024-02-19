@@ -370,7 +370,7 @@ function save_object(s::SerializerState, x::Set)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Set{params}}) where params
+function load_object(s::DeserializerState, ::Type{<: Set}, params::Any)
   load_node(s) do v
     if serialize_with_id(params)
       loaded_v = params[load_ref(s, x) for x in v]
@@ -380,7 +380,7 @@ function load_object(s::DeserializerState, ::Type{<: Set{params}}) where params
         push!(loaded_v, load_object(s, params, i))
       end
     end
-    return loaded_v
+    return Set(loaded_v)
   end
 end
 
@@ -409,7 +409,7 @@ function load_object(s::DeserializerState, ::Type{<: Set}, params::Ring)
     if serialize_with_params(T)
       return load_object(s, T, params)
     else
-      return  load_object(s, T)
+      return load_object(s, T)
     end
   end
   return Set{T}(loaded_entries)

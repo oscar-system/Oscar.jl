@@ -105,7 +105,7 @@
         @test original == loaded
       end
     end
-
+    
     @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
       (
         (UInt, UInt128), (UInt16, UInt32), (UInt64, UInt8),
@@ -129,12 +129,27 @@
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
+    end
 
-      test_save_load_roundtrip(path, original; params=Dict{S, Any}(keys[1] => Qx)) do loaded
+    @testset "Testing (de)serialization of Set" begin
+      original = Set([Set([1, 2])])
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+
+      Qx, x = QQ[:x]
+      p = x^2 + 1
+      q = x
+      original = Set([p, q])
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+
+      test_save_load_roundtrip(path, original; params=Qx) do loaded
         @test original == loaded
       end
     end
-    
+
     @testset "Test for backwards compatibility" begin
       loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
       @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
