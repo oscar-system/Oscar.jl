@@ -507,6 +507,7 @@ function ideal_membership(
           }
   parent(x) === base_ring(I) || return base_ring(I)(x) in I
   phi = flatten(parent(x))
+  is_zero(phi(x)) && return true
   return ideal_membership(phi(x), phi(I))
 end
 
