@@ -75,6 +75,8 @@ function Base.show(io::IO, ::MIME"text/plain", P::Partition)
   print(io, data(P))
 end
 
+
+
 ################################################################################
 #
 #  Array-like functionality
@@ -123,6 +125,9 @@ function getindex_safe(P::Partition{T}, i::IntegerUnion) where T
   return (i > length(data(P)) ? zero(T) : getindex(data(P), Int(i)))
 end
 
+Base.eltype(::PartitionSet{T}) where T = Partition{T}
+Base.length(P::PartitionSet) = BigInt(number_of_partitions(P.n))
+
 ################################################################################
 #
 # Generating and counting unrestricted partitions
@@ -150,6 +155,7 @@ function number_of_partitions(n::IntegerUnion)
   # returns an Int (or throws an InexactError).
   return Nemo.number_of_partitions(ZZ(n))
 end
+
 
 @doc raw"""
     partitions(n::IntegerUnion)
@@ -185,53 +191,54 @@ julia> collect(partitions(Int8(4))) # using less memory
  Int8[1, 1, 1, 1]
 ```
 """
-function partitions(n::T) where T <: IntegerUnion
-
-  #Argument checking
+function partitions(n::T) where {T <: IntegerUnion}
   @req n >= 0 "n >= 0 required"
+  return PartitionSet{T}(n)
+end
 
-  # Some trivial cases
-  if n == 0
-    return (p for p in Partition{T}[ partition(T[], check = false) ])
-  elseif n == 1
-    return (p for p in Partition{T}[ partition(T[1], check = false) ])
+
+function Base.iterate(P::PartitionSet{T}) where T
+  if P.n == 0
+    return Partition{T}[ partition(T[]) ], (T[], 0, 0)
+  elseif P.n == 1
+    return Partition{T}[ partition(T[1]) ], (T[1], 1, 0)
   end
 
-  # Now, the algorithm starts
-  P = Partition{T}[]    #this will be the array of all partitions
-  k = 1
-  q = 1
-  d = fill( T(1), n )
-  d[1] = n
-  push!(P, partition(d[1:1], check = false))
-  while q != 0
-    if d[q] == 2
-      k += 1
-      d[q] = 1
-      q -= 1
-    else
-      m = d[q] - 1
-      np = k - q + 1
+  d = fill( T(1), P.n )
+  d[1] = P.n
+  return partition(d[1:1]), (d, 1, 1)
+
+end
+
+function Base.iterate(P::PartitionSet, state)
+  d, k, q = state
+  q==0 && return nothing
+  if d[q] == 2
+    d[q] = 1
+    k += 1
+    q -= 1
+  else
+    m = d[q] - 1
+    np = k - q +1
+    d[q] = m
+    while np >= m
+      q += 1
       d[q] = m
-      while np >= m
+      np -= m
+    end
+    if np == 0
+      k = q
+    else
+      k = q + 1
+      if np > 1
         q += 1
-        d[q] = m
-        np = np - m
-      end
-      if np == 0
-        k = q
-      else
-        k = q + 1
-        if np > 1
-          q += 1
-          d[q] = np
-        end
+        d[q] = np
       end
     end
-    push!(P, partition(d[1:k], check = false))
   end
-  return (p for p in P)
+  return partition(d[1:k]), (d, k, q)
 end
+
 
 ################################################################################
 #
@@ -481,8 +488,8 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # published code has several issues.
   # The original ALGOL 60 code is electronically available at
   # https://gist.github.com/ulthiel/99de02994fc31fe614586ed0c930f744.
-  # First, there were some issues with termination and indices for the arrays 
-  # x, y, ii getting out of bounds. We had to introduce some additional checks 
+  # First, there were some issues with termination and indices for the arrays
+  # x, y, ii getting out of bounds. We had to introduce some additional checks
   # and breaks to take care of this. Some initial fixing was done by T. Schmit.
   # An example showing the problem is 17, 3, [1, 4], [1, 4].
 
@@ -502,8 +509,8 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   gotob1 = true
 
   # The first step in the algorithm is to initialize the arrays x and y
-  # for the backtrack search. 
-  # This fills the array x from right with the values from v from the left 
+  # for the backtrack search.
+  # This fills the array x from right with the values from v from the left
   # (the smallest) up to their specified multiplicity.
   # If this is larger than m, there cannot be a partition.
   for i = n:-1:1
@@ -540,7 +547,7 @@ function partitions(m::T, n::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
 
   # The following is a condition for when only a single partition
   # exists. We added the || i == 1 condition because without it the example
-  # partitions(17, 7, [1, 4], [1, 4]) returns [0, 0, 4, 4, 4, 4, 1], which is 
+  # partitions(17, 7, [1, 4], [1, 4]) returns [0, 0, 4, 4, 4, 4, 1], which is
   # nonsense. So, we have to make sure that all entries of x were modified in
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
