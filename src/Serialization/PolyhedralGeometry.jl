@@ -53,23 +53,15 @@ function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
   return load_typed_object(s)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
-  polymake_dict = load_typed_object(s)
-  obj = Polymake.BigObject(Polymake.BigObjectType(polymake_dict["_type"]))
-
-  for (k, v) in polymake_dict
-    k == "_type" && continue
-    k == "_coeff" && continue
-    println(k, v)
-    Polymake.take(obj, k, convert(Polymake.PolymakeType, v))
-  end
-  
-  return obj
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{QQFieldElem}})
+  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      field::Field) where S <: FieldElem
-  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
+  return T{elem_type(field)}(bigobject, field)
 end
 
 ##############################################################################
