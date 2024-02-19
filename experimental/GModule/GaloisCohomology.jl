@@ -6,7 +6,7 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
-import Oscar: pretty, Lowercase
+import Oscar: pretty, Lowercase, Indent, Dedent
 
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
@@ -1398,14 +1398,12 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   io = pretty(io)
-  print(io, "Element of relative Brauer group of $(parent(a).k)\n")
-  ioC = IOContext(io, :supercompact => true, :compact => true)
+  print(io, "Element of relative Brauer group of ", Lowercase(), parent(a).k)
+  io = IOContext(io, :supercompact => true, :compact => true)
   print(io, Indent())
-  for (p,v) = a.data
-    show(ioC, p)
-    print(io, " -> ")
-    show(ioC, v)
-    print(io, "\n")
+  data = sort(collect(a.data); by =(x -> first(x) isa AbsSimpleNumFieldEmbedding ? Inf : minimum(first(x))))
+  for (p,v) in data
+    print(io, "\n", p, " -> ", v)
   end
   print(io, Dedent())
 end
@@ -1514,6 +1512,30 @@ an infinite direct sum of the local Brauer groups.
 
 The second return value is a map translating between the local data
 and explicit 2-cochains.
+
+```jldoctest
+julia> G = SL(2,5)
+SL(2,5)
+
+julia> T = character_table(G);
+
+julia> R = gmodule(T[9])
+G-module for G acting on vector space of dimension 6 over abelian closure of Q
+
+julia> S = gmodule(CyclotomicField, R)
+G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
+
+julia> B, mB = relative_brauer_group(base_ring(S), character_field(S));
+
+julia> B
+Relative Brauer group for cyclotomic field of order 5 over number field of degree 1 over QQ
+
+julia> b = B(S)
+Element of relative Brauer group of number field of degree 1 over QQ
+  <2, 2> -> 1//2 + Z
+  <5, 5> -> 0 + Z
+  Complex embedding of number field -> 1//2 + Z
+```
 """
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
   G, mG = automorphism_group(PermGroup, K)
