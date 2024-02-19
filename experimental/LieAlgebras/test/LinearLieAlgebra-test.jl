@@ -8,6 +8,11 @@
 
     L = special_orthogonal_lie_algebra(R, n)
     @test dim(L) == div(n^2 - n, 2)
+
+    if is_even(n)
+      L = symplectic_lie_algebra(R, n)
+      @test dim(L) == div(n^2 + n, 2)
+    end
   end
 
   @testset "conformance tests" begin
@@ -69,6 +74,13 @@
       )
     end
 
+    @testset "sp_4(QQ)" begin
+      L = symplectic_lie_algebra(QQ, 4)
+      lie_algebra_conformance_test(
+        L, LinearLieAlgebra{QQFieldElem}, LinearLieAlgebraElem{QQFieldElem}
+      )
+    end
+
     @testset "gl_4(CF(4))" begin
       L = general_linear_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
@@ -116,6 +128,15 @@
 
     @testset "so_5(CF(4)), #2" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 5, identity_matrix(ZZ, 5))
+      lie_algebra_conformance_test(
+        L,
+        LinearLieAlgebra{AbsSimpleNumFieldElem},
+        LinearLieAlgebraElem{AbsSimpleNumFieldElem},
+      )
+    end
+
+    @testset "sp_4(CF(4))" begin
+      L = symplectic_lie_algebra(cyclotomic_field(4)[1], 4)
       lie_algebra_conformance_test(
         L,
         LinearLieAlgebra{AbsSimpleNumFieldElem},

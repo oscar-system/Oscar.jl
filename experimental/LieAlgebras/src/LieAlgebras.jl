@@ -180,6 +180,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module
@@ -305,6 +306,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module

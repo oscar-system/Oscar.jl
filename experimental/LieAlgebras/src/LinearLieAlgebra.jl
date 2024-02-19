@@ -112,6 +112,8 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
     return "Special linear Lie algebra of degree $n"
   elseif type == :special_orthogonal
     return "Special orthogonal Lie algebra of degree $n"
+  elseif type == :symplectic
+    return "Symplectic Lie algebra of degree $n"
   else
     return "Linear Lie algebra with $(n)x$(n) matrices"
   end
@@ -432,4 +434,81 @@ function special_orthogonal_lie_algebra(R::Field, n::Int)
     form[1 + k .+ (1:k), 1 .+ (1:k)] = identity_matrix(R, k)
   end
   return special_orthogonal_lie_algebra(R, n, form)
+end
+
+@doc raw"""
+    symplectic_lie_algebra(R::Field, n::Int, gram::MatElem) -> LinearLieAlgebra{elem_type(R)}
+    symplectic_lie_algebra(R::Field, n::Int, gram::Matrix) -> LinearLieAlgebra{elem_type(R)}
+
+Return the symplectic Lie algebra $\mathfrak{sp}_n(R)$.
+
+Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gram`,
+$\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
+such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
+
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+is used.
+It can be shown that for odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
+
+# Examples
+```jldoctest
+julia> L = symplectic_lie_algebra(QQ, 4)
+Symplectic Lie algebra of degree 4
+  of dimension 10
+over rational field
+
+julia> basis(L)
+10-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ x_1
+ x_2
+ x_3
+ x_4
+ x_5
+ x_6
+ x_7
+ x_8
+ x_9
+ x_10
+
+julia> matrix_repr_basis(L)
+10-element Vector{QQMatrix}:
+ [1 0 0 0; 0 0 0 0; 0 0 -1 0; 0 0 0 0]
+ [0 1 0 0; 0 0 0 0; 0 0 0 0; 0 0 -1 0]
+ [0 0 1 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+ [0 0 0 1; 0 0 1 0; 0 0 0 0; 0 0 0 0]
+ [0 0 0 0; 1 0 0 0; 0 0 0 -1; 0 0 0 0]
+ [0 0 0 0; 0 1 0 0; 0 0 0 0; 0 0 0 -1]
+ [0 0 0 0; 0 0 0 1; 0 0 0 0; 0 0 0 0]
+ [0 0 0 0; 0 0 0 0; 1 0 0 0; 0 0 0 0]
+ [0 0 0 0; 0 0 0 0; 0 1 0 0; 1 0 0 0]
+ [0 0 0 0; 0 0 0 0; 0 0 0 0; 0 1 0 0]
+```
+"""
+symplectic_lie_algebra
+
+function symplectic_lie_algebra(R::Field, n::Int, gram::MatElem)
+  form = map_entries(R, gram)
+  @req size(form) == (n, n) "Invalid matrix dimensions"
+  @req is_skew_symmetric(form) "Bilinear form must be skew-symmetric"
+  @req is_even(n) && is_invertible(form) "Bilinear form must be non-degenerate"
+  basis = _lie_algebra_basis_from_form(R, n, form)
+  dim = length(basis)
+  @assert characteristic(R) != 0 || dim == div(n^2 + n, 2)
+  s = ["x_$(i)" for i in 1:dim]
+  L = lie_algebra(R, n, basis, s; check=false)
+  set_attribute!(L, :type => :symplectic, :form => form)
+  return L
+end
+
+function symplectic_lie_algebra(R::Field, n::Int, gram::Matrix)
+  return symplectic_lie_algebra(R, n, matrix(R, gram))
+end
+
+function symplectic_lie_algebra(R::Field, n::Int)
+  @req is_even(n) "Dimension must be even"
+  k = div(n, 2)
+  form = zero_matrix(R, n, n)
+  form[1:k, k .+ (1:k)] = identity_matrix(R, k)
+  form[k .+ (1:k), 1:k] = -identity_matrix(R, k)
+  return symplectic_lie_algebra(R, n, form)
 end
