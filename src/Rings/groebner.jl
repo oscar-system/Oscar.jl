@@ -881,11 +881,6 @@ Return a `Vector` which contains, for each element `g` of `G`, quotients and a r
 !!! note
     The returned remainders are fully reduced if `complete_reduction` is set to `true` and `ordering` is global.
 
-!!! note
-    The reduction strategy behind the `reduce` function and the reduction strategy behind the functions 
-    `reduce_with_quotients` and `reduce_with_quotients_and_unit` differ. As a consequence, the computed
-    remainders may differ.
-
 # Examples
 
 ```jldoctest
@@ -898,7 +893,7 @@ julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 julia> Q, h = reduce_with_quotients(g, [f1,f2, f3], ordering = lex(R));
 
 julia> h
--z^9 + z^7 + z^6 + z^4
+x^5 - x^3 + y^6 + z^6
 
 julia> g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
 true
@@ -929,7 +924,7 @@ function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::M
   @assert base_ring(J) == base_ring(I)
   sI = singular_generators(I, ordering)
   sJ = singular_generators(J, ordering)
-  res = Singular.divrem(sI, sJ, complete_reduction=complete_reduction)
+  res = Singular.divrem2(sI, sJ, complete_reduction=complete_reduction)
   return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 
