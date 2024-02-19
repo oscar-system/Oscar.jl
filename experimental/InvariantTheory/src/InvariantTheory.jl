@@ -4,7 +4,7 @@
 #As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
 
 export LinearlyReductiveGroup, linearly_reductive_group, representation_matrix, group, reynolds_operator, group_ideal, canonical_representation, natural_representation
-export RepresentationLinearlyReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix
+export RepresentationLinearlyReductiveGroup, representation_reductive_group, representation_on_forms, representation_matrix, direct_sum, tensor
 export RedGrpInvRing, invariant_ring, fundamental_invariants, NullConeIdeal, poly_ring, representation
 ##########################
 #Setting up Reductive Groups 
