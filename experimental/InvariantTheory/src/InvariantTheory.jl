@@ -204,8 +204,8 @@ function degree_basis(R::MPolyRing, t::Int)
     for i in 1:m
       C[i,i] = -1 
     end
-    d = zeros(m)
-    A = ones(m)
+    d = zeros(Int, m)
+    A = ones(Int, m)
     b = [t]
     P = polyhedron((C, d), (A, b))
     L = lattice_points(P)
@@ -223,12 +223,8 @@ function degree_basis(R::MPolyRing, t::Int)
 end
 
 #used to compute multinomial expansion coefficients (used in degree_basis)
-function multinomial(n::Int, v::Union{Vector{Int64},PointVector{ZZRingElem}})
-    l = length(v)
-    x = 1
-    for i in 1:l
-        x = x*factorial(v[i])
-    end
+function multinomial(n::Int, v::Union{Vector{T},PointVector{T}}) where T <: IntegerUnion
+    x = prod(factorial, v)
     return Int(factorial(n)/x)
 end
 
@@ -460,13 +456,9 @@ function omegap_(p::Int, det_::MPolyDecRingElem, f::MPolyDecRingElem)
         for i in 1:length(monos)
             exp_vect = exponent_vector(monos[i], 1)
             x = f
-            for i in 1:length(exp_vect)
-                for j in 1:exp_vect[i]
-                    x = derivative(x, i)
-                    if x == 0
-                        break
-                    end
-                end
+            for i in 1:length(exp_vect), j in 1:exp_vect[i]
+                x = derivative(x, i)
+                iszero(x) && break
             end
             h += coeffs[i]*x
         end
