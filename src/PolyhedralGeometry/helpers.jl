@@ -208,6 +208,9 @@ Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
 Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
 Polymake.convert_to_pm_type(::Type{T}) where T<:FieldElem = Polymake.OscarNumber
 Polymake.convert_to_pm_type(::Type{<:Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
+Polymake.convert_to_pm_type(::Type{<:Graph{T}}) where T<:Union{Directed,Undirected} = Polymake.Graph{T}
+
+Base.convert(::Type{<:Polymake.Graph{T}}, g::Graph{T}) where T<:Union{Directed,Undirected} = Oscar.pm_object(g)
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
