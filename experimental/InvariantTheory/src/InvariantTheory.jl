@@ -33,7 +33,7 @@ mutable struct LinearlyReductiveGroup
         fld = base_ring(pring)
         characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
         G.field = fld
-        @req m^2  == ngens(pring)
+        @req m^2  == ngens(pring) "ring not compatible"
         G.group = (sym,m)
         G.reynolds_operator = reynolds_slm
         M = matrix(pring, m, m, gens(pring))
@@ -131,7 +131,7 @@ function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
 end
 
 function direct_sum(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
-    @req group(X) == group(Y)
+    @req group(X) == group(Y) "not compatible"
     G = group(X)
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(X)), Matrix(representation_matrix(Y))])
@@ -142,7 +142,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     G = group(V[1])
     for i in 2:n
-        @req G == group(V[i])
+        @req G == group(V[i]) "not compatible"
     end
     R = base_ring(group_ideal(G))
     Mat = block_diagonal_matrix(R, [Matrix(representation_matrix(V[i])) for i in 1:n])
@@ -150,7 +150,7 @@ function direct_sum(V::Vector{RepresentationLinearlyReductiveGroup})
 end
 
 function tensor(X::RepresentationLinearlyReductiveGroup, Y::RepresentationLinearlyReductiveGroup)
-    @req group(X) == group(Y)
+    @req group(X) == group(Y) "not compatible"
     Mat = kronecker_product(representation_matrix(X), representation_matrix(Y))
     return RepresentationLinearlyReductiveGroup(group(X), Mat)
 end
@@ -158,7 +158,7 @@ end
 function tensor(V::Vector{RepresentationLinearlyReductiveGroup})
     n = length(V)
     for i in 2:n
-        @req group(V[1]) == group(V[i])
+        @req group(V[1]) == group(V[i]) "not compatible"
     end
     Mat = representation_matrix(V[1])
     for i in 2:n
@@ -288,19 +288,18 @@ poly_ring(R::RedGrpInvRing) = R.poly_ring
 group(R::RedGrpInvRing) = R.group
 representation(R::RedGrpInvRing) = R.representation
 
-@attr Vector{MPolyDecRingElem} function fundamental_invariants(z::RedGrpInvRing)
-        R = z.representation
-        I, M = proj_of_image_ideal(R.group, R.rep_mat)
-        z.NullConeIdeal = ideal(generators(R.group, I, R.rep_mat))
-        return inv_generators(z.NullConeIdeal, R.group, z.poly_ring, M, z.reynolds_operator)
-    end
+@attr function fundamental_invariants(z::RedGrpInvRing) #unable to use abstract type
+    R = z.representation
+    I, M = proj_of_image_ideal(R.group, R.rep_mat)
+    NullConeIdeal(z) = ideal(generators(R.group, I, R.rep_mat))
+    return inv_generators(NullConeIdeal(z), R.group, z.poly_ring, M, z.reynolds_operator)
 end
 
 function Base.show(io::IO, R::RedGrpInvRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
     println(io, Lowercase(), R.poly_ring)
-    print(io, Indent(),  " under group action of ", R.group.group[1], R.group.group[2])
+    print(io, Indent(),  "under group action of ", R.group.group[1], R.group.group[2])
     print(io, Dedent())
 end
 
