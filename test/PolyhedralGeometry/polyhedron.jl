@@ -587,6 +587,7 @@ end
   for i in keys(Oscar._johnson_names)
     
     j = johnson_solid(i)
+
     @test j isa Polyhedron{<:EmbeddedNumFieldElem}
     @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i))
     
