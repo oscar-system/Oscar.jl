@@ -763,7 +763,6 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
-export is_exterior_power
 export is_faithful
 export is_fano
 export is_feasible
