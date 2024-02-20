@@ -61,17 +61,16 @@ function (flat::RingFlattening)(a::FreeModElem)
   return flat_counterparts(flat)[a]::FreeModElem
 end
 
-
-#=
+### TODO: The following two functions should not be necessary if the module code 
+# was successfully referring everything to the SubModuleOfFreeModule-layer. 
+# Once these layers are finally documented, this should be cleaned up
 function Base.in(
     a::FreeModElem{T}, M::SubquoModule{T}
   ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(parent(a)))
   return flat(a) in flat(M)[1]
 end
-=#
 
-#=
 function coordinates(
     a::FreeModElem{T}, M::SubquoModule{T}
   ) where {T <: FlattableRingElemType}
@@ -81,7 +80,6 @@ function coordinates(
   is_zero(c) && return sparse_row(base_ring(a))
   return map_entries(inverse(flat), c)
 end
-=#
 
 function free_resolution(
     M::SubquoModule{T}
