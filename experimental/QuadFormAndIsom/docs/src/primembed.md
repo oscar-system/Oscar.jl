@@ -25,8 +25,8 @@ given invariants (see Theorem 1.12.2 in [Nik79](@cite)). More generally, the
 author also provides methods to compute primitive embeddings of any even lattice
 into an even lattice of a given genus (see Proposition 1.15.1 in [Nik79](@cite)).
 In the latter proposition, it is explained how to classify such embeddings as
-isomorphic embeddings or as isomorphic sublattices. Moreover, with enough,
-one can generalise the previous results for embeddings in odd lattices.
+isomorphic embeddings or as isomorphic sublattices. Moreover, with enough care,
+one can generalize the previous results for embeddings in odd lattices.
 
 A general method to compute primitive embeddings between integral lattices
 can be algorithmically implemented, however it tends to be slow and inefficient

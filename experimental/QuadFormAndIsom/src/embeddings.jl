@@ -910,7 +910,7 @@ function _subgroups_orbit_representatives_and_stabilizers_elementary(Vinq::TorQu
   # generators and putting them with H0 will give us invariant subgroups as
   # wanted)
   act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[change_base_ring(base_ring(Qp), matrix(gg)) for gg in gens(GV)]
-  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[can_solve_with_solution(VptoQp.matrix, g*VptoQp.matrix)[2] for g in act_GV]
+  act_GV = dense_matrix_type(elem_type(base_ring(Qp)))[solve(VptoQp.matrix, g*VptoQp.matrix; side=:right) for g in act_GV]
   MGp = matrix_group(base_ring(Qp), dim(Qp), act_GV)
   GVtoMGp = hom(GV, MGp, MGp.(act_GV); check = false)
   GtoMGp = compose(GtoGV, GVtoMGp)
@@ -1301,13 +1301,8 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   # In the non-even case, we need to consider several cases, i.e double odd,
   # even-odd or odd-even. 
   #
-  # If M is even, then the complement can be even with discriminant form being
-  # qM(-1), or odd with discriminant form being bM(-1)
-  #
-  # If M is odd, it is more tricky: either the complement is odd with form bM(-1)
-  # or it is even with bM(-1) too. But in the latter case, their might be two
-  # possibilities for the quadratic form: we might need to add 1 to each
-  # diagonal entries of the gram matrix of the bilinear form bM before rescaling
+  # The complement can be even with discriminant form being
+  # qM(-1), or odd with discriminant form being bM(-1).
   #
   # Then for each possible form, we check which one defines a genus with the
   # given signature pair and then we do our extension routine.
@@ -1365,8 +1360,8 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   end
 
   # The algorithm goes on with finding primitive extensions of M+T and then
-  # embeddings such in a big unimodular lattice (which we take unique in its
-  # genus)
+  # embedding such extensions in a big unimodular lattice (which we take
+  # unique in its genus)
   _, Vs = primitive_extensions(M, T; even, classification = cs)
 
   # GL is our big unimodular genus where we embed each of the V in Vs
@@ -1390,8 +1385,8 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
     # of O(T) and O(M) (for sublattices; otherwise only up to O(T))
     #
     # For this, we need the representation of the subgroup of isometries of V
-    # which preserve the primitive extension M\oplus T \subseteq V. This
-    # correspond to the diagonal in \bar{O(T)}\times GM where GM is trivial
+    # which preserves the primitive extension M\oplus T \subseteq V. This
+    # corresponds to the diagonal in \bar{O(T)}\times GM where GM is trivial
     # for embedding classification, \bar{O(M)} otherwise.
     #
     # We use `_glue_stabilizers` which has been designed especially to compute
@@ -1448,7 +1443,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       N = orthogonal_submodule(L, M3)
       # L, M3 and N live in a very big ambient space: we redescribed them in the
       # rational span of L so that L has full rank and we keep only the
-      # necessary information.
+      # necessary information about the embedding.
       bM = solve(basis_matrix(L), basis_matrix(M3); side = :left)
       bN = solve(basis_matrix(L), basis_matrix(N); side = :left)
       L = integer_lattice(; gram = gram_matrix(L))

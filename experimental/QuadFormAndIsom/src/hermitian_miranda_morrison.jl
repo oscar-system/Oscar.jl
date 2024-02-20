@@ -711,7 +711,7 @@ function _local_basis_matrix_and_projection(Hv::HermLat, p::AbsSimpleNumFieldOrd
   # If the last Jordan block U  is P^{-a}-modular, then this part while
   # vanish in the quotient Hv/H and we want to get rid of it. However
   # we need to remember a decomposition Hv_p = R+U: for this
-  # we defintion the projection map Hv_p \to R so later we can
+  # we define the projection map Hv_p \to R so later we can
   # remove any trace of U in our elements (for computing the first
   # approximation of our isometries)
   if expsv[end] == -a
