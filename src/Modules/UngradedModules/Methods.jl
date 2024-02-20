@@ -791,19 +791,19 @@ function Base.:*(k::Int, f::ModuleFPHom)
   return base_ring(codomain(f))(k)*f
 end
 
-function is_tensor_product(M::ModuleFP)
+function _is_tensor_product(M::ModuleFP)
   !has_attribute(M, :tensor_product) && return false, [M]
   return true, get_attribute(M, :tensor_product)::Tuple
 end
 
 function tensor_pure_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
+  success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_pure_function)
 end
 
 function tensor_generator_decompose_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
+  success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_generator_decompose_function)
 end
