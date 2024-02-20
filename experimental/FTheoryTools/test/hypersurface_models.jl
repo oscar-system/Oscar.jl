@@ -128,9 +128,7 @@ h6 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
   @test is_partially_resolved(h6) == false
 end
 
-new_grading = [0 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 @testset "Error messages in hypersurface models over not fully specified base spaces" begin
-  @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, new_grading, d, ambient_space_of_fiber_2, D1, D2, p)
   @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, D1, D2, p)
   @test_throws ArgumentError tune(h6, hypersurface_equation(h6))
 end

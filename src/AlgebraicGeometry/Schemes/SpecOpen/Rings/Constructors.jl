@@ -94,7 +94,7 @@ end
 # Maximal extensions of rational functions on affine schemes           #
 ########################################################################
 @doc raw"""
-    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.Frac)
+    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.FracFieldElem)
 
 Return the maximal extension of the restriction of ``f``
 to a rational function on ``X`` on a maximal domain of 
@@ -106,7 +106,7 @@ the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyLocRing}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:MPolyRingElem}
 
   a = numerator(f)
@@ -126,7 +126,7 @@ end
 
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyQuoLocRing}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
 
   a = numerator(f)
@@ -141,7 +141,7 @@ end
 
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
@@ -155,7 +155,7 @@ end
 
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyRing}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
@@ -168,7 +168,7 @@ function maximal_extension(
 end
 
 @doc raw"""
-    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.Frac})
+    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.FracFieldElem})
 
 Return the extension of the restriction of the ``fᵢ`` as a
 set of rational functions on ``X`` as *regular* functions to a 
@@ -180,7 +180,7 @@ be elements of the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
     X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
-    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+    f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
     return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
@@ -206,7 +206,7 @@ end
 
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyRing}, 
-    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+    f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
     return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
@@ -230,7 +230,7 @@ end
 
 function maximal_extension(
     X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
-    f::Vector{AbstractAlgebra.Generic.Frac{RET}}
+    f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
     return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()

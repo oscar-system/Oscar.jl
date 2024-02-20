@@ -402,7 +402,7 @@
                 b = V()
                 while iszero(a) ||
                         iszero(b) ||
-                        can_solve(
+                        Oscar.can_solve(
                           Oscar.LieAlgebras._matrix(a),
                           Oscar.LieAlgebras._matrix(b);
                           side=:left,

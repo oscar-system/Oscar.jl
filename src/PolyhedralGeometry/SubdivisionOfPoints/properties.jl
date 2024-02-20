@@ -103,7 +103,7 @@ _maximal_cell(::Type{Vector{Int}}, SOP::SubdivisionOfPoints, i::Base.Integer) = 
 ###############################################################################
 
 """
-    number_of_maximal_cells(SOP::SubdivisionOfPoints)
+    n_maximal_cells(SOP::SubdivisionOfPoints)
 
 Return the number of maximal cells of `SOP`.
 # Examples
@@ -113,11 +113,11 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
-julia> number_of_maximal_cells(SOP)
+julia> n_maximal_cells(SOP)
 1
 ```
 """
-number_of_maximal_cells(SOP::SubdivisionOfPoints) = pm_object(SOP).N_MAXIMAL_CELLS
+n_maximal_cells(SOP::SubdivisionOfPoints) = pm_object(SOP).N_MAXIMAL_CELLS
 
 """
     ambient_dim(SOP::SubdivisionOfPoints)
@@ -140,7 +140,7 @@ ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM::Int -
 
 
 @doc raw"""
-    number_of_points(SOP::SubdivisionOfPoints)
+    n_points(SOP::SubdivisionOfPoints)
 
 Return the number of points of a `SubdivisionOfPoints`.
 
@@ -150,11 +150,11 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
-julia> number_of_points(SOP)
+julia> n_points(SOP)
 6
 ```
 """
-number_of_points(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
+n_points(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
 
 
 

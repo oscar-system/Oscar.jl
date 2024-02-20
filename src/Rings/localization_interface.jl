@@ -200,11 +200,11 @@ function localization(R::Ring, U::AbsMultSet)
 end
 
 @doc raw"""
-    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {RingType, RingElemType, MultSetType} 
+    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}) where {RingType, RingElemType, MultSetType} 
 
 Converts a fraction f = a//b to an element of the localized ring W.
 """
-function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {RingType, RingElemType, MultSetType} 
+function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}) where {RingType, RingElemType, MultSetType} 
   error("conversion for fractions to elements of type $(typeof(W)) is not implemented")
 end
 

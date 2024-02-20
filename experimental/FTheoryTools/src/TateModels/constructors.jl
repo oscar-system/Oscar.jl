@@ -142,32 +142,8 @@ Global Tate model over a not fully specified base
 """
 function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   
-  # Is there a grading [1, 0, ..., 0]?
-  Kbar_grading_present = false
-  for i in 1:ncols(auxiliary_base_grading)
-    col = auxiliary_base_grading[:,i]
-    if length(col) == 1 && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-  end
-  
-  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
-  auxiliary_base_vars = gens(auxiliary_base_ring)
-  gens_base_names = [string(g) for g in auxiliary_base_vars]
-  if Kbar_grading_present == false
-    @req ("Kbar" in gens_base_names) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
-    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
-    Kbar_grading[1] = 1
-    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
-    push!(gens_base_names, "Kbar")
-  end
-  
   # Execute consistency checks
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
@@ -192,7 +168,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
   end
 
   # Compute defining_section_parametrization
-  defining_section_parametrization = Dict{String, MPolyElem}()
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
   vars_S = [string(k) for k in gens(S)]
   if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
     defining_section_parametrization["a1"] = a1

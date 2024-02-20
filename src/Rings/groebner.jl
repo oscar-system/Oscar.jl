@@ -174,13 +174,16 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
       S = base_ring(K)
       gb = groebner_assure(K, degrevlex(S))
-      K_hom = homogenization(K, "w")
-      gb_hom = IdealGens((p -> homogenization(p, base_ring(K_hom))).(gens(gb)))
+      # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
+      H = homogenizer(S, "w")
+      K_hom = H(K)
+      gb_hom = IdealGens(H.(gens(gb)))
       gb_hom.isGB = true
       K_hom.gb[degrevlex(S)] = gb_hom
       singular_assure(K_hom.gb[degrevlex(S)])
       hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
-      J = homogenization(I, "w")
+      H2 = homogenizer(R, "w")
+      J = H2(I)
       weights = ones(Int, ngens(base_ring(J)))
       target_ordering = _extend_mon_order(ordering, base_ring(J))
     end
@@ -191,7 +194,8 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     if base_ring(I) == base_ring(J)
       I.gb[ordering] = GB
     else
-      GB_dehom_gens = [dehomogenization(p, base_ring(I), 1) for p in gens(GB)]
+      DH2 = dehomogenizer(H2)
+      GB_dehom_gens = DH2.(gens(GB))
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
@@ -1034,7 +1038,7 @@ julia> Oscar._normal_form_f4(A, J)
 3-element Vector{FqMPolyRingElem}:
  a^3
  2*a^3 + 2*a + 65519*c
- 65519*c^2 + 4*a + 65520*c + 5
+ 4*a + 65519*c^2 + 65520*c + 5
 ```
 """
 function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem }
@@ -1561,7 +1565,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
                                           (collect).((exponents).(F))
                                           for i in 2:length(e)]))
-  K = kernel(matrix(QQ, nrows, ncols, exp_diffs))[2]
+  K = kernel(matrix(QQ, nrows, ncols, exp_diffs); side = :right)
   isempty(K) && return zeros(Int, ncols)
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from

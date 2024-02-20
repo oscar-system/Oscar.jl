@@ -72,7 +72,7 @@ mutable struct InvRing{FldT, GrpT, PolyRingElemT, PolyRingT, ActionT}
 
   reynolds_operator::MapFromFunc{PolyRingT, PolyRingT}
 
-  molien_series::Generic.Frac{QQPolyRingElem}
+  molien_series::Generic.FracFieldElem{QQPolyRingElem}
 
   function InvRing(K::FldT, G::GrpT, action::Vector{ActionT}) where {FldT <: Field, GrpT <: AbstractAlgebra.Group, ActionT}
     n = degree(G)
