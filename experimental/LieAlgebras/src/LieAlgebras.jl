@@ -16,6 +16,7 @@ using AbstractAlgebra.PrettyPrinting
 # functions with new methods
 import ..Oscar:
   _iso_oscar_gap,
+  _vec,
   action,
   basis_matrix,
   basis,
