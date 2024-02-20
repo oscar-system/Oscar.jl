@@ -38,7 +38,7 @@ function apply_on_faces(f::Function, K::SimplicialComplex)
 end
 
 function shift_basis_ext(F::Field, K::SimplicialComplex)
-  n = nvertices(K)
+  n = n_vertices(K)
   shifted_K = Oscar.delta_ext(F, K)
   lambda, _ = exterior_algebra(F, n)
   x = gens(lambda)
@@ -65,7 +65,7 @@ Returns the exterior shift of `K`
 """
 function exterior_shift(F::Field, K::SimplicialComplex;
                         change_of_basis::T = nothing) where T <: Union{Nothing, MatElem}
-  n = nvertices(K)
+  n = n_vertices(K)
   if isnothing(change_of_basis)
     Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
     change_of_basis = matrix(Fx, hcat(x))
@@ -113,7 +113,7 @@ end
 Returns the symmetric shift of `K`
 """
 function symmetric_shift(F::Field, K::SimplicialComplex)
-  n = nvertices(K)
+  n = n_vertices(K)
   Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
   Fyx, x = polynomial_ring(Fy, n)
 
