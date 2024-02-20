@@ -1,11 +1,16 @@
-### Flattenings of (graded) modules
+### Flattenings of (graded) modules over polynomial rings and quotients of polynomial rings
 
 function flatten(F::ModuleFP)
   return flatten(base_ring(F))(F)
 end
 
-function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
+FlattableRingElemType = Union{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                      MPolyQuoLocRingElem, MPolyLocRingElem}},
+                              <:MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                                         MPolyQuoLocRingElem, MPolyLocRingElem}}}
+                             }
+
+function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: FlattableRingElemType}
   if !haskey(flat_counterparts(flat_map), F)
     F_flat, iso = _change_base_ring_and_preserve_gradings(flat_map, F)
     iso_inv = hom(F_flat, F, gens(F), inverse(flat_map); check=false)
@@ -18,8 +23,7 @@ function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: MPolyRingElem{<:U
   return F_flat, iso, iso_inv
 end
 
-function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
+function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: FlattableRingElemType}
   if !haskey(flat_counterparts(flat_map), M)
     F = ambient_free_module(M)
     F_flat, iso_F, iso_inv_F = flat_map(F)
@@ -40,8 +44,7 @@ end
 
 function flatten(
     a::FreeModElem{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  ) where {T <: FlattableRingElemType}
   F = parent(a)
   R = base_ring(F)
   flat_map = flatten(R)
@@ -59,29 +62,30 @@ function (flat::RingFlattening)(a::FreeModElem)
 end
 
 
+#=
 function Base.in(
     a::FreeModElem{T}, M::SubquoModule{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(parent(a)))
   return flat(a) in flat(M)[1]
 end
+=#
 
+#=
 function coordinates(
     a::FreeModElem{T}, M::SubquoModule{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  ) where {T <: FlattableRingElemType}
 
   flat = flatten(base_ring(parent(a)))
   c = coordinates(flat(a), flat(M)[1])
   is_zero(c) && return sparse_row(base_ring(a))
   return map_entries(inverse(flat), c)
 end
+=#
 
 function free_resolution(
     M::SubquoModule{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(M))
   M_flat, iso_M, iso_M_inv = flat(M)
   comp = free_resolution(M_flat) # assuming that this is potentially cached
@@ -107,29 +111,6 @@ function free_resolution(
     flat_counterparts(flat)[comp] = result
   end
   return flat_counterparts(flat)[comp]::FreeResolution
-end
-
-function kernel(
-    phi::FreeModuleHom{
-                     <:ModuleFP{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                        MPolyQuoLocRingElem, MPolyLocRingElem}}},
-                     <:ModuleFP{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                        MPolyQuoLocRingElem, MPolyLocRingElem}}},
-                     Nothing
-                    }
-  )
-  R = base_ring(domain(phi))
-  flat_map = flatten(R)
-  dom_flat, iso_dom, iso_dom_inv = flat_map(domain(phi))
-  cod_flat, iso_cod, iso_cod_inv = flat_map(codomain(phi))
-  phi_b = flat_map(phi)
-  Kb, inc_Kb = kernel(phi_b)
-  K, inc_K = sub(domain(phi), iso_dom_inv.(ambient_representatives_generators(Kb)))
-  iso_K = hom(K, Kb, gens(Kb), flat_map; check=false)
-  iso_inv_K = hom(Kb, K, gens(K), inverse(flat_map); check=false)
-  flat_counterparts(flat_map)[K] = Kb, iso_K, iso_inv_K
-  flat_counterparts(flat_map)[inc_K] = inc_Kb
-  return K, inc_K
 end
 
 function (phi::RingFlattening)(f::ModuleFPHom)
@@ -182,8 +163,9 @@ end
 # SubModuleOfFreeModule needs its own treatment as they differ from the user facing 
 # modules in that they don't have their own elements and they dont have their own 
 # homomorphisms.
-function (flat_map::RingFlattening)(I::SubModuleOfFreeModule{T}) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                                  MPolyQuoLocRingElem, MPolyLocRingElem}}}
+function (flat_map::RingFlattening)(
+                                    I::SubModuleOfFreeModule{T}
+                                   ) where {T <: FlattableRingElemType}
   if !haskey(flat_counterparts(flat_map), I)
     F = ambient_free_module(I)
     R = base_ring(I)
@@ -212,21 +194,62 @@ function _change_base_ring_and_preserve_gradings(
   return MM
 end
 
+### The magic three functions for the SubModuleOfFreeModule layer for flattenings.
 function Base.in(
     a::FreeModElem{T}, M::SubModuleOfFreeModule{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
+  ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(parent(a)))
   return flat(a) in flat(M)
 end
 
 function coordinates(
     a::FreeModElem{T}, M::SubModuleOfFreeModule{T}
-  ) where {T <: MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                      MPolyQuoLocRingElem, MPolyLocRingElem}}}
-
+  ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(parent(a)))
   c = coordinates(flat(a), flat(M))
   return map_entries(inverse(flat), c)
 end
+
+function kernel(
+    phi::FreeModuleHom{
+                       <:FreeMod{<:FlattableRingElemType},
+                       <:FreeMod{<:FlattableRingElemType},
+                     Nothing
+                    }
+  )
+  R = base_ring(domain(phi))
+  flat_map = flatten(R)
+  dom_flat, iso_dom, iso_dom_inv = flat_map(domain(phi))
+  cod_flat, iso_cod, iso_cod_inv = flat_map(codomain(phi))
+  phi_b = flat_map(phi)
+  Kb, inc_Kb = kernel(phi_b)
+  K, inc_K = sub(domain(phi), iso_dom_inv.(ambient_representatives_generators(Kb)))
+  iso_K = hom(K, Kb, gens(Kb), flat_map; check=false)
+  iso_inv_K = hom(Kb, K, gens(K), inverse(flat_map); check=false)
+  flat_counterparts(flat_map)[K] = Kb, iso_K, iso_inv_K
+  flat_counterparts(flat_map)[inc_K] = inc_Kb
+  return K, inc_K
+end
+#=
+function kernel(
+    phi::FreeModuleHom{
+                       <:ModuleFP{<:FlattableRingElemType},
+                       <:ModuleFP{<:FlattableRingElemType},
+                     Nothing
+                    }
+  )
+  R = base_ring(domain(phi))
+  flat_map = flatten(R)
+  dom_flat, iso_dom, iso_dom_inv = flat_map(domain(phi))
+  cod_flat, iso_cod, iso_cod_inv = flat_map(codomain(phi))
+  phi_b = flat_map(phi)
+  Kb, inc_Kb = kernel(phi_b)
+  K, inc_K = sub(domain(phi), iso_dom_inv.(ambient_representatives_generators(Kb)))
+  iso_K = hom(K, Kb, gens(Kb), flat_map; check=false)
+  iso_inv_K = hom(Kb, K, gens(K), inverse(flat_map); check=false)
+  flat_counterparts(flat_map)[K] = Kb, iso_K, iso_inv_K
+  flat_counterparts(flat_map)[inc_K] = inc_Kb
+  return K, inc_K
+end
+=#
 
