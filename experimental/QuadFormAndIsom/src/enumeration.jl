@@ -505,7 +505,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
 
   reps = ZZLatWithIsom[]
 
-  rank(G) == 0 && return ZZLatWithIsom[integer_lattice_with_isometry(integer_lattice(; gram=QQ[;]))]
+  rank(G) == 0 && return ZZLatWithIsom[integer_lattice_with_isometry(integer_lattice(; gram=matrix(QQ, 0, 0, QQFieldElem[])))]
 
   if degree(chi) == 1
     @hassert :ZZLatWithIsom 1 iszero(chi(1)*chi(-1))
