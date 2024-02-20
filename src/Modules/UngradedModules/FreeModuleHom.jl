@@ -461,6 +461,22 @@ Homogeneous module homomorphism)
 ```
 """
 function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})  #ONLY for free modules...
+  error("not implemented for modules over rings of type $(typeof(base_ring(domain(h))))")
+end
+
+# The following function is part of the requirement of atomic functions to be implemented 
+# in order to have the modules run over a specific type of ring. The documentation of this is 
+# pending and so far only orally communicated by Janko Boehm. 
+#
+# The concrete method below uses Singular as a backend to achieve its task. In order 
+# to have only input which Singular can actually digest, we restrict the signature 
+# to those cases. The method used to be triggered eventually also for rings which 
+# did not have a groebner basis backend in Singular, but Singular did not complain. 
+# This lead to false results without notification. By restricting the signature, 
+# the user gets the above error message instead. 
+function kernel(
+    h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}
+  ) where {S<: Union{ZZRingElem, <:FieldElem}, T <: MPolyRingElem{S}}
   is_zero(h) && return sub(domain(h), gens(domain(h)))
   is_graded(h) && return _graded_kernel(h)
   return _simple_kernel(h)
