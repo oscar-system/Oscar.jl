@@ -57,10 +57,22 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Q
   return load_from_polymake(T{QQFieldElem}, Dict{Symbol, Any}(s.obj))
 end
 
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
+                     field::QQField) where S <: FieldElem
+  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+end
+
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
   polymake_dict = load_typed_object(s)
   bigobject = _dict_to_bigobject(polymake_dict)
   return T{elem_type(field)}(bigobject, field)
+end
+
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
+                     field::Field) where S <: FieldElem
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
+  return T(bigobject, field)
 end
 
 ##############################################################################

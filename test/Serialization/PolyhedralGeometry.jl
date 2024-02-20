@@ -24,14 +24,14 @@ using Oscar: _integer_variables
         end
 
         @testset "Polyhedron" begin
-            square = cube(2)
-            test_save_load_roundtrip(path, square) do loaded
-              @test loaded isa Polyhedron
-              @test Base.propertynames(square) == Base.propertynames(loaded)
-              @test n_vertices(square) == n_vertices(loaded)
-              @test dim(square) == dim(loaded)
-              @test square == loaded
-            end
+          square = cube(2)
+          test_save_load_roundtrip(path, square) do loaded
+            @test loaded isa Polyhedron
+            @test Base.propertynames(square) == Base.propertynames(loaded)
+            @test n_vertices(square) == n_vertices(loaded)
+            @test dim(square) == dim(loaded)
+            @test square == loaded
+          end
 
           d_hedron = dodecahedron()
           test_save_load_roundtrip(path, d_hedron) do loaded
