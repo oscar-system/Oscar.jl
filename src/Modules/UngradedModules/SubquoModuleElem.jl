@@ -103,7 +103,7 @@ end
 #  - if el is homogeneous, but the current representative is not
 #    then a homogeneous representative is returned.
 #  - it sets the field is_reduced to true. 
-function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
+function simplify(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
   if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
     result = zero(parent(el))
@@ -1104,7 +1104,7 @@ function is_zero(m::SubquoModuleElem)
   return (ambient_representative(m) in parent(m).quo)
 end
 
-function iszero(m::SubquoModuleElem{<:MPolyRingElem})
+function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))
