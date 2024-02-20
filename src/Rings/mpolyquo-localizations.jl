@@ -921,7 +921,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) === L || error("elements do not belong to the same ring")
   end
-  return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
+  return L.(_vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
 end
 
 write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))

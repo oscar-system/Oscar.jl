@@ -147,7 +147,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
       phi = phiSS_S*inv(i)*phi*j
       img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
       ds = degree(SS)
-      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
+      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(_vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
     end
   else
     membership_test(g) = is_pm1_on_discr(SS,g)
@@ -311,8 +311,8 @@ function rays(D::K3Chamber)
   # clear denominators
   Lz = ZZMatrix[change_base_ring(ZZ,i*denominator(i)) for i in Lq]
   # primitive in S
-  Lz = ZZMatrix[divexact(i,gcd(vec(i))) for i in Lz]
-  @hassert :K3Auto 2 all(all(x>=0 for x in vec(r*gram_matrix(D.data.SS)*transpose(i))) for i in Lz)
+  Lz = ZZMatrix[divexact(i,gcd(_vec(i))) for i in Lz]
+  @hassert :K3Auto 2 all(all(x>=0 for x in _vec(r*gram_matrix(D.data.SS)*transpose(i))) for i in Lz)
   return Lz
 end
 
@@ -521,9 +521,9 @@ function enumerate_quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=fal
     L, p, dist = Hecke._convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
     if equal
-      cv = Hecke.close_vectors(L, vec(p), dist, dist, check=false)
+      cv = Hecke.close_vectors(L, _vec(p), dist, dist, check=false)
     else
-      cv = Hecke.close_vectors(L, vec(p), dist, check=false)
+      cv = Hecke.close_vectors(L, _vec(p), dist, check=false)
     end
   end
   return cv
@@ -696,7 +696,7 @@ Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 """
 function is_pm1_on_discr(S::ZZLat, g::ZZMatrix)
   D = discriminant_group(S)
-  imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
+  imgs = [D(_vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
   return all(imgs[i] == gen(D, i) for i in 1:ngens(D)) || all(imgs[i] == -gen(D, i) for i in 1:ngens(D))
   # OD = orthogonal_group(D)
   # g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
@@ -1109,7 +1109,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
     #cv = enumerate_quadratic_triple(Q,-b,-c,equal=true)
     mul!(b, Qi, b)
     #b = Qi*b
-    v = vec(b)
+    v = _vec(b)
     upperbound = inner_product(V,v,v) + c
     # solve the quadratic triple
     cv = close_vectors(N, v, upperbound, upperbound, check=false)
@@ -1157,7 +1157,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     walls = Vector{ZZMatrix}(undef,d)
     for i in 1:d
       vs = numerator(FakeFmpqMat(walls1[i]))
-      g = gcd(vec(vs))
+      g = gcd(_vec(vs))
       if g != 1
         vs = divexact(vs, g)
       end
@@ -1175,7 +1175,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     v = matrix(QQ, 1, degree(data.SS), r[i])
     # rescale v to be primitive in S
     vs = numerator(FakeFmpqMat(v))
-    g = gcd(vec(vs))
+    g = gcd(_vec(vs))
     if g!=1
       vs = divexact(vs, g)
     end
@@ -1262,7 +1262,7 @@ Based on Algorithm 5.13 in [Shi15](@cite)
 - `vS`: Given with respect to the basis of `S`.
 """
 function unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
-  d = gcd(vec(vS*data.gramS))
+  d = gcd(_vec(vS*data.gramS))
   v = QQ(1,d)*(vS*basis_matrix(data.S))  # primitive in Sdual
   vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
 

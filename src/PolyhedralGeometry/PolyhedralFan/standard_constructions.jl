@@ -106,7 +106,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   
   old_rays = matrix(ZZ, rays(Sigma))
   # In case the new ray is an old ray.
-  new_ray_index = findfirst(i->vec(old_rays[i:i,:])==new_ray, 1:nrows(old_rays))
+  new_ray_index = findfirst(i->vec(old_rays[i,:])==new_ray, 1:nrows(old_rays))
   new_rays = old_rays
   if isnothing(new_ray_index)
     new_rays = vcat(old_rays, matrix(ZZ, [new_ray]))
