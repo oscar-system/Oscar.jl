@@ -196,7 +196,7 @@ julia> collect(partitions(Int8(4))) # using less memory
 ```
 """
 function partitions(n::T) where {T <: IntegerUnion}
-  return Partitions{T}(n)
+  return Partitions(n)
 end
 
 
