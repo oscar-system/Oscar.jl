@@ -1234,7 +1234,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   l = _kbase(Q)
   V = free_module(K, length(l))
   function im(a::Generic.FreeModuleElem)
-    @assert parent(a) == V
+    @assert parent(a) === V
     b = R(0)
     for k=1:length(l)
       c = a[k]
