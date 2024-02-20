@@ -151,7 +151,7 @@ natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFie
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
-regular_character(G::GAPGRoup)
+regular_character(G::GAPGroup)
 ```
 
 ## Operations for group characters
