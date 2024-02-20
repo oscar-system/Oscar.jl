@@ -125,8 +125,12 @@ function getindex_safe(P::Partition{T}, i::IntegerUnion) where T
   return (i > length(data(P)) ? zero(T) : getindex(data(P), Int(i)))
 end
 
-Base.eltype(::PartitionSet{T}) where T = Partition{T}
-Base.length(P::PartitionSet) = BigInt(number_of_partitions(P.n))
+
+function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
+    print(io, "Iterator over partitions of ", P.n)
+end
+Base.eltype(::Partitions{T}) where T = Partition{T}
+Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
 
 ################################################################################
 #
@@ -192,12 +196,11 @@ julia> collect(partitions(Int8(4))) # using less memory
 ```
 """
 function partitions(n::T) where {T <: IntegerUnion}
-  @req n >= 0 "n >= 0 required"
-  return PartitionSet{T}(n)
+  return Partitions{T}(n)
 end
 
 
-function Base.iterate(P::PartitionSet{T}) where T
+function Base.iterate(P::Partitions{T}) where T
   if P.n == 0
     return partition(T), (T[], 0, 0)
   elseif P.n == 1
@@ -210,7 +213,7 @@ function Base.iterate(P::PartitionSet{T}) where T
 
 end
 
-function Base.iterate(P::PartitionSet, state)
+function Base.iterate(P::Partitions, state)
   d, k, q = state
   q==0 && return nothing
   if d[q] == 2
