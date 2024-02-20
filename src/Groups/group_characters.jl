@@ -1741,7 +1741,7 @@ julia> values(regular_character(G))
 ```
 """
 function regular_character(G::GAPGroup)
-  return regular_chacter(character_table(G))
+  return regular_character(character_table(G))
 end
 
 @doc raw"""
