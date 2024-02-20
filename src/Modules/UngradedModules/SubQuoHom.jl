@@ -33,10 +33,10 @@ function SubQuoHom(D::SubquoModule, C::ModuleFP{T}, mat::MatElem{T}, h::RingMapT
   @assert nrows(mat) == ngens(D)
   @assert ncols(mat) == ngens(C)
   if C isa FreeMod
-    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h; check)
+    hom = SubQuoHom(D, C, [FreeModElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)], h; check)
     return hom
   else
-    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i,:]), C) for i=1:ngens(D)], h; check)
+    hom = SubQuoHom(D, C, [SubquoModuleElem(sparse_row(mat[i:i,:]), C) for i=1:ngens(D)], h; check)
     return hom
   end
 end
