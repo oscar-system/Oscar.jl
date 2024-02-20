@@ -1728,10 +1728,6 @@ mutable struct ModOrdering{T} <: AbsModOrdering
    end
 end
 
-function ==(o1::ModOrdering, o2::ModOrdering)
-  return o1.gens == o2.gens && o1.ord == o2.ord
-end
-
 mutable struct ModuleOrdering{S}
    M::S
    o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
