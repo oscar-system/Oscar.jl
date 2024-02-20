@@ -116,7 +116,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::Field) 
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField) 
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do coeffs

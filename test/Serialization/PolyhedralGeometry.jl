@@ -32,6 +32,11 @@ using Oscar: _integer_variables
               @test dim(square) == dim(loaded)
               @test square == loaded
             end
+
+          d_hedron = dodecahedron()
+          test_save_load_roundtrip(path, d_hedron) do loaded
+            d_hedron == loaded
+          end
         end
 
         @testset "PolyhedralComplex" begin
