@@ -1,4 +1,4 @@
-@testset "Experimental template tests" begin
-  S = Oscar.ExampleStruct(5)
-  @test 5 == Oscar.my_access_func(S)
+@testset "Exterior Shift" begin
+  K = simplicial_complex([[1, 2, 3], [1, 4]])
+  
 end
