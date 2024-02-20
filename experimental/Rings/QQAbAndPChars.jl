@@ -42,9 +42,8 @@ end
 function (Chi::PartialCharacter)(b::ZZMatrix)
   @assert nrows(b) == 1
   @assert Nemo.ncols(b) == Nemo.ncols(Chi.A)
-  s = can_solve_with_solution(Chi.A, b, side = :left)
-  @assert s[1]
-  return evaluate(FacElem(Dict([(Chi.b[i], s[2][1, i]) for i = 1:length(Chi.b)])))
+  s = solve(Chi.A, b, side = :left)
+  return evaluate(FacElem(Dict([(Chi.b[i], s[1, i]) for i = 1:length(Chi.b)])))
 end
 
 function (Chi::PartialCharacter)(b::Vector{ZZRingElem})

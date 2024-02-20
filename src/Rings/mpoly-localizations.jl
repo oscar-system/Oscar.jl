@@ -1282,11 +1282,11 @@ mutable struct MPolyLocRingElem{
   } 
 
   W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  frac::AbstractAlgebra.Generic.Frac{RingElemType}
+  frac::AbstractAlgebra.Generic.FracFieldElem{RingElemType}
 
   function MPolyLocRingElem(
       W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
-      f::AbstractAlgebra.Generic.Frac{RingElemType};
+      f::AbstractAlgebra.Generic.FracFieldElem{RingElemType};
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     base_ring(parent(f)) == base_ring(W) || error(
@@ -1383,7 +1383,7 @@ end
     RingType, 
     RingElemType, 
     MultSetType
-  })(f::AbstractAlgebra.Generic.Frac{RingElemType}; check::Bool=true) where {
+  })(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}; check::Bool=true) where {
     BaseRingType, 
     BaseRingElemType, 
     RingType, 

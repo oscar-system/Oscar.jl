@@ -1565,7 +1565,7 @@ function _find_weights(F::Vector{P}) where {P <: MPolyRingElem}
   exp_diffs = permutedims(reduce(hcat, [e[i] - e[1] for e in
                                           (collect).((exponents).(F))
                                           for i in 2:length(e)]))
-  K = kernel(matrix(QQ, nrows, ncols, exp_diffs))[2]
+  K = kernel(matrix(QQ, nrows, ncols, exp_diffs); side = :right)
   isempty(K) && return zeros(Int, ncols)
   # Here we try to find a vector with strictly positive entries in K
   # this method to find such a vector is taken from

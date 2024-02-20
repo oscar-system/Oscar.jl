@@ -426,8 +426,8 @@ function groebner_fan(I::MPolyIdeal;
     # Starting cone
     ###
     C = maximal_groebner_cone(G,ord,homogeneityWeight)
-    workingList = [(G,ord,C,unique_identifying_point(C))] # list of Groebner cones whose neighbours may be unknown
-    finishedList = typeof(workingList)()     # list of Groebner cones whose neighbours are known
+    workingList = [(G,ord,C,unique_identifying_point(C))] # list of Groebner cones whose neighbors may be unknown
+    finishedList = typeof(workingList)()     # list of Groebner cones whose neighbors are known
     finishedFacets = Vector{Vector{ZZRingElem}}()  # list of interior facet points whose facet has been traversed
 
 
