@@ -1747,7 +1747,7 @@ end
 @doc raw"""
     regular_character(tbl::GAPGroupCharacterTable)
 
-Return the regular character of `G`.
+Return the regular character of `tbl`.
 
 # Examples
 ```jldoctest
