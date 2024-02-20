@@ -207,6 +207,7 @@ function coordinates(
   ) where {T <: FlattableRingElemType}
   flat = flatten(base_ring(parent(a)))
   c = coordinates(flat(a), flat(M))
+  is_zero(c) && return sparse_row(base_ring(a))
   return map_entries(inverse(flat), c)
 end
 
