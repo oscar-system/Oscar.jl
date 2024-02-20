@@ -1762,7 +1762,7 @@ julia> values(regular_character(tbl))
 """
 function regular_character(tbl::GAPGroupCharacterTable)
   val = ZZRingElem[0 for i in 1:length(tbl)]
-  val[1] = order(G)
+  val[1] = order(group(tbl))
   return class_function(tbl, val)
 end
 
