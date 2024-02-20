@@ -192,6 +192,7 @@ import Hecke:
   MapHeader,
   multiplicative_jordan_decomposition,
   primitive_element,
-  QQBar
+  QQBar,
+  FakeFmpqMat
 
 import cohomCalg_jll
