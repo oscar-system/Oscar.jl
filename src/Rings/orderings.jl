@@ -1728,6 +1728,10 @@ mutable struct ModOrdering{T} <: AbsModOrdering
    end
 end
 
+function ==(o1::ModOrdering, o2::ModOrdering)
+  return o1.gens == o2.gens && o1.ord == o2.ord
+end
+
 mutable struct ModuleOrdering{S}
    M::S
    o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
@@ -1739,6 +1743,29 @@ mutable struct ModProdOrdering <: AbsModOrdering
    a::AbsOrdering
    b::AbsOrdering
 end
+
+# Equality checking and hashing
+# Helper for checking equality by checking equality for each entry in a struct
+@generated function _fieldsequal(x, y)
+  if !isempty(fieldnames(x))
+    mapreduce(n -> :(_fieldsequal(x.$n, y.$n)), (a,b)->:($a && $b), fieldnames(x))
+  else
+    :(x == y)
+  end
+end
+
+@generated function _hashbyfields(x, h)
+  if !isempty(fieldnames(x))
+    mapreduce(n -> :(_hashbyfields(x.$n, h)), (a,b) -> :(hash(($a, $b), h)), fieldnames(x))
+  else
+    :(hash(x, h))
+  end
+end 
+
+Base.hash(o1::AbsModOrdering, h::UInt) = _hashbyfields(o1, h)
+Base.hash(o1::ModuleOrdering, h::UInt) = hash((hash(o1.o), hash(o1.M)), h)
+==(o1::AbsModOrdering, o2::AbsModOrdering) = _fieldsequal(o1, o2)
+==(o1::ModuleOrdering, o2::ModuleOrdering) = o1.M == o2.M && o1.o == o2.o
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
@@ -2147,3 +2174,4 @@ end
 end  # module Orderings
 
 import Oscar.Orderings: induce # needed at least for group characters
+
