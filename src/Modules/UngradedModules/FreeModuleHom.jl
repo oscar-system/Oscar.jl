@@ -472,7 +472,6 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   g = images_of_generators(h)
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
-  v = first(gens(M))
   v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
   I, inc = sub(F, v)
   return sub(F, v)
@@ -515,7 +514,6 @@ function is_welldefined(H::SubQuoHom{<:SubquoModule})
   N = codomain(H)
   # the induced map phi : F0 --> N
   phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
-  psi = compose(g, phi)
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))
 end
