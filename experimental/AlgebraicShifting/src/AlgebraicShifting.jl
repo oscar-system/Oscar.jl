@@ -19,6 +19,8 @@ function apply_on_faces(f::Function, K::SimplicialComplex)
   facet_dict = Dict(
     (k => Set(filter(f -> length(f) == k + 1, K_facets)) for k in 1:dim_K )
   )
+
+  # look into hasse diagram from polymake
   
   for facet in K_facets
     dim_facet = length(facet) - 1
@@ -65,8 +67,13 @@ Returns the exterior shift of `K`
 """
 function exterior_shift(F::Field, K::SimplicialComplex;
                         change_of_basis::T = nothing) where T <: Union{Nothing, MatElem}
+  # the exterior shifting works in a different algebra that lends
+  # itself to an easier implementation 
   n = nvertices(K)
+  is_generic = false
   if isnothing(change_of_basis)
+    is_generic = true
+    # generic change of basis
     Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
     change_of_basis = matrix(Fx, hcat(x))
     matrix_base = Fx
@@ -74,10 +81,11 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     matrix_base = base_ring(change_of_basis)
   end
 
+  # might not be needed
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
-    sort!(faces; lt=cmp)
+    # look into why there is sort here
     nCk = sort(subsets(n, dim_face + 1))
     entry_type = elem_type(matrix_base)
 
@@ -95,7 +103,7 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     
     A = matrix(matrix_base, sub_compound_matrix)
 
-    if matrix_base isa MPolyRing
+    if is_generic
       Oscar.ModStdQt.ref_ff_rc!(A)
     else
       rref!(A)
@@ -111,12 +119,14 @@ end
    symmetric_shift(F::Field, K::SimplicialComplex)
 
 Returns the symmetric shift of `K`
+
+see survey on algebraic shifting Gil Kalai (properly cite at some point)
 """
 function symmetric_shift(F::Field, K::SimplicialComplex)
   n = nvertices(K)
   Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
   Fyx, x = polynomial_ring(Fy, n)
-
+  # the computation is a over the field of fractions Fyx
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
   # but we want to avoid using fraction field of Ry during row reduction 
   mb_ring, z = graded_polynomial_ring(F, n)
@@ -128,13 +138,21 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
     r = dim_face + 1
+
+    # look into sorts
     mb = sort(monomial_basis(mb_ring, r); lt=cmp_order)
     Y = matrix(Fy, hcat(y))
     A = Vector{MPolyRingElem}[]
 
     for b in mb
+      # need to compare with some alternatives
       transformed_monomial = evaluate(b, Y * gens(R_K))
+
+      # double check this line
+      # is stanley reisner ring over Z needed to then reduce later
+      # stanley reisner over F is cheaper
       # this part will need to be adjusted for finite fields
+      # there should be no lifting
       non_zero_terms = filter(x -> !is_zero(R_K(x)), collect(terms(lift(transformed_monomial))))
 
       # coefficients is a function for polynomials but since we are looking at the terms
