@@ -8,14 +8,14 @@ struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
 
-struct PartitionSet{T<:IntegerUnion}
+struct Partitions{T<:IntegerUnion}
   n::T
 
-  function PartitionSet(n::T) where T<:IntegerUnion
+  function Partitions(n::T) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
     return new{T}(n)
   end
-  
+
 end
 
 ################################################################################
