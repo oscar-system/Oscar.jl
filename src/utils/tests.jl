@@ -112,6 +112,10 @@ With the optional parameter `timed` the function will return a dict mapping file
 names to a named tuple with compilation times and allocations.
 This only works for `new=false`.
 
+The optional parameter `tempproject` decides whether a temporary project with the
+test environment is used. Setting this to `false` requires all test dependencies
+to be installed in the current environment stack.
+
 The parameter `ignore` can be used to pass a list of `String` or `Regex` patterns.
 Test files or folders matching these will be skipped. Strings will be compared as
 suffixes.
@@ -212,15 +216,19 @@ With the optional parameter `timed` the function will return a dict mapping file
 names to a named tuple with compilation times and allocations.
 This only works for `new=false`.
 
+The optional parameter `tempproject` decides whether a temporary project with the
+test environment is used. Setting this to `false` requires all test dependencies
+to be installed in the current environment stack.
+
 The parameter `ignore` can be used to pass a list of `String` or `Regex` patterns.
 Test files or folders matching these will be skipped. Strings will be compared as
 suffixes.
 This only works for `new=false`.
 """
 function test_experimental_module(
-  project::AbstractString; file::AbstractString="", new::Bool=true, timed::Bool=false, ignore=[]
+  project::AbstractString; file::AbstractString="", new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[]
 )
   test_file = "../experimental/$project/test/$file"
-  test_module(test_file; new, timed=timed, ignore=ignore)
+  test_module(test_file; new, timed, tempproject, ignore)
 end
 
