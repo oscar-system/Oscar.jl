@@ -494,3 +494,4 @@ function reynolds_operator(R::RedGrpInvRing, elem::MPolyRingElem)
     return reynolds_operator(X, elem)
 end
 
+include("TorusInvariantsFast.jl")
