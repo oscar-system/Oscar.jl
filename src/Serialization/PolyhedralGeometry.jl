@@ -64,9 +64,9 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
   try
-    polymake_dict = load_typed_object(s)
-    bigobject = _dict_to_bigobject(polymake_dict)
     return T{elem_type(field)}(bigobject, field)
   catch e 
     if e isa MethodError
@@ -79,9 +79,9 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      field::Field) where S <: FieldElem
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
   try
-    polymake_dict = load_typed_object(s)
-    bigobject = _dict_to_bigobject(polymake_dict)
     return T(bigobject, field)
   catch e
     if e isa MethodError

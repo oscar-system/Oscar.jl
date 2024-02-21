@@ -64,41 +64,41 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
   end
 end
 
-_pmdata_for_oscar(bo::Polymake.BigObject, coeff::Union{Field,Nothing}) = _bigobject_to_dict(bo, coeff)
+_pmdata_for_oscar(bo::Polymake.BigObject, coeff::Field) = _bigobject_to_dict(bo, coeff)
 
-_pmdata_for_oscar(::Nothing, coeff::Union{Field,Nothing}) = nothing
-_pmdata_for_oscar(v::Union{Bool,Int64,Float64,String}, coeff::Union{Field,Nothing}) = v
+_pmdata_for_oscar(::Nothing, coeff::Field) = nothing
+_pmdata_for_oscar(v::Union{Bool,Int64,Float64,String}, coeff::Field) = v
 if Polymake.CxxWrap.CxxLong != Int64
-  _pmdata_for_oscar(i::Polymake.CxxWrap.CxxLong, coeff::Union{Field,Nothing}) = Int64(i)
+  _pmdata_for_oscar(i::Polymake.CxxWrap.CxxLong, coeff::Field) = Int64(i)
 end
 
-_pmdata_for_oscar(im::IncidenceMatrix, coeff::Union{Field,Nothing}) = im
+_pmdata_for_oscar(im::IncidenceMatrix, coeff::Field) = im
 
-_pmdata_for_oscar(g::Polymake.Graph{T}, coeff::Union{Field,Nothing}) where T = Graph{T}(g)
+_pmdata_for_oscar(g::Polymake.Graph{T}, coeff::Field) where T = Graph{T}(g)
 
-_pmdata_for_oscar(m::Polymake.Matrix, coeff::Union{Field,Nothing}) = matrix(coeff, m)
-_pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Integer}, coeff::Union{Field,Nothing}) = matrix(ZZ, m)
-_pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Rational}, coeff::Union{Field,Nothing}) = matrix(QQ, m)
+_pmdata_for_oscar(m::Polymake.Matrix, coeff::Field) = matrix(coeff, m)
+_pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Integer}, coeff::Field) = matrix(ZZ, m)
+_pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Rational}, coeff::Field) = matrix(QQ, m)
 
-_pmdata_for_oscar(m::Polymake.SparseMatrix, coeff::Union{Field,Nothing}) = _pmdata_for_oscar(Polymake.common.dense(m), coeff)
+_pmdata_for_oscar(m::Polymake.SparseMatrix, coeff::Field) = _pmdata_for_oscar(Polymake.common.dense(m), coeff)
 
-_pmdata_for_oscar(v::Polymake.Vector, coeff::Union{Field,Nothing}) = collect(tt, map(F, v))
-_pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Integer}, coeff::Union{Field,Nothing}) = collect(ZZRingElem, map(ZZ, v))
-_pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Rational}, coeff::Union{Field,Nothing}) = collect(QQFieldElem, map(QQ, v))
+_pmdata_for_oscar(v::Polymake.Vector, coeff::Field) = collect(elem_type(coeff), map(coeff, v))
+_pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Integer}, coeff::Field) = collect(ZZRingElem, map(ZZ, v))
+_pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Rational}, coeff::Field) = collect(QQFieldElem, map(QQ, v))
 
-_pmdata_for_oscar(v::Polymake.SparseVector, coeff::Union{Field,Nothing}) = _pmdata_for_oscar(Polymake.common.dense(v), coeff)
+_pmdata_for_oscar(v::Polymake.SparseVector, coeff::Field) = _pmdata_for_oscar(Polymake.common.dense(v), coeff)
 
-_pmdata_for_oscar(s::Polymake.Integer, coeff::Union{Field,Nothing}) = ZZ(s)
-_pmdata_for_oscar(s::Polymake.Rational, coeff::Union{Field,Nothing}) = QQ(s)
-_pmdata_for_oscar(s::Polymake.OscarNumber, coeff::Union{Field,Nothing}) = coeff(s)
+_pmdata_for_oscar(s::Polymake.Integer, coeff::Field) = ZZ(s)
+_pmdata_for_oscar(s::Polymake.Rational, coeff::Field) = QQ(s)
+_pmdata_for_oscar(s::Polymake.OscarNumber, coeff::Field) = coeff(s)
 
-_pmdata_for_oscar(s::Polymake.CxxWrap.StdString, coeff::Union{Field,Nothing}) = String(s)
+_pmdata_for_oscar(s::Polymake.CxxWrap.StdString, coeff::Field) = String(s)
 
-_pmdata_for_oscar(a::Polymake.Array, coeff::Union{Field,Nothing}) = [_pmdata_for_oscar(e, coeff) for e in a]
-_pmdata_for_oscar(s::Polymake.Set, coeff::Union{Field,Nothing}) = Set(_pmdata_for_oscar(e, coeff) for e in s)
+_pmdata_for_oscar(a::Polymake.Array, coeff::Field) = [_pmdata_for_oscar(e, coeff) for e in a]
+_pmdata_for_oscar(s::Polymake.Set, coeff::Field) = Set(_pmdata_for_oscar(e, coeff) for e in s)
 
 
-function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Union{Field,Nothing})
+function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
   data = Dict{String,Any}()
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
@@ -108,8 +108,12 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Union{Field,Nothing})
       try
         obj = _pmdata_for_oscar(p, coeff)
         data[pname] = obj
-      catch MethodError
-        @warn "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"
+      catch e
+        if e isa MethodError
+          @warn "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"
+        else
+          throw(e)
+        end
       end
     end
   end
