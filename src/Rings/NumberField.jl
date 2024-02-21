@@ -619,13 +619,13 @@ function elem_to_mat_row!(M::ZZMatrix, i::Int, d::ZZRingElem, a::NfNSGenElem{QQF
 end
 
 function basis_matrix(v::Vector{NfNSGenElem{QQFieldElem, QQMPolyRingElem}},
-                      ::Type{FakeFmpqMat})
+                      ::Type{Hecke.FakeFmpqMat})
   d = degree(parent(v[1]))
   z = zero_matrix(FlintQQ, length(v), d)
   for i in 1:length(v)
     elem_to_mat_row!(z, i, v[i])
   end
-  return FakeFmpqMat(z)
+  return Hecke.FakeFmpqMat(z)
 end
 
 ################################################################################
