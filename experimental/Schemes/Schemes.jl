@@ -36,3 +36,14 @@ include("ToricBlowups/attributes.jl")
 include("ToricBlowups/methods.jl")
 
 include("DerivedPushforward.jl")
+
+# Deprecated after 0.15
+Base.@deprecate_binding _compute_inherited_glueing _compute_inherited_gluing
+Base.@deprecate_binding base_glueing base_gluing
+Base.@deprecate_binding inherit_glueings! inherit_gluings!
+Base.@deprecate_binding AbsProjectiveGlueing AbsProjectiveGluing
+Base.@deprecate_binding CoveredProjectiveGlueingData CoveredProjectiveGluingData
+Base.@deprecate_binding InheritGlueingData InheritGluingData
+Base.@deprecate_binding LazyProjectiveGlueing LazyProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueing ProjectiveGluing
+Base.@deprecate_binding ProjectiveGlueingData ProjectiveGluingData
