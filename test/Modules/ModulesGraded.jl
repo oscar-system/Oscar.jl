@@ -166,7 +166,10 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M;
-    V = [y^2*N[1], x^2*N[2]]
+    # Problem with the previous test: V[2] is zero and 
+    # the homomorphism is hence not graded.
+    # V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V);
     @test is_graded(a)
     @test degree(a) == 2*Z[1]
@@ -179,10 +182,11 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M;
-    V = [y^2*N[1], x^2*N[2]]
+    #V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V);
     K, incl = kernel(a);
-    @test ngens(K) == 3
+    @test ngens(K) == 2
     @test domain(incl) == K
 end
 
@@ -252,10 +256,12 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M
-    V = [y^2*N[1], x^2*N[2]]
+    # V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V)
     @test is_welldefined(a)
-    W = Rg[y^2 0; 0 x^2]
+    #W = Rg[y^2 0; 0 x^2]
+    W = Rg[y^2 0; 0 x*y]
     b = hom(M, N, W)
     @test a == b
     @test nrows(matrix(a)) == 2
@@ -383,7 +389,7 @@ end
     @test degrees_of_generators(H) == [Z[0], Z[0]]
     @test degrees_of_generators(H.quo) == [Z[1], 2*Z[1], Z[1], 2*Z[1]]
     @test is_homogeneous(f(H[1]))
-    a = element_to_homomorphism(x*H[1]+y*H[2])
+    a = element_to_homomorphism(x*H[1] + y*H[2])
     @test matrix(a) == Rg[x 0; 0 y]
     W =  [x*M[1], y*M[2]];
     a = hom(M, M, W);
@@ -398,17 +404,17 @@ end
     Z = grading_group(Rg)
     F1 = graded_free_module(Rg, 1)
     F2 = graded_free_module(Rg, 2)
-    F2v, ev = dual(F2, cod=F1)
+    F2v, ev = dual(F2, codomain=F1)
     @test ev(F2v[1])(F2[1]) == F1[1] 
     FF, psi = double_dual(F2)
     @test degrees_of_generators(FF) == [Z[0], Z[0]]
     @test is_injective(psi) 
     M, inc = sub(F2, [x*F2[1], y*F2[1]])
     F1 = graded_free_module(Rg, 1)
-    Mv, ev = dual(M, cod=F1)
+    Mv, ev = dual(M, codomain=F1)
     @test degrees_of_generators(Mv) == [Z[0]]
     @test ev(Mv[1])(M[1]) == x*F1[1]
-    Mvv, psi = double_dual(M, cod=F1)
+    Mvv, psi = double_dual(M, codomain=F1)
     @test matrix(psi) == Rg[x; y]
     F = graded_free_module(Rg, 2);
     V = [x*F[1], y^2*F[2]];
@@ -444,9 +450,7 @@ end
     B2 = Rg[y^3;]
     F1 = graded_free_module(Rg, 1)
     M2 = SubquoModule(F1, A2,B2)
-    SQ = hom(M1,M2)[1]
-    v = gens(SQ)[1]
-    @test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
+    SQ = hom(M1,M2)[1] # This is the zero module
 end
 
 @testset "Multiplication morphism" begin
@@ -875,14 +879,14 @@ end
     M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
     M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(x^3*H21[1])
     M2_to_N2 = SubQuoHom(M2, N2, [0*N2[1],0*N2[1],0*N2[1]])
-    @assert degree(M1_to_N1) == Z[0]
-    @assert degree(M1_to_N2) == 6*Z[1]
-    @assert degree(M2_to_N1) == 6*Z[1]
-    @assert degree(M2_to_N2) == Z[0]
-    @assert is_welldefined(M1_to_N1)
-    @assert is_welldefined(M1_to_N2)
-    @assert is_welldefined(M2_to_N1)
-    @assert is_welldefined(M2_to_N2)
+    @test degree(M1_to_N1) == Z[0]
+    @test degree(M1_to_N2) == 6*Z[1]
+    @test degree(M2_to_N1) == 6*Z[1]
+    @test degree(M2_to_N2) == Z[0]
+    @test is_welldefined(M1_to_N1)
+    @test is_welldefined(M1_to_N2)
+    @test is_welldefined(M2_to_N1)
+    @test is_welldefined(M2_to_N2)
 
     phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
     @test degree(phi) == 6*Z[1]

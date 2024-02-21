@@ -170,7 +170,7 @@ the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the orig
   Fb, F_shift, F_backshift = shifted_module(ambient_free_module(M))
   Mp_sub = F_shift.(ambient_representatives_generators(Mp))
   Mp_rel = F_shift.(relations(Mp))
-  result = quo(sub(Fb, Mp_sub)[1], Mp_rel)[1]
+  result = quo_object(sub_object(Fb, Mp_sub), Mp_rel)
   a = hom(Mp, result, gens(result), shift)
   b = hom(result, Mp, gens(Mp), backshift)
   return result, a, b

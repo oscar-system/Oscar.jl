@@ -303,8 +303,8 @@ function forget_grading(F::FreeMod)
   @assert is_graded(F) "module must be graded"
   R = base_ring(F)
   result = FreeMod(R, ngens(F))
-  phi = hom(F, result, gens(result))
-  psi = hom(result, F, gens(F))
+  phi = hom(F, result, gens(result); check=false)
+  psi = hom(result, F, gens(F); check=false)
   set_attribute!(phi, :inverse=>psi)
   set_attribute!(psi, :inverse=>phi)
   return result, phi
@@ -339,16 +339,16 @@ function forget_grading(M::SubquoModule;
     new_sub = forget_grading(M.sub; ambient_forgetful_map)
     new_quo = forget_grading(M.quo; ambient_forgetful_map)
     result = SubquoModule(new_sub, new_quo)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
   elseif isdefined(M, :sub)
     new_sub = forget_grading(M.sub; ambient_forgetful_map)
     result = SubquoModule(new_sub)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
@@ -356,8 +356,8 @@ function forget_grading(M::SubquoModule;
     new_quo = forget_grading(M.quo; ambient_forgetful_map)
     pre_result = SubquoModule(new_quo)
     result, _ = quo(FF, pre_result)
-    phi = hom(M, result, gens(result))
-    psi = hom(result, M, gens(M))
+    phi = hom(M, result, gens(result); check=false)
+    psi = hom(result, M, gens(M); check=false)
     set_attribute!(phi, :inverse=>psi)
     set_attribute!(psi, :inverse=>phi)
     return result, phi
@@ -416,7 +416,7 @@ end
 
 function degrees(M::FreeMod)
   @assert is_graded(M)
-  return M.d
+  return M.d::Vector{FinGenAbGroupElem}
 end
 
 @doc raw"""
@@ -534,14 +534,20 @@ true
 ```
 """
 function is_homogeneous(el::FreeModElem)
-  !is_graded(parent(el)) && error("The parent module is not graded.")
+  !isnothing(el.d) && return true
+  !is_graded(parent(el)) && error("the parent module is not graded")
   iszero(el) && return true
   el.d = isa(el.d, FinGenAbGroupElem) ? el.d : determine_degree_from_SR(coordinates(el), degrees(parent(el)))
   return isa(el.d, FinGenAbGroupElem)
 end
 
+AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
+                          <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
+                          <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
+                         }
+
 @doc raw"""
-    degree(f::FreeModElem)
+    degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
 
 Given a homogeneous element `f` of a graded free module, return the degree of `f`.
 
@@ -553,6 +559,8 @@ Given a homogeneous element `f` of a $\mathbb Z^m$-graded free module, return th
 
 Given a homogeneous element `f` of a $\mathbb Z$-graded free module, return the degree of `f`, converted to an integer number.
 
+If `check` is set to `false`, then there is no check for homegeneity. This should be called 
+internally on provably sane input, as it speeds up computation significantly. 
 # Examples
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
@@ -573,26 +581,50 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(f::FreeModElem)
-  !is_graded(parent(f)) && error("The parent module is not graded.")
-  A = grading_group(base_ring(parent(f)))
-  iszero(f) && return A[0]
-  f.d = isa(f.d, FinGenAbGroupElem) ? f.d : determine_degree_from_SR(coordinates(f), degrees(parent(f)))
-  isa(f.d, FinGenAbGroupElem) || error("The specified element is not homogeneous.")
+function degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
+  !isnothing(f.d) && return f.d::FinGenAbGroupElem
+  @check is_graded(parent(f)) "the parent module is not graded"
+  @check is_homogeneous(f) "the element is not homogeneous"
+  f.d = _degree_fast(f)
   return f.d::FinGenAbGroupElem
 end
 
-function degree(::Type{Vector{Int}}, f::FreeModElem)
+function _degree_of_parent_generator(f::FreeModElem, i::Int)
+  return f.parent.d[i]::FinGenAbGroupElem
+end
+
+# TODO: This has the potential to be a "hot" function. 
+# Should we store the information in the parent of `f` directly?
+# Or is it enough that things are cached in the generators 
+# of the `sub`?
+function _degree_of_parent_generator(f::SubquoModuleElem, i::Int)
+  return _degree_fast(gen(parent(f), i))::FinGenAbGroupElem
+end
+
+# Fast method only to be used on sane input; returns a `GrbAbFinGenElem`.
+# This is exposed as an extra internal function so that `check=false` can be avoided. 
+function _degree_fast(f::FreeModElem)
+  iszero(f) && return zero(grading_group(base_ring(f)))
+  for (i, c) in coordinates(f)
+    !iszero(c) && return (_degree_fast(c) + _degree_of_parent_generator(f, i))::FinGenAbGroupElem
+  end
+  error("this line should never be reached")
+end
+
+
+function degree(::Type{Vector{Int}}, f::FreeModElem; check::Bool=true)
   @assert is_zm_graded(parent(f))
-  d = degree(f)
+  d = degree(f; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-function degree(::Type{Int}, f::FreeModElem)
+function degree(::Type{Int}, f::FreeModElem; check::Bool=true)
   @assert is_z_graded(parent(f))
-  return Int(degree(f)[1])
+  return Int(degree(f; check)[1])
 end
 
+# Checks for homogeneity and computes the degree. 
+# If the input is not homogeneous, this returns nothing.
 function determine_degree_from_SR(coords::SRow, unit_vector_degrees::Vector{FinGenAbGroupElem})
   element_degree = nothing
   for (position, coordval) in coords
@@ -620,59 +652,70 @@ function graded_map(A::MatElem)
   return graded_map(Fcdm, A)
 end
 
-function graded_map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: RingElement}
   R = base_ring(F)
   G = grading_group(R)
   source_degrees = Vector{eltype(G)}()
   for i in 1:nrows(A)
       for j in 1:ncols(A)
           if !is_zero(A[i, j])
-              push!(source_degrees, degree(A[i, j]) + degree(F[j]))
+              push!(source_degrees, degree(A[i, j]; check) + degree(F[j]; check))
               break
           end
       end
   end
   Fcdm = graded_free_module(R, source_degrees)
-  phi = hom(Fcdm, F, A)
+  phi = hom(Fcdm, F, A; check)
   return phi
 end
 
-function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::Bool=true) where {T <: RingElement}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
   ncols = rank(F)
+  @check true # Trigger an error if checks are supposed to be disabled.
   
   source_degrees = Vector{eltype(G)}()
-  for i in 1:nrows
-    for j in 1:ncols
-      if !is_zero(coordinates(V[i])[j])
-        push!(source_degrees, degree(coordinates(V[i])[j]) + degree(F[j]))
+  for (i, v) in enumerate(V)
+    if is_zero(v)
+      push!(source_degrees, zero(G))
+      continue
+    end
+    for (j, c) in coordinates(v)
+      if !iszero(c)
+        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
   end
+  @assert length(source_degrees) == nrows
   Fcdm = graded_free_module(R, source_degrees)
-  phi = hom(Fcdm, F, V)
+  @assert ngens(Fcdm) == length(V) "number of generators must be equal to the number of images"
+  phi = hom(Fcdm, F, V; check)
   return phi
 end
 
 
-function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}) where {T <: RingElement}
+function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T <: RingElement}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
   source_degrees = Vector{eltype(G)}()
-  for i in 1:nrows
-    for (j, coord_val) in coordinates(V[i])
-      if !is_zero(coord_val)
-        push!(source_degrees, degree(coord_val) + degree(F[j]))
+  for (i, v) in enumerate(V)
+    if is_zero(v)
+      push!(source_degrees, zero(G))
+      continue
+    end
+    for (j, c) in coordinates(v)
+      if !iszero(c)
+        push!(source_degrees, degree(coordinates(V[i])[j]; check) + degree(F[j]; check))
         break
       end
     end
   end
   Fcdm = graded_free_module(R, source_degrees)
-  phi = hom(Fcdm, F, V)
+  phi = hom(Fcdm, F, V; check)
   return phi
 end
 
@@ -680,21 +723,21 @@ end
 # Graded Free Module homomorphisms functions
 ###############################################################################
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod, T2 <: Union{FreeMod, SubquoModule, Oscar.SubModuleOfFreeModule}}
   if !is_graded(domain(f)) || !is_graded(codomain(f))
       return f
   end
-  f.d = degree(f)
+  f.d = degree(f; check)
   return f
 end
 
-function set_grading(f::FreeModuleHom{T1, T2}) where {T1 <: FreeMod_dec, T2 <: FreeMod_dec}
+function set_grading(f::FreeModuleHom{T1, T2}; check::Bool=true) where {T1 <: FreeMod_dec, T2 <: FreeMod_dec}
   return f
 end
 # for decorations: add SubquoModule_dec for codomain once it exists
 
 @doc raw"""
-    degree(a::FreeModuleHom)
+    degree(a::FreeModuleHom; check::Bool=true)
 
 If `a` is graded, return the degree of `a`.
 
@@ -725,20 +768,31 @@ julia> degree(a)
 [1]
 ```
 """
-function degree(f::FreeModuleHom)
-  if isdefined(f, :d)
-    return f.d
+function degree(f::FreeModuleHom; check::Bool=true)
+  # TODO: isdefined should not be necessary here. Can it be kicked?
+  isdefined(f, :d) && isnothing(f.d) && return nothing # This stands for the map being not homogeneous
+  isdefined(f, :d) && return f.d::FinGenAbGroupElem
+
+  @check (is_graded(domain(f)) && is_graded(codomain(f))) "both domain and codomain must be graded"
+  @check is_graded(f) "map is not graded"
+  for i in 1:ngens(domain(f))
+    if iszero(domain(f)[i]) || iszero(image_of_generator(f, i))
+      continue
+    end
+    f.d = degree(image_of_generator(f, i); check) - degree(domain(f)[i]; check)
+    return f.d::FinGenAbGroupElem
   end
-  T1 = domain(f)
-  T2 = codomain(f)
-  if !is_graded(T1) || !is_graded(T2)
-    error("Both domain and codomain must be graded.")
-  end
+
+  # If we got here, the map is the zero map. Return degree zero in this case
+  return zero(grading_group(domain(f)))::FinGenAbGroupElem
+
+  # Old code left for debugging
+  return degree(image_of_generator(f, 1))
   domain_degrees = degrees(T1)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
@@ -757,7 +811,7 @@ function degree(f::FreeModuleHom)
 end
 
 @doc raw"""
-    is_graded(a::FreeModuleHom)
+    is_graded(a::ModuleFPHom)
 
 Return `true` if `a` is graded, `false` otherwise.
 
@@ -788,8 +842,33 @@ julia> is_graded(a)
 true
 ```
 """
-function is_graded(f::FreeModuleHom)
-  return isdefined(f, :d)
+function is_graded(f::ModuleFPHom)
+  isdefined(f, :d) && return true
+  (is_graded(domain(f)) && is_graded(codomain(f))) || return false
+  T1 = domain(f)
+  T2 = codomain(f)
+  domain_degrees = degrees_of_generators(T1)
+  df = nothing
+  for i in 1:length(domain_degrees)
+    image_vector = f(T1[i])
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
+      continue
+    end
+    current_df = degree(image_vector) - domain_degrees[i]
+    if df === nothing
+      df = current_df
+    elseif df != current_df
+      return false
+    end
+  end
+  if df === nothing
+    R = base_ring(T1)
+    G = grading_group(R)
+    f.d = zero(G)
+    return true
+  end
+  f.d = df
+  return true
 end
 
 @doc raw"""
@@ -880,8 +959,8 @@ function is_graded(M::SubModuleOfFreeModule)
 end
 
 
-function degrees_of_generators(M::SubModuleOfFreeModule{T}) where T
-  return map(gen -> degree(gen), gens(M))
+function degrees_of_generators(M::SubModuleOfFreeModule{T}; check::Bool=true) where T
+  return map(gen -> degree(gen; check), gens(M))
 end
 
 ###############################################################################
@@ -946,7 +1025,7 @@ function grading_group(M::SubquoModule)
 end
 
 @doc raw"""
-    degrees_of_generators(M::SubquoModule)
+    degrees_of_generators(M::SubquoModule; check::Bool=true)
 
 Return the degrees of the generators of `M`.
 
@@ -983,8 +1062,8 @@ julia> gens(M)
  z*e[2]
 ```
 """
-function degrees_of_generators(M::SubquoModule{T}) where T
-  isempty(gens(M)) ? FinGenAbGroupElem[] : map(gen -> degree(repres(gen)), gens(M))
+function degrees_of_generators(M::SubquoModule{T}; check::Bool=true) where T
+  isempty(gens(M)) ? FinGenAbGroupElem[] : map(gen -> degree(repres(gen); check), gens(M))
 end
 
 ###############################################################################
@@ -1042,22 +1121,29 @@ x*e[1] + (y - z)*e[2]
 ```
 """
 function is_homogeneous(el::SubquoModuleElem)
-  if iszero(coordinates(el))
-      return is_homogeneous(repres(el))
+  el.is_reduced && return is_homogeneous(repres(el))
+  return is_homogeneous(repres(simplify(el)))
+
+  # The following call checks for homogeneity on the way and stores the degree thus determined.
+  degree = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
+  if degree === nothing
+    reduced_el = simplify(el) # TODO: What do we expect `simplify` to do here generically???
+    degree_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
+    if degree_reduced === nothing
+      el.d = nothing
+      return false
+    else
+      el.d = degree_reduced
+      return true
+    end
   else
-    degree = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
-      if degree === nothing
-          reduced_el = simplify(el)
-          degree_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
-          return degree_reduced !== nothing
-      else
-          return true
-      end
+    el.d = degree
+    return true
   end
 end
 
 @doc raw"""
-    degree(m::SubquoModuleElem)
+    degree(m::SubquoModuleElem; check::Bool=true)
 
 Given a homogeneous element `m` of a graded subquotient, return the degree of `m`.
 
@@ -1105,31 +1191,36 @@ julia> degree(m3)
 [2]
 ```
 """
-function degree(el::SubquoModuleElem)
-  if !iszero(coordinates(el))
-    result = determine_degree_from_SR(coordinates(el), degrees_of_generators(parent(el)))
-      if result === nothing
-          reduced_el = simplify(el)
-          result_reduced = determine_degree_from_SR(coordinates(reduced_el), degrees_of_generators(parent(reduced_el)))
-          @assert result_reduced !== nothing "The specified element is not homogeneous."
-          return result_reduced
-      else
-          return result
-      end
-  else
-      return degree(repres(el))
-  end
+function degree(el::SubquoModuleElem; check::Bool=true)
+  # In general we can not assume that we have a groebner basis reduction available 
+  # as a backend to bring the element to normal form. 
+  # In particular, this may entail that `coordinates` produces non-homogeneous 
+  # vectors via differently implemented liftings. 
+  # Thus, the only thing we can do is to assume that the representative is 
+  # homogeneous.
+  return degree(repres(simplify!(el)); check)
 end
 
-function degree(::Type{Vector{Int}}, el::SubquoModuleElem)
+# When there is a Groebner basis backend, we can reduce to normal form.
+function degree(
+    el::SubquoModuleElem{T};
+    check::Bool=true
+  ) where {T <:Union{<:MPolyRingElem{<:FieldElem}}}
+  !el.is_reduced && return degree(simplify!(el); check)
+  return degree(repres(el); check)
+end
+
+_degree_fast(el::SubquoModuleElem) = degree(el, check=false)
+
+function degree(::Type{Vector{Int}}, el::SubquoModuleElem; check::Bool=true)
   @assert is_zm_graded(parent(el))
-  d = degree(el)
+  d = degree(el; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
-function degree(::Type{Int}, el::SubquoModuleElem)
+function degree(::Type{Int}, el::SubquoModuleElem; check::Bool=true)
   @assert is_z_graded(parent(el))
-  return Int(degree(el)[1])
+  return Int(degree(el; check)[1])
 end
 
 
@@ -1137,16 +1228,16 @@ end
 # Graded subquotient homomorphisms functions
 ###############################################################################
 
-function set_grading(f::SubQuoHom)
+function set_grading(f::SubQuoHom; check::Bool=true)
   if !is_graded(domain(f)) || !is_graded(codomain(f))
     return(f)
   end
-  f.d = degree(f)
+  f.d = degree(f; check)
   return f
 end
 
 @doc raw"""
-    degree(a::SubQuoHom)
+    degree(a::SubQuoHom; check::Bool=true)
 
 If `a` is graded, return the degree of `a`.
 
@@ -1176,7 +1267,7 @@ julia> degree(a)
 [2]
 ```
 """
-function degree(f::SubQuoHom)
+function degree(f::SubQuoHom; check::Bool=true)
   if isdefined(f, :d)
     return f.d
   end
@@ -1190,11 +1281,23 @@ function degree(f::SubQuoHom)
     G = grading_group(R)
     return G[0]
   end
+  @check is_graded(f) "homomorphism is not graded"
+  for (i, v) in enumerate(gens(T1))
+    (is_zero(v) || is_zero(image_of_generator(f, i))) && continue
+    f.d = degree(image_of_generator(f, i); check) - degree(v; check)
+    return f.d::FinGenAbGroupElem
+  end
+
+  # If we get here, we have the zero map
+  f.d = zero(grading_group(T1))
+  return f.d::FinGenAbGroupElem
+
+  # Old code left here for debugging
   domain_degrees = degrees_of_generators(T1)
   df = nothing
   for i in 1:length(domain_degrees)
     image_vector = f(T1[i])
-    if isempty(coordinates(image_vector))
+    if isempty(coordinates(image_vector)) || is_zero(image_vector)
       continue
     end
     current_df = degree(image_vector) - domain_degrees[i]
@@ -1210,41 +1313,6 @@ function degree(f::SubQuoHom)
     return G[0]
   end
   return df
-end
-
-@doc raw"""
-    is_graded(a::SubQuoHom)
-
-Return `true` if `a` is graded, `false` otherwise.
-
-# Examples
-```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
-
-julia> F = graded_free_module(Rg, 1);
-
-julia> A = Rg[x; y];
-
-julia> B = Rg[x^2; y^3; z^4];
-
-julia> M = SubquoModule(F, A, B);
-
-julia> N = M;
-
-julia> V = [y^2*N[1], x^2*N[2]];
-
-julia> a = hom(M, N, V)
-M -> M
-x*e[1] -> x*y^2*e[1]
-y*e[1] -> x^2*y*e[1]
-Graded module homomorphism of degree [2]
-
-julia> is_graded(a)
-true
-```
-"""
-function is_graded(f::SubQuoHom)
-  return isdefined(f, :d)
 end
 
 @doc raw"""
@@ -1776,7 +1844,7 @@ function _sheaf_cohomology_bgg(M::ModuleFP{T},
                                h::Int) where {T <: MPolyDecRingElem}
 
   sing_mod, weights = _weights_and_sing_mod(M)
-  reg = Int(cm_regularity(M))
+  reg = Int(cm_regularity(M; check=false))
 
   values = Singular.LibSheafcoh.sheafCohBGGregul_w(sing_mod,
                                                    l, h, reg,
@@ -2381,7 +2449,7 @@ end
 function forget_decoration(f::FreeModuleHom_dec)
   F = forget_decoration(domain(f))
   G = forget_decoration(codomain(f))
-  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))])
+  return hom(F, G, [forget_decoration(f(v)) for v in gens(domain(f))]; check=false)
 end
 
 function matrix(a::FreeModuleHom_dec)
@@ -2450,30 +2518,30 @@ julia> minimal_betti_table(A)
 total: 1  5  5  1
 ```
 """
-function minimal_betti_table(M::ModuleFP{T}) where {T<:MPolyDecRingElem}
+function minimal_betti_table(M::ModuleFP{T}; check::Bool=true) where {T<:MPolyDecRingElem}
  error("Not implemented for the given type")
 end
 
-function minimal_betti_table(M::SubquoModule{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(M))
+function minimal_betti_table(M::SubquoModule{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M); check)
 end
 
-function minimal_betti_table(F::FreeMod{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(M))
+function minimal_betti_table(F::FreeMod{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(M); check)
 end
 
-function minimal_betti_table(A::MPolyQuoRing{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(A))
+function minimal_betti_table(A::MPolyQuoRing{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(A); check)
 end
 
-function minimal_betti_table(I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
-  return minimal_betti_table(free_resolution(I))
+function minimal_betti_table(I::MPolyIdeal{T}; check::Bool=true) where {T<:MPolyDecRingElem}
+  return minimal_betti_table(free_resolution(I); check)
 end
 
 
 
 @doc raw"""
-    minimal_betti_table(F::FreeResolution{T}) where {T<:ModuleFP}
+    minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
 
 Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2517,7 +2585,7 @@ julia> minimal_betti_table(FA)
 total: 1  5  5  1  
 ```
 """
-function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
+function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
   @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
   @assert is_graded(res) "resolution must be graded"
   C = complex(res)
@@ -2531,18 +2599,18 @@ function minimal_betti_table(res::FreeResolution{T}) where {T<:ModuleFP}
     phi = map(C, i)
     F = domain(phi)
     G = codomain(phi)
-    dom_degs = unique!([degree(g) for g in gens(F)])
-    cod_degs = unique!([degree(g) for g in gens(G)])
+    dom_degs = unique!([degree(g; check) for g in gens(F)])
+    cod_degs = unique!([degree(g; check) for g in gens(G)])
     for d in cod_degs
       d::FinGenAbGroupElem
       if d in dom_degs
-        _, _, sub_mat = _constant_sub_matrix(phi, d)
+        _, _, sub_mat = _constant_sub_matrix(phi, d; check)
         r = rank(sub_mat)
         c = ncols(sub_mat) - r - get(offsets, d, 0)
         !iszero(c) && (betti_hash_table[(i-1, d)] = c)
         offsets[d] = r
       else
-        c = length(_indices_of_generators_of_degree(G, d)) - get(offsets, d, 0)
+        c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
         !iszero(c) && (betti_hash_table[(i-1, d)] = c)
       end
     end
@@ -2554,29 +2622,32 @@ function hash_table(B::BettiTable)
   return B.B
 end
 
+# TODO: Where is this called??? Adjust the use of `check` there!
 function generators_of_degree(
     C::FreeResolution{T},
     i::Int,
-    d::FinGenAbGroupElem
+    d::FinGenAbGroupElem;
+    check::Bool=true
   ) where {T<:ModuleFP}
   F = C[i]
   return [g for g in gens(F) if degree(g) == d]
 end
 
-function _indices_of_generators_of_degree(F::FreeMod{T}, d::FinGenAbGroupElem) where {T<:MPolyDecRingElem}
-  return Int[i for (i, g) in enumerate(gens(F)) if degree(g) == d]
+function _indices_of_generators_of_degree(F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true) where {T<:MPolyDecRingElem}
+  return Int[i for (i, g) in enumerate(gens(F)) if degree(g; check) == d]
 end
 
 function _constant_sub_matrix(
     phi::FreeModuleHom{T, T},
-    d::FinGenAbGroupElem
+    d::FinGenAbGroupElem;
+    check::Bool=true
   ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
   S = base_ring(domain(phi))::MPolyDecRing
   kk = coefficient_ring(S)::Field
   F = domain(phi)
   G = codomain(phi)
-  ind_dom = _indices_of_generators_of_degree(F, d)
-  ind_cod = _indices_of_generators_of_degree(G, d)
+  ind_dom = _indices_of_generators_of_degree(F, d; check)
+  ind_cod = _indices_of_generators_of_degree(G, d; check)
   m = length(ind_dom)
   n = length(ind_cod)
   result = zero_matrix(kk, m, n)
@@ -2604,21 +2675,17 @@ end
 #############truncation#############
 
 @doc raw"""
-    truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
+    truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 
 Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivariate 
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
 
 Put more precisely, return the truncation as an object of type `SubquoModule`. 
-
 Additionally, if `N` denotes this object,
-
 - return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
 - return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
 - do none of the above if `task = :none`.
-
 If `task = :only_morphism`, return only the inclusion map.
-
     truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
 
 Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
@@ -2658,11 +2725,11 @@ by submodule of F generated by
 3 -> z^5*e[1]
 ```
 """
-function truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
+function truncate(I::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
   return truncate(I, Int(g[1]), task)
 end
 
-function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
+function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=true)
   @req I isa FreeMod || I isa SubquoModule "Not implemented for the given type"
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -2671,20 +2738,20 @@ function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
   if is_zero(I)
-     return I
+     return _return_wrt_task((I, identity_map(I)), task)
   end
-  dmin = minimum(degree(Int, x) for x in gens(I))
+  dmin = minimum(degree(Int, x; check) for x in gens(I))
   if  d <= dmin
-     return I
+     return _return_wrt_task((I, identity_map(I)), task)
   end
-  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  V = sort(gens(I), lt = (a, b) -> degree(Int, a; check) <= degree(Int, b; check))
   RES = elem_type(I)[]
   s = dmin
   B = monomial_basis(R, d-s)
   for i = 1:length(V)
-    if degree(Int, V[i]) < d
-      if degree(Int, V[i]) > s
-        s = degree(Int, V[i])
+    if degree(Int, V[i]; check) < d
+      if degree(Int, V[i]; check) > s
+        s = degree(Int, V[i]; check)
         B = monomial_basis(R, d-s)
       end
       append!(RES, [x*V[i] for x in B])
@@ -2692,14 +2759,30 @@ function  truncate(I::ModuleFP, d::Int, task::Symbol = :with_morphism)
       push!(RES, V[i])
     end
   end
-  return sub(I, RES, task) 
+  return _return_wrt_task(sub(I, RES), task)
 end
+
+function _return_wrt_task(result, task)
+  if task == :with_morphism
+    return result
+  elseif task == :cache_morphism
+    register_morphism!(result[2])
+    return result[2]
+  elseif task == :only_morphism
+    return result[2]
+  elseif task == :none
+    return result[1]
+  else
+    error("task not recognized")
+  end
+end
+  
 
 
 ##################regularity#######################
 
 @doc raw"""
-    cm_regularity(M::ModuleFP)
+    cm_regularity(M::ModuleFP; check::Bool=true)
 
 Given a finitely presented graded module `M` over a standard $\mathbb Z$-graded 
 multivariate polynomial ring with coefficients in a field, return the
@@ -2759,22 +2842,21 @@ julia> minimal_betti_table(A)
 total: 1 3 2 
 ```
 """
-function cm_regularity(M::ModuleFP)
+function cm_regularity(M::ModuleFP; check::Bool=true)
  error("Not implemented for the given type")
 end
 
-function cm_regularity(M::FreeMod)
+function cm_regularity(M::FreeMod{T}; check::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
    R = base_ring(M)
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_standard_graded(R) "The base ring is not standard ZZ-graded"
+   @check is_standard_graded(R) "The base ring is not standard ZZ-graded"
    return 0
 end
 
-function cm_regularity(M::SubquoModule)
+function cm_regularity(M::SubquoModule{T}; check::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
    R = base_ring(M)
-   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-   @req is_standard_graded(R) "The base ring is not standard ZZ-graded"
-   B = minimal_betti_table(M)
+   @check coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+   @check is_standard_graded(R) "The base ring is not standard ZZ-graded"
+   B = minimal_betti_table(M; check)
    S = as_dictionary(B)
    V = [x[2][1] - x[1] for x in keys(S)] 
   return maximum(V)
@@ -2832,7 +2914,7 @@ function quotient_ring_as_module(I::MPolyIdeal)
   R = base_ring(I)
   F = is_graded(R) ? graded_free_module(R, 1) : free_module(R, 1)
   e1 = F[1]
-  return quo(F, [x * e1 for x = gens(I)], :module)
+  return quo_object(F, [x * e1 for x = gens(I)])
 end
 
 #####ideals as modules#####
@@ -2876,7 +2958,7 @@ function ideal_as_module(I::MPolyIdeal)
   R = base_ring(I)
   F = is_graded(R) ? graded_free_module(R, 1) : free_module(R, 1)
   e1 = F[1]
-  return sub(F, [x * e1 for x = gens(I)], :module)
+  return sub_object(F, [x * e1 for x = gens(I)])
 end
 
 
@@ -2937,8 +3019,8 @@ function twist(M::SubquoModule{T}, g::FinGenAbGroupElem) where {T<:Union{MPolyDe
  FN = twist(F, g)
  GN = free_module(R, ngens(M))
  HN = free_module(R, length(relations(M)))
- a = hom(GN, F, ambient_representatives_generators(M))
- b = hom(HN, F, relations(M))
+ a = hom(GN, F, ambient_representatives_generators(M); check=false)
+ b = hom(HN, F, relations(M); check=false)
  A = matrix(a)
  B = matrix(b)
  N = subquotient(FN, A, B)
@@ -2975,7 +3057,7 @@ function change_base_ring(
   S = codomain(f)
   r = ngens(F)
   FS = grade(FreeMod(S, F.S), degree.(gens(F)))
-  map = hom(F, FS, gens(FS), f)
+  map = hom(F, FS, gens(FS), f; check=false)
   return FS, map
 end
 
@@ -2988,7 +3070,7 @@ function change_base_ring(f::RingFlattening{DomType, CodType}, M::SubquoModule) 
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), f)
+  map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
 
@@ -2997,11 +3079,11 @@ function _regularity_bound(M::SubquoModule)
   S = base_ring(M)
   G = grading_group(S)
   @assert is_free(G) && isone(rank(G)) "base ring must be ZZ-graded"
-  @assert all(x->degree(x)[1] >= 0, gens(S)) "base ring variables must be non-negatively graded"
+  @assert all(x->degree(Int, x; check=false) >= 0, gens(S)) "base ring variables must be non-negatively graded"
   res = free_resolution(M)
-  result = maximum((x->degree(x)[1]).(gens(res[0])))
+  result = maximum((x->degree(Int, x; check=false)).(gens(res[0])))
   for i in 0:first(chain_range(res))
-    result = maximum(push!((x->degree(x)[1]).(gens(res[i])), result))
+    result = maximum(push!((x->degree(Int, x; check=false)).(gens(res[i])), result))
   end
   return result
 end
