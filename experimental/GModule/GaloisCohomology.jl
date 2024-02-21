@@ -1618,7 +1618,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
       push!(lb, RelativeBrauerGroupElem(B, d))
     end
   
-    fl, x = cansolve(lb, b)
+    fl, x = can_solve_with_solution(lb, b)
     @assert fl
  
     return map_entries(mS*mMC, z[2](image(mq, q(x.coeff))), parent = mu)
@@ -1653,7 +1653,7 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrderIdeal, Hecke.NumFiel
 end
 
 #write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
-function cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+function Oscar.can_solve_with_solution(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A

@@ -170,7 +170,8 @@ end
 function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
   if !isdefined(C, :F)
-    if order(Group(C)) == 1
+    @show Group(C)
+    if (!isa(Group(C), FPGroup)) && order(Group(C)) == 1
       C.F = free_group(0)
       C.mF = hom(C.F, Group(C), gens(C.F), elem_type(Group(C))[])
     else
