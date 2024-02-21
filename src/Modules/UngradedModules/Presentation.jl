@@ -100,7 +100,7 @@ function _presentation_graded(SQ::SubquoModule)
   R = base_ring(SQ)
 
   # Prepare to set some names
-  br_name = AbstractAlgebra.find_name(R)
+  br_name = AbstractAlgebra.PrettyPrinting.find_name(R)
   if br_name === nothing
     br_name = "br"
   end
@@ -149,7 +149,7 @@ function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   # Prepare to set some names
-  br_name = AbstractAlgebra.find_name(R)
+  br_name = AbstractAlgebra.PrettyPrinting.find_name(R)
   if br_name === nothing
     br_name = "br"
   end
