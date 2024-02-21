@@ -6,8 +6,8 @@ base_ring_type(::Type{Covering{T}}) where {T} = T
 base_ring_type(C::Covering) = base_ring_type(typeof(C))
 
 ### type constructors
-#covering_type(::Type{T}) where {T<:Spec} = Covering{T, gluing_type(T)}
-#covering_type(X::Spec) = covering_type(typeof(X))
+#covering_type(::Type{T}) where {T<:AffineScheme} = Covering{T, gluing_type(T)}
+#covering_type(X::AffineScheme) = covering_type(typeof(X))
 
 ########################################################################
 # Basic getters                                                        #
@@ -26,11 +26,11 @@ number_of_patches(C::Covering) = length(C.patches)
 
 Return a dictionary of gluings of the `affine_chart`s of `C`.
 
-The keys are pairs `(U, V)` of `affine_chart`s. 
+The keys are pairs `(U, V)` of `affine_chart`s.
 One can also use `C[U, V]` to obtain the respective gluing.
 
-**Note:** Gluings are lazy in the sense that they are in general 
-only computed when asked for. This method only returns the internal 
+**Note:** Gluings are lazy in the sense that they are in general
+only computed when asked for. This method only returns the internal
 cache, but does not try to compute new gluings.
 """
 gluings(C::Covering) = C.gluings
@@ -49,17 +49,17 @@ end
 @doc raw"""
     decomposition_info(C::Covering)
 
-Return an `IdDict` `D` with the `patches` ``Uᵢ`` of `C` as keys and values a list 
-of elements ``fᵢ₁,…,fᵢᵣ ∈ 𝒪(Uᵢ)``. These elements are chosen so that for every 
-affine patch `Uᵢ` of ``X`` in the covering `C` the closed subvarieties ``Zᵢ ⊂ Uᵢ`` 
-defined by the ``fᵢⱼ`` give rise to a decomposition of ``X`` as a **disjoint** union 
-``X = \bigcup_{i} Z_i`` of locally closed subvarieties. 
+Return an `IdDict` `D` with the `patches` ``Uᵢ`` of `C` as keys and values a list
+of elements ``fᵢ₁,…,fᵢᵣ ∈ 𝒪(Uᵢ)``. These elements are chosen so that for every
+affine patch `Uᵢ` of ``X`` in the covering `C` the closed subvarieties ``Zᵢ ⊂ Uᵢ``
+defined by the ``fᵢⱼ`` give rise to a decomposition of ``X`` as a **disjoint** union
+``X = \bigcup_{i} Z_i`` of locally closed subvarieties.
 
-This information can be used for local computations in any chart ``Uᵢ`` of ``X`` 
-as above to focus on phenomena occurring exclusively along ``Zᵢ`` and assuming 
-that other cases have been handled by computations in other charts. A key 
-application is counting points of zero-dimensional subschemes: To avoid overcounting, 
-we need to only consider points in ``Uᵢ`` which are located within ``Zᵢ`` and 
+This information can be used for local computations in any chart ``Uᵢ`` of ``X``
+as above to focus on phenomena occurring exclusively along ``Zᵢ`` and assuming
+that other cases have been handled by computations in other charts. A key
+application is counting points of zero-dimensional subschemes: To avoid overcounting,
+we need to only consider points in ``Uᵢ`` which are located within ``Zᵢ`` and
 then sum these up to all points in ``X``.
 
 !!! note This attribute might not be defined! Use `has_decomposition_info(C)` to check whether this information is available for the given covering.
@@ -80,14 +80,14 @@ function set_decomposition_info!(C::Covering, D::IdDict{<:AbsSpec, <:Vector{<:Ri
   C.decomp_info = D
 end
 
-function has_decomposition_info(C::Covering) 
+function has_decomposition_info(C::Covering)
   isdefined(C, :decomp_info) || return false
   all(x->haskey(C.decomp_info, x), patches(C)) || return false
   return true
 end
 
 function inherit_decomposition_info!(
-    X::AbsCoveredScheme, ref_cov::Covering; 
+    X::AbsCoveredScheme, ref_cov::Covering;
     orig_cov::Covering=default_covering(X)
   )
   !has_decomposition_info(orig_cov) && return ref_cov

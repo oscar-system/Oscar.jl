@@ -31,42 +31,42 @@
 ############################################
 
 @doc raw"""
-    Spec{BaseRingType, RingType}
+    AffineScheme{BaseRingType, RingType}
 
 An affine scheme ``X = Spec(R)`` with ``R`` a Noetherian ring of type `RingType`
 over a base ring ``𝕜`` of type `BaseRingType`.
 """
-@attributes mutable struct Spec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
+@attributes mutable struct AffineScheme{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
   # the basic fields
   OO::RingType
   kk::BaseRingType
 
-  function Spec(OO::MPolyQuoLocRing)
+  function AffineScheme(OO::MPolyQuoLocRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
-  function Spec(OO::MPolyLocRing)
+  function AffineScheme(OO::MPolyLocRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
-  function Spec(OO::MPolyRing)
+  function AffineScheme(OO::MPolyRing)
     kk = coefficient_ring(OO)
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
-  function Spec(OO::MPolyQuoRing)
+  function AffineScheme(OO::MPolyQuoRing)
     kk = coefficient_ring(base_ring(OO))
     return new{typeof(kk), typeof(OO)}(OO, kk)
   end
 
-  function Spec(R::Ring)
+  function AffineScheme(R::Ring)
     return new{typeof(ZZ), typeof(R)}(R, ZZ)
   end
 
-  function Spec(kk::Ring, R::Ring)
+  function AffineScheme(kk::Ring, R::Ring)
     return new{typeof(kk), typeof(R)}(R, kk)
   end
 
-  function Spec(kk::Field)
+  function AffineScheme(kk::Field)
     return new{typeof(kk), typeof(kk)}(kk, kk)
   end
 end

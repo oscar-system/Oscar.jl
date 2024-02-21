@@ -32,7 +32,7 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   else
     Irad = radical(I)
   end
-  X.Xred = Spec(base_ring(Irad), Irad)
+  X.Xred = AffineScheme(base_ring(Irad), Irad)
   return X.Xred
 end
 

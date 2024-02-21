@@ -3,10 +3,10 @@
 # (1) Type getters for SpecOpen                                        #
 ########################################################################
 open_subset_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = SpecOpen{SpecType, BRT}
-open_subset_type(X::Spec) = open_subset_type(typeof(X))
+open_subset_type(X::AffineScheme) = open_subset_type(typeof(X))
 
-ambient_type(U::SpecOpen{SpecType, BRT}) where {SpecType<:Spec, BRT} = SpecType
-ambient_type(::Type{SpecOpen{SpecType, BRT}}) where {SpecType<:Spec, BRT} = SpecType
+ambient_type(U::SpecOpen{SpecType, BRT}) where {SpecType<:AffineScheme, BRT} = SpecType
+ambient_type(::Type{SpecOpen{SpecType, BRT}}) where {SpecType<:AffineScheme, BRT} = SpecType
 
 poly_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = poly_type(ambient_type(SpecOpenType))
 poly_type(U::SpecOpen) = poly_type(typeof(U))
@@ -31,7 +31,7 @@ end
 @doc raw"""
     intersections(U::SpecOpen)
 
-Return a list of pairwise intersections of the 
+Return a list of pairwise intersections of the
 principal open subschemes covering ``U``.
 TODO: Add example!
 """
@@ -65,7 +65,7 @@ TODO: Add example!
 ambient_coordinate_ring(U::SpecOpen) = ambient_coordinate_ring(ambient_scheme(U))
 
 @doc raw"""
-    ambient_space(U::SpecOpen) -> Spec
+    ambient_space(U::SpecOpen) -> AffineScheme
 
 For ``U ⊆ X \subseteq 𝔸 ⁿ`` return the affine space``𝔸 ⁿ``.
 """
@@ -88,7 +88,7 @@ number_of_patches(U::SpecOpen) = length(U.gens)
 @doc raw"""
     complement_equations(U::SpecOpen)
 
-Return the generators ``[f₁,…,fᵣ]`` stored for the description 
+Return the generators ``[f₁,…,fᵣ]`` stored for the description
 of the complement of ``U``.
 """
 complement_equations(U::SpecOpen) = U.gens::Vector{elem_type(ambient_coordinate_ring(ambient_scheme(U)))}
@@ -97,10 +97,10 @@ number_of_complement_equations(U::SpecOpen) = length(U.gens)
 @doc raw"""
     affine_patch(U::SpecOpen, i::Int)
 
-Return the hypersurface complement of ``fᵢ`` in the 
-ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are 
-the generators stored for the description of the complement 
-of ``U``. This function can also be called using the 
+Return the hypersurface complement of ``fᵢ`` in the
+ambient scheme ``X`` of ``U`` where ``f₁,…,fᵣ`` are
+the generators stored for the description of the complement
+of ``U``. This function can also be called using the
 `getindex` method or simply via `U[i]`.
 """
 affine_patch(U::SpecOpen, i::Int) = affine_patches(U)[i]
@@ -109,14 +109,14 @@ gen(U::SpecOpen, i::Int) = affine_patches(U)[i]
 getindex(U::SpecOpen, i::Int) = affine_patches(U)[i]
 number_of_generators(U::SpecOpen) = number_of_patches(U)
 
-function getindex(U::SpecOpen, X::AbsSpec) 
+function getindex(U::SpecOpen, X::AbsSpec)
   for i in 1:n_patches(U)
     X === U[i] && return i
   end
   error("scheme $X not found among the open patches in $U")
 end
 
-function getindex(U::SpecOpen, i::Int, j::Int) 
+function getindex(U::SpecOpen, i::Int, j::Int)
   if !haskey(intersections(U), (i, j))
     intersections(U)[(i, j)] = hypersurface_complement(U[i], complement_equations(U)[j])
     intersections(U)[(j, i)] = intersections(U)[(i, j)]
@@ -125,7 +125,7 @@ function getindex(U::SpecOpen, i::Int, j::Int)
 end
 
 #TODO: Add docstring.
-function complement_ideal(U::SpecOpen) 
+function complement_ideal(U::SpecOpen)
   if !isdefined(U, :complement_ideal)
     I = ideal(OO(ambient_scheme(U)), complement_equations(U))
     U.complement_ideal = I
@@ -134,7 +134,7 @@ function complement_ideal(U::SpecOpen)
 end
 
 # TODO: Add docstring.
-function complement(U::SpecOpen) 
+function complement(U::SpecOpen)
   if !isdefined(U, :complement)
     #I = radical(saturated_ideal(ideal(localized_ring(OO(ambient_scheme(U))), complement_equations(U))))
     #U.complement = subscheme(ambient_scheme(U), I)
@@ -146,7 +146,7 @@ function set_name!(U::SpecOpen, name::String)
   U.name = name
 end
 
-function name(U::SpecOpen) 
+function name(U::SpecOpen)
   if isdefined(U, :name)
     return U.name
   end

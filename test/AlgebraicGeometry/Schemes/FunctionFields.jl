@@ -1,10 +1,10 @@
 @testset "fraction fields of varieties" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  @test is_irreducible(Spec(R))
-  @test is_irreducible(Spec(R, ideal(R, x)))
-  @test !is_irreducible(Spec(R, ideal(R, x*y)))
-  @test is_irreducible(Spec(localization(R, units_of(R))[1]))
-  @test !is_irreducible(Spec(R, ideal(R, x*y), units_of(R)))
+  @test is_irreducible(AffineScheme(R))
+  @test is_irreducible(AffineScheme(R, ideal(R, x)))
+  @test !is_irreducible(AffineScheme(R, ideal(R, x*y)))
+  @test is_irreducible(AffineScheme(localization(R, units_of(R))[1]))
+  @test !is_irreducible(AffineScheme(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
   S = homogeneous_coordinate_ring(P)
@@ -35,7 +35,7 @@ end
   A1s = patches(base_covering)[1]
   A1t = patches(base_covering)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -45,7 +45,7 @@ end
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 

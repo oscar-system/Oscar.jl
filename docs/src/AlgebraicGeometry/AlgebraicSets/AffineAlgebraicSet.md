@@ -97,7 +97,7 @@ algebraic_set(f::MPolyRingElem; check::Bool=true)
 Convert an affine scheme to an affine algebraic set in order to ignore
 its (non-reduced) scheme structure.
 ```@docs
-algebraic_set(X::Spec; check::Bool=true)
+algebraic_set(X::AffineScheme; check::Bool=true)
 ```
 
 ```@docs

@@ -14,7 +14,7 @@ end
 # Restrictions of regular functions                                    #
 ########################################################################
 function restrict(
-    f::SpecOpenRingElem, 
+    f::SpecOpenRingElem,
     V::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
@@ -34,7 +34,7 @@ function restrict(
 end
 
 function restrict(
-    f::SpecOpenRingElem, 
+    f::SpecOpenRingElem,
     V::AbsSpec{<:Ring, <:MPolyLocRing};
     check::Bool=true
   )
@@ -54,8 +54,8 @@ function restrict(
 end
 
 function restrict(
-    f::SpecOpenRingElem, 
-    V::SpecOpen; 
+    f::SpecOpenRingElem,
+    V::SpecOpen;
     check::Bool=true # Only for compatibility of the call signature
   )
   V === domain(parent(f)) && return f
@@ -69,16 +69,16 @@ end
 @doc raw"""
     generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
 
-Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open 
-subset ``U ⊂ X`` of an affine scheme ``X``, return a 
+Given a regular function ``a ∈ 𝒪(U)`` on a Zariski open
+subset ``U ⊂ X`` of an affine scheme ``X``, return a
 fraction ``p/q`` in `Quot(P)` (where ``P`` is the `ambient_coordinate_ring` of
 the `ambient` scheme ``X`` of ``U``) which represents ``a``
 in the sense that the maximal extension of its restriction
 to ``U`` returns ``a``.
 
-**Note:** The seemingly superfluous argument ``U`` is needed 
-to have a coherent syntax with the method for regular functions 
-``a`` on `PrincipalOpenSubset`s. There, the element ``a`` does 
+**Note:** The seemingly superfluous argument ``U`` is needed
+to have a coherent syntax with the method for regular functions
+``a`` on `PrincipalOpenSubset`s. There, the element ``a`` does
 not know about its scheme, so it has to be passed as an extra argument.
 """
 function generic_fraction(a::SpecOpenRingElem, U::SpecOpen)
@@ -142,12 +142,12 @@ function ^(a::SpecOpenRingElem, i::ZZRingElem)
   return SpecOpenRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
 end
 
-function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem} 
+function divexact(a::T, b::T; check::Bool=false) where {T<:SpecOpenRingElem}
   parent(a) === parent(b) || return divexact(a, (parent(a)(b)))
   return SpecOpenRingElem(parent(a), [divexact(a[i], b[i]) for i in 1:length(restrictions(a))])
 end
 
-function is_unit(a::SpecOpenRingElem) 
+function is_unit(a::SpecOpenRingElem)
   return all(x->is_unit(x), restrictions(a))
 end
 
@@ -159,11 +159,11 @@ inv(a::SpecOpenRingElem) = SpecOpenRingElem(parent(a), [inv(f) for f in restrict
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{RET}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 AbstractAlgebra.promote_rule(::Type{RET}, ::Type{T}) where {T<:SpecOpenRingElem, RET<:Integer} = T
 
-### Promote rules from and to other rings can not be made in a coherent 
-# way depending only on the types. One problem is that both, restricting 
-# from and to an affine scheme are valid operations, depending on the 
-# specific geometric configuration. Hence, we rely on the user to perform 
-# every coercion manually. 
+### Promote rules from and to other rings can not be made in a coherent
+# way depending only on the types. One problem is that both, restricting
+# from and to an affine scheme are valid operations, depending on the
+# specific geometric configuration. Hence, we rely on the user to perform
+# every coercion manually.
 
 # Additional promotions to make (graded) polynomial rings and their quotients work over SpecOpenRings.
 *(a::S, b::T) where {S<:SpecOpenRingElem, T<:MPolyRingElem{S}} = parent(b)(a)*b
@@ -199,14 +199,14 @@ end
 # complement X = D(h) ⊂ Y with X ⊂ U this returns the restriction
 # map ρ : 𝒪(U) → 𝒪(X)
 function restriction_map(
-    U::SpecOpen, 
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
-    h::MPolyRingElem; 
+    U::SpecOpen,
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing},
+    h::MPolyRingElem;
     check::Bool=true
   )
   Y = ambient_scheme(U)
 
-  # handle the shortcut 
+  # handle the shortcut
   if any(x->(x===X), affine_patches(U))
     i = findfirst(x->(x === X), affine_patches(U))
     function mymap(f::SpecOpenRingElem)
@@ -224,22 +224,22 @@ function restriction_map(
   # first find some basic relation hᵏ= ∑ᵢ aᵢ⋅dᵢ
   d = complement_equations(U)
   I = complement_ideal(U)
-  # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with 
+  # _minimal_power_such_that(P, h) returns a tuple (k, h^k) with
   # k the minimal exponent such that the property P(h^k) returns `true`.
   (k, poh) = Oscar._minimal_power_such_that(h, x->(base_ring(I)(x) in I))
   a = coordinates(base_ring(I)(poh), I)
   r = length(d)
 
   # the local representatives of the input f will be of the form gᵢ⋅1//dᵢˢ⁽ⁱ⁾
-  # with gᵢ∈ 𝒪(Y). For higher powers s(i) > 1 we need other coefficients 
-  # cᵢ for the relation 
+  # with gᵢ∈ 𝒪(Y). For higher powers s(i) > 1 we need other coefficients
+  # cᵢ for the relation
   #
   #   hˡ = ∑ᵢ cᵢ⋅dˢ⁽ⁱ⁾
   #
   # for some power hˡ. To this end, we set up a polynomial ring 𝒪(Y)[t₁,…,tᵣ]
-  # and take powers of the element ∑ᵢaᵢ⋅tᵢ with the coefficients aᵢ of the basic 
-  # relation. Eventually, all terms appearing in that expression will have 
-  # monomials t₁ᵉ⁽¹⁾⋅…⋅tᵣᵉ⁽ʳ⁾ with some e(i) ≥ s(i). Substituting and grouping 
+  # and take powers of the element ∑ᵢaᵢ⋅tᵢ with the coefficients aᵢ of the basic
+  # relation. Eventually, all terms appearing in that expression will have
+  # monomials t₁ᵉ⁽¹⁾⋅…⋅tᵣᵉ⁽ʳ⁾ with some e(i) ≥ s(i). Substituting and grouping
   # the terms accordingly, we derive the desired expressions for the cᵢ's.
   #W = localized_ring(OO(Y))
   W = OO(Y)
@@ -297,10 +297,10 @@ function restriction_map(
   return MapFromFunc(OO(U), OO(X), mysecondmap)
 end
 
-# Automatically find a hypersurface equation h such that X = D(h) in 
-# the ambient scheme Y of U. 
+# Automatically find a hypersurface equation h such that X = D(h) in
+# the ambient scheme Y of U.
 function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:AbsLocalizedRing}},
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}; 
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing};
     check::Bool=true
   )
   Y = ambient_scheme(U)
@@ -354,8 +354,8 @@ function restriction_map(U::SpecOpen{<:AbsSpec{<:Ring, <:MPolyRing}},
 end
 
 
-# For f = p//q and d this computes a decomposition p', q', d^k, k 
-# such that f = p'//(q'⋅d^k) and q' and d have no common factors. 
+# For f = p//q and d this computes a decomposition p', q', d^k, k
+# such that f = p'//(q'⋅d^k) and q' and d have no common factors.
 function pull_from_denominator(f::MPolyQuoLocRingElem, d::MPolyRingElem)
   p = lifted_numerator(f)
   q = lifted_denominator(f)
@@ -374,7 +374,7 @@ function pull_from_denominator(f::MPolyLocRingElem, d::MPolyRingElem)
   return b*p, o, pod, k
 end
 
-function restriction_map(X::Spec, U::SpecOpen; check::Bool=true)
+function restriction_map(X::AffineScheme, U::SpecOpen; check::Bool=true)
   Y = ambient_scheme(U)
   @check all(V->is_subscheme(V, X), affine_patches(U)) "$U is not a subset of $X"
   function mymap(f::MPolyQuoLocRingElem)
@@ -400,7 +400,7 @@ function restriction_map(U::SpecOpen, V::SpecOpen; check::Bool=true)
     end
     return MapFromFunc(OO(U), OO(V), mysecondmap)
   end
-  
+
   g = [restriction_map(U, W, check=false) for W in affine_patches(V)]
   function mythirdmap(f::SpecOpenRingElem)
     return SpecOpenRingElem(OO(V), [g(f) for g in g], check=false)
@@ -437,8 +437,8 @@ function canonical_isomorphism(S::SpecOpenRing, T::SpecOpenRing; check::Bool=tru
   return MapFromFunc(S, T, mymap, myinvmap)
 end
 
-# Special override for a case where even ideal membership and ring flattenings 
-# are not implemented. 
+# Special override for a case where even ideal membership and ring flattenings
+# are not implemented.
 function simplify(f::MPolyQuoRingElem{<:MPolyDecRingElem{<:SpecOpenRingElem}})
   return f
 end
@@ -504,4 +504,4 @@ function Base.show(io::IO, ::MIME"text/plain", a::SpecOpenRingElem)
     print(io, Dedent())
   end
 end
-  
+

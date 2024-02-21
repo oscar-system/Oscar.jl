@@ -1,15 +1,15 @@
 ########################################################################
 # Special constructors for morphisms of SpecOpens                      #
 ########################################################################
-### Construct a morphisms by the restriction of coordinate functions 
+### Construct a morphisms by the restriction of coordinate functions
 # to every affine patch
 function SpecOpenMor(U::SpecOpen, V::SpecOpen, f::Vector{<:RingElem}; check::Bool=true)
   Y = ambient_scheme(V)
   maps = [morphism(W, Y, f, check=check) for W in affine_patches(U)]
-  return SpecOpenMor(U, V, [morphism(W, Y, f, check=check) for W in affine_patches(U)], check=check) 
+  return SpecOpenMor(U, V, [morphism(W, Y, f, check=check) for W in affine_patches(U)], check=check)
 end
 
-function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:Spec, RET<:RingElem}
+function SpecOpenMor(X::SpecType, d::RET, Y::SpecType, e::RET, f::Vector{RET}; check::Bool=true) where {SpecType<:AffineScheme, RET<:RingElem}
   U = SpecOpen(X, [d], check=check)
   V = SpecOpen(Y, [e], check=check)
   return SpecOpenMor(U, V, [morphism(U[1], Y, OO(U[1]).(f), check=check)], check=check)
@@ -26,8 +26,8 @@ end
 
 inclusion_morphism(X::SpecOpen, Y::AbsSpec; check::Bool=true) = inclusion_morphism(X, SpecOpen(Y), check=check)
 
-function identity_map(U::SpecOpen) 
-  phi = SpecOpenMor(U, U, 
+function identity_map(U::SpecOpen)
+  phi = SpecOpenMor(U, U,
                     [morphism(V, ambient_scheme(U), gens(OO(V)), check=false) for V in affine_patches(U)],
                     check=false
                    )
@@ -106,8 +106,8 @@ end
 @doc raw"""
     maximal_extension(X::AbsSpec, Y::AbsSpec, f::AbstractAlgebra.Generic.FracFieldElem)
 
-Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes 
-determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X`` 
+Given a rational map ``ϕ : X ---> Y ⊂ Spec 𝕜[y₁,…,yₙ]`` of affine schemes
+determined by ``ϕ*(yⱼ) = fⱼ = aⱼ/bⱼ``, find the maximal open subset ``U⊂ X``
 to which ``ϕ`` can be extended to a regular map ``g : U → Y`` and return ``g``.
 """
 function maximal_extension(
@@ -126,8 +126,8 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec, 
-    Y::AbsSpec, 
+    X::AbsSpec,
+    Y::AbsSpec,
     f::Vector{<:RingElem}
   )
   h = maximal_extension(X, Y, fraction_field(ambient_coordinate_ring(X)).(f))

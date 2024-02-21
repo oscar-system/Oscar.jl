@@ -15,12 +15,12 @@ julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> A = Spec(P)
+julia> A = AffineScheme(P)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
 
-julia> Y = Spec(P, I)
+julia> Y = AffineScheme(P, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z
@@ -47,8 +47,8 @@ with restriction
   patch 1: 1
 ```
 """
-function OO(U::SpecOpen) 
-  if !isdefined(U, :ring_of_functions) 
+function OO(U::SpecOpen)
+  if !isdefined(U, :ring_of_functions)
     U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U, check=false)
   end
   return U.ring_of_functions::SpecOpenRing
@@ -94,18 +94,18 @@ end
 # Maximal extensions of rational functions on affine schemes           #
 ########################################################################
 @doc raw"""
-    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.FracFieldElem)
+    maximal_extension(X::AffineScheme, f::AbstractAlgebra.Generic.FracFieldElem)
 
 Return the maximal extension of the restriction of ``f``
-to a rational function on ``X`` on a maximal domain of 
-definition ``U ⊂ X``. 
+to a rational function on ``X`` on a maximal domain of
+definition ``U ⊂ X``.
 
-**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, 
-the numerator and denominator of ``f`` have to be elements of 
+**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``,
+the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyLocRing}, 
+    X::AbsSpec{<:Ring, <:MPolyLocRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:MPolyRingElem}
 
@@ -125,7 +125,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocRing}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoLocRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
 
@@ -140,7 +140,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
@@ -154,7 +154,7 @@ function maximal_extension(
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyRing}, 
+    X::AbsSpec{<:Ring, <:MPolyRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
@@ -168,18 +168,18 @@ function maximal_extension(
 end
 
 @doc raw"""
-    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.FracFieldElem})
+    maximal_extension(X::AffineScheme, f::Vector{AbstractAlgebra.Generic.FracFieldElem})
 
 Return the extension of the restriction of the ``fᵢ`` as a
-set of rational functions on ``X`` as *regular* functions to a 
+set of rational functions on ``X`` as *regular* functions to a
 common maximal domain of definition ``U ⊂ X``.
 
-**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, 
-the numerators and denominators of the entries of ``f`` have to 
+**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``,
+the numerators and denominators of the entries of ``f`` have to
 be elements of the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
+    X::AbsSpec{<:Ring, <:AbsLocalizedRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
@@ -199,13 +199,13 @@ function maximal_extension(
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
   return U, [SpecOpenRingElem(S, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyRing}, 
+    X::AbsSpec{<:Ring, <:MPolyRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
@@ -223,13 +223,13 @@ function maximal_extension(
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
   return U, [SpecOpenRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
+    X::AbsSpec{<:Ring, <:MPolyQuoRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
@@ -247,7 +247,7 @@ function maximal_extension(
   end
   U = SpecOpen(X, I)
   S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
   return U, [SpecOpenRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
 end

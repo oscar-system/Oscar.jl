@@ -11,10 +11,10 @@ identification_maps(X::SimplifiedSpec) = (X.f, X.g)
 @doc raw"""
     simplify(X::AbsSpec{<:Field})
 
-Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I`` 
-(or a localization thereof), use `Singular`'s `elimpart` to try 
-to eliminate variables ``xᵢ`` to arrive at a simpler presentation 
-``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return 
+Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I``
+(or a localization thereof), use `Singular`'s `elimpart` to try
+to eliminate variables ``xᵢ`` to arrive at a simpler presentation
+``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return
 a `SimplifiedSpec` ``Y`` with ``X`` as its `original`.
 
 ***Note:*** The `ambient_coordinate_ring` of the output `Y` will be different
@@ -22,7 +22,7 @@ from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
-  Y = Spec(L)
+  Y = AffineScheme(L)
   YtoX = morphism(Y, X, f, check=false)
   XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)
@@ -42,7 +42,7 @@ end
 @doc raw"""
     has_ancestor(P::Function, X::AbsSpec)
 
-Check whether property `P` holds for `X` or some ancestor of `X` in 
+Check whether property `P` holds for `X` or some ancestor of `X` in
 case it is a `PrincipalOpenSubset`, or a `SimplifiedSpec`.
 """
 function has_ancestor(P::Function, X::AbsSpec)
@@ -51,10 +51,10 @@ end
 
 #=
 # This crawls up the tree of charts until hitting one of the patches of C.
-# Then it returns a pair (f, d) where f is the inclusion morphism 
+# Then it returns a pair (f, d) where f is the inclusion morphism
 # of U into the patch V of C and d is a Vector of elements of OO(V)
-# which have to be inverted to arrive at U. That is: f induces an 
-# isomorphism on the complement of d. 
+# which have to be inverted to arrive at U. That is: f induces an
+# isomorphism on the complement of d.
 =#
 function _find_chart(U::AbsSpec, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
@@ -87,7 +87,7 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   return compose(f, h), d
 end
 
-function __find_chart(U::AbsSpec, C::Covering) 
+function __find_chart(U::AbsSpec, C::Covering)
   any(W->(W === U), patches(C)) || error("patch not found")
   return U
 end
@@ -103,9 +103,9 @@ function __find_chart(U::SimplifiedSpec, C::Covering)
 end
 
 #=
-# This follows U in its ancestor tree up to the point 
-# where a patch W in C is found. Then it recreates U as a 
-# PrincipalOpenSubset UU of W and returns the identification 
+# This follows U in its ancestor tree up to the point
+# where a patch W in C is found. Then it recreates U as a
+# PrincipalOpenSubset UU of W and returns the identification
 # with UU.
 =#
 function _flatten_open_subscheme(
@@ -133,7 +133,7 @@ function _flatten_open_subscheme(
   new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
-  if any(WW->(WW===W), patches(C)) 
+  if any(WW->(WW===W), patches(C))
     return new_iso
   end
   return _flatten_open_subscheme(W, C, iso=new_iso)
@@ -141,7 +141,7 @@ end
 
 function _flatten_open_subscheme(
     U::SimplifiedSpec, C::Covering;
-    iso::AbsSpecMor=begin 
+    iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -159,10 +159,10 @@ function _flatten_open_subscheme(
   f, g = identification_maps(U)
   hVW = pullback(g)(hV)
   WV = PrincipalOpenSubset(W, hVW)
-  ident = morphism(UV, WV, 
-                  hom(OO(WV), OO(UV), 
-                      [OO(UV)(x, check=false) for x in pullback(f).(gens(ambient_coordinate_ring(WV)))], 
-                      check=false), 
+  ident = morphism(UV, WV,
+                  hom(OO(WV), OO(UV),
+                      [OO(UV)(x, check=false) for x in pullback(f).(gens(ambient_coordinate_ring(WV)))],
+                      check=false),
                   check=false)
   inv_ident = morphism(WV, UV,
                       hom(OO(UV), OO(WV),
@@ -173,7 +173,7 @@ function _flatten_open_subscheme(
   new_iso_inv = compose(inv_ident, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)
   set_attribute!(new_iso_inv, :inverse, new_iso)
-  if any(WW->(WW===W), patches(C)) 
+  if any(WW->(WW===W), patches(C))
     return new_iso
   end
   return _flatten_open_subscheme(W, C, iso=new_iso)
@@ -227,7 +227,7 @@ end
 
 function _flatten_open_subscheme(
     U::SimplifiedSpec, P::AbsSpec;
-    iso::AbsSpecMor=begin 
+    iso::AbsSpecMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -246,16 +246,16 @@ function _flatten_open_subscheme(
   f, g = identification_maps(U)
   hVW = pullback(g)(hV)
   WV = PrincipalOpenSubset(W, hVW)
-  ident = morphism(UV, WV, 
-                  hom(OO(WV), OO(UV), 
-                      OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))), 
-                      check=false), 
+  ident = morphism(UV, WV,
+                  hom(OO(WV), OO(UV),
+                      OO(UV).(pullback(f).(gens(ambient_coordinate_ring(WV)))),
+                      check=false),
                   check=false)
   new_iso =  compose(iso, ident)
-  ident_inv = morphism(WV, UV, 
-                      hom(OO(UV), OO(WV), 
-                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))), 
-                          check=false), 
+  ident_inv = morphism(WV, UV,
+                      hom(OO(UV), OO(WV),
+                          OO(WV).(pullback(g).(gens(ambient_coordinate_ring(UV)))),
+                          check=false),
                       check=false)
   new_iso_inv = compose(ident_inv, inverse(iso))
   set_attribute!(new_iso, :inverse, new_iso_inv)

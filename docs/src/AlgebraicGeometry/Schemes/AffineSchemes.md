@@ -17,12 +17,12 @@ defined over the integers, a finite field or algebraic field extensions of ``\ma
 
 ### General constructors
 
-Besides `Spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or
+Besides `AffineScheme(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or
 `MPolyQuoLocRing`, we have the following constructors:
 ```@docs
-Spec(R::MPolyRing, I::MPolyIdeal)
-Spec(R::MPolyRing, U::AbsMPolyMultSet)
-Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
+AffineScheme(R::MPolyRing, I::MPolyIdeal)
+AffineScheme(R::MPolyRing, U::AbsMPolyMultSet)
+AffineScheme(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
 See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 
@@ -67,7 +67,7 @@ closure(X::AbsSpec, Y::AbsSpec)
 Most affine schemes in Oscar ``X = \mathrm{Spec}(R)``
 over a ring ``B``, come with an embedding into an
 affine space ``\mathbb{A}_B``.
-More precisely, `ambient_space(X)` is defined for `X = Spec(R)` if `R`
+More precisely, `ambient_space(X)` is defined for `X = AffineScheme(R)` if `R`
 is constructed from a polynomial ring.
 In particular ``\mathrm{Spec}(\mathbb{Z})`` or ``\mathrm{Spec}(\mathbb{k})`` for ``\mathbb k``
 a field do not have an ambient affine space.

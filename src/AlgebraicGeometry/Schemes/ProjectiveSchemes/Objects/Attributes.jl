@@ -292,7 +292,7 @@ affine_cone(P::AbsProjectiveScheme)
   S = homogeneous_coordinate_ring(P)
   phi = RingFlattening(S)
   A = codomain(phi)
-  C = Spec(A)
+  C = AffineScheme(A)
   B = base_scheme(P)
   P.projection_to_base = morphism(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
   return C, phi
@@ -308,7 +308,7 @@ end
   II = forget_grading(I)
   SS, _ = quo(PP, II)
   phi = hom(S, SS, gens(SS), check=false)
-  C = Spec(SS)
+  C = AffineScheme(SS)
   return C, phi
 end
 
@@ -318,7 +318,7 @@ end
   S = homogeneous_coordinate_ring(P)
   PP = forget_grading(S) # the ungraded polynomial ring
   phi = hom(S, PP, gens(PP), check=false)
-  C = Spec(PP)
+  C = AffineScheme(PP)
   return C, phi
 end
 
@@ -437,7 +437,7 @@ base_ring(P::ProjectiveScheme) = P.A
 
 function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   if !isdefined(X, :Y)
-    X.Y = Spec(base_ring(X))
+    X.Y = AffineScheme(base_ring(X))
   end
   return X.Y
 end
@@ -545,19 +545,19 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
   # We follow the common procedure. For X ↪ ℙ ⁿ we have
   #
   #                          θ
-  #    0 → Ω¹ → ⊕ ⁿ⁺¹ 𝒪 (-1) → 𝒪 
+  #    0 → Ω¹ → ⊕ ⁿ⁺¹ 𝒪 (-1) → 𝒪
   #
-  # the Euler sequence. Restricting to X we get 
+  # the Euler sequence. Restricting to X we get
   #                               θ
   #    0 → Ω¹|_X → ⊕ ⁿ⁺¹ 𝒪 (-1)_X → 𝒪_X
   #
-  # Then for the defining ideal I of X in ℙⁿ we obtain 
+  # Then for the defining ideal I of X in ℙⁿ we obtain
   # an exact sequence
   #
   #   I/I² → Ω¹|_X → Ω¹_X → 0.
   #
-  # Note that for the associated graded modules we can 
-  # not simply restrict the module for Ω¹|_X, but we have to 
+  # Note that for the associated graded modules we can
+  # not simply restrict the module for Ω¹|_X, but we have to
   # recompute the kernel of the restricted θ.
   inc_X = ambient_embedding(X)
   phi = pullback(inc_X)
@@ -570,7 +570,7 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
 
   theta = map(eu, 1)
   theta_res = _change_base_ring_and_preserve_gradings(phi, theta, domain_change = res_Omega1, codomain_change = res_Omega0)
-  
+
   W1X, inc_W1X = kernel(theta_res)
   f = gens(defining_ideal(X))
   df = exterior_derivative.(f)

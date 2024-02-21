@@ -1,6 +1,6 @@
-@testset "constant sheaf of integers on Spec" begin
+@testset "constant sheaf of integers on AffineScheme" begin
   R, x = QQ["x", "y", "z"]
-  X = Spec(R)
+  X = AffineScheme(R)
 
   is_open_func(U::AbsSpec, V::AbsSpec) = is_open_embedding(U, V)
 
@@ -13,7 +13,7 @@
   end
 
   const_sheaf_ZZ= PreSheafOnScheme(X, production_func, restriction_func,
-                              OpenType=AbsSpec, OutputType=typeof(ZZ), 
+                              OpenType=AbsSpec, OutputType=typeof(ZZ),
                               RestrictionType=typeof(identity_map(ZZ)),
                               is_open_func=is_open_func
                              )
@@ -59,7 +59,7 @@ end
   O = SpecOpen(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
   @test F(U[1], O)(OO(U[1])[1]) == OO(O)(OO(U[1])[1])
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))
-  
+
   # To test the other gluings, we repeat the above with a new gluing.
   P = projective_space(QQ, 2)
   PC = covered_scheme(P)
@@ -86,7 +86,7 @@ end
   @test rho(zy) == OO(W)(zx)*inv(OO(W)(yx))
   rho2 = F(U[1], W)
   @test rho2.(gens(OO(U[1]))) == OO(W).(gens(OO(U[1])))
- 
+
   B = PrincipalOpenSubset(U[2], gens(OO(U[2]))[1])
   eta = F(U[1], B)
   @test eta === F(U[1], B)
@@ -96,7 +96,7 @@ end
   @test tmp2(gens(OO(B))[1])== inv(gens(OO(W))[1])
   h = compose(tmp1, tmp2)
   @test h(gens(OO(W))[1]) == gens(OO(W))[1]
- 
+
   O = SpecOpen(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
   @test F(U[1], O)(OO(U[1])[1]) == OO(O)(OO(U[1])[1])
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))

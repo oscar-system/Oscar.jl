@@ -4,10 +4,10 @@
 # (1) Generic constructors
 ########################################################
 
-spec(R::Ring) = Spec(R)
+spec(R::Ring) = AffineScheme(R)
 
 @doc raw"""
-    Spec(R::MPolyRing, I::MPolyIdeal)
+    AffineScheme(R::MPolyRing, I::MPolyIdeal)
 
 Constructs the affine scheme of the ideal ``I`` in the ring ``R``.
 This is the spectrum of the quotient ring ``R/I``.
@@ -18,7 +18,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> Spec(R, I)
+julia> AffineScheme(R, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
@@ -26,11 +26,11 @@ Spectrum
     by ideal (x)
 ```
 """
-Spec(R::MPolyRing, I::MPolyIdeal) = Spec(quo(R, I)[1])
+AffineScheme(R::MPolyRing, I::MPolyIdeal) = AffineScheme(quo(R, I)[1])
 
 
 @doc raw"""
-    Spec(R::MPolyRing, U::AbsMPolyMultSet)
+    AffineScheme(R::MPolyRing, U::AbsMPolyMultSet)
 
 Given a polynomial ring ``R``, we can localize that polynomial
 ring at a multiplicatively closed subset ``U`` of ``R``. The spectrum
@@ -44,7 +44,7 @@ julia> I = ideal(R, [x]);
 
 julia> U = complement_of_prime_ideal(I);
 
-julia> Spec(R, U)
+julia> AffineScheme(R, U)
 Spectrum
   of localization
     of multivariate polynomial ring in 2 variables x, y
@@ -52,11 +52,11 @@ Spectrum
     at complement of prime ideal (x)
 ```
 """
-Spec(R::MPolyRing, U::AbsMPolyMultSet) = Spec(localization(R, U)[1])
+AffineScheme(R::MPolyRing, U::AbsMPolyMultSet) = AffineScheme(localization(R, U)[1])
 
 
 @doc raw"""
-    Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
+    AffineScheme(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 
 We allow to combine quotients and localizations at the same time.
 That is, consider a polynomial ring ``R``, an ideal ``I`` of ``R`` and
@@ -71,7 +71,7 @@ julia> I = ideal(R, [x]);
 
 julia> U = complement_of_prime_ideal(ideal(R, [y]));
 
-julia> Spec(R, I, U)
+julia> AffineScheme(R, I, U)
 Spectrum
   of localization
     of quotient
@@ -81,7 +81,7 @@ Spectrum
     at complement of prime ideal (y)
 ```
 """
-Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, I, U))
+AffineScheme(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = AffineScheme(MPolyQuoLocRing(R, I, U))
 
 
 
@@ -91,9 +91,9 @@ Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = Spec(MPolyQuoLocRing(R, 
 #TODO: Do we need this? It is quite unusual.
 
 @doc raw"""
-    Spec(X::Spec)
+    AffineScheme(X::AffineScheme)
 
-For convenience, an affine spectrum can be passed to `Spec`
+For convenience, an affine spectrum can be passed to `AffineScheme`
 to create a new spectrum. This can be particularly useful
 when in need to copy an affine spectrum.
 
@@ -103,14 +103,14 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> X = Spec(R, I)
+julia> X = AffineScheme(R, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
     by ideal (x)
 
-julia> Y = Spec(X)
+julia> Y = AffineScheme(X)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
@@ -118,9 +118,9 @@ Spectrum
     by ideal (x)
 ```
 """
-Spec(X::Spec) = Spec(OO(X))
+AffineScheme(X::AffineScheme) = AffineScheme(OO(X))
 
-Base.deepcopy_internal(X::Spec, dict::IdDict) = Spec(deepcopy_internal(OO(X), dict))
+Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_internal(OO(X), dict))
 
 
 
@@ -150,7 +150,7 @@ with coordinates [y1, y2, y3, y4, y5]
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
   R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
-  return Spec(R)
+  return AffineScheme(R)
 end
 
 
@@ -171,17 +171,17 @@ with coordinates [y1, z2, a]
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
-  return variety(Spec(R), check=false)
+  return variety(AffineScheme(R), check=false)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
   R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
-  return variety(Spec(R), check=false)
+  return variety(AffineScheme(R), check=false)
 end
 
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
   R, _ = polynomial_ring(kk, var_symbols)
-  return variety(Spec(R), check=false)
+  return variety(AffineScheme(R), check=false)
 end
 
 ########################################################
@@ -195,9 +195,9 @@ end
 @doc raw"""
     standard_spec(X::AbsSpec)
 
-For an affine spectrum with coordinate ring of type `MPolyRing`, 
+For an affine spectrum with coordinate ring of type `MPolyRing`,
 `MPolyQuoRing`, or `MPolyLocRing`, return the canonical
-transform to a `Spec` of an `MPolyQuoLocRing`. 
+transform to a `AffineScheme` of an `MPolyQuoLocRing`.
 
 # Examples
 ```jldoctest
@@ -214,7 +214,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> I = ideal(R, [x]);
 
-julia> X = Spec(R, I)
+julia> X = AffineScheme(R, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
@@ -234,7 +234,7 @@ julia> I = ideal(R, [x]);
 
 julia> U = complement_of_prime_ideal(I);
 
-julia> X = Spec(R, U)
+julia> X = AffineScheme(R, U)
 Spectrum
   of localization
     of multivariate polynomial ring in 2 variables x, y
@@ -255,22 +255,22 @@ function standard_spec(X::AbsSpec)
   error("not implemented for input of type $(typeof(X))")
 end
 
-standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = Spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = AffineScheme(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
 # documented above
 function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
   A = OO(X)
   R = base_ring(A)
-  return Spec(MPolyQuoLocRing(R, modulus(A), units_of(R)))
+  return AffineScheme(MPolyQuoLocRing(R, modulus(A), units_of(R)))
 end
 
 
 # documented above
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = Spec(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
+standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = AffineScheme(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
 #documented above
-standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = Spec(OO(X))
+standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = AffineScheme(OO(X))
 
 
 
@@ -318,7 +318,7 @@ Spectrum
 ```
 """
 subscheme(X::AbsSpec, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
-function subscheme(X::Spec, f::Vector{<:RingElem})
+function subscheme(X::AffineScheme, f::Vector{<:RingElem})
   all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
   return subscheme(X, ideal(OO(X), f))
 end
@@ -358,7 +358,7 @@ Spectrum
 """
 function subscheme(X::AbsSpec, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
-  Y =  Spec(quo(OO(X), I)[1])
+  Y =  AffineScheme(quo(OO(X), I)[1])
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -420,7 +420,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(h)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -431,7 +431,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(h)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -441,7 +441,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(f)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -451,7 +451,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   U = MPolyPowersOfElement(lift(f))
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -499,7 +499,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -510,7 +510,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -520,7 +520,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -530,7 +530,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   simplify!(U)
   W, _ = localization(OO(X), U)
-  Y = Spec(W)
+  Y = AffineScheme(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
@@ -552,7 +552,7 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 
 ### For Specs of MPolyRings
 # TODO  intersect X,Y for X<Y should return a copy of X with === ambient_coordinate_rings
-# Spec(X) does not apply for instance to principal open subsets hence a change
+# AffineScheme(X) does not apply for instance to principal open subsets hence a change
 # is necessary
 @doc raw"""
     Base.intersect(X::AbsSpec, Y::AbsSpec)
@@ -609,7 +609,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = OO(X)
   R == OO(Y) || error("schemes can not be compared")
-  return Spec(X)
+  return AffineScheme(X)
 end
 
 
@@ -619,7 +619,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(Y)
+  return AffineScheme(Y)
 end
 
 
@@ -629,7 +629,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(Y)
+  return AffineScheme(Y)
 end
 
 
@@ -639,7 +639,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(Y)
+  return AffineScheme(Y)
 end
 
 
@@ -658,7 +658,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(quo(R, modulus(OO(X)) + modulus(OO(Y)))[1])
+  return AffineScheme(quo(R, modulus(OO(X)) + modulus(OO(Y)))[1])
 end
 
 
@@ -668,7 +668,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
+  return AffineScheme(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
 
@@ -678,7 +678,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
+  return AffineScheme(quo(OO(Y), OO(Y)(modulus(OO(X))))[1])
 end
 
 
@@ -697,7 +697,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
+  return AffineScheme(localization(R, inverted_set(OO(X)) * inverted_set(OO(Y)))[1])
 end
 
 
@@ -707,7 +707,7 @@ function Base.intersect(
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  return Spec(R, modulus(underlying_quotient(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
+  return AffineScheme(R, modulus(underlying_quotient(OO(Y))), inverted_set(OO(X))*inverted_set(OO(Y)))
 end
 
 
@@ -727,7 +727,7 @@ function Base.intersect(
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
 #  Q, _ = quo(R, modulus(underlying_quotient(OO(X))) + modulus(underlying_quotient(OO(Y))))
-  return Spec(R, modulus(underlying_quotient(OO(X))) + modulus(underlying_quotient(OO(Y))), 
+  return AffineScheme(R, modulus(underlying_quotient(OO(X))) + modulus(underlying_quotient(OO(Y))),
               inverted_set(OO(X)) * inverted_set(OO(Y)))
 end
 
@@ -739,7 +739,7 @@ end
 
 #TODO: Add more cross-type methods as needed.
 @doc raw"""
-    closure(X::AbsSpec, Y::AbsSpec) 
+    closure(X::AbsSpec, Y::AbsSpec)
 
 Return the closure of ``X`` in ``Y``.
 
@@ -814,7 +814,7 @@ function closure(
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
-  return Spec(base_ring(I),I)
+  return AffineScheme(base_ring(I),I)
 end
 
 function closure(
@@ -825,7 +825,7 @@ function closure(
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
   I = saturated_ideal(defining_ideal(X))
   R = base_ring(I)
-  return Spec(MPolyQuoLocRing(R, I, inverted_set(Y)))
+  return AffineScheme(MPolyQuoLocRing(R, I, inverted_set(Y)))
 end
 
 function closure(
@@ -840,7 +840,7 @@ function closure(
   I = ideal(W, W.(gens(modulus(OO(X)))))
   Isat = saturated_ideal(I)
   R = ambient_coordinate_ring(Y)
-  return Spec(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
+  return AffineScheme(MPolyQuoLocRing(R, Isat, inverted_set(OO(Y))))
 end
 
 @doc raw"""
@@ -861,7 +861,7 @@ function union(X::AbsSpec{BRT,RT}, Y::AbsSpec{BRT,RT}) where {BRT, RT<:MPolyQuoR
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   IX = modulus(OO(X))
   IY = modulus(OO(Y))
-  return Spec(R, intersect(IX, IY))
+  return AffineScheme(R, intersect(IX, IY))
 end
 
 function union(X::AbsSpec{BRT,<:MPolyQuoRing}, Y::AbsSpec{BRT,<:MPolyRing}) where {BRT}

@@ -92,7 +92,7 @@ functions to be implemented:
 
 A concrete instance of this type is
 ```@docs
-    Spec{BaseRingType, RingType}
+    AffineScheme{BaseRingType, RingType}
 ```
 It provides an implementation of affine schemes for rings ``R`` of type
 `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, and `MPolyQuoLocRing`
@@ -101,14 +101,14 @@ This minimal implementation can be used internally, when deriving new
 concrete types `MySpec<:AbsSpec` such as, for instance,
 group schemes, toric schemes, schemes of a particular dimension
 like curves and surfaces, etc. To this end, one has to store
-an instance `Y` of `Spec` in `MySpec` and implement the methods
+an instance `Y` of `AffineScheme` in `MySpec` and implement the methods
 ```
-    underlying_scheme(X::MySpec)::Spec # return Y as above
+    underlying_scheme(X::MySpec)::AffineScheme # return Y as above
 ```
-Then all methods implemented for `Spec` are automatically
+Then all methods implemented for `AffineScheme` are automatically
 forwarded to any instance of `MySpec`.
 
-**Note:** The above method necessarily returns an instance of `Spec`!
+**Note:** The above method necessarily returns an instance of `AffineScheme`!
 Of course, it can be overwritten for any higher type `MySpec<:AbsSpec` as needed.
 
 

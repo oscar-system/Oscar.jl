@@ -3,9 +3,9 @@
 ########################################################################
 @attributes mutable struct PrincipalOpenSubset{BRT, RT<:Ring, AmbientType} <: AbsSpec{BRT, RT}
   X::AmbientType
-  U::Spec{BRT, RT}
+  U::AffineScheme{BRT, RT}
   f::RingElem
-  inc::AbsSpecMor # A PrincipalOpenInclusion, really; but this can not be 
+  inc::AbsSpecMor # A PrincipalOpenInclusion, really; but this can not be
                   # said here because of the inclusion order.
 
   function PrincipalOpenSubset(X::AbsSpec, f::RingElem)
@@ -25,7 +25,7 @@
   function PrincipalOpenSubset(X::AbsSpec, R::Ring, f::RingElem;
       check::Bool=true
     )
-    U = Spec(R)
+    U = AffineScheme(R)
     @check U == hypersurface_complement(X, f) "scheme is not isomorphic to the anticipated open subset"
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end

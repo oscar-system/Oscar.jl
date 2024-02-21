@@ -149,7 +149,7 @@ export SimplicialComplex
 export Singular
 export Sp
 export SpaceGerm
-export Spec
+export AffineScheme
 export SpecOpen
 export SpecOpenMor
 export SpecOpenRing

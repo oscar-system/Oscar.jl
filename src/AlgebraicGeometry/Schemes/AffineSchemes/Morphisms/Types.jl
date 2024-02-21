@@ -5,28 +5,28 @@
 ########################################################################
 
 @doc raw"""
-    AbsSpecMor{DomainType<:AbsSpec, 
-               CodomainType<:AbsSpec, 
+    AbsSpecMor{DomainType<:AbsSpec,
+               CodomainType<:AbsSpec,
                PullbackType<:Map,
-               MorphismType, 
+               MorphismType,
                BaseMorType
                }
 
 Abstract type for morphisms ``f : X → Y`` of affine schemes where
 
-  * ``X = Spec(S)`` is of type `DomainType`, 
-  * ``Y = Spec(R)`` is of type `CodomainType`, 
-  * ``f^* : R → S`` is a ring homomorphism of type `PullbackType`, 
+  * ``X = Spec(S)`` is of type `DomainType`,
+  * ``Y = Spec(R)`` is of type `CodomainType`,
+  * ``f^* : R → S`` is a ring homomorphism of type `PullbackType`,
   * ``f`` itself is of type `MorphismType` (required for the Map interface),
-  * if ``f`` is defined over a morphism of base schemes ``BX → BY`` 
-    (e.g. a field extension), then this base scheme morphism is of 
+  * if ``f`` is defined over a morphism of base schemes ``BX → BY``
+    (e.g. a field extension), then this base scheme morphism is of
     type `BaseMorType`; otherwise, this can be set to `Nothing`.
 """
 abstract type AbsSpecMor{
-                         DomainType<:AbsSpec, 
-                         CodomainType<:AbsSpec, 
+                         DomainType<:AbsSpec,
+                         CodomainType<:AbsSpec,
                          PullbackType<:Map,
-                         MorphismType, 
+                         MorphismType,
                          BaseMorType
                         }<:SchemeMor{DomainType, CodomainType, MorphismType, BaseMorType}
 end
@@ -38,24 +38,24 @@ end
 ########################################################################
 
 @doc raw"""
-    SpecMor{DomainType<:AbsSpec, 
-            CodomainType<:AbsSpec, 
+    SpecMor{DomainType<:AbsSpec,
+            CodomainType<:AbsSpec,
             PullbackType<:Map
            }
 
-A morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` of type 
-`DomainType` and ``Y = Spec(R)`` of type `CodomainType`, both defined 
-over the same `base_ring`, with underlying ring homomorphism 
+A morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` of type
+`DomainType` and ``Y = Spec(R)`` of type `CodomainType`, both defined
+over the same `base_ring`, with underlying ring homomorphism
 ``f^* : R → S`` of type `PullbackType`.
 """
 @attributes mutable struct SpecMor{
-                                   DomainType<:AbsSpec, 
-                                   CodomainType<:AbsSpec, 
+                                   DomainType<:AbsSpec,
+                                   CodomainType<:AbsSpec,
                                    PullbackType<:Map
-                                  } <: AbsSpecMor{DomainType, 
-                                                  CodomainType, 
-                                                  PullbackType, 
-                                                  SpecMor, 
+                                  } <: AbsSpecMor{DomainType,
+                                                  CodomainType,
+                                                  PullbackType,
+                                                  SpecMor,
                                                   Nothing
                                                  }
   domain::DomainType
@@ -77,7 +77,7 @@ over the same `base_ring`, with underlying ring homomorphism
     return new{DomainType, CodomainType, PullbackType}(X, Y, pullback)
   end
 end
-  
+
 function morphism(X::DomainType, Y::CodomainType, pullback::PullbackType;
     check::Bool=true
   ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
@@ -90,13 +90,13 @@ end
 @doc raw"""
     OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor
 
-An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another 
-one ``X``. 
+An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another
+one ``X``.
 """
 @attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
   inc::SpecMor{DomainType, CodomainType, PullbackType}
   I::Ideal
-  Z::Spec
+  Z::AffineScheme
 
   function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
     U = domain(f)

@@ -20,7 +20,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   kY = length(str)
   push!(co_str, str)
   k = max(length.(co_str)...)
-  println(io, "Spec open morphism")
+  println(io, "Affine scheme open subscheme morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2), Lowercase())
   show(IOContext(io, :show_coordinates => false), domain(f))
@@ -47,7 +47,7 @@ end
 
 function Base.show(io::IO, f::SpecOpenMor)
   if get(io, :supercompact, false)
-    print(io, "Spec open morphism")
+    print(io, "Affine scheme open subscheme morphism")
   else
     io = pretty(io)
     print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
@@ -88,7 +88,7 @@ end
 ########################################################################
 # Equality test                                                        #
 ########################################################################
-function ==(f::T, g::T) where {T<:SpecOpenMor} 
+function ==(f::T, g::T) where {T<:SpecOpenMor}
   (domain(f) == domain(g)) || return false
   (codomain(f) == codomain(g)) || return false
   Y = ambient_scheme(codomain(f))
@@ -107,19 +107,19 @@ end
 # Preimages under SpecOpenMors                                         #
 ########################################################################
 function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
-  U = domain(f) 
+  U = domain(f)
   X = ambient_scheme(U)
   @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
-  Y = X 
+  Y = X
   for K in pbZ
     Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
   end
   return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
 function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
-  V = codomain(f) 
+  V = codomain(f)
   Y = ambient_scheme(V)
   Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")
   h = complement_equation(W)
@@ -170,14 +170,14 @@ end
 @doc raw"""
     generic_fractions(f::SpecOpenMor)
 
-Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``, 
-produce a tuple of fractions ``[a₁/b₁,…,aₙ/bₙ]`` such that ``f`` can be recovered 
-as the maximal extension of the rational map given by 
+Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``,
+produce a tuple of fractions ``[a₁/b₁,…,aₙ/bₙ]`` such that ``f`` can be recovered
+as the maximal extension of the rational map given by
 ```
    U ⊃ U' → 𝔸ⁿ,  x ↦ [a₁(x)/b₁(x),…,aₙ(x)/bₙ(x)]
 ```
 where ``U'`` is the complement of the zero loci of the denominators ``bᵢ`` in ``U``.
-In particular, this requires ``U'`` to be dense in ``U`` and this subset 
+In particular, this requires ``U'`` to be dense in ``U`` and this subset
 is chosen at random.
 """
 function generic_fractions(f::SpecOpenMor)

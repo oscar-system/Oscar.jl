@@ -259,7 +259,7 @@ function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
   end
   KL, z = polynomial_ring(k, new_symb)
-  XxY = Spec(KL)
+  XxY = AffineScheme(KL)
   pr1 = morphism(XxY, X, gens(KL)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(KL)[m+1:m+n], check=false)
   return XxY, pr1, pr2
@@ -321,7 +321,7 @@ function product(X::StdSpec, Y::StdSpec;
   IY = ideal(RS, inc2.(gens(modulus(underlying_quotient(OO(Y))))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
   UY = MPolyPowersOfElement(RS, inc2.(denominators(inverted_set(OO(Y)))))
-  XxY = Spec(RS, IX + IY, UX*UY)
+  XxY = AffineScheme(RS, IX + IY, UX*UY)
   pr1 = morphism(XxY, X, gens(RS)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2

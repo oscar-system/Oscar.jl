@@ -1,6 +1,6 @@
 @testset "gluings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = AffineScheme(R)
   set_name!(A3, "𝔸³")
   f = (x*y-z^2)
   #f = (x*y-z^2)*(x+y+2*z)
@@ -10,7 +10,7 @@
   UX = intersect(X, U)
   d = Oscar.find_non_zero_divisor(UX)
   S, (u,v) = QQ["u", "v"]
-  A2 = Spec(S)
+  A2 = AffineScheme(S)
   set_name!(A2, "𝔸²")
   f = maximal_extension(X, A2, [x, z//y])
   a = Oscar.generic_fractions(f)
@@ -20,9 +20,9 @@
   Sy, (xy, zy) = QQ["xy", "zy"]
   Sz, (xz, yz) = QQ["xz", "yz"]
 
-  Ax = Spec(Sx)
-  Ay = Spec(Sy)
-  Az = Spec(Sz)
+  Ax = AffineScheme(Sx)
+  Ay = AffineScheme(Sy)
+  Az = AffineScheme(Sz)
 
   fxy = maximal_extension(Ax, Ay, [1//yx, zx//yx])
   fyx = maximal_extension(Ay, Ax, [1//xy, zy//xy])
@@ -44,9 +44,9 @@ end
   S, (u, v) = QQ["u", "v"]
   T, (a, b) = QQ["a", "b"]
 
-  X = Spec(R)
-  Y = Spec(S)
-  Z = Spec(T)
+  X = AffineScheme(R)
+  Y = AffineScheme(S)
+  Z = AffineScheme(T)
 
   Ux = PrincipalOpenSubset(X, x)
   Vu = PrincipalOpenSubset(Y, u)
@@ -72,8 +72,8 @@ end
   @test compose(simpleG, simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), inverse(simpleG2)) == compose(simpleG, inverse(simpleG2))
-  G2 = Gluing(Y, Z, 
-               SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]), 
+  G2 = Gluing(Y, Z,
+               SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]),
                SpecOpenMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))
 
   G3 = compose(G1, G2)
@@ -87,9 +87,9 @@ end
 
   ### test the abstract interface
   @attributes mutable struct DummyGluing{
-                                          LeftSpecType<:AbsSpec, 
+                                          LeftSpecType<:AbsSpec,
                                           RightSpecType<:AbsSpec,
-                                          LeftOpenType<:SpecOpen, 
+                                          LeftOpenType<:SpecOpen,
                                           RightOpenType<:SpecOpen,
                                           LeftMorType<:SpecOpenMor,
                                           RightMorType<:SpecOpenMor

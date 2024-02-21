@@ -12,7 +12,7 @@
   A1s = patches(bc)[1]
   A1t = patches(bc)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -22,7 +22,7 @@
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 
@@ -49,7 +49,7 @@
   Oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
-  
+
   @test D + 2*E == D + E + E
 
   KK = VarietyFunctionField(X)
@@ -102,7 +102,7 @@ end
 @testset "orders on divisors" begin
   kk = QQ
   R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  X = Spec(R)
+  X = AffineScheme(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1
@@ -157,7 +157,7 @@ end
   KK = function_field(X)
   U = X[1][2]
   u, v = gens(OO(U))
-  f = KK(u, v) 
+  f = KK(u, v)
   @test !in_linear_system(f, D)
 end
 
@@ -177,7 +177,7 @@ end
   @test intersect(D2, D3) == 1
 end
 
-@testset "decomposition" begin 
+@testset "decomposition" begin
   P3 = projective_space(QQ, 3)
   S = homogeneous_coordinate_ring(P3)
   (x, y, z, w) = gens(S)

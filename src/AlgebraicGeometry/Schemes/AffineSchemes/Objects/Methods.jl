@@ -169,9 +169,9 @@ end
 
 
 # TODO: The method below is necessary for a temporary hotfix; see #1882.
-# It seems likely that the implementation can be tuned so that, for 
-# instance, the massive use of primary decompositions can be avoided. 
-# This should eventually be addressed. 
+# It seems likely that the implementation can be tuned so that, for
+# instance, the massive use of primary decompositions can be avoided.
+# This should eventually be addressed.
 @doc raw"""
     connected_components(X::AbsSpec)
 
@@ -202,8 +202,8 @@ function connected_components(X::AbsSpec)
     end
   end
 
-  # We need to reproduce the components of X as `PrincipalOpenSubset`s. 
-  # To this end, we first determine separating equations between pairs 
+  # We need to reproduce the components of X as `PrincipalOpenSubset`s.
+  # To this end, we first determine separating equations between pairs
   # of components.
 
   n = length(comp)
@@ -216,18 +216,18 @@ function connected_components(X::AbsSpec)
         separating_equations[i, j] = one(OO(X))
         continue
       end
-      
+
       v = OO(X).(gens(saturated_ideal(modulus(OO(C1)))))
       w = OO(X).(gens(saturated_ideal(modulus(OO(C2)))))
 
       J = ideal(OO(X), vcat(v, w))
       # The idea is to write 1 = f + g with f ∈ I(C1) and g ∈ I(C2).
-      # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1) 
-      # and vice versa. 
+      # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1)
+      # and vice versa.
       c = coordinates(one(OO(X)), J)
 
-      # Conversion to assure compatibility. 
-      # This can be removed, once the ideal interface is streamlined. 
+      # Conversion to assure compatibility.
+      # This can be removed, once the ideal interface is streamlined.
       if c isa MatrixElem
         c = [c[1, i] for i in 1:ncols(c)]::Vector
       end
@@ -256,8 +256,8 @@ end
 @doc raw"""
     base_change(phi::Any, X::AbsSpec)
 
-For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism 
-``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair 
+For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism
+``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair
 `(Y, psi)` where `psi` is the canonical map ``Y → X``.
 """
 function base_change(phi::Any, X::AbsSpec)
@@ -265,7 +265,7 @@ function base_change(phi::Any, X::AbsSpec)
   kk_red = parent(phi(zero(kk)))
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
-  Y = Spec(R_red)
+  Y = AffineScheme(R_red)
   return Y, morphism(Y, X, Phi)
 end
 
@@ -288,8 +288,8 @@ function _change_base_ring(phi::Any, A::MPolyQuoRing)
   return Q, Phi_bar
 end
 
-function _change_base_ring(phi::Any, 
-    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+function _change_base_ring(phi::Any,
+    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                     <:MPolyPowersOfElement}
   )
   R = base_ring(W)
@@ -300,8 +300,8 @@ function _change_base_ring(phi::Any,
   return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
 end
 
-function _change_base_ring(phi::Any, 
-    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+function _change_base_ring(phi::Any,
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                        <:MPolyPowersOfElement}
   )
   R = base_ring(L)

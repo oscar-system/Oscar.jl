@@ -7,7 +7,7 @@
 # Intersections                                                        #
 ########################################################################
 function intersect(
-    Y::AbsSpec, 
+    Y::AbsSpec,
     U::SpecOpen;
     check::Bool=true
   )
@@ -55,14 +55,14 @@ end
 function is_subscheme(
     U::SpecOpen,
     Y::AbsSpec
-  ) 
+  )
   return all(is_subscheme(V, Y) for V in affine_patches(U))
 end
 
 function is_subscheme(U::SpecOpen, V::SpecOpen)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(V) || return false
   Z = complement(V)
-  # perform an implicit radical membership test (Rabinowitsch) that is way more 
+  # perform an implicit radical membership test (Rabinowitsch) that is way more
   # efficient than computing radicals.
   for g in complement_equations(U)
     isempty(hypersurface_complement(Z, g)) || return false
@@ -83,7 +83,7 @@ end
 @doc raw"""
     closure(U::SpecOpen)
 
-Compute the Zariski closure of an open set ``U ⊂ X`` 
+Compute the Zariski closure of an open set ``U ⊂ X``
 where ``X`` is the affine ambient scheme of ``U``.
 """
 function closure(U::SpecOpen{<:StdSpec})
@@ -94,11 +94,11 @@ function closure(U::SpecOpen{<:StdSpec})
   return subscheme(X, I)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyRing}}
+function closure(U::SpecOpen{SpecType}) where {SpecType<:AffineScheme{<:Ring, <:MPolyRing}}
   return ambient_scheme(U)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuoRing}}
+function closure(U::SpecOpen{SpecType}) where {SpecType<:AffineScheme{<:Ring, <:MPolyQuoRing}}
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))

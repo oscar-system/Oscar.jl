@@ -5,14 +5,14 @@
 @doc raw"""
     Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
 
-Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms 
+Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms
 ``f`` and ``g`` of open subsets ``U`` of ``X`` and ``V`` of ``Y``.
 
 # Examples
 ```jldoctest
 julia> P1, (x,y) = QQ["x", "y"]; P2, (u,v) = QQ["u", "v"];
 
-julia> U1 = Spec(P1); U2 = Spec(P2);
+julia> U1 = AffineScheme(P1); U2 = AffineScheme(P2);
 
 julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for gluing
 
@@ -93,8 +93,8 @@ end
 ########################################################################
 
 function Gluing(
-    X::AbsSpec, Y::AbsSpec, 
-    f::AbsSpecMor{<:PrincipalOpenSubset}, 
+    X::AbsSpec, Y::AbsSpec,
+    f::AbsSpecMor{<:PrincipalOpenSubset},
     g::AbsSpecMor{<:PrincipalOpenSubset};
     check::Bool=true)
   return SimpleGluing(X, Y, f, g, check=check)
@@ -167,7 +167,7 @@ end
 @doc raw"""
     restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
 
-Given a gluing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and 
+Given a gluing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 ``g: Y → Y'``, return the induced gluing of ``X'`` and ``Y'``.
 """
 function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
@@ -185,11 +185,11 @@ function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
   U2 = preimage(finv, domain(h1), check=check)
   V2 = preimage(ginv, domain(h2), check=check)
 
-  return Gluing(X2, Y2, 
-                 compose(restrict(finv, U2, domain(h1), check=check), 
+  return Gluing(X2, Y2,
+                 compose(restrict(finv, U2, domain(h1), check=check),
                          compose(h1, restrict(g, domain(h2), V2, check=check))
                         ),
-                 compose(restrict(ginv, V2, domain(h2), check=check), 
+                 compose(restrict(ginv, V2, domain(h2), check=check),
                          compose(h2, restrict(f, domain(h1), U2, check=check))
                         ),
                  check=check
@@ -214,11 +214,11 @@ function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor,
   U2 = codomain(f_res)
   V2 = codomain(f_res)
 
-  return Gluing(X2, Y2, 
-                 compose(inverse(f_res), 
+  return Gluing(X2, Y2,
+                 compose(inverse(f_res),
                          compose(h1, g_res)
                         ),
-                 compose(inverse(g_res), 
+                 compose(inverse(g_res),
                          compose(h2, f_res)
                         ),
                  check=check

@@ -31,27 +31,27 @@ gluing_morphisms(PG::AbsProjectiveGluing) = gluing_morphisms(underlying_gluing(P
       X::AbsProjectiveScheme,
       Y::AbsProjectiveScheme,
       BG::AbsGluing,
-      compute_function::Function, 
+      compute_function::Function,
       gluing_data
     )
 
 Produce a container `pg` to host a non-computed `ProjectiveGluing` of ``X`` with ``Y``.
 
-The arguments consist of 
+The arguments consist of
 
  * the patches ``X`` and ``Y`` to be glued;
- * a gluing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the 
+ * a gluing `BG` of the `base_scheme`s of ``X`` and ``Y`` over which the
    `ProjectiveGluing` to be computed sits;
- * a function `compute_function` which takes a single argument `gluing_data` 
-   of arbitrary type and actually carries out the computation; 
- * an arbitrary struct `gluing_data` that the user can fill with whatever 
-   information is needed to properly feed their `compute_function`. 
+ * a function `compute_function` which takes a single argument `gluing_data`
+   of arbitrary type and actually carries out the computation;
+ * an arbitrary struct `gluing_data` that the user can fill with whatever
+   information is needed to properly feed their `compute_function`.
 
-The container `pg` can then be stored as the gluing of ``X`` and ``Y``. As soon 
-as it is asked about any data on the gluing beyond its two `patches`, it will 
-invoke the internally stored `compute_function` to actually carry out the computation 
-of the gluing and then serve the incoming request on the basis of that result. 
-The latter actual `ProjectiveGluing` will then be cached. 
+The container `pg` can then be stored as the gluing of ``X`` and ``Y``. As soon
+as it is asked about any data on the gluing beyond its two `patches`, it will
+invoke the internally stored `compute_function` to actually carry out the computation
+of the gluing and then serve the incoming request on the basis of that result.
+The latter actual `ProjectiveGluing` will then be cached.
 """
 mutable struct LazyProjectiveGluing{
                                      GluingType<:AbsGluing,
@@ -67,7 +67,7 @@ mutable struct LazyProjectiveGluing{
       X::AbsProjectiveScheme,
       Y::AbsProjectiveScheme,
       BG::AbsGluing,
-      compute_function::Function, 
+      compute_function::Function,
       gluing_data
     )
     (base_scheme(X), base_scheme(Y)) == patches(BG) || error("gluing is incompatible with provided patches")
@@ -89,21 +89,21 @@ end
 
 @doc raw"""
     ProjectiveGluing(
-        G::GluingType, 
+        G::GluingType,
         incP::IncType, incQ::IncType,
         f::IsoType, g::IsoType;
         check::Bool=true
       ) where {GluingType<:AbsGluing, IncType<:ProjectiveSchemeMor, IsoType<:ProjectiveSchemeMor}
 
-The `AbsProjectiveSchemeMorphism`s `incP` and `incQ` are open embeddings over open 
-embeddings of their respective `base_scheme`s. 
+The `AbsProjectiveSchemeMorphism`s `incP` and `incQ` are open embeddings over open
+embeddings of their respective `base_scheme`s.
 
         PX ↩ PU ≅ QV ↪ QY
       π ↓    ↓    ↓    ↓ π
-    G : X  ↩ U  ≅ V  ↪ Y 
+    G : X  ↩ U  ≅ V  ↪ Y
 
-This creates a gluing of the projective schemes `codomain(incP)` and `codomain(incQ)` 
-over a gluing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s 
+This creates a gluing of the projective schemes `codomain(incP)` and `codomain(incQ)`
+over a gluing `G` of their `base_scheme`s along the morphisms of `AbsProjectiveScheme`s
 `f` and `g`, identifying `domain(incP)` and `domain(incQ)`, respectively.
 """
 mutable struct ProjectiveGluing{
@@ -119,18 +119,18 @@ mutable struct ProjectiveGluing{
   f::IsoType1
   g::IsoType2
 
-  ### 
-  # Given two relative projective schemes and a gluing 
+  ###
+  # Given two relative projective schemes and a gluing
   #
   #       PX ↩ PU ≅ QV ↪ QY
   #     π ↓    ↓    ↓    ↓ π
-  #   G : X  ↩ U  ≅ V  ↪ Y 
+  #   G : X  ↩ U  ≅ V  ↪ Y
   #
-  # this constructs the gluing of PX and QY along 
-  # their open subsets PU and QV, given the two inclusions 
+  # this constructs the gluing of PX and QY along
+  # their open subsets PU and QV, given the two inclusions
   # and isomorphisms over the gluing G in the base schemes.
   function ProjectiveGluing(
-      G::GluingType, 
+      G::GluingType,
       incP::IncType1, incQ::IncType2,
       f::IsoType1, g::IsoType2;
       check::Bool=true
@@ -206,22 +206,22 @@ patches(PG::ProjectiveGluing) = (codomain(PG.inc_to_P), codomain(PG.inc_to_Q))
 gluing_morphisms(PG::ProjectiveGluing) = (PG.f, PG.g)
 
 ### Proper schemes π : Z → X over a covered base scheme X
-# 
-# When {Uᵢ} is an affine covering of X, the datum stored 
-# consists of a list of projective schemes 
+#
+# When {Uᵢ} is an affine covering of X, the datum stored
+# consists of a list of projective schemes
 #
 #   Zᵢ ⊂ ℙʳ⁽ⁱ⁾(𝒪(Uᵢ)) → Uᵢ
 #
-# with varying ambient spaces ℙʳ⁽ⁱ⁾(𝒪(Uᵢ)) and a list of 
-# identifications (transitions) 
+# with varying ambient spaces ℙʳ⁽ⁱ⁾(𝒪(Uᵢ)) and a list of
+# identifications (transitions)
 #
 #   Zᵢ ∩ π⁻¹(Uⱼ) ≅ Zⱼ ∩ π⁻¹(Uᵢ)
 #
 # of projective schemes over Uᵢ∩ Uⱼ for all pairs (i,j).
 #
-# These structs are designed to accommodate blowups of 
-# covered schemes along arbitrary centers, as well as 
-# projective bundles. 
+# These structs are designed to accommodate blowups of
+# covered schemes along arbitrary centers, as well as
+# projective bundles.
 
 @attributes mutable struct CoveredProjectiveScheme{BRT} <: Scheme{BRT}
   Y::AbsCoveredScheme # the base scheme
@@ -326,7 +326,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
   #W = SpecOpen(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
-  #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, identity_map(W), identity_map(W)), 
+  #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, identity_map(W), identity_map(W)),
                                  #inc, inc, identity_map(PW), identity_map(PW))
   return CoveredProjectiveScheme(Y, C, pp, tr)
 end
@@ -353,7 +353,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     var_name::VarName = :s
   )
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
-#  if one(OO(W)) in I 
+#  if one(OO(W)) in I
 #    error("blowing up along the unit ideal; this case should be caught earlier")
 #    # construct a relative ℙ⁰ over W with its identifying projection?
 #  end
@@ -396,7 +396,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       VW = PrincipalOpenSubset(V, E(V))
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
       g = OO(UW).(gens(I))
-      set_attribute!(p_res_dict[VW], :inverse, 
+      set_attribute!(p_res_dict[VW], :inverse,
                      morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
@@ -410,7 +410,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     x = gens(R)
     kk = coefficient_ring(R)
     A, x_ext = polynomial_ring(kk, vcat(symbols(R), [:t]))
-    t = last(x_ext) 
+    t = last(x_ext)
     inc = hom(R, A, x_ext[1:end-1], check=false)
     phi = hom(OO(CIPW), A, vcat([inc(g[i])*t for i in 1:r+1], x_ext[1:end-1], ), check=false) # the homogeneous variables come first
     J = kernel(phi)
@@ -428,7 +428,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       W === codomain(p_res) || error("codomain not correct")
       ID[affine_charts(Y)[i]] = pullback(p_res)(gen(I, i))
     end
-    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false) 
+    E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     # Cache the isomorphism on the complement of the center
@@ -439,11 +439,11 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
       VW = PrincipalOpenSubset(V, E(V))
       p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
       g = OO(UW).(gens(I))
-      set_attribute!(p_res_dict[VW], :inverse, 
+      set_attribute!(p_res_dict[VW], :inverse,
                      morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                     )
     end
-    
+
     # Prepare the decomposition data
     decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
     for k in 1:ngens(I)
@@ -485,7 +485,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   E = Oscar.EffectiveCartierDivisor(Y, ID, trivializing_covering=domain(p_cov), check=false)
   set_attribute!(Y, :exceptional_divisor, E)
   set_attribute!(Bl_W, :exceptional_divisor, E)
-  
+
   # Cache the isomorphism on the complement of the center
   p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
   for i in 1:ngens(I)
@@ -494,7 +494,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
     VW = PrincipalOpenSubset(V, E(V))
     p_res_dict[VW] = restrict(p_cov[V], VW, UW, check=false)
     g = OO(UW).(gens(I))
-    set_attribute!(p_res_dict[VW], :inverse, 
+    set_attribute!(p_res_dict[VW], :inverse,
                    morphism(UW, VW, vcat([g[j]*inv(g[i]) for j in 1:ngens(I) if j != i], gens(OO(UW))), check=false)
                   )
   end
@@ -522,7 +522,7 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
 end
 
 
-#function blow_up(W::Spec, I::MPolyQuoLocalizedIdeal;
+#function blow_up(W::AffineScheme, I::MPolyQuoLocalizedIdeal;
 #    var_names::Vector{Symbol}=Symbol.(["s$(i-1)" for i in 1:ngens(I)]),
 #    verbose::Bool=false,
 #    check::Bool=true,
@@ -545,9 +545,9 @@ end
 
 ## blow up X in the center described by g using these explicit generators.
 #function blow_up(
-#    W::Spec, 
-#    I::Vector{RingElemType}; 
-#    var_names::Vector{Symbol}=Vector{Symbol}(), 
+#    W::AffineScheme,
+#    I::Vector{RingElemType};
+#    var_names::Vector{Symbol}=Vector{Symbol}(),
 #    verbose::Bool=false,
 #    check::Bool=true,
 #    is_regular_sequence::Bool=false
@@ -662,20 +662,20 @@ end
 #  end
 #end
 
-# This is a sample for how to use LazyProjectiveGluings. 
-# Originally, we probably had some body of a double for-loop iterating over 
-# pairs of patches (P, Q) that we need to glue. We take that body which 
-# computes the gluing of P and Q and move 
-# it to an external function (here _compute_projective_gluing). Then we 
-# go through all the local variables in the body of the for-loop which 
-# are needed for the actual computation and create a tailor-made struct to 
-# house them. We add an extraction section in the beginning of the compute 
-# function to restore them and recreate the original setting within the 
-# for-loops. 
+# This is a sample for how to use LazyProjectiveGluings.
+# Originally, we probably had some body of a double for-loop iterating over
+# pairs of patches (P, Q) that we need to glue. We take that body which
+# computes the gluing of P and Q and move
+# it to an external function (here _compute_projective_gluing). Then we
+# go through all the local variables in the body of the for-loop which
+# are needed for the actual computation and create a tailor-made struct to
+# house them. We add an extraction section in the beginning of the compute
+# function to restore them and recreate the original setting within the
+# for-loops.
 #
-# Finally, we can replace the inner part of the double for-loop with the 
-# actual wrap-up of the local variables and feed everything to a constructor 
-# for a `LazyProjectiveGluing` as documented above. 
+# Finally, we can replace the inner part of the double for-loop with the
+# actual wrap-up of the local variables and feed everything to a constructor
+# for a `LazyProjectiveGluing` as documented above.
 struct CoveredProjectiveGluingData
   U::AbsSpec
   V::AbsSpec
@@ -700,23 +700,23 @@ function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
   UV, VU = gluing_domains(G)
   f, g = gluing_morphisms(G)
 
-  # to construct the identifications of PUV with QVU we need to 
+  # to construct the identifications of PUV with QVU we need to
   # express the generators of I(U) in terms of the generators of I(V)
-  # on the overlap U ∩ V. 
+  # on the overlap U ∩ V.
   !(G isa Gluing) || error("method not implemented for this type of gluing")
 
   QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
   PUV, PUVtoP = fiber_product(OX(U, UV), P)
   # The problem is that on a SpecOpen U ∩ V
-  # despite I(U)|U ∩ V == I(V)|U ∩ V, we 
+  # despite I(U)|U ∩ V == I(V)|U ∩ V, we
   # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
-  # for the generators fᵢ of I(U) and gⱼ of I(V): Even though 
-  # we can do this locally on the patches of a SpecOpen, the result 
+  # for the generators fᵢ of I(U) and gⱼ of I(V): Even though
+  # we can do this locally on the patches of a SpecOpen, the result
   # is not guaranteed to glue to global functions on the overlap.
-  # Abstractly, we know that the intersection of affine charts 
-  # in a separated scheme must be affine, but we do not have a 
+  # Abstractly, we know that the intersection of affine charts
+  # in a separated scheme must be affine, but we do not have a
   # model of this overlap as an affine scheme and hence no computational
-  # backup. 
+  # backup.
 
   # fᵢ the generators of I(U)
   # gⱼ the generators of I(V)
@@ -730,8 +730,8 @@ function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
   B = [coordinates(OX(V, UV)(g), ideal(OO(UV), OX(U, UV).(gens(I(U))))) for g in gens(I(V))] # B[j][i] = bⱼᵢ
   SQVU = homogeneous_coordinate_ring(QVU)
   SPUV = homogeneous_coordinate_ring(PUV)
-  # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ 
-  # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ 
+  # the induced map is ℙ(UV) → ℙ(VU), tⱼ ↦ ∑ᵢ bⱼᵢ ⋅ sᵢ
+  # and ℙ(VU) → ℙ(UV), sᵢ ↦ ∑ⱼ aᵢⱼ ⋅ tⱼ
   fup = ProjectiveSchemeMor(PUV, QVU, hom(SQVU, SPUV, pullback(f), [sum([B[j][i]*SPUV[i] for i in 1:ngens(SPUV)]) for j in 1:length(B)], check=false), check=false)
   gup = ProjectiveSchemeMor(QVU, PUV, hom(SPUV, SQVU, pullback(g), [sum([A[i][j]*SQVU[j] for j in 1:ngens(SQVU)]) for i in 1:length(A)], check=false), check=false)
   return ProjectiveGluing(G, PUVtoP, QVUtoQ, fup, gup, check=false)
@@ -816,7 +816,7 @@ function blow_up(
 end
 
 # The following is a wrap-up of local variables necessary to compute gluings
-# from morphisms of graded algebras. It will be used to fill in the 
+# from morphisms of graded algebras. It will be used to fill in the
 # `LazyGluing` together with the compute function following below.
 struct ProjectiveGluingData
   down_left::AbsSpec
@@ -827,21 +827,21 @@ struct ProjectiveGluingData
   projective_scheme::CoveredProjectiveScheme
 end
 
-# This function actually computes the gluing with the data extracted 
-# from the ProjectiveGluingData. 
+# This function actually computes the gluing with the data extracted
+# from the ProjectiveGluingData.
 #
-# Originally, this was in the body of a constructor. But we want to 
-# postpone the actual computation, so we wrap up all necessary local 
-# variables in a `ProjectiveGluingData` and copy-paste the required 
-# part of code into the body of this function. Together with a header 
-# which is restoring our local variables. 
+# Originally, this was in the body of a constructor. But we want to
+# postpone the actual computation, so we wrap up all necessary local
+# variables in a `ProjectiveGluingData` and copy-paste the required
+# part of code into the body of this function. Together with a header
+# which is restoring our local variables.
 function _compute_gluing(gd::ProjectiveGluingData)
   U = gd.down_left
   V = gd.down_right
   UW = gd.up_left
   VW = gd.up_right
   C = gd.down_covering
-  # Now we have the following diagram 
+  # Now we have the following diagram
   #
   #               fup, gup
   # P[U] ⊃ UW ⇢  UD ↔ VD ⇠ VW ⊂ P[V]
@@ -849,7 +849,7 @@ function _compute_gluing(gd::ProjectiveGluingData)
   #         U ⊃  A  ↔  B ⊂ V
   #                f,g
   #
-  # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}. 
+  # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}.
   P = gd.projective_scheme
   (A, B) = gluing_domains(C[U, V])
   (f, g) = gluing_morphisms(C[U, V])
@@ -867,20 +867,20 @@ function _compute_gluing(gd::ProjectiveGluingData)
   hU = dehomogenization_map(UD, AW)(pullback(fup)(pullback(incV)(t_j)))
   hV = dehomogenization_map(VD, BW)(pullback(gup)(pullback(incU)(s_i)))
 
-  # We need to construct the gluing 
+  # We need to construct the gluing
   #
   #          f', g'
   #   UW ↩ AAW ↔ BBW ↪ VW
-  #   
-  # as follows. 
-  # From the base gluing we already have that UW differs 
-  # from AAW by the pullback of the equation `complement_equation(A)`.
-  # But then, also `hU` cuts out another locus which needs to be 
-  # removed before gluing. 
   #
-  # The same applies to the other side. Finally, we need to track the 
-  # coordinates through the homogenization-gluing-pullback-dehomogenization 
-  # machinery to provide the gluing morphisms. 
+  # as follows.
+  # From the base gluing we already have that UW differs
+  # from AAW by the pullback of the equation `complement_equation(A)`.
+  # But then, also `hU` cuts out another locus which needs to be
+  # removed before gluing.
+  #
+  # The same applies to the other side. Finally, we need to track the
+  # coordinates through the homogenization-gluing-pullback-dehomogenization
+  # machinery to provide the gluing morphisms.
 
   ptbUD = covered_projection_to_base(UD)
   ptbVD = covered_projection_to_base(VD)
@@ -903,7 +903,7 @@ function _compute_gluing(gd::ProjectiveGluingData)
   yhh = [(pullback(fup)(pp), pullback(fup)(qq)) for (pp, qq) in yh]
 
   phi = dehomogenization_map(VD, BW)
-  psi = dehomogenization_map(UD, AW) 
+  psi = dehomogenization_map(UD, AW)
 
   pb_AW_to_AAW = hom(OO(AW), OO(AAW), gens(OO(AAW)), check=false)
   pb_BW_to_BBW = hom(OO(BW), OO(BBW), gens(OO(BBW)), check=false)
@@ -923,11 +923,11 @@ end
   new_patches = Vector{AbsSpec}()
   new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
   projection_dict = IdDict{AbsSpec, AbsSpecMor}()
-  parts = IdDict{AbsSpec, AbsCoveredScheme}() 
+  parts = IdDict{AbsSpec, AbsCoveredScheme}()
   for U in patches(C)
     parts[U] = Oscar.covered_scheme(P[U])
   end
-  # We first assemble a Covering where the preimage of every base 
+  # We first assemble a Covering where the preimage of every base
   # patch appears as one connected component
   result_patches = vcat([affine_charts(parts[U]) for U in patches(C)]...)
   result_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
@@ -938,14 +938,14 @@ end
     end
   end
   result_covering = Covering(result_patches, result_gluings, check=false)
-  
+
   # Now we need to add gluings
   for U in patches(C)
     for V in patches(C)
       U === V && continue
       for UW in affine_charts(parts[U])
         for VW in affine_charts(parts[V])
-          GGG = LazyGluing(UW, VW, _compute_gluing, 
+          GGG = LazyGluing(UW, VW, _compute_gluing,
                             ProjectiveGluingData(U, V, UW, VW, C, P)
                            )
           result_gluings[(UW, VW)] = GGG
@@ -975,7 +975,7 @@ end
       if has_decomposition_info(cov_part)
         for U in patches(cov_part)
           pr = projection_dict[U]
-          decomp_dict[U] = vcat(decomposition_info(cov_part)[U], 
+          decomp_dict[U] = vcat(decomposition_info(cov_part)[U],
                                 elem_type(OO(U))[pullback(pr)(a) for a in decomposition_info(C)[V]]
                                )
         end
@@ -987,13 +987,13 @@ end
   end
 
   # TODO: Remove the internal checks in the constructors below
-  covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false) 
+  covering_map = CoveringMorphism(result_covering, C, projection_dict, check=false)
   set_attribute!(P, :covering_projection_to_base, covering_map)
 
   return result
 end
 
-@attr function covered_projection_to_base(P::CoveredProjectiveScheme) 
+@attr function covered_projection_to_base(P::CoveredProjectiveScheme)
   if !has_attribute(P, :covering_projection_to_base)
     covered_scheme(P)
   end
@@ -1051,7 +1051,7 @@ end
 #        while true
 #           Inew = quotient(Iold, Excdiv)
 #           !(Iold == Excdiv * Inew) && break
-#           Iold = Inew 
+#           Iold = Inew
 #        end
 #        return gens(Iold)
 #        #(IOw : Exc Div ^k), k maximal
@@ -1081,12 +1081,12 @@ end
 #end
 #
 #function strict_transform(
-#    P::AbsProjectiveScheme, 
-#    E::IdealSheaf, 
+#    P::AbsProjectiveScheme,
+#    E::IdealSheaf,
 #    I::Vector{PolyType}
 #  ) where {PolyType<:MPolyRingElem}
 #  X = as_covered_scheme(P)
-#  C = covering(E) 
+#  C = covering(E)
 #  C in coverings(X) || error("covering not found")
 #  Y = base_scheme(P)
 #  length(I) > 0 || return IdealSheaf(X) # return the zero ideal sheaf
@@ -1094,7 +1094,7 @@ end
 #    parent(I[i]) == base_ring(OO(Y)) || error("polynomials do not belong to the correct ring")
 #  end
 #  f = covered_projection_to_base(P)
-#  if domain(f) !== C 
+#  if domain(f) !== C
 #    f = compose(X[C, domain(f)], f)
 #  end
 #
@@ -1157,7 +1157,7 @@ end
 #  return I
 #end
 #
-#function prepare_smooth_center(X::Spec, f::Vector{PolyType}; check::Bool=true) where {PolyType<:MPolyRingElem}
+#function prepare_smooth_center(X::AffineScheme, f::Vector{PolyType}; check::Bool=true) where {PolyType<:MPolyRingElem}
 #  X_dict = as_smooth_local_complete_intersection(X, verbose=true)
 #  return X_dict
 #end
@@ -1175,9 +1175,9 @@ end
 #end
 #
 #function as_smooth_local_complete_intersection(
-#    X::Spec, 
-#    f::Vector{PolyType}; 
-#    check::Bool=true, 
+#    X::AffineScheme,
+#    f::Vector{PolyType};
+#    check::Bool=true,
 #    verbose::Bool=false
 #  ) where {PolyType}
 #  verbose && println("call with $X and $f")
@@ -1206,9 +1206,9 @@ end
 #    good = X_dict[U][3]
 #    Z = subscheme(U, f)
 #    d = dim(Z)
-#    merge!(f_dict, _as_smooth_lci_rec(X, Z, X_dict[U][1], (collect(1:length(g)), good), 
-#                                      Vector{Tuple{Int, Int}}(), 
-#                                      f_ext, Df_ext, Df_ext, d, n, 
+#    merge!(f_dict, _as_smooth_lci_rec(X, Z, X_dict[U][1], (collect(1:length(g)), good),
+#                                      Vector{Tuple{Int, Int}}(),
+#                                      f_ext, Df_ext, Df_ext, d, n,
 #                                      check=check, verbose=verbose)
 #          )
 #  end
@@ -1226,7 +1226,7 @@ end
 #  return res_dict
 #end
 #
-#function as_smooth_lci_of_cod(X::Spec, c::Int; check::Bool=true, verbose::Bool=false)
+#function as_smooth_lci_of_cod(X::AffineScheme, c::Int; check::Bool=true, verbose::Bool=false)
 #  R = base_ring(OO(X))
 #  f = gens(modulus(OO(X)))
 #  Df = jacobian_matrix(f)
@@ -1264,7 +1264,7 @@ end
 #  return res_dict
 #end
 #
-#function as_smooth_local_complete_intersection(X::Spec; check::Bool=true, verbose::Bool=false)
+#function as_smooth_local_complete_intersection(X::AffineScheme; check::Bool=true, verbose::Bool=false)
 #  R = base_ring(OO(X))
 #  f = gens(modulus(OO(X)))
 #  Df = jacobian_matrix(f)
@@ -1281,42 +1281,42 @@ end
 #  return _as_smooth_lci_rec(X, X, poly_type(X)[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), f, Df, Df, d, n, check=check, verbose=verbose)
 #end
 #
-#### 
-## Given a matrix A with polynomial entries, this routine returns a 
-## list of equations hₖ and gₖ, and sets of columns Iₖ and rows Jₖ such that 
-## the (Iₖ, Jₖ)-minor of A has the prescribed full rank r along the 
+####
+## Given a matrix A with polynomial entries, this routine returns a
+## list of equations hₖ and gₖ, and sets of columns Iₖ and rows Jₖ such that
+## the (Iₖ, Jₖ)-minor of A has the prescribed full rank r along the
 ## hypersurface complement of hₖ of the zero locus of gₖ on C.
 ##
-## Altogether, the latter sets form a disjoint union of C into locally 
-## closed sets. In particular, we can derive an open covering of C 
+## Altogether, the latter sets form a disjoint union of C into locally
+## closed sets. In particular, we can derive an open covering of C
 ## from the hypersurface complements of the listed (I, J)-minors.
 ##
-## Input: 
-##   C::Spec     the locus that needs to be covered
+## Input:
+##   C::AffineScheme     the locus that needs to be covered
 ##   A::Matrix   the matrix that needs to have rank r
 ##   r::Int      the prescribed rank of the matrix.
 ##
-## Output: 
+## Output:
 ##   the following lists with index i
 ##   loc_list::Vector{Vector{MPolyRingElem}} A list of partial
 ##               factorizations of polynomials that need to
-##               be localized in order to arrive at the i-th 
+##               be localized in order to arrive at the i-th
 ##               patch.
-##   row_list::Vector{Vector{Int}} the indices of the rows 
+##   row_list::Vector{Vector{Int}} the indices of the rows
 ##               of the non-vanishing minor on the i-th patch.
-##   column_list::Vector{Vector{Int}}    the indices of the 
-##               columns of the non-vanishing minor on the 
+##   column_list::Vector{Vector{Int}}    the indices of the
+##               columns of the non-vanishing minor on the
 ##               i-th patch.
 #function _non_degeneration_cover(
 #    C::SpecType,
 #    A::MatrixType,
-#    r::Int; 
+#    r::Int;
 #    rec_count::Int=0,
 #    check::Bool=true,
 #    verbose::Bool=false,
 #    restricted_rows::Vector{Vector{Int}}=[Int[]],
 #    restricted_columns::Vector{Vector{Int}}=[Int[]]
-#  ) where {SpecType<:Spec, MatrixType} #TODO: How specific can we be with the matrices?
+#  ) where {SpecType<:AffineScheme, MatrixType} #TODO: How specific can we be with the matrices?
 #  indent_str = prod([ "#" for i in 1:rec_count ]) * " "
 #  #verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
 #  verbose && println(indent_str * "call to _non_degeneration_cover for rank $r")
@@ -1337,22 +1337,22 @@ end
 #  end
 #  length(restricted_columns) == 0 && (restricted_columns = [collect(1:n)])
 #  R = base_ring(OO(C))
-#  
+#
 #  verbose && println("checking for the scheme being empty...")
 #  if isempty(C)
 #    verbose && println("the scheme is empty; returning empty lists")
 #    return (Vector{Vector{poly_type(C)}}(), Vector{Vector{poly_type(C)}}(), Vector{Vector{Int}}(), Vector{Vector{Int}}())
 #  end
 #
-##  if r == 1 
+##  if r == 1
 ##    verbose && println("reached the rank-1-case")
 ##    Y = subscheme(C, ideal(R, [A[i,j] for i in 1:nrows(A) for j in 1:ncols(A)]))
-##    if check 
+##    if check
 ##      isempty(Y) || error("the prescribed rank can not be achieved on $Y")
 ##    end
 ##    ll = Vector{Vector{poly_type(C)}}()
 ##    dl = Vector{Vector{poly_type(C)}}()
-##    rl = Vector{Vector{Int}}() 
+##    rl = Vector{Vector{Int}}()
 ##    cl = Vector{Vector{Int}}()
 ##    for i in 1:nrows(A)
 ##      for j in 1:ncols(A)
@@ -1384,7 +1384,7 @@ end
 #    verbose && print(".")
 #    for j in 1:n
 #      A[i,j] = w[j]
-#      if i in restricted_rows[1] && j in restricted_columns[1] 
+#      if i in restricted_rows[1] && j in restricted_columns[1]
 #        allzero = allzero && iszero(A[i,j])
 #        if total_degree(w[j]) <= d && !iszero(w[j])
 #          d = total_degree(w[j])
@@ -1432,7 +1432,7 @@ end
 #
 #  loc_list = Vector{Vector{poly_type(C)}}()
 #  div_list = Vector{Vector{poly_type(C)}}()
-#  row_list = Vector{Vector{Int}}() 
+#  row_list = Vector{Vector{Int}}()
 #  column_list = Vector{Vector{Int}}()
 #
 #  if r>1
@@ -1442,9 +1442,9 @@ end
 #
 #    # harvest from recursion on the open part
 #    verbose && println("recursive call for the complement")
-#    llU, dlU, rlU, clU = _non_degeneration_cover(U, B_part, r-1, 
-#                                                 rec_count=rec_count+1, 
-#                                                 check=check, 
+#    llU, dlU, rlU, clU = _non_degeneration_cover(U, B_part, r-1,
+#                                                 rec_count=rec_count+1,
+#                                                 check=check,
 #                                                 verbose=verbose,
 #                                                 restricted_rows=new_restricted_rows,
 #                                                 restricted_columns=new_restricted_columns
@@ -1481,14 +1481,14 @@ end
 #
 #  # harvest from recursion on the closed part
 #  verbose && println("recursive call for the subscheme")
-#  llY, dlY, rlY, clY = _non_degeneration_cover(Y, copy(A), r, 
-#                                               rec_count=rec_count+1, 
-#                                               check=check, 
+#  llY, dlY, rlY, clY = _non_degeneration_cover(Y, copy(A), r,
+#                                               rec_count=rec_count+1,
+#                                               check=check,
 #                                               verbose=verbose,
 #                                               restricted_rows=restricted_rows,
 #                                               restricted_columns=restricted_columns
 #                                              )
-#  
+#
 #  # process the output according to the preparations for the recursion
 #  loc_list = vcat(loc_list, llY)
 #  div_list = vcat(div_list, [push!(Ud, f) for Ud in dlY])
@@ -1499,14 +1499,14 @@ end
 #
 #  return loc_list, div_list, row_list, column_list
 #end
-#    
+#
 #function _as_smooth_lci_rec(
-#    X::SpecType, 
+#    X::SpecType,
 #    Z::SpecType, # the uncovered locus
 #    h::Vector{PolyType}, # equations that were localized already
 #    good::Tuple{Vector{Int}, Vector{Int}}, # partial derivatives that form the beginning of the solution sequence
 #    bad::Vector{Tuple{Int, Int}}, # partial derivatives that vanish on the uncovered locus.
-#    f::Vector{PolyType}, 
+#    f::Vector{PolyType},
 #    Df::MatrixType,
 #    B::MatrixType,
 #    d::Int, n::Int;
@@ -1514,7 +1514,7 @@ end
 #    verbose::Bool=false,
 #    rec_depth::Int=0
 #  ) where{
-#          SpecType<:Spec,
+#          SpecType<:AffineScheme,
 #          PolyType<:MPolyRingElem,
 #          MatrixType
 #         }
@@ -1522,10 +1522,10 @@ end
 #  #verbose && println(recstring * "call with $X, $Z")
 #  verbose && println(recstring * "selected minors: $(good[1]) x $(good[2])")
 #  verbose && println(recstring * "bad positions: $bad")
-#  # return format: 
+#  # return format:
 #  # key: affine patch
-#  # value: (equations that were localized from root, 
-#  #         regular sequence, 
+#  # value: (equations that were localized from root,
+#  #         regular sequence,
 #  #         index of variables for non-vanishing minor)
 #  res_dict = Dict{typeof(X), Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 #
@@ -1587,7 +1587,7 @@ end
 #    error("scheme is not smooth")
 #  end
 #  verbose && println(recstring*"selected the $((k, l))-th entry: $(Df[k,l])")
-#  
+#
 #  good_ext = (vcat(good[1], k), vcat(good[2], l))
 #  p = Df[k,l]
 #  Bnew = copy(B)
@@ -1720,7 +1720,7 @@ end
 #        Mnew[i-1,j] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
 #      end
 #      for j in l+1:n
-#        Mnew[i-1,j-1] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1), 
+#        Mnew[i-1,j-1] = maximum([(M[i,j] >= 0 ? M[i,j] + M[k,l] : -1),
 #                                 (M[i,l]>=0 ? M[k,j] + M[i,l] : -1)])
 #      end
 #    end

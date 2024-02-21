@@ -71,9 +71,9 @@ function intersect_in_covering(U::AbsSpec, V::AbsSpec, C::Covering)
 end
 
 #affine_patch_type(C::Covering) = affine_patch_type(typeof(C))
-#gluing_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
-#affine_patch_type(::Type{Covering{SpecType, GluingType, SpecOpenType, RingElemType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
-#gluing_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
+#gluing_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:AffineScheme, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
+#affine_patch_type(::Type{Covering{SpecType, GluingType, SpecOpenType, RingElemType}}) where {SpecType<:AffineScheme, GluingType<:Gluing, SpecOpenType<:SpecOpen, RingElemType<:RingElem} = SpecType
+#gluing_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:AffineScheme, GluingType<:Gluing, SpecOpenType<:SpecOpen} = GluingType
 #open_subset_type(::Type{Covering{R, S, T}}) where {R, S, T} = T
 #open_subset_type(C::Covering) = open_subset_type(typeof(C))
 
@@ -102,14 +102,14 @@ affine_refinements(C::Covering) = C.affine_refinements
     _generate_affine_charts(X::Scheme) -> Dict{Int, AbsSpec}
 
 Helper to generate the affine charts of projective space for `standard_covering`.
-This should be overwritten if you want your charts to be of a type different from `Spec`,
+This should be overwritten if you want your charts to be of a type different from `AffineScheme`,
 for instance `AffinePlaneCurve`.
 """
 _generate_affine_charts(X::Scheme)
 
 # The case of a non-trivial homogeneous modulus
 function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
-  chart_dict = Dict{Int, Spec}()
+  chart_dict = Dict{Int, AffineScheme}()
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
@@ -119,7 +119,7 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
     phi = hom(S, R, vcat(gens(R)[1:i], [one(R)], gens(R)[i+1:r]), check=false)
     I = ideal(R, phi.(gens(defining_ideal(X))))
     if !isone(I) # return the non-empty charts only
-      chart_dict[i+1] = Spec(quo(R, I)[1])
+      chart_dict[i+1] = AffineScheme(quo(R, I)[1])
     end
   end
   return chart_dict
@@ -127,14 +127,14 @@ end
 
 # The case of a trivial homogeneous modulus
 function _generate_affine_charts(X::AbsProjectiveScheme{<:Ring, <:MPolyDecRing})
-  chart_dict = Dict{Int, Spec}()
+  chart_dict = Dict{Int, AffineScheme}()
   kk = base_ring(X)
   S = ambient_coordinate_ring(X)
   r = relative_ambient_dimension(X)
   s = symbols(S)
   for i in 0:r
     R, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    chart_dict[i+1] = Spec(R)
+    chart_dict[i+1] = AffineScheme(R)
   end
   return chart_dict
 end
@@ -160,7 +160,7 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyQuoRing}) 
   r = relative_ambient_dimension(X)
   for i in 0:r
     R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    F = Spec(R_fiber)
+    F = AffineScheme(R_fiber)
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))
     mapped_polys = [map_coefficients(pullback(pY), f) for f in gens(defining_ideal(X))]
@@ -185,7 +185,7 @@ function _generate_affine_charts(X::AbsProjectiveScheme{<:CRT, <:MPolyDecRing}) 
   r = relative_ambient_dimension(X)
   for i in 0:r
     R_fiber, x = polynomial_ring(kk, [Symbol("("*String(s[k+1])*"//"*String(s[i+1])*")") for k in 0:r if k != i])
-    F = Spec(R_fiber)
+    F = AffineScheme(R_fiber)
     ambient_space, pF, pY = product(F, Y)
     fiber_vars = pullback(pF).(gens(R_fiber))
     chart_dict[i+1] = ambient_space
@@ -314,8 +314,8 @@ end
 #affine_patch_type(C::CoveringMorphism{R, S, T}) where {R, S, T} = R
 #affine_patch_type(::Type{CoveringMorphism{R, S, T}}) where {R, S, T} = R
 
-#morphism_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
-#morphism_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:Spec, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+#morphism_type(C::Covering{SpecType, GluingType, SpecOpenType}) where {SpecType<:AffineScheme, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
+#morphism_type(::Type{Covering{SpecType, GluingType, SpecOpenType}}) where {SpecType<:AffineScheme, GluingType<:Gluing, SpecOpenType<:SpecOpen} = CoveringMorphism{SpecType, Covering{SpecType, GluingType, SpecOpenType}, morphism_type(SpecType, SpecType)}
 
 
 refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tuple{<:Covering, <:Covering}, <:CoveringMorphism}
@@ -332,8 +332,8 @@ refinements(X::AbsCoveredScheme) = refinements(underlying_scheme(X))::Dict{<:Tup
 #affine_patch_type(::Type{CoveredSchemeType}) where {CoveredSchemeType<:CoveredScheme} = affine_patch_type(covering_type(CoveredSchemeType))
 
 ### type constructors
-#covered_scheme_type(::Type{T}) where {T<:Spec} = CoveredScheme{covering_type(T), morphism_type(covering_type(T))}
-#covered_scheme_type(X::Spec) = covered_scheme_type(typeof(X))
+#covered_scheme_type(::Type{T}) where {T<:AffineScheme} = CoveredScheme{covering_type(T), morphism_type(covering_type(T))}
+#covered_scheme_type(X::AffineScheme) = covered_scheme_type(typeof(X))
 #
 #covered_scheme_type(::Type{T}) where {T<:ProjectiveScheme} = covered_scheme_type(affine_patch_type(P))
 #covered_scheme_type(P::AbsProjectiveScheme) = covered_scheme_type(typeof(P))

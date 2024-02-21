@@ -14,7 +14,7 @@ julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> A = Spec(P)
+julia> A = AffineScheme(P)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
@@ -63,12 +63,12 @@ julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> A = Spec(P)
+julia> A = AffineScheme(P)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
 
-julia> Y = Spec(P, I)
+julia> Y = AffineScheme(P, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z
@@ -93,7 +93,7 @@ function complement(X::AbsSpec, Z::AbsSpec{<:Ring, <:MPolyQuoRing})
   return SpecOpen(X, modulus(OO(Z)))
 end
 
-function complement(X::AbsSpec, 
+function complement(X::AbsSpec,
     Z::AbsSpec{<:Ring, <:MPolyQuoLocRing};
     check::Bool=true
   )
@@ -129,12 +129,12 @@ julia> P2, (x2, y2, z2) = polynomial_ring(QQ, [:x2, :y2, :z2]);
 
 julia> P1, (x1, y1, z1) = polynomial_ring(QQ, [:x1, :y1, :z1]);
 
-julia> A1 = Spec(P1)
+julia> A1 = AffineScheme(P1)
 Spectrum
   of multivariate polynomial ring in 3 variables x1, y1, z1
     over rational field
 
-julia> A2 = Spec(P2)
+julia> A2 = AffineScheme(P2)
 Spectrum
   of multivariate polynomial ring in 3 variables x2, y2, z2
     over rational field
@@ -143,9 +143,9 @@ julia> I1 = ideal([x1^3-y1^2*z1]);
 
 julia> I2 = ideal([x2^2-y2^2+z2^2]);
 
-julia> Y1 = Spec(P1, I1);
+julia> Y1 = AffineScheme(P1, I1);
 
-julia> Y2 = Spec(P2, I2);
+julia> Y2 = AffineScheme(P2, I2);
 
 julia> U2 = complement(A2, Y2);
 
@@ -158,7 +158,7 @@ Open subset
 complement to V(x2^2 - y2^2 + z2^2)
 
 julia> iU
-Spec open morphism
+Affine scheme open subscheme morphism
   from [x2, y2, z2, x1, y1, z1]  complement to V(x2^2 - y2^2 + z2^2)
   to   [x2, y2, z2]              complement to V(x2^2 - y2^2 + z2^2)
 defined by the map
@@ -171,7 +171,7 @@ defined by the map
     z2 -> z2
 
 julia> iZ
-Spec open morphism
+Affine scheme open subscheme morphism
   from [x2, y2, z2, x1, y1, z1]  complement to V(x2^2 - y2^2 + z2^2)
   to   [x1, y1, z1]              complement to V(1)
 defined by the map
@@ -192,7 +192,7 @@ function product(U::SpecOpen, Y::AbsSpec)
   res_pY = restrict(pY, V, SpecOpen(Y), check=false)
   return V, res_pX, res_pY
 end
-  
+
 function subscheme(U::SpecOpen, I::Ideal)
   Z = subscheme(ambient_scheme(U), I) #Takes care of coercion and complains if necessary
   return SpecOpen(Z, [g for g in complement_equations(U) if !iszero(OO(Z)(g))])

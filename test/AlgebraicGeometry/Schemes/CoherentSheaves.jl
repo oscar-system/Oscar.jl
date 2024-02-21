@@ -24,7 +24,7 @@
   @test rho(M1(U[1])[1]) in M1(U21)
   T = Oscar.tangent_sheaf(X)
   rho = T(U[1], U21)
-  g = rho(T(U[1])[1]) 
+  g = rho(T(U[1])[1])
   @test g in T(U21)
   @test element_to_homomorphism(g)(domain(T)(U21)[1]) in codomain(T)(U21)
 
@@ -95,7 +95,7 @@ end
   @test rho isa ModuleFPHom
 
   # Test pullbacks along blowup maps.
-  # This is particularly simple, because the underlying CoveringMorphism 
+  # This is particularly simple, because the underlying CoveringMorphism
   # of the projection map is given on the default_covering of its domain.
   J = ideal(S, [x-z, y])
   JJ = IdealSheaf(IP, J)
@@ -142,7 +142,7 @@ end
 
   I = ideal(R, [x-1, y]) * ideal(R, [x]) # A line and a plane, disjoint.
 
-  X = CoveredScheme(Spec(R, I))
+  X = CoveredScheme(AffineScheme(R, I))
 
   @test is_smooth(X)
 

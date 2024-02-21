@@ -8,7 +8,7 @@
 ########################################################################
 SpecOpenRing(U::SpecOpen) = SpecOpenRing(ambient_scheme(U), U)
 
-spec_open_ring_type(::Type{T}) where {T<:Spec} = SpecOpenRing{T, open_subset_type(T)}
+spec_open_ring_type(::Type{T}) where {T<:AffineScheme} = SpecOpenRing{T, open_subset_type(T)}
 spec_open_ring_type(X::AbsSpec) = spec_open_ring_type(typeof(X))
 
 ring_type(::Type{SpecOpenType}) where {SpecOpenType<:SpecOpen} = SpecOpenRing{affine_patch_type(SpecOpenType), SpecOpenType}
@@ -20,7 +20,7 @@ ring_type(U::SpecOpen) = ring_type(typeof(U))
 @doc raw"""
     scheme(R::SpecOpenRing)
 
-The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns 
+The ring ``R = 𝒪(X, U)`` belongs to a sheaf of rings ``𝒪(X, -)`` and this returns
 the scheme ``X`` on which ``𝒪`` is defined.
 """
 scheme(R::SpecOpenRing) = R.scheme
