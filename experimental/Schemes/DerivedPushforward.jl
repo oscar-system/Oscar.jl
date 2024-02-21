@@ -79,7 +79,7 @@ function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:Fie
 end
 
 
-_regularity_bound(F::FreeMod) = maximum(Int(degree(a)[1]) for a in gens(F))
+_regularity_bound(F::FreeMod) = maximum(Int(degree(a; check=false)[1]) for a in gens(F))
 
 @doc raw"""
     simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}

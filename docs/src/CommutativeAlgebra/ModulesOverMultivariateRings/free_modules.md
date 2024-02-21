@@ -174,7 +174,7 @@ is_homogeneous(f::FreeModElem)
 ```
 
 ```@docs
-degree(f::FreeModElem)
+degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
 ```
 
 

@@ -63,7 +63,7 @@ function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
   success, orig_mod, p = _is_exterior_power(F)
   if !success 
     Fwedge1, _ = exterior_power(F, 1)
-    id = hom(F, Fwedge1, gens(Fwedge1))
+    id = hom(F, Fwedge1, gens(Fwedge1); check=false)
     tmp = wedge_multiplication_map(Fwedge1, G, v)
     return compose(id, tmp)
   end
@@ -71,7 +71,7 @@ function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
   success, orig_mod_2, q = _is_exterior_power(G)
   if !success
     Gwedge1, _ = exterior_power(G, 1)
-    id = hom(Gwedge1, G, gens(G))
+    id = hom(Gwedge1, G, gens(G); check=false)
     tmp = wedge_multiplication_map(F, Gwedge1, v)
     return compose(tmp, id)
   end
@@ -93,7 +93,7 @@ function wedge_multiplication_map(F::ModuleFP, G::ModuleFP, v::ModuleFPElem)
   
   # map the generators
   img_gens = [wedge(v, e, parent=G) for e in gens(F)]
-  return hom(F, G, img_gens)
+  return hom(F, G, img_gens; check=false)
 end
 
 # The wedge product of two or more elements.
@@ -177,7 +177,7 @@ function induced_map_on_exterior_power(phi::FreeModuleHom{<:FreeMod, <:FreeMod, 
 
   imgs = phi.(gens(F))
   img_gens = [wedge(imgs[indices(ind)], parent=codomain) for ind in OrderedMultiIndexSet(p, m)]
-  return hom(domain, codomain, img_gens)
+  return hom(domain, codomain, img_gens; check=false)
 end
 
 # The induced map on exterior powers

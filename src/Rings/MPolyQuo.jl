@@ -1331,20 +1331,25 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   simplify(a)
   @req !iszero(a) "Element must be non-zero"
-  return degree(a.f)
+  return degree(a.f; check)
 end
 
-function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function _degree_fast(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  simplify(a)
+  @req !iszero(a) "Element must be non-zero"
+  return _degree_fast(a.f)
+end
+function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   @assert is_z_graded(base_ring(parent(a)))
-  return Int(degree(a)[1])
+  return Int(degree(a; check)[1])
 end
 
-function degree(::Type{Vector{Int}}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function degree(::Type{Vector{Int}}, a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   @assert is_zm_graded((base_ring(parent(a))))
-  d = degree(a)
+  d = degree(a; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 

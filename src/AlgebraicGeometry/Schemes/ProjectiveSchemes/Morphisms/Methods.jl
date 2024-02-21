@@ -74,7 +74,8 @@ with default covering
       u = inv(OO(U_ij)(denom))
       mor_dict[U_ij] = morphism(U_ij, V_j, 
                                hom(OO(V_j), OO(U_ij), 
-                                   [OO(U_ij)(dehom(pbf(gen(SY, k))))*u for k in 1:ngens(SY) if k != j]
+                                   [OO(U_ij)(dehom(pbf(gen(SY, k))))*u for k in 1:ngens(SY) if k != j];
+                                   check=false
                                   )
                               )
     end
@@ -120,11 +121,11 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::FreeMod)
   S = codomain(f)
   T = domain(f)
   S === base_ring(M) || error("rings do not match")
-  FT = graded_free_module(T, [degree(a) for a in gens(M)])
+  FT = graded_free_module(T, [_degree_fast(a) for a in gens(M)])
   I = image_ideal(inc)
   IFT, inc_IFT = I*FT
   MT = cokernel(inc_IFT)
-  id = hom(MT, M, gens(M), f)
+  id = hom(MT, M, gens(M), f; check=false)
   return MT, id
 end
 
@@ -141,7 +142,7 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
   G, inc_G = sub(FT, vcat(gT, relT))
   Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
   MT = cokernel(inc_Q)
-  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]))
+  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]); check=false)
   return MT, id
 end
 
