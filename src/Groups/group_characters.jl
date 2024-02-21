@@ -231,14 +231,14 @@ end
     conjugacy_classes(tbl::GAPGroupCharacterTable)
 
 Return the vector of conjugacy classes of `group(tbl)`,
-ordered such that they correspond to the columns of `tbl`
-and to the `GAPWrap.ConjugacyClasses` value of the underlying
-GAP character table.
-Note that the vector `conjugacy_classes(group(tbl))` can be independent
-of the vector of conjugacy classes stored in the group of the underlying
-GAP character table.
+ordered such that they correspond to the columns of `tbl`.
 
-An error is thrown if `tbl` does  not store a group.
+Note that the vectors `conjugacy_classes(group(tbl))` and
+`conjugacy_classes(tbl)` are independent.
+They will usually have the same ordering,
+but it may happen that they are ordered differently.
+
+An error is thrown if `tbl` does not store a group.
 
 # Examples
 ```jldoctest

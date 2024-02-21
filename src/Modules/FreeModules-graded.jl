@@ -1100,7 +1100,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   psi = kDelta[2]*pro[1]
   psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
-  H = quo(sub(D, kDelta[1]), image(rho)[1])
+  H = quo_object(sub(D, kDelta[1]), image(rho)[1])
   set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N

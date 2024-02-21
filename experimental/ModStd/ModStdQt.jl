@@ -481,9 +481,9 @@ A generic fraction free row echelon form for matrices over multivariate
 function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
   rk = 0
   for i=1:nrows(M)
-    c = content(M[i, :])
+    c = content(M[i:i, :])
     if !isone(c)
-      M[i, :] = divexact(M[i, :], c)
+      M[i, :] = divexact(M[i:i, :], c)
     end
   end
   j = 1
@@ -524,8 +524,8 @@ function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
         continue
       end
       g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
-      M[k, :] = b*M[k, :] - a * M[i, :]
-      M[k, :] = divexact(M[k, :], content(M[k, :]))
+      M[k, :] = b*M[k:k, :] - a * M[i:i, :]
+      M[k, :] = divexact(M[k:k, :], content(M[k:k, :]))
     end
     j += 1
   end
