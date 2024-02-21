@@ -9,11 +9,11 @@ end
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
 
-Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates 
+Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates
 the numerical type of the edge lengths.
 
 # Examples
-Make a phylogenetic tree with 4 leaves from its Newick representation and print 
+Make a phylogenetic tree with 4 leaves from its Newick representation and print
 its taxa and cophenetic matrix.
 ```jldoctest
 julia> phylo_t = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
@@ -38,7 +38,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
 
   # load graph properties
   pm_ptree.ADJACENCY
-  
+
   return PhylogeneticTree{T}(pm_ptree)
 end
 
@@ -91,9 +91,8 @@ end
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
-Returns the underlying graph of the phylogenetic tree ptree.
+Returns the underlying graph of the phylogenetic tree `ptree`.
 # Examples
-
 Make a phylogenetic tree with given Newick format and print its underlying graph.
 
 ```jldoctest
@@ -267,9 +266,9 @@ function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where {T <:
 
   phylo_type = Polymake.bigobject_type(pm_object(first(arr)))
   pm_arr = Polymake.Array{Polymake.BigObject}(phylo_type, n)
-  
+
   pm_arr .= pm_object.(arr)
-    
+
   pm_cons_tree = Polymake.tropical.tropical_median_consensus(pm_arr)
   return PhylogeneticTree{T}(pm_cons_tree)
 end
@@ -301,4 +300,3 @@ julia> newick(tc)
 function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
   return tropical_median_consensus(collect(trees))
 end
-
