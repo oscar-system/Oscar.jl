@@ -54,12 +54,12 @@ function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
-                     field::U) where {U <: Union{QQFieldElem, AbstractAlgebra.Floats}}
+                     field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
   return load_from_polymake(T{QQFieldElem}, Dict{Symbol, Any}(s.obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     field::U) where {S <: FieldElem, U <: Union{QQFieldElem, AbstractAlgebra.Floats}}
+                     field::U) where {S <: FieldElem, U <: Union{QQField, AbstractAlgebra.Floats}}
   return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
