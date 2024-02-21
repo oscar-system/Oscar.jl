@@ -92,7 +92,5 @@ include("Schemes/ToricBlowups/constructors.jl")
 include("Schemes/ToricBlowups/attributes.jl")
 include("Schemes/ToricBlowups/methods.jl")
 
-include("ExteriorAlgebra/ExteriorAlgebra.jl")
-
 include("Schemes/DerivedPushforward.jl")
 
