@@ -53,8 +53,6 @@ include("Rings.jl")
 include("ModStd.jl")
 include("GModule.jl")
 
-include("MatrixGroups/matrix.jl")
-
 include("Schemes/Types.jl")
 include("Schemes/CoveredScheme.jl")
 include("Schemes/FunctionFields.jl")
