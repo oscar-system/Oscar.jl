@@ -324,22 +324,19 @@ end
 function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
   invform = inv(form)
   eqs = zero_matrix(R, n^2, n^2)
-  r = n^2
   for i in 1:n, j in 1:n
     x = zero_matrix(R, n, n)
     x[i, j] = 1
-    eqs[r, :] = _vec(x + invform * transpose(x) * form)
-    r -= 1
+    eqs[(i-1) * n + j, :] = _vec(x + invform * transpose(x) * form)
   end
   ker = kernel(eqs)
+  rref!(ker) # we cannot assume anything about the kernel, but want to have a consistent output
   dim = nrows(ker)
-  basis = [zero_matrix(R, n, n) for i in 1:dim]
-  r = n^2
+  basis = [zero_matrix(R, n, n) for _ in 1:dim]
   for i in 1:n
     for k in 1:dim
-      basis[k][i, 1:n] = ker[dim + 1 - k, r + 1 .- (1:n)]
+      basis[k][i, 1:n] = ker[k, (i-1) * n .+ (1:n)]
     end
-    r -= n
   end
   return basis
 end
