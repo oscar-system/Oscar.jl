@@ -91,21 +91,40 @@ end
 @doc raw"""
     adjacency_tree(ptree::PhylogeneticTree)
 
-Returns the underlying graph of the phylogenetic tree `ptree`.
-
+Returns the underlying graph of the phylogenetic tree ptree.
 # Examples
+
 Make a phylogenetic tree with given Newick format and print its underlying graph.
 
 ```jldoctest
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
 julia> adjacency_tree(ptree)
-Undirected graph with 7 nodes and the following edges:
-(2, 1)(3, 2)(4, 2)(5, 4)(6, 4)(7, 1)
+Directed graph with 7 nodes and the following edges:
+(1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
 function adjacency_tree(ptree::PhylogeneticTree)
-  return Graph{Undirected}(pm_object(ptree).ADJACENCY)
+  udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
+  n = nv(udir_tree)
+
+  dir_tree = Graph{Directed}(n)
+
+  queue = [1]
+  visited = fill(false, n)
+  visited[1] = true
+  while length(queue) > 0
+    x = popfirst!(queue)
+    for y in neighbors(udir_tree, x)
+      if visited[y] == false
+        add_edge!(dir_tree, x, y)
+        push!(queue, y)
+        visited[y] = true
+      end
+    end
+  end
+
+  return dir_tree
 end
 
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
@@ -282,3 +301,4 @@ julia> newick(tc)
 function tropical_median_consensus(trees::Vararg{PhylogeneticTree, N}) where {N}
   return tropical_median_consensus(collect(trees))
 end
+
