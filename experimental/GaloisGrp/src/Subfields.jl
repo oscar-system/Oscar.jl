@@ -314,8 +314,8 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   @show pr = clog(B, p) 
   @show pr *= div(n,2)
   @show pr += 2*clog(2*n, p)
-  H = factor_mod_pk_init(f, p)
-  @show factor_mod_pk(H, 1)
+  H = Hecke.factor_mod_pk_init(f, p)
+  @show Hecke.factor_mod_pk(H, 1)
 
   b = basis(K)
   b .*= inv(derivative(f)(gen(K)))
@@ -324,7 +324,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   bz = [Zx(bd[i]*bt[i]) for i=1:length(bd)]
   @assert parent(f) == parent(bz[1])
 
-  lf = factor_mod_pk(Array, H, 1)
+  lf = Hecke.factor_mod_pk(Array, H, 1)
   #the roots in G are of course roots of the lf[i]
   #roots that belong to the same factor would give rise
   #to the same principal subfield. So we can save on LLL calls.
@@ -334,7 +334,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   rt_to_lf = [findall(x->iszero(f[1](x)), r) for f = lf]
   done = zeros(Int, length(lf))
   while true
-    lf = factor_mod_pk(Array, H, pr)
+    lf = Hecke.factor_mod_pk(Array, H, pr)
     ppr = ZZRingElem(p)^pr
     @assert parent(lf[1][1]) == parent(f)
     @assert all(x->is_monic(x[1]), lf)

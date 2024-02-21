@@ -522,7 +522,7 @@ for t in [Base.Integer, Base.Rational{<:Base.Integer}, ZZRingElem, QQFieldElem]
 end
 
 function (K::NfNSGen{T, S})(x::AbsNumFieldOrderElem{NfNSGen{T, S}, <:Any}) where {T, S}
-  @req nf(parent(x)) === K "Parent of element must be an order of the number field"
+  @req Hecke.nf(parent(x)) === K "Parent of element must be an order of the number field"
   return elem_in_nf(x)
 end
 
