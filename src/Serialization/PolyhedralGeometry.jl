@@ -39,7 +39,7 @@ function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObjec
   end
 end
 
-function save_object(s::SerializerState, obj::PolyhedralObject{QQFieldElem})
+function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
 end
 
@@ -53,16 +53,18 @@ function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
   return load_typed_object(s)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::QQField)
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
+                     field::U) where {U <: Union{QQFieldElem, AbstractAlgebra.Floats}}
   return load_from_polymake(T{QQFieldElem}, Dict{Symbol, Any}(s.obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     field::QQField) where S <: FieldElem
+                     field::U) where {S <: FieldElem, U <: Union{QQFieldElem, AbstractAlgebra.Floats}}
   return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
+
   polymake_dict = load_typed_object(s)
   bigobject = _dict_to_bigobject(polymake_dict)
   return T{elem_type(field)}(bigobject, field)

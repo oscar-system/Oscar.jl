@@ -288,7 +288,9 @@ import Distributed.AbstractSerializer
 # add these here so that the proper errors are thrown
 # when the type hasn't been registered
 serialize_with_id(::Type) = false
+serialize_with_id(obj::Any) = false
 serialize_with_params(::Type) = false
+
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(

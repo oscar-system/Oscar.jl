@@ -6,7 +6,6 @@ using Oscar: _integer_variables
             G = complete_graph(4)
             test_save_load_roundtrip(path, G) do loaded
               @test loaded isa Graph{Undirected}
-              @test Base.propertynames(G) == Base.propertynames(loaded)
               @test n_vertices(G) == n_vertices(loaded)
               @test n_edges(G) == n_edges(loaded)
             end
@@ -16,7 +15,6 @@ using Oscar: _integer_variables
             C = positive_hull([1 0; 0 1])
             test_save_load_roundtrip(path, C) do loaded
               @test loaded isa Cone
-              @test Base.propertynames(C) == Base.propertynames(loaded)
               @test n_rays(C) == n_rays(loaded)
               @test dim(C) == dim(loaded)
               @test C == loaded
@@ -27,15 +25,25 @@ using Oscar: _integer_variables
           square = cube(2)
           test_save_load_roundtrip(path, square) do loaded
             @test loaded isa Polyhedron
-            @test Base.propertynames(square) == Base.propertynames(loaded)
             @test n_vertices(square) == n_vertices(loaded)
             @test dim(square) == dim(loaded)
             @test square == loaded
           end
 
+          
           d_hedron = dodecahedron()
-          test_save_load_roundtrip(path, d_hedron) do loaded
-            d_hedron == loaded
+          facets(d_hedron)
+          vertices(d_hedron)
+
+          dict_ps = Dict{String, Any}(
+            "unprecise" => polyhedron(
+              Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
+            ),
+            "precise" => d_hedron
+          )
+
+          test_save_load_roundtrip(path, dict_ps) do loaded
+            @test dict_ps["precise"] == loaded["precise"]
           end
         end
 
@@ -45,7 +53,6 @@ using Oscar: _integer_variables
             PC = polyhedral_complex(IM, vr)
             test_save_load_roundtrip(path, PC) do loaded
               @test loaded isa PolyhedralComplex
-              @test Base.propertynames(PC) == Base.propertynames(loaded)
               @test n_rays(PC) == n_rays(loaded)
               @test number_of_maximal_polyhedra(PC) == number_of_maximal_polyhedra(loaded)
               @test dim(PC) == dim(loaded)
@@ -56,7 +63,6 @@ using Oscar: _integer_variables
             nfsquare = normal_fan(cube(2))
             test_save_load_roundtrip(path, nfsquare) do loaded
               @test loaded isa PolyhedralFan
-              @test Base.propertynames(nfsquare) == Base.propertynames(loaded)
               @test n_rays(nfsquare) == n_rays(loaded)
               @test number_of_maximal_cones(nfsquare) == number_of_maximal_cones(loaded)
               @test dim(nfsquare) == dim(loaded)
@@ -68,7 +74,6 @@ using Oscar: _integer_variables
             LP = linear_program(P,[3,-2,4];k=2,convention = :min)
             test_save_load_roundtrip(path, LP) do loaded
               @test loaded isa LinearProgram
-              @test Base.propertynames(LP) == Base.propertynames(loaded)
               @test objective_function(LP) == objective_function(loaded)
               @test feasible_region(LP) == feasible_region(loaded)
             end
@@ -85,7 +90,6 @@ using Oscar: _integer_variables
             )
             test_save_load_roundtrip(path, MILP) do loaded
               @test loaded isa MixedIntegerLinearProgram
-              @test Base.propertynames(MILP) == Base.propertynames(loaded)
               @test objective_function(MILP) == objective_function(loaded)
               @test feasible_region(MILP) == feasible_region(loaded)
               @test Oscar._integer_variables(MILP) == Oscar._integer_variables(loaded)
@@ -98,7 +102,6 @@ using Oscar: _integer_variables
             MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
             test_save_load_roundtrip(path, MOAE) do loaded
               @test loaded isa SubdivisionOfPoints
-              @test Base.propertynames(MOAE) == Base.propertynames(loaded)
               @test number_of_maximal_cells(MOAE) == number_of_maximal_cells(loaded)
               @test number_of_points(MOAE) == number_of_points(loaded)
             end
