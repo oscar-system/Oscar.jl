@@ -49,5 +49,4 @@ for pkg in oldexppkgs
   include("$pkg/$pkg.jl")
 end
 
-include("ModStd.jl")
 include("GModule.jl")
