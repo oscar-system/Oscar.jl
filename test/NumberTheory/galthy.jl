@@ -30,6 +30,12 @@
   Gs, Cs = galois_group(K, algorithm = :Symbolic)
   @test is_isomorphic(G, Gc)
   @test is_isomorphic(G, Gs)
+
+  # from the book
+  K, a = number_field(x^9 - 3*x^8 + x^6 + 15*x^5 - 13*x^4 -
+                      3*x^3 + 4*x - 1, "a")
+  G, C = galois_group(K)
+  @test order(G) == 216
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures

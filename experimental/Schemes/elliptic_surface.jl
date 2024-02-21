@@ -1215,7 +1215,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
-      d = F2-vec(tor)
+      d = F2 - _vec(tor)
       if all(isone(denominator(i)) for i in d)
         found = true
         T0 = mordell_weil_torsion(X)[i]

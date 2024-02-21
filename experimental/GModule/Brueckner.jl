@@ -137,7 +137,10 @@ function reps(K, G::Oscar.GAPGroup)
           end
 
           # Find the positions of the equiv. classes of the `h`-conjugate
-          # representations, we need not deal with them later on
+          # representations.
+          # In order to get pairwise equivalent representations,
+          # we do not induce the representations equivalent to the
+          # other conjugates.
           for j in 2:p
             for k in (pos+1):length(R)
               if length(Oscar.GModuleFromGap.hom_base(

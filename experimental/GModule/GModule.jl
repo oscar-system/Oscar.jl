@@ -8,7 +8,7 @@ import Hecke: data
 #   first does a "restriction of scalars" or blow up with the rep mat
 #   second tries to conjugate down to k
 
-import Oscar: gmodule, GAPWrap
+import Oscar: _vec, gmodule, GAPWrap
 import Oscar.GrpCoh: MultGrp, MultGrpElem
 
 import AbstractAlgebra: Group, Module
@@ -1351,7 +1351,7 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
+  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 
@@ -1442,22 +1442,6 @@ end
 
 #TODO: cover all finite fields
 #      make the Modules work
-
-#to bypass the vec(collect(M)) which copies twice
-function Base.vec(M::Generic.Mat)
-  return vec(M.entries)
-end
-
-function Base.vec(M::MatElem)
-  r = elem_type(base_ring(M))[]
-  sizehint!(r, nrows(M) * ncols(M))
-  for j=1:ncols(M)
-    for i=1:nrows(M)
-      push!(r, M[i, j])
-    end
-  end
-  return r
-end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   return gmodule(QQ, Oscar.simplify(gmodule(ZZ, C))[1])

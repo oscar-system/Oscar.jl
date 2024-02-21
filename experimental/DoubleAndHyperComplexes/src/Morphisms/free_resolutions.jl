@@ -22,10 +22,11 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
   end
 
   if isone(i)
-    aug = hom(c[0], fac.orig_mod, gens(fac.orig_mod))
+    aug = hom(c[0], fac.orig_mod, gens(fac.orig_mod); check=false)
+    aug.generators_map_to_generators = true
     K, inc = kernel(aug)
     next = _make_free_module(K, gens(K))
-    phi = hom(next, c[0], ambient_representatives_generators(K))
+    phi = hom(next, c[0], ambient_representatives_generators(K); check=false)
     push!(fac.map_cache, phi)
     return next
   end
@@ -45,7 +46,7 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
     return next
   end
   next = _make_free_module(K, gens(K))
-  phi = hom(next, c[i-1], ambient_representatives_generators(K))
+  phi = hom(next, c[i-1], ambient_representatives_generators(K); check=false)
   push!(fac.map_cache, phi)
   
   return next
@@ -54,10 +55,10 @@ end
 function zero_object(M::ModuleFP)
   if is_graded(M)
     result = graded_free_module(base_ring(M), [])
-    return result, hom(result, M, elem_type(M)[])
+    return result, hom(result, M, elem_type(M)[]; check=false)
   else
     result = FreeMod(base_ring(M), 0)
-    return result, hom(result, M, elem_type(M)[])
+    return result, hom(result, M, elem_type(M)[]; check=false)
   end
 end
 
@@ -99,7 +100,8 @@ function free_resolution(::Type{T}, M::SubquoModule{RET}) where {T<:SimpleFreeRe
                                  )
   result = SimpleFreeResolution(M, internal_complex)
   MC = ZeroDimensionalComplex(M)[0:0] # Wrap MC as a 1-dimensional complex concentrated in degree 0
-  aug_map = hom(result[(0,)], M, gens(M)) # The actual augmentation map
+  aug_map = hom(result[(0,)], M, gens(M); check=false) # The actual augmentation map
+  aug_map.generators_map_to_generators = true
   aug_map_comp = MorphismFromDict(result, MC, Dict{Tuple, typeof(aug_map)}([(0,)=>aug_map]))
   result.augmentation_map = aug_map_comp
   return result, aug_map_comp

@@ -2091,7 +2091,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       local lt
       if index(G, s) < 100
         @vtime :GaloisGroup 2 lt = right_transversal(G, s)
-      elseif is_normal(G, s)
+      elseif is_normalized_by(s, G)
         lt = [one(G)] # I don't know how to get the identity
       else
         @vtime :GaloisGroup 2 lt = short_right_transversal(G, s, si)
