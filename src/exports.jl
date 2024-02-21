@@ -1117,6 +1117,7 @@ export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
+export ordering
 export order_field_of_definition
 export orders_centralizers
 export orders_class_representatives
