@@ -229,7 +229,7 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   # Finalize maps.
   if slen < len
     Z = FreeMod(br, 0)
-    set_attribute!(Z, :name => "0")
+    AbstractAlgebra.set_name!(Z, "0")
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
     cc.complete = true
   end
@@ -382,7 +382,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
       #generator_matrix(SM)
-      set_attribute!(dom, :name => "$br_name^$rk")
+      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
       insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
       j += 1
     end
@@ -394,7 +394,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     else
       Z = FreeMod(br, 0)
     end
-    set_attribute!(Z, :name => "0")
+    AbstractAlgebra.set_name!(Z, "0")
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
@@ -430,7 +430,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       K, inc = kernel(map(C, i))
       nz = findall(x->!iszero(x), gens(K))
       F = FreeMod(R, length(nz))
-      iszero(length(nz)) && set_attribute!(F, :name => "0")
+      iszero(length(nz)) && AbstractAlgebra.set_name!(F, "0")
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
     end
@@ -461,7 +461,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       else
         Z = FreeMod(base_ring(M), 0)
-        set_attribute!(Z, :name => "0")
+        AbstractAlgebra.set_name!(Z, "0")
         h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       end
       insert!(mp, 1, h)

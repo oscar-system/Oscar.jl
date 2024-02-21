@@ -12,7 +12,7 @@
 
 function _get_quotient_split(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
-  E = nf(OE)
+  E = Hecke.nf(OE)
   Eabs, EabstoE = absolute_simple_field(E)
 
   Pabs = EabstoE\P
@@ -57,7 +57,7 @@ end
 function _get_quotient_inert(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
   OK = base_ring(OE)
-  E = nf(OE)
+  E = Hecke.nf(OE)
   K = base_field(E)
   p = minimum(P)
 
@@ -109,7 +109,7 @@ end
 
 function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
   OE = order(P)
-  E = nf(OE)
+  E = Hecke.nf(OE)
   p = minimum(P)
   e = valuation(different(OE), P)
 
@@ -182,7 +182,7 @@ function _get_quotient(O::Hecke.RelNumFieldOrder, p::Hecke.AbsSimpleNumFieldOrde
   @hassert :ZZLatWithIsom 1 is_prime(p)
   @hassert :ZZLatWithIsom 1 is_maximal(order(p))
   @hassert :ZZLatWithIsom 1 order(p) === base_ring(O)
-  E = nf(O)
+  E = Hecke.nf(O)
   F = prime_decomposition(O, p)
   P = F[1][1]
   if i == 0
@@ -489,7 +489,7 @@ end
 
 function _is_special(L::HermLat, p::AbsSimpleNumFieldOrderIdeal)
   OE = base_ring(L)
-  E = nf(OE)
+  E = Hecke.nf(OE)
   lp = prime_decomposition(OE, p)
   if lp[1][2] != 2 || !iseven(rank(L))
     return false
@@ -588,14 +588,14 @@ end
 
 # the minimum P-valuation among all the non-zero entries of M
 function _scale_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
-  @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
+  @hassert :ZZLatWithIsom 1 Hecke.nf(order(P)) === base_ring(M)
   iszero(M) && return inf
   return minimum(valuation(v, P) for v in collect(M) if !iszero(v))
 end
 
 # the minimum P-valuation among all the non-zero diagonal entries of M
 function _norm_valuation(M::T, P::Hecke.RelNumFieldOrderIdeal) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
-  @hassert :ZZLatWithIsom 1 nf(order(P)) === base_ring(M)
+  @hassert :ZZLatWithIsom 1 Hecke.nf(order(P)) === base_ring(M)
   iszero(diagonal(M)) && return inf
   r =  minimum(valuation(v, P) for v in diagonal(M) if !iszero(v))
   return r
@@ -671,7 +671,7 @@ end
 #
 function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem{TorQuadModule}, P::Hecke.RelNumFieldOrderIdeal, e::Int, a::Int, k::Int, res::AbstractSpaceRes)
   E = base_field(H)
-  @hassert :ZZLatWithIsom 1 nf(order(P)) === E
+  @hassert :ZZLatWithIsom 1 Hecke.nf(order(P)) === E
   ok, b = is_modular(H, minimum(P))
   if ok && b == -a
     return identity_matrix(E, 1)
@@ -743,7 +743,7 @@ end
 #    that part is taken from the Sage implementation of Simon Brandhorst
 function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
   OE = order(P)
-  E = nf(OE)
+  E = Hecke.nf(OE)
   lp = prime_decomposition(OE, minimum(P))
   dya = is_dyadic(P)
   if !dya

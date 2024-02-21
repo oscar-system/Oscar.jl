@@ -2163,7 +2163,7 @@ Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 
-Generic.ordering(S::MPolyDecRing) = ordering(S.R)
+Generic.internal_ordering(S::MPolyDecRing) = internal_ordering(S.R)
 
 #############truncation#############
 
