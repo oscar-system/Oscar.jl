@@ -318,7 +318,7 @@ function johnson_solid(index::Int)
   if haskey(_johnson_names, index)
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/JohnsonSrc
-    str_index = length("$index") == 2 ? "$index" : "0$index"
+    str_index = lpad(index, 2, '0')
     filename = "j$str_index" * ".mrdi"
     return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
   end
