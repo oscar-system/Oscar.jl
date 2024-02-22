@@ -918,8 +918,8 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
     is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
-i.e., whether there exists an element $z$ in  `G` such that
-`H^`$z$ equals `K`. To also return the element $z$
+i.e., whether there exists an element `z` in  `G` such that
+`H^z` equals `K`. To also return the element `z`
 use [`is_conjugate_with_data`](@ref).
 
 # Examples
