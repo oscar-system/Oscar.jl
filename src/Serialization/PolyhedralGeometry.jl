@@ -116,7 +116,7 @@ end
 ##############################################################################
 @register_serialization_type MixedIntegerLinearProgram uses_params
 
-function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
+function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQFieldElem})
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
   int_vars = milp.polymake_milp.INTEGER_VARIABLES
   coeffs_serialized = Polymake.call_function(
