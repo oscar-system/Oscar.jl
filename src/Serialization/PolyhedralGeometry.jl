@@ -161,7 +161,7 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   end
   lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
   T = elem_type(field)
-  return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv))
+  return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv), field)
 end
 
 # use generic serialization for the other types:
