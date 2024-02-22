@@ -39,21 +39,11 @@ if Sys.iswindows()
 end
 
 function _print_banner()
-  println(raw" _____    _____    _____      _      ____    ")
-  println(raw"/     \  /     \  /     \    / \    |    \   ")
-  println(raw"|     |  |        |         /   \   |     |  ")
-  println(raw"|     |  \_____   |        |     |  |____/   ")
-  println(raw"|     |        \  |        |_____|  |   \    ")
-  println(raw"|     |        |  |        |     |  |    \   ")
-  println(raw"\_____/  \_____/  \_____/  |     |  |     \  ")
-  println()
-  println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
-  print("Version")
-  printstyled(" $VERSION_NUMBER ", color = :green)
-  print("... \n ... which comes with absolutely no warranty whatsoever")
-  println()
-  println("Type: '?Oscar' for more information")
-  println("(c) 2019-2024 by The OSCAR Development Team")
+  println(raw"  ___  ____   ____    _    ____       ")
+  println(raw" / _ \/ ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular")
+  println(raw"| | | \___ \| |     / _ \ | |_) |  |  Type \"?Oscar\" for more information")
+  println(raw"| |_| |___) | |___ / ___ \|  _ <   |  ")
+  println(raw" \___/\____/ \____/_/   \_\_| \_\  |  " * "Version $VERSION_NUMBER")
 end
 
 
