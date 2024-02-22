@@ -546,7 +546,7 @@ function weierstrass_contraction(X::EllipticSurface)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = radical(I_sing_X0[1]) # radical to have small number of generators
+    J = simplify!(I_sing_X0[1], cov)
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
@@ -1493,18 +1493,32 @@ on the curve defined by `g`, i.e. `g(P) == 0`.
 """
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
+  F = fraction_field(R)
+
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
   @assert y in gens(R) "third argument must be a variable of the parent of the first"
+  # In case of variables in the wrong order, switch and transform the result.
+  if x == R[2] && y == R[1]
+    switch = hom(R, R, reverse(gens(R)))
+    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
+    new_trans = MapFromFunc(F, F, f->begin
+                                switch_num = switch(numerator(f))
+                                switch_den = switch(denominator(f))
+                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
+                                num = numerator(interm_res)
+                                den = denominator(interm_res)
+                                switch(num)//switch(den)
+                            end
+                           )
+    return switch(g_trans), new_trans
+  end
 
   kk = coefficient_ring(R)
   kkx, X = polynomial_ring(kk, :x, cached=false)
   kkxy, Y = polynomial_ring(kkx, :y, cached=false)
 
   imgs = [kkxy(X), Y]
-  if x == R[2] && y == R[1]
-    imgs = reverse(imgs)
-  end
   split_map = hom(R, kkxy, imgs)
 
   G = split_map(g)
@@ -1557,7 +1571,6 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     #@assert x == evaluate(x1, [x2, y2])
     #@assert y == evaluate(y1, [x2, y2])
   end
-  F = fraction_field(R)
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
   # TODO: eventually add the inverse.
   trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
