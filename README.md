@@ -14,7 +14,7 @@ Polymake, Antic and Singular.
 OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
-```julia
+```
 julia> using Pkg
 julia> Pkg.add("Oscar")
 julia> using Oscar
@@ -31,7 +31,7 @@ in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ## Examples of usage
 
-```julia
+```
 julia> using Oscar
   ___  ____   ____    _    ____
  / _ \/ ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
@@ -99,7 +99,7 @@ by Submodule with 1 generator
 
 Of course, the cornerstones are also available directly:
 
-```julia
+```
 julia> C = Polymake.polytope.cube(3);
 
 julia> C.F_VECTOR
