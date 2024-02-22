@@ -36,7 +36,7 @@ julia> using Oscar
   ___  ____   ____    _    _.__
  / | \/ ___| / ___|  / \  | |_ \   |  Combining ANTIC, GAP, Polymake, Singular
 | | | \_|_ \| |     / . \ | |_) |  |  Type "?Oscar" for more information
-| |_| |___) | |___ / /_\ \| |_ <   |
+| |_| |___) | |___ / /_\ \| |_ <   |  Manual: https://docs.oscar-system.org
  \_|_/\____/ \____/_/ _ \_\_| \_\  |  Version 1.1.0-DEV
 
 julia> k, a = quadratic_field(-5)
