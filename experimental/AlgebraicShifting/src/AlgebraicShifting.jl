@@ -40,7 +40,7 @@ function apply_on_faces(f::Function, K::SimplicialComplex)
 end
 
 function shift_basis_ext(F::Field, K::SimplicialComplex)
-  n = nvertices(K)
+  n = n_vertices(K)
   shifted_K = Oscar.delta_ext(F, K)
   lambda, _ = exterior_algebra(F, n)
   x = gens(lambda)
@@ -69,7 +69,7 @@ function exterior_shift(F::Field, K::SimplicialComplex;
                         change_of_basis::T = nothing) where T <: Union{Nothing, MatElem}
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation 
-  n = nvertices(K)
+  n = n_vertices(K)
   is_generic = false
   if isnothing(change_of_basis)
     is_generic = true
@@ -122,7 +122,7 @@ Returns the symmetric shift of `K`
 see survey on algebraic shifting Gil Kalai (properly cite at some point)
 """
 function symmetric_shift(F::Field, K::SimplicialComplex)
-  n = nvertices(K)
+  n = n_vertices(K)
   Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
   Fyx, x = polynomial_ring(Fy, n)
   # the computation is a over the field of fractions Fyx
