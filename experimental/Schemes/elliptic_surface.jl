@@ -338,7 +338,7 @@ function weierstrass_model(X::EllipticSurface)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
-  a = a_invars(E)
+  a = a_invariants(E)
   U = affine_charts(P)[1]  # the standard Weierstrass chart
   (x, y, t) = gens(OO(U))
   @assert all(denominator(i)==1 for i in a)
@@ -1215,7 +1215,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
-      d = F2-vec(tor)
+      d = F2 - _vec(tor)
       if all(isone(denominator(i)) for i in d)
         found = true
         T0 = mordell_weil_torsion(X)[i]
@@ -1639,7 +1639,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 
   f_loc = first(gens(modulus(OO(U))))
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
-  a = a_invars(E)
+  a = a_invariants(E)
 
   u_loc = u[U]::AbstractAlgebra.Generic.FracFieldElem # the representative on the Weierstrass chart
 

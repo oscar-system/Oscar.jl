@@ -101,7 +101,7 @@ import AbstractAlgebra:
   NCRingElem,
   number_of_generators,
   number_of_variables,
-  ordering,
+  internal_ordering,
   parent_type,
   polynomial_ring,
   PolyRing,

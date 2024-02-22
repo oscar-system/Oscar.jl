@@ -9,7 +9,7 @@
   invariant_ring(K, [ M1, M2 ])
   invariant_ring(matrix_group([ M1, M2 ]))
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), ordering = :degrevlex)
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), internal_ordering = :degrevlex)
   @test polynomial_ring(invariant_ring(R, [ M1, M2 ])) === R
   @test polynomial_ring(invariant_ring(R, M1, M2)) === R
   @test polynomial_ring(invariant_ring(R, matrix_group(M1, M2))) === R
@@ -118,7 +118,7 @@ end
   F3 = GF(3)
   RGM = invariant_ring(F3, G)  # char. p, modular
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), ordering = :degrevlex)
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), internal_ordering = :degrevlex)
   @test polynomial_ring(invariant_ring(R, G)) === R
 
   @test coefficient_ring(RGQ) == QQ

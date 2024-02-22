@@ -921,7 +921,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) === L || error("elements do not belong to the same ring")
   end
-  return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
+  return L.(_vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
 end
 
 write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
@@ -2296,8 +2296,20 @@ function grading_group(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})

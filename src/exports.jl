@@ -763,7 +763,6 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
-export is_exterior_power
 export is_faithful
 export is_fano
 export is_feasible
@@ -1118,6 +1117,7 @@ export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
+export ordering
 export order_field_of_definition
 export orders_centralizers
 export orders_class_representatives
@@ -1218,6 +1218,7 @@ export pyramid
 export quadratic_form
 export quaternion_group
 export quo
+export quo_object
 export quotient
 export quotient_ring_as_module
 export radical
@@ -1396,6 +1397,7 @@ export structure_sheaf
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
+export sub_object
 export subgroup_classes
 export subquo_type
 export subquotient
