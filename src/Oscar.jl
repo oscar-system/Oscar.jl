@@ -39,11 +39,12 @@ if Sys.iswindows()
 end
 
 function _print_banner()
-  println(raw"  ___  ____   ____    _    _.__       ")
-  println(raw" / | \/ ___| / ___|  / \  | |_ \   |  Combining ANTIC, GAP, Polymake, Singular")
-  println(raw"| | | \_|_ \| |     / . \ | |_) |  |  Type \"?Oscar\" for more information")
-  println(raw"| |_| |___) | |___ / /_\ \| |_ <   |  ")
-  println(raw" \_|_/\____/ \____/_/ _ \_\_| \_\  |  " * "Version $VERSION_NUMBER")
+  println(
+    raw"""  ___  ____   ____    _    _.__    |  Combining ANTIC, GAP, Polymake, Singular
+           / | \/ ___| / ___|  / \  | |_ \   |  Type "?Oscar" for more information
+          | | | \_|_ \| |     / . \ | |_) |  |  Manual: https://docs.oscar-system.org
+          | |_| |___) | |___ / /_\ \| |_ <   |
+           \_|_/\____/ \____/_/ _ \_\_| \_\  |  Version """ * $VERSION_NUMBER)
 end
 
 
