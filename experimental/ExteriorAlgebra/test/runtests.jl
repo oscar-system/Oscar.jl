@@ -21,8 +21,8 @@
     @test A isa PBWAlgQuo
     @test g isa Vector{elem_type(A)}
     @test length(g) == n
-    @test ngens(g) == n
-    @test gens(g) == g
+    @test ngens(A) == n
+    @test gens(A) == g
   end
 
   # Duplicate names are allowed
