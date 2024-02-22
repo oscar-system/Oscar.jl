@@ -51,7 +51,6 @@ end
 function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
   load_node(s) do v
     if serialize_with_id(params)
-
       loaded_v = params[load_ref(s, x) for x in v]
     else
       loaded_v = params[]
