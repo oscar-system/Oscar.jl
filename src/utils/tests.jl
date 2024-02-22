@@ -87,6 +87,12 @@ function _gather_tests(path::AbstractString; ignore=[])
   return tests
 end
 
+_setactiveproject(s::String) = @static if VERSION >= v"1.8"
+                                 Base.set_active_project(s)
+                               else
+                                 Base.ACTIVE_PROJECT[] = s
+                               end
+
 @doc raw"""
     test_module(path::AbstractString; new::Bool = true, timed::Bool=false, ignore=[])
 
@@ -113,7 +119,7 @@ This only works for `new=false`.
 
 For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
-function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, ignore=[])
+function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
   with_unicode(false) do
     julia_exe = Base.julia_cmd()
     project_path = Base.active_project()
@@ -126,7 +132,12 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, ig
     end
     if new
       @req isempty(ignore) && !timed "The `timed` and `ignore` options only work for `new=false`."
-      cmd = "using Test; using Oscar; Hecke.assertions(true); Oscar.test_module(\"$path\"; new=false);"
+      cmd = """
+            using Test;
+            using Oscar;
+            Hecke.assertions(true);
+            Oscar.test_module("$path"; new=false);
+            """
       @info("spawning ", `$julia_exe --project=$project_path -e \"$cmd\"`)
       run(`$julia_exe --project=$project_path -e $cmd`)
     else
@@ -140,18 +151,39 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, ig
         Base.cumulative_compile_timing(true)
       end
       stats = Dict{String,NamedTuple}()
-      for entry in testlist
-        dir = dirname(entry)
-        if isfile(joinpath(dir, "setup_tests.jl"))
-          Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
-        end
-        if timed
-          push!(stats, _timed_include(entry; use_ctime=use_ctime))
-        else
-          Base.include(identity, Main, entry)
-        end
+
+      if tempproject
+        # we preserve the old load path
+        oldloadpath = copy(LOAD_PATH)
+        # make a copy of the test environment to make sure any existing manifest doesn't interfere
+        tmpproj = joinpath(mktempdir(), "Project.toml")
+        cp(joinpath(Oscar.oscardir, "test", "Project.toml"), tmpproj)
+        # activate the temporary project
+        _setactiveproject(tmpproj)
+        # and make sure the current project is still available to allow e.g. `using Oscar`
+        pushfirst!(LOAD_PATH, dirname(project_path))
+        Pkg.resolve()
       end
 
+      try
+        for entry in testlist
+          dir = dirname(entry)
+          if isfile(joinpath(dir, "setup_tests.jl"))
+            Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
+          end
+          if timed
+            push!(stats, _timed_include(entry; use_ctime=use_ctime))
+          else
+            Base.include(identity, Main, entry)
+          end
+        end
+      finally
+        # restore load path and project
+        if tempproject
+          copy!(LOAD_PATH, oldloadpath)
+          _setactiveproject(project_path)
+        end
+      end
       if timed
         use_ctime && Base.cumulative_compile_timing(false)
         return stats

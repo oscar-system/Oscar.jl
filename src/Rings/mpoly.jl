@@ -158,7 +158,7 @@ mutable struct IdealGens{S}
       r.isGB = S.isGB
       r.isReduced = isReduced
       if T <: Union{MPolyRing, MPolyRingLoc}
-          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+          r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true
       return r
@@ -311,7 +311,7 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
@@ -544,7 +544,7 @@ function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = ordering(Rx),
+              ordering = internal_ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
@@ -613,7 +613,7 @@ Fields:
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(IdealGens(Ox, s))
     #=if s.isGB
-      ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      ord = monomial_ordering(Ox, Singular.ordering(base_ring(s)))
       r.ord = ord
       r.isGB = true
       r.gb[ord] = r.gens

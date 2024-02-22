@@ -618,7 +618,7 @@ end
 #    PolyType = poly_type(SpecType)
 #    Idict = Dict{SpecType, ideal_type(ring_type(SpecType))}()
 #    @show I
-#    for i in 1:npatches(C)
+#    for i in 1:n_patches(C)
 #      @show i
 #      v = gens(OO(C[i]))
 #      phi = pullback(ambient_projection_map[C[i]])

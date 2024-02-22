@@ -202,7 +202,7 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   # Compute parametrization of Weierstrass sections
   parametrization = defining_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_defining_section_parametrization = Dict{String, MPolyElem}()
+  new_defining_section_parametrization = Dict{String, MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])

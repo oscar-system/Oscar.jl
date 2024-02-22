@@ -81,7 +81,7 @@ function pullback(f::SpecOpenMor, a::RingElem)
   Y = ambient_scheme(V)
   R = ambient_coordinate_ring(Y)
   parent(a) === R || error("element does not belong to the correct ring")
-  pb_a = [pullback(f[i])(a) for i in 1:npatches(U)]
+  pb_a = [pullback(f[i])(a) for i in 1:n_patches(U)]
   return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
 end
 
@@ -128,7 +128,7 @@ function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
   U = domain(f)
   X = ambient_scheme(U)
   I = ideal(R, one(R))
-  for i in 1:npatches(U)
+  for i in 1:n_patches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), pbh[i])))
   end
   return intersect(U, SpecOpen(X, I))
@@ -140,7 +140,7 @@ function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = ideal(R, one(R))
-  for i in 1:npatches(U)
+  for i in 1:n_patches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(complement_equations(V))))))
   end
   return intersect(U, SpecOpen(X, I))

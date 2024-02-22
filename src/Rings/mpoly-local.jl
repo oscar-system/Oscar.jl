@@ -41,15 +41,15 @@ end
 An element f/g in an instance of `MPolyRingLoc{T}`.
 
 The data being stored consists of
-  * the fraction f/g as an instance of `AbstractAlgebra.Generic.Frac`;
+  * the fraction f/g as an instance of `AbstractAlgebra.Generic.FracFieldElem`;
   * the parent instance of `MPolyRingLoc{T}`.
 """
 struct MPolyRingElemLoc{T} <: AbstractAlgebra.RingElem where {T}
-  frac::AbstractAlgebra.Generic.Frac
+  frac::AbstractAlgebra.Generic.FracFieldElem
   parent::MPolyRingLoc{T}
 
   # pass with checked = false to skip the non-trivial denominator check
-  function MPolyRingElemLoc{T}(f::AbstractAlgebra.Generic.Frac,
+  function MPolyRingElemLoc{T}(f::AbstractAlgebra.Generic.FracFieldElem,
                            p::MPolyRingLoc{T}, checked = true) where {T}
     R = base_ring(p)
     B = base_ring(R)
@@ -73,7 +73,7 @@ function MPolyRingElemLoc(f::MPolyRingElem{T}, m::Oscar.MPolyIdeal) where {T}
   return MPolyRingElemLoc{T}(f//R(1), localization(R, m), false)
 end
 
-function MPolyRingElemLoc(f::AbstractAlgebra.Generic.Frac, m::Oscar.MPolyIdeal)
+function MPolyRingElemLoc(f::AbstractAlgebra.Generic.FracFieldElem, m::Oscar.MPolyIdeal)
   R = parent(numerator(f))
   B = base_ring(R)
   return MPolyRingElemLoc{elem_type(B)}(f, localization(R, m))
@@ -128,7 +128,7 @@ function (W::MPolyRingLoc{T})(f::MPolyRingElem) where {T}
   return MPolyRingElemLoc{T}(f//one(parent(f)), W)
 end
 
-function (W::MPolyRingLoc{T})(g::AbstractAlgebra.Generic.Frac) where {T}
+function (W::MPolyRingLoc{T})(g::AbstractAlgebra.Generic.FracFieldElem) where {T}
   return MPolyRingElemLoc{T}(g, W)
 end
 

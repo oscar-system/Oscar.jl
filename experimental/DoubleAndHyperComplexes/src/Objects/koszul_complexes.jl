@@ -36,7 +36,7 @@ function (fac::KoszulMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
   dom = c[i]
   cod = c[first(i) - 1]
   if first(i) == 0 || first(i) == r + 1
-    return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
+    return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)]; check=false)
   end
   return wedge_multiplication_map(dom, cod, fac.v)
 end

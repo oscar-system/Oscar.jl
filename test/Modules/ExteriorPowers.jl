@@ -8,7 +8,7 @@
   Fwedge1, _ = Oscar.exterior_power(F, 1)
   Fwedge2, _ = Oscar.exterior_power(F, 2)
 
-  success, orig_mod, q = Oscar.is_exterior_power(Fwedge3)
+  success, orig_mod, q = Oscar._is_exterior_power(Fwedge3)
   @test success
   @test orig_mod === F
   @test q == 3

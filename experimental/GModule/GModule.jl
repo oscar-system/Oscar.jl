@@ -8,7 +8,7 @@ import Hecke: data
 #   first does a "restriction of scalars" or blow up with the rep mat
 #   second tries to conjugate down to k
 
-import Oscar: gmodule, GAPWrap
+import Oscar: _vec, gmodule, GAPWrap
 import Oscar.GrpCoh: MultGrp, MultGrpElem
 
 import AbstractAlgebra: Group, Module
@@ -213,17 +213,17 @@ end
 
 
 function __init__()
-  add_verbose_scope(:BruecknerSQ)
-  set_verbose_level(:BruecknerSQ, 0)
+  add_verbosity_scope(:BruecknerSQ)
+  set_verbosity_level(:BruecknerSQ, 0)
 
-  add_assert_scope(:BruecknerSQ)
-  set_assert_level(:BruecknerSQ, 0)
+  add_assertion_scope(:BruecknerSQ)
+  set_assertion_level(:BruecknerSQ, 0)
 
-  add_assert_scope(:MinField)
-  set_assert_level(:MinField, 0)
+  add_assertion_scope(:MinField)
+  set_assertion_level(:MinField, 0)
 
-  add_verbose_scope(:MinField)
-  set_verbose_level(:MinField, 0)
+  add_verbosity_scope(:MinField)
+  set_verbosity_level(:MinField, 0)
 end
 
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
@@ -728,7 +728,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
   end
   I = identity_matrix(K, dim(C))
 
-  @vprint :MinField 1 "computing un-normalised 1-chain (of matrices)\n"
+  @vprint :MinField 1 "computing un-normalized 1-chain (of matrices)\n"
   # pairs: (g, X_g) with operation (g, X_g)(h, X_h) = (gh, X_g^h * X_h)
   @vtime :MinField 2 
     c = closure([(gen(G, i), homs[i]) for i=1:ngens(G)], 
@@ -914,7 +914,7 @@ function hilbert90_cyclic(A::MatElem{<:FinFieldElem}, s, os::Int)
       @hassert :MinField 2 A == B*inv(map_entries(s, B))
       return B
     else
-      if cnt > 10 && get_assert_level(:MinField) > 1
+      if cnt > 10 && get_assertion_level(:MinField) > 1
         error("")
       end
       cnt += 1
@@ -1259,7 +1259,7 @@ function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPM
           push!(S, s)
         end
       end
-      if nbits(pp) > 1000 && get_assert_level(:MinField) > 1
+      if nbits(pp) > 1000 && get_assertion_level(:MinField) > 1
         error("ndw")
       end
       if length(S) == length(T)
@@ -1351,7 +1351,7 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
+  r, k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:r]
 end
 
@@ -1442,22 +1442,6 @@ end
 
 #TODO: cover all finite fields
 #      make the Modules work
-
-#to bypass the vec(collect(M)) which copies twice
-function Base.vec(M::Generic.Mat)
-  return vec(M.entries)
-end
-
-function Base.vec(M::MatElem)
-  r = elem_type(base_ring(M))[]
-  sizehint!(r, nrows(M) * ncols(M))
-  for j=1:ncols(M)
-    for i=1:nrows(M)
-      push!(r, M[i, j])
-    end
-  end
-  return r
-end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   return gmodule(QQ, Oscar.simplify(gmodule(ZZ, C))[1])

@@ -38,6 +38,24 @@ if Sys.iswindows()
   windows_error()
 end
 
+function _print_banner()
+  println(" -----    -----    -----      -      -----   ")
+  println("|     |  |     |  |     |    | |    |     |  ")
+  println("|     |  |        |         |   |   |     |  ")
+  println("|     |   -----   |        |     |  |-----   ")
+  println("|     |        |  |        |-----|  |   |    ")
+  println("|     |  |     |  |     |  |     |  |    |   ")
+  println(" -----    -----    -----   -     -  -     -  ")
+  println()
+  println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
+  print("Version")
+  printstyled(" $VERSION_NUMBER ", color = :green)
+  print("... \n ... which comes with absolutely no warranty whatsoever")
+  println()
+  println("Type: '?Oscar' for more information")
+  println("(c) 2019-2024 by The OSCAR Development Team")
+end
+
 
 
 function __init__()
@@ -49,21 +67,7 @@ function __init__()
   set_seed!(rand(UInt32))
 
   if isinteractive() && Base.JLOptions().banner != 0
-    println(" -----    -----    -----      -      -----   ")
-    println("|     |  |     |  |     |    | |    |     |  ")
-    println("|     |  |        |         |   |   |     |  ")
-    println("|     |   -----   |        |     |  |-----   ")
-    println("|     |        |  |        |-----|  |   |    ")
-    println("|     |  |     |  |     |  |     |  |    |   ")
-    println(" -----    -----    -----   -     -  -     -  ")
-    println()
-    println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
-    print("Version")
-    printstyled(" $VERSION_NUMBER ", color = :green)
-    print("... \n ... which comes with absolutely no warranty whatsoever")
-    println()
-    println("Type: '?Oscar' for more information")
-    println("(c) 2019-2024 by The OSCAR Development Team")
+    _print_banner()
   end
 
   append!(_gap_group_types,
@@ -99,7 +103,6 @@ function __init__()
      "forms",    # bilinear/sesquilinear/quadratic forms
      "primgrp",  # primitive groups library
      "repsn",    # constructing representations of finite groups
-     "sla",      # computing with simple Lie algebras
      "smallgrp", # small groups library
      "transgrp", # transitive groups library
      "wedderga", # provides a function to compute Schur indices
@@ -108,34 +111,34 @@ function __init__()
   end
   __init_group_libraries()
 
-  add_verbose_scope(:K3Auto)
-  add_assert_scope(:K3Auto)
+  add_verbosity_scope(:K3Auto)
+  add_assertion_scope(:K3Auto)
 
-  add_verbose_scope(:EllipticSurface)
-  add_assert_scope(:EllipticSurface)
+  add_verbosity_scope(:EllipticSurface)
+  add_assertion_scope(:EllipticSurface)
 
-  add_verbose_scope(:MorphismFromRationalFunctions)
-  add_assert_scope(:MorphismFromRationalFunctions)
+  add_verbosity_scope(:MorphismFromRationalFunctions)
+  add_assertion_scope(:MorphismFromRationalFunctions)
 
-  add_verbose_scope(:Gluing)
-  add_assert_scope(:Gluing)
+  add_verbosity_scope(:Gluing)
+  add_assertion_scope(:Gluing)
 
-  add_verbose_scope(:Intersections)
-  add_assert_scope(:Intersections)
+  add_verbosity_scope(:Intersections)
+  add_assertion_scope(:Intersections)
 
-  add_verbose_scope(:MaximalAssociatedPoints)
-  add_assert_scope(:MaximalAssociatedPoints)
+  add_verbosity_scope(:MaximalAssociatedPoints)
+  add_assertion_scope(:MaximalAssociatedPoints)
 
-  add_verbose_scope(:Divisors)
-  add_assert_scope(:Divisors)
+  add_verbosity_scope(:Divisors)
+  add_assertion_scope(:Divisors)
 
-  add_verbose_scope(:Blowup)
-  add_assert_scope(:Blowup)
+  add_verbosity_scope(:Blowup)
+  add_assertion_scope(:Blowup)
 
-  add_verbose_scope(:hilbert)
-  add_assert_scope(:hilbert)
+  add_verbosity_scope(:hilbert)
+  add_assertion_scope(:hilbert)
 
-  add_verbose_scope(:FTheoryModelPrinter)
+  add_verbosity_scope(:FTheoryModelPrinter)
 
   add_verbosity_scope(:LinearQuotients)
 
@@ -239,6 +242,7 @@ include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms

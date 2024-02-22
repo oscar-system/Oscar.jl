@@ -137,7 +137,10 @@ function reps(K, G::Oscar.GAPGroup)
           end
 
           # Find the positions of the equiv. classes of the `h`-conjugate
-          # representations, we need not deal with them later on
+          # representations.
+          # In order to get pairwise equivalent representations,
+          # we do not induce the representations equivalent to the
+          # other conjugates.
           for j in 2:p
             for k in (pos+1):length(R)
               if length(Oscar.GModuleFromGap.hom_base(
@@ -418,7 +421,7 @@ function lift(C::GModule, mp::Map)
     @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     @assert is_surjective(GGpro)
-    if get_assert_level(:BruecknerSQ) > 1
+    if get_assertion_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
       @assert is_isomorphic(GG, _GG)
     end

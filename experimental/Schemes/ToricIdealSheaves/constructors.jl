@@ -77,7 +77,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
     # We first create the morphism \pi_s* from p. 224, l. 3.
     indices = [k for k in row(IM, k)]
     help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:nrays(X)]
+    imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
     phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
 
     # Now we need to create the inverse of alpha*.

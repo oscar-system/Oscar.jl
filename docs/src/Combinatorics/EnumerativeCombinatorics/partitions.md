@@ -75,7 +75,7 @@ one can also handle more general types of restrictions.
 For example, there are precisely six ways for the second question in the exercise quoted
 above:
 ```jldoctest
-julia> partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2])
+julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
 6-element Vector{Partition{Int64}}:
  [50, 50]
  [50, 20, 20, 10]
