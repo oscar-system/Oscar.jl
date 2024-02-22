@@ -58,11 +58,12 @@ Here is a summary of the naming convention followed in OSCAR:
   For compatibility with standard Julia, while staying consistent internally,
   we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
   Julia functions, e.g. `is_one` as alias for `isone`.
-- A function returning the number of some things should be named `number_of_things`.
+- A function returning the number of some things should be named `number_of_things`,
+  alternatively it can be named `n_things` with an alias to `number_of_things`.
+  The preferred style should be consistent throughout the corresponding part.
   For some very common things, like the number of generators, we additionally
   provide a shorter alias, e.g. `ngens` for `number_of_generators`. These aliases should be
-  short (< 15 chararacters) and without underscores, and one should only use
-  them inside of functions, not in the user interface and documentation.
+  very short and without underscores.
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
 - **Avoid direct access to members of our objects.** This means, do not use
