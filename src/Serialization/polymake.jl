@@ -103,16 +103,16 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
     if p isa Polymake.PropertyValue
-      @warn "missing c++ mapping: skipping $pname of type $(Polymake.typeinfo_string(p, true))"
+      @debug "missing c++ mapping: skipping $pname of type $(Polymake.typeinfo_string(p, true))"
     else
       try
         obj = _pmdata_for_oscar(p, coeff)
         data[pname] = obj
       catch e
         if e isa MethodError
-          @warn "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"
+          @debug "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"
         else
-          throw(e)
+          rethrow(e)
         end
       end
     end
