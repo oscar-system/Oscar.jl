@@ -59,6 +59,9 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
                      field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
+  if U isa QQField
+    load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+  end
   return load_from_polymake(T{QQFieldElem}, Dict{Symbol, Any}(s.obj))
 end
 
