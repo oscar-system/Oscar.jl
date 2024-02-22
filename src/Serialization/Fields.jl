@@ -53,6 +53,10 @@ function load_object(s:: DeserializerState, ::Type{Field})
 end
 
 ################################################################################
+# floats
+@register_serialization_type AbstractAlgebra.Floats{Float64} "Floats"
+
+################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
 

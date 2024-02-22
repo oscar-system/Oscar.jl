@@ -2,15 +2,16 @@ struct MixedIntegerLinearProgram{T} <: PolyhedralObject{T}
   feasible_region::Polyhedron{T}
   polymake_milp::Polymake.BigObject
   convention::Symbol
+  parent_field::Field
 
   MixedIntegerLinearProgram{T}(
-    fr::Polyhedron{T}, milp::Polymake.BigObject, c::Symbol
-  ) where {T<:scalar_types} = new{T}(fr, milp, c)
+    fr::Polyhedron{T}, milp::Polymake.BigObject, c::Symbol, parent_field::Field
+  ) where {T<:scalar_types} = new{T}(fr, milp, c, parent_field)
 end
 
 # no default = `QQFieldElem` here; scalar type can be derived from the feasible region
 mixed_integer_linear_program(p::Polyhedron{T}, x...) where {T<:scalar_types} =
-  MixedIntegerLinearProgram{T}(p, x...)
+  MixedIntegerLinearProgram{T}(p, x..., coefficient_field(p))
 
 @doc raw"""
     mixed_integer_linear_program(P, c; integer_variables = [], k = 0, convention = :max)
@@ -45,10 +46,10 @@ function mixed_integer_linear_program(
     Polymake.attach(milp, "convention", "min")
   end
   Polymake.add(pm_object(P), "MILP", milp)
-  MixedIntegerLinearProgram{T}(P, milp, convention)
+  MixedIntegerLinearProgram{T}(P, milp, convention, coefficient_field(P))
 end
 
-mixed_integer_linear_program(
+function mixed_integer_linear_program(
   ::Type{T},
   A::Union{Oscar.MatElem,AbstractMatrix},
   b,
@@ -56,9 +57,13 @@ mixed_integer_linear_program(
   integer_variables=Vector{Int64}([]),
   k=0,
   convention=:max,
-) where {T<:scalar_types} = mixed_integer_linear_program(
-  polyhedron(T, A, b), c; integer_variables=integer_variables, k=k, convention=convention
-)
+  ) where {T<:scalar_types}
+  P = polyhedron(T, A, b)
+  return mixed_integer_linear_program(
+    P, c, coefficient_field(P);
+    integer_variables=integer_variables, k=k, convention=convention
+  )
+end
 
 pm_object(milp::MixedIntegerLinearProgram) = milp.polymake_milp
 
