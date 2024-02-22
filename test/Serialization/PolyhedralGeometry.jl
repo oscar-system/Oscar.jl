@@ -80,10 +80,10 @@ using Oscar: _integer_variables
           end
 
           nfdodecahedron = normal_fan(dodecahedron())
-          test_save_load_roundtrip(path, nfsquare) do loaded
-            @test n_rays(nfsquare) == n_rays(loaded)
-            @test number_of_maximal_cones(nfsquare) == number_of_maximal_cones(loaded)
-            @test dim(nfsquare) == dim(loaded)
+          test_save_load_roundtrip(path, nfdodecahedron) do loaded
+            @test n_rays(nfdodecahedron) == n_rays(loaded)
+            @test number_of_maximal_cones(nfdodecahedron) == number_of_maximal_cones(loaded)
+            @test dim(nfdodecahedron) == dim(loaded)
           end
         end
 
