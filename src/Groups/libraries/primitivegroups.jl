@@ -190,6 +190,7 @@ If no conditions beside the degree are used, one can also use the shorthand
 # Examples
 ```jldoctest
 julia> all_primitive_groups(4)
+2-element Vector{PermGroup}:
  Alt(4)
  Sym(4)
 
