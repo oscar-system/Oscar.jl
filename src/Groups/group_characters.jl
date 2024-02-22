@@ -1751,7 +1751,7 @@ Return the regular character of `tbl`.
 
 # Examples
 ```jldoctest
-julia> tbl = character_table(symmetric_group(3))
+julia> tbl = character_table(symmetric_group(3));
 
 julia> values(regular_character(tbl))
 3-element Vector{QQAbElem{AbsSimpleNumFieldElem}}:
