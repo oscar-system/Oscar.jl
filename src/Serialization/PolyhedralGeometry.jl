@@ -44,6 +44,10 @@ function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Un
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
+  if typeof(obj) <: Union{MixedIntegerLinearProgram, LinearProgram}
+    T = typeof(obj)
+    error("Unsupported type $T for serialization")
+  end
   save_data_dict(s) do
     save_typed_object(s, _polyhedral_object_as_dict(obj))
   end
@@ -66,30 +70,14 @@ end
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
   polymake_dict = load_typed_object(s)
   bigobject = _dict_to_bigobject(polymake_dict)
-  try
-    return T{elem_type(field)}(bigobject, field)
-  catch e 
-    if e isa MethodError
-      error("Unsupported Type for loading")
-    else
-      throw(e)
-    end
-  end
+  return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      field::Field) where S <: FieldElem
   polymake_dict = load_typed_object(s)
   bigobject = _dict_to_bigobject(polymake_dict)
-  try
-    return T(bigobject, field)
-  catch e
-    if e isa MethodError
-      error("Unsupported Type for loading")
-    else
-      throw()
-    end
-  end
+  return T(bigobject, field)
 end
 
 ##############################################################################
