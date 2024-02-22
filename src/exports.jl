@@ -1265,6 +1265,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_character
 export regular_triangulation
 export regular_triangulations
 export relations

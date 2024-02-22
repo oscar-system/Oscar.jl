@@ -1673,7 +1673,7 @@ function class_function(tbl::GAPGroupCharacterTable, values::GapObj)
     return GAPGroupClassFunction(tbl, values)
 end
 
-function class_function(tbl::GAPGroupCharacterTable, values::Vector{<:QQAbElem})
+function class_function(tbl::GAPGroupCharacterTable, values::Vector{<:Union{Integer, ZZRingElem, Rational, QQFieldElem, QQAbElem}})
     gapvalues = GapObj([GAP.Obj(x) for x in values])
     return GAPGroupClassFunction(tbl, GAPWrap.ClassFunction(GAPTable(tbl), gapvalues))
 end
@@ -1683,7 +1683,7 @@ function class_function(G::GAPGroup, values::GapObj)
     return GAPGroupClassFunction(character_table(G), values)
 end
 
-function class_function(G::GAPGroup, values::Vector{<:QQAbElem})
+function class_function(G::GAPGroup, values::Vector{<:Union{Integer, ZZRingElem, Rational, QQFieldElem, QQAbElem}})
     return class_function(character_table(G), values)
 end
 
@@ -1722,6 +1722,48 @@ true
 function trivial_character(G::GAPGroup)
     val = QQAbElem(1)
     return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
+end
+
+@doc raw"""
+    regular_character(G::GAPGroup)
+
+Return the regular character of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> values(regular_character(G))
+3-element Vector{QQAbElem{AbsSimpleNumFieldElem}}:
+ 6
+ 0
+ 0
+```
+"""
+function regular_character(G::GAPGroup)
+  return regular_character(character_table(G))
+end
+
+@doc raw"""
+    regular_character(tbl::GAPGroupCharacterTable)
+
+Return the regular character of `tbl`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table(symmetric_group(3));
+
+julia> values(regular_character(tbl))
+3-element Vector{QQAbElem{AbsSimpleNumFieldElem}}:
+ 6
+ 0
+ 0
+```
+"""
+function regular_character(tbl::GAPGroupCharacterTable)
+  val = ZZRingElem[0 for i in 1:length(tbl)]
+  val[1] = order(group(tbl))
+  return class_function(tbl, val)
 end
 
 @doc raw"""
