@@ -2383,11 +2383,12 @@ julia> degree(I)
 6
 ```
 """
-@attr Int function degree(I::MPolyIdeal)
+@attr ZZRingElem function degree(I::MPolyIdeal)
   P = base_ring(I)
   if !is_standard_graded(P)
     H = homogenizer(P, "_h")
     I = H(I)
   end
-  return Int(degree(HilbertData(I)))
+  A, _ = quo(base_ring(I), I)
+  return degree(A)
 end
