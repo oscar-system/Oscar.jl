@@ -62,9 +62,9 @@ We require that ``R`` is a finitely generated algebra over a field ``k`` and
 moreover that the base change of ``R`` to the algebraic closure ``\bar k``
 is an integral domain.
 """
-variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::Ring; check::Bool=true) = ProjectiveVariety(projective_scheme(R), check=check)
 
-variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(projective_scheme(R), check=check)
 
 
 @doc raw"""

@@ -4,7 +4,7 @@
   # Set up the base ℙ¹ with coordinates s and t
   S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
 
-  base_P1 = ProjectiveScheme(S)
+  base_P1 = projective_scheme(S)
 
   # split this into the standard covering
   bc = standard_covering(base_P1)

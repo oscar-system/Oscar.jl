@@ -4,7 +4,7 @@
   S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
 
   I = ideal(S, [x*v - y*u])
-  X = ProjectiveScheme(S, I)
+  X = projective_scheme(S, I)
   CX, id = affine_cone(X)
   p = covered_projection_to_base(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
@@ -19,7 +19,7 @@
   S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
 
   I = ideal(S, [u])
-  X = ProjectiveScheme(S, I)
+  X = projective_scheme(S, I)
   CX, id = affine_cone(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
   hc = Oscar.homogeneous_coordinates_on_affine_cone(X)
@@ -34,7 +34,7 @@
   Y = spec(R)
   Q = OO(Y)
   S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
-  X = ProjectiveScheme(S)
+  X = projective_scheme(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
 
@@ -273,17 +273,17 @@ end
 @testset "properties of projective schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, _ = grade(R)
-  X = ProjectiveScheme(S)
+  X = projective_scheme(S)
   I = ideal(S, x^2 - y*z)
   Q, _ = quo(S, I)
-  C = ProjectiveScheme(Q)
+  C = projective_scheme(Q)
   @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
   @test is_smooth(C; algorithm=:projective_jacobian)
-  C = ProjectiveScheme(Q)
+  C = projective_scheme(Q)
   @test is_smooth(C; algorithm=:covered_jacobian)
-  C = ProjectiveScheme(Q)
+  C = projective_scheme(Q)
   @test is_smooth(C; algorithm=:affine_cone)
   @test arithmetic_genus(C) == 0
 
@@ -291,14 +291,14 @@ end
   S, _ = grade(R)
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)
-  Y = ProjectiveScheme(Q)
+  Y = projective_scheme(Q)
   @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
   @test is_smooth(Y; algorithm=:projective_jacobian)
-  Y = ProjectiveScheme(Q)
+  Y = projective_scheme(Q)
   @test is_smooth(Y; algorithm=:covered_jacobian)
-  Y = ProjectiveScheme(Q)
+  Y = projective_scheme(Q)
   @test is_smooth(Y; algorithm=:affine_cone)
   @test arithmetic_genus(Y) == 1
   @test is_reduced(Y)

@@ -469,7 +469,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
-  Bl_W = ProjectiveScheme(S, K)
+  Bl_W = projective_scheme(S, K)
   set_base_scheme!(Bl_W, W)
   # Compute the IdealSheaf for the exceptional divisor
   ID = IdDict{AbsSpec, RingElem}()

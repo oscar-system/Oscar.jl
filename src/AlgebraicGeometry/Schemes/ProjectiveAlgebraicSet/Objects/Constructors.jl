@@ -46,7 +46,7 @@ defined by ideal (x1, x0)
 function algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem};
                        is_radical::Bool=false,
                        check::Bool=true)
-  X = ProjectiveScheme(base_ring(I), I)
+  X = projective_scheme(base_ring(I), I)
   return algebraic_set(X, is_reduced=is_radical, check=check)
 end
 

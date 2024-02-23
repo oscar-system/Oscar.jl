@@ -52,7 +52,7 @@ provide the following constructors:
     projective_scheme(S::MPolyDecRing)
     projective_scheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
     projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem})
-    projective_scheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
+    projective_scheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}}
 ```
 Subschemes defined by homogeneous ideals, ring elements, or lists of elements can be created
 via the respective methods of the `subscheme(P::AbsProjectiveScheme, ...)` function.
