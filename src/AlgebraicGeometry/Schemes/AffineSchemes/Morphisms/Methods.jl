@@ -1,5 +1,5 @@
 ###########################################################
-# (1) The fibre product of two morphisms of affine schemes
+# (1) The fiber product of two morphisms of affine schemes
 ###########################################################
 
 @doc raw"""

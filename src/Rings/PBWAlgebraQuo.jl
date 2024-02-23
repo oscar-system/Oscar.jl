@@ -13,7 +13,7 @@ export PBWAlgQuo, PBWAlgQuoElem
 #      achieve this a "new" pointer to the Singular ring is needed;
 #      this pointer is a new data field (sring) in PBQAlgQuo.
 #
-#  To preserve the original behaviour the new field "sdata" in PBWAlgQuo
+#  To preserve the original behavior the new field "sdata" in PBWAlgQuo
 #  is set to the same value as the field "sdata" in PBWAlg (unless
 #  created by constructor for exterior_algebra.
 #

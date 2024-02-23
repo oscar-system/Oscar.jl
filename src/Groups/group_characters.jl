@@ -942,7 +942,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     )
 
     # print the table
-    labelled_matrix_formatted(ioc, mat)
+    labeled_matrix_formatted(ioc, mat)
 end
 
 

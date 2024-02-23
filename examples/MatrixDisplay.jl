@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  functionality for displaying labelled matrices,
+##  functionality for displaying labeled matrices,
 ##  that is, 2-dimensional arrays of strings
 ##  together with row labels, columns labels, header, and footer
 ##
@@ -47,7 +47,7 @@ function replace_TeX(str::String)
 end
 
 """
-    labelled_matrix_formatted(io::IO, mat::Matrix{String})
+    labeled_matrix_formatted(io::IO, mat::Matrix{String})
 
 Output a formatted version of `mat` to `io`.
 The following attributes of `io` are supported.
@@ -89,18 +89,18 @@ The following attributes of `io` are supported.
   (enter `0` for a line above the first row),
 
 - `:column_portions`:
-  array of column numbers after which a new labelled table shall be started;
+  array of column numbers after which a new labeled table shall be started;
   the default is to have just one portion in the `:TeX` case,
   and to create portions according to the screen width otherwise,
 
 - `:row_portions`:
-  array of row numbers after which a new labelled table shall be started;
+  array of row numbers after which a new labeled table shall be started;
   the default is to have just one portion.
 
 ## Examples:
 ...
 """
-function labelled_matrix_formatted(io::IO, mat::Matrix{String})
+function labeled_matrix_formatted(io::IO, mat::Matrix{String})
     TeX = get(io, :TeX, false)
 
     subset_row = get(io, :subset_row, 1:size(mat, 1))
