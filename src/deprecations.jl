@@ -99,3 +99,6 @@ end
 @deprecate Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) spec(R, I, U)
 @deprecate Spec(X::AffineScheme) spec(X)
 @deprecate Spec AffineScheme
+@deprecate proj(E::ToricLineBundle...) projectivization
+@deprecate proj(E::ToricDivisor...) projectivization
+@deprecate proj() projectivization

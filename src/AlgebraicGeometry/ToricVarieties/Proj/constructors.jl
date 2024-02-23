@@ -1,5 +1,5 @@
 @doc raw"""
-    proj(E::ToricLineBundle...)
+    projectivization(E::ToricLineBundle...)
 
 This function computes the projectivization of a direct sum of line bundles or divisors.
 Please see [OM78](@cite) for more background information.
@@ -13,30 +13,30 @@ julia> D0 = toric_divisor(P1, [0,0]);
 
 julia> D1 = toric_divisor(P1, [1,0]);
 
-julia> X = proj(D0, D1)
+julia> X = projectivization(D0, D1)
 Normal toric variety
 
 julia> L0 = toric_line_bundle(P1, [0]);
 
 julia> L1 = toric_line_bundle(P1, [2]);
 
-julia> Y = proj(L0, L1)
+julia> Y = projectivization(L0, L1)
 Normal toric variety
 ```
 """
-function proj(E::ToricLineBundle...)
-  return _proj_and_total_space(true, [E...])
+function projectivization(E::ToricLineBundle...)
+  return _projectivization_and_total_space(true, [E...])
 end
 
-function proj(E::ToricDivisor...)
-  return _proj_and_total_space(true, [E...])
+function projectivization(E::ToricDivisor...)
+  return _projectivization_and_total_space(true, [E...])
 end
 
-function proj()
+function projectivization()
   error("The direct sum is empty")
 end
 
-function _proj_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
+function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T <: Union{ToricDivisor, ToricLineBundle}
 
   v = toric_variety(E[1])
 
@@ -132,11 +132,11 @@ julia> degree(canonical_bundle(Y))
 ```
 """
 function total_space(E::ToricLineBundle...)
-  return _proj_and_total_space(false, [E...])
+  return _projectivization_and_total_space(false, [E...])
 end
 
 function total_space(E::ToricDivisor...)
-  return _proj_and_total_space(false, [E...])
+  return _projectivization_and_total_space(false, [E...])
 end
 
 function total_space()
