@@ -124,6 +124,47 @@ Hypersurface model over a concrete base
 julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
+A yet more special instance of literature model are the F-theory QSMs. Those consist of 708 families of geometries,
+each of which is obtained from triangulations of polytopes in the 3-dimensional Kreuzer-Skarke list. In particular,
+for each of these 708 families, a lot of information is known. Still, those geometries are also somewhat involved.
+Let us demonstrate this on the F-theory QSM based on the 4th polytope in the 3-dimensional Kreuzer-Skarke list.
+We can create and study this model as follows:
+```jldoctest
+julia> model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> cox_ring(base_space(model))
+Multivariate polynomial ring in 29 variables over QQ graded by
+  x1 -> [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x2 -> [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x3 -> [0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x4 -> [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x5 -> [0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x6 -> [0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x7 -> [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x8 -> [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x9 -> [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x10 -> [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x11 -> [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x12 -> [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x13 -> [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
+  x14 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
+  x15 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0]
+  x16 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0]
+  x17 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0]
+  x18 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
+  x19 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+  x20 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
+  x21 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0]
+  x22 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
+  x23 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0]
+  x24 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0]
+  x25 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
+  x26 -> [1 4 0 1 2 3 1 2 3 4 0 1 1 1 1 1 1 1 1 4 0 2 3 4 4 5]
+  x27 -> [3 2 2 0 -1 -1 1 0 0 1 1 2 0 1 -1 0 -2 -1 -3 -2 -2 1 1 -1 0 0]
+  x28 -> [-2 -4 -1 -1 -1 -2 -1 -2 -3 -4 -1 -2 -2 -2 -1 -1 0 0 1 -2 1 -2 -3 -3 -3 -4]
+  x29 -> [0 -1 0 -1 -1 -1 0 -1 -1 -1 0 0 0 0 0 0 0 0 0 -1 0 -1 -1 -1 -1 -1]
+```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
@@ -155,8 +196,77 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     end
   end
   
-  
-  # (2a) Construct the model over concrete base
+  # (2) The QSM need special treatment...
+  if model_dict["arxiv_data"]["id"] == "1903.00009"
+
+    # Remember how we identified this model
+    model_dict["literature_identifier"] = "1903.00009"
+
+    # Find position of this model in the database and (if found) extract the relevant information
+    detailed_data_dict = JSON.parsefile(joinpath(@__DIR__, "Models/QSMDatabase.json"))["data"]
+    index_in_data_base = -1
+    for l in 1:length(detailed_data_dict)
+      if Int(detailed_data_dict[l]["PolyInx"]) == model_parameters["k"]
+        index_in_data_base = l
+      end
+    end
+    @req index_in_data_base != -1 "Provided model index not supported for QSMs"
+
+    # Construct the base in question
+    rays = [[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["RayGeneratorsOfB3"]]
+    max_cones = IncidenceMatrix([[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["TriangulationOfB3"]])
+    base_space = normal_toric_variety(max_cones, rays; non_redundant = false)
+
+    # Compute all the model sections
+    kbar = anticanonical_divisor(base_space)
+    model_sections = Dict("s1" => kbar, "s2" => kbar, "s3" => kbar, "s5" => kbar, "s6" => kbar, "s9" => kbar)
+
+    # Construct model
+    # The first line below uses only the first monomial for each model section. This is not sufficient for the QSMs!
+    # Once this limitation is removed, this one line should be sufficient. For the time being however,
+    # we tune. This requires the creation of the dict input_sections...
+    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, false, true)
+    input_sections = Dict("s1" => sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))]))
+    input_sections["s2"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
+    input_sections["s3"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
+    input_sections["s5"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
+    input_sections["s6"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
+    input_sections["s9"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
+    new_model = tune(model, input_sections; completeness_check = false)
+
+    # Set all attributes that are known for the QSMs
+    _set_all_attributes(new_model, model_dict, model_parameters)
+    set_attribute!(new_model, :CiDegreeKbar => detailed_data_dict[index_in_data_base]["CiDegreeKbar"])
+    set_attribute!(new_model, :CiGenus => detailed_data_dict[index_in_data_base]["CiGenus"])
+    set_attribute!(new_model, :ComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfDualGraph"])
+    set_attribute!(new_model, :ComponentsOfSimplifiedDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfSimplifiedDualGraph"])
+    set_attribute!(new_model, :DegreeOfKbarOnComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnComponentsOfDualGraph"])
+    set_attribute!(new_model, :DegreeOfKbarOnVxiAndKbar => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnVxiAndKbar"])
+    set_attribute!(new_model, :EdgeList => detailed_data_dict[index_in_data_base]["EdgeList"])
+    set_attribute!(new_model, :GenusOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["GenusOfComponentsOfDualGraph"])
+    set_attribute!(new_model, :GenusVxiAndKbar => detailed_data_dict[index_in_data_base]["GenusVxiAndKbar"])
+    set_attribute!(new_model, :IndexFacetInteriorDivisors => detailed_data_dict[index_in_data_base]["IndexFacetInteriorDivisors"])
+    set_attribute!(new_model, :IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar"])
+    set_attribute!(new_model, :IntersectionAmongVxiAndKbarWithVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongVxiAndKbarWithVxjAndKbar"])
+    set_attribute!(new_model, :IntersectionNumberOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"])
+    set_attribute!(new_model, :Kbar3 => detailed_data_dict[index_in_data_base]["Kbar3"])
+    set_attribute!(new_model, :MaxLatticePtsInFacet => detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"])
+    set_attribute!(new_model, :PolyInx => detailed_data_dict[index_in_data_base]["PolyInx"])
+    set_attribute!(new_model, :TriangQuick => detailed_data_dict[index_in_data_base]["TriangQuick"])
+    set_attribute!(new_model, :TriangulationEstimate => detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    set_attribute!(new_model, :VERTICES => detailed_data_dict[index_in_data_base]["VERTICES"])
+    set_attribute!(new_model, :h11 => detailed_data_dict[index_in_data_base]["h11"])
+    set_attribute!(new_model, :h12 => detailed_data_dict[index_in_data_base]["h12"])
+    set_attribute!(new_model, :h13 => detailed_data_dict[index_in_data_base]["h13"])
+    set_attribute!(new_model, :h22 => detailed_data_dict[index_in_data_base]["h22"])
+
+    # Finally, return the model
+    return new_model
+
+  end
+
+
+  # (3) Construct the model over concrete or arbitrary base
   if dim(base_space) > 0
     
     # Currently, support only for toric bases
@@ -180,13 +290,12 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
     @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
-  # (2b) Construct the model over arbitrary base
   else
     model = _construct_literature_model_over_arbitrary_base(model_dict)
   end
   
   
-  # (3) Return the model after we set all required attributes
+  # (4) Return the model after we set all required attributes
   _set_all_attributes(model, model_dict, model_parameters)
   return model
 end
