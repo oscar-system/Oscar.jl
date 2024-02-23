@@ -4,6 +4,9 @@
 # (1) Generic constructors
 ########################################################
 
+spec(R::Ring) = AffineScheme(R)
+spec(kk::Ring, R::Ring) = AffineScheme(kk, R)
+
 @doc raw"""
     spec(R::MPolyRing, I::MPolyIdeal)
 

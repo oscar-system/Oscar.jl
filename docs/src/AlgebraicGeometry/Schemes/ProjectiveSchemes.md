@@ -46,7 +46,7 @@ The minimal concrete type realizing this interface is
 
 ## Constructors
 
-Besides `ProjectiveScheme(S)` for some graded polynomial ring or a graded affine algebra `S`, we
+Besides `projective_scheme(S)` for some graded polynomial ring or a graded affine algebra `S`, we
 provide the following constructors:
 ```
     projective_scheme(S::MPolyDecRing)

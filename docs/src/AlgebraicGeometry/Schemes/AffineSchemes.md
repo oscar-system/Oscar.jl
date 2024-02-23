@@ -17,7 +17,7 @@ defined over the integers, a finite field or algebraic field extensions of ``\ma
 
 ### General constructors
 
-Besides `AffineScheme(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or
+Besides `spec(R)` for `R` of either one of the types `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or
 `MPolyQuoLocRing`, we have the following constructors:
 ```@docs
 spec(R::MPolyRing, I::MPolyIdeal)
