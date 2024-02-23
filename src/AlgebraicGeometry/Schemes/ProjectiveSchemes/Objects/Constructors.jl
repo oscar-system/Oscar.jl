@@ -23,9 +23,6 @@ function proj(I::MPolyIdeal{<:MPolyDecRingElem})
   return ProjectiveScheme(base_ring(I), I)
 end
 
-# Should add a check here as well to check that the ring is standard graded
-proj(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
-
 ################################################################################
 # Subschemes
 ################################################################################
