@@ -113,17 +113,6 @@ function _versal_morphism_to_free_module(M::SubquoModule)
   return compose(psi, g_dual)
 end
 
-function proj(S::MPolyDecRing)
-  is_standard_graded(S) || error("ring must be standard graded")
-  return proj(S)
-end
-
-function proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
-  S = base_ring(Q)
-  is_standard_graded(S) || error("ring must be standard graded")
-  return proj(Q)
-end
-
 function is_isomorphism(f::ModuleFPHom)
   return is_injective(f) && is_surjective(f)
 end
