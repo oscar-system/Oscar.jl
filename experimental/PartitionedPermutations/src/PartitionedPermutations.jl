@@ -60,4 +60,4 @@ a = SetPartition([1, 2], [4, 5])
 
 using Test
 
-include("../tests/PartitionedPermu-test.jl")
+include("../test/PartitionedPermu-test.jl")
