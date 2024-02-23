@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of Q^ab, the abelian closure of the rationals,
-# which is modelled as the union of cyclotomic fields.
+# which is modeled as the union of cyclotomic fields.
 #
 # We make Q^ab a singleton, similar to ZZ and QQ. Thus there will ever be only
 # one copy of Q^ab. In particular the elements do not have a parent stored.
@@ -923,7 +923,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if fl
         b = transpose(sol)
         b = [b[i] for i in 1:length(b)]

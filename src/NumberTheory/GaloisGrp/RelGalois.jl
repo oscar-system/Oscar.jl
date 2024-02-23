@@ -16,7 +16,7 @@ end
 
 function GaloisCtx(f::PolyRingElem{AbsSimpleNumFieldElem}, P::AbsSimpleNumFieldOrderIdeal)
   k = base_ring(f)
-  @assert k == nf(order(P))
+  @assert k == Hecke.nf(order(P))
   zk = order(P)
   C, mC = Hecke.completion_easy(k, P)
   setprecision!(C, 10)
@@ -174,7 +174,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   P = C.C.P
   zk = order(P)
   if any(i->!iszero(coeff(x, i)), 1:length(x)-1)
-    return false, zero(nf(zk))
+    return false, zero(Hecke.nf(zk))
   end
   mkc = C.data[1]
   c = codomain(mkc)
@@ -183,7 +183,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   P = C.C.P
   zk = order(P)
   x *= map_coeff(C, C.data[5]) #the den
-  a = nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
+  a = Hecke.nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
   a = a*inv(C.data[5])
   if ceil(ZZRingElem, length(a)) <= value(y)^2
     return true, a
@@ -210,7 +210,7 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZ
   #step 2: copy the precision estimate from NumField/NfAbs/PolyFactor.jl
   P = C.C.P
   zk = order(P)
-  k = nf(zk)
+  k = Hecke.nf(zk)
   N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
   return N
 end

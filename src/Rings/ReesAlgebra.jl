@@ -105,11 +105,11 @@ end
 function _versal_morphism_to_free_module(M::SubquoModule)
   R = base_ring(M)
   R1 = FreeMod(R, 1)
-  M_double_dual, psi = double_dual(M, cod=R1)
+  M_double_dual, psi = double_dual(M, codomain=R1)
   M_dual = domain(element_to_homomorphism(zero(M_double_dual)))
   pres_M_dual = presentation(M_dual)::ComplexOfMorphisms
   g = map(pres_M_dual, 0) # The projection of a free module onto M_dual
-  g_dual = dual(g, cod=R1, codomain_dual=M_double_dual)
+  g_dual = dual(g, codomain=R1, codomain_dual=M_double_dual)
   return compose(psi, g_dual)
 end
 

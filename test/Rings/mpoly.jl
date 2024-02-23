@@ -232,14 +232,16 @@ end
   # are native to singular while FpFieldElem now has a proper wrapper
   for Zn in [residue_ring(ZZ, 11)[1], residue_ring(ZZ, ZZRingElem(10)^50+151)[1], GF(11),
              GF(ZZRingElem(10)^50+151)]
-    R, (x, y) = polynomial_ring(Zn, ["x", "y"], ordering = :degrevlex)
+    # Setting the internal_ordering is necessary for divrem to use the correct ordering
+    R, (x, y) = polynomial_ring(Zn, ["x", "y"], internal_ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
     g = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
   F, a = finite_field(11, 2, "a")
-  R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], ordering = :degrevlex)
+  # Setting the internal_ordering is necessary for divrem to use the correct ordering
+  R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], internal_ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
   @test iszero(divrem(l[1] + l[2], gb)[2])
@@ -298,7 +300,7 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3), ordering=:degrevlex)
+    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end

@@ -894,7 +894,9 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(a::MPolyDecRingElem)
+function degree(a::MPolyDecRingElem; check::Bool=true)
+  !check && !is_filtered(parent(a)) && return _degree_fast(a)
+  # TODO: Also provide a fast track for the filtered case.
   @req !iszero(a) "Element must be non-zero"
   W = parent(a)
   w = W.D[0]
@@ -917,14 +919,24 @@ function degree(a::MPolyDecRingElem)
   return w
 end
 
-function degree(::Type{Int}, a::MPolyDecRingElem)
-  @assert is_z_graded(parent(a))
-  return Int(degree(a)[1])
+function _degree_fast(a::MPolyDecRingElem)
+  f = forget_grading(a)
+  w = parent(a).d
+  z = zero(grading_group(parent(a)))
+  is_zero(f) && return z
+  for (c, e) in zip(coefficients(f), exponents(f))
+    !iszero(c) && return sum(b*w[i] for (i, b) in enumerate(e); init=z)
+  end
 end
 
-function degree(::Type{Vector{Int}}, a::MPolyDecRingElem)
+function degree(::Type{Int}, a::MPolyDecRingElem; check::Bool=true)
+  @assert is_z_graded(parent(a))
+  return Int(degree(a; check)[1])
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyDecRingElem); check::Bool=true
   @assert is_zm_graded(parent(a))
-  d = degree(a)
+  d = degree(a; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -1521,7 +1533,7 @@ function _rational_function_to_power_series(P::QQRelPowerSeriesRing, f)
 end
 
 @doc raw"""
-    expand(f::Frac{QQPolyRingElem}, d::Int) -> RelPowerSeries
+    expand(f::FracFieldElem{QQPolyRingElem}, d::Int) -> RelPowerSeries
 
 Given a rational function $f$ over the rationals, expand $f$ as a power series
 up to terms of degree $d$.
@@ -1533,7 +1545,7 @@ julia> expand(1//(1 - x^2), 5)
 1 + t^2 + t^4 + O(t^6)
 ```
 """
-function expand(f::Generic.Frac{QQPolyRingElem}, d::Int)
+function expand(f::Generic.FracFieldElem{QQPolyRingElem}, d::Int)
   T, t = power_series_ring(QQ, d+1, "t")
   return _rational_function_to_power_series(T, f)
 end
@@ -2151,7 +2163,7 @@ Return the ideal in the underlying ungraded ring.
 """
 forget_grading(I::MPolyIdeal{<:MPolyDecRingElem}) = forget_decoration(I)
 
-Generic.ordering(S::MPolyDecRing) = ordering(S.R)
+Generic.internal_ordering(S::MPolyDecRing) = internal_ordering(S.R)
 
 #############truncation#############
 
@@ -2371,11 +2383,12 @@ julia> degree(I)
 6
 ```
 """
-@attr Int function degree(I::MPolyIdeal)
+@attr ZZRingElem function degree(I::MPolyIdeal)
   P = base_ring(I)
   if !is_standard_graded(P)
     H = homogenizer(P, "_h")
     I = H(I)
   end
-  return Int(degree(HilbertData(I)))
+  A, _ = quo(base_ring(I), I)
+  return degree(A)
 end

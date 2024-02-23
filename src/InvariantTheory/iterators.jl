@@ -410,9 +410,9 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       end
     end
   end
-  n, N = right_kernel(M)
+  N = kernel(M, side = :right)
 
-  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, nothing, mons_iterator, mons, N)
+  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, ncols(N), false, nothing, mons_iterator, mons, N)
 end
 
 Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))

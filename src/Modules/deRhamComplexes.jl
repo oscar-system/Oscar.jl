@@ -150,7 +150,7 @@ end
 
 # printing of kaehler differentials
 function show_kaehler_differentials(io::IO, M::ModuleFP)
-  success, F, p = is_exterior_power(M)
+  success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   if success 
     if is_unicode_allowed() 
@@ -168,7 +168,7 @@ function show_kaehler_differentials(io::IO, M::ModuleFP)
 end
 
 function show_kaehler_differentials(io::IO, ::MIME"text/html", M::ModuleFP)
-  success, F, p = is_exterior_power(M)
+  success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   io = IOContext(io, :compact => true)
   if success 

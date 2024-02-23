@@ -418,7 +418,7 @@ function lift(C::GModule, mp::Map)
     @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
     @assert is_surjective(GGpro)
-    if get_assert_level(:BruecknerSQ) > 1
+    if get_assertion_level(:BruecknerSQ) > 1
       _GG, _ = Oscar.GrpCoh.extension(z(chn))
       @assert is_isomorphic(GG, _GG)
     end

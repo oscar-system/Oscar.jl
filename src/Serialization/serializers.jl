@@ -193,10 +193,9 @@ end
 
 function load_params_node(s::DeserializerState)
   T = decode_type(s)
-  params = load_node(s, :params) do _
+  load_node(s, :params) do _
     return load_type_params(s, T)
   end
-  return params
 end
 
 ################################################################################
@@ -232,7 +231,7 @@ function deserializer_open(io::IO, T::Type{IPCSerializer})
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
   # @everywhere using Oscar
   # to hang. So we use a Dict here for now.
-  
+
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
   return T(DeserializerState(obj, nothing, nothing))
 end

@@ -348,7 +348,7 @@ export comm!
 export common_components
 export common_refinement
 export complement
-export complement_class_reps
+export complement_classes
 export complement_equation
 export complement_equations
 export complement_ideal
@@ -356,6 +356,7 @@ export complement_of_point_ideal
 export complement_of_prime_ideal
 export complement_scheme
 export complement_system, has_complement_system, set_complement_system
+export complements
 export complete_bipartite_graph
 export complete_graph
 export complete_intersection_germ
@@ -369,7 +370,6 @@ export cone_from_inequalities
 export cones
 export conjugacy_class
 export conjugacy_classes
-export conjugacy_classes_maximal_subgroups
 export conjugacy_classes_subgroups
 export conjugate
 export conjugate_group
@@ -513,7 +513,7 @@ export facet_indices
 export facet_sizes
 export facets
 export factor_of_direct_product
-export factorisations
+export factorizations
 export fano_matroid
 export fano_simplex
 export fat_ideal
@@ -608,7 +608,8 @@ export h_vector
 export halfspace
 export halfspace_matrix_pair
 export hall_subgroup
-export hall_subgroup_reps
+export hall_subgroup_classes
+export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_du_val_singularities
 export has_edge
@@ -762,7 +763,6 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
-export is_exterior_power
 export is_faithful
 export is_fano
 export is_feasible
@@ -904,7 +904,7 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
-export labelled_matrix_formatted
+export labeled_matrix_formatted
 export lattice_points
 export lattice_volume
 export leading_coefficient
@@ -943,7 +943,8 @@ export load_mps
 export localization
 export localized_ring
 export loops
-export low_index_subgroup_reps
+export low_index_subgroup_classes
+export low_index_subgroups
 export lower_central_series, has_lower_central_series, set_lower_central_series
 export lower_triangular_matrix
 export map
@@ -981,8 +982,8 @@ export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
-export maximal_subgroup_reps
-export maximal_subgroups, has_maximal_subgroups, set_maximal_subgroups
+export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
+export maximal_subgroups
 export metadata
 export milnor_algebra
 export milnor_number
@@ -1116,6 +1117,7 @@ export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
+export ordering
 export order_field_of_definition
 export orders_centralizers
 export orders_class_representatives
@@ -1216,6 +1218,7 @@ export pyramid
 export quadratic_form
 export quaternion_group
 export quo
+export quo_object
 export quotient
 export quotient_ring_as_module
 export radical
@@ -1394,7 +1397,8 @@ export structure_sheaf
 export sub
 export subalgebra_membership
 export subalgebra_membership_homogeneous
-export subgroup_reps
+export sub_object
+export subgroup_classes
 export subquo_type
 export subquotient
 export subscheme
