@@ -904,7 +904,7 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
-export labelled_matrix_formatted
+export labeled_matrix_formatted
 export lattice_points
 export lattice_volume
 export leading_coefficient
@@ -1117,6 +1117,7 @@ export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
+export ordering
 export order_field_of_definition
 export orders_centralizers
 export orders_class_representatives
@@ -1264,6 +1265,7 @@ export register_morphism!
 export regular_120_cell
 export regular_24_cell
 export regular_600_cell
+export regular_character
 export regular_triangulation
 export regular_triangulations
 export relations

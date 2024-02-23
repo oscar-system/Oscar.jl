@@ -140,6 +140,7 @@ orders_centralizers
 orders_class_representatives
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
+regular_character(tbl::GAPGroupCharacterTable)
 ```
 
 ## Construct group characters from groups
@@ -150,6 +151,7 @@ natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFie
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
+regular_character(G::GAPGroup)
 ```
 
 ## Operations for group characters

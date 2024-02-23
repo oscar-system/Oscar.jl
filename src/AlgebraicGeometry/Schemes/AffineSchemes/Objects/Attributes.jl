@@ -834,7 +834,7 @@ If `X = Spec(R)` and `R` is...
   - a localized polynomial ring `R[U⁻¹]`, then this returns the zero ideal in that ring;
   - a quotient of a localized polynomial ring `(R[U⁻¹])/J`, then this returns the ideal `J` in the ring `R[U⁻¹]`.
 
-This behaviour is streamlined with the return values of `modulus` on the algebraic side.
+This behavior is streamlined with the return values of `modulus` on the algebraic side.
 If you are looking for an ideal `I` in the polynomial `ambient_ring` of `X` defining 
 the closure of `X` in its `ambient_space`, use for instance `saturated_ideal(defining_ideal(X))`.
 ```jldoctest

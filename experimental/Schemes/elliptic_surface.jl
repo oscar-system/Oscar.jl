@@ -338,7 +338,7 @@ function weierstrass_model(X::EllipticSurface)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
-  a = a_invars(E)
+  a = a_invariants(E)
   U = affine_charts(P)[1]  # the standard Weierstrass chart
   (x, y, t) = gens(OO(U))
   @assert all(denominator(i)==1 for i in a)
@@ -1639,7 +1639,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 
   f_loc = first(gens(modulus(OO(U))))
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
-  a = a_invars(E)
+  a = a_invariants(E)
 
   u_loc = u[U]::AbstractAlgebra.Generic.FracFieldElem # the representative on the Weierstrass chart
 
@@ -1704,7 +1704,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 1 we expect the following cancellation to be possible:
+    # p. 45, l. 1 we expect the following cancelation to be possible:
     divisor_num = evaluate(numerator(x0), x2)
     divisor_den = evaluate(denominator(x0), x2)
     divisor = divisor_den * y2 - divisor_num
@@ -1733,7 +1733,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 15 we expect the following cancellation to be possible:
+    # p. 45, l. 15 we expect the following cancelation to be possible:
     success, eqn1 = divides(eqn1, y2)
     @assert success "equation did not come out in the anticipated form"
     return eqn1, phi

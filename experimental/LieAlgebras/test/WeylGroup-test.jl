@@ -188,7 +188,7 @@ include(
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
     @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
 
-    # test general multiplication behaviour
+    # test general multiplication behavior
     W = weyl_group(:B, 4)
     @test W(b4_w0) == W(b4_w0; normalize=false)
 

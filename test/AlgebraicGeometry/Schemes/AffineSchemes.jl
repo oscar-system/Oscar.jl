@@ -288,7 +288,7 @@ end
   (a, b, c) = base_change(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)
 
-  # Behaviour for special types
+  # Behavior for special types
   U = PrincipalOpenSubset(IA2, y)
   UU, f = base_change(pr, U)
   @test UU isa PrincipalOpenSubset
