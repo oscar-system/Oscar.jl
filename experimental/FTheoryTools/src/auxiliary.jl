@@ -176,24 +176,45 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     poly_g = ring_map(g)
     poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
+    locus_id = ideal([locus])
     
     if f_ord == 0 && g_ord == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(9 * poly_g, [locus], [0]), evaluate(2 * poly_f, [locus], [0]))
+      quotient_gens = gens(groebner_basis(quotient(ideal([9 * poly_g]), ideal([2 * poly_f])) + locus_id))
+      deleteat!(quotient_gens, findall(g -> g == locus, quotient_gens))
+      quotient_val = quotient_gens[1]
+
+      monodromy_poly = _psi^2 + quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^2), [locus], [0])
+      quotient_gens = gens(groebner_basis(ideal([div(poly_g, locus^2)]) + locus_id))
+      deleteat!(quotient_gens, findall(g -> g == locus, quotient_gens))
+      quotient_val = quotient_gens[1]
+
+      monodromy_poly = _psi^2 - quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
     elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      monodromy_poly =  _psi^3 + _psi * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
+      quotient_gens = gens(groebner_basis(ideal([_psi^3 + _psi * div(poly_f, locus^2) + div(poly_g, locus^3)]) + locus_id))
+      deleteat!(quotient_gens, findall(g -> g == locus, quotient_gens))
+      
+      monodromy_poly = quotient_gens[1]
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7 && d_ord % 2 == 1
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^3)
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 8 && d_ord % 2 == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^2)
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
+      quotient_1 = div(poly_d, locus^d_ord)
+      quotient_2 = div(2 * poly_f, locus^2)^(2 + d_ord % 2)
+      quotient_3 = 4 * div(9 * poly_g, locus^3)^(2 + d_ord % 2)
+
+      quotient_4_gens = gens(groebner_basis(quotient(ideal([quotient_1 * quotient_2]) + locus_id, ideal([quotient_3]))))
+      deleteat!(quotient_4_gens, findall(g -> g == locus, quotient_4_gens))
+      quotient_4_val = quotient_4_gens[1]
+
+      monodromy_poly = _psi^2 + quotient_4_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^4), [locus], [0])
+      quotient_gens = gens(groebner_basis(ideal([div(poly_g, locus^4)]) + locus_id))
+      deleteat!(quotient_gens, findall(g -> g == locus, quotient_gens))
+      quotient_val = quotient_gens[1]
+
+      monodromy_poly = _psi^2 - quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
     else
       kod_type = "Unrecognized"
