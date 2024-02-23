@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of Q^ab, the abelian closure of the rationals,
-# which is modelled as the union of cyclotomic fields.
+# which is modeled as the union of cyclotomic fields.
 #
 # We make Q^ab a singleton, similar to ZZ and QQ. Thus there will ever be only
 # one copy of Q^ab. In particular the elements do not have a parent stored.

@@ -904,7 +904,7 @@ export known_class_fusions
 export koszul_complex
 export koszul_homology
 export koszul_matrix
-export labelled_matrix_formatted
+export labeled_matrix_formatted
 export lattice_points
 export lattice_volume
 export leading_coefficient

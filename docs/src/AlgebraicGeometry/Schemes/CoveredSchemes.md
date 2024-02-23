@@ -49,7 +49,7 @@ An `AbsCoveredScheme` may have different properties such as
     fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
 ```
 
-## The modeling of covered schemes and their expected behaviour 
+## The modeling of covered schemes and their expected behavior 
 
 Any `AbsCoveredScheme` may possess several `Covering`s. This is necessary for 
 several reasons; for instance, a morphism $f : X \to Y$ between `AbsCoveredScheme`s 

@@ -402,7 +402,7 @@ function show_OD_info(tbl::Oscar.GAPGroupCharacterTable, io::IO = stdout)
          :separators_col => 0:(length(result[1])-1),
         )
 
-  labelled_matrix_formatted(ioc, permutedims(reduce(hcat, result)))
+  labeled_matrix_formatted(ioc, permutedims(reduce(hcat, result)))
   println(io, "")
 end
 
