@@ -561,7 +561,7 @@ end
 function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
   # find a solution <x,v> = alpha with x in L if it exists
   w = gram*transpose(v)
-  tmp = FakeFmpqMat(w)
+  tmp = Hecke.FakeFmpqMat(w)
   wn = numerator(tmp)
   wd = denominator(tmp)
   b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]); side = :right)
@@ -1074,7 +1074,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   # to avoid repeated calculation of the same stuff e.g. K and Q
   # find a solution <x,v> = alpha with x in L if it exists
   ww = transpose(wS)
-  tmp = FakeFmpqMat(ww)
+  tmp = Hecke.FakeFmpqMat(ww)
   wn = numerator(tmp)
   wd = denominator(tmp)
   K = kernel(wn; side = :left)
@@ -1156,7 +1156,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     d = rank(data.S)
     walls = Vector{ZZMatrix}(undef,d)
     for i in 1:d
-      vs = numerator(FakeFmpqMat(walls1[i]))
+      vs = numerator(Hecke.FakeFmpqMat(walls1[i]))
       g = gcd(_vec(vs))
       if g != 1
         vs = divexact(vs, g)
@@ -1174,7 +1174,7 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
   for i in 1:d
     v = matrix(QQ, 1, degree(data.SS), r[i])
     # rescale v to be primitive in S
-    vs = numerator(FakeFmpqMat(v))
+    vs = numerator(Hecke.FakeFmpqMat(v))
     g = gcd(_vec(vs))
     if g!=1
       vs = divexact(vs, g)

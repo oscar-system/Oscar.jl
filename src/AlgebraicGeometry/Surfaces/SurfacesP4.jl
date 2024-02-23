@@ -48,7 +48,7 @@ export rational_d11_pi11_ss_inf
 export veronese
 
 function surface(n::String)
-  n = joinpath(oscardir, "data", "Surfaces", n)
+  n = joinpath(oscardir, "data", "Surfaces", "$n" * ".mrdi")
   I = load(n)
   S = base_ring(I)
   R = grade(S)[1]

@@ -288,7 +288,7 @@ end
   (a, b, c) = base_change(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)
 
-  # Behaviour for special types
+  # Behavior for special types
   U = PrincipalOpenSubset(IA2, y)
   UU, f = base_change(pr, U)
   @test UU isa PrincipalOpenSubset
@@ -358,3 +358,19 @@ end
   @test compose(p1, there) == compose(p2, there)
 end
 
+@testset "degree of zero-dimensional affine schemes" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  I = ideal(R, x^2 - 1)
+  X = Spec(R)
+  Q, _ = quo(R, I)
+  Y = Spec(Q)
+  @test dim(Y) == 0
+  @test degree(Y) == 2
+
+  R, (x,y) = QQ[:x,:y]
+  I = ideal(R, [x^2 + y^2 - 1, 2x^2 + (1//2)y^2 - 1])
+  X = Spec(R)
+  Y,_ = sub(X, I)
+  @test dim(Y) == 0
+  @test degree(Y) == 4
+end

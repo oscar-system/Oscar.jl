@@ -91,3 +91,5 @@ end
 @deprecate subgroup_reps(G::T) where T <: Union{GAPGroup, FinGenAbGroup} map(representative, subgroup_classes(G))
 @deprecate conjugacy_classes_maximal_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} maximal_subgroup_classes(G)
 @deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)
+
+@deprecate labelled_matrix_formatted labeled_matrix_formatted

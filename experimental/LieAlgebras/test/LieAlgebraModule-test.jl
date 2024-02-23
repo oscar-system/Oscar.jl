@@ -181,13 +181,13 @@
   end
 
   module_type_bools(V) = (
-    is_standard_module(V),
-    is_dual(V)[1],
-    is_direct_sum(V)[1],
-    is_tensor_product(V)[1],
-    is_exterior_power(V)[1],
-    is_symmetric_power(V)[1],
-    is_tensor_power(V)[1],
+    Oscar._is_standard_module(V),
+    Oscar._is_dual(V)[1],
+    Oscar._is_direct_sum(V)[1],
+    Oscar._is_tensor_product(V)[1],
+    Oscar._is_exterior_power(V)[1],
+    Oscar._is_symmetric_power(V)[1],
+    Oscar._is_tensor_power(V)[1],
   )
 
   @testset "module constructions" begin
@@ -215,7 +215,7 @@
           @test dual_V === dual(V)
           @test dual_V !== dual(V; cached=false)
           @test type_V == module_type_bools(V) # construction of dual_V should not change type of V
-          @test is_dual(dual_V) === (true, V)
+          @test Oscar._is_dual(dual_V) === (true, V)
           @test dim(dual_V) == dim(V)
           @test length(repr(dual_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -241,8 +241,8 @@
             @test_broken ds_V === direct_sum([V for _ in 1:k]...)
             @test_broken ds_V !== direct_sum([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
-            @test is_direct_sum(ds_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(is_direct_sum(ds_V)[2], [V for _ in 1:k]))
+            @test Oscar._is_direct_sum(ds_V) == (true, [V for _ in 1:k])
+            @test all(x -> x[1] === x[2], zip(Oscar._is_direct_sum(ds_V)[2], [V for _ in 1:k]))
             @test dim(ds_V) == k * dim(V)
             @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -262,7 +262,7 @@
           ds_V = direct_sum(V1, V2)
           @test type_V1 == module_type_bools(V1) # construction of ds_V should not change type of V1
           @test type_V2 == module_type_bools(V2) # construction of ds_V should not change type of V2
-          @test is_direct_sum(ds_V) == (true, [V1, V2])
+          @test Oscar._is_direct_sum(ds_V) == (true, [V1, V2])
           @test dim(ds_V) == dim(V1) + dim(V2)
           @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -282,8 +282,8 @@
             @test_broken tp_V === tensor_product([V for _ in 1:k]...)
             @test_broken tp_V !== tensor_product([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
-            @test is_tensor_product(tp_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(is_tensor_product(tp_V)[2], [V for _ in 1:k]))
+            @test Oscar._is_tensor_product(tp_V) == (true, [V for _ in 1:k])
+            @test all(x -> x[1] === x[2], zip(Oscar._is_tensor_product(tp_V)[2], [V for _ in 1:k]))
             @test dim(tp_V) == dim(V)^k
             @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -305,7 +305,7 @@
           tp_V = tensor_product(V1, V2)
           @test type_V1 == module_type_bools(V1) # construction of tp_V should not change type of V1
           @test type_V2 == module_type_bools(V2) # construction of tp_V should not change type of V2
-          @test is_tensor_product(tp_V) == (true, [V1, V2])
+          @test Oscar._is_tensor_product(tp_V) == (true, [V1, V2])
           @test dim(tp_V) == dim(V1) * dim(V2)
           @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -328,7 +328,7 @@
               @test E === exterior_power(V, k)[1]
               @test E !== exterior_power(V, k; cached=false)[1]
               @test type_V == module_type_bools(V) # construction of E should not change type of V
-              @test is_exterior_power(E) === (true, V, k)
+              @test Oscar._is_exterior_power(E) === (true, V, k)
               @test dim(E) == binomial(dim(V), k)
               @test length(repr(E)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -386,7 +386,7 @@
               @test S === symmetric_power(V, k)[1]
               @test S !== symmetric_power(V, k; cached=false)[1]
               @test type_V == module_type_bools(V) # construction of S should not change type of V
-              @test is_symmetric_power(S) === (true, V, k)
+              @test Oscar._is_symmetric_power(S) === (true, V, k)
               @test dim(S) == binomial(dim(V) + k - 1, k)
               @test length(repr(S)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -441,7 +441,7 @@
             @test T === tensor_power(V, k)[1]
             @test T !== tensor_power(V, k; cached=false)[1]
             @test type_V == module_type_bools(V) # construction of T should not change type of V
-            @test is_tensor_power(T) === (true, V, k)
+            @test Oscar._is_tensor_power(T) === (true, V, k)
             @test dim(T) == dim(V)^k
             @test length(repr(T)) < 10^4 # outputs tend to be excessively long due to recursion
 

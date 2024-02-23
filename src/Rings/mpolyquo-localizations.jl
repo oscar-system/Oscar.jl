@@ -800,7 +800,7 @@ end
 ### Why are the `//`-methods not implemented?
 # Since a quotient ring Q = R/I of a polynomial ring R is not necessarily 
 # factorial, it is difficult to decide, whether or not a and b have a 
-# common factor g that can be cancelled so that b'= b/g ∈  Q belongs 
+# common factor g that can be canceled so that b'= b/g ∈  Q belongs 
 # to the multiplicative set. Moreover, this would be the case if any 
 # lift of b' belonged to S + I where S ⊂ R is the original multiplicative 
 # set. Such containment can not easily be checked based only on the 
@@ -2296,8 +2296,20 @@ function grading_group(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})

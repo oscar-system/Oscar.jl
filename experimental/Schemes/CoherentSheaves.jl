@@ -223,7 +223,7 @@ identifications given by the gluings in the `default_covering`.
     ### Lookup and production pattern for sheaves of modules
     #
     # When asked to produce a module on an open affine U, the functions
-    # below lead to the following behaviour.
+    # below lead to the following behavior.
     #
     #                     U₁                    an `affine_chart` of `X`
     #           _________/|\______________      (`patches` of `default_covering(X)`)

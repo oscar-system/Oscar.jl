@@ -25,7 +25,7 @@ function exterior_power(F::FreeMod, p::Int; cached::Bool=true)
     G = grading_group(F)
     weights = elem_type(G)[]
     for ind in OrderedMultiIndexSet(p, n)
-      push!(weights, sum(degree(F[i]) for i in indices(ind); init=zero(G)))
+      push!(weights, sum(_degree_fast(F[i]) for i in indices(ind); init=zero(G)))
     end
     grade(result_, weights)
   else
@@ -160,7 +160,7 @@ function koszul_homology(v::FreeModElem, M::ModuleFP, i::Int; cached::Bool=true)
 end
 
 function koszul_dual(F::FreeMod; cached::Bool=true)
-  success, M, p = is_exterior_power(F)
+  success, M, p = _is_exterior_power(F)
   !success && error("module must be an exterior power of some other module")
   return exterior_power(M, rank(M) - p, cached=cached)[1]
 end
@@ -170,7 +170,7 @@ function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   all(u->parent(u) === parent(first(v)), v[2:end]) || error("parent mismatch")
 
   F = parent(first(v))
-  success, M, p = is_exterior_power(F)
+  success, M, p = _is_exterior_power(F)
   n = rank(M)
   success || error("element must be an exterior product")
   k = [findfirst(x->x==u, gens(F)) for u in v]

@@ -37,7 +37,7 @@ direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
 ## Truncation
 
 ```@docs
-truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol = :with_morphism)
+truncate(M::ModuleFP, g::FinGenAbGroupElem, task::Symbol=:with_morphism)
 ```
 
 ## Twists
