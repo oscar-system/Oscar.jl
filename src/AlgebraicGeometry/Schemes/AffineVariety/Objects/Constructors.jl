@@ -76,7 +76,7 @@ defined by ideal (x, y)
 
 ```
 """
-variety(R::MPolyAnyRing; check=true) = variety(Spec(R), check=check)
+variety(R::MPolyAnyRing; check=true) = variety(AffineScheme(R), check=check)
 
 @doc raw"""
     variety(f::MPolyRingElem{<:Field}; check::Bool=true)
