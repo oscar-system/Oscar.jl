@@ -101,4 +101,3 @@ end
 @deprecate Spec AffineScheme
 @deprecate proj(E::ToricLineBundle...) projectivization
 @deprecate proj(E::ToricDivisor...) projectivization
-@deprecate proj() projectivization

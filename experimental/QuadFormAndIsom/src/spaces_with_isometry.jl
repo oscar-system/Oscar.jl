@@ -592,7 +592,7 @@ Quadratic space of dimension 2
   [1    1]
   [0   -1]
 
-julia> Vf3, proj = direct_product(Vf1, Vf2)
+julia> Vf3, pr = direct_product(Vf1, Vf2)
 (Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Vf3
@@ -615,9 +615,9 @@ with gram matrix
 ```
 """
 function direct_product(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, proj = direct_product(space.(x))
+  V, pr = direct_product(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check = false), proj
+  return quadratic_space_with_isometry(V, f; check = false), pr
 end
 
 direct_product(x::Vararg{QuadSpaceWithIsom}) = direct_product(collect(x))
@@ -676,7 +676,7 @@ Quadratic space of dimension 2
   [1    1]
   [0   -1]
 
-julia> Vf3, inj, proj = biproduct(Vf1, Vf2)
+julia> Vf3, inj, pr = biproduct(Vf1, Vf2)
 (Quadratic space with isometry of finite order 2, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Vf3
@@ -697,19 +697,19 @@ with gram matrix
 [0   0    2   -1]
 [0   0   -1    2]
 
-julia> matrix(compose(inj[1], proj[1]))
+julia> matrix(compose(inj[1], pr[1]))
 [1   0]
 [0   1]
 
-julia> matrix(compose(inj[1], proj[2]))
+julia> matrix(compose(inj[1], pr[2]))
 [0   0]
 [0   0]
 ```
 """
 function biproduct(x::Vector{T}) where T <: QuadSpaceWithIsom
-  V, inj, proj = biproduct(space.(x))
+  V, inj, pr = biproduct(space.(x))
   f = block_diagonal_matrix(isometry.(x))
-  return quadratic_space_with_isometry(V, f; check = false), inj, proj
+  return quadratic_space_with_isometry(V, f; check = false), inj, pr
 end
 
 biproduct(x::Vararg{QuadSpaceWithIsom}) = biproduct(collect(x))

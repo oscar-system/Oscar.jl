@@ -11,7 +11,7 @@
 Return the direct product of the groups in the collection `L`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
-the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+the output is a triple (`G`, `emb`, `pr`), where `emb` and `pr` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 
 # Examples
@@ -49,10 +49,10 @@ function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
   DP = DirectProductGroup(X, L, X, true)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(X, i)) for i in 1:length(L)]
-    proj = [
+    pr = [
       GAPGroupHomomorphism(DP, L[i], GAPWrap.Projection(X, i)) for i in 1:length(L)
     ]
-    return DP, emb, proj
+    return DP, emb, pr
   else
     return DP
   end
@@ -71,7 +71,7 @@ Return a direct product of groups of the same type `T` as a group of type
 - `PermGroup`, `PcGroup`, `FPGroup`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
-the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+the output is a triple (`G`, `emb`, `pr`), where `emb` and `pr` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(
@@ -82,10 +82,10 @@ function inner_direct_product(
   DP = T(P)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(P, i)) for i in 1:length(L)]
-    proj = [
+    pr = [
       GAPGroupHomomorphism(DP, L[i], GAPWrap.Projection(P, i)) for i in 1:length(L)
     ]
-    return DP, emb, proj
+    return DP, emb, pr
   else
     return DP
   end
@@ -99,10 +99,10 @@ function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=fals
   DP = permutation_group(P, sum([degree(G) for G in L]; init=0))
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(P, i)) for i in 1:length(L)]
-    proj = [
+    pr = [
       GAPGroupHomomorphism(DP, L[i], GAPWrap.Projection(P, i)) for i in 1:length(L)
     ]
-    return DP, emb, proj
+    return DP, emb, pr
   else
     return DP
   end
@@ -136,7 +136,7 @@ end
 Return the direct product of `n` copies of `G` as group of type `T`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
-the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
+the output is a triple (`G`, `emb`, `pr`), where `emb` and `pr` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_cartesian_power(G::T, n::Int; morphisms::Bool=false) where {T<:GAPGroup}
@@ -343,7 +343,7 @@ Base.:^(H::DirectProductGroup, y::GAPGroupElem) = sub([h^y for h in gens(H)]...)
 ################################################################################
 #
 #  Semidirect products
-#  
+#
 ################################################################################
 
 """
@@ -454,7 +454,7 @@ end
 ################################################################################
 #
 #  Wreath products
-#  
+#
 ################################################################################
 
 """

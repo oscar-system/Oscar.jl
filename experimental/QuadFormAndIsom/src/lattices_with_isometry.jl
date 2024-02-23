@@ -177,7 +177,7 @@ minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))
 @doc raw"""
     genus(Lf::ZZLatWithIsom) -> ZZGenus
 
-Given a lattice with isometry $(L, f)$, return the genus of the underlying 
+Given a lattice with isometry $(L, f)$, return the genus of the underlying
 lattice $L$.
 
 # Examples
@@ -1301,7 +1301,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    1    0    0]
   [0    0    0    1    0]
 
-julia> Lh, proj = direct_product(Lf, Lg)
+julia> Lh, pr = direct_product(Lf, Lg)
 (Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
@@ -1321,9 +1321,9 @@ Integer lattice of rank 10 and degree 10
 ```
 """
 function direct_product(x::Vector{ZZLatWithIsom})
-  Vf, proj = direct_product(ambient_space.(x))
+  Vf, pr = direct_product(ambient_space.(x))
   Bs = block_diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs; check=false), proj
+  return lattice(Vf, Bs; check=false), pr
 end
 
 direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
@@ -1385,7 +1385,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    1    0    0]
   [0    0    0    1    0]
 
-julia> Lh, inj, proj = biproduct(Lf, Lg)
+julia> Lh, inj, pr = biproduct(Lf, Lg)
 (Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
@@ -1403,14 +1403,14 @@ Integer lattice of rank 10 and degree 10
   [ 0    0    0    0    0   0    0    1    0    0]
   [ 0    0    0    0    0   0    0    0    1    0]
 
-julia> matrix(compose(inj[1], proj[1]))
+julia> matrix(compose(inj[1], pr[1]))
 [1   0   0   0   0]
 [0   1   0   0   0]
 [0   0   1   0   0]
 [0   0   0   1   0]
 [0   0   0   0   1]
 
-julia> matrix(compose(inj[1], proj[2]))
+julia> matrix(compose(inj[1], pr[2]))
 [0   0   0   0   0]
 [0   0   0   0   0]
 [0   0   0   0   0]
@@ -1419,9 +1419,9 @@ julia> matrix(compose(inj[1], proj[2]))
 ```
 """
 function biproduct(x::Vector{ZZLatWithIsom})
-  Vf, inj, proj = biproduct(ambient_space.(x))
+  Vf, inj, pr = biproduct(ambient_space.(x))
   Bs = block_diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs; check=false), inj, proj
+  return lattice(Vf, Bs; check=false), inj, pr
 end
 
 biproduct(x::Vararg{ZZLatWithIsom}) = biproduct(collect(x))
@@ -1529,7 +1529,7 @@ Integer lattice of rank 4 and degree 5
 julia> H = hermitian_structure(M)
 Hermitian lattice of rank 1 and degree 1
   over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
-  with pseudo-basis 
+  with pseudo-basis
   (1, 1//1 * <1, 1>)
   (z_5, 1//1 * <1, 1>)
 
@@ -1592,11 +1592,11 @@ Finite quadratic module
 Abelian group: Z/6
 Bilinear value module: Q/Z
 Quadratic value module: Q/2Z
-Gram matrix quadratic form: 
+Gram matrix quadratic form:
 [5//6]
 
 julia> qf
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [1]
 
 julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
@@ -1608,7 +1608,7 @@ julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
 julia> Lf = integer_lattice_with_isometry(L, f);
 
 julia> discriminant_group(Lf)[2]
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [5]
 ```
 """
