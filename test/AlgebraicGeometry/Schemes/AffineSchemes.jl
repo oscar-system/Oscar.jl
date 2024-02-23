@@ -361,15 +361,15 @@ end
 @testset "degree of zero-dimensional affine schemes" begin
   R, (x,) = polynomial_ring(QQ, [:x])
   I = ideal(R, x^2 - 1)
-  X = Spec(R)
+  X = AffineScheme(R)
   Q, _ = quo(R, I)
-  Y = Spec(Q)
+  Y = AffineScheme(Q)
   @test dim(Y) == 0
   @test degree(Y) == 2
 
   R, (x,y) = QQ[:x,:y]
   I = ideal(R, [x^2 + y^2 - 1, 2x^2 + (1//2)y^2 - 1])
-  X = Spec(R)
+  X = AffineScheme(R)
   Y,_ = sub(X, I)
   @test dim(Y) == 0
   @test degree(Y) == 4
