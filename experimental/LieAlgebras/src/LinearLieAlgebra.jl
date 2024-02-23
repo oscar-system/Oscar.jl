@@ -342,6 +342,7 @@ function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
 end
 
 @doc raw"""
+    special_orthogonal_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
     special_orthogonal_lie_algebra(R::Field, n::Int, gram::MatElem) -> LinearLieAlgebra{elem_type(R)}
     special_orthogonal_lie_algebra(R::Field, n::Int, gram::Matrix) -> LinearLieAlgebra{elem_type(R)}
 
@@ -434,6 +435,7 @@ function special_orthogonal_lie_algebra(R::Field, n::Int)
 end
 
 @doc raw"""
+    symplectic_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
     symplectic_lie_algebra(R::Field, n::Int, gram::MatElem) -> LinearLieAlgebra{elem_type(R)}
     symplectic_lie_algebra(R::Field, n::Int, gram::Matrix) -> LinearLieAlgebra{elem_type(R)}
 
@@ -445,7 +447,7 @@ such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
 
 If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
 is used.
-It can be shown that for odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
+For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
 
 # Examples
 ```jldoctest
