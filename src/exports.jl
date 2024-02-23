@@ -1204,7 +1204,6 @@ export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
 export projective_plane
-export proj
 export projective_space
 export projective_special_linear_group
 export projective_special_orthogonal_group
