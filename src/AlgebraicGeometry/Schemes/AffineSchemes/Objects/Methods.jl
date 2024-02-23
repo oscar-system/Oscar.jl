@@ -265,7 +265,7 @@ function base_change(phi::Any, X::AbsSpec)
   kk_red = parent(phi(zero(kk)))
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
-  Y = AffineScheme(R_red)
+  Y = spec(R_red)
   return Y, morphism(Y, X, Phi)
 end
 

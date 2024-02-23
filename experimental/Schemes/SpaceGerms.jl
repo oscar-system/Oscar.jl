@@ -89,9 +89,9 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(modulus(OO(X)))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-## TODO: change dim(AffineScheme(R)) to dim(R) as soon as the fixes for dim have
+## TODO: change dim(spec(R)) to dim(R) as soon as the fixes for dim have
 ## been moved to the algebra side!!!!
-      length(v) == dim(AffineScheme(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -103,7 +103,7 @@ A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlyi
     R = base_ring(OO(X))
     all(x->parent(x) == R, v) || error("base_rings do not coincide")
     @check begin
-      length(v) == dim(AffineScheme(R)) - dim(X) || error("not a complete intersection")
+      length(v) == dim(spec(R)) - dim(X) || error("not a complete intersection")
       modulus(OO(X)) == ideal(R,v) || error("given tuple does not generate modulus")
     end
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X,v)
@@ -145,7 +145,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
-julia> X = AffineScheme(R, I);
+julia> X = spec(R, I);
 
 julia> XS = SpaceGerm(X,[0,0,0])
 Spectrum
@@ -204,7 +204,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
-julia> X = AffineScheme(R, I);
+julia> X = spec(R, I);
 
 julia> XS = SpaceGerm(X,[0,0,0]);
 
@@ -250,7 +250,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
-julia> X = AffineScheme(R, I);
+julia> X = spec(R, I);
 
 julia> XS = SpaceGerm(X,[0,0,0]);
 
@@ -285,7 +285,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
-julia> X = AffineScheme(R, I);
+julia> X = spec(R, I);
 
 julia> XS = HypersurfaceGerm(X,[0,0,0])
 Spectrum
@@ -404,7 +404,7 @@ function SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
   U = MPolyComplementOfKPointIdeal(R,b)
-  Y = AffineScheme(localization(OO(X), U)[1])
+  Y = spec(localization(OO(X), U)[1])
   Z = SpaceGerm(Y)
   set_attribute!(Z,:representative,X)
   return SpaceGerm(Y)
@@ -469,7 +469,7 @@ julia> (x,y,z) = gens(R);
 
 julia> Q,_ = quo(R,ideal(R,[x^2+y^2+z^2]));
 
-julia> HypersurfaceGerm(AffineScheme(Q),[0,0,0])
+julia> HypersurfaceGerm(spec(Q),[0,0,0])
 Spectrum
   of localization
     of quotient
@@ -489,7 +489,7 @@ function HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, Fiel
   mingens = minimal_generating_set(modulus(LX))
   length(mingens) == 1 || error("not a hypersurface")
   f = mingens[1]
-  Y = HypersurfaceGerm(AffineScheme(LX),f)
+  Y = HypersurfaceGerm(spec(LX),f)
   set_attribute!(Y,:representative,X)
   return Y
 end
@@ -544,7 +544,7 @@ julia> (x,y,z) = gens(R);
 
 julia> Q,_ = quo(R,ideal(R,[x^2+y^2+z^2,x*y]));
 
-julia> CompleteIntersectionGerm(AffineScheme(Q),[0,0,0])
+julia> CompleteIntersectionGerm(spec(Q),[0,0,0])
 Spectrum
   of localization
     of quotient
@@ -562,9 +562,9 @@ function CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integ
   U = MPolyComplementOfKPointIdeal(R,b)
   L,_ = localization(OO(X), U)
   mingens = minimal_generating_set(modulus(L))
-## TODO: Should be dim(L) and not dim(AffineScheme(L)), but dim for localized
+## TODO: Should be dim(L) and not dim(spec(L)), but dim for localized
 ## quotients is only repaired on the geometric side as of now!!!
-  SpecL = AffineScheme(L)
+  SpecL = spec(L)
   length(mingens) == dim(R) - dim(SpecL) || error("not a complete intersection")
   w = mingens
   Y = CompleteIntersectionGerm(SpecL,w)
@@ -660,7 +660,7 @@ function germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
 end
 
 germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
-              I::Union{Ideal,Vector}) = germ_at_point(AffineScheme(A),I)
+              I::Union{Ideal,Vector}) = germ_at_point(spec(A),I)
 
 @doc raw"""
     germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
@@ -738,7 +738,7 @@ function hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
 end
 
 hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
-                  I::Union{Ideal,Vector}) = hypersurface_germ(AffineScheme(A),I)
+                  I::Union{Ideal,Vector}) = hypersurface_germ(spec(A),I)
 
 @doc raw"""
     hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
@@ -813,7 +813,7 @@ function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
 end
 
 complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
-                  I::Union{Ideal,Vector}) = complete_intersection_germ(AffineScheme(A),I)
+                  I::Union{Ideal,Vector}) = complete_intersection_germ(spec(A),I)
 
 @doc raw"""
     complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
@@ -848,14 +848,14 @@ const LocalRing = Union{
 
 
 function SpaceGerm(A::LocalRing)
-  return SpaceGerm(AffineScheme(A))
+  return SpaceGerm(spec(A))
 end
 
 function HypersurfaceGerm(A::LocalRing)
   I = modulus(A)
   v  = minimal_generating_set(I)
   length(v) == 1 || error("not a hypersurface germ")
-  return HypersurfaceGerm(AffineScheme(A),v[1])
+  return HypersurfaceGerm(spec(A),v[1])
 end
 
 function CompleteIntersectionGerm(A::LocalRing)
@@ -863,7 +863,7 @@ function CompleteIntersectionGerm(A::LocalRing)
   !iszero(I) || error("zero ideal not allowed for complete intersection germ")
   v = minimal_generating_set(I)
   length(v) == dim(base_ring(I)) - dim(A) || error("not a complete intersection germ")
-  return CompleteIntersectionGerm(AffineScheme(A),v)
+  return CompleteIntersectionGerm(spec(A),v)
 end
 
 ## and with identity map to keep usage consistent
@@ -956,9 +956,9 @@ julia> Q1,_ = quo(R,ideal(R,[x*y]));
 
 julia> Q2,_ = quo(R,ideal(R,[x*(x-y)]));
 
-julia> X1 = HypersurfaceGerm(AffineScheme(Q1),[0,0,0]);
+julia> X1 = HypersurfaceGerm(spec(Q1),[0,0,0]);
 
-julia> X2 = HypersurfaceGerm(AffineScheme(Q2),[0,0,0]);
+julia> X2 = HypersurfaceGerm(spec(Q2),[0,0,0]);
 
 julia> union(X1,X2)
 Spectrum
@@ -992,7 +992,7 @@ function Base.union(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   # otherwise 'point' is not implemented
   f_new = numerator(defining_ring_element(X))*numerator(defining_ring_element(Y))
   f_new = radical(ideal(R,[f_new]))[1]
-  Y = HypersurfaceGerm(AffineScheme(quo(R,ideal(R,f_new))[1]), point(X))
+  Y = HypersurfaceGerm(spec(quo(R,ideal(R,f_new))[1]), point(X))
   Y.f = f_new
   return Y
 end
@@ -1018,7 +1018,7 @@ julia> (x,y,z) = gens(R);
 
 julia> Q,_ = quo(R,ideal(R,[x^2+y^2]));
 
-julia> Y = SpaceGerm(AffineScheme(Q),[0,0,0]);
+julia> Y = SpaceGerm(spec(Q),[0,0,0]);
 
 julia> XSL, incSL = singular_locus(Y);
 
@@ -1077,7 +1077,7 @@ julia> (x,y,z) = gens(R);
 
 julia> Q,_ = quo(R,ideal(R,[x^2+y^2]));
 
-julia> Y = SpaceGerm(AffineScheme(Q),[0,0,0]);
+julia> Y = SpaceGerm(spec(Q),[0,0,0]);
 
 julia> is_isolated_singularity(Y)
 false

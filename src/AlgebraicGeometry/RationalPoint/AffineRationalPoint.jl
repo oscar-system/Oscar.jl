@@ -135,7 +135,7 @@ of its ambient affine space.
 function scheme(P::AbsAffineRationalPoint)
   I = ideal(P)
   R = OO(ambient_space(P))
-  return AffineScheme(R, I)
+  return spec(R, I)
 end
 
 @doc raw"""
@@ -170,7 +170,7 @@ function is_smooth(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "not a point on X"
   U = MPolyComplementOfKPointIdeal(P)
   R = OO(codomain(P))
-  XU = AffineScheme(localization(R, U)[1])
+  XU = spec(localization(R, U)[1])
   return is_smooth(XU)
 end
 

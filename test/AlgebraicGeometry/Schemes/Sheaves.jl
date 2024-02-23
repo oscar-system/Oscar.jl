@@ -1,6 +1,6 @@
 @testset "constant sheaf of integers on AffineScheme" begin
   R, x = QQ["x", "y", "z"]
-  X = AffineScheme(R)
+  X = spec(R)
 
   is_open_func(U::AbsSpec, V::AbsSpec) = is_open_embedding(U, V)
 

@@ -15,12 +15,12 @@ julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> A = AffineScheme(P)
+julia> A = spec(P)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
 
-julia> Y = AffineScheme(P, I)
+julia> Y = spec(P, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z

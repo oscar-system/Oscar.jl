@@ -7,7 +7,7 @@ function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Rin
   P = ambient_ring(RS)::MPolyRing
   I = defining_ideal(RS)::MPolyIdeal
   U = MPolyPowersOfElement(P, P.(inequations(RS)))::MPolyPowersOfElement
-  RS.underlying_scheme = AffineScheme(P, I, U)
+  RS.underlying_scheme = spec(P, I, U)
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 

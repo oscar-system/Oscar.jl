@@ -25,7 +25,7 @@
   function PrincipalOpenSubset(X::AbsSpec, R::Ring, f::RingElem;
       check::Bool=true
     )
-    U = AffineScheme(R)
+    U = spec(R)
     @check U == hypersurface_complement(X, f) "scheme is not isomorphic to the anticipated open subset"
     return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
   end

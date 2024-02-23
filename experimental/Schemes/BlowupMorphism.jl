@@ -198,7 +198,7 @@ blowup).
 ```jldoctest
 julia> R, (x,y,z) = QQ["x", "y", "z"];
 
-julia> A3 = AffineScheme(R)
+julia> A3 = spec(R)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field

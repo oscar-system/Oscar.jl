@@ -22,7 +22,7 @@ from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsSpec{<:Field})
   L, f, g = simplify(OO(X))
-  Y = AffineScheme(L)
+  Y = spec(L)
   YtoX = morphism(Y, X, f, check=false)
   XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)

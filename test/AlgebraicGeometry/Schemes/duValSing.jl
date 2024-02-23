@@ -2,8 +2,8 @@
   R,(x,y,z,w) = QQ["x","y","z","w"]
   I = ideal(R,[w,(x^2+1)^2*x^3+(y^2+2)^3*y^2+z^4])
   I2 = ideal(R,[w,x^2+y^2*z + z^7])
-  X = AffineScheme(quo(R,I)[1])
-  X2 = AffineScheme(quo(R,I2)[1])
+  X = spec(quo(R,I)[1])
+  X2 = spec(quo(R,I2)[1])
   J1 = ideal(R,[x,y,z,w])
   J2 = ideal(R,[x^2+1,y,z,w])
   J3 = ideal(R,[x,y^2+2,z,w])

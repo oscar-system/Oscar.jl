@@ -142,7 +142,7 @@ end
 
   I = ideal(R, [x-1, y]) * ideal(R, [x]) # A line and a plane, disjoint.
 
-  X = CoveredScheme(AffineScheme(R, I))
+  X = CoveredScheme(spec(R, I))
 
   @test is_smooth(X)
 

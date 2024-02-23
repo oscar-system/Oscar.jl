@@ -115,7 +115,7 @@ Spectrum
     by ideal (0)
 ```
 """
-@attr AffineScheme{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = AffineScheme(base_ring(toric_ideal(X)), toric_ideal(X))
+@attr AffineScheme{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = spec(base_ring(toric_ideal(X)), toric_ideal(X))
 
 ###
 # Some additional structure to make computation of toric gluings lazy

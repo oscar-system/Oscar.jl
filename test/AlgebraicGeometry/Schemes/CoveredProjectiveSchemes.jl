@@ -15,7 +15,7 @@ end
 
 @testset "Oscar.blow_up_chart" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = AffineScheme(R)
+  A3 = spec(R)
   M = R[x y z; y-1 z-2 x-3]
   I = ideal(R, minors(M, 2))
   BlA3 = Oscar.blow_up_chart(A3, I)
@@ -34,7 +34,7 @@ end
 
 @testset "winter school presentation" begin
   P, (x,y,z) = QQ["x", "y", "z"]
-  IA3 = AffineScheme(P)
+  IA3 = spec(P)
   f = x^2-y*z^2
   I = ideal(P, f)
   X = subscheme(IA3, I)

@@ -1,6 +1,6 @@
 @testset "Covered schemes 1" begin
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-  X = subscheme(AffineScheme(R), [x^2+y^2])
+  X = subscheme(spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = homogeneous_coordinate_ring(P)
   (u, v) = gen(S, 1), gen(S, 2)
@@ -33,7 +33,7 @@ end
 
 @testset "standard_covering" begin
   R, t = polynomial_ring(QQ,["t"])
-  T = Oscar.standard_spec(subscheme(AffineScheme(R),t))
+  T = Oscar.standard_spec(subscheme(spec(R),t))
   Pt= projective_space(T, 2)
   X = covered_scheme(Pt)
   @test dim(X) == 2
@@ -50,7 +50,7 @@ end
 
   R = base_ring(OO(Ccov[1][2]))
   L, _ = localization(R, R[1])
-  @test Oscar.poly_type(AffineScheme(R)) === Oscar.poly_type(AffineScheme(L)) === Oscar.poly_type(Ccov[1][2])
+  @test Oscar.poly_type(spec(R)) === Oscar.poly_type(spec(L)) === Oscar.poly_type(Ccov[1][2])
   Lnew, f, g = simplify(L)
   @test !(L == Lnew)
   @test compose(f, g) == identity_map(L)
@@ -155,7 +155,7 @@ end
   @test is_integral(Ycov)
 
   R = forget_grading(S)
-  A = AffineScheme(R)
+  A = spec(R)
   @test is_integral(A)
   @test is_integral(hypersurface_complement(A, R[1]))
 

@@ -1,10 +1,10 @@
 @testset "fraction fields of varieties" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  @test is_irreducible(AffineScheme(R))
-  @test is_irreducible(AffineScheme(R, ideal(R, x)))
-  @test !is_irreducible(AffineScheme(R, ideal(R, x*y)))
-  @test is_irreducible(AffineScheme(localization(R, units_of(R))[1]))
-  @test !is_irreducible(AffineScheme(R, ideal(R, x*y), units_of(R)))
+  @test is_irreducible(spec(R))
+  @test is_irreducible(spec(R, ideal(R, x)))
+  @test !is_irreducible(spec(R, ideal(R, x*y)))
+  @test is_irreducible(spec(localization(R, units_of(R))[1]))
+  @test !is_irreducible(spec(R, ideal(R, x*y), units_of(R)))
 
   P = projective_space(QQ, 2)
   S = homogeneous_coordinate_ring(P)

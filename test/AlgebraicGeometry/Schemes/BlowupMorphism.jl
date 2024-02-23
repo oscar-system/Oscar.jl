@@ -1,7 +1,7 @@
 @testset "basics about blowups" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^3 + z^5
-  X = CoveredScheme(AffineScheme(R, ideal(R, f)))
+  X = CoveredScheme(spec(R, ideal(R, f)))
   U = X[1][1] # the first chart
 
   IZ = IdealSheaf(X, U, OO(U).([x, y, z]))

@@ -31,7 +31,7 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for relative projective space over MPolyQuoLocalizedRings
-  Y = AffineScheme(R)
+  Y = spec(R)
   Q = OO(Y)
   S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
   X = ProjectiveScheme(S)
@@ -46,7 +46,7 @@ end
 @testset "projective_schemes_2" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   I = ideal(R, [x^2-y*z])
-  X = AffineScheme(R, I)
+  X = spec(R, I)
   U = SpecOpen(X, [x, y])
   P = projective_space(OO(U), 1)
   S = homogeneous_coordinate_ring(P)

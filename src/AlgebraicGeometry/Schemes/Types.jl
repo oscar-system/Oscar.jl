@@ -11,7 +11,7 @@
 # Moved to src/forward_declarations.jl
 
 @attr AffineScheme{S,S} function base_scheme(X::Scheme{S}) where {S<:Ring}
-  return AffineScheme(base_ring(X))
+  return spec(base_ring(X))
 end
 
 ### Abstract type for morphisms of arbitrary schemes ##################

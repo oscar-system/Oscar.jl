@@ -127,7 +127,7 @@ function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRin
   P = ambient_ring(RS)::MPolyRing
   I = defining_ideal(RS)::MPolyIdeal
   U = powers_of_element(inequations)::MPolyPowersOfElement
-  RS.underlying_scheme = AffineScheme(R, I, U)
+  RS.underlying_scheme = spec(R, I, U)
   return RS.underlying_scheme
 end
 =#

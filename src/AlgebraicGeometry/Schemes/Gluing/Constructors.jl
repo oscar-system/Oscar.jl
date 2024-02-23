@@ -12,7 +12,7 @@ Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms
 ```jldoctest
 julia> P1, (x,y) = QQ["x", "y"]; P2, (u,v) = QQ["u", "v"];
 
-julia> U1 = AffineScheme(P1); U2 = AffineScheme(P2);
+julia> U1 = spec(P1); U2 = spec(P2);
 
 julia> V1 = PrincipalOpenSubset(U1, x); # Preparations for gluing
 

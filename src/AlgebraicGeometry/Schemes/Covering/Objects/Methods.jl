@@ -208,9 +208,9 @@ julia> P1, (x,y) = QQ["x", "y"];
 
 julia> P2, (u,v) = QQ["u", "v"];
 
-julia> U1 = AffineScheme(P1);
+julia> U1 = spec(P1);
 
-julia> U2 = AffineScheme(P2);
+julia> U2 = spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
 Covering

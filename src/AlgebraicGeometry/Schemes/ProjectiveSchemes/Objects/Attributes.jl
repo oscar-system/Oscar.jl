@@ -292,7 +292,7 @@ affine_cone(P::AbsProjectiveScheme)
   S = homogeneous_coordinate_ring(P)
   phi = RingFlattening(S)
   A = codomain(phi)
-  C = AffineScheme(A)
+  C = spec(A)
   B = base_scheme(P)
   P.projection_to_base = morphism(C, B, hom(OO(B), OO(C), gens(OO(C))[ngens(S)+1:end], check=false), check=false)
   return C, phi
@@ -308,7 +308,7 @@ end
   II = forget_grading(I)
   SS, _ = quo(PP, II)
   phi = hom(S, SS, gens(SS), check=false)
-  C = AffineScheme(SS)
+  C = spec(SS)
   return C, phi
 end
 
@@ -318,7 +318,7 @@ end
   S = homogeneous_coordinate_ring(P)
   PP = forget_grading(S) # the ungraded polynomial ring
   phi = hom(S, PP, gens(PP), check=false)
-  C = AffineScheme(PP)
+  C = spec(PP)
   return C, phi
 end
 
@@ -437,7 +437,7 @@ base_ring(P::ProjectiveScheme) = P.A
 
 function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   if !isdefined(X, :Y)
-    X.Y = AffineScheme(base_ring(X))
+    X.Y = spec(base_ring(X))
   end
   return X.Y
 end

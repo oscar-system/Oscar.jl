@@ -1,6 +1,6 @@
 @testset "gluings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = AffineScheme(R)
+  A3 = spec(R)
   set_name!(A3, "𝔸³")
   f = (x*y-z^2)
   #f = (x*y-z^2)*(x+y+2*z)
@@ -10,7 +10,7 @@
   UX = intersect(X, U)
   d = Oscar.find_non_zero_divisor(UX)
   S, (u,v) = QQ["u", "v"]
-  A2 = AffineScheme(S)
+  A2 = spec(S)
   set_name!(A2, "𝔸²")
   f = maximal_extension(X, A2, [x, z//y])
   a = Oscar.generic_fractions(f)
@@ -20,9 +20,9 @@
   Sy, (xy, zy) = QQ["xy", "zy"]
   Sz, (xz, yz) = QQ["xz", "yz"]
 
-  Ax = AffineScheme(Sx)
-  Ay = AffineScheme(Sy)
-  Az = AffineScheme(Sz)
+  Ax = spec(Sx)
+  Ay = spec(Sy)
+  Az = spec(Sz)
 
   fxy = maximal_extension(Ax, Ay, [1//yx, zx//yx])
   fyx = maximal_extension(Ay, Ax, [1//xy, zy//xy])
@@ -44,9 +44,9 @@ end
   S, (u, v) = QQ["u", "v"]
   T, (a, b) = QQ["a", "b"]
 
-  X = AffineScheme(R)
-  Y = AffineScheme(S)
-  Z = AffineScheme(T)
+  X = spec(R)
+  Y = spec(S)
+  Z = spec(T)
 
   Ux = PrincipalOpenSubset(X, x)
   Vu = PrincipalOpenSubset(Y, u)

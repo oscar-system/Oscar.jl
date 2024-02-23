@@ -102,7 +102,7 @@ end
 @testset "orders on divisors" begin
   kk = QQ
   R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  X = AffineScheme(R)
+  X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1

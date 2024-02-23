@@ -91,7 +91,7 @@ function _is_projective_without_denominators(A::MatElem;
     # This is a temporary hotfix to address a particular boundary case, see #1882.
     # The code below is also not generic and should eventually be adjusted.
 
-    X = AffineScheme(R)
+    X = spec(R)
     U = connected_components(X)
     l = length(U)
     l == 1 && return false, zero_matrix(R, n, n), 0

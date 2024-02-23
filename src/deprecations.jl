@@ -93,3 +93,9 @@ end
 @deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)
 
 @deprecate labelled_matrix_formatted labeled_matrix_formatted
+
+@deprecate Spec(R::MPolyRing, I::MPolyIdeal) spec(R, I)
+@deprecate Spec(R::MPolyRing, U::AbsMPolyMultSet) spec(R, U)
+@deprecate Spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) spec(R, I, U)
+@deprecate Spec(X::AffineScheme) spec(X)
+@deprecate Spec AffineScheme
