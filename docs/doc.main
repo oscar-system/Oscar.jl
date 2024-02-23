@@ -57,6 +57,7 @@
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
+     "Nemo/algebraic.md", 
      "Fields/algebraic_closure_fp.md",
   ],
 
