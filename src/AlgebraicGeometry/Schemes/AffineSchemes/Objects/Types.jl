@@ -17,12 +17,12 @@
 ###########################################
 
 #@doc raw"""
-#    AbsSpec{BaseRingType, RingType<:Ring}
+#    AbsAffineScheme{BaseRingType, RingType<:Ring}
 #
 #An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over
 #a ring ``𝕜`` of type `BaseRingType`.
 #"""
-#abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
+#abstract type AbsAffineScheme{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
 #
 # Moved to src/forward_declarations.jl
 
@@ -36,7 +36,7 @@
 An affine scheme ``X = Spec(R)`` with ``R`` a Noetherian ring of type `RingType`
 over a base ring ``𝕜`` of type `BaseRingType`.
 """
-@attributes mutable struct AffineScheme{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
+@attributes mutable struct AffineScheme{BaseRingType, RingType<:Ring} <: AbsAffineScheme{BaseRingType, RingType}
   # the basic fields
   OO::RingType
   kk::BaseRingType
@@ -77,5 +77,5 @@ end
 # (3) Auxiliary types
 ###########################################
 
-StdSpec = AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+StdAffineScheme = AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
 

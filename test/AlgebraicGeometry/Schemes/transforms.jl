@@ -59,7 +59,7 @@ end
   Iz = ideal(Rz,[y])
 
   # glue together to an ideal sheaf on P2
-  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID = IdDict{AbsAffineScheme, Oscar.Ideal}()
   ID[Ux]=Ix
   ID[Uy]=Iy
   ID[Uz]=Iz

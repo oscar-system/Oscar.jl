@@ -47,7 +47,7 @@ end
   R, (x, y, z) = QQ["x", "y", "z"]
   I = ideal(R, [x^2-y*z])
   X = spec(R, I)
-  U = SpecOpen(X, [x, y])
+  U = AffineSchemeOpenSubscheme(X, [x, y])
   P = projective_space(OO(U), 1)
   S = homogeneous_coordinate_ring(P)
   Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to be carried out manually.
@@ -186,12 +186,12 @@ end
   @test sprint(show, IP2_U) isa String
   @test sprint(show, IP2_UY) isa String
 
-  W = SpecOpen(UY, [x-1, y-1])
+  W = AffineSchemeOpenSubscheme(UY, [x-1, y-1])
   IP2_W = projective_space(W, 2, var_name="w")
   CW = affine_cone(IP2_W)
   pCW = projection_to_base(IP2_W)
 
-  WY = SpecOpen(Y, [x-y, x+y-2])
+  WY = AffineSchemeOpenSubscheme(Y, [x-y, x+y-2])
   WtoWY = inclusion_morphism(W, WY)
   IP2_WY = projective_space(WY, 2, var_name="w")
   _, map = fiber_product(pullback(WtoWY), IP2_WY)

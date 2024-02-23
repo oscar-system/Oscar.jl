@@ -5,8 +5,8 @@
 ########################################################################
 
 @doc raw"""
-    AbsSpecMor{DomainType<:AbsSpec,
-               CodomainType<:AbsSpec,
+    AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
+               CodomainType<:AbsAffineScheme,
                PullbackType<:Map,
                MorphismType,
                BaseMorType
@@ -22,9 +22,9 @@ Abstract type for morphisms ``f : X → Y`` of affine schemes where
     (e.g. a field extension), then this base scheme morphism is of
     type `BaseMorType`; otherwise, this can be set to `Nothing`.
 """
-abstract type AbsSpecMor{
-                         DomainType<:AbsSpec,
-                         CodomainType<:AbsSpec,
+abstract type AbsAffineSchemeMor{
+                         DomainType<:AbsAffineScheme,
+                         CodomainType<:AbsAffineScheme,
                          PullbackType<:Map,
                          MorphismType,
                          BaseMorType
@@ -38,8 +38,8 @@ end
 ########################################################################
 
 @doc raw"""
-    SpecMor{DomainType<:AbsSpec,
-            CodomainType<:AbsSpec,
+    AffineSchemeMor{DomainType<:AbsAffineScheme,
+            CodomainType<:AbsAffineScheme,
             PullbackType<:Map
            }
 
@@ -48,26 +48,26 @@ A morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` of type
 over the same `base_ring`, with underlying ring homomorphism
 ``f^* : R → S`` of type `PullbackType`.
 """
-@attributes mutable struct SpecMor{
-                                   DomainType<:AbsSpec,
-                                   CodomainType<:AbsSpec,
+@attributes mutable struct AffineSchemeMor{
+                                   DomainType<:AbsAffineScheme,
+                                   CodomainType<:AbsAffineScheme,
                                    PullbackType<:Map
-                                  } <: AbsSpecMor{DomainType,
+                                  } <: AbsAffineSchemeMor{DomainType,
                                                   CodomainType,
                                                   PullbackType,
-                                                  SpecMor,
+                                                  AffineSchemeMor,
                                                   Nothing
                                                  }
   domain::DomainType
   codomain::CodomainType
   pullback::PullbackType
 
-  function SpecMor(
+  function AffineSchemeMor(
       X::DomainType,
       Y::CodomainType,
       pullback::PullbackType;
       check::Bool=true
-    ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
+    ) where {DomainType<:AbsAffineScheme, CodomainType<:AbsAffineScheme, PullbackType<:Map}
     OO(X) == codomain(pullback) || error("the coordinate ring of the domain does not coincide with the codomain of the pullback")
     OO(Y) == domain(pullback) || error("the coordinate ring of the codomain does not coincide with the domain of the pullback")
     @check begin
@@ -80,25 +80,25 @@ end
 
 function morphism(X::DomainType, Y::CodomainType, pullback::PullbackType;
     check::Bool=true
-  ) where {DomainType<:AbsSpec, CodomainType<:AbsSpec, PullbackType<:Map}
-  return SpecMor(X, Y, pullback; check)
+  ) where {DomainType<:AbsAffineScheme, CodomainType<:AbsAffineScheme, PullbackType<:Map}
+  return AffineSchemeMor(X, Y, pullback; check)
 end
 
 ########################################################################
 # A special type for open inclusions                                   #
 ########################################################################
 @doc raw"""
-    OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor
+    OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsAffineSchemeMor
 
 An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another
 one ``X``.
 """
-@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
+@attributes mutable struct OpenInclusion{DomainType, CodomainType, PullbackType} <: AbsAffineSchemeMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
+  inc::AffineSchemeMor{DomainType, CodomainType, PullbackType}
   I::Ideal
   Z::AffineScheme
 
-  function OpenInclusion(f::AbsSpecMor, I::Ideal; check::Bool=true)
+  function OpenInclusion(f::AbsAffineSchemeMor, I::Ideal; check::Bool=true)
     U = domain(f)
     X = codomain(f)
     Z = subscheme(X, I)

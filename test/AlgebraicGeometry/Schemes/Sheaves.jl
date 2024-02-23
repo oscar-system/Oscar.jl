@@ -2,18 +2,18 @@
   R, x = QQ["x", "y", "z"]
   X = spec(R)
 
-  is_open_func(U::AbsSpec, V::AbsSpec) = is_open_embedding(U, V)
+  is_open_func(U::AbsAffineScheme, V::AbsAffineScheme) = is_open_embedding(U, V)
 
-  function production_func(F::AbsPreSheaf, U::AbsSpec)
+  function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
     return ZZ
   end
 
-  function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+  function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
     return identity_map(ZZ)
   end
 
   const_sheaf_ZZ= PreSheafOnScheme(X, production_func, restriction_func,
-                              OpenType=AbsSpec, OutputType=typeof(ZZ),
+                              OpenType=AbsAffineScheme, OutputType=typeof(ZZ),
                               RestrictionType=typeof(identity_map(ZZ)),
                               is_open_func=is_open_func
                              )
@@ -56,7 +56,7 @@ end
   h = compose(tmp1, tmp2)
   @test h(gens(OO(W))[1]) == gens(OO(W))[1]
 
-  O = SpecOpen(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
+  O = AffineSchemeOpenSubscheme(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
   @test F(U[1], O)(OO(U[1])[1]) == OO(O)(OO(U[1])[1])
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))
 
@@ -97,7 +97,7 @@ end
   h = compose(tmp1, tmp2)
   @test h(gens(OO(W))[1]) == gens(OO(W))[1]
 
-  O = SpecOpen(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
+  O = AffineSchemeOpenSubscheme(U[1], lifted_numerator.([yx*(yx-1), yx*(zx-1)]))
   @test F(U[1], O)(OO(U[1])[1]) == OO(O)(OO(U[1])[1])
   @test F(U[2], O)(OO(U[2])[1]) == inv(OO(O)(OO(U[1])[1]))
 
@@ -106,7 +106,7 @@ end
   O2 = preimage(g, O)
   @test F(O2, O)(gens(OO(O2))[1]) == inv(OO(O)(OO(U[1])[1]))
   @test F(O, O2)(inv(OO(O)(OO(U[1])[1]))) == gens(OO(O2))[1]
-  O3 = SpecOpen(U[1], lifted_numerator.([yx*(yx-1)^3, yx*(zx-1)]))
+  O3 = AffineSchemeOpenSubscheme(U[1], lifted_numerator.([yx*(yx-1)^3, yx*(zx-1)]))
   @test F(O, O3)(one(OO(O))) == one(OO(O3))
   @test F(O2, O3)(one(OO(O2))) == one(OO(O3))
 end

@@ -1,12 +1,12 @@
 ########################################################################
-# (1) Attributes of AbsSpec
+# (1) Attributes of AbsAffineScheme
 #     coordinate ring and ambient space related methods
 ########################################################################
 
-# Here is the interface for AbsSpec
+# Here is the interface for AbsAffineScheme
 
 @doc raw"""
-    coordinate_ring(X::AbsSpec)
+    coordinate_ring(X::AbsAffineScheme)
 
 On an affine scheme ``X = Spec(R)``, return the ring ``R``.
 
@@ -34,32 +34,32 @@ Multivariate polynomial ring in 3 variables x1, x2, x3
   over rational field
 ```
 """
-coordinate_ring(X::AbsSpec) = OO(X)
+coordinate_ring(X::AbsAffineScheme) = OO(X)
 
 @doc raw"""
-    OO(X::AbsSpec)
+    OO(X::AbsAffineScheme)
 
 On an affine scheme ``X = Spec(R)``, return the ring ``R``.
 """
-function OO(X::AbsSpec{BRT, RT}) where {BRT, RT}
+function OO(X::AbsAffineScheme{BRT, RT}) where {BRT, RT}
   OO(underlying_scheme(X))::RT
 end
 
 @doc raw"""
-    total_ring_of_fractions(X::AbsSpec)
+    total_ring_of_fractions(X::AbsAffineScheme)
 
 Return the total ring of fractions of the coordinate ring of `X`.
 """
-@attr function total_ring_of_fractions(X::AbsSpec)
+@attr function total_ring_of_fractions(X::AbsAffineScheme)
   return total_ring_of_fractions(OO(X))
 end
 
 @doc raw"""
-    ambient_space(X::AbsSpec)
+    ambient_space(X::AbsAffineScheme)
 
 Return the ambient affine space of ``X``.
 
-Use [`ambient_embedding(::AbsSpec)`](@ref) to obtain the embedding of ``X`` in
+Use [`ambient_embedding(::AbsAffineScheme)`](@ref) to obtain the embedding of ``X`` in
 its ambient affine space.
 
 # Examples
@@ -188,11 +188,11 @@ julia> AX === AY
 false
 ```
 """
-function ambient_space(X::AbsSpec)
+function ambient_space(X::AbsAffineScheme)
   error("$X does not have an ambient affine space")
 end
 
-function ambient_space(X::AbsSpec{BRT, RT}) where {BRT, RT<:MPolyRing}
+function ambient_space(X::AbsAffineScheme{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
@@ -204,12 +204,12 @@ end
   return spec(ambient_coordinate_ring(X))
 end
 
-@attr function ambient_space(X::AbsSpec{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr function ambient_space(X::AbsAffineScheme{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return ambient_space(underlying_scheme(X))
 end
 
 @doc raw"""
-    ambient_embedding(X::AbsSpec)
+    ambient_embedding(X::AbsAffineScheme)
 
 Return the embedding of ``X`` in its ambient affine space.
 
@@ -241,16 +241,16 @@ julia> inc == inclusion_morphism(Y, X)
 true
 ```
 """
-function ambient_embedding(X::AbsSpec)
+function ambient_embedding(X::AbsAffineScheme)
   return inclusion_morphism(X, ambient_space(X), check=false)
 end
 
 @doc raw"""
-    ambient_coordinate_ring(X::AbsSpec)
+    ambient_coordinate_ring(X::AbsAffineScheme)
 
 Return the coordinate ring of the ambient affine space of ``X``.
 
-See also [`ambient_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsAffineScheme)`](@ref).
 
 # Examples
 ```jldoctest
@@ -273,16 +273,16 @@ Multivariate polynomial ring in 2 variables x, y
   over rational field
 ```
 """
-function ambient_coordinate_ring(X::AbsSpec)
+function ambient_coordinate_ring(X::AbsAffineScheme)
   return ambient_coordinate_ring(underlying_scheme(X))::MPolyRing
 end
 
 @doc raw"""
-    ambient_coordinates(X::AbsSpec)
+    ambient_coordinates(X::AbsAffineScheme)
 
 Return the coordinate functions of the ambient affine space of ``X``.
 
-See also [`ambient_space(::AbsSpec)`](@ref).
+See also [`ambient_space(::AbsAffineScheme)`](@ref).
 
 # Examples
 ```jldoctest
@@ -308,10 +308,10 @@ true
 
 ```
 """
-ambient_coordinates(X::AbsSpec) = gens(ambient_coordinate_ring(X))
+ambient_coordinates(X::AbsAffineScheme) = gens(ambient_coordinate_ring(X))
 
 @doc raw"""
-    coordinates(X::AbsSpec)
+    coordinates(X::AbsAffineScheme)
 
 Return the coordinate functions of ``X`` as elements of its coordinate ring.
 
@@ -346,10 +346,10 @@ julia> parent(xY) == coordinate_ring(Y)
 true
 ```
 """
-coordinates(X::AbsSpec) = gens(OO(X))
+coordinates(X::AbsAffineScheme) = gens(OO(X))
 
 @doc raw"""
-    base_ring(X::AbsSpec)
+    base_ring(X::AbsAffineScheme)
 
 On an affine scheme ``X/𝕜`` over ``𝕜`` this returns the ring ``𝕜``.
 
@@ -364,17 +364,17 @@ julia> base_ring(X)
 Rational field
 ```
 """
-function base_ring(X::AbsSpec{BRT, RT}) where {BRT, RT}
+function base_ring(X::AbsAffineScheme{BRT, RT}) where {BRT, RT}
   return base_ring(underlying_scheme(X))::BRT
 end
 
 ##############################################################################
-# (2) Attributes of AbsSpec
+# (2) Attributes of AbsAffineScheme
 #     dimension, codimension, name
 ##############################################################################
 
 @doc raw"""
-    dim(X::AbsSpec)
+    dim(X::AbsAffineScheme)
 
 Return the dimension the affine scheme ``X = Spec(R)``.
 
@@ -399,17 +399,17 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-dim(X::AbsSpec)
+dim(X::AbsAffineScheme)
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
   error("Not implemented")
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   # Spec (R / I)_P
   R = OO(X)
   P = prime_ideal(inverted_set(R))
@@ -417,30 +417,30 @@ end
   return dim(I) - dim(P)
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
   error("Not implemented")
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
   # zariski open subset of A^n
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   P = prime_ideal(inverted_set(OO(X)))
   return codim(P)
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyRing})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
-@attr function dim(X::AbsSpec{<:Ring, <:MPolyQuoRing})
+@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
   return dim(modulus(OO(X)))
 end
 
 @doc raw"""
-    codim(X::AbsSpec)
+    codim(X::AbsAffineScheme)
 
 Return the codimension of ``X`` in its ambient affine space.
 
@@ -477,7 +477,7 @@ julia> codim(Y)
 1
 ```
 """
-@attr function codim(X::AbsSpec)
+@attr function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
@@ -489,7 +489,7 @@ function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, R
 end
 
 @doc raw"""
-    name(X::AbsSpec)
+    name(X::AbsAffineScheme)
 
 Return the current name of an affine scheme.
 
@@ -511,23 +511,23 @@ julia> name(X)
 "affine 3-dimensional space"
 ```
 """
-@attr String function name(X::AbsSpec)
+@attr String function name(X::AbsAffineScheme)
   return "unnamed affine variety"
 end
 
 
-function set_name!(X::AbsSpec, name::String)
+function set_name!(X::AbsAffineScheme, name::String)
   return set_attribute!(X, :name, name)
 end
 
 #############################################################################
-# (3) Attributes of AbsSpec
+# (3) Attributes of AbsAffineScheme
 #     reduced scheme and singular locus
 #############################################################################
 # TODO: projective schemes, covered schemes
 
 @doc raw"""
-   reduced_scheme(X::AbsSpec{<:Field, <:MPolyAnyRing})
+   reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Return the induced reduced scheme of `X`.
 
@@ -573,7 +573,7 @@ julia> reduced_scheme(Y)
 
 ```
 """
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
     return X, identity_map(X)
   end
@@ -585,7 +585,7 @@ julia> reduced_scheme(Y)
   return Xred, inc
 end
 
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPolyQuoRing})
+@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
     return X, identity_map(X)
   end
@@ -597,11 +597,11 @@ end
 end
 
 ## to make reduced_scheme agnostic for quotient ring
-@attr function reduced_scheme(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
-function reduced_scheme(X::AbsSpec)
+function reduced_scheme(X::AbsAffineScheme)
   error("method 'reduced_scheme(X)' currently only implemented for affine Schemes and Space Germs over a field")
 end
 
@@ -674,7 +674,7 @@ julia> singular_locus(Y)
 
 ```
 """
-function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   comp = _singular_locus_with_decomposition(X,false)
   if length(comp) == 0
     set_attribute!(X, :is_smooth, true)
@@ -690,7 +690,7 @@ function singular_locus(X::AbsSpec{<:Field, <:MPAnyQuoRing})
 end
 
 # make singular_locus agnostic to quotient
-function singular_locus(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   set_attribute!(X, :is_smooth,true)
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
@@ -737,7 +737,7 @@ julia> singular_locus(X)
 
 ```
 """
-function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+function singular_locus_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   comp =  _singular_locus_with_decomposition(X, true)
   I= ideal(ambient_coordinate_ring(X),one(ambient_coordinate_ring(X)))
   for Z in comp
@@ -750,13 +750,13 @@ function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
 end
 
 # make singular_locus_reduced agnostic to quotient
-function singular_locus_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+function singular_locus_reduced(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
 end
 
 # internal workhorse, not user-facing
-function _singular_locus_with_decomposition(X::AbsSpec{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
+function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
   I = saturated_ideal(modulus(OO(X)))
   empty = typeof(X)[]
   result = empty
@@ -809,7 +809,7 @@ end
 ## compute *some* representative of the Jacobian matrix of gens(modulus),
 ## forgetting about the denominators (contribution killed by modulus anyway)
 
-function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
+function _jacobian_matrix_modulus(X::AbsAffineScheme{<:Ring, <:MPAnyQuoRing})
   g = gens(modulus(underlying_quotient(OO(X))))
   L = base_ring(underlying_quotient(OO(X)))
   n = nvars(L)
@@ -818,12 +818,12 @@ function _jacobian_matrix_modulus(X::AbsSpec{<:Ring, <:MPAnyQuoRing})
 end
 
 ########################################################################
-# (X) Attributes for AbsSpec
+# (X) Attributes for AbsAffineScheme
 #
 ########################################################################
 
 @doc raw"""
-    defining_ideal(X::AbsSpec)
+    defining_ideal(X::AbsAffineScheme)
 
 Return the ideal `I` defining `X` in an appropriate ambient space.
 
@@ -871,14 +871,14 @@ julia> base_ring(I) == R
 true
 ```
 """
-defining_ideal(X::AbsSpec) = error("method not implemented for input of type $(typeof(X))")
-@attr defining_ideal(X::AbsSpec{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
-defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
-defining_ideal(X::AbsSpec{<:Any, <:MPolyLocRing}) = modulus(OO(X))
-defining_ideal(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
+defining_ideal(X::AbsAffineScheme) = error("method not implemented for input of type $(typeof(X))")
+@attr defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
+defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = modulus(OO(X))
+defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))
 
 ########################################################################
-# (4) Implementation of the AbsSpec interface for the basic AffineScheme
+# (4) Implementation of the AbsAffineScheme interface for the basic AffineScheme
 ########################################################################
 
 OO(X::AffineScheme) = X.OO
@@ -897,19 +897,19 @@ ambient_coordinate_ring(X::AffineScheme{T, T}) where {T<:Field} = base_ring(X)
 
 # TODO: Needed?
 
-ring_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = RT
-ring_type(X::AbsSpec) = ring_type(typeof(X))
+ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = RT
+ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
-base_ring_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = BRT
-base_ring_type(X::AbsSpec) = base_ring_type(typeof(X))
-base_ring_elem_type(::Type{SpecType}) where {BRT, RT, SpecType<:AbsSpec{BRT, RT}} = elem_type(BRT)
-base_ring_elem_type(X::AbsSpec) = base_ring_elem_type(typeof(X))
+base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
+base_ring_type(X::AbsAffineScheme) = base_ring_type(typeof(X))
+base_ring_elem_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(BRT)
+base_ring_elem_type(X::AbsAffineScheme) = base_ring_elem_type(typeof(X))
 
-poly_type(::Type{SpecType}) where {BRT, RT<:MPolyRing, SpecType<:AbsSpec{BRT, RT}} = elem_type(RT)
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoRing{T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(::Type{SpecType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, SpecType<:AbsSpec{BRT, RT}} = T
-poly_type(X::AbsSpec) = poly_type(typeof(X))
+poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
+poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
+poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
+poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
+poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::AffineScheme) = ring_type(typeof(X))

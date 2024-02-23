@@ -186,15 +186,15 @@ function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
 end
 
 ########################################################
-# (4) StdSpec (needed?)
+# (4) StdAffineScheme (needed?)
 # Calling this in a constructor should be avoided
 # since we want to support all types of affine schemes.
-# But StdSpec can be useful when implementing some
+# But StdAffineScheme can be useful when implementing some
 # comparison or properties.
 ########################################################
 
 @doc raw"""
-    standard_spec(X::AbsSpec)
+    standard_spec(X::AbsAffineScheme)
 
 For an affine spectrum with coordinate ring of type `MPolyRing`,
 `MPolyQuoRing`, or `MPolyLocRing`, return the canonical
@@ -252,15 +252,15 @@ Spectrum
     at complement of prime ideal (x)
 ```
 """
-function standard_spec(X::AbsSpec)
+function standard_spec(X::AbsAffineScheme)
   error("not implemented for input of type $(typeof(X))")
 end
 
-standard_spec(X::AbsSpec{<:Any, <:MPolyRing}) = spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
+standard_spec(X::AbsAffineScheme{<:Any, <:MPolyRing}) = spec(MPolyQuoLocRing(OO(X), ideal(OO(X), [zero(OO(X))]), units_of(OO(X))))
 
 
 # documented above
-function standard_spec(X::AbsSpec{<:Any, <:MPolyQuoRing})
+function standard_spec(X::AbsAffineScheme{<:Any, <:MPolyQuoRing})
   A = OO(X)
   R = base_ring(A)
   return AffineScheme(MPolyQuoLocRing(R, modulus(A), units_of(R)))
@@ -268,10 +268,10 @@ end
 
 
 # documented above
-standard_spec(X::AbsSpec{<:Any, <:MPolyLocRing}) = AffineScheme(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
+standard_spec(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = AffineScheme(MPolyQuoLocRing(ambient_coordinate_ring(X), ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]), inverted_set(OO(X))))
 
 #documented above
-standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = AffineScheme(OO(X))
+standard_spec(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = AffineScheme(OO(X))
 
 
 
@@ -280,7 +280,7 @@ standard_spec(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = AffineScheme(OO(X))
 ########################################################
 
 @doc raw"""
-    subscheme(X::AbsSpec, f::Vector{<:RingElem})
+    subscheme(X::AbsAffineScheme, f::Vector{<:RingElem})
 
 For an affine spectrum ``X`` and elements ``f_1``, ``f_2``,
 etc. of the coordinate ring of ``X``, this method computes
@@ -318,16 +318,16 @@ Spectrum
     by ideal (x1, x2)
 ```
 """
-subscheme(X::AbsSpec, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
+subscheme(X::AbsAffineScheme, f::Vector{<:RingElem}) = subscheme(X, ideal(OO(X), f))
 function subscheme(X::AffineScheme, f::Vector{<:RingElem})
   all(x->(parent(x) == OO(X)), f) || return subscheme(X, OO(X).(f))
   return subscheme(X, ideal(OO(X), f))
 end
-subscheme(X::AbsSpec, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
+subscheme(X::AbsAffineScheme, f::RingElem) = subscheme(X, ideal(OO(X), [f]))
 
 
 @doc raw"""
-    subscheme(X::AbsSpec, I::Ideal)
+    subscheme(X::AbsAffineScheme, I::Ideal)
 
 For a scheme ``X = Spec(R)`` and an ideal ``I ⊂ 𝒪(X)``,
 return the closed subscheme defined by ``I``.
@@ -357,19 +357,19 @@ Spectrum
     by ideal (x1*x2)
 ```
 """
-function subscheme(X::AbsSpec, I::Ideal)
+function subscheme(X::AbsAffineScheme, I::Ideal)
   base_ring(I) == OO(X) || return subscheme(X, ideal(OO(X), OO(X).(gens(I)))) # this will throw if coercion is not possible
   Y =  spec(quo(OO(X), I)[1])
   set_attribute!(Y, :ambient_space, ambient_space(X))
   return Y
 end
 
-function sub(X::AbsSpec, a)
+function sub(X::AbsAffineScheme, a)
   (a isa RingElem && parent(a) === OO(X)) || return sub(X, OO(X)(a))
   return sub(X, ideal(OO(X), a))
 end
 
-function sub(X::AbsSpec, a::Vector)
+function sub(X::AbsAffineScheme, a::Vector)
   all(a->a isa RingElem && parent(a) === OO(X), a) || return sub(X, OO(X).(a))
   return sub(X, ideal(OO(X), a))
 end
@@ -380,7 +380,7 @@ end
 ########################################################
 
 @doc raw"""
-    hypersurface_complement(X::AbsSpec, f::RingElem)
+    hypersurface_complement(X::AbsAffineScheme, f::RingElem)
 
 For a scheme ``X = Spec(R)`` and an element ``f ∈ R``,
 return the open subscheme ``U = Spec(R[f⁻¹]) = X ∖ V(f)``
@@ -411,11 +411,11 @@ Spectrum
     at products of (x1)
 ```
 """
-function hypersurface_complement(X::AbsSpec, f::RingElem)
-  return hypersurface_complement(underlying_scheme(X), f)::AbsSpec
+function hypersurface_complement(X::AbsAffineScheme, f::RingElem)
+  return hypersurface_complement(underlying_scheme(X), f)::AbsAffineScheme
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocRing}}
+function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoLocRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
@@ -426,7 +426,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyLocRing}}
+function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyLocRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
@@ -437,7 +437,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
+function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
   simplify!(U)
@@ -447,7 +447,7 @@ function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsS
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::RingElem) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
+function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
   simplify!(U)
@@ -459,7 +459,7 @@ end
 
 
 @doc raw"""
-    hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
+    hypersurface_complement(X::AbsAffineScheme, f::Vector{<:RingElem})
 
 For a scheme ``X = Spec(R)`` and elements ``f₁, f₂, ... ∈ R``,
 return the open subscheme ``U = Spec(R[f₁⁻¹,f₂⁻¹, ...]) = X ∖ V(f₁⋅f₂⋅…)``
@@ -490,11 +490,11 @@ Spectrum
     at products of (x1,x2)
 ```
 """
-function hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
-  return hypersurface_complement(underlying_scheme(X), f)::AbsSpec
+function hypersurface_complement(X::AbsAffineScheme, f::Vector{<:RingElem})
+  return hypersurface_complement(underlying_scheme(X), f)::AbsAffineScheme
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoLocRing}}
+function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoLocRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
@@ -505,7 +505,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyLocRing}}
+function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyLocRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
@@ -516,7 +516,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyRing}}
+function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
   simplify!(U)
@@ -526,7 +526,7 @@ function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {Spec
   return Y
 end
 
-function hypersurface_complement(X::SpecType, f::Vector{<:RingElem}) where {SpecType<:AbsSpec{<:Any, <:MPolyQuoRing}}
+function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
   simplify!(U)
@@ -551,12 +551,12 @@ Base.intersect(X::EmptyScheme{BRT}, E::EmptyScheme{BRT}) where {BRT<:Ring} = E
 
 # 7.2 Intersection methods not involving empty schemes
 
-### For Specs of MPolyRings
+### For AffineSchemes of MPolyRings
 # TODO  intersect X,Y for X<Y should return a copy of X with === ambient_coordinate_rings
 # spec(X) does not apply for instance to principal open subsets hence a change
 # is necessary
 @doc raw"""
-    Base.intersect(X::AbsSpec, Y::AbsSpec)
+    Base.intersect(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 This method computes the intersection to two affine
 schemes that reside in the same ambient affine space.
@@ -600,13 +600,13 @@ Spectrum
     by ideal (x1, x2)
 ```
 """
-function Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
+function Base.intersect(X::AbsAffineScheme{BRT, <:Ring}, Y::AbsAffineScheme{BRT, <:Ring}) where {BRT<:Ring}
   error("method not implemented for arguments of type $(typeof(X)) and $(typeof(Y))")
 end
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R == OO(Y) || error("schemes can not be compared")
@@ -615,8 +615,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuoRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -625,8 +625,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -635,8 +635,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -645,17 +645,17 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Ring},
-    X::AbsSpec{BRT, <:MPolyRing}
+    Y::AbsAffineScheme{BRT, <:Ring},
+    X::AbsAffineScheme{BRT, <:MPolyRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
 end
 
 
-### For Specs of MPolyQuos
+### For AffineSchemes of MPolyQuos
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyQuoRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -664,8 +664,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -674,8 +674,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -684,17 +684,17 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Ring},
-    X::AbsSpec{BRT, <:MPolyQuoRing}
+    Y::AbsAffineScheme{BRT, <:Ring},
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
 end
 
 
-### For Specs of MPolyLocalizedRings
+### For AffineSchemes of MPolyLocalizedRings
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -703,8 +703,8 @@ end
 
 
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -713,17 +713,17 @@ end
 
 
 function Base.intersect(
-    Y::AbsSpec{BRT, <:Ring},
-    X::AbsSpec{BRT, <:MPolyLocRing}
+    Y::AbsAffineScheme{BRT, <:Ring},
+    X::AbsAffineScheme{BRT, <:MPolyLocRing}
   ) where {BRT<:Ring}
   return intersect(X, Y)
 end
 
 
-### For Specs of MPolyQuoLocalizedRings
+### For AffineSchemes of MPolyQuoLocalizedRings
 function Base.intersect(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT<:Ring}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
@@ -740,7 +740,7 @@ end
 
 #TODO: Add more cross-type methods as needed.
 @doc raw"""
-    closure(X::AbsSpec, Y::AbsSpec)
+    closure(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 Return the closure of ``X`` in ``Y``.
 
@@ -776,13 +776,13 @@ Spectrum
     by ideal (x1)
 ```
 """
-function closure(X::AbsSpec, Y::AbsSpec, check= true)
+function closure(X::AbsAffineScheme, Y::AbsAffineScheme, check= true)
   error("not implemented")
 end
 
 function closure(
-    X::AbsSpec{BRT, <:Union{MPolyQuoRing,MPolyRing}},
-    Y::AbsSpec{BRT, <:MPolyAnyRing};
+    X::AbsAffineScheme{BRT, <:Union{MPolyQuoRing,MPolyRing}},
+    Y::AbsAffineScheme{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
@@ -790,8 +790,8 @@ function closure(
 end
 
 function closure(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyAnyRing};
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyAnyRing};
     check::Bool=true
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
@@ -799,8 +799,8 @@ function closure(
 end
 
 function closure(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing};
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
@@ -809,8 +809,8 @@ end
 
 
 function closure(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:Union{MPolyRing,MPolyQuoRing}};
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:Union{MPolyRing,MPolyQuoRing}};
     check::Bool=true
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
@@ -819,8 +819,8 @@ function closure(
 end
 
 function closure(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing};
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing};
     check::Bool=true
   ) where {BRT}
   @check is_subscheme(X, Y) "the first argument is not a subset of the second"
@@ -830,8 +830,8 @@ function closure(
 end
 
 function closure(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT};
+    X::AbsAffineScheme{BRT, RT},
+    Y::AbsAffineScheme{BRT, RT};
     check::Bool=true
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                     <:MPolyPowersOfElement}}
@@ -845,11 +845,11 @@ function closure(
 end
 
 @doc raw"""
-    closure(X::AbsSpec) -> AbsSpec
+    closure(X::AbsAffineScheme) -> AbsAffineScheme
 
 Return the closure of `X` in its ambient affine space.
 """
-closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)
+closure(X::AbsAffineScheme) = closure(X, ambient_space(X), check= true)
 
 
 
@@ -857,7 +857,7 @@ closure(X::AbsSpec) = closure(X, ambient_space(X), check= true)
 # Unions
 ######################################################################
 
-function union(X::AbsSpec{BRT,RT}, Y::AbsSpec{BRT,RT}) where {BRT, RT<:MPolyQuoRing}
+function union(X::AbsAffineScheme{BRT,RT}, Y::AbsAffineScheme{BRT,RT}) where {BRT, RT<:MPolyQuoRing}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   IX = modulus(OO(X))
@@ -865,12 +865,12 @@ function union(X::AbsSpec{BRT,RT}, Y::AbsSpec{BRT,RT}) where {BRT, RT<:MPolyQuoR
   return spec(R, intersect(IX, IY))
 end
 
-function union(X::AbsSpec{BRT,<:MPolyQuoRing}, Y::AbsSpec{BRT,<:MPolyRing}) where {BRT}
+function union(X::AbsAffineScheme{BRT,<:MPolyQuoRing}, Y::AbsAffineScheme{BRT,<:MPolyRing}) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || error("schemes can not be compared")
   return X
 end
 
-function union(X::AbsSpec{BRT,<:MPolyRing}, Y::AbsSpec{BRT,<:MPolyQuoRing}) where {BRT}
+function union(X::AbsAffineScheme{BRT,<:MPolyRing}, Y::AbsAffineScheme{BRT,<:MPolyQuoRing}) where {BRT}
   return union(Y,X)
 end

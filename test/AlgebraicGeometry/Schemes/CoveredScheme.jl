@@ -70,7 +70,7 @@ end
 
   U = C1[2]
   x = gens(ambient_coordinate_ring(U))[1]
-  W = SpecOpen(U, [x, x-1])
+  W = AffineSchemeOpenSubscheme(U, [x, x-1])
   W1, W2 = affine_patches(W)
   #add_affine_refinement!(C1, W)
 
@@ -246,7 +246,7 @@ end
   x, y, z = gens(OO(U))
   V2 = PrincipalOpenSubset(U, x)
   V1 = PrincipalOpenSubset(U, x-1)
-  new_cov = Covering(append!(AbsSpec[V1, V2], patches(orig_cov)[2:end]))
+  new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
   Oscar.inherit_gluings!(new_cov, orig_cov)
   Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
   @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]

@@ -14,7 +14,7 @@
   rrr = L(U21, W)
   @test rr == compose(rho, rrr)
   WW = simplify(W)
-  @test WW isa Oscar.SimplifiedSpec
+  @test WW isa Oscar.SimplifiedAffineScheme
   rrWW = L(U[1], WW)
   rrrWW = L(U21, WW)
   @test rrWW == compose(rho, rrrWW)

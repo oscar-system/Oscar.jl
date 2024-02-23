@@ -191,7 +191,7 @@ function dim(X::AbsCoveredScheme)
 end
 
 @attr function singular_locus_reduced(X::AbsCoveredScheme)
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   for U in affine_charts(X)
     _, inc_sing = singular_locus_reduced(U)
     D[U] = image_ideal(inc_sing)
@@ -260,7 +260,7 @@ given by the pullback function
 @attr function singular_locus(
     X::AbsCoveredScheme;
   )
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   covering = get_attribute(X, :simplified_covering, default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)
@@ -274,7 +274,7 @@ end
 @attr function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
   )
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   covering = get_attribute(X, :simplified_covering, default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)

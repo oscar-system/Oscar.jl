@@ -2,14 +2,14 @@
 # Finding patches                                                      #
 ########################################################################
 
-function getindex(C::Covering, X::AbsSpec)
+function getindex(C::Covering, X::AbsAffineScheme)
   for i in 1:length(patches(C))
     X === patches(C)[i] && return i
   end
   error("affine scheme could not be found among the patches")
 end
 
-function Base.in(U::AbsSpec, C::Covering)
+function Base.in(U::AbsAffineScheme, C::Covering)
   for i in 1:n_patches(C)
     U === C[i] && return true
   end
@@ -26,7 +26,7 @@ function Base.in(U::AbsSpec, C::Covering)
 #  return false
 end
 
-function Base.indexin(U::AbsSpec, C::Covering)
+function Base.indexin(U::AbsAffineScheme, C::Covering)
   for i in 1:n_patches(C)
     U === C[i] && return (i, 0, 0)
   end
@@ -49,7 +49,7 @@ end
 ########################################################################
 # Functionality for lazy gluing                                       #
 ########################################################################
-function neighbor_patches(C::Covering, U::AbsSpec)
+function neighbor_patches(C::Covering, U::AbsAffineScheme)
   gg = gluing_graph(C)
   n = neighbors(gg, C[U])
   return [C[i] for i in n]
@@ -172,7 +172,7 @@ function Base.length(C::Covering)
 end
 
 function all_patches(C::Covering)
-  result = Vector{AbsSpec}()
+  result = Vector{AbsAffineScheme}()
   for U in patches(C)
     push!(result, U)
     if haskey(affine_refinements(C), U)
@@ -190,7 +190,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = AbsSpec
+Base.eltype(C::Covering) = AbsAffineScheme
 
 ########################################################################
 # Building a Covering                                                  #
@@ -329,8 +329,8 @@ function common_refinement(C::Covering, D::Covering)
   dirty_C = copy(patches(C))
   dirty_D = copy(patches(D))
 
-  map_dict_C = IdDict{AbsSpec, AbsSpecMor}()
-  map_dict_D = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict_C = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  map_dict_D = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in dirty_C
     if has_ancestor_in(patches(D), U)
       f, _ = _find_chart(U, D)
@@ -359,7 +359,7 @@ function common_refinement(C::Covering, D::Covering)
   return E, phi, psi
 end
 
-function has_ancestor_in(L::Vector, U::AbsSpec)
+function has_ancestor_in(L::Vector, U::AbsAffineScheme)
   return has_ancestor(x->any(y->(y===x), L), U)
 end
 
@@ -367,7 +367,7 @@ function is_refinement(D::Covering, C::Covering)
   if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
     return false, nothing
   end
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(D)
     f, _ = _find_chart(U, C)
     map_dict[U] = f
@@ -382,7 +382,7 @@ function base_change(phi::Any, C::Covering)
   U = patches(C)
   patch_change = [base_change(phi, V) for V in U]
 
-  gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+  gluing_dict = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for i in 1:length(U)
     (A, map_A) = patch_change[i]
     for j in 1:length(U)
@@ -394,13 +394,13 @@ function base_change(phi::Any, C::Covering)
   end
   CC = Covering([V for (V, _) in patch_change], gluing_dict)
 
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (V, phi) in patch_change
     mor_dict[V] = phi
   end
 
   # Maintain decomposition information if applicable
-  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
   if has_decomposition_info(C)
     for (U, psi) in patch_change
       V = codomain(psi)

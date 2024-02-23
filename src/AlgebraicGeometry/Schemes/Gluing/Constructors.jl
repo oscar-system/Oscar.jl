@@ -3,7 +3,7 @@
 # Dummy constructor for documentation only                             #
 ########################################################################
 @doc raw"""
-    Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+    Gluing(X::AbsAffineScheme, Y::AbsAffineScheme, f::SchemeMor, g::SchemeMor)
 
 Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms
 ``f`` and ``g`` of open subsets ``U`` of ``X`` and ``V`` of ``Y``.
@@ -36,13 +36,13 @@ given by the pullback function
 julia> G isa SimpleGluing # Since the gluing domains were `PrincipalOpenSubsets`, this defaults to a `SimpleGluing`
 true
 
-julia> # Alternative using SpecOpens as gluing domains:
+julia> # Alternative using AffineSchemeOpenSubschemes as gluing domains:
 
-julia> W1 = SpecOpen(U1, [x]); W2 = SpecOpen(U2, [u]);
+julia> W1 = AffineSchemeOpenSubscheme(U1, [x]); W2 = AffineSchemeOpenSubscheme(U2, [u]);
 
-julia> h1 = SpecOpenMor(W1, W2, [1//x, y//x]);
+julia> h1 = AffineSchemeOpenSubschemeMor(W1, W2, [1//x, y//x]);
 
-julia> h2 = SpecOpenMor(W2, W1, [1//u, v//u]);
+julia> h2 = AffineSchemeOpenSubschemeMor(W2, W1, [1//u, v//u]);
 
 julia> H = Gluing(U1, U2, h1, h2)
 Gluing
@@ -63,7 +63,7 @@ julia> H isa Gluing
 true
 ```
 """
-function Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+function Gluing(X::AbsAffineScheme, Y::AbsAffineScheme, f::SchemeMor, g::SchemeMor)
   error("constructor for `Gluing` not implemented for morphisms of type $(typeof(f)) and $(typeof(g))")
 end
 
@@ -76,10 +76,10 @@ function Gluing(G::SimpleGluing)
   f, g = gluing_morphisms(G)
   incY = inclusion_morphism(V, Y)
   incX = inclusion_morphism(U, X)
-  Uo = SpecOpen(U)
-  Vo = SpecOpen(V)
-  fo = SpecOpenMor(Uo, Vo, [compose(f, incY)], check=false)
-  go = SpecOpenMor(Vo, Uo, [compose(g, incX)], check=false)
+  Uo = AffineSchemeOpenSubscheme(U)
+  Vo = AffineSchemeOpenSubscheme(V)
+  fo = AffineSchemeOpenSubschemeMor(Uo, Vo, [compose(f, incY)], check=false)
+  go = AffineSchemeOpenSubschemeMor(Vo, Uo, [compose(g, incX)], check=false)
   return Gluing(X, Y, fo, go, check=false)
 end
 
@@ -93,9 +93,9 @@ end
 ########################################################################
 
 function Gluing(
-    X::AbsSpec, Y::AbsSpec,
-    f::AbsSpecMor{<:PrincipalOpenSubset},
-    g::AbsSpecMor{<:PrincipalOpenSubset};
+    X::AbsAffineScheme, Y::AbsAffineScheme,
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset},
+    g::AbsAffineSchemeMor{<:PrincipalOpenSubset};
     check::Bool=true)
   return SimpleGluing(X, Y, f, g, check=check)
 end
@@ -103,11 +103,11 @@ end
 ########################################################################
 # Restrictions of Gluings to closed subschemes                        #
 ########################################################################
-function restrict(G::AbsGluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+function restrict(G::AbsGluing, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
   return restrict(underlying_gluing(G), X, Y, check=check)
 end
 
-function restrict(G::AbsGluing, X::AbsSpec, Y::AbsSpec,
+function restrict(G::AbsGluing, X::AbsAffineScheme, Y::AbsAffineScheme,
     Ures::Scheme, Vres::Scheme;
     check::Bool=true
   )
@@ -115,7 +115,7 @@ function restrict(G::AbsGluing, X::AbsSpec, Y::AbsSpec,
 end
 
 
-function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+function restrict(G::Gluing, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
   U, V = gluing_domains(G)
   f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
@@ -125,7 +125,7 @@ function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   return Gluing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
-function restrict(G::SimpleGluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
+function restrict(G::SimpleGluing, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
   U, V = gluing_domains(G)
   f, g = gluing_morphisms(G)
   @check is_closed_embedding(intersect(X, ambient_scheme(U)), ambient_scheme(U)) "the scheme is not a closed in the ambient scheme of the open set"
@@ -137,8 +137,8 @@ function restrict(G::SimpleGluing, X::AbsSpec, Y::AbsSpec; check::Bool=true)
   return SimpleGluing(X, Y, f_res, g_res, check=check)
 end
 
-function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec,
-    Ures::SpecOpen, Vres::SpecOpen;
+function restrict(G::Gluing, X::AbsAffineScheme, Y::AbsAffineScheme,
+    Ures::AffineSchemeOpenSubscheme, Vres::AffineSchemeOpenSubscheme;
     check::Bool=true
   )
   U, V = gluing_domains(G)
@@ -148,7 +148,7 @@ function restrict(G::Gluing, X::AbsSpec, Y::AbsSpec,
   return Gluing(X, Y, restrict(f, Ures, Vres, check=check), restrict(g, Vres, Ures, check=check), check=check)
 end
 
-function restrict(G::SimpleGluing, X::AbsSpec, Y::AbsSpec,
+function restrict(G::SimpleGluing, X::AbsAffineScheme, Y::AbsAffineScheme,
     UX::PrincipalOpenSubset, VY::PrincipalOpenSubset;
     check::Bool=true
   )
@@ -165,12 +165,12 @@ end
 # Identification of gluings under isomorphisms of patches             #
 ########################################################################
 @doc raw"""
-    restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+    restrict(G::AbsGluing, f::AbsAffineSchemeMor, g::AbsAffineSchemeMor; check::Bool=true)
 
 Given a gluing ``X ↩ U ≅ V ↪ Y`` and isomorphisms ``f : X → X'`` and
 ``g: Y → Y'``, return the induced gluing of ``X'`` and ``Y'``.
 """
-function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+function restrict(G::AbsGluing, f::AbsAffineSchemeMor, g::AbsAffineSchemeMor; check::Bool=true)
   (X1, Y1) = patches(G)
   X1 === domain(f) || error("maps not compatible")
   X2 = codomain(f)
@@ -196,7 +196,7 @@ function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
                 )
 end
 
-function restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor,
+function restrict(G::AbsGluing, f::AbsAffineSchemeMor, g::AbsAffineSchemeMor,
     f_res::SchemeMor, g_res::SchemeMor;
     check::Bool=true
   )

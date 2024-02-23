@@ -84,7 +84,7 @@ function isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
   if !has_attribute(f, :iso_on_open_subset)
     is_birational(f) # Should compute and store the attribute
   end
-  return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
+  return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
 end
 
 @attr AbsCoveredSchemeMorphism function inverse(f::AbsCoveredSchemeMorphism)

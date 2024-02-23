@@ -173,7 +173,7 @@ end
   @test is_smooth(X)
 end
 
-@testset "AbsSpec interface" begin
+@testset "AbsAffineScheme interface" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   A3 = spec(R)
   set_name!(A3, "𝔸³")
@@ -249,7 +249,7 @@ end
   @test pullback(inc)(x) == OO(Y)(x)
   @test pullback(inc)(y) == OO(Y)(y)
   @test image_ideal(inc) == modulus(OO(Y))
-  @test complement(inc) == SpecOpen(X, [h])
+  @test complement(inc) == AffineSchemeOpenSubscheme(X, [h])
 end
 
 @testset "fix for is_smooth" begin
@@ -293,9 +293,9 @@ end
   UU, f = base_change(pr, U)
   @test UU isa PrincipalOpenSubset
 
-  W = SpecOpen(IA2, [x, y])
+  W = AffineSchemeOpenSubscheme(IA2, [x, y])
   WW, f = base_change(pr, W)
-  @test WW isa SpecOpen
+  @test WW isa AffineSchemeOpenSubscheme
 end
 
 @testset "principal open embeddings" begin

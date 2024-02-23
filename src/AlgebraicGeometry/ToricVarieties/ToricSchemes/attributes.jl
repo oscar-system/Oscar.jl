@@ -46,14 +46,14 @@ julia> forget_toric_structure(P2)
 """
 function forget_toric_structure(X::NormalToricVariety)
   # Collect all the isomorphisms forgetting the toric structure
-  iso_dict = IdDict{AbsSpec, AbsSpecMor}()
+  iso_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in affine_charts(X)
     iso_dict[U] = forget_toric_structure(U)[2] # store only the isomorphism
   end
   cov = Covering([domain(phi) for (U, phi) in iso_dict])
 
   # Prepare a dictionary that can be used in the constructor of the covering morphism
-  iso_dict_covariant = IdDict{AbsSpec, AbsSpecMor}()
+  iso_dict_covariant = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     iso_dict_covariant[domain(phi)] = phi
   end
@@ -67,7 +67,7 @@ function forget_toric_structure(X::NormalToricVariety)
 
   # Prepare the underlying covering morphisms for the identifying isomorphisms
   iso_cov = CoveringMorphism(cov, default_covering(X), iso_dict_covariant)
-  inv_dict = IdDict{AbsSpec, AbsSpecMor}()
+  inv_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     inv_dict[U] = inverse(phi)
   end

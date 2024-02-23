@@ -53,7 +53,7 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
-  I = IdDict{AbsSpec, Ideal}()
+  I = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(C)
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
@@ -67,7 +67,7 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
   X_covered = covered_scheme(X)
   C = default_covering(X_covered)
   r = relative_ambient_dimension(X)
-  I = IdDict{AbsSpec, Ideal}()
+  I = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(C)
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
@@ -100,7 +100,7 @@ function IdealSheaf(
   ) where {RingElemType<:MPolyDecRingElem}
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
-  I = IdDict{AbsSpec, Ideal}()
+  I = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(default_covering(X_covered))
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
@@ -113,7 +113,7 @@ function IdealSheaf(
   ) where {RingElemType<:MPolyQuoRingElem}
   X_covered = covered_scheme(X)
   r = relative_ambient_dimension(X)
-  I = IdDict{AbsSpec, Ideal}()
+  I = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(default_covering(X_covered))
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
@@ -128,7 +128,7 @@ ideal_sheaf(X::AbsProjectiveScheme, g::Vector{RingElemType}) where {RingElemType
 # this constructs the zero ideal sheaf
 function IdealSheaf(X::AbsCoveredScheme)
   C = default_covering(X)
-  I = IdDict{AbsSpec, Ideal}()
+  I = IdDict{AbsAffineScheme, Ideal}()
   for U in basic_patches(C)
     I[U] = ideal(OO(U), elem_type(OO(U))[])
   end
@@ -145,7 +145,7 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector)
 
 Set up an ideal sheaf on ``X`` by specifying a set of generators ``g``
 on one affine open subset ``U`` among the `basic_patches` of the
@@ -155,7 +155,7 @@ on one affine open subset ``U`` among the `basic_patches` of the
 of ``X`` since otherwise, the extension of the ideal sheaf to other
 charts can not be inferred.
 """
-function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem}
+function IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}) where {RET<:RingElem}
   C = default_covering(X)
   for f in g
     parent(f) === OO(U) || error("the generators do not belong to the correct ring")
@@ -167,14 +167,14 @@ function IdealSheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<
     J = saturated_ideal(pullback(inverse(inc_U_flat))(ideal(OO(U), g)))
     return IdealSheaf(X, V, OO(V).(gens(J)))
   end
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   D[U] = ideal(OO(U), g)
   D = extend!(C, D)
   I = IdealSheaf(X, D, check=false)
   return I
 end
 
-ideal_sheaf(X::AbsCoveredScheme, U::AbsSpec, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme,
@@ -191,7 +191,7 @@ function IdealSheaf(Y::AbsCoveredScheme,
   )
   maps = morphisms(phi)
   V = [codomain(ff) for ff in values(maps)]
-  dict = IdDict{AbsSpec, Ideal}()
+  dict = IdDict{AbsAffineScheme, Ideal}()
   V = unique!(V)
   for W in V
     i = findall(x->(codomain(x) == W), maps)
@@ -215,7 +215,7 @@ end
 #  D = codomain(F)
 #  D == covering(I) || error("ideal sheaf is not defined on the correct covering")
 #  C = domain(F)
-#  new_dict = Dict{AbsSpec, Ideal}()
+#  new_dict = Dict{AbsAffineScheme, Ideal}()
 #
 #  # go through the patches of C and pull back the generators
 #  # whenever they are defined on the target patch
@@ -234,7 +234,7 @@ end
 #        h = pullback(f).(gens(W))
 #        # take care to discard possibly empty preimages of patches
 #        j = [i for i in 1:length(h) if !iszero(h)]
-#        Wpre = SpecOpen(U, h[j])
+#        Wpre = AffineSchemeOpenSubscheme(U, h[j])
 #        add_affine_refinement!(C, Wpre)
 #        for i in 1:length(j)
 #          if haskey(ideal_dict(I), Wpre[i])
@@ -250,7 +250,7 @@ end
 function +(I::IdealSheaf, J::IdealSheaf)
   X = space(I)
   X == space(J) || error("ideal sheaves are not defined over the same scheme")
-  new_dict = IdDict{AbsSpec, Ideal}()
+  new_dict = IdDict{AbsAffineScheme, Ideal}()
   CI = default_covering(X)
   for U in patches(CI)
     new_dict[U] = I(U) + J(U)
@@ -261,7 +261,7 @@ end
 function *(I::IdealSheaf, J::IdealSheaf)
   X = space(I)
   X == space(J) || error("ideal sheaves are not defined over the same scheme")
-  new_dict = IdDict{AbsSpec, Ideal}()
+  new_dict = IdDict{AbsAffineScheme, Ideal}()
   CI = default_covering(X)
   for U in patches(CI)
     new_dict[U] = I(U) * J(U)
@@ -276,7 +276,7 @@ Replaces the set of generators of the ideal sheaf by a minimal
 set of random linear combinations in every affine patch.
 """
 function simplify!(I::IdealSheaf)
-  new_ideal_dict = IdDict{AbsSpec, Ideal}()
+  new_ideal_dict = IdDict{AbsAffineScheme, Ideal}()
   for U in basic_patches(default_covering(space(I)))
     new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
     #=
@@ -312,8 +312,8 @@ function subscheme(I::IdealSheaf)
   X = space(I)
   C = default_covering(X)
   new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
-  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
-  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  new_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
+  decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
   for (U, V) in keys(gluings(C))
     i = C[U]
     j = C[V]
@@ -342,7 +342,7 @@ end
 
 
 @doc raw"""
-    extend!(C::Covering, D::Dict{SpecType, IdealType}) where {SpecType<:AffineScheme, IdealType<:Ideal}
+    extend!(C::Covering, D::Dict{AffineSchemeType, IdealType}) where {AffineSchemeType<:AffineScheme, IdealType<:Ideal}
 
 For ``C`` a covering and ``D`` a dictionary holding vectors of
 polynomials on affine patches of ``C`` this function extends the
@@ -358,24 +358,24 @@ on which ``I`` had already been described.
 Note that the covering `C` is not modified.
 """
 function extend!(
-    C::Covering, D::IdDict{AbsSpec, Ideal};
+    C::Covering, D::IdDict{AbsAffineScheme, Ideal};
     all_dense::Bool=false
   )
   all(x->any(y->x===y, patches(C)), keys(D)) || error("ideals must be given on the `patches` of the covering")
   # push all nodes on which I is known in a heap
   visited = collect(keys(D))
   # The nodes which can be used for extension
-  fat = AbsSpec[U for U in visited if !isone(D[U])]
+  fat = AbsAffineScheme[U for U in visited if !isone(D[U])]
   # Nodes which are leafs
-  flat = AbsSpec[U for U in visited if isone(D[U])]
+  flat = AbsAffineScheme[U for U in visited if isone(D[U])]
   # Nodes to which we might need to extend
-  leftover = AbsSpec[U for U in patches(C) if !(U in keys(D))]
+  leftover = AbsAffineScheme[U for U in patches(C) if !(U in keys(D))]
   # Nodes to which we can extend in one step
-  neighbors = AbsSpec[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
+  neighbors = AbsAffineScheme[U for U in leftover if any(V->haskey(gluings(C), (U, V)), fat)]
   # All other nodes
-  leftover = AbsSpec[U for U in leftover if !any(W->W===U, neighbors)]
+  leftover = AbsAffineScheme[U for U in leftover if !any(W->W===U, neighbors)]
   while length(neighbors) > 0
-    good_pairs = Vector{Tuple{AbsSpec, AbsSpec}}()
+    good_pairs = Vector{Tuple{AbsAffineScheme, AbsAffineScheme}}()
     for V in neighbors
       for U in fat
         G = C[U, V]
@@ -488,9 +488,9 @@ end
 #  )
 #  X = scheme(I)
 #  C = covering(I)
-#  SpecType = affine_patch_type(C)
-#  PolyType = poly_type(SpecType)
-#  new_gens_dict = Dict{SpecType, Vector{PolyType}}()
+#  AffineSchemeType = affine_patch_type(C)
+#  PolyType = poly_type(AffineSchemeType)
+#  new_gens_dict = Dict{AffineSchemeType, Vector{PolyType}}()
 #  for U in patches(C)
 #    V, spec_dict = as_smooth_lci(U, I[U],
 #                                 verbose=verbose,
@@ -530,11 +530,11 @@ end
 #  # as they are trivial generators of the ideal sheaf on U.
 #  minor_list = [det(Dh[rl[i], cl[i]]) for i in 1:n]
 #  V = Vector{open_subset_type(U)}()
-#  SpecType = typeof(U)
+#  AffineSchemeType = typeof(U)
 #  PolyType = poly_type(U)
-#  spec_dict = Dict{SpecType, Vector{PolyType}}()
+#  spec_dict = Dict{AffineSchemeType, Vector{PolyType}}()
 #  g = Vector{PolyType}()
-#  W = SpecOpen(U, minor_list)
+#  W = AffineSchemeOpenSubscheme(U, minor_list)
 #  for i in 1:n
 #    spec_dict[W[i]] = h[cl[i][codim(U)+1:end]]
 #  end
@@ -639,14 +639,14 @@ function order_on_divisor(
   X = space(I)::AbsCoveredScheme
   X == variety(parent(f)) || error("schemes not compatible")
 
-  #order_dict = Dict{AbsSpec, Int}()
+  #order_dict = Dict{AbsAffineScheme, Int}()
 
   # Since X is integral and I is a sheaf of prime ideals,
   # it suffices to find one chart in which I is non-trivial.
 
   # We look for the chart with the least complexity
   V = first(affine_charts(X))
-  #complexity = Vector{Tuple{AbsSpec, Int}}()
+  #complexity = Vector{Tuple{AbsAffineScheme, Int}}()
   complexity = inf
   for U in keys(Oscar.object_cache(underlying_presheaf(I))) # Those charts on which I is known.
     U in default_covering(X) || continue
@@ -719,7 +719,7 @@ function pushforward(inc::CoveredClosedEmbedding, I::IdealSheaf)
   scheme(I) === Y || error("ideal sheaf is not defined on the domain of the embedding")
   X = codomain(inc)
   phi = covering_morphism(inc)
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(domain(phi))
     V = codomain(phi[U])
     ID[V] = pushforward(phi[U], I(U))
@@ -759,7 +759,7 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
 
   charts_todo = copy(patches(covering))           ## todo-list of charts
 
-  associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
+  associated_primes_temp = Vector{IdDict{AbsAffineScheme, Ideal}}()  ## already identified components
                                                   ## may not yet contain all relevant charts. but
                                                   ## at least one for each identified component
 
@@ -789,7 +789,7 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
         nmatches = length(matches)
 
         if nmatches == 0                             ## not found
-          add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+          add_dict = IdDict{AbsAffineScheme,Ideal}()         ## create new dict
           add_dict[U] = comp                         ## and fill it
           push!(associated_primes_temp, add_dict)
         elseif nmatches == 1                         ## unique match, update it
@@ -843,7 +843,7 @@ function associated_points(I::IdealSheaf)
   OOX = OO(X)
   charts_todo = copy(affine_charts(X))            ## todo-list of charts
 
-  associated_primes_temp = Vector{IdDict{AbsSpec, Ideal}}()  ## already identified components
+  associated_primes_temp = Vector{IdDict{AbsAffineScheme, Ideal}}()  ## already identified components
                                                   ## may not yet contain all relevant charts. but
                                                   ## at least one for each identified component
 
@@ -859,7 +859,7 @@ function associated_points(I::IdealSheaf)
       nmatches = length(matches)
 
       if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsSpec,Ideal}()         ## create new dict
+        add_dict = IdDict{AbsAffineScheme,Ideal}()         ## create new dict
         add_dict[U] = comp                         ## and fill it
         push!(associated_primes_temp, add_dict)
       elseif nmatches == 1                         ## unique match, update it
@@ -890,9 +890,9 @@ end
 
 function match_on_intersections(
       X::AbsCoveredScheme,
-      U::AbsSpec,
+      U::AbsAffineScheme,
       I::Union{<:MPolyIdeal, <:MPolyQuoIdeal, <:MPolyQuoLocalizedIdeal, <:MPolyLocalizedIdeal},
-      associated_list::Vector{<:IdDict{<:AbsSpec, <:Ideal}},
+      associated_list::Vector{<:IdDict{<:AbsAffineScheme, <:Ideal}},
       check::Bool=true)
   @vprint :MaximalAssociatedPoints 2 "matching $(I) \n to $(length(associated_list))\n on $(U)\n"
   matches = Int[]
@@ -906,7 +906,7 @@ function match_on_intersections(
     for (V,IV) in associated_list[i]
       G = default_covering(X)[V,U]
       VU, UV = gluing_domains(G)
-      if UV isa SpecOpen && VU isa SpecOpen
+      if UV isa AffineSchemeOpenSubscheme && VU isa AffineSchemeOpenSubscheme
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
         if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
@@ -916,7 +916,7 @@ function match_on_intersections(
           match_contradicted = true
           check || break
         end
-      elseif UV isa AbsSpec && VU isa AbsSpec
+      elseif UV isa AbsAffineScheme && VU isa AbsAffineScheme
         I_res = OOX(U,UV)(I)
         IV_res = OOX(V,UV)(IV)
         if (I_res == IV_res)
@@ -992,7 +992,7 @@ end
   X = scheme(II)
   # If there is a simplified covering, do the calculations there.
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(covering)
     ID[U] = radical(II(U))
   end
@@ -1003,7 +1003,7 @@ function small_generating_set(II::IdealSheaf)
   X = scheme(II)
   # If there is a simplified covering, do the calculations there.
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(covering)
     ID[U] = ideal(base_ring(II(U)),small_generating_set(saturated_ideal(II(U))))
   end
@@ -1126,7 +1126,7 @@ function _separate_disjoint_components(comp::Vector{<:IdealSheaf}; covering::Cov
   X = scheme(first(comp))
   all(x->scheme(x) === X, comp) || error("components must be defined over the same scheme")
   isone(length(comp)) && return covering
-  new_patches = Vector{AbsSpec}()
+  new_patches = Vector{AbsAffineScheme}()
   for U in patches(covering)
     isempty(U) && continue
     loc_comp = [I(U) for I in comp]
@@ -1169,7 +1169,7 @@ function _cofactors(comp::Vector{<:Ideal})
 end
 
 function _one_patch_per_component(covering::Covering, comp::Vector{<:IdealSheaf})
-  new_patches2 = Vector{AbsSpec}()
+  new_patches2 = Vector{AbsAffineScheme}()
   patches_todo = copy(patches(covering))
   for P in comp
     # Find one patch in which this component is supported
@@ -1216,7 +1216,7 @@ end
 
 function saturation(I::IdealSheaf, J::IdealSheaf)
   X = scheme(I)
-  K = IdDict{AbsSpec, Ideal}()
+  K = IdDict{AbsAffineScheme, Ideal}()
   for U in affine_charts(X)
     K[U] = saturation(I(U), J(U))
   end
@@ -1227,7 +1227,7 @@ function pushforward(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   f_cov = covering_morphism(f)
   dom_cov = domain(f_cov)
   cod_cov = codomain(f_cov)
-  ideal_dict = IdDict{AbsSpec, Ideal}()
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}()
   for V in cod_cov
     f_loc = maps_with_given_codomain(f_cov, V)
     I_loc = [preimage(pullback(f), II(domain(f))) for f in f_loc]
@@ -1240,7 +1240,7 @@ function Base.:^(II::IdealSheaf, k::IntegerUnion)
   k < 0 && error("negative powers of ideal sheaves are not allowed")
   if iszero(k)
     X = scheme(II)
-    return IdealSheaf(X, IdDict{AbsSpec, Ideal}([U => ideal(OO(U), one(OO(U))) for U in affine_charts(X)]), check=false)
+    return IdealSheaf(X, IdDict{AbsAffineScheme, Ideal}([U => ideal(OO(U), one(OO(U))) for U in affine_charts(X)]), check=false)
   end
   isone(k) && return II
   b = div(k, 2)

@@ -11,16 +11,16 @@ CurrentModule = Oscar
 ### General constructors
 
 ```@docs
-morphism(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
+morphism(X::AbsAffineScheme, Y::AbsAffineScheme, f::Vector{<:RingElem}; check::Bool=true)
 ```
 
 ### Special constructors 
 
 ```@docs
-identity_map(X::AbsSpec{<:Any, <:MPolyRing})
-inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
-compose(f::AbsSpecMor, g::AbsSpecMor)
-restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing})
+inclusion_morphism(X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
+compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
+restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme)
 ```
 
 
@@ -29,16 +29,16 @@ restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
 ### General attributes
 
 ```@docs
-domain(f::AbsSpecMor)
-codomain(f::AbsSpecMor)
-pullback(f::AbsSpecMor)
-graph(f::AbsSpecMor)
+domain(f::AbsAffineSchemeMor)
+codomain(f::AbsAffineSchemeMor)
+pullback(f::AbsAffineSchemeMor)
+graph(f::AbsAffineSchemeMor)
 ```
 
 ### Special attributes
 
 In addition to the standard getters and methods for instances
-of `SpecMor`, we also have
+of `AffineSchemeMor`, we also have
 ```@docs
     image_ideal(f::ClosedEmbedding)
 ```
@@ -57,16 +57,16 @@ The following functions do exist but are currently undocumented:
 ## Properties
 
 ```@docs
-is_isomorphism(f::AbsSpecMor)
-is_inverse_of(f::AbsSpecMor, g::AbsSpecMor)
-is_identity_map(f::AbsSpecMor)
+is_isomorphism(f::AbsAffineSchemeMor)
+is_inverse_of(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
+is_identity_map(f::AbsAffineSchemeMor)
 ```
 
 
 ## Methods
 
 ```@docs
-fiber_product(f::AbsSpecMor, g::AbsSpecMor)
-product(X::AbsSpec, Y::AbsSpec)
-simplify(X::AbsSpec{<:AbstractAlgebra.Field})
+fiber_product(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
+product(X::AbsAffineScheme, Y::AbsAffineScheme)
+simplify(X::AbsAffineScheme{<:AbstractAlgebra.Field})
 ```

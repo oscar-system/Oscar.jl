@@ -69,7 +69,7 @@ function fiber_product(f::Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}
 end
 
 function fiber_product(
-    f::AbsSpecMor, 
+    f::AbsAffineSchemeMor, 
     P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   )
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
@@ -96,7 +96,7 @@ function fiber_product(
                                )
 end
 
-fiber_product(X::AbsSpec, 
+fiber_product(X::AbsAffineScheme, 
               P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
              ) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 

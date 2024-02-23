@@ -5,7 +5,7 @@
 # Returns a scheme in which every affine patch is only
 # glued to itself via the identity.
 @doc raw"""
-    Covering(patches::Vector{<:AbsSpec})
+    Covering(patches::Vector{<:AbsAffineScheme})
 
 Return a `Covering` with pairwise disjoint affine charts ``Uᵢ`` given by
 the entries of `patches`. This `Covering` will have no gluings except
@@ -31,8 +31,8 @@ Covering
     2: [u, v]
 ```
 """
-function Covering(patches::Vector{<:AbsSpec})
-  g = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+function Covering(patches::Vector{<:AbsAffineScheme})
+  g = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for X in patches
     U = PrincipalOpenSubset(X)
     f = identity_map(U)
@@ -42,7 +42,7 @@ function Covering(patches::Vector{<:AbsSpec})
 end
 
 ### Turns an affine scheme into a trivial covering
-Covering(X::AbsSpec) = Covering([X])
+Covering(X::AbsAffineScheme) = Covering([X])
 
 ### The empty covering of the empty scheme over kk
 empty_covering(kk::Ring) = Covering(kk)

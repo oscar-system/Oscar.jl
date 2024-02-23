@@ -26,8 +26,8 @@ export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
 export AbsProjectiveVariety
-export AbsSpec
-export AbsSpecMor
+export AbsAffineScheme
+export AbsAffineSchemeMor
 export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
@@ -150,10 +150,10 @@ export Singular
 export Sp
 export SpaceGerm
 export AffineScheme
-export SpecOpen
-export SpecOpenMor
-export SpecOpenRing
-export SpecOpenRingElem
+export AffineSchemeOpenSubscheme
+export AffineSchemeOpenSubschemeMor
+export AffineSchemeOpenSubschemeRing
+export AffineSchemeOpenSubschemeRingElem
 export SubObjectIterator
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
@@ -1377,7 +1377,7 @@ export solve_mixed
 export solve_non_negative
 export spanning_sets
 export spec
-export spec_open_ring_type
+export affine_scheme_open_subscheme_ring_type
 export special_linear_group
 export special_orthogonal_group
 export special_unitary_group

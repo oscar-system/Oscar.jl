@@ -1,11 +1,11 @@
-@testset "SpecOpen_1" begin
+@testset "AffineSchemeOpenSubscheme1" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^2 + z^2
   A = spec(R)
   X = spec(quo(R, ideal(R, [x*f, y*f]))[1])
   @test is_subscheme(X, A)
 
-  U = SpecOpen(A, [x, y])
+  U = AffineSchemeOpenSubscheme(A, [x, y])
   UX = intersect(X, U)
 
   Y = closure(UX)
@@ -15,18 +15,18 @@
   @test isempty(complement(Y,Y))
 end
 
-@testset "SpecOpen_2" begin
+@testset "AffineSchemeOpenSubscheme2" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   X = spec(R)
   N = subscheme(X, [x,y])
   U = complement(X, N)
-  V = SpecOpen(X, [x^2, y-x])
+  V = AffineSchemeOpenSubscheme(X, [x^2, y-x])
   I = ideal(R, [x*y-z^2])
   Y = subscheme(X, I)
   Xx = hypersurface_complement(X, x)
   Yx = hypersurface_complement(Y, x)
   @test !is_closed_embedding(Y, Yx)
-  U = SpecOpen(Y, [x^5, y-7*x^7])
+  U = AffineSchemeOpenSubscheme(Y, [x^5, y-7*x^7])
   f = maximal_extension(Y, x//z)
   intersections(U)
   set_name!(U, "U")
@@ -35,7 +35,7 @@ end
   S, (u, v) = polynomial_ring(QQ, ["u", "v"])
   Z = spec(S)
   g = maximal_extension(Y, Z, [x//z, y])
-  g = restrict(g, domain(g), SpecOpen(Z, [v]))
+  g = restrict(g, domain(g), AffineSchemeOpenSubscheme(Z, [v]))
 
   R, (x,y,z) = QQ["x", "y", "z"]
   X = hypersurface_complement(spec(R),x)
@@ -47,13 +47,13 @@ end
   @test X ==domain(maximal_extension(X, g))
 end
 
-@testset "SpecOpen_3" begin
+@testset "AffineSchemeOpenSubscheme3" begin
   R, (x,y,u,v) = QQ["x", "y", "u","v"]
   A = spec(R)
   O = subscheme(A, [x,y,u,v])
   U = complement(A, O)
   @test A==closure(U)
-  Oscar.SpecOpenRing(U)
+  Oscar.AffineSchemeOpenSubschemeRing(U)
   OU = OO(U)
   gens(OO(U))
   f = OO(U)(x)
@@ -86,7 +86,7 @@ end
   f = maximal_extension(X, B, [x//y, x//u])
 end
 
-@testset "SpecOpen_4" begin
+@testset "AffineSchemeOpenSubscheme4" begin
   R, (x,y) = QQ["x", "y"]
   S, (t) = polynomial_ring(QQ, ["t"])
   t = t[1]
@@ -98,7 +98,7 @@ end
 
   phi = maximal_extension(C, B, [x//y])
   psi = maximal_extension(B, C, [(1-t^2)//t^2, (1-t^2)//t^3])
-  psi = restrict(psi, SpecOpen(B, [t*(1-t^2)]), domain(phi))
+  psi = restrict(psi, AffineSchemeOpenSubscheme(B, [t*(1-t^2)]), domain(phi))
   phi_res = restrict(phi, domain(phi), domain(psi))
   #psi_res = restrict(psi, domain(psi), domain(phi))
   p = compose(psi, phi)
@@ -112,7 +112,7 @@ end
 @testset "restriction_maps" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   X = spec(R, ideal(R, x*y))
-  U = SpecOpen(X, [x^7, y^8])
+  U = AffineSchemeOpenSubscheme(X, [x^7, y^8])
   f = OO(U)([7*x//x^2, 5*y//y^2])
   h = 5*x - 7*y+ 98*x*y^4
   V = hypersurface_complement(X, h)
@@ -123,7 +123,7 @@ end
   @test f[LX] == OO(LX)(result) && f[U[2]] == OO(U[2])(result)
 
   X = spec(R, ideal(R, x*(x+1)-y*z))
-  U = SpecOpen(X, [y^9, (x+1)^3])
+  U = AffineSchemeOpenSubscheme(X, [y^9, (x+1)^3])
   f = OO(U)([x//y, z//(x+1)])
   h = 3*y + x+1
   V = hypersurface_complement(X, h)
@@ -131,7 +131,7 @@ end
   result = pb(f)
   @test f[U[1]] == OO(U[1])(result) && f[U[2]] == OO(U[2])(result)
 
-  V = SpecOpen(X, [((x+1)-y)^7, ((x+1)+y)^5])
+  V = AffineSchemeOpenSubscheme(X, [((x+1)-y)^7, ((x+1)+y)^5])
   resUV = restriction_map(U, V)
   resVU = restriction_map(V, U)
   resVU(resUV(f)) == f
@@ -141,15 +141,15 @@ end
 @testset "pullbacks" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   X = spec(R, ideal(R, [x^2-y*z]))
-  U = SpecOpen(X, [x, y])
-  V = SpecOpen(X, [(x+y)^2, x^2 - y^2, (x-y)^2])
-  f = SpecOpenMor(U, V, [x, y, z])
+  U = AffineSchemeOpenSubscheme(X, [x, y])
+  V = AffineSchemeOpenSubscheme(X, [(x+y)^2, x^2 - y^2, (x-y)^2])
+  f = AffineSchemeOpenSubschemeMor(U, V, [x, y, z])
   f[affine_patches(domain(f))[1]]
   pbf = pullback(f)
   @test pbf(OO(V)(x)) == OO(V)(x)
   @test pbf(OO(V)(y)) == OO(V)(y)
   @test pbf(OO(V)(z)) == OO(V)(z)
-  g = SpecOpenMor(V, U, [x, y, z])
+  g = AffineSchemeOpenSubschemeMor(V, U, [x, y, z])
   @test Oscar.is_identity_map(compose(pullback(f), pullback(g)))
   @test Oscar.is_identity_map(pullback(compose(f,g)))
   W = subscheme(X, x)
@@ -160,8 +160,8 @@ end
   S, (u, v) = QQ["u", "v"]
   B = spec(S)
   p = morphism(X, B, [x, y])
-  U = SpecOpen(X, [x, y])
-  V = SpecOpen(B, [u, v])
+  U = AffineSchemeOpenSubscheme(X, [x, y])
+  V = AffineSchemeOpenSubscheme(B, [u, v])
   pres = restrict(p, U, V)
   @test U == preimage(p, V)
 
@@ -171,13 +171,13 @@ end
   @test g(OO(V)(v)) == OO(U)(y)
 end
 
-@testset "SpecOpenRings" begin
+@testset "AffineSchemeOpenSubschemeRings" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   I = ideal(R, [x^2-y*z])
   X = spec(R, I)
-  U = SpecOpen(X, [x, y])
+  U = AffineSchemeOpenSubscheme(X, [x, y])
   subscheme(U, ideal(R,[x,y]))
-  V = SpecOpen(X, [x+y, x^2 - y^2, (x-y)^5])
+  V = AffineSchemeOpenSubscheme(X, [x+y, x^2 - y^2, (x-y)^5])
   f = canonical_isomorphism(OO(U), OO(V))
   a = OO(U)([x//y, z//x])
   b = f(a)
@@ -187,7 +187,7 @@ end
 @testset "restriction map" begin
   R, (x, y) = QQ["x", "y", "z"]
   X = spec(R)
-  U = SpecOpen(X,[x])
+  U = AffineSchemeOpenSubscheme(X,[x])
   restriction_map(U, hypersurface_complement(X,x))
 end
 
@@ -201,10 +201,10 @@ end
   # AffineScheme{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
-  # SpecOpen{AffineScheme{...,MPolyRing},...}
-  A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{AffineScheme{MPolyQuoRing},...}
-  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{...,MPolyRing},...}
+  A2_minus_origin = AffineSchemeOpenSubscheme(A2, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{MPolyQuoRing},...}
+  Vxy_minus_origin = AffineSchemeOpenSubscheme(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
 
@@ -273,10 +273,10 @@ end
   # AffineScheme{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
-  # SpecOpen{AffineScheme{...,MPolyRing},...}
-  A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{AffineScheme{MPolyQuoRing},...}
-  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{...,MPolyRing},...}
+  A2_minus_origin = AffineSchemeOpenSubscheme(A2, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{MPolyQuoRing},...}
+  Vxy_minus_origin = AffineSchemeOpenSubscheme(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
 
@@ -347,10 +347,10 @@ end
   # AffineScheme{MPolyLocRing}
   A2_minus_Vxy = hypersurface_complement(A2, x*y)
   A2_minus_Vxy_p = PrincipalOpenSubset(A2, x*y)
-  # SpecOpen{AffineScheme{...,MPolyRing},...}
-  A2_minus_origin = SpecOpen(A2, [x,y])
-  # SpecOpen{AffineScheme{MPolyQuoRing},...}
-  Vxy_minus_origin = SpecOpen(Vxy, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{...,MPolyRing},...}
+  A2_minus_origin = AffineSchemeOpenSubscheme(A2, [x,y])
+  # AffineSchemeOpenSubscheme{AffineScheme{MPolyQuoRing},...}
+  Vxy_minus_origin = AffineSchemeOpenSubscheme(Vxy, [x,y])
   # PrincipalOpenSubset{MPolyQuoLocalized....}
   Vxy_minus_origin_p = PrincipalOpenSubset(Vxy, OO(Vxy)(x+y))
 
@@ -417,7 +417,7 @@ end
   I = ideal(R, x)
   Q, _ = quo(R, I)
   X = spec(Q)
-  U = SpecOpen(X, [y])
+  U = AffineSchemeOpenSubscheme(X, [y])
   W = OO(U)
 
   P, (u,v) = W["u", "v"]

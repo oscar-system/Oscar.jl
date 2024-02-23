@@ -325,7 +325,7 @@ end
 @attr function affine_cone(
     X::AbsProjectiveScheme{CRT, RT}
   ) where {
-           CRT<:SpecOpenRing,
+           CRT<:AffineSchemeOpenSubschemeRing,
            RT<:MPolyRing
           }
   S = ambient_coordinate_ring(X)
@@ -352,7 +352,7 @@ end
 @attr function affine_cone(
     X::AbsProjectiveScheme{CRT, RT}
   ) where {
-           CRT<:SpecOpenRing,
+           CRT<:AffineSchemeOpenSubschemeRing,
            RT<:MPolyQuoRing
           }
   P = ambient_coordinate_ring(X)
@@ -442,20 +442,20 @@ function base_scheme(X::ProjectiveScheme{CRT, RT}) where {CRT<:Ring, RT}
   return X.Y
 end
 
-function base_scheme(X::ProjectiveScheme{<:SpecOpenRing})
+function base_scheme(X::ProjectiveScheme{<:AffineSchemeOpenSubschemeRing})
   return domain(base_ring(X))
 end
 
 function set_base_scheme!(
     P::ProjectiveScheme{CRT, RT},
-    X::Union{<:AbsSpec, <:SpecOpen}
+    X::Union{<:AbsAffineScheme, <:AffineSchemeOpenSubscheme}
   ) where {CRT<:Ring, RT}
   OO(X) === base_ring(P) || error("schemes are not compatible")
   P.Y = X
   return P
 end
 
-function projection_to_base(X::ProjectiveScheme{CRT, RT}) where {CRT<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing, <:SpecOpenRing}, RT}
+function projection_to_base(X::ProjectiveScheme{CRT, RT}) where {CRT<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing, <:AffineSchemeOpenSubschemeRing}, RT}
   if !isdefined(X, :projection_to_base)
     affine_cone(X)
   end
@@ -464,14 +464,14 @@ end
 
 function _dehomogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :dehomogenization_cache)
-    X.dehomogenization_cache = IdDict{AbsSpec, Map}()
+    X.dehomogenization_cache = IdDict{AbsAffineScheme, Map}()
   end
   return X.dehomogenization_cache
 end
 
 function _homogenization_cache(X::ProjectiveScheme)
   if !isdefined(X, :homogenization_cache)
-    X.homogenization_cache = IdDict{AbsSpec, Function}()
+    X.homogenization_cache = IdDict{AbsAffineScheme, Function}()
   end
   return X.homogenization_cache
 end
@@ -496,8 +496,8 @@ ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = T
 ### type constructors
 
 # the type of a relative projective scheme over a given base scheme
-projective_scheme_type(X::AbsSpec) = projective_scheme_type(typeof(X))
-projective_scheme_type(::Type{T}) where {T<:AbsSpec} = projective_scheme_type(ring_type(T))
+projective_scheme_type(X::AbsAffineScheme) = projective_scheme_type(typeof(X))
+projective_scheme_type(::Type{T}) where {T<:AbsAffineScheme} = projective_scheme_type(ring_type(T))
 
 
 ########################################################################

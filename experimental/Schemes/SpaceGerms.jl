@@ -6,7 +6,7 @@ import AbstractAlgebra: Ring
 
 A space germ, i.e. a ringed space ``(X,O_{(X,x)})`` with local ring ``O_{(X,x)}`` of type `RingType` over a coefficient field ``k`` of type `BaseRingType`.
 """
-abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsSpec{BaseRingType, RingType} end
+abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsAffineScheme{BaseRingType, RingType} end
 
 
 ####################################################################
@@ -26,14 +26,14 @@ GermAtGeometricPoint = AffineScheme{<:Field,
 ###################################################################
 
 @doc raw"""
-    SpaceGerm{BaseRingType, RingType, SpecType}
-A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+    SpaceGerm{BaseRingType, RingType, AffineSchemeType}
+A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct SpaceGerm{
                 BaseRingType<:Ring,
                 RingType<:Ring,
-                SpecType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
-  X::SpecType
+                AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+  X::AffineSchemeType
 
   function SpaceGerm(X::GermAtClosedPoint)
     return new{typeof(base_ring(X)), typeof(OO(X)), typeof(X)}(X)
@@ -46,15 +46,15 @@ A space germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` 
 end
 
 @doc raw"""
-    HypersurfaceGerm{BaseRingType, RingType, SpecType}
+    HypersurfaceGerm{BaseRingType, RingType, AffineSchemeType}
 
-A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type `SpecType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type `AffineSchemeType` and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
 @attributes mutable struct HypersurfaceGerm{
                  BaseRingType<:Ring,
                  RingType<:Ring,
-                 SpecType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
-  X::SpecType
+                 AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+  X::AffineSchemeType
   f::RingElem
 
   function HypersurfaceGerm(X::GermAtClosedPoint,f::MPolyLocRingElem; check::Bool=true)
@@ -77,12 +77,12 @@ A hypersurface germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme
 end
 
 @doc raw"""
-    CompleteIntersectionGerm{BaseRingType, RingType, SpecType}
+    CompleteIntersectionGerm{BaseRingType, RingType, AffineSchemeType}
 
-A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type SpecType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
+A complete intersection germ ``(X,O_{(X,x)}``, i.e. a ringed space with underlying scheme ``X`` of type AffineSchemeType and local ring ``O_{(X,x)}`` of type `RingType` over some base ring ``k`` of type `BaseRingType`.
 """
-@attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, SpecType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
-  X::SpecType
+@attributes mutable struct CompleteIntersectionGerm{BaseRingType<:Ring, RingType<:Ring, AffineSchemeType<:AffineScheme} <: AbsSpaceGerm{BaseRingType, RingType}
+  X::AffineSchemeType
   v::Vector{<:RingElem}
 
   function CompleteIntersectionGerm(X::GermAtClosedPoint, v::Vector{T}; check::Bool=true) where T<:MPolyLocRingElem
@@ -349,8 +349,8 @@ end
 ### constructors
 #######################################################################################
 @doc raw"""
-    SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
-    SpaceGerm(X::AbsSpec, I:Ideal)
+    SpaceGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
+    SpaceGerm(X::AbsAffineScheme, I:Ideal)
     SpaceGerm(X::AffineScheme(LocalRing))
     SpaceGerm(A::LocalRing)
 
@@ -399,7 +399,7 @@ Spectrum
 
 ```
 """
-function SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
+function SpaceGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
@@ -410,7 +410,7 @@ function SpaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
   return SpaceGerm(Y)
 end
 
-function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
+function SpaceGerm(X::AbsAffineScheme, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
   a = rational_point_coordinates(I)
@@ -418,7 +418,7 @@ function SpaceGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-function SpaceGerm(X::AbsSpec, I::Ideal)
+function SpaceGerm(X::AbsAffineScheme, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = saturated_ideal(I)
@@ -427,21 +427,21 @@ function SpaceGerm(X::AbsSpec, I::Ideal)
 end
 
 @doc raw"""
-    SpaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+    SpaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     SpaceGerm(p::AbsAffineRationalPoint)
 
 Return a space germ `(X,p)` for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in the place of `Y`.
 """
 SpaceGerm(p::AbsAffineRationalPoint) = SpaceGerm(codomain(p), coordinates(p))
 
-function SpaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+function SpaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return SpaceGerm(X,coordinates(p))
 end
 
 @doc raw"""
-    HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
-    HypersurfaceGerm(X::AbsSpec, I:Ideal)
+    HypersurfaceGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
+    HypersurfaceGerm(X::AbsAffineScheme, I:Ideal)
     HypersurfaceGerm(A::LocalRing)
 
 Checks that `X` (or `Spec(A)` respectively) represents a hypersurface germ at the given
@@ -480,7 +480,7 @@ Spectrum
 
 ```
 """
-function HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
+function HypersurfaceGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
@@ -494,7 +494,7 @@ function HypersurfaceGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, Fiel
   return Y
 end
 
-function HypersurfaceGerm(X::AbsSpec, I::MPolyIdeal)
+function HypersurfaceGerm(X::AbsAffineScheme, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
   a = rational_point_coordinates(I)
@@ -502,7 +502,7 @@ function HypersurfaceGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-function HypersurfaceGerm(X::AbsSpec, I::Ideal)
+function HypersurfaceGerm(X::AbsAffineScheme, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = saturated_ideal(I)
@@ -511,21 +511,21 @@ function HypersurfaceGerm(X::AbsSpec, I::Ideal)
 end
 
 @doc raw"""
-    HypersurfaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+    HypersurfaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     HypersurfaceGerm(p::AbsAffineRationalPoint)
 
 Return a hypersurface germ `(X,p)` for a given `X` and a rational point `p` on some scheme `Y`. If no `X` is specified, `Y` is used in its place.
 """
 HypersurfaceGerm(p::AbsAffineRationalPoint) = HypersurfaceGerm(codomain(p), coordinates(p))
 
-function HypersurfaceGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+function HypersurfaceGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return HypersurfaceGerm(X,coordinates(p))
 end
 
 @doc raw"""
-    CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
-    CompleteIntersectionGerm(X::AbsSpec, I:Ideal)
+    CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
+    CompleteIntersectionGerm(X::AbsAffineScheme, I:Ideal)
 
 Checks that `X` represents a complete intersection germ at the given point `p` and returns
 the complete intersection germ `(X,p)` from `X` in the affirmative case, where `p` may
@@ -555,7 +555,7 @@ Spectrum
 
 ```
 """
-function CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integer, FieldElem}
+function CompleteIntersectionGerm(X::AbsAffineScheme, a::Vector{T}) where T<:Union{Integer, FieldElem}
   R = ambient_coordinate_ring(X)
   kk = coefficient_ring(R)
   b = [kk.(v) for v in a]  ## throws an error, if vector entries are not compatible
@@ -564,15 +564,15 @@ function CompleteIntersectionGerm(X::AbsSpec, a::Vector{T}) where T<:Union{Integ
   mingens = minimal_generating_set(modulus(L))
 ## TODO: Should be dim(L) and not dim(spec(L)), but dim for localized
 ## quotients is only repaired on the geometric side as of now!!!
-  SpecL = spec(L)
-  length(mingens) == dim(R) - dim(SpecL) || error("not a complete intersection")
+  AffineSchemeL = spec(L)
+  length(mingens) == dim(R) - dim(AffineSchemeL) || error("not a complete intersection")
   w = mingens
-  Y = CompleteIntersectionGerm(SpecL,w)
+  Y = CompleteIntersectionGerm(AffineSchemeL,w)
   set_attribute!(Y,:representative,X)
   return Y
 end
 
-function CompleteIntersectionGerm(X::AbsSpec, I::MPolyIdeal)
+function CompleteIntersectionGerm(X::AbsAffineScheme, I::MPolyIdeal)
   R = base_ring(I)
   R === ambient_coordinate_ring(X) || error("rings are not compatible")
   a = rational_point_coordinates(I)
@@ -580,7 +580,7 @@ function CompleteIntersectionGerm(X::AbsSpec, I::MPolyIdeal)
   return Y
 end
 
-function ComleteIntersectionGerm(X::AbsSpec, I::Ideal)
+function ComleteIntersectionGerm(X::AbsAffineScheme, I::Ideal)
   A = base_ring(I)
   A === OO(X) || error("rings are incompatible")
   J = saturated_ideal(I)
@@ -589,21 +589,21 @@ function ComleteIntersectionGerm(X::AbsSpec, I::Ideal)
 end
 
 @doc raw"""
-    CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+    CompleteIntersectionGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     CompleteIntersectionGerm(p::AbsAffineRationalPoint)
 
 Return a complete intersection germ `(X,p)` for a given `X`and a rational point `p` on some affine scheme `Y`, provided that $X$ is locally a complete intersection in some neighborhood of `p`. If no `X` is specified, `Y` is used in its place.
 """
 CompleteIntersectionGerm(p::AbsAffineRationalPoint) = CompleteIntersectionGerm(codomain(p), coordinates(p))
 
-function CompleteIntersectionGerm(X::AbsSpec, p::AbsAffineRationalPoint)
+function CompleteIntersectionGerm(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return CompleteIntersectionGerm(X,coordinates(p))
 end
 
 @doc raw"""
-    germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
-    germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
+    germ_at_point(X::AbsAffineScheme, I::Union{Ideal,Vector})
+    germ_at_point(X::AbsAffineScheme, I::Union{Ideal,Vector})
     germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
               I::Union{Ideal,Vector})
     germ_at_point(A::LocalRing, I::Union{Ideal,Vector})
@@ -653,7 +653,7 @@ given by the pullback function
 
 ```
 """
-function germ_at_point(X::AbsSpec, I::Union{Ideal,Vector})
+function germ_at_point(X::AbsAffineScheme, I::Union{Ideal,Vector})
   Y = SpaceGerm(X, I)
   restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
@@ -663,7 +663,7 @@ germ_at_point(A::Union{MPolyRing,MPolyQuoRing},
               I::Union{Ideal,Vector}) = germ_at_point(spec(A),I)
 
 @doc raw"""
-    germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
+    germ_at_point(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     germ_at_point(p::AbsAffineRationalPoint)
 
 Return a space germ `(X,p)` and the corresponding inclusion morphism of spectra arising
@@ -672,14 +672,14 @@ from the representative `X` for a given `X` and a rational point `p` on some aff
 """
 germ_at_point(p::AbsAffineRationalPoint) = germ_at_point(codomain(p), coordinates(p))
 
-function germ_at_point(X::AbsSpec, p::AbsAffineRationalPoint)
+function germ_at_point(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return germ_at_point(X,coordinates(p))
 end
 
 @doc raw"""
-    hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
-    hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
+    hypersurface_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
+    hypersurface_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
     hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
               I::Union{Ideal,Vector})
     hypersurface_germ(A::LocalRing, I::Union{Ideal,Vector})
@@ -731,7 +731,7 @@ given by the pullback function
 
 ```
 """
-function hypersurface_germ(X::AbsSpec, I::Union{Ideal,Vector})
+function hypersurface_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
   Y = HypersurfaceGerm(X,I)
   restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
@@ -741,7 +741,7 @@ hypersurface_germ(A::Union{MPolyRing,MPolyQuoRing},
                   I::Union{Ideal,Vector}) = hypersurface_germ(spec(A),I)
 
 @doc raw"""
-    hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
+    hypersurface_germ(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     hypersurface_germ(p::AbsAffineRationalPoint)
 
 Return a hypersurface germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
@@ -751,14 +751,14 @@ Return a hypersurface germ `(X,p)` and the corresponding inclusion morphism of s
 """
 hypersurface_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
 
-function hypersurface_germ(X::AbsSpec, p::AbsAffineRationalPoint)
+function hypersurface_germ(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return hypersurface_germ(X,coordinates(p))
 end
 
 @doc raw"""
-    complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
-    complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
+    complete_intersection_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
+    complete_intersection_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
     complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
               I::Union{Ideal,Vector})
     complete_intersection_germ(A::LocalRing, I::Union{Ideal,Vector})
@@ -806,7 +806,7 @@ given by the pullback function
 
 ```
 """
-function complete_intersection_germ(X::AbsSpec, I::Union{Ideal,Vector})
+function complete_intersection_germ(X::AbsAffineScheme, I::Union{Ideal,Vector})
   Y = CompleteIntersectionGerm(X,I)
   restr_map = morphism(Y, X, hom(OO(X), OO(Y), gens(OO(Y)), check=false), check=false)
   return Y, restr_map
@@ -816,7 +816,7 @@ complete_intersection_germ(A::Union{MPolyRing,MPolyQuoRing},
                   I::Union{Ideal,Vector}) = complete_intersection_germ(spec(A),I)
 
 @doc raw"""
-    complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
+    complete_intersection_germ(X::AbsAffineScheme, p::AbsAffineRationalPoint)
     complete_intersection_germ(p::AbsAffineRationalPoint)
 
 Return a complete intersection germ `(X,p)` and the corresponding inclusion morphism of spectra for a given `X` and a rational point `p` on some affine scheme `Y`. If no `X` is specified, `Y` is used in its place.
@@ -826,7 +826,7 @@ Return a complete intersection germ `(X,p)` and the corresponding inclusion morp
 """
 complete_intersection_germ(p::AbsAffineRationalPoint) = hypersurface_germ(codomain(p), coordinates(p))
 
-function complete_intersection_germ(X::AbsSpec, p::AbsAffineRationalPoint)
+function complete_intersection_germ(X::AbsAffineScheme, p::AbsAffineRationalPoint)
   ambient_space(X) == ambient_space(codomain(p)) || error("ambient spaces do not match")
   return complete_intersection_germ(X,coordinates(p))
 end

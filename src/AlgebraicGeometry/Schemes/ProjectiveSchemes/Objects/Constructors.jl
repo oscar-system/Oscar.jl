@@ -113,7 +113,7 @@ function projective_space(A::Ring, r::Int; var_name::VarName=:s)
 end
 
 function projective_space(
-    W::Union{<:SpecOpen, <:AbsSpec},
+    W::Union{<:AffineSchemeOpenSubscheme, <:AbsAffineScheme},
     r::Int;
     var_name::VarName=:s
   )
@@ -123,7 +123,7 @@ function projective_space(
 end
 
 function projective_space(
-    W::Union{<:SpecOpen, <:AbsSpec},
+    W::Union{<:AffineSchemeOpenSubscheme, <:AbsAffineScheme},
     var_names::Vector{<:VarName}
   )
   P = projective_space(OO(W), var_names)

@@ -24,7 +24,7 @@ spec(R::MPolyRing, I::MPolyIdeal)
 spec(R::MPolyRing, U::AbsMPolyMultSet)
 spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet)
 ```
-See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
+See [`inclusion_morphism(::AbsAffineScheme, ::AbsAffineScheme)`](@ref) for a way to obtain the ideal ``I`` from ``X = \mathrm{Spec}(R, I)``.
 
 ### Affine n-space
 
@@ -36,27 +36,27 @@ affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 ### Closed subschemes
 
 ```@docs
-subscheme(X::AbsSpec, f::Vector{<:RingElem})
-subscheme(X::AbsSpec, I::Ideal)
+subscheme(X::AbsAffineScheme, f::Vector{<:RingElem})
+subscheme(X::AbsAffineScheme, I::Ideal)
 ```
 
 ### Intersections
 
 ```@docs
-Base.intersect(X::AbsSpec{BRT, <:Ring}, Y::AbsSpec{BRT, <:Ring}) where {BRT<:Ring}
+Base.intersect(X::AbsAffineScheme{BRT, <:Ring}, Y::AbsAffineScheme{BRT, <:Ring}) where {BRT<:Ring}
 ```
 
 ### Open subschemes
 
 ```@docs
-hypersurface_complement(X::AbsSpec, f::RingElem)
-hypersurface_complement(X::AbsSpec, f::Vector{<:RingElem})
+hypersurface_complement(X::AbsAffineScheme, f::RingElem)
+hypersurface_complement(X::AbsAffineScheme, f::Vector{<:RingElem})
 ```
 
 ### Closure
 
 ```@docs
-closure(X::AbsSpec, Y::AbsSpec)
+closure(X::AbsAffineScheme, Y::AbsAffineScheme)
 ```
 
 
@@ -73,18 +73,18 @@ In particular ``\mathrm{Spec}(\mathbb{Z})`` or ``\mathrm{Spec}(\mathbb{k})`` for
 a field do not have an ambient affine space.
 
 ```@docs
-ambient_space(X::AbsSpec)
+ambient_space(X::AbsAffineScheme)
 ```
 
 ### Other attributes
 
 ```@docs
-base_ring(X::AbsSpec)
-codim(X::AbsSpec)
-ambient_embedding(X::AbsSpec)
-dim(X::AbsSpec)
-name(X::AbsSpec)
-OO(X::AbsSpec)
+base_ring(X::AbsAffineScheme)
+codim(X::AbsAffineScheme)
+ambient_embedding(X::AbsAffineScheme)
+dim(X::AbsAffineScheme)
+name(X::AbsAffineScheme)
+OO(X::AbsAffineScheme)
 ```
 
 ### Type getters
@@ -97,16 +97,16 @@ source code for details.
 ## Properties
 
 ```@docs
-is_open_embedding(X::AbsSpec, Y::AbsSpec)
-is_closed_embedding(X::AbsSpec, Y::AbsSpec)
-isempty(X::AbsSpec)
-is_subscheme(X::AbsSpec, Y::AbsSpec)
+is_open_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
+is_closed_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
+isempty(X::AbsAffineScheme)
+is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
 ```
 
 
 ## Methods
 ```@docs
-tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
 ```
 ### Comparison
 
@@ -119,5 +119,5 @@ For ``X`` and ``Y`` with different ambient affine space `X==Y` is always `false`
 ### Auxiliary methods
 
 ```@docs
-is_non_zero_divisor(f::RingElem, X::AbsSpec)
+is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
 ```

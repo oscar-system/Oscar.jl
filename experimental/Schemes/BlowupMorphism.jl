@@ -465,7 +465,7 @@ function _do_transform(p::AbsSimpleBlowdownMorphism, I::IdealSheaf, method::Int=
   Y = domain(p)
   X === codomain(p) || error("ideal sheaf is not defined on the codomain of the morphism")
   IE = ideal_sheaf(exceptional_divisor(p))
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
 
   ## get our hands on the coverings -- using simplified covering for CY
   p_cov_temp = covering_morphism(p)
@@ -529,7 +529,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
   Y = domain(p)
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
   E = exceptional_divisor(p)
-  ID = IdDict{AbsSpec, RingElem}()
+  ID = IdDict{AbsAffineScheme, RingElem}()
 
   ## get our hands on the coverings -- trivializing covering for C leading the way
   CX = trivializing_covering(C)
@@ -630,7 +630,7 @@ function restrict(f::AbsCoveredSchemeMorphism,
   inc_dom_ref = restrict(inc_dom, ref_dom)
   inc_dom_ref = compose(inc_dom_ref, aa)
   # Collecting the maps for the restricted projection here
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(domain(inc_dom_ref))
     q_res = compose(inc_dom_ref[U], f_res[codomain(inc_dom_ref[U])])
     V = codomain(q_res)
@@ -654,8 +654,8 @@ function _register!(data::Tuple{<:Covering, <:CoveringMorphism, <:CoveringMorphi
   return data
 end
 
-function maps_with_given_codomain(phi::CoveringMorphism, V::AbsSpec)
-  result = Vector{AbsSpecMor}()
+function maps_with_given_codomain(phi::CoveringMorphism, V::AbsAffineScheme)
+  result = Vector{AbsAffineSchemeMor}()
   for U in keys(morphisms(phi))
     floc = morphisms(phi)[U]
     codomain(floc) === V || continue
@@ -727,7 +727,7 @@ end
   p_res = CoveredSchemeMorphism(XU, YV, p_res_cov)
 
   # Assemble the inverse
-  iso_inv_dict = IdDict{AbsSpec, AbsSpecMor}()
+  iso_inv_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (U, q) in iso_dict
     V = codomain(q)
     iso_inv_dict[V] = inverse(q)
@@ -745,7 +745,7 @@ end
 # If set this attribute shall return some isomorphism on some open subsets of the domain
 # and codomain of phi. If both are irreducible, this automatically implies that both are
 # dense, but we do not check for this.
-@attr AbsSpecMor function isomorphism_on_open_subset(f::BlowupMorphism)
+@attr AbsAffineSchemeMor function isomorphism_on_open_subset(f::BlowupMorphism)
   X = domain(f)
   Y = codomain(f)
   iso_dict = get_attribute(f, :isos_on_complement_of_center)
@@ -791,7 +791,7 @@ function pushforward(f::BlowupMorphism, g::VarietyFunctionFieldElem)
   return FY.(pfg)
 end
 
-@attr AbsSpecMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
+@attr AbsAffineSchemeMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
   error("attribute not found; this needs to be set manually in general")
 end
 

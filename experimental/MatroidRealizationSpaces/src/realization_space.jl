@@ -1,5 +1,5 @@
 
-@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
+@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
@@ -10,7 +10,7 @@
   one_realization::Bool
 
   # Fields for caching
-  underlying_scheme::AbsSpec{BaseRingType, RingType}
+  underlying_scheme::AbsAffineScheme{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
     I::Union{Ideal,NumFieldOrderIdeal},

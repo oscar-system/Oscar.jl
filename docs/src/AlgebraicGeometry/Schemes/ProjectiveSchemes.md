@@ -79,8 +79,8 @@ Besides those attributes already covered by the above general interface we have 
 To facilitate the interplay between an `AbsProjectiveScheme` and the affine charts of its
 `covered_scheme` we provide the following methods:
 ```@docs
-    dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
-    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+    dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
+    homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
 ```
 
 ## Properties

@@ -39,7 +39,7 @@ end
   I = ideal(P, f)
   X = subscheme(IA3, I)
   S, inc = singular_locus(X);
-  @test S isa AbsSpec
+  @test S isa AbsAffineScheme
   @test inc isa ClosedEmbedding
   B1 = Oscar.blow_up_chart(X, ideal(OO(X), [x,y,z]))
   @test B1 isa AbsProjectiveScheme

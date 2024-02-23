@@ -2,13 +2,13 @@
 # (1) Generic constructors
 ########################################################
 @doc raw"""
-    variety(X::AbsSpec; is_reduced::false, check::Bool=true) -> AffineVariety
+    variety(X::AbsAffineScheme; is_reduced::false, check::Bool=true) -> AffineVariety
 
 Convert ``X`` to an affine variety.
 
 If `is_reduced` is set, assume that `X` is already reduced.
 """
-function variety(X::AbsSpec{<:Field}; is_reduced=false, check::Bool=true)
+function variety(X::AbsAffineScheme{<:Field}; is_reduced=false, check::Bool=true)
   X = algebraic_set(X, is_reduced=is_reduced, check=check)
   return variety(X, check=check)
 end

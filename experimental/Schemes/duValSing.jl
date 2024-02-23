@@ -32,7 +32,7 @@ function has_du_val_singularities(X::AbsProjectiveScheme{<:Field,<:Any})
   return has_du_val_singularities(covered_scheme(X))
 end
 
-function has_du_val_singularities(X::AbsSpec{<:Field,<:Any})
+function has_du_val_singularities(X::AbsAffineScheme{<:Field,<:Any})
   R = OO(X)
   I = modulus(R)
 
@@ -61,7 +61,7 @@ function has_du_val_singularities(X::AbsCoveredScheme{<:Field})
 end
 
 @doc raw"""
-    is_du_val_singularity(X::AbsSpec, I::Ideal)
+    is_du_val_singularity(X::AbsAffineScheme, I::Ideal)
 
 Return whether the given ``X`` has at most du Val (surface) singularities at the geometric points specified by the ideal ``I``.
 
@@ -99,7 +99,7 @@ true
 
 ```
 """
-function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Ideal)
+function is_du_val_singularity(X::AbsAffineScheme{<:Field,<:Any},I::Ideal)
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)
@@ -131,7 +131,7 @@ function is_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::Ideal)
 end
 
 @doc raw"""
-    decide_du_val_singularity(X::AbsSpec, I::Ideal)
+    decide_du_val_singularity(X::AbsAffineScheme, I::Ideal)
 
 Return a vector of tuples ``T`` with the following data:
 - `T[1]::Bool` answers whether ``X`` has at most du Val (surface) singularities at the geometric points specified by the ideal ``I``.
@@ -179,7 +179,7 @@ julia> decide_du_val_singularity(X,J)
  (true, Ideal (w, z, y, x), (:E, 6), 1)
 ```
 """
-function decide_du_val_singularity(X::AbsSpec{<:Field,<:Any},I::MPolyIdeal)
+function decide_du_val_singularity(X::AbsAffineScheme{<:Field,<:Any},I::MPolyIdeal)
   OOX = OO(X)
   dim(X) == 2 || error("Scheme not of dimension 2")
   J = modulus(OOX)

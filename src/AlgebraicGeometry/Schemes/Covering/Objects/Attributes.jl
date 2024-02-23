@@ -36,7 +36,7 @@ cache, but does not try to compute new gluings.
 gluings(C::Covering) = C.gluings
 getindex(C::Covering, i::Int) = C.patches[i]
 getindex(C::Covering, i::Int, j::Int) = gluings(C)[(patches(C)[i], patches(C)[j])]
-getindex(C::Covering, X::AbsSpec, Y::AbsSpec) = gluings(C)[(X, Y)]
+getindex(C::Covering, X::AbsAffineScheme, Y::AbsAffineScheme) = gluings(C)[(X, Y)]
 #edge_dict(C::Covering) = C.edge_dict
 
 function gluing_graph(C::Covering; all_dense::Bool=false)
@@ -68,15 +68,15 @@ function decomposition_info(C::Covering)
   return C.decomp_info
 end
 
-function set_decomposition_info!(C::Covering, U::AbsSpec, f::Vector{<:RingElem})
+function set_decomposition_info!(C::Covering, U::AbsAffineScheme, f::Vector{<:RingElem})
   if !isdefined(C, :decomp_info)
-    C.decomp_info = IdDict{AbsSpec, Vector{RingElem}}()
+    C.decomp_info = IdDict{AbsAffineScheme, Vector{RingElem}}()
   end
   all(x->parent(x) === OO(U), f) || error("elements do not belong to the correct ring")
   decomposition_info(C)[U] = f
 end
 
-function set_decomposition_info!(C::Covering, D::IdDict{<:AbsSpec, <:Vector{<:RingElem}})
+function set_decomposition_info!(C::Covering, D::IdDict{<:AbsAffineScheme, <:Vector{<:RingElem}})
   C.decomp_info = D
 end
 
@@ -93,7 +93,7 @@ function inherit_decomposition_info!(
   !has_decomposition_info(orig_cov) && return ref_cov
   OX = OO(X)
 
-  decomp_dict = IdDict{AbsSpec, Tuple{AbsSpec, Vector{RingElem}}}()
+  decomp_dict = IdDict{AbsAffineScheme, Tuple{AbsAffineScheme, Vector{RingElem}}}()
   for U in patches(ref_cov)
     inc_U, d_U = _find_chart(U, orig_cov)
     decomp_dict[U] = (codomain(inc_U), d_U)

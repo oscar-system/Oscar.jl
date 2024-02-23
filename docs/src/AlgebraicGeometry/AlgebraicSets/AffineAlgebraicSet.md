@@ -28,7 +28,7 @@ The algebraic set $X = V(x^2+y^2) \subseteq \mathbb{A}^2$ is irreducible over
 $k = \mathbb{R}$. But it is the union of two lines over $K = \mathbb{C}$,
 i.e. $X$ is irreducible but geometrically reducible.
 See
-[`is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})`](@ref) for details.
+[`is_irreducible(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})`](@ref) for details.
 
 ## Rational points
 To study the $k$-points, also called $k$-rational points, of the algebraic set $X$

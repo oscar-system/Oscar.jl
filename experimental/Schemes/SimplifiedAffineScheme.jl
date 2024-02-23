@@ -3,35 +3,35 @@
 ########################################################################
 
 ### essential getters
-underlying_scheme(X::SimplifiedSpec) = X.X
-original(X::SimplifiedSpec) = X.Y
-identification_maps(X::SimplifiedSpec) = (X.f, X.g)
+underlying_scheme(X::SimplifiedAffineScheme) = X.X
+original(X::SimplifiedAffineScheme) = X.Y
+identification_maps(X::SimplifiedAffineScheme) = (X.f, X.g)
 
 ### High-level constructors
 @doc raw"""
-    simplify(X::AbsSpec{<:Field})
+    simplify(X::AbsAffineScheme{<:Field})
 
 Given an affine scheme ``X`` with coordinate ring ``R = 𝕜[x₁,…,xₙ]/I``
 (or a localization thereof), use `Singular`'s `elimpart` to try
 to eliminate variables ``xᵢ`` to arrive at a simpler presentation
 ``R ≅ R' = 𝕜[y₁,…,yₘ]/J`` for some ideal ``J``; return
-a `SimplifiedSpec` ``Y`` with ``X`` as its `original`.
+a `SimplifiedAffineScheme` ``Y`` with ``X`` as its `original`.
 
 ***Note:*** The `ambient_coordinate_ring` of the output `Y` will be different
 from the one of `X` and hence the two schemes will not compare using `==`.
 """
-function simplify(X::AbsSpec{<:Field})
+function simplify(X::AbsAffineScheme{<:Field})
   L, f, g = simplify(OO(X))
   Y = spec(L)
   YtoX = morphism(Y, X, f, check=false)
   XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)
   set_attribute!(XtoY, :inverse, YtoX)
-  return SimplifiedSpec(Y, X, YtoX, XtoY, check=false)
+  return SimplifiedAffineScheme(Y, X, YtoX, XtoY, check=false)
 end
 
 ### Methods to roam in the ancestry tree
-function has_ancestor(P::Function, X::SimplifiedSpec)
+function has_ancestor(P::Function, X::SimplifiedAffineScheme)
   return P(X) || has_ancestor(P, original(X))
 end
 
@@ -40,12 +40,12 @@ function has_ancestor(P::Function, X::PrincipalOpenSubset)
 end
 
 @doc raw"""
-    has_ancestor(P::Function, X::AbsSpec)
+    has_ancestor(P::Function, X::AbsAffineScheme)
 
 Check whether property `P` holds for `X` or some ancestor of `X` in
-case it is a `PrincipalOpenSubset`, or a `SimplifiedSpec`.
+case it is a `PrincipalOpenSubset`, or a `SimplifiedAffineScheme`.
 """
-function has_ancestor(P::Function, X::AbsSpec)
+function has_ancestor(P::Function, X::AbsAffineScheme)
   return P(X) # This case will only be called when we reached the root.
 end
 
@@ -56,7 +56,7 @@ end
 # which have to be inverted to arrive at U. That is: f induces an
 # isomorphism on the complement of d.
 =#
-function _find_chart(U::AbsSpec, C::Covering;
+function _find_chart(U::AbsAffineScheme, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
   any(W->(W === U), patches(C)) || error("patch not found")
@@ -76,7 +76,7 @@ function _find_chart(U::PrincipalOpenSubset, C::Covering;
   return compose(inclusion_morphism(U), f), d
 end
 
-function _find_chart(U::SimplifiedSpec, C::Covering;
+function _find_chart(U::SimplifiedAffineScheme, C::Covering;
     complement_equations::Vector{T}=elem_type(OO(U))[]
   ) where {T<:RingElem}
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
@@ -87,7 +87,7 @@ function _find_chart(U::SimplifiedSpec, C::Covering;
   return compose(f, h), d
 end
 
-function __find_chart(U::AbsSpec, C::Covering)
+function __find_chart(U::AbsAffineScheme, C::Covering)
   any(W->(W === U), patches(C)) || error("patch not found")
   return U
 end
@@ -97,7 +97,7 @@ function __find_chart(U::PrincipalOpenSubset, C::Covering)
   return __find_chart(ambient_scheme(U), C)
 end
 
-function __find_chart(U::SimplifiedSpec, C::Covering)
+function __find_chart(U::SimplifiedAffineScheme, C::Covering)
   any(W->(W === U), patches(C)) && return U
   return __find_chart(original(U), C)
 end
@@ -110,7 +110,7 @@ end
 =#
 function _flatten_open_subscheme(
     U::PrincipalOpenSubset, C::Covering;
-    iso::AbsSpecMor=begin
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -140,8 +140,8 @@ function _flatten_open_subscheme(
 end
 
 function _flatten_open_subscheme(
-    U::SimplifiedSpec, C::Covering;
-    iso::AbsSpecMor=begin
+    U::SimplifiedAffineScheme, C::Covering;
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -180,8 +180,8 @@ function _flatten_open_subscheme(
 end
 
 function _flatten_open_subscheme(
-    U::AbsSpec, C::Covering;
-    iso::AbsSpecMor=begin
+    U::AbsAffineScheme, C::Covering;
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -194,8 +194,8 @@ function _flatten_open_subscheme(
 end
 
 function _flatten_open_subscheme(
-    U::PrincipalOpenSubset, P::AbsSpec;
-    iso::AbsSpecMor=begin
+    U::PrincipalOpenSubset, P::AbsAffineScheme;
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -226,8 +226,8 @@ function _flatten_open_subscheme(
 end
 
 function _flatten_open_subscheme(
-    U::SimplifiedSpec, P::AbsSpec;
-    iso::AbsSpecMor=begin
+    U::SimplifiedAffineScheme, P::AbsAffineScheme;
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -267,8 +267,8 @@ function _flatten_open_subscheme(
 end
 
 function _flatten_open_subscheme(
-    U::AbsSpec, P::AbsSpec;
-    iso::AbsSpecMor=begin
+    U::AbsAffineScheme, P::AbsAffineScheme;
+    iso::AbsAffineSchemeMor=begin
       UU = PrincipalOpenSubset(U, one(OO(U)))
       f = morphism(U, UU, hom(OO(UU), OO(U), gens(OO(U)), check=false), check=false)
       f_inv = morphism(UU, U, hom(OO(U), OO(UU), gens(OO(UU)), check=false), check=false)
@@ -299,33 +299,33 @@ function _have_common_ancestor(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
   return _have_common_ancestor(ambient_scheme(U), ambient_scheme(V))
 end
 
-function _have_common_ancestor(U::AbsSpec, V::PrincipalOpenSubset)
+function _have_common_ancestor(U::AbsAffineScheme, V::PrincipalOpenSubset)
   return _have_common_ancestor(U, ambient_scheme(V))
 end
 
 function _have_common_ancestor(
     V::PrincipalOpenSubset,
-    U::AbsSpec
+    U::AbsAffineScheme
   )
   return _have_common_ancestor(U, ambient_scheme(V))
 end
 
-function _have_common_ancestor(U::AbsSpec, V::AbsSpec)
+function _have_common_ancestor(U::AbsAffineScheme, V::AbsAffineScheme)
   return U===V, U
 end
 
-function _have_common_ancestor(U::AbsSpec, V::SimplifiedSpec)
+function _have_common_ancestor(U::AbsAffineScheme, V::SimplifiedAffineScheme)
   return _have_common_ancestor(U, original(V))
 end
 
 function _have_common_ancestor(
-    V::SimplifiedSpec,
-    U::AbsSpec
+    V::SimplifiedAffineScheme,
+    U::AbsAffineScheme
   )
   return _have_common_ancestor(U, original(V))
 end
 
-function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
+function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedAffineScheme)
   U === V && return true, V
   if ambient_scheme(U) === V
     return true, V
@@ -338,13 +338,13 @@ function _have_common_ancestor(U::PrincipalOpenSubset, V::SimplifiedSpec)
 end
 
 function _have_common_ancestor(
-    V::SimplifiedSpec,
+    V::SimplifiedAffineScheme,
     U::PrincipalOpenSubset
   )
   return _have_common_ancestor(U, V)
 end
 
-function _have_common_ancestor(U::SimplifiedSpec, V::SimplifiedSpec)
+function _have_common_ancestor(U::SimplifiedAffineScheme, V::SimplifiedAffineScheme)
   U === V && return true, V
   if original(U) === V
     return true, V

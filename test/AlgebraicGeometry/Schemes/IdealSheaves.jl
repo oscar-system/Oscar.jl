@@ -71,7 +71,7 @@ end
   simplify!(I)
 
   # run the check block in extend!
-  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID = IdDict{AbsAffineScheme, Oscar.Ideal}()
   ID[X[1][1]] = I(X[1][1])
   J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
   ID[X[1][1]] = I(X[1][1])

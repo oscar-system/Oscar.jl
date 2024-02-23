@@ -226,14 +226,14 @@ gluing_morphisms(PG::ProjectiveGluing) = (PG.f, PG.g)
 @attributes mutable struct CoveredProjectiveScheme{BRT} <: Scheme{BRT}
   Y::AbsCoveredScheme # the base scheme
   BC::Covering # the reference covering of the base scheme
-  patches::IdDict{AbsSpec, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
-  gluings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing} # the transitions sitting over the affine patches in the gluing domains of the base scheme
+  patches::IdDict{AbsAffineScheme, AbsProjectiveScheme} # the projective spaces over the affine patches in the base covering
+  gluings::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing} # the transitions sitting over the affine patches in the gluing domains of the base scheme
 
   function CoveredProjectiveScheme(
       Y::AbsCoveredScheme,
       C::Covering,
-      projective_patches::IdDict{AbsSpec, AbsProjectiveScheme},
-      projective_gluings::IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing};
+      projective_patches::IdDict{AbsAffineScheme, AbsProjectiveScheme},
+      projective_gluings::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing};
       check::Bool=true
     )
     C in coverings(Y) || error("covering not listed")
@@ -251,8 +251,8 @@ base_scheme(P::CoveredProjectiveScheme) = P.Y
 base_covering(P::CoveredProjectiveScheme) = P.BC
 base_patches(P::CoveredProjectiveScheme) = patches(P.BC)
 projective_patches(P::CoveredProjectiveScheme) = values(P.patches)
-getindex(P::CoveredProjectiveScheme, U::AbsSpec) = (P.patches)[U]
-getindex(P::CoveredProjectiveScheme, U::AbsSpec, V::AbsSpec) = (P.gluings)[(U, V)]
+getindex(P::CoveredProjectiveScheme, U::AbsAffineScheme) = (P.patches)[U]
+getindex(P::CoveredProjectiveScheme, U::AbsAffineScheme, V::AbsAffineScheme) = (P.gluings)[(U, V)]
 
 ###############################################################################
 #
@@ -320,11 +320,11 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
   C = default_covering(Y)
   #U = C[1]
   #ST = affine_patch_type(Y)
-  pp = IdDict{AbsSpec, AbsProjectiveScheme}()
+  pp = IdDict{AbsAffineScheme, AbsProjectiveScheme}()
   #P = projective_space(U, 0)
   #pp[U] = P
-  tr = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
-  #W = SpecOpen(U)
+  tr = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing}()
+  #W = AffineSchemeOpenSubscheme(U)
   #PW, inc = fiber_product(restriction_map(U, W), P)
   #tr[(U, U)] = ProjectiveGluing(Gluing(U, U, identity_map(W), identity_map(W)),
                                  #inc, inc, identity_map(PW), identity_map(PW))
@@ -332,7 +332,7 @@ function empty_covered_projective_scheme(R::T) where {T<:AbstractAlgebra.Ring}
 end
 
 @doc raw"""
-    blow_up_chart(W::AbsSpec, I::Ideal)
+    blow_up_chart(W::AbsAffineScheme, I::Ideal)
 
 Return the blowup of ``W`` at the ideal ``I``; this is a `ProjectiveScheme`
 with `base_scheme` ``W``.
@@ -341,7 +341,7 @@ with `base_scheme` ``W``.
     blow_up relies on this internal method for computing the blow ups of all chartsand appropriately assembles the returned projective schemes to a single coverec scheme.
 """
 
-function blow_up_chart(W::AbsSpec, I::Ideal; var_name::VarName = :s)
+function blow_up_chart(W::AbsAffineScheme, I::Ideal; var_name::VarName = :s)
   error("method `blow_up_chart` not implemented for arguments of type $(typeof(W)) and $(typeof(I))")
 end
 
@@ -349,7 +349,7 @@ end
 # Blowups of affine schemes                                            #
 ########################################################################
 
-function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
+function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     var_name::VarName = :s
   )
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
@@ -367,7 +367,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
     IPY = subscheme(IPW, J)
     # Compute the IdealSheaf for the exceptional divisor
-    ID = IdDict{AbsSpec, RingElem}()
+    ID = IdDict{AbsAffineScheme, RingElem}()
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
@@ -382,14 +382,14 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     set_attribute!(IPY, :exceptional_divisor, E)
 
     # Prepare the decomposition data
-    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
     for k in 1:ngens(I)
       U = affine_charts(Y)[i]
       decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
     end
 
     # Cache the isomorphism on the complement of the center
-    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    p_res_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
     for i in 1:ngens(I)
       UW = PrincipalOpenSubset(W, gen(I, i))
       V = affine_charts(Y)[i]
@@ -418,7 +418,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     Jh = ideal(homogeneous_coordinate_ring(IPW), pb.(lifted_numerator.(gens(J))))
     IPY = subscheme(IPW, Jh)
     # Compute the IdealSheaf for the exceptional divisor
-    ID = IdDict{AbsSpec, RingElem}()
+    ID = IdDict{AbsAffineScheme, RingElem}()
     Y = covered_scheme(IPY)
     p = covered_projection_to_base(IPY)
     p_cov = covering_morphism(p)
@@ -432,7 +432,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     set_attribute!(Y, :exceptional_divisor, E)
     set_attribute!(IPY, :exceptional_divisor, E)
     # Cache the isomorphism on the complement of the center
-    p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+    p_res_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
     for i in 1:ngens(I)
       UW = PrincipalOpenSubset(W, gen(I, i))
       V = affine_charts(Y)[i]
@@ -445,7 +445,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
     end
 
     # Prepare the decomposition data
-    decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+    decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
     for k in 1:ngens(I)
       U = affine_charts(Y)[k]
       decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
@@ -457,7 +457,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:MPolyRing}, I::MPolyIdeal;
   end
 end
 
-function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
+function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
     var_name::VarName = :s
   ) where {RingType<:Union{MPolyQuoRing, MPolyLocRing, MPolyQuoLocRing}}
   base_ring(I) === OO(W) || error("ideal does not belong to the correct ring")
@@ -472,7 +472,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   Bl_W = proj(S, K)
   set_base_scheme!(Bl_W, W)
   # Compute the IdealSheaf for the exceptional divisor
-  ID = IdDict{AbsSpec, RingElem}()
+  ID = IdDict{AbsAffineScheme, RingElem}()
   Y = covered_scheme(Bl_W)
   p = covered_projection_to_base(Bl_W)
   p_cov = covering_morphism(p)
@@ -487,7 +487,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   set_attribute!(Bl_W, :exceptional_divisor, E)
 
   # Cache the isomorphism on the complement of the center
-  p_res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  p_res_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for i in 1:ngens(I)
     UW = PrincipalOpenSubset(W, gen(I, i))
     V = affine_charts(Y)[i]
@@ -501,7 +501,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   set_attribute!(p, :isos_on_complement_of_center, p_res_dict)
 
   # Prepare the decomposition data
-  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
   for k in 1:ngens(I)
     U = affine_charts(Y)[k]
     decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
@@ -614,9 +614,9 @@ end
 #    covered_ambient = as_covered_scheme(Pw)
 #    ambient_projection_map = get_attribute(Pw, :covered_projection_to_base)
 #    C = default_covering(covered_ambient)
-#    SpecType = affine_patch_type(covered_ambient)
-#    PolyType = poly_type(SpecType)
-#    Idict = Dict{SpecType, ideal_type(ring_type(SpecType))}()
+#    AffineSchemeType = affine_patch_type(covered_ambient)
+#    PolyType = poly_type(AffineSchemeType)
+#    Idict = Dict{AffineSchemeType, ideal_type(ring_type(AffineSchemeType))}()
 #    @show I
 #    for i in 1:n_patches(C)
 #      @show i
@@ -637,7 +637,7 @@ end
 #    set_attribute!(projective_version, :standard_covering, default_covering(covered_version))
 #    @show "done"
 #
-#    proj_dict = Dict{SpecType, morphism_type(SpecType, SpecType)}()
+#    proj_dict = Dict{AffineSchemeType, morphism_type(AffineSchemeType, AffineSchemeType)}()
 #    @show "doing some other stuff"
 #    for i in 1:length(I)
 #      @show i
@@ -677,8 +677,8 @@ end
 # actual wrap-up of the local variables and feed everything to a constructor
 # for a `LazyProjectiveGluing` as documented above.
 struct CoveredProjectiveGluingData
-  U::AbsSpec
-  V::AbsSpec
+  U::AbsAffineScheme
+  V::AbsAffineScheme
   P::AbsProjectiveScheme
   Q::AbsProjectiveScheme
   G::AbsGluing
@@ -707,11 +707,11 @@ function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
 
   QVU, QVUtoQ = fiber_product(OX(V, VU), Q)
   PUV, PUVtoP = fiber_product(OX(U, UV), P)
-  # The problem is that on a SpecOpen U ∩ V
+  # The problem is that on a AffineSchemeOpenSubscheme U ∩ V
   # despite I(U)|U ∩ V == I(V)|U ∩ V, we
   # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
   # for the generators fᵢ of I(U) and gⱼ of I(V): Even though
-  # we can do this locally on the patches of a SpecOpen, the result
+  # we can do this locally on the patches of a AffineSchemeOpenSubscheme, the result
   # is not guaranteed to glue to global functions on the overlap.
   # Abstractly, we know that the intersection of affine charts
   # in a separated scheme must be affine, but we do not have a
@@ -739,12 +739,12 @@ end
 
 
 @doc raw"""
-    blow_up(X::AbsSpec, I::Ideal)
+    blow_up(X::AbsAffineScheme, I::Ideal)
 
 Return the blow-up morphism of blowing up ``X`` at ``I`` in ``OO(X)``.
 """
 function blow_up(
-    X::AbsSpec{<:Any, <:MPolyAnyRing},
+    X::AbsAffineScheme{<:Any, <:MPolyAnyRing},
     I::MPolyAnyIdeal)
 
   R = OO(X)
@@ -769,20 +769,20 @@ function blow_up(
     covering::Covering=default_covering(scheme(I))
   )
   X = space(I)
-  local_blowups = IdDict{AbsSpec, AbsProjectiveScheme}()
-  comp_iso_dict = IdDict{AbsSpec, AbsSpecMor}()
+  local_blowups = IdDict{AbsAffineScheme, AbsProjectiveScheme}()
+  comp_iso_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(covering)
     local_blowups[U] = blow_up_chart(U, I(U), var_name=var_name)
     # Gather the information on the isomorphism on the complement
     p = covered_projection_to_base(local_blowups[U])
-    isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsSpec, <:AbsSpecMor}
+    isos_on_complement_of_center = get_attribute(p, :isos_on_complement_of_center)::IdDict{<:AbsAffineScheme, <:AbsAffineSchemeMor}
     # manual merge because `merge` does not preserve IdDicts.
     for x in keys(isos_on_complement_of_center)
       comp_iso_dict[x] = isos_on_complement_of_center[x]
     end
     #comp_iso_dict = merge(comp_iso_dict, isos_on_complement_of_center)
   end
-  projective_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
+  projective_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing}()
 
   # prepare for the projective gluings
   for (U, V) in keys(gluings(covering))
@@ -795,7 +795,7 @@ function blow_up(
   Bl_I = CoveredProjectiveScheme(X, covering, local_blowups, projective_gluings)
   Y = covered_scheme(Bl_I)
   # Assemble the exceptional divisor as a Cartier divisor
-  ID = IdDict{AbsSpec, RingElem}()
+  ID = IdDict{AbsAffineScheme, RingElem}()
   p = covered_projection_to_base(Bl_I)
   p_cov = covering_morphism(p)
   for U in patches(domain(p_cov)) # These coincide with the patches on which the local E's are defined
@@ -819,10 +819,10 @@ end
 # from morphisms of graded algebras. It will be used to fill in the
 # `LazyGluing` together with the compute function following below.
 struct ProjectiveGluingData
-  down_left::AbsSpec
-  down_right::AbsSpec
-  up_left::AbsSpec
-  up_right::AbsSpec
+  down_left::AbsAffineScheme
+  down_right::AbsAffineScheme
+  up_left::AbsAffineScheme
+  up_right::AbsAffineScheme
   down_covering::Covering
   proj::CoveredProjectiveScheme
 end
@@ -920,17 +920,17 @@ end
 @attr function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
   C = base_covering(P)
-  new_patches = Vector{AbsSpec}()
-  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
-  projection_dict = IdDict{AbsSpec, AbsSpecMor}()
-  parts = IdDict{AbsSpec, AbsCoveredScheme}()
+  new_patches = Vector{AbsAffineScheme}()
+  new_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
+  projection_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  parts = IdDict{AbsAffineScheme, AbsCoveredScheme}()
   for U in patches(C)
     parts[U] = Oscar.covered_scheme(P[U])
   end
   # We first assemble a Covering where the preimage of every base
   # patch appears as one connected component
   result_patches = vcat([affine_charts(parts[U]) for U in patches(C)]...)
-  result_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+  result_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for U in patches(C)
     GG = gluings(parts[U])
     for (A, B) in keys(GG)
@@ -956,7 +956,7 @@ end
   result_covering = Covering(result_patches, result_gluings, check=false)
   result = CoveredScheme(result_covering)
 
-  projection_dict = IdDict{AbsSpec, AbsSpecMor}()
+  projection_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
     PP = P[U]
     p = covered_projection_to_base(PP)
@@ -968,7 +968,7 @@ end
   end
 
   # Assemble the decomposition information if applicable
-  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
   if has_decomposition_info(C)
     for V in patches(C)
       cov_part = default_covering(parts[V])
@@ -1002,7 +1002,7 @@ end
 end
 
 
-# function strict_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
+# function strict_transform(f::AffineSchemeMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #(IOw: Exc Div ^\infty)
 
 #        X = domain(f)
@@ -1023,7 +1023,7 @@ end
 #
 #
 #
-#function total_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
+#function total_transform(f::AffineSchemeMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #        #IOw
 #
 #        X = domain(f)
@@ -1038,7 +1038,7 @@ end
 #
 #
 #### NOT TESTED YET
-#function weak_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
+#function weak_transform(f::AffineSchemeMor, h::Vector{PolyType}, g::Vector{PolyType}) where{PolyType<:MPolyRingElem}
 #
 #        X = domain(f)
 #        Y = codomain(f)
@@ -1058,7 +1058,7 @@ end
 #end
 #
 #### NOT TESTED YET
-#function controlled_transform(f::SpecMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
+#function controlled_transform(f::AffineSchemeMor, h::Vector{PolyType}, g::Vector{PolyType}, i::Int) where{PolyType<:MPolyRingElem}
 #        #(IOw : Exc Div ^i)
 #
 #        X = domain(f)
@@ -1098,8 +1098,8 @@ end
 #    f = compose(X[C, domain(f)], f)
 #  end
 #
-#  SpecType = affine_patch_type(X)
-#  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  trans_dict = Dict{AffineSchemeType, Vector{poly_type(AffineSchemeType)}}()
 #  for U in patches(C)
 #    println("computing the strict transform on the patch $U")
 #    trans_dict[U] = strict_transform(f[U], E[U], I)
@@ -1114,8 +1114,8 @@ end
 #  Y = codomain(f)
 #  CX = domain_covering(f)
 #  CY = codomain_covering(f)
-#  SpecType = affine_patch_type(X)
-#  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  trans_dict = Dict{AffineSchemeType, Vector{poly_type(AffineSchemeType)}}()
 #  for U in patches(CX)
 #    trans_dict[U] = strict_transform(f[U], E[U], I[codomain(f[U])])
 #  end
@@ -1128,8 +1128,8 @@ end
 #  Y = codomain(f)
 #  CX = domain_covering(f)
 #  CY = codomain_covering(f)
-#  SpecType = affine_patch_type(X)
-#  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  trans_dict = Dict{AffineSchemeType, Vector{poly_type(AffineSchemeType)}}()
 #  for U in patches(CX)
 #    trans_dict[U] = total_transform(f[U], E[U], I[codomain(f[U])])
 #  end
@@ -1165,9 +1165,9 @@ end
 #function as_smooth_local_complete_intersection(I::IdealSheaf; check::Bool=true, verbose::Bool=false)
 #  X = scheme(I)
 #  C = covering(I)
-#  SpecType = affine_patch_type(X)
-#  PolyType = poly_type(SpecType)
-#  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  PolyType = poly_type(AffineSchemeType)
+#  res_dict = Dict{AffineSchemeType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 #  for U in patches(C)
 #    merge!(res_dict, as_smooth_local_complete_intersection(U, I[U], check=check, verbose=verbose))
 #  end
@@ -1196,8 +1196,8 @@ end
 #  end
 #  X_dict = _as_smooth_lci_rec(X, X, PolyType[], (Int[], Int[]), Vector{Tuple{Int, Int}}(), g, Dg, Dg, d, n, check=check, verbose=verbose)
 #  verbose && println("####################### done with the ambient space #######################")
-#  SpecType = typeof(X)
-#  f_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+#  AffineSchemeType = typeof(X)
+#  f_dict = Dict{AffineSchemeType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 #  for U in keys(X_dict)
 #    verbose && println("proceed with finding a regular sequence on $U")
 #    g = X_dict[U][2]
@@ -1217,9 +1217,9 @@ end
 #
 #function as_smooth_lci_of_cod(X::CoveredScheme, c::Int; check::Bool=true, verbose::Bool=false)
 #  C = default_covering(X)
-#  SpecType = affine_patch_type(X)
-#  PolyType = poly_type(SpecType)
-#  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  PolyType = poly_type(AffineSchemeType)
+#  res_dict = Dict{AffineSchemeType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 #  for U in patches(C)
 #    merge!(res_dict, as_smooth_lci_of_cod(U, d, check=check, verbose=verbose))
 #  end
@@ -1255,9 +1255,9 @@ end
 #
 #function as_smooth_local_complete_intersection(X::CoveredScheme; check::Bool=true, verbose::Bool=false)
 #  C = default_covering(X)
-#  SpecType = affine_patch_type(X)
-#  PolyType = poly_type(SpecType)
-#  res_dict = Dict{SpecType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  PolyType = poly_type(AffineSchemeType)
+#  res_dict = Dict{AffineSchemeType, Tuple{Vector{PolyType}, Vector{PolyType}, Vector{Int}}}()
 #  for U in patches(C)
 #    merge!(res_dict, as_smooth_local_complete_intersection(U, check=check, verbose=verbose))
 #  end
@@ -1308,7 +1308,7 @@ end
 ##               columns of the non-vanishing minor on the
 ##               i-th patch.
 #function _non_degeneration_cover(
-#    C::SpecType,
+#    C::AffineSchemeType,
 #    A::MatrixType,
 #    r::Int;
 #    rec_count::Int=0,
@@ -1316,7 +1316,7 @@ end
 #    verbose::Bool=false,
 #    restricted_rows::Vector{Vector{Int}}=[Int[]],
 #    restricted_columns::Vector{Vector{Int}}=[Int[]]
-#  ) where {SpecType<:AffineScheme, MatrixType} #TODO: How specific can we be with the matrices?
+#  ) where {AffineSchemeType<:AffineScheme, MatrixType} #TODO: How specific can we be with the matrices?
 #  indent_str = prod([ "#" for i in 1:rec_count ]) * " "
 #  #verbose && println(indent_str * "call with $(X) and matrix $(A) for rank $r")
 #  verbose && println(indent_str * "call to _non_degeneration_cover for rank $r")
@@ -1501,8 +1501,8 @@ end
 #end
 #
 #function _as_smooth_lci_rec(
-#    X::SpecType,
-#    Z::SpecType, # the uncovered locus
+#    X::AffineSchemeType,
+#    Z::AffineSchemeType, # the uncovered locus
 #    h::Vector{PolyType}, # equations that were localized already
 #    good::Tuple{Vector{Int}, Vector{Int}}, # partial derivatives that form the beginning of the solution sequence
 #    bad::Vector{Tuple{Int, Int}}, # partial derivatives that vanish on the uncovered locus.
@@ -1514,7 +1514,7 @@ end
 #    verbose::Bool=false,
 #    rec_depth::Int=0
 #  ) where{
-#          SpecType<:AffineScheme,
+#          AffineSchemeType<:AffineScheme,
 #          PolyType<:MPolyRingElem,
 #          MatrixType
 #         }
@@ -1645,8 +1645,8 @@ end
 #  Y = codomain(f)
 #  CX = domain_covering(f)
 #  CY = codomain_covering(f)
-#  SpecType = affine_patch_type(X)
-#  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  trans_dict = Dict{AffineSchemeType, Vector{poly_type(AffineSchemeType)}}()
 #  for U in patches(CX)
 #    trans_dict[U] = weak_transform(f[U], E[U], I[codomain(f[U])])
 #  end
@@ -1658,8 +1658,8 @@ end
 #  Y = codomain(f)
 #  CX = domain_covering(f)
 #  CY = codomain_covering(f)
-#  SpecType = affine_patch_type(X)
-#  trans_dict = Dict{SpecType, Vector{poly_type(SpecType)}}()
+#  AffineSchemeType = affine_patch_type(X)
+#  trans_dict = Dict{AffineSchemeType, Vector{poly_type(AffineSchemeType)}}()
 #  for U in patches(CX)
 #    trans_dict[U] = controlled_transform(f[U], E[U], I[codomain(f[U])],i)
 #  end
@@ -1763,7 +1763,7 @@ function fiber_product(
 
   j1 = Oscar.CoveredClosedEmbedding(domain(i2), pb_I1)
   Z = domain(j1)
-  morphism_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  morphism_dict = IdDict{AbsAffineScheme, ClosedEmbedding}()
   for U in affine_charts(Z)
     V2 = codomain(j1[U])
     W = codomain(i2[V2])
