@@ -228,7 +228,6 @@ function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{Abs
     push!(Ps, P)
   end
 
-  # Is this correct? The order is usually "G, inj, pr", not "G, pr, inj"
   G, pr, inj = biproduct(groups...)
 
   function dlog(x::Vector{<:Hecke.RelSimpleNumFieldElem})
