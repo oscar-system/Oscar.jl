@@ -1730,7 +1730,7 @@ function projectivization(E::AbsCoherentSheaf;
     RU = rees_algebra(E(U), var_names=var_names[1:r])
     algebras[U] = RU
     SU, _ = grade(RU)
-    PU = projective_scheme(SU)
+    PU = proj(SU)
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end

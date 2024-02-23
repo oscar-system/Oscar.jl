@@ -29,7 +29,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P)
+julia> Y = proj(P)
 Projective space of dimension 2
   over rational field
 with homogeneous coordinates [x, y, z]

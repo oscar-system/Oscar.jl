@@ -2,13 +2,13 @@
 # Lower case constructors
 ################################################################################
 
-projective_scheme(S::MPolyDecRing) = ProjectiveScheme(S)
+proj(S::MPolyDecRing) = ProjectiveScheme(S)
 
-projective_scheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
+proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
 
-projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
+proj(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
 
-projective_scheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
+proj(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
 
 ################################################################################
 # Subschemes
@@ -18,7 +18,7 @@ function subscheme(P::AbsProjectiveScheme, f::RingElem)
   S = homogeneous_coordinate_ring(P)
   parent(f) === S || return subscheme(P, S(f))
   Q, _ = quo(S, ideal(S, [f]))
-  result = projective_scheme(Q)
+  result = proj(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
@@ -36,7 +36,7 @@ function subscheme(
     parent(f[i]) === S || return subscheme(P, S.(f))
   end
   Q, _ = quo(S, ideal(S, f))
-  result = projective_scheme(Q)
+  result = proj(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
@@ -50,7 +50,7 @@ function subscheme(P::AbsProjectiveScheme,
   S = homogeneous_coordinate_ring(P)
   base_ring(I) === S || error("ideal does not belong to the correct ring")
   Q, _ = quo(S, I)
-  result = projective_scheme(Q)
+  result = proj(Q)
   if isdefined(P, :Y) 
     set_base_scheme!(result, base_scheme(P))
   end
@@ -85,7 +85,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
 function projective_space(A::Ring, var_symb::Vector{<:VarName})
   n = length(var_symb)
   S, _ = graded_polynomial_ring(A, Symbol.(var_symb))
-  return projective_scheme(S)
+  return proj(S)
 end
 
 @doc raw"""
@@ -96,7 +96,7 @@ where `s` is a string for the variable names.
 """
 function projective_space(A::Ring, r::Int; var_name::VarName=:s)
   S, _ = graded_polynomial_ring(A, [Symbol(var_name, i) for i in 0:r])
-  return projective_scheme(S)
+  return proj(S)
 end
 
 function projective_space(

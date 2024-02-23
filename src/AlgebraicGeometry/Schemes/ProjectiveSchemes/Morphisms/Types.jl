@@ -142,7 +142,7 @@ end
     S = homogeneous_coordinate_ring(P)
     @req base_ring(I) === S "ideal must be defined in the homogeneous coordinate ring of the scheme"
     T, pr = quo(S, I)
-    Q = projective_scheme(T)
+    Q = proj(T)
     f = ProjectiveSchemeMor(Q, P, pr, check=false)
     return new{typeof(Q), DomainType, typeof(pr), Nothing, IdealType}(f, I)
   end

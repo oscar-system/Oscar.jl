@@ -469,7 +469,7 @@ function blow_up_chart(W::AbsSpec{<:Field, <:RingType}, I::Ideal;
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)
   K = ideal(S, [g for g in gens(K) if !iszero(g)]) # clean up superfluous generators
-  Bl_W = projective_scheme(S, K)
+  Bl_W = proj(S, K)
   set_base_scheme!(Bl_W, W)
   # Compute the IdealSheaf for the exceptional divisor
   ID = IdDict{AbsSpec, RingElem}()
@@ -824,7 +824,7 @@ struct ProjectiveGluingData
   up_left::AbsSpec
   up_right::AbsSpec
   down_covering::Covering
-  projective_scheme::CoveredProjectiveScheme
+  proj::CoveredProjectiveScheme
 end
 
 # This function actually computes the gluing with the data extracted
@@ -850,7 +850,7 @@ function _compute_gluing(gd::ProjectiveGluingData)
   #                f,g
   #
   # with UW = {sᵢ≠ 0} and VW = {tⱼ≠ 0}.
-  P = gd.projective_scheme
+  P = gd.proj
   (A, B) = gluing_domains(C[U, V])
   (f, g) = gluing_morphisms(C[U, V])
   (UD, VD) = gluing_domains(P[U, V])

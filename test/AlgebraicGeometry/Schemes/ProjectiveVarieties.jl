@@ -3,7 +3,7 @@
   p = x^2 + y^2 + z^2
   X = variety(p)
   @test_throws ErrorException variety(p^2)
-  Y = projective_scheme(G, ideal([p^2]))
+  Y = proj(G, ideal([p^2]))
   @test X != Y
   Y1 = variety(ideal([p]),check=false)
   Y1 = variety(ideal([p]),check=true)

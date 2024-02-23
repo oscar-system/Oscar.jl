@@ -115,13 +115,13 @@ end
 
 function proj(S::MPolyDecRing)
   is_standard_graded(S) || error("ring must be standard graded")
-  return projective_scheme(S)
+  return proj(S)
 end
 
 function proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
   S = base_ring(Q)
   is_standard_graded(S) || error("ring must be standard graded")
-  return projective_scheme(Q)
+  return proj(Q)
 end
 
 function is_isomorphism(f::ModuleFPHom)
