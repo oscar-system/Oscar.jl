@@ -565,5 +565,5 @@ end
   I = ideal(R, zero(R))
   d = degree(I)  
   @test d == 1
-  @test typeof(d) == ZZRingElem
+  @test d isa ZZRingElem
 end
