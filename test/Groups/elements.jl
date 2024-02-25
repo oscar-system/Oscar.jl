@@ -145,7 +145,7 @@ end
 
    G = free_group(2)
    @test_throws ArgumentError gen(G, 3)
-   @test_throws ArgumentError gen(G, -1)
+   @test_throws ArgumentError gen(G, -3)
 end
 
 @testset "deepcopy" begin
