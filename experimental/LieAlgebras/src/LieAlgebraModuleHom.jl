@@ -403,7 +403,7 @@ function canonical_projection(V::LieAlgebraModule, i::Int)
   @req fl "Module must be a direct sum"
   @req 1 <= i <= length(Vs) "Index out of bound"
   j = sum(dim(Vs[l]) for l in 1:(i - 1); init=0)
-  projection = hom(
+  proj = hom(
     V,
     Vs[i],
     [
@@ -413,7 +413,7 @@ function canonical_projection(V::LieAlgebraModule, i::Int)
     ];
     check=false,
   )
-  return projection
+  return proj
 end
 
 @doc raw"""

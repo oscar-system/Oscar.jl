@@ -808,7 +808,7 @@ julia> F = free_module(R, 1);
 
 julia> V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
 
-julia> N, pr = quo(F, V);
+julia> N, proj = quo(F, V);
 
 julia> N
 Subquotient of Submodule with 1 generator
@@ -818,7 +818,7 @@ by Submodule with 3 generators
 2 -> y^3*e[1]
 3 -> z^4*e[1]
 
-julia> pr
+julia> proj
 Map with following data
 Domain:
 =======

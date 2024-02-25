@@ -1301,7 +1301,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    1    0    0]
   [0    0    0    1    0]
 
-julia> Lh, pr = direct_product(Lf, Lg)
+julia> Lh, proj = direct_product(Lf, Lg)
 (Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
@@ -1321,9 +1321,9 @@ Integer lattice of rank 10 and degree 10
 ```
 """
 function direct_product(x::Vector{ZZLatWithIsom})
-  Vf, pr = direct_product(ambient_space.(x))
+  Vf, proj = direct_product(ambient_space.(x))
   Bs = block_diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs; check=false), pr
+  return lattice(Vf, Bs; check=false), proj
 end
 
 direct_product(x::Vararg{ZZLatWithIsom}) = direct_product(collect(x))
@@ -1385,7 +1385,7 @@ Integer lattice of rank 5 and degree 5
   [0    0    1    0    0]
   [0    0    0    1    0]
 
-julia> Lh, inj, pr = biproduct(Lf, Lg)
+julia> Lh, inj, proj = biproduct(Lf, Lg)
 (Integer lattice with isometry of finite order 10, AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space], AbstractSpaceMor[Map: quadratic space -> quadratic space, Map: quadratic space -> quadratic space])
 
 julia> Lh
@@ -1403,14 +1403,14 @@ Integer lattice of rank 10 and degree 10
   [ 0    0    0    0    0   0    0    1    0    0]
   [ 0    0    0    0    0   0    0    0    1    0]
 
-julia> matrix(compose(inj[1], pr[1]))
+julia> matrix(compose(inj[1], proj[1]))
 [1   0   0   0   0]
 [0   1   0   0   0]
 [0   0   1   0   0]
 [0   0   0   1   0]
 [0   0   0   0   1]
 
-julia> matrix(compose(inj[1], pr[2]))
+julia> matrix(compose(inj[1], proj[2]))
 [0   0   0   0   0]
 [0   0   0   0   0]
 [0   0   0   0   0]
@@ -1419,9 +1419,9 @@ julia> matrix(compose(inj[1], pr[2]))
 ```
 """
 function biproduct(x::Vector{ZZLatWithIsom})
-  Vf, inj, pr = biproduct(ambient_space.(x))
+  Vf, inj, proj = biproduct(ambient_space.(x))
   Bs = block_diagonal_matrix(basis_matrix.(x))
-  return lattice(Vf, Bs; check=false), inj, pr
+  return lattice(Vf, Bs; check=false), inj, proj
 end
 
 biproduct(x::Vararg{ZZLatWithIsom}) = biproduct(collect(x))

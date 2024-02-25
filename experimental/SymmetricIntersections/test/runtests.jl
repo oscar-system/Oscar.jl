@@ -96,15 +96,15 @@ end
   @test character_representation(RR, representation_mapping(reph)) == symmetric_power(conj(chi), 2)
   ic = @inferred isotypical_components(reph)
   inj = [v[1] for v in collect(values(ic))]
-  pr = [v[2] for v in collect(values(ic))]
+  proj = [v[2] for v in collect(values(ic))]
   @test all(ii -> rank(ii) == nrows(ii), inj)
-  @test all(pp -> rank(pp) == ncols(pp), pr)
-  @test all(j -> isone(inj[j]*pr[j]), 1:length(inj))
-  @test all(j -> all(k -> (j==k)||iszero(inj[j]*pr[k]), 1:length(inj)), 1:length(inj))
+  @test all(pp -> rank(pp) == ncols(pp), proj)
+  @test all(j -> isone(inj[j]*proj[j]), 1:length(inj))
+  @test all(j -> all(k -> (j==k)||iszero(inj[j]*proj[k]), 1:length(inj)), 1:length(inj))
   B = reduce(vcat, inj[2,:])
   if !(rank(B) == 0)
     B2 = @inferred complement_submodule(reph, B)
-    repQ, pr = @inferred quotient_representation(reph, B2)
+    repQ, proj = @inferred quotient_representation(reph, B2)
     @test is_isotypical(repQ)
     @test is_constituent(character_representation(reph), character_representation(repQ))
   else

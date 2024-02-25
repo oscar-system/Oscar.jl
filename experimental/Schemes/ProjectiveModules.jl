@@ -33,13 +33,13 @@ function is_projective(M::SubquoModule; check::Bool=true)
   R = base_ring(M)
   r = ngens(M)
   Rr = FreeMod(R, r)
-  pr = hom(Rr, M, gens(M))
+  proj = hom(Rr, M, gens(M))
 
   if check
-    iszero(annihilator(M)) || return false, pr, nothing
+    iszero(annihilator(M)) || return false, proj, nothing
   end
 
-  K, inc = kernel(pr)
+  K, inc = kernel(proj)
   s = ngens(K)
   Rs = FreeMod(R, s)
   a = compose(hom(Rs, K, gens(K)), inc)

@@ -1312,16 +1312,16 @@ function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <
   sub_gene = elem_type(V)[V(M[i,:]) for i in 1:nrows(M)]
   VV, _ = sub(V, sub_gene)
   _, p = Oscar.quo(V, VV)
-  projection = p.matrix::W
+  proj = p.matrix::W
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
   for m in mr
-    mm = solve(projection, m*projection; side=:right)
+    mm = solve(proj, m*projection; side=:right)
     push!(coll, mm)
   end
   repQ = _linear_representation(representation_ring(rep), coll)
   @assert is_constituent(character_representation(rep), character_representation(repQ))
-  return repQ, projection
+  return repQ, proj
 end
 
 @doc raw"""

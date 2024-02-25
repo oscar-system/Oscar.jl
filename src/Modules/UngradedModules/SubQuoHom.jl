@@ -1144,9 +1144,9 @@ function simplify_light(M::SubquoModule)
   inj = hom(N, M, Vector{elem_type(M)}([M[index_of_N_in_M[i]] for i in 1:ngens(N)]), check=false)
 
   index_of_M_in_N = indexin(M_gens, N_gens)
-  pr = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]), check=false)
+  proj = hom(M, N, Vector{elem_type(N)}([index_of_M_in_N[i] === nothing ? zero(N) : N[index_of_M_in_N[i]] for i in 1:ngens(M)]), check=false)
 
-  return N, inj, pr
+  return N, inj, proj
 end
 
 @doc raw"""

@@ -228,7 +228,7 @@ function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{Abs
     push!(Ps, P)
   end
 
-  G, pr, inj = biproduct(groups...)
+  G, proj, inj = biproduct(groups...)
 
   function dlog(x::Vector{<:Hecke.RelSimpleNumFieldElem})
     if length(x) == 1
@@ -240,7 +240,7 @@ function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{Abs
   end
 
   function exp(x::FinGenAbGroupElem)
-    v = elem_type(E)[exps[i](pr[i](x)) for i in 1:length(Fac)]
+    v = elem_type(E)[exps[i](proj[i](x)) for i in 1:length(Fac)]
     @hassert :ZZLatWithIsom 1 dlog(v) == x
     return v
   end

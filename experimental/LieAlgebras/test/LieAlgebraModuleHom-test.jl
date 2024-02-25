@@ -119,7 +119,7 @@
       @test canonical_injection(V, i) * canonical_projection(V, i) == identity_map(Vs[i])
     end
     @test sum(
-      pr * inj for (pr, inj) in zip(canonical_projections(V), canonical_injections(V))
+      proj * inj for (proj, inj) in zip(canonical_projections(V), canonical_injections(V))
     ) == identity_map(V)
   end
 

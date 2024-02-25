@@ -271,10 +271,10 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
     push!(grps, Ainf)
     push!(maps, minf)
   end
-  A, pr, inj = direct_product(grps..., task = :both)
+  A, proj, inj = direct_product(grps..., task = :both)
   backwardmap = x -> sum([inj[i](maps[i]\(f(x))) for i in 1:length(maps)])
   forwardmap = function(x)
-    elems = [f\(maps[i](pr[i](x))) for i in 1:length(grps)]
+    elems = [f\(maps[i](proj[i](x))) for i in 1:length(grps)]
     elems_integral = ZZRingElem[]
     for i in 1:(length(elems) - 1)
       push!(elems_integral, ZZ(denominator(elems[i])^2 * elems[i]))
@@ -301,10 +301,10 @@ function _det_spin_group(primes::Vector{ZZRingElem}; infinity = true)
   D, projD, injD = direct_product(grps_det...,task=:both)
   maps_det = [(primes[i],MapFromFunc(ZZ, grps_det[i], x-> isone(x) ? zero(grps_det[i]) : grps_det[i][1])*injD[i]) for i in 1:length(primes)]
   maps_det = Dict(maps_det)
-  projd = Any[(primes[i],projD[end]*pr[i]*maps[i]*inv(f)) for i in 1:length(primes)]
+  projd = Any[(primes[i],projD[end]*proj[i]*maps[i]*inv(f)) for i in 1:length(primes)]
   injd = Any[(primes[i],f*inv(maps[i])*inj[i]*injD[end]) for i in 1:length(primes)]
   if infinity
-    push!(projd,(PosInf(), pr[end]))
+    push!(projd,(PosInf(), proj[end]))
     push!(injd,(PosInf(), inj[end]))
   end
   projd = Dict(projd)
@@ -354,7 +354,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
   end
   gens_ker = append!(sigma_sharp_gens, GammaS)
   _, j = sub(A, gens_ker, false)
-  D, pr = cokernel(j, false)
+  D, proj = cokernel(j, false)
 
   for p in S
     if p == -1
@@ -429,7 +429,7 @@ function det_spin_homomorphism(L::ZZLat; signed=false)
     end
   end
   Agap, i1,_ = _isomorphic_gap_group(D)
-  return hom(Oq,Agap,gens(Oq),[i1(pr(result[f])) for f in gens(Oq)],check=false)
+  return hom(Oq,Agap,gens(Oq),[i1(proj(result[f])) for f in gens(Oq)],check=false)
 end
 
 

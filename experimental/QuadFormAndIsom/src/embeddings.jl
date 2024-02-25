@@ -1005,8 +1005,8 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
     push!(blocks, compose(__f, j))
     push!(ni, ngens(domain(__f)))
   end
-  D, inj, pr = biproduct(domain.(blocks))
-  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](pr[i](a)) for i in 1:length(pds)]) for a in gens(D)])
+  D, inj, proj = biproduct(domain.(blocks))
+  phi = hom(D, q, TorQuadModuleElem[sum([blocks[i](proj[i](a)) for i in 1:length(pds)]) for a in gens(D)])
   @hassert :ZZLatWithIsom 1 is_isometry(phi)
 
   list_can = Vector{Tuple{TorQuadModuleMap, AutomorphismGroup{TorQuadModule}}}[]
