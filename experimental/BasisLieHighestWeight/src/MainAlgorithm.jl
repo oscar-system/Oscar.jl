@@ -4,7 +4,6 @@ function basis_lie_highest_weight_compute(
   highest_weight::Vector{Int},
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
   monomial_ordering_symb::Symbol;
-  reduced_expression::Vector{Int}=Int[],  # _demazure
 )
   """
   Pseudocode:
@@ -51,6 +50,8 @@ function basis_lie_highest_weight_compute(
     operators, [asVec(v) for v in operators], weights_w, weights_alpha
   )
 
+  println("\n birational_sequence: ", birational_sequence)
+
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
   monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
 
@@ -70,8 +71,8 @@ function basis_lie_highest_weight_compute(
     monomial_ordering,
     calc_highest_weight,
     no_minkowski;
-    reduced_expression,
   )
+
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
@@ -88,7 +89,6 @@ function compute_monomials(
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}};
-  reduced_expression::Vector{Int},  # _demazure
 )
   """
   This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
@@ -118,7 +118,7 @@ function compute_monomials(
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}(); reduced_expression,
+      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -292,7 +292,6 @@ function add_by_hand(
   highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
   set_mon::Set{ZZMPolyRingElem};
-  reduced_expression::Vector{Int}  # _demazure
 )
   """
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
@@ -307,11 +306,7 @@ function add_by_hand(
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   
   # starting vector v
-  #if birational_sequence === nothing
   v0 = sparse_row(ZZ, [(1, 1)]) 
-  #else # _demazure
-    #v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators) 
-  #end
 
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
@@ -493,6 +488,7 @@ function operators_demazure(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   reduced_expression::Vector{Int},
+  highest_weight::Vector{Int},
 )
   """
   Compute the operators associated with the demazure module.
@@ -501,20 +497,62 @@ function operators_demazure(
           = s_{i_s} … s_{i_1}} (\alpha_{i_k})
   """
 
-  println("chevalley_basis: ", chevalley_basis)
+  println("\n chevalley_basis: \n", chevalley_basis)
 
-  operators =  operators_by_index(L, chevalley_basis, reduced_expression)
-  println("operators: ", operators)
+  rs = root_system_gap(L)
+  simple_roots = GAP.Globals.SimpleSystem(rs)
+  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
+  negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(rs))
+  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
+  # Simple reflection acts on SimpleRoots and we search for the result in PositiveRoots
+  println("\n simple_roots: \n", simple_roots)
+  println("\n positive_roots: \n", positive_roots)
+  println("\n negative_roots: \n", negative_roots)
+  
+  # operators =  operators_by_index(L, chevalley_basis, reduced_expression)
+  # println("\n operators: \n", operators)
 
   # Twist with w^{-1}
-  for i in 1:length(operators)
-    println("i: ", i)
+  #for i in 1:length(operators)
+  #  println("i: ", i)
+  #  for k in 1:length(reduced_expression)
+  #    println("k: ", k, " ", operators[i])
+  #    w_k = reduced_expression[k]
+  #    operators[i] = operators[k] * chevalley_basis[1][w_k]
+  #  end
+  #end
+  #println("operators: ", operators)
+
+  twisted_roots = []
+  twisted_indx = []
+  for i in 1:length(simple_roots)
+    # Twist with w^{-1}
+    root = copy(simple_roots[i])
     for k in 1:length(reduced_expression)
-      println("k: ", k, " ", operators[i])
-      w_k = reduced_expression[k]
-      operators[i] = operators[k] * chevalley_basis[1][w_k]
+      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], root)
+    end
+
+    root_ind_pos = findfirst(==(Vector{Int}(root)), positive_roots)
+    root_ind_neg = findfirst(==(Vector{Int}(root)), negative_roots)
+    @req !isnothing(root_ind_pos) || !isnothing(root_ind_neg) "$root not found"
+    if !isnothing(root_ind_pos)
+      push!(twisted_roots, chevalley_basis[1][root_ind_pos])
+      push!(twisted_indx, (1, root_ind_pos))
+    elseif !isnothing(root_ind_neg)
+      push!(twisted_roots, chevalley_basis[2][root_ind_neg])
+      push!(twisted_indx, (-1, root_ind_neg))
     end
   end
-  println("operators: ", operators)
-  return operators
+
+  operators_twisted = [twisted_roots[i] for i in reduced_expression]
+  highest_weight_twisted = zeros(Int, length(highest_weight))
+  for i in 1:length(highest_weight)
+    pos_neg, indx = twisted_indx[i]
+    highest_weight_twisted[indx] += highest_weight[i] * pos_neg
+  end
+
+  println("operators_twisted: ", operators_twisted)
+  println("highest_weight_twisted: ", highest_weight_twisted)
+
+  return operators_twisted, highest_weight_twisted
 end

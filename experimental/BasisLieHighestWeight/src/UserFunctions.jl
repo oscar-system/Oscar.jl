@@ -421,15 +421,14 @@ function basis_lie_highest_weight_demazure(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
 
-  operators = operators_demazure(L, chevalley_basis, reduced_expression)
+  operators, highest_weight_twisted = operators_demazure(L, chevalley_basis, reduced_expression, highest_weight)
+
+
+  println("\n\noperators: ", operators)
 
   monomial_basis = basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression,
+    L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
 
   return MonomialBasisDemazure(reduced_expression, monomial_basis)
-
-  #return basis_lie_highest_weight_compute(
-  #  L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression,
-  #)
 end

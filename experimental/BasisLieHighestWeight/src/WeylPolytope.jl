@@ -72,6 +72,11 @@ function get_lattice_points_of_weightspace(
   # [   |              |    ]       [  res  ] 
   # [   |              |    ]       [   |   ]
   # where res[i] >= 0 for all i
+
+  println("\n get_lattice_points_of_weightspace:")
+  println("root_weights: ", root_weights)
+  println("weight: ", weight)
+
   n = length(root_weights)
   m = length(weight)
 
