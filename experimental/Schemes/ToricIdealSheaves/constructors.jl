@@ -56,7 +56,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
   @req is_smooth(X) "Currently, ideal sheaves are only supported for smooth toric varieties"
   @req is_pure(X) "Currently, ideal sheaves require that all maximal cones have the dimension of the variety"
 
-  ideal_dict = IdDict{AbsSpec, Ideal}()
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}()
 
   # We need to dehomogenize the ideal I in the Cox ring S to the local
   # charts U_sigma, with sigma a cone in the fan of the variety.
@@ -157,7 +157,7 @@ function ideal_sheaf(X::NormalToricVariety, tau::Cone)
   #tau_perp = polarize(tau)
   @show rays(tau_perp)
   @show lineality_space(tau_perp)
-  ideal_dict = IdDict{AbsSpec, Ideal}()
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}()
   # We are using Equation (3.2.7) in CLS to determine the local 
   # form of the ideal.
   for U in affine_charts(X)

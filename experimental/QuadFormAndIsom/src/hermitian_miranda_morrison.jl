@@ -232,7 +232,7 @@ function _get_product_quotient(E::Hecke.RelSimpleNumField, Fac::Vector{Tuple{Abs
 
   function dlog(x::Vector{<:Hecke.RelSimpleNumFieldElem})
     if length(x) == 1
-      return sum(inj[i](dlogs[i](x[1])) for i in 1:length(Fac)) 
+      return sum(inj[i](dlogs[i](x[1])) for i in 1:length(Fac))
     else
       @hassert :ZZLatWithIsom 1 length(x) == length(Fac)
       return sum(inj[i](dlogs[i](x[i])) for i in 1:length(Fac))
@@ -263,10 +263,10 @@ end
 # (D^{-1}L^#/L)_p is not unimodular.
 #
 # According to [BH23], the quotient D^{-1}L^#/L is unimodular at p
-# if and only if 
+# if and only if
 #  - either L is unimodular at p, and D and p are coprime
 #  - or L is P^{-a}-modular where P is largest prime ideal
-#    over p fixed the canonical involution, and a is the valuation of D at P. 
+#    over p fixed the canonical involution, and a is the valuation of D at P.
 
 function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
   Ps = collect(keys(factor(D)))

@@ -3,53 +3,53 @@
 # Rings of regular functions on Zariski open sets of affine schemes    #
 ########################################################################
 @doc raw"""
-    SpecOpenRing{SpecType, OpenType}
+    AffineSchemeOpenSubschemeRing{AffineSchemeType, OpenType}
 
 The ring of regular functions ``𝒪(X, U)`` on an open subset ``U`` of an
 affine scheme ``X``.
 
- * `SpecType` is the type of the affine scheme ``X`` on which
+ * `AffineSchemeType` is the type of the affine scheme ``X`` on which
 this sheaf is defined;
  * `OpenType` is the type of the (Zariski) open subsets of ``U``.
 """
-mutable struct SpecOpenRing{SpecType, OpenType} <: Ring
-  scheme::SpecType
+mutable struct AffineSchemeOpenSubschemeRing{AffineSchemeType, OpenType} <: Ring
+  scheme::AffineSchemeType
   domain::OpenType
 
-  function SpecOpenRing(
-      X::SpecType,
+  function AffineSchemeOpenSubschemeRing(
+      X::AffineSchemeType,
       U::OpenType;
       check::Bool=true
-    ) where {SpecType<:AbsSpec, OpenType<:SpecOpen}
+    ) where {AffineSchemeType<:AbsAffineScheme, OpenType<:AffineSchemeOpenSubscheme}
     @check is_subscheme(U, X) "open set does not lay in the scheme"
-    return new{SpecType, OpenType}(X, U)
+    return new{AffineSchemeType, OpenType}(X, U)
   end
 end
 
 ########################################################################
-# Elements of SpecOpenRings                                            #
+# Elements of AffineSchemeOpenSubschemeRings                                            #
 ########################################################################
 @doc raw"""
-    SpecOpenRingElem{SpecOpenType}
+    AffineSchemeOpenSubschemeRingElem{AffineSchemeOpenSubschemeType}
 
 An element ``f ∈ 𝒪(X, U)`` of the ring of regular functions on
 an open set ``U`` of an affine scheme ``X``.
 
-The type parameter `SpecOpenType` is the type of the open set
+The type parameter `AffineSchemeOpenSubschemeType` is the type of the open set
 ``U`` of ``X``.
 """
-mutable struct SpecOpenRingElem{
-      SpecOpenRingType<:SpecOpenRing
+mutable struct AffineSchemeOpenSubschemeRingElem{
+      AffineSchemeOpenSubschemeRingType<:AffineSchemeOpenSubschemeRing
     } <: RingElem
-  parent::SpecOpenRingType
+  parent::AffineSchemeOpenSubschemeRingType
   restrictions::Vector{<:RingElem}
 
-  function SpecOpenRingElem(
-      R::SpecOpenRingType,
+  function AffineSchemeOpenSubschemeRingElem(
+      R::AffineSchemeOpenSubschemeRingType,
       f::Vector{<:RingElem};
       check::Bool=true
     ) where {
-        SpecOpenRingType<:SpecOpenRing
+        AffineSchemeOpenSubschemeRingType<:AffineSchemeOpenSubschemeRing
     }
     n = length(f)
     U = domain(R)
@@ -63,7 +63,7 @@ mutable struct SpecOpenRingElem{
         end
       end
     end
-    return new{SpecOpenRingType}(R, g)
+    return new{AffineSchemeOpenSubschemeRingType}(R, g)
   end
 end
 

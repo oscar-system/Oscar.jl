@@ -1,29 +1,29 @@
 @attributes mutable struct LazyGluing{
-                                       LeftSpecType<:AbsSpec, 
-                                       RightSpecType<:AbsSpec,
+                                       LeftAffineSchemeType<:AbsAffineScheme, 
+                                       RightAffineSchemeType<:AbsAffineScheme,
                                        GluingDataType
                                       }<:AbsGluing{
-                                                    LeftSpecType,
-                                                    RightSpecType, 
+                                                    LeftAffineSchemeType,
+                                                    RightAffineSchemeType, 
                                                     Scheme, Scheme,
                                                     Map, Map
                                                    }
 
-  X::LeftSpecType
-  Y::RightSpecType
+  X::LeftAffineSchemeType
+  Y::RightAffineSchemeType
   GD::GluingDataType
   compute_function::Function
   compute_gluing_domains::Function
   gluing_domains::Union{Tuple{PrincipalOpenSubset, PrincipalOpenSubset},
-                         Tuple{SpecOpen, SpecOpen}}
+                         Tuple{AffineSchemeOpenSubscheme, AffineSchemeOpenSubscheme}}
   G::AbsGluing
 
-  function LazyGluing(X::AbsSpec, Y::AbsSpec, 
+  function LazyGluing(X::AbsAffineScheme, Y::AbsAffineScheme, 
       compute_function::Function, GD::GluingDataType
     ) where {GluingDataType}
     return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD, compute_function)
   end
-  function LazyGluing(X::AbsSpec, Y::AbsSpec, 
+  function LazyGluing(X::AbsAffineScheme, Y::AbsAffineScheme, 
       compute_function::Function, compute_gluing_domains::Function, 
       GD::GluingDataType
     ) where {GluingDataType}
@@ -63,22 +63,22 @@ end
 ### Preparations for some sample use cases
 mutable struct RestrictionDataIsomorphism
   G::AbsGluing
-  i::AbsSpecMor
-  j::AbsSpecMor
+  i::AbsAffineSchemeMor
+  j::AbsAffineSchemeMor
   i_res::SchemeMor
   j_res::SchemeMor
-  function RestrictionDataIsomorphism(G::AbsGluing, i::AbsSpecMor, j::AbsSpecMor)
+  function RestrictionDataIsomorphism(G::AbsGluing, i::AbsAffineSchemeMor, j::AbsAffineSchemeMor)
     return new(G, i, j)
   end
 end
 
 mutable struct RestrictionDataClosedEmbedding
   G::AbsGluing
-  X::AbsSpec
-  Y::AbsSpec
+  X::AbsAffineScheme
+  Y::AbsAffineScheme
   UX::Scheme
   VY::Scheme
-  function RestrictionDataClosedEmbedding(G::AbsGluing, X::AbsSpec, Y::AbsSpec)
+  function RestrictionDataClosedEmbedding(G::AbsGluing, X::AbsAffineScheme, Y::AbsAffineScheme)
     return new(G, X, Y)
   end
 end
@@ -97,7 +97,7 @@ function _compute_domains(GD::RestrictionDataClosedEmbedding)
     GD.UX = PrincipalOpenSubset(GD.X, OO(GD.X)(lifted_numerator(complement_equation(U))))
     GD.VY = PrincipalOpenSubset(GD.Y, OO(GD.Y)(lifted_numerator(complement_equation(V))))
     return GD.UX, GD.VY
-  elseif U isa SpecOpen
+  elseif U isa AffineSchemeOpenSubscheme
     GD.UX = intersect(GD.X, U, check=false)
     GD.VY = intersect(GD.Y, V, check=false)
     return GD.UX, GD.VY

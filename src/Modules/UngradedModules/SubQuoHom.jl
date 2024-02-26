@@ -88,14 +88,14 @@ image_of_generator(phi::SubQuoHom, i::Int) = phi.im[i]::elem_type(codomain(phi))
 @doc raw"""
     hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 
-Given a vector `V` of `ngens(M)` elements of `N`, 
+Given a vector `V` of `ngens(M)` elements of `N`,
 return the homomorphism `M` $\to$ `N` which sends the `i`-th
 generator `M[i]` of `M` to the `i`-th entry of `V`.
 
     hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T})) where T
 
 Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
-homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to
 the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 
 !!! note
@@ -106,7 +106,7 @@ the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`.
 
 !!! warning
     The functions do not check whether the resulting homomorphism is well-defined,
-    that is, whether it sends the relations of `M` into the relations of `N`. 
+    that is, whether it sends the relations of `M` into the relations of `N`.
 
 If you are uncertain with regard to well-definedness, use the function below.
 Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
@@ -267,22 +267,22 @@ julia> is_welldefined(c)
 false
 ```
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check) 
+hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
 hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
 
 
 @doc raw"""
     hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType) where {T, RingMapType}
 
-Given a vector `V` of `ngens(M)` elements of `N`, 
+Given a vector `V` of `ngens(M)` elements of `N`,
 return the homomorphism `M` $\to$ `N` which sends the `i`-th
-generator `M[i]` of `M` to the `i`-th entry of `V`, and the 
+generator `M[i]` of `M` to the `i`-th entry of `V`, and the
 scalars in `base_ring(M)` to their images under `h`.
 
     hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}, h::RingMapType) where {T, RingMapType}
 
 Given a matrix `A` with `ngens(M)` rows and `ngens(N)` columns, return the
-homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to 
+homomorphism `M` $\to$ `N` which sends the `i`-th generator `M[i]` of `M` to
 the linear combination $\sum_j A[i,j]*N[j]$ of the generators `N[j]` of `N`,
 and the scalars in `base_ring(M)` to their images under `h`.
 
@@ -294,7 +294,7 @@ and the scalars in `base_ring(M)` to their images under `h`.
 
 !!! warning
     The functions do not check whether the resulting homomorphism is well-defined,
-    that is, whether it sends the relations of `M` into the relations of `N`. 
+    that is, whether it sends the relations of `M` into the relations of `N`.
 
 If you are uncertain with regard to well-definedness, use the function below.
 Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.
@@ -325,7 +325,7 @@ function is_welldefined(H::SubQuoHom)
   phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
   # now phi ∘ g : F1 --> N has to be zero.
   return iszero(compose(g, phi))
-  
+
   C = present_as_cokernel(M).quo
   n = ngens(C)
   m = rank(C.F)
@@ -364,7 +364,7 @@ function Base.hash(f::ModuleFPHom, h::UInt)
   h = hash(typeof(f), h)
   h = hash(domain(f), h)
   h = hash(codomain(f), h)
-  # We can not assume that the images of generators 
+  # We can not assume that the images of generators
   # have a hash in general
   return xor(h, b)
 end
@@ -374,7 +374,7 @@ end
     matrix(a::SubQuoHom)
 
 Given a homomorphism `a` of type  `SubQuoHom` with domain `M`
-and codomain `N`, return a matrix `A` with `ngens(M)` rows and 
+and codomain `N`, return a matrix `A` with `ngens(M)` rows and
 `ngens(N)` columns such that `a == hom(M, N, A)`.
 
 # Examples
@@ -478,9 +478,9 @@ Return the image $a(m)$.
 function image(f::SubQuoHom, a::SubquoModuleElem)
   @assert a.parent === domain(f)
   iszero(a) && return zero(codomain(f))
-  # The code in the comment below was an attempt to make 
-  # evaluation of maps faster. However, it turned out that 
-  # for the average use case the comparison was more expensive 
+  # The code in the comment below was an attempt to make
+  # evaluation of maps faster. However, it turned out that
+  # for the average use case the comparison was more expensive
   # than the gain for mappings. The flag should be set by constructors
   # nevertheless when applicable.
   #if f.generators_map_to_generators === nothing
@@ -532,7 +532,7 @@ function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP}, a::Union{SubquoModul
   return i
 end
 
-function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing}, 
+function preimage(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing},
         a::Union{SubquoModuleElem,FreeModElem})
   @assert parent(a) === codomain(f)
   D = domain(f)
@@ -923,9 +923,9 @@ end
 
 function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, <:Any}) where {T1, T2, T3}
   @assert codomain(h) === domain(g)
-  return hom(domain(h), codomain(g), 
-             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]), 
-             MapFromFunc(base_ring(domain(h)), 
+  return hom(domain(h), codomain(g),
+             Vector{elem_type(codomain(g))}([g(h(x)) for x = gens(domain(h))]),
+             MapFromFunc(base_ring(domain(h)),
                          base_ring(codomain(g)),
                          x->(base_ring_map(g)(base_ring_map(h)(x)))),
              check=false
@@ -990,7 +990,7 @@ end
     restrict_domain(H::SubQuoHom, M::SubquoModule)
 
 Restrict the morphism `H` to `M`. For this `M` has to be a submodule
-of the domain of `H`. The relations of `M` must be the relations of 
+of the domain of `H`. The relations of `M` must be the relations of
 the domain of `H`.
 """
 function restrict_domain(H::SubQuoHom, M::SubquoModule)
@@ -1061,7 +1061,7 @@ end
 @doc raw"""
     preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
 
-Return the preimage of the submodule `N` under the morphism `H` 
+Return the preimage of the submodule `N` under the morphism `H`
 as a subquotient, as well as the injection homomorphism into the domain of $H$.
 """
 function preimage(H::SubQuoHom,N::SubquoModule{T}, task::Symbol = :none) where {T}
@@ -1095,7 +1095,7 @@ function preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol 
   elems_in_coker = map(x->i_cod_coker(x),elems)
   cokernel_modulo_elmes,projection = quo(cod_coker,elems_in_coker)
   preimage, emb = kernel(H*i_cod_coker*projection)
-  
+
   if task != :none
     return preimage, emb
   else
@@ -1123,10 +1123,10 @@ end
     simplify_light(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are
 isomorphisms.
-The only simplifications which are done are the following: 
-- Remove all generators which are represented by the zero element in the ambient 
+The only simplifications which are done are the following:
+- Remove all generators which are represented by the zero element in the ambient
   free module.
 - Remove all generators which are in the generating set of the relations.
 - Remove all duplicates in the generators and relations sets.
@@ -1153,7 +1153,7 @@ end
     simplify_with_same_ambient_free_module(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are
 isomorphisms. The ambient free module of `N` is the same as that of `M`.
 """
 function simplify_with_same_ambient_free_module(M::SubquoModule)
@@ -1167,10 +1167,10 @@ end
     simplify(M::SubquoModule)
 
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$. These maps are 
-isomorphisms. 
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are
+isomorphisms.
 The simplifcation is heuristical and includes steps like for example removing
-zero-generators or removing the i-th component of all vectors if those are 
+zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """
 function simplify(M::SubquoModule)
@@ -1311,11 +1311,11 @@ end
 @doc raw"""
     map(F::FreeMod{T}, A::MatrixElem{T}) where T
 
-Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$, 
+Converts a given $n \times m$-matrix into the corresponding morphism $A : R^n \to F$,
 with `rank(F) == m`.
 """
 function map(F::FreeMod{T}, A::MatrixElem{T}) where {T <: RingElement}
-  if is_graded(F) 
+  if is_graded(F)
     return graded_map(F,A)
   end
   R = base_ring(F)

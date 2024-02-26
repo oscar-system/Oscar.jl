@@ -20,7 +20,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   E::EllipticCurve{BaseCurveFieldType}
   MWL::Vector{EllipticCurvePoint{BaseCurveFieldType}} # basis for the mordell weil group
   MWLtors::Vector{EllipticCurvePoint{BaseCurveFieldType}} # torsion sections
-  Weierstrasschart::AbsSpec
+  Weierstrasschart::AbsAffineScheme
   Weierstrassmodel::CoveredScheme
   inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
   inc_Y::CoveredClosedEmbedding # inclusion of Y in its ambient blown up projective bundle
@@ -377,7 +377,7 @@ function _separate_singularities!(X::EllipticSurface)
 
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
-  refined_charts = AbsSpec[]
+  refined_charts = AbsAffineScheme[]
   U = P[1][1]  # the weierstrass_chart
   IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
@@ -778,7 +778,7 @@ Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
 function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
   underlying_scheme(S) # cache stuff
-  D = IdDict{AbsSpec, RingElem}()
+  D = IdDict{AbsAffineScheme, RingElem}()
   k = base_ring(S0)
   P = k.(P)
 

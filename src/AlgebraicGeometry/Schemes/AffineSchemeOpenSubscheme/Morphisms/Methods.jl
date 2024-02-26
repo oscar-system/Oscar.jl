@@ -6,7 +6,7 @@
 # for the ambient space and the description of the complement (and we do not
 # forget to avoid printing again the coordinates by using the `false`) argument
 # in both the show function for `domain(f)` and `codomain(f)`).
-function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
+function Base.show(io::IO, ::MIME"text/plain", f::AffineSchemeOpenSubschemeMor)
   io = pretty(io)
   X = domain(f)
   cX = ambient_coordinates(X)
@@ -20,7 +20,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   kY = length(str)
   push!(co_str, str)
   k = max(length.(co_str)...)
-  println(io, "Spec open morphism")
+  println(io, "Affine scheme open subscheme morphism")
   print(io, Indent(), "from ")
   print(io, co_str[1]*" "^(k-kX+2), Lowercase())
   show(IOContext(io, :show_coordinates => false), domain(f))
@@ -45,9 +45,9 @@ function Base.show(io::IO, ::MIME"text/plain", f::SpecOpenMor)
   print(io, Dedent())
 end
 
-function Base.show(io::IO, f::SpecOpenMor)
+function Base.show(io::IO, f::AffineSchemeOpenSubschemeMor)
   if get(io, :supercompact, false)
-    print(io, "Spec open morphism")
+    print(io, "Affine scheme open subscheme morphism")
   else
     io = pretty(io)
     print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))
@@ -57,7 +57,7 @@ end
 ########################################################################
 # Composition of maps                                                  #
 ########################################################################
-function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
+function compose(f::AffineSchemeOpenSubschemeMor, g::AffineSchemeOpenSubschemeMor; check::Bool=true)
   U = domain(f)
   Cf = codomain(f)
   V = domain(g)
@@ -68,13 +68,13 @@ function compose(f::SpecOpenMor, g::SpecOpenMor; check::Bool=true)
   Z = ambient_scheme(W)
   pb_coords = [pullback(f)(pullback(g)(OO(W)(x))) for x in gens(ambient_coordinate_ring(Z))]
   maps_on_patches = [morphism(A, Z, [restrict(h, A, check=check) for h in pb_coords], check=check) for A in affine_patches(U)]
-  return SpecOpenMor(U, W, maps_on_patches, check=check)
+  return AffineSchemeOpenSubschemeMor(U, W, maps_on_patches, check=check)
 end
 
 ########################################################################
 # Pullback of regular functions (deprecated)                           #
 ########################################################################
-function pullback(f::SpecOpenMor, a::RingElem)
+function pullback(f::AffineSchemeOpenSubschemeMor, a::RingElem)
   U = domain(f)
   X = ambient_scheme(U)
   V = codomain(f)
@@ -82,13 +82,13 @@ function pullback(f::SpecOpenMor, a::RingElem)
   R = ambient_coordinate_ring(Y)
   parent(a) === R || error("element does not belong to the correct ring")
   pb_a = [pullback(f[i])(a) for i in 1:n_patches(U)]
-  return SpecOpenRingElem(SpecOpenRing(X, U), pb_a)
+  return AffineSchemeOpenSubschemeRingElem(AffineSchemeOpenSubschemeRing(X, U), pb_a)
 end
 
 ########################################################################
 # Equality test                                                        #
 ########################################################################
-function ==(f::T, g::T) where {T<:SpecOpenMor} 
+function ==(f::T, g::T) where {T<:AffineSchemeOpenSubschemeMor}
   (domain(f) == domain(g)) || return false
   (codomain(f) == codomain(g)) || return false
   Y = ambient_scheme(codomain(f))
@@ -104,22 +104,22 @@ function ==(f::T, g::T) where {T<:SpecOpenMor}
 end
 
 ########################################################################
-# Preimages under SpecOpenMors                                         #
+# Preimages under AffineSchemeOpenSubschemeMors                                         #
 ########################################################################
-function preimage(f::SpecOpenMor, Z::AbsSpec; check::Bool=true)
-  U = domain(f) 
+function preimage(f::AffineSchemeOpenSubschemeMor, Z::AbsAffineScheme; check::Bool=true)
+  U = domain(f)
   X = ambient_scheme(U)
   @check is_closed_embedding(Z, ambient_scheme(codomain(f))) "second argument must be closed in the codomain"
   n = length(affine_patches(U))
   pbZ = [preimage(f[i], Z) for i in 1:n]
-  Y = X 
+  Y = X
   for K in pbZ
     Y = subscheme(Y, gens(modulus(underlying_quotient(OO(K)))))
   end
-  return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
+  return AffineSchemeOpenSubscheme(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))])
 end
-function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
-  V = codomain(f) 
+function preimage(f::AffineSchemeOpenSubschemeMor, W::PrincipalOpenSubset; check::Bool=true)
+  V = codomain(f)
   Y = ambient_scheme(V)
   Y === ambient_scheme(W) || error("second argument must be open in the ambient scheme of the domain of the morphism")
   h = complement_equation(W)
@@ -131,11 +131,11 @@ function preimage(f::SpecOpenMor, W::PrincipalOpenSubset; check::Bool=true)
   for i in 1:n_patches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), pbh[i])))
   end
-  return intersect(U, SpecOpen(X, I))
+  return intersect(U, AffineSchemeOpenSubscheme(X, I))
 end
 
 
-function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
+function preimage(f::AffineSchemeOpenSubschemeMor, V::AffineSchemeOpenSubscheme; check::Bool=true)
   U = domain(f)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
@@ -143,17 +143,17 @@ function preimage(f::SpecOpenMor, V::SpecOpen; check::Bool=true)
   for i in 1:n_patches(U)
     I = intersect(I, saturated_ideal(ideal(OO(U[i]), OO(U[i]).(pullback(f[i]).(complement_equations(V))))))
   end
-  return intersect(U, SpecOpen(X, I))
+  return intersect(U, AffineSchemeOpenSubscheme(X, I))
 end
 
 ########################################################################
 # Auxiliary methods                                                    #
 ########################################################################
-function is_non_zero_divisor(f::RET, U::SpecOpen) where {RET<:RingElem}
+function is_non_zero_divisor(f::RET, U::AffineSchemeOpenSubscheme) where {RET<:RingElem}
   return all(x->(is_non_zero_divisor(f, x)), affine_patches(U))
 end
 
-function find_non_zero_divisor(U::SpecOpen)
+function find_non_zero_divisor(U::AffineSchemeOpenSubscheme)
   n = ngens(U)
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
@@ -168,19 +168,19 @@ function find_non_zero_divisor(U::SpecOpen)
 end
 
 @doc raw"""
-    generic_fractions(f::SpecOpenMor)
+    generic_fractions(f::AffineSchemeOpenSubschemeMor)
 
-Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``, 
-produce a tuple of fractions ``[a₁/b₁,…,aₙ/bₙ]`` such that ``f`` can be recovered 
-as the maximal extension of the rational map given by 
+Given a morphism ``f : U → V`` of Zariski open subsets ``U ⊂ X ⊂ 𝔸ᵐ`` and ``V ⊂ Y ⊂ 𝔸ⁿ``,
+produce a tuple of fractions ``[a₁/b₁,…,aₙ/bₙ]`` such that ``f`` can be recovered
+as the maximal extension of the rational map given by
 ```
    U ⊃ U' → 𝔸ⁿ,  x ↦ [a₁(x)/b₁(x),…,aₙ(x)/bₙ(x)]
 ```
 where ``U'`` is the complement of the zero loci of the denominators ``bᵢ`` in ``U``.
-In particular, this requires ``U'`` to be dense in ``U`` and this subset 
+In particular, this requires ``U'`` to be dense in ``U`` and this subset
 is chosen at random.
 """
-function generic_fractions(f::SpecOpenMor)
+function generic_fractions(f::AffineSchemeOpenSubschemeMor)
   U = domain(f)
   X = ambient_scheme(U)
   V = codomain(f)

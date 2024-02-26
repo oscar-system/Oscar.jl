@@ -1,10 +1,10 @@
 
 ########################################################################
-# Constructors for SpecOpenRing                                        #
+# Constructors for AffineSchemeOpenSubschemeRing                                        #
 ########################################################################
 
 @doc raw"""
-    OO(U::SpecOpen) -> SpecOpenRing
+    OO(U::AffineSchemeOpenSubscheme) -> AffineSchemeOpenSubschemeRing
 
 Given a Zariski open subset `U` of an affine scheme `X`, return the ring
 `𝒪(X, U)` of regular functions on `U`.
@@ -15,12 +15,12 @@ julia> P, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> A = Spec(P)
+julia> A = spec(P)
 Spectrum
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
 
-julia> Y = Spec(P, I)
+julia> Y = spec(P, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x, y, z
@@ -47,65 +47,65 @@ with restriction
   patch 1: 1
 ```
 """
-function OO(U::SpecOpen) 
-  if !isdefined(U, :ring_of_functions) 
-    U.ring_of_functions = SpecOpenRing(ambient_scheme(U), U, check=false)
+function OO(U::AffineSchemeOpenSubscheme)
+  if !isdefined(U, :ring_of_functions)
+    U.ring_of_functions = AffineSchemeOpenSubschemeRing(ambient_scheme(U), U, check=false)
   end
-  return U.ring_of_functions::SpecOpenRing
-  #return U.ring_of_functions::SpecOpenRing{affine_patch_type(U), typeof(U)}
+  return U.ring_of_functions::AffineSchemeOpenSubschemeRing
+  #return U.ring_of_functions::AffineSchemeOpenSubschemeRing{affine_patch_type(U), typeof(U)}
 end
 
 ########################################################################
-# Constructors for SpecOpenRingElem                                    #
+# Constructors for AffineSchemeOpenSubschemeRingElem                                    #
 ########################################################################
 
 ########################################################################
 # Coercion                                                             #
 ########################################################################
-(R::SpecOpenRing)(f::RingElem; check::Bool=true) = SpecOpenRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
-(R::SpecOpenRing)(f::MPolyQuoLocRingElem; check::Bool=true) = SpecOpenRingElem(R, [_cast_fraction(OO(U),lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
+(R::AffineSchemeOpenSubschemeRing)(f::RingElem; check::Bool=true) = AffineSchemeOpenSubschemeRingElem(R, [OO(U)(f, check=check) for U in affine_patches(domain(R))])
+(R::AffineSchemeOpenSubschemeRing)(f::MPolyQuoLocRingElem; check::Bool=true) = AffineSchemeOpenSubschemeRingElem(R, [_cast_fraction(OO(U),lifted_numerator(f), lifted_denominator(f), check=check) for U in affine_patches(domain(R))], check=false)
 
-(R::SpecOpenRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = SpecOpenRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
+(R::AffineSchemeOpenSubschemeRing)(f::Vector{T}; check::Bool=true) where {T<:RingElem} = AffineSchemeOpenSubschemeRingElem(R, [OO(domain(R)[i])(f[i], check=check) for i in 1:length(f)])
 
-function (R::SpecOpenRing)(f::SpecOpenRingElem; check::Bool=true)
+function (R::AffineSchemeOpenSubschemeRing)(f::AffineSchemeOpenSubschemeRingElem; check::Bool=true)
   parent(f) === R && return f
-  return SpecOpenRingElem(R, [restrict(f, U, check=check) for U in affine_patches(domain(R))])
+  return AffineSchemeOpenSubschemeRingElem(R, [restrict(f, U, check=check) for U in affine_patches(domain(R))])
 end
 
 ########################################################################
 # Additional constructors for the Ring interface                       #
 ########################################################################
 
-one(R::SpecOpenRing) = SpecOpenRingElem(R, [one(OO(U)) for U in affine_patches(domain(R))], check=false)
-zero(R::SpecOpenRing) = SpecOpenRingElem(R, [zero(OO(U)) for U in affine_patches(domain(R))], check=false)
-(R::SpecOpenRing)() = zero(R)
-(R::SpecOpenRing)(a::Integer) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
-(R::SpecOpenRing)(a::Int64) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
-(R::SpecOpenRing)(a::ZZRingElem) = SpecOpenRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+one(R::AffineSchemeOpenSubschemeRing) = AffineSchemeOpenSubschemeRingElem(R, [one(OO(U)) for U in affine_patches(domain(R))], check=false)
+zero(R::AffineSchemeOpenSubschemeRing) = AffineSchemeOpenSubschemeRingElem(R, [zero(OO(U)) for U in affine_patches(domain(R))], check=false)
+(R::AffineSchemeOpenSubschemeRing)() = zero(R)
+(R::AffineSchemeOpenSubschemeRing)(a::Integer) = AffineSchemeOpenSubschemeRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+(R::AffineSchemeOpenSubschemeRing)(a::Int64) = AffineSchemeOpenSubschemeRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
+(R::AffineSchemeOpenSubschemeRing)(a::ZZRingElem) = AffineSchemeOpenSubschemeRingElem(R, [OO(U)(a) for U in affine_patches(domain(R))], check=false)
 
 ########################################################################
 # Copying                                                              #
 ########################################################################
-function Base.deepcopy_internal(f::SpecOpenRingElem, dict::IdDict)
-  return SpecOpenRingElem(parent(f), copy(restrictions(f)), check=false)
+function Base.deepcopy_internal(f::AffineSchemeOpenSubschemeRingElem, dict::IdDict)
+  return AffineSchemeOpenSubschemeRingElem(parent(f), copy(restrictions(f)), check=false)
 end
 
 ########################################################################
 # Maximal extensions of rational functions on affine schemes           #
 ########################################################################
 @doc raw"""
-    maximal_extension(X::Spec, f::AbstractAlgebra.Generic.FracFieldElem)
+    maximal_extension(X::AffineScheme, f::AbstractAlgebra.Generic.FracFieldElem)
 
 Return the maximal extension of the restriction of ``f``
-to a rational function on ``X`` on a maximal domain of 
-definition ``U ⊂ X``. 
+to a rational function on ``X`` on a maximal domain of
+definition ``U ⊂ X``.
 
-**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, 
-the numerator and denominator of ``f`` have to be elements of 
+**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``,
+the numerator and denominator of ``f`` have to be elements of
 the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyLocRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyLocRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:MPolyRingElem}
 
@@ -118,14 +118,14 @@ function maximal_extension(
     f = parent(f)(a,b)
   end
   W = OO(X)
-  U = SpecOpen(X, [b])
+  U = AffineSchemeOpenSubscheme(X, [b])
   g = [OO(V)(f) for V in affine_patches(U)]
-  R = SpecOpenRing(X, U)
+  R = AffineSchemeOpenSubschemeRing(X, U)
   return R(g)
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
 
@@ -133,57 +133,57 @@ function maximal_extension(
   b = denominator(f)
   W = localized_ring(OO(X))
   I = quotient(ideal(W, b) + modulus(OO(X)), ideal(W, a))
-  U = SpecOpen(X, I)
+  U = AffineSchemeOpenSubscheme(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
-  R = SpecOpenRing(X, U)
+  R = AffineSchemeOpenSubschemeRing(X, U)
   return R(g)
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
   W = ambient_coordinate_ring(X)
   I = quotient(ideal(W, b) + modulus(OO(X)), ideal(W, a))
-  U = SpecOpen(X, I)
+  U = AffineSchemeOpenSubscheme(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
-  R = SpecOpenRing(X, U)
+  R = AffineSchemeOpenSubschemeRing(X, U)
   return R(g)
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyRing},
     f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {RET<:RingElem}
   a = numerator(f)
   b = denominator(f)
   W = ambient_coordinate_ring(X)
   I = quotient(ideal(W, b), ideal(W, a))
-  U = SpecOpen(X, I)
+  U = AffineSchemeOpenSubscheme(X, I)
   g = [OO(V)(f) for V in affine_patches(U)]
-  R = SpecOpenRing(X, U)
+  R = AffineSchemeOpenSubschemeRing(X, U)
   return R(g)
 end
 
 @doc raw"""
-    maximal_extension(X::Spec, f::Vector{AbstractAlgebra.Generic.FracFieldElem})
+    maximal_extension(X::AffineScheme, f::Vector{AbstractAlgebra.Generic.FracFieldElem})
 
 Return the extension of the restriction of the ``fᵢ`` as a
-set of rational functions on ``X`` as *regular* functions to a 
+set of rational functions on ``X`` as *regular* functions to a
 common maximal domain of definition ``U ⊂ X``.
 
-**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, 
-the numerators and denominators of the entries of ``f`` have to 
+**Note:** When ``X = Spec(R)`` with ``R = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``,
+the numerators and denominators of the entries of ``f`` have to
 be elements of the ring ``𝕜[x₁,…,xₙ]``.
 """
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:AbsLocalizedRing}, 
+    X::AbsAffineScheme{<:Ring, <:AbsLocalizedRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -197,19 +197,19 @@ function maximal_extension(
   for p in f
     I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
-  U = SpecOpen(X, I)
-  S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  U = AffineSchemeOpenSubscheme(X, I)
+  S = AffineSchemeOpenSubschemeRing(X, U)
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
-  return U, [SpecOpenRingElem(S, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
+  return U, [AffineSchemeOpenSubschemeRingElem(S, (elem_type(OO(X))[OO(V)(a) for V in affine_patches(U)])) for a in f]
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -221,19 +221,19 @@ function maximal_extension(
   for p in f
     I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
-  U = SpecOpen(X, I)
-  S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  U = AffineSchemeOpenSubscheme(X, I)
+  S = AffineSchemeOpenSubschemeRing(X, U)
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
-  return U, [SpecOpenRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
+  return U, [AffineSchemeOpenSubschemeRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
 end
 
 function maximal_extension(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing}, 
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoRing},
     f::Vector{AbstractAlgebra.Generic.FracFieldElem{RET}}
   ) where {RET<:RingElem}
   if length(f) == 0
-    return SpecOpen(X), Vector{structure_sheaf_elem_type(X)}()
+    return AffineSchemeOpenSubscheme(X), Vector{structure_sheaf_elem_type(X)}()
   end
   R = base_ring(parent(f[1]))
   for a in f
@@ -245,18 +245,18 @@ function maximal_extension(
   for p in f
     I = intersect(quotient(ideal(W, denominator(p)), ideal(W, numerator(p))), I)
   end
-  U = SpecOpen(X, I)
-  S = SpecOpenRing(X, U)
-  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries. 
+  U = AffineSchemeOpenSubscheme(X, I)
+  S = AffineSchemeOpenSubschemeRing(X, U)
+  # TODO: For some reason, the type of the inner vector is not inferred if it has no entries.
   # Investigate why? Type instability?
-  return U, [SpecOpenRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
+  return U, [AffineSchemeOpenSubschemeRingElem(S, [OO(V)(a) for V in affine_patches(U)]) for a in f]
 end
 #TODO: implement the catchall versions of the above functions.
 
 ########################################################################
 # Subscheme constructors                                               #
 ########################################################################
-function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
+function subscheme(U::AffineSchemeOpenSubscheme, g::Vector{T}) where {T<:AffineSchemeOpenSubschemeRingElem}
   all(x->(parent(x)==OO(U)), g) || error("elements do not belong to the correct ring")
   X = ambient_scheme(U)
   gen_list = Vector{elem_type(OO(X))}()
@@ -264,6 +264,6 @@ function subscheme(U::SpecOpen, g::Vector{T}) where {T<:SpecOpenRingElem}
     gen_list = vcat(gen_list, OO(X).([lifted_numerator(f[i]) for i in 1:ngens(U)]))
   end
   Z = subscheme(X, gen_list)
-  return SpecOpen(Z, complement_equations(U))
+  return AffineSchemeOpenSubscheme(Z, complement_equations(U))
 end
 
