@@ -6,23 +6,23 @@
 
 # TODO: Add further cross-type comparison methods as needed.
 
-function ==(X::T, Y::T) where {T<:AbsSpec{<:Ring, <:MPolyRing}}
+function ==(X::T, Y::T) where {T<:AbsAffineScheme{<:Ring, <:MPolyRing}}
   return OO(X) === OO(Y)
 end
 
 
-function ==(X::AbsSpec, Y::AbsSpec)
+function ==(X::AbsAffineScheme, Y::AbsAffineScheme)
   X === Y && return true
   return is_subscheme(X, Y) && is_subscheme(Y, X)
 end
 
 
-function ==(X::AbsSpec, Y::EmptyScheme)
+function ==(X::AbsAffineScheme, Y::EmptyScheme)
   return is_subscheme(X, Y)
 end
 
 
-==(X::EmptyScheme, Y::AbsSpec) = (Y == X)
+==(X::EmptyScheme, Y::AbsAffineScheme) = (Y == X)
 
 
 ########################################################
@@ -32,7 +32,7 @@ end
 # We show a detailed version of the coordinate ring since they are all the
 # details we can get.. Otherwise our detailed printing is quite poor and
 # "useless".
-function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
+function Base.show(io::IO, ::MIME"text/plain", X::AbsAffineScheme)
   io = pretty(io)
   println(io, "Spectrum")
   print(io, Indent(), "of ", Lowercase())
@@ -40,7 +40,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::AbsSpec)
   print(io, Dedent())
 end
 
-function Base.show(io::IO, X::AbsSpec)
+function Base.show(io::IO, X::AbsAffineScheme)
   if has_attribute(X, :name)
     print(io, name(X))
   elseif get(io, :supercompact, false)
@@ -52,17 +52,17 @@ function Base.show(io::IO, X::AbsSpec)
   end
 end
 
-function _show(io::IO, X::AbsSpec)
+function _show(io::IO, X::AbsAffineScheme)
   io = pretty(io)
   print(io, LowercaseOff(), "Spec of ")
   print(io, Lowercase(), OO(X))
 end
 
-function _show(io::IO, X::AbsSpec{<:Any,<:MPolyRing})
+function _show(io::IO, X::AbsAffineScheme{<:Any,<:MPolyRing})
   print(io, "Affine ", ngens(OO(X)), "-space")
 end
 
-function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
+function _show(io::IO, X::AbsAffineScheme{<:Any,<:MPolyQuoRing})
   io = pretty(io)
   print(io, "scheme(")
   I = modulus(OO(X))
@@ -70,7 +70,7 @@ function _show(io::IO, X::AbsSpec{<:Any,<:MPolyQuoRing})
   print(io, ")")
 end
 
-function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
   io = pretty(io)
   print(io, "scheme(")
   I = modulus(OO(X))
@@ -81,7 +81,7 @@ function _show(io::IO, X::AbsSpec{<:Any, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, 
   print(io, ")")
 end
 
-function _show(io::IO, X::AbsSpec{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
+function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
   io = pretty(io)
   print(io, LowercaseOff(), "AA^", ngens(OO(X)))
   S = inverted_set(OO(X))
@@ -95,7 +95,7 @@ end
 ########################################################
 
 @doc raw"""
-    is_non_zero_divisor(f::RingElem, X::AbsSpec)
+    is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
 
 Checks if a ring element is a non-zero divisor
 in the coordinate ring of an affine scheme.
@@ -120,26 +120,26 @@ julia> is_non_zero_divisor(zero(OO(X)), X)
 false
 ```
 """
-function is_non_zero_divisor(f::RingElem, X::AbsSpec)
+function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme)
   error("method not implemented for affine schemes of type $(typeof(X))")
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyRing})
+function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme{<:Ring, <:MPolyRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::MPolyQuoRingElem, X::AbsSpec{<:Ring, <:MPolyQuoRing})
+function is_non_zero_divisor(f::MPolyQuoRingElem, X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
   J = ideal(R, lift(f))
   return I == quotient(I, J)
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyLocRing})
+function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
   return !iszero(OO(X)(f))
 end
 
-function is_non_zero_divisor(f::RingElem, X::AbsSpec{<:Ring, <:MPolyQuoLocRing})
+function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
   I = ideal(OO(X), [zero(OO(X))])
   zero_ideal = Oscar.pre_image_ideal(I)
   J = Oscar.pre_image_ideal(ideal(OO(X), [f]))
@@ -151,7 +151,7 @@ end
 # High level constructors of subschemes                                #
 ########################################################################
 
-function sub(X::AbsSpec, I::Ideal)
+function sub(X::AbsAffineScheme, I::Ideal)
   inc = ClosedEmbedding(X, I) # Will complain if input is not compatible
   return domain(inc), inc
 end
@@ -169,16 +169,16 @@ end
 
 
 # TODO: The method below is necessary for a temporary hotfix; see #1882.
-# It seems likely that the implementation can be tuned so that, for 
-# instance, the massive use of primary decompositions can be avoided. 
-# This should eventually be addressed. 
+# It seems likely that the implementation can be tuned so that, for
+# instance, the massive use of primary decompositions can be avoided.
+# This should eventually be addressed.
 @doc raw"""
-    connected_components(X::AbsSpec)
+    connected_components(X::AbsAffineScheme)
 
 Return a decomposition of ``X`` into its connected components
 ``X = U₁ ∪ U₂ ∪ … ∪ Uₙ`` with ``Uᵢ`` a `PrincipalOpenSubset` of ``X``.
 """
-function connected_components(X::AbsSpec)
+function connected_components(X::AbsAffineScheme)
   I = saturated_ideal(modulus(OO(X)))
   l = primary_decomposition(I)
   comp = [subscheme(X, Q) for (Q, _) in l]
@@ -202,8 +202,8 @@ function connected_components(X::AbsSpec)
     end
   end
 
-  # We need to reproduce the components of X as `PrincipalOpenSubset`s. 
-  # To this end, we first determine separating equations between pairs 
+  # We need to reproduce the components of X as `PrincipalOpenSubset`s.
+  # To this end, we first determine separating equations between pairs
   # of components.
 
   n = length(comp)
@@ -216,18 +216,18 @@ function connected_components(X::AbsSpec)
         separating_equations[i, j] = one(OO(X))
         continue
       end
-      
+
       v = OO(X).(gens(saturated_ideal(modulus(OO(C1)))))
       w = OO(X).(gens(saturated_ideal(modulus(OO(C2)))))
 
       J = ideal(OO(X), vcat(v, w))
       # The idea is to write 1 = f + g with f ∈ I(C1) and g ∈ I(C2).
-      # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1) 
-      # and vice versa. 
+      # Then 1 - f = g vanishes identically on C2, but is a unit in OO(C1)
+      # and vice versa.
       c = coordinates(one(OO(X)), J)
 
-      # Conversion to assure compatibility. 
-      # This can be removed, once the ideal interface is streamlined. 
+      # Conversion to assure compatibility.
+      # This can be removed, once the ideal interface is streamlined.
       if c isa MatrixElem
         c = [c[1, i] for i in 1:ncols(c)]::Vector
       end
@@ -254,18 +254,18 @@ end
 ########################################################################
 
 @doc raw"""
-    base_change(phi::Any, X::AbsSpec)
+    base_change(phi::Any, X::AbsAffineScheme)
 
-For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism 
-``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair 
+For an affine scheme `X` over a `base_ring` ``𝕜`` and a morphism
+``φ : 𝕜 → 𝕂`` this computes ``Y = X × Spec(𝕂)`` and returns a pair
 `(Y, psi)` where `psi` is the canonical map ``Y → X``.
 """
-function base_change(phi::Any, X::AbsSpec)
+function base_change(phi::Any, X::AbsAffineScheme)
   kk = base_ring(X)
   kk_red = parent(phi(zero(kk)))
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
-  Y = Spec(R_red)
+  Y = spec(R_red)
   return Y, morphism(Y, X, Phi)
 end
 
@@ -288,8 +288,8 @@ function _change_base_ring(phi::Any, A::MPolyQuoRing)
   return Q, Phi_bar
 end
 
-function _change_base_ring(phi::Any, 
-    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+function _change_base_ring(phi::Any,
+    W::MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                     <:MPolyPowersOfElement}
   )
   R = base_ring(W)
@@ -300,8 +300,8 @@ function _change_base_ring(phi::Any,
   return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
 end
 
-function _change_base_ring(phi::Any, 
-    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+function _change_base_ring(phi::Any,
+    L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                        <:MPolyPowersOfElement}
   )
   R = base_ring(L)

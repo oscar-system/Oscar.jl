@@ -18,7 +18,7 @@
 
   Istrict = strict_transform(bl,Isheaf)
   @test is_smooth(subscheme(Istrict))
-  
+
   Iweak = weak_transform(bl,Isheaf)
   Iweak2,mult = Oscar.weak_transform_with_multiplicity(bl, Isheaf)
   @test Iweak == Iweak2
@@ -37,7 +37,7 @@ end
 @testset "associated_points" begin
   # set up standard P2
   S, _ = graded_polynomial_ring(QQ,["x","y","z"])
-  P2 = ProjectiveScheme(S)
+  P2 = proj(S)
   X = covered_scheme(P2)
 
   C = standard_covering(P2)
@@ -59,7 +59,7 @@ end
   Iz = ideal(Rz,[y])
 
   # glue together to an ideal sheaf on P2
-  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID = IdDict{AbsAffineScheme, Oscar.Ideal}()
   ID[Ux]=Ix
   ID[Uy]=Iy
   ID[Uz]=Iz

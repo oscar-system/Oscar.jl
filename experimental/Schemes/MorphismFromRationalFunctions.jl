@@ -17,21 +17,21 @@ The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some
   codomain::CodomainType
   domain_covering::Covering
   codomain_covering::Covering
-  domain_chart::AbsSpec
-  codomain_chart::AbsSpec
+  domain_chart::AbsAffineScheme
+  codomain_chart::AbsAffineScheme
   coord_imgs::Vector{<:FieldElem}
 
   ### Various fields for caching
-  patch_representatives::IdDict{<:AbsSpec, <:Tuple{<:AbsSpec, <:Vector{<:FieldElem}}}
-  realizations::IdDict{<:AbsSpec, <:Vector{<:AbsSpecMor}}
-  realization_previews::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:Vector{<:FieldElem}}
-  maximal_extensions::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:Vector{<:AbsSpecMor}}
-  cheap_realizations::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsSpecMor}
+  patch_representatives::IdDict{<:AbsAffineScheme, <:Tuple{<:AbsAffineScheme, <:Vector{<:FieldElem}}}
+  realizations::IdDict{<:AbsAffineScheme, <:Vector{<:AbsAffineSchemeMor}}
+  realization_previews::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:FieldElem}}
+  maximal_extensions::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:AbsAffineSchemeMor}}
+  cheap_realizations::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:AbsAffineSchemeMor}
   full_realization::CoveredSchemeMorphism
 
   function MorphismFromRationalFunctions(
       X::AbsCoveredScheme, Y::AbsCoveredScheme, 
-      U::AbsSpec, V::AbsSpec,
+      U::AbsAffineScheme, V::AbsAffineScheme,
       a::Vector{<:FieldElem};
       check::Bool=true,
       domain_covering::Covering=default_covering(X),
@@ -47,12 +47,12 @@ The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some
     R = base_ring(F)
     all(x->parent(x)===F, a) || error("coordinate images must be elements of the same field")
     R === ambient_coordinate_ring(U) || error("images of pullback of the coordinates do not live in the correct ring")
-    patch_repr = IdDict{AbsSpec, Tuple{AbsSpec, Vector{FieldElem}}}()
+    patch_repr = IdDict{AbsAffineScheme, Tuple{AbsAffineScheme, Vector{FieldElem}}}()
     patch_repr[U] = (V, a)
-    realizations = IdDict{AbsSpec, Vector{AbsSpecMor}}()
-    realization_previews = IdDict{Tuple{AbsSpec, AbsSpec}, Vector{FieldElem}}()
-    maximal_extensions = IdDict{Tuple{AbsSpec, AbsSpec}, Vector{AbsSpecMor}}()
-    cheap_realizations = IdDict{Tuple{AbsSpec, AbsSpec}, AbsSpecMor}()
+    realizations = IdDict{AbsAffineScheme, Vector{AbsAffineSchemeMor}}()
+    realization_previews = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{FieldElem}}()
+    maximal_extensions = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{AbsAffineSchemeMor}}()
+    cheap_realizations = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsAffineSchemeMor}()
     return new{typeof(X), typeof(Y)}(X, Y, domain_covering, codomain_covering, 
                                      U, V, a, patch_repr, realizations, 
                                      realization_previews, maximal_extensions,
@@ -73,7 +73,7 @@ coordinate_images(Phi::MorphismFromRationalFunctions) = Phi.coord_imgs
 @doc raw"""
     morphism_from_rational_functions(
           X::AbsCoveredScheme, Y::AbsCoveredScheme, 
-          U::AbsSpec, V::AbsSpec,
+          U::AbsAffineScheme, V::AbsAffineScheme,
           a::Vector{<:FieldElem};
           check::Bool=true,
           domain_covering::Covering=default_covering(X),
@@ -144,7 +144,7 @@ given by the pullback function
 """
 morphism_from_rational_functions(
       X::AbsCoveredScheme, Y::AbsCoveredScheme, 
-      U::AbsSpec, V::AbsSpec,
+      U::AbsAffineScheme, V::AbsAffineScheme,
       a::Vector{<:FieldElem};
       check::Bool=true,
       domain_covering::Covering=default_covering(X),
@@ -218,14 +218,14 @@ realization_previews(Phi::MorphismFromRationalFunctions) = Phi.realization_previ
 cheap_realizations(Phi::MorphismFromRationalFunctions) = Phi.cheap_realizations
 
 @doc raw"""
-    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
+    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
 
 For ``U`` in the `domain_covering` of `Phi` construct a list of morphisms 
 ``fₖ : U'ₖ → Vₖ`` from `PrincipalOpenSubset`s ``U'ₖ`` of ``U`` to `patches` 
 ``Vₖ`` in the `codomain_covering` so that altogether the `fₖ` can be assembled 
 to a `CoveringMorphism` which realizes `Phi`.
 """
-function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
+function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
   if haskey(realizations(Phi), U)
     return realizations(Phi)[U]
   end
@@ -236,7 +236,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
   # Try to cover U by PrincipalOpenSubsets W so that the restriction 
   # of Phi to W extends to a regular morphism φ : W → V' for some 
   # `affine_chart` of the codomain of Phi.
-  covered_codomain_patches = Vector{AbsSpec}([V])
+  covered_codomain_patches = Vector{AbsAffineScheme}([V])
   complement_equations = Vector{elem_type(OO(U))}()
   FY = function_field(Y)
   FX = function_field(X)
@@ -280,13 +280,13 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
 end
 
 @doc raw"""
-    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
 Returns a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such 
 that the restriction of `Phi` to `U'` is `f`. Note that `U'` need not be maximal 
 with this property!
 """
-function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   X = domain(Phi)
   Y = codomain(Phi)
   # Check that the input is admissible
@@ -311,14 +311,14 @@ function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, 
 end
 
 @doc raw"""
-    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
 For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
 of `Phi`, respectively, this returns a list of elements in the fraction field of the 
 `ambient_coordinate_ring` of `U` which represent the pullbacks of `gens(OO(V))` under 
 `Phi` to `U`.
 """
-function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   if haskey(realization_previews(Phi), (U, V))
     return realization_previews(Phi)[(U, V)]
   end
@@ -343,14 +343,14 @@ function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::
 end
 
 @doc raw"""
-    random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+    random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
 For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
 of `Phi`, respectively, this creates a random `PrincipalOpenSubset` `U'` on which 
 the restriction `f : U' → V` of `Phi` can be realized and returns that restriction.
 Note that `U'` need not (and usually will not) be maximal with this property.
 """
-function random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+function random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
   phi = morphism(U_sub, ambient_space(V), img_gens, check=true) # Set to false
@@ -358,7 +358,7 @@ function random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::A
 end
 
 @doc raw"""
-    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
 For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
 of `Phi`, respectively, this creates a random `PrincipalOpenSubset` `U'` on which 
@@ -368,7 +368,7 @@ Note that `U'` need not (and usually will not) be maximal with this property.
 This method is cheap in the sense that it simply inverts all representatives of 
 the denominators occurring in the `realization_preview(Phi, U, V)`.
 """
-function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   if haskey(cheap_realizations(Phi), (U, V))
     return cheap_realizations(Phi)[(U, V)]
   end
@@ -402,20 +402,20 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::Ab
 end
 
 @doc raw"""
-    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
 For a pair `(U, V)` of `patches` in the `domain_covering` and the `codomain_covering` 
 of `Phi`, respectively, this returns a list of morphisms `fₖ : U'ₖ → V` such that the 
 restriction of `Phi` to `U'ₖ` and `V` is `fₖ` and altogether the `U'ₖ` cover the maximal 
 open subset `U'⊂ U` on which the restriction `U' → V` of `Phi` can be realized.
 """
-function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
+function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   if haskey(maximal_extensions(Phi), (U, V))
     return maximal_extensions(Phi)[(U, V)]
   end
   img_gens_frac = realization_preview(Phi, U, V)
   extensions = _extend(U, img_gens_frac)
-  result = AbsSpecMor[]
+  result = AbsAffineSchemeMor[]
   for (U, g) in extensions
     prelim = morphism(U, ambient_space(V), g, check=false)
     push!(result, _restrict_properly(prelim, V))
@@ -434,8 +434,8 @@ be avoided.
 """
 function realize(Phi::MorphismFromRationalFunctions)
   if !isdefined(Phi, :full_realization)
-    realizations = AbsSpecMor[]
-    mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+    realizations = AbsAffineSchemeMor[]
+    mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
     for U in patches(domain_covering(Phi))
       loc_mors = realize_on_patch(Phi, U)
       for phi in loc_mors 
@@ -459,7 +459,7 @@ underlying_morphism(Phi::MorphismFromRationalFunctions) = realize(Phi)
 ###
 # Find a random open subset `W ⊂ U` to which all the rational functions 
 # represented by the elements in `a` can be extended as regular functions.
-function _random_extension(U::AbsSpec, a::Vector{<:FieldElem})
+function _random_extension(U::AbsAffineScheme, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
   if iszero(length(a))
     return [(U, elem_type(U)[])]
@@ -497,7 +497,7 @@ end
 # represented by the elements in `a` can be extended as regular functions
 # and return a list of tuples `(W', a')` of realizations on principal 
 # open subsets W' covering W.
-function _extend(U::AbsSpec, a::Vector{<:FieldElem})
+function _extend(U::AbsAffineScheme, a::Vector{<:FieldElem})
   R = ambient_coordinate_ring(U)
   if iszero(length(a))
     return [(U, elem_type(U)[])]
@@ -545,7 +545,7 @@ function _extend(U::AbsSpec, a::Vector{<:FieldElem})
   #I_undef = ideal(OO(U), small_generating_set(I_undef))
   #I_undef = radical(I_undef)
 
-  result = Vector{Tuple{AbsSpec, Vector{RingElem}}}()
+  result = Vector{Tuple{AbsAffineScheme, Vector{RingElem}}}()
 
   for g in small_generating_set(I_undef)
     Ug = PrincipalOpenSubset(U, g)
@@ -570,7 +570,7 @@ equidimensional_decomposition_radical(I::MPolyQuoLocalizedIdeal) = [ideal(base_r
 # is already fully computed, but which is not in `covered`. 
 # If no such `U` exists: Bad luck. We just take any other one 
 # and the gluing has to be computed eventually. 
-function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsSpec})
+function _find_good_neighboring_patch(cov::Covering, covered::Vector{<:AbsAffineScheme})
   U = [x for x in patches(cov) if !any(y->y===x, covered)]
   glue = gluings(cov)
   good_neighbors = [(x, y) for x in U for y in covered if 
@@ -590,16 +590,16 @@ end
 # as regular functions on U' and a morphism U' → A to the `ambient_space` 
 # of V can be realized, V might be so small that we need a proper restriction 
 # of the domain. The methods below take care of that. 
-function _restrict_properly(f::AbsSpecMor, V::AbsSpec{<:Ring, <:MPolyRing})
+function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing})
   return restrict(f, domain(f), V, check=false)
 end
 
-function _restrict_properly(f::AbsSpecMor, V::AbsSpec{<:Ring, <:MPolyQuoRing})
+function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
   return restrict(f, domain(f), V, check=false)
 end
 
 function _restrict_properly(
-    f::AbsSpecMor{<:PrincipalOpenSubset}, V::AbsSpec{<:Ring, <:RT}
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
   ) where {RT<:MPolyLocRing{<:Ring, <:RingElem, 
                             <:MPolyRing, <:MPolyRingElem, 
                             <:MPolyPowersOfElement}
@@ -613,7 +613,7 @@ function _restrict_properly(
 end
 
 function _restrict_properly(
-    f::AbsSpecMor{<:PrincipalOpenSubset}, V::AbsSpec{<:Ring, <:RT}
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
   ) where {RT<:MPolyQuoLocRing{<:Ring, <:RingElem, 
                             <:MPolyRing, <:MPolyRingElem, 
                             <:MPolyPowersOfElement}
@@ -718,7 +718,7 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
   # Find a patch in Y on which this component is visible
   all_V = [V for V in affine_charts(Y) if !isone(I(V))]
-  function complexity_codomain(V::AbsSpec)
+  function complexity_codomain(V::AbsAffineScheme)
     return sum(total_degree.(lifted_numerator.(gens(I(V)))); init=0)
   end
   sort!(all_V, lt=(x,y)->complexity_codomain(x)<complexity_codomain(y))
@@ -727,21 +727,21 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
     # Find a patch in X in which the pullback is visible
     JJ = IdealSheaf(X)
     all_U = copy(affine_charts(X))
-    function complexity(U::AbsSpec)
+    function complexity(U::AbsAffineScheme)
       a = realization_preview(phi, U, V)
       return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
     end
     sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
 
     # First try to get hold of the component via cheap realizations 
-    pullbacks = IdDict{AbsSpec, Ideal}()
+    pullbacks = IdDict{AbsAffineScheme, Ideal}()
     for U in all_U
       psi = cheap_realization(phi, U, V)
       U_sub = domain(psi)
       pullbacks[U] = pullback(psi)(saturated_ideal(I(V)))
     end
       #J = pullback(psi)(saturated_ideal(I(V)))
-    function new_complexity(U::AbsSpec)
+    function new_complexity(U::AbsAffineScheme)
       return sum(total_degree.(lifted_numerator.(gens(pullbacks[U]))); init=0)
     end
     sort!(all_U, lt=(x,y)->new_complexity(x)<new_complexity(y))
@@ -779,7 +779,7 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::IdealSh
   V = first(all_V)
 
   all_U = copy(affine_charts(X))
-  function complexity(U::AbsSpec)
+  function complexity(U::AbsAffineScheme)
     a = realization_preview(phi, U, V)
     return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
   end
@@ -813,7 +813,7 @@ function _pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
   V = first(all_V)
 
   all_U = copy(affine_charts(X))
-  function complexity(U::AbsSpec)
+  function complexity(U::AbsAffineScheme)
     a = realization_preview(phi, U, V)
     return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
   end

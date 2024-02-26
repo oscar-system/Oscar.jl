@@ -6,7 +6,7 @@
   P, (x,y) = polynomial_ring(QQ, [:x, :y])
   p = x^2 + y^2 + 1
   X =  variety(p)
-  Y = variety(Spec(P, ideal([p^2])))
+  Y = variety(spec(P, ideal([p^2])))
   @test X == Y
   q = x^2 + y^2 # irreducible but not geometrically irreducible.
   @test_throws ErrorException variety(q)

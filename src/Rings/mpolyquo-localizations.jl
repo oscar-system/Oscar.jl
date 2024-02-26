@@ -800,7 +800,7 @@ end
 ### Why are the `//`-methods not implemented?
 # Since a quotient ring Q = R/I of a polynomial ring R is not necessarily 
 # factorial, it is difficult to decide, whether or not a and b have a 
-# common factor g that can be cancelled so that b'= b/g ∈  Q belongs 
+# common factor g that can be canceled so that b'= b/g ∈  Q belongs 
 # to the multiplicative set. Moreover, this would be the case if any 
 # lift of b' belonged to S + I where S ⊂ R is the original multiplicative 
 # set. Such containment can not easily be checked based only on the 

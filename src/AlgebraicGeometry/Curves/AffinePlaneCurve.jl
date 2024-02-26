@@ -42,7 +42,7 @@ Affine plane curve
   end
 end
 
-AffinePlaneCurve(X::AbsSpec; args...) = AffinePlaneCurve(AffineAlgebraicSet(X;args...);args...)
+AffinePlaneCurve(X::AbsAffineScheme; args...) = AffinePlaneCurve(AffineAlgebraicSet(X;args...);args...)
 
 # Functions to comply with the AbsAlgebraicSet interface
 

@@ -14,12 +14,12 @@
    @test is_full_direct_product(G)
    @test permutation_group(G) isa PermGroup
 
-   G,emb,proj = direct_product(S,C; morphisms=true)
+   G,emb,pr = direct_product(S,C; morphisms=true)
    @test G==direct_product(S,C)
    @test emb[1]==canonical_injection(G,1)
    @test emb[2]==canonical_injection(G,2)
-   @test proj[1]==canonical_projection(G,1)
-   @test proj[2]==canonical_projection(G,2)
+   @test pr[1]==canonical_projection(G,1)
+   @test pr[2]==canonical_projection(G,2)
 
    x = rand(G)
    @test x in G
@@ -96,12 +96,12 @@
          @test Le[i]*Lp[i]==id_hom(L[i])
       end
 
-      G1,Le1,Lp1 = inner_cartesian_power(A,3; morphisms=true)         
+      G1,Le1,Lp1 = inner_cartesian_power(A,3; morphisms=true)
       @test G1==G
       @test Le1==Le
       @test Lp1==Lp
    end
-      
+
 
 
    @testset "Cartesian Power" begin

@@ -1,16 +1,16 @@
 @testset "gluings" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   set_name!(A3, "𝔸³")
   f = (x*y-z^2)
   #f = (x*y-z^2)*(x+y+2*z)
   X = subscheme(A3, f)
   set_name!(X, "X")
-  U = SpecOpen(A3, [x,y,z])
+  U = AffineSchemeOpenSubscheme(A3, [x,y,z])
   UX = intersect(X, U)
   d = Oscar.find_non_zero_divisor(UX)
   S, (u,v) = QQ["u", "v"]
-  A2 = Spec(S)
+  A2 = spec(S)
   set_name!(A2, "𝔸²")
   f = maximal_extension(X, A2, [x, z//y])
   a = Oscar.generic_fractions(f)
@@ -20,9 +20,9 @@
   Sy, (xy, zy) = QQ["xy", "zy"]
   Sz, (xz, yz) = QQ["xz", "yz"]
 
-  Ax = Spec(Sx)
-  Ay = Spec(Sy)
-  Az = Spec(Sz)
+  Ax = spec(Sx)
+  Ay = spec(Sy)
+  Az = spec(Sz)
 
   fxy = maximal_extension(Ax, Ay, [1//yx, zx//yx])
   fyx = maximal_extension(Ay, Ax, [1//xy, zy//xy])
@@ -44,9 +44,9 @@ end
   S, (u, v) = QQ["u", "v"]
   T, (a, b) = QQ["a", "b"]
 
-  X = Spec(R)
-  Y = Spec(S)
-  Z = Spec(T)
+  X = spec(R)
+  Y = spec(S)
+  Z = spec(T)
 
   Ux = PrincipalOpenSubset(X, x)
   Vu = PrincipalOpenSubset(Y, u)
@@ -66,15 +66,15 @@ end
 
   f = morphism(Vv, Wb, [u, 1//v])
   g = morphism(Wb, Vv, [a, 1//b])
-  Vvo = SpecOpen(Vv)
-  Wbo = SpecOpen(Wb)
+  Vvo = AffineSchemeOpenSubscheme(Vv)
+  Wbo = AffineSchemeOpenSubscheme(Wb)
   simpleG2 = SimpleGluing(Y, Z, f, g)
   @test compose(simpleG, simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), simpleG2) == compose(simpleG, inverse(simpleG2))
   @test compose(inverse(simpleG), inverse(simpleG2)) == compose(simpleG, inverse(simpleG2))
-  G2 = Gluing(Y, Z, 
-               SpecOpenMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]), 
-               SpecOpenMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))
+  G2 = Gluing(Y, Z,
+               AffineSchemeOpenSubschemeMor(Vvo, Wbo, [compose(f, inclusion_morphism(Wb, Z))]),
+               AffineSchemeOpenSubschemeMor(Wbo, Vvo, [compose(g, inclusion_morphism(Vv, Y))]))
 
   G3 = compose(G1, G2)
   @test G3 == compose(G1, inverse(G2))
@@ -87,15 +87,15 @@ end
 
   ### test the abstract interface
   @attributes mutable struct DummyGluing{
-                                          LeftSpecType<:AbsSpec, 
-                                          RightSpecType<:AbsSpec,
-                                          LeftOpenType<:SpecOpen, 
-                                          RightOpenType<:SpecOpen,
-                                          LeftMorType<:SpecOpenMor,
-                                          RightMorType<:SpecOpenMor
+                                          LeftAffineSchemeType<:AbsAffineScheme,
+                                          RightAffineSchemeType<:AbsAffineScheme,
+                                          LeftOpenType<:AffineSchemeOpenSubscheme,
+                                          RightOpenType<:AffineSchemeOpenSubscheme,
+                                          LeftMorType<:AffineSchemeOpenSubschemeMor,
+                                          RightMorType<:AffineSchemeOpenSubschemeMor
                                          } <: AbsGluing{
-                                                         LeftSpecType,
-                                                         RightSpecType,
+                                                         LeftAffineSchemeType,
+                                                         RightAffineSchemeType,
                                                          LeftOpenType,
                                                          RightOpenType,
                                                          LeftMorType,

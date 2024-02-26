@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of the algebraic closure of finite fields,
-# which is modelled as the union of finite fields.
+# which is modeled as the union of finite fields.
 
 module AlgClosureFp
 

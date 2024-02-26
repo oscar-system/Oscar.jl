@@ -83,6 +83,10 @@ end
    @test is_regular(H,[1,2])
 
    @test_throws ArgumentError transitive_group(1, 2)
+
+   @test issetequal(all_transitive_groups(3:2:9), all_transitive_groups(degree => 3:2:9))
+   @test issetequal(all_transitive_groups(collect(3:2:9)), all_transitive_groups(3:2:9))
+   @test issetequal(reduce(vcat, (all_transitive_groups(i) for i in 3:2:9)), all_transitive_groups(3:2:9))
 end
 
 @testset "Perfect groups" begin
@@ -141,6 +145,10 @@ end
    @test has_primitive_groups(50)
    @test_throws ArgumentError primitive_group(1, 1)
    @test number_of_primitive_groups(50) == 9
+   
+   @test issetequal(all_primitive_groups(3:2:9), all_primitive_groups(degree => 3:2:9))
+   @test issetequal(all_primitive_groups(collect(3:2:9)), all_primitive_groups(3:2:9))
+   @test issetequal(reduce(vcat, (all_primitive_groups(i) for i in 3:2:9)), all_primitive_groups(3:2:9))
 end
 
 @testset "Atlas groups" begin

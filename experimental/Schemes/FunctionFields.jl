@@ -9,7 +9,7 @@ export variety
 # Check for emptyness                                                  #
 ########################################################################
 
-@attr Bool function Base.isempty(U::SpecOpen)
+@attr Bool function Base.isempty(U::AffineSchemeOpenSubscheme)
   return all(isempty, affine_patches(U))
 end
 
@@ -41,7 +41,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y)
 Scheme
@@ -249,7 +249,7 @@ end
 @doc raw"""
     function move_representative(
         a::MPolyRingElem, b::MPolyRingElem,
-        V::AbsSpec, U::AbsSpec,
+        V::AbsAffineScheme, U::AbsAffineScheme,
         C::Covering
       )
 
@@ -261,7 +261,7 @@ one in ``Quot(P')`` where ``P'`` is the ambient coordinate ring of another patch
 """
 function move_representative(
     a::MPolyRingElem, b::MPolyRingElem,
-    V::AbsSpec, U::AbsSpec,
+    V::AbsAffineScheme, U::AbsAffineScheme,
     C::Covering
   )
   G = C[U, V]
@@ -270,7 +270,7 @@ function move_representative(
   pba = pullback(f)(OO(B)(a))
   pbb = pullback(f)(OO(B)(b))
   iszero(pbb) && error("pullback of denominator is zero")
-  # in the next line, A is either a SpecOpen or a PrincipalOpenSubset
+  # in the next line, A is either a AffineSchemeOpenSubscheme or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
   if domain(f) isa PrincipalOpenSubset
     fac = factor(lifted_numerator(complement_equation(domain(f))))
@@ -313,7 +313,7 @@ function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
   return K(numerator(f_mov), denominator(f_mov))
 end
 
-function getindex(f::VarietyFunctionFieldElem, V::AbsSpec)
+function getindex(f::VarietyFunctionFieldElem, V::AbsAffineScheme)
   C = default_covering(variety(parent(f))) 
   if any(x->x===V, patches(C))
     return move_representative(numerator(f), denominator(f), 
@@ -478,7 +478,7 @@ function is_regular(f::VarietyFunctionFieldElem, U::Scheme)
   error("method not implemented")
 end
 
-function is_regular(f::VarietyFunctionFieldElem, U::AbsSpec)
+function is_regular(f::VarietyFunctionFieldElem, U::AbsAffineScheme)
   p = numerator(f[U])
   q = denominator(f[U])
   return _is_regular_fraction(OO(U), p, q)
@@ -492,7 +492,7 @@ function is_regular(f::VarietyFunctionFieldElem, U::PrincipalOpenSubset)
   return _is_regular_fraction(OO(U), p, q)
 end
 
-function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
+function is_regular(f::VarietyFunctionFieldElem, W::AffineSchemeOpenSubscheme)
   return all(U->is_regular(f, U), affine_patches(W))
 end
 

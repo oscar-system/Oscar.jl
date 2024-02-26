@@ -11,7 +11,7 @@ CurrentModule = Oscar
 
 ## Constructors
 ```@docs
-    Covering(patches::Vector{<:AbsSpec})
+    Covering(patches::Vector{<:AbsAffineScheme})
     disjoint_union(C1::Covering, C2::Covering)
 ```
 
@@ -44,7 +44,7 @@ The available concrete types are
 
 ## Constructors
 ```@docs
-    Gluing(X::AbsSpec, Y::AbsSpec, f::SchemeMor, g::SchemeMor)
+    Gluing(X::AbsAffineScheme, Y::AbsAffineScheme, f::SchemeMor, g::SchemeMor)
 ```
 
 ## Attributes
@@ -59,7 +59,7 @@ The available concrete types are
 ```@docs
     compose(G::AbsGluing, H::AbsGluing)
     maximal_extension(G::Gluing)
-    restrict(G::AbsGluing, f::AbsSpecMor, g::AbsSpecMor; check::Bool=true)
+    restrict(G::AbsGluing, f::AbsAffineSchemeMor, g::AbsAffineSchemeMor; check::Bool=true)
 ```
 
 

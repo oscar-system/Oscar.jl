@@ -290,7 +290,7 @@ internally represented by a pair `(r, u)` of elements of `R`, then
 - `parent(f)` refers to `RQL`,
 - `numerator(f)` to the image of `r` in `RQ`, and
 - `denominator(f)` to the image of `u` in `RQ`.
-That is, the behaviour of the functions `numerator` and `denominator` reflects the mathematical viewpoint
+That is, the behavior of the functions `numerator` and `denominator` reflects the mathematical viewpoint
 of representing `f` by pairs of elements of `RQ` and not the internal representation of `f` as pairs of elements of `R`.
 
 ##### Examples

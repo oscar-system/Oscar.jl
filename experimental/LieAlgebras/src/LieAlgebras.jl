@@ -18,6 +18,7 @@ import ..Oscar:
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
+  _vec,
   action,
   basis_matrix,
   basis,
@@ -181,6 +182,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module
@@ -300,6 +302,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module

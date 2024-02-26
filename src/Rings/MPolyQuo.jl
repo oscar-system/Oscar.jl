@@ -871,7 +871,7 @@ end
 # The above method for `simplify` assume that there is a singular backend which 
 # can be used. However, we are using (graded) quotient rings also with coefficient 
 # rings R which can not be translated to Singular; for instance when R is again 
-# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# a polynomial ring, or a quotient/localization thereof, or even an `AffineSchemeOpenSubschemeRing`. 
 # Still in many of those cases, we can use `RingFlattening` to bind a computational 
 # backend. In particular, this allows us to do ideal_membership tests; see 
 # the file `flattenings.jl` for details. 

@@ -11,7 +11,7 @@
 
   X = covered_scheme(P)
 
-  D = IdDict{AbsSpec, RingElem}()
+  D = IdDict{AbsAffineScheme, RingElem}()
   H = x^2 + y^2 + z^2
   for U in affine_charts(X)
     D[U] = dehomogenization_map(P, U)(H)

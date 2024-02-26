@@ -1,5 +1,5 @@
 
-@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
+@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
   defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
@@ -8,9 +8,9 @@
   q::Union{Int,Nothing}
   ground_ring::Ring
   one_realization::Bool
-  
+
   # Fields for caching
-  underlying_scheme::AbsSpec{BaseRingType, RingType}
+  underlying_scheme::AbsAffineScheme{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
     I::Union{Ideal,NumFieldOrderIdeal},
@@ -64,13 +64,13 @@ end
     is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
 * If char = nothing, then this function determines whether the matroid is realizable over some field.
-  
+
 * If `char == 0`, then this function determines whether the matroid is realizable over some field of
     characteristic 0.
-  
+
 * If char = p is prime, this function determines whether the matroid is realizable
     over the finite field ``GF(p)``.
-  
+
 * If `char == p` and `q` is a power of `p`, this function determines whether the matroid is realizable over the
     finite field ``GF(q)``.
 """
@@ -112,12 +112,12 @@ inequations(RS::MatroidRealizationSpace) = RS.inequations
 @doc raw"""
     ambient_ring(RS::MatroidRealizationSpace)
 
-The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`. 
+The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`.
 """
 ambient_ring(RS::MatroidRealizationSpace) = RS.ambient_ring
 
-### The following method uses types which are declared only later. 
-# Hence hit has been moved to 
+### The following method uses types which are declared only later.
+# Hence hit has been moved to
 #
 #   src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Methods.jl.
 #=
@@ -127,7 +127,7 @@ function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRin
   P = ambient_ring(RS)::MPolyRing
   I = defining_ideal(RS)::MPolyIdeal
   U = powers_of_element(inequations)::MPolyPowersOfElement
-  RS.underlying_scheme = Spec(R, I, U)
+  RS.underlying_scheme = spec(R, I, U)
   return RS.underlying_scheme
 end
 =#
@@ -139,7 +139,7 @@ end
     realization_matrix(RS::MatroidRealizationSpace)
 
 A matrix with entries in ambient_ring(RS) whose columns, when filled in with values satisfying equalities
-from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid. 
+from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid.
 """
 realization_matrix(RS::MatroidRealizationSpace) = RS.realization_matrix
 
@@ -229,7 +229,7 @@ end
       q::Union{Int,Nothing}=nothing,
       ground_ring::Ring=ZZ
     )::MatroidRealizationSpace
-        
+
 This function returns the data for the coordinate ring of the matroid realization space of the matroid `M`
 as a `MatroidRealizationSpace`. This function has several optional parameters.
 
@@ -441,12 +441,12 @@ function find_good_basis_heuristically(M::Matroid)
   return min_basis
 end
 
-# Return the prime divisors of f. 
+# Return the prime divisors of f.
 function poly_2_prime_divisors(f::RingElem)
   return map(first, factor(f))
 end
 
-# Return the unique prime divisors of the elements of Sgen, again no exponents. 
+# Return the unique prime divisors of the elements of Sgen, again no exponents.
 function gens_2_prime_divisors(Sgens::Vector{<:RingElem})
   return unique!(vcat([poly_2_prime_divisors(f) for f in Sgens]...))
 end
@@ -459,29 +459,29 @@ function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
 end
 
 @doc raw"""
-    realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-      saturate::Bool=false, 
+    realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing,
+      saturate::Bool=false,
       char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing
     )::MatroidRealizationSpace
-        
+
 This function tries to find one realization in the matroid realization space of
-the matroid `M`. The output is again a `MatroidRealizationSpace`. 
+the matroid `M`. The output is again a `MatroidRealizationSpace`.
 
 If the matroid is only realizable over an extension of the prime field the
 extension field is specified as a splitting field of an irreducible polynomial.
-Every root of this polynomial gives an equivalent realization of the matroid. 
+Every root of this polynomial gives an equivalent realization of the matroid.
 
 This function has several optional parameters. Note that one must input either
-the characteristic or a specific field of definition for the realization. 
+the characteristic or a specific field of definition for the realization.
 
 * `B` is a basis of M that specifies which columns of `realization_matrix(M)`
   form the identity matrix. The default is `nothing`, in which case the basis is
   chosen for you.
-  
+
 * `char` specifies the characteristic of the coefficient ring, and is used to determine if the matroid
   is realizable over a field of this characteristic. The default is `nothing`.
 
-* `q` is an integer, and when char = p, this input is used to determine whether the matroid 
+* `q` is an integer, and when char = p, this input is used to determine whether the matroid
   is realizable over the finite field ``GF(p^{q})``. The default is `nothing`.
 
 * `reduce` determines whether a reduced realization space is returned which means that the equations

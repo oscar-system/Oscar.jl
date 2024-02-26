@@ -9,7 +9,7 @@ end
 
 ## Types
 
-PBW-algebras are modelled by objects of type `PBWAlgRing{T, S} <: NCRing`, their elements are objects of type
+PBW-algebras are modeled by objects of type `PBWAlgRing{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the PBW-algebra
 is defined (the type `S` is added for internal use).
 
