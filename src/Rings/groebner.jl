@@ -719,8 +719,8 @@ julia> U
 [    0   y + 1]
 
 julia> Q
-[x^3 - x*y^2*z^2 + x*y + y^2*z^2         0   y*z^2 + z^2]
-[               -3*y^2*z^2 - y*z   x*y + x             0]
+[  x^3 - x*y^2*z^2 + x*y + y^2*z^2                            0   y*z^2 + z^2]
+[x*y*z^2 + y^3*z - 3*y^2*z^2 - y*z   -x^2*y*z - x^2*z + x*y + x             0]
 
 julia> H
 2-element Vector{QQMPolyRingElem}:
@@ -798,7 +798,7 @@ julia> reduce_with_quotients_and_unit(f, F)
 ([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
 julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([1], [0 y^2], y^6 + 10*y^4 + 1)
+([1], [x*y 0], x*y^4 + 10*y^4 + 1)
 
 julia> M * F + [res] == unit * [f]
 true
@@ -855,7 +855,7 @@ julia> reduce_with_quotients_and_unit(f, F)
 ([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
 julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([1], [0 y^2], y^6 + 10*y^4 + 1)
+([1], [x*y 0], x*y^4 + 10*y^4 + 1)
 
 julia> M * F + [res] == unit * [f]
 true
