@@ -11,7 +11,7 @@
     affine_scheme(::Ideal)
 
 Return the affine scheme defined by the input.
-""""
+"""
 affine_scheme
 
 
