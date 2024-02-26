@@ -1003,7 +1003,7 @@ julia> G = symmetric_group(4);
 
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
-  from free group
+  from free group of rank 2
   to Sym(4)
 
 julia> pi = G([2,4,3,1])
@@ -1018,6 +1018,7 @@ julia> map_word(w, gens(G))
 function epimorphism_from_free_group(G::GAPGroup)
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
   fG = FPGroup(GAPWrap.Source(mfG))
+  GAP.Globals.RankOfFreeGroup(fG.X)  # force rank computation
   return Oscar.GAPGroupHomomorphism(fG, G, mfG)
 end
 
