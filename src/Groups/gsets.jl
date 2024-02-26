@@ -79,7 +79,7 @@ acting_group(Omega::GSetByElements) = Omega.group
 @doc raw"""
     action_function(Omega::GSetByElements)
 
-Return the function ``f: \Omega \times G \to \Omega`` that defines the G-set.
+Return the function $f: \Omega \times G \to \Omega$ that defines the G-set.
 """
 action_function(Omega::GSetByElements) = Omega.action_function
 
