@@ -1,5 +1,5 @@
 # Entries are sorted with uppercase before lowercase. To resort it,
-# execute:  sort < src/exports.jl > dummy ; mv dummy src/exports.jl
+# execute:  LC_COLLATE=C sort < src/exports.jl > dummy ; mv dummy src/exports.jl
 export *
 export @check
 export @pbw_relations
@@ -11,6 +11,8 @@ export ANTIC
 export AbsAffineAlgebraicSet
 export AbsAffineCurve
 export AbsAffineRationalPoint
+export AbsAffineScheme
+export AbsAffineSchemeMor
 export AbsAffineVariety
 export AbsCoveredCurve
 export AbsCoveredScheme
@@ -26,14 +28,17 @@ export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
 export AbsProjectiveVariety
-export AbsSpec
-export AbsSpecMor
 export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
 export AffineHyperplane
 export AffineNormalToricVariety
 export AffinePlaneCurve
+export AffineScheme
+export AffineSchemeOpenSubscheme
+export AffineSchemeOpenSubschemeMor
+export AffineSchemeOpenSubschemeRing
+export AffineSchemeOpenSubschemeRingElem
 export AffineVariety
 export AutomorphismGroup
 export AutomorphismGroupElem
@@ -149,11 +154,6 @@ export SimplicialComplex
 export Singular
 export Sp
 export SpaceGerm
-export Spec
-export SpecOpen
-export SpecOpenMor
-export SpecOpenRing
-export SpecOpenRingElem
 export SubObjectIterator
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
@@ -203,6 +203,8 @@ export affine_normal_toric_variety
 export affine_open_covering
 export affine_patch
 export affine_patches
+export affine_scheme
+export affine_scheme_open_subscheme_ring_type
 export affine_space
 export alexander_dual
 export algebraic_ideal
@@ -1117,8 +1119,8 @@ export orbit_polytope
 export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
-export ordering
 export order_field_of_definition
+export ordering
 export orders_centralizers
 export orders_class_representatives
 export orders_perfect_groups
@@ -1211,6 +1213,7 @@ export projective_special_orthogonal_group
 export projective_special_unitary_group
 export projective_symplectic_group
 export projective_unitary_group
+export projectivization
 export prune_with_map
 export pseudo_del_pezzo_polytope
 export pullback
@@ -1224,6 +1227,7 @@ export quotient_ring_as_module
 export radical
 export radical_membership
 export rand
+export rand01_polytope
 export rand_box_polytope
 export rand_cyclic_polytope
 export rand_homogeneous
@@ -1233,7 +1237,6 @@ export rand_normal_polytope
 export rand_pseudo
 export rand_spherical_polytope
 export rand_subpolytope
-export rand01_polytope
 export rank
 export rank_action
 export rational_equivalence_class
@@ -1377,7 +1380,6 @@ export solve_mixed
 export solve_non_negative
 export spanning_sets
 export spec
-export spec_open_ring_type
 export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
@@ -1396,9 +1398,9 @@ export star_triangulations
 export strongly_connected_components
 export structure_sheaf
 export sub
+export sub_object
 export subalgebra_membership
 export subalgebra_membership_homogeneous
-export sub_object
 export subgroup_classes
 export subquo_type
 export subquotient

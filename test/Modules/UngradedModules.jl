@@ -70,7 +70,7 @@ end
     M = subquotient(a1,a2)
     m3 = x*M[1]+M[2]+x*M[3]
     @test repres(simplify(m3)) == x*G[1] + (y - z)*G[2]
-end  
+end
 
 @testset "Intersection of modules" begin
   Oscar.set_seed!(235)
@@ -280,7 +280,7 @@ end
   N, phi = prune_with_map(M)
   @test rank(ambient_free_module(N)) == 2
   @test (phi).(gens(N)) == gens(M)[2:3]
-  
+
   M = SubquoModule(identity_matrix(R, 3), R[x 1 x])
   N, phi = prune_with_map(M)
   @test rank(ambient_free_module(N)) == 2
@@ -424,7 +424,7 @@ end
         R[8*x^2*y^2*z^2+13*x*y*z^2  12*x^2+7*y^2*z;
         13*x*y^2+12*y*z^2  4*x^2*y^2*z+8*x*y*z;
         9*x*y^2+4*z  12*x^2*y*z^2+9*x*y^2*z]]
-  kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)], 
+  kernels = [R[x^2-x*y+y -x^2+x*y -x^2+x*y-y^2-y], R[R(0) R(0)],
          R[-36*x^3*y^4*z+156*x^3*y^3*z^2+144*x^2*y^2*z^4+117*x^2*y^4*z+108*x*y^3*z^3-72*x^2*y^3*z-16*x^2*y^2*z^2-32*x*y*z^2 -96*x^4*y^3*z^4-72*x^3*y^4*z^3-156*x^3*y^2*z^4-117*x^2*y^3*z^3+63*x*y^4*z+108*x^3*y^2+28*y^2*z^2+48*x^2*z 32*x^4*y^4*z^3+116*x^3*y^3*z^3+104*x^2*y^2*z^3-91*x*y^4*z-84*y^3*z^3-156*x^3*y^2-144*x^2*y*z^2]]
   for (A,Ker) in zip(matrices, kernels)
     F1 = FreeMod(R, nrows(A))
@@ -544,7 +544,7 @@ end
   @test Q1 == SubquoModule(F3,R[x^2*y^3-x*y y^3 x^2*y],R[x^4*y^5 x*y y^4; x^4*y^5-4*x^2  -6*x*y^2+x*y  y^4-8])
   @test p1 == find_morphism(M1, Q1)
   for k=1:5
-    elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)  
+    elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:2])), M1)
     @test p1(elem) == transport(Q1, elem)
   end
 
@@ -716,7 +716,7 @@ end
     A1 = matrix([randpoly(R,0:15,4,3) for i=1:3,j=1:2])
     B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
 
-  
+
     A2 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
     B2 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:3])
 
@@ -751,7 +751,7 @@ end
 @testset "direct product" begin
   Oscar.set_seed!(235)
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
-  
+
   F2 = FreeMod(R,2)
   F3 = FreeMod(R,3)
 
@@ -770,24 +770,24 @@ end
   @test codomain(emb[1]) === sum_M
   @test codomain(emb[2]) === sum_M
 
-  sum_M, proj = direct_sum(M1,M2, task=:prod)
-  @test codomain(proj[1]) === M1
-  @test codomain(proj[2]) === M2
-  @test domain(proj[1]) === sum_M
-  @test domain(proj[2]) === sum_M
+  sum_M, pr = direct_sum(M1,M2, task=:prod)
+  @test codomain(pr[1]) === M1
+  @test codomain(pr[2]) === M2
+  @test domain(pr[1]) === sum_M
+  @test domain(pr[2]) === sum_M
 
-  prod_M, emb, proj = direct_sum(M1,M2,task=:both)
-  @test length(proj) == length(emb) == 2
+  prod_M, emb, pr = direct_sum(M1,M2,task=:both)
+  @test length(pr) == length(emb) == 2
   @test ngens(prod_M) == ngens(M1) + ngens(M2)
 
   for g in gens(prod_M)
-    @test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
+    @test g == sum([emb[i](pr[i](g)) for i=1:length(pr)])
   end
   for g in gens(M1)
-    @test g == proj[1](emb[1](g))
+    @test g == pr[1](emb[1](g))
   end
   for g in gens(M2)
-    @test g == proj[2](emb[2](g))
+    @test g == pr[2](emb[2](g))
   end
 
   A1 = matrix([randpoly(R,0:15,2,2) for i=1:3,j=1:2])
@@ -866,7 +866,7 @@ end
     v = sparse_row(R, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
     v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
 
-    elem1 = SubquoModuleElem(v_as_FreeModElem,M) 
+    elem1 = SubquoModuleElem(v_as_FreeModElem,M)
     elem2 = SubquoModuleElem(v,M)
 
     @test elem1 == elem2
@@ -1123,9 +1123,9 @@ end
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
 
   FF, psi = Oscar.double_dual(F2)
-  @test is_injective(psi) 
+  @test is_injective(psi)
   @test is_surjective(psi)
-  
+
   M, inc = sub(F2, [x*F2[1], y*F2[1]])
   F1 = FreeMod(R, 1)
   Mv, ev = dual(M, codomain=F1)
@@ -1133,7 +1133,7 @@ end
 
   Mvv, psi = Oscar.double_dual(M, codomain=F1)
   @test matrix(psi) == R[x; y]
-  
+
   ### Quotient rings
 
   A = R[x y; z x-1]
@@ -1143,15 +1143,15 @@ end
   F2 = FreeMod(Q, 2)
   F2v, ev = Oscar.dual(F2, codomain=F1)
   @test ev(F2v[1])(F2[1]) == F1[1] # the first generator
-  
+
   FF, psi = Oscar.double_dual(F2)
-  @test is_injective(psi) 
-  @test is_surjective(psi) 
+  @test is_injective(psi)
+  @test is_surjective(psi)
 
   M, pr = quo(F2, [sum(A[i, j]*F2[j] for j in 1:ngens(F2)) for i in 1:nrows(A)])
   Mv, ev = Oscar.dual(M, codomain=F1)
   Mvv, psi = Oscar.double_dual(M, codomain=F1)
-  @test is_injective(psi) 
+  @test is_injective(psi)
   @test is_surjective(psi) # works correctly!
 end
 
@@ -1203,7 +1203,7 @@ end
 
   F = FreeMod(R, 1)
 
-  # we need to wrap the creation of I in a scope of its own so 
+  # we need to wrap the creation of I in a scope of its own so
   # that gc works within the test suite.
   function dummy(F::FreeMod)
     I, inc = sub(F, [x*F[1]], cache_morphism=true)
@@ -1212,7 +1212,7 @@ end
     @test Oscar._recreate_morphism(I, F, F.incoming[I]) == inc
 
     @test haskey(I.outgoing, F)
-    @test Oscar._recreate_morphism(I, F, I.outgoing[F]) == inc 
+    @test Oscar._recreate_morphism(I, F, I.outgoing[F]) == inc
 
     I = 5
     inc = "a"
@@ -1224,13 +1224,13 @@ end
 
   @test length(keys(F.incoming)) == 0
   # The other way around it will not work, because I has a reference to its ambient_free_module f.
-  
+
   function dummy2(F::FreeMod)
     I, inc_I = sub(F, [x*F[1]], cache_morphism=true)
     J, inc_J = sub(I, [x^2*I[1]], cache_morphism=true)
 
     @test haskey(J.outgoing, I)
-    @test haskey(I.incoming, J) 
+    @test haskey(I.incoming, J)
     @test Oscar._recreate_morphism(J, I, J.outgoing[I]) == inc_J
     @test Oscar._recreate_morphism(J, I, I.incoming[J]) == inc_J
 
@@ -1245,7 +1245,7 @@ end
   # The inclusion map J -> I is still stored in the attributes of J as :canonical_inclusion.
   # However, even removing that and calling gc() again does not remove the entry in J.outgoing.
   # So there is still a memory leak somewhere!
-  @test_broken length(keys(J.outgoing)) == 0 
+  @test_broken length(keys(J.outgoing)) == 0
 end
 
 

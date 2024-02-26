@@ -1,5 +1,5 @@
 ########################################################################
-# Abstract type for morphisms of projective schemes for which the 
+# Abstract type for morphisms of projective schemes for which the
 # generic interface is defined.
 ########################################################################
 abstract type AbsProjectiveSchemeMorphism{
@@ -75,7 +75,7 @@ space over the same ring with the identity on the base.
     end
     return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
   end
-  
+
   ### Morphisms with an underlying base change
   function ProjectiveSchemeMor(
       P::DomainType,
@@ -125,7 +125,7 @@ end
     DomainType<:AbsProjectiveScheme,
     CodomainType<:AbsProjectiveScheme,
     PullbackType<:Map,
-    BaseMorType, 
+    BaseMorType,
     IdealType<:Ideal
   } <: AbsProjectiveSchemeMorphism{DomainType, CodomainType,
                  ProjectiveClosedEmbedding,
@@ -142,7 +142,7 @@ end
     S = homogeneous_coordinate_ring(P)
     @req base_ring(I) === S "ideal must be defined in the homogeneous coordinate ring of the scheme"
     T, pr = quo(S, I)
-    Q = ProjectiveScheme(T)
+    Q = proj(T)
     f = ProjectiveSchemeMor(Q, P, pr, check=false)
     return new{typeof(Q), DomainType, typeof(pr), Nothing, IdealType}(f, I)
   end
@@ -153,7 +153,7 @@ end
       check::Bool=true
     )
     Y = codomain(f)
-    SY = homogeneous_coordinate_ring(Y) 
+    SY = homogeneous_coordinate_ring(Y)
     ambient_coordinate_ring(Y) === ambient_coordinate_ring(domain(f)) || error("ambient coordinate rings are not compatible")
     base_ring(I) === SY || error("ideal does not belong to the correct ring")
     @check begin

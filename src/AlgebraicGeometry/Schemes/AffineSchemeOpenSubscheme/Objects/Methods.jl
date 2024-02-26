@@ -1,50 +1,50 @@
 
 ########################################################################
-# Implementations of methods for SpecOpen                              #
+# Implementations of methods for AffineSchemeOpenSubscheme                              #
 ########################################################################
 
 ########################################################################
 # Intersections                                                        #
 ########################################################################
 function intersect(
-    Y::AbsSpec, 
-    U::SpecOpen;
+    Y::AbsAffineScheme,
+    U::AffineSchemeOpenSubscheme;
     check::Bool=true
   )
   X = ambient_scheme(U)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(Y) || error("schemes can not be compared")
-  X === Y && return SpecOpen(Y, complement_equations(U), check=check)
+  X === Y && return AffineSchemeOpenSubscheme(Y, complement_equations(U), check=check)
   if check && !is_subscheme(Y, X)
     Y = intersect(Y, X)
   end
-  return SpecOpen(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))], check=check)
+  return AffineSchemeOpenSubscheme(Y, [g for g in complement_equations(U) if !iszero(OO(Y)(g))], check=check)
 end
 
-intersect(U::SpecOpen, Y::AbsSpec) = intersect(Y, U)
+intersect(U::AffineSchemeOpenSubscheme, Y::AbsAffineScheme) = intersect(Y, U)
 
 function intersect(
-    U::SpecOpen,
-    V::SpecOpen
+    U::AffineSchemeOpenSubscheme,
+    V::AffineSchemeOpenSubscheme
   )
   X = ambient_scheme(U)
   X == ambient_scheme(V) || error("ambient schemes do not coincide")
-  return SpecOpen(X, [a*b for a in complement_equations(U) for b in complement_equations(V)])
+  return AffineSchemeOpenSubscheme(X, [a*b for a in complement_equations(U) for b in complement_equations(V)])
 end
 
 ########################################################################
 # Unions                                                               #
 ########################################################################
-function Base.union(U::SpecOpen, V::SpecOpen)
+function Base.union(U::AffineSchemeOpenSubscheme, V::AffineSchemeOpenSubscheme)
   ambient_scheme(U) == ambient_scheme(V) || error("the two open sets are not contained in the same ambient scheme")
-  return SpecOpen(ambient_scheme(U), vcat(complement_equations(U), complement_equations(V)))
+  return AffineSchemeOpenSubscheme(ambient_scheme(U), vcat(complement_equations(U), complement_equations(V)))
 end
 
 ########################################################################
 # Containment and equality                                             #
 ########################################################################
 function is_subscheme(
-    Y::AbsSpec,
-    U::SpecOpen
+    Y::AbsAffineScheme,
+    U::AffineSchemeOpenSubscheme
   )
   ambient_coordinate_ring(Y) === ambient_coordinate_ring(U) || return false
   is_subscheme(Y, ambient_scheme(U)) || return false
@@ -53,16 +53,16 @@ end
 
 
 function is_subscheme(
-    U::SpecOpen,
-    Y::AbsSpec
-  ) 
+    U::AffineSchemeOpenSubscheme,
+    Y::AbsAffineScheme
+  )
   return all(is_subscheme(V, Y) for V in affine_patches(U))
 end
 
-function is_subscheme(U::SpecOpen, V::SpecOpen)
+function is_subscheme(U::AffineSchemeOpenSubscheme, V::AffineSchemeOpenSubscheme)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(V) || return false
   Z = complement(V)
-  # perform an implicit radical membership test (Rabinowitsch) that is way more 
+  # perform an implicit radical membership test (Rabinowitsch) that is way more
   # efficient than computing radicals.
   for g in complement_equations(U)
     isempty(hypersurface_complement(Z, g)) || return false
@@ -72,21 +72,21 @@ function is_subscheme(U::SpecOpen, V::SpecOpen)
 end
 
 # TODO: Where did the type declaration go?
-function ==(U::SpecSubset, V::SpecSubset)
+function ==(U::AffineSchemeSubset, V::AffineSchemeSubset)
   ambient_coordinate_ring(U) === ambient_coordinate_ring(V) || return false
   return is_subscheme(U, V) && is_subscheme(V, U)
 end
 
 ########################################################################
-# Closures of SpecOpens                                                #
+# Closures of AffineSchemeOpenSubschemes                                                #
 ########################################################################
 @doc raw"""
-    closure(U::SpecOpen)
+    closure(U::AffineSchemeOpenSubscheme)
 
-Compute the Zariski closure of an open set ``U ⊂ X`` 
+Compute the Zariski closure of an open set ``U ⊂ X``
 where ``X`` is the affine ambient scheme of ``U``.
 """
-function closure(U::SpecOpen{<:StdSpec})
+function closure(U::AffineSchemeOpenSubscheme{<:StdAffineScheme})
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = saturated_ideal(modulus(OO(X)))
@@ -94,11 +94,11 @@ function closure(U::SpecOpen{<:StdSpec})
   return subscheme(X, I)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyRing}}
+function closure(U::AffineSchemeOpenSubscheme{AffineSchemeType}) where {AffineSchemeType<:AffineScheme{<:Ring, <:MPolyRing}}
   return ambient_scheme(U)
 end
 
-function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuoRing}}
+function closure(U::AffineSchemeOpenSubscheme{AffineSchemeType}) where {AffineSchemeType<:AffineScheme{<:Ring, <:MPolyQuoRing}}
   X = ambient_scheme(U)
   R = ambient_coordinate_ring(X)
   I = modulus(OO(X))
@@ -107,13 +107,13 @@ function closure(U::SpecOpen{SpecType}) where {SpecType<:Spec{<:Ring, <:MPolyQuo
 end
 
 @doc raw"""
-    closure(U::SpecOpen, Y::AbsSpec)
+    closure(U::AffineSchemeOpenSubscheme, Y::AbsAffineScheme)
 
 Compute the closure of ``U ⊂ Y``.
 """
 function closure(
-    U::SpecOpen,
-    Y::AbsSpec; check::Bool=true
+    U::AffineSchemeOpenSubscheme,
+    Y::AbsAffineScheme; check::Bool=true
   )
   @check is_subscheme(U, Y) "the first set is not contained in the second"
   X = closure(U)
@@ -121,13 +121,13 @@ function closure(
 end
 
 ########################################################################
-# Preimages of open sets under SpecMors                                #
+# Preimages of open sets under AffineSchemeMors                                #
 ########################################################################
 
-function preimage(f::AbsSpecMor, V::SpecOpen; check::Bool=true)
+function preimage(f::AbsAffineSchemeMor, V::AffineSchemeOpenSubscheme; check::Bool=true)
   @check is_subscheme(codomain(f), ambient_scheme(V)) "set is not guaranteed to be open in the codomain"
   new_gens = pullback(f).(complement_equations(V))
-  return SpecOpen(domain(f), lifted_numerator.(new_gens), check=check)
+  return AffineSchemeOpenSubscheme(domain(f), lifted_numerator.(new_gens), check=check)
 end
 
 
@@ -135,7 +135,7 @@ end
 # Printing                                                             #
 ########################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", U::SpecOpen)
+function Base.show(io::IO, ::MIME"text/plain", U::AffineSchemeOpenSubscheme)
   io = pretty(io)
   println(io, "Open subset")
   println(io, Indent(), "of ", Lowercase(), ambient_space(U))
@@ -147,7 +147,7 @@ end
 # For the printing of regular functions, we need details on the affine patches.
 # In general, one could avoid those details by just stating what is its ambient
 # space and complement (see printing above)
-function _show_semi_compact(io::IO, U::SpecOpen)
+function _show_semi_compact(io::IO, U::AffineSchemeOpenSubscheme)
   io = pretty(io)
   println(io, "Open subset")
   c = ambient_coordinates(U)
@@ -181,7 +181,7 @@ function _show_semi_compact(io::IO, U::SpecOpen)
   end
 end
 
-function Base.show(io::IO, U::SpecOpen)
+function Base.show(io::IO, U::AffineSchemeOpenSubscheme)
   show_coord = get(io, :show_coordinates, true)
   if get(io, :show_semi_compact, false)
     _show_semi_compact(io, U)
@@ -209,13 +209,13 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function base_change(phi::Any, U::SpecOpen;
-    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+function base_change(phi::Any, U::AffineSchemeOpenSubscheme;
+    ambient_map::AbsAffineSchemeMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
   )
   Y = domain(ambient_map)
   pbf = pullback(ambient_map)
   h = pbf.(complement_equations(U))
-  UU = SpecOpen(Y, h)
+  UU = AffineSchemeOpenSubscheme(Y, h)
   return UU, restrict(ambient_map, UU, U, check=true) # TODO: Set to false after testing
 end
 

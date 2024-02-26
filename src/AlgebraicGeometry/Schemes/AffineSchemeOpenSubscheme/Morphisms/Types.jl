@@ -3,7 +3,7 @@
 # Morphisms of Zariski-open subsets of affine schemes                  #
 ########################################################################
 @doc raw"""
-    SpecOpenMor{DomainType<:SpecOpen, CodomainType<:SpecOpen}
+    AffineSchemeOpenSubschemeMor{DomainType<:AffineSchemeOpenSubscheme, CodomainType<:AffineSchemeOpenSubscheme}
 
 Morphisms ``f : U → V`` of open sets ``U ⊂ X`` and ``V ⊂ Y`` of affine schemes.
 These are stored as morphisms ``fᵢ: Uᵢ→ Y`` on the affine patches
@@ -17,23 +17,23 @@ then
  * `CodomainType` is the type of the codomain;
 affine patches of the domain to the affine ambient scheme of the codomain.
 """
-mutable struct SpecOpenMor{DomainType<:SpecOpen,
-                           CodomainType<:SpecOpen
-                          }<:SchemeMor{DomainType, CodomainType, SpecOpenMor, Nothing}
+mutable struct AffineSchemeOpenSubschemeMor{DomainType<:AffineSchemeOpenSubscheme,
+                           CodomainType<:AffineSchemeOpenSubscheme
+                          }<:SchemeMor{DomainType, CodomainType, AffineSchemeOpenSubschemeMor, Nothing}
   domain::DomainType
   codomain::CodomainType
-  maps_on_patches::Vector{AbsSpecMor}
+  maps_on_patches::Vector{AbsAffineSchemeMor}
 
   # fields used for caching
-  inverse::SpecOpenMor
+  inverse::AffineSchemeOpenSubschemeMor
   pullback::Map
 
-  function SpecOpenMor(
+  function AffineSchemeOpenSubschemeMor(
       U::DomainType,
       V::CodomainType,
-      f::Vector{<:AbsSpecMor};
+      f::Vector{<:AbsAffineSchemeMor};
       check::Bool=true
-    ) where {DomainType<:SpecOpen, CodomainType<:SpecOpen}
+    ) where {DomainType<:AffineSchemeOpenSubscheme, CodomainType<:AffineSchemeOpenSubscheme}
     Y = ambient_scheme(V)
     n = length(f)
     n == length(affine_patches(U)) || error("number of patches does not coincide with the number of maps")

@@ -1,4 +1,4 @@
-struct RationalPointSet{P<:AbsSpec, T<:Scheme} <: AbsRationalPointSet{P,T}
+struct RationalPointSet{P<:AbsAffineScheme, T<:Scheme} <: AbsRationalPointSet{P,T}
   domain::P
   codomain::T
 end
