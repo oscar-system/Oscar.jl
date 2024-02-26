@@ -1,5 +1,15 @@
 @testset "all_od_infos" begin
+  iob = IOBuffer()
+  show_OD_info("G2(3)", iob)
+  str1 = String(take!(iob))
+
   all_entries = all_od_infos();
+  @test all_entries isa Vector
+
+  show_OD_info("G2(3)", iob)
+  str2 = String(take!(iob))
+  @test str1 == str2
+
   @test length(all_entries) == length(all_od_infos(is_simple)) +
                                length(all_od_infos(! is_simple))
   @test length(all_entries) == length(all_od_infos(is_sporadic_simple)) +
