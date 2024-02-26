@@ -70,7 +70,18 @@ function Base.show(io::IO, x::GSetByElements)
 end
 
 # TODO: document `acting_group`, `action_function`
+"""
+    acting_group(Omega::GSetByElements)
+
+Return the group `G` acting on `Omega`.
+"""
 acting_group(Omega::GSetByElements) = Omega.group
+
+"""
+    action_function(Omega::GSetByElements)
+
+Return the function ``f: \Omega \times G \to \Omega`` that defines the G-set.
+"""
 action_function(Omega::GSetByElements) = Omega.action_function
 
 # The following works for all G-set types that support attributes
@@ -241,7 +252,7 @@ function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
     return ElementOfGSet(Omega, fun(omega.obj, g))
 end
 
-==(omega1::ElementOfGSet, omega2::ElementOfGSet) = 
+==(omega1::ElementOfGSet, omega2::ElementOfGSet) =
   ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
 
 function Base.hash(omega::ElementOfGSet, h::UInt)
