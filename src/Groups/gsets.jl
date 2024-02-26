@@ -69,7 +69,6 @@ function Base.show(io::IO, x::GSetByElements)
   end
 end
 
-# TODO: document `acting_group`, `action_function`
 """
     acting_group(Omega::GSetByElements)
 
