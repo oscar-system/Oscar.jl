@@ -354,7 +354,7 @@ function show_OD_info(tbl::Oscar.GAPGroupCharacterTable, io::IO = stdout)
             if length(ppos) > 0
               ppos = ppos[1]
             end
-            if length(ppos) != 0 && !contains(ppos[end], "(indicator unknown)")
+            if length(ppos) != 0 && !("(indicator unknown)" in ppos[end])
               # must be indicator `+`
               push!(res1, _character_name(modtbls[j], k))
               push!(res2, ppos[4])
@@ -364,7 +364,7 @@ function show_OD_info(tbl::Oscar.GAPGroupCharacterTable, io::IO = stdout)
                 # indicator `o`
                 push!(res1, _character_name(modtbls[j], k) *
                             filter(!isdigit, _character_name(modtbls[j], cc)))
-                push!(res2, orthogonal_discriminant_indicator0(modtbls[j][k]))
+                push!(res2, _orthogonal_discriminant_indicator0(modtbls[j][k]))
               elseif cc == k
                 # indicator is *unknown*;
                 # note that indicator `-` (disc is "O+") cannot occur here
