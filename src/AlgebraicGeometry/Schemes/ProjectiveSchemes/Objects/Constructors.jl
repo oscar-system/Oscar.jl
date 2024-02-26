@@ -10,7 +10,7 @@ proj(Q::MPolyQuoRing{<:MPolyDecRingElem}) = ProjectiveScheme(Q)
 
 
 proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
-projective_scheme (S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
+projective_scheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
 
 proj(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
 projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
