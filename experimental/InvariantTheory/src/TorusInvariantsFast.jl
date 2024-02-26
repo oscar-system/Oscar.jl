@@ -16,7 +16,7 @@ end
 Return the torus $(K^{\ast})^m$.
 
 !!! note
-    In the context of computating of invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
+    In the context of computing of invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
 # Examples
 ```jldoctest
 julia> T = torus_group(QQ,2)
@@ -75,7 +75,7 @@ end
 @doc raw"""
     representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
 
-Return the diagonal action of `T` with weights given by the rows of `W`.
+Return the diagonal action of `T` with weights given by `W`.
 
 # Examples
 ```jldoctest
@@ -369,4 +369,43 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             count = 0
         end
     end
+end
+
+#####################Invariant rings as affine algebras
+
+@doc raw"""
+    invariant_ring_as_affine_algebra(RT::TorGrpInvRing)
+
+Return the invariant ring `RT` as an affine algebra.
+
+That is, compute the algebra syzygies among the fundamental invariants of `RT`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r);
+
+julia> fundamental_invariants(RT)
+3-element Vector{MPolyDecRingElem}:
+ X[1]^2*X[3]
+ X[1]*X[2]*X[3]
+ X[2]^2*X[3]
+
+julia> invariant_ring_as_affine_algebra_(RT)
+(Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
+```
+"""
+function invariant_ring_as_affine_algebra(R::TorGrpInvRing)
+   V = fundamental_invariants(R)
+   s = length(V)
+   S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
+   R_ = poly_ring(R)
+   StoR = hom(S,R_,V)
+   I = kernel(StoR)
+   Q, StoQ = quo(S,I)
+   QtoR = hom(Q,R_,V)
+   return Q, QtoR
 end

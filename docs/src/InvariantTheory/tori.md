@@ -5,9 +5,7 @@ CurrentModule = Oscar
 # Invariants of Tori
 In this section, with notation as in the introduction to this chapter, $T =(K^{\ast})^m$ will be a torus of rank $m$
 over a field $K$. To compute invariants of diagonal torus actions, OSCAR makes use of Algorithm 4.3.1  in [DK15](@cite) which,
-in particular, relies on algorithmic means from polyhedral geometry.  For the computation of invariant rings using this
-algorithm, there is no need to deal with explicit elements of ``T`` or its group structure: ``T`` is specified by just
-giving $K$ and $m$.
+in particular, relies on algorithmic means from polyhedral geometry.
 
 ## Creating Invariant Rings
 
@@ -49,3 +47,6 @@ fundamental_invariants(RT::TorGrpInvRing)
 
 ## Invariant Rings as Affine Algebras
 
+```@docs
+invariant_ring_as_affine_algebra(RT::TorGrpInvRing)
+```
