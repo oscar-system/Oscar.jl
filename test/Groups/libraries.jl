@@ -87,6 +87,9 @@ end
    @test issetequal(all_transitive_groups(3:2:9), all_transitive_groups(degree => 3:2:9))
    @test issetequal(all_transitive_groups(collect(3:2:9)), all_transitive_groups(3:2:9))
    @test issetequal(reduce(vcat, (all_transitive_groups(i) for i in 3:2:9)), all_transitive_groups(3:2:9))
+
+   @test issetequal(all_transitive_groups(3:2:9, is_abelian), all_transitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_transitive_groups(9, is_abelian), all_transitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Perfect groups" begin
@@ -164,6 +167,9 @@ end
    @test issetequal(all_primitive_groups(3:2:9), all_primitive_groups(degree => 3:2:9))
    @test issetequal(all_primitive_groups(collect(3:2:9)), all_primitive_groups(3:2:9))
    @test issetequal(reduce(vcat, (all_primitive_groups(i) for i in 3:2:9)), all_primitive_groups(3:2:9))
+
+   @test issetequal(all_primitive_groups(3:2:9, is_abelian), all_primitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_primitive_groups(9, is_abelian), all_primitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Atlas groups" begin
