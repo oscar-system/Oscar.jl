@@ -217,6 +217,7 @@ export all_blocks
 export all_character_table_names
 export all_cohomologies
 export all_neighbors
+export all_perfect_groups
 export all_primitive_groups
 export all_small_groups
 export all_subsets_matroid
