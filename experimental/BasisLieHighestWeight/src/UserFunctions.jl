@@ -433,7 +433,6 @@ Generators of the semi group of essential monomials for the Kodaira embedding wi
 then the numbers of generators added in each degree is
 7  5  14  7  12  8 
 """
-
 function basis_coordinate_ring_kodaira(
   type::Symbol,
   rank::Int,
@@ -491,7 +490,6 @@ Generators of the semi group of essential monomials for the Kodaira embedding wi
 then the numbers of generators added in each degree is
 7  5  14  7  12  8 
 """
-
 function basis_coordinate_ring_kodaira_ffl(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int
 )
