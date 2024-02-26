@@ -78,7 +78,7 @@ end
 
   Oscar.inherit_gluings!(dom_cov, default_covering(X))
   Oscar.inherit_gluings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end
@@ -101,7 +101,7 @@ end
 
   Oscar.inherit_gluings!(dom_cov, default_covering(X))
   Oscar.inherit_gluings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end

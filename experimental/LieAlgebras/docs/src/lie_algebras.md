@@ -87,7 +87,8 @@ lie_algebra
 abelian_lie_algebra(R::Field, n::Int)
 general_linear_lie_algebra(R::Field, n::Int)
 special_linear_lie_algebra(R::Field, n::Int)
-special_orthogonal_lie_algebra(R::Field, n::Int)
+special_orthogonal_lie_algebra
+symplectic_lie_algebra
 ```
 
 ## Relation to GAP Lie algebras

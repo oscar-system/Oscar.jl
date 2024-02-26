@@ -1480,7 +1480,7 @@ false
     is_quasisimple(G::GAPGroup)
 
 Return whether `G` is a quasisimple group,
-i.e., `G` is perfect such that the factor group modulo its centre is
+i.e., `G` is perfect such that the factor group modulo its center is
 a non-abelian simple group.
 
 # Examples

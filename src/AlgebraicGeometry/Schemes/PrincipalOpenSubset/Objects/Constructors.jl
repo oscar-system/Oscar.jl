@@ -2,5 +2,5 @@
 # Constructors for PrincipalOpenSubsets                                #
 ########################################################################
 
-### Conversion of an arbitrary AbsSpec
-PrincipalOpenSubset(X::AbsSpec) = PrincipalOpenSubset(X, one(OO(X)))
+### Conversion of an arbitrary AbsAffineScheme
+PrincipalOpenSubset(X::AbsAffineScheme) = PrincipalOpenSubset(X, one(OO(X)))

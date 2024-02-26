@@ -45,7 +45,7 @@ end
 
 @doc raw"""
     matrix(h::LieAlgebraModuleHom) -> MatElem
-    
+
 Return the transformation matrix of `h` w.r.t. the bases of the domain and codomain.
 
 Note: The matrix operates on the coefficient vectors from the right.
@@ -201,7 +201,7 @@ end
 @doc raw"""
     hom(V1::LieAlgebraModule, V2::LieAlgebraModule, imgs::Vector{<:LieAlgebraModuleElem}; check::Bool=true) -> LieAlgebraModuleHom
 
-Construct the homomorphism from `V1` to `V2` by sending the `i`-th basis element of `V1` 
+Construct the homomorphism from `V1` to `V2` by sending the `i`-th basis element of `V1`
 to `imgs[i]` and extending linearly.
 All elements of `imgs` must lie in `V2`.
 Currently, `V1` and `V2` must be modules over the same Lie algebra.
@@ -260,7 +260,7 @@ julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
 Lie algebra module morphism
   from standard module of dimension 3 over gl_3
   to abstract Lie algebra module of dimension 1 over gl_3
-  
+
 julia> [(v, h(v)) for v in basis(V1)]
 3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
  (v_1, 0)
@@ -420,8 +420,8 @@ end
     hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Matrix{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
     hom_direct_sum(V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, hs::Vector{<:LieAlgebraModuleHom}) -> LieAlgebraModuleHom
 
-Given modules `V` and `W` which are direct sums with `r` respective `s` summands,  
-say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix 
+Given modules `V` and `W` which are direct sums with `r` respective `s` summands,
+say $M = M_1 \oplus \cdots \oplus M_r$, $N = N_1 \oplus \cdots \oplus N_s$, and given a $r \times s$ matrix
 `hs` of homomorphisms $h_{ij} : V_i \to W_j$, return the homomorphism
 $V \to W$ with $ij$-components $h_{ij}$.
 
@@ -471,7 +471,7 @@ end
 
 Given modules `V` and `W` which are tensor products with the same number of factors,
 say $V = V_1 \otimes \cdots \otimes V_r$, $W = W_1 \otimes \cdots \otimes W_r$,
-and given a vector `hs` of homomorphisms $a_i : V_i \to W_i$, return 
+and given a vector `hs` of homomorphisms $a_i : V_i \to W_i$, return
 $a_1 \otimes \cdots \otimes a_r$.
 
 This works for $r$th tensor powers as well.

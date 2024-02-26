@@ -1,6 +1,6 @@
 @testset "Phylogenetic Trees" begin
   ptree1 = phylogenetic_tree(Float64, "((A:4,B:4):5,C:9);")
-  test_tree = graph_from_edges([[2, 1], [3, 2], [4, 2], [5, 1]])
+  test_tree = graph_from_edges(Directed, [[1, 2], [2, 3], [2, 4], [1, 5]])
   @test is_isomorphic(adjacency_tree(ptree1), test_tree)
   @test equidistant(ptree1) == true
 

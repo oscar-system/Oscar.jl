@@ -844,6 +844,10 @@ end
   @test tr == t[end]
   @test tr == trivial_character(g)
   @test !is_faithful(tr)
+  re = regular_character(g)
+  @test coordinates(re) == degree.(t)
+  re = regular_character(t)
+  @test coordinates(re) == degree.(t)
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]

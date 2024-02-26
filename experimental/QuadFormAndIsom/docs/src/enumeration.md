@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Enumeration of isometries
 
-One of the main features of this project is the enumeration of lattices with
+One of the main features of this project is the enumeration of even lattices with
 isometry of finite order with at most two prime divisors. This is the content
 of [BH23](@cite) which has been implemented. We guide the user here to the global
 aspects of the available theory, and we refer to the paper [BH23](@cite) for further
@@ -48,7 +48,25 @@ isometries of integral integer lattices. For more details such as the proof of
 the algorithms and the theory behind them, we refer to the reference paper
 [BH23](@cite).
 
-### Global function
+### The hermitian case
+
+For an irreducible reciprocal polynomial $\chi$ and a genus symbol $G$
+of integral integer lattices, if the equation order $\mathbb{Z}[\chi]$ is maximal,
+one can compute representatives of isomorphism classes of lattices with isometry
+$(L, f)$ such that $L\in G$ and $\chi(f) = 0$.
+
+```@docs
+representatives_of_hermitian_type(::Union{ZZLat, ZZGenus}, ::Union{ZZPolyRingElem, QQPolyRingElem}, ::Bool)
+```
+
+In the case of finite order isometries, when $\chi$ is cyclotomic, one can use
+as a shortcut the following function instead:
+
+```@docs
+representatives_of_hermitian_type(::Union{ZZGenus, ZZLat}, ::Int, ::Bool)
+```
+
+### Orders with two prime divisors
 
 As we will see later, the algorithms from [BH23](@cite) are specialized on the
 requirement for the input and regular users might not be able to choose between
@@ -88,3 +106,4 @@ embeddings and their equivariant version. We use this basis to introduce the
 method [`admissible_equivariant_primitive_extensions`](@ref) (Algorithm 2 in
 [BH23](@cite)) which is the major tool making the previous enumeration
 possible and fast, from an algorithmic point of view.
+

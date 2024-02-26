@@ -180,8 +180,19 @@ The following functions are currently supported as values for `func`:
 
 The type of the returned groups is `PermGroup`.
 
+If no conditions beside the degree are used, one can also use the shorthand
+`all_transitive_groups(degree)` where `degree` is an integer or a list or range of integers.
+
 # Examples
 ```jldoctest
+julia> all_transitive_groups(4)
+5-element Vector{PermGroup}:
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Alt(4)
+ Sym(4)
+
 julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
  Alt(3)
@@ -195,6 +206,18 @@ function all_transitive_groups(L...)
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]
+end
+
+function all_transitive_groups(deg::Integer)
+  return all_transitive_groups(degree => deg)
+end
+
+function all_transitive_groups(degs::Vector{<:Integer})
+  return all_transitive_groups(degree => degs)
+end
+
+function all_transitive_groups(degs::AbstractRange{<:Integer})
+  return all_transitive_groups(degree => degs)
 end
 
 # TODO: turn this into an iterator, possibly using PrimitiveGroupsIterator

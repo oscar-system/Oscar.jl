@@ -559,3 +559,11 @@ end
   R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, -1])
   @test is_positively_graded(R) == false
 end
+
+@testset "degree" begin
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, zero(R))
+  d = degree(I)  
+  @test d == 1
+  @test d isa ZZRingElem
+end

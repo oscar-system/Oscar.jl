@@ -126,7 +126,7 @@ function map_on_affine_cones(
     imgs_fiber = [mP(g) for g in pullback(phi).(gens(S))]
     phi.map_on_affine_cones = morphism(CP, CQ, vcat(imgs_fiber, imgs_base), check=check)
   end
-  return phi.map_on_affine_cones::AbsSpecMor
+  return phi.map_on_affine_cones::AbsAffineSchemeMor
 end
 
 function map_on_affine_cones(
@@ -141,10 +141,10 @@ function map_on_affine_cones(
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(homogeneous_coordinate_ring(codomain(phi))))), check=false)
     phi.map_on_affine_cones = morphism(C_dom, C_cod, pb_res)
   end
-  return phi.map_on_affine_cones::AbsSpecMor
+  return phi.map_on_affine_cones::AbsAffineSchemeMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:SpecOpenRing}, <:AbsProjectiveScheme{<:SpecOpenRing}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:AffineSchemeOpenSubschemeRing}, <:AbsProjectiveScheme{<:AffineSchemeOpenSubschemeRing}})
   if !isdefined(phi, :map_on_affine_cones)
     X = domain(phi)
     CX, map_X = affine_cone(X)
@@ -162,9 +162,9 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Sp
 
     list = [restriction_map(CX, CX[i]).(coord_imgs) for i in 1:ngens(CX)]
     list = [morphism(CX[i], Q, restriction_map(CX, CX[i]).(coord_imgs)) for i in 1:ngens(CX)]
-    phi.map_on_affine_cones = SpecOpenMor(CX, CY, list, check=false)
+    phi.map_on_affine_cones = AffineSchemeOpenSubschemeMor(CX, CY, list, check=false)
   end
-  return phi.map_on_affine_cones::SpecOpenMor
+  return phi.map_on_affine_cones::AffineSchemeOpenSubschemeMor
 end
 
 

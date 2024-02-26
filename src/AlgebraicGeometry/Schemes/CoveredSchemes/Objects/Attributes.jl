@@ -132,7 +132,7 @@ with default covering
     3: [(s0//s2), (s1//s2)]
 
 julia> affine_charts(Xcov)
-3-element Vector{Spec{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
+3-element Vector{AffineScheme{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
  scheme((s1//s0) - (s2//s0)^2)
  scheme((s0//s1) - (s2//s1)^2)
  scheme((s0//s2)*(s1//s2) - 1)
@@ -166,7 +166,7 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 # Auxiliary attributes                                                 #
 ########################################################################
-function dim(X::AbsCoveredScheme) 
+function dim(X::AbsCoveredScheme)
   if !has_attribute(X, :dim)
     d = -1
     is_equidimensional=true
@@ -180,8 +180,8 @@ function dim(X::AbsCoveredScheme)
     set_attribute!(X, :dim, d)
     if !is_equidimensional
       # the above is not an honest check for equidimensionality,
-      # because in each chart the output of `dim` is only the 
-      # supremum of all components. Thus we can only infer 
+      # because in each chart the output of `dim` is only the
+      # supremum of all components. Thus we can only infer
       # non-equidimensionality in case this is already visible
       # from comparing the different charts
       set_attribute!(X, :is_equidimensional, false)
@@ -191,7 +191,7 @@ function dim(X::AbsCoveredScheme)
 end
 
 @attr function singular_locus_reduced(X::AbsCoveredScheme)
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   for U in affine_charts(X)
     _, inc_sing = singular_locus_reduced(U)
     D[U] = image_ideal(inc_sing)
@@ -260,7 +260,7 @@ given by the pullback function
 @attr function singular_locus(
     X::AbsCoveredScheme;
   )
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   covering = get_attribute(X, :simplified_covering, default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)
@@ -274,7 +274,7 @@ end
 @attr function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
   )
-  D = IdDict{AbsSpec, Ideal}()
+  D = IdDict{AbsAffineScheme, Ideal}()
   covering = get_attribute(X, :simplified_covering, default_covering(X))
   for U in covering
     _, inc_sing = singular_locus(U)

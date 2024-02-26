@@ -4,18 +4,26 @@
 
   ######## CONSTRUCTOR TESTs
   @test_throws ArgumentError exterior_algebra(QQ, 0)
-  exterior_algebra(QQ, 1)   # --> special case (is commutative)
-  exterior_algebra(QQ, 2)   # --> first general case
-  exterior_algebra(QQ, 99)  # --> Also tried with 999 indets, but takes a long time [~19s]
+  @testset "exterior_algebra constructor" for (R,n) in [
+      (QQ, 1)   # --> special case (is commutative)
+      (QQ, 2)   # --> first general case
+      (QQ, 99)  # --> Also tried with 999 indets, but takes a long time [~19s]
 
-  exterior_algebra(GF(2), 2)  # BUG??  not recognized as commutative!!
-  exterior_algebra(GF(3), 4)
-  exterior_algebra(residue_field(ZZ, 2)[1], 2)
-  exterior_algebra(residue_field(ZZ, 3)[1], 4)
-  ##  exterior_algebra(GF(2), 1500);   ## limit 1500 on my 32Gbyte machine (!NB printing requires a lot of space!)
-
-  @test_broken exterior_algebra(GF(1180591620717411303449), 2)  #  --> ERROR prime too big (for GF)
-  @test_broken exterior_algebra(residue_field(ZZ, 1180591620717411303449)[1], 2)
+      (GF(2), 2)  # BUG??  not recognized as commutative!!
+      (GF(3), 4)
+      (residue_field(ZZ, 2)[1], 2)
+      (residue_field(ZZ, 3)[1], 4)
+      #(GF(1180591620717411303449), 2)
+      #(residue_field(ZZ, 1180591620717411303449)[1], 2)
+      ## (GF(2), 1500);   ## limit 1500 on my 32Gbyte machine (!NB printing requires a lot of space!)
+  ]
+    A, g = exterior_algebra(R, n)
+    @test A isa PBWAlgQuo
+    @test g isa Vector{elem_type(A)}
+    @test length(g) == n
+    @test ngens(A) == n
+    @test gens(A) == g
+  end
 
   # Duplicate names are allowed
   exterior_algebra(QQ, ["x", "y", "x"])

@@ -86,7 +86,7 @@ function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   Y = codomain(f)
   scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
   phi = covering_morphism(f)
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(domain(phi))
     f_U = phi[U]
     V = codomain(f_U)
@@ -114,7 +114,7 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   # restrict f to that, obtain a new underlying covering morphism psi cov1' → cov', 
   # and pull back along psi.
   phi = covering_morphism(f)
-  triv_dict = IdDict{AbsSpec, RingElem}()
+  triv_dict = IdDict{AbsAffineScheme, RingElem}()
   E, a, b = common_refinement(codomain(phi), trivializing_covering(C))
   psi = restrict(f, E)
   psi = compose(psi, b)
@@ -191,7 +191,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   # The covering DD has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
   # the domain's covering for phi. 
-  res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  res_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(domain(phi))
     V = codomain(phi[U])
     for W in patches(DD)
@@ -219,7 +219,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
       end
     end
   end
-  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}())
+  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
   inherit_gluings!(new_domain, domain(phi))
   _register!(new_domain, X)
 
@@ -235,7 +235,7 @@ function _register!(C::Covering, X::AbsCoveredScheme)
 end
 
 function _canonical_map(C::Covering, D::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
     f, _ = _find_chart(U, D)
     map_dict[U] = f
@@ -258,8 +258,8 @@ end
 
 struct InheritGluingData
   orig::Covering
-  X::AbsSpec
-  Y::AbsSpec
+  X::AbsAffineScheme
+  Y::AbsAffineScheme
 end
 
 function _compute_inherited_gluing(gd::InheritGluingData)

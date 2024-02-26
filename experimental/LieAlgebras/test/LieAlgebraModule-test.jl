@@ -69,8 +69,8 @@
       lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "V of so_4(GF(2^3))" begin
-      L = special_orthogonal_lie_algebra(GF(2, 3), 4)
+    @testset "V of gl_4(GF(2^3))" begin
+      L = general_linear_lie_algebra(GF(2, 3), 4)
       V = standard_module(L)
       lie_algebra_module_conformance_test(L, V)
     end
@@ -494,7 +494,7 @@
       return struct_const_V
     end
 
-    L = special_orthogonal_lie_algebra(QQ, 3)
+    L = special_orthogonal_lie_algebra(QQ, 3, identity_matrix(QQ, 3))
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 3, 3)
     struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[[(QQ(-1), 2)], [(QQ(1), 1)], []]
@@ -591,7 +591,7 @@
     @test lie_algebra_module_struct_const(L, exterior_power(standard_module(L), 3)[1]) ==
       struct_const_V
 
-    L = special_orthogonal_lie_algebra(QQ, 4)
+    L = special_orthogonal_lie_algebra(QQ, 4, identity_matrix(QQ, 4))
 
     struct_const_V = Matrix{Vector{Tuple{QQFieldElem,Int64}}}(undef, 6, 4)
     struct_const_V[1, :] = Vector{Tuple{QQFieldElem,Int64}}[

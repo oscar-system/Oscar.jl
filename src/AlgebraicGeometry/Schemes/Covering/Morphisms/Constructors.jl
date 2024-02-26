@@ -52,7 +52,7 @@ given by the pullback functions
 ```
 """
 function identity_map(C::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
     map_dict[U] = identity_map(U)
   end
@@ -70,7 +70,7 @@ This function produces the inclusion map `ref -> orig` which is
 realized on all `patches` as `PrincipalOpenEmbedding`s. 
 """
 function refinement_morphism(ref::Covering, orig::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(ref)
     inc, h = _find_chart(U, orig)
     # TODO: construct and cache the inverse on image

@@ -48,12 +48,12 @@ In general, space germs in OSCAR are created in the following ways:
  * localization of an affine scheme at a point
 
    ```julia
-   SpaceGerm(X::AbsSpec, I::Ideal)
+   SpaceGerm(X::AbsAffineScheme, I::Ideal)
    ```
    where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme X.  
    **Provides:** SpaceGerm.
    ```julia
-   germ_at_point(X::AbsSpec, I::Ideal)
+   germ_at_point(X::AbsAffineScheme, I::Ideal)
    ```
    where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme.  
 

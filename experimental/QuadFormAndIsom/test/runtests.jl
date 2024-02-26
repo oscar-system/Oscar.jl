@@ -256,14 +256,23 @@ end
   @test order(ONf) == order(image_centralizer_in_Oq(N)[1])
 
   E6 = root_lattice(:E, 6)
-  @test length(enumerate_classes_of_lattices_with_isometry(E6, 10)) == 3
   @test length(enumerate_classes_of_lattices_with_isometry(E6, 20)) == 0
-  @test length(enumerate_classes_of_lattices_with_isometry(E6, 18)) == 1
+  @test length(enumerate_classes_of_lattices_with_isometry(E6, 9)) == 1
   @test length(enumerate_classes_of_lattices_with_isometry(genus(E6), 1)) == 1
 
   @test length(admissible_triples(E6, 2; pA=2)) == 2
   @test length(admissible_triples(rescale(E6, 2), 2; pB = 4)) == 2
   @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
+end
+
+@testset "Enumeration of hermitian lattices with isometry" begin
+  # Infinite isometry: chi is a Salem polynomial
+  G = genus(torsion_quadratic_module(QQ[0;]), (9, 1))
+  _, x = QQ["x"]
+  chi = x^(10)+x^9-x^7-x^6-x^5-x^4-x^3+x+1
+  rht = @inferred representatives_of_hermitian_type(G, chi)
+  @test !isempty(rht)
+  @test all(N -> !is_finite(order_of_isometry(N)), rht)
 end
 
 @testset "Primitive extensions and embeddings" begin
