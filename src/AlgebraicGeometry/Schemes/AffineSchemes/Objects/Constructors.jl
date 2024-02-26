@@ -4,8 +4,30 @@
 # (1) Generic constructors
 ########################################################
 
+@doc raw"""
+    affine_scheme -> AffineScheme
+    affine_scheme(::Ring)
+    affine_scheme(::Ring, ::Ideal)
+    affine_scheme(::Ideal)
+
+Return the affine scheme defined by the input.
+""""
+affine_scheme
+
+
+spec(I::Ideal) = affine_scheme(base_ring(I),I)
+affine_scheme(I::Ideal) = affine_scheme(base_ring(I),I)
+
+@doc raw"""
+    spec(R::Ring) -> AffineScheme
+
+Return the spectrum of the given ring `R` as an affine scheme.
+"""
 spec(R::Ring) = AffineScheme(R)
+affine_scheme(R::Ring) = AffineScheme(R)
+
 spec(kk::Ring, R::Ring) = AffineScheme(kk, R)
+affine_scheme(kk::Ring, R::Ring) = AffineScheme(kk, R)
 
 @doc raw"""
     spec(R::MPolyRing, I::MPolyIdeal)
@@ -28,6 +50,7 @@ Spectrum
 ```
 """
 spec(R::MPolyRing, I::MPolyIdeal) = AffineScheme(quo(R, I)[1])
+affine_scheme(R::MPolyRing, I::MPolyIdeal) = AffineScheme(quo(R, I)[1])
 
 
 @doc raw"""
@@ -54,6 +77,7 @@ Spectrum
 ```
 """
 spec(R::MPolyRing, U::AbsMPolyMultSet) = AffineScheme(localization(R, U)[1])
+affine_scheme(R::MPolyRing, U::AbsMPolyMultSet) = AffineScheme(localization(R, U)[1])
 
 
 @doc raw"""
@@ -83,6 +107,7 @@ Spectrum
 ```
 """
 spec(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = AffineScheme(MPolyQuoLocRing(R, I, U))
+affine_scheme(R::MPolyRing, I::MPolyIdeal, U::AbsMPolyMultSet) = AffineScheme(MPolyQuoLocRing(R, I, U))
 
 
 
@@ -120,6 +145,7 @@ Spectrum
 ```
 """
 spec(X::AffineScheme) = AffineScheme(OO(X))
+affine_scheme(X::AffineScheme) = AffineScheme(OO(X))
 
 Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_internal(OO(X), dict))
 
@@ -196,9 +222,9 @@ end
 @doc raw"""
     standard_spec(X::AbsAffineScheme)
 
-For an affine spectrum with coordinate ring of type `MPolyRing`,
+For an affine scheme with coordinate ring of type `MPolyRing`,
 `MPolyQuoRing`, or `MPolyLocRing`, return the canonical
-transform to a `Spec` of an `MPolyQuoLocRing`.
+transform to an `AffineScheme` of an `MPolyQuoLocRing`.
 
 # Examples
 ```jldoctest

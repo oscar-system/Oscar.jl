@@ -2,26 +2,18 @@
 # Lower case constructors
 ################################################################################
 
-function proj(S::MPolyDecRing)
-  is_standard_graded(S) || error("ring must be standard graded")
-  return ProjectiveScheme(S)
-end
+projective_scheme(S::MPolyDecRing) = ProjectiveScheme(S)
+proj(S::MPolyDecRing) = ProjectiveScheme(S)
 
-function proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
-  S = base_ring(Q)
-  is_standard_graded(S) || error("ring must be standard graded")
-  return ProjectiveScheme(Q)
-end
+projective_scheme(Q::MPolyQuoRing{<:MPolyDecRingElem}) = ProjectiveScheme(Q)
+proj(Q::MPolyQuoRing{<:MPolyDecRingElem}) = ProjectiveScheme(Q)
 
-function proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
-  is_standard_graded(S) || error("ring must be standard graded")
-  return ProjectiveScheme(S, I)
-end
 
-function proj(I::MPolyIdeal{<:MPolyDecRingElem})
-  is_standard_graded(base_ring(I)) || error("ring must be standard graded")
-  return ProjectiveScheme(base_ring(I), I)
-end
+proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
+projective_scheme (S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem} = ProjectiveScheme(S, I)
+
+proj(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
+projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem}) = ProjectiveScheme(base_ring(I), I)
 
 ################################################################################
 # Subschemes

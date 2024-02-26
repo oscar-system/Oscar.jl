@@ -203,6 +203,7 @@ export affine_normal_toric_variety
 export affine_open_covering
 export affine_patch
 export affine_patches
+export affine_scheme
 export affine_scheme_open_subscheme_ring_type
 export affine_space
 export alexander_dual
@@ -1205,6 +1206,7 @@ export projective_geometry
 export projective_omega_group
 export projective_orthogonal_group
 export projective_plane
+export projective_scheme
 export projective_space
 export projective_special_linear_group
 export projective_special_orthogonal_group
