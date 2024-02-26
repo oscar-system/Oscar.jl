@@ -1,3 +1,83 @@
+function basis_lie_highest_weight_compute(
+  L::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  highest_weight::Vector{Int},
+  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  monomial_ordering_symb::Symbol,
+)
+  """
+  Pseudocode:
+
+  basis_lie_highest_weight(highest_weight)
+      return compute_monomials(highest_weight)
+
+  compute_monomials(highest_weight)
+      if highest_weight was already computed 
+          return old results
+      if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
+          return add_by_hand(highest_weight, {})
+      else
+          set_mon = {}
+          go through all partitions lambda_1 + lambda_2 = highest_weight
+              add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
+          if set_mon too small
+              add_by_hand(highest_weight, set_mon)
+          return set_mon
+
+  add_by_hand(highest_weight, set_mon)
+      add_known_monomials(set_mon)
+      go through all weightspaces that are not full
+          add_new_monomials(weightspace, set_mon)
+      return set_mon
+    
+  add_known_monomials(set_mon)
+      add all monomials from set_mon to basis
+
+  add_new_monomials(weightspace, set_mon)
+      calculate monomials with weight in weightspace
+      go through them one by one in monomial_ordering until basis is full
+      return set_mon
+  """
+  highest_weight = ZZ.(highest_weight)
+  # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
+  # steps. Then it starts the recursion and returns the result.
+
+  weights_w = [weight(L, op) for op in operators] # weights of the operators
+  weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
+
+  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
+  birational_sequence = BirationalSequence(
+    operators, [asVec(v) for v in operators], weights_w, weights_alpha
+  )
+
+  ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
+  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
+
+  # save computations from recursions
+  calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
+    [ZZ(0) for i in 1:rank(L)] => Set([ZZx(1)])
+  )
+  # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
+  no_minkowski = Set{Vector{ZZRingElem}}()
+
+  # start recursion over highest_weight
+  set_mon = compute_monomials(
+    L,
+    birational_sequence,
+    ZZx,
+    highest_weight,
+    monomial_ordering,
+    calc_highest_weight,
+    no_minkowski,
+  )
+  # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+  minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
+  # output
+  return MonomialBasis(
+    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
+  )
+end
+
 function basis_coordinate_ring_kodaira_compute(
   L::LieAlgebraStructure,
   chevalley_basis::NTuple{3,Vector{GAP.Obj}},
@@ -111,86 +191,6 @@ minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))
 return MonomialBasis(
   L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
 )
-end
-
-function basis_lie_highest_weight_compute(
-  L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
-  highest_weight::Vector{Int},
-  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
-  monomial_ordering_symb::Symbol,
-)
-  """
-  Pseudocode:
-
-  basis_lie_highest_weight(highest_weight)
-      return compute_monomials(highest_weight)
-
-  compute_monomials(highest_weight)
-      if highest_weight was already computed 
-          return old results
-      if highest_weight = [0, ..., 0] or [0, ..., 1, ..., 0]
-          return add_by_hand(highest_weight, {})
-      else
-          set_mon = {}
-          go through all partitions lambda_1 + lambda_2 = highest_weight
-              add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
-          if set_mon too small
-              add_by_hand(highest_weight, set_mon)
-          return set_mon
-
-  add_by_hand(highest_weight, set_mon)
-      add_known_monomials(set_mon)
-      go through all weightspaces that are not full
-          add_new_monomials(weightspace, set_mon)
-      return set_mon
-    
-  add_known_monomials(set_mon)
-      add all monomials from set_mon to basis
-
-  add_new_monomials(weightspace, set_mon)
-      calculate monomials with weight in weightspace
-      go through them one by one in monomial_ordering until basis is full
-      return set_mon
-  """
-  highest_weight = ZZ.(highest_weight)
-  # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
-  # steps. Then it starts the recursion and returns the result.
-
-  weights_w = [weight(L, op) for op in operators] # weights of the operators
-  weights_alpha = [w_to_alpha(L, weight_w) for weight_w in weights_w] # other root system
-
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
-  birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_alpha
-  )
-
-  ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
-  monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
-
-  # save computations from recursions
-  calc_highest_weight = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}(
-    [ZZ(0) for i in 1:rank(L)] => Set([ZZx(1)])
-  )
-  # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
-  no_minkowski = Set{Vector{ZZRingElem}}()
-
-  # start recursion over highest_weight
-  set_mon = compute_monomials(
-    L,
-    birational_sequence,
-    ZZx,
-    highest_weight,
-    monomial_ordering,
-    calc_highest_weight,
-    no_minkowski,
-  )
-  # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
-  minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
-  # output
-  return MonomialBasis(
-    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
-  )
 end
 
 function compute_monomials(
@@ -471,6 +471,8 @@ function add_by_hand(
   end
   return set_mon
 end
+
+
 
 function operators_by_index(
   L::LieAlgebraStructure,
