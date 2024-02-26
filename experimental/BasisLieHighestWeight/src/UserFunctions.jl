@@ -329,7 +329,8 @@ function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::V
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
-  # we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering.
+  # simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(
     L, chevalley_basis, highest_weight, operators, monomial_ordering
   )
@@ -408,13 +409,13 @@ function basis_lie_highest_weight_nz(
   )
 end
 
+# TODO: rewrite docstring
 @doc raw"""
-basis_coordinate_ring_kodaira(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}. degree::Int; monomial_ordering::Symbol=:degrevlex
-)
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
 
 Computes up the generators of the semi group of essential monomials with respecting to monomial_ordering of the Kodaira mapping 
-of the generalized flag vaeriety of type and rank in the projective  space of the highest_weight module.
+of the generalized flag variety of type and rank in the projective space of the highest_weight module.
+
 # Example
 ```jldoctest
 julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 4; monomial_ordering = :invlex)
@@ -432,6 +433,7 @@ Generators of the semi group of essential monomials for the Kodaira embedding wi
    [3, 2]
 then the numbers of generators added in each degree is
 7  5  14  7  12  8 
+```
 """
 function basis_coordinate_ring_kodaira(
   type::Symbol,
@@ -464,14 +466,14 @@ function basis_coordinate_ring_kodaira(
   )
 end
 
+# TODO: rewrite docstring
 @doc raw"""
-basis_coordinate_ring_kodaira_ffl(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}. degree::Int; monomial_ordering::Symbol=:degrevlex
-)
+    basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
 
 Computes up the generators of the semi group of essential monomials with respecting to degrevlex of the Kodaira mapping 
-of the generalized flag vaeriety of type and rank in the projective  space of the highest_weight module.
-Here the ordering is a good ordering and the monomial ordering is degrevlex, so in type A and C, the monomial basis is the FFLV basis 
+of the generalized flag variety of type and rank in the projective space of the highest_weight module.
+Here the ordering is a good ordering and the monomial ordering is degrevlex, so in type A and C, the monomial basis is the FFLV basis.
+
 # Example
 ```jldoctest
 julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 4; monomial_ordering = :invlex)
@@ -488,7 +490,8 @@ Generators of the semi group of essential monomials for the Kodaira embedding wi
    [3, 1]
    [3, 2]
 then the numbers of generators added in each degree is
-7  5  14  7  12  8 
+7  5  14  7  12  8
+```
 """
 function basis_coordinate_ring_kodaira_ffl(
   type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int
@@ -497,7 +500,8 @@ function basis_coordinate_ring_kodaira_ffl(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
-  #we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering.
+  # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
     L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
   )
