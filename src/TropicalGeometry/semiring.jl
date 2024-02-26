@@ -420,7 +420,7 @@ Polymake.convert_to_pm_type(::Type{<:TropicalSemiringElem{A}}) where A = Polymak
 
 function Base.convert(::Type{<:Polymake.TropicalNumber{PA}}, t::TropicalSemiringElem{A}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
   @req PA == Polymake.convert_to_pm_type(A) "cannot convert between different tropical conventions"
-  isinf(t) ? Polymake.TropicalNumber{PA}() : Polymake.TropicalNumber{PA}(convert(Polymake.Rational, t.data))
+  isinf(t) ? Polymake.TropicalNumber{PA}() : Polymake.TropicalNumber{PA}(convert(Polymake.Rational, data(t)))
 end
 
 function (T::TropicalSemiring{A})(t::Polymake.TropicalNumber{PA}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
