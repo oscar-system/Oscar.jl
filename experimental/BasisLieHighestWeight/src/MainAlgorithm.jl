@@ -1,6 +1,5 @@
 function basis_lie_highest_weight_compute(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
   monomial_ordering_symb::Symbol,
@@ -80,7 +79,6 @@ end
 
 function basis_coordinate_ring_kodaira_compute(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   highest_weight::Vector{Int},
   degree::Int,
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]

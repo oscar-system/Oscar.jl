@@ -130,9 +130,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = chevalley_basis[1] # TODO: change to [2]
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -145,9 +143,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, birational_sequence)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -160,9 +156,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -214,9 +208,7 @@ function basis_lie_highest_weight_lusztig(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_lusztig(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -287,9 +279,7 @@ function basis_lie_highest_weight_string(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -331,9 +321,7 @@ function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::V
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -404,9 +392,7 @@ function basis_lie_highest_weight_nz(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 # TODO: rewrite docstring
@@ -446,7 +432,7 @@ function basis_coordinate_ring_kodaira(
   chevalley_basis = chevalley_basis_gap(L)
   operators = chevalley_basis[1] # TODO: change to [2]
   return basis_coordinate_ring_kodaira_compute(
-    L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
+    L, highest_weight, degree, operators, monomial_ordering
   )
 end
 
@@ -462,7 +448,7 @@ function basis_coordinate_ring_kodaira(
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
-    L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
+    L, highest_weight, degree, operators, monomial_ordering
   )
 end
 
@@ -503,6 +489,6 @@ function basis_coordinate_ring_kodaira_ffl(
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(
-    L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
+    L, highest_weight, degree, operators, monomial_ordering
   )
 end
