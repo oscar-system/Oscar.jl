@@ -125,6 +125,7 @@ julia> weights(r)
  [-1, 1]
  [2, -2]
  [0, -1]
+```
 """
 weights(R::RepresentationTorusGroup) = R.weights
 
