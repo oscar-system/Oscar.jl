@@ -136,7 +136,7 @@ end
 Return the direct product of `n` copies of `G` as group of type `T`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
-the output is a triple (`G`, `emb`, `proj`), where `emb` and `pr` are the
+the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
 vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_cartesian_power(G::T, n::Int; morphisms::Bool=false) where {T<:GAPGroup}

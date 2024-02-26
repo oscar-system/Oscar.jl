@@ -485,7 +485,7 @@ homogeneous_coordinate_ring(P::ProjectiveScheme) = P.S
 ### type getters
 projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme_type(typeof(A))
 projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} =
-proj{T, mpoly_dec_ring_type(mpoly_ring_type(T))}
+ProjectiveScheme{T, mpoly_dec_ring_type(mpoly_ring_type(T))}
 
 base_ring_type(P::ProjectiveScheme) = base_ring_type(typeof(P))
 base_ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = S
