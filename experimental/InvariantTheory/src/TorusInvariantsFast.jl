@@ -16,7 +16,7 @@ end
 Return the torus $(K^{\ast})^m$.
 
 !!! note
-    In the context of computing of invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
+    In the context of computing invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
 # Examples
 ```jldoctest
 julia> T = torus_group(QQ,2)
@@ -394,7 +394,7 @@ julia> fundamental_invariants(RT)
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
 
-julia> invariant_ring_as_affine_algebra_(RT)
+julia> invariant_ring_as_affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
