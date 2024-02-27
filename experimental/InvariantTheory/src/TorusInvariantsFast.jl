@@ -1,20 +1,62 @@
-export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants
+export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants, affine_algebra
 
 #####################
-#Setting up reductive groups for fast torus algorithm
+#Setting up tori for fast torus algorithm
 #####################
 
-struct ReductiveGroupFastTorus
+struct TorusGroup
     field::Field
-    rank::Int
+    rank::Int 
     #weights::Vector{Vector{ZZRingElem}}
 end
 
-torus_group(F::Field, n::Int) = ReductiveGroupFastTorus(F,n)
-rank(G::ReductiveGroupFastTorus) = G.rank
-field(G::ReductiveGroupFastTorus) = G.field
+@doc raw"""
+    torus_group(K::Field, m::Int)
 
-function Base.show(io::IO, G::ReductiveGroupFastTorus)
+Return the torus $(K^{\ast})^m$.
+
+!!! note
+    In the context of computing invariant rings, there is no need to deal with the group structure of a torus: The torus $(K^{\ast})^m$ is specified by just giving $K$ and $m$.
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2)
+Torus of rank 2
+  over QQ
+```
+"""
+torus_group(F::Field, n::Int) = TorusGroup(F,n)
+
+@doc raw"""
+    rank(T::TorusGroup)
+
+Return the rank of `T`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> rank(T)
+2
+```
+"""
+rank(G::TorusGroup) = G.rank
+
+@doc raw"""
+    field(T::TorusGroup)
+
+Return the field over which `T` is defined.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> field(T)
+Rational field
+```
+"""
+field(G::TorusGroup) = G.field
+
+function Base.show(io::IO, G::TorusGroup)
     io = pretty(io)
     println(io, "Torus of rank ", rank(G))
     print(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(G))
@@ -25,15 +67,30 @@ end
 #Setting up weights for fast torus algorithm
 #####################
 
-struct RepresentationReductiveGroupFastTorus
-    group::ReductiveGroupFastTorus
+struct RepresentationTorusGroup
+    group::TorusGroup
     weights::Vector{Vector{ZZRingElem}}
 end
 
-function representation_from_weights(G::ReductiveGroupFastTorus, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+@doc raw"""
+    representation_from_weights(T::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
+
+Return the diagonal action of `T` with weights given by `W`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
+Representation of torus of rank 2
+  over QQ and weights 
+  Vector{ZZRingElem}[[-1, 1], [-1, 1], [2, -2], [0, -1]]
+```
+"""
+function representation_from_weights(G::TorusGroup, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
     n = rank(G)
     V = weights_from_matrix(n,W)
-    return RepresentationReductiveGroupFastTorus(G,V)
+    return RepresentationTorusGroup(G,V)
 end
 
 function weights_from_matrix(n::Int, W::Union{ZZMatrix, Matrix{<:Integer}, Vector{<:Int}})
@@ -53,10 +110,44 @@ function weights_from_matrix(n::Int, W::Union{ZZMatrix, Matrix{<:Integer}, Vecto
     return V
 end
 
-weights(R::RepresentationReductiveGroupFastTorus) = R.weights
-group(R::RepresentationReductiveGroupFastTorus) = R.group
+@doc raw"""
+    weights(r::RepresentationTorusGroup)
 
-function Base.show(io::IO, R::RepresentationReductiveGroupFastTorus)
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> weights(r)
+4-element Vector{Vector{ZZRingElem}}:
+ [-1, 1]
+ [-1, 1]
+ [2, -2]
+ [0, -1]
+```
+"""
+weights(R::RepresentationTorusGroup) = R.weights
+
+@doc raw"""
+    group(r::RepresentationTorusGroup)
+
+Return the torus group represented by `r`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> group(r)
+Torus of rank 2
+  over QQ
+```
+"""
+group(R::RepresentationTorusGroup) = R.group
+
+function Base.show(io::IO, R::RepresentationTorusGroup)
     io = pretty(io)
         println(io, "Representation of torus of rank ", rank(group(R)))
         println(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
@@ -68,24 +159,24 @@ end
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-mutable struct InvariantRingFastTorus
+mutable struct TorGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
-    group::ReductiveGroupFastTorus
-    representation::RepresentationReductiveGroupFastTorus
+    group::TorusGroup
+    representation::RepresentationTorusGroup
     
     fundamental::Vector{MPolyDecRingElem}
     
     #Invariant ring of reductive group G (in representation R), no other input.
-    function InvariantRingFastTorus(R::RepresentationReductiveGroupFastTorus) #here G already contains information n and rep_mat
+    function TorGrpInvRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
         n = length(weights(R))
         super_ring, __ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
-        return InvariantRingFastTorus(R, super_ring)
+        return TorGrpInvRing(R, super_ring)
     end
     
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function InvariantRingFastTorus(R::RepresentationReductiveGroupFastTorus, ring_::MPolyDecRing)
+    function TorGrpInvRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
         z = new()
         n = length(weights(R))
         z.field = field(group(R))
@@ -96,12 +187,84 @@ mutable struct InvariantRingFastTorus
     end
 end
 
-invariant_ring(R::RepresentationReductiveGroupFastTorus) = InvariantRingFastTorus(R)
-poly_ring(R::InvariantRingFastTorus) = R.poly_ring
-group(R::InvariantRingFastTorus) = R.group
-representation(R::InvariantRingFastTorus) = R.representation
+@doc raw"""
+    invariant_ring(r::RepresentationTorusGroup)
 
-function fundamental_invariants(z::InvariantRingFastTorus)
+Return the invariant ring of the torus group represented by `r`.
+
+!!! note
+    The creation of invariant rings is lazy in the sense that no explicit computations are done until specifically invoked (for example, by the `fundamental_invariants` function).
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r)
+Invariant Ring of
+graded multivariate polynomial ring in 4 variables over QQ under group action of torus of rank2
+```
+"""
+invariant_ring(R::RepresentationTorusGroup) = TorGrpInvRing(R)
+
+@doc raw"""
+    poly_ring(RT::TorGrpInvRing)
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2)
+Torus of rank 2
+  over QQ
+```
+"""
+poly_ring(R::TorGrpInvRing) = R.poly_ring
+
+@doc raw"""
+    group(RT::TorGrpInvRing)
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2)
+Torus of rank 2
+  over QQ
+```
+"""
+group(R::TorGrpInvRing) = R.group
+
+@doc raw"""
+    representation(RT::TorGrpInvRing)
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2)
+Torus of rank 2
+  over QQ
+```
+"""
+representation(R::TorGrpInvRing) = R.representation
+
+@doc raw"""
+    fundamental_invariants(RT::TorGrpInvRing)
+
+Return a system of fundamental invariants for `RT`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r);
+
+julia> fundamental_invariants(RT)
+3-element Vector{MPolyDecRingElem}:
+ X[1]^2*X[3]
+ X[1]*X[2]*X[3]
+ X[2]^2*X[3]
+```
+"""
+function fundamental_invariants(z::TorGrpInvRing)
     if isdefined(z, :fundamental)
         return z.fundamental
     else
@@ -111,7 +274,7 @@ function fundamental_invariants(z::InvariantRingFastTorus)
     end
 end
 
-function Base.show(io::IO, R::InvariantRingFastTorus) 
+function Base.show(io::IO, R::TorGrpInvRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
     print(io, Lowercase(), R.poly_ring)
@@ -123,6 +286,7 @@ end
 #fast algorithm for invariants of tori
 ##########################
 #Algorithm 4.3.1 from Derksen and Kemper. Computes Torus invariants without Reynolds operator.
+
 function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     #no check that length(W[i]) for all i is the same
     length(W) == ngens(R) || error("number of weights must be equal to the number of generators of the polynomial ring")
@@ -205,4 +369,44 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
             count = 0
         end
     end
+end
+
+#####################Invariant rings as affine algebras
+
+@doc raw"""
+    affine_algebra(RT::TorGrpInvRing)
+
+Return the invariant ring `RT` as an affine algebra (this amounts to compute the algebra syzygies among the fundamental invariants of `RT`).
+
+In addition, if `A` is this algebra, and `R` is the polynomial ring of which `RT` is a subalgebra,
+return the inclusion homomorphism  `A` $\hookrightarrow$ `R` whose image is `RT`.
+
+# Examples
+```jldoctest
+julia> T = torus_group(QQ,2);
+
+julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
+
+julia> RT = invariant_ring(r);
+
+julia> fundamental_invariants(RT)
+3-element Vector{MPolyDecRingElem}:
+ X[1]^2*X[3]
+ X[1]*X[2]*X[3]
+ X[2]^2*X[3]
+
+julia> affine_algebra(RT)
+(Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
+```
+"""
+function affine_algebra(R::TorGrpInvRing)
+   V = fundamental_invariants(R)
+   s = length(V)
+   S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
+   R_ = poly_ring(R)
+   StoR = hom(S,R_,V)
+   I = kernel(StoR)
+   Q, StoQ = quo(S,I)
+   QtoR = hom(Q,R_,V)
+   return Q, QtoR
 end
