@@ -76,18 +76,30 @@ function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any,
   I = modulus(OO(X))
   S = inverted_set(OO(X))
   join(io, gens(I), ", ")
-  print(io, raw") \ scheme(")
-  join(io, denominators(S), ",")
-  print(io, ")")
+  if is_empty(denominators(S))
+    print(io, raw")")
+  elseif isone(length(denominators(S)))
+    print(io, raw") \ scheme(", first(denominators(S)), ")")
+  else
+    print(io, raw") \ scheme((")
+    join(io, denominators(S), ")*(")
+    print(io, "))")
+  end
 end
 
 function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}})
   io = pretty(io)
   print(io, LowercaseOff(), "AA^", ngens(OO(X)))
   S = inverted_set(OO(X))
-  print(io, raw" \ scheme(")
-  join(io, denominators(S), ",")
-  print(io, ")")
+  if is_empty(denominators(S))
+    # do nothing more
+  elseif isone(length(denominators(S)))
+    print(io, raw" \ scheme(", first(denominators(S)), ")")
+  else
+    print(io, raw" \ scheme((")
+    join(io, denominators(S), ")*(")
+    print(io, "))")
+  end
 end
 
 ########################################################
