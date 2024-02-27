@@ -57,7 +57,7 @@
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
-     "Nemo/algebraic.md", 
+     "Nemo/algebraic.md",
      "Fields/algebraic_closure_fp.md",
   ],
 
@@ -153,6 +153,7 @@
   "Invariant Theory" => [
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
+     "InvariantTheory/tori.md",
      "InvariantTheory/reductive_groups.md",
   ],
 
