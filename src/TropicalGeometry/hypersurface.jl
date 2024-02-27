@@ -210,15 +210,41 @@ end
 @doc raw"""
     dual_subdivision(TropH::TropicalHypersurface)
 
-Return the dual subdivision of `TropH`.  Raises an error, if neither it nor the the internal polymake object is cached.
+Return the dual subdivision of `TropH`.  Raises an error, if neither it nor the
+the internal polymake object is cached.
+
+# Examples
+```jldoctest
+julia> T = tropical_semiring(min)
+Min tropical semiring
+
+julia> Txy,(x,y) = T["x","y"];
+
+julia> f = x^2*y+x*y^2+1;
+
+julia> tropicalLine = tropical_hypersurface(f)
+Min tropical hypersurface
+
+julia> sop = dual_subdivision(tropicalLine)
+Subdivision of points in ambient dimension 3
+
+julia> points(sop)
+3-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 2, 1]
+ [0, 1, 2]
+ [3, 0, 0]
+
+julia> maximal_cells(sop)
+1-element SubObjectIterator{Vector{Int64}}:
+ [1, 2, 3]
+```
 """
-function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
-    if has_attribute(TropH,:dual_subdivision)
-        return get_attribute(TropH,:dual_subdivision)
-    elseif has_attribute(TropH,:polymake_bigobject)
-        return get_attribute(TropH,:polymake_bigobject)
+@attr function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
+    if has_attribute(TropH,:polymake_bigobject)
+        result = get_attribute(TropH,:polymake_bigobject)
+        return subdivision_of_points(result.DUAL_SUBDIVISION)
     end
-    error("neither dual subdivision nor polymake object cached")
+    error("cannot compute dual subdivision, since polymake object is not cached")
 end
 
 
