@@ -48,5 +48,5 @@ fundamental_invariants(RT::TorGrpInvRing)
 ## Invariant Rings as Affine Algebras
 
 ```@docs
-invariant_ring_as_affine_algebra(RT::TorGrpInvRing)
+affine_algebra(RT::TorGrpInvRing)
 ```
