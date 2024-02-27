@@ -1,4 +1,4 @@
-export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants
+export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants, invariant_ring_as_affine_algebra
 
 #####################
 #Setting up tori for fast torus algorithm
@@ -6,7 +6,7 @@ export torus_group, rank, field, representation_from_weights, weights, group, in
 
 struct TorusGroup
     field::Field
-    rank::Int
+    rank::Int 
     #weights::Vector{Vector{ZZRingElem}}
 end
 
@@ -377,6 +377,8 @@ end
     invariant_ring_as_affine_algebra(RT::TorGrpInvRing)
 
 Return the invariant ring `RT` as an affine algebra.
+
+In
 
 That is, compute the algebra syzygies among the fundamental invariants of `RT`.
 
