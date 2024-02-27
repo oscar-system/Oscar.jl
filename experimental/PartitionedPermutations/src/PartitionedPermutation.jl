@@ -4,36 +4,34 @@
 The type of partitioned permutations. Fieldnames are
 - p::Perm{Int} - a permutation
 - V::SetPartition - a partition
-- check::Bool = true
 If the permutation has length `n`, then the partition must have `n` upper points and 0 lower points. 
 Further, if `W` is the partition given by the cycles of `p`, then `W` must be dominated by `V` in the 
 sense that every block of `W` is contained in one block of `V`. There is one inner constructer of PartitionedPermutation:
-- PartitionedPermutation(_p::Perm{Int}, _V::Vector{Int}) constructs the partitioned permutation where the partition is given by the vector _V.
+- PartitionedPermutation(p::Perm{Int}, V::Vector{Int}) constructs the partitioned permutation where the partition is given by the vector V.
 If the optional flag `check` is set to `false`, then the constructor skips the validation of the requirements mentioned above.
 
 # Examples
 ```jldoctest
-julia> PartitionedPermutation(Perm([2, 1, 3]), [1, 1, 2])
+julia> partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])
 PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 ```
 """
 struct PartitionedPermutation
     p::Perm{Int}
     V::SetPartition
-    check::Bool
 
-    function PartitionedPermutation(_p::Perm{Int}, _V::Vector{Int}, _check::Bool=true)
-        __V = SetPartition(_V, Int[])
-        if _check
-            @req parent(_p).n == length(_V) "permutation and partition must have the same length"
-            @req cycle_partition(_p) <= __V "permutation must be dominated by partition"
+    function PartitionedPermutation(p::Perm{Int}, V::Vector{Int}; check::Bool=true)
+        _V = SetPartition(V, Int[])
+        if check
+            @req parent(p).n == length(V) "permutation and partition must have the same length"
+            @req is_dominated_by(cycle_partition(p), _V) "permutation must be dominated by partition"
         end
-        new(_p, __V)
+        new(p, _V)
     end
 end
 
 function partitioned_permutation(p::Perm{Int}, V::Vector{Int}, check::Bool=true)
-    return PartitionedPermutation(p, V, check)
+    return PartitionedPermutation(p, V; check)
 end
 
 function ==(pp_1::PartitionedPermutation, pp_2::PartitionedPermutation)
@@ -54,6 +52,14 @@ function deepcopy_internal(pp::PartitionedPermutation, stackdict::IdDict)
     return q
 end
 
+function get_partition(pp::PartitionedPermutation)
+    return pp.V
+end
+
+function get_permutation(pp::PartitionedPermutation)
+    return pp.p
+end
+
 """
     length(pp::PartitionedPermutation)
 
@@ -61,12 +67,12 @@ Return the length of a partitioned permutation, i.e. the size of the underlying 
 
 # Examples
 ```jldoctest
-julia> length(PartitionedPermutation(Perm([2, 1]), [1, 1]))
+julia> length(partitioned_permutation(Perm([2, 1]), [1, 1]))
 2
 ```
 """
 function length(pp::PartitionedPermutation)
-    return parent(pp.p).n
+    return parent(get_permutation(pp)).n
 end
 
 """
@@ -77,12 +83,12 @@ for a partition `V` and a permutation `pi`.
 
 # Examples
 ```jldoctest
-julia> length2(PartitionedPermutation(Perm([2, 1]), [1, 1]))
+julia> length2(partitioned_permutation(Perm([2, 1]), [1, 1]))
 1
 ```
 """
 function length2(pp::PartitionedPermutation)
-    p = pp.p
-    V = pp.V
+    p = get_permutation(pp)
+    V = get_partition(pp)
     return parent(p).n - (2*number_of_blocks(V) - length(cycles(p)))
 end

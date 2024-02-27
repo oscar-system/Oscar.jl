@@ -8,14 +8,16 @@ import Base:
     deepcopy_internal,
     hash,
     size,
-    <=,
     length
 
 import Oscar:
     @req,
     Perm,
+    symmetric_group,
     join,
     compose,
+    lower_points,
+    upper_points,
     SetPartition,
     subsets,
     cycles,
@@ -25,12 +27,12 @@ import Oscar:
 
 export PartitionedPermutation
 
-export <=
+export is_dominated_by
 export cycle_partition
 export join
 export length
 export length2
-export enumerate_partitioned_perm
+export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
 
 
@@ -45,10 +47,10 @@ using .PartitionedPermutations
 
 export PartitionedPermutation
 
-export <=
+export is_dominated_by
 export cycle_partition
 export join
 export length
 export length2
-export enumerate_partitioned_perm
+export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
