@@ -26,12 +26,14 @@ import Oscar:
 
 
 export PartitionedPermutation
+export partitioned_permutation
 
 export is_dominated_by
 export cycle_partition
 export join
 export length
 export length2
+export _enumerate_all_partitions
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
 
@@ -46,11 +48,13 @@ end
 using .PartitionedPermutations
 
 export PartitionedPermutation
+export partitioned_permutation
 
 export is_dominated_by
 export cycle_partition
 export join
 export length
 export length2
+export _enumerate_all_partitions
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation

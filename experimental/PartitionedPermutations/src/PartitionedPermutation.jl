@@ -12,7 +12,7 @@ If the optional flag `check` is set to `false`, then the constructor skips the v
 
 # Examples
 ```jldoctest
-julia> partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])
+julia> PartitionedPermutation(Perm([2, 1, 3]), [1, 1, 2])
 PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 ```
 """
@@ -30,6 +30,18 @@ struct PartitionedPermutation
     end
 end
 
+
+"""
+    partitioned_permutation(p::Perm{Int}, V::Vector{Int}, check::Bool=true)
+
+Construct and output a `PartitionedPermutation`.
+
+# Examples
+```jldoctest
+julia> partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])
+PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
+```
+"""
 function partitioned_permutation(p::Perm{Int}, V::Vector{Int}, check::Bool=true)
     return PartitionedPermutation(p, V; check)
 end

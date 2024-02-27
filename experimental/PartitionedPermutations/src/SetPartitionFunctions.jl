@@ -1,3 +1,4 @@
+# TODO in SetPartition
 """
     number_of_blocks(V::SetPartition)
 
