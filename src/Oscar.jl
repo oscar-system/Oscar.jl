@@ -40,11 +40,11 @@ end
 
 function _print_banner()
   println(
-    raw"""  ___  ____   ____    _    ____
-           / _ \/ ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-          | | | \___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-          | |_| |___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-           \___/\____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+    raw"""  ___   ____   ____    _    ____
+           / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+          | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+          | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+           \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
 end
 
 

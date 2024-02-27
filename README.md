@@ -33,11 +33,11 @@ in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ```
 julia> using Oscar
-  ___  ____   ____    _    ____
- / _ \/ ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
-| | | \___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
-| |_| |___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/\____/ \____/_/   \_\_| \_\  |  Version 1.1.0-DEV
+  ___   ____   ____    _    ____
+ / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+| | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+| |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.1.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
