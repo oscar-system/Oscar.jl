@@ -182,6 +182,7 @@ export acting_domain
 export acting_group
 export acting_subgroup
 export action
+export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
