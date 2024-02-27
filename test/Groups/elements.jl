@@ -138,11 +138,14 @@ end
          @test K[i] == G[i]
          @test K[i] == gen(G,i)
       end
+      @test G[0] == gen(G, 0)
+      @test G[0] == one(G)
+      @test_throws BoundsError K[0]
    end
 
    G = free_group(2)
-   @test_throws AssertionError gen(G, 3)
-   @test_throws ErrorException gen(G, 0)
+   @test_throws ArgumentError gen(G, 3)
+   @test_throws ArgumentError gen(G, -3)
 end
 
 @testset "deepcopy" begin

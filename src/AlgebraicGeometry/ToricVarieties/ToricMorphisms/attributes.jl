@@ -223,7 +223,7 @@ Covering
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
 
   # construct the corresponding morphism of rings
-  morphism_dict = IdDict{AbsSpec, AbsSpecMor}()
+  morphism_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   domain_cov = default_covering(X) # ordering of the patches must be the same as `maximal_cones`
   codomain_cov = default_covering(Y)
   for i in 1:n_maximal_cones(X)

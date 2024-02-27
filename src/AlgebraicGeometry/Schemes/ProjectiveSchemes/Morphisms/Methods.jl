@@ -28,7 +28,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> f = identity_map(Y)
 Projective scheme morphism
@@ -61,7 +61,7 @@ with default covering
   X = covered_scheme(PX)
   Y = covered_scheme(PY)
 
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   U = affine_charts(X)
   for i in 1:ngens(SX)
     U_i = U[i]
@@ -82,7 +82,7 @@ with default covering
   end
   # We skip the gluings for the time being.
   # Eventually, they should be made lazy.
-  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}())
+  CC = Covering(collect(keys(mor_dict)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
   inherit_gluings!(CC, default_covering(X))
   phi = CoveringMorphism(CC, default_covering(Y), mor_dict, check=false)
   push!(coverings(X), CC)
@@ -101,7 +101,7 @@ end
   X = covered_scheme(PX)
   Y = covered_scheme(PY)
 
-  mor_dict = IdDict{AbsSpec, ClosedEmbedding}()
+  mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}()
   U = affine_charts(X)
   # TODO: The code below does not run when we have empty affine charts. Adjust accordingly when cleaning up!
   II = IdealSheaf(PY, image_ideal(f))

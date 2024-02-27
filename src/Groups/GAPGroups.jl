@@ -445,16 +445,30 @@ has_gens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
 """
     gen(G::GAPGroup, i::Int)
 
-Return the `i`-th element of the vector `gens(G)`.
-This is equivalent to `G[i]`, and returns `gens(G)[i]`
+Return `one(G)` if `i == 0`,
+the `i`-th element of the vector `gens(G)` if `i` is positive,
+and the inverse of the `i`-th element of `gens(G)` if `i` is negative.
+
+For positive `i`, this is equivalent to `G[i]`, and returns `gens(G)[i]`
 but may be more efficient than the latter.
 
-An exception is thrown if `i` is larger than the length of `gens(G)`.
+An exception is thrown if `abs(i)` is larger than the length of `gens(G)`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  gen(g, 1)
+(1,2,3,4,5)
+
+julia> g[-1]
+(1,5,4,3,2)
+```
 """
 function gen(G::GAPGroup, i::Int)
+   i == 0 && return one(G)
    L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
-   @assert length(L) >= i "The number of generators is lower than the given index"
-   return group_element(G, L[i]::GapObj)
+   0 < i && i <= length(L) && return group_element(G, L[i]::GapObj)
+   i < 0 && -i <= length(L) && return group_element(G, inv(L[-i])::GapObj)
+   @req false "i must be in the range -$(length(L)):$(length(L))"
 end
 
 """

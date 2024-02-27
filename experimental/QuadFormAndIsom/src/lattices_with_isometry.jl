@@ -177,7 +177,7 @@ minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))
 @doc raw"""
     genus(Lf::ZZLatWithIsom) -> ZZGenus
 
-Given a lattice with isometry $(L, f)$, return the genus of the underlying 
+Given a lattice with isometry $(L, f)$, return the genus of the underlying
 lattice $L$.
 
 # Examples
@@ -1529,7 +1529,7 @@ Integer lattice of rank 4 and degree 5
 julia> H = hermitian_structure(M)
 Hermitian lattice of rank 1 and degree 1
   over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
-  with pseudo-basis 
+  with pseudo-basis
   (1, 1//1 * <1, 1>)
   (z_5, 1//1 * <1, 1>)
 
@@ -1592,11 +1592,11 @@ Finite quadratic module
 Abelian group: Z/6
 Bilinear value module: Q/Z
 Quadratic value module: Q/2Z
-Gram matrix quadratic form: 
+Gram matrix quadratic form:
 [5//6]
 
 julia> qf
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [1]
 
 julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
@@ -1608,7 +1608,7 @@ julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
 julia> Lf = integer_lattice_with_isometry(L, f);
 
 julia> discriminant_group(Lf)[2]
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [5]
 ```
 """

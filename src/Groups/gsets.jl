@@ -111,7 +111,7 @@ Note that the indexing of points in `Omega` is used by
 ```jldoctest
 julia> G = symmetric_group(4);
 
-julia> length(gset(G, [[1]]))  # natural action
+julia> length(gset(G, [1]))  # natural action
 4
 
 julia> length(gset(G, [[1, 2]]))  # action on ordered pairs

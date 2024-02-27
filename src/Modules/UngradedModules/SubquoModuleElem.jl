@@ -14,7 +14,7 @@ SubquoModuleElem(v::SRow{R}, SQ::SubquoModule) where {R} = SubquoModuleElem{R}(v
 
 Construct an element $v \in SQ$ that is represented by $a$.
 """
-SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced) 
+SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced)
 
 elem_type(::Type{SubquoModule{T}}) where {T} = SubquoModuleElem{T}
 parent_type(::Type{SubquoModuleElem{T}}) where {T} = SubquoModule{T}
@@ -44,7 +44,7 @@ Given an element `m` of a subquotient $M$ over a ring $R$, say,
 return the coefficients of an $R$-linear combination of the generators of $M$
 which gives $m$.
 
-Return the coefficients of `m` with respect to the basis of standard unit vectors. 
+Return the coefficients of `m` with respect to the basis of standard unit vectors.
 
 The result is returned as a sparse row.
 
@@ -102,7 +102,7 @@ end
 #  - if el is zero, v is zero
 #  - if el is homogeneous, but the current representative is not
 #    then a homogeneous representative is returned.
-#  - it sets the field is_reduced to true. 
+#  - it sets the field is_reduced to true.
 function simplify(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
   if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
@@ -140,7 +140,7 @@ end
 # The default only checks whether an element is zero.
 function simplify(el::SubquoModuleElem)
   el.is_reduced && return el
-  if is_zero(el) 
+  if is_zero(el)
     result = zero(parent(el))
     result.is_reduced = true # Todo: Should be done in zero(...)
     return result
@@ -151,7 +151,7 @@ end
 
 function simplify!(el::SubquoModuleElem)
   el.is_reduced && return el
-  if is_zero(el) 
+  if is_zero(el)
     el.coeffs = sparse_row(base_ring(parent(el)))
     el.repres = zero(ambient_free_module(parent(el)))
     el.is_reduced = true
@@ -166,7 +166,7 @@ end
 @doc raw"""
     ambient_representative(m::SubquoModuleElem)
 
-Given an element `m` of a subquotient $M$, say, return 
+Given an element `m` of a subquotient $M$, say, return
 
 # Examples
 ```jldoctest
@@ -220,7 +220,7 @@ end
     standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
 
 Return a standard basis of `F` as an object of type `ModuleGens`.
-If `reduced` is set to `true` and the ordering of the underlying ring is global, 
+If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
@@ -238,7 +238,7 @@ end
 @doc raw"""
     lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
 
-Return a standard basis `G` of `F` as an object of type `ModuleGens` along with 
+Return a standard basis `G` of `F` as an object of type `ModuleGens` along with
 a transformation matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
@@ -258,7 +258,7 @@ end
     lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
 
 Return a standard basis `G` of `F` with respect to the given `ordering`
-as an object of type `ModuleGens` along with a transformation 
+as an object of type `ModuleGens` along with a transformation
 matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
@@ -300,7 +300,7 @@ parent(b::SubquoModuleElem) = b.parent
 @doc raw"""
     (M::SubquoModule{T})(f::FreeModElem{T}) where T
 
-Given an element `f` of the ambient free module of `M` which represents an element of `M`, 
+Given an element `f` of the ambient free module of `M` which represents an element of `M`,
 return the represented element.
 """
 function (M::SubquoModule{T})(f::FreeModElem{T}) where T
@@ -312,7 +312,7 @@ function (M::SubquoModule{T})(f::FreeModElem{T}) where T
 end
 
 @doc raw"""
-    (M::SubquoModule{T})(c::SRow{T}) where T   
+    (M::SubquoModule{T})(c::SRow{T}) where T
 
 Return the subquotient element $\sum_i a[i] \cdot M[i]\in M$.
 """
@@ -322,7 +322,7 @@ end
 
 @doc raw"""
     SubquoModuleElem(c::Vector{T}, parent::SubquoModule{T}) where T
-    
+
 Return the element of  `parent`  defined as a linear combination
 of the generators of $parent$ with coefficients given by the entries of `c`.
 """
@@ -370,7 +370,7 @@ end
 function check_parent(a::Union{AbstractFreeModElem,SubquoModuleElem}, b::Union{AbstractFreeModElem,SubquoModuleElem})
   if parent(a) !== parent(b)
     error("elements not compatible")
-  end  
+  end
 end
 
 function +(a::SubquoModuleElem, b::SubquoModuleElem)
@@ -382,7 +382,7 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   end
 end
 
-function -(a::SubquoModuleElem, b::SubquoModuleElem) 
+function -(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   if isdefined(a, :coeffs) && isdefined(b, :coeffs)
     return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
@@ -393,7 +393,7 @@ end
 
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
 
-function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
+function *(a::MPolyDecRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -401,7 +401,7 @@ function *(a::MPolyDecRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::MPolyRingElem, b::SubquoModuleElem) 
+function *(a::MPolyRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -409,7 +409,7 @@ function *(a::MPolyRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::RingElem, b::SubquoModuleElem) 
+function *(a::RingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -421,7 +421,7 @@ end
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 
-function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
+function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
@@ -450,11 +450,11 @@ end
 @doc raw"""
     sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where {T}
 
-Given a vector `V` of (homogeneous) elements of `F`, return a pair `(I, inc)` 
-consisting of the (graded) submodule `I` of `F` generated by these elements 
+Given a vector `V` of (homogeneous) elements of `F`, return a pair `(I, inc)`
+consisting of the (graded) submodule `I` of `F` generated by these elements
 and its inclusion map `inc : I ↪ F`.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
 If only the submodule itself is desired, use `sub_object` instead.
@@ -472,20 +472,20 @@ function sub_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T}
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T} 
+    sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
 
-Given a (homogeneous) matrix `A` interpret the rows of `A` as elements 
-of the free module `F` and return a pair `(I, inc)` 
-consisting of the (graded) submodule `I` of `F` generated by these row vectors, 
+Given a (homogeneous) matrix `A` interpret the rows of `A` as elements
+of the free module `F` and return a pair `(I, inc)`
+consisting of the (graded) submodule `I` of `F` generated by these row vectors,
 together with its inclusion map `inc : I ↪ F`.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
 If only the submodule itself is desired, use `sub_object` instead.
 """
 function sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
-  M = SubquoModule(SubModuleOfFreeModule(F, A)) 
+  M = SubquoModule(SubModuleOfFreeModule(F, A))
   #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
   emb = hom(M, F, ambient_representatives_generators(M); check=false)
   emb.matrix = A
@@ -495,19 +495,19 @@ function sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
 end
 
 function sub_object(F::FreeMod{T}, A::MatElem{T}) where {T}
-  return SubquoModule(SubModuleOfFreeModule(F, A)) 
+  return SubquoModule(SubModuleOfFreeModule(F, A))
 end
 
 @doc raw"""
     sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Suppose the `ambient_free_module` of the `parent` `M` of the elements `v_i` 
-in `O` is `F` and `M` is a submodule (i.e. no relations are present). 
-Then this returns a pair `(I, inc)` consisting of the submodule `I` 
-generated by the elements in `O` in `F`, together with its inclusion 
+Suppose the `ambient_free_module` of the `parent` `M` of the elements `v_i`
+in `O` is `F` and `M` is a submodule (i.e. no relations are present).
+Then this returns a pair `(I, inc)` consisting of the submodule `I`
+generated by the elements in `O` in `F`, together with its inclusion
 morphism `inc : I ↪ F`.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
 If only the submodule itself is desired, use `sub_object` instead.
@@ -524,13 +524,13 @@ end
 @doc raw"""
     sub(F::FreeMod{T}, M::SubquoModule{T}; cache_morphism::Bool=false) where T
 
-Return `M` as a submodule of `F`, together with its inclusion morphism 
-`inc : M ↪ F`. 
+Return `M` as a submodule of `F`, together with its inclusion morphism
+`inc : M ↪ F`.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
-The `ambient_free_module` of `M` needs to be `F` and `M` has to have no 
+The `ambient_free_module` of `M` needs to be `F` and `M` has to have no
 relations.
 
 If only the submodule itself is desired, use `sub_object` instead.
@@ -557,7 +557,7 @@ end
 Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule `I` of `M` generated by these elements
 together with its inclusion map `inc : I ↪ M.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
 If only the submodule itself is desired, use `sub_object` instead.
@@ -591,7 +591,7 @@ end
 Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule `I` of `M` generated by these elements
 together with its inclusion map `inc : I ↪ M.
 
-When `cache_morphism` is set to true, then `inc` will be cached and available 
+When `cache_morphism` is set to true, then `inc` will be cached and available
 for `transport` and friends.
 
 If only the submodule itself is desired, use `sub_object` instead.
@@ -641,7 +641,7 @@ to `task`.
 function return_sub_wrt_task(M::SubquoModule, emb::SubQuoHom, task::Symbol)
   (task == :none || task == :module) && return M
   task == :cache_morphism && register_morphism!(emb)
-  task == :only_morphism && return emb 
+  task == :only_morphism && return emb
   (task == :cache_morphism || task == :both || task == :with_morphism) && return M, emb
   error("No valid option for task.")
 end
@@ -650,7 +650,7 @@ end
 @doc raw"""
     quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `F`, return a pair `(M, pr)` consisting 
+Given a vector `V` of (homogeneous) elements of `F`, return a pair `(M, pr)` consisting
 of the quotient `M = F/⟨V⟩` and the projection map `pr : F → M`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
@@ -674,10 +674,10 @@ end
 @doc raw"""
     quo(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
 
-Given a matrix `A`, interpret the row vectors `v_i` of `A` as elements of `F` 
-and return a pair `(M, pr)` consisting of the quotient `M = F/I` of `F` by the 
-submodule `I ⊂ F` generated by the rows of `A`, together with the projection 
-map `pr : F → M`. 
+Given a matrix `A`, interpret the row vectors `v_i` of `A` as elements of `F`
+and return a pair `(M, pr)` consisting of the quotient `M = F/I` of `F` by the
+submodule `I ⊂ F` generated by the rows of `A`, together with the projection
+map `pr : F → M`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
@@ -701,8 +701,8 @@ end
 @doc raw"""
     quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `O` of (homogeneous) elements of some submodule `I` of `F`, 
-return a pair `(M, pr)` consisting of the quotient `M = F/⟨V⟩` and 
+Given a vector `O` of (homogeneous) elements of some submodule `I` of `F`,
+return a pair `(M, pr)` consisting of the quotient `M = F/⟨V⟩` and
 the projection map `pr : F → M`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
@@ -715,7 +715,7 @@ If `cache_morphism` is set to `true`, the projection is cached and available to 
 function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, [repres(x) for x = O])
-  
+
   phi = hom(F, Q, gens(Q), check=false)
   cache_morphism && register_morphism!(phi)
   return Q, phi
@@ -730,12 +730,12 @@ end
 @doc raw"""
     quo(S::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting 
+Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting
 of the quotient `M = S/⟨V⟩` and the projection map `pr : S → M`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
-Note that the elements of `O` must belong to the `ambient_free_module` of `S` and represent 
+Note that the elements of `O` must belong to the `ambient_free_module` of `S` and represent
 elements of `S`.
 
 If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
@@ -775,7 +775,7 @@ end
 @doc raw"""
     quo(S::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting 
+Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting
 of the quotient `M = S/⟨V⟩` and the projection map `pr : S → M`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
@@ -793,7 +793,7 @@ end
 @doc raw"""
     quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `M`, return a pair `(N, pr)` consisting 
+Given a vector `V` of (homogeneous) elements of `M`, return a pair `(N, pr)` consisting
 of the quotient `N = M/⟨V⟩` and the projection map `pr : M → N`.
 
 If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
@@ -841,7 +841,7 @@ end
 @doc raw"""
     quo(M::SubquoModule{T}, U::SubquoModule{T}) where T
 
-Return a pair `(N, pr)` consisting of the quotient $N = M / U$ together with the projection 
+Return a pair `(N, pr)` consisting of the quotient $N = M / U$ together with the projection
 map `pr : M → N`.
 
 If one is only interested in the actual object `N`, but not the map, use `quo_object` instead.
@@ -852,7 +852,7 @@ function quo(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false)
   if isdefined(M, :quo) && isdefined(U, :quo)
     F = ambient_free_module(M)
     @assert F === ambient_free_module(U)
-    # We can not assume that the SubModuleOfFreeModule layer is implemented in general, 
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general,
     # so we deflect to the Subquo-layer instead.
     @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
   else
@@ -868,7 +868,7 @@ function quo_object(M::SubquoModule{T}, U::SubquoModule{T}) where T
   if isdefined(M, :quo) && isdefined(U, :quo)
     F = ambient_free_module(M)
     @assert F === ambient_free_module(U)
-    # We can not assume that the SubModuleOfFreeModule layer is implemented in general, 
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general,
     # so we deflect to the Subquo-layer instead.
     @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
   else
@@ -901,7 +901,7 @@ end
 @doc raw"""
     quo(F::FreeMod{R}, T::SubquoModule{R}; cache_morphism::Bool=false) where R
 
-Return a pair `(N, pr)` consisting of the quotient $N = F / T$ together with the projection 
+Return a pair `(N, pr)` consisting of the quotient $N = F / T$ together with the projection
 map `pr : F → N`.
 
 If one is only interested in the actual object `N`, but not the map, use `quo_object` instead.
@@ -1015,7 +1015,7 @@ function iterate(F::ModuleGens, i::Int = 1)
     return F[i], i+1
   end
 end
-eltype(::ModuleGens{T}) where {T} = FreeModElem{T} 
+eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})

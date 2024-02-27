@@ -28,7 +28,7 @@ function _find_D(d::T, m::Int, p::Int) where T <: IntegerUnion
   if m == 0
     return _tuples_divisors(d)
   end
-  
+
   D = Tuple{T, T}[]
   # We try all the values of g possible, from 1 to p^m
   for g in powers(p, m)
@@ -142,7 +142,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     return false
   end
 
-  # At this point, if C is unimodular at p, the gluing condition is equivalent to have 
+  # At this point, if C is unimodular at p, the gluing condition is equivalent to have
   # an anti-isometry between the p-part of the (quadratic) discriminant forms of A and B
   qA = discriminant_group(A)
   qB = discriminant_group(B)
@@ -160,7 +160,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   if a_max != b_max
     return false
   end
-  
+
   # Since p^l*A^\vee/A is in the glue, its order is less than the order of the glue
   if g < a_max
     return false
@@ -180,13 +180,13 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     else
       Ar = genus(matrix(ZZ,0,0,[]), p)
     end
-   
+
     if length(symbol(Bp)) > 1
       Br = ZZLocalGenus(p, symbol(Bp)[1:end-1])
     else
       Br = genus(matrix(ZZ, 0, 0, []), p)
     end
-  
+
     ABr = direct_sum(Ar, Br)
 
     for i = 0:l-1
@@ -216,18 +216,18 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
     s[1] += 2
   end
   Cp = ZZLocalGenus(p, _Cp)
-  
+
   if !represents(local_symbol(AperpB, p), Cp)
     return false
   end
   if !represents(C, AperpB)
     return false
-  end 
+  end
 
   qC = discriminant_group(C)
-  spec = (p == 2) && (_is_free(qA, p, l+1)) && (_is_free(qB, p, l+1)) && (_is_even(qC, p, l))
-  rA = _rho_functor(qA, p, l+1; quad = spec)
-  rB = _rho_functor(qB, p, l+1; quad = spec)
+  special = (p == 2) && (_is_free(qA, p, l+1)) && (_is_free(qB, p, l+1)) && (_is_even(qC, p, l))
+  rA = _rho_functor(qA, p, l+1; quad = special)
+  rB = _rho_functor(qB, p, l+1; quad = special)
   return is_anti_isometric_with_anti_isometry(rA, rB)[1]
 end
 
@@ -306,7 +306,7 @@ function admissible_triples(G::ZZGenus, p::IntegerUnion; pA::Int = -1, pB::Int =
     if pA >= 0
       r1 >= pA || continue
     end
-    m = min(ep, r1) 
+    m = min(ep, r1)
     D = _find_D(dG, m, p)
     while !is_empty(D)
       d1, dp = pop!(D)

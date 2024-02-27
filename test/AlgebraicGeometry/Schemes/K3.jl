@@ -131,7 +131,7 @@
 # 
 # ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
 #
-# id_dict = IdDict{AbsSpec, Ideal}()
+# id_dict = IdDict{AbsAffineScheme, Ideal}()
 # for x in ref_patches
 #   id_dict[x] = I_sing_X4(x)
 # end

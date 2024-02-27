@@ -408,3 +408,22 @@ end
 
 Oscar.mul!(x::TropicalSemiringElem, y::TropicalSemiringElem, z::TropicalSemiringElem) = y * z
 Oscar.addeq!(y::TropicalSemiringElem, z::TropicalSemiringElem) = y + z
+
+
+################################################################################
+#
+#  helpers for polymake conversion
+#
+################################################################################
+
+Polymake.convert_to_pm_type(::Type{<:TropicalSemiringElem{A}}) where A = Polymake.TropicalNumber{Polymake.convert_to_pm_type(A),Polymake.Rational}
+
+function Base.convert(::Type{<:Polymake.TropicalNumber{PA}}, t::TropicalSemiringElem{A}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
+  @req PA == Polymake.convert_to_pm_type(A) "cannot convert between different tropical conventions"
+  isinf(t) ? Polymake.TropicalNumber{PA}() : Polymake.TropicalNumber{PA}(convert(Polymake.Rational, data(t)))
+end
+
+function (T::TropicalSemiring{A})(t::Polymake.TropicalNumber{PA}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
+  @req PA == Polymake.convert_to_pm_type(A) "cannot convert between different tropical conventions"
+  t == Polymake.zero(t) ? zero(T) : T(Polymake.scalar(t))
+end

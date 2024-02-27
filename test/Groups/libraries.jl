@@ -87,6 +87,9 @@ end
    @test issetequal(all_transitive_groups(3:2:9), all_transitive_groups(degree => 3:2:9))
    @test issetequal(all_transitive_groups(collect(3:2:9)), all_transitive_groups(3:2:9))
    @test issetequal(reduce(vcat, (all_transitive_groups(i) for i in 3:2:9)), all_transitive_groups(3:2:9))
+
+   @test issetequal(all_transitive_groups(3:2:9, is_abelian), all_transitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_transitive_groups(9, is_abelian), all_transitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Perfect groups" begin
@@ -114,6 +117,21 @@ end
    @test number_of_perfect_groups(ZZRingElem(60)^3) == 1
    @test_throws ArgumentError number_of_perfect_groups(0) # invalid argument
    @test_throws ArgumentError number_of_perfect_groups(ZZRingElem(60)^10)  # result not known
+
+   Gs = all_perfect_groups(order => 1:200)
+   @test length(Gs) == sum(number_of_perfect_groups, 1:200)
+   @test Gs == all_perfect_groups(1:200)
+   @test length(all_perfect_groups(7200)) == number_of_perfect_groups(7200)
+
+   # all_perfect_groups with additional attributse
+   @test filter(G -> number_of_conjugacy_classes(G) in 5:8, Gs) == all_perfect_groups(1:200, number_of_conjugacy_classes => 5:8)
+   @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple)
+   @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple => true)
+   @test filter(!is_simple, Gs) == all_perfect_groups(1:200, !is_simple)
+   @test filter(!is_simple, Gs) == all_perfect_groups(1:200, is_simple => false)
+
+   # all_perfect_groups with multiple order specifications
+   @test all_perfect_groups(order => 1:5:200, order => 25:50) == all_perfect_groups(order => intersect(1:5:200, 25:50))
 
    # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
    #@test perfect_group(1376256, 1) isa PermGroup
@@ -149,6 +167,9 @@ end
    @test issetequal(all_primitive_groups(3:2:9), all_primitive_groups(degree => 3:2:9))
    @test issetequal(all_primitive_groups(collect(3:2:9)), all_primitive_groups(3:2:9))
    @test issetequal(reduce(vcat, (all_primitive_groups(i) for i in 3:2:9)), all_primitive_groups(3:2:9))
+
+   @test issetequal(all_primitive_groups(3:2:9, is_abelian), all_primitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_primitive_groups(9, is_abelian), all_primitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Atlas groups" begin
