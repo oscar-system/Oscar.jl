@@ -473,7 +473,16 @@ function minimize(::typeof(CyclotomicField), a::AbsSimpleNumFieldElem)
   return minimize(CyclotomicField, [a])[1]
 end
 
-#TODO: document this!
+#TODO:
+# Here we use conductor in the sense that
+# an abelian number field K has conductor n iff the n-th cyclotomic field
+# is the smallest cyclotomic field that contains K,
+# and the conductor of a field element is the conductor of the field
+# it generates.
+# Claus says that the conductor of a field element can also be read
+# w.r.t. an order.
+# Do we have a naming problem?
+# (If not then we can just add documentation.)
 conductor(a::AbsSimpleNumFieldElem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AbsSimpleNumField)
@@ -898,9 +907,29 @@ end
 # If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
 # is mapped to `QQAbElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
+function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
+                    x::QQAbElem{AbsSimpleNumFieldElem})
+  C1, z = cyclotomic_field(1)
+
+  f = function(x::QQFieldElem)
+    return QQAbElem(C1(x), 1)
+  end
+
+  finv = function(x::QQAbElem; check::Bool = false)
+    if conductor(x) == 1
+      return Hecke.force_coerce_cyclo(C1, data(x))
+    elseif check
+      return
+    else
+      error("element has no preimage")
+    end
+  end
+
+  return MapFromFunc(F, K, f, finv)
+end
+
 function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
                     x::QQAbElem{AbsSimpleNumFieldElem})
-  R, = polynomial_ring(QQ, "x")
   fl, n = Hecke.is_cyclotomic_type(F)
   if fl
     # This is cheaper.

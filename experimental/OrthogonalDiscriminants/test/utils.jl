@@ -33,6 +33,7 @@ end
   @test Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(t[2]) == "-7"
   @test Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(mod(t, 3)[2]) == "O-"
   @test_throws ArgumentError Oscar.OrthogonalDiscriminants._orthogonal_discriminant_indicator0(t[4])
+end
 
 @testset "orbits under automorphisms" begin
   # _row_orbits_from_column_orbits

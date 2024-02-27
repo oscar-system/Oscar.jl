@@ -191,6 +191,8 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
       if p == 0
         # We can check abs. irred. if we can reduce the repres.
         # modulo a prime l that does not divide the group order.
+#TODO: Better create the natural module for G,
+#T     and ask it whether it is abs. irreducible.
         l = next_prime(max([x[1] for x in factor(order(tbl))]...))
         Gbar, _ = Oscar.isomorphic_group_over_finite_field(G, min_char = Int(l))
         GG = Gbar.X
@@ -206,7 +208,7 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
     if p == 0
 #TODO: Add the relevant metadata to the Atlas of Group Representations.
 if !(degree(F) <= 2 || Hecke.is_cyclotomic_type(F)[1])
-  println( "missing embedding info for ", info[1])
+  println( "missing field embedding info for ", info)
   continue
 end
       KK, _ = abelian_closure(QQ)
