@@ -1859,29 +1859,6 @@ true
 @gapattribute is_supersolvable(tbl::GAPGroupCharacterTable) = GAP.Globals.IsSupersolvable(GAPTable(tbl))::Bool
 
 
-@doc raw"""
-    known_class_fusions(tbl::GAPGroupCharacterTable)
-
-Return the vector of dictionaries that describe the class fusions
-currently stored on `tbl`.
-Each dictionary has the keys `:name` (the identifier of the target table)
-and `:map` (the vector of image positions).
-
-# Examples
-```jldoctest
-julia> t = character_table("A5");
-
-julia> filter(x -> x[:name] == "A6", known_class_fusions(t))
-1-element Vector{Dict{Symbol, Any}}:
- Dict(:map => [1, 2, 3, 6, 7], :name => "A6")
-```
-"""
-function known_class_fusions(tbl::GAPGroupCharacterTable)
-    return [Dict(:map => Vector{Int}(r.map), :name => String(r.name))
-            for r in GAP.Globals.ComputedClassFusions(GAPTable(tbl))]
-end
-
-
 #############################################################################
 ##
 ##  class functions (and characters)

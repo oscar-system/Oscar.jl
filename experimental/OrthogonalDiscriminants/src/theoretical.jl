@@ -191,10 +191,9 @@ In this case,
 
 If `flag` is `false` then `val` is equal to `""`.
 
-The function tries to compute the possible permutation characters of $G$
-induced from $P$.
 If a character is given as the optional argument `pi` then it is assumed
-that `pi` is this permutation character.
+that `pi` is the permutation character of $G$ induced from $P$.
+Otherwise the function tries to compute the possible permutation characters.
 
 # Examples
 ```jldoctest
@@ -211,7 +210,7 @@ julia> Oscar.OrthogonalDiscriminants.od_from_p_subgroup(mod(t, 2)[4], 5)
 ```
 """
 function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int)
-  cand = possible_permutation_characters_from_sylow_subgroup(chi.table, p)
+  cand = possible_permutation_characters_from_sylow_subgroup(parent(chi), p)
   if cand != nothing
     res = collect(Set([od_from_p_subgroup(chi, p, pi) for pi in cand]))
     length(res) == 1 && return res[1]
@@ -221,7 +220,7 @@ end
 
 function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
                             pi::GAPGroupClassFunction)
-  tbl = chi.table
+  tbl = parent(chi)
   Porder = div(order(tbl), degree(ZZRingElem, pi))
   flag, _, l = is_prime_power_with_data(Porder)
   @req (flag && l == p) "pi is not induced from a p-subgroup"

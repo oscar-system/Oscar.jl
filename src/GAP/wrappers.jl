@@ -123,7 +123,6 @@ GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap IntFFE(x::Any)::GapInt
-GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
 GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap Irr(x::GapObj)::GapObj
 GAP.@wrap IsAbelian(x::Any)::Bool

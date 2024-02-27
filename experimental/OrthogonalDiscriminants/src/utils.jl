@@ -163,8 +163,8 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
   npos = class_positions_of_pcore(tbl, p)
   if length(npos) != 1
     for d in known_class_fusions(tbl)
-      if class_positions_of_kernel(d[:map]) == npos
-        s = character_table(d[:name])
+      if class_positions_of_kernel(d[2]) == npos
+        s = character_table(d[1])
         if s != nothing && characteristic(s) == 0
           # Try to recurse.
           pi = possible_permutation_characters_from_sylow_subgroup(s, p)

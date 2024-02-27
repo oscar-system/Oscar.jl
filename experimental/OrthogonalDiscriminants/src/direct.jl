@@ -119,7 +119,7 @@ julia> Oscar.OrthogonalDiscriminants.od_from_atlas_group(t[4])
 ```
 """
 function od_from_atlas_group(chi::GAPGroupClassFunction)
-  tbl = chi.table
+  tbl = parent(chi)
   chipos = findfirst(isequal(chi), tbl)
   chipos == nothing && return false, ""
   p = characteristic(chi)
