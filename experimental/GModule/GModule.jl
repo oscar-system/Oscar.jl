@@ -577,7 +577,7 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
   #requires rel cyclic Galois group, not really finite field...
   #
   K = base_ring(C)
-  @assert degree(K) != degree(k)
+  @assert absolute_degree(K) != absolute_degree(k)
   #method: let s = sigma be a generator for Gal(K/k), and rho the representation
   #attached to C, then if there is A s.th.
   #    A^-1 rho(g) A in GL(k)
@@ -602,9 +602,9 @@ function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
   # Hilbert 90: alpha^-1 B = S^(1-s) and we can use this S to conjugate down
 
   # ALGO
-  s = frobenius(K, degree(k))
+  s = absolute_frobenius(K, absolute_degree(k))
   mkK = embed(k, K)
-  os = divexact(degree(K), degree(k))
+  os = divexact(absolute_degree(K), absolute_degree(k))
   hB = hom_base(C, gmodule(C.M, Group(C),
                       [hom(C.M, C.M, map_entries(s, matrix(x))) for x = C.ac]))
   if length(hB) != 1
