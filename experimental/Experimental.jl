@@ -19,6 +19,8 @@ const oldexppkgs = [
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "SetPartitions",
+  "PartitionedPermutations", # needs code from SetPartitions
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
