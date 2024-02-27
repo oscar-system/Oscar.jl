@@ -1,4 +1,4 @@
-export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants, invariant_ring_as_affine_algebra
+export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants, affine_algebra
 
 #####################
 #Setting up tori for fast torus algorithm
@@ -374,13 +374,12 @@ end
 #####################Invariant rings as affine algebras
 
 @doc raw"""
-    invariant_ring_as_affine_algebra(RT::TorGrpInvRing)
+    affine_algebra(RT::TorGrpInvRing)
 
-Return the invariant ring `RT` as an affine algebra.
+Return the invariant ring `RT` as an affine algebra (this amounts to compute the algebra syzygies among the fundamental invariants of `RT`).
 
-In
-
-That is, compute the algebra syzygies among the fundamental invariants of `RT`.
+In addition, if `A` is this algebra, and `R` is the polynomial ring of which `RT` is a subalgebra,
+return the inclusion homomorphism  `A` $\hookrightarrow$ `R` whose image is `RT`.
 
 # Examples
 ```jldoctest
@@ -396,11 +395,11 @@ julia> fundamental_invariants(RT)
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
 
-julia> invariant_ring_as_affine_algebra(RT)
+julia> affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-function invariant_ring_as_affine_algebra(R::TorGrpInvRing)
+function affine_algebra(R::TorGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
    S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
