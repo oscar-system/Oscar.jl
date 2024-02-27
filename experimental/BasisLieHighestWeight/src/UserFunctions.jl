@@ -419,15 +419,16 @@ function basis_lie_highest_weight_demazure(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
+
+  # operators_twisted = operators_demazure(L, reduced_expression)
+  # highest_weight_twisted = highest_weight_demazure(L, reduced_expression )
   chevalley_basis = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis, reduced_expression)
 
-  operators, highest_weight_twisted = operators_demazure(L, chevalley_basis, reduced_expression, highest_weight)
-
-
-  println("\n\noperators: ", operators)
+  println("\n operators_twisted: ", operators)
 
   monomial_basis = basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
+    L, chevalley_basis, highest_weight, operators, monomial_ordering; highest_weight_twisted=reduced_expression
   )
 
   return MonomialBasisDemazure(reduced_expression, monomial_basis)

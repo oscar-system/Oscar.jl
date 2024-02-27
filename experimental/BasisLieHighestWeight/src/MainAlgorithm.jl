@@ -4,6 +4,7 @@ function basis_lie_highest_weight_compute(
   highest_weight::Vector{Int},
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
   monomial_ordering_symb::Symbol;
+  highest_weight_twisted::Vector{Int}=[-1] 
 )
   """
   Pseudocode:
@@ -39,6 +40,10 @@ function basis_lie_highest_weight_compute(
       return set_mon
   """
   highest_weight = ZZ.(highest_weight)
+  if  highest_weight_twisted == [-1]
+    highest_weight_twisted = highest_weight
+  end
+  highest_weight_twisted = highest_weight_twisted
   # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
   # steps. Then it starts the recursion and returns the result.
 
@@ -49,8 +54,6 @@ function basis_lie_highest_weight_compute(
   birational_sequence = BirationalSequence(
     operators, [asVec(v) for v in operators], weights_w, weights_alpha
   )
-
-  println("\n birational_sequence: ", birational_sequence)
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
   monomial_ordering = get_monomial_ordering(monomial_ordering_symb, ZZx, weights_alpha)
@@ -70,7 +73,8 @@ function basis_lie_highest_weight_compute(
     highest_weight,
     monomial_ordering,
     calc_highest_weight,
-    no_minkowski;
+    no_minkowski; 
+    highest_weight_twisted=highest_weight_twisted
   )
 
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
@@ -89,6 +93,7 @@ function compute_monomials(
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}};
+  highest_weight_twisted::Vector{Int},
 )
   """
   This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
@@ -118,7 +123,7 @@ function compute_monomials(
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
+      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}(); highest_weight_twisted=highest_weight_twisted
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -146,7 +151,8 @@ function compute_monomials(
         lambda_1,
         monomial_ordering,
         calc_highest_weight,
-        no_minkowski,
+        no_minkowski; 
+        highest_weight_twisted=highest_weight_twisted
       )
       mon_lambda_2 = compute_monomials(
         L,
@@ -155,7 +161,8 @@ function compute_monomials(
         lambda_2,
         monomial_ordering,
         calc_highest_weight,
-        no_minkowski,
+        no_minkowski; 
+        highest_weight_twisted=highest_weight_twisted
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
@@ -167,7 +174,7 @@ function compute_monomials(
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
-        L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon
+        L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon; highest_weight_twisted=highest_weight_twisted
       )
     end
 
@@ -230,6 +237,7 @@ function add_new_monomials!(
       birational_sequence.weights_alpha, w_to_alpha(L, weight_w), zero_coordinates
     ),
   )
+
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
   poss_mon_in_weightspace = sort(
     poss_mon_in_weightspace; lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
@@ -292,16 +300,32 @@ function add_by_hand(
   highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
   set_mon::Set{ZZMPolyRingElem};
+  highest_weight_twisted::Vector{Int},
 )
   """
   This function calculates the missing monomials by going through each non full weightspace and adding possible 
   monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
   """
-  println("add_by_hand: ", highest_weight)
+  # println("add_by_hand: ", highest_weight)
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
+  println("highest_weight_twisted: ", highest_weight_twisted)
+  reduced_expression = Int.(highest_weight)
+  highest_weight_twisted_true = ZZ.(highest_weight_demazure(L, highest_weight_twisted, reduced_expression))
+  operators_twisted = operators_demazure(L, reduced_expression)
+  
+  weights_w_twisted = [weight(L, op) for op in operators_twisted] # weights of the operators
+  weights_alpha_twisted = [w_to_alpha(L, weight_w) for weight_w in weights_w_twisted] # other root system
+
+  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
+  birational_sequence_twisted = BirationalSequence(
+    operators, [asVec(v) for v in operators_twisted], weights_w_twisted, weights_alpha_twisted
+  )
+
+
   matrices_of_operators = tensor_matrices_of_operators(
-    L, highest_weight, birational_sequence.operators
+    # L, highest_weight, birational_sequence.operators
+    L, highest_weight_twisted_true, birational_sequence.operators
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   
@@ -486,9 +510,7 @@ end
 
 function operators_demazure(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
   reduced_expression::Vector{Int},
-  highest_weight::Vector{Int},
 )
   """
   Compute the operators associated with the demazure module.
@@ -496,7 +518,7 @@ function operators_demazure(
   \beta_k := w^{-1} (\alpha_{i_k})
           = s_{i_s} … s_{i_1}} (\alpha_{i_k})
   """
-
+  chevalley_basis = chevalley_basis_gap(L)
   println("\n chevalley_basis: \n", chevalley_basis)
 
   rs = root_system_gap(L)
@@ -545,14 +567,62 @@ function operators_demazure(
   end
 
   operators_twisted = [twisted_roots[i] for i in reduced_expression]
+
+  println("operators_twisted: ", operators_twisted)
+
+  return operators_twisted
+end
+
+
+
+
+function highest_weight_demazure(
+  L::LieAlgebraStructure,
+  reduced_expression::Vector{Int},
+  highest_weight::Vector{Int}
+)
+  """
+  Compute the operators associated with the demazure module.
+  s := length(w)
+  \beta_k := w^{-1} (\alpha_{i_k})
+          = s_{i_s} … s_{i_1}} (\alpha_{i_k})
+  """
+  chevalley_basis = chevalley_basis_gap(L)
+
+  rs = root_system_gap(L)
+  simple_roots = GAP.Globals.SimpleSystem(rs)
+  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
+  negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(rs))
+  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
+
+  twisted_roots = []
+  twisted_indx = []
+  for i in 1:length(simple_roots)
+    # Twist with w^{-1}
+    root = copy(simple_roots[i])
+    for k in 1:length(reduced_expression)
+      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], root)
+    end
+
+    root_ind_pos = findfirst(==(Vector{Int}(root)), positive_roots)
+    root_ind_neg = findfirst(==(Vector{Int}(root)), negative_roots)
+    @req !isnothing(root_ind_pos) || !isnothing(root_ind_neg) "$root not found"
+    if !isnothing(root_ind_pos)
+      push!(twisted_roots, chevalley_basis[1][root_ind_pos])
+      push!(twisted_indx, (1, root_ind_pos))
+    elseif !isnothing(root_ind_neg)
+      push!(twisted_roots, chevalley_basis[2][root_ind_neg])
+      push!(twisted_indx, (-1, root_ind_neg))
+    end
+  end
+
   highest_weight_twisted = zeros(Int, length(highest_weight))
   for i in 1:length(highest_weight)
     pos_neg, indx = twisted_indx[i]
     highest_weight_twisted[indx] += highest_weight[i] * pos_neg
   end
 
-  println("operators_twisted: ", operators_twisted)
   println("highest_weight_twisted: ", highest_weight_twisted)
 
-  return operators_twisted, highest_weight_twisted
+  return highest_weight_twisted
 end
