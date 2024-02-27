@@ -52,12 +52,3 @@ export length
 export length2
 export enumerate_partitioned_perm
 export factorization_partitioned_permutation
-
-# using Oscar # TODO can be removed, just to execute code below, like for example:
-# a = SetPartition([1, 2], [4, 5])
-
-# # or to run the tests
-
-# using Test
-
-# include("../test/PartitionedPermu-test.jl")
