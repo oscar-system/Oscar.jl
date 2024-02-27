@@ -72,9 +72,11 @@ function basis_lie_highest_weight_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
-  return MonomialBasis(
-    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
+  mb = MonomialBasis(L, highest_weight, birational_sequence, monomial_ordering, set_mon)
+  set_attribute!(
+    mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
   )
+  return mb
 end
 
 function basis_coordinate_ring_kodaira_compute(
@@ -201,9 +203,13 @@ function basis_coordinate_ring_kodaira_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
-  return MonomialBasis(
-    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
+  mb = MonomialBasis(L, highest_weight, birational_sequence, monomial_ordering, set_mon)
+  set_attribute!(
+    mb,
+    :algorithm => basis_coordinate_ring_kodaira_compute,
+    :minkowski_gens => minkowski_gens,
   )
+  return mb
 end
 
 function compute_monomials(

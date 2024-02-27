@@ -404,7 +404,7 @@ of the generalized flag variety of type and rank in the projective space of the 
 
 # Example
 ```jldoctest
-julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 4; monomial_ordering = :invlex)
+julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 3; monomial_ordering = :invlex)
 Generators of the semi group of essential monomials for the Kodaira embedding with
    the highest weight [1,1]
    up to degree 6
@@ -463,7 +463,7 @@ Here the ordering is a good ordering and the monomial ordering is degrevlex, so 
 
 # Example
 ```jldoctest
-julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 4; monomial_ordering = :invlex)
+julia> basis_coordinate_ring_kodaira(:G, 2, [1,1], 3; monomial_ordering = :invlex)
 Generators of the semi group of essential monomials for the Kodaira embedding with
    the highest weight [1,1]
    up to degree 6
