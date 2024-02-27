@@ -72,7 +72,7 @@ end
 """
     length2(pp::PartitionedPermutation)
 
-Return the adjusted length of a partitioned permutation as described in [CITE] as `|(V, pi)|`
+Return the adjusted length of a partitioned permutation as described in [CMSS07](@cite) as `|(V, pi)|`
 for a partition `V` and a permutation `pi`.
 
 # Examples
