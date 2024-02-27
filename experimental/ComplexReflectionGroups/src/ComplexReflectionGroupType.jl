@@ -638,26 +638,28 @@ function field_of_definition(G::ComplexReflectionGroupType)
             elseif i == 6
                 K,z = cyclotomic_field(12)
             elseif i == 7
-                K,z = K,z = cyclotomic_field(12)
+                K,z = cyclotomic_field(12)
             elseif i == 8
-                K,z = K,z = cyclotomic_field(4)
+                K,z = cyclotomic_field(4)
             elseif i == 9
-                K,z = K,z = cyclotomic_field(8)
+                K,z = cyclotomic_field(8)
             elseif i == 10
-                K,z = K,z = cyclotomic_field(12)
+                K,z = cyclotomic_field(12)
             elseif i == 11
-                K,z = K,z = cyclotomic_field(24)
+                K,z = cyclotomic_field(24)
             elseif i == 12
                 R,X = polynomial_ring(QQ, "X")
                 f = X^2 + 2
                 K,z = number_field(f)
             elseif i == 13
-                K,z = K,z = cyclotomic_field(8)
+                K,z = cyclotomic_field(8)
             elseif i == 14
                 R,X = polynomial_ring(QQ, "X")
                 f1 = X^3 - 1
                 f2 = X^2 + 2
                 K,(a,b) = number_field([f1,f2])
+            else
+                nothing #Not finished yet!
             end
             push!(fields, K)
         else
