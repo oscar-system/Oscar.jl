@@ -1,6 +1,6 @@
 # Partitioned Permutations
 
-This project implements algorithms for working with partitioned permutations. These are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants. The central reference is the paper [Second Order Freeness and Fluctuations of Random Matrices III. Higher order freeness and free cumulants (2007)](https://arxiv.org/pdf/math/0606431.pdf).
+This project implements algorithms for working with partitioned permutations. These are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants. The central reference is the paper [CMSS07](@cite).
 
 ## Mathematical Background
 
