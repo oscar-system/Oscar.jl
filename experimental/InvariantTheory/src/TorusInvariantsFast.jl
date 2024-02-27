@@ -1,4 +1,6 @@
-export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, polynomial_ring, representation, fundamental_invariants, affine_algebra
+export field
+export representation_from_weights
+export torus_group
 
 #####################
 #Setting up tori for fast torus algorithm
@@ -6,7 +8,7 @@ export torus_group, rank, field, representation_from_weights, weights, group, in
 
 struct TorusGroup
     field::Field
-    rank::Int 
+    rank::Int
     #weights::Vector{Vector{ZZRingElem}}
 end
 
@@ -162,17 +164,17 @@ end
 @attributes mutable struct TorGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
-    
+
     group::TorusGroup
     representation::RepresentationTorusGroup
-    
+
     #Invariant ring of reductive group G (in representation R), no other input.
     function TorGrpInvRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
         n = length(weights(R))
-        super_ring, __ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
+        super_ring, _ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
         return TorGrpInvRing(R, super_ring)
     end
-    
+
     #to compute invariant ring ring^G where G is the reductive group of R. 
     function TorGrpInvRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
         z = new()
