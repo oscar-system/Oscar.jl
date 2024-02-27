@@ -35,7 +35,7 @@
 
    G = symmetric_group(4)
    A = alternating_group(4)
-   L = subgroups(G)
+   L = collect(subgroups(G))
    @test length(L)==30
    @test L[1] isa PermGroup
    L1 = [x for x in L if is_normal_subgroup(x, G)]
@@ -44,8 +44,9 @@
    for H in L1
       @test H in K
    end
-   @test length(maximal_subgroups(G))==8
-   @test A in maximal_subgroups(G)
+   @test length(maximal_subgroup_classes(G)) == 3
+   @test sum(map(length, maximal_subgroup_classes(G))) == 8
+   @test any(C -> A in C, maximal_subgroup_classes(G))
    @test maximal_normal_subgroups(G)==[A]
    H = sub(G,[G([3,4,1,2]), G([2,1,4,3])])[1]
    @test minimal_normal_subgroups(G)==[H]
@@ -327,15 +328,15 @@ end
    end
    L = [[2],[3],[5],[7],[2,3],[2,5],[2,7],[3,5],[3,7],[5,7],[2,3,5],[2,3,7],[2,5,7],[3,5,7],[2,3,5,7]]
    @testset for l in L
-      h = hall_subgroup_reps(G, l)
+      h = hall_subgroup_classes(G, l)
       @test length(h) == 1
-      @test h[1] == sub(G,[g^(210÷lcm(l))])[1]
+      @test representative(h[1]) == sub(G,[g^(210÷lcm(l))])[1]
    end
-   h = hall_subgroup_reps(G, Int64[])
+   h = hall_subgroup_classes(G, Int64[])
    @test length(h) == 1
-   @test h[1] == sub(G, [one(G)])[1]
-   @test length(hall_subgroup_reps(symmetric_group(5), [2, 5])) == 0
-   @test_throws ArgumentError hall_subgroup_reps(G, [4])
+   @test representative(h[1]) == sub(G, [one(G)])[1]
+   @test length(hall_subgroup_classes(symmetric_group(5), [2, 5])) == 0
+   @test_throws ArgumentError hall_subgroup_classes(G, [4])
 
    L = sylow_system(G)
    Lo = [order(l) for l in L]
@@ -359,26 +360,26 @@ end
    # solvable group
    G = symmetric_group(4)
    N = pcore(G, 2)[1]
-   @test length(complement_class_reps(G, N)) == 1
+   @test length(complement_classes(G, N)) == 1
 
    # nonsolvable factor group
    G = special_linear_group(2, 5)
    N = center(G)[1]
-   @test length(complement_class_reps(G, N)) == 0
+   @test length(complement_classes(G, N)) == 0
 
    # nonsolvable normal subgroup
    G = symmetric_group(6)
    N = derived_subgroup(G)[1]
-   @test length(complement_class_reps(G, N)) == 2
+   @test length(complement_classes(G, N)) == 2
 
    # both normal subgroup and factor group nonsolvable:
    # check that GAP throws an error
    # (if not then perhaps a statement in the documentation of
-   # `complement_class_reps` can be changed)
+   # `complement_classes` can be changed)
    G = alternating_group(5)
    W = wreath_product(G, G)
    N = kernel(canonical_projection(W))[1]
-   @test_throws ErrorException complement_class_reps(W, N)
+   @test_throws ErrorException complement_classes(W, N)
 end
 
 @testset "Some specific subgroups" begin
@@ -388,7 +389,7 @@ end
    @test order(fitting_subgroup(G)[1])==8
    @test fitting_subgroup(S)==sub(S,[S([3,4,1,2]), S([4,3,2,1])])
    @test frattini_subgroup(S)==sub(S,[one(S)])
-   @test frattini_subgroup(G)[1]==intersect(maximal_subgroups(G))[1]
+   @test frattini_subgroup(G)[1]==intersect(collect(maximal_subgroups(G)))[1]
    @test frattini_subgroup(G)==center(G)
    @test is_characteristic_subgroup(center(G)[1], G)
    @test socle(G)==frattini_subgroup(G)

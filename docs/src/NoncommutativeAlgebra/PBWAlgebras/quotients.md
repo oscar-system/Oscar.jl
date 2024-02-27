@@ -16,7 +16,7 @@ functionality for dealing with quotients of PBW-algebras modulo two-sided ideals
 
 ## Types
 
-GR-algebras are modelled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
+GR-algebras are modeled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgQuoElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the GR-algebra
 is defined (the type `S` is added for internal use).
 

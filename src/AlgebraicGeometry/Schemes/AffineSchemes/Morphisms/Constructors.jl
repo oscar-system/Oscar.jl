@@ -6,7 +6,7 @@
 ########################################################################
 
 @doc raw"""
-    morphism(X::AbsSpec, Y::AbsSpec, f::Vector{<:RingElem}; check::Bool=true)
+    morphism(X::AbsAffineScheme, Y::AbsAffineScheme, f::Vector{<:RingElem}; check::Bool=true)
 
 This method constructs a morphism from the scheme ``X``
 to the scheme ``Y``. For this one has to specify the images
@@ -38,8 +38,8 @@ given by the pullback function
 ```
 """
 function morphism(
-      X::AbsSpec,
-      Y::AbsSpec,
+      X::AbsAffineScheme,
+      Y::AbsAffineScheme,
       f::Vector{<:RingElem};
       check::Bool=true
   )
@@ -47,8 +47,8 @@ function morphism(
 end
 
 function morphism(
-      X::AbsSpec,
-      Y::AbsSpec{<:Ring, <:MPolyRing},
+      X::AbsAffineScheme,
+      Y::AbsAffineScheme{<:Ring, <:MPolyRing},
       f::Vector{<:RingElem};
       check::Bool=true
   )
@@ -56,8 +56,8 @@ function morphism(
 end
 
 function morphism(
-      X::AbsSpec,
-      Y::AbsSpec,
+      X::AbsAffineScheme,
+      Y::AbsAffineScheme,
       f::Vector;
       check::Bool=true
   )
@@ -71,7 +71,7 @@ end
 ########################################################################
 
 @doc raw"""
-    identity_map(X::AbsSpec{<:Any, <:MPolyRing})
+    identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing})
 
 This method constructs the identity morphism from an affine scheme to itself.
 
@@ -92,14 +92,14 @@ given by the pullback function
   x3 -> x3
 ```
 """
-identity_map(X::AbsSpec{<:Any, <:MPolyRing}) = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
-identity_map(X::AbsSpec{<:Any, <:MPolyQuoRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyRing}) = morphism(X, X, hom(OO(X), OO(X), gens(OO(X)), check=false), check=false)
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
+identity_map(X::AbsAffineScheme{<:Any, <:MPolyQuoRing}) = morphism(X, X, hom(OO(X), OO(X), gens(ambient_coordinate_ring(X)), check=false), check=false)
 
 
 @doc raw"""
-    inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true)
+    inclusion_morphism(X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
 
 Return the inclusion map from ``X`` to ``Y``.
 
@@ -129,7 +129,7 @@ Spectrum
 
 julia> f = inclusion_morphism(Y, X)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -144,11 +144,11 @@ julia> base_ring(I) == OO(X)
 true
 ```
 """
-inclusion_morphism(X::AbsSpec, Y::AbsSpec; check::Bool=true) = morphism(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
+inclusion_morphism(X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true) = morphism(X, Y, gens(ambient_coordinate_ring(Y)), check=check)
 
 
 @doc raw"""
-    compose(f::AbsSpecMor, g::AbsSpecMor)
+    compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
 
 This method computes the composition of two morphisms.
 
@@ -178,7 +178,7 @@ Spectrum
 
 julia> m1 = inclusion_morphism(Y, X)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -196,8 +196,8 @@ given by the pullback function
 
 julia> m3 = identity_map(Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
-  to   [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
+  to   [x1, x2, x3]  scheme(x1)
 given by the pullback function
   x1 -> 0
   x2 -> x2
@@ -207,14 +207,14 @@ julia> compose(m3, compose(m1, m2)) == m1
 true
 ```
 """
-function compose(f::AbsSpecMor, g::AbsSpecMor)
+function compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
   codomain(f) === domain(g) || error("Morphisms can not be composed")
   return morphism(domain(f), codomain(g), compose(pullback(g), pullback(f)), check=false)
 end
 
 
 @doc raw"""
-    restrict(f::SpecMor, U::AbsSpec, V::AbsSpec)
+    restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme)
 
 This method restricts the domain of the morphism ``f``
 to ``U`` and its codomain to ``V``.
@@ -247,7 +247,7 @@ julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
 true
 ```
 """
-function restrict(f::SpecMor, U::AbsSpec, V::AbsSpec; check::Bool=true)
+function restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(U, domain(f)) "second argument does not lie in the domain of the map"
   @check is_subscheme(V, codomain(f)) "third argument does not lie in the codomain of the map"
   @check is_subscheme(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"

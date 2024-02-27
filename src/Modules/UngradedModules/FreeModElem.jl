@@ -289,3 +289,5 @@ Return `true` if `f` is zero, `false` otherwise.
 """
 is_zero(f::AbstractFreeModElem) = iszero(coordinates(f))
 
+simplify!(a::FreeModElem) = a
+simplify(a::FreeModElem) = a

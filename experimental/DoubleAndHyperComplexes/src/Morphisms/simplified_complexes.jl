@@ -80,7 +80,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom)
+    dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
     if haskey(fac.maps_to_original, i)
       # This means that for the next map a partial or 
@@ -93,7 +93,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod)
+    cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
     if haskey(fac.maps_to_original, next)
       fac.maps_to_original[next] = compose(cod_map, fac.maps_to_original[next])
@@ -122,7 +122,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       # end
       push!(img_gens_dom, v)
     end
-    dom_map_inv = hom(M, new_dom, img_gens_dom)
+    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
 
     if haskey(fac.maps_from_original, i)
       fac.maps_from_original[i] = compose(fac.maps_from_original[i], dom_map_inv)
@@ -144,7 +144,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w_new = sparse_row(base_ring(w), new_entries)
       push!(img_gens_cod, FreeModElem(w_new, new_cod))
     end
-    cod_map_inv = hom(N, new_cod, img_gens_cod)
+    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
     if haskey(fac.maps_from_original, next)
       fac.maps_from_original[next] = compose(fac.maps_from_original[next], cod_map_inv)
@@ -184,7 +184,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom)
+    dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
     if haskey(fac.maps_to_original, prev)
       fac.maps_to_original[prev] = compose(dom_map, fac.maps_to_original[prev])
@@ -195,7 +195,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod)
+    cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
     if haskey(fac.maps_to_original, i)
       fac.maps_to_original[i] = compose(cod_map, fac.maps_to_original[i])
@@ -214,7 +214,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       end
       push!(img_gens_dom, v)
     end
-    dom_map_inv = hom(M, new_dom, img_gens_dom)
+    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
 
     if haskey(fac.maps_from_original, prev)
       fac.maps_from_original[prev] = compose(fac.maps_from_original[prev], dom_map_inv)
@@ -235,7 +235,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w_new = sparse_row(base_ring(w), new_entries)
       push!(img_gens_cod, FreeModElem(w_new, new_cod))
     end
-    cod_map_inv = hom(N, new_cod, img_gens_cod)
+    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
     if haskey(fac.maps_from_original, i)
       fac.maps_from_original[i] = compose(fac.maps_from_original[i], cod_map_inv)
@@ -357,7 +357,7 @@ end
 ### Helper functions
 function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
   if is_graded(M)
-    w = degree.(g)
+    w = _degree_fast.(g)
     return graded_free_module(base_ring(M), w)
   else
     return FreeMod(base_ring(M), length(g))
@@ -598,9 +598,9 @@ function _alt_simplify(M::SubquoModule)
   Z0, inc_Z0 = kernel(simp, 0)
 
   result_to_M = hom(result, M, 
-                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)])
+                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
   M_to_result = hom(M, result,
-                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)])
+                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
   return result, M_to_result, result_to_M
 end
 

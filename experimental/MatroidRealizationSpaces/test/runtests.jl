@@ -133,11 +133,11 @@ end
 
 @testset "realization spaces as schemes" begin
   X = realization_space(pappus_matroid())
-  @test X isa AbsSpec
+  @test X isa AbsAffineScheme
   @test !isdefined(X, :underlying_scheme)
   R = OO(X)
   @test R isa Oscar.MPolyQuoLocRing
   f = sum(gens(R))
   U = PrincipalOpenSubset(X, f)
-  @test U isa AbsSpec
+  @test U isa AbsAffineScheme
 end

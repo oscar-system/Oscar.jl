@@ -9,7 +9,7 @@ export variety
 # Check for emptyness                                                  #
 ########################################################################
 
-@attr Bool function Base.isempty(U::SpecOpen)
+@attr Bool function Base.isempty(U::AffineSchemeOpenSubscheme)
   return all(isempty, affine_patches(U))
 end
 
@@ -41,16 +41,16 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: V(-(y//x)^2*(z//x) + 1)
-    2: V((x//y)^3 - (z//y))
-    3: V((x//z)^3 - (y//z)^2)
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -59,18 +59,18 @@ with default covering
 julia> K = function_field(Ycov)
 Field of rational functions
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 represented by
   patch 1: fraction field of multivariate polynomial ring
 
 julia> one(K)
 Rational function
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 represented by
   patch 1: 1
 ```
@@ -206,7 +206,7 @@ function (KK::VarietyFunctionField)(a::MPolyRingElem, b::MPolyRingElem; check::B
     V = representative_patch(KK)
     X = variety(KK)
     C = default_covering(X)
-    for i in 1:npatches(C)
+    for i in 1:n_patches(C)
       if ambient_coordinate_ring(C[i]) === R
         V = C[i]
         break
@@ -249,7 +249,7 @@ end
 @doc raw"""
     function move_representative(
         a::MPolyRingElem, b::MPolyRingElem,
-        V::AbsSpec, U::AbsSpec,
+        V::AbsAffineScheme, U::AbsAffineScheme,
         C::Covering
       )
 
@@ -261,7 +261,7 @@ one in ``Quot(P')`` where ``P'`` is the ambient coordinate ring of another patch
 """
 function move_representative(
     a::MPolyRingElem, b::MPolyRingElem,
-    V::AbsSpec, U::AbsSpec,
+    V::AbsAffineScheme, U::AbsAffineScheme,
     C::Covering
   )
   G = C[U, V]
@@ -270,7 +270,7 @@ function move_representative(
   pba = pullback(f)(OO(B)(a))
   pbb = pullback(f)(OO(B)(b))
   iszero(pbb) && error("pullback of denominator is zero")
-  # in the next line, A is either a SpecOpen or a PrincipalOpenSubset
+  # in the next line, A is either a AffineSchemeOpenSubscheme or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
   if domain(f) isa PrincipalOpenSubset
     fac = factor(lifted_numerator(complement_equation(domain(f))))
@@ -290,7 +290,7 @@ function move_representative(
   return h_generic
 end
 
-function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.Frac; check::Bool=true)
+function (KK::VarietyFunctionField)(h::AbstractAlgebra.Generic.FracFieldElem; check::Bool=true)
   return KK(numerator(h), denominator(h), check=check)
 end
 
@@ -313,7 +313,7 @@ function (K::AbstractAlgebra.Generic.FracField)(f::VarietyFunctionFieldElem)
   return K(numerator(f_mov), denominator(f_mov))
 end
 
-function getindex(f::VarietyFunctionFieldElem, V::AbsSpec)
+function getindex(f::VarietyFunctionFieldElem, V::AbsAffineScheme)
   C = default_covering(variety(parent(f))) 
   if any(x->x===V, patches(C))
     return move_representative(numerator(f), denominator(f), 
@@ -451,7 +451,7 @@ inv(f::VarietyFunctionFieldElem) = parent(f)(denominator(representative(f)),
                                      )
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:Integer} = T
-AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:AbstractAlgebra.Generic.Frac} = T
+AbstractAlgebra.promote_rule(::Type{T}, ::Type{S}) where {T<:VarietyFunctionFieldElem, S<:AbstractAlgebra.Generic.FracFieldElem} = T
 
 AbstractAlgebra.promote_rule(::Type{T}, ::Type{T}) where {T<:VarietyFunctionFieldElem} = T
 
@@ -459,7 +459,7 @@ function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:V
   promote_rule(T, U) == T ? FFET : Union{}
 end 
 
-function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.Frac{T}}, U<:RingElement}
+function AbstractAlgebra.promote_rule(::Type{FFET}, ::Type{U}) where {T, FFET<:VarietyFunctionFieldElem{AbstractAlgebra.Generic.FracFieldElem{T}}, U<:RingElement}
   promote_rule(T, U) == T ? FFET : Union{}
 end 
 
@@ -478,7 +478,7 @@ function is_regular(f::VarietyFunctionFieldElem, U::Scheme)
   error("method not implemented")
 end
 
-function is_regular(f::VarietyFunctionFieldElem, U::AbsSpec)
+function is_regular(f::VarietyFunctionFieldElem, U::AbsAffineScheme)
   p = numerator(f[U])
   q = denominator(f[U])
   return _is_regular_fraction(OO(U), p, q)
@@ -492,7 +492,7 @@ function is_regular(f::VarietyFunctionFieldElem, U::PrincipalOpenSubset)
   return _is_regular_fraction(OO(U), p, q)
 end
 
-function is_regular(f::VarietyFunctionFieldElem, W::SpecOpen)
+function is_regular(f::VarietyFunctionFieldElem, W::AffineSchemeOpenSubscheme)
   return all(U->is_regular(f, U), affine_patches(W))
 end
 

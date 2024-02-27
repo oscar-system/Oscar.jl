@@ -32,13 +32,12 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
-Dict{String, MPolyRingElem} with 6 entries:
-  "c2"   => c2
-  "c1"   => c1
-  "Kbar" => Kbar
-  "c3"   => c3
-  "b"    => b
-  "c0"   => c0
+Dict{String, MPolyRingElem} with 5 entries:
+  "c2" => c2
+  "c1" => c1
+  "c3" => c3
+  "b"  => b
+  "c0" => c0
 
 julia> hypersurface_equation_parametrization(h)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2

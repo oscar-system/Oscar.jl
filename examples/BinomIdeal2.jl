@@ -700,7 +700,7 @@ argument, so we make an array prodDeltaC, push to it, then splice it in
                 uv=matrixFromArray(u-v) #this is the vector of u-v
                 vst=transpose(vs)
                 vstMat=matrix(FlintZZ,size(vst,1), size(vst,2),vst)
-                if(cansolve(transpose(vstMat),uv)[1]==false)
+                if(can_solve(transpose(vstMat),uv)==false)
                         images=[images; nemo(-lead_coeff(tCopy))]
                         #we have to save u-v as generator for the lattice
                         #now concatenate the vector vs on bottom of the matrix vs

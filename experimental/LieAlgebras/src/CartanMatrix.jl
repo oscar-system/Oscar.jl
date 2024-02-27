@@ -80,6 +80,28 @@ function cartan_matrix(fam::Symbol, rk::Int)
 end
 
 @doc raw"""
+    cartan_matrix(type::Vector{Tuple{Symbol,Int}}) -> ZZMatrix
+
+Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
+For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
+
+# Example
+```jldoctest
+julia> cartan_matrix([(:A, 2), (:B, 2)])
+[ 2   -1    0    0]
+[-1    2    0    0]
+[ 0    0    2   -1]
+[ 0    0   -2    2]
+```
+"""
+function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
+  @req length(type) > 0 "At least one type is required"
+
+  blocks = [cartan_matrix(t...) for t in type]
+  return block_diagonal_matrix(blocks)
+end
+
+@doc raw"""
     cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
 Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
@@ -97,8 +119,7 @@ julia> cartan_matrix((:A, 2), (:B, 2))
 function cartan_matrix(type::Tuple{Symbol,Int}...)
   @req length(type) > 0 "At least one type is required"
 
-  blocks = [cartan_matrix(t...) for t in type]
-  return block_diagonal_matrix(blocks)
+  return cartan_matrix(collect(type))
 end
 
 @doc raw"""
@@ -257,6 +278,9 @@ This function is left inverse to `cartan_matrix`, i.e. in the case of isomorphic
 the ordering of the roots does matter (see the example below).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
 
+The order of returned components is, in general, not unique and might change between versions.
+If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type`.
+
 # Example
 ```jldoctest
 julia> cartan_type(ZZ[2 -1; -2 2])
@@ -278,19 +302,17 @@ end
 
 Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
 of the roots in the Dynkin diagram (currently only Cartan matrices of finite type are supported).
-The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
+The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a
+Cartan matrix of finite type.
+
+The order of returned components and the ordering is, in general, not unique and might change between versions.
+If this function is called with the output of `cartan_matrix(type)`, it will keep the order of `type` and the
+returned ordering will be the identity.
+
 # Example
 ```jldoctest
-julia> cartan_matrix(:E, 6)
-[ 2    0   -1    0    0    0]
-[ 0    2    0   -1    0    0]
-[-1    0    2   -1    0    0]
-[ 0   -1   -1    2   -1    0]
-[ 0    0    0   -1    2   -1]
-[ 0    0    0    0   -1    2]
-
 julia> cartan_type_with_ordering(cartan_matrix(:E, 6))
-([(:E, 6)], [1, 3, 4, 2, 5, 6])
+([(:E, 6)], [1, 2, 3, 4, 5, 6])
 
 julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
 ([(:B, 2), (:C, 2)], [1, 3, 2, 4])
@@ -304,135 +326,133 @@ function cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true)
 
   # global information
   ord = sizehint!(Int[], rk) # ordering of the roots
-  adj = [sizehint!(Int[], 3) for _ in 1:rk] # store adjacent roots, adj[i] is ordered asc
+  adj = [[j for j in 1:rk if i != j && !is_zero_entry(gcm, i, j)] for i in 1:rk] # adjacency list
+  done = falses(rk) # whether a root is already in a component
 
-  # information about current type
-  num = 0 # number of roots
-  roots = sizehint!(Int[], rk)
+  for v0 in 1:rk
+    done[v0] && continue
 
-  # used for traversal
-  undone = trues(rk)
-  plan = zeros(Int, 3) # a root is connected to up to 3 others
-  head = 0 # index up to which we planned (cyclic)
-  tail = 0 # index of plan which will be done next
-
-  i, j = 1, 2
-  while true
-    while i == j || (j <= rk && is_zero_entry(gcm, i, j))
-      j += 1
-    end
-    if j == rk + 1
-      num += 1
-      undone[i] = false
-      push!(roots, i)
-
-      if tail != head
-        tail += 1
-        if tail == 4
-          tail = 1
-        end
-        i = plan[tail]
-      else # nothing further is planned
-        offset = length(ord) + 1
-        if num == 1 # rank 1
-          push!(type, (:A, 1))
-          push!(ord, i)
-        elseif num == 2 # rank 2
-          i, j = roots[1], roots[2]
-          if gcm[i, j] * gcm[j, i] == 1
-            push!(type, (:A, 2))
-            push!(ord, i, j)
-          elseif gcm[i, j] == -2
-            push!(type, (:C, 2))
-            push!(ord, i, j)
-          elseif gcm[j, i] == -2
-            push!(type, (:B, 2))
-            push!(ord, i, j)
-          elseif gcm[i, j] == -3
-            push!(type, (:G, 2))
-            push!(ord, i, j)
-          else
-            push!(type, (:G, 2))
-            push!(ord, j, i)
-          end
-        else # rank > 2
-          # find start of the Dynkin graph
-          v = 0
-          for i in roots
-            j = adj[i][1]
-            if length(adj[i]) == 1 && gcm[i, j] * gcm[j, i] == 1
-              if length(adj[j]) == 1 || (length(adj[j]) == 2 && gcm[j, adj[j][2]] == -1)
-                v = i
-                break
-              elseif v == 0
-                v = i
-              end
-            end
-          end
-          push!(ord, v)
-
-          n = 1
-          adj3 = false # true if found a root with 3 adjacents
-          while n < num
-            nv = v
-            for vv in adj[v]
-              filter!(x -> x != v, adj[vv])
-              push!(ord, vv)
-              n += 1
-              if length(adj[vv]) > 0
-                nv = vv
-                if length(adj[vv]) == 2 # +1 for the predecessor
-                  adj3 = true
-                end
-              end
-            end
-            v = nv
-          end
-
-          if adj3
-            if isempty(adj[ord[end]]) && isempty(adj[ord[end - 1]])
-              push!(type, (:D, num))
-            else
-              push!(type, (:E, num))
-            end
-          elseif num == 4 &&
-            gcm[ord[end - 2], ord[end - 1]] * gcm[ord[end - 1], ord[end - 2]] > 1
-            push!(type, (:F, 4))
-          elseif gcm[ord[end - 1], ord[end]] * gcm[ord[end], ord[end - 1]] == 1
-            push!(type, (:A, num))
-          elseif gcm[ord[end - 1], ord[end]] == -1
-            push!(type, (:B, num))
-          else
-            push!(type, (:C, num))
-          end
-        end
-
-        # find next component
-        i = findfirst(undone)
-        if isnothing(i)
-          break
-        end
-
-        # reset number of roots
-        num = 0
-        empty!(roots)
-      end
-
-      j = 1
+    # rank 1
+    if length(adj[v0]) == 0
+      push!(type, (:A, 1))
+      push!(ord, v0)
+      done[v0] = true
       continue
     end
 
-    # plan to visit j if undone
-    if undone[j]
-      head += 1
-      if head == 4
-        head = 1
+    # rank 2
+    if length(adj[v0]) == 1 && length(adj[only(adj[v0])]) == 1
+      v1 = only(adj[v0])
+      if gcm[v0, v1] * gcm[v1, v0] == 1
+        push!(type, (:A, 2))
+        push!(ord, v0, v1)
+      elseif gcm[v0, v1] == -2
+        push!(type, (:C, 2))
+        push!(ord, v0, v1)
+      elseif gcm[v1, v0] == -2
+        push!(type, (:B, 2))
+        push!(ord, v0, v1)
+      elseif gcm[v0, v1] == -3
+        push!(type, (:G, 2))
+        push!(ord, v0, v1)
+      elseif gcm[v1, v0] == -3
+        push!(type, (:G, 2))
+        push!(ord, v1, v0)
+      else
+        error("unreachable")
       end
-      plan[head] = j
+      done[v0] = true
+      done[v1] = true
+      continue
     end
 
-    push!(adj[i], j)
-    j += 1
+    # rank > 2
+    # do a DFS to find the whole component
+    comp = [v0]
+    todo = [v0]
+    done[v0] = true
+    while !isempty(todo)
+      v = pop!(todo)
+      for w in adj[v]
+        if !done[w]
+          push!(comp, w)
+          push!(todo, w)
+          done[w] = true
+        end
+      end
+    end
+    sort!(comp)
+    len_comp = length(comp)
+
+    deg3 = findfirst(v -> length(adj[v]) == 3, comp)
+    if isnothing(deg3)
+      # case A, B, C, F
+
+      # find start of the Dynkin graph
+      start = 0
+      for v1 in filter(v -> length(adj[v]) == 1, comp)
+        v2 = only(adj[v1])
+        gcm[v1, v2] * gcm[v2, v1] == 1 || continue          # discard right end of B and C
+        if len_comp == 4
+          v3 = only(filter(!=(v1), adj[v2]))
+          gcm[v2, v3] == -1 || continue                   # discard right end of F
+        end
+
+        # found start
+        start = v1
+        break
+      end
+      @assert start != 0
+
+      # find the path
+      path = [start, only(adj[start])]
+      for _ in 1:(len_comp - 2)
+        push!(path, only(filter(!=(path[end - 1]), adj[path[end]])))
+      end
+      # determine type
+      if len_comp == 4 && gcm[path[3], path[2]] == -2
+        push!(type, (:F, 4))
+      elseif gcm[path[end - 1], path[end]] == -2
+        push!(type, (:C, len_comp))
+      elseif gcm[path[end], path[end - 1]] == -2
+        push!(type, (:B, len_comp))
+      else
+        push!(type, (:A, len_comp))
+      end
+      append!(ord, path)
+    else
+      # case D or E
+
+      # find the three paths
+      v_deg3 = comp[deg3]
+      paths = [[v_deg3, v_n] for v_n in adj[v_deg3]]
+      for path in paths
+        while length(adj[path[end]]) == 2
+          push!(path, only(filter(!=(path[end - 1]), adj[path[end]])))
+        end
+        popfirst!(path)
+      end
+      sort!(paths; by=length)
+      @assert sum(length, paths) + 1 == len_comp
+      # determine type
+      if length(paths[2]) == 1
+        # case D
+        push!(type, (:D, len_comp))
+        if len_comp == 4
+          push!(ord, only(paths[1]), v_deg3, only(paths[2]), only(paths[3]))
+        else
+          append!(ord, reverse!(paths[3]))
+          push!(ord, v_deg3, only(paths[1]), only(paths[2]))
+        end
+      elseif length(paths[2]) == 2
+        # case E
+        push!(type, (:E, len_comp))
+        push!(ord, paths[2][2], only(paths[1]), paths[2][1], v_deg3)
+        append!(ord, paths[3])
+      else
+        error("unreachable")
+      end
+    end
   end
 
   return type, ord

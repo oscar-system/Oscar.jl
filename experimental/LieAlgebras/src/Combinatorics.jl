@@ -33,7 +33,7 @@ function multicombinations(n::Integer, k::Integer)
   return sort(
     map(
       reverse ∘ Vector,
-      reduce(vcat, partitions(i, k, 1, n) for i in 0:(k * n); init=Vector{Int}[]),
+      reduce(vcat, collect(partitions(i, k, 1, n)) for i in 0:(k * n); init=Vector{Int}[]),
     ),
   )
 end

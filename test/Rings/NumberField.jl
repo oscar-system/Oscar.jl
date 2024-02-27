@@ -206,7 +206,7 @@
     if Bk == FlintQQ
       for i in 1:10
         BB = [rand(K, -2:2) for j in 1:rand(1:10)]
-        M = @inferred basis_matrix(BB, FakeFmpqMat)
+        M = @inferred basis_matrix(BB, Hecke.FakeFmpqMat)
         @test nrows(M) == length(BB)
         @test ncols(M) == degree(K)
         for n in 1:nrows(M)

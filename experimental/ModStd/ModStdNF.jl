@@ -7,7 +7,7 @@ import Hecke: modular_lift, modular_proj, modular_env, RecoCtx,
               induce_rational_reconstruction
 
 function __init__()
-  Hecke.add_verbose_scope(:ModStdNF)
+  Hecke.add_verbosity_scope(:ModStdNF)
 end
 
 

@@ -42,7 +42,7 @@ julia> v = ambient_space(t)
 A family of spaces of dimension d = 5
 
 julia> coordinate_ring(v)
-Multivariate polynomial ring in 9 variables Kbar, w, a1, a21, ..., z
+Multivariate polynomial ring in 8 variables w, a1, a21, a32, ..., z
   over rational field
 ```
 It is also possible to construct a literature model over a particular base.
@@ -103,13 +103,12 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
-Dict{String, MPolyRingElem} with 6 entries:
-  "c2"   => c2
-  "c1"   => c1
-  "Kbar" => Kbar
-  "c3"   => c3
-  "b"    => b
-  "c0"   => c0
+Dict{String, MPolyRingElem} with 5 entries:
+  "c2" => c2
+  "c1" => c1
+  "c3" => c3
+  "b"  => b
+  "c0" => c0
 
 julia> B2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
@@ -255,13 +254,13 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   vars = [string(g) for g in gens(auxiliary_base_ring)]
 
   # Make list of divisor classes which express the internal model sections.
-  model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 2:1+length(model_sections)])
+  model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 1:length(model_sections)])
 
   # Find divisor classes of the internal model sections
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   internal_model_sections = Dict{String, ToricDivisor}()
-  for k in 2+length(model_sections):ngens(auxiliary_base_ring)
+  for k in 1+length(model_sections):ngens(auxiliary_base_ring)
     divisor = sum([auxiliary_base_grading[l,k] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
     internal_model_sections[vars[k]] = divisor
   end
@@ -279,11 +278,8 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections[key] = generic_section(toric_line_bundle(value));
   end
 
-  # Use these, to create map from auxiliary_base_ring to the cox ring of the base_space.
-  images = vcat([zero(cox_ring(base_space))], [explicit_model_sections[vars[k]] for k in 2:length(vars)])
-  map = hom(auxiliary_base_ring, cox_ring(base_space), images)
-
   # Construct the model
+  map = hom(auxiliary_base_ring, cox_ring(base_space), [explicit_model_sections[k] for k in vars])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -301,7 +297,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["a6"] = map(a6)
 
     # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyElem}()
+    defining_section_parametrization = Dict{String, MPolyRingElem}()
     if !("a1" in vars) || (a1 != eval_poly("a1", parent(a1)))
       defining_section_parametrization["a1"] = a1
     end
@@ -332,7 +328,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     explicit_model_sections["g"] = map(g)
 
     # Find defining_section_parametrization
-    defining_section_parametrization = Dict{String, MPolyElem}()
+    defining_section_parametrization = Dict{String, MPolyRingElem}()
     if !("f" in vars) || (f != eval_poly("f", parent(f)))
       defining_section_parametrization["f"] = f
     end
@@ -365,12 +361,12 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model.explicit_model_sections = explicit_model_sections
 
     # Remember hypersurface_parametrization
-    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars[2:length(vars)], fiber_amb_coordinates), cached=false)
+    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
     model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
 
     # Set explicit hypersurface equation
-    images1 = [eval_poly(string(explicit_model_sections[vars[k]]), cox_ring(ambient_space(model))) for k in 2:length(vars)]
+    images1 = [eval_poly(string(explicit_model_sections[k]), cox_ring(ambient_space(model))) for k in vars]
     images2 = [eval_poly(string(k), cox_ring(ambient_space(model))) for k in fiber_amb_coordinates]
     map = hom(parent(parametrized_hypersurface_equation), cox_ring(ambient_space(model)), vcat(images1, images2))
     model.hypersurface_equation = map(parametrized_hypersurface_equation)

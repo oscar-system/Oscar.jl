@@ -72,4 +72,5 @@ is_partially_resolved(m::AbstractFTheoryModel)
 ```@docs
 blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
 tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
+put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
 ```

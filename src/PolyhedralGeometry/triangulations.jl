@@ -68,7 +68,7 @@ end
 
 function _is_full_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
   _is_triangulation(sop) || return false
-  length(Base.union(maximal_cells(sop)...)) == number_of_points(sop) || return false
+  length(Base.union(maximal_cells(sop)...)) == n_points(sop) || return false
   return true
 end
 
@@ -531,8 +531,11 @@ julia> Triang = subdivision_of_points(C,[[1,2,3],[2,3,4]])
 Subdivision of points in ambient dimension 2
 
 julia> gkz_vector(Triang)
-pm::Vector<pm::Rational>
-4 8 8 4
+4-element Vector{QQFieldElem}:
+ 4
+ 8
+ 8
+ 4
 ```
 """
 function gkz_vector(SOP::SubdivisionOfPoints)
@@ -543,5 +546,7 @@ function gkz_vector(SOP::SubdivisionOfPoints)
         @assert sum(T[i,:]) == n+1 #poor check that subdivision is triangulation
     end
     TT = [Polymake.to_zero_based_indexing(Polymake.row(T,i)) for i in 1:Polymake.nrows(T)]
-    Polymake.call_function(:polytope, :gkz_vector, V, TT)
+    F = coefficient_field(SOP)
+    tt = elem_type(F)
+    tt[F(e) for e in  Polymake.call_function(:polytope, :gkz_vector, V, TT)]
 end

@@ -4,10 +4,10 @@ using Test
 function evalu(x::Fac)
   return x.unit * prod(p*k for (p,k) = x.fac)
 end
-@testset "Polymake.factorisations" begin
+@testset "Polymake.factorizations" begin
   k, a = quadratic_field(-5)
   zk = maximal_order(k)
-  f = factorisations(zk(6))
+  f = factorizations(zk(6))
   @test length(f) == 2
   @test all(x -> evalu(x) == 6, f)
 end

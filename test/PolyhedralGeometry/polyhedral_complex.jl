@@ -80,8 +80,8 @@
     @test lineality_dim(PCFL) == 1
     @test f_vector(PCL) == [0, 4, 4, 1]
     # Since there is lineality, there are no rays or vertices
-    @test nrays(PCFL) == 0
-    @test nvertices(PCFL) == 0
+    @test n_rays(PCFL) == 0
+    @test n_vertices(PCFL) == 0
     @test number_of_polyhedra(PCL) == 9
     @test codim(PCF) == 0
     @test is_embedded(PC)

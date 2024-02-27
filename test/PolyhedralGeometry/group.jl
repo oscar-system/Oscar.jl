@@ -8,11 +8,11 @@
         @test ambient_dim(P) == 4
 
         F = facets(Polyhedron, P)
-        #@test nvertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
+        #@test n_vertices.(F) == [6, 6, 4, 6, 4, 4, 6, 4, 6, 6, 4, 6, 6, 4]
         #Since different convex hull algorithms will result in different vertex orders, this test may fail.
         #Best way to handle this is to use "prefer" option in polymake, which is not available in OSCAR yet
         #We avoid using "sort"(expensive) or "countmap" from StatsBase(unnecessary dependency), and just check the lengths for now.
-        @test length(nvertices.(F)) == 14
+        @test length(n_vertices.(F)) == 14
 
         op = orbit_polytope(x, G)
         @test P == op

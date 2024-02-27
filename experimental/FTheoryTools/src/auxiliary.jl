@@ -22,7 +22,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   D2_coeffs = divisor_class(D2).coeff
   m1 = reduce(vcat, [D1_coeffs, D2_coeffs])
   m2 = transpose(f_rays[1:2,:])
-  u_matrix = solve_left(b_grades, (-1)*m2*m1)
+  u_matrix = solve(b_grades, (-1)*m2*m1; side = :left)
   
   # Form toric ambient space
   a_rays = zero_matrix(ZZ, nrows(b_rays) + nrows(f_rays), ncols(b_rays) + ncols(f_rays))

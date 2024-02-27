@@ -1,9 +1,9 @@
 @doc raw"""
-    AbsAffineAlgebraicSet <: AbsSpec
+    AbsAffineAlgebraicSet <: AbsAffineScheme
 
 An affine, geometrically reduced subscheme of an affine space over a field.
 """
-abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsSpec{BaseField, RingType} end
+abstract type AbsAffineAlgebraicSet{BaseField<:Field, RingType} <:AbsAffineScheme{BaseField, RingType} end
 
 @doc raw"""
     AbsProjectiveAlgebraicSet <: AbsProjectiveScheme
@@ -109,7 +109,7 @@ abstract type AbsCoveredSurface{BaseField<:Field} <: AbsCoveredVariety{BaseField
 ################################################################################
 
 @doc raw"""
-    AbsRationalPointSet{P<:AbsSpec,T<:Scheme}
+    AbsRationalPointSet{P<:AbsAffineScheme,T<:Scheme}
 
 Abstract type for the set of rational points of a scheme.
 
@@ -120,7 +120,7 @@ We refer to ``L`` as the `coefficient_ring`, to
 homset. For traditional reasons we keep the name
 `ambient_scheme` for the codomain.
 """
-abstract type AbsRationalPointSet{P<:AbsSpec,T<:Scheme} end
+abstract type AbsRationalPointSet{P<:AbsAffineScheme,T<:Scheme} end
 
 abstract type AbsRationalPoint{RingElemType, ParentType} end
 

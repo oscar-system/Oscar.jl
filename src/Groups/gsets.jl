@@ -1016,7 +1016,7 @@ the action is transitive and the point stabilizers are maximal in `G`.
 ```jldoctest
 julia> G = alternating_group(6);
 
-julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
+julia> mx = filter(is_transitive, map(representative, maximal_subgroup_classes(G)))
 3-element Vector{PermGroup}:
  Permutation group of degree 6 and order 24
  Permutation group of degree 6 and order 36

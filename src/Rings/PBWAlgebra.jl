@@ -529,7 +529,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     n = length(revs)
     bsring = Singular.PluralRing{S}(ptr, a.sring.base_ring, revs)
     bspolyring, _ = Singular.polynomial_ring(a.sring.base_ring,
-                                revs, ordering = ordering(bsring))
+                                revs, ordering = Singular.ordering(bsring))
     bsrel = Singular.zero_matrix(bspolyring, n, n)
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)

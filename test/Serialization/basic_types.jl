@@ -23,7 +23,7 @@
     end
 
     @testset "String" begin
-      original = "original"
+      original = "original \n \" "
       test_save_load_roundtrip(path, original) do loaded
         @test loaded == original
       end

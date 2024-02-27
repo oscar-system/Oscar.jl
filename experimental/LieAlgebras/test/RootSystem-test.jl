@@ -18,12 +18,12 @@
 
   @testset "root_system(cartan_matrix::ZZMatrix)" begin
     R = root_system(:F, 4)
-    @test nposroots(R) == 24
-    @test nroots(R) == 48
+    @test n_positive_roots(R) == 24
+    @test n_roots(R) == 48
 
     R = root_system(:G, 2)
-    @test nposroots(R) == 6
-    @test nroots(R) == 12
+    @test n_positive_roots(R) == 6
+    @test n_roots(R) == 12
 
     @test coefficients(positive_root(R, 1)) == QQ[1 0]
     @test coefficients(positive_root(R, 2)) == QQ[0 1]
@@ -32,24 +32,24 @@
   @testset "property tests" begin
     function root_system_property_tests(R::RootSystem, rk::Int, npositive_roots::Int)
       @test rank(R) == rk
-      @test nsimpleroots(R) == rk
-      @test nposroots(R) == npositive_roots
-      @test nroots(R) == 2 * npositive_roots
+      @test n_simple_roots(R) == rk
+      @test n_positive_roots(R) == npositive_roots
+      @test n_roots(R) == 2 * npositive_roots
 
-      @test length(simple_roots(R)) == nsimpleroots(R)
-      @test length(positive_roots(R)) == nposroots(R)
-      @test length(negative_roots(R)) == nposroots(R)
-      @test length(roots(R)) == nroots(R)
+      @test length(simple_roots(R)) == n_simple_roots(R)
+      @test length(positive_roots(R)) == n_positive_roots(R)
+      @test length(negative_roots(R)) == n_positive_roots(R)
+      @test length(roots(R)) == n_roots(R)
       @test all(i -> simple_root(R, i) == simple_roots(R)[i], 1:rk)
       @test all(i -> positive_root(R, i) == positive_roots(R)[i], 1:npositive_roots)
       @test all(i -> negative_root(R, i) == negative_roots(R)[i], 1:npositive_roots)
       @test simple_roots(R) == positive_roots(R)[1:rk]
       @test all(iszero, positive_roots(R) + negative_roots(R))
 
-      @test length(simple_coroots(R)) == nsimpleroots(R)
-      @test length(positive_coroots(R)) == nposroots(R)
-      @test length(negative_coroots(R)) == nposroots(R)
-      @test length(coroots(R)) == nroots(R)
+      @test length(simple_coroots(R)) == n_simple_roots(R)
+      @test length(positive_coroots(R)) == n_positive_roots(R)
+      @test length(negative_coroots(R)) == n_positive_roots(R)
+      @test length(coroots(R)) == n_roots(R)
       @test all(i -> simple_coroot(R, i) == simple_coroots(R)[i], 1:rk)
       @test all(i -> positive_coroot(R, i) == positive_coroots(R)[i], 1:npositive_roots)
       @test all(i -> negative_coroot(R, i) == negative_coroots(R)[i], 1:npositive_roots)
@@ -61,7 +61,7 @@
       @test all(
         i ->
           dot(coefficients(coroot(R, i)) * cartan_matrix(R), coefficients(root(R, i))) == 2,
-        1:nroots(R),
+        1:n_roots(R),
       )
     end
 

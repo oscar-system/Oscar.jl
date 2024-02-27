@@ -6,7 +6,7 @@
     CoveringMorphism
 
 A morphism ``f : C → D`` of two coverings. For every patch ``U`` of ``C`` this
-provides a map `f[U']` of type `SpecMorType` from ``U' ⊂ U`` to
+provides a map `f[U']` of type `AffineSchemeMorType` from ``U' ⊂ U`` to
 some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``.
 
 **Note:** For two affine patches ``U₁, U₂ ⊂ U`` the codomains of `f[U₁]` and `f[U₂]`
@@ -15,24 +15,24 @@ have to coincide on their overlaps.
 """
 mutable struct CoveringMorphism{DomainType<:Covering, 
                                 CodomainType<:Covering, 
-                                MorphismType<:AbsSpecMor, 
+                                MorphismType<:AbsAffineSchemeMor, 
                                 BaseMorType
                                }
   domain::DomainType
   codomain::CodomainType
-  morphisms::IdDict{<:AbsSpec, <:MorphismType} # on a patch X of the domain covering, this
+  morphisms::IdDict{<:AbsAffineScheme, <:MorphismType} # on a patch X of the domain covering, this
                                          # returns the morphism φ : X → Y to the corresponding
                                          # patch Y of the codomain covering.
 
   function CoveringMorphism(
       dom::DomainType,
       cod::CodomainType,
-      mor::IdDict{<:AbsSpec, MorphismType};
+      mor::IdDict{<:AbsAffineScheme, MorphismType};
       check::Bool=true
     ) where {
              DomainType<:Covering,
              CodomainType<:Covering,
-             MorphismType<:AbsSpecMor
+             MorphismType<:AbsAffineSchemeMor
             }
     # TODO: check domain/codomain compatibility
     # TODO: if check is true, check that all morphisms glue and that the domain patches

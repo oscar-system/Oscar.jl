@@ -44,6 +44,7 @@ end
 # Methods which should not be necessary, but the stuff doesn't work,   #
 # unless we implement them.                                            #
 ########################################################################
+#=
 @attr function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
@@ -63,6 +64,7 @@ end
   KK, inc2 = sub(domain(f), tr.(gens(K)))
   return KK, inc2
 end
+=#
 
 function coordinates(
     v::FreeModElem{T}, 

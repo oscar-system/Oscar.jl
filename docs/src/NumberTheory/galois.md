@@ -41,7 +41,7 @@ between `K` and `k` can be computed as well.
 
 ## Automorphism Group
 
-The automorphisms are computed using various specialised factoring
+The automorphisms are computed using various specialized factoring
 algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.
@@ -60,7 +60,7 @@ The main information is included in the number field chapter, see
   - [`Hecke.principal_subfields(K::SimpleNumField)`](@ref)
   - [`subfields(FF::Generic.FunctionField{QQFieldElem})`](@ref)
 
-By setting `set_verbose_level(:Subfields, n::Int)` to 1 or 2
+By setting `set_verbosity_level(:Subfields, n::Int)` to 1 or 2
 information about the progress can be obtained.
 
 ## Galois Group
@@ -75,8 +75,8 @@ find explicit subfields of the splitting field as well.
 
 Information about the progress is available via
  
- - `set_verbose_level(:GaloisGroup, n::Int)`
- - `set_verbose_level(:GaloisInvariants, n::Int)`
+ - `set_verbosity_level(:GaloisGroup, n::Int)`
+ - `set_verbosity_level(:GaloisInvariants, n::Int)`
 
 ```@docs
 galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)

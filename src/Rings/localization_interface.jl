@@ -12,7 +12,7 @@ import AbstractAlgebra: expressify, show_via_expressify
 @doc raw"""
     AbsMultSet{RingType, RingElemType}
 
-The abstract type for a multiplicatively closed subset of a commutative ring 
+The abstract type for a multiplicatively closed subset of a commutative ring
 of type `RingType` with elements of type `RingElemType`.
 """
 abstract type AbsMultSet{RingType<:Ring, RingElemType<:RingElem} end
@@ -56,9 +56,9 @@ function Base.in(f::RingElemType, S::AbsMultSet{RingType, RingElemType}) where {
 end
 
 ### iterator over the multiplicative set
-# This can (and should) be used to iterate over some set of generators 
-# of the multiplicative set whenever possible. For instance, this is 
-# used to check well-definedness of homomorphisms from localized rings. 
+# This can (and should) be used to iterate over some set of generators
+# of the multiplicative set whenever possible. For instance, this is
+# used to check well-definedness of homomorphisms from localized rings.
 # By default, however, this iteration does nothing.
 Base.iterate(U::T) where {T<:AbsMultSet} = (one(ring(U)), 1)
 Base.iterate(U::T, a::Tuple{<:RingElem, Int}) where {T<:AbsMultSet} = nothing
@@ -71,17 +71,17 @@ Base.iterate(U::T, i::Int) where {T<:AbsMultSet} = nothing
 @doc raw"""
     AbsLocalizedRing{RingType, RingElemType, MultSetType}
 
-The abstract type for modelling the localization R[U⁻¹] of a commutative ring R 
-of type `RingType` with elements of type `RingElemType` at a multiplicatively closed 
-subset S of type `MultSetType`. 
+The abstract type for modelling the localization R[U⁻¹] of a commutative ring R
+of type `RingType` with elements of type `RingElemType` at a multiplicatively closed
+subset S of type `MultSetType`.
 
-It is recommended to implement the arithmetic of a concrete instance of such a localized 
+It is recommended to implement the arithmetic of a concrete instance of such a localized
 ring R[U⁻¹] using the concept of fractions of elements in the original ring R. To check
-whether a given denominator is admissible for the specific localization, use the 
+whether a given denominator is admissible for the specific localization, use the
 `ìn` function.
 
-Depending on the actual type of R and U, further functionality can be provided using 
-various Gröbner basis driven backends. 
+Depending on the actual type of R and U, further functionality can be provided using
+various Gröbner basis driven backends.
 """
 abstract type AbsLocalizedRing{RingType, RingElemType, MultSetType} <: Ring end
 
@@ -150,7 +150,7 @@ end
 @doc raw"""
     localization(U::AbsMultSet)
 
-Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say, 
+Given a multiplicatively closed subset of a multivariate polynomial ring ``R``, say,
 return the localization of ``R`` at ``U`` together with the localization map ``R`` ``\to`` ``R[U^{-1}]``.
 
     localization(R::Ring, U::AbsMultSet)
@@ -200,21 +200,21 @@ function localization(R::Ring, U::AbsMultSet)
 end
 
 @doc raw"""
-    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {RingType, RingElemType, MultSetType} 
+    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}) where {RingType, RingElemType, MultSetType}
 
 Converts a fraction f = a//b to an element of the localized ring W.
 """
-function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.Frac{RingElemType}) where {RingType, RingElemType, MultSetType} 
+function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}) where {RingType, RingElemType, MultSetType}
   error("conversion for fractions to elements of type $(typeof(W)) is not implemented")
 end
 
 ### required conversions
 @doc raw"""
-    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType} 
+    (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}
 
 Converts an element `a` to an element of `W`.
 """
-function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType} 
+function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType) where {RingType, RingElemType, MultSetType}
   error("conversion of elements of type $(RingElemType) to elements of $(typeof(W)) is not implemented")
 end
 
@@ -223,11 +223,11 @@ end
 
 Converts a pair `(a, b)` to an element `a//b` in `W`.
 
-**Note:** When the flag `check=true` is set, then it will be checked 
-whether the fraction `a//b` is admissible for `W`. Since those checks 
+**Note:** When the flag `check=true` is set, then it will be checked
+whether the fraction `a//b` is admissible for `W`. Since those checks
 are usually expensive, it should be disabled for safe internal usage.
 """
-function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType; check::Bool=true) where {RingType, RingElemType, MultSetType} 
+function (W::AbsLocalizedRing{RingType, RingElemType, MultSetType})(a::RingElemType, b::RingElemType; check::Bool=true) where {RingType, RingElemType, MultSetType}
   error("conversion of pairs `(a, b)` of elements of type $(RingElemType) to fractions `a/b` in a ring of type $(typeof(W)) is not implemented")
 end
 
@@ -243,17 +243,17 @@ end
 @doc raw"""
     AbsLocalizedRingElem{RingType, RingElemType, MultSetType}
 
-The abstract type of an element of the localization R[S⁻¹] of a commutative ring 
-R of type `RingType` with elements of type `RingElemType` at a multiplicatively 
+The abstract type of an element of the localization R[S⁻¹] of a commutative ring
+R of type `RingType` with elements of type `RingElemType` at a multiplicatively
 closed set S of type `MultSetType`.
 """
 abstract type AbsLocalizedRingElem{
-    RingType <: AbstractAlgebra.Ring, 
-    RingElemType <: AbstractAlgebra.RingElem, 
+    RingType <: AbstractAlgebra.Ring,
+    RingElemType <: AbstractAlgebra.RingElem,
     MultSetType <: AbsMultSet
   } <: AbstractAlgebra.RingElem end
 
-### required getter functions 
+### required getter functions
 @doc raw"""
     numerator(f::AbsLocalizedRingElem)
 
@@ -281,7 +281,7 @@ function parent(f::AbsLocalizedRingElem)
   error("`parent` is not implemented for the type $(typeof(f))")
 end
 
-function expressify(f::AbsLocalizedRingElem; context=nothing) 
+function expressify(f::AbsLocalizedRingElem; context=nothing)
   isone(denominator(f)) && return expressify(numerator(f), context=context)
   return Expr(:call, :/, expressify(numerator(f), context=context), expressify(denominator(f), context=context))
 end
@@ -311,7 +311,7 @@ end
 
 function +(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if denominator(a) == denominator(b)
     return reduce_fraction((parent(a))(numerator(a) + numerator(b), denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(numerator(a)*denominator(b) + numerator(b)*denominator(a), denominator(a)*denominator(b), check=false))
@@ -319,7 +319,7 @@ end
 
 function -(a::T, b::T) where {T<:AbsLocalizedRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if denominator(a) == denominator(b) 
+  if denominator(a) == denominator(b)
     return reduce_fraction((parent(a))(numerator(a) - numerator(b), denominator(a), check=false))
   end
   return reduce_fraction((parent(a))(numerator(a)*denominator(b) - numerator(b)*denominator(a), denominator(a)*denominator(b), check=false))
@@ -363,11 +363,11 @@ function ^(a::AbsLocalizedRingElem, i::Integer)
   return parent(a)(numerator(a)^i, denominator(a)^i, check=false)
 end
 
-function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem} 
+function divexact(a::T, b::T; check::Bool=false) where {T<:AbsLocalizedRingElem}
   error("method `divexact` not implemented for arguments of type $(typeof(a))")
 end
 
-function inv(a::AbsLocalizedRingElem) 
+function inv(a::AbsLocalizedRingElem)
   return divexact(parent(a)(denominator(a)), parent(a)(numerator(a)))
 end
 
@@ -383,7 +383,7 @@ is_domain_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set
 
 is_exact_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set to false
 
-function Base.hash(f::T, h::UInt) where {T<:AbsLocalizedRingElem} 
+function Base.hash(f::T, h::UInt) where {T<:AbsLocalizedRingElem}
   r = 0x78a97cd90
   r = xor(r, hash(numerator(f), h))
   return xor(r, hash(denominator(f), h))
@@ -423,17 +423,17 @@ function Base.show(io::IO, W::AbsLocalizedRing)
   end
 end
 
-function zero!(a::AbsLocalizedRingElem) 
+function zero!(a::AbsLocalizedRingElem)
   a = zero(parent(a))
   return a
 end
 
-function mul!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem} 
+function mul!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem}
   c = a*b
   return c
 end
 
-function add!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem} 
+function add!(c::T, a::T, b::T) where {T<:AbsLocalizedRingElem}
   c = a+b
   return c
 end
@@ -446,7 +446,7 @@ end
 ### promotion rules
 AbstractAlgebra.promote_rule(::Type{S}, ::Type{S}) where {S<:AbsLocalizedRingElem} = S
 
-function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT, RET, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement} 
+function AbstractAlgebra.promote_rule(::Type{S}, ::Type{T}) where {RT, RET, MST, S<:AbsLocalizedRingElem{RT, RET, MST}, T<:RingElement}
   AbstractAlgebra.promote_rule(RET, T) == RET ? S : Union{}
 end
 
@@ -466,7 +466,7 @@ iszero(a::AbsLocalizedRingElem) = iszero(numerator(a))
 @doc raw"""
     AbsLocalizedIdeal{LocRingElemType}
 
-Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings. 
+Abstract type for finitely generated ideals ``I ⊂ R[S⁻¹]`` in localized rings.
 """
 abstract type AbsLocalizedIdeal{LocRingElemType} <: Ideal{LocRingElemType} end
 
@@ -518,10 +518,10 @@ function ==(I::IdealType, J::IdealType) where {IdealType<:AbsLocalizedIdeal}
   return issubset(I, J) && issubset(J, I)
 end
 
-### A catchall implementation for the ideal arithmetic 
+### A catchall implementation for the ideal arithmetic
 # Return the product of the ideals `I` and `J`.
 function Base.:*(I::T, J::T) where {T<:AbsLocalizedIdeal}
-  W = base_ring(I) 
+  W = base_ring(I)
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
   new_gens = [ f*g for f in gens(I) for g in gens(J)]
   return ideal(W, new_gens)
@@ -529,7 +529,7 @@ end
 
 # Return the sum of the ideals `I` and `J`.
 function Base.:+(I::T, J::T) where {T<:AbsLocalizedIdeal}
-  W = base_ring(I) 
+  W = base_ring(I)
   W == base_ring(J) || error("the given ideals do not belong to the same ring")
   return ideal(W, vcat(gens(I), gens(J)))
 end
@@ -565,11 +565,11 @@ end
         AbsLocalizedRingHom
       }
 
-Homomorphism ``ϕ : R[U⁻¹] → S`` from the localization ``R[U⁻¹]`` of type 
-``DomainType`` to an arbitrary ring `S` of type `CodomainType`. Such a 
-homomorphism is completely determined by its 'restriction' 
-``ϕ' : R → R[U⁻¹] → S`` to the `base_ring` ``R`` before localization and 
-the type parameter `RestrictedMapType` is reserved for that map. 
+Homomorphism ``ϕ : R[U⁻¹] → S`` from the localization ``R[U⁻¹]`` of type
+``DomainType`` to an arbitrary ring `S` of type `CodomainType`. Such a
+homomorphism is completely determined by its 'restriction'
+``ϕ' : R → R[U⁻¹] → S`` to the `base_ring` ``R`` before localization and
+the type parameter `RestrictedMapType` is reserved for that map.
 """
 abstract type AbsLocalizedRingHom{
                                   DomainType<:AbsLocalizedRing,
@@ -586,30 +586,30 @@ end
 
 ### required getter functions
 @doc raw"""
-    domain(f::AbsLocalizedRingHom) 
+    domain(f::AbsLocalizedRingHom)
 
 Return the domain of definition of `f`.
 """
-function domain(f::AbsLocalizedRingHom) 
+function domain(f::AbsLocalizedRingHom)
   error("`domain(f)` not implemented for `f` of type $(typeof(f))")
 end
 
 @doc raw"""
-    codomain(f::AbsLocalizedRingHom) 
+    codomain(f::AbsLocalizedRingHom)
 
 Return the codomain of `f`.
 """
-function codomain(f::AbsLocalizedRingHom) 
+function codomain(f::AbsLocalizedRingHom)
   error("`codomain(f)` not implemented for `f` of type $(typeof(f))")
 end
 
 @doc raw"""
-    restricted_map(f::AbsLocalizedRingHom) 
+    restricted_map(f::AbsLocalizedRingHom)
 
-For a ring homomorphism ``ϕ : R[U⁻¹] → S`` return the underlying 
+For a ring homomorphism ``ϕ : R[U⁻¹] → S`` return the underlying
 restriction ``ϕ' : R → S``.
 """
-function restricted_map(f::AbsLocalizedRingHom) 
+function restricted_map(f::AbsLocalizedRingHom)
   error("`restricted_map(f)` not implemented for `f` of type $(typeof(f))")
 end
 

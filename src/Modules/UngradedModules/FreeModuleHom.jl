@@ -200,12 +200,12 @@ true
 ```
 """
 function hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M))
-  return FreeModuleHom(F, M, V)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, V, base_ring(M); check)
+  return FreeModuleHom(F, M, V; check)
 end
 function hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}; check::Bool=true) where T 
-  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M))
-  return FreeModuleHom(F, M, A)
+  base_ring(F) === base_ring(M) || return FreeModuleHom(F, M, A, base_ring(M); check)
+  return FreeModuleHom(F, M, A; check)
 end
 
 @doc raw"""
@@ -231,8 +231,8 @@ scalars in `base_ring(F)` to their images under `h`.
     If this degree is the zero element of the (common) grading group, we refer to
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
-hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h)
-hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
     identity_map(M::ModuleFP)
@@ -312,6 +312,7 @@ function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <:
     print(io, codomain(fmh))
   end
 end
+
 
 @doc raw"""
     hom(F::FreeMod, G::FreeMod)
@@ -400,6 +401,7 @@ function hom(F::FreeMod, G::FreeMod)
   return GH, to_hom_map
 end
 
+
 @doc raw"""
     kernel(a::FreeModuleHom)
 
@@ -458,36 +460,78 @@ Homogeneous module homomorphism)
 
 ```
 """
-function kernel(h::FreeModuleHom)  #ONLY for free modules...
-  G = domain(h)
+function kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})  #ONLY for free modules...
+  error("not implemented for modules over rings of type $(typeof(base_ring(domain(h))))")
+end
+
+# The following function is part of the requirement of atomic functions to be implemented 
+# in order to have the modules run over a specific type of ring. The documentation of this is 
+# pending and so far only orally communicated by Janko Boehm. 
+#
+# The concrete method below uses Singular as a backend to achieve its task. In order 
+# to have only input which Singular can actually digest, we restrict the signature 
+# to those cases. The method used to be triggered eventually also for rings which 
+# did not have a groebner basis backend in Singular, but Singular did not complain. 
+# This lead to false results without notification. By restricting the signature, 
+# the user gets the above error message instead. 
+function kernel(
+    h::FreeModuleHom{<:FreeMod{T}, <:FreeMod{T}, Nothing}
+  ) where {S<: Union{ZZRingElem, <:FieldElem}, T <: MPolyRingElem{S}}
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  is_graded(h) && return _graded_kernel(h)
+  return _simple_kernel(h)
+end
+
+function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  F = domain(h)
+  G = codomain(h)
+  g = images_of_generators(h)
+  b = ModuleGens(g, G, default_ordering(G))
+  M = syzygy_module(b)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
+  I, inc = sub(F, v)
+  return sub(F, v)
+end
+
+function _graded_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
+  I, inc = _simple_kernel(h)
+  @assert is_graded(I)
+  @assert is_homogeneous(inc)
+  return I, inc
+end
+
+function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
+  is_zero(h) && return sub(domain(h), gens(domain(h)))
+  F = domain(h)
+  M = codomain(h)
+  G = ambient_free_module(M)
+  # We have to take the representatives of the reduced elements!
+  # Otherwise we might get wrong degrees.
+  g = [repres(simplify(v)) for v in images_of_generators(h)]
+  g = vcat(g, relations(M))
   R = base_ring(G)
-  if ngens(G) == 0
-    s = sub(G, gens(G), :module)
-    help = hom(s, G, gens(G), check=false)
-    help.generators_map_to_generators = true
-    return s, help
-  end
-  g = map(h, basis(G))
-  if isa(codomain(h), SubquoModule)
-    g = [repres(x) for x = g]
-    if isdefined(codomain(h), :quo)
-      append!(g, collect(codomain(h).quo.gens))
-    end
-  end
-  #TODO allow sub-quo here as well
-  ambient_free_module_codomain = ambient_free_module(codomain(h))
-  b = ModuleGens(g, ambient_free_module_codomain, default_ordering(ambient_free_module_codomain))
-  k = syzygy_module(b)
-  if isa(codomain(h), SubquoModule)
-    s = collect(k.sub.gens)
-    k = sub(G, [FreeModElem(x.coords[R,1:dim(G)], G) for x = s], :module)
-  else
-    #the syzygie_module creates a new free module to work in
-    k = sub(G, [FreeModElem(x.coords, G) for x = collect(k.sub.gens)], :module)
-  end
-  @assert k.F === G
-  c = collect(k.sub.gens)
-  return k, hom(k, parent(c[1]), c, check=false)
+  H = FreeMod(R, length(g))
+  phi = hom(H, G, g)
+  K, inc = kernel(phi)
+  r = ngens(F)
+  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
+  return sub(F, v)
+end
+
+function is_welldefined(H::SubQuoHom{<:SubquoModule})
+  M = domain(H)
+  pres = presentation(M)
+  # is a short exact sequence with maps
+  # M <--eps-- F0 <--g-- F1
+  # and H : M -> N
+  eps = map(pres, 0)
+  g = map(pres, 1)
+  F0 = pres[0]
+  N = codomain(H)
+  # the induced map phi : F0 --> N
+  phi = hom(F0, N, elem_type(N)[H(eps(v)) for v in gens(F0)]; check=false)
+  # now phi ∘ g : F1 --> N has to be zero.
+  return iszero(compose(g, phi))
 end
 
 @doc raw"""
@@ -560,7 +604,7 @@ Homogeneous module homomorphism)
 """
 function image(h::FreeModuleHom)
   si = filter(!iszero, images_of_generators(h))
-  s = sub(codomain(h), si, :module)
+  s = sub_object(codomain(h), si)
   phi = hom(s, codomain(h), si, check=false)
   return s, phi
 end
@@ -583,3 +627,22 @@ function *(h::ModuleFPHom{T1, T2, <:Any}, g::ModuleFPHom{T2, T3, Nothing}) where
 
 end
 
+@doc raw"""
+    lift(f::FreeModuleHom, g::FreeModuleHom)
+
+Supposing that `f` and  `g` have the same codomain, factorize `f` through `g`,
+i.e. return a homomorphism `h` such that `f` is the composition of `g` after `h`,
+if such a homomorphism exists. Otherwise throw an error.
+
+"""
+function lift(f::FreeModuleHom, g::FreeModuleHom)
+  @assert codomain(f) === codomain(g)
+  F_imgs = images_of_generators(f)
+  G_imgs = images_of_generators(g)
+  F_modgens = ModuleGens(F_imgs, codomain(f))
+  G_modgens = ModuleGens(G_imgs, codomain(g))
+  lifted_imgs_srow = lift(F_modgens, G_modgens)
+  lifted_imgs = [FreeModElem(c, domain(g)) for c in lifted_imgs_srow]
+  h = hom(domain(f), domain(g), lifted_imgs)
+  return h
+end

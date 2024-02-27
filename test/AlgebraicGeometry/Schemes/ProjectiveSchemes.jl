@@ -4,7 +4,7 @@
   S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
 
   I = ideal(S, [x*v - y*u])
-  X = ProjectiveScheme(S, I)
+  X = proj(S, I)
   CX, id = affine_cone(X)
   p = covered_projection_to_base(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
@@ -19,7 +19,7 @@
   S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
 
   I = ideal(S, [u])
-  X = ProjectiveScheme(S, I)
+  X = proj(S, I)
   CX, id = affine_cone(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
   hc = Oscar.homogeneous_coordinates_on_affine_cone(X)
@@ -31,10 +31,10 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for relative projective space over MPolyQuoLocalizedRings
-  Y = Spec(R)
+  Y = spec(R)
   Q = OO(Y)
   S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
-  X = ProjectiveScheme(S)
+  X = proj(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
 
@@ -46,8 +46,8 @@ end
 @testset "projective_schemes_2" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   I = ideal(R, [x^2-y*z])
-  X = Spec(R, I)
-  U = SpecOpen(X, [x, y])
+  X = spec(R, I)
+  U = AffineSchemeOpenSubscheme(X, [x, y])
   P = projective_space(OO(U), 1)
   S = homogeneous_coordinate_ring(P)
   Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to be carried out manually.
@@ -72,11 +72,11 @@ end
 @testset "singular schemes" begin
   A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
   B, _ = quo(A, ideal(A, [x^2 + y^2]));
-  C = projective_scheme(B)
+  C = proj(B)
   @test !is_smooth(C; algorithm=:projective_jacobian)
-  C = projective_scheme(B)
+  C = proj(B)
   @test !is_smooth(C; algorithm=:covered_jacobian)
-  C = projective_scheme(B)
+  C = proj(B)
   @test !is_smooth(C; algorithm=:affine_cone)
 end
 
@@ -186,12 +186,12 @@ end
   @test sprint(show, IP2_U) isa String
   @test sprint(show, IP2_UY) isa String
 
-  W = SpecOpen(UY, [x-1, y-1])
+  W = AffineSchemeOpenSubscheme(UY, [x-1, y-1])
   IP2_W = projective_space(W, 2, var_name="w")
   CW = affine_cone(IP2_W)
   pCW = projection_to_base(IP2_W)
 
-  WY = SpecOpen(Y, [x-y, x+y-2])
+  WY = AffineSchemeOpenSubscheme(Y, [x-y, x+y-2])
   WtoWY = inclusion_morphism(W, WY)
   IP2_WY = projective_space(WY, 2, var_name="w")
   _, map = fiber_product(pullback(WtoWY), IP2_WY)
@@ -273,17 +273,17 @@ end
 @testset "properties of projective schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, _ = grade(R)
-  X = ProjectiveScheme(S)
+  X = proj(S)
   I = ideal(S, x^2 - y*z)
   Q, _ = quo(S, I)
-  C = ProjectiveScheme(Q)
+  C = proj(Q)
   @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
   @test is_smooth(C; algorithm=:projective_jacobian)
-  C = ProjectiveScheme(Q)
+  C = proj(Q)
   @test is_smooth(C; algorithm=:covered_jacobian)
-  C = ProjectiveScheme(Q)
+  C = proj(Q)
   @test is_smooth(C; algorithm=:affine_cone)
   @test arithmetic_genus(C) == 0
 
@@ -291,14 +291,14 @@ end
   S, _ = grade(R)
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)
-  Y = ProjectiveScheme(Q)
+  Y = proj(Q)
   @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
   @test is_smooth(Y; algorithm=:projective_jacobian)
-  Y = ProjectiveScheme(Q)
+  Y = proj(Q)
   @test is_smooth(Y; algorithm=:covered_jacobian)
-  Y = ProjectiveScheme(Q)
+  Y = proj(Q)
   @test is_smooth(Y; algorithm=:affine_cone)
   @test arithmetic_genus(Y) == 1
   @test is_reduced(Y)

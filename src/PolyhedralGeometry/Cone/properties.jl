@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
   lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
 _rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _ray_cone, _number_of_rays(C))
+  SubObjectIterator{as}(C, _ray_cone, _n_rays(C))
 
 _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
@@ -155,7 +155,7 @@ RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0]]
 """
 function faces(C::Cone{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(C) - 1 &&
-    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, nfacets(C))
+    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, n_facets(C))
   n = face_dim - length(lineality_space(C))
   n < 1 && return nothing
   return SubObjectIterator{Cone{T}}(
@@ -212,7 +212,7 @@ _incidencematrix(::Val{_face_cone_facet}) = _ray_indices
 ## Scalar properties
 ###############################################################################
 @doc raw"""
-    number_of_facets(C::Cone)
+    n_facets(C::Cone)
 
 Return the number of facets of a cone `C`.
 
@@ -222,14 +222,14 @@ The cone over a square at height one has four facets.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 Polyhedral cone in ambient dimension 3
 
-julia> number_of_facets(C)
+julia> n_facets(C)
 4
 ```
 """
-number_of_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
+n_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc raw"""
-    number_of_rays(C::Cone)
+    n_rays(C::Cone)
 
 Return the number of rays of `C`.
 
@@ -240,12 +240,12 @@ julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> number_of_rays(PO)
+julia> n_rays(PO)
 2
 ```
 """
-number_of_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
-_number_of_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+n_rays(C::Cone) = lineality_dim(C) == 0 ? _n_rays(C) : 0
+_n_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc raw"""
     dim(C::Cone)
@@ -534,7 +534,7 @@ julia> f = facets(Halfspace, c)
 ```
 """
 facets(as::Type{<:Union{LinearHalfspace{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _facet_cone, nfacets(C))
+  SubObjectIterator{as}(C, _facet_cone, n_facets(C))
 
 _facet_cone(
   U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer

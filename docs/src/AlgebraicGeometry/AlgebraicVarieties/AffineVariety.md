@@ -19,7 +19,7 @@ Functionality which is not (yet) provided by a variety-specific implementation, 
 ## Constructors
 ```@docs
 variety(I::MPolyIdeal; check=true)
-variety(X::AbsSpec{<:Field}; is_reduced=false, check::Bool=true)
+variety(X::AbsAffineScheme{<:Field}; is_reduced=false, check::Bool=true)
 variety(R::MPolyAnyRing; check=true)
 ```
 

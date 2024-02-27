@@ -149,7 +149,7 @@ julia> rays(nc)
 ```
 """
 function normal_cone(P::Polyhedron{T}, i::Int64) where {T<:scalar_types}
-  @req 1 <= i <= nvertices(P) "Vertex index out of range"
+  @req 1 <= i <= n_vertices(P) "Vertex index out of range"
   bigobject = Polymake.polytope.normal_cone(pm_object(P), Set{Int64}([i - 1]))
   return Cone{T}(bigobject, coefficient_field(P))
 end
@@ -318,9 +318,9 @@ function johnson_solid(index::Int)
   if haskey(_johnson_names, index)
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/JohnsonSrc
-    vertices = load(joinpath(oscardir, "data", "JohnsonMatrices", string("j", index, ".mat")))
-    parent_field = base_ring(vertices)
-    return convex_hull(parent_field, vertices; non_redundant = true)
+    str_index = lpad(index, 2, '0')
+    filename = "j$str_index" * ".mrdi"
+    return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
   end
   pmp = Polymake.polytope.johnson_solid(index)
   return polyhedron(pmp)
@@ -425,7 +425,7 @@ julia> Q = cross_polytope(2);
 julia> M = minkowski_sum(P, Q)
 Polyhedron in ambient dimension 2
 
-julia> number_of_vertices(M)
+julia> n_vertices(M)
 8
 ```
 """
@@ -533,7 +533,7 @@ julia> Q = cross_polytope(2);
 julia> M = minkowski_sum(P, Q)
 Polyhedron in ambient dimension 2
 
-julia> number_of_vertices(M)
+julia> n_vertices(M)
 8
 ```
 """
@@ -790,9 +790,9 @@ below.
 # Examples
 ```jldoctest
 julia> T = platonic_solid("icosahedron")
-Polytope in ambient dimension 3 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
-julia> number_of_facets(T)
+julia> n_facets(T)
 20
 ```
 """
@@ -847,13 +847,13 @@ exact; Vertex-facet-incidences are correct in all cases.
 julia> T = archimedean_solid("cuboctahedron")
 Polytope in ambient dimension 3
 
-julia> sum([number_of_vertices(F) for F in faces(T, 2)] .== 3)
+julia> sum([n_vertices(F) for F in faces(T, 2)] .== 3)
 8
 
-julia> sum([number_of_vertices(F) for F in faces(T, 2)] .== 4)
+julia> sum([n_vertices(F) for F in faces(T, 2)] .== 4)
 6
 
-julia> number_of_facets(T)
+julia> n_facets(T)
 14
 ```
 """
@@ -909,10 +909,10 @@ exact. However, vertex-facet-incidences are correct in all cases.
 ```jldoctest
 julia> T = catalan_solid("triakis_tetrahedron");
 
-julia> count(F -> number_of_vertices(F) == 3, faces(T, 2))
+julia> count(F -> n_vertices(F) == 3, faces(T, 2))
 12
 
-julia> number_of_facets(T)
+julia> n_facets(T)
 12
 ```
 """
@@ -1057,7 +1057,7 @@ Construct the Demazure character indexed by a weakly decreasing vector `lambda` 
 
 # Examples
 ```jldoctest
-julia> lambda = Partition([3,1,1])
+julia> lambda = partition([3,1,1])
 [3, 1, 1]
 
 julia> w0 = @perm (1,3,2)
@@ -1213,7 +1213,7 @@ moment curve in dimension $d$.
 julia> cp = cyclic_polytope(3, 20)
 Polytope in ambient dimension 3
 
-julia> number_of_vertices(cp)
+julia> n_vertices(cp)
 20
 ```
 """
@@ -1308,14 +1308,14 @@ The polyhedron $P$ must be bounded, and the number $n$ must not exceed the numbe
 
 # Examples
 ```jldoctest
-julia> number_of_vertices(rand_subpolytope(cube(3), 5))
+julia> n_vertices(rand_subpolytope(cube(3), 5))
 5
 
 ```
 """
 function rand_subpolytope(P::Polyhedron{T}, n::Int; seed=nothing) where {T<:scalar_types}
   @req is_bounded(P) "Polyhedron has to be bounded"
-  nv = nvertices(P)
+  nv = n_vertices(P)
   @req n <= nv "Number of vertices requested too high"
   opts = Dict{Symbol,Any}()
   if !isnothing(seed)
@@ -1815,7 +1815,7 @@ Polytope in ambient dimension 2
 julia> dim(p) 
 2
 
-julia> number_of_vertices(p)
+julia> n_vertices(p)
 5
 ```
 """
@@ -1906,7 +1906,7 @@ Create an $8$-dimensional polytope without rational realizations due to Perles. 
 # Example
 ```jldoctest
 julia> perles_nonrational_8_polytope()
-Polytope in ambient dimension 8 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
+Polytope in ambient dimension 8 with EmbeddedAbsSimpleNumFieldElem type coefficients
 ```
 """
 perles_nonrational_8_polytope() =
@@ -2412,7 +2412,7 @@ julia> vertices(T)
 
 """
 function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scalar_types}
-  @req 1 <= n <= nvertices(P) "There is no vertex $n in this polyhedron"
+  @req 1 <= n <= n_vertices(P) "There is no vertex $n in this polyhedron"
   opts = Dict{Symbol,Any}()
   if !isnothing(cutoff)
     @req 0 < cutoff < 1 "cutoff factor must be within (0,1)"

@@ -4,10 +4,11 @@ using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
-  Hecke.add_verbose_scope(:SolveRadical)
-  Hecke.add_assert_scope(:SolveRadical)
+  Hecke.add_verbosity_scope(:SolveRadical)
+  Hecke.add_assertion_scope(:SolveRadical)
 end
 
+@deprecate recognise recognize
 
 mutable struct SubField
   coeff_field::Union{Nothing, SubField}
@@ -376,13 +377,13 @@ function conjugates(C::GaloisCtx, S::SubField, a::QQFieldElem, pr::Int = 10)
   return [parent(rt[1])(a)]
 end
 
-function recognise(C::GaloisCtx, S::SubField, I::SLPoly)
-  r = recognise(C, S, [I])
+function recognize(C::GaloisCtx, S::SubField, I::SLPoly)
+  r = recognize(C, S, [I])
   r === nothing && return r
   return r[1]
 end
 
-function recognise(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly}, d=false)
+function recognize(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly}, d=false)
   if d != false
     B = d
   elseif isdefined(S, :ts)
@@ -420,7 +421,7 @@ a corresponding primitive n-th root of 1, find an isomorphic radical extension
 using Lagrange resolvents.
 """
 function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem; simplify::Bool = !false)
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
 
   g = gen(K)
   d = degree(K)
@@ -468,7 +469,7 @@ The necessary roots of unity are not themselves computed as radicals.
 See also [`galois_group`](@ref).
 
 # VERBOSE
-Supports `set_verbose_level(:SolveRadical, i)` to obtain information.
+Supports `set_verbosity_level(:SolveRadical, i)` to obtain information.
 
 
 # Examples
@@ -503,7 +504,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   @req is_squarefree(f) "Polynomial must be square-free"
 
   #switches check = true in hom and number_field on
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
   @vtime :SolveRadical 1 G, C = galois_group(f)
   lp = [p for p = keys(factor(order(G)).fac) if p > 2]
@@ -541,20 +542,20 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   
   cyclo = fld_arr[length(pp)+1]
   @vprint :SolveRadical 1 "finding roots-of-1...\n"
-  @vtime :SolveRadical 1 zeta = [recognise(C, cyclo, gens(parent(cyclo.pe))[i])//scale for i=pp]
+  @vtime :SolveRadical 1 zeta = [recognize(C, cyclo, gens(parent(cyclo.pe))[i])//scale for i=pp]
   @hassert :SolveRadical 1 all(i->isone(zeta[i]^lp[i]), 1:length(pp))
   aut = []
   @vprint :SolveRadical 1 "finding automorphisms...\n"
   for i=length(pp)+2:length(fld_arr)
     @vprint :SolveRadical 1 "..on level $(i-length(pp)-1)...\n"
     K = fld_arr[i]
-    @vtime :SolveRadical 1 push!(aut, hom(K.fld, K.fld, recognise(C, K, K.pe^K.conj[2])))
+    @vtime :SolveRadical 1 push!(aut, hom(K.fld, K.fld, recognize(C, K, K.pe^K.conj[2])))
   end
   for i=1:length(pp)
     fld_arr[i+1].fld.S = Symbol("z_$(lp[i])")
   end
   @vprint :SolveRadical 1 "find roots...\n"
-  @vtime :SolveRadical 1 R = recognise(C, All, gens(S)[rt])
+  @vtime :SolveRadical 1 R = recognize(C, All, gens(S)[rt])
   R = R .// scale
   #now, rewrite as radicals..
   #the cyclos are fine:
@@ -761,7 +762,7 @@ function galois_factor(C::GaloisCtx)
     end
   end
   z = _fixed_field(C, Gi, invar = I)
-  return recognise(C, z, x)
+  return recognize(C, z, x)
 end
 
 end # SolveRadical

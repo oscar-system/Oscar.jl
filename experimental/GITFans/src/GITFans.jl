@@ -186,7 +186,7 @@ Group homomorphism
 
 ```
 
-Note that $\rho(\pi)$, for $\pi \in $`G`, satisfies
+Note that $\rho(\pi)$, for $\pi \in$ `G`, satisfies
 `Q`$^\pi$ = `Q` * $\rho(\pi^{-1})$, where `Q`$^\pi$ is the matrix obtained
 from `Q` by permuting its rows by $\pi$.
 
@@ -207,7 +207,7 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     matgens = typeof(mat)[]
     for ppi in permgens
       matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
-      push!(matgens, solve(mat, matimg))
+      push!(matgens, solve(mat, matimg; side = :right))
     end
 
     # Create the matrix group.
@@ -428,7 +428,7 @@ end
 
 #T is not needed anymore, thanks to `relative_interior_point`
 function get_interior_point_weighted(cone::Cone)
-    weights = rand(-100:100, nrays(cone))
+    weights = rand(-100:100, n_rays(cone))
     return sum(rays(cone) .* weights)
 end
 

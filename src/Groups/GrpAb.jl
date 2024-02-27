@@ -71,24 +71,24 @@ end
 #
 ################################################################################
 
-struct GrpAbFinGenConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
+struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
    X::T
    repr::S
 end
 
-function Base.hash(C::GrpAbFinGenConjClass, h::UInt)
+function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
   return Base.hash(Representative(C), h)
 end
 
-function Base.show(io::IO, C::GrpAbFinGenConjClass)
+function Base.show(io::IO, C::FinGenAbGroupConjClass)
   print(io, string(representative(C)), " ^ ", string(C.X))
 end
 
-==(a::GrpAbFinGenConjClass, b::GrpAbFinGenConjClass) = representative(a) == representative(b)
+==(a::FinGenAbGroupConjClass, b::FinGenAbGroupConjClass) = representative(a) == representative(b)
 
-Base.length(::Type{T}, C::GrpAbFinGenConjClass) where T <: IntegerUnion = T(1)
+Base.length(::Type{T}, C::FinGenAbGroupConjClass) where T <: IntegerUnion = T(1)
 
-Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
+Base.length(C::FinGenAbGroupConjClass) = ZZRingElem(1)
 
 
 ################################################################################
@@ -97,19 +97,19 @@ Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
 #
 ################################################################################
 
-conjugacy_class(G::FinGenAbGroup, g::FinGenAbGroupElem) = GrpAbFinGenConjClass(G, g)
+conjugacy_class(G::FinGenAbGroup, g::FinGenAbGroupElem) = FinGenAbGroupConjClass(G, g)
 
-Base.eltype(::Type{GrpAbFinGenConjClass{T,S}}) where {T,S} = S
+Base.eltype(::Type{FinGenAbGroupConjClass{T,S}}) where {T,S} = S
 
-Base.rand(C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(C::FinGenAbGroupConjClass) = representative(C)
 
-Base.rand(rng::Random.AbstractRNG, C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(rng::Random.AbstractRNG, C::FinGenAbGroupConjClass) = representative(C)
 
 number_of_conjugacy_classes(G::FinGenAbGroup) = order(ZZRingElem, G)
 
 number_of_conjugacy_classes(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion = order(T, G)
 
-conjugacy_classes(G::FinGenAbGroup) = [GrpAbFinGenConjClass(G, x) for x in G]
+conjugacy_classes(G::FinGenAbGroup) = [FinGenAbGroupConjClass(G, x) for x in G]
 
 is_conjugate(G::FinGenAbGroup, x::FinGenAbGroupElem, y::FinGenAbGroupElem) = (x == y)
 
@@ -123,45 +123,37 @@ end
 #
 ################################################################################
 
-conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = GrpAbFinGenConjClass(G, H)
+conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = FinGenAbGroupConjClass(G, H)
 
-function conjugacy_classes_subgroups(G::FinGenAbGroup)
+function subgroup_classes(G::FinGenAbGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
    @req is_finite(G) "G is not finite"
-   return [conjugacy_class(G, H) for (H, mp) in subgroups(G)]
-end
-
-function subgroup_reps(G::FinGenAbGroup; order::ZZRingElem = ZZRingElem(-1))
    if order > 0 && mod(Hecke.order(G), order) != 0
      # `subgroups` would throw an error
-     return FinGenAbGroup[]
+     return FinGenAbGroupConjClass{FinGenAbGroup, FinGenAbGroup}[]
    end
-   return [H for (H, mp) in subgroups(G, order = order)]
+   return [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, order = order)]
 end
 
-function low_index_subgroup_reps(G::FinGenAbGroup, n::Int)
+function low_index_subgroup_classes(G::FinGenAbGroup, n::Int)
    @req (n > 0) "index must be positive"
-   res = [G]
+   res = [conjugacy_class(G, G)]
    ord = order(G)
    for i in 2:n
      if mod(ord, i) == 0
-       append!(res, [H for (H, mp) in subgroups(G, index = i)])
+       append!(res, [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, index = i)])
      end
    end
    return res
 end
 
-function maximal_subgroup_reps(G::FinGenAbGroup)
+function maximal_subgroup_classes(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    primes = [p for (p, e) in factor(order(G))]
    res = typeof(G)[]
    for p in primes
-     append!(res, [H for (H, mp) in subgroups(G, index = p)])
+     append!(res, [H for (H, mp) in Hecke.subgroups(G, index = p)])
    end
-   return res
-end
-
-function conjugacy_classes_maximal_subgroups(G::FinGenAbGroup)
-   return [conjugacy_class(G, H) for H in maximal_subgroup_reps(G)]
+   return [conjugacy_class(G, H) for H in res]
 end
 
 conjugate_group(G::FinGenAbGroup, x::FinGenAbGroupElem) = G
@@ -184,11 +176,11 @@ end
 is_conjugate_subgroup(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1]
 is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1], zero(G)
 
-Base.IteratorSize(::Type{<:GrpAbFinGenConjClass}) = Base.HasLength()
+Base.IteratorSize(::Type{<:FinGenAbGroupConjClass}) = Base.HasLength()
 
-Base.iterate(C::GrpAbFinGenConjClass) = iterate(C, 0)
+Base.iterate(C::FinGenAbGroupConjClass) = iterate(C, 0)
 
-function Base.iterate(C::GrpAbFinGenConjClass, state::Int)
+function Base.iterate(C::FinGenAbGroupConjClass, state::Int)
   if state == 0
     return representative(C), 1
   else
@@ -279,7 +271,7 @@ solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 ################################################################################
 
 #TODO: how to compute complements?
-# complement_class_reps(G::T, N::T) where T <: FinGenAbGroup
+# complement_classes(G::T, N::T) where T <: FinGenAbGroup
 # complement_system(G::FinGenAbGroup)
 
 function sylow_system(G::FinGenAbGroup)
@@ -291,10 +283,7 @@ function sylow_system(G::FinGenAbGroup)
    return result
 end
 
-# no longer documented, better use `hall_subgroup_reps`
-hall_subgroup(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion}) = hall_subgroup_reps(G, P)[1]
-
-function hall_subgroup_reps(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_classes(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
    @req is_finite(G) "G is not finite"
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
@@ -312,7 +301,7 @@ function hall_subgroup_reps(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
        end
      end
    end
-   return [sub(G, subgens)[1]]
+   return [conjugacy_class(G, sub(G, subgens)[1])]
 end
 
 function hall_system(G::FinGenAbGroup)
@@ -320,7 +309,7 @@ function hall_system(G::FinGenAbGroup)
    primes = [p for (p, e) in factor(order(G))]
    result = FinGenAbGroup[]
    for P in subsets(Set(primes))
-     push!(result, hall_subgroup_reps(G, collect(P))[1])
+     push!(result, representative(hall_subgroup_classes(G, collect(P))[1]))
    end
    return result
 end

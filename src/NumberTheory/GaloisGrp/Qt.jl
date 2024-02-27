@@ -710,7 +710,7 @@ function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{
   dev = collect(coefficients(f))
   d = degree(base_ring(f))
   a = Tuple{Int, Int}[]
-  #careful: valuation is q-valued, normalised for val(p) == 1
+  #careful: valuation is q-valued, normalized for val(p) == 1
   #         lines have Int corredinated, so we scale by the degree of the field
   # => the slopes are also multiplied by this!!!
   for i = 0:length(dev) -1

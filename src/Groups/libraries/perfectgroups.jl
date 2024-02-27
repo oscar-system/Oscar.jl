@@ -178,7 +178,75 @@ function number_of_perfect_groups(n::IntegerUnion)
    return res::Int
 end
 
-# TODO: add all_perfect_groups() iterator
+
+"""
+    all_perfect_groups(L...)
+
+Return the list of all perfect groups (up to permutation isomorphism)
+satisfying the conditions described by the arguments. These conditions
+may be of one of the following forms:
+
+- `func => intval` selects groups for which the function `func` returns `intval`
+- `func => list` selects groups for which the function `func` returns any element inside `list`
+- `func` selects groups for which the function `func` returns `true`
+- `!func` selects groups for which the function `func` returns `false`
+
+As a special case, the first argument may also be one of the following:
+- `intval` selects groups whose order equals `intval`; this is equivalent to `order => intval`
+- `intlist` selects groups whose order is in `intlist`; this is equivalent to `order => intlist`
+
+The following functions are currently supported as values for `func`:
+- `is_quasisimple`
+- `is_simple`
+- `is_sporadic_simple`
+- `number_of_conjugacy_classes`
+- `order`
+
+The type of the returned groups is `PermGroup`.
+
+# Examples
+```jldoctest
+julia> all_perfect_groups(7200)
+2-element Vector{PermGroup}:
+ Permutation group of degree 29 and order 7200
+ Permutation group of degree 288 and order 7200
+
+julia> all_perfect_groups(order => 1:200, !is_simple)
+2-element Vector{PermGroup}:
+ Permutation group of degree 1 and order 1
+ Permutation group of degree 24 and order 120
+```
+"""
+function all_perfect_groups(L...)
+   @req !isempty(L) "must specify at least one filter"
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (order => L[1], L[2:end]...)
+   end
+   # first get all order restrictions
+   ordsL = [x for x in L if x isa Pair && x[1] == order]
+   @req !isempty(ordsL) "must restrict the order"
+   conds = [x for x in L if !(x isa Pair && x[1] == order)]
+   orders = intersect([x[2] for x in ordsL]...)
+   @req has_perfect_groups(maximum(orders)) "only orders up to 2 million are supported"
+   res = PermGroup[]
+   for n in orders, i in 1:number_of_perfect_groups(n)
+      G = perfect_group(n, i)
+      ok = true
+      for c in conds
+         if c isa Pair
+            val = c[1](G)
+            ok = (val == c[2] || val in c[2])
+         elseif c isa Function
+            ok = c(G)
+         else
+            throw(ArgumentError("expected a function or a pair, got $arg"))
+         end
+         ok || break
+      end
+      ok && push!(res, G)
+   end
+   return res
+end
 
 function __init_extraperfect()
   for i in [27, 33]

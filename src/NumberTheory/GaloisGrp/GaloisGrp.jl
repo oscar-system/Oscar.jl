@@ -2,8 +2,7 @@ module GaloisGrp
 
 using Oscar, Random
 import Base: ^, +, -, *, ==
-import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger,
-              upper_bound
+import Oscar: Hecke, AbstractAlgebra, GAP, extension_field, isinteger
 using Oscar: SLPolyRing, SLPoly, SLPolynomialRing, CycleType
 
 import Oscar: pretty, LowercaseOff
@@ -17,6 +16,7 @@ export galois_quotient
 export power_sum
 export slpoly_ring
 export to_elementary_symmetric
+export upper_bound
 export valuation_of_roots
 
 import Hecke: orbit, fixed_field, extension_field
@@ -24,9 +24,9 @@ import Hecke: orbit, fixed_field, extension_field
 function __init__()
   GAP.Packages.load("ferret"; install=true)
 
-  Hecke.add_verbose_scope(:GaloisGroup)
-  Hecke.add_verbose_scope(:GaloisInvariant)
-  Hecke.add_assert_scope(:GaloisInvariant)
+  Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_verbosity_scope(:GaloisInvariant)
+  Hecke.add_assertion_scope(:GaloisInvariant)
 end
 
 """
@@ -894,7 +894,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   #    http://dblp.uni-trier.de/db/journals/jsc/jsc79.html#Elsenhans17
   # https://doi.org/10.1016/j.jsc.2016.02.005
 
-  l = low_index_subgroup_reps(H, 2*degree(G)^2)
+  l = representative.(low_index_subgroup_classes(H, 2*degree(G)^2))
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
   sort!(l, lt = (a,b) -> isless(order(b), order(a)))
@@ -1171,8 +1171,8 @@ end
 #TODO: Max: rank the filter function by cost, cheapest first...
 #      possibly needs a third field in the structure
 function (F::GroupFilter)(G::PermGroup)
-  do_print = Hecke.get_verbose_level(:GaloisGroup) >= 1
-  do_all = Hecke.get_verbose_level(:GaloisGroup) >= 2
+  do_print = Hecke.get_verbosity_level(:GaloisGroup) >= 1
+  do_all = Hecke.get_verbosity_level(:GaloisGroup) >= 2
 
   res = true
   for (x, s) = F.f
@@ -1227,7 +1227,7 @@ mutable struct DescentEnv
   #a more select choice of group....
 
   function DescentEnv(G::PermGroup, f::GroupFilter = GroupFilter())
-    s = maximal_subgroup_reps(G)
+    s = map(representative, maximal_subgroup_classes(G))
     r = new()
     r.G = G
     @vprint :GaloisGroup 1 "starting with $(length(s)) maximal subgroup classes\n"
@@ -1669,7 +1669,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     O = sum_orbits(K, x->mk(pc(map_coeff(GC, x))), map(mk, c))
     GC.start = (2, O)
     
-    #the factors define a partitioning of pairs, the stabiliser of this
+    #the factors define a partitioning of pairs, the stabilizer of this
     #partition is the largest possible group...
     #code from Max...
 
@@ -2091,7 +2091,7 @@ function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem;
       local lt
       if index(G, s) < 100
         @vtime :GaloisGroup 2 lt = right_transversal(G, s)
-      elseif is_normal(G, s)
+      elseif is_normalized_by(s, G)
         lt = [one(G)] # I don't know how to get the identity
       else
         @vtime :GaloisGroup 2 lt = short_right_transversal(G, s, si)
@@ -2374,7 +2374,7 @@ function galois_quotient(C::GaloisCtx, Q::PermGroup)
   if order(G) % degree(Q) != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), degree(Q)))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), degree(Q))))
   res = []
   for U = s
     phi = right_coset_action(G, U)
@@ -2413,7 +2413,7 @@ function galois_quotient(C::GaloisCtx, d::Int)
   if order(G) % d != 0
     return []
   end
-  s = subgroup_reps(G, order = divexact(order(G), d))
+  s = map(representative, subgroup_classes(G, order = divexact(order(G), d)))
   res = []
   for U = s
     phi = right_coset_action(G, U)

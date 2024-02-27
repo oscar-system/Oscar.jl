@@ -56,7 +56,7 @@ function exterior_power(M::SubquoModule, p::Int; cached::Bool=true)
     for ind in OrderedMultiIndexSet(p, n)
       symb_str = orig_symb[ind[1]]
       for i in 2:p
-        symb_str = symb_str * "∧" * orig_symb[ind[i]]
+        symb_str = symb_str * (is_unicode_allowed() ? "∧" : "^") * orig_symb[ind[i]]
       end
       push!(new_symb, Symbol(symb_str))
     end

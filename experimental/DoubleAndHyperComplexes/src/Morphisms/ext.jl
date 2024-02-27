@@ -56,18 +56,18 @@ function (fac::HomMapFactory)(hc::AbsHyperComplex, p::Int, i::Tuple)
   cod = hc[i_inc]
 
   if iszero(dom) || iszero(cod)
-    return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)])
+    return hom(dom, cod, elem_type(cod)[zero(cod) for i in 1:ngens(dom)]; check=false)
   end
 
   if p <= dim(d)
     # contravariant induced map on first argument
     i1_inc = Tuple(-i1 - [k == p ? inc : 0 for k in 1:dim(d)])
     img_gens = [homomorphism_to_element(cod, compose(map(d, p, i1_inc), element_to_homomorphism(g))) for g in gens(dom)]
-    return hom(dom, cod, img_gens)
+    return hom(dom, cod, img_gens; check=false)
   else
     # covariant induced map on second argument
     img_gens = [homomorphism_to_element(cod, compose(element_to_homomorphism(g), map(c, p - dim(d), Tuple(i2)))) for g in gens(dom)]
-    return hom(dom, cod, img_gens)
+    return hom(dom, cod, img_gens; check=false)
   end
 end
 
@@ -214,7 +214,7 @@ function (fac::InterpretationMorphismFactory)(self::AbsHyperComplexMorphism, I::
   projections_tot = projections_for_summand(tot, offset)
   M = dom[i]
   N = cod[j]
-  result = hom(M, N, elem_type(N)[zero(N) for i in 1:ngens(M)])
+  result = hom(M, N, elem_type(N)[zero(N) for i in 1:ngens(M)]; check=false)
   for (k, K) in enumerate(indices_dom)
     pr = projections_dom[k]
     for (l, L) in enumerate(indices_cod)
@@ -341,7 +341,7 @@ function (fac::HomComplexMorphismFactory)(self::AbsHyperComplexMorphism, I::Tupl
     img_gens = elem_type(cod_mod)[homomorphism_to_element(cod_mod, compose(element_to_homomorphism(v), fac.codomain_morphism[I_out])) for v in g]
   end
 
-  return hom(dom_mod, cod_mod, img_gens) # Set to false eventually
+  return hom(dom_mod, cod_mod, img_gens; check=false) # Set to false eventually
 end
 
 function can_compute(fac::HomComplexMorphismFactory, self::AbsHyperComplexMorphism, I::Tuple)

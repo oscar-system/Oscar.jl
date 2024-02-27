@@ -58,7 +58,7 @@
   @test closure(UZ, X)==Z
 
   S, (u,v) = QQ["u", "v"]
-  A2 = Spec(S)
+  A2 = spec(S)
   set_name!(A2, "𝔸²")
   @test OO(UX)(y//z) == OO(UX)(z//x)
   phi = morphism(UX, A2, [y//z, z])
@@ -87,7 +87,7 @@ end
 # ideal or powers of an element
 @testset "dimensions of affine schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
   @test dim(A3) == 3
@@ -100,7 +100,7 @@ end
   plane = hypersurface_complement(disjoint_plane_and_line, y)
   @test dim(line) == 1
   @test dim(plane) == 2
-  A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
+  A3_localized_along_line = spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
 
@@ -108,12 +108,12 @@ end
   I = ideal(R, [x-1, y-1])*ideal(R, z)
   L, _ = localization(R, S)
   W, _ = quo(L, L(I))
-  @test dim(Spec(W)) == 1
+  @test dim(spec(W)) == 1
 end
 
 @testset "dimensions of affine schemes over the integers" begin
   R, (x,y,z) = ZZ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
   @test dim(A3) == 4
@@ -125,30 +125,30 @@ end
   plane = hypersurface_complement(disjoint_plane_and_line, y)
   @test dim(line) == 2
   @test dim(plane) == 3
-  A3_localized_along_line = Spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
+  A3_localized_along_line = spec(localization(R, complement_of_prime_ideal(ideal(R, [x, y])))[1])
   @test dim(A3_localized_along_line) == 2
   @test dim(Oscar.standard_spec(A3_localized_along_line)) == 2
   P = ideal(R, R(5))
   @test is_prime(P)
   S = complement_of_prime_ideal(P)
-  Y = Spec(R, S)
+  Y = spec(R, S)
   @test dim(Y) == 1
   Q = ideal(R, R.([7, x, y, z]))
   S = complement_of_prime_ideal(Q)
-  Z = Spec(R, S)
+  Z = spec(R, S)
   @test dim(Z) == 4
 
   S = complement_of_point_ideal(R, [1, 1, 1])
   I = ideal(R, [x-1, y-1])*ideal(R, z)
   L, _ = localization(R, S)
   W, _ = quo(L, L(I))
-  @test dim(Spec(W)) == 1
+  @test dim(spec(W)) == 1
 end
 
 @testset "dimensions of affine schemes over quotients of the integers" begin
   kk, _ = quo(ZZ, 4)
   R, (x,y,z) = kk["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   X = subscheme(A3, x*y)
   U = hypersurface_complement(A3, z)
   @test dim(A3) == 3
@@ -169,20 +169,20 @@ end
   M = R[x y+1 z-2 x+y; y z-3 x-y+5 y-z; z x-y z-2 x+y+z]
   I = ideal(R, minors(M, 3))
   Q, _ = quo(R, I)
-  X = Spec(Q)
+  X = spec(Q)
   @test is_smooth(X)
 end
 
-@testset "AbsSpec interface" begin
+@testset "AbsAffineScheme interface" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   set_name!(A3, "𝔸³")
   f = x*y-z^2
   I = ideal(R, f)
   S = powers_of_element(x)
-  Spec(R,S)
+  spec(R,S)
   S = complement_of_prime_ideal(I)
-  Spec(R,I)
+  spec(R,I)
   X = subscheme(A3, I)
   set_name!(X, "X")
   @test iszero(OO(X)(f))
@@ -215,18 +215,18 @@ end
   inclusion_morphism(A3,A3)
 end
 
-@testset "Spec ZZ" begin
-  Spec(ZZ)
-  Spec(QQ)
+@testset "spec ZZ" begin
+  spec(ZZ)
+  spec(QQ)
 end
 
 @testset "fiber product" begin
   R, _ = QQ["x","t"]
   S, _ = QQ["y","t"]
   T, _ = polynomial_ring(QQ,["t"])
-  X = Oscar.standard_spec(Spec(R))
-  Y = Oscar.standard_spec(Spec(S))
-  B = Oscar.standard_spec(Spec(T))
+  X = Oscar.standard_spec(spec(R))
+  Y = Oscar.standard_spec(spec(S))
+  B = Oscar.standard_spec(spec(T))
   phi1 = hom(OO(B), OO(X), [gens(OO(X))[2]])
   phi2 = hom(OO(B), OO(Y), [gens(OO(Y))[2]])
   Phi1 = morphism(X, B, phi1)
@@ -234,13 +234,13 @@ end
   Z = fiber_product(Phi1, Phi2)[1]
   A = ambient_coordinate_ring(Z)
   a = gens(A)
-  fib = subscheme(Spec(A), ideal(A, [a[2]-a[4]]))
+  fib = subscheme(spec(A), ideal(A, [a[2]-a[4]]))
   @test fib==Z
 end
 
 @testset "ClosedEmbedding" begin
   R, (x, y) = QQ["x", "y"]
-  X = Spec(R)
+  X = spec(R)
   h = x^2 + y^2 -1
   I = ideal(R, [h])
   Y, inc = sub(X, I)
@@ -249,7 +249,7 @@ end
   @test pullback(inc)(x) == OO(Y)(x)
   @test pullback(inc)(y) == OO(Y)(y)
   @test image_ideal(inc) == modulus(OO(Y))
-  @test complement(inc) == SpecOpen(X, [h])
+  @test complement(inc) == AffineSchemeOpenSubscheme(X, [h])
 end
 
 @testset "fix for is_smooth" begin
@@ -258,7 +258,7 @@ end
   I2 = ideal(R, [z]);
   I3 = ideal(R, [x, z-1])
   I = intersect(I1, I2, I3)
-  X = Spec(R, I)
+  X = spec(R, I)
   @test !is_smooth(X)
 end
 
@@ -288,14 +288,14 @@ end
   (a, b, c) = base_change(pr, inc_U)
   @test compose(a, inc_U) == compose(b, c)
 
-  # Behaviour for special types
+  # Behavior for special types
   U = PrincipalOpenSubset(IA2, y)
   UU, f = base_change(pr, U)
   @test UU isa PrincipalOpenSubset
 
-  W = SpecOpen(IA2, [x, y])
+  W = AffineSchemeOpenSubscheme(IA2, [x, y])
   WW, f = base_change(pr, W)
-  @test WW isa SpecOpen
+  @test WW isa AffineSchemeOpenSubscheme
 end
 
 @testset "principal open embeddings" begin
@@ -358,3 +358,19 @@ end
   @test compose(p1, there) == compose(p2, there)
 end
 
+@testset "degree of zero-dimensional affine schemes" begin
+  R, (x,) = polynomial_ring(QQ, [:x])
+  I = ideal(R, x^2 - 1)
+  X = spec(R)
+  Q, _ = quo(R, I)
+  Y = spec(Q)
+  @test dim(Y) == 0
+  @test degree(Y) == 2
+
+  R, (x,y) = QQ[:x,:y]
+  I = ideal(R, [x^2 + y^2 - 1, 2x^2 + (1//2)y^2 - 1])
+  X = spec(R)
+  Y,_ = sub(X, I)
+  @test dim(Y) == 0
+  @test degree(Y) == 4
+end

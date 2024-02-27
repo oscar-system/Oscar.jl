@@ -203,8 +203,7 @@ function relations_primary_and_irreducible_secondary(RG::InvRing)
 
     # Write the products (in N) in the basis of K[V]^G_d given by the secondary
     # invariants (in M)
-    fl, x = can_solve_with_solution(M, N, side = :left)
-    @assert fl
+    x = solve(M, N, side = :left)
 
     # Translate the relations to the free algebra S
     for i = 1:nrows(x)
@@ -308,8 +307,7 @@ function module_syzygies(RG::InvRing)
     monomial_to_column = enumerate_monomials(gens_d)
     M = polys_to_smat(gens_d, monomial_to_column)
     N = polys_to_smat(s_invars_d, monomial_to_column)
-    fl, sol = can_solve_with_solution(M, N, side = :left)
-    @assert fl
+    sol = solve(M, N, side = :left)
 
     for i in 1:length(s_invars_d)
       a = F()

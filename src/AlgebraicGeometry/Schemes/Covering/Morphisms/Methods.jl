@@ -3,7 +3,7 @@
 ########################################################################
 function compose(f::CoveringMorphism, g::CoveringMorphism)
   domain(g) === codomain(f) || error("morphisms can not be composed")
-  morphism_dict = IdDict{AbsSpec, AbsSpecMor}()
+  morphism_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(domain(f))
     morphism_dict[U] = compose(f[U], g[codomain(f[U])])
   end
@@ -22,10 +22,10 @@ resulting covering ``C'`` and the identifying isomorphism
 ``f : C' ↔ C``.
 """
 function simplify(C::Covering)
-  n = npatches(C)
-  new_patches = AbsSpec[simplify(X) for X in patches(C)]
+  n = n_patches(C)
+  new_patches = AbsAffineScheme[simplify(X) for X in patches(C)]
   GD = gluings(C)
-  new_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+  new_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for (X, Y) in keys(GD)
     Xsimp = new_patches[C[X]]
     iX, jX = identification_maps(Xsimp)
@@ -37,8 +37,8 @@ function simplify(C::Covering)
                                                RestrictionDataIsomorphism(G, jX, jY)
                                               )
   end
-  iDict = IdDict{AbsSpec, AbsSpecMor}()
-  jDict = IdDict{AbsSpec, AbsSpecMor}()
+  iDict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  jDict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for i in 1:length(new_patches)
     iDict[new_patches[i]] = identification_maps(new_patches[i])[1]
     jDict[C[i]] = identification_maps(new_patches[i])[2]
@@ -70,7 +70,7 @@ function base_change(phi::Any, f::CoveringMorphism;
   C = codomain(f)
   DD = domain(domain_map)
   CC = domain(codomain_map)
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for UU in patches(DD)
     U = codomain(domain_map[UU])
     V = codomain(f[U])
@@ -254,10 +254,10 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
   C = codomain(f)
   @assert C === codomain(g) "codomains do not agree"
 
-  new_patches = AbsSpec[]
-  cache = IdDict{AbsSpec, Tuple{<:AbsSpecMor, <:AbsSpecMor}}()
-  maps_to_A = IdDict{AbsSpec, AbsSpecMor}()
-  maps_to_B = IdDict{AbsSpec, AbsSpecMor}()
+  new_patches = AbsAffineScheme[]
+  cache = IdDict{AbsAffineScheme, Tuple{<:AbsAffineSchemeMor, <:AbsAffineSchemeMor}}()
+  maps_to_A = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  maps_to_B = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(A)
     f_U = f[U]
     W = codomain(f_U)

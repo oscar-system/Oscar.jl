@@ -27,7 +27,7 @@ julia> F = faces(cube(3), 2)
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(P) - 1 &&
-    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
+    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, n_facets(P))
   n = face_dim - length(lineality_space(P))
   n < 0 && return nothing
   pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -350,7 +350,7 @@ vertices(P::Polyhedron) = vertices(PointVector, P)
 _vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 @doc raw"""
-    number_of_rays(P::Polyhedron)
+    n_rays(P::Polyhedron)
 
 Return the number of rays of `P`, i.e. the number of rays of the recession cone
 of `P`.
@@ -361,22 +361,22 @@ The two-dimensional positive orthant has two rays.
 julia> PO = convex_hull([0 0],[1 0; 0 1])
 Polyhedron in ambient dimension 2
 
-julia> number_of_rays(PO)
+julia> n_rays(PO)
 2
 ```
 The upper half-plane has no ray, since it has lineality.
 ```jldoctest
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
-julia> number_of_rays(UH)
+julia> n_rays(UH)
 0
 ```
 """
-number_of_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_rays(P) : 0
-_number_of_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+n_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_rays(P) : 0
+_n_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
-    number_of_vertices(P::Polyhedron)
+    n_vertices(P::Polyhedron)
 
 Return the number of vertices of `P`.
 
@@ -385,12 +385,12 @@ The 3-cube's number of vertices can be obtained with this input:
 ```jldoctest
 julia> C = cube(3);
 
-julia> number_of_vertices(C)
+julia> n_vertices(C)
 8
 ```
 """
-number_of_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _number_of_vertices(P) : 0
-_number_of_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _number_of_rays(P)
+n_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_vertices(P) : 0
+_n_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _n_rays(P)
 
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)
@@ -468,7 +468,7 @@ rays(P::Polyhedron) = rays(RayVector, P)
 _rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc raw"""
-    number_of_facets(P::Polyhedron)
+    n_facets(P::Polyhedron)
 
 Return the number of facets of `P`.
 
@@ -476,11 +476,11 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> number_of_facets(cross_polytope(5))
+julia> n_facets(cross_polytope(5))
 32
 ```
 """
-function number_of_facets(P::Polyhedron)
+function n_facets(P::Polyhedron)
   n = size(pm_object(P).FACETS, 1)::Int
   return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
@@ -522,7 +522,7 @@ x_3 <= 1
 facets(
   as::Type{T}, P::Polyhedron{S}
 ) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
-  SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
+  SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
   U::Type{AffineHalfspace{S}}, P::Polyhedron{S}, i::Base.Integer
@@ -903,7 +903,7 @@ Number of vertices in each facet.
 # Example
 ```jldoctest
 julia> p = johnson_solid(4) 
-Polytope in ambient dimension 3 with EmbeddedNumFieldElem{AbsSimpleNumFieldElem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
 julia> facet_sizes(p)
 10-element Vector{Int64}:
@@ -1383,7 +1383,7 @@ end
     g_vector(P::Polyhedron)
 
 Return the (toric) $g$-vector of a polytope.
-Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Defined by $g_0 = 1$ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
 Undefined for unbounded polyhedra.
 
 # Examples

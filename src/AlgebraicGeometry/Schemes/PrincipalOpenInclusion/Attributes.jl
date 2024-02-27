@@ -16,7 +16,7 @@ end
 
 function inverse_on_image(inc::PrincipalOpenEmbedding)
   if isdefined(inc, :inverse_on_image) 
-    return inc.inverse_on_image::SpecMor
+    return inc.inverse_on_image::AffineSchemeMor
   end
 
   X = domain(inc)

@@ -55,6 +55,7 @@ include(
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
+    ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
     (
       "complicated case 1",
@@ -187,7 +188,7 @@ include(
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
     @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
 
-    # test general multiplication behaviour
+    # test general multiplication behavior
     W = weyl_group(:B, 4)
     @test W(b4_w0) == W(b4_w0; normalize=false)
 

@@ -82,12 +82,12 @@ end
 # Output: the tropical intersection number as defined in [Maclagan-Sturmfels, Definition 3.6.5]
 # todo: rewrite function below so that it takes polyhedra as input
 function tropical_intersection_multiplicity(sigma1::Polyhedron,sigma2::Polyhedron)
-    B1 = kernel_basis(affine_equation_matrix(affine_hull(sigma1))[:,2:end])
-    B1 = matrix(ZZ,[ numerator.(b .* lcm(denominator.(b))) for b in B1 ])
+    B1 = kernel(affine_equation_matrix(affine_hull(sigma1))[:,2:end], side = :right)
+    B1 = matrix(ZZ,[ numerator.(B1[:, i] .* lcm(denominator.(B1[:, i]))) for i in 1:ncols(B1) ])
     B1 = saturate(B1)
 
-    B2 = kernel_basis(affine_equation_matrix(affine_hull(sigma2))[:,2:end])
-    B2 = matrix(ZZ,[ numerator.(b .* lcm(denominator.(b))) for b in B2 ])
+    B2 = kernel(affine_equation_matrix(affine_hull(sigma2))[:,2:end], side = :right)
+    B2 = matrix(ZZ,[ numerator.(B2[:, i] .* lcm(denominator.(B2[:, i]))) for i in 1:ncols(B2) ])
     B2 = saturate(B2)
 
     @req ncols(B1) == ncols(B2) && nrows(B1)+nrows(B2) >= ncols(B1) "polyhedra do not span ambient space"

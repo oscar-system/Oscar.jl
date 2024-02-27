@@ -65,7 +65,7 @@ is not equal to 1 an error is thrown.
 """
 function ideal_to_module(I::MPolyIdeal{T}, F::FreeMod{T}) where T
   @assert rank(F) == 1
-  return sub(F, [x*gen(F,1) for x in gens(I)], :module)
+  return sub_object(F, [x*gen(F,1) for x in gens(I)])
 end
 
 @doc raw"""
@@ -93,27 +93,23 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
   if M===N
     return [identity_map(M)]
   end
-  parent_hom = IdDict{SubquoModule,ModuleFPHom}()
+  parent_hom = IdDict{SubquoModule, ModuleFPHom}()
   modules = [M]
   found_N = false
   for A in modules
-    for H in A.incoming_morphisms
-      B = domain(H)
-      if B!==A # on trees "B!==A" is enough!
-        if findfirst(x->x===B,modules) === nothing #if !(B in modules) doesn't work since it uses == instead of ===
-          parent_hom[B] = H
-          push!(modules,B)
-        end
-      end
-      if B===N
-        found_N = true
-        break
-      end
-    end
-    if found_N
+    if N in keys(A.incoming)
+      parent_hom[N] = _recreate_morphism(N, A, A.incoming[N])
+      found_N = true
       break
     end
+
+    for (I, f) in A.incoming
+      I === A && continue
+      parent_hom[I] = _recreate_morphism(I, A, f)
+      push!(modules, I)
+    end
   end
+
   if !found_N
     throw(DomainError("There is no path of canonical homomorphisms between the modules!"))
   end
@@ -125,6 +121,15 @@ function find_sequence_of_morphisms(N::SubquoModule, M::SubquoModule)
     A = codomain(f)
   end
   return morphisms
+end
+
+function _recreate_morphism(dom::ModuleFP, cod::ModuleFP, t::Tuple{<:SMat, <:Any})
+  A, bc = t
+  if bc === nothing
+    return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], check=false)
+  else
+    return hom(dom, cod, [sum(a*cod[i] for (i, a) in v; init=zero(cod)) for v in A], bc, check=false)
+  end
 end
 
 @doc raw"""
@@ -164,19 +169,18 @@ function find_morphisms(N::SubquoModule, M::SubquoModule)
 
   all_paths = []
 
-  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFPHom}, path::Vector)
+  function helper_dfs!(U::SubquoModule, D::SubquoModule, visited::Vector{<:ModuleFP}, path::Vector)
     if U === D
       push!(all_paths, path)
       return
     end
-    for neighbor_morphism in U.outgoing_morphisms
-      if findfirst(x->x===neighbor_morphism, visited) === nothing #if !(neighbor_morphism in visited) doesn't work since it uses == instead of ===
-        helper_dfs!(codomain(neighbor_morphism), D, vcat(visited, [neighbor_morphism]), union(path, [neighbor_morphism]))
-      end
+    for (cod, neighbor_morphism) in U.outgoing
+      any(x->x===cod, visited) && continue
+      helper_dfs!(cod, D, push!(visited, cod), union(path, [_recreate_morphism(U, cod, neighbor_morphism)]))
     end
   end
 
-  helper_dfs!(N, M, Vector{ModuleFPHom}(), [])
+  helper_dfs!(N, M, Vector{ModuleFP}(), [])
 
   morphisms = Vector{ModuleFPHom}()
   for path in all_paths
@@ -200,9 +204,29 @@ end
 Cache the morphism `f` in the corresponding caches of the domain and codomain of `f`.
 """
 function register_morphism!(f::ModuleFPHom)
-  push!(domain(f).outgoing_morphisms, f)
-  push!(codomain(f).incoming_morphisms, f)
+  dom = domain(f)
+  cod = codomain(f)
+  dom.outgoing[cod] = sparse_matrix(f), ring_map(f)
+  cod.incoming[dom] = sparse_matrix(f), ring_map(f)
+  f
 end
+
+# Some missing methods for the above to work
+function sparse_matrix(f::ModuleFPHom)
+  dom = domain(f)
+  R = base_ring(codomain(f))
+  result = sparse_matrix(R, 0, ngens(codomain(f)))
+  for v in gens(dom)
+    push!(result, coordinates(f(v)))
+  end
+  return result
+end
+
+ring_map(f::FreeModuleHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::FreeModuleHom) = f.ring_map
+
+ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
+ring_map(f::SubQuoHom) = f.ring_map
 
 #############################
 #TODO move to Hecke
@@ -357,7 +381,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     to_homomorphism = function(elem::SubquoModuleElem{T})
       elem2 = i(elem)
       A = convert_to_matrix(elem2)
-      return SubQuoHom(M,N,A)
+      return SubQuoHom(M,N,A; check=false)
     end
     to_subquotient_elem = function(H::ModuleFPHom)
       m = length(matrix(H))
@@ -379,7 +403,7 @@ function hom_matrices(M::SubquoModule{T},N::SubquoModule{T},simplify_task=true) 
     end
     to_homomorphism = function(elem::SubquoModuleElem{T})
       A = convert_to_matrix(elem)
-      return SubQuoHom(M,N,A)
+      return SubQuoHom(M,N,A; check=false)
     end
 
     to_hom_map = MapFromFunc(SQ, Hecke.MapParent(M, N, "homomorphisms"), to_homomorphism, to_subquotient_elem)
@@ -413,7 +437,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)))
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
   return MS, map
 end
 
@@ -426,13 +450,13 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), f)
+  map = SubQuoHom(M, MS, gens(MS), f; check=false)
   return MS, map
 end
 
 ### Duals of modules
 @doc raw"""
-    dual(M::ModuleFP; cod::FreeMod=FreeMod(base_ring(M), 1))
+    dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
 
 Return a pair ``(M*, i)`` consisting of the dual of ``M`` and its 
 interpretation map ``i``, turning an element ``φ`` of ``M*`` into 
@@ -441,11 +465,11 @@ a homomorphism ``M → R``.
 The optional argument allows to specify a free module of rank ``1`` 
 for the codomain of the dualizing functor.
 """
-function dual(M::ModuleFP; cod::Union{FreeMod, Nothing}=nothing)
+function dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  base_ring(cod) === R && rank(cod) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
-  return hom(M, cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  base_ring(codomain) === R && rank(codomain) == 1 || error("codomain must be free of rank one over the base ring of the first argument")
+  return hom(M, codomain)
 end
 
 @doc raw"""
@@ -455,49 +479,49 @@ For a finite ``R``-module ``M`` return a pair ``(M**, ϕ)`` consisting of
 its double dual ``M** = Hom(Hom(M, R), R)`` together with the canonical 
 map ``ϕ : M → M**, v ↦ (φ ↦ φ(v)) ∈ Hom(M*, R)``.
 """
-function double_dual(M::FreeMod{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+function double_dual(M::FreeMod{T}; codomain::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  M_dual, _ = dual(M, cod=cod)
-  M_double_dual, _ = dual(M_dual, cod=cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  M_dual, _ = dual(M, codomain=codomain)
+  M_double_dual, _ = dual(M_dual, codomain=codomain)
   if length(gens(M_dual)) == 0
     psi_gens = [zero(M_double_dual) for _ in gens(M)]
   else
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        FreeModuleHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+        FreeModuleHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
   end
-  psi = FreeModuleHom(M, M_double_dual, psi_gens)
+  psi = FreeModuleHom(M, M_double_dual, psi_gens; check)
   return M_double_dual, psi
 end
 
-function double_dual(M::SubquoModule{T}; cod::Union{FreeMod, Nothing}=nothing) where T
+function double_dual(M::SubquoModule{T}; codomain::Union{FreeMod, Nothing}=nothing, check::Bool=true) where T
   R = base_ring(M)
-  cod = cod === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : cod
-  M_dual, _ = dual(M, cod=cod)
-  M_double_dual, _ = dual(M_dual, cod=cod)
+  codomain = codomain === nothing ? (is_graded(M) ? graded_free_module(R, 1) : FreeMod(R, 1)) : codomain
+  M_dual, _ = dual(M, codomain=codomain)
+  M_double_dual, _ = dual(M_dual, codomain=codomain)
   if length(gens(M_dual)) == 0
     psi_gens = [zero(M_double_dual) for _ in gens(M)]
   else
     psi_gens = [
       homomorphism_to_element(
         M_double_dual,
-        SubQuoHom(M_dual, cod, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)])
+        SubQuoHom(M_dual, codomain, [element_to_homomorphism(phi)(x) for phi in gens(M_dual)]; check)
       )
       for x in gens(M)
     ]
   end
-  psi = SubQuoHom(M, M_double_dual, psi_gens)
+  psi = SubQuoHom(M, M_double_dual, psi_gens; check)
   return M_double_dual, psi
 end
 
 
 @doc raw"""
-    dual(f::ModuleFPHom; cod::FreeMod)
+    dual(f::ModuleFPHom; codomain::FreeMod)
 
 Given a morphism of modules ``f : M → N``, return the morphism
 ``fᵀ : N* → M*, φ ↦ (v ↦ φ(f(v)))`` induced on the duals.
@@ -506,13 +530,13 @@ The optional argument allows to specify a free module of rank one over the
 base ring of ``f`` for building the duals of ``M`` and ``N``.
 """
 function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter assures same base ring
-    cod::FreeMod=FreeMod(base_ring(domain(f)), 1), 
-    domain_dual::ModuleFP=dual(domain(f), cod=cod)[1],
-    codomain_dual::ModuleFP=dual(codomain(f), cod=cod)[1]
+    codomain::FreeMod=FreeMod(base_ring(domain(f)), 1), 
+    domain_dual::ModuleFP=dual(Oscar.domain(f), codomain=codomain)[1],
+    codomain_dual::ModuleFP=dual(Oscar.codomain(f), codomain=codomain)[1]
   )
-  M = domain(f)
-  N = codomain(f)
-  R = base_ring(domain(f))
+  M = Oscar.domain(f)
+  N = Oscar.codomain(f)
+  R = base_ring(Oscar.domain(f))
   R === base_ring(N) || error("modules must be defined over the same rings")
 
   M_dual = domain_dual
@@ -520,7 +544,7 @@ function dual(f::ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}; # Third parameter
 
   return hom(N_dual, M_dual, 
              [homomorphism_to_element(M_dual, 
-                                      hom(M, cod, 
+                                      hom(M, codomain, 
                                           [element_to_homomorphism(phi)(f(v)) for v in gens(M)]
                                          )
                                      )
@@ -613,7 +637,7 @@ function vector_space_dimension(M::SubquoModule{T}
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1])
+  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
 function vector_space_dimension(M::SubquoModule{T},d::Int64
@@ -625,7 +649,7 @@ function vector_space_dimension(M::SubquoModule{T},d::Int64
   M_shift,_,_ = shifted_module(Mq)
   o = negdegrevlex(base_ring(M_shift))*lex(ambient_free_module(M_shift))
   LM = leading_module(M_shift,o)
-  return vector_space_dimension(quo(ambient_free_module(LM),gens(LM))[1],d)
+  return vector_space_dimension(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
 function vector_space_dimension(M::SubquoModule{T}
@@ -730,7 +754,7 @@ function vector_space_basis(M::SubquoModule{T}
   end
   LM = leading_module(M_shift,o)
 
-  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1])
+  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)))
 end
 
 function vector_space_basis(M::SubquoModule{T},d::Int64
@@ -747,7 +771,7 @@ function vector_space_basis(M::SubquoModule{T},d::Int64
   end
   LM = leading_module(M_shift,o)
 
-  return vector_space_basis(quo(ambient_free_module(LM),gens(LM))[1],d)
+  return vector_space_basis(quo_object(ambient_free_module(LM),gens(LM)),d)
 end
 
 function vector_space_basis(M::SubquoModule{T}
@@ -791,19 +815,19 @@ function Base.:*(k::Int, f::ModuleFPHom)
   return base_ring(codomain(f))(k)*f
 end
 
-function is_tensor_product(M::ModuleFP)
+function _is_tensor_product(M::ModuleFP)
   !has_attribute(M, :tensor_product) && return false, [M]
   return true, get_attribute(M, :tensor_product)::Tuple
 end
 
 function tensor_pure_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
+  success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_pure_function)
 end
 
 function tensor_generator_decompose_function(M::ModuleFP)
-  success, facs = is_tensor_product(M)
+  success, facs = _is_tensor_product(M)
   success || error("not a tensor product")
   return get_attribute(M, :tensor_generator_decompose_function)
 end

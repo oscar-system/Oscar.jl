@@ -5,7 +5,7 @@
 @doc raw"""
     forget_toric_structure(X::AffineNormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure, 
+Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples
@@ -17,7 +17,7 @@ julia> antv = affine_normal_toric_variety(C)
 Normal toric variety
 
 julia> forget_toric_structure(antv)
-(V(0), Hom: V(0) -> normal toric variety)
+(scheme(0), Hom: scheme(0) -> normal toric variety)
 ```
 """
 function forget_toric_structure(X::AffineNormalToricVariety)
@@ -32,7 +32,7 @@ end
 @doc raw"""
     forget_toric_structure(X::NormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure, 
+Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples
@@ -46,14 +46,14 @@ julia> forget_toric_structure(P2)
 """
 function forget_toric_structure(X::NormalToricVariety)
   # Collect all the isomorphisms forgetting the toric structure
-  iso_dict = IdDict{AbsSpec, AbsSpecMor}()
+  iso_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in affine_charts(X)
     iso_dict[U] = forget_toric_structure(U)[2] # store only the isomorphism
   end
   cov = Covering([domain(phi) for (U, phi) in iso_dict])
 
   # Prepare a dictionary that can be used in the constructor of the covering morphism
-  iso_dict_covariant = IdDict{AbsSpec, AbsSpecMor}()
+  iso_dict_covariant = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     iso_dict_covariant[domain(phi)] = phi
   end
@@ -67,7 +67,7 @@ function forget_toric_structure(X::NormalToricVariety)
 
   # Prepare the underlying covering morphisms for the identifying isomorphisms
   iso_cov = CoveringMorphism(cov, default_covering(X), iso_dict_covariant)
-  inv_dict = IdDict{AbsSpec, AbsSpecMor}()
+  inv_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (U, phi) in iso_dict
     inv_dict[U] = inverse(phi)
   end
@@ -79,7 +79,7 @@ function forget_toric_structure(X::NormalToricVariety)
   # Make the identifying isomorphisms
   iso = CoveredSchemeMorphism(Y, X, iso_cov)
   iso_inv = CoveredSchemeMorphism(X, Y, iso_cov_inv)
-  
+
   set_attribute!(iso, :inverse => iso_inv)
   set_attribute!(iso_inv, :inverse => iso)
 
@@ -115,9 +115,9 @@ Spectrum
     by ideal (0)
 ```
 """
-@attr Spec{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = Spec(base_ring(toric_ideal(X)), toric_ideal(X))
+@attr AffineScheme{QQField, MPolyQuoRing{QQMPolyRingElem}} underlying_scheme(X::AffineNormalToricVariety) = spec(base_ring(toric_ideal(X)), toric_ideal(X))
 
-### 
+###
 # Some additional structure to make computation of toric gluings lazy
 struct ToricGluingData
   X::NormalToricVariety
@@ -142,31 +142,31 @@ function _compute_toric_gluing(gd::ToricGluingData)
   sigma_2_dual = weight_cone(V)
   tau_dual = polarize(tau)
 
-  # We do the following. There is a commutative diagram of rings 
+  # We do the following. There is a commutative diagram of rings
   #
-  #       ℚ [σ₁̌] ↪  ℚ [τ ̌]  ↩  ℚ [σ₂̌] 
+  #       ℚ [σ₁̌] ↪  ℚ [τ ̌]  ↩  ℚ [σ₂̌]
   #
-  # given by localization maps. The cone τ ̌ has lineality L. 
+  # given by localization maps. The cone τ ̌ has lineality L.
   # We need to find a Hilbert basis for both L ∩ σ₁̌ and L ∩ σ₂̌.
-  # Then the localization maps are given by inverting the 
-  # elements of these Hilbert bases. The gluing isomorphisms 
-  # are then obtained by expressing the generators on the one 
-  # side in terms of the others. 
+  # Then the localization maps are given by inverting the
+  # elements of these Hilbert bases. The gluing isomorphisms
+  # are then obtained by expressing the generators on the one
+  # side in terms of the others.
 
-  # We are using Proposition 1.2.10 in Cox-Little-Schenck here: 
-  #  "If τ is a face of a polyhedral cone σ and τ* = σ ̌ ∩ τ⟂, 
+  # We are using Proposition 1.2.10 in Cox-Little-Schenck here:
+  #  "If τ is a face of a polyhedral cone σ and τ* = σ ̌ ∩ τ⟂,
   #   then τ* is a face of σ ̌."
 
-  degs1 = hilbert_basis(U)             
+  degs1 = hilbert_basis(U)
   non_local_indices_1 = filter(i->!(vec(-degs1[i,:]) in tau_dual), 1:nrows(degs1))
-  degs2 = hilbert_basis(V) 
+  degs2 = hilbert_basis(V)
   non_local_indices_2 = filter(i->!(vec(-degs2[i,:]) in tau_dual), 1:nrows(degs2))
 
   x = gens(OO(U))
   UV = PrincipalOpenSubset(U, [x[i] for i in 1:length(x) if !(i in non_local_indices_1)])
   y = gens(OO(V))
   VU = PrincipalOpenSubset(V, [y[i] for i in 1:length(y) if !(i in non_local_indices_2)])
-  
+
   y_to_x = _convert_degree_system(degs1, degs2, non_local_indices_1)
   x_to_y = _convert_degree_system(degs2, degs1, non_local_indices_2)
 
@@ -181,7 +181,7 @@ function _compute_toric_gluing(gd::ToricGluingData)
   return result
 end
 
-# Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative 
+# Write the elements in `degs2` as linear combinations of `degs1`, allowing only non-negative
 # coefficients for the vectors vᵢ of `degs1` with index i ∈ `non_local_indices`.
 function _convert_degree_system(degs1::ZZMatrix, degs2::ZZMatrix, non_local_indices_1::Vector{Int})
   result = Vector{ZZMatrix}()
@@ -231,7 +231,7 @@ with default covering
     set_attribute!(A, :toric_ideal, toric_ideal(R, A))
   end
   cov = Covering(patch_list)
-  
+
   for i in 1:(length(patch_list)-1)
     for j in i+1:length(patch_list)
       X = patch_list[i]
@@ -247,7 +247,7 @@ with default covering
       add_gluing!(cov, _compute_gluings(X, Y, vmat, U, V))
     end
   end
-  
+
   # TODO: Improve the gluing (lazy gluing) or try to use the Hasse diagram.
   # TODO: For now, we conjecture, that the composition of the computed gluings is sufficient to deduce all gluings.
   #fill_transitions!(cov)
@@ -305,6 +305,6 @@ end
 
 is_irreducible(X::NormalToricVariety) = true
 is_reduced(X::NormalToricVariety) = true
-is_empty(X::NormalToricVariety) = false 
+is_empty(X::NormalToricVariety) = false
 is_integral(X::NormalToricVariety) = true
 is_connected(X::NormalToricVariety) = true

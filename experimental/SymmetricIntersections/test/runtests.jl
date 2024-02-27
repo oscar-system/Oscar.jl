@@ -4,7 +4,7 @@ using Oscar
 @testset "Elevators" begin
   W = sort(rand(1:5, 10))
   S, x = graded_polynomial_ring(QQ, 10, W; cached=false)
-  
+
   function weight(p)
     return degree(p).coeff[1]
   end
@@ -14,7 +14,7 @@ using Oscar
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
     @test Oscar.number_of_elevations(el) == dim(Si)
-    @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si))) 
+    @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
   S, x = graded_polynomial_ring(QQ, 10; cached=false)
@@ -46,7 +46,7 @@ end
 
   co = rand(1:2, 3)
   chi = sum([co[j]*chis[j] for j in 1:3])
-    
+
   chid = symmetric_power(conj(chi), 4)
   cd = @inferred character_decomposition(chid)
   @test sum([c[1]*Int(degree(c[2])) for c in cd]) == Int(degree(chid))
@@ -135,7 +135,7 @@ end
   @test is_faithful(rep, p)
 
   @test count(prep2 -> is_similar(prep, prep2), fpr) == 1
-   
+
   f = representation_mapping_linear_lift(prep)
   @test order(domain(f)) == 64
   @test codomain(f) isa MatrixGroup

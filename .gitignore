@@ -8,3 +8,4 @@ LocalPreferences.toml
 Manifest.toml
 .DS_Store
 *~
+*.swp

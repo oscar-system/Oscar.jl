@@ -1,15 +1,15 @@
 ########################################################################
 #
-# (1) AbsSpec interface
+# (1) AbsAffineScheme interface
 #
 ########################################################################
 
 @doc raw"""
-    underlying_scheme(X::AffineAlgebraicSet) -> AbsSpec
+    underlying_scheme(X::AffineAlgebraicSet) -> AbsAffineScheme
 
 Return the underlying reduced scheme defining ``X``.
 
-This is used to forward the `AbsSpec` functionality to ``X``, but may
+This is used to forward the `AbsAffineScheme` functionality to ``X``, but may
 trigger the computation of a radical ideal. Hence this can be expensive.
 """
 function underlying_scheme(X::AffineAlgebraicSet)
@@ -32,7 +32,7 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   else
     Irad = radical(I)
   end
-  X.Xred = Spec(base_ring(Irad), Irad)
+  X.Xred = spec(base_ring(Irad), Irad)
   return X.Xred
 end
 
@@ -42,7 +42,7 @@ end
 #
 ########################################################################
 @doc raw"""
-    fat_scheme(X::AffineAlgebraicSet) -> AbsSpec
+    fat_scheme(X::AffineAlgebraicSet) -> AbsAffineScheme
 
 Return a scheme whose reduced subscheme is ``X``.
 

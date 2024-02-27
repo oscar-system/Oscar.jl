@@ -182,17 +182,17 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
   # We allow the following cases:
   #
   #  * U::PrincipalOpenSubset with one ancestor W in the basic charts of X
-  #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
+  #  * U::SimplifiedAffineScheme with one ancestor W in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
   #    and U and V contained in the gluing domains of their ambient schemes
-  #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
-  #  * U::AbsSpec ⊂ X for U in the basic charts
+  #  * U::AbsAffineScheme ⊂  V::AbsAffineScheme in the basic charts of X
+  #  * U::AbsAffineScheme ⊂ X for U in the basic charts
   #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
-  #  * W::SpecOpen ⊂ X with ambient_scheme(U) in the basic charts of X
+  #  * W::AffineSchemeOpenSubscheme ⊂ X with ambient_scheme(U) in the basic charts of X
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
@@ -213,27 +213,27 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     return true
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
       Y::AbsCoveredScheme
     )
     return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
-  function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+  function is_open_func(U::AbsAffineScheme, Y::AbsCoveredScheme)
     return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases.
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
-  function is_open_func(U::AbsSpec, V::AbsSpec)
+  function is_open_func(U::AbsAffineScheme, V::AbsAffineScheme)
     any(x->x===U, affine_charts(X)) || return false
     any(x->x===U, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
     return is_subscheme(U, gluing_domains(G)[1])
   end
   function is_open_func(
-      U::AbsSpec,
-      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      U::AbsAffineScheme,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
     )
     is_subscheme(U, V) && return true
     any(x->x===U, affine_charts(X)) || return false
@@ -248,8 +248,8 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     return is_subset(U, pre_V)
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      V::AbsSpec
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      V::AbsAffineScheme
     )
     any(x->x===V, affine_charts(X)) || return false
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -260,11 +260,11 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     G = default_covering(X)[W, V]
     return is_subset(Udirect, gluing_domains(G)[1])
   end
-  function is_open_func(W::SpecOpen, Y::AbsCoveredScheme)
+  function is_open_func(W::AffineSchemeOpenSubscheme, Y::AbsCoveredScheme)
     return Y === X && ambient_scheme(W) in default_covering(X)
   end
 
-  function is_open_func(W::SpecOpen, V::AbsSpec)
+  function is_open_func(W::AffineSchemeOpenSubscheme, V::AbsAffineScheme)
     V in default_covering(X) || return false
     ambient_scheme(W) === V && return true
     U = ambient_scheme(W)
@@ -273,8 +273,8 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     return is_subset(W, gluing_domains(G)[1])
   end
   function is_open_func(
-      W::SpecOpen,
-      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      W::AffineSchemeOpenSubscheme,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
     )
     PW = ambient_scheme(W)
     inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
@@ -291,7 +291,7 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
       return is_subscheme(W, preV)
     end
   end
-  function is_open_func(W::SpecOpen, V::SpecOpen)
+  function is_open_func(W::AffineSchemeOpenSubscheme, V::AffineSchemeOpenSubscheme)
     PW = ambient_scheme(W)
     PV = ambient_scheme(V)
     PW in default_covering(X) || return false
@@ -304,7 +304,7 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
       return is_subscheme(W, preV)
     end
   end
-  function is_open_func(U::AbsSpec, W::SpecOpen)
+  function is_open_func(U::AbsAffineScheme, W::AffineSchemeOpenSubscheme)
     U in default_covering(X) || return false
     if U === ambient_scheme(W)
       # in this case W must be equal to U
@@ -318,8 +318,8 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
     end
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      W::SpecOpen
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      W::AffineSchemeOpenSubscheme
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     A = ambient_scheme(codomain(inc_U_flat))
@@ -340,22 +340,22 @@ function _is_open_func_for_schemes(X::AbsCoveredScheme)
   return is_open_func
 end
 
-function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
+function _is_open_func_for_schemes_without_affine_scheme_open_subscheme(X::AbsCoveredScheme)
   ### Checks for open containment.
   #
   # We allow the following cases:
   #
   #  * U::PrincipalOpenSubset with one ancestor W in the basic charts of X
-  #  * U::SimplifiedSpec with one ancestor W in the basic charts of X
+  #  * U::SimplifiedAffineScheme with one ancestor W in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
   #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
   #    and U and V contained in the gluing domains of their ambient schemes
-  #  * U::AbsSpec ⊂  V::AbsSpec in the basic charts of X
-  #  * U::AbsSpec ⊂ X for U in the basic charts
+  #  * U::AbsAffineScheme ⊂  V::AbsAffineScheme in the basic charts of X
+  #  * U::AbsAffineScheme ⊂ X for U in the basic charts
   #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
     )
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
     inc_V_flat = _flatten_open_subscheme(V, default_covering(X))
@@ -376,27 +376,27 @@ function _is_open_func_for_schemes_without_specopen(X::AbsCoveredScheme)
     return true
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
       Y::AbsCoveredScheme
     )
     return Y === X && has_ancestor(W->(any(WW->(WW === W), affine_charts(X))), U)
   end
-  function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+  function is_open_func(U::AbsAffineScheme, Y::AbsCoveredScheme)
     return Y === X && has_ancestor(W->any(WW->(WW===W), affine_charts(X)), U)
   end
   # The following is implemented for the sake of completeness for boundary cases.
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
-  function is_open_func(U::AbsSpec, V::AbsSpec)
+  function is_open_func(U::AbsAffineScheme, V::AbsAffineScheme)
     U in affine_charts(X) || return false
     V in affine_charts(X) || return false
     G = default_covering(X)[U, V]
     return is_subscheme(U, gluing_domains(G)[1])
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      V::AbsSpec
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      V::AbsAffineScheme
     )
     V in affine_charts(X) || return false
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -423,16 +423,16 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y)
 Scheme
   over rational field
 with default covering
   described by patches
-    1: V(-(y//x)^2*(z//x) + 1)
-    2: V((x//y)^3 - (z//y))
-    3: V((x//z)^3 - (y//z)^2)
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -441,9 +441,9 @@ with default covering
 julia> OO(Ycov)
 Structure sheaf of rings of regular functions
   on scheme over QQ covered with 3 patches
-    1: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 ```
 """
 @attr StructureSheafOfRings function OO(X::AbsCoveredScheme)
@@ -512,7 +512,7 @@ end
 function restrict(
     a::Union{MPolyRingElem, MPolyQuoRingElem,
              MPolyLocRingElem, MPolyQuoLocRingElem},
-    U::SpecOpen;
+    U::AffineSchemeOpenSubscheme;
     check::Bool=true
   )
   parent(a) === OO(ambient_scheme(U)) || return OO(U)(a)

@@ -73,7 +73,7 @@ end
 
 
 @doc raw"""
-    dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
+    dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
 
 Return the restriction morphism from the graded coordinate ring of ``X`` to `𝒪(U)`.
 
@@ -100,7 +100,7 @@ julia> phi(S[2])
 
 ```
 """
-function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
+function dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
   cache = _dehomogenization_cache(X)
   if haskey(cache, U)
     return cache[U]
@@ -113,7 +113,7 @@ function dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
   return compose(dehomogenization_map(X, V), OO(Y)(V, U))
 end
 
-function _dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec, i::Int)
+function _dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme, i::Int)
   S = homogeneous_coordinate_ring(X)
   s = vcat(gens(OO(U))[1:i-1], [one(OO(U))], gens(OO(U))[i:relative_ambient_dimension(X)])
   phi = hom(S, OO(U), s, check=false)
@@ -122,7 +122,7 @@ end
 
 function _dehomogenization_map(
     X::AbsProjectiveScheme{CRT},
-    U::AbsSpec,
+    U::AbsAffineScheme,
     i::Int
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
@@ -139,7 +139,7 @@ end
 #=
 function dehomogenization_map(
     X::AbsProjectiveScheme{CRT},
-    U::AbsSpec
+    U::AbsAffineScheme
   ) where {
     CRT<:Union{MPolyQuoLocRing, MPolyLocRing, MPolyRing, MPolyQuoRing}
   }
@@ -172,7 +172,7 @@ end
 
 
 @doc raw"""
-    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+    homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
 
 Given an affine chart ``U ⊂ P`` of an `AbsProjectiveScheme`
 ``P``, return a method ``h`` for the homogenization of elements
@@ -229,7 +229,7 @@ julia> phi.(gens(R))
  (v, 1)
 ```
 """
-function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+function homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
   # Projective schemes over a Field or ZZ or similar
   cache = _homogenization_cache(P)
   if haskey(cache, U)
@@ -238,7 +238,7 @@ function homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
   error("patch not found or homogenization map not set")
 end
 
-function _homogenization_map(P::AbsProjectiveScheme, U::AbsSpec, i::Int)
+function _homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme, i::Int)
   # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
@@ -273,7 +273,7 @@ function _homogenization_map(P::AbsProjectiveScheme, U::AbsSpec, i::Int)
   return my_dehom
 end
 
-function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsSpec, i::Int)
+function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRing}, U::AbsAffineScheme, i::Int)
   # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
@@ -318,7 +318,7 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyDecRi
   return my_dehom
 end
 
-function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsSpec, i::Int)
+function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRing}, U::AbsAffineScheme, i::Int)
   # Determine those variables which come from the homogeneous
   # coordinates
   S = homogeneous_coordinate_ring(P)
@@ -363,10 +363,10 @@ function _homogenization_map(P::AbsProjectiveScheme{<:MPolyAnyRing, <:MPolyQuoRi
   return my_dehom
 end
 
-function getindex(X::AbsProjectiveScheme, U::AbsSpec)
+function getindex(X::AbsProjectiveScheme, U::AbsAffineScheme)
   Xcov = covered_scheme(X)
   for C in coverings(Xcov)
-    for j in 1:npatches(C)
+    for j in 1:n_patches(C)
       if U === C[j]
         return C, j
       end

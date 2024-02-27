@@ -277,6 +277,20 @@ function (F::FreeMod)(s::Singular.svector)
   return FreeModElem(sparse_row(base_ring(F), pv), F)
 end
 
+# After creating the required infrastruture in Singular,
+# to facilitate the double book-keeping, the signature
+# lift(G1::ModuleGens{T}, G2::ModuleGens{T}) should go to Singular
+# and lift(a::FreeModElem{T}, generators::ModuleGens{T}) call it
+
+function lift(G1::ModuleGens{T}, G2::ModuleGens{T}) where {T <: MPolyRingElem}
+  results = Vector{SRow{T, Vector{T}}}()
+  for i in 1:ngens(G1)
+      s_row = lift(G1[i], G2)
+      push!(results, s_row)
+  end
+  return results
+end
+
 function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRingElem}
   if iszero(a)
     return sparse_row(base_ring(parent(a)))

@@ -92,7 +92,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   R = lll(Hecke.orthogonal_submodule(L, S))
 
   # the following completes the basis of R to a basis of L
-  basisRL = solve_left(basis_matrix(L),basis_matrix(R))
+  basisRL = solve(basis_matrix(L),basis_matrix(R); side = :left)
   basisRL = change_base_ring(ZZ, basisRL)
 
   A, j = snf(abelian_group(basisRL))
@@ -101,9 +101,9 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
 
   # carry the Weyl vector along
   L1 = lattice(ambient_space(L), basisL1)
-  weyl = change_base_ring(ZZ, solve_left(basisL1, weyl*basis_matrix(L)))
-  basisSL1 = solve_left(basis_matrix(L1), basis_matrix(S))
-  basisRL1 = solve_left(basis_matrix(L1), basis_matrix(R))
+  weyl = change_base_ring(ZZ, solve(basisL1, weyl*basis_matrix(L); side = :left))
+  basisSL1 = solve(basis_matrix(L1), basis_matrix(S); side = :left)
+  basisRL1 = solve(basis_matrix(L1), basis_matrix(R); side = :left)
 
   # Assure that L has the standard basis.
   L = integer_lattice(gram=gram_matrix(L1))
@@ -147,7 +147,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
       phi = phiSS_S*inv(i)*phi*j
       img,_ = sub(ODSS,[ODSS(phi*hom(g)*inv(phi)) for g in imOR])
       ds = degree(SS)
-      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
+      membership_test = (g->ODSS(hom(DSS,DSS,[DSS(_vec(matrix(QQ, 1, ds, lift(x))*g)) for x in gens(DSS)])) in img)
     end
   else
     membership_test(g) = is_pm1_on_discr(SS,g)
@@ -311,8 +311,8 @@ function rays(D::K3Chamber)
   # clear denominators
   Lz = ZZMatrix[change_base_ring(ZZ,i*denominator(i)) for i in Lq]
   # primitive in S
-  Lz = ZZMatrix[divexact(i,gcd(vec(i))) for i in Lz]
-  @hassert :K3Auto 2 all(all(x>=0 for x in vec(r*gram_matrix(D.data.SS)*transpose(i))) for i in Lz)
+  Lz = ZZMatrix[divexact(i,gcd(_vec(i))) for i in Lz]
+  @hassert :K3Auto 2 all(all(x>=0 for x in _vec(r*gram_matrix(D.data.SS)*transpose(i))) for i in Lz)
   return Lz
 end
 
@@ -521,9 +521,9 @@ function enumerate_quadratic_triple(Q, b, c; algorithm=:short_vectors, equal=fal
     L, p, dist = Hecke._convert_type(Q, b, QQ(c))
     #@vprint :K3Auto 1 ambient_space(L), basis_matrix(L), p, dist
     if equal
-      cv = Hecke.close_vectors(L, vec(p), dist, dist, check=false)
+      cv = Hecke.close_vectors(L, _vec(p), dist, dist, check=false)
     else
-      cv = Hecke.close_vectors(L, vec(p), dist, check=false)
+      cv = Hecke.close_vectors(L, _vec(p), dist, check=false)
     end
   end
   return cv
@@ -552,7 +552,7 @@ function short_vectors_affine(S::ZZLat, v::MatrixElem, alpha, d)
   alpha = QQ(alpha)
   gram = gram_matrix(S)
   tmp = v*gram_matrix(ambient_space(S))*transpose(basis_matrix(S))
-  v_S = solve_left(gram_matrix(S),tmp)
+  v_S = solve(gram_matrix(S),tmp; side = :left)
   sol = short_vectors_affine(gram, v_S, alpha, d)
   B = basis_matrix(S)
   return [s*B for s in sol]
@@ -561,14 +561,14 @@ end
 function short_vectors_affine(gram::MatrixElem, v::MatrixElem, alpha::QQFieldElem, d)
   # find a solution <x,v> = alpha with x in L if it exists
   w = gram*transpose(v)
-  tmp = FakeFmpqMat(w)
+  tmp = Hecke.FakeFmpqMat(w)
   wn = numerator(tmp)
   wd = denominator(tmp)
-  b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
+  b, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]); side = :right)
   if !b
     return QQMatrix[]
   end
-  _, K = left_kernel(wn)
+  K = kernel(wn; side = :left)
   # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
 
   # now I want to formulate this as a cvp
@@ -606,8 +606,8 @@ function separating_hyperplanes(S::ZZLat, v::QQMatrix, h::QQMatrix, d)
   @hassert :K3Auto 1 inner_product(V,h,h)[1,1]>0
   gram = gram_matrix(S)
   B = basis_matrix(S)
-  vS = solve_left(B,v)
-  hS = solve_left(B,h)
+  vS = solve(B,v; side = :left)
+  hS = solve(B,h; side = :left)
   return [a*B for a in separating_hyperplanes(gram,vS,hS,d)]
 end
 
@@ -622,7 +622,7 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   bW = basis_matrix(W)
   # set up the quadratic triple for SW
   gramW = gram_matrix(W)
-  s = solve_left(bW, v*prW) * gramW
+  s = solve(bW, v*prW; side = :left) * gramW
   Q = gramW + transpose(s)*s*ch*cv^-2
 
   @vprint :K3Auto 5 Q
@@ -696,7 +696,7 @@ Return whether the isometry `g` of `S` acts as `+-1` on the discriminant group.
 """
 function is_pm1_on_discr(S::ZZLat, g::ZZMatrix)
   D = discriminant_group(S)
-  imgs = [D(vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
+  imgs = [D(_vec(matrix(QQ,1,rank(S),lift(d))*g)) for d in gens(D)]
   return all(imgs[i] == gen(D, i) for i in 1:ngens(D)) || all(imgs[i] == -gen(D, i) for i in 1:ngens(D))
   # OD = orthogonal_group(D)
   # g1 = hom(D,D,[D(lift(d)*g) for d in gens(D)])
@@ -1032,7 +1032,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   SSdual = dual(data.SS)
   delta_w = QQMatrix[]
   wS = w*data.prS
-  #wS = solve_left(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)))
+  #wS = solve(gram_matrix(S),w*gram_matrix(V)*transpose(basis_matrix(S)); side = :left)
   Vw = data.gramL*transpose(w)
   # since we do repeated cvp in the same lattice
   # we do the preprocessing here
@@ -1074,10 +1074,10 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   # to avoid repeated calculation of the same stuff e.g. K and Q
   # find a solution <x,v> = alpha with x in L if it exists
   ww = transpose(wS)
-  tmp = FakeFmpqMat(ww)
+  tmp = Hecke.FakeFmpqMat(ww)
   wn = numerator(tmp)
   wd = denominator(tmp)
-  _, K = left_kernel(wn)
+  K = kernel(wn; side = :left)
   K = lll!(K)  # perhaps doing this has no gain?
   # (x + y*K)*gram*(x + y*K) = x gram x + 2xGKy + y K G K y
 
@@ -1096,7 +1096,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
   B = basis_matrix(SSdual)
   KB = K*B
   for (alpha, d) in keys(cvp_inputs)
-    can_solve_i, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]))
+    can_solve_i, x = can_solve_with_solution(transpose(wn), matrix(ZZ, 1, 1, [alpha*wd]); side = :right)
     if !can_solve_i
       continue
     end
@@ -1109,7 +1109,7 @@ function _alg58_close_vector(data::BorcherdsCtx, w::ZZMatrix)
     #cv = enumerate_quadratic_triple(Q,-b,-c,equal=true)
     mul!(b, Qi, b)
     #b = Qi*b
-    v = vec(b)
+    v = _vec(b)
     upperbound = inner_product(V,v,v) + c
     # solve the quadratic triple
     cv = close_vectors(N, v, upperbound, upperbound, check=false)
@@ -1156,8 +1156,8 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
     d = rank(data.S)
     walls = Vector{ZZMatrix}(undef,d)
     for i in 1:d
-      vs = numerator(FakeFmpqMat(walls1[i]))
-      g = gcd(vec(vs))
+      vs = numerator(Hecke.FakeFmpqMat(walls1[i]))
+      g = gcd(_vec(vs))
       if g != 1
         vs = divexact(vs, g)
       end
@@ -1174,8 +1174,8 @@ function _walls_of_chamber(data::BorcherdsCtx, weyl_vector, algorithm::Symbol=:s
   for i in 1:d
     v = matrix(QQ, 1, degree(data.SS), r[i])
     # rescale v to be primitive in S
-    vs = numerator(FakeFmpqMat(v))
-    g = gcd(vec(vs))
+    vs = numerator(Hecke.FakeFmpqMat(v))
+    g = gcd(_vec(vs))
     if g!=1
       vs = divexact(vs, g)
     end
@@ -1262,7 +1262,7 @@ Based on Algorithm 5.13 in [Shi15](@cite)
 - `vS`: Given with respect to the basis of `S`.
 """
 function unproject_wall(data::BorcherdsCtx, vS::ZZMatrix)
-  d = gcd(vec(vS*data.gramS))
+  d = gcd(_vec(vS*data.gramS))
   v = QQ(1,d)*(vS*basis_matrix(data.S))  # primitive in Sdual
   vsq = QQ((vS*data.gramS*transpose(vS))[1,1],d^2)
 
@@ -1375,7 +1375,7 @@ a fundamental domain for the action of ``\mathrm{Aut}(X)`` on the set of nef L|S
 This is almost a fundamental domain for ``\mathrm{Aut}(X)`` on the nef cone.
 
 Here very general means that ``Num(X)`` is isomorphic to `S` and the image of
-$\mathrm{Aut}(X) \to H^0(X,\Omega^2_X)$ is $ \pm 1$.
+$\mathrm{Aut}(X) \to H^0(X,\Omega^2_X)$ is $\pm 1$.
 
 The function returns generators for the image of
 
@@ -1389,7 +1389,7 @@ and it is equal to $2$ if and only if $S$ is $2$-elementary.
 If an ample class is given, then the generators returned preserve it.
 
 This kind of computation can be very expensive. To print progress information
-use `set_verbose_level(:K3Auto, 2)` or higher.
+use `set_verbosity_level(:K3Auto, 2)` or higher.
 
 # Input
 - `S`: a hyperbolic lattice
@@ -1401,7 +1401,7 @@ function K3_surface_automorphism_group(S::ZZLat)
 end
 
 function K3_surface_automorphism_group(S::ZZLat, ample_class::QQMatrix, n::Int=26)
-  ample_classS = solve_left(basis_matrix(S), ample_class)
+  ample_classS = solve(basis_matrix(S), ample_class; side = :left)
   L, S, weyl = borcherds_method_preprocessing(S, n, ample=ample_class)
   return borcherds_method(L, S, weyl, compute_OR=false)[2:end]
 end
@@ -1598,8 +1598,8 @@ function span_in_S(L, S, weyl)
   else
     M = linear_equation_matrix(spanC)
   end
-  k, K = kernel(M)
-  gensN = transpose(K)[1:k,:]
+  K = kernel(M; side = :right)
+  gensN = transpose(K)
   return gensN
 end
 
@@ -1620,9 +1620,9 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
-  @vprint :K3Auto 2 "moving Weyl vector $(solve_left(basis_matrix(L),weyl)) towards the ample class\n"
+  @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
-  @vprint :K3Auto "new weyl: $(solve_left(basis_matrix(L),weyl)) \n"
+  @vprint :K3Auto "new weyl: $(solve(basis_matrix(L),weyl; side = :left)) \n"
   if is_S_nondegenerate(L,S,weyl)
     return weyl, u, ample
   end
@@ -1728,7 +1728,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
       A = change_base_ring(ZZ, gram_matrix(R)*transpose(v))
       b = change_base_ring(GF(2), b)
       A = change_base_ring(GF(2), A)
-      x = lift(solve_left(A, b))
+      x = lift(solve(A, b; side = :left))
       v = (v + 2*x)*basis_matrix(R)
       @hassert :K3Auto 1 mod(inner_product(V,v,v)[1,1], 8)==0
       u = basis_matrix(U)
@@ -1843,7 +1843,7 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   if ample isa Nothing
     @vprint :K3Auto 1 "searching a random ample vector in S\n"
     h = ample_class(S)
-    hS = solve_left(basis_matrix(S),h)
+    hS = solve(basis_matrix(S),h; side = :left)
     @vprint :K3Auto 1 "ample vector: $hS \n"
   else
     h = ample*basis_matrix(S)
@@ -1858,7 +1858,7 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   weyl1, u, hh = weyl_vector_non_degenerate(L, S, u0, weyl, h)
 
 
-  weyl2 = change_base_ring(ZZ, solve_left(basis_matrix(L), weyl1))
+  weyl2 = change_base_ring(ZZ, solve(basis_matrix(L), weyl1; side = :left))
   return L, S, weyl2
 end
 
@@ -1990,7 +1990,7 @@ function fibration_type(NS::ZZLat, f::QQMatrix)
   V = ambient_space(NS)
   # compute f^\perp / ZZf
   K = orthogonal_submodule(NS, lattice(V, f))
-  fK = change_base_ring(ZZ, solve_left(basis_matrix(K), f))
+  fK = change_base_ring(ZZ, solve(basis_matrix(K), f; side = :left))
   g = gcd(vec(collect(fK)))
   fK = divexact(fK, g)
   A, j = snf(abelian_group(fK))
@@ -2001,7 +2001,7 @@ function fibration_type(NS::ZZLat, f::QQMatrix)
   mwl_rank = rank(NS) - 2 - rank(R)
   ade_type = root_lattice_recognition(R)[1]
   barR = primitive_closure(Frame, R)
-  torsion = abelian_group(change_base_ring(ZZ,solve_left(basis_matrix(barR), basis_matrix(R))))
+  torsion = abelian_group(change_base_ring(ZZ,solve(basis_matrix(barR), basis_matrix(R); side = :left)))
   return mwl_rank, snf(torsion)[1], ade_type
 end
 
@@ -2025,9 +2025,10 @@ function find_section(L::ZZLat, f::QQMatrix)
   else
     # search a smallish section using a cvp
     A = change_base_ring(ZZ,basis_matrix(L)*gram_matrix(V)*transpose(f))
-    ss = solve_left(A,identity_matrix(ZZ,1))
+    ss = solve(A,identity_matrix(ZZ,1); side = :left)
     s = ss*basis_matrix(L)
-    k, K = left_kernel(A)
+    K = kernel(A; side = :left)
+    k = nrows(K)
     Kl = integer_lattice(gram=K*transpose(K))
     # project ss to K
     sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
@@ -2070,7 +2071,8 @@ fibration_type(NS::ZZLat, f::Vector) = fibration_type(NS, matrix(QQ, 1, degree(N
 ################################################################################
 
 function _common_invariant(Gamma)
-  return left_kernel(reduce(hcat,[g-1 for g in Gamma]))
+  K = kernel(reduce(hcat,[g-1 for g in Gamma]); side = :left)
+  return nrows(K), K
 end
 
 @doc raw"""

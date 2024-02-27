@@ -7,19 +7,20 @@ end
 
 # Permutation groups
 
+## Constructing permutation groups
+
 Permutation groups can be defined as symmetric groups, alternating groups or their subgroups.
 
 ```@docs
 PermGroup
 PermGroupElem
 symmetric_group
-is_natural_symmetric_group(G::GAPGroup)
-is_isomorphic_to_symmetric_group(G::GAPGroup)
 alternating_group
-is_natural_alternating_group(G::GAPGroup)
-is_isomorphic_to_alternating_group(G::GAPGroup)
 permutation_group
 @permutation_group
+```
+
+```@docs
 projective_general_linear_group
 projective_special_linear_group
 projective_symplectic_group
@@ -30,10 +31,40 @@ projective_unitary_group
 projective_special_unitary_group
 ```
 
+## Operations for permutation groups
+
+All operations, properties and attributes for general groups
+described in the previous sections are supported for permutation
+groups. In addition there are some specific to permutation groups.
+
 In OSCAR, every permutation group has a degree `n`, that corresponds to the size of the set on which `G` acts.
 
 ```@docs
 degree(x::PermGroup)
+```
+
+
+The following functions deal with the natural action of a given permutation group $G$.
+```@docs
+is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
+blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
+all_blocks(G::PermGroup)
+```
+
+The following functions allow efficiently "recognizing" certain permutation groups as alternating or symmetric groups.
+
+```@docs
+is_natural_symmetric_group(G::GAPGroup)
+is_isomorphic_to_symmetric_group(G::GAPGroup)
+is_natural_alternating_group(G::GAPGroup)
+is_isomorphic_to_alternating_group(G::GAPGroup)
 ```
 
 ## Permutations
@@ -77,21 +108,6 @@ julia> x(6)
 6
 ```
 
-## Operations for permutation groups
-
-```@docs
-cycle_structures(G::PermGroup)
-is_transitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-transitivity(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-is_primitive(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-is_regular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-is_semiregular(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-rank_action(G::PermGroup, L::AbstractVector{Int} = 1:degree(G))
-blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-maximal_blocks(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-minimal_block_reps(G::PermGroup, L::AbstractVector{Int} = moved_points(G))
-all_blocks(G::PermGroup)
-```
 
 ## Cycle structures
 
@@ -104,4 +120,8 @@ iseven(::CycleType)
 isodd(::CycleType)
 order(::Type{T}, c::CycleType) where T
 sign(::CycleType)
+```
+
+```@docs
+cycle_structures(G::PermGroup)
 ```

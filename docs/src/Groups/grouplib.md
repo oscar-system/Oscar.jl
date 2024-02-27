@@ -76,6 +76,7 @@ not have a faithful permutation representation of small degree.
 Computations in these groups may be rather time consuming.
 
 ```@docs
+all_perfect_groups
 has_number_of_perfect_groups
 has_perfect_group_identification
 has_perfect_groups

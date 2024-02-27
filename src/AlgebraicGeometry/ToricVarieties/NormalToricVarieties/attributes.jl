@@ -125,7 +125,7 @@ function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vecto
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
-    @req length(coordinate_names) == nrays(v) "The provided list of coordinate names must match the number of rays in the fan"
+    @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
 
@@ -290,7 +290,7 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 ```
 """
 function stanley_reisner_ideal(R::MPolyRing, v::NormalToricVarietyType)
-    n = nrays(v)
+    n = n_rays(v)
     @req n == nvars(R) "Wrong number of variables"
     mnf = _minimal_nonfaces(v)
     Polymake.nrows(mnf) > 0 || return ideal([zero(R)])
@@ -347,7 +347,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 """
 function irrelevant_ideal(R::MPolyRing, v::NormalToricVarietyType)
     monoms = _irrelevant_ideal_monomials(v)
-    @req nvars(R) == nrays(v) "Wrong number of variables in polynomial ring"
+    @req nvars(R) == n_rays(v) "Wrong number of variables in polynomial ring"
     return ideal([R([1], [x]) for x in monoms])
 end
 
@@ -393,7 +393,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 """
 function ideal_of_linear_relations(R::MPolyRing, v::NormalToricVarietyType)
     @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
-    @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
+    @req ngens(R) == n_rays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
     return ideal(transpose(matrix(ZZ, rays(v))) * gens(R))
 end
 
@@ -636,7 +636,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(nrays(v))
+@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
 
 
 @doc raw"""

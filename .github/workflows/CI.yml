@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'release-*'
   pull_request:
   workflow_dispatch:
 
@@ -30,7 +31,8 @@ jobs:
           - '1.6'
           - '1.9'   # to be removed in the near future
           - '1.10'
-          - 'nightly'
+          - '1.11-nightly'
+          #- 'nightly'
         group: [ 'short', 'long' ]
         os:
           - ubuntu-latest
@@ -98,7 +100,9 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   doctest:
     runs-on: ${{ matrix.os }}
@@ -109,7 +113,8 @@ jobs:
         julia-version:
           - '1.9'   # to be removed in the near future
           - '1.10'
-          - 'nightly'
+          - '1.11-nightly'
+          #- 'nightly'
         os:
           - ubuntu-latest
         depwarn: [ '' ]
@@ -165,4 +170,6 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

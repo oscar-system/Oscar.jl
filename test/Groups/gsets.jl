@@ -262,10 +262,10 @@ end
   @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 48
 
-  # isconjugate
+  # is_conjugate
   Omega = gset(G)
-  @test isconjugate(Omega, gen(V, 1), gen(V, 2))
-  @test ! isconjugate(Omega, zero(V), gen(V, 1))
+  @test is_conjugate(Omega, gen(V, 1), gen(V, 2))
+  @test ! is_conjugate(Omega, zero(V), gen(V, 1))
 
   # is_conjugate_with_data
   Omega = gset(G)

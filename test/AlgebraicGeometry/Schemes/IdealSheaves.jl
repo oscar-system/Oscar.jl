@@ -4,7 +4,7 @@
   # Set up the base ℙ¹ with coordinates s and t
   S, _ = graded_polynomial_ring(kk, ["s", "t"])
 
-  base_P1 = ProjectiveScheme(S)
+  base_P1 = proj(S)
 
   # split this into the standard covering
   base_covering = standard_covering(base_P1)
@@ -12,7 +12,7 @@
   A1s = patches(base_covering)[1]
   A1t = patches(base_covering)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -22,7 +22,7 @@
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 
@@ -61,9 +61,9 @@ end
   I3 = IdealSheaf(IP2, gen(Ihom, 1))
   @test I == I2 == I3
   U = patches(default_covering(X))
-  @test I(U[1]) isa Oscar.Ideal 
-  @test I(U[2]) isa Oscar.Ideal 
-  @test I(U[3]) isa Oscar.Ideal 
+  @test I(U[1]) isa Oscar.Ideal
+  @test I(U[2]) isa Oscar.Ideal
+  @test I(U[3]) isa Oscar.Ideal
   V = PrincipalOpenSubset(U[1], gens(OO(U[1]))[1])
   rho = I(U[1], V)
   @test I(V) == ideal(OO(V), rho.(gens(I(U[1]))))
@@ -71,7 +71,7 @@ end
   simplify!(I)
 
   # run the check block in extend!
-  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID = IdDict{AbsAffineScheme, Oscar.Ideal}()
   ID[X[1][1]] = I(X[1][1])
   J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
   ID[X[1][1]] = I(X[1][1])

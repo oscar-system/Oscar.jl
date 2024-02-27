@@ -54,7 +54,7 @@ end
 
 # Small helper function to make the reduction call uniform
 function _reduce(M::MatrixElem{AbsSimpleNumFieldElem}, OtoFq)
-  e = extend(OtoFq, nf(domain(OtoFq)))
+  e = extend(OtoFq, Hecke.nf(domain(OtoFq)))
   return map_entries(e, M)
 end
 

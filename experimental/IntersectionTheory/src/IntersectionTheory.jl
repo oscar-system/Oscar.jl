@@ -3,7 +3,7 @@ using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti, chi, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
+import ..Oscar: basis, betti, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 

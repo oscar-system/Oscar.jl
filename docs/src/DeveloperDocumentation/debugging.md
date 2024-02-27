@@ -3,7 +3,7 @@
 ## Pitfalls: Mutable objects in OSCAR code
 
 Suppose you are having the following difficulties. Your code is exhibiting
-inexplicable behaviour and values that should not be changing are changing in
+inexplicable behavior and values that should not be changing are changing in
 seemingly random locations. To get to the bottom of these kind of issues
 it is necessary to be familiar with mutable objects in Julia and some of the
 relevant conventions in place in OSCAR. This section discusses these
@@ -92,7 +92,7 @@ julia> evaluate(x)  # x is now unchanged
 
 It is of course not true that all Julia functions take ownership of their
 arguments, but the GOP derives from the fact that this decision is an
-implementation detail with performance consequences. The behaviour of a
+implementation detail with performance consequences. The behavior of a
 function may be inconsistent across different types and versions of OSCAR.
 In the following two snippets, the GOP says both modifications of `a` are
 illegal since they have since been passed to a function. If `K = QQ`, the two
@@ -161,7 +161,7 @@ julia> a
  3
 ```
 
-The preceding behaviour of the function `modular_proj` is an artifact of
+The preceding behavior of the function `modular_proj` is an artifact of
 internal efficiency and may be desirable in certain circumstances. In other
 circumstances, the following `deepcopy`s may be necessary for your code to
 function correctly.

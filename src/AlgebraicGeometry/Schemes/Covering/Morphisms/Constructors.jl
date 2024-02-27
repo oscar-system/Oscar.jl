@@ -19,9 +19,9 @@ julia> Ycov = covered_scheme(Y);
 julia> C = default_covering(Ycov)
 Covering
   described by patches
-    1: V(-(y//x)^2*(z//x) + 1)
-    2: V((x//y)^3 - (z//y))
-    3: V((x//z)^3 - (y//z)^2)
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -30,13 +30,13 @@ Covering
 julia> identity_map(C)
 Covering morphism
   from covering with 3 patches
-    1a: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2a: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1a: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2a: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
   to covering with 3 patches
-    1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3b: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 given by the pullback functions
   1a -> 1b
     (y//x) -> (y//x)
@@ -52,7 +52,7 @@ given by the pullback functions
 ```
 """
 function identity_map(C::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
     map_dict[U] = identity_map(U)
   end
@@ -70,7 +70,7 @@ This function produces the inclusion map `ref -> orig` which is
 realized on all `patches` as `PrincipalOpenEmbedding`s. 
 """
 function refinement_morphism(ref::Covering, orig::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(ref)
     inc, h = _find_chart(U, orig)
     # TODO: construct and cache the inverse on image

@@ -83,8 +83,9 @@ end
     end
 
     # conjugacy classes of subgroups
-    CC = conjugacy_classes_subgroups(G1)
-    @test length(CC) == length(conjugacy_classes_subgroups(G2))
+    CC = subgroup_classes(G1)
+    @test length(CC) == length(subgroup_classes(G2))
+    @test length(CC) == length(collect(subgroups(G1)))
     @test all(C -> length(C) == 1, CC)
     @test rand(CC[1]) == representative(CC[1])
     @test acting_group(CC[1]) == G1
@@ -105,22 +106,24 @@ end
     for H in C
       @test H == representative(C)
     end
-    S1 = subgroup_reps(G1)
-    S2 = subgroup_reps(G2)
-    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    S1 = map(representative, subgroup_classes(G1))
+    S2 = map(representative, subgroup_classes(G2))
+    @test sort!([order(x) for x in S1]) == sort!([order(x) for x in S2])
     for n in 2:4
-      S1 = subgroup_reps(G1, order = ZZ(n))
-      S2 = subgroup_reps(G2, order = ZZ(n))
+      S1 = subgroup_classes(G1, order = n)
+      S2 = subgroup_classes(G2, order = n)
       @test length(S1) == length(S2)
     end
     for n in 1:4
-      S1 = low_index_subgroup_reps(G1, n)
-      S2 = low_index_subgroup_reps(G2, n)
+      S1 = low_index_subgroup_classes(G1, n)
+      S2 = low_index_subgroup_classes(G2, n)
       @test length(S1) == length(S2)
+      @test length(S1) == length(collect(low_index_subgroups(G1, n)))
     end
-    S1 = conjugacy_classes_maximal_subgroups(G1)
-    S2 = conjugacy_classes_maximal_subgroups(G2)
+    S1 = maximal_subgroup_classes(G1)
+    S2 = maximal_subgroup_classes(G2)
     @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    @test length(S1) == length(collect(maximal_subgroups(G1)))
 
     # operations
     x = representative(rand(cc))
@@ -138,8 +141,10 @@ end
 
     # operations depending on sets of primes
     for P in subsets(Set(primes))
-      @test [images(iso, S)[1] for S in hall_subgroup_reps(G1, collect(P))] ==
-            hall_subgroup_reps(G2, collect(P))
+      @test [images(iso, representative(C))[1] for C in hall_subgroup_classes(G1, collect(P))] ==
+            map(representative, hall_subgroup_classes(G2, collect(P)))
+      @test [images(iso, C)[1] for C in hall_subgroups(G1, collect(P))] ==
+            collect(hall_subgroups(G2, collect(P)))
     end
     @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
           sort!([order(S) for S in hall_system(G2)])

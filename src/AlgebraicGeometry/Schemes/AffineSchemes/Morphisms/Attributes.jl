@@ -2,18 +2,18 @@
 
 
 ########################################################################
-# (1) Properties for AbsSpecMor
+# (1) Properties for AbsAffineSchemeMor
 ########################################################################
 
-# In an attempt to mimic inheritance, any new concrete instance of AbsSpecMor
-# can internally store a SpecMor instance and must implement the method
-# underlying_morphism to access it. Then, all functionality for SpecMor is
+# In an attempt to mimic inheritance, any new concrete instance of AbsAffineSchemeMor
+# can internally store a AffineSchemeMor instance and must implement the method
+# underlying_morphism to access it. Then, all functionality for AffineSchemeMor is
 # automatically forwarded.
-underlying_morphism(f::AbsSpecMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
+underlying_morphism(f::AbsAffineSchemeMor) = error("`underlying_morphism(f)` not implemented for `f` of type $(typeof(f))")
 
 
 @doc raw"""
-    domain(f::AbsSpecMor)
+    domain(f::AbsAffineSchemeMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``X``.
 
@@ -43,7 +43,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -58,11 +58,11 @@ Spectrum
     by ideal (x1)
 ```
 """
-domain(f::AbsSpecMor) = domain(underlying_morphism(f))
+domain(f::AbsAffineSchemeMor) = domain(underlying_morphism(f))
 
 
 @doc raw"""
-    codomain(f::AbsSpecMor)
+    codomain(f::AbsAffineSchemeMor)
 
 On a morphism ``f : X → Y`` of affine schemes, this returns ``Y``.
 
@@ -92,7 +92,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -105,11 +105,11 @@ Affine space of dimension 3
 with coordinates [x1, x2, x3]
 ```
 """
-codomain(f::AbsSpecMor) = codomain(underlying_morphism(f))
+codomain(f::AbsAffineSchemeMor) = codomain(underlying_morphism(f))
 
 
 @doc raw"""
-    pullback(f::AbsSpecMor)
+    pullback(f::AbsAffineSchemeMor)
 
 On a morphism ``f : X → Y`` of affine schemes ``X = Spec(S)`` and
 ``Y = Spec(R)``, this returns the ring homomorphism ``f^* : R → S``.
@@ -148,17 +148,17 @@ defined by
   x3 -> x3
 ```
 """
-pullback(f::AbsSpecMor) = pullback(underlying_morphism(f))
+pullback(f::AbsAffineSchemeMor) = pullback(underlying_morphism(f))
 
 
 
 ########################################################################
-# (2) Properties for SpecMor
+# (2) Properties for AffineSchemeMor
 ########################################################################
 
-pullback(phi::SpecMor) = phi.pullback
-domain(phi::SpecMor) = phi.domain
-codomain(phi::SpecMor) = phi.codomain
+pullback(phi::AffineSchemeMor) = phi.pullback
+domain(phi::AffineSchemeMor) = phi.domain
+codomain(phi::AffineSchemeMor) = phi.codomain
 
 
 
@@ -176,8 +176,8 @@ complement_scheme(f::OpenInclusion) = f.Z
 ########################################################################
 
 function preimage(
-    phi::AbsSpecMor,
-    Z::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
+    phi::AbsAffineSchemeMor,
+    Z::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                                <:MPolyPowersOfElement}};
     check::Bool=true
   )
@@ -193,19 +193,19 @@ function preimage(
   return hypersurface_complement(subscheme(X, new_gens), new_units)
 end
 
-function preimage(f::AbsSpecMor, Z::AbsSpec{<:Ring, <:MPolyRing}; check::Bool=true)
+function preimage(f::AbsAffineSchemeMor, Z::AbsAffineScheme{<:Ring, <:MPolyRing}; check::Bool=true)
   OO(Z) == ambient_coordinate_ring(codomain(f)) || error("schemes can not be compared")
   return subscheme(domain(f), ideal(OO(domain(f)), [zero(OO(domain(f)))]))
 end
 
-function preimage(f::AbsSpecMor,
-    Z::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
+function preimage(f::AbsAffineSchemeMor,
+    Z::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                                             <:MPolyPowersOfElement}};
     check::Bool=true)
   return hypersurface_complement(domain(f), pullback(f).(denominators(inverted_set(OO(Z)))))
 end
 
-function preimage(f::AbsSpecMor, Z::AbsSpec; check::Bool=true)
+function preimage(f::AbsAffineSchemeMor, Z::AbsAffineScheme; check::Bool=true)
   pbf = pullback(f)
   R = OO(codomain(f))
   S = OO(domain(f))
@@ -221,7 +221,7 @@ end
 ##############################################
 
 @doc raw"""
-    graph(f::AbsSpecMor)
+    graph(f::AbsAffineSchemeMor)
 
 Return the graph of ``f : X → Y`` as a subscheme of ``X×Y`` as well as the two projections to ``X`` and ``Y``.
 
@@ -251,7 +251,7 @@ Spectrum
 
 julia> f = inclusion_morphism(X, Y)
 Affine scheme morphism
-  from [x1, x2, x3]  V(x1)
+  from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
   x1 -> 0
@@ -259,10 +259,10 @@ given by the pullback function
   x3 -> x3
 
 julia> graph(f)
-(V(x1, -x1, x2 - x2, x3 - x3), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> V(x1), Hom: V(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
+(scheme(x1, -x1, x2 - x2, x3 - x3), Hom: scheme(x1, -x1, x2 - x2, x3 - x3) -> scheme(x1), Hom: scheme(x1, -x1, x2 - x2, x3 - x3) -> affine 3-space over QQ with coordinates [x1, x2, x3])
 ```
 """
-function graph(f::AbsSpecMor{<:AbsSpec{BRT}, <:AbsSpec{BRT}}) where {BRT}
+function graph(f::AbsAffineSchemeMor{<:AbsAffineScheme{BRT}, <:AbsAffineScheme{BRT}}) where {BRT}
   X = domain(f)
   Y = codomain(f)
   XxY, prX, prY = product(X, Y)
@@ -280,7 +280,7 @@ end
 # (6) The inverse of a morphism
 ##############################################
 
-@attr AbsSpecMor function inverse(f::AbsSpecMor)
+@attr AbsAffineSchemeMor function inverse(f::AbsAffineSchemeMor)
   is_isomorphism(f) || error("the given morphism is not an isomorphism")
   return get_attribute(f, :inverse)::morphism_type(codomain(f), domain(f))
 end
@@ -290,31 +290,31 @@ end
 ########################################################################
 
 ### Type getters
-pullback_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = PbType
-pullback_type(f::AbsSpecMor) = pullback_type(typeof(f))
-domain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = DomType
-domain_type(f::AbsSpecMor) = domain_type(typeof(f))
-codomain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsSpecMor{DomType, CodType, PbType}} = CodType
-codomain_type(f::AbsSpecMor) = codomain_type(typeof(f))
+pullback_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = PbType
+pullback_type(f::AbsAffineSchemeMor) = pullback_type(typeof(f))
+domain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = DomType
+domain_type(f::AbsAffineSchemeMor) = domain_type(typeof(f))
+codomain_type(::Type{T}) where {DomType, CodType, PbType, T<:AbsAffineSchemeMor{DomType, CodType, PbType}} = CodType
+codomain_type(f::AbsAffineSchemeMor) = codomain_type(typeof(f))
 
-function morphism_type(::Type{SpecType1}, ::Type{SpecType2}) where {SpecType1<:AbsSpec, SpecType2<:AbsSpec}
-  return SpecMor{SpecType1, SpecType2, morphism_type(ring_type(SpecType2), ring_type(SpecType1))}
+function morphism_type(::Type{AffineSchemeType1}, ::Type{AffineSchemeType2}) where {AffineSchemeType1<:AbsAffineScheme, AffineSchemeType2<:AbsAffineScheme}
+  return AffineSchemeMor{AffineSchemeType1, AffineSchemeType2, morphism_type(ring_type(AffineSchemeType2), ring_type(AffineSchemeType1))}
 end
 
-morphism_type(X::AbsSpec, Y::AbsSpec) = morphism_type(typeof(X), typeof(Y))
+morphism_type(X::AbsAffineScheme, Y::AbsAffineScheme) = morphism_type(typeof(X), typeof(Y))
 
 @doc raw"""
-    isomorphism_on_open_subsets(f::AbsSpecMor)
+    isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
 
-For a birational morphism ``f : X → Y`` of `AbsSpec`s this 
+For a birational morphism ``f : X → Y`` of `AbsAffineScheme`s this 
 returns an isomorphism of affine schemes ``f' : U → V`` which is 
 the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
 ``V ⊂ Y``.
 """
-function isomorphism_on_open_subsets(f::AbsSpecMor)
+function isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
   if !has_attribute(f, :iso_on_open_subset)
     is_birational(f) # Should compute and store the attribute
   end
-  return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
+  return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
 end
 

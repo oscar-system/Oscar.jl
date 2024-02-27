@@ -29,6 +29,8 @@ deviate from them in some cases; in that case just do so.
   different, even if the result describes the same mathematical object, it
   should be indicated in the function name, for example `automorphism_group` vs
   `automorphism_group_generators` vs `automorphism_list`.
+- Whenever functions expect a ring, field, algebra, etc. as input they should
+  be passed as the first argument, for example, `polynomial_ring(QQ, "x")`.
 - Follow the mathematics. If your function needs a list of points, you should
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,

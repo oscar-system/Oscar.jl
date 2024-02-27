@@ -22,7 +22,7 @@ and homomorphisms between free modules by matrices.
 All OSCAR types for the modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
+they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -98,7 +98,7 @@ degrees_of_generators(F::FreeMod)
 All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
 The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
-They are modelled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
+They are modeled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
 which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
 type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
 unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
@@ -174,7 +174,7 @@ is_homogeneous(f::FreeModElem)
 ```
 
 ```@docs
-degree(f::FreeModElem)
+degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
 ```
 
 

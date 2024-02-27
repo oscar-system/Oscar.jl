@@ -89,19 +89,15 @@ function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
 end
 
-#by the magic of @show_name, this function will ensure that a 
+# by the magic of @show_name, this function will ensure that a 
 # un-named free module over a named ring X will acquire the name 
 # X^r
 function AbstractAlgebra.extra_name(F::FreeMod)
-  AbstractAlgebra.set_name!(F)
-  s = get_attribute(F, :name)
-  s !== nothing && return
-  AbstractAlgebra.set_name!(base_ring(F))
-  s = get_attribute(base_ring(F), :name)
+  s = AbstractAlgebra.get_name(base_ring(F))
   if s !== nothing
-    AbstractAlgebra.set_name!(F, "$s^$(rank(F))")
+    return "$s^$(rank(F))"
   end
-  return get_attribute(F, :name)
+  return nothing
 end
 
 function show(io::IO, F::FreeMod)

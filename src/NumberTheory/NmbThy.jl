@@ -44,10 +44,10 @@ norm_equation(R::AbsNumFieldOrder, k::Base.Integer; abs::Bool = false) = norm_eq
 function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
 
   @assert Hecke.is_maximal(R)
-  Ka, mKa, mkK = absolute_field(nf(R))
+  Ka, mKa, mkK = absolute_field(Hecke.nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)
-  k = nf(parent(a))
+  k = Hecke.nf(parent(a))
   class_group(parent(a))
 
   lp = factor(Ra(mkK(k(a)))*Ra)
@@ -183,11 +183,11 @@ end
 =#
 
 @doc raw"""
-    factorisations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
+    factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
 
-Return all factorisations of $a$ into irreducibles.
+Return all factorizations of $a$ into irreducibles.
 """
-function factorisations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
   O = parent(a)
   S = collect(keys(factor(a*O)))
   if length(S) == 0
@@ -253,5 +253,5 @@ julia> disc_log(gen(F), a)
 """
 function disc_log(b::T, x::T) where {T <: FinFieldElem}
   @assert parent(b) === parent(x)
-  return disc_log_bs_gs(b, x, order(parent(b)))
+  return Hecke.disc_log_bs_gs(b, x, order(parent(b)))
 end

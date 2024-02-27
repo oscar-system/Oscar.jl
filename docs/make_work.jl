@@ -1,6 +1,6 @@
 #
 # This file is included by docs/make.jl and by a helper function
-# in src/Oscar.jl
+# in src/utils/docs.jl
 #
 module BuildDoc
 
@@ -139,7 +139,7 @@ function doit(
     joinpath(Oscar.oscardir, "docs", "oscar_references.bib"); style=oscar_style
   )
 
-  # Copy documentation from Hecke, Nemo, AnstratAlgebra
+  # Copy documentation from Hecke, Nemo, AbstractAlgebra
   other_packages = [
     (Oscar.Hecke, Oscar.heckedir),
     (Oscar.Nemo, Oscar.nemodir),
@@ -166,11 +166,29 @@ function doit(
         end
         src = normpath(root, file)
         dst = normpath(dstbase, relpath(root, srcbase), file)
-        cp(src, dst; force=true)
+        if endswith(file, ".md")
+          symlink(src, dst)
+        else
+          cp(src, dst; force=true)
+        end
         chmod(dst, 0o644)
       end
     end
   end
+
+  function get_rev(uuid::Base.UUID)
+    deps = Documenter.Pkg.dependencies()
+    @assert haskey(deps, uuid)
+    if !isnothing(deps[uuid].git_revision)
+      return deps[uuid].git_revision
+    else
+      return "v$(deps[uuid].version)"
+    end
+  end
+  aarev = get_rev(Base.PkgId(Oscar.AbstractAlgebra).uuid)
+  nemorev = get_rev(Base.PkgId(Oscar.Nemo).uuid)
+  heckerev = get_rev(Base.PkgId(Oscar.Hecke).uuid)
+  singularrev = get_rev(Base.PkgId(Oscar.Singular).uuid)
 
   cd(joinpath(Oscar.oscardir, "docs")) do
     DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive=true)
@@ -197,7 +215,12 @@ function doit(
       warnonly=warnonly,
       checkdocs=:none,
       pages=doc,
-      remotes=nothing,  # TODO: make work with Hecke, Nemo, AbstractAlgebra, see https://github.com/oscar-system/Oscar.jl/issues/588
+      remotes=Dict(
+        Oscar.aadir => (Remotes.GitHub("Nemocas", "AbstractAlgebra.jl"), aarev),
+        Oscar.nemodir => (Remotes.GitHub("Nemocas", "Nemo.jl"), nemorev),
+        Oscar.heckedir => (Remotes.GitHub("thofma", "Hecke.jl"), heckerev),
+        Oscar.singulardir => (Remotes.GitHub("oscar-system", "Singular.jl"), singularrev),
+      ),
       plugins=[bib],
     )
   end

@@ -42,7 +42,7 @@ Affine plane curve
   end
 end
 
-AffinePlaneCurve(X::AbsSpec; args...) = AffinePlaneCurve(AffineAlgebraicSet(X;args...);args...)
+AffinePlaneCurve(X::AbsAffineScheme; args...) = AffinePlaneCurve(AffineAlgebraicSet(X;args...);args...)
 
 # Functions to comply with the AbsAlgebraicSet interface
 
@@ -109,7 +109,7 @@ julia> D = plane_curve(x*(x+y)*(x-y));
 
 julia> common_components(C, D)
 1-element Vector{AffinePlaneCurve{QQField, MPolyQuoRing{QQMPolyRingElem}}}:
- V(x^2 + x*y)
+ scheme(x^2 + x*y)
 
 ```
 """
@@ -162,7 +162,7 @@ julia> C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
 julia> P = C([2,-2])
 Rational point
-  of V(-x^4 - x^3*y + x^2*y^3 + x*y^4)
+  of scheme(-x^4 - x^3*y + x^2*y^3 + x*y^4)
 with coordinates (2, -2)
 
 julia> multiplicity(C, P)
@@ -199,13 +199,13 @@ julia> C = plane_curve(x^2*(x+y)*(y^3-x^2));
 
 julia> P = C([0, 0])
 Rational point
-  of V(-x^4 - x^3*y + x^2*y^3 + x*y^4)
+  of scheme(-x^4 - x^3*y + x^2*y^3 + x*y^4)
 with coordinates (0, 0)
 
 julia> tangent_lines(C, P)
 Dict{AffinePlaneCurve{QQField, MPolyQuoRing{QQMPolyRingElem}}, Int64} with 2 entries:
-  V(x)     => 3
-  V(x + y) => 1
+  scheme(x)     => 3
+  scheme(x + y) => 1
 
 ```
 """
@@ -290,12 +290,12 @@ Affine plane curve
 
 julia> P = C([QQ(0), QQ(0)])
 Rational point
-  of V(x^2 + x*y)
+  of scheme(x^2 + x*y)
 with coordinates (0, 0)
 
 julia> Q = C([QQ(2), QQ(-2)])
 Rational point
-  of V(x^2 + x*y)
+  of scheme(x^2 + x*y)
 with coordinates (2, -2)
 
 julia> is_transverse_intersection(C, D, P)
@@ -318,11 +318,9 @@ end
 Return the projective closure of `C`.
 """
 function projective_closure(C::AffinePlaneCurve)
-   F = defining_equation(C)
-   K = base_ring(C)
-   T, (x, y, z) = graded_polynomial_ring(K, ["x", "y", "z"])
-   G = homogenization(F, T; pos=3)
-   D = plane_curve(G)
+  F = defining_equation(C)
+  H = homogenizer(parent(F), "z")
+  return plane_curve(H(F))
 end
 
 geometric_genus(C::AffinePlaneCurve) = geometric_genus(projective_closure(C))

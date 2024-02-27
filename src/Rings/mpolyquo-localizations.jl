@@ -1,4 +1,4 @@
-import AbstractAlgebra: Ring, RingElem, Generic.Frac
+import AbstractAlgebra: Ring, RingElem, Generic.FracFieldElem
 import Base: issubset
 
 
@@ -363,7 +363,7 @@ function MPolyQuoLocRing(W::MPolyLocRing)
   return MPolyQuoLocRing(R, I, U, Q, W)
 end
 
-function Base.in(f::AbstractAlgebra.Generic.Frac{RET}, L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
+function Base.in(f::AbstractAlgebra.Generic.FracFieldElem{RET}, L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
   R === parent(numerator(f)) || error("element does not belong to the correct ring")
   denominator(f) in inverted_set(L) && return true
@@ -513,7 +513,7 @@ function (L::MPolyQuoLocRing{
 end
 
 ### additional conversions
-function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::Frac{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
+function (L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(f::FracFieldElem{RET}; check::Bool=true, is_reduced::Bool=false) where {BRT, BRET, RT, RET, MST}
   R = base_ring(L)
   return L(R(numerator(f)), R(denominator(f)), check=check, is_reduced=is_reduced)
 end
@@ -680,7 +680,7 @@ end
 # to the form [f] = [c]//[dᵏ] with d∈ S.
 function convert(
     L::MPolyQuoLocRing{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}, 
-    f::AbstractAlgebra.Generic.Frac{RET}
+    f::AbstractAlgebra.Generic.FracFieldElem{RET}
   ) where {BRT, BRET, RT, RET}
   a = numerator(f)
   b = denominator(f)
@@ -800,7 +800,7 @@ end
 ### Why are the `//`-methods not implemented?
 # Since a quotient ring Q = R/I of a polynomial ring R is not necessarily 
 # factorial, it is difficult to decide, whether or not a and b have a 
-# common factor g that can be cancelled so that b'= b/g ∈  Q belongs 
+# common factor g that can be canceled so that b'= b/g ∈  Q belongs 
 # to the multiplicative set. Moreover, this would be the case if any 
 # lift of b' belonged to S + I where S ⊂ R is the original multiplicative 
 # set. Such containment can not easily be checked based only on the 
@@ -921,7 +921,7 @@ function write_as_linear_combination(
   for a in g 
     parent(a) === L || error("elements do not belong to the same ring")
   end
-  return L.(vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
+  return L.(_vec(coordinates(lift(f), ideal(L, g)))[1:length(g)]) # temporary hack; to be replaced.
 end
 
 write_as_linear_combination(f::MPolyQuoLocRingElem, g::Vector) = write_as_linear_combination(f, parent(f).(g))
@@ -2296,8 +2296,20 @@ function grading_group(L::MPolyQuoLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
@@ -2352,7 +2364,7 @@ function is_isomorphism(
 end
 
 function _as_localized_quotient(R::MPolyRing)
-  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), powers_of_element(one(R)))
+  result = MPolyQuoLocRing(R, ideal(R, elem_type(R)[]), powers_of_element(one(R)))
   iso = hom(R, result, gens(result), check=false)
   iso_inv = hom(result, R, gens(R), check=false)
   return result, iso, iso_inv
@@ -2360,7 +2372,7 @@ end
 
 function _as_localized_quotient(A::MPolyQuoRing)
   R = base_ring(A)
-  result = MPolyQuoLocalizedRing(R, modulus(A), powers_of_element(one(R)))
+  result = MPolyQuoLocRing(R, modulus(A), powers_of_element(one(R)))
   iso = hom(A, result, gens(result), check=false)
   iso_inv = hom(result, A, gens(R), check=false)
   return result, iso, iso_inv
@@ -2368,7 +2380,7 @@ end
 
 function _as_localized_quotient(L::MPolyLocRing)
   R = base_ring(L)
-  result = MPolyQuoLocalizedRing(R, ideal(R, elem_type(R)[]), inverted_set(L))
+  result = MPolyQuoLocRing(R, ideal(R, elem_type(R)[]), inverted_set(L))
   iso = hom(L, result, gens(result), check=false)
   iso_inv = hom(result, L, gens(R), check=false)
   return result, iso, iso_inv
@@ -2405,6 +2417,14 @@ function Base.:(==)(
   end
 
   return all(x->f(x) == g(x), gens(domain(f)))
+end
+
+function Base.hash(f::Map{<:MPolyAnyRing, <:MPolyAnyRing}, h::UInt)
+    h = hash(domain(f), h)
+    h = hash(codomain(f), h)
+    # TODO: add in coefficient_map if available
+    h = hash(f.(gens(domain(f))), h)
+    return h
 end
 
 coefficient_map(f::MPolyLocalizedRingHom) = coefficient_map(restricted_map(f))

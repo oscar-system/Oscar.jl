@@ -134,21 +134,15 @@ end
 # otherwise, is essentially a serial loop
 stats = reduce(merge, pmap(testlist) do x
                         println("Starting tests for $x")
-                        Oscar.test_module(x; new=false, timed=true)
+                        Oscar.test_module(x; new=false, timed=true, tempproject=false)
                       end)
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
-#
-# FIXME: disabled until #3184 is solved
-#if numprocs == 1 && test_subset != "short"
-#  # to debug GC corruption errors
-#  GC.gc()
-#  GC.gc()
-#
-#  println("Starting tests for Serialization/IPC.jl")
-#  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
-#end
+if numprocs == 1 && test_subset != "short"
+  println("Starting tests for Serialization/IPC.jl")
+  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+end
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io

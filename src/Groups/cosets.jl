@@ -436,9 +436,7 @@ Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
@@ -527,7 +525,7 @@ Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 """
     double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
 
-Return the vector of all the double cosets `HxK` for `x` in `G`.
+Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 
 # Examples
@@ -614,9 +612,7 @@ Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupDoubleCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end

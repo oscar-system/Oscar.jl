@@ -51,29 +51,119 @@
 # too. On the other hand, none of the vⱼ was in τ⟂ for j > s, 
 # so neither can be any convex combination, but the trivial one. 
 # This proves the claim. Now (*) follows directly.
-function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false)
-  if has_attribute(X, :_torusinvariant_weil_divisors)
-    return get_attribute(X, :_torusinvariant_weil_divisors)::Vector{<:AbsWeilDivisor}
-  end
-  ray_list = rays(polyhedral_fan(X))
-  ideal_sheaves = Vector{IdealSheaf}()
-  for tau in ray_list
-    tau_dual = polarize(cone(tau))
-    ideal_dict = IdDict{AbsSpec, Ideal}()
-    for U in affine_charts(X)
-      if !(tau in cone(U))
-        ideal_dict[U] = ideal(OO(U), one(OO(U)))
-        continue
+function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false, algorithm::Symbol=:via_polymake)
+  return get_attribute!(X, :_torusinvariant_weil_divisors) do
+    ray_list = rays(polyhedral_fan(X))
+    ideal_sheaves = Vector{IdealSheaf}()
+    if algorithm == :via_polymake
+      ideal_sheaves = [_ideal_sheaf_via_polymake(X, i; check) for i in 1:length(ray_list)]
+    elseif algorithm == :via_oscar
+      for tau in ray_list
+        tau_dual = polarize(cone(tau))
+        ideal_dict = IdDict{AbsAffineScheme, Ideal}()
+        for U in affine_charts(X)
+          if !(tau in cone(U))
+            ideal_dict[U] = ideal(OO(U), one(OO(U)))
+            continue
+          end
+          sigma_dual = weight_cone(U)
+          hb = hilbert_basis(sigma_dual)
+          x = gens(OO(U))
+          ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
+        end
+        push!(ideal_sheaves, IdealSheaf(X, ideal_dict; check))
       end
-      sigma_dual = weight_cone(U)
-      hb = hilbert_basis(sigma_dual)
-      x = gens(OO(U))
-      ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
+    else
+      error("algorithm not recognized")
     end
-    push!(ideal_sheaves, IdealSheaf(X, ideal_dict; check))
-  end
-  generating_divisors = [WeilDivisor(X, ZZ, IdDict{IdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
-  result = generating_divisors
-  set_attribute!(X, :_torusinvariant_weil_divisors=>result)
-  return result
+    generating_divisors = [WeilDivisor(X, ZZ, IdDict{IdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
+    result = generating_divisors
+    return result
+  end::Vector{<:AbsWeilDivisor}
 end
+
+function _ideal_sheaf_via_polymake(X::NormalToricVariety, i::Int; check::Bool=false)
+  return _ideal_sheaf_via_polymake(X, [i==j ? one(ZZ) : zero(ZZ) for j in 1:n_rays(polyhedral_fan(X))])
+end
+
+function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem}; check::Bool=false)
+  # Input: 
+  #  - X is the variety and it comes with a polyhedral fan F
+  #  - c is an integer vector describing a divisor as a formal linear 
+  #    combination of the rays r in the fan F. 
+  #
+  # Output:
+  #  an IdealSheaf representing this divisor, but not a divisor itself, yet
+  #
+  # The rays correspond to 'primitive divisors' from which everything 
+  # else can be composed in the toric case. If we can write down ideal 
+  # sheaves for these, we can hence do so for every divisor.
+  @assert all(x->x>=0, c) "divisor must be effective"
+  ray_list = rays(polyhedral_fan(X)) # All rays of the polyhedral fan of X
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}() # The final output: A list of ideals, one for each 
+                                        # affine_chart of X
+
+  for U in affine_charts(X) # Iterate through the charts
+
+    # Populate a dict for the mapping of the local rays of the cone of U
+    # to the rays of the fan
+    sigma = cone(U)
+    sigma_dual = weight_cone(U)
+    r_sigma = rays(sigma) # The list of rays appearing in the cone of U
+    div_dict = Dict{RayVector, RayVector}()
+    index_dict = Vector{Int}() # A list mapping the index i of the i-th ray in sigma 
+                               # to the index k of the same ray in the list `ray_list` 
+                               # of all rays of the fan
+    # Populate that dictionary
+    for (i, r) in enumerate(r_sigma)
+      k = findfirst(s->s==r, ray_list)
+      k === nothing && error("ray not found")
+      div_dict[r] = ray_list[k]
+      push!(index_dict, k)
+    end
+
+    # If the above list is empty that means the divisor is 
+    # not supported in this chart.
+    if isempty(index_dict)
+      ideal_dict[U] = ideal(OO(U), one(OO(U)))
+      continue
+    end
+
+    # We extract what is locally visible of the given divisor in this 
+    # chart and w.r.t the local enumeration of the rays. 
+    loc_c = -c[index_dict] # The local vector of the linear combination
+                           # The internal representations in Polymake 
+                           # require us to switch the sign here!
+                           # Reason: The MODULE_GENERATORS below give the 
+                           # monomial as a generator f of the fractional ideal 
+                           # for the divisor D. But we need a sheaf of ideals 
+                           # so that div(f) >= -D, D = V(I). That inverts the 
+                           # sign. 
+    loc_div = toric_divisor(U, loc_c) # The toric local representation of this divisor
+
+    # A is a matrix and its rows are the coordinates of the lattice 
+    # points generating the local ideal in the `weight_cone` of `U`.
+    A = pm_object(loc_div).MODULE_GENERATORS
+    # We need to convert them to their representations in the 
+    # hilbert basis for this chart.
+    hb = hilbert_basis(U)::ZZMatrix
+    x = gens(OO(U))
+    ideal_gens = elem_type(OO(U))[]
+    for i in 1:nrows(A)
+      # Manually convert the rows of A to a ZZMatrix so that solve_mixed will take it
+      # Why don't we do A all at once? Because `solve_mixed` won't accept actual matrices 
+      # as second argument, unless they are 1×n.
+      b = zero_matrix(ZZ, ncols(A), 1)
+      for j in 1:ncols(A)
+        b[j, 1] = ZZ(A[i, j])
+      end
+      c_in_hb = solve_mixed(ZZMatrix, transpose(hb), b, identity_matrix(ZZ, nrows(hb)), zero_matrix(ZZ, nrows(hb), 1))
+      # c_in_hb might have several rows accounting for different solutions.
+      # We only need one of them and we chose the first.
+      push!(ideal_gens, prod(y^k for (y, k) in zip(x, c_in_hb[1, :]); init=one(OO(U))))
+    end
+    ideal_dict[U] = ideal(OO(U), ideal_gens)
+  end
+  return IdealSheaf(X, ideal_dict; check)
+end
+

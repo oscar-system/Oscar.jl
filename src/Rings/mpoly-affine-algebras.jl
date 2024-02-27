@@ -1416,7 +1416,7 @@ end
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
 - ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; 
-- ``F: A=R/I \to B = R/\phi(I)`` is an isomorphism, induced by a linear change $ \phi $ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
+- ``F: A=R/I \to B = R/\phi(I)`` is an isomorphism, induced by a linear change $\phi$ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
 - ``G = F^{-1}.``
 
 !!! warning

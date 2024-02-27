@@ -5,7 +5,7 @@ import Oscar.Nemo
 import Oscar.Hecke
 
 function __init__()
-  Hecke.add_verbose_scope(:DiscLog)
+  Hecke.add_verbosity_scope(:DiscLog)
 end
 
 ###############################################################
