@@ -97,6 +97,10 @@ _pmdata_for_oscar(s::Polymake.Integer, coeff::Field) = ZZ(s)
 _pmdata_for_oscar(s::Polymake.Rational, coeff::Field) = QQ(s)
 _pmdata_for_oscar(s::Polymake.OscarNumber, coeff::Field) = coeff(s)
 
+_convert_pm_minormax(::Type{Polymake.Max}) = typeof(max)
+_convert_pm_minormax(::Type{Polymake.Min}) = typeof(min)
+_pmdata_for_oscar(s::Polymake.TropicalNumber{A}, coeff::Field) where A = tropical_semiring(_convert_pm_minormax(A))(s)
+
 _pmdata_for_oscar(s::Polymake.CxxWrap.StdString, coeff::Field) = String(s)
 
 _pmdata_for_oscar(a::Polymake.Array, coeff::Field) = [_pmdata_for_oscar(e, coeff) for e in a]
