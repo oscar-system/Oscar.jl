@@ -1,4 +1,4 @@
-module GModuleFromGap 
+module GModuleFromGap
 using Oscar
 using Hecke
 import Hecke: data
@@ -112,7 +112,12 @@ case that `S` is a number field and `R` is the ring of integers in `S`,
 for example `R = ZZ` and `S = QQ`)
 """
 function extension_of_scalars(M::GModule, phi::Map)
-  error("not yet ...")
+  @assert domain(phi) == base_ring(M)
+
+  d = dim(M)
+  F = free_module(codomain(phi), d)
+
+  return GModule(F, group(M), [hom(F, F, map_entries(phi, matrix(x))) for x in M.ac])
 end
 
 
@@ -531,6 +536,10 @@ function Hecke.frobenius(K::FinField, i::Int=1)
   MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i))
 end
 
+function Hecke.absolute_frobenius(K::FinField, i::Int=1)
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, degree(K)-i))
+end
+
 @doc raw"""
     gmodule_minimal_field(C::GModule)
     gmodule_minimal_field(k::Field, C::GModule)
@@ -869,7 +878,7 @@ function hilbert90_generic(X::Dict, mA)
       fl = is_invertible(Y)
       fl && break
       cnt += 1
-      if cnt > 10 error("s.th. wiered") end
+      if cnt > 10 error("s.th. weird") end
     end
     S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
     fl, Si = is_invertible_with_inverse(S)
