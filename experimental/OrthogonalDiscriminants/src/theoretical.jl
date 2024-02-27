@@ -239,7 +239,7 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
     return false, ""
   end
 
-  fus = filter(i -> pi[i] != 0, 1:number_conjugacy_classes(tbl))
+  fus = filter(i -> pi[i] != 0, 1:number_of_conjugacy_classes(tbl))
   res = Oscar.GAPWrap.ELMS_LIST(chi.values, GAP.GapObj(fus))
 
   if l != 0
