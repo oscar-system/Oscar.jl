@@ -312,7 +312,7 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
   if conductor(od) == 1
     intod = ZZ(od)
     if is_odd(l)
-      F, _ = FiniteField(l, 1)
+      F = GF(l)
       return is_square(F(intod)) ? (true, "O+") : (true, "O-")
     elseif mod(intod, 8) == 1
       return (true, "O+")
