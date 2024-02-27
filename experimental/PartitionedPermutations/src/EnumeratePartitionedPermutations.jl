@@ -31,20 +31,19 @@ function _enumerate_all_partitions(n::Int)
 end
 
 """
-    enumerate_partitioned_perm(n::Int)
+    enumerate_partitioned_permutations(n::Int)
 
 Return and calculate all `PartitionedPermutation` objects of length `n`
 
 # Examples
 ```jldoctest
-julia> length(enumerate_partitioned_perm(6))
+julia> length(enumerate_partitioned_permutations(6))
 4051
 ```
 """
-function enumerate_partitioned_perm(n::Int)
+function enumerate_partitioned_permutations(n::Int)
     
     partitioned_permutations = []
-
     # Iterate over all permutations
     for p in Generic.elements!(Generic.SymmetricGroup(n))
         cycle_part = cycle_partition(p)
@@ -60,7 +59,7 @@ function enumerate_partitioned_perm(n::Int)
             part_vec = map(index -> block_partition[index], cycle_part_vec)
 
             # add the obtained partitioned permutation to the list
-            push!(partitioned_permutations, PartitionedPermutation(deepcopy(p), part_vec, false))
+            push!(partitioned_permutations, PartitionedPermutation(deepcopy(p), part_vec; check=false))
         end
     end
 
