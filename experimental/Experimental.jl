@@ -19,7 +19,9 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # needs code from LieAlgebras
+  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "SetPartitions",
+  "PartitionedPermutations", # needs code from SetPartitions
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
