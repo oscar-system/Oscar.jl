@@ -435,7 +435,11 @@ then the numbers of generators added in each degree is
 """
 
 function basis_coordinate_ring_kodaira(
-  type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  degree::Int;
+  monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -453,9 +457,9 @@ function basis_coordinate_ring_kodaira(
   degree::Int;
   monomial_ordering::Symbol=:degrevlex,
 )
-L = lie_algebra(type, rank)
-chevalley_basis = chevalley_basis_gap(L)
-operators = operators_by_index(L, chevalley_basis, birational_sequence)
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
     L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
   )
@@ -488,13 +492,9 @@ then the numbers of generators added in each degree is
 7  5  14  7  12  8 
 """
 
-
 function basis_coordinate_ring_kodaira_ffl(
-  type::Symbol, 
-  rank::Int, 
-  highest_weight::Vector{Int}, 
-  degree::Int 
-  )
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int
+)
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
@@ -504,4 +504,3 @@ function basis_coordinate_ring_kodaira_ffl(
     L, chevalley_basis, highest_weight, degree, operators, monomial_ordering
   )
 end
- 

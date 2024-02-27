@@ -81,9 +81,8 @@ function matricesForOperators(L, hw, ops)
   """
   M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
   mats = map(
-    o -> sparse_matrix(
-      transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))
-    ),
+    o ->
+      sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))),
     ops,
   )
   denominators = map(y -> denominator(y[2]), union(union(mats...)...))
