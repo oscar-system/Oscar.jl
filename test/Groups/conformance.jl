@@ -1,4 +1,4 @@
-L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0), free_group(1), free_group(2) ]
+L = [ alternating_group(5), cyclic_group(18), SL(3,3), free_group(0)[1], free_group(1)[1], free_group(2)[1] ]
 
 import Oscar.AbstractAlgebra
 import Oscar.AbstractAlgebra: Group

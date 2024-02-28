@@ -728,7 +728,7 @@ function isomorphism(::Type{FPGroup}, A::FinGenAbGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
    return get!(isos, FPGroup) do
-      G = free_group(ngens(A); eltype = :syllable)
+      G = free_group(ngens(A); eltype = :syllable)[1]
       R = rels(A)
       s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
            elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
@@ -837,7 +837,7 @@ generators, the number of relators, and the relator lengths.
 
 # Examples
 ```jldoctest
-julia> F = free_group(3)
+julia> F = free_group(3)[1]
 Free group of rank 3
 
 julia> G = quo(F, [gen(F,1)])[1]

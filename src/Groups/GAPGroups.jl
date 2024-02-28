@@ -65,7 +65,7 @@ Return `true` if `G` is finite, and `false` otherwise.
 julia> is_finite(symmetric_group(5))
 true
 
-julia> is_finite(free_group(2))
+julia> is_finite(free_group(2)[1])
 false
 
 ```
@@ -84,7 +84,7 @@ Return `true` if `g` has finite order, and `false` otherwise.
 julia> is_finiteorder(gen(symmetric_group(5), 1))
 true
 
-julia> is_finiteorder(gen(free_group(2), 1))
+julia> is_finiteorder(gen(free_group(2)[1], 1))
 false
 
 ```
@@ -116,7 +116,7 @@ julia> order(g)
 julia> order(gen(g, 1))
 3
 
-julia> g = free_group(1);
+julia> g, _ = free_group(1);
 
 julia> is_finite(g)
 false
@@ -427,7 +427,7 @@ Return whether generators for the group `G` are known.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2)
+julia> F, _ = free_group(2)
 Free group of rank 2
 
 julia> has_gens(F)
@@ -1667,7 +1667,7 @@ end
 #julia> rank(symmetric_group(5))
 #2
 #
-#julia> rank(free_group(5))
+#julia> rank(free_group(5)[1])
 #5
 #```
 #`"""
@@ -1688,7 +1688,7 @@ Return whether `G` is a finitely generated group.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2)
+julia> F = free_group(2)[1]
 Free group of rank 2
 
 julia> is_finitely_generated(F)
@@ -1715,7 +1715,7 @@ false
 #
 ## Examples
 #```jldoctest
-#julia> F = free_group(2)
+#julia> F, _ = free_group(2)
 #<free group on the generators [ f1, f2 ]>
 #
 #julia> is_free(F)
@@ -1743,7 +1743,7 @@ subgroups.
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  is_full_fp_group(f)
+julia> f = free_group(2)[1];  is_full_fp_group(f)
 true
 
 julia> s = sub(f, gens(f))[1];  is_full_fp_group(s)
@@ -1771,7 +1771,7 @@ full finitely presented group, see [`is_full_fp_group`](@ref).
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  (x, y) = gens(f);
+julia> f, (x,y) = free_group(2);
 
 julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 3-element Vector{FPGroupElem}:
@@ -1822,7 +1822,7 @@ In all other cases, `init` is ignored.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F, (F1, F2) = free_group(2);
 
 julia> imgs = gens(symmetric_group(4))
 2-element Vector{PermGroupElem}:
@@ -1915,7 +1915,7 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F, (F1, F2) = free_group(2);
 
 julia> syllables(F1^5*F2^-3)
 2-element Vector{Pair{Int64, Int64}}:
@@ -1948,7 +1948,7 @@ numbers.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F, (F1, F2) = free_group(2);
 
 julia> letters(F1^5*F2^-3)
 8-element Vector{Int64}:
@@ -1992,7 +1992,7 @@ if `g` is an element of a free group, otherwise a exception is thrown.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F, (F1, F2) = free_group(2);
 
 julia> length(F1*F2^-2)
 3
@@ -2023,7 +2023,7 @@ nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
 
 # Examples
 ```jldoctest
-julia> G = free_group(2);  pairs = [1 => 3, 2 => -1];
+julia> G = free_group(2)[1];  pairs = [1 => 3, 2 => -1];
 
 julia> x = G(pairs)
 f1^3*f2^-1
@@ -2153,10 +2153,10 @@ julia> describe(g)
 julia> describe(sylow_subgroup(g,2)[1])
 "C2 x D8"
 
-julia> describe(sylow_subgroup(g, 3)[1])
+julia> describe(sylow_subgroup(g,3)[1])
 "C3 x C3"
 
-julia> describe(free_group(3))
+julia> describe(free_group(3)[1])
 "a free group of rank 3"
 
 ```

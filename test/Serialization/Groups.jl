@@ -56,10 +56,9 @@
     end
 
     @testset "Free groups" begin
-      F = free_group(2)
+      F, (x,y) = free_group(2)
 
       # single element
-      x = gen(F, 1)
       test_save_load_roundtrip(path, x) do loaded
         @test x == loaded
       end
@@ -70,7 +69,7 @@
       end
 
       # subgroup of free group
-      U = sub(F, [gen(F, 1)])[1]
+      U = sub(F, [x])[1]
       test_save_load_roundtrip(path, U) do loaded
         @test U === loaded
       end
@@ -114,9 +113,7 @@
     end
 
     @testset "Finitely presented groups" begin
-      F = free_group(2)
-      x1 = gen(F, 1)
-      x2 = gen(F, 2)
+      F, (x1, x2) = free_group(2)
       G = quo(F, [x1^2, x2^2, comm(x1, x2)])[1]
 
       # single element

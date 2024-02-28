@@ -1,5 +1,5 @@
 @testset "quo for trivial kernel" begin
-   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1), abelian_group(PcGroup, [2, 3, 4])]
+   @testset for G in [symmetric_group(4), special_linear_group(2, 3), special_linear_group(2, 4), free_group(1)[1], abelian_group(PcGroup, [2, 3, 4])]
       subgens = elem_type(G)[]
       F, epi = quo(G, subgens)
       if is_finite(G)
@@ -68,20 +68,19 @@ end
    G = special_linear_group(2, 3)
    @test maximal_abelian_quotient(G)[1] isa PcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
-   G = free_group(1)
+   G, _ = free_group(1)
    @test maximal_abelian_quotient(G)[1] isa FPGroup
    @test maximal_abelian_quotient(FPGroup, G)[1] isa FPGroup
    @test_throws MethodError quo(PcGroup, G)
 
    # `abelian_invariants`
-   @test abelian_invariants(free_group(2)) == [0, 0]
+   @test abelian_invariants(free_group(2)[1]) == [0, 0]
    @test abelian_invariants(alternating_group(5)) == []
    @test abelian_invariants(small_group(8, 5)) == [2, 2, 2]
 end
 
 @testset "Finitely presented groups" begin
-   F = free_group(2)
-   x,y = gens(F)
+   F, (x,y) = free_group(2)
    @test x == F[1]
    @test y == F[2]
    @test is_full_fp_group(F)

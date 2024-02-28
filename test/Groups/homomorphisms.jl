@@ -98,8 +98,7 @@ end
 
 @testset "quo for FPGroup" begin
    # quotient of a *full* free group
-   g = free_group(2)
-   x, y = gens(g)
+   g, (x,y) = free_group(2)
    grels = [x^2, y^2, comm(x, y)]
    q, epi = quo(g, grels)
    @test ngens(q) == 2
@@ -139,10 +138,8 @@ end
 @testset "map_word" begin
    # Create a free group in GAP in syllable words family,
    # in order to make the tests.
-   GAP.Globals.PushOptions(GAP.GapObj(Dict(:FreeGroupFamilyType => GAP.GapObj("syllable"))))
-   FS = free_group(2)   # syllable representation
-   GAP.Globals.PopOptions()
-   FL = free_group(2)   # letter representation
+   FS = free_group(2; eltype = :syllable)[1]   # syllable representation
+   FL = free_group(2)[1]   # letter representation
    @test GAP.Globals.IsSyllableWordsFamily(
            GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(FS.X)))
    @test GAP.Globals.IsLetterWordsFamily(

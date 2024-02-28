@@ -22,9 +22,7 @@ This is the typical way to build finitely presented groups.
 
   **Example:**
 ```jldoctest
-julia> F=free_group(2);
-
-julia> (f1,f2)=gens(F);
+julia> F, (f1,f2) = free_group(2);
 
 julia> G,_=quo(F,[f1^2,f2^3,(f1*f2)^2]);
 

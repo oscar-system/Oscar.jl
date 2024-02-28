@@ -384,7 +384,7 @@ julia> describe(pi_1)
 """
 function fundamental_group(K::SimplicialComplex)
     ngens, relations = pm_object(K).FUNDAMENTAL_GROUP
-    F = free_group(ngens)
+    F = free_group(ngens)[1]
     nrels = length(relations)
     if nrels==0
         return F

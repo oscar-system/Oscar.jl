@@ -171,7 +171,7 @@ function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
   if !isdefined(C, :F)
     if order(Group(C)) == 1
-      C.F = free_group(0)
+      C.F = free_group(0)[1]
       C.mF = hom(C.F, Group(C), gens(C.F), elem_type(Group(C))[])
     else
       C.F, C.mF = fp_group_with_isomorphism(gens(Group(C)))
@@ -1789,7 +1789,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     mM = hom(M, M, gens(M))
   end
 
-  G = free_group(ngens(M))
+  G, _ = free_group(ngens(M))
   h = rels(M)
   @assert !any(x->h[x,x] == 1, 1:ncols(h))
 
@@ -1857,7 +1857,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   k = base_ring(M)
   p = characteristic(k)
 
-  G = free_group(degree(k)*dim(M))
+  G, _ = free_group(degree(k)*dim(M))
 
   C = GAP.Globals.CombinatorialCollector(G.X, 
                   GAP.Obj([p for i=1:ngens(G)], recursive = true))
@@ -1952,7 +1952,7 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   mfM = inv(isomorphism(FPGroup, M))
   fM = domain(mfM)
 
-  N = free_group(ngens(G) + ngens(fM))
+  N, _ = free_group(ngens(G) + ngens(fM))
   function fMtoN(g)
     return reduce(*, [gen(N, ngens(G)+abs(w))^sign(w) for w = word(g)], init = one(N))
   end
@@ -2009,7 +2009,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   iac = inv_action(C)
   fM, mfM = pc_group_with_isomorphism(M)
 
-  N = free_group(ngens(G) + ngens(fM))
+  N, _ = free_group(ngens(G) + ngens(fM))
   Gp = GAP.Globals.Pcgs(G.X)
   @assert length(Gp) == ngens(G)
 #  @assert all(x->Gp[x] == gen(G, x).X, 1:ngens(G))
