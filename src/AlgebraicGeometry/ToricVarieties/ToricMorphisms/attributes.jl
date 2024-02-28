@@ -73,7 +73,7 @@ Map
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
-    mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(cod)), 0))
+    mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
