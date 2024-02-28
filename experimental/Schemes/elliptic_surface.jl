@@ -107,9 +107,9 @@ Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField}, euler_characteristic::Int,
                           mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];is_basis::Bool=true) where {
                           BaseField <: Frac{<:PolyRingElem{<:FieldElem}}}
-  @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
+  @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens)
-  if isbasis
+  if is_basis
     return S
   end
   mwl, mwl_basis = _compute_mwl_basis(S, mwl_gens)
@@ -1226,11 +1226,11 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
   p0 = basis_representation(X, P0_div) # this could be done from theory alone
   F1 = F - p0  # should be contained in the QQ-trivial-lattice
-  F2 = F1
   if all(isone(denominator(i)) for i in F1)
     # no torsion
     P = P0
     P_div = P0_div
+    F2 = F1
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
@@ -1245,9 +1245,10 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
     @assert found
     P_div = section(X, P)
     p = basis_representation(X, P_div)
-    F2 = F1 - p
+    F2 = F - p
     @assert all( isone(denominator(i)) for i in F2)
   end
+  @vprint :EllipticSurface 4 "F2 = $(F2)\n"
   D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
   D1 = D
@@ -1269,7 +1270,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
         end
       end
     end
-    f0 = f0 * inv(gram_matrix(ambient_space(NS)))
+    f0 = ZZ.(f0 * inv(gram_matrix(ambient_space(NS))))
     @assert inner_product(ambient_space(NS), f0,f0) == -2
     nonzero = [i for i in 3:rk_triv if f0[i]!=0]
     if pt[2]==0 # at infinity
@@ -1282,7 +1283,6 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
       D = D + Fib0
       D1 = D1 + fiber
       c = c*t0
-      @assert F3[1]>=0
     end
   end
   pt, _ = fiber(X)
@@ -1291,7 +1291,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     t0 = t//(t*pt[2]-pt[1])
   end
-  c = c*t0^ZZ(F3[1])
+  c = c*(t0//1)^ZZ(F3[1])
   D = D + F3[1]*basisNS[1]
   D1 = D1 + F3[1]*basisNS[1]
   F4 = copy(F3); F4[1]=0
@@ -1332,11 +1332,9 @@ function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor
   LonX = linear_system(L, D1, check=false);
 
   LsubF, Tmat = subsystem(LonX, D);
-
   LsubFonS = [sum(Tmat[i,j]*L[j] for j in 1:ncols(Tmat)) for i in 1:nrows(Tmat)]
 
   @assert length(LsubFonS)==2
-
   u2 = LsubFonS[2]//LsubFonS[1]
   return u2
 end
@@ -1710,7 +1708,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     phi = hom(R, FS, FS.([(t2 - a_t)//b_t, y2, x2]))
     f_trans = phi(f_loc)
     return numerator(f_trans), phi
-  elseif case == :case2
+  elseif case == :old
     # D = O + P
     @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
     @assert degree(u_den, 1) == 1 && degree(u_den, 2) == 0 "denominator does not have the correct degree"
@@ -1769,7 +1767,60 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     success, eqn1 = divides(eqn1, y2)
     @assert success "equation did not come out in the anticipated form"
     return eqn1, phi
-  else 
+  elseif case == :case2
+    # D = O + P
+    @assert degree(u_num, 2) == 1 && degree(u_num, 1) <= 1 "numerator does not have the correct degree"
+    @assert degree(u_den, 1) == 1 && degree(u_den, 2) <= 1 "denominator does not have the correct degree"
+
+    # u = (ax + by + c)/(a'x + b'y + c')
+    an = my_const(coeff(u_num, [xx, yy], [1, 0]))
+    bn = my_const(coeff(u_num, [xx, yy], [0, 1]))
+    cn = my_const(coeff(u_num, [xx, yy], [0, 0]))
+
+    ad = my_const(coeff(u_den, [xx, yy], [1, 0]))
+    bd = my_const(coeff(u_den, [xx, yy], [0, 1]))
+    cd = my_const(coeff(u_den, [xx, yy], [0, 0]))
+
+    @assert (an*xx+bn*yy+cn)//(ad*xx+bd*yy+cd) == u_frac "decomposition failed"
+
+
+    v = solve(matrix(parent(an),2,2,[-an, bn,-ad, bd]), matrix(parent(an),2,1,[cn,cd]))
+    x0 = v[1,1]
+    y0 = v[2,1]
+    @assert evaluate(f_loc,[x0,y0,gen(parent(x0))])==0
+
+    ad = evaluate(ad,x2)
+    an = evaluate(an,x2)
+    bd = evaluate(bd,x2)
+    bn = evaluate(bn,x2)
+    cn = evaluate(cn,x2)
+    cd = evaluate(cd,x2)
+    #x0 = evaluate(x0,x2)
+    #y0 = evaluate(y0,x2)
+
+
+    imgy = -FS(((ad*t2 - an )*y2 + (cd*t2 -cn)) //(bd*t2 -bn))
+
+    # We have
+    #
+    #   y ↦ -((ad u - an )x + (cd u -cn)) // (bd*u -bn)
+    #   x ↦ y₂
+    #   t ↦ x₂
+    phi = hom(R, FS, [y2, imgy, x2])
+    f_trans = phi(f_loc)
+    eqn1 = numerator(f_trans)
+    # According to
+    #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface"
+    # p. 45, l. 1 we expect the following cancellation to be possible:
+    divisor_num = evaluate(numerator(x0), x2)
+    divisor_den = evaluate(denominator(x0), x2)
+    divisor = divisor_den * y2 - divisor_num
+    success, eqn1 = divides(eqn1, divisor) # This division must only be possible in the ring K(x2)[y2].
+                                           # Hence, multiplying by the denominator `divisor_den` is
+                                           # merely an educated guess.
+    @assert success "division failed"
+    return eqn1, phi
+  else
     error("case not recognized")
   end
 end
@@ -1796,7 +1847,6 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   @assert rank(GB) == rk-r
   _, u = hnf_with_transform(ZZ.(denominator(GB)*GB))
   B = u[1:rk-r,:]*BMWL
-  @show u[1:rk-r,:]
 
   MWL = lll(lattice(V, B, isbasis=false))
   u = solve_left(BMWL, basis_matrix(MWL))
