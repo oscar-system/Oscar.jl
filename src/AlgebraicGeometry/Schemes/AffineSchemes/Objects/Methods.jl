@@ -78,12 +78,18 @@ function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any,
   join(io, gens(I), ", ")
   if is_empty(denominators(S))
     print(io, raw")")
-  elseif isone(length(denominators(S)))
-    print(io, raw") \ scheme(", first(denominators(S)), ")")
   else
-    print(io, raw") \ scheme((")
-    join(io, denominators(S), ")*(")
-    print(io, "))")
+    AA = AbstractAlgebra
+    PP = AbstractAlgebra.PrettyPrinting
+    print(io, raw") \ ")
+    AA.show_obj(io,
+                MIME("text/plain"),
+                PP.canonicalize(Expr(:call,
+                                     :scheme,
+                                     Expr(:call, :*, PP.expressify.(denominators(S))...)
+                                    )
+                               )
+               )
   end
 end
 
@@ -93,12 +99,18 @@ function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyLocRing{<:Any, <:Any, <:
   S = inverted_set(OO(X))
   if is_empty(denominators(S))
     # do nothing more
-  elseif isone(length(denominators(S)))
-    print(io, raw" \ scheme(", first(denominators(S)), ")")
   else
-    print(io, raw" \ scheme((")
-    join(io, denominators(S), ")*(")
-    print(io, "))")
+    AA = AbstractAlgebra
+    PP = AbstractAlgebra.PrettyPrinting
+    print(io, raw" \ ")
+    AA.show_obj(io,
+                MIME("text/plain"),
+                PP.canonicalize(Expr(:call,
+                                     :scheme,
+                                     Expr(:call, :*, PP.expressify.(denominators(S))...)
+                                    )
+                               )
+               )
   end
 end
 
