@@ -462,7 +462,6 @@ function basis_coordinate_ring_kodaira(
     L, highest_weight, degree, operators, monomial_ordering
   )
 end
-# TODO: add tests
 
 function basis_coordinate_ring_kodaira(
   type::Symbol,

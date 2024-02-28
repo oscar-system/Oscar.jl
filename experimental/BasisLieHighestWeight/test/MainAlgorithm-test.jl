@@ -564,3 +564,36 @@ end
     end
   end
 end
+
+@testset "Coordinate ring of Kodaira embedding" begin
+  @testset "general case" begin
+    mbs = basis_coordinate_ring_kodaira(
+      :B, 3, [0, 0, 1], 4, [3, 2, 3, 2, 1, 2, 3, 2, 1]; monomial_ordering=:neglex
+    )
+    @test length(mbs) == 4
+    @test dim(mbs[1][1]) == mbs[1][2]
+    @test mbs[2][2] > 0
+    @test mbs[3][2] == 0
+    @test mbs[4][2] == 0
+  end
+
+  @testset "FFL" begin
+    for case in [
+      (:A, 3, [1, 0, 1], 4),
+      (:B, 2, [1, 1], 4),
+      (:D, 4, [1, 0, 1, 0], 4),
+      (:G, 2, [1, 0], 6),
+    ]
+      dynkin, n, lambda, degree = case
+      mbs = basis_coordinate_ring_kodaira_ffl(dynkin, n, lambda, degree)
+      L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
+      gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda))
+      @test length(mbs) == degree
+      @test dim(mbs[1][1]) == gap_dim
+      @test dim(mbs[1][1]) == mbs[1][2]
+      for i in 2:degree
+        @test mbs[i][2] == 0
+      end
+    end
+  end
+end
