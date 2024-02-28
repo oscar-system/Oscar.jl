@@ -143,6 +143,24 @@ trivial_character(tbl::GAPGroupCharacterTable)
 regular_character(tbl::GAPGroupCharacterTable)
 ```
 
+The following properties of a group can be read off from its
+character table.
+Therefore it is supported to call these functions with a character table.
+
+```@docs
+is_abelian(tbl::GAPGroupCharacterTable)
+is_almost_simple(tbl::GAPGroupCharacterTable)
+is_cyclic(tbl::GAPGroupCharacterTable)
+is_elementary_abelian(tbl::GAPGroupCharacterTable)
+is_nilpotent(tbl::GAPGroupCharacterTable)
+is_perfect(tbl::GAPGroupCharacterTable)
+is_quasisimple(tbl::GAPGroupCharacterTable)
+is_simple(tbl::GAPGroupCharacterTable)
+is_solvable(tbl::GAPGroupCharacterTable)
+is_sporadic_simple(tbl::GAPGroupCharacterTable)
+is_supersolvable(tbl::GAPGroupCharacterTable)
+```
+
 ## Construct group characters from groups
 
 ```@docs

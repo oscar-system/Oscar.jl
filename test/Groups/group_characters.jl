@@ -852,6 +852,7 @@ end
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
   @test [chi[i] for i in 1:5] == values(chi)
+  @test [chi[nam] for nam in class_names(t)] == values(chi)
   @test [2*chi[i] for i in 1:5] == values(chi + chi)
   @test [chi[i]^2 for i in 1:5] == values(chi * chi)
   @test [chi[i]^2 for i in 1:5] == values(chi^2)
@@ -1280,4 +1281,19 @@ end
       end
     end
   end
+end
+
+@testset "read off group properties from character tables" begin
+  t = character_table("A5")
+  @test ! is_abelian(t)
+  @test is_almost_simple(t)
+  @test ! is_cyclic(t)
+  @test ! is_elementary_abelian(t)
+  @test ! is_nilpotent(t)
+  @test is_perfect(t)
+  @test is_quasisimple(t)
+  @test is_simple(t)
+  @test ! is_solvable(t)
+  @test ! is_sporadic_simple(t)
+  @test ! is_supersolvable(t)
 end
