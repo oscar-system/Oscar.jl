@@ -1517,6 +1517,7 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; Error
   return true, c
 end
 
+export extension_of_scalars
 export factor_set
 export ghom
 export indecomposition
