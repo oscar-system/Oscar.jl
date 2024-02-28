@@ -395,12 +395,25 @@ function basis_lie_highest_weight_nz(
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
-# TODO: rewrite docstring
 @doc raw"""
     basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
 
-Computes up the generators of the semi group of essential monomials with respecting to monomial_ordering of the Kodaira mapping 
-of the generalized flag variety of type and rank in the projective space of the highest_weight module.
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
+with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+
+!!! warn
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+    
+If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
+A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
+A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
+
+`monomial_ordering` describes the monomial ordering used for the basis.
+If this is a weighted ordering, the height of the corresponding root is used as weight.
 
 # Example
 ```jldoctest
@@ -455,8 +468,8 @@ function basis_coordinate_ring_kodaira(
   type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
-  birational_sequence::Vector{Int},
-  degree::Int;
+  degree::Int,
+  birational_sequence::Vector{Int};
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
@@ -467,13 +480,36 @@ function basis_coordinate_ring_kodaira(
   )
 end
 
-# TODO: rewrite docstring
+function basis_coordinate_ring_kodaira(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  degree::Int,
+  birational_sequence::Vector{Vector{Int}};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
+  return basis_coordinate_ring_kodaira_compute(
+    L, highest_weight, degree, operators, monomial_ordering
+  )
+end
+
 @doc raw"""
     basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
 
-Computes up the generators of the semi group of essential monomials with respecting to degrevlex of the Kodaira mapping 
-of the generalized flag variety of type and rank in the projective space of the highest_weight module.
-Here the ordering is a good ordering and the monomial ordering is degrevlex, so in type A and C, the monomial basis is the FFLV basis.
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
+with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+
+!!! warn
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+
+The the birational sequence used consists of all operators in descening height of the corresponding root, i.e. a "good" ordering.
+
+The monomial ordering is fixed to `degrevlex`. 
 
 # Example
 ```jldoctest
@@ -492,8 +528,7 @@ Monomial basis of a highest weight module
   of dimension 714
   with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6])
 over Lie algebra of type G2
-  where the used birational sequence consists of the following roots (given as c
-  oefficients w.r.t. alpha_i):
+  where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
     [3, 2]
     [3, 1]
     [2, 1]

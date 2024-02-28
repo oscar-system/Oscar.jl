@@ -26,6 +26,7 @@ import Base: length
 #   - action_matrices_of_operators
 #   - weights_for_operators
 # - Data-Type for weights of Lie-Algebras? Two types, in alpha_i and w_i, conversion is defined in RootConversion
+# - the list of Minkowski gens contains too many elements, only include those that give us something new
 
 include("LieAlgebras.jl")
 include("BirationalSequence.jl")
