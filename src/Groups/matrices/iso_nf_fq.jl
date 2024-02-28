@@ -28,7 +28,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
       error("Group is not finite")
    end
 
-   G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
+   G_to_fin_pres = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
    F = GAPWrap.Range(G_to_fin_pres)
    rels = GAPWrap.RelatorsOfFpGroup(F)
 
