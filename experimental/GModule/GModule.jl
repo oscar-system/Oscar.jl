@@ -1572,6 +1572,7 @@ end #module GModuleFromGap
 
 using .GModuleFromGap
 
+export extension_of_scalars
 export factor_set
 export ghom
 export indecomposition

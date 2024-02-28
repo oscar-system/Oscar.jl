@@ -58,14 +58,14 @@ end
   E = GF(3,6)
   phi = embed(F, E)
   LE = [
-          matrix(E.([0 0 1; 1 0 0; 0 1 0])),
-          matrix(E.([2 0 0; 0 1 0; 0 0 2])),
-          matrix(E.([2 0 0; 0 2 0; 0 0 1])),
-          matrix(E.([1 0 0; 0 1 0; 0 0 1]))
+          matrix(E, [0 0 1; 1 0 0; 0 1 0]),
+          matrix(E, [2 0 0; 0 1 0; 0 0 2]),
+          matrix(E, [2 0 0; 0 2 0; 0 0 1]),
+          matrix(E, [1 0 0; 0 1 0; 0 0 1])
       ]
   mE = free_module(E, 3)
 
-  @test Oscar.GModuleFromGap.extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
+  @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
 
   G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
   q, mq = maximal_abelian_quotient(PcGroup, G)
