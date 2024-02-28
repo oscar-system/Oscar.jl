@@ -47,10 +47,10 @@ end
   G = SL(2,3)
   F = GF(3,2)
   L = [
-          matrix(F.([0 0 1; 1 0 0; 0 1 0])),
-          matrix(F.([2 0 0; 0 1 0; 0 0 2])),
-          matrix(F.([2 0 0; 0 2 0; 0 0 1])),
-          matrix(F.([1 0 0; 0 1 0; 0 0 1]))
+          matrix(F, [0 0 1; 1 0 0; 0 1 0]),
+          matrix(F, [2 0 0; 0 1 0; 0 0 2]),
+          matrix(F, [2 0 0; 0 2 0; 0 0 1]),
+          matrix(F, [1 0 0; 0 1 0; 0 0 1])
       ]
   m = free_module(F, 3)
   M = GModule(m, G, [hom(m, m, a) for a in L])
