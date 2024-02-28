@@ -21,7 +21,6 @@ function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; Err
   return n//d
 end
 
-Oscar.normalise(f::QQPolyRingElem, ::Int64) = error("no normalise") #length(f)
 #Oscar.set_length!(f::QQPolyRingElem, ::Int64) = error("no set_length") #f
 
 #=
