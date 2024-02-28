@@ -46,7 +46,7 @@ end
 
 
 function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-    @req codim(TropV)==1 "tropical variety codimension not one"
+    @req codim(TropV)==1 "tropical variety not one-codimensional"
     @req is_pure(TropV) "tropical variety not pure"
     return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
 end
