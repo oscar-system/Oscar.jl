@@ -57,4 +57,10 @@
     f = fundamental_invariants(I)
     @test f == [X[1]*X[2]*X[3], X[1]^2*X[3]*X[4]]
 
+    #another example, with affine algebra computation
+    T = torus_group(QQ,2)
+    r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1])
+    RT = invariant_ring(r)
+    A, _ = affine_algebra(RT)
+    @test ngens(modulus(A)) == 1
 end

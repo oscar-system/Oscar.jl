@@ -159,14 +159,12 @@ end
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-mutable struct TorGrpInvRing
+@attributes mutable struct TorGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
     group::TorusGroup
     representation::RepresentationTorusGroup
-    
-    fundamental::Vector{MPolyDecRingElem}
     
     #Invariant ring of reductive group G (in representation R), no other input.
     function TorGrpInvRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
@@ -264,14 +262,9 @@ julia> fundamental_invariants(RT)
  X[2]^2*X[3]
 ```
 """
-function fundamental_invariants(z::TorGrpInvRing)
-    if isdefined(z, :fundamental)
-        return z.fundamental
-    else
-        R = z.representation
-        z.fundamental = torus_invariants_fast(weights(R), poly_ring(z))
-        return z.fundamental
-    end
+@attr function fundamental_invariants(z::TorGrpInvRing)
+    R = z.representation
+    return torus_invariants_fast(weights(R), poly_ring(z))
 end
 
 function Base.show(io::IO, R::TorGrpInvRing) 
@@ -399,7 +392,7 @@ julia> affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-function affine_algebra(R::TorGrpInvRing)
+@attr function affine_algebra(R::TorGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
    S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
