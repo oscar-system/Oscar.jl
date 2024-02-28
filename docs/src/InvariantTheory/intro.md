@@ -19,7 +19,11 @@ $K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
 
 which preserves the grading.
 
-The *invariants* of $G$ are the fixed points of this action, its *invariant ring* is the graded subalgebra
+!!! note
+    In OSCAR, group actions are by convention assumed to be right actions and we follow this convention with our definition above.
+    Note, however, that the left action given by $\pi \;\!   . \;\! f :=  f \circ \rho(\pi^{-1})$ is quite common in the literature.
+	
+The *invariants* of $G$ are the fixed points of the action defined above, its *invariant ring* is the graded subalgebra
 
 $K[V]^G:=\{f\in K[V] \mid f \;\!   . \;\! \pi =f {\text { for any }} \pi\in G\} \subset K[V].$
 

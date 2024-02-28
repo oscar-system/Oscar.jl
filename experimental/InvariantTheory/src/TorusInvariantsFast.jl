@@ -1,4 +1,4 @@
-export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, poly_ring, representation, fundamental_invariants, affine_algebra
+export torus_group, rank, field, representation_from_weights, weights, group, invariant_ring, polynomial_ring, representation, fundamental_invariants, affine_algebra
 
 #####################
 #Setting up tori for fast torus algorithm
@@ -209,7 +209,7 @@ graded multivariate polynomial ring in 4 variables over QQ under group action of
 invariant_ring(R::RepresentationTorusGroup) = TorGrpInvRing(R)
 
 @doc raw"""
-    poly_ring(RT::TorGrpInvRing)
+    polynomial_ring(RT::TorGrpInvRing)
 
 # Examples
 ```jldoctest
@@ -218,7 +218,7 @@ Torus of rank 2
   over QQ
 ```
 """
-poly_ring(R::TorGrpInvRing) = R.poly_ring
+polynomial_ring(R::TorGrpInvRing) = R.poly_ring
 
 @doc raw"""
     group(RT::TorGrpInvRing)
@@ -269,7 +269,7 @@ function fundamental_invariants(z::TorGrpInvRing)
         return z.fundamental
     else
         R = z.representation
-        z.fundamental = torus_invariants_fast(weights(R), poly_ring(z))
+        z.fundamental = torus_invariants_fast(weights(R), polynomial_ring(z))
         return z.fundamental
     end
 end
@@ -403,7 +403,7 @@ function affine_algebra(R::TorGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
    S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
-   R_ = poly_ring(R)
+   R_ = polynomial_ring(R)
    StoR = hom(S,R_,V)
    I = kernel(StoR)
    Q, StoQ = quo(S,I)
