@@ -479,7 +479,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   end
 end
 
-function subfield_lattice(K::AbsSimpleNumFiels)
+function subfield_lattice(K::AbsSimpleNumField)
   return _subfields(K)
 end
 
