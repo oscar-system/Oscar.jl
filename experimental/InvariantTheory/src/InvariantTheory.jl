@@ -654,7 +654,7 @@ return the inclusion homomorphism  `A` $\hookrightarrow$ `R` whose image is `RG`
        weights_[i] = total_degree(V[i])
    end
    S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
-   R_ = poly_ring(R)
+   R_ = polynomial_ring(R)
    StoR = hom(S,R_,V)
    I = kernel(StoR)
    Q, StoQ = quo(S,I)
