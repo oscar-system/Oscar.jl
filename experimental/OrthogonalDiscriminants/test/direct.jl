@@ -1,6 +1,9 @@
 @testset "compute via the Atlas of Group Representations" begin
   # Check equality of positive results in small cases.
-  l = all_od_infos(comment_matches => "AGR", dim => 1:8);
+  l = all_od_infos(comment_matches => "AGR",
+                   dim => 1:8,
+                   characteristic => (x -> x > 0));
+#TODO: Admit characteristic 0 as soon as a new AtlasRep version is available.
   for entry in l
     chi = Oscar.OrthogonalDiscriminants.character_of_entry(entry)
     comp = Oscar.OrthogonalDiscriminants.od_from_atlas_group(chi)
