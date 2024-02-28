@@ -211,7 +211,7 @@ end
 @doc raw"""
     dual_subdivision(TropH::TropicalHypersurface)
 
-Return the dual subdivision used to construct `TropH`.  Raises an error, if it is not cached.
+Return the dual subdivision used to construct `TropH`. Raises an error if it is not cached.
 """
 @attr function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
     @req has_attribute(TropH,:dual_subdivision) "no dual subdivision cached"
