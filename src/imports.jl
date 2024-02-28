@@ -195,4 +195,10 @@ import Hecke:
   primitive_element,
   QQBar
 
+# temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
+if !isdefined(Hecke, :torsion_free_rank)
+  torsion_free_rank(A::FinGenAbGroup) = rank(A)
+  export torsion_free_rank
+end
+
 import cohomCalg_jll
