@@ -212,8 +212,71 @@ where `phi` is an embedding of `S` into `R`.
 
 (case that `R` is a number field and `S` is the ring of integers in `R`)
 """
-function invariant_lattice_classes(M::GModule, phi::Map)
-  error("not yet ...")
+function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQFieldElem}}, phi::Map{ZZRing, QQField})
+  MZ = gmodule(ZZ, M)
+  return invariant_lattice_classes(MZ)
+end
+
+function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
+  return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
+end
+
+function _hom(f::Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}) where T
+  @assert base_ring(domain(f)) == base_ring(codomain(f))
+  return hom(domain(f), codomain(f), f.(gens(domain(f))))
+end
+
+function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{ZZRingElem}})
+  res = Any[(M, sub(M.M, gens(M.M))[2])]
+  sres = 1
+  new = true
+  lp = keys(factor(order(M.G)).fac)
+  while new
+    new  = false
+    lres = length(res)
+    for X = res[sres:end]
+      for p = lp
+        F = free_module(GF(p), dim(M))
+        pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x = map(matrix, action(M))])
+        S = maximal_submodule_bases(pM)
+        pG = p.*gens(M.M)
+        for s = S
+          x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i=1:nrows(s)]))
+
+          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h = M.ac]), mx)
+          if any(x->is_isomorphic(r[1], x[1]), res)
+            continue
+          else
+            new = true
+            push!(res, r)
+          end
+        end
+      end
+    end
+    lres = length(res)
+  end
+  return res
+end
+
+Oscar.rank(M::AbstractAlgebra.Generic.Submodule{ZZRingElem}) = ngens(M)
+
+function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  C = Gap(M)
+  S = GAP.Globals.MTX.BasesMaximalSubmodules(C)
+  res = []
+  for s = S
+    if length(s) == 0
+      m = matrix(base_ring(M), 0, dim(M), [])
+    else
+      m = matrix(base_ring(M), s)
+    end
+    push!(res, m)
+  end
+  return res
+end
+
+function maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  return [sub(M, s) for s = maximal_submodule_bases]
 end
 
 
@@ -989,6 +1052,16 @@ function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPM
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
 
+function Oscar.splitting_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  fl = is_irreducible(C)
+  fl || error("module must be irreducible")
+  is_absolutely_irreducible(C) #for GAP to actually compute the field
+  G = Gap(C)
+  d = GAP.Globals.MTX.DegreeSplittingField(G)
+  return GF(characteristic(base_ring(C)), d)
+end
+
+
 function is_decomposable(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   G = Gap(C)
   return !GAP.Globals.MTX.IsIndecomposable(G)
@@ -1374,8 +1447,25 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, vec(x-transpose(x))) for x = h])))
+  k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:ncols(k)]
+end
+
+function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where T
+
+  h = hom_base(gmodule(QQ, A), gmodule(QQ, B))
+
+  if length(h) == 0
+    return false
+  end
+
+  if length(h) > 1
+    error("modules are not abs. irred.")
+  end
+  S = h[1]
+  x = findfirst(!iszero, S[1, :])
+  S *= inv(S[1, x])
+  return denominator(S) == 1 && abs(det(S)) == 1
 end
 
 function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
@@ -1476,6 +1566,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
+ global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
