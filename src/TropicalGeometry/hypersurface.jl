@@ -240,8 +240,8 @@ julia> maximal_cells(sop)
 ```
 """
 @attr function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
-    if has_attribute(TropH,:polymake_bigobject)
-        result = get_attribute(TropH,:polymake_bigobject)
+    result = get_attribute(TropH, :polymake_bigobject)
+    if result !== nothing
         return subdivision_of_points(result.DUAL_SUBDIVISION)
     end
     error("cannot compute dual subdivision, since polymake object is not cached")
