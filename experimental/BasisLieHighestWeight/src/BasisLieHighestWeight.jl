@@ -1,11 +1,16 @@
 module BasisLieHighestWeight
 
 using ..Oscar
-using ..Oscar: GAPWrap, IntegerUnion, _is_weighted
+using ..Oscar: GAPWrap
+using ..Oscar: IntegerUnion
+using ..Oscar: _is_weighted
 
 using AbstractAlgebra.PrettyPrinting
 
-import Oscar: dim, monomial_ordering, monomials
+import Oscar: dim
+import Oscar: dim_of_simple_module
+import Oscar: monomial_ordering
+import Oscar: monomials
 
 import Base: length
 
@@ -33,6 +38,8 @@ include("WeylPolytope.jl")
 include("MainAlgorithm.jl")
 include("UserFunctions.jl")
 
+export MonomialBasis
+
 export basis_coordinate_ring_kodaira
 export basis_coordinate_ring_kodaira_ffl
 export basis_lie_highest_weight_operators
@@ -47,6 +54,8 @@ end
 using .BasisLieHighestWeight
 
 export BasisLieHighestWeight
+
+export MonomialBasis
 
 export basis_coordinate_ring_kodaira
 export basis_coordinate_ring_kodaira_ffl

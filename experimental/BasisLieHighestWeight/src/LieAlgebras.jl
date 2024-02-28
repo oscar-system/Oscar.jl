@@ -50,6 +50,16 @@ function number_of_positive_roots(L::LieAlgebraStructure)
   return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
 end
 
+function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
+  hw_ = Int.(hw)
+  @req Oscar.LieAlgebras.is_dominant_weight(hw_) "Not a dominant weight."
+  return T(GAPWrap.DimensionOfHighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(hw_))))
+end
+
+function dim_of_simple_module(L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, L, hw)
+end
+
 function matrices_of_operators_gap(
   L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
 )
