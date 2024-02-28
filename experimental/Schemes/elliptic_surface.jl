@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart, transform_to_weierstrass
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart_on_minimal_model, transform_to_weierstrass
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
