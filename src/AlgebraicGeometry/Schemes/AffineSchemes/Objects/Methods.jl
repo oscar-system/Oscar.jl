@@ -81,7 +81,7 @@ function _show(io::IO, X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing{<:Any, <:Any,
   else
     AA = AbstractAlgebra
     PP = AbstractAlgebra.PrettyPrinting
-    print(io, raw" \ ")
+    print(io, raw") \ ")
     AA.show_obj(io,
                 MIME("text/plain"),
                 PP.canonicalize(Expr(:call,
