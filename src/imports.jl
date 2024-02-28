@@ -167,6 +167,7 @@ let exclude_hecke = [
     :leading_term,
     :monomials,
     :narrow_class_group,
+    :normalise,
     :number_of_partitions,
     :Partition,
     :perm,
