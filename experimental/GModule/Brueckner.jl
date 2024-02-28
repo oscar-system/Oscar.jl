@@ -13,43 +13,14 @@ end
 
 Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
 
-function Oscar.hom(A::AbstractAlgebra.Generic.DirectSumModule{T}, B::AbstractAlgebra.Generic.DirectSumModule{T}, M::Matrix{<:Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}}) where {T}
-  pro = canonical_projections(A)
-  im = canonical_injections(B)
-  s = hom(A, B, [zero(B) for i = 1:dim(A)])
-  for i=1:length(pro)
-    for j=1:length(im)
-      s += pro[i]*M[i,j]*im[j]
-    end
-  end
-  return s
-end
 
-function Oscar.canonical_projection(A::AbstractAlgebra.Generic.DirectSumModule, i::Int)
-  return hom(A, summands(A)[i], [Generic.direct_sum_projection(A, i, x) for x = gens(A)])
-end
-
-function Oscar.canonical_injection(A::AbstractAlgebra.Generic.DirectSumModule, i::Int)
-  B = summands(A)[i]
-  return hom(B, A, [Generic.direct_sum_injection(i, A, x) for x = gens(B)])
-end
-
-function Oscar.canonical_projections(A::AbstractAlgebra.Generic.DirectSumModule)
-  s = length(summands(A))
-  return [canonical_projection(A, i) for i=1:s]
-end
-
-function Oscar.canonical_injections(A::AbstractAlgebra.Generic.DirectSumModule)
-  s = length(summands(A))
-  return [canonical_injection(A, i) for i=1:s]
-end
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
  - maybe reason from theory what reps are going to be new?
  - conjugate to smallest field?
  - allow trivial stuff
-=# 
+=#
 """
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
@@ -112,7 +83,7 @@ function reps(K, G::Oscar.GAPGroup)
           @assert C*Xp == Y
           # I think they should always be roots of one here.
           # They should - but they are not:
-          # Given that X is defined up-to-scalars only, at best 
+          # Given that X is defined up-to-scalars only, at best
           # C is a root-of-1 * a p-th power:
           # Y is in the image of the rep (action matrix), hence has
           # finite order (at least if the group is finite), hence
@@ -198,7 +169,7 @@ end
 """
 Brueckner Chap 1.3.1
 
-Given 
+Given
   mp: G ->> Q
 
 Find a set of primes suth that are any irreducible F_p module M
@@ -212,7 +183,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     F = free_module(ZZ, 1)
     I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x = gens(Q)])]
   else
-    I = irreducible_modules(ZZ, Q) 
+    I = irreducible_modules(ZZ, Q)
   end
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
@@ -221,7 +192,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     a, b = Oscar.GrpCoh.H_one_maps(ia)
 #    da = Oscar.dual(a)
 #    db = Oscar.dual(b)
-    #= 
+    #=
     R = Q/Z, then we should have
       R^l -a-> R^n -b-> R^m
     and the H^1 we want is ker(b)/im(a)
@@ -258,7 +229,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
 end
 
 """
-Given 
+Given
     mQ: G ->> Q
 Find all possible extensions of Q by an irreducible F_p module
 that admit an epimorphism from G.
@@ -389,7 +360,7 @@ function lift(C::GModule, mp::Map)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
   a = sc(one(N), one(N))
-  E = domain(a) 
+  E = domain(a)
   DE, pDE, iDE = direct_product(D, E, task = :both)
 
   #=
@@ -417,7 +388,7 @@ function lift(C::GModule, mp::Map)
     a = (one(N), hom(DE, M, [zero(M) for i=1:ngens(DE)]))
     for i = Oscar.GrpCoh.word(r)
       if i<0
-        h = inv(mp(G[-i])) 
+        h = inv(mp(G[-i]))
         m = -pDE[1]*pro[-i]*action(C, h)  - pDE[2]*sc(inv(h), h)
       else
         h = mp(G[i])
@@ -430,7 +401,7 @@ function lift(C::GModule, mp::Map)
     s += a[2]*iK[j]
     j += 1
   end
-  #so kern(s) should be exactly all possible quotients that allow a 
+  #so kern(s) should be exactly all possible quotients that allow a
   #projection of G. They are not all surjective. However, lets try:
   k, mk = kernel(s)
   allG = []
@@ -448,7 +419,7 @@ function lift(C::GModule, mp::Map)
     else
       push!(seen, (epi, chn))
     end
-    #TODO: not all "chn" yield distinct groups - the factoring by the 
+    #TODO: not all "chn" yield distinct groups - the factoring by the
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
