@@ -29,7 +29,7 @@ mutable struct LinearlyReductiveGroup
     function LinearlyReductiveGroup(sym::Symbol, m::Int, pring::MPolyRing) #the ring input is the group ring
         #check char(field)
         G = new()
-	fld = base_ring(pring)
+        fld = base_ring(pring)
         @assert sym == :SL  && characteristic(fld) == 0 
         characteristic(fld) == 0 || error("Characteristic should be 0 for linearly reductive groups")
         G.field = fld
@@ -58,7 +58,10 @@ end
 @doc raw"""
     linearly_reductive_group(sym::Symbol, m::Int, K::Field)
 
-If `sym` stands for implementing the special linear group, return SL$(m, K)$.
+Return the linearly reductive group indicated by `sym`.
+
+Currently, the supported options for `sym` are:
+* `:SL`, corresponding to the special linear group (of degree $m$ over the field $K$).
 
 # Examples
 ```jldoctest
@@ -76,8 +79,10 @@ linearly_reductive_group(sym::Symbol, m::Int, F::Field) =  LinearlyReductiveGrou
 @doc raw"""
     linearly_reductive_group(sym::Symbol, m::Int, R::MPolyRing)
 
-If `sym` stands for implementing the special linear group, return SL$(m, K)$, where $K$ is the base field
-of $R$, and $R$ is the polynomial ring in which the defining ideal of SL$(m, K)$ lives.
+Return the linearly reductive group indicated by `sym`.
+
+Currently, the supported options for `sym` are:
+* `:SL`, corresponding to the special linear group (of degree $m$ over the base field $K$ of $R$, where $R$ is the polynomial ring in which the defining ideal of SL$(m, K)$ lives).
 
 # Examples
 ```jldoctest
@@ -641,11 +646,15 @@ Return the invariant ring `RG` as an affine algebra (this amounts to compute the
 In addition, if `A` is this algebra, and `R` is the polynomial ring of which `RG` is a subalgebra,
 return the inclusion homomorphism  `A` $\hookrightarrow$ `R` whose image is `RG`.
 """
-function affine_algebra(R::RedGrpInvRing)
+@attr function affine_algebra(R::RedGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
-   S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
-   R_ = polynomial_ring(R)
+   weights_ = zeros(Int, s)
+   for i in 1:s
+       weights_[i] = total_degree(V[i])
+   end
+   S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
+   R_ = poly_ring(R)
    StoR = hom(S,R_,V)
    I = kernel(StoR)
    Q, StoQ = quo(S,I)
