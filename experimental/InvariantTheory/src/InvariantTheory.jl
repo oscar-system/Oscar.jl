@@ -645,6 +645,20 @@ Return the invariant ring `RG` as an affine algebra (this amounts to compute the
 
 In addition, if `A` is this algebra, and `R` is the polynomial ring of which `RG` is a subalgebra,
 return the inclusion homomorphism  `A` $\hookrightarrow$ `R` whose image is `RG`.
+
+# Examples
+```jldoctest
+julia> G = linearly_reductive_group(:SL, 2, QQ);
+
+julia> r = representation_on_forms(G, 2);
+
+julia> S, x = graded_polynomial_ring(QQ, "x" => 1:3);
+
+julia> RG = invariant_ring(S, r);
+
+julia> A, AtoS = affine_algebra(RG)
+(Quotient of multivariate polynomial ring by ideal (0), Hom: A -> S)
+```
 """
 @attr function affine_algebra(R::RedGrpInvRing)
    V = fundamental_invariants(R)
