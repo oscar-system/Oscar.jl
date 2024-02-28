@@ -1163,17 +1163,10 @@ function simplify_with_same_ambient_free_module(M::SubquoModule)
   #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
 end
 
-@doc raw"""
-    simplify(M::SubquoModule)
-
-Simplify the given subquotient `M` and return the simplified subquotient `N` along
-with the injection map $N \to M$ and the projection map $M \to N$. These maps are
-isomorphisms.
-The simplifcation is heuristical and includes steps like for example removing
-zero-generators or removing the i-th component of all vectors if those are
-reduced by a relation.
-"""
-function simplify(M::SubquoModule)
+### Old version of simplify which is trying to do things directly on the 
+# subquotient without a presentation. Does not respect gradings and is, 
+# hence, not fully functional; see issue #3108.
+function _old_simplify(M::SubquoModule)
   respect_grading = is_graded(M)
   function standard_unit_vector_in_relations(i::Int, M::SubquoModule)
     F = ambient_free_module(M)
