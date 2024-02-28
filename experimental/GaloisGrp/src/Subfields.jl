@@ -397,7 +397,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 #      M = M*D
       while true
 #        @show maximum(nbits, M), nbits(B), size(M)
-    
+
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)
@@ -479,7 +479,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   end
 end
 
-function subfield_lattice(K::AnticNumberField)
+function subfield_lattice(K::AbsSimpleNumFiels)
   return _subfields(K)
 end
 
@@ -489,4 +489,3 @@ end #module
 
 using .SubfieldLattice_Module
 export subfield, subfield_lattice
-
