@@ -264,6 +264,12 @@ function tropical_linear_space(A::MatElem, nu::Union{Nothing,TropicalSemiringMap
     # if nu unspecified, initialize as the trivial valuation + min convention
     isnothing(nu) && (nu=tropical_semiring_map(base_ring(A)))
 
+    # compute reduced row echelon form of A
+    # and remove all zero rows so that matrix is of full rank
+    _,A = rref(A)
+    nonzeroRowIndices = findall(!iszero,[A[i,:] for i in 1:nrows(A)])
+    A = A[nonzeroRowIndices,:]
+
     n = max(nrows(A), ncols(A))
     k = min(nrows(A), ncols(A))
     plueckerIndices = AbstractAlgebra.combinations(1:n,k)

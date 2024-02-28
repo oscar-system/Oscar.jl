@@ -58,7 +58,7 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     M = hcat(M, zero_matrix(QQ, nrows(M), 1))
     N = affine_equation_matrix(affine_hull(sigma1))
     N = hcat(N, zero_matrix(QQ, nrows(N), 1))
-    sigma1Prime = polyhedron((M[:,2:end],[-M[:,1]...]), (N[:,2:end],[-N[:,1]...]))
+    sigma1Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...]))
 
     # construct sigma2Prime = (sigma2 x {0}) + RR_{>=0} * (perturbation,1)
     M = affine_inequality_matrix(facets(sigma2))
@@ -68,7 +68,7 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     v = zero_matrix(QQ, 1, ncols(N))
     v[1,end] = 1 # v = last unit vector
     N = vcat(N, v)
-    sigma2Prime = polyhedron((M[:,2:end],[-M[:,1]...]), (N[:,2:end],[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
+    sigma2Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
 
     sigma12Prime = intersect(sigma1Prime, sigma2Prime)
     # @req codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
@@ -92,8 +92,7 @@ function tropical_intersection_multiplicity(sigma1::Polyhedron,sigma2::Polyhedro
 
     @req ncols(B1) == ncols(B2) && nrows(B1)+nrows(B2) >= ncols(B1) "polyhedra do not span ambient space"
 
-    snfB12 = snf(vcat(B1,B2))
-    return abs(prod([snfB12[i,i] for i in 1:ncols(snfB12)]))
+    return abs(prod(elementary_divisors(vcat(B1,B2))))
 end
 
 
