@@ -138,7 +138,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     for d=ds
       i = findall(x->any(y->y in d, x), bs)
       x = Set(d)
-      union!(x, cs[i]...)
+      union!(x, bs[i]...)
       empty!(d)
       append!(d, x)
     end
