@@ -75,13 +75,13 @@ invariant_ring(R::MPolyDecRing, r::RepresentationLinearlyReductiveGroup)
  ### The Reynolds Operator
 
 ```@docs
-reynolds_operator(R::RedGrpInvRing, f::MPolyRingElem)
+reynolds_operator(R::RedGroupInvarRing, f::MPolyRingElem)
 ```
 
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(RG::RedGrpInvRing)
+fundamental_invariants(RG::RedGroupInvarRing)
 ```
 
 

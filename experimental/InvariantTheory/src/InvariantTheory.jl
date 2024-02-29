@@ -9,7 +9,7 @@ export LinearlyReductiveGroup
 export linearly_reductive_group
 export natural_representation
 export null_cone_ideal
-export RedGrpInvRing
+export RedGroupInvarRing
 export representation
 export RepresentationLinearlyReductiveGroup
 export representation_matrix
@@ -283,7 +283,7 @@ end
 ##########################
 #Invariant Rings of Reductive groups
 ##########################
-@attributes mutable struct RedGrpInvRing
+@attributes mutable struct RedGroupInvarRing
     field::Field
     poly_ring::MPolyDecRing #graded
 
@@ -293,7 +293,7 @@ end
     reynolds_operator::Function
 
     #Invariant ring of reductive group G (in representation R), no other input.
-    function RedGrpInvRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
+    function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
         z = new()
         n = ncols(R.rep_mat)
         z.representation = R
@@ -306,7 +306,7 @@ end
     end
 
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function RedGrpInvRing(R::RepresentationLinearlyReductiveGroup, ring::MPolyDecRing)
+    function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup, ring::MPolyDecRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
         z = new()
@@ -340,7 +340,7 @@ graded multivariate polynomial ring in 3 variables over QQ
   under group action of SL2
 ```
 """
-invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R)
+invariant_ring(R::RepresentationLinearlyReductiveGroup) = RedGroupInvarRing(R)
 
 @doc raw"""
     invariant_ring(R::MPolyDecRing, r::RepresentationLinearlyReductiveGroup)
@@ -361,22 +361,22 @@ graded multivariate polynomial ring in 10 variables over QQ
   under group action of SL3
 ```
 """
-invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) = RedGrpInvRing(R, ring)
+invariant_ring(ring::MPolyDecRing, R::RepresentationLinearlyReductiveGroup) = RedGroupInvarRing(R, ring)
 
-@attr MPolyIdeal function null_cone_ideal(R::RedGrpInvRing)
+@attr MPolyIdeal function null_cone_ideal(R::RedGroupInvarRing)
     Z = R.representation
     I, _ = proj_of_image_ideal(group(Z), Z.rep_mat)
     return ideal(generators(Z.group, I, Z.rep_mat))
 end
 
-polynomial_ring(R::RedGrpInvRing) = R.poly_ring
-group(R::RedGrpInvRing) = R.group
-representation(R::RedGrpInvRing) = R.representation
+polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
+group(R::RedGroupInvarRing) = R.group
+representation(R::RedGroupInvarRing) = R.representation
 
 
 
 @doc raw"""
-    fundamental_invariants(RG::RedGrpInvRing)
+    fundamental_invariants(RG::RedGroupInvarRing)
 
 Return a system of fundamental invariants for `RG`.
 
@@ -394,14 +394,14 @@ julia> fundamental_invariants(RG)
 
 ```
 """
-@attr function fundamental_invariants(z::RedGrpInvRing) #unable to use abstract type
+@attr function fundamental_invariants(z::RedGroupInvarRing) #unable to use abstract type
     R = z.representation
     I, M = proj_of_image_ideal(R.group, R.rep_mat)
     null_cone_ideal(z) = ideal(generators(R.group, I, R.rep_mat))
     return inv_generators(null_cone_ideal(z), R.group, z.poly_ring, M, z.reynolds_operator)
 end
 
-function Base.show(io::IO, R::RedGrpInvRing) 
+function Base.show(io::IO, R::RedGroupInvarRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
     println(io, Lowercase(), R.poly_ring)
@@ -600,7 +600,7 @@ function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyR
 end
 
 @doc raw"""
-    reynolds_operator(RG::RedGrpInvRing, f::MPolyRingElem)
+    reynolds_operator(RG::RedGroupInvarRing, f::MPolyRingElem)
 
 Return the image of `f` under the Reynolds operator corresponding to `RG`.
 
@@ -618,7 +618,7 @@ julia> 75*reynolds_operator(RG, x[5]^4)
 x[1]*x[4]*x[8]*x[10] - x[1]*x[4]*x[9]^2 - x[1]*x[5]*x[7]*x[10] + x[1]*x[5]*x[8]*x[9] + x[1]*x[6]*x[7]*x[9] - x[1]*x[6]*x[8]^2 - x[2]^2*x[8]*x[10] + x[2]^2*x[9]^2 + x[2]*x[3]*x[7]*x[10] - x[2]*x[3]*x[8]*x[9] + x[2]*x[4]*x[5]*x[10] - x[2]*x[4]*x[6]*x[9] - 2*x[2]*x[5]^2*x[9] + 3*x[2]*x[5]*x[6]*x[8] - x[2]*x[6]^2*x[7] - x[3]^2*x[7]*x[9] + x[3]^2*x[8]^2 - x[3]*x[4]^2*x[10] + 3*x[3]*x[4]*x[5]*x[9] - x[3]*x[4]*x[6]*x[8] - 2*x[3]*x[5]^2*x[8] + x[3]*x[5]*x[6]*x[7] + x[4]^2*x[6]^2 - 2*x[4]*x[5]^2*x[6] + x[5]^4
 ```
 """
-function reynolds_operator(R::RedGrpInvRing, elem::MPolyRingElem)
+function reynolds_operator(R::RedGroupInvarRing, elem::MPolyRingElem)
     X = R.representation
     return reynolds_operator(X, elem)
 end
@@ -629,7 +629,7 @@ include("TorusInvariantsFast.jl")
 #####################Invariant rings as affine algebras
 
 @doc raw"""
-    affine_algebra(RG::RedGrpInvRing)
+    affine_algebra(RG::RedGroupInvarRing)
 
 Return the invariant ring `RG` as an affine algebra (this amounts to compute the algebra syzygies among the fundamental invariants of `RG`).
 
@@ -650,7 +650,7 @@ julia> A, AtoS = affine_algebra(RG)
 (Quotient of multivariate polynomial ring by ideal (0), Hom: A -> S)
 ```
 """
-@attr function affine_algebra(R::RedGrpInvRing)
+@attr function affine_algebra(R::RedGroupInvarRing)
    V = fundamental_invariants(R)
    s = length(V)
    weights_ = zeros(Int, s)

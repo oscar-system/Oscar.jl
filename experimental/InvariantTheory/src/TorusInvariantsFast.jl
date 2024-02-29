@@ -161,7 +161,7 @@ end
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-@attributes mutable struct TorGrpInvRing
+@attributes mutable struct TorGroupInvarRing
     field::Field
     poly_ring::MPolyDecRing #graded
 
@@ -169,14 +169,14 @@ end
     representation::RepresentationTorusGroup
 
     #Invariant ring of reductive group G (in representation R), no other input.
-    function TorGrpInvRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
+    function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
         n = length(weights(R))
         super_ring, _ = graded_polynomial_ring(field(group(R)), "X"=>1:n)
-        return TorGrpInvRing(R, super_ring)
+        return TorGroupInvarRing(R, super_ring)
     end
 
     #to compute invariant ring ring^G where G is the reductive group of R. 
-    function TorGrpInvRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
+    function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
         z = new()
         n = length(weights(R))
         z.field = field(group(R))
@@ -206,10 +206,10 @@ Invariant Ring of
 graded multivariate polynomial ring in 4 variables over QQ under group action of torus of rank2
 ```
 """
-invariant_ring(R::RepresentationTorusGroup) = TorGrpInvRing(R)
+invariant_ring(R::RepresentationTorusGroup) = TorGroupInvarRing(R)
 
 @doc raw"""
-    polynomial_ring(RT::TorGrpInvRing)
+    polynomial_ring(RT::TorGroupInvarRing)
 
 # Examples
 ```jldoctest
@@ -218,10 +218,10 @@ Torus of rank 2
   over QQ
 ```
 """
-polynomial_ring(R::TorGrpInvRing) = R.poly_ring
+polynomial_ring(R::TorGroupInvarRing) = R.poly_ring
 
 @doc raw"""
-    group(RT::TorGrpInvRing)
+    group(RT::TorGroupInvarRing)
 
 # Examples
 ```jldoctest
@@ -230,10 +230,10 @@ Torus of rank 2
   over QQ
 ```
 """
-group(R::TorGrpInvRing) = R.group
+group(R::TorGroupInvarRing) = R.group
 
 @doc raw"""
-    representation(RT::TorGrpInvRing)
+    representation(RT::TorGroupInvarRing)
 
 # Examples
 ```jldoctest
@@ -242,10 +242,10 @@ Torus of rank 2
   over QQ
 ```
 """
-representation(R::TorGrpInvRing) = R.representation
+representation(R::TorGroupInvarRing) = R.representation
 
 @doc raw"""
-    fundamental_invariants(RT::TorGrpInvRing)
+    fundamental_invariants(RT::TorGroupInvarRing)
 
 Return a system of fundamental invariants for `RT`.
 
@@ -264,12 +264,12 @@ julia> fundamental_invariants(RT)
  X[2]^2*X[3]
 ```
 """
-@attr function fundamental_invariants(z::TorGrpInvRing)
+@attr function fundamental_invariants(z::TorGroupInvarRing)
     R = z.representation
     return torus_invariants_fast(weights(R), polynomial_ring(z))
 end
 
-function Base.show(io::IO, R::TorGrpInvRing) 
+function Base.show(io::IO, R::TorGroupInvarRing) 
     io = pretty(io)
     println(io, "Invariant Ring of")
     print(io, Lowercase(), R.poly_ring)
@@ -369,7 +369,7 @@ end
 #####################Invariant rings as affine algebras
 
 @doc raw"""
-    affine_algebra(RT::TorGrpInvRing)
+    affine_algebra(RT::TorGroupInvarRing)
 
 Return the invariant ring `RT` as an affine algebra (this amounts to compute the algebra syzygies among the fundamental invariants of `RT`).
 
@@ -394,7 +394,7 @@ julia> affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-@attr function affine_algebra(R::TorGrpInvRing)
+@attr function affine_algebra(R::TorGroupInvarRing)
    V = fundamental_invariants(R)
    s = length(V)
    weights_ = zeros(Int, s)
