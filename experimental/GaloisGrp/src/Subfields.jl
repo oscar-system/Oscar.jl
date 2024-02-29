@@ -401,7 +401,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)
-        r, M = lll_with_removal(M, B, lll_ctx(0.501, 0.75))
+        r, M = lll_with_removal(M, B, LLLContext(0.501, 0.75))
         M = M[1:r, :]
 
         if iszero(M[:, 1:di])
