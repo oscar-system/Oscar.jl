@@ -100,7 +100,7 @@ function _presentation_graded(SQ::SubquoModule)
   R = base_ring(SQ)
 
   # Prepare to set some names
-  br_name = AbstractAlgebra.find_name(R)
+  br_name = AbstractAlgebra.get_name(R)
   if br_name === nothing
     br_name = "br"
   end
@@ -117,14 +117,14 @@ function _presentation_graded(SQ::SubquoModule)
   F0_to_SQ = graded_map(SQ, gens(SQ); check=false)
   F0_to_SQ.generators_map_to_generators = true
   F0 = domain(F0_to_SQ)
-  set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
+  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
   F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
   F1 = domain(F1_to_F0)
   #F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
   #F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
+  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
   if is_zero(F1)
@@ -134,7 +134,7 @@ function _presentation_graded(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = graded_free_module(R, elem_type(grading_group(R))[])
-  set_attribute!(Z, :name => "0")
+  AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
@@ -149,7 +149,7 @@ function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
   # Prepare to set some names
-  br_name = AbstractAlgebra.find_name(R)
+  br_name = AbstractAlgebra.get_name(R)
   if br_name === nothing
     br_name = "br"
   end
@@ -158,14 +158,14 @@ function _presentation_simple(SQ::SubquoModule)
   F0 = FreeMod(R, length(gens(SQ)))
   F0_to_SQ = hom(F0, SQ, gens(SQ); check=false)
   F0_to_SQ.generators_map_to_generators = true
-  set_attribute!(F0,  :name => "$br_name^$(ngens(SQ.sub))")
+  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
   @assert codomain(inc_K) === F0
   @assert all(x->parent(x) === F0, images_of_generators(inc_K))
   F1 = FreeMod(R, ngens(K))
   F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  set_attribute!(F1, :name => "$br_name^$(ngens(F1))")
+  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
   if is_zero(F1)
@@ -175,7 +175,7 @@ function _presentation_simple(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = FreeMod(R, 0)
-  set_attribute!(Z, :name => "0")
+  AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex

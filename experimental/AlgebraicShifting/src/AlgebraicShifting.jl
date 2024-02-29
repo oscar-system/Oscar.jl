@@ -100,8 +100,7 @@ function exterior_shift(F::Field, K::SimplicialComplex;
       end
       push!(sub_compound_matrix, row_minors)
     end
-    
-    A = matrix(matrix_base, sub_compound_matrix)
+    A = matrix(reduce(hcat, sub_compound_matrix))
 
     if is_generic
       Oscar.ModStdQt.ref_ff_rc!(A)
