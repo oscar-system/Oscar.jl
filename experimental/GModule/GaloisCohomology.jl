@@ -542,7 +542,7 @@ Follows Debeerst rather closely...
 function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert domain(sigma) == codomain(sigma) == M
   @assert all(x->sigma(sigma(x)) == x, gens(M))
-  @assert is_free(M) && rank(M) == ngens(M)
+  @assert is_free(M) && torsion_free_rank(M) == ngens(M)
 
   K, mK = kernel(id_hom(M)+sigma)
   fl, mX = has_complement(mK)
@@ -557,8 +557,8 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
-  @assert is_trivial(_S) || rank(_S) == ngens(_S) 
-  @assert rank(_K) == ngens(_K) 
+  @assert is_trivial(_S) || torsion_free_rank(_S) == ngens(_S) 
+  @assert torsion_free_rank(_K) == ngens(_K) 
 
   m = matrix(FinGenAbGroupHom(_mS * mSK * inv((_mK))))
   # elt in S * m = elt in K
@@ -1912,7 +1912,7 @@ function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
         s, ms = sub(q.M, collect(o), false)
-        if rank(s) == length(o)
+        if torsion_free_rank(s) == length(o)
           q, _mq = quo(q, ms, false)
           if first
             mq = _mq

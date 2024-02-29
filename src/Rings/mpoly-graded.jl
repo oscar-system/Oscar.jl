@@ -231,7 +231,8 @@ is_standard_graded(::MPolyRing) = false
 Return `true` if `R` is $\mathbb Z$-graded, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z$-graded if
+    `G` is free abelian of rank `1`, and `ngens(G) == 1`.
 
 # Examples
 ```jldoctest
@@ -245,7 +246,7 @@ true
 function is_z_graded(R::MPolyDecRing)
   is_graded(R) || return false
   A = grading_group(R)
-  return ngens(A) == 1 && rank(A) == 1 && is_free(A)
+  return ngens(A) == 1 && torsion_free_rank(A) == 1 && is_free(A)
 end
 
 is_z_graded(::MPolyRing) = false
@@ -256,7 +257,8 @@ is_z_graded(::MPolyRing) = false
 Return `true` if `R` is $\mathbb Z^m$-graded for some $m$, `false` otherwise.
 
 !!! note
-    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded if `is_free(G) && ngens(G) == rank(G) == m` evaluates to `true`.
+    Writing `G = grading_group(R)`, we say that `R` is $\mathbb Z^m$-graded
+    `G` is free abelian of rank `m`, and `ngens(G) == m`.
 
 # Examples
 ```jldoctest
@@ -295,7 +297,7 @@ false
 function is_zm_graded(R::MPolyDecRing)
   is_graded(R) || return false
   A = grading_group(R)
-  return is_free(A) && ngens(A) == rank(A)
+  return is_free(A) && ngens(A) == torsion_free_rank(A)
 end
 
 is_zm_graded(::MPolyRing) = false
@@ -340,7 +342,7 @@ false
   is_graded(R) || return false
   G = grading_group(R)
   is_free(G) || return false
-  if ngens(G) == rank(G)
+  if ngens(G) == torsion_free_rank(G)
     W = reduce(vcat, [x.coeff for x = R.d])
     if is_positive_grading_matrix(transpose(W))
        return true
