@@ -15,7 +15,19 @@ export complex_reflection_group_type
 export complex_reflection_group_model
 export complex_reflection_group_dual
 
-function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
+###########################################################################################
+# Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
+# For example the kernel of a matrix A is the space of all vectors such that x*A=0 
+# (confusingly, this is usually referred to a s the *left kernel*....). The same holds for
+# Magma and also CHEVIE.
+# 
+# This means that when we take matrices for the models from the literature in which 
+# matrices act from the left (the usual convention for non-computer stuff), like the book
+# by Lehrer & Taylor, we need to transpose these matrices! This is why down there in the
+# code there are several transpose operation for the final generators.
+###########################################################################################
+
+function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
     
     # this will be the list of matrix groups corresponding to the components of G
     component_groups = MatrixGroup[]
@@ -27,14 +39,6 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
         t = C.type[1]
         gens = nothing
-        Cmodel = nothing
-
-         # Set default model (CHEVIE)
-         if model === nothing
-            Cmodel = :CHEVIE
-        else
-            Cmodel = model
-        end
 
         # we now create the list "gens" of matrix generators for C in the selected model
         if isa(t, Int)
@@ -44,7 +48,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G4
             if t == 4
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 85-86
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -57,11 +61,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r1prime = ω//2 * matspace(K[-1-i -1+i ; 1+i -1+i])
 
-                    push!(gens, r1)
-                    push!(gens, r1prime)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r1prime))
                 
                     
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -72,7 +76,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -88,7 +92,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G5
             elseif t == 5
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 85-86
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -101,10 +105,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r2prime = ω//2 * matspace(K[-1+i 1-i ; -1-i -1-i])
 
-                    push!(gens, r1)
-                    push!(gens, r2prime)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r2prime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -116,7 +120,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
 
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -132,7 +136,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G6
             elseif t == 6
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 85-86
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -145,10 +149,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r = matspace(K[1 0 ; 0 -1])
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                 
-                    push!(gens, r)
-                    push!(gens, r1)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r1))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -159,7 +163,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -175,7 +179,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G7
             elseif t == 7
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 85-86
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -189,11 +193,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r2 = ω//2 * matspace(K[-1+i -1+i ; 1+i -1-i])
                 
-                    push!(gens, r)
-                    push!(gens, r1)
-                    push!(gens, r2)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r2))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -206,7 +210,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -224,7 +228,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G8
             elseif t == 8
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -234,10 +238,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r4 = matspace(K[1 0 ; 0 i])
                     r4prime = 1//2 * matspace(K[1+i -1+i ; -1+i 1+i])
                 
-                    push!(gens, r4)
-                    push!(gens, r4prime)
+                    push!(gens, transpose(r4))
+                    push!(gens, transpose(r4prime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -248,7 +252,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -264,7 +268,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G9
             elseif t == 9
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -277,10 +281,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
                     r4 = matspace(K[1 0 ; 0 i])
                 
-                    push!(gens, r3)
-                    push!(gens, r4)
+                    push!(gens, transpose(r3))
+                    push!(gens, transpose(r4))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -291,7 +295,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -307,7 +311,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G10
             elseif t == 10
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -320,10 +324,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r4prime = 1//2 * matspace(K[1+i -1+i ; -1+i 1+i])
                 
-                    push!(gens, r1)
-                    push!(gens, r4prime)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r4prime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -334,7 +338,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_12 = cyclotomic_field(12)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -350,7 +354,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G11
             elseif t == 11
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -367,11 +371,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
                     r4 = matspace(K[1 0 ; 0 i])
 
-                    push!(gens, r1)
-                    push!(gens, r3)
-                    push!(gens, r4)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r3))
+                    push!(gens, transpose(r4))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -384,7 +388,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -402,7 +406,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G12
             elseif t == 12
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -416,11 +420,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r3prime = 1//sqrt2 * matspace(K[1 1 ; 1 -1])
                     r3primeprime = 1//sqrt2 * matspace(K[0 1+i ; 1-i 0])
 
-                    push!(gens, r3)
-                    push!(gens, r3prime)
-                    push!(gens, r3primeprime)
+                    push!(gens, transpose(r3))
+                    push!(gens, transpose(r3prime))
+                    push!(gens, transpose(r3primeprime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -433,7 +437,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -451,7 +455,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G13
             elseif t == 13
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -465,11 +469,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
                     r3primeprime = 1//sqrt2 * matspace(K[0 1+i ; 1-i 0])
 
-                    push!(gens, r)
-                    push!(gens, r3)
-                    push!(gens, r3primeprime)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r3))
+                    push!(gens, transpose(r3primeprime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -482,7 +486,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_8 = cyclotomic_field(8)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -500,7 +504,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G14
             elseif t == 14
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -516,10 +520,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r3prime = 1//sqrt2 * matspace(K[1 1 ; 1 -1])
 
-                    push!(gens, r1)
-                    push!(gens, r3prime)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r3prime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -530,7 +534,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -546,7 +550,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G15
             elseif t == 15
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 87-88
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -563,11 +567,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
 
-                    push!(gens, r)
-                    push!(gens, r1)
-                    push!(gens, r3)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r3))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -580,7 +584,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_24 = cyclotomic_field(24)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -598,7 +602,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G16
             elseif t == 16
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -612,10 +616,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
                     r5prime = -ζ^2//2 * matspace(K[τ-i -τ+1 ; τ-1 τ+i])
 
-                    push!(gens, r5)
-                    push!(gens, r5prime)
+                    push!(gens, transpose(r5))
+                    push!(gens, transpose(r5prime))
                 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -626,7 +630,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -642,7 +646,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G17
             elseif t == 17
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -656,10 +660,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
                     r = matspace(K[1 0 ; 0 -1])
 
-                    push!(gens, r5)
-                    push!(gens, r)
+                    push!(gens, transpose(r5))
+                    push!(gens, transpose(r))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_20 = cyclotomic_field(20)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -670,7 +674,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_20 = cyclotomic_field(20)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -686,7 +690,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G18
             elseif t == 18
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -703,10 +707,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
 
-                    push!(gens, r1^2)
-                    push!(gens, r5)
+                    push!(gens, transpose(r1^2))
+                    push!(gens, transpose(r5))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -717,7 +721,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -733,7 +737,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G19
             elseif t == 19
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -751,11 +755,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
 
-                    push!(gens, r)
-                    push!(gens, r1)
-                    push!(gens, r5)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r5))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_60 = cyclotomic_field(60)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -768,7 +772,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_60 = cyclotomic_field(60)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -786,7 +790,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G20
             elseif t == 20
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -803,10 +807,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
                     r1primeprime = ω//2 * matspace(K[-τ*i-1 (-τ+1)*i ; (-τ+1)*i τ*i-1])
 
-                    push!(gens, r1)
-                    push!(gens, r1primeprime)
+                    push!(gens, transpose(r1))
+                    push!(gens, transpose(r1primeprime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -817,7 +821,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -833,7 +837,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G21
             elseif t == 21
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -850,10 +854,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     r = matspace(K[1 0 ; 0 -1])
                     r1primeprime = ω//2 * matspace(K[-τ*i-1 (-τ+1)*i ; (-τ+1)*i τ*i-1])
 
-                    push!(gens, r)
-                    push!(gens, r1primeprime)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(r1primeprime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_60 = cyclotomic_field(60)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -864,7 +868,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s1)
                     push!(gens, s2)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_60 = cyclotomic_field(60)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -880,7 +884,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G22
             elseif t == 22
 
-                if Cmodel == :LT
+                if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
@@ -895,11 +899,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     rprime = matspace(K[0 1 ; 1 0])
                     rprimeprime = 1//2 * matspace(K[τ (τ-1)*i+1 ; (-τ+1)*i+1 -τ])
 
-                    push!(gens, r)
-                    push!(gens, rprime)
-                    push!(gens, rprimeprime)
+                    push!(gens, transpose(r))
+                    push!(gens, transpose(rprime))
+                    push!(gens, transpose(rprimeprime))
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_20 = cyclotomic_field(20)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -912,7 +916,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_20 = cyclotomic_field(20)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -930,10 +934,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G23
             elseif t == 23
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -946,7 +950,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -965,10 +969,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G24
             elseif t == 24
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_7 = cyclotomic_field(7)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -981,7 +985,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_7 = cyclotomic_field(7)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -999,10 +1003,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G25
             elseif t == 25
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1015,7 +1019,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1033,10 +1037,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G26
             elseif t == 26
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1049,7 +1053,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1067,10 +1071,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G27
             elseif t == 27
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1083,7 +1087,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s2)
                     push!(gens, s3)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_15 = cyclotomic_field(15)
                     matspace = matrix_space(K, 3, 3)
                     gens = elem_type(matspace)[]
@@ -1101,10 +1105,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G28
             elseif t == 28
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K = QQ
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1119,7 +1123,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s3)
                     push!(gens, s4)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K = QQ
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1139,10 +1143,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G29
             elseif t == 29
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1157,7 +1161,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s3)
                     push!(gens, s4)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1177,10 +1181,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G30
             elseif t == 30
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1195,7 +1199,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s3)
                     push!(gens, s4)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_5 = cyclotomic_field(5)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1215,10 +1219,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G31
             elseif t == 31
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1235,7 +1239,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s4)
                     push!(gens, s5)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_4 = cyclotomic_field(4)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1257,10 +1261,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G32
             elseif t == 32
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1275,7 +1279,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s3)
                     push!(gens, s4)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 4, 4)
                     gens = elem_type(matspace)[]
@@ -1295,10 +1299,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G3
             elseif t == 33
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 5, 5)
                     gens = elem_type(matspace)[]
@@ -1315,7 +1319,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s4)
                     push!(gens, s5)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 5, 5)
                     gens = elem_type(matspace)[]
@@ -1337,10 +1341,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G34
             elseif t == 34
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 6, 6)
                     gens = elem_type(matspace)[]
@@ -1359,7 +1363,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s5)
                     push!(gens, s6)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K,zeta_3 = cyclotomic_field(3)
                     matspace = matrix_space(K, 6, 6)
                     gens = elem_type(matspace)[]
@@ -1383,10 +1387,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G35
             elseif t == 35
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K = QQ
                     matspace = matrix_space(K, 6, 6)
                     gens = elem_type(matspace)[]
@@ -1405,7 +1409,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s5)
                     push!(gens, s6)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K = QQ
                     matspace = matrix_space(K, 6, 6)
                     gens = elem_type(matspace)[]
@@ -1429,10 +1433,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G36
             elseif t == 36
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K = QQ
                     matspace = matrix_space(K, 7, 7)
                     gens = elem_type(matspace)[]
@@ -1453,7 +1457,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s6)
                     push!(gens, s7)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K = QQ
                     matspace = matrix_space(K, 7, 7)
                     gens = elem_type(matspace)[]
@@ -1479,10 +1483,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
             # G37
             elseif t == 37
                 
-                if Cmodel == :LT
+                if model == :LT
                     nothing
 
-                elseif Cmodel == :Magma
+                elseif model == :Magma
                     K = QQ
                     matspace = matrix_space(K, 8, 8)
                     gens = elem_type(matspace)[]
@@ -1505,7 +1509,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     push!(gens, s7)
                     push!(gens, s8)
 
-                elseif Cmodel == :CHEVIE
+                elseif model == :CHEVIE
                     K = QQ
                     matspace = matrix_space(K, 8, 8)
                     gens = elem_type(matspace)[]
@@ -1540,17 +1544,19 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
             # Symmetric group case needs special care
             if m == 1 && p == 1
-                # Set default model for this case
-                if model === nothing
-                    Cmodel = :CHEVIE
-                else
-                    Cmodel = model
-                end
 
-                if Cmodel === :CHEVIE
-                    # the generators correspond to the transpositions r_i=(i,i+1)
-                    # but note that we consider the irreducible representation of 
-                    # dimension n-1, so it's not simply the transposition matrix
+                # The generators correspond to the transpositions r_i=(i,i+1)
+                # but note that we consider the irreducible representation of 
+                # dimension n-1, so it's not simply the transposition matrix.
+
+                # In Magma, hephardTodd(1,1,n) gives the permutation
+                # representation, which is not irreducible...So we will deviate here from
+                # Magma.
+
+                # In LT there are no explicit matrices given.
+
+                if model === :CHEVIE || model === :LT || model === :Magma
+                    
                     matspace = matrix_space(QQ, n-1, n-1)
                     gens = elem_type(matspace)[]
                     for i = 1:n-1
@@ -1565,16 +1571,44 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                         push!(gens, ri)
                     end
                 end
-            else
-                # Set default model for this case
-                if model === nothing
-                    Cmodel = :CHEVIE
-                else
-                    Cmodel = model
-                end
 
-                if Cmodel === :Magma
+            else
+
+                if model === :LT
                     # See Lehrer & Taylor (2009), p 35-36
+                    K, z = cyclotomic_field(m)
+                    matspace = matrix_space(K, n, n)
+
+                    #the transpositions
+                    transp = elem_type(matspace)[]
+                    for i = 1:n-1
+                        r = matspace(1)
+                        r[i,i] = 0
+                        r[i+1,i+1] = 0
+                        r[i,i+1] = 1
+                        r[i+1,i] = 1
+                        push!(transp, r)
+                    end
+
+                    #the matrix t
+                    t = matspace(1)
+                    t[1,1] = z
+                                                                    
+                    #the matrix s
+                    if n > 1 
+                        s = t^-1*transp[1]*t
+                    end
+
+                    #now, create the list of generators
+                    if m == p
+                        gens = vcat([s], transp)
+                    elseif p == 1
+                        gens = vcat([t], transp)
+                    else
+                        gens = vcat([s], [t^p], transp)
+                    end
+
+                elseif model === :Magma
                     # What's implemented in Magma deviates slightly from Lehrer & Taylor, 
                     # see the remarks below.
                     K, z = cyclotomic_field(m)
@@ -1593,15 +1627,15 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
                     #the matrix t
                     t = matspace(1)
-                    t[n,n] = z #LT would take t[1,1]=z here
+                    t[n,n] = z #LT takes t[1,1]=z here
 
                     #the matrix s
                     if n > 1
-                        s = t^-1*transp[n-1]*t #LT would take transp[1] here
+                        s = t^-1*transp[n-1]*t #LT takes transp[1] here
                     end
 
                     #now, create the list of generators
-                    #LT would order the transpositions to the end
+                    #LT orders the transpositions to the end
                     if m == p
                         gens = vcat(transp, [s])
                     elseif p == 1
@@ -1609,8 +1643,8 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
                     else
                         gens = vcat(transp, [s], [t^p])
                     end
-                    
-                elseif Cmodel === :CHEVIE
+
+                elseif model === :CHEVIE
                     # I extracted this from Marin & Michel (2010), p 751. 
                     # This should match what is in CHEVIE.
                     K, z = cyclotomic_field(m)
@@ -1639,7 +1673,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
 
                     #now, create the list of generators
                     if m == p
-                        gens = vcat([sprime], transp)
+                        gens = vcat([s1prime], transp)
                     elseif p == 1
                         gens = vcat([tprime], transp)
                     else
@@ -1660,12 +1694,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:CHEVIE)
         set_attribute!(matgrp, :order, order(C))
         set_attribute!(matgrp, :is_complex_reflection_group, true)
         set_attribute!(matgrp, :complex_reflection_group_type, C)
-        set_attribute!(matgrp, :complex_reflection_group_model, [Cmodel])
+        set_attribute!(matgrp, :complex_reflection_group_model, [model])
         set_attribute!(matgrp, :is_irreducible, true)
 
         # add to list
         push!(component_groups, matgrp)
-        push!(modellist, Cmodel)
+        push!(modellist, model)
     end
 
     if length(component_groups) == 1
