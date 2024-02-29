@@ -11,7 +11,6 @@
 # Ulrich Thiel, 2023 
 
 export complex_reflection_group
-export is_complex_reflection_group
 export complex_reflection_group_type
 export complex_reflection_group_model
 export complex_reflection_group_dual
@@ -1691,14 +1690,6 @@ complex_reflection_group(i::Int; model=nothing) = complex_reflection_group(Compl
 complex_reflection_group(m::Int, p::Int, n::Int; model=nothing) = complex_reflection_group(ComplexReflectionGroupType(m,p,n); model=model)
 
 complex_reflection_group(X::Vector; model=nothing) = complex_reflection_group(ComplexReflectionGroupType(X); model=model)
-
-function is_complex_reflection_group(G::MatrixGroup)
-    if has_attribute(G, :is_complex_reflection_group)
-        return get_attribute(G, :is_complex_reflection_group)
-    end
-    return false 
-    #this should be upgraded later to work with a general matrix group
-end
 
 function complex_reflection_group_type(G::MatrixGroup)
     if has_attribute(G, :complex_reflection_group_type)

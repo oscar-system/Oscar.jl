@@ -4,7 +4,10 @@ export unitary_reflection
 export hyperplane
 export eigenvalue
 export is_complex_reflection_with_data
+export is_complex_reflection
 export is_root_of_unity_with_data
+export is_root_of_unity
+export is_complex_reflection_group
 
 struct ComplexReflection{T <: QQAlgFieldElem}
     base_ring::QQAlgField #this should be the parent of T
@@ -62,8 +65,9 @@ function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::Abstrac
     K = base_ring(V)
     n = dim(V)
     s = zero(K)
+    conj = complex_conjugation(K)
     for i=1:n
-        s += v[i]*w[i]
+        s += v[i]*conj(w[i])
     end
     return s
 end
@@ -137,6 +141,11 @@ function is_root_of_unity_with_data(x::QQAlgFieldElem)
     end
 end
 
+function is_root_of_unity(x::QQAlgFieldElem)
+    b,n = is_root_of_unity_with_data(x)
+    return b
+end
+
 function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldElem
     
     if !is_square(w)
@@ -188,9 +197,14 @@ function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldEle
     if zeta == 0
         return false, nothing
     end
-    
-    # TODO: not finished yet
+
+    # zeta needs to be of finite order (so that w is of finite order), i.e. zeta needs
+    # to be a root of unity
     b, d = is_root_of_unity_with_data(zeta)
+
+    if b == false
+        return false, nothing
+    end
 
     # We take the normalized coroot 
     alpha_norm_squared = scalar_product(alpha,alpha)
@@ -201,4 +215,36 @@ function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldEle
 
     return true, w_data
 
+end
+
+function is_complex_reflection_with_data(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+    return is_complex_reflection_with_data(matrix(w))
+end
+
+function is_complex_reflection(w::MatElem{T}) where T <: QQAlgFieldElem
+
+    b,data = is_complex_reflection_with_data(w)
+    return b
+
+end
+
+function is_complex_reflection(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+    return is_complex_reflection(matrix(w))
+end
+
+
+function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldElem
+    if has_attribute(G, :is_complex_reflection_group)
+        return get_attribute(G, :is_complex_reflection_group)
+    end
+    
+    for g in gens(G)
+        if !is_complex_reflection(g)
+            set_attribute!(G, :is_complex_reflection_group, false)
+            return false
+        end
+    end
+
+    set_attribute!(G, :is_complex_reflection_group, true)
+    return true
 end
