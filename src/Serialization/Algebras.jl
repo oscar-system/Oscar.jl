@@ -44,6 +44,8 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Ve
     e = load_array_node(s, 1) do _
       load_object(s, Int)
     end
+    # guarantees e is a Int[]
+    e = Vector{Int}(e)
     push_term!(elem, loaded_coeff, e)
   end
 
