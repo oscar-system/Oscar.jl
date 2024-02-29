@@ -474,7 +474,10 @@ export action, cohomology_group, extension, pc_group_with_isomorphism
 export induce, is_consistent, istwo_cocycle, all_extensions
 export split_extension, extension_with_abelian_kernel
 
-Oscar.dim(C::GModule) = rank(C.M)
+_rank(M::FinGenAbGroup) = torsion_free_rank(M)
+_rank(M) = rank(M)
+
+Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
 Oscar.group(C::GModule) = C.G
 
