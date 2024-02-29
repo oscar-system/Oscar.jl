@@ -256,7 +256,7 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 julia> RT = invariant_ring(r);
 
 julia> fundamental_invariants(RT)
-3-element Vector{MPolyDecRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  X[1]^2*X[3]
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
@@ -383,7 +383,7 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 julia> RT = invariant_ring(r);
 
 julia> fundamental_invariants(RT)
-3-element Vector{MPolyDecRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  X[1]^2*X[3]
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
