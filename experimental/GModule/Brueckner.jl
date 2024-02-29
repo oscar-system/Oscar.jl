@@ -458,7 +458,7 @@ function lift(C::GModule, mp::Map)
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
     h = try
-          hom(G, GG, gens(G), l)
+          hom(G, GG, l)
         catch
           @show :crash
           continue
