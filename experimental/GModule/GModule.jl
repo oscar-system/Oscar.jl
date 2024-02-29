@@ -234,8 +234,8 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   while new
     new  = false
     lres = length(res)
-    for X = res[sres:end]
-      for p = lp
+    for X in res[sres:end]
+      for p in lp
         F = free_module(GF(p), dim(M))
         pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x = map(matrix, action(M))])
         S = maximal_submodule_bases(pM)
