@@ -264,7 +264,7 @@ julia> fundamental_invariants(RT)
 """
 @attr function fundamental_invariants(z::TorGrpInvRing)
     R = z.representation
-    return torus_invariants_fast(weights(R), poly_ring(z))
+    return torus_invariants_fast(weights(R), polynomial_ring(z))
 end
 
 function Base.show(io::IO, R::TorGrpInvRing) 
@@ -395,7 +395,11 @@ julia> affine_algebra(RT)
 @attr function affine_algebra(R::TorGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
-   S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
+   weights_ = zeros(Int, s)
+   for i in 1:s
+       weights_[i] = total_degree(V[i])
+   end
+   S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
    R_ = polynomial_ring(R)
    StoR = hom(S,R_,V)
    I = kernel(StoR)
