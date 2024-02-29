@@ -476,7 +476,7 @@ end
 
 function solvable_quotient(G::Oscar.GAPGroup)
   q = pc_group(symmetric_group(1))
-  mp = hom(G, q, [one(q) for g = gens(G)])
+  mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
 end #module RepPc
