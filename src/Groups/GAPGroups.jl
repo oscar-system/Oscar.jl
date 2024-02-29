@@ -2201,7 +2201,7 @@ function describe(G::FPGroup)
 
    if !GAP.Globals.IsFpGroup(G.X)
      # `G` is a subgroup of an f.p. group
-     G = FPGroup(GAPWrap.Range(GAP.Globals.IsomorphismFpGroup(G.X)))
+     G = FPGroup(GAPWrap.Range(GAPWrap.IsomorphismFpGroup(G.X)))
    end
 
    # check for free groups in disguise

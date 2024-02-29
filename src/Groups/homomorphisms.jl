@@ -480,7 +480,7 @@ end
 ################################################################################
 
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
-_get_iso_function(::Type{FPGroup}) = GAP.Globals.IsomorphismFpGroup
+_get_iso_function(::Type{FPGroup}) = GAPWrap.IsomorphismFpGroup
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 

@@ -495,7 +495,7 @@ parent of the generators.
 function fp_group_with_isomorphism(g::Vector{<:Oscar.GAPGroupElem})
   G = parent(g[1])
   @assert all(x->parent(x) == G, g)
-  X = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+  X = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
   F = FPGroup(GAPWrap.Range(X))
   return F, GAPGroupHomomorphism(F, G, GAP.Globals.InverseGeneralMapping(X))
 end
@@ -856,7 +856,7 @@ end
 function confluent_fp_group_pc(G::Oscar.GAPGroup)
    g = isomorphism(PcGroup, G)
    P = codomain(g)
-   f = GAP.Globals.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(P.X), GAP.Obj("g"))
+   f = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(P.X), GAP.Obj("g"))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    R = relations(H)

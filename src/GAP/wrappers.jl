@@ -186,6 +186,7 @@ GAP.@wrap IsNilpotentGroup(x::Any)::Bool
 GAP.@wrap IsNormal(x::Any, y::Any)::Bool
 GAP.@wrap IsNumberField(x::Any)::Bool
 GAP.@wrap IsNumberFieldByMatrices(x::Any)::Bool
+GAP.@wrap IsomorphismFpGroup(x::GapObj)::GapObj
 GAP.@wrap IsomorphismFpGroupByGenerators(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsomorphismFpGroupByPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsOne(x::Any)::Bool
