@@ -52,7 +52,7 @@
     T = torus_group(QQ,2)
     r = representation_from_weights(T, [1 0; 0 1; -1 -1; -1 1])
     I = invariant_ring(r)
-    R = poly_ring(I)
+    R = polynomial_ring(I)
     X = gens(R)
     f = fundamental_invariants(I)
     @test f == [X[1]*X[2]*X[3], X[1]^2*X[3]*X[4]]

@@ -69,6 +69,12 @@ end
 
 using Documenter
 
+# Make sure that the tests start without cached character tables.
+# (Running the tests will store information that changes some test outputs,
+# thus running the tests twice needs these calls.)
+GAP.Globals.UnloadCharacterTableData()
+empty!(Oscar.character_tables_by_id)
+
 #
 # This module only exists to "host" a doctest used by the test suite.
 #
