@@ -218,9 +218,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     are correct...)
     TODO: this is not (yet) implemented this way
     =#
-    @show q = cokernel(b)[1]
+    q = cokernel(b)[1]
 #    q = quo(kernel(da)[1], image(db)[1])[1]
-    @show t = torsion_subgroup(q)[1]
+    t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, collect(keys(factor(order(t)).fac))...)
     end
@@ -410,7 +410,6 @@ function lift(C::GModule, mp::Map)
   seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
   #TODO: the projection maps seem to be rather slow - in particular
   #      as they SHOULD be trivial...
-  global last_k = k
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = mH2(pDE[2](mk(x))) #the tail data
@@ -451,10 +450,8 @@ function lift(C::GModule, mp::Map)
       end
       return d
     end
-    @show [pro[i](epi) for i=1:ngens(G)]
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-    @show map(order, l), order(prod(l))
-    global last_x = l
+#    @show map(order, l), order(prod(l))
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
     h = try
