@@ -9,7 +9,7 @@ cases = [
     for case in cases
       @testset "Free Associative Algebra over $(case[4])" begin
         A, g = free_associative_algebra(case[1], ["x","y"])
-        f = case[2] * g[1] + case[3] * g[2]
+        f = case[2] * g[1] + case[3] * g[2] + case[3]
         test_save_load_roundtrip(path, f) do loaded
           @test loaded == f
         end
