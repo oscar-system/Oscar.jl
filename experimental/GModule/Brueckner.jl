@@ -181,7 +181,7 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   Q = codomain(mp)
   if order(Q) == 1
     F = free_module(ZZ, 1)
-    I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x = gens(Q)])]
+    I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x in gens(Q)])]
   else
     I = irreducible_modules(ZZ, Q)
   end
