@@ -28,7 +28,7 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
                 sigma12 = intersect(sigma1, sigma2)
                 i = findfirst(isequal(sigma12), Sigma12)
                 if isnothing(i)
-                    push!(Sigma12, intersect(sigma1, sigma2))
+                    push!(Sigma12, sigma12)
                     push!(mults12, m1*m2*tropical_intersection_multiplicity(sigma1,sigma2))
                 else
                     mults12[i] += m1*m2*tropical_intersection_multiplicity(sigma1,sigma2)
