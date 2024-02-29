@@ -231,7 +231,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   G = GaloisCtx(S)
   #power sums: degree of k is length(bs), so need
   #Tr(beta^i) for i=1:length(bs)
-  B = upper_bound(G, power_sum, func, length(bs))
+  B = GaloisGrp.upper_bound(G, power_sum, func, length(bs))
   pr = bound_to_precision(G, B)
   R = roots(G, pr, raw = !true)
   beta = [evaluate(f, R) for f = func]
@@ -344,7 +344,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   pr = clog(B, p)
   pr *= div(n,2)
   pr += 2*clog(2*n, p)
-  H = factor_mod_pk_init(f, p)
+  H = Hecke.factor_mod_pk_init(f, p)
 
   b = basis(K)
   b .*= inv(derivative(f)(gen(K)))
