@@ -283,24 +283,29 @@ end
 ##########################
 #Invariant Rings of Reductive groups
 ##########################
-@attributes mutable struct RedGroupInvarRing
-    field::Field
-    poly_ring::MPolyDecRing #graded
+@attributes mutable struct RedGroupInvarRing{FldT, PolyRingElemT, PolyRingT}
+    field::FldT
+    poly_ring::PolyRingT # graded
 
     group::LinearlyReductiveGroup
     representation::RepresentationLinearlyReductiveGroup
 
     reynolds_operator::Function
 
+    fundamental::Vector{PolyRingElemT}
+    presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT}, PolyRingT, Nothing, PolyRingElemT}
+
     #Invariant ring of reductive group G (in representation R), no other input.
     function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup) #here G already contains information n and rep_mat
-        z = new()
+        G = group(R)
+        K = field(G)
         n = ncols(R.rep_mat)
+        poly_ring, _ = graded_polynomial_ring(K, "X" => 1:n)
+        z = new{typeof(K), elem_type(poly_ring), typeof(poly_ring)}()
         z.representation = R
-        z.group = R.group
-        G = z.group
-        z.field = G.field
-        z.poly_ring, _ = graded_polynomial_ring(G.field, "X" => 1:n)
+        z.group = G
+        z.field = K
+        z.poly_ring = poly_ring
         z.reynolds_operator = reynolds_v_slm
         return z
     end
@@ -309,14 +314,15 @@ end
     function RedGroupInvarRing(R::RepresentationLinearlyReductiveGroup, ring::MPolyDecRing)
         n = ncols(R.rep_mat)
         n == ngens(ring) || error("The given polynomial ring is not compatible.")
-        z = new()
+        G = group(R)
+        K = field(G)
+        z = new{typeof(K), elem_type(ring), typeof(ring)}()
         if isdefined(R, :weights)
             #dosomething
         end
         z.representation = R
-        z.group = R.group
-        G = R.group
-        z.field = G.field
+        z.group = G
+        z.field = K
         z.poly_ring = ring
         z.reynolds_operator = reynolds_v_slm
         return z
@@ -373,8 +379,6 @@ polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
 group(R::RedGroupInvarRing) = R.group
 representation(R::RedGroupInvarRing) = R.representation
 
-
-
 @doc raw"""
     fundamental_invariants(RG::RedGroupInvarRing)
 
@@ -394,11 +398,14 @@ julia> fundamental_invariants(RG)
 
 ```
 """
-@attr function fundamental_invariants(z::RedGroupInvarRing) #unable to use abstract type
-    R = z.representation
-    I, M = proj_of_image_ideal(R.group, R.rep_mat)
-    null_cone_ideal(z) = ideal(generators(R.group, I, R.rep_mat))
-    return inv_generators(null_cone_ideal(z), R.group, z.poly_ring, M, z.reynolds_operator)
+function fundamental_invariants(z::RedGroupInvarRing) #unable to use abstract type
+    if !isdefined(z, :fundamental)
+        R = z.representation
+        I, M = proj_of_image_ideal(R.group, R.rep_mat)
+        null_cone_ideal(z) = ideal(generators(R.group, I, R.rep_mat))
+        z.fundamental = inv_generators(null_cone_ideal(z), R.group, z.poly_ring, M, z.reynolds_operator)
+    end
+    return copy(z.fundamental)
 end
 
 function Base.show(io::IO, R::RedGroupInvarRing) 
@@ -650,18 +657,21 @@ julia> A, AtoS = affine_algebra(RG)
 (Quotient of multivariate polynomial ring by ideal (0), Hom: A -> S)
 ```
 """
-@attr function affine_algebra(R::RedGroupInvarRing)
-   V = fundamental_invariants(R)
-   s = length(V)
-   weights_ = zeros(Int, s)
-   for i in 1:s
-       weights_[i] = total_degree(V[i])
-   end
-   S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
-   R_ = polynomial_ring(R)
-   StoR = hom(S,R_,V)
-   I = kernel(StoR)
-   Q, StoQ = quo(S,I)
-   QtoR = hom(Q,R_,V)
-   return Q, QtoR
+function affine_algebra(R::RedGroupInvarRing)
+  if !isdefined(R, :presentation)
+    V = fundamental_invariants(R)
+    s = length(V)
+    weights_ = zeros(Int, s)
+    for i in 1:s
+        weights_[i] = total_degree(V[i])
+    end
+    S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
+    R_ = polynomial_ring(R)
+    StoR = hom(S,R_,V)
+    I = kernel(StoR)
+    Q, StoQ = quo(S,I)
+    QtoR = hom(Q,R_,V)
+    R.presentation = QtoR
+  end
+  return domain(R.presentation), R.presentation
 end

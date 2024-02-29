@@ -161,12 +161,16 @@ end
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-@attributes mutable struct TorGroupInvarRing
-    field::Field
-    poly_ring::MPolyDecRing #graded
+@attributes mutable struct TorGroupInvarRing{FldT, PolyRingElemT, PolyRingT}
+    field::FldT
+    poly_ring::PolyRingT #graded
 
     group::TorusGroup
     representation::RepresentationTorusGroup
+
+    fundamental::Vector{PolyRingElemT}
+    presentation::MPolyAnyMap{MPolyQuoRing{PolyRingElemT}, PolyRingT, Nothing, PolyRingElemT}
+
 
     #Invariant ring of reductive group G (in representation R), no other input.
     function TorGroupInvarRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
@@ -177,9 +181,10 @@ end
 
     #to compute invariant ring ring^G where G is the reductive group of R. 
     function TorGroupInvarRing(R::RepresentationTorusGroup, ring_::MPolyDecRing)
-        z = new()
+        K = field(group(R))
+        z = new{typeof(K), elem_type(ring_), typeof(ring_)}()
         n = length(weights(R))
-        z.field = field(group(R))
+        z.field = K
         z.poly_ring = ring_
         z.representation = R
         z.group = group(R)
@@ -264,9 +269,12 @@ julia> fundamental_invariants(RT)
  X[2]^2*X[3]
 ```
 """
-@attr function fundamental_invariants(z::TorGroupInvarRing)
-    R = z.representation
-    return torus_invariants_fast(weights(R), polynomial_ring(z))
+function fundamental_invariants(z::TorGroupInvarRing)
+    if !isdefined(z, :fundamental)
+        R = z.representation
+        z.fundamental = torus_invariants_fast(weights(R), polynomial_ring(z))
+    end
+    return copy(z.fundamental)
 end
 
 function Base.show(io::IO, R::TorGroupInvarRing) 
@@ -394,18 +402,21 @@ julia> affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-@attr function affine_algebra(R::TorGroupInvarRing)
-   V = fundamental_invariants(R)
-   s = length(V)
-   weights_ = zeros(Int, s)
-   for i in 1:s
-       weights_[i] = total_degree(V[i])
-   end
-   S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
-   R_ = polynomial_ring(R)
-   StoR = hom(S,R_,V)
-   I = kernel(StoR)
-   Q, StoQ = quo(S,I)
-   QtoR = hom(Q,R_,V)
-   return Q, QtoR
+function affine_algebra(R::TorGroupInvarRing)
+  if !isdefined(R, :presentation)
+    V = fundamental_invariants(R)
+    s = length(V)
+    weights_ = zeros(Int, s)
+    for i in 1:s
+        weights_[i] = total_degree(V[i])
+    end
+    S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
+    R_ = polynomial_ring(R)
+    StoR = hom(S,R_,V)
+    I = kernel(StoR)
+    Q, StoQ = quo(S,I)
+    QtoR = hom(Q,R_,V)
+    R.presentation = QtoR
+  end
+  return domain(R.presentation), R.presentation
 end
