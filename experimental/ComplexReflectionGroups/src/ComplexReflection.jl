@@ -59,19 +59,6 @@ function is_unitary(w::ComplexReflection)
     return w.is_unitary
 end
 
-function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: QQAlgFieldElem
-
-    V = parent(v)
-    K = base_ring(V)
-    n = dim(V)
-    s = zero(K)
-    conj = complex_conjugation(K)
-    for i=1:n
-        s += v[i]*conj(w[i])
-    end
-    return s
-end
-
 function unitary_reflection(root::AbstractAlgebra.Generic.FreeModuleElem{T}, zeta::T, order::Int) where T <: QQAlgFieldElem
 
     V = parent(root)
