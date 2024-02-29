@@ -239,9 +239,9 @@ Invariant ring
 
 julia> fundamental_invariants(IR)
 4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
- x[1]^3 + x[2]^3 + x[3]^3
  x[1]*x[2]*x[3]
- x[1]^6 + x[2]^6 + x[3]^6
+ x[1]^3 + x[2]^3 + x[3]^3
+ x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
 """
