@@ -1877,6 +1877,23 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
 end
 
+function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  G = parent(g)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    return init
+  end
+  gX = g.X
+
+  if GAP.Globals.IsPcGroup(G.X)
+    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(G.X), gX)
+  else  # GAP.Globals.IsPcpGroup(G.X)
+    l = GAP.Globals.Exponents(gX)
+  end
+  ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
+  return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
+end
+
 function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   length(genimgs) == 0 && (@assert length(v) == 0; return init)
   length(v) == 0 && return one(genimgs[1])
