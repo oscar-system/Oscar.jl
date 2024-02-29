@@ -45,7 +45,8 @@ subfield $k$ of $K$ which is supported by OSCAR:
 
 In OSCAR, the basic set-up for a linearly reductive group in the context of Derksen's algorithm is provided by the 
 function `linearly_reductive_group`. At current state, this only supports rational actions of  the special linear group
-(in characteristic zero). For the action of this group by linear substitution on forms, an explicit Reynolds operator is
+(in characteristic zero). For the action of this group by linear
+substitution on, say, $n$-ary forms of degree $d$, an explicit Reynolds operator is
 given by Cayley's Omega-process. We show this at work later in this section.
 
 
