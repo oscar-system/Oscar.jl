@@ -212,6 +212,30 @@ end
     dual_subdivision(TropH::TropicalHypersurface)
 
 Return the dual subdivision used to construct `TropH`.  Raises an error if it is not cached.
+
+# Examples
+```jldoctest
+julia> Delta = subdivision_of_points([0 0; 1 0; 0 1; 2 0],[0,0,0,1])
+Subdivision of points in ambient dimension 2
+
+julia> th = tropical_hypersurface(Delta)
+Min tropical hypersurface
+
+julia> sop = dual_subdivision(th)
+Subdivision of points in ambient dimension 2
+
+julia> points(sop)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0]
+ [1, 0]
+ [0, 1]
+ [2, 0]
+
+julia> maximal_cells(sop)
+2-element SubObjectIterator{Vector{Int64}}:
+ [1, 2, 3]
+ [2, 3, 4]
+```
 """
 function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
     @req has_attribute(TropH,:dual_subdivision) "no dual subdivision cached"
