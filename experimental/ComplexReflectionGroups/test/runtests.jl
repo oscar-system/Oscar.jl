@@ -31,4 +31,9 @@
         @test is_unitary(W_copy) == true #LT models are unitary
     end
 
+    # the following example is a transvection
+    t = matrix(QQ,2,2,[1 1; 0 1])
+    @test is_complex_reflection(t) == false
+
+
 end
