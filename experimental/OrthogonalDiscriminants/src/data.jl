@@ -6,9 +6,40 @@ const OD_data = JSON.parsefile(joinpath(@__DIR__, "../data/odresults.json"))
 
 const OD_simple_names = Dict{String, String}()
 
+@doc raw"""
+    OD_split_string(str::String, sep::String)
+
+Return a vector of strings obtained by splitting `str` at characters in `sep`,
+but only at those positions where the brackets `(` and `)` are balanced.
+"""
+function OD_split_string(str::String, sep::String)
+  open = 0
+  res = String[]
+  start = 0
+  for i in 1:length(str)
+    if str[i] == '('
+      open = open + 1
+    elseif str[i] == ')'
+      open = open - 1
+    elseif str[i] in sep && open == 0
+      push!(res, str[(start+1):(i-1)])
+      start = i
+    end
+  end
+  push!(res, str[(start+1):length(str)])
+
+  return res
+end
+
+
 for simpnam in OD_data["names"]
   for x in OD_data[simpnam]["names"]
     OD_simple_names[x] = simpnam
+    for p in keys(OD_data[simpnam][x])
+      for v in OD_data[simpnam][x][p]
+        v[end] = OD_split_string(v[end], ",")
+      end
+    end
   end
 end
 
@@ -266,32 +297,6 @@ end
 __init_OD()
 
 
-@doc raw"""
-    OD_split_string(str::String, sep::String)
-
-Return a vector of strings obtained by splitting `str` at characters in `sep`,
-but only at those positions where the brackets `(` and `)` are balanced.
-"""
-function OD_split_string(str::String, sep::String)
-  open = 0
-  res = String[]
-  start = 0
-  for i in 1:length(str)
-    if str[i] == '('
-      open = open + 1
-    elseif str[i] == ')'
-      open = open - 1
-    elseif str[i] in sep && open == 0
-      push!(res, str[(start+1):(i-1)])
-      start = i
-    end
-  end
-  push!(res, str[(start+1):length(str)])
-
-  return res
-end
-
-
 function _od_info(groupname, p, v)
   return Dict{Symbol, Any}(
            :groupname => groupname,
@@ -491,9 +496,6 @@ function all_od_infos(L...)
       end
       good_char || continue
       for entry in D[string(char)]
-        if entry[end] isa String
-          entry[end] = OD_split_string(entry[end], ",")
-        end
         good_dim = true
         if haskey(conditions, Hecke.dim)
           dim = parse(Int, filter(isdigit, entry[1]))

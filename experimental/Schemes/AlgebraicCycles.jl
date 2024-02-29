@@ -184,7 +184,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y);
 
@@ -222,7 +222,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -263,7 +263,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 

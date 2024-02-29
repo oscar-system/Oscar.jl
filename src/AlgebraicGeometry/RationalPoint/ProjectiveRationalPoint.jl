@@ -124,7 +124,7 @@ of its ambient projective space.
 function scheme(P::AbsProjectiveRationalPoint)
   I = ideal(P)
   R = ambient_coordinate_ring(codomain(P))
-  return ProjectiveScheme(R, I)
+  return proj(R, I)
 end
 
 function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRationalPoint)

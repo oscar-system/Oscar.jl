@@ -41,7 +41,7 @@ We discuss the relevant OSCAR functionality below.
 
 ## Creating Invariant Rings
 
-### How Groups are Given
+### How Finite Groups are Given
 
 The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified:
 

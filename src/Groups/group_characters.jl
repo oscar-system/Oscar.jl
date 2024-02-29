@@ -1618,6 +1618,17 @@ conjugacy class of `tbl2`.
 If the group of `tbl2` is a *factor group* of the group of `tbl1` then
 the image of the $i$-th conjugacy class `tbl1` under the relevant epimorphism
 is the `fus`[$i$]-th conjugacy class of `tbl2`.
+
+# Examples
+```jldoctest
+julia> t1 = character_table("A5");  t2 = character_table("A6");
+
+julia> known_class_fusion(t1, t2)
+(true, [1, 2, 3, 6, 7])
+
+julia> known_class_fusion(t2, t1)
+(false, Int64[])
+```
 """
 function known_class_fusion(subtbl::GAPGroupCharacterTable, tbl::GAPGroupCharacterTable)
     map = GAPWrap.GetFusionMap(GAPTable(subtbl), GAPTable(tbl))
@@ -1640,6 +1651,212 @@ function known_class_fusions(tbl::GAPGroupCharacterTable)
     return Tuple{String, Vector{Int64}}[(String(r.name), Vector{Int}(r.map))
              for r in GAPWrap.ComputedClassFusions(GAPTable(tbl))]
 end
+
+
+##############################################################################
+##
+##  mathematical properties of a group that can be read off from its
+##  character table
+##
+
+"""
+    is_abelian(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of an abelian group,
+see [`is_abelian(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_abelian(character_table("A5"))
+false
+
+julia> is_abelian(character_table("C2"))
+true
+```
+"""
+@gapattribute is_abelian(tbl::GAPGroupCharacterTable) = GAP.Globals.IsAbelian(GAPTable(tbl))::Bool
+
+
+"""
+    is_almost_simple(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of an almost simple group,
+see [`is_almost_simple(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_almost_simple(character_table("S5"))
+true
+
+julia> is_almost_simple(character_table("S4"))
+false
+```
+"""
+@gapattribute is_almost_simple(tbl::GAPGroupCharacterTable) = GAP.Globals.IsAlmostSimple(GAPTable(tbl))::Bool
+
+
+"""
+    is_cyclic(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a cyclic group,
+see [`is_cyclic(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_cyclic(character_table("C2"))
+true
+
+julia> is_cyclic(character_table("S4"))
+false
+```
+"""
+@gapattribute is_cyclic(tbl::GAPGroupCharacterTable) = GAP.Globals.IsCyclic(GAPTable(tbl))::Bool
+
+
+"""
+    is_elementary_abelian(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of
+an elementary abelian group,
+see [`is_elementary_abelian(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_elementary_abelian(character_table("C2"))
+true
+
+julia> is_elementary_abelian(character_table("S4"))
+false
+```
+"""
+@gapattribute is_elementary_abelian(tbl::GAPGroupCharacterTable) = GAP.Globals.IsElementaryAbelian(GAPTable(tbl))::Bool
+
+
+"""
+    is_nilpotent(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a nilpotent group,
+see [`is_nilpotent(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_nilpotent(character_table("C2"))
+true
+
+julia> is_nilpotent(character_table("S4"))
+false
+```
+"""
+@gapattribute is_nilpotent(tbl::GAPGroupCharacterTable) = GAP.Globals.IsNilpotent(GAPTable(tbl))::Bool
+
+
+"""
+    is_perfect(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a perfect group,
+see [`is_perfect(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_perfect(character_table("A5"))
+true
+
+julia> is_perfect(character_table("S4"))
+false
+```
+"""
+@gapattribute is_perfect(tbl::GAPGroupCharacterTable) = GAP.Globals.IsPerfect(GAPTable(tbl))::Bool
+
+
+"""
+    is_quasisimple(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a quasisimple group,
+see [`is_quasisimple(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_quasisimple(character_table("A5"))
+true
+
+julia> is_quasisimple(character_table("S4"))
+false
+```
+"""
+@gapattribute is_quasisimple(tbl::GAPGroupCharacterTable) = GAP.Globals.IsQuasisimple(GAPTable(tbl))::Bool
+
+
+"""
+    is_simple(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a simple group,
+see [`is_simple(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_simple(character_table("A5"))
+true
+
+julia> is_simple(character_table("S4"))
+false
+```
+"""
+@gapattribute is_simple(tbl::GAPGroupCharacterTable) = GAP.Globals.IsSimple(GAPTable(tbl))::Bool
+
+
+"""
+    is_solvable(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a solvable group,
+see [`is_solvable(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_solvable(character_table("A5"))
+false
+
+julia> is_solvable(character_table("S4"))
+true
+```
+"""
+@gapattribute is_solvable(tbl::GAPGroupCharacterTable) = GAP.Globals.IsSolvable(GAPTable(tbl))::Bool
+
+
+"""
+    is_sporadic_simple(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of
+a sporadic simple group,
+see [`is_sporadic_simple(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_sporadic_simple(character_table("A5"))
+false
+
+julia> is_sporadic_simple(character_table("M11"))
+true
+```
+"""
+@gapattribute is_sporadic_simple(tbl::GAPGroupCharacterTable) = GAP.Globals.IsSporadicSimple(GAPTable(tbl))::Bool
+
+
+"""
+    is_supersolvable(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is the ordinary character table of a supersolvable group,
+see [`is_supersolvable(G::GAPGroup)`](@ref).
+
+# Examples
+```jldoctest
+julia> is_supersolvable(character_table("A5"))
+false
+
+julia> is_supersolvable(character_table("S3"))
+true
+```
+"""
+@gapattribute is_supersolvable(tbl::GAPGroupCharacterTable) = GAP.Globals.IsSupersolvable(GAPTable(tbl))::Bool
 
 
 #############################################################################
@@ -1920,13 +2137,25 @@ end
 
 
 @doc raw"""
-    induced_cyclic(tbl::GAPGroupCharacterTable)
+    induced_cyclic(tbl::GAPGroupCharacterTable, classes::AbstractVector{Int} = 1:nrows(tbl))
 
 Return the vector of permutation characters of `tbl` that are induced from
 cyclic subgroups.
+If `classes` is given then only the cyclic subgroups generated by elements
+in the classes at positions in this vector are returned.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> ind = induced_cyclic(t);
+
+julia> all(x -> scalar_product(x, t[1]) == 1, ind)
+true
+```
 """
-function induced_cyclic(tbl::GAPGroupCharacterTable)
-    return [GAPGroupClassFunction(tbl, chi) for chi in GAPWrap.InducedCyclic(GAPTable(tbl))]
+function induced_cyclic(tbl::GAPGroupCharacterTable, classes::AbstractVector{Int} = 1:nrows(tbl))
+    return [GAPGroupClassFunction(tbl, chi) for chi in GAPWrap.InducedCyclic(GAPTable(tbl), GapObj(classes))]
 end
 
 """
@@ -2005,7 +2234,7 @@ Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values)
 
 @doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
-           where T <: Union{IntegerUnion, ZZRingElem, QQFieldElem, QQAbElem}
+           where T <: Union{IntegerUnion, QQFieldElem, QQAbElem}
 
 Return `chi[1]`, as an instance of `T`.
 """
@@ -2019,10 +2248,17 @@ Nemo.degree(::Type{QQAbElem}, chi::GAPGroupClassFunction) = values(chi)[1]::QQAb
 
 Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(Nemo.degree(ZZRingElem, chi))::T
 
-# access character values
+# access character values by position
 function Base.getindex(chi::GAPGroupClassFunction, i::Int)
   vals = GAPWrap.ValuesOfClassFunction(chi.values)
   return QQAbElem(vals[i])
+end
+
+# access character values by class name
+function Base.getindex(chi::GAPGroupClassFunction, nam::String)
+  i = findfirst(is_equal(nam), class_names(parent(chi)))
+  @req i != nothing "$nam is not a class name"
+  return chi[i]
 end
 
 # arithmetic with class functions
@@ -2566,6 +2802,28 @@ function order_field_of_definition(::Type{T}, chi::GAPGroupClassFunction) where
     p = characteristic(chi)
     @req p != 0 "the character must be a Brauer character"
     return T(GAPWrap.SizeOfFieldOfDefinition(chi.values, p))
+end
+
+
+@doc raw"""
+    conductor(::Type{T} = ZZRingElem, chi::GAPGroupClassFunction)
+              where T <: IntegerUnion
+
+Return the minimal integer `n`, as an instance of `T`,
+such that all values of `chi` lie in the `n`-th cyclotomic field.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> println([conductor(chi) for chi in tbl])
+ZZRingElem[1, 5, 5, 1, 1]
+```
+"""
+conductor(chi::GAPGroupClassFunction) = conductor(ZZRingElem, chi)
+
+function conductor(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
+    return T(GAPWrap.Conductor(chi.values))
 end
 
 

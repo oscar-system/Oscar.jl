@@ -1,7 +1,7 @@
 @testset "basics about blowups" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^3 + z^5
-  X = CoveredScheme(Spec(R, ideal(R, f)))
+  X = CoveredScheme(spec(R, ideal(R, f)))
   U = X[1][1] # the first chart
 
   IZ = IdealSheaf(X, U, OO(U).([x, y, z]))
@@ -66,7 +66,7 @@ end
   C_up, inc_C_up, p_res = strict_transform(p, inc_C)
 
   @test is_isomorphism(Oscar.isomorphism_on_open_subset(p_res))
-  
+
   KC_up = function_field(C_up)
   KC = function_field(C)
   aa = KC(a[affine_charts(Y)[3]])

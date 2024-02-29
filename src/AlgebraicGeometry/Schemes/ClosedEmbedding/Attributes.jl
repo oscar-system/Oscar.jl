@@ -15,7 +15,7 @@ image_ideal(f::ClosedEmbedding) = f.I::ideal_type(OO(codomain(f)))
 
 function complement(f::ClosedEmbedding)
   if !isdefined(f, :U)
-    U = SpecOpen(codomain(f), image_ideal(f))
+    U = AffineSchemeOpenSubscheme(codomain(f), image_ideal(f))
     f.U = U
   end
   return f.U

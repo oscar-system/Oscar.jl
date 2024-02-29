@@ -93,3 +93,17 @@ end
 @deprecate conjugacy_classes_subgroups(G::T) where T <: Union{GAPGroup, FinGenAbGroup} subgroup_classes(G)
 
 @deprecate labelled_matrix_formatted labeled_matrix_formatted
+
+@deprecate Spec AffineScheme
+@deprecate proj(E::ToricLineBundle...) projectivization
+@deprecate proj(E::ToricDivisor...) projectivization
+@deprecate AbsSpec AbsAffineScheme
+@deprecate SpecMor AffineSchemeMor
+@deprecate AbsSpecMor AbsAffineSchemeMor
+@deprecate SimplifiedSpec SimplifiedAffineScheme
+@deprecate SpecOpen AffineSchemeOpenSubscheme
+@deprecate SpecOpenMor AffineSchemeOpenSubschemeMor
+@deprecate SpecOpenRing AffineSchemeOpenSubschemeRing
+@deprecate SpecOpenRingElem AffineSchemeOpenSubschemeRingElem
+@deprecate SpecSubset AffineSchemeSubset
+@deprecate StdSpec StdAffineScheme
