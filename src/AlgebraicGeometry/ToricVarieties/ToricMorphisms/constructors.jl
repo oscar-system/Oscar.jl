@@ -109,10 +109,10 @@ function toric_morphism(domain::NormalToricVarietyType, grid_morphism::FinGenAbG
     @req (nrows(matrix(grid_morphism)) > 0 && ncols(matrix(grid_morphism)) > 0) "The mapping matrix must not be empty"
 
     # check for a well-defined map
-    @req nrows(matrix(grid_morphism)) == rank(character_lattice(domain)) "The number of rows of the mapping matrix must match the rank of the character lattice of the domain toric variety"
+    @req nrows(matrix(grid_morphism)) == torsion_free_rank(character_lattice(domain)) "The number of rows of the mapping matrix must match the rank of the character lattice of the domain toric variety"
 
     # compute the morphism
-    @req ncols(matrix(grid_morphism)) == rank(character_lattice(codomain)) "The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"
+    @req ncols(matrix(grid_morphism)) == torsion_free_rank(character_lattice(codomain)) "The number of columns of the mapping matrix must match the rank of the character lattice of the codomain toric variety"
     if check
       codomain_cones = maximal_cones(codomain)
       image_cones = [positive_hull(matrix(ZZ, rays(c)) * matrix(grid_morphism)) for c in maximal_cones(domain)]
@@ -144,7 +144,7 @@ Toric morphism
 ```
 """
 function toric_identity_morphism(variety::NormalToricVarietyType)
-    r = rank(character_lattice(variety))
+    r = torsion_free_rank(character_lattice(variety))
     identity_matrix = matrix(ZZ, [[if i==j 1 else 0 end for j in 1:r] for i in 1:r])
     grid_morphism = hom(character_lattice(variety), character_lattice(variety), identity_matrix)
     return ToricMorphism(variety, grid_morphism, variety)
