@@ -17,10 +17,10 @@ A major problem is the factorization of a partitioned permutation $(V, \pi)$. Th
 
 We implemented the type `PartitionedPermutation` together with the following methods.
 - a function `join` for computing the join of two set partitions (presented as objects of type `SetPartition`)
-- a comparison `<=` for set partitions
+- a comparison `is_dominated_by` for set partitions
 - a function `cycle_partition` that returns the cycle partition of a permutation as set partition
 - functions `length`, `length2` for computing the number $n$ of underlying elements of a partitioned permutation $(V, \pi)$ and the number $|(V, \pi)|$, respectively
-- a function `enumerate_partitioned_perm` that enumerates all partitioned permutations of a fixed length $n$
+- a function `enumerate_partitioned_permutations` that enumerates all partitioned permutations of a fixed length $n$
 - a function `*` that returns the product of two partitioned permutations
 - a function `factorization_partitioned_permutation` that determines the factorization of a given partitioned permutation
 
