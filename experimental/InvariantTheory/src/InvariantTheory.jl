@@ -151,7 +151,7 @@ vector_space_dimension(R::RepresentationLinearlyReductiveGroup) = ncols(R.rep_ma
 @doc raw"""
     representation_on_forms(G::LinearlyReductiveGroup, d::Int)
 
-If `G` is the special linear group acting by linear substitution on, say, `m`-ary forms of degree `d`, return the corresponding representation.
+If `G` is the special linear group acting by linear substitution on, say, `n`-ary forms of degree `d`, return the corresponding representation.
 
 !!! note
     In accordance with classical papers, an $n$-ary form of degree $d$ in $K[x_1, \dots, x_n]$ is written as a $K$-linear combination
