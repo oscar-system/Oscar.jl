@@ -159,14 +159,12 @@ end
 #Setting up invariant ring for fast torus algorithm. 
 #####################
 
-mutable struct TorGrpInvRing
+@attributes mutable struct TorGrpInvRing
     field::Field
     poly_ring::MPolyDecRing #graded
     
     group::TorusGroup
     representation::RepresentationTorusGroup
-    
-    fundamental::Vector{MPolyDecRingElem}
     
     #Invariant ring of reductive group G (in representation R), no other input.
     function TorGrpInvRing(R::RepresentationTorusGroup) #here G already contains information n and rep_mat
@@ -258,20 +256,15 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 julia> RT = invariant_ring(r);
 
 julia> fundamental_invariants(RT)
-3-element Vector{MPolyDecRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  X[1]^2*X[3]
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
 ```
 """
-function fundamental_invariants(z::TorGrpInvRing)
-    if isdefined(z, :fundamental)
-        return z.fundamental
-    else
-        R = z.representation
-        z.fundamental = torus_invariants_fast(weights(R), polynomial_ring(z))
-        return z.fundamental
-    end
+@attr function fundamental_invariants(z::TorGrpInvRing)
+    R = z.representation
+    return torus_invariants_fast(weights(R), polynomial_ring(z))
 end
 
 function Base.show(io::IO, R::TorGrpInvRing) 
@@ -390,7 +383,7 @@ julia> r = representation_from_weights(T, [-1 1; -1 1; 2 -2; 0 -1]);
 julia> RT = invariant_ring(r);
 
 julia> fundamental_invariants(RT)
-3-element Vector{MPolyDecRingElem}:
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  X[1]^2*X[3]
  X[1]*X[2]*X[3]
  X[2]^2*X[3]
@@ -399,10 +392,14 @@ julia> affine_algebra(RT)
 (Quotient of multivariate polynomial ring by ideal (-t[1]*t[3] + t[2]^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-function affine_algebra(R::TorGrpInvRing)
+@attr function affine_algebra(R::TorGrpInvRing)
    V = fundamental_invariants(R)
    s = length(V)
-   S,t = polynomial_ring(field(group(representation(R))), "t"=>1:s)
+   weights_ = zeros(Int, s)
+   for i in 1:s
+       weights_[i] = total_degree(V[i])
+   end
+   S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
    R_ = polynomial_ring(R)
    StoR = hom(S,R_,V)
    I = kernel(StoR)
