@@ -1,7 +1,6 @@
 cases = [
   (QQ, QQ(1//2), QQ(3//4), "Rational Coefficients"),
   (ZZ, ZZ(5), ZZ(7), "Integers Coefficients"),
-  ()
 ]
 
 @testset "Serialization.Algebras" begin
