@@ -3,16 +3,34 @@ export center
 export exceptional_divisor
 export projection
 
-abstract type DesingularizationMorphism{
+@doc raw"""
+    AbsDesingMor{
                                   DomainType<:AbsCoveredScheme,
                                   CodomainType<:AbsCoveredScheme,
                                   BlowdownMorphismType
-   } <: AbsCoveredSchemeMorphism{
+       } <: AbsCoveredSchemeMorphism{
                                  DomainType,
                                  CodomainType,
                                  Nothing,
                                  BlowdownMorphismType
                                 }
+Abstract type for desingularizations ``f : X -> Y `` of schemes where
+
+  * ``Y`` is the scheme of which the singularities are to be resolved
+  * ``f`` is a birational proper map 
+          may for instance be BlowUpSequence or Lipman-style combination of blow-ups and normalization
+  * ``Y`` is a regular scheme
+"""
+abstract type AbsDesingMor{
+                           DomainType<:AbsCoveredScheme,
+                           CodomainType<:AbsCoveredScheme,
+                           BlowdownMorphismType
+                          } <: AbsCoveredSchemeMorphism{
+                                                        DomainType,
+                                                        CodomainType,
+                                                        Nothing,
+                                                        BlowdownMorphismType
+                                                       }
 end
 
 ########################################################################
