@@ -3,6 +3,18 @@ export center
 export exceptional_divisor
 export projection
 
+abstract type DesingularizationMorphism{
+                                  DomainType<:AbsCoveredScheme,
+                                  CodomainType<:AbsCoveredScheme,
+                                  BlowdownMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 Nothing,
+                                 BlowdownMorphismType
+                                }
+end
+
 ########################################################################
 # An abstract type for blowdown morphisms.
 #
@@ -12,14 +24,8 @@ export projection
 ########################################################################
 abstract type AbsBlowdownMorphism{DomainType<:AbsCoveredScheme, 
                                   CodomainType<:AbsCoveredScheme,
-                                  BaseMorphismType<:Nothing,
                                   BlowdownMorphismType
-   } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 BaseMorphismType,
-                                 BlowdownMorphismType
-                                }
+                                 } <: DesingularizationMorphism{DomainType, CodomainType, BlowdownMorphismType}
 end
 
 # The interface inherits all functionality from AbsCoveredSchemeMorphism. 
@@ -95,12 +101,10 @@ end
 ########################################################################
 abstract type AbsSimpleBlowdownMorphism{DomainType<:AbsCoveredScheme, 
                                      CodomainType<:AbsCoveredScheme,
-                                     BaseMorphismType<:Nothing,
                                      BlowdownMorphismType
     } <: AbsBlowdownMorphism{
                              DomainType,
                              CodomainType,
-                             BaseMorphismType,
                              BlowdownMorphismType
                             }
 end
