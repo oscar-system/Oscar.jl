@@ -44,6 +44,29 @@ end
   @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
   @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3
 
+  G = SL(2,3)
+  F = GF(3,2)
+  L = [
+          matrix(F, [0 0 1; 1 0 0; 0 1 0]),
+          matrix(F, [2 0 0; 0 1 0; 0 0 2]),
+          matrix(F, [2 0 0; 0 2 0; 0 0 1]),
+          matrix(F, [1 0 0; 0 1 0; 0 0 1])
+      ]
+  m = free_module(F, 3)
+  M = GModule(m, G, [hom(m, m, a) for a in L])
+
+  E = GF(3,6)
+  phi = embed(F, E)
+  LE = [
+          matrix(E, [0 0 1; 1 0 0; 0 1 0]),
+          matrix(E, [2 0 0; 0 1 0; 0 0 2]),
+          matrix(E, [2 0 0; 0 2 0; 0 0 1]),
+          matrix(E, [1 0 0; 0 1 0; 0 0 1])
+      ]
+  mE = free_module(E, 3)
+
+  @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
+
   G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
   q, mq = maximal_abelian_quotient(PcGroup, G)
   @test length(Oscar.RepPc.brueckner(mq)) == 24
@@ -52,7 +75,7 @@ end
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
-  
+
   G, mG = automorphism_group(k)
   for g = G
     for h = G
@@ -81,7 +104,7 @@ end
      Dict{NTuple{2, elem_type(C.G)}, elem_type(C.M)}(
        ((g), (h)) => preimage(mU, z(mG(g), mG(h))) for g = G for h = G))
 
-  @test Oscar.GrpCoh.istwo_cocycle(c)         
+  @test Oscar.GrpCoh.istwo_cocycle(c)
 
   @test order(preimage(q[2], c)) == 6
 end
@@ -150,7 +173,7 @@ end
   G = dihedral_group(8)
   z = irreducible_modules(G)
   @test dim((z[1] ⊕ z[2]) ⊗ z[3]) == 2
- 
+
   k, a = quadratic_field(3)
   r, mr = ray_class_group(7*5*maximal_order(k), n_quo = 2)
   z = gmodule(automorphism_group(PermGroup, k)[1], mr)

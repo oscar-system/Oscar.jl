@@ -21,8 +21,8 @@ end
 ######################################################################
 #
 # to allow additive notation for multiplicative objects,
-# eg 
-# M = MultGrp(K::AbsSimpleNumField) will result in 
+# eg
+# M = MultGrp(K::AbsSimpleNumField) will result in
 # M(a) + M(b) = M(ab)
 #
 # since the Gmodule stuff is strictly additive.
@@ -73,8 +73,8 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
 ##############################################################
 #
 # basic G-Modules:
-# 
-# a fin. gen group G acting on some module M 
+#
+# a fin. gen group G acting on some module M
 # the action is given via maps (should be automorphisms of M)
 #
 # very little assumptions in general.
@@ -105,6 +105,20 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
   iac::Vector{Map} # the inverses of ac
 end
 
+function Base.:(==)(F::GModule{gT,mT}, E::GModule{gT,mT}) where {gT, mT}
+  F.G == E.G || return false
+  F.M == E.M || return false
+  return F.ac == E.ac
+end
+
+function Base.hash(F::GModule{gT,mT}, h::UInt) where {gT, mT}
+  b = 0x535bbdbb2bc54b46%UInt
+  h = hash(F.G, h)
+  h = hash(F.M, h)
+  h = hash(F.ac, h)
+  return xor(h, b)
+end
+
 function Base.show(io::IO, C::GModule)
   @show_name(io, C)
   @show_special(io, C)
@@ -132,9 +146,9 @@ function gmodule(M, H::Oscar.GAPGroup, ac::Vector{<:Map})
 end
 
 """
-Checks if the action maps satisfy the same relations 
+Checks if the action maps satisfy the same relations
 as the generators of `G`.
-"""  
+"""
 function is_consistent(M::GModule)
   G, mG = fp_group_with_isomorphism(M)
   V = Module(M)
@@ -170,11 +184,11 @@ end
 function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
   if !isdefined(C, :F)
-    if order(Group(C)) == 1
+    if (!isa(group(C), FPGroup)) && is_trivial(group(C))
       C.F = free_group(0)
-      C.mF = hom(C.F, Group(C), gens(C.F), elem_type(Group(C))[])
+      C.mF = hom(C.F, group(C), gens(C.F), elem_type(group(C))[])
     else
-      C.F, C.mF = fp_group_with_isomorphism(gens(Group(C)))
+      C.F, C.mF = fp_group_with_isomorphism(gens(group(C)))
     end
   end
   return C.F, C.mF
@@ -182,7 +196,7 @@ end
 
 #TODO? have a GModuleElem and action via ^?
 """
-For an array of objects in the module, compute the image under the 
+For an array of objects in the module, compute the image under the
 action of `g`, ie. an array where each entry is mapped.
 """
 function action(C::GModule, g, v::Array)
@@ -282,7 +296,7 @@ function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing
                             D.G == codomain(h))
   iU = image(h)[1]
 
-# ra = right_coset_action(G, image(h)[1]) # will not always match 
+# ra = right_coset_action(G, image(h)[1]) # will not always match
 # the transversal, so cannot use. There is a PR in Gap to return "both"
   g = right_transversal(G, iU)
   S = symmetric_group(length(g))
@@ -298,7 +312,7 @@ function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing
     (c otimes g_i)g = c otimes g_i g = c otimes u_i g_j (where the j comes
                                                          from the coset action)
                     = cu_i otimes g_j
-  =#                  
+  =#
 
   @assert isdefined(C.M, :hnf)
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
@@ -338,7 +352,7 @@ function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing
     works (direct computation with reps and cosets)
   =#
   h = hom(D.M, iC.M, [sum(inj[i](mDC(action(D, inv(g[i]), h))) for i=1:length(g)) for h = gens(D.M)])
-  return iC, h    
+  return iC, h
 end
 
 function Oscar.quo(C::GModule{<:Any, <:Generic.FreeModule}, mDC::Generic.ModuleHomomorphism)
@@ -398,7 +412,7 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup 
+function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -502,7 +516,7 @@ end
 
 """
 For an element of an fp-group, return a corresponding word as a sequence
-of integers. A positive integers indicates the corresponding generator, 
+of integers. A positive integers indicates the corresponding generator,
 a negative one the inverse.
 """
 function word(y::FPGroupElem)
@@ -669,7 +683,7 @@ function H_zero(C::GModule)
   k = kernel(id - ac[1])[1]
   for i=2:length(ac)
     k = intersect(k, kernel(id - ac[i])[1])
-    if isa(k, Tuple) #GrpAb: intersect yield ONLY intersection, 
+    if isa(k, Tuple) #GrpAb: intersect yield ONLY intersection,
       k = k[1]
     end
   end
@@ -720,7 +734,7 @@ end
  - depending on the module type:
    - intersect yields an embedding (Z-module) or not GrpAb
    - make sure that image/ kernel are consistent
-   - preimage 
+   - preimage
    - issubset yields (for GrpAb) only true/ false, not the map
    - is_subgroup cannot apply to modules
    - quo does ONLY work if B is a direct submodule of A (Z-modules)
@@ -736,9 +750,9 @@ Code of the H^1(G, M) computation:
 returns homomorphisms A and B s.th.
 
    M_1 -A-> M_2 -B-> M_3
-  
+
 satisfies
-  
+
   H^1 = kern(B)/image(A)
 
 Or, kern(B) are the 1-co-chains, image(A) the 1-co-boundaries.
@@ -848,7 +862,7 @@ function H_one(C::GModule)
     y->mQ(preimage(lft, sum(inj[i](y(gen(G, i))) for i=1:n))))
 
   set_attribute!(C, :H_one => z)
-  return Q, z    
+  return Q, z
   #need to ALSO return the coboundary(s)
 end
 
@@ -862,7 +876,7 @@ function confluent_fp_group_pc(G::Oscar.GAPGroup)
    R = relations(H)
    ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
    for r = R
-     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(r[1].X)), 
+     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(r[1].X)),
                 map(Int, GAP.Globals.LetterRepAssocWord(r[2].X))))
   end
   i = 0
@@ -912,12 +926,12 @@ function confluent_fp_group(G::Oscar.GAPGroup)
 
   ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
   for r = R
-    push!(ru, (map(x->g[Int(x)], GAP.Globals.LetterRepAssocWord(r[1])), 
+    push!(ru, (map(x->g[Int(x)], GAP.Globals.LetterRepAssocWord(r[1])),
                map(x->g[Int(x)], GAP.Globals.LetterRepAssocWord(r[2]))))
   end
 
   #now to express the new gens as words in the old ones:
-  
+
   Fp = FPGroup(GAPWrap.Range(C.fphom))
   return Fp, GAPGroupHomomorphism(Fp, G, GAP.Globals.InverseGeneralMapping(C.fphom)), ru
 end
@@ -1090,12 +1104,12 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   else
     D, pro, inj = direct_product([M for i=1:n]..., task = :both)
   end
-  
+
 
   #when collecting (i.e. applying the RWS we need to also
-  #use the tails:  g v h -> gh h(v) 
+  #use the tails:  g v h -> gh h(v)
   #and if [gh] -> [x] with tail t, then
-  #       gh -> x t, so 
+  #       gh -> x t, so
   #       g v h -> gh h(v) -> x t+h(v)
   # Hulpke calls this the normal version: reduced group word
   # at the beginning, module at the end, the tail.
@@ -1142,7 +1156,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
       #if use_pc, then l can only be 1:
       #From Holt: those are the r[1] we need
       # (i i .. i)
-      #   (i .. i i) 
+      #   (i .. i i)
       # (i .. i)
       #      (i j)
       # (i j)
@@ -1161,7 +1175,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
           #       BC   -> Tt
           #      (AB)C -> SsC -> SC C(s)
           #      A(BC) -> ATt -> AT t
-          if pos[i] > 0 
+          if pos[i] > 0
             c.T = pro[pos[i]]
             for h = s[1][l+1:end]
               if h < 0
@@ -1223,7 +1237,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     if false && length(r[1]) == 1
       continue
     end
-    #we have words r[1] and r[2] of shape g_1 g_2 .... 
+    #we have words r[1] and r[2] of shape g_1 g_2 ....
     #they need to be replaced by g_1 pro[1] g_2 pro[2]
     #and then sorted: g_1 pro[1] g_2 pro[2] ... ->
     #                 g_1 g_2 (pro[1] * g_2 + pro[2]) ...
@@ -1234,7 +1248,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     end
     for j=2:length(r[1])
       if r[1][j] < 0
-        T = (T-B_pro[-r[1][j]])*iac[-r[1][j]] 
+        T = (T-B_pro[-r[1][j]])*iac[-r[1][j]]
       else
         T = T*ac[r[1][j]] + B_pro[r[1][j]]
       end
@@ -1450,7 +1464,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     return mH2(preimage(mE, T))
   end
 
-  z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(), 
+  z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(),
                    x->TailToCoChain(mE(preimage(mH2, x))), z2),
 #                         y->TailFromCoChain(y), D, AllCoChains{2,elem_type(G),elem_type(M)}()),
              is_coboundary)
@@ -1460,14 +1474,14 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
   #(g, m)*(h, n) = (gh, m^h+n+gamma(g, h)) where gamma is "the" 2-cocycle
   #using tails:
   # gmhn -> gh h(m)+n -> x t+h(m) + n where x is the reduced
-  #                                   word under collection and t is the 
+  #                                   word under collection and t is the
   #                                   "tail"
   # so gamma(g, h) = t
   # given gamma need the tails:
   # need to implement the group operation for the extension
   # (g, v)(h, u) -> (gh, v^h + u + gamma(g, h))
   # then the rules with tails need to be evaluated at
-  # the group generators (g_i, 0) 
+  # the group generators (g_i, 0)
   # r -> s gives a relation r s^-1 which should evaluate, using gamma
   # to (0, t) where t is the tail for this rule
 end
@@ -1490,7 +1504,7 @@ function istwo_cocycle(c::CoChain{2})
              (Debeerst, PhD, (1.1) & (1.2))
 
              However, if we mix the conventions, all bets are off...
-        =#       
+        =#
         a = c.d[(g, h*k)] + c.d[(h, k)] - action(C, k, c.d[(g, h)])- c.d[(g*h, k)]
 #        @show a, iszero(a) || valuation(a)
 iszero(a) || (@show g, h, k, a ; return false)
@@ -1592,7 +1606,7 @@ end
 """
 Computes H^3 via dimension-shifting:
 There is a short exact sequence
-  1 -> A -> Hom(Z[G], A) -> B -> 1 
+  1 -> A -> Hom(Z[G], A) -> B -> 1
 thus
   H^3(G, A) = H^2(G, B)
 as Hom(Z[G], A) is induced hence has trivial cohomology.
@@ -1602,7 +1616,7 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
   (inj, mq), (H, q) = dimension_shift(C)
 
 #  return q, mq, inj, H
-  #possibly, to get 3-chains: 
+  #possibly, to get 3-chains:
   # 2 chain in q
   # preimage mq 2 chain in H
   # differential 3 chain in H
@@ -1620,13 +1634,13 @@ function H_three(C::GModule{<:Oscar.GAPGroup, <:Any})
 end
 
 function is_right_G_module(C::GModule)
-  #tests if the action is right-linear 
+  #tests if the action is right-linear
   G = C.G
   return all(action(C, g)*action(C, h) == action(C, g*h) for g in gens(G), h in gens(G))
 end
 
 function is_left_G_module(C::GModule)
-  #tests if the action is left-linear 
+  #tests if the action is left-linear
   G = C.G
   return all(action(C, h)*action(C, g) == action(C, g*h) for g = gens(G) for h = gens(G))
 end
@@ -1634,7 +1648,7 @@ end
 """
 For a gmodule `C` compute the `i`-th cohomology group
 where `i` can be `0`, `1` or `2`. (or `3` ...)
-Together with the abstract module, a map is provided that will 
+Together with the abstract module, a map is provided that will
 produce explicit cochains.
 """
 function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
@@ -1668,7 +1682,7 @@ end
 #XXX: should be in AA and supplemented by a proper quo
 Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement = is_submodule(M, N)
 
-function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement 
+function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement
   fl = is_submodule(N, M)
   if fl
     return fl, hom(M, N, elem_type(N)[N(m) for m = gens(M)])
@@ -1862,7 +1876,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
 
   G = free_group(degree(k)*dim(M))
 
-  C = GAP.Globals.CombinatorialCollector(G.X, 
+  C = GAP.Globals.CombinatorialCollector(G.X,
                   GAP.Obj([p for i=1:ngens(G)], recursive = true))
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
 
@@ -1940,9 +1954,9 @@ end
 Given a 2-cocycle, return the corresponding group extension, ie. the large
 group, the injection of the abelian group and the quotient as well as a map
 that given a tuple of elements in the group and the abelian group returns
-the corresponding elt in the extension. 
+the corresponding elt in the extension.
 
-If the gmodule is defined via a pc-group and the 1st argument is the 
+If the gmodule is defined via a pc-group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
 function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
@@ -1989,7 +2003,7 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   @assert ngens(Q) == ngens(N)
   MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
-  @assert domain(mfM) ==fM 
+  @assert domain(mfM) ==fM
   @assert codomain(mfM) == M
 
   function GMtoQ(g::GAPGroupElem, m)
@@ -2122,7 +2136,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   @assert ngens(Q) == ngens(N)
   MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
   QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
-  @assert domain(mfM) ==fM 
+  @assert domain(mfM) ==fM
   @assert codomain(mfM) == M
 #  @assert is_surjective(QtoG)
 #  @assert is_injective(MtoQ)
@@ -2171,7 +2185,7 @@ Let 'h: G to Aut(M)'  from C, then '(alpha, gamma) in Aut(M) x Aut(G)'
 are compatible iff
   for all 'a in M' and 'g in G' we have
   'h(gamma(g))(a) == alpha(inv(h(g))(alpha^-1(a)))'
- 
+
 The group and the action on 2-cochains is returned. Cochains in the
 same orbit parametrize the same group.
 """
@@ -2272,4 +2286,3 @@ using .GrpCoh
 export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
-
