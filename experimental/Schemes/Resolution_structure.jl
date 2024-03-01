@@ -116,6 +116,7 @@ end
 # getters
 ##################################################################################################
 maps(phi::AbsDesingMor) = phi.maps
+last_map(phi::AbsDesingMor) = phi.maps[end]
 exceptional_divisor(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
 
 ## do not use!!! (for forwarding and certain emergenies)
@@ -211,10 +212,10 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
       I = pop!(decomp)
       f = _do_blow_up(f,I)
       if length(decomp)>0 
-        decomp = [strict_transform(maps(f)[end],J) for J in decomp]
+        decomp = [strict_transform(last_map(f),J) for J in decomp]
       end
     end
-    I_sl = Oscar.ideal_sheaf_of_singular_locus(domain(maps(f)[end]))
+    I_sl = Oscar.ideal_sheaf_of_singular_locus(domain(last_map(f)))
     decomp = Oscar.maximal_associated_points(I_sl)
   end
 
