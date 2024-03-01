@@ -38,15 +38,13 @@ function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
   if T <: PolyhedralObject{Float64}
     return T(inner_object, AbstractAlgebra.Floats{Float64}())
-  else
-    try
-      return T(inner_object)
-    catch e
-      error("Unsupported object type $T for loading polymake object")
-    end
+  end
+  try
+    return T(inner_object)
+  catch e
+    error("Unsupported object type $T for loading polymake object")
   end
 end
-
 
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
