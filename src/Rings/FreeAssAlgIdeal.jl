@@ -82,16 +82,19 @@ end
 Return `true` if calculations with intermediate degrees bounded by `deg_bound`
 prove that $a$ is in $I$. Otherwise, a return of `false` indicates an
 inconclusive answer, but larger `deg_bound`s give more confidence in a negative
-answer.
+answer. If `deg_bound` is not provided, the default value is `-1`, which means 
+that no degree bound is imposed, which leads to a computation that uses a much
+slower algorithm, that may not terminate.
 ```jldoctest
 free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
 f1 = x*y + y*z
 I = ideal([f1])
-ideal_membership(x*y, I, 3) # false
-ideal_membership(f1, I, 4) # true
-ideal_membership(f1, I) # true
-```
+ideal_membership(f1, I, 4)
 
+# output 
+
+true
+```
 """
 function ideal_membership(a::FreeAssAlgElem, I::FreeAssAlgIdeal, deg_bound::Int=-1)
   return ideal_membership(a, I.gens, deg_bound)
@@ -147,7 +150,7 @@ end
     groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1, protocol::Bool=false)
 
 Return the Groebner basis of `I` with respect to the degree bound `deg_bound`. If `protocol` is `true`, the protocol of the computation is also returned. The default value of `deg_bound` is `-1`, which means that no degree bound is imposed, which leads to a computation that uses a much slower algorithm, that may not terminate, but returns a full groebner basis if it does.
-```jldoctest;
+```jldoctest
 julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
 
 julia> f1 = x*y + y*z;
