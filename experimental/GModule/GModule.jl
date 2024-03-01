@@ -24,6 +24,7 @@ import Base: parent
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
   Qt = parent(f)
@@ -268,7 +269,7 @@ function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPM
   d = 0
   while d < absolute_degree(K)-1
     d += 1
-    degree(K) % d == 0 || continue
+    absolute_degree(K) % d == 0 || continue
     k = GF(characteristic(K), d)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
@@ -683,7 +684,7 @@ function Hecke.frobenius(K::FinField, i::Int=1)
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -700,10 +701,10 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   #always over char field
   K =  base_ring(C)
   d = 0
-  while d < degree(K)-1
+  while d < absolute_degree(K)-1
     d += 1
-    degree(K) % d == 0 || continue
-    k = GF(Int(characteristic(K)), d)
+    absolute_degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
