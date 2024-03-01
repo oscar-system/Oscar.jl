@@ -1,5 +1,4 @@
 ## Warnung: show auf desingMor geht noch nicht!!!
-
 export _desing_curve
 
 #####################################################################################################
@@ -40,7 +39,9 @@ export _desing_curve
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   composed_map::AbsCoveredSchemeMorphism        
-  exceptional_divisor::WeilDivisor          
+  exceptional_divisor::WeilDivisor               # exceptional divisor of composed_map
+  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+                                                 # restricted to domain(embeddings[end])
 
   function BlowUpSequence(maps::Vector{<:BlowupMorphism})
     n = length(maps)
@@ -92,7 +93,7 @@ end
 ##################################################################################################
 maps(phi::AbsDesingMor) = phi.maps
 last_map(phi::AbsDesingMor) = phi.maps[end]
-exceptional_divisor(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
+exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
 
 ## do not use!!! (for forwarding and certain emergenies)
 function underlying_morphism(phi::AbsDesingMor)
