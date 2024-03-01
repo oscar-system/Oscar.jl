@@ -83,7 +83,7 @@ G-module for G acting on vector space of dimension 8 over rational field
 ```
 """
 function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FieldElem}}, phi::Map)
-  #works iff relative_field above works. At least for AnticNumberField and
+  #works iff relative_field above works. At least for AbsSimpleNumField and
   #finite fields
   @assert codomain(phi) == base_ring(M)
   d = divexact(degree(codomain(phi)), degree(domain(phi)))
