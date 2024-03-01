@@ -41,12 +41,12 @@ invariant_ring(r::RepresentationTorusGroup)
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(RT::TorGrpInvRing)
+fundamental_invariants(RT::TorGroupInvarRing)
 ```
 
 
 ## Invariant Rings as Affine Algebras
 
 ```@docs
-affine_algebra(RT::TorGrpInvRing)
+affine_algebra(RT::TorGroupInvarRing)
 ```
