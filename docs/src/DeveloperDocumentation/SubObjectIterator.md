@@ -66,14 +66,14 @@ Let us look at an example how we can utilize this interface. The following is
 the implementation to access the rays of a `Cone`:
 
 ```julia
-rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, number_of_rays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, n_rays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 ```
 
 Typing `r = rays(RayVector{Polymake.Rational}, C)` with a `Cone` `C` returns a
 `SubObjectIterator` over `RayVector{Polymake.Rational}` elements of length
-`number_of_rays(C)` with access function `_ray_cone`. With the given method of this
+`n_rays(C)` with access function `_ray_cone`. With the given method of this
 function, `getindex(r, i)` returns a `RayVector{Polymake.Rational}` constructed from
 the `i-th` row of the property `RAYS` of the `Polymake.BigObject`.
 
@@ -177,7 +177,7 @@ implementation by now, but we had different code in between, so let us summarize
 and take a look at what the whole implementation actually looks like:
 
 ```julia
-rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, number_of_rays(C))
+rays(as::Type{RayVector{T}}, C::Cone) where T = SubObjectIterator{as}(pm_object(C), _ray_cone, n_rays(C))
 
 _ray_cone(::Type{T}, C::Polymake.BigObject, i::Base.Integer) where T = T(C.RAYS[i, :])
 

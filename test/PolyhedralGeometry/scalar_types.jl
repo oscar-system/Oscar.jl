@@ -36,7 +36,7 @@
     # volume formula from source
     @test volume(sd) == 8r//12 * (6pq2 + 2*r*q)
     # the snub disphenoid consists of 12 triangles
-    @test nvertices.(faces(sd, 2)) == repeat([3], 12)
+    @test n_vertices.(faces(sd, 2)) == repeat([3], 12)
     # and here the 18 edges are of length 2
     @test _edge_length_for_test.(faces(sd, 1)) == repeat([4], 18)
     # scaling the Polyhedron by 3 yields edge lengths of 6
@@ -203,7 +203,7 @@
     let f = facets(Polyhedron, j)
       fj = normal_vector.(facets(j))
       fj = [fj; -fj]
-      for i in 1:nfacets(j)
+      for i in 1:n_facets(j)
         @test normal_vector(affine_hull(f[i])[]) in fj
       end
       @test halfspace_matrix_pair(f) isa NamedTuple{(:A, :b), Tuple{AbstractAlgebra.Generic.MatSpaceElem{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}, Vector{EmbeddedNumFieldElem{AbsSimpleNumFieldElem}}}}

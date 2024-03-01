@@ -32,7 +32,7 @@
       @test hilbert_basis(Cone1) == [[1, 0], [0, 1]]
       @test generator_matrix(hilbert_basis(Cone1)) == matrix(QQ, [1 0; 0 1])
     end
-    @test nrays(Cone1) == 2
+    @test n_rays(Cone1) == 2
     @test rays(RayVector{T}, Cone1) isa SubObjectIterator{RayVector{T}}
     @test rays(Cone1) isa SubObjectIterator{RayVector{T}}
     @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{T}}
@@ -130,7 +130,7 @@
     @test ray_degrees(Cone5)[1] == 2
     @test ray_degrees(Cone6)[1] == 1
 
-    @test nfacets(Cone5) == 4
+    @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
   end
 

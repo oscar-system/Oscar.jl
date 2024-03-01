@@ -31,6 +31,7 @@ jobs:
           - '1.6'
           - '1.9'   # to be removed in the near future
           - '1.10'
+          - '1.11-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os:
@@ -112,6 +113,7 @@ jobs:
         julia-version:
           - '1.9'   # to be removed in the near future
           - '1.10'
+          - '1.11-nightly'
           - 'nightly'
         os:
           - ubuntu-latest

@@ -844,10 +844,15 @@ end
   @test tr == t[end]
   @test tr == trivial_character(g)
   @test !is_faithful(tr)
+  re = regular_character(g)
+  @test coordinates(re) == degree.(t)
+  re = regular_character(t)
+  @test coordinates(re) == degree.(t)
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
   @test [chi[i] for i in 1:5] == values(chi)
+  @test [chi[nam] for nam in class_names(t)] == values(chi)
   @test [2*chi[i] for i in 1:5] == values(chi + chi)
   @test [chi[i]^2 for i in 1:5] == values(chi * chi)
   @test [chi[i]^2 for i in 1:5] == values(chi^2)
@@ -948,6 +953,7 @@ end
   indcyc = induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
+  @test indcyc == induced_cyclic(t, 1:nrows(t))
 
   # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
@@ -1047,6 +1053,8 @@ end
       F3, _ = QQ[chi]
       @test degree(F1) == degree(F2)
       @test degree(F1) == degree(F3)
+      @test conductor(chi) == conductor(phi)
+      @test conductor(Int, chi) isa Int
       for i in 1:length(chi)
         x = chi[i]
         xF = preimage(phi, x)
@@ -1276,4 +1284,19 @@ end
       end
     end
   end
+end
+
+@testset "read off group properties from character tables" begin
+  t = character_table("A5")
+  @test ! is_abelian(t)
+  @test is_almost_simple(t)
+  @test ! is_cyclic(t)
+  @test ! is_elementary_abelian(t)
+  @test ! is_nilpotent(t)
+  @test is_perfect(t)
+  @test is_quasisimple(t)
+  @test is_simple(t)
+  @test ! is_solvable(t)
+  @test ! is_sporadic_simple(t)
+  @test ! is_supersolvable(t)
 end

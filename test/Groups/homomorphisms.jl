@@ -326,15 +326,29 @@ end
    end
 
    @testset "Group types as constructors" begin
-      G = symmetric_group(4)
-      for (T, f) in [(FPGroup, fp_group), (PcGroup, pc_group), (PermGroup, permutation_group)]
-        H = T(G)
-        @test H isa T
-        @test is_isomorphic(G, H)[1]
+      @testset "Source $G" for G in [
+            cyclic_group(5),
+            dihedral_group(10),
+            symmetric_group(4),
+            transitive_group(5,2),
+            #abelian_group(5),  # FIXME error in is_isomorphic
+            ]
+         @testset "Range type $T" for (T, f) in [
+              (FPGroup, fp_group),
+              (PcGroup, pc_group),
+              (PermGroup, permutation_group),
+              #(FinGenAbGroup, FinGenAbGroup),  # FIXME: errors
+              ]
+            H = T(G)
+            @test H isa T
+            @test has_order(H)
+            @test is_isomorphic(G, H)[1]
 
-        H = f(G)
-        @test H isa T
-        @test is_isomorphic(G, H)[1]
+            H = f(G)
+            @test H isa T
+            @test has_order(H)
+            @test is_isomorphic(G, H)[1]
+         end
       end
 
       G = cyclic_group(5)

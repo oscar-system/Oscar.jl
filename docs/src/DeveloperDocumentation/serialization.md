@@ -1,6 +1,6 @@
 # Serialization
 
-This document summarises the serialization efforts of OSCAR, how it is supposed
+This document summarizes the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
 is the process of reading and writing data. There are many reasons for this

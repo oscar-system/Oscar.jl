@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of Q^ab, the abelian closure of the rationals,
-# which is modelled as the union of cyclotomic fields.
+# which is modeled as the union of cyclotomic fields.
 #
 # We make Q^ab a singleton, similar to ZZ and QQ. Thus there will ever be only
 # one copy of Q^ab. In particular the elements do not have a parent stored.
@@ -284,13 +284,23 @@ end
 (K::QQAbField)() = zero(K)
 
 function (K::QQAbField)(a::AbsSimpleNumFieldElem)
+  F = parent(a)
+
   # Cyclotomic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_cyclotomic_type(parent(a))
+  fl, f = Hecke.is_cyclotomic_type(F)
   fl && return QQAbElem(a, f)
 
   # Quadratic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_quadratic_type(parent(a))
-  if fl
+  if degree(F) == 2
+    # If the defining polynomial of `F` is `X^2 + A X + B` then
+    # `D = A^2 - 4 B` is a square in `F` (cf. [Coh93, p. 218]).
+    pol = F.pol
+    A = coeff(pol, 1)
+    D = A^2 - 4*coeff(pol, 0)
+    Dn = numerator(D)
+    Dd = denominator(D)
+    f = Dn * Dd
+
     x = coeff(a, 0)
     y = coeff(a, 1)
     iszero(y) && return QQAbElem(parent(a)(x), 1)
@@ -311,7 +321,7 @@ function (K::QQAbField)(a::AbsSimpleNumFieldElem)
       N = 4*abs(d)
     end
     r = square_root_in_cyclotomic_field(K, Int(d), Int(N))
-    return x + y*c*r
+    return (x - y*A//2) + (y*c//(2*Dd)) * r
   end
 
   # We have no natural embeddings for other (abelian) number fields.
@@ -463,6 +473,16 @@ function minimize(::typeof(CyclotomicField), a::AbsSimpleNumFieldElem)
   return minimize(CyclotomicField, [a])[1]
 end
 
+#TODO:
+# Here we use conductor in the sense that
+# an abelian number field K has conductor n iff the n-th cyclotomic field
+# is the smallest cyclotomic field that contains K,
+# and the conductor of a field element is the conductor of the field
+# it generates.
+# Claus says that the conductor of a field element can also be read
+# w.r.t. an order.
+# Do we have a naming problem?
+# (If not then we can just add documentation.)
 conductor(a::AbsSimpleNumFieldElem) = conductor(parent(minimize(CyclotomicField, a)))
 
 function conductor(k::AbsSimpleNumField)
@@ -472,6 +492,11 @@ function conductor(k::AbsSimpleNumField)
 end
 
 conductor(a::QQAbElem) = conductor(data(a))
+
+# What we want is the conductor of the domain of the map, but we need the map.
+function conductor(phi::MapFromFunc{T, QQAbField{T}}) where T
+  return lcm([conductor(phi(x)) for x in gens(domain(phi))])
+end
 
 ################################################################################
 #
@@ -882,9 +907,29 @@ end
 # If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
 # is mapped to `QQAbElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
+function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
+                    x::QQAbElem{AbsSimpleNumFieldElem})
+  C1, z = cyclotomic_field(1)
+
+  f = function(x::QQFieldElem)
+    return QQAbElem(C1(x), 1)
+  end
+
+  finv = function(x::QQAbElem; check::Bool = false)
+    if conductor(x) == 1
+      return Hecke.force_coerce_cyclo(C1, data(x))
+    elseif check
+      return
+    else
+      error("element has no preimage")
+    end
+  end
+
+  return MapFromFunc(F, K, f, finv)
+end
+
 function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
                     x::QQAbElem{AbsSimpleNumFieldElem})
-  R, = polynomial_ring(QQ, "x")
   fl, n = Hecke.is_cyclotomic_type(F)
   if fl
     # This is cheaper.
@@ -909,6 +954,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
               for i in 0:degree(F)-1]
     c = transpose(matrix(QQ, powers))
+    R = parent(F.pol)
 
     f = function(z::AbsSimpleNumFieldElem)
       return QQAbElem(evaluate(R(z), x), n)
@@ -923,7 +969,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if fl
         b = transpose(sol)
         b = [b[i] for i in 1:length(b)]

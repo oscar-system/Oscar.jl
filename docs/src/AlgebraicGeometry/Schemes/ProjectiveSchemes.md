@@ -46,13 +46,13 @@ The minimal concrete type realizing this interface is
 
 ## Constructors
 
-Besides `ProjectiveScheme(S)` for some graded polynomial ring or a graded affine algebra `S`, we
+Besides `proj(S)` for some graded polynomial ring or a graded affine algebra `S`, we
 provide the following constructors:
 ```
-    projective_scheme(S::MPolyDecRing)
-    projective_scheme(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
-    projective_scheme(I::MPolyIdeal{<:MPolyDecRingElem})
-    projective_scheme(Q::MPolyQuoRing{MPolyDecRingElem{T, PT}}) where {T, PT<:MPolyRingElem{T}} = ProjectiveScheme(Q)
+    proj(S::MPolyDecRing)
+    proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
+    proj(I::MPolyIdeal{<:MPolyDecRingElem})
+    proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 Subschemes defined by homogeneous ideals, ring elements, or lists of elements can be created
 via the respective methods of the `subscheme(P::AbsProjectiveScheme, ...)` function.
@@ -79,8 +79,8 @@ Besides those attributes already covered by the above general interface we have 
 To facilitate the interplay between an `AbsProjectiveScheme` and the affine charts of its
 `covered_scheme` we provide the following methods:
 ```@docs
-    dehomogenization_map(X::AbsProjectiveScheme, U::AbsSpec)
-    homogenization_map(P::AbsProjectiveScheme, U::AbsSpec)
+    dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
+    homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
 ```
 
 ## Properties

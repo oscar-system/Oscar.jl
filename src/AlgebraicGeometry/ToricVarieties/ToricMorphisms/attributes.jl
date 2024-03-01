@@ -73,12 +73,12 @@ Map
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
-    mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(cod)), 0))
+    mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
-      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:nmaxcones(cod)])
-      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:nrays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :])))
+      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
+      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
+      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
 end
@@ -223,10 +223,10 @@ Covering
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
 
   # construct the corresponding morphism of rings
-  morphism_dict = IdDict{AbsSpec, AbsSpecMor}()
+  morphism_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   domain_cov = default_covering(X) # ordering of the patches must be the same as `maximal_cones`
   codomain_cov = default_covering(Y)
-  for i in 1:nmaxcones(X)
+  for i in 1:n_maximal_cones(X)
     U = domain_cov[i] # The corresponding chart in the domain
     k = findfirst(x-> is_subset(image_cones[i], x), codomain_cones)
     V = codomain_cov[k] # The chart in the codomain whose cone contains the image of the cone of U
@@ -240,7 +240,7 @@ Covering
     hb_V_mat = matrix(ZZ, hb_V)
     hb_V_img = hb_V_mat * At
     hb_U_mat = matrix(ZZ, hb_U)
-    sol = solve_left(hb_U_mat, hb_V_img)
+    sol = solve(hb_U_mat, hb_V_img; side = :left)
     @assert sol*hb_U_mat == hb_V_img
     @assert all(x->x>=0, sol)
 

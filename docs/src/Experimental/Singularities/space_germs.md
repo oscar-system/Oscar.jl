@@ -6,7 +6,7 @@ CurrentModule = Oscar
 
 ## [Generalities on Space germs](@id space_germ_generalities)
 
-The geometric notion of a space germ is a local concept. A space germ $(X,x)$ at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighbourhood of $x$ on which the spaces coincide.
+The geometric notion of a space germ is a local concept. A space germ $(X,x)$ at a point $x$ is an equivalence class of ringed spaces, each of which contains $x$ in its underlying topological space, and the equivalence relation is precisely the existence of an open neighborhood of $x$ on which the spaces coincide.
 
 Depending on the kind of ringed space in question, space germs arise in
 different forms:
@@ -48,12 +48,12 @@ In general, space germs in OSCAR are created in the following ways:
  * localization of an affine scheme at a point
 
    ```julia
-   SpaceGerm(X::AbsSpec, I::Ideal)
+   SpaceGerm(X::AbsAffineScheme, I::Ideal)
    ```
    where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme X.  
    **Provides:** SpaceGerm.
    ```julia
-   germ_at_point(X::AbsSpec, I::Ideal)
+   germ_at_point(X::AbsAffineScheme, I::Ideal)
    ```
    where I is a (maximal) ideal describing the chosen ${\mathbb k}$-point on the affine ${\mathbb k}$-scheme.  
 

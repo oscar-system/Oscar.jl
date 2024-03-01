@@ -18,10 +18,10 @@
     @test dim(cone(antv)) == 2
     @test length(affine_open_covering(antv)) == 1
     @test length(gens(toric_ideal(antv))) == 1
-    @test rank(torusinvariant_weil_divisor_group(antv)) == 2
-    @test rank(character_lattice(antv)) == 2
-    @test rank(domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
-    @test rank(codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
+    @test torsion_free_rank(torusinvariant_weil_divisor_group(antv)) == 2
+    @test torsion_free_rank(character_lattice(antv)) == 2
+    @test torsion_free_rank(domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
+    @test torsion_free_rank(codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(antv))) == 2
     @test elementary_divisors(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(antv))) == [ 2 ]
     @test elementary_divisors(class_group(antv)) == [ 2 ]
     @test ngens(cox_ring(antv)) == 2

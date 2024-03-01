@@ -69,7 +69,7 @@ function fiber_product(f::Map{DomType, CodType}, P::AbsProjectiveScheme{DomType}
 end
 
 function fiber_product(
-    f::AbsSpecMor, 
+    f::AbsAffineSchemeMor, 
     P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
   )
   codomain(f) == base_scheme(P) || error("codomain and base_scheme are incompatible")
@@ -96,7 +96,7 @@ function fiber_product(
                                )
 end
 
-fiber_product(X::AbsSpec, 
+fiber_product(X::AbsAffineScheme, 
               P::AbsProjectiveScheme{<:Union{<:MPolyRing, <:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
              ) = fiber_product(inclusion_morphism(X, base_scheme(P)), P)
 
@@ -186,7 +186,7 @@ function ambient_embedding(X::AbsProjectiveScheme)
   S = homogeneous_coordinate_ring(IP)
   T = homogeneous_coordinate_ring(X)
   I = defining_ideal(X)
-  pb = hom(S, T, gens(T))
+  pb = hom(S, T, gens(T); check=false)
   inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
   return ProjectiveClosedEmbedding(inc_sub, I, check=false)
 end

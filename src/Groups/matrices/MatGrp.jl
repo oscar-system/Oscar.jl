@@ -102,13 +102,7 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   error("$x has neither :X nor :elm")
 end
 
-function change_base_ring(R::Ring, G::MatrixGroup)
-  g = dense_matrix_type(R)[]
-  for h in gens(G)
-    push!(g, map_entries(R, h.elm))
-  end
-  return matrix_group(g)
-end
+change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 
 ########################################################################
 #
@@ -511,7 +505,15 @@ function gens(G::MatrixGroup)
    return G.gens
 end
 
-gen(G::MatrixGroup, i::Int) = gens(G)[i]
+# Note that the `gen(G::GAPGroup, i::Int)` method cannot be used
+# for `MatrixGroup` because of the `:gens` attribute.
+function gen(G::MatrixGroup, i::Int)
+  i == 0 && return one(G)
+  L = gens(G)
+  0 < i && i <= length(L) && return L[i]
+  i < 0 && -i <= length(L) && return inv(L[-i])
+  @req false "i must be in the range -$(length(L)):$(length(L))"
+end
 
 number_of_generators(G::MatrixGroup) = length(gens(G))
 
@@ -546,6 +548,53 @@ function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    end::ZZRingElem
    return T(res)::T
 end
+
+"""
+    map_entries(f, G::MatrixGroup)
+
+Return the matrix group obtained by applying `f` element-wise to
+each generator of `G`.
+
+`f` can be a ring or a field, a suitable map, or a Julia function.
+
+# Examples
+```jldoctest
+julia> mat = matrix(ZZ, 2, 2, [1, 1, 0, 1]);
+
+julia> G = matrix_group(mat);
+
+julia> G2 = map_entries(x -> -x, G)
+Matrix group of degree 2
+  over integer ring
+
+julia> is_finite(G2)
+false
+
+julia> order(map_entries(GF(3), G))
+3
+```
+"""
+function map_entries(f, G::MatrixGroup)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    z = f(zero(base_ring(G)))
+    return matrix_group(parent(z), degree(G), MatrixGroupElem[])
+  else
+    imgs = [map_entries(f, matrix(x)) for x in gens(G)]
+    return matrix_group(imgs)
+  end
+end
+
+function map_entries(R::Ring, G::MatrixGroup)
+  imgs = [map_entries(R, matrix(x)) for x in gens(G)]
+  return matrix_group(R, degree(G), imgs)
+end
+
+function map_entries(mp::Map, G::MatrixGroup)
+  imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
+  return matrix_group(codomain(mp), degree(G), imgs)
+end
+
 
 ########################################################################
 #

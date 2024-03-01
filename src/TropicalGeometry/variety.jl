@@ -52,7 +52,7 @@ Polyhedral complex in ambient dimension 1
 julia> tropical_variety(Sigma)
 Min tropical variety
 
-julia> mult = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+julia> mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 2-element Vector{ZZRingElem}:
  1
  1
@@ -74,7 +74,7 @@ function tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, mi
     return TropicalVariety{typeof(minOrMax),true}(Sigma,mult)
 end
 function tropical_variety(Sigma::PolyhedralComplex, minOrMax::Union{typeof(min),typeof(max)}=min)
-    mult = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+    mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     return tropical_variety(Sigma,mult,minOrMax)
 end
 
@@ -163,7 +163,7 @@ julia> tropical_variety(I)
 function tropical_variety(I::Union{MPolyIdeal,MPolyRingElem}, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, skip_saturation::Bool=false, skip_primary_decomposition::Bool=false)
     ###
     # Step 0.a: convert I to ideal if poly,
-    #   initialise nu as the trivial valuation if not specified by user
+    #   initialize nu as the trivial valuation if not specified by user
     ###
     if I isa MPolyRingElem
         I = ideal(parent(I),[I])
@@ -260,7 +260,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     # Constructing tropical variety set-theoretically
     ###
     A = QQMatrix(A)
-    L = matrix(QQ,kernel_basis(A))
+    L = transpose(kernel(A, side = :right))
     can_solve, V = can_solve_with_solution(transpose(A),matrix(QQ,[b]),side=:left)
     @req can_solve "tropical variety cannot be empty"
     SigmaV = polyhedral_complex(IncidenceMatrix([[1]]), V, nothing, L)
@@ -305,7 +305,7 @@ function tropical_variety_linear(I::MPolyIdeal,nu::TropicalSemiringMap; weighted
         TropLh = tropical_linear_space(Ih,nu,weighted_polyhedral_complex_only=true)
         Sigma = dehomogenize_post_tropicalization(polyhedral_complex(TropLh))
 
-        multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+        multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
         TropV = tropical_variety(Sigma,multiplicities)
         if !weighted_polyhedral_complex_only
             set_attribute!(TropV,:algebraic_ideal,I)
@@ -456,7 +456,7 @@ function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     zk = maximal_order(k)
 
     for f = keys(lf)
-        se[f] = kernel(f(M))[2] #hopefully, this is in rref
+        se[f] = kernel(f(M), side = :right) #hopefully, this is in rref
     end
     @assert sum(ncols(x) for x = values(se)) == nrows(M)
     return se
@@ -473,8 +473,8 @@ function _intersect(M::MatElem{T}, N::MatElem{T}) where T <: Hecke.FieldElem
         end
     end
 
-    r, v = kernel(I) #precision issues...
-    l = M*v[1:ncols(M), 1:r]
+    v = kernel(I, side = :right) #precision issues...
+    l = M*v[1:ncols(M), 1:ncols(v)]
     return transpose(rref(transpose(l))[2])
 end
 
@@ -559,8 +559,8 @@ end
 #   #   * w is a weight vector with respect to which G is a Groebner basis,
 #   #   * w is compatible with coordinate permutations if symmetries exist,
 #   #   * instead of comparing C or G it suffices to compare w.
-#   working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbours
-#   working_list_done = [] # list of groebner polyhedra with known neighbours
+#   working_list_todo = [] # list of groebner polyhedra with potentially unknown neighbors
+#   working_list_done = [] # list of groebner polyhedra with known neighbors
 #   facet_points_done = [] # list of facet points whose tropical links were computed and traversed
 
 #   compute_starting_points = true
@@ -623,29 +623,29 @@ end
 
 #       directions_to_traverse = tropical_link(ideal(G),val,point_to_traverse) # todo, this output can be wrong
 #       for direction_to_traverse in directions_to_traverse
-#         # compute neighbour
+#         # compute neighbor
 #         print("computing groebner_basis for ",point_to_traverse,direction_to_traverse,"... ")
-#         G_neighbour = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
+#         G_neighbor = groebner_flip(G,val,w,point_to_traverse,direction_to_traverse)
 #         println("done")
-#         C_neighbour = groebner_polyhedron(G_neighbour,val,point_to_traverse,perturbation=direction_to_traverse)
-#         w_neighbour = anchor_point(C_neighbour)
+#         C_neighbor = groebner_polyhedron(G_neighbor,val,point_to_traverse,perturbation=direction_to_traverse)
+#         w_neighbor = anchor_point(C_neighbor)
 
-#         # if neighbour is already in done list, skip
+#         # if neighbor is already in done list, skip
 #         i = searchsortedfirst(working_list_done,
-#                               (w_neighbour,C_neighbour,G_neighbour),
+#                               (w_neighbor,C_neighbor,G_neighbor),
 #                               by=x->x[1])
-#         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbour
+#         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
 #           continue
 #         end
-#         # if neighbour is already in todo list, skip
+#         # if neighbor is already in todo list, skip
 #         i = searchsortedfirst(working_list_todo,
-#                               (w_neighbour,C_neighbour,G_neighbour),
+#                               (w_neighbor,C_neighbor,G_neighbor),
 #                               by=x->x[1])
-#         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbour
+#         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
 #           continue
 #         end
-#         # otherwise, add neighbour to todo list
-#         insert!(working_list_todo, i, (w_neighbour,C_neighbour,G_neighbour))
+#         # otherwise, add neighbor to todo list
+#         insert!(working_list_todo, i, (w_neighbor,C_neighbor,G_neighbor))
 #       end
 #     end
 #   end
@@ -750,7 +750,7 @@ end
 # function anchor_point(P::Polyhedron)
 #   # compute the sum of vertices and rays in homogenized coordinates
 #   pt = convert(Vector{QQFieldElem},sum([vertices(P)...,rays(P)...]))
-#   pushfirst!(pt,nvertices(P))
+#   pushfirst!(pt,n_vertices(P))
 
 #   # project to orthogonal complement of lineality space if necessary
 #   if lineality_dim(P)>0

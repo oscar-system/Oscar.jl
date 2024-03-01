@@ -125,7 +125,7 @@ function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vecto
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
-    @req length(coordinate_names) == nrays(v) "The provided list of coordinate names must match the number of rays in the fan"
+    @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
     set_attribute!(v, :coordinate_names, coordinate_names)
 end
 
@@ -198,7 +198,7 @@ julia> coordinate_names(antv)
 ```
 """
 @attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
+    return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -290,7 +290,7 @@ julia> ngens(stanley_reisner_ideal(R, p2))
 ```
 """
 function stanley_reisner_ideal(R::MPolyRing, v::NormalToricVarietyType)
-    n = nrays(v)
+    n = n_rays(v)
     @req n == nvars(R) "Wrong number of variables"
     mnf = _minimal_nonfaces(v)
     Polymake.nrows(mnf) > 0 || return ideal([zero(R)])
@@ -347,7 +347,7 @@ julia> length(gens(irrelevant_ideal(R, p2)))
 """
 function irrelevant_ideal(R::MPolyRing, v::NormalToricVarietyType)
     monoms = _irrelevant_ideal_monomials(v)
-    @req nvars(R) == nrays(v) "Wrong number of variables in polynomial ring"
+    @req nvars(R) == n_rays(v) "Wrong number of variables in polynomial ring"
     return ideal([R([1], [x]) for x in monoms])
 end
 
@@ -393,7 +393,7 @@ julia> ngens(ideal_of_linear_relations(R, p2))
 """
 function ideal_of_linear_relations(R::MPolyRing, v::NormalToricVarietyType)
     @req is_simplicial(v) "The ideal of linear relations is only supported for simplicial toric varieties"
-    @req ngens(R) == nrays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
+    @req ngens(R) == n_rays(v) "The given polynomial ring must have exactly as many indeterminates as rays for the toric variety"
     return ideal(transpose(matrix(ZZ, rays(v))) * gens(R))
 end
 
@@ -636,7 +636,7 @@ julia> torusinvariant_weil_divisor_group(p2)
 Z^3
 ```
 """
-@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(nrays(v))
+@attr FinGenAbGroup torusinvariant_weil_divisor_group(v::NormalToricVarietyType) = free_abelian_group(n_rays(v))
 
 
 @doc raw"""
@@ -679,8 +679,8 @@ julia> torusinvariant_prime_divisors(p2)
 @attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::NormalToricVarietyType)
     ti_divisors = torusinvariant_weil_divisor_group(v)
     prime_divisors = ToricDivisor[]
-    for i in 1:rank(ti_divisors)
-        coeffs = zeros(Int, rank(ti_divisors))
+    for i in 1:torsion_free_rank(ti_divisors)
+        coeffs = zeros(Int, torsion_free_rank(ti_divisors))
         coeffs[i] = 1
         push!(prime_divisors, toric_divisor(v, coeffs))
     end
@@ -756,7 +756,7 @@ Map
     number_of_cones = size(max_cones)[1]
     
     # compute quantities needed to construct the matrices
-    rc = rank(character_lattice(v))
+    rc = torsion_free_rank(character_lattice(v))
     number_ray_is_part_of_max_cones = [length(max_cones[:, k].s) for k in 1:number_of_rays]
     s = sum(number_ray_is_part_of_max_cones)
     cones_ray_is_part_of = [filter(x -> max_cones[x, r], 1:number_of_cones) for r in 1:number_of_rays]
@@ -784,7 +784,7 @@ Map
     end
     
     # compute the matrix for mapping to torusinvariant Weil divisors
-    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_weil_divisor_group(v)))
+    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, torsion_free_rank(torusinvariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
         map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [ZZRingElem(-c) for c in fan_rays[:, i]]
     end

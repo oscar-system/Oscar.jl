@@ -62,9 +62,9 @@ We require that ``R`` is a finitely generated algebra over a field ``k`` and
 moreover that the base change of ``R`` to the algebraic closure ``\bar k``
 is an integral domain.
 """
-variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::Ring; check::Bool=true) = ProjectiveVariety(proj(R), check=check)
 
-variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(proj(R), check=check)
 
 
 @doc raw"""
@@ -95,7 +95,7 @@ end
 function projective_space(A::Field, var_symb::Vector{VarName})
   n = length(var_symb)
   S, _ = graded_polynomial_ring(A, var_symb)
-  return variety(projective_scheme(S), check=false)
+  return variety(proj(S), check=false)
 end
 
 
@@ -105,5 +105,5 @@ function projective_space(
     var_name::VarName=:s
   ) where {CoeffRingType<:Field}
   S, _ = graded_polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
-  return variety(projective_scheme(S), check=false)
+  return variety(proj(S), check=false)
 end

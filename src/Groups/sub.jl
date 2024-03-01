@@ -188,62 +188,6 @@ julia> normal_subgroups(quaternion_group(8))
   _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
 
 """
-    subgroups(G::Group)
-
-Return all subgroups of `G`.
-
-# Examples
-```jldoctest
-julia> subgroups(symmetric_group(3))
-6-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
-
-julia> subgroups(quaternion_group(8))
-6-element Vector{PcGroup}:
- Pc group of order 1
- Pc group of order 2
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
- Pc group of order 8
-```
-"""
-function subgroups(G::GAPGroup)
-  # TODO: this is super inefficient. Slightly better would be to return an iterator
-  # which iterates over the (elements of) the conjugacy classes of subgroups
-  return _as_subgroups(G, GAP.Globals.AllSubgroups(G.X))
-end
-
-"""
-    maximal_subgroups(G::Group)
-
-Return all maximal subgroups of `G`.
-
-# Examples
-```jldoctest
-julia> maximal_subgroups(symmetric_group(3))
-4-element Vector{PermGroup}:
- Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
-
-julia> maximal_subgroups(quaternion_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
-```
-"""
-@gapattribute maximal_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.MaximalSubgroups(G.X))
-
-"""
     maximal_normal_subgroups(G::Group)
 
 Return all maximal normal subgroups of `G`, i.e., those proper
@@ -295,14 +239,11 @@ i.e., those subgroups that are invariant under all automorphisms of `G`.
 
 # Examples
 ```jldoctest
-julia> subgroups(symmetric_group(3))
-6-element Vector{PermGroup}:
- Permutation group of degree 3 and order 1
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
- Permutation group of degree 3 and order 2
+julia> characteristic_subgroups(symmetric_group(3))
+3-element Vector{PermGroup}:
+ Sym(3)
  Permutation group of degree 3 and order 3
- Permutation group of degree 3 and order 6
+ Permutation group of degree 3 and order 1
 
 julia> characteristic_subgroups(quaternion_group(8))
 3-element Vector{PcGroup}:
@@ -353,8 +294,6 @@ together with its embedding morphism into `G`.
 function centralizer(G::GAPGroup, x::GAPGroupElem)
   return _as_subgroup(G, GAP.Globals.Centralizer(G.X, x.X))
 end
-
-const centraliser = centralizer # FIXME/TODO: use @alias?
 
 ################################################################################
 #
@@ -514,7 +453,7 @@ julia> lower_central_series(symmetric_group(4))
     upper_central_series(G::GAPGroup)
 
 Return the vector $[ G_1, G_2, \ldots ]$ where the last entry is the
-trivial group, and $G_i$ is defined as the overgroup of $G_{i+1}
+trivial group, and $G_i$ is defined as the overgroup of $G_{i+1}$
 satisfying $G_i / G_{i+1} = Z(G/G_{i+1})$. The series ends as soon as
 it is repeating (e.g. when the whole group $G$ is reached, which
 happens if and only if $G$ is nilpotent).
@@ -613,11 +552,14 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
   if check
     @req is_subset(H, G) "H is not a subgroup of G"
   end
-  if order(G) // order(H) < 100
-    t = right_transversal(G, H)[2:end] #drop the identity
-    return all(x -> order(sub(G, vcat(gens(H), [x]))[1]) == order(G), t)
+  ind = index(G, H)
+  is_prime(ind) && return true
+  if ind < 100
+    # Do not unpack the right transversal object.
+    t = right_transversal(G, H)
+    return all(i -> order(sub(G, vcat(gens(H), [t[i]]))[1]) == order(G), 2:Int(ind))
   end
-  return any(M -> is_conjugate(G, M, H), maximal_subgroup_reps(G))
+  return any(C -> H in C, maximal_subgroup_classes(G))
 end
 
 """
@@ -1061,7 +1003,7 @@ julia> G = symmetric_group(4);
 
 julia> epi = epimorphism_from_free_group(G)
 Group homomorphism
-  from free group
+  from free group of rank 2
   to Sym(4)
 
 julia> pi = G([2,4,3,1])
@@ -1076,6 +1018,7 @@ julia> map_word(w, gens(G))
 function epimorphism_from_free_group(G::GAPGroup)
   mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
   fG = FPGroup(GAPWrap.Source(mfG))
+  GAP.Globals.RankOfFreeGroup(fG.X)  # force rank computation
   return Oscar.GAPGroupHomomorphism(fG, G, mfG)
 end
 
