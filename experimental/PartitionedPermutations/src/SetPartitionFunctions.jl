@@ -83,7 +83,8 @@ end
 """
     join(V::SetPartition, W::SetPartition)
 
-Return the join of `V` and `W`.
+Return the join of `V` and `W`. This is the unqiue set partition, where two elements are in the same block of the partition
+iff this is the case in `V` or `W`.
 
 # Examples
 ```jldoctest
