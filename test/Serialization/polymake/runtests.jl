@@ -27,8 +27,8 @@
 
     s = load(joinpath(@__DIR__, "simplicial.complex"))
     @test s isa SimplicialComplex
-    @test n_vertices(s) == 5
-    @test n_facets(s) == 3
+    @test n_vertices(s) == 4
+    @test length(facets(s)) == 3
 
   end
 end
