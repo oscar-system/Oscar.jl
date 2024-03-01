@@ -61,6 +61,8 @@ permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)
 action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
+is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
