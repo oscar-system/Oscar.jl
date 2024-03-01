@@ -343,7 +343,7 @@ Oscar.rank(M::AbstractAlgebra.Generic.Submodule{ZZRingElem}) = ngens(M)
 function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   C = Gap(M)
   S = GAP.Globals.MTX.BasesMaximalSubmodules(C)
-  res = []
+  res = dense_matrix_type(base_ring(M))[]
   for s = S
     if length(s) == 0
       m = matrix(base_ring(M), 0, dim(M), [])
@@ -716,7 +716,7 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 end
 
 """
-    gmodule_over(Field, GModule)
+    gmodule_over(k::Field, C::GModule)
 """
 function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}; do_error::Bool = false)
   #mathematically, k needs to contain the character field
@@ -1642,7 +1642,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
- global last_f = f
+ # global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
