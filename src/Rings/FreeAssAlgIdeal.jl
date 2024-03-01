@@ -220,6 +220,3 @@ function groebner_basis(g::Vector{<:T}, deg_bound::Int=-1, protocol::Bool=false)
     
   return _to_FreeAssAlgElem.(Ref(R), gb) , ""
 end
-
-
-

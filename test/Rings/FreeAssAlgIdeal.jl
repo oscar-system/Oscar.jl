@@ -65,4 +65,3 @@ end
     gb2, _ = groebner_basis([f1, f2], 5, false)
     @test maximum(total_degree.(gb2))==5
 end
-
