@@ -4,7 +4,7 @@
 
 @attributes mutable struct ToricBlowdownMorphism{
   DomainType <: NormalToricVariety, 
-  CodomainType <: NormalToricVariety} <: AbsSimpleBlowdownMorphism{DomainType, CodomainType, Nothing, ToricBlowdownMorphism}
+  CodomainType <: NormalToricVariety} <: AbsSimpleBlowdownMorphism{DomainType, CodomainType, ToricBlowdownMorphism}
 
   toric_morphism::ToricMorphism
   index_of_new_ray::Integer
