@@ -29,7 +29,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::AbsGluing)
   k = max(k1, k2)
   println(io, co_str[1], " "^(k-k1+3), Lowercase(), domain(f))
   print(io, co_str[2], " "^(k-k2+3), Lowercase(), codomain(f))
-  if codomain(f) isa SpecOpen
+  if codomain(f) isa AffineSchemeOpenSubscheme
     mop = maps_on_patches(f)
     if length(mop) > 0
       println(io)
@@ -194,8 +194,8 @@ end
 struct BaseChangeGluingData{T1, T2}
   phi::T1
   G::T2
-  patch_change1::AbsSpecMor
-  patch_change2::AbsSpecMor
+  patch_change1::AbsAffineSchemeMor
+  patch_change2::AbsAffineSchemeMor
 end
 
 function _compute_gluing_base_change(gd::BaseChangeGluingData)
@@ -216,8 +216,8 @@ function _compute_gluing_base_change(gd::BaseChangeGluingData)
   UU, map_U = base_change(phi, U, ambient_map=pc1)
   VV, map_V = base_change(phi, V, ambient_map=pc2)
 
-  # TODO: The following will not yet work for gluings along SpecOpens.
-  U isa PrincipalOpenSubset && V isa PrincipalOpenSubset || error("base change not implemented for gluings along SpecOpens")
+  # TODO: The following will not yet work for gluings along AffineSchemeOpenSubschemes.
+  U isa PrincipalOpenSubset && V isa PrincipalOpenSubset || error("base change not implemented for gluings along AffineSchemeOpenSubschemes")
 
   _, ff, _ = base_change(phi, f, domain_map=map_U, codomain_map=map_V)
   _, gg, _ = base_change(phi, g, domain_map=map_V, codomain_map=map_U)
@@ -226,8 +226,8 @@ function _compute_gluing_base_change(gd::BaseChangeGluingData)
 end
 
 function base_change(phi::Any, G::AbsGluing;
-    patch_change1::AbsSpecMor=base_change(phi, gluing_domains(G)[1])[2], # The base change morphism for 
-    patch_change2::AbsSpecMor=base_change(phi, gluing_domains(G)[2])[2]  # the two gluing patches
+    patch_change1::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[1])[2], # The base change morphism for 
+    patch_change2::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[2])[2]  # the two gluing patches
   )
   gd = BaseChangeGluingData{typeof(phi), typeof(G)}(phi, G, patch_change1, patch_change2)
   return LazyGluing(domain(patch_change1), domain(patch_change2), _compute_gluing_base_change, gd)

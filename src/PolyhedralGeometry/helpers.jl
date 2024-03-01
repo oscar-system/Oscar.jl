@@ -75,12 +75,15 @@ Set{Int64} with 1 element:
 """
 column(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.col(i, n))
 
+const _polymake_scalars = Union{Polymake.Integer, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64, Polymake.TropicalNumber}
+const _polymake_compatible_scalars = Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, _polymake_scalars}
+
 function assure_matrix_polymake(m::Union{AbstractMatrix{Any}, AbstractMatrix{FieldElem}})
     a, b = size(m)
     if a > 0
         i = findfirst(_cannot_convert_to_fmpq, m)
         t = i === nothing ? QQFieldElem : typeof(m[i])
-        if t <: Union{Polymake.Rational, Polymake.QuadraticExtension{Polymake.Rational}, Polymake.OscarNumber, Float64}
+        if t <: _polymake_scalars
             m = Polymake.Matrix{Polymake.convert_to_pm_type(t)}(m)
         else
             m = Polymake.Matrix{_scalar_type_to_polymake(t)}(m)
@@ -95,9 +98,9 @@ assure_matrix_polymake(m::AbstractMatrix{<:FieldElem}) = Polymake.Matrix{Polymak
 
 assure_matrix_polymake(m::MatElem) = Polymake.Matrix{_scalar_type_to_polymake(eltype(m))}(m)
 
-assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}}) = m
+assure_matrix_polymake(m::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix{<:_polymake_compatible_scalars}}) = m
 
-assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{Polymake.Rational, Polymake.QuadraticExtension, Float64}, U, V, W} = Polymake.Matrix{T}(m)
+assure_matrix_polymake(m::SubArray{T, 2, U, V, W}) where {T<:Union{_polymake_scalars}, U, V, W} = Polymake.Matrix{T}(m)
 
 function assure_vector_polymake(v::Union{AbstractVector{Any}, AbstractVector{FieldElem}})
     i = findfirst(_cannot_convert_to_fmpq, v)
@@ -107,7 +110,7 @@ end
 
 assure_vector_polymake(v::AbstractVector{<:FieldElem}) = Polymake.Vector{Polymake.OscarNumber}(v)
 
-assure_vector_polymake(v::AbstractVector{<:Union{QQFieldElem, ZZRingElem, Base.Integer, Base.Rational, Polymake.Rational, Polymake.QuadraticExtension, Polymake.OscarNumber, Float64}}) = v
+assure_vector_polymake(v::AbstractVector{<:_polymake_compatible_scalars}) = v
 
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:AbstractVector}) = augment(unhomogenized_matrix(x[1]), -Vector(assure_vector_polymake(x[2])))
 affine_matrix_for_polymake(x::Tuple{<:AnyVecOrMat, <:Any}) = homogenized_matrix(x[1], -x[2])
@@ -122,29 +125,17 @@ matrix_for_polymake(x::Union{Oscar.ZZMatrix, Oscar.QQMatrix, AbstractMatrix}) = 
 
 number_of_rows(x::SubArray{T, 2, U, V, W}) where {T, U, V, W} = size(x, 1)
 
-function Polymake.Matrix{Polymake.Rational}(x::Union{Oscar.QQMatrix,AbstractMatrix{Oscar.QQFieldElem}})
-    res = Polymake.Matrix{Polymake.Rational}(size(x)...)
-    for i in eachindex(x)
-        res[i] = x[i]
-    end
-    return res
-end
-
-function Polymake.Matrix{Polymake.OscarNumber}(x::Union{MatElem, AbstractMatrix{<:FieldElem}})
-    res = Polymake.Matrix{Polymake.OscarNumber}(size(x)...)
-    for i in eachindex(x)
-        res[i] = x[i]
-    end
-    return res
-end
-
 _isempty_halfspace(x::Pair{<:Union{Oscar.MatElem, AbstractMatrix}, Any}) = isempty(x[1])
 _isempty_halfspace(x) = isempty(x)
 
+function Polymake.Matrix{T}(x::Union{MatElem,AbstractMatrix{<:FieldElem}}) where T<:_polymake_scalars
+    res = Polymake.Matrix{T}(size(x)...)
+    return res .= x
+end
+
+Base.convert(::Type{Polymake.Matrix{T}}, x::MatElem) where T = Polymake.Matrix{T}(x)
 
 Base.convert(::Type{Polymake.QuadraticExtension{Polymake.Rational}}, x::QQFieldElem) = Polymake.QuadraticExtension(convert(Polymake.Rational, x))
-
-Base.convert(T::Type{<:Polymake.Matrix}, x::Union{ZZMatrix,QQMatrix}) = Base.convert(T, Matrix(x))
 
 Base.convert(::Type{<:Polymake.Integer}, x::ZZRingElem) = GC.@preserve x return Polymake.new_integer_from_fmpz(x)
 
@@ -182,8 +173,6 @@ Base.convert(::Type{Polymake.OscarNumber}, x::FieldElem) = Polymake.OscarNumber(
 
 (::Type{T})(x::Polymake.OscarNumber) where T<:FieldElem = convert(T, Polymake.unwrap(x))
 
-Base.convert(::Type{Polymake.Matrix{Polymake.OscarNumber}}, x::MatElem{<:FieldElem}) = Polymake.Matrix{Polymake.OscarNumber}(x)
-
 (R::QQField)(x::Polymake.Rational) = convert(QQFieldElem, x)
 (Z::ZZRing)(x::Polymake.Rational) = convert(ZZRingElem, x)
 
@@ -202,12 +191,18 @@ end
 (F::Field)(x::Polymake.Rational) = F(QQ(x))
 (F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
-Polymake.convert_to_pm_type(::Type{Oscar.ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
-Polymake.convert_to_pm_type(::Type{Oscar.QQMatrix}) = Polymake.Matrix{Polymake.Rational}
-Polymake.convert_to_pm_type(::Type{Oscar.ZZRingElem}) = Polymake.Integer
-Polymake.convert_to_pm_type(::Type{Oscar.QQFieldElem}) = Polymake.Rational
+Polymake.convert_to_pm_type(::Type{typeof(min)}) = Polymake.Min
+Polymake.convert_to_pm_type(::Type{typeof(max)}) = Polymake.Max
+
+Polymake.convert_to_pm_type(::Type{ZZMatrix}) = Polymake.Matrix{Polymake.Integer}
+Polymake.convert_to_pm_type(::Type{QQMatrix}) = Polymake.Matrix{Polymake.Rational}
+Polymake.convert_to_pm_type(::Type{ZZRingElem}) = Polymake.Integer
+Polymake.convert_to_pm_type(::Type{QQFieldElem}) = Polymake.Rational
 Polymake.convert_to_pm_type(::Type{T}) where T<:FieldElem = Polymake.OscarNumber
-Polymake.convert_to_pm_type(::Type{<:Oscar.MatElem}) = Polymake.Matrix{Polymake.OscarNumber}
+Polymake.convert_to_pm_type(::Type{<:MatElem{T}}) where T = Polymake.Matrix{Polymake.convert_to_pm_type(T)}
+Polymake.convert_to_pm_type(::Type{<:Graph{T}}) where T<:Union{Directed,Undirected} = Polymake.Graph{T}
+
+Base.convert(::Type{<:Polymake.Graph{T}}, g::Graph{T}) where T<:Union{Directed,Undirected} = Oscar.pm_object(g)
 
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]

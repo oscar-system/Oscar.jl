@@ -90,7 +90,7 @@
   @test matrix(map(tot_xyz, 2)) == R[-y z 0; -x 0 z; 0 -x y]
   @test matrix(map(tot_xyz, 3)) == R[x -y z]
 
-  # Test behaviour w.r.t zero entries
+  # Test behavior w.r.t zero entries
   Z = FreeMod(R, 0)
   Kx = ComplexOfMorphisms([hom(Z, R1, elem_type(R1)[]), hom(R1, R1, [x*R1[1]]), hom(R1, Z, [zero(Z)])], seed = -1)
   Ky = ComplexOfMorphisms([hom(Z, R1, elem_type(R1)[]), hom(R1, R1, [y*R1[1]]), hom(R1, Z, [zero(Z)])], seed = -1)
@@ -206,7 +206,7 @@ end
   @test matrix(map(tot_xyz, 2)) == R[-y z 0; -x 0 z; 0 -x y]
   @test matrix(map(tot_xyz, 3)) == R[x -y z]
 
-  # Test behaviour w.r.t zero entries
+  # Test behavior w.r.t zero entries
   Z = FreeMod(R, 0)
   Kx = ComplexOfMorphisms([hom(Z, R1, elem_type(R1)[]), hom(R1, R1, [x*R1[1]]), hom(R1, Z, [zero(Z)])], seed = -1)
   Ky = ComplexOfMorphisms([hom(Z, R1, elem_type(R1)[]), hom(R1, R1, [y*R1[1]]), hom(R1, Z, [zero(Z)])], seed = -1)

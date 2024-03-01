@@ -9,6 +9,10 @@
    square_by_cells = subdivision_of_points(C,square_max_cells)
    square_by_incidence = subdivision_of_points(C,square_incidence)
 
+   # input from vectors of vectors
+   @test subdivision_of_points(vertices(C),square_weights) isa SubdivisionOfPoints
+   @test subdivision_of_points([[0,0],[1,0],[0,1],[1,1]],square_weights) isa SubdivisionOfPoints
+
    @testset "alternative inputs" begin
       @test collect(maximal_cells(square_by_incidence)) == collect(maximal_cells(square_by_weights))
       @test min_weights(square_by_cells) == min_weights(square_by_weights)

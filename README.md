@@ -14,7 +14,7 @@ Polymake, Antic and Singular.
 OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
-```julia
+```
 julia> using Pkg
 julia> Pkg.add("Oscar")
 julia> using Oscar
@@ -31,21 +31,13 @@ in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ## Examples of usage
 
-```julia
+```
 julia> using Oscar
- -----    -----    -----      -      -----
-|     |  |     |  |     |    | |    |     |
-|     |  |        |         |   |   |     |
-|     |   -----   |        |     |  |-----
-|     |        |  |        |-----|  |   |
-|     |  |     |  |     |  |     |  |    |
- -----    -----    -----   -     -  -     -
-
-...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 1.1.0-DEV ...
-... which comes with absolutely no warranty whatsoever
-Type: '?Oscar' for more information
-(c) 2019-2024 by The OSCAR Development Team
+  ___   ____   ____    _    ____
+ / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+| | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+| |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.1.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -107,7 +99,7 @@ by Submodule with 1 generator
 
 Of course, the cornerstones are also available directly:
 
-```julia
+```
 julia> C = Polymake.polytope.cube(3);
 
 julia> C.F_VECTOR

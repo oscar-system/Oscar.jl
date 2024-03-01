@@ -445,16 +445,30 @@ has_gens(G::GAPGroup) = GAP.Globals.HasGeneratorsOfGroup(G.X)::Bool
 """
     gen(G::GAPGroup, i::Int)
 
-Return the `i`-th element of the vector `gens(G)`.
-This is equivalent to `G[i]`, and returns `gens(G)[i]`
+Return `one(G)` if `i == 0`,
+the `i`-th element of the vector `gens(G)` if `i` is positive,
+and the inverse of the `i`-th element of `gens(G)` if `i` is negative.
+
+For positive `i`, this is equivalent to `G[i]`, and returns `gens(G)[i]`
 but may be more efficient than the latter.
 
-An exception is thrown if `i` is larger than the length of `gens(G)`.
+An exception is thrown if `abs(i)` is larger than the length of `gens(G)`.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(5);  gen(g, 1)
+(1,2,3,4,5)
+
+julia> g[-1]
+(1,5,4,3,2)
+```
 """
 function gen(G::GAPGroup, i::Int)
+   i == 0 && return one(G)
    L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
-   @assert length(L) >= i "The number of generators is lower than the given index"
-   return group_element(G, L[i]::GapObj)
+   0 < i && i <= length(L) && return group_element(G, L[i]::GapObj)
+   i < 0 && -i <= length(L) && return group_element(G, inv(L[-i])::GapObj)
+   @req false "i must be in the range -$(length(L)):$(length(L))"
 end
 
 """
@@ -710,7 +724,8 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element $z$ in `G` such that `x^`$z$ equals `y`.
+i.e., there is an element `z` in `G` such that `x^z` equals `y`.
+To also return the element `z`, use [`is_conjugate_with_data`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -725,6 +740,8 @@ end
 If `x` and `y` are conjugate in `G`,
 return `(true, z)`, where `x^z == y` holds;
 otherwise, return `(false, nothing)`.
+If the conjugating element `z` is not needed,
+use [`is_conjugate`](@ref).
 """
 function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -911,10 +928,13 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 # (The name is confusing because it is not clear *of which group* the result
 # shall be a subgroup.)
 
-"""
+@doc raw"""
     is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 
-Return whether `H` and `K` are conjugate subgroups in `G`.
+Return whether `H` and `K` are conjugate subgroups in `G`,
+i.e., whether there exists an element `z` in  `G` such that
+`H^z` equals `K`. To also return the element `z`
+use [`is_conjugate_with_data`](@ref).
 
 # Examples
 ```jldoctest
@@ -942,8 +962,10 @@ is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(G.X,H.
 """
     is_conjugate_with_data(G::Group, H::Group, K::Group)
 
-If `H` and `K` are conjugate subgroups in `G`, return `true, z`
-where `H^z = K`; otherwise, return `false, nothing`.
+If `H` and `K` are conjugate subgroups in `G`, return `(true, z)`
+where `H^z = K`; otherwise, return `(false, nothing)`.
+If the conjugating element `z` is not needed, use
+[`is_conjugate`](@ref).
 
 # Examples
 ```jldoctest
@@ -1480,7 +1502,7 @@ false
     is_quasisimple(G::GAPGroup)
 
 Return whether `G` is a quasisimple group,
-i.e., `G` is perfect such that the factor group modulo its centre is
+i.e., `G` is perfect such that the factor group modulo its center is
 a non-abelian simple group.
 
 # Examples
@@ -2179,7 +2201,7 @@ function describe(G::FPGroup)
 
    if !GAP.Globals.IsFpGroup(G.X)
      # `G` is a subgroup of an f.p. group
-     G = FPGroup(GAPWrap.Range(GAP.Globals.IsomorphismFpGroup(G.X)))
+     G = FPGroup(GAPWrap.Range(GAPWrap.IsomorphismFpGroup(G.X)))
    end
 
    # check for free groups in disguise

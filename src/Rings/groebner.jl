@@ -719,8 +719,8 @@ julia> U
 [    0   y + 1]
 
 julia> Q
-[x^3 - x*y^2*z^2 + x*y + y^2*z^2         0   y*z^2 + z^2]
-[               -3*y^2*z^2 - y*z   x*y + x             0]
+[  x^3 - x*y^2*z^2 + x*y + y^2*z^2                            0   y*z^2 + z^2]
+[x*y*z^2 + y^3*z - 3*y^2*z^2 - y*z   -x^2*y*z - x^2*z + x*y + x             0]
 
 julia> H
 2-element Vector{QQMPolyRingElem}:
@@ -798,7 +798,7 @@ julia> reduce_with_quotients_and_unit(f, F)
 ([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
 julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([1], [0 y^2], y^6 + 10*y^4 + 1)
+([1], [x*y 0], x*y^4 + 10*y^4 + 1)
 
 julia> M * F + [res] == unit * [f]
 true
@@ -855,7 +855,7 @@ julia> reduce_with_quotients_and_unit(f, F)
 ([1], [x*y 10*x+1], x^4 + 10*x^3 + 1)
 
 julia> unit, M, res = reduce_with_quotients_and_unit(f, F, ordering=lex(R))
-([1], [0 y^2], y^6 + 10*y^4 + 1)
+([1], [x*y 0], x*y^4 + 10*y^4 + 1)
 
 julia> M * F + [res] == unit * [f]
 true
@@ -881,11 +881,6 @@ Return a `Vector` which contains, for each element `g` of `G`, quotients and a r
 !!! note
     The returned remainders are fully reduced if `complete_reduction` is set to `true` and `ordering` is global.
 
-!!! note
-    The reduction strategy behind the `reduce` function and the reduction strategy behind the functions 
-    `reduce_with_quotients` and `reduce_with_quotients_and_unit` differ. As a consequence, the computed
-    remainders may differ.
-
 # Examples
 
 ```jldoctest
@@ -898,7 +893,7 @@ julia> g = x^3*y+x^5+x^2*y^2*z^2+z^6;
 julia> Q, h = reduce_with_quotients(g, [f1,f2, f3], ordering = lex(R));
 
 julia> h
--z^9 + z^7 + z^6 + z^4
+x^5 - x^3 + y^6 + z^6
 
 julia> g == Q[1]*f1+Q[2]*f2+Q[3]*f3+h
 true
@@ -929,7 +924,7 @@ function _reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens, ordering::M
   @assert base_ring(J) == base_ring(I)
   sI = singular_generators(I, ordering)
   sJ = singular_generators(J, ordering)
-  res = Singular.divrem(sI, sJ, complete_reduction=complete_reduction)
+  res = Singular.divrem2(sI, sJ, complete_reduction=complete_reduction)
   return matrix(base_ring(I), res[3]), matrix(base_ring(I), res[1]), [J.gens.Ox(x) for x = gens(res[2])]
 end
 

@@ -9,8 +9,8 @@ A gluing of two affine schemes ``X`` and ``Y`` (the `patches`) along
 open subsets ``U`` in ``X`` and ``V`` in ``Y`` (the `gluing_domains`)
 along mutual isomorphisms ``f : U ↔ V : g`` (the `gluing_morphisms`).
 """
-abstract type AbsGluing{LeftSpecType<:AbsSpec,
-                         RightSpecType<:AbsSpec,
+abstract type AbsGluing{LeftAffineSchemeType<:AbsAffineScheme,
+                         RightAffineSchemeType<:AbsAffineScheme,
                          LeftOpenType<:Scheme,
                          RightOpenType<:Scheme,
                          LeftMorType<:Map,
@@ -24,32 +24,32 @@ abstract type AbsGluing{LeftSpecType<:AbsSpec,
     Gluing
 
 Concrete instance of an `AbsGluing` for gluings of affine schemes 
-``X ↩ U ≅ V ↪ Y`` along open subsets ``U`` and ``V`` of type `SpecOpen`.
+``X ↩ U ≅ V ↪ Y`` along open subsets ``U`` and ``V`` of type `AffineSchemeOpenSubscheme`.
 """
 @attributes mutable struct Gluing{
-                                   LeftSpecType<:AbsSpec,
-                                   RightSpecType<:AbsSpec,
-                                   LeftOpenType<:SpecOpen,
-                                   RightOpenType<:SpecOpen,
-                                   LeftMorType<:SpecOpenMor,
-                                   RightMorType<:SpecOpenMor
+                                   LeftAffineSchemeType<:AbsAffineScheme,
+                                   RightAffineSchemeType<:AbsAffineScheme,
+                                   LeftOpenType<:AffineSchemeOpenSubscheme,
+                                   RightOpenType<:AffineSchemeOpenSubscheme,
+                                   LeftMorType<:AffineSchemeOpenSubschemeMor,
+                                   RightMorType<:AffineSchemeOpenSubschemeMor
                                   } <: AbsGluing{
-                                   LeftSpecType,
-                                   RightSpecType,
+                                   LeftAffineSchemeType,
+                                   RightAffineSchemeType,
                                    LeftOpenType,
                                    RightOpenType,
                                    LeftMorType,
                                    RightMorType
                                   }
-  X::LeftSpecType
-  Y::RightSpecType
+  X::LeftAffineSchemeType
+  Y::RightAffineSchemeType
   U::LeftOpenType
   V::RightOpenType
   f::LeftMorType # f : U → V
   g::RightMorType
 
   function Gluing(
-      X::AbsSpec, Y::AbsSpec, f::SpecOpenMor, g::SpecOpenMor; check::Bool=true
+      X::AbsAffineScheme, Y::AbsAffineScheme, f::AffineSchemeOpenSubschemeMor, g::AffineSchemeOpenSubschemeMor; check::Bool=true
     )
     ambient_scheme(domain(f)) === X || error("the domain of the gluing morphism is not an open subset of the first argument")
     ambient_scheme(codomain(f)) === Y || error("the codomain of the gluing morphism is not an open subset of the second argument")
@@ -84,12 +84,12 @@ Concrete instance of an `AbsGluing` for gluings of affine schemes
 ``X ↩ U ≅ V ↪ Y`` along open subsets ``U`` and ``V`` of type 
 `PrincipalOpenSubset`.
 """
-@attributes mutable struct SimpleGluing{LST<:AbsSpec,
-                                         RST<:AbsSpec,
+@attributes mutable struct SimpleGluing{LST<:AbsAffineScheme,
+                                         RST<:AbsAffineScheme,
                                          LOT<:PrincipalOpenSubset,
                                          ROT<:PrincipalOpenSubset,
-                                         LMT<:AbsSpecMor,
-                                         RMT<:AbsSpecMor
+                                         LMT<:AbsAffineSchemeMor,
+                                         RMT<:AbsAffineSchemeMor
                                         } <: AbsGluing{LST, RST, LOT, ROT, LMT, RMT}
   X::LST
   Y::RST
@@ -99,9 +99,9 @@ Concrete instance of an `AbsGluing` for gluings of affine schemes
   g::RMT
 
   function SimpleGluing(
-      X::AbsSpec, Y::AbsSpec,
-      f::AbsSpecMor{<:PrincipalOpenSubset},
-      g::AbsSpecMor{<:PrincipalOpenSubset};
+      X::AbsAffineScheme, Y::AbsAffineScheme,
+      f::AbsAffineSchemeMor{<:PrincipalOpenSubset},
+      g::AbsAffineSchemeMor{<:PrincipalOpenSubset};
       check::Bool=true
     )
     U = domain(f)

@@ -318,9 +318,9 @@ function johnson_solid(index::Int)
   if haskey(_johnson_names, index)
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/JohnsonSrc
-    vertices = load(joinpath(oscardir, "data", "JohnsonMatrices", string("j", index, ".mat")))
-    parent_field = base_ring(vertices)
-    return convex_hull(parent_field, vertices; non_redundant = true)
+    str_index = lpad(index, 2, '0')
+    filename = "j$str_index" * ".mrdi"
+    return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
   end
   pmp = Polymake.polytope.johnson_solid(index)
   return polyhedron(pmp)

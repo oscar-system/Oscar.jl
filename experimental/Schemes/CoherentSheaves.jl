@@ -93,8 +93,8 @@ end
 #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) === ambient_scheme(V) in the basic charts of X
 #  * U::PrincipalOpenSubset ⊂ V::PrincipalOpenSubset with ambient_scheme(U) != ambient_scheme(V) both in the basic charts of X
 #    and U and V contained in the gluing domains of their ambient schemes
-#  * U::AbsSpec ⊂ U::AbsSpec in the basic charts of X
-#  * U::AbsSpec ⊂ X for U in the basic charts
+#  * U::AbsAffineScheme ⊂ U::AbsAffineScheme in the basic charts of X
+#  * U::AbsAffineScheme ⊂ X for U in the basic charts
 #  * U::PrincipalOpenSubset ⊂ X with ambient_scheme(U) in the basic charts of X
 function _is_open_for_modules(X::AbsCoveredScheme)
   function is_open_func(U::PrincipalOpenSubset, V::PrincipalOpenSubset)
@@ -117,21 +117,21 @@ function _is_open_for_modules(X::AbsCoveredScheme)
   function is_open_func(U::PrincipalOpenSubset, Y::AbsCoveredScheme)
     return Y === X && ambient_scheme(U) in affine_charts(X)
   end
-  function is_open_func(U::AbsSpec, Y::AbsCoveredScheme)
+  function is_open_func(U::AbsAffineScheme, Y::AbsCoveredScheme)
     return Y === X && U in affine_charts(X)
   end
   function is_open_func(Z::AbsCoveredScheme, Y::AbsCoveredScheme)
     return X === Y === Z
   end
-  function is_open_func(U::AbsSpec, V::AbsSpec)
+  function is_open_func(U::AbsAffineScheme, V::AbsAffineScheme)
     any(x->x===U, affine_charts(X)) || return false
     any(x->x===V, affine_charts(X)) || return false
     G = default_covering(X)[U, V]
     return is_subscheme(U, gluing_domains(G)[1])
   end
   function is_open_func(
-      U::AbsSpec,
-      V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+      U::AbsAffineScheme,
+      V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
     )
     is_subscheme(U, V) && return true
     any(x->x===U, affine_charts(X)) || return false
@@ -146,8 +146,8 @@ function _is_open_for_modules(X::AbsCoveredScheme)
     return is_subset(U, pre_V)
   end
   function is_open_func(
-      U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-      V::AbsSpec
+      U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+      V::AbsAffineScheme
     )
     any(x->x===V, affine_charts(X)) || return false
     inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
@@ -172,7 +172,7 @@ A sheaf of modules ``ℳ`` on an `AbsCoveredScheme` ``X``.
 
 Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
- * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::AbsAffineScheme` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``ℳ`` across charts implicitly using the
@@ -185,7 +185,7 @@ identifications given by the gluings in the `default_covering`.
                                                                SpaceType, OpenType,
                                                                OutputType, RestrictionType
                                                               }
-  ID::IdDict{AbsSpec, ModuleFP} # the modules on the basic patches of the default covering
+  ID::IdDict{AbsAffineScheme, ModuleFP} # the modules on the basic patches of the default covering
   OOX::StructureSheafOfRings # the structure sheaf on X
   M::PreSheafOnScheme # the underlying presheaf of modules for caching
   C::Covering # The covering of X on which the modules had first been described, a.k.a. the
@@ -193,8 +193,8 @@ identifications given by the gluings in the `default_covering`.
 
   ### Sheaves of modules on covered schemes
   function SheafOfModules(X::AbsCoveredScheme,
-      MD::IdDict{AbsSpec, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
-      MG::IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}; # A dictionary for pairs `(U, V)` of
+      MD::IdDict{AbsAffineScheme, ModuleFP}, # A dictionary of modules on the `affine_charts` of `X`
+      MG::IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}; # A dictionary for pairs `(U, V)` of
                                                        # `affine_charts` of `X` such that
                                                        # A = MG[(U, V)] has entries aᵢⱼ with
                                                        # gᵢ = ∑ⱼ aᵢⱼ ⋅ fⱼ on U ∩ V with gᵢ the
@@ -205,7 +205,7 @@ identifications given by the gluings in the `default_covering`.
       check::Bool=true,
       default_cov::Covering=begin                      # This will be the `default_covering` of the sheaf to be created.
         patch_list = collect(keys(MD))
-        gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+        gluing_dict = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
         C = Covering(patch_list, gluing_dict)
         inherit_gluings!(C, default_covering(X))
         C
@@ -223,7 +223,7 @@ identifications given by the gluings in the `default_covering`.
     ### Lookup and production pattern for sheaves of modules
     #
     # When asked to produce a module on an open affine U, the functions
-    # below lead to the following behaviour.
+    # below lead to the following behavior.
     #
     #                     U₁                    an `affine_chart` of `X`
     #           _________/|\______________      (`patches` of `default_covering(X)`)
@@ -270,7 +270,7 @@ identifications given by the gluings in the `default_covering`.
     ### Production of the modules on open sets; to be cached
     function production_func(
         F::AbsPreSheaf,
-        U::AbsSpec
+        U::AbsAffineScheme
       )
       # Since the other cases are caught by the methods below,
       # U can only be an affine_chart of X.
@@ -305,7 +305,7 @@ identifications given by the gluings in the `default_covering`.
 
     function production_func(
         F::AbsPreSheaf,
-        U::SimplifiedSpec
+        U::SimplifiedAffineScheme
       )
       # Check whether we can directly produce the module
       haskey(MD, U) && return MD[U]
@@ -325,7 +325,7 @@ identifications given by the gluings in the `default_covering`.
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       # Since the other cases are caught by the methods below, both U and V
       # must be `affine_chart`s of X with U contained in V along some gluing.
       if any(W->(W === U), affine_charts(X)) && any(W->(W === V), affine_charts(X))
@@ -341,7 +341,7 @@ identifications given by the gluings in the `default_covering`.
       end
     end
 
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::PrincipalOpenSubset)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::PrincipalOpenSubset)
       # If V was not an affine_chart of X, some other function would have
       # been triggered.
 
@@ -373,7 +373,7 @@ identifications given by the gluings in the `default_covering`.
                 )
     end
 
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::SimplifiedSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::SimplifiedAffineScheme)
       # If V was not an affine_chart of X, some other function would have
       # been triggered.
       @assert any(x->x===V, affine_charts(X)) "first argument must be an affine chart"
@@ -407,8 +407,8 @@ identifications given by the gluings in the `default_covering`.
                 )
     end
     function restriction_func(F::AbsPreSheaf,
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-        U::AbsSpec
+        V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+        U::AbsAffineScheme
       )
       # We know that V can not be an ancestor of U, but U must be an affine chart.
       # Probably even an ancestor of V itself.
@@ -499,7 +499,7 @@ identifications given by the gluings in the `default_covering`.
       end
       return hom(F(V), F(U), img_gens, OOX(V, U))
     end
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedSpec)
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, U::SimplifiedAffineScheme)
       if V === original(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
       elseif has_ancestor(W->W===V, U)
@@ -557,7 +557,7 @@ identifications given by the gluings in the `default_covering`.
       end
       return hom(F(V), F(U), img_gens, OOX(V, U))
     end
-    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::PrincipalOpenSubset)
+    function restriction_func(F::AbsPreSheaf, V::SimplifiedAffineScheme, U::PrincipalOpenSubset)
       if V === ambient_scheme(U)
         return hom(F(V), F(U), gens(F(U)), OOX(V, U)) # If this had been more complicated, it would have been cached.
       elseif has_ancestor(W->W===V, U)
@@ -615,7 +615,7 @@ identifications given by the gluings in the `default_covering`.
       end
       return hom(F(V), F(U), img_gens, OOX(V, U))
     end
-    function restriction_func(F::AbsPreSheaf, V::SimplifiedSpec, U::SimplifiedSpec)
+    function restriction_func(F::AbsPreSheaf, V::SimplifiedAffineScheme, U::SimplifiedAffineScheme)
       V === U && return identity_map(F(U))
 
       if V === original(U)
@@ -677,12 +677,12 @@ identifications given by the gluings in the `default_covering`.
     end
 
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                       #is_open_func=_is_open_for_modules(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Map}(MD, OOX, Mpre, default_cov)
+    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(MD, OOX, Mpre, default_cov)
     if check
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
@@ -737,7 +737,7 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
   haskey(twisting_sheaves, d) && return twisting_sheaves[d]
 
   X = covered_scheme(IP)
-  MD = IdDict{AbsSpec, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, ModuleFP}()
   S = homogeneous_coordinate_ring(IP)
   n = ngens(S)-1
   for i in 1:n+1
@@ -745,7 +745,7 @@ function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
     MD[U] = FreeMod(OO(U), ["$(symbols(S)[i])^$d"])
   end
 
-  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
@@ -801,11 +801,11 @@ on ``X`` as a `CoherentSheaf`.
 
 """
 @attr SheafOfModules function cotangent_sheaf(X::AbsCoveredScheme)
-  MD = IdDict{AbsSpec, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, ModuleFP}()
   for U in affine_charts(X)
     MD[U] = cotangent_module(U)
   end
-  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
@@ -821,28 +821,28 @@ on ``X`` as a `CoherentSheaf`.
 end
 
 @doc raw"""
-    cotangent_module(X::AbsSpec)
+    cotangent_module(X::AbsAffineScheme)
 
 Return the ``𝒪(X)``-module ``Ω¹(X)`` of Kaehler-differentials on ``X``.
 """
-function cotangent_module(X::AbsSpec)
+function cotangent_module(X::AbsAffineScheme)
   error("method not implemented for this type of ring")
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyRing})
+@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyRing})
   R = OO(X)
   F = FreeMod(R, ["d$(x)" for x in symbols(R)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyLocRing})
+@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
   return F
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoRing})
+@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -851,7 +851,7 @@ end
   return M
 end
 
-@attr ModuleFP function cotangent_module(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+@attr ModuleFP function cotangent_module(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   R = OO(X)
   P = base_ring(R)
   F = FreeMod(R, ["d$(x)" for x in symbols(P)])
@@ -895,11 +895,11 @@ end
     OOX === sheaf_of_rings(G) || error("sheaves must be defined over the same sheaves of rings")
 
     ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
       return hom(F(U), G(U))[1]
     end
 
-    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       MV = FF(V)
       MU = FF(U)
       dom_res = F(V, U)
@@ -923,11 +923,11 @@ end
     end
 
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Map}(F, G, OOX, Mpre)
+    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(F, G, OOX, Mpre)
 
     return M
   end
@@ -961,14 +961,14 @@ codomain(M::HomSheaf) = M.codomain
     all(x->(sheaf_of_rings(x)===OOX), summands) || error("summands must be defined over the same sheaves of rings")
 
     ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
       result, inc, pr = direct_sum([F(U) for F in summands]..., task=:both)
       set_attribute!(result, :inclusions, inc) # TODO: Workaround as long as the maps are not cached.
       set_attribute!(result, :projections, pr)
       return result
     end
 
-    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       MV = FF(V)
       MU = FF(U)
       inc_V = get_attribute(MV, :inclusions)::Vector
@@ -987,11 +987,11 @@ codomain(M::HomSheaf) = M.codomain
     end
 
     Mpre = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    M = new{typeof(X), AbsSpec, ModuleFP, Map}(summands, OOX, Mpre)
+    M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(summands, OOX, Mpre)
 
     return M
   end
@@ -1042,12 +1042,12 @@ end
 function free_module(R::StructureSheafOfRings, gen_names::Vector{Symbol})
   X = space(R)
   n = length(gen_names)
-  MD = IdDict{AbsSpec, ModuleFP}()
+  MD = IdDict{AbsAffineScheme, ModuleFP}()
   for U in affine_charts(X)
     MD[U] = FreeMod(OO(U), gen_names)
   end
 
-  MG = IdDict{Tuple{AbsSpec, AbsSpec}, MatrixElem}()
+  MG = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, MatrixElem}()
   C = default_covering(X)
   for G in values(gluings(C))
     (U, V) = patches(G)
@@ -1109,7 +1109,7 @@ end
   OOX::StructureSheafOfRings
   OOY::StructureSheafOfRings
   M::AbsCoherentSheaf
-  ident::IdDict{AbsSpec, Union{Map, Nothing}} # a dictionary caching the identifications
+  ident::IdDict{AbsAffineScheme, Union{Map, Nothing}} # a dictionary caching the identifications
   F::PreSheafOnScheme
 
   function PushforwardSheaf(inc::CoveredClosedEmbedding, M::AbsCoherentSheaf)
@@ -1120,7 +1120,7 @@ end
     OOY = OO(Y)
 
     ### Production of the modules on open sets; to be cached
-    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
       # In case X was empty, return the zero module and store nothing in the identifications.
       if isempty(X)
         ident[U] = nothing
@@ -1166,7 +1166,7 @@ end
     end
 
 
-    function restriction_func(FF::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(FF::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       MYV = FF(V)
       MYU = FF(U)
       incV_list = maps_with_given_codomain(inc, V)
@@ -1183,15 +1183,15 @@ end
       return hom(MYV, MYU, (x->preimage(ident[U], x)).(img_gens), OOY(V, U))
     end
 
-    ident = IdDict{AbsSpec, Union{Map, Nothing}}()
+    ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
     Blubber = PreSheafOnScheme(Y, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(Y)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(Y)
                       #is_open_func=_is_open_for_modules(Y)
                      )
-    MY = new{typeof(Y), AbsSpec, ModuleFP, Map}(inc, OOX, OOY, M, ident, Blubber)
+    MY = new{typeof(Y), AbsAffineScheme, ModuleFP, Map}(inc, OOX, OOY, M, ident, Blubber)
     return MY
   end
 end
@@ -1255,7 +1255,7 @@ end
   OOX::StructureSheafOfRings # the sheaf of rings in the domain
   OOY::StructureSheafOfRings # the sheaf of rings in the codomain
   M::AbsCoherentSheaf        # the sheaf of modules on Y
-  pullback_of_sections::IdDict{AbsSpec, Union{Map, Nothing}} # a dictionary caching the natural
+  pullback_of_sections::IdDict{AbsAffineScheme, Union{Map, Nothing}} # a dictionary caching the natural
                                                                    # pullback maps along the maps in the `covering_morphism` of f
   F::PreSheafOnScheme        # the internal caching instance doing the bookkeeping
 
@@ -1268,7 +1268,7 @@ end
     fcov = covering_morphism(f)::CoveringMorphism
     CX = domain(fcov)::Covering
     CY = codomain(fcov)::Covering
-    pullbacks = IdDict{AbsSpec, Map}()
+    pullbacks = IdDict{AbsAffineScheme, Map}()
 
     ### Production of the modules on open sets.
     #
@@ -1283,7 +1283,7 @@ end
     #
     # Again, this case is not implemented for the time being.
 
-    function production_func(FF::AbsPreSheaf, U::AbsSpec)
+    function production_func(FF::AbsPreSheaf, U::AbsAffineScheme)
       # See whether U is a patch of the domain covering and pull back directly
       if haskey(morphisms(fcov), U)
         floc = morphisms(fcov)[U]
@@ -1297,7 +1297,7 @@ end
     end
 
     function production_func(FF::AbsPreSheaf,
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
       )
       # See whether U is a patch of the domain covering and pull back directly
       if haskey(morphisms(fcov), U)
@@ -1344,7 +1344,7 @@ end
     # 4) If V is a node hanging below some patch in `domain(ϕ)` and
     #    U is a subset, restrict as usual.
 
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       if haskey(morphisms(fcov), V)
         if haskey(morphisms(fcov), U)
           # case 1)
@@ -1365,14 +1365,14 @@ end
       error("case not implemented")
     end
 
-    ident = IdDict{AbsSpec, Union{Map, Nothing}}()
+    ident = IdDict{AbsAffineScheme, Union{Map, Nothing}}()
 
     Blubber = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=ModuleFP,
+                      OpenType=AbsAffineScheme, OutputType=ModuleFP,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    MY = new{typeof(X), AbsSpec, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber)
+    MY = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(f, OOX, OOY, M, pullbacks, Blubber)
     return MY
   end
 end
@@ -1435,7 +1435,7 @@ end
 @attr function trivializing_covering(M::AbsCoherentSheaf)
   X = scheme(M)
   OOX = OO(X)
-  patch_list = Vector{AbsSpec}()
+  patch_list = Vector{AbsAffineScheme}()
   for U in affine_charts(X)
     patch_list = vcat(patch_list, _trivializing_covering(M, U))
   end
@@ -1485,7 +1485,7 @@ end
   # M on the Ws.
   dom_triv = trivializing_covering(domain(M))
   cod_triv = trivializing_covering(codomain(M))
-  patch_list = AbsSpec[]
+  patch_list = AbsAffineScheme[]
   for U in patches(dom_triv)
     for V in patches(cod_triv)
       success, W = _have_common_ancestor(U, V)
@@ -1550,7 +1550,7 @@ end
   return C
 end
 
-function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
+function _trivializing_covering(M::AbsCoherentSheaf, U::AbsAffineScheme)
   X = scheme(M)
   OOX = OO(X)
   MU = M(U)
@@ -1580,7 +1580,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
     Y = connected_components(U)
     length(Y) == 1 && error("sheaf is not locally free")
 
-    return_patches = AbsSpec[]
+    return_patches = AbsAffineScheme[]
     for V in Y
       # Test for being locally free on V
       rho = OOX(U, V)
@@ -1596,7 +1596,7 @@ function _trivializing_covering(M::AbsCoherentSheaf, U::AbsSpec)
   # are sufficient to do so. This set can not assumed to be minimal, though.
   a = coordinates(one(OOX(U)), I)
   nonzero_entries = [ i for i in 1:ngens(I) if !iszero(a[i])]
-  return_patches = AbsSpec[]
+  return_patches = AbsAffineScheme[]
 
   for t in nonzero_entries
     i = div(t-1, ncols(A)) + 1
@@ -1707,8 +1707,8 @@ function projectivization(E::AbsCoherentSheaf;
   X = scheme(E)
   check && (is_locally_free(E) || error("coherent sheaf must be locally free"))
   C = trivializing_covering(E)
-  algebras = IdDict{AbsSpec, Union{MPolyQuoRing, MPolyRing}}()
-  on_patches = IdDict{AbsSpec, AbsProjectiveScheme}()
+  algebras = IdDict{AbsAffineScheme, Union{MPolyQuoRing, MPolyRing}}()
+  on_patches = IdDict{AbsAffineScheme, AbsProjectiveScheme}()
 
   # Fill in the names of the variables in case there are none provided.
   if length(var_names) == 0
@@ -1730,11 +1730,11 @@ function projectivization(E::AbsCoherentSheaf;
     RU = rees_algebra(E(U), var_names=var_names[1:r])
     algebras[U] = RU
     SU, _ = grade(RU)
-    PU = ProjectiveScheme(SU)
+    PU = proj(SU)
     set_base_scheme!(PU, U)
     on_patches[U] = PU
   end
-  projective_gluings = IdDict{Tuple{AbsSpec, AbsSpec}, AbsProjectiveGluing}()
+  projective_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsProjectiveGluing}()
   OX = StructureSheafOfRings(X)
 
   # prepare for the projective gluings
@@ -1755,11 +1755,11 @@ function projectivization(E::AbsCoherentSheaf;
     # on the overlap U ∩ V.
     !(G isa Gluing) || error("method not implemented for this type of gluing")
 
-    # The problem is that on a SpecOpen U ∩ V
+    # The problem is that on a AffineSchemeOpenSubscheme U ∩ V
     # despite I(U)|U ∩ V == I(V)|U ∩ V, we
     # have no method to find coefficients aᵢⱼ such that fᵢ = ∑ⱼaᵢⱼ⋅gⱼ
     # for the generators fᵢ of I(U) and gⱼ of I(V): Even though
-    # we can do this locally on the patches of a SpecOpen, the result
+    # we can do this locally on the patches of a AffineSchemeOpenSubscheme, the result
     # is not guaranteed to glue to global functions on the overlap.
     # Abstractly, we know that the intersection of affine charts
     # in a separated scheme must be affine, but we do not have a

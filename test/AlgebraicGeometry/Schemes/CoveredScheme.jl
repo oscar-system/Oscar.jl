@@ -1,12 +1,12 @@
 @testset "Covered schemes 1" begin
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
-  X = subscheme(Spec(R), [x^2+y^2])
+  X = subscheme(spec(R), [x^2+y^2])
   P = projective_space(X, 3)
   S = homogeneous_coordinate_ring(P)
   (u, v) = gen(S, 1), gen(S, 2)
-  h = u^3 
+  h = u^3
   h = u^3 + u^2
-  h = u^3 + (u^2)*v 
+  h = u^3 + (u^2)*v
   h = u^3 + u^2*v - OO(X)(x)*v^3
   Z = subscheme(P, h)
   C = standard_covering(Z)
@@ -25,7 +25,7 @@ end
   Y = subscheme(P, [x*z,y*z])
   @test dim(covered_scheme(Y)) == 2
   C = standard_covering(X)
-  D, i, j = simplify(C) 
+  D, i, j = simplify(C)
   @test all( x->(ngens(ambient_coordinate_ring(x)) == 2), collect(D))
   @test Oscar.transition_graph(Pc[1]) isa Graph
   @test Oscar.transition_graph(C) isa Graph
@@ -33,7 +33,7 @@ end
 
 @testset "standard_covering" begin
   R, t = polynomial_ring(QQ,["t"])
-  T = Oscar.standard_spec(subscheme(Spec(R),t))
+  T = Oscar.standard_spec(subscheme(spec(R),t))
   Pt= projective_space(T, 2)
   X = covered_scheme(Pt)
   @test dim(X) == 2
@@ -50,7 +50,7 @@ end
 
   R = base_ring(OO(Ccov[1][2]))
   L, _ = localization(R, R[1])
-  @test Oscar.poly_type(Spec(R)) === Oscar.poly_type(Spec(L)) === Oscar.poly_type(Ccov[1][2])
+  @test Oscar.poly_type(spec(R)) === Oscar.poly_type(spec(L)) === Oscar.poly_type(Ccov[1][2])
   Lnew, f, g = simplify(L)
   @test !(L == Lnew)
   @test compose(f, g) == identity_map(L)
@@ -59,7 +59,7 @@ end
   C1 = default_covering(Ccov)
   C2, f, g = simplify(C1)
   tmp1 = compose(f, g)
-  tmp2 = compose(g, f) 
+  tmp2 = compose(g, f)
   @test domain(tmp1) === codomain(tmp1) === C2
   @test domain(tmp2) === codomain(tmp2) === C1
   @test length(C2) == 3
@@ -70,7 +70,7 @@ end
 
   U = C1[2]
   x = gens(ambient_coordinate_ring(U))[1]
-  W = SpecOpen(U, [x, x-1])
+  W = AffineSchemeOpenSubscheme(U, [x, x-1])
   W1, W2 = affine_patches(W)
   #add_affine_refinement!(C1, W)
 
@@ -155,7 +155,7 @@ end
   @test is_integral(Ycov)
 
   R = forget_grading(S)
-  A = Spec(R)
+  A = spec(R)
   @test is_integral(A)
   @test is_integral(hypersurface_complement(A, R[1]))
 
@@ -222,7 +222,7 @@ end
   kk, pr = quo(ZZ, 5)
   IP1 = covered_scheme(projective_space(ZZ, 1))
   IP1_red, red_map = base_change(pr, IP1)
-  
+
   IP2 = projective_space(ZZ, 2)
   S = homogeneous_coordinate_ring(IP2)
   (x, y, z) = gens(S)
@@ -246,7 +246,7 @@ end
   x, y, z = gens(OO(U))
   V2 = PrincipalOpenSubset(U, x)
   V1 = PrincipalOpenSubset(U, x-1)
-  new_cov = Covering(append!(AbsSpec[V1, V2], patches(orig_cov)[2:end]))
+  new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
   Oscar.inherit_gluings!(new_cov, orig_cov)
   Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
   @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
