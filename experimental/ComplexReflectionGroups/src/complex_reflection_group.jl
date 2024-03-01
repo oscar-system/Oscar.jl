@@ -27,7 +27,7 @@ export complex_reflection_group_dual
 # code there are several transpose operation for the final generators.
 ###########################################################################################
 
-function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
+function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:LT)
     
     # this will be the list of matrix groups corresponding to the components of G
     component_groups = MatrixGroup[]
@@ -53,7 +53,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -97,7 +97,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -141,7 +141,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -184,7 +184,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -316,7 +316,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     i = K(i)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
@@ -359,7 +359,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     R,x = polynomial_ring(K)
                     K,sqrt2 = number_field(x^2-2, "√2")
                     i = K(i)
@@ -509,7 +509,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     R,x = polynomial_ring(K)
                     K,sqrt2 = number_field(x^2-2, "√2")
                     i = K(i)
@@ -555,7 +555,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
+                    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
                     R,x = polynomial_ring(K)
                     K,sqrt2 = number_field(x^2-2, "√2")
                     i = K(i)
@@ -602,14 +602,18 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
             # G16
             elseif t == 16
 
+                print(model)
                 if model == :LT
                     # See Lehrer & Taylor (2009), page 89-90
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+                    i = K(i)
+                    τ = K(τ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -651,9 +655,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+                    i = K(i)
+                    τ = K(τ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -695,12 +702,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
-                    R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    ω = K(ω)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+                    i = K(i)
+                    τ = K(τ)
+                    R,x = polynomial_ring(K)
+                    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+                    i = K(i)
+                    τ = K(τ)
+                    ζ = K(ζ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -742,12 +754,17 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
-                    R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    ω = K(ω)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+                    i = K(i)
+                    τ = K(τ)
+                    R,x = polynomial_ring(K)
+                    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+                    i = K(i)
+                    τ = K(τ)
+                    ζ = K(ζ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -795,12 +812,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
-                    R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    ω = K(ω)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+                    i = K(i)
+                    τ = K(τ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -842,12 +859,12 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ω = number_field(x^2+x+1, "ω")
-                    R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    ω = K(ω)
-                    τ = ζ + ζ^-1 + 1
+                    R,x = polynomial_ring(K)
+                    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+                    i = K(i)
+                    τ = K(τ)
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -889,9 +906,8 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
                     R,x = polynomial_ring(QQ)
                     K,i = number_field(x^2+1, "i")
                     R,x = polynomial_ring(K)
-                    K,ζ = number_field(x^4+x^3+x^2+x+1, "ζ")
+                    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
                     i = K(i)
-                    τ = ζ + ζ^-1 + 1
                     matspace = matrix_space(K, 2, 2)
                     gens = elem_type(matspace)[]
 
@@ -935,7 +951,14 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
             elseif t == 23
                 
                 if model == :LT
-                    nothing
+                    # See Lehrer & Taylor (2009), page 110
+                    # This group is realized by the line system H3
+                    R,x = polynomial_ring(QQ)
+                    K,τ = number_field(x^2-x-1, "τ")
+                    V = vector_space(K,3)
+
+                    lines = [V([1,0,0]), V([0,1,0]), V([0,0,1])]
+                    push!(lines, [V()])
 
                 elseif model == :Magma
                     K,zeta_5 = cyclotomic_field(5)
@@ -1719,11 +1742,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType; model=:LT)
 end
 
 # Convenience constructors
-complex_reflection_group(i::Int; model=nothing) = complex_reflection_group(ComplexReflectionGroupType(i); model=model)
+complex_reflection_group(i::Int, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(i), model)
 
-complex_reflection_group(m::Int, p::Int, n::Int; model=nothing) = complex_reflection_group(ComplexReflectionGroupType(m,p,n); model=model)
+complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(m,p,n), model)
 
-complex_reflection_group(X::Vector; model=nothing) = complex_reflection_group(ComplexReflectionGroupType(X); model=model)
+complex_reflection_group(X::Vector, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(X), model)
 
 function complex_reflection_group_type(G::MatrixGroup)
     if has_attribute(G, :complex_reflection_group_type)
