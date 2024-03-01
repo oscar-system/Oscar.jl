@@ -180,15 +180,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   Q = codomain(mp)
   if order(Q) == 1
     F = free_module(ZZ, 1)
-<<<<<<< HEAD
     I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x in gens(Q)])]
   else
     I = irreducible_modules(ZZ, Q)
-=======
-    I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x = gens(Q)])]
-  else
-    I = irreducible_modules(ZZ, Q) 
->>>>>>> 2f54f7a14a (fixes for "THE" book)
   end
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
@@ -416,6 +410,7 @@ function lift(C::GModule, mp::Map)
   #TODO: the projection maps seem to be rather slow - in particular
   #      as they SHOULD be trivial...
   global last_k = k
+  @show D, dim(D), E
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = mH2(pDE[2](mk(x))) #the tail data
@@ -424,6 +419,7 @@ function lift(C::GModule, mp::Map)
     else
       push!(seen, (epi, chn))
     end
+    @show chn
     #TODO: not all "chn" yield distinct groups - the factoring by the
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
@@ -458,14 +454,13 @@ function lift(C::GModule, mp::Map)
     end
     @show [pro[i](epi) for i=1:ngens(G)]
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-    @show map(order, l), order(prod(l))
-    global last_x = l
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
     h = try
           hom(G, GG, l)
         catch
           @show :crash
+          global last_in = (C, mp)
           continue
         end
     if !is_surjective(h)
