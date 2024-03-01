@@ -471,13 +471,23 @@ where the `i`-th generator is printed as `L[i]`.
 
 !!! warning "Note"
     Variables named like the group generators are *not* created by this function.
+
+# Examples
+```jldoctest
+julia> F = free_group(:a, :b)
+Free group of rank 2
+
+julia> w = F[1]^3 * F[2]^F[1] * F[-2]^2
+a^2*b*a*b^-2
+```
 """
 function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
+   t = s isa Char ? string(s) : s
    if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t))::GapObj)
    end
    GAP.Globals.SetRankOfFreeGroup(G.X, n)
    return G
@@ -490,12 +500,14 @@ function free_group(L::Vector{<:VarName})
    return G
 end
 
-function free_group(L::VarName...)
-   J = GAP.GapObj(L, recursive = true)
+function free_group(L::Vector{<:Char})
+   J = GAP.GapObj(Symbol.(L), recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
    return G
 end
+
+free_group(L::VarName...) = free_group(collect(L))
 
 # FIXME: a function `free_abelian_group` with the same signature is
 # already being defined by Hecke
