@@ -105,6 +105,20 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
   iac::Vector{Map} # the inverses of ac
 end
 
+function Base.:(==)(F::GModule{gT,mT}, E::GModule{gT,mT}) where {gT, mT}
+  F.G == E.G || return false
+  F.M == E.M || return false
+  return F.ac == E.ac
+end
+
+function Base.hash(F::GModule{gT,mT}, h::UInt) where {gT, mT}
+  b = 0x535bbdbb2bc54b46%UInt
+  h = hash(F.G, h)
+  h = hash(F.M, h)
+  h = hash(F.ac, h)
+  return xor(h, b)
+end
+
 function Base.show(io::IO, C::GModule)
   @show_name(io, C)
   @show_special(io, C)
@@ -170,11 +184,11 @@ end
 function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
   if !isdefined(C, :F)
-    if order(Group(C)) == 1
+    if (!isa(group(C), FPGroup)) && is_trivial(group(C))
       C.F = free_group(0)
-      C.mF = hom(C.F, Group(C), gens(C.F), elem_type(Group(C))[])
+      C.mF = hom(C.F, group(C), gens(C.F), elem_type(group(C))[])
     else
-      C.F, C.mF = fp_group_with_isomorphism(gens(Group(C)))
+      C.F, C.mF = fp_group_with_isomorphism(gens(group(C)))
     end
   end
   return C.F, C.mF
@@ -2272,4 +2286,3 @@ using .GrpCoh
 export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
-
