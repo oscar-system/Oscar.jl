@@ -9,9 +9,13 @@ end
 
 ## Transitive permutation groups of small degree
 
-TODO: explain about the scope of this.
+The functions in this section are wrappers for the GAP library of
+transitive permutation groups up to degree ``48'',
+via the GAP package `TransGrp` [Hul23](@cite).
 
-TODO: give proper attribution to the transgrp package (in particular, cite it)
+(The groups of degrees ``32'' and ``48'' are currently not automatically
+available in Oscar,
+one has to install additional data in order to access them.)
 
 The arrangement and the names of the groups of degree up to 15 is the same as given in
 [CHM98](@cite). With the exception of the symmetric and alternating group (which are represented
@@ -35,9 +39,11 @@ transitive_group_identification
 
 ## Primitive permutation groups of small degree
 
-TODO: explain about the scope of this.
-
-TODO: give proper attribution to the primitive groups library (in particular, cite it)
+The functions in this section are wrappers for the GAP library of
+primitive permutation groups up to degree ``8191'',
+via the GAP package `PrimGrp` [HRR23](@cite).
+See the documentation of this package for more information about
+the source of the data.
 
 ```@docs
 all_primitive_groups
@@ -67,7 +73,8 @@ were found in 2020 by Alexander Hulpke.
 
 The perfect groups of size less than $2\cdot 10^6$ which had not been
 classified in the work of Holt and Plesken have been enumerated by Alexander
-Hulpke. They are stored directly and provide less construction information
+Hulpke, see [Hul22](@cite).
+They are stored directly and provide less construction information
 in their names.
 
 As all groups are stored by presentations, a permutation representation
@@ -88,9 +95,9 @@ perfect_group_identification
 
 ## Groups of small order
 
-TODO: explain about the scope of this.
-
-TODO: give proper attribution to the smallgrp package and other things used (in particular, cite it)
+The functions in this section are wrappers for the GAP library of groups
+of order up to 2000 (except those of order 1024),
+via the GAP package `SmallGrp` [BEO23](@cite).
 
 ```@docs
 all_small_groups
