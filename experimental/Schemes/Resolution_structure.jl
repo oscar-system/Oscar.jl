@@ -4,51 +4,24 @@ export _desing_curve
 # Desingularization morphism: birational map between covered schemes with smooth domain
 #####################################################################################################
 
-#@doc raw"""
-#     AbsDesingMor{DomainType<:AbsCoveredScheme,
-#                  CodomainType<:AbsCoveredScheme
-#                 } <: AbsCoveredSchemeMorphism{
-#                                 DomainType,
-#                                 CodomainType,
-#                                 Nothing,
-#                                 CoveredSchemeMorphismType
-#                                }
-#Abstract type for desingularizations ``f : X -> Y `` of schemes where
-#
-#  * ``Y`` is the scheme of which the singularities are to be resolved
-#  * ``f`` is a birational proper map 
-#          may for instance be BlowUpSequence or Lipman-style combination of blow-ups and normalization
-#  * ``Y`` is a regular scheme
-#"""
-abstract type AbsDesingMor{
-                  DomainType<:AbsCoveredScheme,
-                  CodomainType<:AbsCoveredScheme
-                 } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 Nothing,
-                                 AbsDesingMor}
-end
-
-#@doc raw"""
-#    BlowUpSequence{
-#    DomainType<:AbsCoveredScheme,
-#    CodomainType<:AbsCoveredScheme
-#   } <: AbsDesingMor{
-#                                 DomainType,
-#                                 CodomainType,
-#                                }
-#
-#
-#"""
-
-@attributes mutable struct BlowUpSequence{
+@doc raw"""
+    BlowUpSequence{
     DomainType<:AbsCoveredScheme,
     CodomainType<:AbsCoveredScheme
    } <: AbsDesingMor{
                                  DomainType,
                                  CodomainType,
-                    }
+                                }
+
+
+"""
+@attributes mutable struct BlowUpSequence{
+                                          DomainType<:AbsCoveredScheme,
+                                          CodomainType<:AbsCoveredScheme
+                                         }<:AbsBlowdownMorphism{
+                                                                DomainType, CodomainType, 
+                                                                BlowUpSequence{DomainType, CodomainType}
+                                                               }
   maps::Vector{<:BlowupMorphism}                 # count right to left:
                                                  # original scheme is codomain of map 1
   
@@ -251,3 +224,4 @@ function identity_blow_up(X::AbsCoveredScheme)
   f = BlowupMorphism(X,unit_ideal_sheaf(X))
   return f
 end
+
