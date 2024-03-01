@@ -45,11 +45,14 @@ push!(upgrade_scripts_set, UpgradeScript(
       if haskey(dict, :base_ring) && dict[:base_ring] isa Dict
         if dict[:base_ring][:type] == "#backref"
           upgraded_dict[:base_ring] = dict[:base_ring][:id]
-        elseif haskey(dict[:base_ring], :data)
-          # should have only one key, since any base_ring that
-          # doesn't use an id has one parameter
-          key = first(keys(dict[:base_ring][:data]))
-          upgraded_dict[:base_ring][:data] = string(dict[:base_ring][:data][key])
+        else
+          if haskey(dict[:base_ring], :data)
+            # should have only one key, since any base_ring that
+            # doesn't use an id has one parameter
+            key = first(keys(dict[:base_ring][:data]))
+            upgraded_dict[:base_ring][:data] = string(dict[:base_ring][:data][key])
+          end
+          upgraded_dict[:base_ring][:_type] = dict[:base_ring][:type]
         end
         if haskey(dict, :symbols)
           if dict[:symbols] isa Dict
@@ -85,8 +88,9 @@ push!(upgrade_scripts_set, UpgradeScript(
       error("The upgrade script needs an update")
     elseif contains(type_string, "PolyRingElem")
       if dict[:data] isa Dict && haskey(dict[:data], :parents)
-        upgraded_parents = dict[:data][:parents][end]
-        params = upgraded_parents
+        # this currently only handles one parent
+        upgraded_parent = dict[:data][:parents][end]
+        params = upgraded_parent[:id]
         upgraded_dict[:data] = upgrade_terms(dict[:data][:terms])
       else
         # this section wasn't necessary for upgrading the folder of surfaces
@@ -162,7 +166,6 @@ push!(upgrade_scripts_set, UpgradeScript(
       upgraded_dict[:data] = matrix_data
     end
 
-
     if contains(type_string, "Field")
       if dict[:data] isa Dict &&haskey(dict[:data], :def_pol)
         upgraded_dict[:data][:def_pol] = upgrade_0_13_0(s, dict[:data][:def_pol])
@@ -175,6 +178,10 @@ push!(upgrade_scripts_set, UpgradeScript(
         upgraded_refs[k] = upgrade_0_13_0(s, v)
       end
       upgraded_dict[:_refs] = upgraded_refs
+    end
+
+    if haskey(upgraded_dict, :type) && !haskey(upgraded_dict, :_type)
+      upgraded_dict[:_type] = upgraded_dict[:type]
     end
     return upgraded_dict
   end

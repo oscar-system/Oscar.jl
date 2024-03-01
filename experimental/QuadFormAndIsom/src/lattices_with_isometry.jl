@@ -177,7 +177,7 @@ minimal_polynomial(Lf::ZZLatWithIsom) = minimal_polynomial(isometry(Lf))
 @doc raw"""
     genus(Lf::ZZLatWithIsom) -> ZZGenus
 
-Given a lattice with isometry $(L, f)$, return the genus of the underlying 
+Given a lattice with isometry $(L, f)$, return the genus of the underlying
 lattice $L$.
 
 # Examples
@@ -405,7 +405,7 @@ julia> minimum(Lf)
 ```
 """
 function minimum(Lf::ZZLatWithIsom)
-  @req is_positive_definite(Lf) "Underlying lattice must be positive definite"
+  @req is_definite(Lf) "Underlying lattice must be definite"
   return minimum(lattice(Lf))
 end
 
@@ -1452,7 +1452,7 @@ end
     is_of_hermitian_type(Lf::ZZLatWithIsom) -> Bool
 
 Given a lattice with isometry $(L, f)$, return whether the minimal polynomial of
-the underlying isometry $f$ is irreducible.
+the underlying isometry $f$ is irreducible and the associated order is maximal.
 
 Note that if $(L, f)$ is of hermitian type with $f$ of minimal polynomial $\chi$,
 then $L$ can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
@@ -1486,7 +1486,11 @@ true
 """
 @attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
-  return is_irreducible(minimal_polynomial(Lf))
+  chi = minimal_polynomial(Lf)
+  !is_irreducible(chi) && return false
+  is_finite(order_of_isometry(Lf)) && return true
+  E = equation_order(number_field(chi; cached=false)[1])
+  return is_maximal(E)
 end
 
 @doc raw"""
@@ -1525,7 +1529,7 @@ Integer lattice of rank 4 and degree 5
 julia> H = hermitian_structure(M)
 Hermitian lattice of rank 1 and degree 1
   over relative maximal order of Relative number field of degree 2 over maximal real subfield of cyclotomic field of order 5
-  with pseudo-basis 
+  with pseudo-basis
   (1, 1//1 * <1, 1>)
   (z_5, 1//1 * <1, 1>)
 
@@ -1588,11 +1592,11 @@ Finite quadratic module
 Abelian group: Z/6
 Bilinear value module: Q/Z
 Quadratic value module: Q/2Z
-Gram matrix quadratic form: 
+Gram matrix quadratic form:
 [5//6]
 
 julia> qf
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [1]
 
 julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
@@ -1604,7 +1608,7 @@ julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
 julia> Lf = integer_lattice_with_isometry(L, f);
 
 julia> discriminant_group(Lf)[2]
-Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by 
+Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [5]
 ```
 """
@@ -1615,7 +1619,7 @@ function discriminant_group(Lf::ZZLatWithIsom)
   q = discriminant_group(L)
   f = hom(q, q, elem_type(q)[q(lift(t)*f) for t in gens(q)])
   fq = gens(Oscar._orthogonal_group(q, ZZMatrix[matrix(f)]; check = false))[1]
-  return (q, fq)
+  return q, fq
 end
 
 @doc raw"""
@@ -1726,6 +1730,7 @@ julia> order(G)
       disc = discriminant_representation(L, UL; check = false, ambient_representation = false)
       return image(disc)
     else
+      @req is_even(Lf) "Hermitian Miranda-Morrison currently available only for even lattices"
       # If L is indefinite of rank >=3, then we use the hermitian version of
       # Miranda-Morrison theory to compute the image of the centralizer f directly
       # in the centralizer of D_f.
@@ -1750,49 +1755,8 @@ julia> order(G)
     psi = divs[end]
 
     M = kernel_lattice(Lf, psi)
-    qM, fqM = discriminant_group(M)
-    GM, _ = image_centralizer_in_Oq(M)
-
     N = orthogonal_submodule(Lf, basis_matrix(M))
-    qN, fqN = discriminant_group(N)
-    GN, _ = image_centralizer_in_Oq(N)
-
-    phi, HMinqM, HNinqN = glue_map(L, lattice(M), lattice(N); check = false)
-
-    # Since M and N are obtained by cutting some parts of `f \in O(L)`, the glue
-    # map should be equivariant!
-    @hassert :ZZLatWithIsom 1 is_invariant(fqM, HMinqM)
-    @hassert :ZZLatWithIsom 1 is_invariant(fqN, HNinqN)
-    @hassert :ZZLatWithIsom 1 matrix(compose(restrict_automorphism(fqM, HMinqM; check = false), phi)) == matrix(compose(phi, restrict_automorphism(fqN, HNinqN; check = false)))
-
-    HM = domain(HMinqM)
-    OHM = orthogonal_group(HM)
-
-    HN = domain(HNinqN)
-    OHN = orthogonal_group(HN)
-
-    _, qMinD, qNinD, _, OqMinOD, OqNinOD = _sum_with_embeddings_orthogonal_groups(qM, qN)
-    HMinD = compose(HMinqM, qMinD)
-    HNinD = compose(HNinqN, qNinD)
-
-    stabM, _ = stabilizer(GM, HMinqM)
-    stabN, _ = stabilizer(GN, HNinqN)
-
-    actM = hom(stabM, OHM, elem_type(OHM)[OHM(restrict_automorphism(x, HMinqM; check = false)) for x in gens(stabM)])
-    actN = hom(stabN, OHN, elem_type(OHN)[OHN(restrict_automorphism(x, HNinqN; check = false)) for x in gens(stabN)])
-
-    _, _, graph = _overlattice(phi, HMinD, HNinD, isometry(M), isometry(N); same_ambient = true)
-    disc, stab = _glue_stabilizers(phi, actM, actN, OqMinOD, OqNinOD, graph)
-    qL, fqL = discriminant_group(Lf)
-    OqL = orthogonal_group(qL)
-    phi = hom(qL, disc, TorQuadModuleElem[disc(lift(x)) for x in gens(qL)])
-    @hassert :ZZLatWithIsom 1 is_isometry(phi)
-    @hassert :ZZLatWithIsom 1 qL == disc
-
-    stab = sub(OqL, elem_type(OqL)[OqL(compose(phi, compose(g, inv(phi))); check = false) for g in stab])
-
-    @hassert :ZZLatWithIsom 1 fqL in stab[1]
-    return stab
+    return _glue_stabilizers(Lf, M, N)
   end
 end
 
@@ -1821,7 +1785,7 @@ function _real_kernel_signatures(L::ZZLat, M::MatElem)
   C = base_ring(M)
   G = gram_matrix(L)
   GC = change_base_ring(C, G)
-  _, K = left_kernel(M)
+  K = kernel(M; side = :left)
   diag = K*GC*transpose(K)
 
   diag = Hecke._gram_schmidt(diag, C)[1]
@@ -1874,8 +1838,7 @@ function signatures(Lf::ZZLatWithIsom)
   n = order_of_isometry(Lf)
   C = CalciumField()
   eig = eigenvalues(QQBar, f)
-  j = findfirst(z -> findfirst(k -> isone(z^k), 1:n) == n, eig)
-  lambda = C(eig[j])
+  lambda = C(eig[1])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()
   fC = change_base_ring(C, f)
@@ -1951,7 +1914,7 @@ function kernel_lattice(Lf::ZZLatWithIsom, p::QQPolyRingElem)
   f = isometry(Lf)
   M = p(f)
   d = denominator(M)
-  k, K = left_kernel(change_base_ring(ZZ, d*M))
+  K = kernel(change_base_ring(ZZ, d*M); side = :left)
   return lattice(ambient_space(Lf), K*basis_matrix(L))
 end
 
@@ -2141,7 +2104,7 @@ function coinvariant_lattice(L::ZZLat, G::MatrixGroup; ambient_representation::B
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
       g_ambient = iB3*g_ambient*B3
-      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
+      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side = :left)
       push!(gene, m)
     else
       push!(gene, matrix(g))
@@ -2216,7 +2179,7 @@ function invariant_coinvariant_pair(L::ZZLat, G::MatrixGroup; ambient_representa
     if !ambient_representation
       g_ambient = block_diagonal_matrix(QQMatrix[matrix(g), identity_matrix(QQ, nrows(B2))])
       g_ambient = iB3*g_ambient*B3
-      m = solve_left(basis_matrix(C), basis_matrix(C)*g_ambient)
+      m = solve(basis_matrix(C), basis_matrix(C)*g_ambient; side = :left)
       push!(gene, m)
     else
       push!(gene, matrix(g))
@@ -2272,12 +2235,14 @@ true
   x = gen(Qx)
   t = Dict{Integer, Tuple}()
   for l in divs
-    Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
-    if !(order_of_isometry(Hl) in [-1,1,2])
-      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false)
-    end
     Al = kernel_lattice(Lf, x^l-1)
-    t[l] = (genus(Hl), genus(Al))
+    _Hl = kernel_lattice(Lf, cyclotomic_polynomial(l))
+    if !(order_of_isometry(_Hl) in [-1,1,2])
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false)
+      t[l] = (genus(Hl), genus(Al))
+    else
+      t[l] = (genus(_Hl), genus(Al))
+    end
   end
   return t
 end
@@ -2310,14 +2275,16 @@ function is_of_type(L::ZZLatWithIsom, t::Dict)
   divs = sort(collect(keys(t)))
   x = gen(Hecke.Globals.Qx)
   for l in divs
-    Hl = kernel_lattice(L, cyclotomic_polynomial(l))
-    if !(order_of_isometry(Hl) in [-1, 1, 2])
-      t[l][1] isa HermGenus || return false
-      Hl = hermitian_structure(lattice(Hl), isometry(Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
-    end
-    genus(Hl) == t[l][1] || return false
     Al = kernel_lattice(L, x^l-1)
     genus(Al) == t[l][2] || return false
+    _Hl = kernel_lattice(L, cyclotomic_polynomial(l))
+    if !(order_of_isometry(_Hl) in [-1, 1, 2])
+      t[l][1] isa HermGenus || return false
+      Hl = hermitian_structure(lattice(_Hl), isometry(_Hl); check = false, ambient_representation = false, E = base_field(t[l][1]))
+      genus(Hl) == t[l][1] || return false
+    else
+      genus(_Hl) == t[l][1] || return false
+    end
   end
   return true
 end

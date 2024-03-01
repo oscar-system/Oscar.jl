@@ -43,8 +43,7 @@ function action_on_basis(G::FinGenAbGroup, G_action::Function, polys::Vector{<: 
     # Little bit of a waste to recompute the rref of M all the time.
     # But I don't see how to do it better and mats should not contain many
     # elements anyways.
-    fl, sol = can_solve_with_solution(M, N, side = :left)
-    @assert fl
+    sol = solve(M, N, side = :left)
 
     push!(res, sol)
   end
@@ -140,8 +139,7 @@ function fill_degree!(HBB::HomBasisBuilder, d::Int)
     M = vcat(M, N)
   end
 
-  fl, sol = can_solve_with_solution(V, M, side = :left)
-  @assert fl
+  sol = solve(V, M, side = :left)
 
   # The i-th row of sol gives the coefficient of inhom_gens[row_to_gen[i]] in
   # the basis hom_basisd.

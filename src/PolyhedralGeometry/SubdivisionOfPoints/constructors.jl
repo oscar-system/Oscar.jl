@@ -58,7 +58,7 @@ function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollecti
   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
+    POINTS = homogenized_matrix(points,1),
     MAXIMAL_CELLS = arr,
   ), parent_field)
 end
@@ -87,7 +87,7 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
-julia> number_of_maximal_cells(SOP)
+julia> n_maximal_cells(SOP)
 1
 ```
 """
@@ -95,7 +95,7 @@ function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollecti
   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
+    POINTS = homogenized_matrix(points,1),
     WEIGHTS = weights,
   ), parent_field)
 end

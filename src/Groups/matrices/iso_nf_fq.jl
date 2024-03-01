@@ -1,6 +1,7 @@
 # Detinko, Flannery, O'Brien "Recognizing finite matrix groups over infinite
 # fields", Section 4.2
-function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+# `min_char` is the minimal characteristic of the returned group
+function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; check::Bool = true, min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
    @assert !isempty(matrices)
 
    K = base_ring(matrices[1])
@@ -19,7 +20,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
       K = QQ
    end
 
-   Fq, matrices_Fq, OtoFq = good_reduction(matrices, 2)
+   Fq, matrices_Fq, OtoFq = good_reduction(matrices, min_char-1)
 
    G = matrix_group(Fq, n, matrices_Fq)
    N = order(G)
@@ -27,7 +28,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
       error("Group is not finite")
    end
 
-   G_to_fin_pres = GAP.Globals.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
+   G_to_fin_pres = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
    F = GAPWrap.Range(G_to_fin_pres)
    rels = GAPWrap.RelatorsOfFpGroup(F)
 
@@ -54,7 +55,7 @@ end
 
 # Small helper function to make the reduction call uniform
 function _reduce(M::MatrixElem{AbsSimpleNumFieldElem}, OtoFq)
-  e = extend(OtoFq, nf(domain(OtoFq)))
+  e = extend(OtoFq, Hecke.nf(domain(OtoFq)))
   return map_entries(e, M)
 end
 
@@ -62,7 +63,7 @@ function _reduce(M::MatrixElem{QQFieldElem}, Fp)
   return map_entries(Fp, M)
 end
 
-function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
 
   if is_empty(gens(G))
     F2 = GF(2)
@@ -79,7 +80,7 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
 
   matrices = map(x -> x.elm, gens(G))
 
-  Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices)
+  Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices, min_char = min_char)
 
   img = function(x)
     return Gp(_reduce(x.elm, OtoFq))
@@ -96,10 +97,17 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union
   return Gp, MapFromFunc(G, Gp, img, preimg)
 end
 
-function isomorphic_group_over_finite_field(G::MatrixGroup{T}) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
-   return get_attribute!(G, :isomorphic_group_over_fq) do
-      return _isomorphic_group_over_finite_field(G)
-   end
+function isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
+  val = get_attribute(G, :isomorphic_group_over_fq)
+  if val == nothing
+    return get_attribute!(G, :isomorphic_group_over_fq) do
+      return _isomorphic_group_over_finite_field(G, min_char = min_char)
+    end
+  elseif characteristic(base_ring(val[1])) >= min_char
+    return val
+  else
+    return _isomorphic_group_over_finite_field(G, min_char = min_char)
+  end
 end
 
 # Detinko, Flannery, O'Brien "Recognizing finite matrix  groups over infinite

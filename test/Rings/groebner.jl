@@ -59,6 +59,13 @@
     @test q * F + [r] != [f]
     u, q, r = reduce_with_quotients_and_unit(f, F, ordering=neglex(R))
     @test q * F + [r] == u * [f]
+    # Issue 3105
+    R, (x,y,z) = QQ[:x, :y, :z]
+    f = x^3 - x^2*y - x^2*z + x
+    f1 = x^2*y - z
+    f2 = x*y - 1
+    _,r = reduce_with_quotients(f, [f1, f2], ordering = deglex(R))
+    @test r == x^3-x^2*z
     I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_groebner_basis(I.gens, ordering=lex(R)) == false
@@ -147,7 +154,7 @@ end
 end
 
 @testset "f4" begin
-  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
+  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
           x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
           2*x1*x2+2*x2*x3+2*x3*x4-x2,

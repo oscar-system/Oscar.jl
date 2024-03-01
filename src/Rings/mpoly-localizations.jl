@@ -125,7 +125,7 @@ function Base.show(io::IO, S::MPolyPowersOfElement)
     print(io, ItemQuantity(length(denominators(S)), "element"))
   else
     print(io, "Products of (")
-    join(io, denominators(S), ",")
+    join(io, denominators(S), ", ")
     print(io, ")")
   end
 end
@@ -1282,11 +1282,11 @@ mutable struct MPolyLocRingElem{
   } 
 
   W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  frac::AbstractAlgebra.Generic.Frac{RingElemType}
+  frac::AbstractAlgebra.Generic.FracFieldElem{RingElemType}
 
   function MPolyLocRingElem(
       W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
-      f::AbstractAlgebra.Generic.Frac{RingElemType};
+      f::AbstractAlgebra.Generic.FracFieldElem{RingElemType};
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     base_ring(parent(f)) == base_ring(W) || error(
@@ -1383,7 +1383,7 @@ end
     RingType, 
     RingElemType, 
     MultSetType
-  })(f::AbstractAlgebra.Generic.Frac{RingElemType}; check::Bool=true) where {
+  })(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}; check::Bool=true) where {
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -3213,8 +3213,20 @@ function grading_group(L::MPolyLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})

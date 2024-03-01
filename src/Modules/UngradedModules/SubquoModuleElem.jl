@@ -14,7 +14,7 @@ SubquoModuleElem(v::SRow{R}, SQ::SubquoModule) where {R} = SubquoModuleElem{R}(v
 
 Construct an element $v \in SQ$ that is represented by $a$.
 """
-SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced) 
+SubquoModuleElem(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R} = SubquoModuleElem{R}(a, SQ; is_reduced)
 
 elem_type(::Type{SubquoModule{T}}) where {T} = SubquoModuleElem{T}
 parent_type(::Type{SubquoModuleElem{T}}) where {T} = SubquoModule{T}
@@ -44,7 +44,7 @@ Given an element `m` of a subquotient $M$ over a ring $R$, say,
 return the coefficients of an $R$-linear combination of the generators of $M$
 which gives $m$.
 
-Return the coefficients of `m` with respect to the basis of standard unit vectors. 
+Return the coefficients of `m` with respect to the basis of standard unit vectors.
 
 The result is returned as a sparse row.
 
@@ -73,6 +73,7 @@ Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
 """
 function coordinates(m::SubquoModuleElem)
   if !isdefined(m, :coeffs)
+    @assert isdefined(m, :repres) "neither coeffs nor repres is defined on a SubquoModuleElem"
     m.coeffs = coordinates(repres(m), parent(m))
   end
   return m.coeffs
@@ -87,16 +88,28 @@ Return a free module element that is a representative of `v`.
 """
 function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
+    @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
+    v.repres = sum(a*M.sub[i] for (i, a) in v.coeffs; init=zero(M.sub))
   end
   return v.repres
 end
 
 #######################################################
 
-function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
+# simplify modifies the representative v of el as follows:
+#
+#  - if el is zero, v is zero
+#  - if el is homogeneous, but the current representative is not
+#    then a homogeneous representative is returned.
+#  - it sets the field is_reduced to true.
+function simplify(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
+  if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
+  end
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
     el.is_reduced = true
     return el
@@ -107,8 +120,13 @@ function simplify(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   return result
 end
 
-function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
+function simplify!(el::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{<:FieldElem, <:ZZRingElem}}
   el.is_reduced && return el
+  if is_zero(el) # We have to do this check because otherwise the coordinates of the representative are not reset.
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
+  end
   if !isdefined(parent(el), :quo) || is_zero(parent(el).quo)
     el.is_reduced = true
     return el
@@ -119,11 +137,36 @@ function simplify!(el::SubquoModuleElem{<:MPolyRingElem{<:FieldElem}})
   return el
 end
 
+# The default only checks whether an element is zero.
+function simplify(el::SubquoModuleElem)
+  el.is_reduced && return el
+  if is_zero(el)
+    result = zero(parent(el))
+    result.is_reduced = true # Todo: Should be done in zero(...)
+    return result
+  end
+  el.is_reduced = true
+  return el
+end
+
+function simplify!(el::SubquoModuleElem)
+  el.is_reduced && return el
+  if is_zero(el)
+    el.coeffs = sparse_row(base_ring(parent(el)))
+    el.repres = zero(ambient_free_module(parent(el)))
+    el.is_reduced = true
+    return el
+  end
+  el.is_reduced = true
+  return el
+end
+
+
 #######################################################
 @doc raw"""
     ambient_representative(m::SubquoModuleElem)
 
-Given an element `m` of a subquotient $M$, say, return 
+Given an element `m` of a subquotient $M$, say, return
 
 # Examples
 ```jldoctest
@@ -177,7 +220,7 @@ end
     standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
 
 Return a standard basis of `F` as an object of type `ModuleGens`.
-If `reduced` is set to `true` and the ordering of the underlying ring is global, 
+If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
 function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
@@ -195,7 +238,7 @@ end
 @doc raw"""
     lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
 
-Return a standard basis `G` of `F` as an object of type `ModuleGens` along with 
+Return a standard basis `G` of `F` as an object of type `ModuleGens` along with
 a transformation matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}) where {T <: MPolyRingElem}
@@ -215,7 +258,7 @@ end
     lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
 
 Return a standard basis `G` of `F` with respect to the given `ordering`
-as an object of type `ModuleGens` along with a transformation 
+as an object of type `ModuleGens` along with a transformation
 matrix `T` such that `T*matrix(M) = matrix(G)`.
 """
 function lift_std(M::ModuleGens{T}, ordering::ModuleOrdering) where {T <: MPolyRingElem}
@@ -257,7 +300,7 @@ parent(b::SubquoModuleElem) = b.parent
 @doc raw"""
     (M::SubquoModule{T})(f::FreeModElem{T}) where T
 
-Given an element `f` of the ambient free module of `M` which represents an element of `M`, 
+Given an element `f` of the ambient free module of `M` which represents an element of `M`,
 return the represented element.
 """
 function (M::SubquoModule{T})(f::FreeModElem{T}) where T
@@ -269,7 +312,7 @@ function (M::SubquoModule{T})(f::FreeModElem{T}) where T
 end
 
 @doc raw"""
-    (M::SubquoModule{T})(c::SRow{T}) where T   
+    (M::SubquoModule{T})(c::SRow{T}) where T
 
 Return the subquotient element $\sum_i a[i] \cdot M[i]\in M$.
 """
@@ -279,7 +322,7 @@ end
 
 @doc raw"""
     SubquoModuleElem(c::Vector{T}, parent::SubquoModule{T}) where T
-    
+
 Return the element of  `parent`  defined as a linear combination
 of the generators of $parent$ with coefficients given by the entries of `c`.
 """
@@ -327,7 +370,7 @@ end
 function check_parent(a::Union{AbstractFreeModElem,SubquoModuleElem}, b::Union{AbstractFreeModElem,SubquoModuleElem})
   if parent(a) !== parent(b)
     error("elements not compatible")
-  end  
+  end
 end
 
 function +(a::SubquoModuleElem, b::SubquoModuleElem)
@@ -339,7 +382,7 @@ function +(a::SubquoModuleElem, b::SubquoModuleElem)
   end
 end
 
-function -(a::SubquoModuleElem, b::SubquoModuleElem) 
+function -(a::SubquoModuleElem, b::SubquoModuleElem)
   check_parent(a,b)
   if isdefined(a, :coeffs) && isdefined(b, :coeffs)
     return SubquoModuleElem(coordinates(a)-coordinates(b), a.parent)
@@ -350,7 +393,7 @@ end
 
 -(a::SubquoModuleElem) = SubquoModuleElem(-coordinates(a), a.parent)
 
-function *(a::MPolyDecRingElem, b::SubquoModuleElem) 
+function *(a::MPolyDecRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -358,7 +401,7 @@ function *(a::MPolyDecRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::MPolyRingElem, b::SubquoModuleElem) 
+function *(a::MPolyRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -366,7 +409,7 @@ function *(a::MPolyRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::RingElem, b::SubquoModuleElem) 
+function *(a::RingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -378,7 +421,7 @@ end
 *(a::Integer, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 *(a::QQFieldElem, b::SubquoModuleElem) = SubquoModuleElem(a*coordinates(b), b.parent)
 
-function (==)(a::SubquoModuleElem, b::SubquoModuleElem) 
+function (==)(a::SubquoModuleElem, b::SubquoModuleElem)
   if parent(a) !== parent(b)
     return false
   end
@@ -405,103 +448,121 @@ function Base.deepcopy_internal(a::SubquoModuleElem, dict::IdDict)
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+    sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where {T}
 
-Given a vector `V` of (homogeneous) elements of `F`, return the (graded) submodule of `F` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `F`, return a pair `(I, inc)`
+consisting of the (graded) submodule `I` of `F` generated by these elements
+and its inclusion map `inc : I ↪ F`.
 
-Put more precisely, return the submodule as an object of type `SubquoModule`. 
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
 
-Additionally, if `N` denotes this object, 
-
-- return the inclusion map `N` $\to$ `F` if `task = :with_morphism` (default),
-- return and cache the inclusion map `N` $\to$ `F` if `task = :cache_morphism`,
-- do none of the above if `task = :none`.
-
-If `task = :only_morphism`, return only the inclusion map.
+If only the submodule itself is desired, use `sub_object` instead.
 """
-function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+function sub(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where {T}
   s = SubquoModule(F, V)
   emb = hom(s, F, V; check=false)
   set_attribute!(s, :canonical_inclusion => emb)
-  return return_sub_wrt_task(s, emb, task)
+  cache_morphism && register_morphism!(emb)
+  return s, emb
+end
+
+function sub_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where {T}
+  return SubquoModule(F, V)
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T} 
+    sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
 
-Given a (homogeneous) matrix `A`, return the (graded) submodule of `F` generated by the rows of `A`.
+Given a (homogeneous) matrix `A` interpret the rows of `A` as elements
+of the free module `F` and return a pair `(I, inc)`
+consisting of the (graded) submodule `I` of `F` generated by these row vectors,
+together with its inclusion map `inc : I ↪ F`.
 
-Put more precisely, return this submodule as an object of type `SubquoModule`. 
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
 
-Additionally, if `N` denotes this submodule, 
-
-- return the inclusion map `N` $\to$ `F` if `task = :with_morphism` (default),
-- return and cache the inclusion map `N` $\to$ `F` if `task = :cache_morphism`,
-- do none of the above if `task = :none`.
-
-If `task = :only_morphism`, return only the inclusion map.
+If only the submodule itself is desired, use `sub_object` instead.
 """
-function sub(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
-  M = SubquoModule(SubModuleOfFreeModule(F, A)) 
+function sub(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
+  M = SubquoModule(SubModuleOfFreeModule(F, A))
   #M = SubquoModule(F, A, zero_matrix(base_ring(F), 1, rank(F)))
   emb = hom(M, F, ambient_representatives_generators(M); check=false)
   emb.matrix = A
-  set_attribute!(M, :canonical_inclusion => emb)
-  return return_sub_wrt_task(M, emb, task)
+  set_attribute!(M, :canonical_inclusion => emb) # TODO: Can this be removed?
+  cache_morphism && register_morphism!(emb)
+  return M, emb
+end
+
+function sub_object(F::FreeMod{T}, A::MatElem{T}) where {T}
+  return SubquoModule(SubModuleOfFreeModule(F, A))
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+    sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Return `S` as a submodule of `F`, where `S` is generated by `O`.
-The embedding module of the parent of the elements of `O` must be `F`.
-If `task` is set to `:none` or to `:module` return only `S`.
-If `task` is set to `:with_morphism` (default option) or to `:both` return also the canonical injection morphism
-$S \to F$.
-If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:only_morphism` return only the morphism.
+Suppose the `ambient_free_module` of the `parent` `M` of the elements `v_i`
+in `O` is `F` and `M` is a submodule (i.e. no relations are present).
+Then this returns a pair `(I, inc)` consisting of the submodule `I`
+generated by the elements in `O` in `F`, together with its inclusion
+morphism `inc : I ↪ F`.
+
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
+
+If only the submodule itself is desired, use `sub_object` instead.
 """
-function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+function sub(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   s = SubquoModule(F, [repres(x) for x = O])
-  return sub(F, s, task)
+  return sub(F, s; cache_morphism)
+end
+
+function sub_object(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
+  return SubquoModule(F, [repres(x) for x = O])
 end
 
 @doc raw"""
-    sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) where T
+    sub(F::FreeMod{T}, M::SubquoModule{T}; cache_morphism::Bool=false) where T
 
-Return `s` as a submodule of `F`, that is the embedding free module of `s` must 
-be `F` and `s` has no relations.
-If `task` is set to `:none` or to `:module` return only `s`.
-If `task` is set to `:with_morphism` (default option) or to `:both` return also the canonical injection morphism
-$s \to F$.
-If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:only_morphism` return only the morphism.
+Return `M` as a submodule of `F`, together with its inclusion morphism
+`inc : M ↪ F`.
+
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
+
+The `ambient_free_module` of `M` needs to be `F` and `M` has to have no
+relations.
+
+If only the submodule itself is desired, use `sub_object` instead.
 """
-function sub(F::FreeMod{T}, s::SubquoModule{T}, task::Symbol = :with_morphism) where T
+function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) where T
   @assert !isdefined(s, :quo)
   @assert s.F === F
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
   #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
-  return return_sub_wrt_task(s, emb, task)
+  cache_morphism && register_morphism!(emb)
+  return s, emb
+end
+
+function sub_object(F::FreeMod{T}, s::SubquoModule{T}) where T
+  @assert !isdefined(s, :quo)
+  @assert s.F === F
+  return s
 end
 
 @doc raw"""
-    sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+    sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule of `M` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule `I` of `M` generated by these elements
+together with its inclusion map `inc : I ↪ M.
 
-Put more precisely, return this submodule as an object of type `SubquoModule`. 
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
 
-Additionally, if `N` denotes this object,
-
-- return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
-- return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
-- do none of the above if `task = :none`.
-
-If `task = :only_morphism`, return only the inclusion map.
+If only the submodule itself is desired, use `sub_object` instead.
 """
-function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   @assert all(x -> x.parent === M, V)
   t = SubquoModule(M.F, FreeModElem[repres(x) for x in V])
   if isdefined(M, :quo)
@@ -509,24 +570,31 @@ function sub(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol 
     t.sum = sum(t.sub, t.quo)
   end
   emb = hom(t, M, V; check=false)
-  set_attribute!(t, :canonical_inclusion => emb)
-  return return_sub_wrt_task(t, emb, task)
+  set_attribute!(t, :canonical_inclusion => emb) # TODO: Can this be removed?
+  cache_morphism && register_morphism!(emb)
+  return t, emb
+end
+
+function sub_object(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
+  @assert all(x -> x.parent === M, V)
+  t = SubquoModule(M.F, FreeModElem[repres(x) for x in V])
+  if isdefined(M, :quo)
+    t.quo = M.quo
+    t.sum = sum(t.sub, t.quo)
+  end
+  return t
 end
 
 @doc raw"""
-    sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+    sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule of `M` generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return the (graded) submodule `I` of `M` generated by these elements
+together with its inclusion map `inc : I ↪ M.
 
-Put more precisely, return this submodule as an object of type `SubquoModule`. 
+When `cache_morphism` is set to true, then `inc` will be cached and available
+for `transport` and friends.
 
-Additionally, if `N` denotes this object,
-
-- return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
-- return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
-- do none of the above if `task = :none`.
-
-If `task = :only_morphism`, return only the inclusion map.
+If only the submodule itself is desired, use `sub_object` instead.
 
 # Examples
 ```jldoctest
@@ -559,10 +627,11 @@ Codomain:
 Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
 ```
 """
-function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
  error("sub is not implemented for the given types.")
 end
 
+#=
 @doc raw"""
     return_sub_wrt_task(M::SubquoModule, emb::SubQuoHom, task::Symbol)
 
@@ -572,86 +641,106 @@ to `task`.
 function return_sub_wrt_task(M::SubquoModule, emb::SubQuoHom, task::Symbol)
   (task == :none || task == :module) && return M
   task == :cache_morphism && register_morphism!(emb)
-  task == :only_morphism && return emb 
+  task == :only_morphism && return emb
   (task == :cache_morphism || task == :both || task == :with_morphism) && return M, emb
   error("No valid option for task.")
 end
+=#
 
 @doc raw"""
-    quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+    quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `F`, return the quotient of `F` by the (graded) submodule of `F` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `F`, return a pair `(M, pr)` consisting
+of the quotient `M = F/⟨V⟩` and the projection map `pr : F → M`.
 
-Put more precisely, return this quotient as an object of type `SubquoModule`. 
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
-Additionally, if `N` denotes this object,
-
-- return the projection map `F` $\to$ `N` if `task = :with_morphism` (default),
-- return and cache the projection map `F` $\to$ `N` if `task = :cache_morphism`,
-- do none of the above if `task = :none` or `task = :module`.
-
-If `task = :only_morphism`, return only the projection map.
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+function quo(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, V)
+  phi = hom(F, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(phi)
+  return Q, phi
+end
 
-  return return_quo_wrt_task(F, Q, task)
+function quo_object(F::FreeMod{T}, V::Vector{<:FreeModElem{T}}) where T
+  S = SubquoModule(F, basis(F))
+  Q = SubquoModule(S, V)
+  return Q
 end
 
 @doc raw"""
-    quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
+    quo(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
 
-Given a (homogeneous) matrix `A`, return the quotient of `F` by the graded submodule of `F` which is generated by 
-the rows of `A`.
+Given a matrix `A`, interpret the row vectors `v_i` of `A` as elements of `F`
+and return a pair `(M, pr)` consisting of the quotient `M = F/I` of `F` by the
+submodule `I ⊂ F` generated by the rows of `A`, together with the projection
+map `pr : F → M`.
 
-Put more precisely, return this quotient as an object of type `SubquoModule`. 
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
-Additionally, if `N` denotes this object,
-
-- return the projection map `F` $\to$ `N` if `task = :with_morphism` (default),
-- return and cache the projection map `F` $\to$ `N` if `task = :cache_morphism`,
-- do none of the above if `task = :none` or `task = :module`.
-
-If `task = :only_morphism`, return only the projection map.
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(F::FreeMod{T}, A::MatElem{T}, task::Symbol = :with_morphism) where {T}
+function quo(F::FreeMod{T}, A::MatElem{T}; cache_morphism::Bool=false) where {T}
   E = identity_matrix(base_ring(F), rank(F))
   Q = SubquoModule(F, E, A)
 
-  return return_quo_wrt_task(F, Q, task)
+  phi = hom(F, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(phi)
+  return Q, phi
+end
+
+function quo_object(F::FreeMod{T}, A::MatElem{T}) where {T}
+  E = identity_matrix(base_ring(F), rank(F))
+  Q = SubquoModule(F, E, A)
+  return Q
 end
 
 @doc raw"""
-    quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+    quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
+Given a vector `O` of (homogeneous) elements of some submodule `I` of `F`,
+return a pair `(M, pr)` consisting of the quotient `M = F/⟨V⟩` and
+the projection map `pr : F → M`.
+
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 Compute $F / T$, where $T$ is generated by $O$.
-The embedding free module of the parent of the elements of `O` must be `F`.
-If `task` is set to `:with_morphism` (default option) or to `:both` return also the 
-canonical projection morphism $F \to F/T$.
-If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:only_morphism` return only the morphism.
-If `task` is set to `:none` or `:module` return only the module.
+
+Note that the submodule `I` must have `F` as its `ambient_free_module`.
+
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+function quo(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
   S = SubquoModule(F, basis(F))
   Q = SubquoModule(S, [repres(x) for x = O])
-  
-  return return_quo_wrt_task(F, Q, task)
+
+  phi = hom(F, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(phi)
+  return Q, phi
+end
+
+function quo_object(F::FreeMod{T}, O::Vector{<:SubquoModuleElem{T}}) where T
+  S = SubquoModule(F, basis(F))
+  Q = SubquoModule(S, [repres(x) for x = O])
+  return Q
 end
 
 @doc raw"""
-    quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+    quo(S::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
 
-Compute $F / T$, where $T$ is generated by $O$.
-The elements of `O` must be elements of the embedding free module of `S`.
-If `task` is set to `:with_morphism` (default) or to `:both` return also the 
-canonical projection morphism $F \to F/T$.
-If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:only_morphism` return only the morphism.
-If `task` is set to `:none` or `:module` return only the module.
+Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting
+of the quotient `M = S/⟨V⟩` and the projection map `pr : S → M`.
+
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
+
+Note that the elements of `O` must belong to the `ambient_free_module` of `S` and represent
+elements of `S`.
+
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}, task::Symbol = :with_morphism) where T
+function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}; cache_morphism::Bool=false) where T
   if length(O) > 0
     @assert parent(O[1]) === F.F
   end
@@ -660,45 +749,56 @@ function quo(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}, task::Symbol = :wi
     singular_assure(F.quo.gens)
     s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
     Q = SubquoModule(F.F, singular_generators(F.sub.gens), s)
-    return return_quo_wrt_task(F, Q, task)
+    phi = hom(F, Q, gens(Q), check=false)
+    cache_morphism && register_morphism!(phi)
+    return Q, phi
   end
   Q = SubquoModule(F, O)
-  return return_quo_wrt_task(F, Q, task)
+  phi = hom(F, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(phi)
+  return Q, phi
+end
+
+function quo_object(F::SubquoModule{T}, O::Vector{<:FreeModElem{T}}) where T
+  if length(O) > 0
+    @assert parent(O[1]) === F.F
+  end
+  if isdefined(F, :quo)
+    oscar_assure(F.quo.gens)
+    singular_assure(F.quo.gens)
+    s = Singular.Module(base_ring(F.quo.gens.SF), [F.quo.gens.SF(x) for x = [O; oscar_generators(F.quo.gens)]]...)
+    return SubquoModule(F.F, singular_generators(F.sub.gens), s)
+  end
+  return SubquoModule(F, O)
 end
 
 @doc raw"""
-    quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
+    quo(S::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `M`, return the quotient of `M` by the (graded) submodule of `M` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `S`, return a pair `(M, pr)` consisting
+of the quotient `M = S/⟨V⟩` and the projection map `pr : S → M`.
 
-Put more precisely, return the quotient as an object of type `SubquoModule`. 
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
-Additionally, if `N` denotes this object,
-
-- return the projection map `M` $\to$ `N` if `task = :with_morphism` (default),
-- return and cache the projection map `M` $\to$ `N` if `task = :cache_morphism`,
-- do none of the above if `task = :none` or `task = :module`.
-
-If `task = :only_morphism`, return only the projection map.
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}, task::Symbol = :with_morphism) where T
-  return quo(M, [repres(x) for x = V], task)
+function quo(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}; cache_morphism::Bool=false) where T
+  return quo(M, [repres(x) for x = V]; cache_morphism)
+end
+
+function quo_object(M::SubquoModule{T}, V::Vector{<:SubquoModuleElem{T}}) where T
+  return quo_object(M, [repres(x) for x = V])
 end
 
 @doc raw"""
-    quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+    quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 
-Given a vector `V` of (homogeneous) elements of `M`, return the quotient of `M` by the (graded) submodule of `M` which is generated by these elements.
+Given a vector `V` of (homogeneous) elements of `M`, return a pair `(N, pr)` consisting
+of the quotient `N = M/⟨V⟩` and the projection map `pr : M → N`.
 
-Put more precisely, return the quotient as an object of type `SubquoModule`. 
+If one is only interested in the actual object `M`, but not the map, use `quo_object` instead.
 
-Additionally, if `N` denotes this object,
-
-- return the projection map `M` $\to$ `N` if `task = :with_morphism` (default),
-- return and cache the projection map `M` $\to$ `N` if `task = :cache_morphism`,
-- do none of the above if `task = :none` or `task = :module`.
-
-If `task = :only_morphism`, return only the projection map.
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 
 # Examples
 ```jldoctest
@@ -733,80 +833,89 @@ by Submodule with 3 generators
 3 -> z^4*e[1]
 ```
 """
-function quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+function quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
  error("quo is not implemented for the given types.")
 end
 
 
 @doc raw"""
-    quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where T
+    quo(M::SubquoModule{T}, U::SubquoModule{T}) where T
 
-Return the quotient $M / U$.
+Return a pair `(N, pr)` consisting of the quotient $N = M / U$ together with the projection
+map `pr : M → N`.
 
-Put more precisely, if `N` denotes this quotient, return `N` as an object of type `SubquoModule`. Additionally,
+If one is only interested in the actual object `N`, but not the map, use `quo_object` instead.
 
-- return the projection map `M` $\to$ `N` if `task = :with_morphism` (default),
-- return and cache the projection map `M` $\to$ `N` if `task = :cache_morphism`,
-- do none of the above if `task = :none` or `task = :module`.
-
-If `task = :only_morphism`, return only the projection map.
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
 """
-function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where T
+function quo(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false) where T
   if isdefined(M, :quo) && isdefined(U, :quo)
     F = ambient_free_module(M)
     @assert F === ambient_free_module(U)
-    # We can not assume that the SubModuleOfFreeModule layer is implemented in general, 
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general,
     # so we deflect to the Subquo-layer instead.
     @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
   else
     @assert !isdefined(M, :quo) && !isdefined(U, :quo)
   end
   Q = SubquoModule(M, gens(U.sub))
-  return return_quo_wrt_task(M, Q, task)
+  pr = hom(M, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(pr)
+  return Q, pr
 end
 
-function quo(M::SubquoModule{T}, U::SubquoModule{T}, task::Symbol = :with_morphism) where {T<:MPolyRingElem}
+function quo_object(M::SubquoModule{T}, U::SubquoModule{T}) where T
+  if isdefined(M, :quo) && isdefined(U, :quo)
+    F = ambient_free_module(M)
+    @assert F === ambient_free_module(U)
+    # We can not assume that the SubModuleOfFreeModule layer is implemented in general,
+    # so we deflect to the Subquo-layer instead.
+    @assert SubquoModule(F, relations(M)) == SubquoModule(F, relations(U))
+  else
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
+  end
+  return SubquoModule(M, gens(U.sub))
+end
+
+function quo(M::SubquoModule{T}, U::SubquoModule{T}; cache_morphism::Bool=false) where {T<:MPolyRingElem}
   if isdefined(M, :quo) && isdefined(U, :quo)
     @assert M.quo == U.quo
   else
     @assert !isdefined(M, :quo) && !isdefined(U, :quo)
   end
   Q = SubquoModule(M, oscar_generators(U.sub.gens))
-  return return_quo_wrt_task(M, Q, task)
+  pr = hom(M, Q, gens(Q), check=false)
+  cache_morphism && register_morphism!(pr)
+  return Q, pr
 end
 
-@doc raw"""
-    quo(F::FreeMod{R}, T::SubquoModule{R}, task::Symbol = :with_morphism) where R
-
-Compute $F / T$.
-If `task` is set to `:with_morphism` (default option) or to `:both` return also the 
-canonical projection morphism $F \to F/T$.
-If `task` is set to `:cache_morphism` the morphism is also cached.
-If `task` is set to `:only_morphism` return only the morphism.
-If `task` is set to `:none` or `:module` return only the module.
-"""
-function quo(F::FreeMod{R}, T::SubquoModule{R}, task::Symbol = :with_morphism) where R
-  @assert !isdefined(T, :quo)
-  return quo(F, gens(T), task)
-end
-
-@doc raw"""
-    return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
-
-This helper function returns the module `Q = M / N` for some `N` 
-along with the canonical projection morphism $M \to Q$ according to the 
-given `task`.
-"""
-function return_quo_wrt_task(M::ModuleFP, Q::ModuleFP, task)
-  if task == :none || task == :module
-    return Q
+function quo_object(M::SubquoModule{T}, U::SubquoModule{T}) where {T<:MPolyRingElem}
+  if isdefined(M, :quo) && isdefined(U, :quo)
+    @assert M.quo == U.quo
   else
-    pro = hom(M, Q, gens(Q); check=false)
-    pro.generators_map_to_generators = true # Makes evaluation of the inclusion easier
-    task == :cache_morphism && register_morphism!(pro)
-    task == :only_morphism && return pro
-    return Q, pro
+    @assert !isdefined(M, :quo) && !isdefined(U, :quo)
   end
+  return SubquoModule(M, oscar_generators(U.sub.gens))
+end
+
+@doc raw"""
+    quo(F::FreeMod{R}, T::SubquoModule{R}; cache_morphism::Bool=false) where R
+
+Return a pair `(N, pr)` consisting of the quotient $N = F / T$ together with the projection
+map `pr : F → N`.
+
+If one is only interested in the actual object `N`, but not the map, use `quo_object` instead.
+
+If `cache_morphism` is set to `true`, the projection is cached and available to `transport` and friends.
+"""
+function quo(F::FreeMod{R}, T::SubquoModule{R}; cache_morphism::Bool=false) where R
+  @assert !isdefined(T, :quo)
+  return quo(F, gens(T); cache_morphism)
+end
+
+function quo_object(F::FreeMod{R}, T::SubquoModule{R}) where R
+  @assert !isdefined(T, :quo)
+  return quo_object(F, gens(T))
 end
 
 @doc raw"""
@@ -906,7 +1015,7 @@ function iterate(F::ModuleGens, i::Int = 1)
     return F[i], i+1
   end
 end
-eltype(::ModuleGens{T}) where {T} = FreeModElem{T} 
+eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})
@@ -995,7 +1104,7 @@ function is_zero(m::SubquoModuleElem)
   return (ambient_representative(m) in parent(m).quo)
 end
 
-function iszero(m::SubquoModuleElem{<:MPolyRingElem})
+function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
   if !isdefined(C, :quo)
     return iszero(repres(m))

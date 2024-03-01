@@ -29,8 +29,8 @@
     @test !issubset(Q1, Q0)
     @test [1, 0] in Q0
     @test !([-1, -1] in Q0)
-    @test nvertices(Q0) == 3
-    @test nvertices.(faces(Q0,1)) == [2,2,2]
+    @test n_vertices(Q0) == 3
+    @test n_vertices.(faces(Q0,1)) == [2,2,2]
     if T == QQFieldElem
       @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
@@ -77,7 +77,7 @@
     @test codim(point) == 3
     @test !is_fulldimensional(point)
     @test recession_cone(Pos) isa Cone{T}
-    @test nrays(recession_cone(Pos)) == 3
+    @test n_rays(recession_cone(Pos)) == 3
     @test vertices(PointVector{T}, point) isa SubObjectIterator{PointVector{T}}
     @test vertices(PointVector, point) isa SubObjectIterator{PointVector{T}}
     @test vertices(point) isa SubObjectIterator{PointVector{T}}
@@ -172,9 +172,9 @@
     @test length(affine_hull(point)) == 3
     # TODO: restrict comparison to same scalar?
     @test affine_hull(point) == [hyperplane(f, [1 0 0], 0), hyperplane(f, [0 1 0], 1), hyperplane(f, [0 0 1], 0)]
-    @test nfacets(square) == 4
+    @test n_facets(square) == 4
     @test lineality_dim(Q0) == 0
-    @test nrays(Q1) == 1
+    @test n_rays(Q1) == 1
     @test lineality_dim(Q2) == 1
     @test relative_interior_point(Q0) == [1//3, 1//3]
     @test facet_sizes(Q0)[1] == 2
@@ -225,16 +225,16 @@
       @test upper_bound_g_vector(4,8) == [1, 3, 6]
       @test upper_bound_h_vector(4,8) == [1, 4, 10, 4 ,1]
       A = archimedean_solid("cuboctahedron")
-      @test count(F -> nvertices(F) == 3, faces(A, 2)) == 8
+      @test count(F -> n_vertices(F) == 3, faces(A, 2)) == 8
 
       C = catalan_solid("triakis_tetrahedron")
-      @test count(F -> nvertices(F) == 3, faces(C, 2)) == 12
+      @test count(F -> n_vertices(F) == 3, faces(C, 2)) == 12
 
       @test polyhedron(facets(A)) == A
       b1 = birkhoff_polytope(3)
       b2 = birkhoff_polytope(3, even = true)
-      @test nvertices(pyramid(b1)) + 1 == nvertices(bipyramid(b1))
-      @test nvertices(b1) == nvertices(b2) * 2
+      @test n_vertices(pyramid(b1)) + 1 == n_vertices(bipyramid(b1))
+      @test n_vertices(b1) == n_vertices(b2) * 2
 
       GT = gelfand_tsetlin_polytope([3,2,1])
       @test ambient_dim(GT) == 6
@@ -245,18 +245,18 @@
       rsph = rand_spherical_polytope(3, 15)
       @test rsph isa Polyhedron{T}
       @test is_simplicial(rsph)
-      @test nvertices(rsph) == 15
+      @test n_vertices(rsph) == 15
 
       rsph_r = rand_spherical_polytope(3, 10; distribution=:exact)
       @test map(x->dot(x,x), vertices(rsph_r)) == ones(QQFieldElem,10)
       @test is_simplicial(rsph_r)
-      @test nvertices(rsph_r) == 10
+      @test n_vertices(rsph_r) == 10
 
       prec = 20
       rsph_prec = rand_spherical_polytope(3, 20; precision=prec)
       @test rsph_prec isa Polyhedron{T}
       @test is_simplicial(rsph_prec)
-      @test nvertices(rsph_prec) == 20
+      @test n_vertices(rsph_prec) == 20
       @test all(map(v->abs(dot(v,v)-1), vertices(rsph_prec)) .< QQFieldElem(2)^-(prec-1))
 
       @test_throws ArgumentError SIM_body_polytope([])
@@ -269,7 +269,7 @@
       let a = associahedron(4)
         @test a isa Polyhedron{T}
         @test dim(a) == 4
-        @test nfacets(a) == 14
+        @test n_facets(a) == 14
       end
 
       let bmg = binary_markov_graph_polytope([0,1,0,0,1])
@@ -283,7 +283,7 @@
       let dc = dwarfed_cube(3)
         @test dc isa Polyhedron{T}
         @test dim(dc) == 3
-        @test nfacets(dc) == 7
+        @test n_facets(dc) == 7
       end
 
       @test_throws ArgumentError dwarfed_product_polygons(3,2)
@@ -297,7 +297,7 @@
       let lhs = lecture_hall_simplex(4)
         @test lhs isa Polyhedron{T}
         @test is_bounded(lhs)
-        @test nvertices(lhs) == 5
+        @test n_vertices(lhs) == 5
       end
 
       let ez = explicit_zonotope([1 2 3; 4 5 6])
@@ -310,7 +310,7 @@
       let ccp = cyclic_caratheodory_polytope(2,3)
         @test ccp isa Polyhedron{T}
         @test is_bounded(ccp)
-        @test nvertices(ccp) == 3
+        @test n_vertices(ccp) == 3
       end
 
       let fkp = fractional_knapsack_polytope([-1, -1, 2])
@@ -323,7 +323,7 @@
       let hs = hypersimplex(3,5)
         @test hs isa Polyhedron{T}
         @test is_bounded(hs)
-        @test nvertices(hs) == 10 
+        @test n_vertices(hs) == 10
         @test length(facets(hs)) == 10
       end
 
@@ -356,7 +356,7 @@
 
       let kcp = k_cyclic_polytope(8,[1,2])
         @test kcp isa Polyhedron{T}
-        @test nvertices(kcp) == 8
+        @test n_vertices(kcp) == 8
       end
 
       @test_throws ArgumentError klee_minty_cube(0,0)
@@ -379,7 +379,7 @@
       let gon = n_gon(4,r=2)
         @test gon isa Polyhedron{T}
         @test length(vertices(gon)[1]) == 2
-        @test nvertices(gon) == 4
+        @test n_vertices(gon) == 4
       end
 
       @test_throws ArgumentError permutahedron(-1)
@@ -392,7 +392,7 @@
       let pile = pile_polytope([2,2])
         @test pile isa Polyhedron{T}
         @test ambient_dim(pile) == 3
-        @test nvertices(pile) == 9
+        @test n_vertices(pile) == 9
       end
 
       @test_throws ArgumentError pitman_stanley_polytope(Vector{Rational}([]))
@@ -413,7 +413,7 @@
       @test rand01_polytope(2,4) isa Polyhedron{T}
       let r_01_p = rand01_polytope(2,4; seed = 47)
         @test r_01_p isa Polyhedron{T}
-        @test nvertices(r_01_p) == 4
+        @test n_vertices(r_01_p) == 4
       end
 
       @test_throws ArgumentError rand_box_polytope(1,0,1)
@@ -445,7 +445,7 @@
       @test rand_cyclic_polytope(2,4) isa Polyhedron{T}
       let rcyc = p = rand_cyclic_polytope(3,8, seed = 4)
         @test rcyc isa Polyhedron{T}
-        @test nvertices(rcyc) == 8
+        @test n_vertices(rcyc) == 8
       end
 
       #3 more rand testset
@@ -461,7 +461,7 @@
       @test_throws ArgumentError signed_permutahedron(100000)
       let sph = signed_permutahedron(3) 
         @test sph isa Polyhedron{T}
-        @test nvertices(sph) == 48
+        @test n_vertices(sph) == 48
         @test is_bounded(sph)
       end
 
@@ -498,7 +498,7 @@
       D = polyhedron(Polymake.polytope.dodecahedron())
       R = coefficient_field(D)
       NF = number_field(R)
-      let isq = Hecke.isquadratic_type(NF)
+      let isq = Hecke.is_quadratic_type(NF)
         @test isq[1]
         @test isq[2] == 5
       end
@@ -527,7 +527,7 @@
 
       @test D isa Polyhedron{T}
 
-      @test nvertices(D) == 20
+      @test n_vertices(D) == 20
       @test vertices(D) == V
 
       let A = [[a//2+1//2 1 0], [0 a//2+1//2 1], [0 a//2+1//2 -1], [-a//2-1//2 -1 0], [a//2-1//2 0 -1], [-a//2-1//2 1 0], [a//2-1//2 0 1], [-a//2+1//2 0 1], [0 -a//2-1//2 1], [-a//2+1//2 0 -1], [a//2+1//2 -1 0], [0 -a//2-1//2 -1]], b = [a//2 + 1, a//2 + 1, a//2 + 1, a//2 + 1, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//4 + 3//4, a//2 + 1, a//4 + 3//4, a//2 + 1, a//2 + 1]
@@ -540,7 +540,7 @@
           if S == Pair{Matrix{T}, T}
             @test facets(S, D) == [Pair(A[i], b[i]) for i in 1:12]
           elseif S == Polyhedron{T}
-            @test nvertices.(facets(S, D)) == repeat([5], 12)
+            @test n_vertices.(facets(S, D)) == repeat([5], 12)
           else
             @test facets(S, D) == [affine_halfspace(R, A[i], b[i]) for i in 1:12]
           end
@@ -568,8 +568,8 @@
       @test is_fulldimensional(D)
       @test f_vector(D) == [20, 30, 12]
       @test codim(D) == 0
-      @test nrays(recession_cone(D)) == 0
-      @test nrays(D) == 0
+      @test n_rays(recession_cone(D)) == 0
+      @test n_rays(D) == 0
       @test isempty(rays(D))
       @test lineality_dim(D) == 0
       @test isempty(lineality_space(D))
@@ -585,11 +585,9 @@ end
 @testset "Johnson solids" begin
   
   for i in keys(Oscar._johnson_names)
-    
     j = johnson_solid(i)
     @test j isa Polyhedron{<:EmbeddedNumFieldElem}
     @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i))
-    
   end
   
 end

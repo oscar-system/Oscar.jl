@@ -12,7 +12,7 @@ If `is_reduced` is `true` assume that `X` is already reduced.
 ```jldoctest
 julia> P, (x0, x1, x2) = graded_polynomial_ring(QQ,[:x0,:x1,:x2]);
 
-julia> X = projective_scheme(ideal([x0*x1^2, x2]))
+julia> X = proj(ideal([x0*x1^2, x2]))
 Projective scheme
   over rational field
 defined by ideal (x0*x1^2, x2)
@@ -46,7 +46,7 @@ defined by ideal (x1, x0)
 function algebraic_set(I::MPolyIdeal{<:MPolyDecRingElem};
                        is_radical::Bool=false,
                        check::Bool=true)
-  X = ProjectiveScheme(base_ring(I), I)
+  X = proj(base_ring(I), I)
   return algebraic_set(X, is_reduced=is_radical, check=check)
 end
 

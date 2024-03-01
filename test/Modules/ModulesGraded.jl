@@ -166,7 +166,10 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M;
-    V = [y^2*N[1], x^2*N[2]]
+    # Problem with the previous test: V[2] is zero and
+    # the homomorphism is hence not graded.
+    # V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V);
     @test is_graded(a)
     @test degree(a) == 2*Z[1]
@@ -179,10 +182,11 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M;
-    V = [y^2*N[1], x^2*N[2]]
+    #V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V);
     K, incl = kernel(a);
-    @test ngens(K) == 3
+    @test ngens(K) == 2
     @test domain(incl) == K
 end
 
@@ -252,10 +256,12 @@ end
     B = Rg[x^2; y^3; z^4]
     M = SubquoModule(F, A, B)
     N = M
-    V = [y^2*N[1], x^2*N[2]]
+    # V = [y^2*N[1], x^2*N[2]]
+    V = [y^2*N[1], x*y*N[2]]
     a = hom(M, N, V)
     @test is_welldefined(a)
-    W = Rg[y^2 0; 0 x^2]
+    #W = Rg[y^2 0; 0 x^2]
+    W = Rg[y^2 0; 0 x*y]
     b = hom(M, N, W)
     @test a == b
     @test nrows(matrix(a)) == 2
@@ -383,7 +389,7 @@ end
     @test degrees_of_generators(H) == [Z[0], Z[0]]
     @test degrees_of_generators(H.quo) == [Z[1], 2*Z[1], Z[1], 2*Z[1]]
     @test is_homogeneous(f(H[1]))
-    a = element_to_homomorphism(x*H[1]+y*H[2])
+    a = element_to_homomorphism(x*H[1] + y*H[2])
     @test matrix(a) == Rg[x 0; 0 y]
     W =  [x*M[1], y*M[2]];
     a = hom(M, M, W);
@@ -398,17 +404,17 @@ end
     Z = grading_group(Rg)
     F1 = graded_free_module(Rg, 1)
     F2 = graded_free_module(Rg, 2)
-    F2v, ev = dual(F2, cod=F1)
-    @test ev(F2v[1])(F2[1]) == F1[1] 
+    F2v, ev = dual(F2, codomain=F1)
+    @test ev(F2v[1])(F2[1]) == F1[1]
     FF, psi = double_dual(F2)
     @test degrees_of_generators(FF) == [Z[0], Z[0]]
-    @test is_injective(psi) 
+    @test is_injective(psi)
     M, inc = sub(F2, [x*F2[1], y*F2[1]])
     F1 = graded_free_module(Rg, 1)
-    Mv, ev = dual(M, cod=F1)
+    Mv, ev = dual(M, codomain=F1)
     @test degrees_of_generators(Mv) == [Z[0]]
     @test ev(Mv[1])(M[1]) == x*F1[1]
-    Mvv, psi = double_dual(M, cod=F1)
+    Mvv, psi = double_dual(M, codomain=F1)
     @test matrix(psi) == Rg[x; y]
     F = graded_free_module(Rg, 2);
     V = [x*F[1], y^2*F[2]];
@@ -430,7 +436,7 @@ end
     ddM, g = double_dual(M)
     @test is_graded(ddM)
     @test degrees_of_generators(ddM) == [Z[0]]
-    @test codomain(g)== ddM 
+    @test codomain(g)== ddM
     @test is_injective(g)
 end
 
@@ -444,9 +450,7 @@ end
     B2 = Rg[y^3;]
     F1 = graded_free_module(Rg, 1)
     M2 = SubquoModule(F1, A2,B2)
-    SQ = hom(M1,M2)[1]
-    v = gens(SQ)[1]
-    @test v == homomorphism_to_element(SQ, element_to_homomorphism(v))
+    SQ = hom(M1,M2)[1] # This is the zero module
 end
 
 @testset "Multiplication morphism" begin
@@ -552,7 +556,7 @@ end
     F = graded_free_module(Rg,1)
     V1 = [p * F[1] for p in V]
     M = quo(F, V1)[1]
-    # Free resolution via Singular gives wrong result 
+    # Free resolution via Singular gives wrong result
     free_res1 = free_resolution(M)
     @test is_graded(free_res1)
     @test all(iszero, homology(free_res1.C))
@@ -819,30 +823,30 @@ end
     @test domain(emb[2]) === M2
     @test codomain(emb[1]) === sum_M
     @test codomain(emb[2]) === sum_M
-    sum_M, proj = direct_sum(M1,M2, task=:prod)
+    sum_M, pr = direct_sum(M1,M2, task=:prod)
     @test is_graded(sum_M)
-    @test is_homogeneous(proj[1])
-    @test is_homogeneous(proj[2])
-    @test codomain(proj[1]) === M1
-    @test codomain(proj[2]) === M2
-    @test domain(proj[1]) === sum_M
-    @test domain(proj[2]) === sum_M
-    prod_M, emb, proj = direct_sum(M1,M2,task=:both)
+    @test is_homogeneous(pr[1])
+    @test is_homogeneous(pr[2])
+    @test codomain(pr[1]) === M1
+    @test codomain(pr[2]) === M2
+    @test domain(pr[1]) === sum_M
+    @test domain(pr[2]) === sum_M
+    prod_M, emb, pr = direct_sum(M1,M2,task=:both)
     @test is_graded(sum_M)
     @test is_homogeneous(emb[1])
     @test is_homogeneous(emb[2])
-    @test is_homogeneous(proj[1])
-    @test is_homogeneous(proj[2])
-    @test length(proj) == length(emb) == 2
+    @test is_homogeneous(pr[1])
+    @test is_homogeneous(pr[2])
+    @test length(pr) == length(emb) == 2
     @test ngens(prod_M) == ngens(M1) + ngens(M2)
     for g in gens(prod_M)
-      @test g == sum([emb[i](proj[i](g)) for i=1:length(proj)])
+      @test g == sum([emb[i](pr[i](g)) for i=1:length(pr)])
     end
     for g in gens(M1)
-      @test g == proj[1](emb[1](g))
+      @test g == pr[1](emb[1](g))
     end
     for g in gens(M2)
-      @test g == proj[2](emb[2](g))
+      @test g == pr[2](emb[2](g))
     end
     A1 = Rg[4*x*y^2*z^2 + 6*x*z^4               9*x^2*z^3;
               5*x^2*y*z + 12*x*y^3   8*x^2*y^2 + z^4;
@@ -875,14 +879,14 @@ end
     M1_to_N2 = iszero(H12) ? SubQuoHom(M1,N2,zero_matrix(R,3,2)) : element_to_homomorphism(H12[1])
     M2_to_N1 = iszero(H21) ? SubQuoHom(M2,N1,zero_matrix(R,2,3)) : element_to_homomorphism(x^3*H21[1])
     M2_to_N2 = SubQuoHom(M2, N2, [0*N2[1],0*N2[1],0*N2[1]])
-    @assert degree(M1_to_N1) == Z[0]
-    @assert degree(M1_to_N2) == 6*Z[1]
-    @assert degree(M2_to_N1) == 6*Z[1]
-    @assert degree(M2_to_N2) == Z[0]
-    @assert is_welldefined(M1_to_N1)
-    @assert is_welldefined(M1_to_N2)
-    @assert is_welldefined(M2_to_N1)
-    @assert is_welldefined(M2_to_N2)
+    @test degree(M1_to_N1) == Z[0]
+    @test degree(M1_to_N2) == 6*Z[1]
+    @test degree(M2_to_N1) == 6*Z[1]
+    @test degree(M2_to_N2) == Z[0]
+    @test is_welldefined(M1_to_N1)
+    @test is_welldefined(M1_to_N2)
+    @test is_welldefined(M2_to_N1)
+    @test is_welldefined(M2_to_N2)
 
     phi = hom_product(prod_M,prod_N,[M1_to_N1 M1_to_N2; M2_to_N1 M2_to_N2])
     @test degree(phi) == 6*Z[1]
@@ -922,7 +926,7 @@ end
     for coefficients in ([c1,c2,c3] for c1 in coeff_generator for c2 in coeff_generator for c3 in coeff_generator)
       v = sparse_row(Rg, [(i,sum(coefficients[i][j]*monomials[j] for j=1:2)) for i=1:3])
       v_as_FreeModElem = sum([v[i]*repres(M[i]) for i=1:ngens(M)])
-      elem1 = SubquoModuleElem(v_as_FreeModElem,M) 
+      elem1 = SubquoModuleElem(v_as_FreeModElem,M)
       elem2 = SubquoModuleElem(v,M)
       @test elem1 == elem2
     end
@@ -1030,14 +1034,14 @@ end
     for v in gens(H)
         @test v == homomorphism_to_element(H, element_to_homomorphism(v))
     end
-    
+
     phi = H[1]
     v = x[1]*F[1] + F[2]
     @test degree(phi) == degree(element_to_homomorphism(phi)(v)) - degree(v)
 end
 
 @testset "minimal Betti tables" begin
-  # The Veronese surface in IP^4 due to Wolfram 
+  # The Veronese surface in IP^4 due to Wolfram
   F = GF(31991)
   R, (x,y,z,u,v) = graded_polynomial_ring(F, ["x", "y", "z", "u", "v"])
   I = ideal([F(45)/16*x^3-8565*x^2*y-7937*x*y^2+14060*x^2*z+F(53)/113*x*y*z-F(125)/17*x*z^2-15712*x^2*u-5990*x*y*u-F(71)/88*x*z*u-6141*x*u^2+F(49)/104*x^2*v-194*x*y*v+F(63)/103*y^2*v+F(74)/103*x*z*v+11618*y*z*v+F(41)/111*z^2*v+14387*x*u*v-F(64)/9*y*u*v+13097*z*u*v+F(84)/101*u^2*v+12211*x*v^2+F(85)/63*y*v^2-F(119)/100*z*v^2-6247*u*v^2-F(74)/51*v^3,-F(45)/16*x^2*y+8565*x*y^2+7937*y^3-14060*x*y*z-F(53)/113*y^2*z+F(125)/17*y*z^2+15712*x*y*u+5990*y^2*u+F(71)/88*y*z*u+6141*y*u^2-x^2*v+3340*x*y*v+F(111)/40*y^2*v+F(22)/37*x*z*v-F(110)/29*y*z*v-F(71)/25*z^2*v-F(71)/87*x*u*v+F(112)/55*y*u*v+F(103)/80*z*u*v-F(100)/7*u^2*v-5013*x*v^2+15010*y*v^2+F(52)/51*z*v^2+F(126)/5*u*v^2-6580*v^3,-F(45)/16*x^2*z+8565*x*y*z+7937*y^2*z-14060*x*z^2-F(53)/113*y*z^2+F(125)/17*z^3+15712*x*z*u+5990*y*z*u+F(71)/88*z^2*u+6141*z*u^2+F(41)/79*x^2*v+F(121)/48*x*y*v+9621*y^2*v+F(105)/83*x*z*v+F(27)/26*y*z*v-649*z^2*v-12278*x*u*v+14655*y*u*v+10594*z*u*v+10462*u^2*v+F(76)/13*x*v^2+F(97)/50*y*v^2-7761*z*v^2+F(52)/31*u*v^2-6636*v^3,-F(45)/16*x^2*u+8565*x*y*u+7937*y^2*u-14060*x*z*u-F(53)/113*y*z*u+F(125)/17*z^2*u+15712*x*u^2+5990*y*u^2+F(71)/88*z*u^2+6141*u^3-F(40)/31*x^2*v+13297*x*y*v+F(126)/113*y^2*v-F(51)/100*x*z*v-F(97)/38*y*z*v+10372*z^2*v-F(4)/31*x*u*v+F(32)/9*y*u*v-F(1)/7*z*u*v+15473*u^2*v+F(101)/36*x*v^2+F(97)/109*y*v^2-14100*z*v^2+F(109)/32*u*v^2-F(5)/111*v^3,-F(40)/31*x^3+13297*x^2*y+F(126)/113*x*y^2-F(51)/100*x^2*z-F(97)/38*x*y*z+10372*x*z^2+F(26)/105*x^2*u-3745*x*y*u+F(63)/103*y^2*u-F(98)/61*x*z*u+11618*y*z*u+F(41)/111*z^2*u+F(26)/15*x*u^2-F(64)/9*y*u^2+13097*z*u^2+F(84)/101*u^3+F(101)/36*x^2*v+F(97)/109*x*y*v-14100*x*z*v-14778*x*u*v+F(85)/63*y*u*v-F(119)/100*z*u*v-6247*u^2*v-F(5)/111*x*v^2-F(74)/51*u*v^2,F(40)/31*x^2*y-13297*x*y^2-F(126)/113*y^3+F(51)/100*x*y*z+F(97)/38*y^2*z-10372*y*z^2-x^2*u+F(103)/30*x*y*u+2754*y^2*u+F(22)/37*x*z*u+F(126)/95*y*z*u-F(71)/25*z^2*u-F(71)/87*x*u^2-F(109)/7*y*u^2+F(103)/80*z*u^2-F(100)/7*u^3-F(101)/36*x*y*v-F(97)/109*y^2*v+14100*y*z*v-5013*x*u*v+10008*y*u*v+F(52)/51*z*u*v+F(126)/5*u^2*v+F(5)/111*y*v^2-6580*u*v^2,F(40)/31*x^2*z-13297*x*y*z-F(126)/113*y^2*z+F(51)/100*x*z^2+F(97)/38*y*z^2-10372*z^3+F(41)/79*x^2*u+F(121)/48*x*y*u+9621*y^2*u+5671*x*z*u-F(42)/71*y*z*u-5219*z^2*u-12278*x*u^2+14655*y*u^2+F(58)/59*z*u^2+10462*u^3-F(101)/36*x*z*v-F(97)/109*y*z*v+14100*z^2*v+F(76)/13*x*u*v+F(97)/50*y*u*v-12763*z*u*v+F(52)/31*u^2*v+F(5)/111*z*v^2-6636*u*v^2,F(41)/79*x^3+F(121)/48*x^2*y+9621*x*y^2-F(22)/109*x^2*z+F(25)/19*x*y*z+F(63)/103*y^2*z+F(23)/45*x*z^2+11618*y*z^2+F(41)/111*z^3-12278*x^2*u+14655*x*y*u+F(126)/73*x*z*u-F(64)/9*y*z*u+13097*z^2*u+10462*x*u^2+F(84)/101*z*u^2+F(76)/13*x^2*v+F(97)/50*x*y*v-F(106)/115*x*z*v+F(85)/63*y*z*v-F(119)/100*z^2*v+F(52)/31*x*u*v-6247*z*u*v-6636*x*v^2-F(74)/51*z*v^2,-F(41)/79*x^2*y-F(121)/48*x*y^2-9621*y^3-x^2*z-F(22)/89*x*y*z-F(32)/17*y^2*z+F(22)/37*x*z^2-F(86)/111*y*z^2-F(71)/25*z^3+12278*x*y*u-14655*y^2*u-F(71)/87*x*z*u+F(74)/47*y*z*u+F(103)/80*z^2*u-10462*y*u^2-F(100)/7*z*u^2-F(76)/13*x*y*v-F(97)/50*y^2*v-5013*x*z*v-9220*y*z*v+F(52)/51*z^2*v-F(52)/31*y*u*v+F(126)/5*z*u*v+6636*y*v^2-6580*z*v^2,x^3+11117*x^2*y+991*x*y^2-F(63)/103*y^3-F(22)/37*x^2*z-F(35)/13*x*y*z-11618*y^2*z+F(71)/25*x*z^2-F(41)/111*y*z^2+F(71)/87*x^2*u+F(68)/115*x*y*u+F(64)/9*y^2*u-F(103)/80*x*z*u-13097*y*z*u+F(100)/7*x*u^2-F(84)/101*y*u^2+5013*x^2*v-F(67)/114*x*y*v-F(85)/63*y^2*v-F(52)/51*x*z*v+F(119)/100*y*z*v-F(126)/5*x*u*v+6247*y*u*v+6580*x*v^2+F(74)/51*y*v^2])
@@ -1046,12 +1050,12 @@ end
   sub_F, inc = sub(F, [g*F[1] for g in gens(I)])
   M = cokernel(inc)
   A, _ = quo(R, I)
-  # To reproduce the string on the right hand side, evaluate 
-  #   `"$(Oscar.minimal_betti_table(M))"` 
+  # To reproduce the string on the right hand side, evaluate
+  #   `"$(Oscar.minimal_betti_table(M))"`
   # and insert the result here; after verification of the result!
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1\n"
 
-  @test "$(Oscar.minimal_betti_table(M))" == "       0  1  2   3  4\n----------------------\n0    : 1  -  -   -  -\n1    : -  -  -   -  -\n2    : -  7  10  5  1\n----------------------\ntotal: 1  7  10  5  1\n"
+  @test "$(Oscar.minimal_betti_table(M))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1\n"
 
   @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
 
@@ -1059,13 +1063,13 @@ end
   R, x = graded_polynomial_ring(QQ, :x => 1:7)
   I = ideal(R, [x[1]*x[2]*x[5], x[1]*x[2]*x[6], x[3]*x[4]*x[6], x[3]*x[4]*x[7], x[5]*x[7]])
   A, _ = quo(R, I)
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n-----------------\ntotal: 1  5  5  1\n"
 
   # another example due to Wolfram
   R, (x, y, z, w) = graded_polynomial_ring(QQ, [:x, :y, :z, :w])
   I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
   A, _ = quo(R, I)
-  @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n------------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n------------------\ntotal: 1  5  5  1\n"
+  @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n-----------------\ntotal: 1  5  5  1\n"
 end
 
 @testset "sheaf cohomology" begin

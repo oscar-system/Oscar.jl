@@ -18,7 +18,7 @@ function HSNum_module(SubM::SubquoModule{T}, HSRing::Ring, backend::Symbol=:Abbo
   P = base_ring(C.quo);
   # short-cut for module R^0 (to avoid problems with empty sum below)
   if iszero(r)
-    return multi_hilbert_series(quo(P,ideal(P,[1]))[1]; parent=HSRing, backend=backend)[1][1]
+    return multi_hilbert_series(quo(P,ideal(P, one(P)))[1]; parent=HSRing, backend=backend)[1][1]
   end
   GensLM = gens(LM);
   L = [[] for _ in 1:r];  # L[k] will be list of monomial gens for k-th coord
@@ -119,7 +119,7 @@ end
 
 function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
-  return multi_hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
+  return multi_hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
 
 
@@ -174,5 +174,5 @@ function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, ba
   if parent === nothing
     parent, _ = laurent_polynomial_ring(ZZ, :t)
   end
-  return hilbert_series(sub(F,gens(F))[1]; parent=parent, backend=backend)
+  return hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end

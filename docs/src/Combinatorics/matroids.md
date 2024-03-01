@@ -91,7 +91,7 @@ is_clutter(sets::AbstractVector{T}) where T <: GroundsetType
 is_regular(M::Matroid)
 is_binary(M::Matroid)
 is_ternary(M::Matroid)
-number_of_connected_components(M::Matroid)
+n_connected_components(M::Matroid)
 connected_components(M::Matroid)
 is_connected(M::Matroid)
 loops(M::Matroid)

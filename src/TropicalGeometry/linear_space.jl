@@ -109,7 +109,7 @@ function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVec
 
     Sigma = PolyhedralComplex{QQFieldElem}(Polymake.tropical.linear_space{minOrMax}(valuatedMatroid))
     Sigma = add_missing_lineality_from_polymake(Sigma)
-    multiplicities = ones(ZZRingElem, number_of_maximal_polyhedra(Sigma))
+    multiplicities = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
 
     TropL = tropical_linear_space(Sigma,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only
@@ -163,7 +163,7 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(plueckerIndices::Vector{Vector{Int}}, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialise as the trivial valuation + min convention
+    # if nu unspecified, initialize as the trivial valuation + min convention
     isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
 
     TropL = tropical_linear_space(plueckerIndices,
@@ -195,7 +195,7 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(k::Int, n::Int, plueckerVector::Vector, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialise as the trivial valuation + min convention
+    # if nu unspecified, initialize as the trivial valuation + min convention
     isnothing(nu) && (nu=tropical_semiring_map(parent(first(plueckerVector))))
 
     TropL = tropical_linear_space(AbstractAlgebra.combinations(1:n,k), nu.(plueckerVector), weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
@@ -261,8 +261,14 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(A::MatElem, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # if nu unspecified, initialise as the trivial valuation + min convention
+    # if nu unspecified, initialize as the trivial valuation + min convention
     isnothing(nu) && (nu=tropical_semiring_map(base_ring(A)))
+
+    # compute reduced row echelon form of A
+    # and remove all zero rows so that matrix is of full rank
+    _,A = rref(A)
+    nonzeroRowIndices = findall(!iszero,[A[i,:] for i in 1:nrows(A)])
+    A = A[nonzeroRowIndices,:]
 
     n = max(nrows(A), ncols(A))
     k = min(nrows(A), ncols(A))
@@ -302,13 +308,13 @@ Min tropical linear space
 ```
 """
 function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
-    # initialise nu as the trivial valuation if not specified by user
+    # initialize nu as the trivial valuation if not specified by user
     isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(I)))
 
     x = gens(base_ring(I))
     G = gens(I)
     macaulayMatrix = matrix([[coeff(g,xi) for xi in x] for g in G])
-    A = matrix(kernel_basis(macaulayMatrix))
+    A = transpose(kernel(macaulayMatrix, side = :right))
     TropL = tropical_linear_space(A,nu,
                                   weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     if !weighted_polyhedral_complex_only
