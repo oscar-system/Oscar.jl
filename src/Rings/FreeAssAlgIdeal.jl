@@ -91,7 +91,7 @@ f1 = x*y + y*z
 I = ideal([f1])
 ideal_membership(f1, I, 4)
 
-# output 
+# output
 true
 ```
 """
