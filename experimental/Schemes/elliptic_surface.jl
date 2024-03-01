@@ -1855,3 +1855,29 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   return MWL,mwl_basis
 end
 
+
+
+@doc raw"""
+    moebius_transformation(three_points1, three_points2, t::RingElem)
+
+Return the moebius tranformation mapping the 3 points in p1 to the
+3 points in p2.
+
+    sage: p1,p2 = (1,2,3),(0,5,10)
+    sage: moebius(p1,p2).subs(t=1)
+    0
+    sage: moebius(p1,p2).subs(t=2)
+    5
+    sage: moebius(p1,p2).subs(t=3)
+    10
+  """
+function _moebius_transformation(three_points1, three_points2, t::RingElem)
+  k = parent(three_points1[1])
+  z1,z2,z3 = three_points1
+  # the moebius transformation mapping 0,1,infty to z1,z2,z3
+  m1 = matrix(k, 2, 2, [z2-z3, -z1*(z2-z3), z2-z1, -z3*(z2-z1)])
+  z1,z2,z3 = three_points2
+  m2 = matrix(k, 2, 2, [z2-z3, -z1*(z2-z3), z2-z1, -z3*(z2-z1)])
+  m = m2^-1*m1
+  return (m[1,1]*t+m[1,2])//(m[2,1]*t+m[2,2])
+end
