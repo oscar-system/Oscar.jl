@@ -11,6 +11,9 @@ function Hecke.roots(a::FinFieldElem, i::Int)
   return roots(x^i-a)
 end
 
+Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
+
+
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
@@ -173,7 +176,12 @@ the p is in the set.
 function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   G = domain(mp)
   Q = codomain(mp)
+  if order(Q) == 1
+    F = free_module(ZZ, 1)
+    I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x in gens(Q)])]
+  else
   I = irreducible_modules(ZZ, Q) 
+  end
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
     ib = gmodule(i.M, G, [action(i, mp(g)) for g = gens(G)])
@@ -302,7 +310,7 @@ function Base.iterate(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
   return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
 end
 
-function Base.iterate(::AbstractAlgebra.FPModule{fqPolyRepFieldElem}, ::Tuple{Int64, Int64})
+function Base.iterate(::AbstractAlgebra.FPModule{<:FinFieldElem}, ::Tuple{Int64, Int64})
   return nothing
 end
 
@@ -443,7 +451,12 @@ function lift(C::GModule, mp::Map)
 #    @show map(order, l), order(prod(l))
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = hom(G, GG, gens(G), l)
+    h = try
+          hom(G, GG, l)
+        catch
+          @show :crash
+          continue
+        end
     if !is_surjective(h)
 #      @show :darn
       continue
@@ -453,6 +466,11 @@ function lift(C::GModule, mp::Map)
     push!(allG, h)
   end
   return allG
+end
+
+function solvable_quotient(G::Oscar.GAPGroup)
+  q = cyclic_group(1)
+  mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
 end #module RepPc
