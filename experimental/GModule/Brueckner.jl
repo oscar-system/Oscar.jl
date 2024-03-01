@@ -316,6 +316,7 @@ function lift(C::GModule, mp::Map)
   #TODO: the projection maps seem to be rather slow - in particular
   #      as they SHOULD be trivial...
   global last_k = k
+  @show D, dim(D), E
   for x = k
     epi = pDE[1](mk(x)) #the map
     chn = mH2(pDE[2](mk(x))) #the tail data
@@ -324,6 +325,7 @@ function lift(C::GModule, mp::Map)
     else
       push!(seen, (epi, chn))
     end
+    @show chn
     #TODO: not all "chn" yield distinct groups - the factoring by the
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
@@ -360,31 +362,20 @@ function lift(C::GModule, mp::Map)
     end
     @show [pro[i](epi) for i=1:ngens(G)]
     l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-    @show map(order, l), order(prod(l))
-    global last_x = l
 #    @show map(order, gens(G)), order(prod(gens(G)))
 
-    fl, pe = try
-      true, preimage(s, K(rhs))
-    catch
-      false, zero(D)
-    end
-    if !fl
-      @show :no_sol
+    h = try
+          hom(G, GG, l)
+        catch
+          @show :crash
+          global last_in = (C, mp)
+          continue
+        end
+    if !is_surjective(h)
+#      @show :darn
       continue
-    end
-
-    for x = k
-      if is_zero(h) && is_zero(x)
-        @show :skip, dim(k)
-        continue
-      end
-      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      if is_surjective(hm)
-        push!(allG, hm)
-      else #should not be possible any more
-        @show :not_sur
-      end
+    else
+#      @show :bingo
     end
   end
 
