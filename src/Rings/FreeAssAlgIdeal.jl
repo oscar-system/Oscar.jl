@@ -84,7 +84,7 @@ prove that $a$ is in $I$. Otherwise, a return of `false` indicates an
 inconclusive answer, but larger `deg_bound`s give more confidence in a negative
 answer. If `deg_bound` is not provided, the default value is `-1`, which means 
 that no degree bound is imposed, which leads to a computation that uses a much
-slower algorithm, that may not terminate.
+slower algorithm, that may not terminate, but returns a full groebner basis if
 ```jldoctest
 free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
 f1 = x*y + y*z
@@ -92,7 +92,6 @@ I = ideal([f1])
 ideal_membership(f1, I, 4)
 
 # output 
-
 true
 ```
 """
