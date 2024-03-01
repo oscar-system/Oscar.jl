@@ -43,7 +43,7 @@ end
 abstract type AbsBlowdownMorphism{DomainType<:AbsCoveredScheme, 
                                   CodomainType<:AbsCoveredScheme,
                                   BlowdownMorphismType
-                                 } <: DesingularizationMorphism{DomainType, CodomainType, BlowdownMorphismType}
+                                 } <: AbsDesingMor{DomainType, CodomainType, BlowdownMorphismType}
 end
 
 # The interface inherits all functionality from AbsCoveredSchemeMorphism. 
