@@ -35,7 +35,7 @@ end
   I = ideal(S, [f, g]);
   X, inc_X = sub(IP5, I);
   Om1X = Oscar.relative_cotangent_module(X);
-  M, b = Oscar.simplify(W1X)
+  M, b = Oscar.simplify(Om1X)
   a = get_attribute(b, :inverse)
   @test is_isomorphism(a)
   @test is_isomorphism(b)

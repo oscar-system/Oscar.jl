@@ -1157,7 +1157,7 @@ with the injection map $N \to M$ and the projection map $M \to N$. These maps ar
 isomorphisms. The ambient free module of `N` is the same as that of `M`.
 """
 function simplify_with_same_ambient_free_module(M::SubquoModule)
-  _, to_M, from_M = simplify(M)
+  _, to_M, from_M = _old_simplify(M)
   N, N_to_M = image(to_M)
   return N, N_to_M, hom(M, N, [N(coordinates(from_M(g))) for g in gens(M)], check=false)
   #return N, N_to_M, hom(M, N, [N(repres(g)) for g in gens(M)])
