@@ -32,13 +32,14 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
     # this will be the list of matrix groups corresponding to the components of G
     component_groups = MatrixGroup[]
 
-    # list of models
+    # list of models of the components
     modellist = []
 
     for C in components(G)
 
         t = C.type[1]
-        gens = nothing
+        gens = nothing #this will be the list of generators
+        refls = nothing #this will be the set of reflections
 
         # we now create the list "gens" of matrix generators for C in the selected model
         if isa(t, Int)
@@ -956,9 +957,37 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
                     R,x = polynomial_ring(QQ)
                     K,τ = number_field(x^2-x-1, "τ")
                     V = vector_space(K,3)
+                    matspace = matrix_space(K, 3, 3)
 
-                    lines = [V([1,0,0]), V([0,1,0]), V([0,0,1])]
-                    push!(lines, [V()])
+                    # W is the reflection group of the line system of type H3
+                    # We create this line system here.
+                    cycshift = elem_type(matspace)[]
+                    push!(cycshift, identity_matrix(K, 3))
+                    push!(cycshift, matrix(K,3,3,[0 1 0; 0 0 1; 1 0 0])) #(2 3 1)
+                    push!(cycshift, matrix(K,3,3,[0 0 1; 1 0 0; 0 1 0])) #(3 1 2) 
+
+                    lines = [V([1,0,0])*A for A in cycshift]
+                    lines = vcat(lines, [1//2*V([K(1),τ,τ^-1])*A for A in cycshift])
+                    lines = vcat(lines, [1//2*V([K(1),τ,-τ^-1])*A for A in cycshift])
+                    lines = vcat(lines, [1//2*V([K(1),-τ,τ^-1])*A for A in cycshift])
+                    lines = vcat(lines, [1//2*V([K(1),-τ,-τ^-1])*A for A in cycshift])
+
+                    refls = Set([unitary_reflection(l) for l in lines])
+
+                    # I guessed the roots of generating reflections from the proof of 
+                    # Theorem 8.10. The line system above is the star-closure of the 
+                    # following lines.
+                    a = V([0,1,0])
+                    b = 1//2*V([K(1),τ,τ^-1])
+                    p = V([1,0,0])  
+
+                    # Now, create the corresponding generators
+                    gens = elem_type(matspace)[]
+
+                    push!(gens, matrix(unitary_reflection(a)))
+                    push!(gens, matrix(unitary_reflection(b)))
+                    push!(gens, matrix(unitary_reflection(p)))
+
 
                 elseif model == :Magma
                     K,zeta_5 = cyclotomic_field(5)
@@ -1719,6 +1748,10 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
         set_attribute!(matgrp, :complex_reflection_group_type, C)
         set_attribute!(matgrp, :complex_reflection_group_model, [model])
         set_attribute!(matgrp, :is_irreducible, true)
+
+        if refls != nothing
+            set_attribute!(matgrp, :complex_reflections, refls)
+        end
 
         # add to list
         push!(component_groups, matgrp)
