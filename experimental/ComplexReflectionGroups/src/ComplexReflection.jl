@@ -8,6 +8,7 @@ export is_complex_reflection
 export is_root_of_unity_with_data
 export is_root_of_unity
 export is_complex_reflection_group
+export complex_reflections
 
 struct ComplexReflection{T <: QQAlgFieldElem}
     base_ring::QQAlgField #this should be the parent of T
@@ -234,4 +235,26 @@ function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldEle
 
     set_attribute!(G, :is_complex_reflection_group, true)
     return true
+end
+
+function complex_reflections(G::MatrixGroup{T}) where T <: QQAlgFieldElem
+   
+    if has_attribute(G, :complex_reflections)
+        return get_attribute(G, :complex_reflections)
+    end
+
+    refls = Set(ComplexReflection[])
+
+    # This is not efficient yet: we should loop only over conjugacy classes
+    for g in G
+        b,g_data = is_complex_reflection_with_data(g)
+        if b 
+            push!(refls, g_data)
+        end
+    end
+
+    set_attribute!(G, :complex_reflections, refls)
+
+    return refls
+
 end

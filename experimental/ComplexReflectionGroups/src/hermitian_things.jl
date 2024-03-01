@@ -5,29 +5,42 @@
 
 export is_unitary
 export is_orthogonal
+export complex_conjugation2 
 
 
 ###########################################################################################
 # Complex Conjugation 
 ###########################################################################################
-# The key component is complex conjugation. We extend the existing function to more cases
-# of number fields.
-function complex_conjugation(K::QQField)
+# The key component is complex conjugation. We extend the existing function 
+# complex_conjugation(K::AbsSimpleNumField) to more cases of number fields. 
+# The function does unfortunately only work for totally complex fields: if the field is 
+# totally real, it could simply return the identity. So, we add a new function 
+# complex_conjugation2 for the moment.
+function complex_conjugation2(K::QQField)
 
     return identity_map(K)
 
 end
 
+function complex_conjugation2(K::AbsSimpleNumField)
+    if is_totally_real(K)
+        return identity_map(K)
+    else
+        return complex_conjugation(K)
+    end
+end
+
 # There is a function for simple number fields. For a genereal number field we convert
 # to an absolute simple and pull conjugation through the isomorphism.
-function complex_conjugation(K::NumField)
+function complex_conjugation2(K::NumField)
 
     L, f = absolute_simple_field(K)
     g = inv(f)
-    conj = complex_conjugation(L)
+    conj = complex_conjugation2(L)
     return compose(compose(g, conj), f)
 
 end
+
 
 ###########################################################################################
 # Scalar product
@@ -38,7 +51,7 @@ function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::Abstrac
     K = base_ring(V)
     n = dim(V)
     s = zero(K)
-    conj = complex_conjugation(K)
+    conj = complex_conjugation2(K)
     for i=1:n
         s += v[i]*conj(w[i])
     end
@@ -74,7 +87,7 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
     # create the conjugate transpose of M
     K = base_ring(M)
     n = ncols(M)
-    conj = complex_conjugation(K)
+    conj = complex_conjugation2(K)
     Mct = transpose(matrix(K, n, n, [conj(x) for x in M]))
 
     return M*Mct == identity_matrix(K,n)
