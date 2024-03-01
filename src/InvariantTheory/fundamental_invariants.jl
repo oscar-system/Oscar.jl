@@ -48,10 +48,34 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int = 0)
   end
   d = 1
   while d <= dmax
+
+    d_dim = dimension_via_molien_series(Int, RG, d)
+
     if !isempty(S)
       I = ideal(R, GO)
 
+      # Decide whether we need a truncated or full Gröbner basis of I (if any)
+      truncated = false
+      full = false
       if total_degree(S[end]) == d - 2
+        # We haven't added any invariants in the last round, so there is a chance
+        # that we are done
+        if length(S) >= ngens(R)
+          full = true
+        else
+          # We for sure haven't found enough generators yet (there must be at
+          # least ngens(R) many), so a truncated basis is enough
+          truncated = true
+        end
+      elseif total_degree(S[end]) == d - 1 && !is_zero(d_dim)
+        # We have added invariants in the last round, so we have to update GO.
+        # Exception: If we know (via d_dim) that there are not going to be new
+        # invariants in this round, we postpone the Gröbner computation to the
+        # round d + 1 (where we will then be in the 'if' case).
+        truncated = true
+      end
+
+      if full
         GO = gens(groebner_basis(I, ordering = ordR))
         if is_zero(dim(I))
           mons = gens(ideal(R, Singular.kbase(I.gb[ordR].S)))
@@ -59,13 +83,13 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int = 0)
           d > dmax ? break : nothing
         end
         G = I.gb[ordR]
-      elseif total_degree(S[end]) == d - 1
+      elseif truncated
         G = _groebner_basis(I, d, ordering = ordR)
         GO = collect(G)
       end
     end
 
-    if is_zero(dimension_via_molien_series(Int, RG, d))
+    if is_zero(d_dim)
       d += 1
       continue
     end
