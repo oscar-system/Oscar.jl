@@ -313,6 +313,8 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::IdealSheaf)
     decomp = Oscar.maximal_associated_points(I_sl_temp)
   end
 
+## note: normal crossing test currently not implemented
+# phi = _ensure_ncr(phi)  
   phi.resolves_sing = true
   return(phi)
 end
