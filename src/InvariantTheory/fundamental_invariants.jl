@@ -47,51 +47,34 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int = 0)
     dmax = beta
   end
   d = 1
+  gb_is_full = true # whether we have a full or truncated Gröbner basis
   while d <= dmax
-
-    d_dim = dimension_via_molien_series(Int, RG, d)
-
-    if !isempty(S)
+    if length(S) >= ngens(R) && total_degree(S[end]) == d - 2
+      # We haven't added any invariants in the last round, so there is a chance
+      # that we are done.
+      # DK15 never compute a full Gröbner basis, but experience shows that it
+      # can save many truncated Gröbner bases if we don't add any new invariants
+      # in the following rounds.
       I = ideal(R, GO)
-
-      # Decide whether we need a truncated or full Gröbner basis of I (if any)
-      truncated = false
-      full = false
-      if total_degree(S[end]) == d - 2
-        # We haven't added any invariants in the last round, so there is a chance
-        # that we are done
-        if length(S) >= ngens(R)
-          full = true
-        else
-          # We for sure haven't found enough generators yet (there must be at
-          # least ngens(R) many), so a truncated basis is enough
-          truncated = true
-        end
-      elseif total_degree(S[end]) == d - 1 && !is_zero(d_dim)
-        # We have added invariants in the last round, so we have to update GO.
-        # Exception: If we know (via d_dim) that there are not going to be new
-        # invariants in this round, we postpone the Gröbner computation to the
-        # round d + 1 (where we will then be in the 'if' case).
-        truncated = true
+      GO = gens(groebner_basis(I, ordering = ordR))
+      if is_zero(dim(I))
+        mons = gens(ideal(R, Singular.kbase(I.gb[ordR].S)))
+        dmax = maximum( total_degree(f) for f in mons )
+        d > dmax ? break : nothing
       end
-
-      if full
-        GO = gens(groebner_basis(I, ordering = ordR))
-        if is_zero(dim(I))
-          mons = gens(ideal(R, Singular.kbase(I.gb[ordR].S)))
-          dmax = maximum( total_degree(f) for f in mons )
-          d > dmax ? break : nothing
-        end
-        G = I.gb[ordR]
-      elseif truncated
-        G = _groebner_basis(I, d, ordering = ordR)
-        GO = collect(G)
-      end
+      G = I.gb[ordR]
+      gb_is_full = true
     end
 
-    if is_zero(d_dim)
+    if is_zero(dimension_via_molien_series(Int, RG, d))
       d += 1
       continue
+    end
+
+    if !gb_is_full
+      # We don't have a full Gröbner basis, so we compute a degree truncated one.
+      G = _groebner_basis(ideal(R, GO), d, ordering = ordR)
+      GO = collect(G)
     end
 
     # There are two possible strategies to find new candidates in degree d
@@ -108,7 +91,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int = 0)
     # Compute the monomials which would be input for the Reynolds operator
     # TODO: Properly wrap kbase (or reimplement it; an iterator would be lovely)
     mons = gens(ideal(R, Singular.kbase(G.S, d)))
-    if isempty(mons)
+    if isempty(mons) || (length(mons) == 1 && is_zero(mons[1]))
       break
     end
 
@@ -138,6 +121,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int = 0)
 
       push!(S, f)
       push!(GO, g)
+      gb_is_full = false
     end
 
     d += 1
