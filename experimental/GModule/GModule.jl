@@ -1032,14 +1032,10 @@ function Hecke.modular_proj(C::GModule{T, <:AbstractAlgebra.FPModule{AbsSimpleNu
   return R
 end
 
-function Gap(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, h=Oscar.iso_oscar_gap(base_ring(C)))
-  z = get_attribute(C, :Gap)
-  if z !== nothing
-    return z
-  end
-  z = GAP.Globals.GModuleByMats(GAP.Obj([GAP.Obj(map(h, Matrix(matrix(x)))) for x = C.ac]), codomain(h))
-  set_attribute!(C, :Gap=>z)
-  return z
+@attr Oscar.GapObj function Gap(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  h = Oscar.iso_oscar_gap(base_ring(C))
+  mats = [GAP.Obj(map(h, Matrix(matrix(x)))) for x in C.ac]
+  return GAP.Globals.GModuleByMats(GAP.Obj(mats), codomain(h))
 end
 
 function Oscar.is_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
@@ -1171,7 +1167,7 @@ end
 function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Oscar.GAPGroup, T <: FinFieldElem}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.iso_oscar_gap(base_ring(C))
-  hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C, h), Gap(D, h))
+  hb = GAP.Globals.MTX.BasisModuleHomomorphisms(Gap(C), Gap(D))
   n = length(hb)
   b = dense_matrix_type(base_ring(C))[matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)]) for x in hb]
 
