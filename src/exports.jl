@@ -379,6 +379,7 @@ export conjugate
 export conjugate_group
 export conjugate_transpose
 export connected_components
+export connected_sum
 export connectivity_function
 export contains
 export continued_fraction_hirzebruch_jung

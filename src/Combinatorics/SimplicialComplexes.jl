@@ -570,3 +570,56 @@ function is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
   return Polymake.topaz.isomorphic(pm_object(K1), pm_object(K2))::Bool
 end
 
+###############################################################################
+### helpful functions
+###############################################################################
+
+@doc raw"""
+     connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+
+Compute the connected sum of two complexes. Parameters f1 and f2 specify which facet
+ of the first and second complex correspondingly are glued together. Default is the
+0-th facet of both. The vertices in the selected facets are identified with each
+other according to their order in the facet (that is, in icreasing index order).
+
+# Examples
+```jldoctest
+julia> K1 = torus();
+
+julia> K2 = torus();
+
+julia> surface_genus_2 = connected(K1, K2)
+
+julia> homology(surface_genus_2, 1)
+Z^4
+
+julia> is_manifold(surface_genus_2)
+true
+```
+"""
+function connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+  return SimplicialComplex(Polymake.topaz.connected_sum(pm_object(K1), pm_object(K2), f1, f2))
+end
+
+@doc raw"""
+     deletion(K::SimplicialComplex, face::Set{Int})
+
+Remove the given face and all the faces containing it. 
+
+# Examples
+```jldoctest
+julia> K = simpicial_complex([[1, 2, 3], [2, 3, 4]]);
+
+julia> K_with_deletion = deletion(K, Set([1, 2]));
+
+julia> facets(K_with_deletion)
+2-element Vector{Set{Int64}}:
+ Set([3, 1])
+ Set([4, 2, 3])
+```
+"""
+function deletion(K::SimplicialComplex, face::Set{Int})
+  pm_set = Polymake.convert_to_pm_type(Set{Int})
+  pm_face = convert(pm_set, Polymake.to_zero_based_indexing(face))
+  return SimplicialComplex(Polymake.topaz.deletion(Oscar.pm_object(K), pm_face))
+end
