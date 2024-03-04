@@ -20,5 +20,5 @@
   h3 = compose(g, f)
   h4 = compose(g, g)
 
-  common_refinement(domain_covering.([h1, h2, h3, h4], default_covering(X)))
+  common_refinement(domain_covering.([h1, h2, f]), default_covering(X))
 end

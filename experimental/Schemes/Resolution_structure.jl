@@ -440,14 +440,29 @@ end
 # test for snc                                                         #
 ########################################################################
 
-function non_snc_locus(divs::Vector{<:EffectiveCartierDivisor})
+function is_snc(divs::Vector{<:EffectiveCartierDivisor})
   is_empty(divs) && error("list of divisors must not be empty")
   X = scheme(first(divs))
   @assert all(d->scheme(d) === X, divs)
   @assert is_smooth(X)
   r = length(divs)
   triv_cov = trivializing_covering.(divs)
-  
+
+  com_ref, incs = common_refinement(triv_cov, default_covering(X))
+
+  for U in patches(com_ref)
+    loc_eqns = elem_type(OO(U))[]
+    for k in 1:length(incs)
+      I = ideal_sheaf(divs[k])
+      inc = incs[k]
+      V = codomain(inc)
+      h = first(gens(I(V)))
+      hh = pullback(inc, h)
+      push!(loc_eqns, hh)
+    end
+    is_regular_sequence(loc_eqns) || return false
+  end
+  return true
 end
 
 function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
@@ -455,7 +470,7 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
 
   if length(list) == 1
     result = first(list)
-    return result, identity_map(result)
+    return result, [identity_map(result)]
   end
   patch_list = AbsAffineScheme[]
   anc_list = AbsAffineScheme[]
@@ -473,11 +488,9 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
         #inc_U = _flatten_open_subscheme(U, W)
         #inc_V = _flatten_open_subscheme(V, W)
         inc_U, h_U = _find_chart(U, W)
-        inc_U = PrincipalOpenEmbedding(inc_U, h_U)
+        inc_U = PrincipalOpenEmbedding(inc_U, h_U; check=false)
         inc_V, h_V = _find_chart(V, W)
-        inc_V = PrincipalOpenEmbedding(inc_V, h_V)
-        @show h_U
-        @show h_V
+        inc_V = PrincipalOpenEmbedding(inc_V, h_V; check=false)
 
         UV, to_U, to_V = fiber_product(inc_U, inc_V) 
         push!(patch_list, UV)
