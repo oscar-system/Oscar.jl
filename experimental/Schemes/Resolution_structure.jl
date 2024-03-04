@@ -317,3 +317,69 @@ function identity_blow_up(X::AbsCoveredScheme)
   return f
 end
 
+########################################################################
+# Refinements to find local systems of parameters
+########################################################################
+
+function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::Bool=true)
+  @check is_smooth(W) "scheme must be smooth"
+  @check is_equidimensional(W) "scheme must be equidimensional"
+  mod_gens = lifted_numerator.(gens(modulus(OO(W))))::Vector{<:MPolyRingElem}
+  M = jacobi_matrix(mod_gens)
+  R = ambient_coordinate_ring(W)
+  @assert base_ring(M) === R
+
+  n = nrows(M) # the number of variables in the ambient_ring
+  r = ncols(M) # the number of generators
+
+  Rn = FreeMod(R, n)
+  Rr = FreeMod(R, r)
+  phi = hom(Rn, Rr, M)
+  codim = n - dim(W)
+  phi_cod = induced_map_on_exterior_power(phi, codim)
+  M_ext = matrix(phi_cod)
+  n_cod = nrows(M_ext)
+  r_cod = ncols(M_ext)
+
+  all_entries = Vector{Int}[[i, j] for i in 1:n_cod for j in 1:r_cod]
+  M_ext_vec = elem_type(R)[M[i, j] for i in 1:n_cod for j in 1:r_cod]
+  min_id = ideal(OO(W), M_ext_vec)
+  lambda_vec = coordinates(one(OO(W)), min_id)
+  lambda = elem_type(OO(W))[lambda_vec[(i-1)*r_cod + j] for i in 1:n_cod, j in 1:r_cod]
+  
+  nonzero_indices_linear = [k for k in 1:length(lambda_vec) if !is_zero(lambda_vec[k])]
+  non_zero_indices = [[i, j] for i in 1:n_cod, j in 1:r_cod if !is_zero(lambda_vec[(i-1)*r_cod + j])]
+
+  ref_patches = AbsAffineScheme[]
+  minor_dict = IdDict{AbsAffineScheme, Tuple{Vector{Int}, Vector{Int}, elem_type(R)}}()
+  for (i, j) in non_zero_indices
+    h_ij = M_ext[i, j]
+    U_ij = hypersurface_complement(W, h_ij)
+    I = ordered_multi_index(i, codim, n)
+    J = ordered_multi_index(j, codim, r)
+    push!(ref_patches, U_ij)
+    minor_dict[U_ij] = (indices(I), indices(J), M_ext[i, j])
+  end
+  res_cov = Covering(ref_patches)
+  inherit_glueings!(res_cov, Covering(W))
+  return res_cov, minor_dict
+ #=
+  all_entries = Vector{Int}[[i, j] for i in 1:n for j in 1:r]
+  M_vec = elem_type(R)[M[i, j] for i in 1:n for j in 1:r]
+
+  J = ideal(OO(W), M_vec)
+  lambda_vec = coordinates(one(OO(W)), J)
+  lambda = elem_type(OO(W))[lambda_vec[(i-1)*r + j] for i in 1:n, j in 1:r]
+
+  nonzero_indices_linear = [k for k in 1:length(lambda_vec) if !is_zero(lambda_vec[k])]
+  non_zero_indices = [[i, j] for i in 1:n, j in 1:r if !is_zero(lambda_vec[(i-1)*r + j])]
+
+  for (i, j) in non_zero_indices
+    h_ij = M[i, j]
+    U_ij = hypersurface_complement(W, h_ij)
+  end
+  =#
+end
+
+
+
