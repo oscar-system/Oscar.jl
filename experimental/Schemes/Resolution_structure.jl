@@ -185,7 +185,7 @@ end
 function CoveredClosedEmbedding(inc::ClosedEmbedding)
   dom = CoveredScheme(domain(inc))
   cod = CoveredScheme(codomain(inc))
-  mor_dict = IdDict{AbsSpec, ClosedEmbedding}(dom[1][1] => inc)
+  mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}(dom[1][1] => inc)
   cov_mor = CoveringMorphism(default_covering(dom), default_covering(cod), mor_dict; check=false)
   return CoveredClosedEmbedding(dom, cod, cov_mor; check=false)
 end
@@ -222,7 +222,7 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   error("not implemented yet")    
 end
 
-function desingularization(X::AbsSpec; algorithm::Symbol=:BEV)
+function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
 end
 
@@ -303,12 +303,12 @@ end
 ###################################################################################################
 
 function unit_ideal_sheaf(X::AbsCoveredScheme)
-  dd = IdDict{AbsSpec, Ideal}(U=>ideal(OO(U), [one(OO(U))]) for U in affine_patches(X))
+  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), [one(OO(U))]) for U in affine_patches(X))
   return IdealSheaf(X, dd, check=false)
 end
 
 function zero_ideal_sheaf(X::AbsCoveredScheme)
-  dd = IdDict{AbsSpec, Ideal}(U=>ideal(OO(U), elem_type(OO(U))[]) for U in affine_patches(X))
+  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), elem_type(OO(U))[]) for U in affine_patches(X))
   return IdealSheaf(X, dd, check=false)
 end
 
