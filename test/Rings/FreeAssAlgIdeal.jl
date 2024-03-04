@@ -31,7 +31,6 @@ end
   @test isdefined(I2, :gb)
 end
 
-
 @testset "FreeAssAlgIdeal.utils" begin
   R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
   I = Oscar.ideal(R, [x*y - y*x, x*z - z*x])
@@ -49,7 +48,6 @@ end
 
   F1 = free(f1)
   @test isa(F1,FreeAssAlgElem)
-
 end 
 
 @testset "FreeAssAlgIdeal.groebner_bassis" begin
