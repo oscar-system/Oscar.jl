@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Matrix functionality · Oscar.jl</title><meta name="title" content="Matrix functionality · Oscar.jl"/><meta property="og:title" content="Matrix functionality · Oscar.jl"/><meta property="twitter:title" content="Matrix functionality · Oscar.jl"/><meta name="description" content="Documentation for Oscar.jl."/><meta property="og:description" content="Documentation for Oscar.jl."/><meta property="twitter:description" content="Documentation for Oscar.jl."/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../"><img src="../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Oscar.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../General/serialization/">Serialization</a></li><li><a class="tocitem" href="../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../ring/">Ring functionality</a></li><li><a class="tocitem" href="../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../series/">Power series</a></li><li><a class="tocitem" href="../puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../field/">Field functionality</a></li><li><a class="tocitem" href="../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../Nemo/finitefield/">Finite fields</a></li><li><a class="tocitem" href="../../Nemo/algebraic/">Algebraic numbers</a></li><li><a class="tocitem" href="../../Fields/algebraic_closure_fp/">Algebraic closure of finite prime fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox" checked/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li class="is-active"><a class="tocitem" href>Matrix functionality</a><ul class="internal"><li><a class="tocitem" href="#Generic-matrix-types"><span>Generic matrix types</span></a></li><li><a class="tocitem" href="#Abstract-types"><span>Abstract types</span></a></li><li><a class="tocitem" href="#Matrix-space-constructors"><span>Matrix space constructors</span></a></li><li><a class="tocitem" href="#Matrix-element-constructors"><span>Matrix element constructors</span></a></li><li><a class="tocitem" href="#Block-diagonal-matrix-constructors"><span>Block diagonal matrix constructors</span></a></li><li><a class="tocitem" href="#Conversion-to-Julia-matrices,-iteration-and-broacasting"><span>Conversion to Julia matrices, iteration and broacasting</span></a></li><li><a class="tocitem" href="#Matrix-functionality-provided-by-AbstractAlgebra.jl"><span>Matrix functionality provided by AbstractAlgebra.jl</span></a></li></ul></li><li><a class="tocitem" href="../matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../module/">Finitely presented modules</a></li><li><a class="tocitem" href="../free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../submodule/">Submodules</a></li><li><a class="tocitem" href="../quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../NumberTheory/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li></ul></li><li><a class="tocitem" href="../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox"/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/intro/">Introduction</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/free_modules/">Free Modules</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/subquotients/">Subquotients</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/ModulesOverMultivariateRings/complexes/">Chain and Cochain Complexes</a></li></ul></li><li><a class="tocitem" href="../../CommutativeAlgebra/homological_algebra/">Homological Algebra</a></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-10" type="checkbox"/><label class="tocitem" for="menuitem-9-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../CommutativeAlgebra/FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../CommutativeAlgebra/FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../InvariantTheory/tori/">Invariants of Tori</a></li><li><a class="tocitem" href="../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveringsAndGluings/">Coverings</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/CoveredSchemeMorphisms/">Morphisms of covered schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/ProjectiveSchemes/">Projective schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes/">Morphisms of projective schemes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Sheaf Cohomology</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/SheafCohomology/sheaf_cohomology/">Sheaves on Projective Space</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Algebraic Sets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet/">Affine Algebraic Sets</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet/">Projective Algebraic Sets</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Algebraic Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/AlgebraicVarieties/AffineVariety/">Affine Varieties</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety/">Projective Varieties</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Rational Points</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/RationalPoints/Affine/">Affine</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/RationalPoints/Projective/">Projective</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricSchemes/">Toric Schemes</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/ToricIdealSheaves/">Toric Ideal Sheaves (Experimental)</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/ToricVarieties/BlowdownMorphisms/">Toric Blowdown Morphisms (Experimental)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-8" type="checkbox"/><label class="tocitem" for="menuitem-11-8"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/AffinePlaneCurves/">Affine plane curves</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/ProjectiveCurves/">Projective Curves</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Curves/ProjectivePlaneCurves/">Projective Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-9" type="checkbox"/><label class="tocitem" for="menuitem-11-9"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/K3Surfaces/">Automorphism Groups of  K3 surfaces</a></li><li><a class="tocitem" href="../../AlgebraicGeometry/Surfaces/SurfacesP4/">Nongeneral Type Surfaces in <span>$\mathbb P^4$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-10" type="checkbox"/><label class="tocitem" for="menuitem-11-10"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../AlgebraicGeometry/Miscellaneous/miscellaneous/">Some Special Ideals</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../TropicalGeometry/semiring/">Tropical semirings, matrices, and polynomials</a></li><li><a class="tocitem" href="../../TropicalGeometry/semiring_map/">Tropical semiring maps</a></li><li><a class="tocitem" href="../../TropicalGeometry/variety/">Tropical varieties</a></li><li><a class="tocitem" href="../../TropicalGeometry/hypersurface/">Tropical hypersurfaces</a></li><li><a class="tocitem" href="../../TropicalGeometry/curve/">Tropical curves</a></li><li><a class="tocitem" href="../../TropicalGeometry/linear_space/">Tropical linear spaces</a></li><li><a class="tocitem" href="../../TropicalGeometry/groebner_theory/">Groebner theory</a></li><li><a class="tocitem" href="../../TropicalGeometry/tropicalization/">Tropicalization of polynomial ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-13-2" type="checkbox"/><label class="tocitem" for="menuitem-13-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li><li><a class="tocitem" href="../../Combinatorics/phylogenetic_trees/">Phylogenetic Trees</a></li><li><input class="collapse-toggle" id="menuitem-14-5" type="checkbox"/><label class="tocitem" for="menuitem-14-5"><span class="docs-label">Enumerative combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Combinatorics/EnumerativeCombinatorics/partitions/">Partitions</a></li><li><a class="tocitem" href="../../Combinatorics/EnumerativeCombinatorics/tableaux/">Tableaux</a></li><li><a class="tocitem" href="../../Combinatorics/EnumerativeCombinatorics/schur_polynomials/">Schur polynomials</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-15" type="checkbox"/><label class="tocitem" for="menuitem-15"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../references/">References</a></li><li><a class="tocitem" href="../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-18" type="checkbox"/><label class="tocitem" for="menuitem-18"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/printing_details/">Details on printing in Oscar</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/serialization/">Serialization</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../DeveloperDocumentation/gap_integration/">GAP Integration</a></li><li><input class="collapse-toggle" id="menuitem-18-9" type="checkbox"/><label class="tocitem" for="menuitem-18-9"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-19" type="checkbox"/><label class="tocitem" for="menuitem-19"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/intro/">Adding new projects to experimental</a></li><li><input class="collapse-toggle" id="menuitem-19-2" type="checkbox"/><label class="tocitem" for="menuitem-19-2"><span class="docs-label">Double complexes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/DoubleAndHyperComplexes/user_interface/">Double complexes – the user&#39;s interface</a></li><li><a class="tocitem" href="../../Experimental/DoubleAndHyperComplexes/advice_for_the_programmer/">Advice for the programmer</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-3" type="checkbox"/><label class="tocitem" for="menuitem-19-3"><span class="docs-label">F-Theory Tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/FTheoryTools/introduction/">Welcome to FTheoryTools</a></li><li><a class="tocitem" href="../../Experimental/FTheoryTools/generalities/">Functionality for all F-theory models</a></li><li><a class="tocitem" href="../../Experimental/FTheoryTools/weierstrass/">Weierstrass models</a></li><li><a class="tocitem" href="../../Experimental/FTheoryTools/tate/">Global Tate models</a></li><li><a class="tocitem" href="../../Experimental/FTheoryTools/hypersurface/">Hypersurface models</a></li><li><a class="tocitem" href="../../Experimental/FTheoryTools/literature/">Literature constructions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-4" type="checkbox"/><label class="tocitem" for="menuitem-19-4"><span class="docs-label">Linear Quotients</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/LinearQuotients/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Experimental/LinearQuotients/linear_quotients/">Construction and basic functionality</a></li><li><a class="tocitem" href="../../Experimental/LinearQuotients/cox_rings/">Cox rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-5" type="checkbox"/><label class="tocitem" for="menuitem-19-5"><span class="docs-label">Matroid Realization Spaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/MatroidRealizationSpaces/introduction/">Matroid Realization Spaces</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-6" type="checkbox"/><label class="tocitem" for="menuitem-19-6"><span class="docs-label">Orthogonal discriminants</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/OrthogonalDiscriminants/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Experimental/OrthogonalDiscriminants/access/">Access to precomputed OD data</a></li><li><a class="tocitem" href="../../Experimental/OrthogonalDiscriminants/compute/">Criteria for computing orthogonal discriminants</a></li><li><a class="tocitem" href="../../Experimental/OrthogonalDiscriminants/misc/">Miscellaneous functions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-7" type="checkbox"/><label class="tocitem" for="menuitem-19-7"><span class="docs-label">Quadratic forms and isometries</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/QuadFormAndIsom/introduction/">Quadratic forms and isometries</a></li><li><a class="tocitem" href="../../Experimental/QuadFormAndIsom/spacewithisom/">Quadratic spaces with isometry</a></li><li><a class="tocitem" href="../../Experimental/QuadFormAndIsom/latwithisom/">Lattices with isometry</a></li><li><a class="tocitem" href="../../Experimental/QuadFormAndIsom/enumeration/">Enumeration of isometries</a></li><li><a class="tocitem" href="../../Experimental/QuadFormAndIsom/primembed/">Nikulin&#39;s theory on primitive embeddings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-8" type="checkbox"/><label class="tocitem" for="menuitem-19-8"><span class="docs-label">Standard Finite Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/StandardFiniteFields/introduction/">-</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-9" type="checkbox"/><label class="tocitem" for="menuitem-19-9"><span class="docs-label">Lie Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/LieAlgebras/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/lie_algebras/">Lie algebras</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/ideals_and_subalgebras/">Ideals and Lie subalgebras</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/lie_algebra_homs/">Lie algebra homomorphisms</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/modules/">Lie algebra modules</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/module_homs/">Lie algebra module homomorphisms</a></li><li><a class="tocitem" href="../../Experimental/LieAlgebras/cartan_matrix/">Cartan Matrices</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-10" type="checkbox"/><label class="tocitem" for="menuitem-19-10"><span class="docs-label">Bases for highest weight modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Experimental/BasisLieHighestWeight/introduction/">Introduction</a></li><li><a class="tocitem" href="../../Experimental/BasisLieHighestWeight/user_functions/">User-facing functions</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Linear Algebra</a></li><li class="is-active"><a href>Matrix functionality</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Matrix functionality</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/master/docs/src/matrix.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Matrix-functionality"><a class="docs-heading-anchor" href="#Matrix-functionality">Matrix functionality</a><a id="Matrix-functionality-1"></a><a class="docs-heading-anchor-permalink" href="#Matrix-functionality" title="Permalink"></a></h1><p>AbstractAlgebra.jl provides a module, implemented in <code>src/Matrix.jl</code> for matrices over any ring belonging to the AbstractAlgebra abstract type hierarchy. This functionality will work for any matrix type which follows the Matrix interface.</p><p>Similarly, AbstractAlgebra.jl provides a module in <code>src/MatRing.jl</code> for matrix algebras over a ring.</p><h2 id="Generic-matrix-types"><a class="docs-heading-anchor" href="#Generic-matrix-types">Generic matrix types</a><a id="Generic-matrix-types-1"></a><a class="docs-heading-anchor-permalink" href="#Generic-matrix-types" title="Permalink"></a></h2><p>AbstractAlgebra.jl allows the creation of dense matrices over any computable ring <span>$R$</span>. Generic matrices over a ring are implemented in <code>src/generic/Matrix.jl</code>.</p><p>Generic matrix rings of <span>$m\times m$</span> matrices are implemented in <code>src/generic/MatRing.jl</code>.</p><p>Generic matrices in AbstractAlgebra.jl have type <code>Generic.MatSpaceElem{T}</code> for matrices in a matrix space, or <code>Generic.MatRingElem{T}</code> for matrices in a matrix algebra, where <code>T</code> is the type of elements of the matrix. Internally, generic matrices are implemented using an object wrapping a Julia two dimensional array, though they are not themselves Julia arrays. See the file <code>src/generic/GenericTypes.jl</code> for details.</p><p>For the most part, one doesn&#39;t want to work directly with the <code>MatSpaceElem</code> type though, but with an abstract type called <code>Generic.Mat</code> which includes <code>MatSpaceElem</code> and views thereof.</p><p>Parents of generic matrices (matrix spaces) have type <code>Generic.MatSpace{T}</code>. Parents of matrices in a matrix algebra have type <code>Generic.MatRing{T}</code>.</p><p>The dimensions and base ring <span>$R$</span> of a generic matrix are stored in its parent object, however to allow creation of matrices without first creating the matrix space parent, generic matrices in Julia do not contain a reference to their parent. They contain the row and column numbers (or degree, in the case of matrix algebras) and the base ring on a per matrix basis. The parent object can then be reconstructed from this data on demand.</p><h2 id="Abstract-types"><a class="docs-heading-anchor" href="#Abstract-types">Abstract types</a><a id="Abstract-types-1"></a><a class="docs-heading-anchor-permalink" href="#Abstract-types" title="Permalink"></a></h2><p>The generic matrix types (matrix spaces) belong to the abstract type <code>MatElem{T}</code> and the matrix space parent types belong to <code>MatSpace{T}</code>. Similarly the generic matrix algebra matrix types belong to the abstract type <code>MatRingElem{T}</code> and the parent types belong to  <code>MatRing{T}</code> Note that both the concrete type of a matrix space parent object and the abstract class it belongs to have the name <code>MatElem</code>, therefore disambiguation is required to specify which is intended. The same is true for the abstract types for matrix spaces and their elements.</p><h2 id="Matrix-space-constructors"><a class="docs-heading-anchor" href="#Matrix-space-constructors">Matrix space constructors</a><a id="Matrix-space-constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Matrix-space-constructors" title="Permalink"></a></h2><p>A matrix space in AbstractAlgebra.jl represents a collection of all matrices with given dimensions and base ring.</p><p>In order to construct matrices in AbstractAlgebra.jl, one can first construct the matrix space itself. This is accomplished with the following constructor. We discuss creation of matrix algebras separately in a dedicated section elsewhere in the documentation.</p><pre><code class="language-julia hljs">matrix_space(R::Ring, rows::Int, cols::Int)</code></pre><p>Construct the space of matrices with the given number of rows and columns over the given base ring.</p><p>Here are some examples of creating matrix spaces and making use of the resulting parent objects to coerce various elements into the matrix space.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S()
+[0   0   0]
+[0   0   0]
+[0   0   0]
+
+julia&gt; B = S(12)
+[12    0    0]
+[ 0   12    0]
+[ 0    0   12]
+
+julia&gt; C = S(R(11))
+[11    0    0]
+[ 0   11    0]
+[ 0    0   11]
+</code></pre><h2 id="Matrix-element-constructors"><a class="docs-heading-anchor" href="#Matrix-element-constructors">Matrix element constructors</a><a id="Matrix-element-constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Matrix-element-constructors" title="Permalink"></a></h2><p>There are a few ways to construct matrices other than by coercing elements as shown above. The first method is from an array of elements.</p><p>This can be done with either two or one dimensional arrays.</p><pre><code class="language-julia hljs">(S::MatSpace{T})(A::Matrix{S}) where {S &lt;: RingElement, T &lt;: RingElement}
+(S::MatRing{T})(A::Matrix{S}) where {S &lt;: RingElement, T &lt;: RingElement}</code></pre><p>Create the matrix in the given space/algebra whose <span>$(i, j)$</span> entry is given by <code>A[i, j]</code>, where <code>S</code> is the type of elements that can be coerced into the base ring of the matrix.</p><pre><code class="language-julia hljs">(S::MyMatSpace{T})(A::Vector{S}) where {S &lt;: RingElem, T &lt;: RingElem}
+(S::MyMatAlgebra{T})(A::Vector{S}) where {S &lt;: RingElem, T &lt;: RingElem}</code></pre><p>Create the matrix in the given space/algebra of matrices (with dimensions <span>$m\times n$</span> say), whose <span>$(i, j)$</span> entry is given by <code>A[i*(n - 1) + j]</code> and where <code>S</code> is the type of elements that can be coerced into the base ring of the matrix.</p><p>We also provide the following syntax for constructing literal matrices (similar to how Julia arrays can be be constructed).</p><pre><code class="language-julia hljs">R[a b c...;...]</code></pre><p>Create the matrix over the base ring <span>$R$</span> consisting of the given rows (separated by semicolons). Each entry is coerced into <span>$R$</span>  automatically. Note that parentheses may be placed around individual entries if the lists would otherwise be ambiguous, e.g. <code>R[1 2; 2 (- 3)]</code>.</p><p>Also see the Matrix interface for a list of other ways to create matrices.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; S = matrix_space(QQ, 2, 3)
+Matrix space of 2 rows and 3 columns
+  over rationals
+
+julia&gt; T = matrix_ring(QQ, 2)
+Matrix ring of degree 2
+  over rationals
+
+julia&gt; M1 = S(Rational{BigInt}[2 3 1; 1 0 4])
+[2//1   3//1   1//1]
+[1//1   0//1   4//1]
+
+julia&gt; M2 = S(BigInt[2 3 1; 1 0 4])
+[2//1   3//1   1//1]
+[1//1   0//1   4//1]
+
+julia&gt; M3 = S(BigInt[2, 3, 1, 1, 0, 4])
+[2//1   3//1   1//1]
+[1//1   0//1   4//1]
+
+julia&gt; N1 = T(Rational{BigInt}[2 3; 1 0])
+[2//1   3//1]
+[1//1   0//1]
+
+julia&gt; N2 = T(BigInt[2 3; 1 0])
+[2//1   3//1]
+[1//1   0//1]
+
+julia&gt; N3 = T(BigInt[2, 3, 1, 1])
+[2//1   3//1]
+[1//1   1//1]
+
+julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; M = R[t + 1 1; t^2 0]
+[t + 1   1]
+[  t^2   0]
+
+julia&gt; N = R[t + 1 2 t] # create a row vector
+[t + 1   2   t]
+
+julia&gt; P = R[1; 2; t] # create a column vector
+[1]
+[2]
+[t]</code></pre><p>It is also possible to create matrices (in a matrix space only) directly, without first creating the corresponding matrix space (the inner constructor being called directly).</p><pre><code class="language-julia hljs">matrix(R::Ring, arr::Matrix{T}) where T &lt;: RingElement</code></pre><p>Given an <span>$m\times n$</span> Julia matrix of entries, construct the corresponding AbstractAlgebra.jl matrix over the given ring <code>R</code>, assuming all the entries can be coerced into <code>R</code>.</p><pre><code class="language-julia hljs">matrix(R::Ring, r::Int, c::Int, A::Vector{T}) where T &lt;: RingElement</code></pre><p>Construct the given <span>$r\times c$</span> AbstractAlgebra.jl matrix over the ring <code>R</code> whose <span>$(i, j)$</span> entry is given by <code>A[c*(i - 1) + j]</code>, assuming that all the entries can be coerced into <code>R</code>.</p><pre><code class="language-julia hljs">zero_matrix(R::Ring, r::Int, c::Int)</code></pre><p>Construct the <span>$r\times c$</span> AbstractAlgebra.jl zero matrix over the ring <code>R</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, BigInt[3 1 2; 2 0 1])
+[3   1   2]
+[2   0   1]
+
+julia&gt; N = matrix(ZZ, 3, 2, BigInt[3, 1, 2, 2, 0, 1])
+[3   1]
+[2   2]
+[0   1]
+
+julia&gt; P = zero_matrix(ZZ, 3, 2)
+[0   0]
+[0   0]
+[0   0]
+
+julia&gt; R = matrix_ring(ZZ, 2)
+Matrix ring of degree 2
+  over integers
+
+julia&gt; M = R()
+[0   0]
+[0   0]</code></pre><h2 id="Block-diagonal-matrix-constructors"><a class="docs-heading-anchor" href="#Block-diagonal-matrix-constructors">Block diagonal matrix constructors</a><a id="Block-diagonal-matrix-constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Block-diagonal-matrix-constructors" title="Permalink"></a></h2><p>It is also possible to create block diagonal matrices from a vector of existing matrices. It is also possible to construct them from Julia matrices if one supplies the base ring.</p><p>Note that if the input matrices are not square, the output matrix may not be square.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="block_diagonal_matrix-Union{Tuple{Vector{&lt;:MatElem{T}}}, Tuple{T}} where T&lt;:RingElement" href="#block_diagonal_matrix-Union{Tuple{Vector{&lt;:MatElem{T}}}, Tuple{T}} where T&lt;:RingElement"><code>block_diagonal_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">block_diagonal_matrix(V::Vector{&lt;:MatElem{T}}) where T &lt;: NCRingElement</code></pre><p>Create the block diagonal matrix whose blocks are given by the matrices in <code>V</code>. There must be at least one matrix in V.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L274-L279">source</a></section><section><div><pre><code class="language-julia hljs">block_diagonal_matrix(xs::Vector{SMat})</code></pre><p>Return the block diagonal matrix with the matrices in <code>xs</code> on the diagonal. Requires all blocks to have the same base ring.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/thofma/Hecke.jl/blob/v0.30.0/src/Sparse/Matrix.jl#L1341-L1346">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="block_diagonal_matrix-Union{Tuple{T}, Tuple{Ring, Vector{&lt;:Matrix{T}}}} where T&lt;:RingElement" href="#block_diagonal_matrix-Union{Tuple{T}, Tuple{Ring, Vector{&lt;:Matrix{T}}}} where T&lt;:RingElement"><code>block_diagonal_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">block_diagonal_matrix(R::NCRing, V::Vector{&lt;:Matrix{T}}) where T &lt;: NCRingElement</code></pre><p>Create the block diagonal matrix over the ring <code>R</code> whose blocks are given by the matrices in <code>V</code>. Entries are coerced into <code>R</code> upon creation.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L308-L313">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; block_diagonal_matrix(ZZ, [[1 2; 3 4], [4 5 6; 7 8 9]])
+[1   2   0   0   0]
+[3   4   0   0   0]
+[0   0   4   5   6]
+[0   0   7   8   9]
+
+julia&gt; M = matrix(ZZ, [1 2; 3 4])
+[1   2]
+[3   4]
+
+julia&gt; N = matrix(ZZ, [4 5 6; 7 8 9])
+[4   5   6]
+[7   8   9]
+
+julia&gt; block_diagonal_matrix([M, N])
+[1   2   0   0   0]
+[3   4   0   0   0]
+[0   0   4   5   6]
+[0   0   7   8   9]</code></pre><h2 id="Conversion-to-Julia-matrices,-iteration-and-broacasting"><a class="docs-heading-anchor" href="#Conversion-to-Julia-matrices,-iteration-and-broacasting">Conversion to Julia matrices, iteration and broacasting</a><a id="Conversion-to-Julia-matrices,-iteration-and-broacasting-1"></a><a class="docs-heading-anchor-permalink" href="#Conversion-to-Julia-matrices,-iteration-and-broacasting" title="Permalink"></a></h2><p>While <code>AbstractAlgebra</code> matrices are not instances of <code>AbstractArray</code>, they are closely related to Julia matrices. For convenience, a <code>Matrix</code> and an <code>Array</code> constructors taking an <code>AbstractAlgebra</code> matrix as input are provided:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Matrix-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#Matrix-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>Matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Matrix(A::MatrixElem{T}) where {T&lt;:NCRingElement}
+Matrix{U}(A::MatrixElem{T}) where {U&lt;:NCRingElement, T&lt;:NCRingElement}</code></pre><p>Convert <code>A</code> to a Julia <code>Matrix{U}</code> of the same dimensions with the same elements. If <code>U</code> is omitted then <code>eltype(M)</code> is used in its place.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = ZZ[1 2 3; 4 5 6]
+[1   2   3]
+[4   5   6]
+
+julia&gt; Matrix(A)
+2×3 Matrix{BigInt}:
+ 1  2  3
+ 4  5  6
+
+julia&gt; Matrix{Int}(A)
+2×3 Matrix{Int64}:
+ 1  2  3
+ 4  5  6</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/julia/Matrix.jl#L29-L52">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="Array-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#Array-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>Array</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">Array(A::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Convert <code>A</code> to a Julia <code>Matrix</code> of the same dimensions with the same elements.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = ZZ[&quot;x&quot;]; A = R[x^0 x^1; x^2 x^3]
+[  1     x]
+[x^2   x^3]
+
+julia&gt; Array(A)
+2×2 Matrix{AbstractAlgebra.Generic.Poly{BigInt}}:
+ 1    x
+ x^2  x^3</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/julia/Matrix.jl#L57-L73">source</a></section></article><p>Matrices also support iteration, and therefore functions accepting an iterator can be called on them, e.g.:</p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix_space(ZZ, 2, 3); x = M(1:6)
+[1   2   3]
+[4   5   6]
+
+julia&gt; collect(x)
+2×3 Matrix{BigInt}:
+ 1  2  3
+ 4  5  6
+
+julia&gt; Set(x)
+Set{BigInt} with 6 elements:
+  5
+  4
+  6
+  2
+  3
+  1</code></pre><p>Matrices also support broadcasting, which amounts to elementwise application of functions to matrices:</p><pre><code class="language-julia-repl hljs">julia&gt; k = GF(5);
+
+julia&gt; A = ZZ[1 2; 3 4];
+
+julia&gt; k.(A)
+[1   2]
+[3   4]
+
+julia&gt; 3 .* A .+ 2
+[ 5    8]
+[11   14]
+
+julia&gt; B = ZZ[3 4; 5 6];
+
+julia&gt; ((x, y) -&gt; x^2 + y^2).(A, B)
+[10   20]
+[34   52]</code></pre><h3 id="Views"><a class="docs-heading-anchor" href="#Views">Views</a><a id="Views-1"></a><a class="docs-heading-anchor-permalink" href="#Views" title="Permalink"></a></h3><p>As per Julia, AbstractAlgebra supports the construction of matrix views.  These allow one to work with a submatrix of a given matrix. Modifying the submatrix also modifies the original matrix.</p><p>The syntax for views is as for Julia&#39;s own views.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, 3, 3, BigInt[1, 2, 3, 2, 3, 4, 3, 4, 5])
+[1   2   3]
+[2   3   4]
+[3   4   5]
+
+julia&gt; N1 = @view M[1:2, :]
+[1   2   3]
+[2   3   4]
+
+julia&gt; N2 = @view M[:, 1:2]
+[1   2]
+[2   3]
+[3   4]
+
+julia&gt; R = N1*N2
+[14   20]
+[20   29]</code></pre><h2 id="Matrix-functionality-provided-by-AbstractAlgebra.jl"><a class="docs-heading-anchor" href="#Matrix-functionality-provided-by-AbstractAlgebra.jl">Matrix functionality provided by AbstractAlgebra.jl</a><a id="Matrix-functionality-provided-by-AbstractAlgebra.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Matrix-functionality-provided-by-AbstractAlgebra.jl" title="Permalink"></a></h2><p>Most of the following generic functionality is available for both matrix spaces and matrix algebras. Exceptions include functions that do not return or accept square matrices or which cannot specify a parent. Such functions include <code>solve</code>, <code>kernel</code>, and <code>nullspace</code> which can&#39;t be provided for matrix algebras.</p><p>For details on functionality that is provided for matrix algebras only, see the dedicated section of the documentation.</p><h3 id="Basic-matrix-functionality"><a class="docs-heading-anchor" href="#Basic-matrix-functionality">Basic matrix functionality</a><a id="Basic-matrix-functionality-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-matrix-functionality" title="Permalink"></a></h3><p>As well as the Ring and Matrix interfaces, the following functions are provided to manipulate matrices and to set and retrieve entries and other basic data associated with the matrices.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="dense_matrix_type-Tuple{Ring}" href="#dense_matrix_type-Tuple{Ring}"><code>dense_matrix_type</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">dense_matrix_type(::Type{T}) where T&lt;:NCRingElement
+dense_matrix_type(::T) where T&lt;:NCRingElement
+dense_matrix_type(::Type{S}) where S&lt;:NCRing
+dense_matrix_type(::S) where S&lt;:NCRing</code></pre><p>Return the type of matrices with coefficients of type <code>T</code> respectively <code>elem_type(S)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/generic/Matrix.jl#L24-L32">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="number_of_rows-Tuple{MatSpace}" href="#number_of_rows-Tuple{MatSpace}"><code>number_of_rows</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">number_of_rows(a::MatSpace)</code></pre><p>Return the number of rows of the given matrix space.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L93-L97">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="number_of_columns-Tuple{MatSpace}" href="#number_of_columns-Tuple{MatSpace}"><code>number_of_columns</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">number_of_columns(a::MatSpace)</code></pre><p>Return the number of columns of the given matrix space.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L100-L104">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="number_of_rows-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#number_of_rows-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>number_of_rows</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">number_of_rows(a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the number of rows of the given matrix.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L118-L122">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="number_of_columns-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#number_of_columns-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>number_of_columns</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">number_of_columns(a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the number of columns of the given matrix.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L125-L129">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="length-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#length-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>length</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">length(a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the number of entries in the given matrix.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L132-L136">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="isempty-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#isempty-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>isempty</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">isempty(a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return <code>true</code> if <code>a</code> does not contain any entry (i.e. <code>length(a) == 0</code>), and <code>false</code> otherwise.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L139-L143">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="identity_matrix-Tuple{Ring, Int64}" href="#identity_matrix-Tuple{Ring, Int64}"><code>identity_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">identity_matrix(R::NCRing, n::Int)</code></pre><p>Return the <span>$n \times n$</span> identity matrix over <span>$R$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7042-L7046">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="identity_matrix-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#identity_matrix-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>identity_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">identity_matrix(M::MatElem{T}) where T &lt;: NCRingElement</code></pre><p>Construct the identity matrix in the same matrix space as <code>M</code>, i.e. with ones down the diagonal and zeroes elsewhere. <code>M</code> must be square. This is an alias for <code>one(M)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7049-L7055">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="scalar_matrix-Tuple{Ring, Int64, RingElement}" href="#scalar_matrix-Tuple{Ring, Int64, RingElement}"><code>scalar_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">scalar_matrix(R::NCRing, n::Int, a::NCRingElement)
+scalar_matrix(n::Int, a::NCRingElement)</code></pre><p>Return the <span>$n \times n$</span> matrix over <code>R</code> with <code>a</code> along the main diagonal and zeroes elsewhere. If <code>R</code> is not specified, it defaults to <code>parent(a)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7075-L7081">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="diagonal_matrix-Tuple{RingElement, Int64, Int64}" href="#diagonal_matrix-Tuple{RingElement, Int64, Int64}"><code>diagonal_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">diagonal_matrix(x::NCRingElement, m::Int, [n::Int])</code></pre><p>Return the <span>$m \times n$</span> matrix over <span>$R$</span> with <code>x</code> along the main diagonal and zeroes elsewhere. If <code>n</code> is not specified, it defaults to <code>m</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; diagonal_matrix(ZZ(2), 2, 3)
+[2   0   0]
+[0   2   0]
+
+julia&gt; diagonal_matrix(QQ(-1), 3)
+[-1//1    0//1    0//1]
+[ 0//1   -1//1    0//1]
+[ 0//1    0//1   -1//1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7096-L7113">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="zero-Tuple{MatSpace}" href="#zero-Tuple{MatSpace}"><code>zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">zero(a::MatSpace)</code></pre><p>Return the zero matrix in the given matrix space.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L161-L165">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="zero-Union{Tuple{T}, Tuple{MatrixElem{T}, Ring}} where T&lt;:RingElement" href="#zero-Union{Tuple{T}, Tuple{MatrixElem{T}, Ring}} where T&lt;:RingElement"><code>zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">zero(x::MatrixElem{T}, R::NCRing, r::Int, c::Int) where T &lt;: NCRingElement
+zero(x::MatrixElem{T}, R::NCRing=base_ring(x)) where T &lt;: NCRingElement
+zero(x::MatrixElem{T}, r::Int, c::Int) where T &lt;: NCRingElement</code></pre><p>Return a zero matrix similar to the given matrix, with optionally different base ring or dimensions.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L168-L175">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="one-Tuple{MatSpace}" href="#one-Tuple{MatSpace}"><code>one</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">one(a::MatSpace)</code></pre><p>Return the identity matrix of given matrix space. The matrix space must contain square matrices or else an error is thrown.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L188-L193">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="one-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#one-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>one</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">one(a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the identity matrix in the same matrix space as <span>$a$</span>. If the space does not contain square matrices, an error is thrown.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L196-L201">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="lower_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement" href="#lower_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement"><code>lower_triangular_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lower_triangular_matrix(L::AbstractVector{T}) where {T &lt;: NCRingElement}</code></pre><p>Return the <span>$n$</span> by <span>$n$</span> matrix whose entries on and below the main diagonal are the elements of <code>L</code>, and which has zeroes elsewhere. The value of <span>$n$</span> is determined by the condition that <code>L</code> has length <span>$n(n+1)/2$</span>.</p><p>An exception is thrown if there is no integer <span>$n$</span> with this property.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; lower_triangular_matrix([1, 2, 3])
+[1   0]
+[2   3]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7192-L7208">source</a></section><section><div><pre><code class="language-julia hljs">lower_triangular_matrix(L)</code></pre><p>Return the upper triangular matrix whose entries on and below the diagonal are the elements of <code>L</code>.</p><p>An exception is thrown whenever the length of <code>L</code> is not equal to <span>$n(n+1)/2$</span>, for some integer <span>$n$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a148cee0f8990e9dae30bd36a610f314dc505d0a/src/Groups/matrices/matrix_manipulation.jl#L59-L66">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="upper_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement" href="#upper_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement"><code>upper_triangular_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">upper_triangular_matrix(L::AbstractVector{T}) where {T &lt;: NCRingElement}</code></pre><p>Return the <span>$n$</span> by <span>$n$</span> matrix whose entries on and above the main diagonal are the elements of <code>L</code>, and which has zeroes elsewhere. The value of <span>$n$</span> is determined by the condition that <code>L</code> has length <span>$n(n+1)/2$</span>.</p><p>An exception is thrown if there is no integer <span>$n$</span> with this property.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; upper_triangular_matrix([1, 2, 3])
+[1   2]
+[0   3]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7231-L7247">source</a></section><section><div><pre><code class="language-julia hljs">upper_triangular_matrix(L)</code></pre><p>Return the upper triangular matrix whose entries on and above the diagonal are the elements of <code>L</code>.</p><p>An exception is thrown whenever the length of <code>L</code> is not equal to <span>$n(n+1)/2$</span>, for some integer <span>$n$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/a148cee0f8990e9dae30bd36a610f314dc505d0a/src/Groups/matrices/matrix_manipulation.jl#L36-L43">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="strictly_lower_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement" href="#strictly_lower_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement"><code>strictly_lower_triangular_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">strictly_lower_triangular_matrix(L::AbstractVector{T}) where {T &lt;: NCRingElement}</code></pre><p>Return the <span>$n$</span> by <span>$n$</span> matrix whose entries below the main diagonal are the elements of <code>L</code>, and which has zeroes elsewhere. The value of <span>$n$</span> is determined by the condition that <code>L</code> has length <span>$(n-1)n/2$</span>.</p><p>An exception is thrown if there is no integer <span>$n$</span> with this property.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; strictly_lower_triangular_matrix([1, 2, 3])
+[0   0   0]
+[1   0   0]
+[2   3   0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7270-L7287">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="strictly_upper_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement" href="#strictly_upper_triangular_matrix-Union{Tuple{AbstractVector{T}}, Tuple{T}} where T&lt;:RingElement"><code>strictly_upper_triangular_matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">strictly_upper_triangular_matrix(L::AbstractVector{T}) where {T &lt;: NCRingElement}</code></pre><p>Return the <span>$n$</span> by <span>$n$</span> matrix whose entries above the main diagonal are the elements of <code>L</code>, and which has zeroes elsewhere. The value of <span>$n$</span> is determined by the condition that <code>L</code> has length <span>$(n-1)n/2$</span>.</p><p>An exception is thrown if there is no integer <span>$n$</span> with this property.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; strictly_upper_triangular_matrix([1, 2, 3])
+[0   1   2]
+[0   0   3]
+[0   0   0]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L7310-L7327">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_lower_triangular-Tuple{MatrixElem}" href="#is_lower_triangular-Tuple{MatrixElem}"><code>is_lower_triangular</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_lower_triangular(A::MatrixElem)</code></pre><p>Return <code>true</code> if <span>$A$</span> is an lower triangular matrix, that is, all entries above the main diagonal are zero. Note that this definition also applies to non-square matrices.</p><p>Alias for <code>LinearAlgebra.istril</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; is_lower_triangular(QQ[1 2 ; 0 4])
+false
+
+julia&gt; is_lower_triangular(QQ[1 0 ; 3 4])
+true
+
+julia&gt; is_lower_triangular(QQ[1 2 ;])
+false
+
+julia&gt; is_lower_triangular(QQ[1 ; 2])
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3544-L3567">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_upper_triangular-Tuple{MatrixElem}" href="#is_upper_triangular-Tuple{MatrixElem}"><code>is_upper_triangular</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_upper_triangular(A::MatrixElem)</code></pre><p>Return <code>true</code> if <span>$A$</span> is an upper triangular matrix, that is, all entries below the main diagonal are zero. Note that this definition also applies to non-square matrices.</p><p>Alias for <code>LinearAlgebra.istriu</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; is_upper_triangular(QQ[1 2 ; 0 4])
+true
+
+julia&gt; is_upper_triangular(QQ[1 0 ; 3 4])
+false
+
+julia&gt; is_upper_triangular(QQ[1 2 ;])
+true
+
+julia&gt; is_upper_triangular(QQ[1 ; 2])
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3354-L3377">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_diagonal-Tuple{MatrixElem}" href="#is_diagonal-Tuple{MatrixElem}"><code>is_diagonal</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_diagonal(A::MatrixElem)</code></pre><p>Return <code>true</code> if <span>$A$</span> is a diagonal matrix, that is, all entries off the main diagonal are zero. Note that this definition also applies to non-square matrices.</p><p>Alias for <code>LinearAlgebra.isdiag</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; is_diagonal(QQ[1 0 ; 0 4])
+true
+
+julia&gt; is_diagonal(QQ[1 2 ; 3 4])
+false
+
+julia&gt; is_diagonal(QQ[1 0 ;])
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3579-L3599">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="change_base_ring-Union{Tuple{T}, Tuple{Ring, MatElem{T}}} where T&lt;:RingElement" href="#change_base_ring-Union{Tuple{T}, Tuple{Ring, MatElem{T}}} where T&lt;:RingElement"><code>change_base_ring</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">change_base_ring(R::NCRing, M::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the matrix obtained by coercing each entry into <code>R</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6783-L6787">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="map-Union{Tuple{T}, Tuple{Any, MatrixElem{T}}} where T&lt;:RingElement" href="#map-Union{Tuple{T}, Tuple{Any, MatrixElem{T}}} where T&lt;:RingElement"><code>map</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">map(f, a::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Transform matrix <code>a</code> by applying <code>f</code> on each element. This is equivalent to <code>map_entries(f, a)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6839-L6844">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="map!-Union{Tuple{T}, Tuple{S}, Tuple{Any, MatrixElem{S}, MatrixElem{T}}} where {S&lt;:RingElement, T&lt;:RingElement}" href="#map!-Union{Tuple{T}, Tuple{S}, Tuple{Any, MatrixElem{S}, MatrixElem{T}}} where {S&lt;:RingElement, T&lt;:RingElement}"><code>map!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">map!(f, dst::MatrixElem{T}, src::MatrixElem{U}) where {T &lt;: NCRingElement, U &lt;: NCRingElement}</code></pre><p>Like <code>map</code>, but stores the result in <code>dst</code> rather than a new matrix. This is equivalent to <code>map_entries!(f, dst, src)</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6814-L6819">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; B = S([R(2) R(3) R(1); t t + 1 t + 2; R(-1) t^2 t^3])
+[ 2       3       1]
+[ t   t + 1   t + 2]
+[-1     t^2     t^3]
+
+julia&gt; T = dense_matrix_type(R)
+AbstractAlgebra.Generic.MatSpaceElem{AbstractAlgebra.Generic.Poly{Rational{BigInt}}}
+
+julia&gt; r = number_of_rows(B)
+3
+
+julia&gt; c = number_of_columns(B)
+3
+
+julia&gt; length(B)
+9
+
+julia&gt; isempty(B)
+false
+
+julia&gt; M = A + B
+[  t + 3         t + 3                   2]
+[t^2 + t       2*t + 1             2*t + 2]
+[     -3   t^2 + t + 2   t^3 + t^2 + t + 1]
+
+julia&gt; N = 2 + A
+[t + 3       t             1]
+[  t^2   t + 2             t]
+[   -2   t + 2   t^2 + t + 3]
+
+julia&gt; M1 = deepcopy(A)
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; A != B
+true
+
+julia&gt; isone(one(S))
+true
+
+julia&gt; V = A[1:2, :]
+[t + 1   t   1]
+[  t^2   t   t]
+
+julia&gt; W = A^3
+[    3*t^4 + 4*t^3 + t^2 - 3*t - 5            t^4 + 5*t^3 + 10*t^2 + 7*t + 4                 2*t^4 + 7*t^3 + 9*t^2 + 8*t + 1]
+[t^5 + 4*t^4 + 3*t^3 - 7*t^2 - 4*t               4*t^4 + 8*t^3 + 7*t^2 + 2*t                 t^5 + 5*t^4 + 9*t^3 + 7*t^2 - t]
+[  t^5 + 3*t^4 - 10*t^2 - 16*t - 2   t^5 + 6*t^4 + 12*t^3 + 11*t^2 + 5*t - 2   t^6 + 3*t^5 + 8*t^4 + 15*t^3 + 10*t^2 + t - 5]
+
+julia&gt; Z = divexact(2*A, 2)
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; M = matrix(ZZ, BigInt[2 3 0; 1 1 1])
+[2   3   0]
+[1   1   1]
+
+julia&gt; M[1, 2] = BigInt(4)
+4
+
+julia&gt; c = M[1, 1]
+2
+</code></pre><h3 id="Transpose"><a class="docs-heading-anchor" href="#Transpose">Transpose</a><a id="Transpose-1"></a><a class="docs-heading-anchor-permalink" href="#Transpose" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="transpose-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#transpose-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>transpose</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">transpose(x::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the transpose of the given matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; B = transpose(A)
+[t + 1   t^2            -2]
+[    t     t         t + 2]
+[    1     t   t^2 + t + 1]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1343-L1369">source</a></section><section><div><pre><code class="language-julia hljs">transpose(A::SMat) -&gt; SMat</code></pre><p>Returns the transpose of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/thofma/Hecke.jl/blob/v0.30.0/src/Sparse/Matrix.jl#L447-L451">source</a></section></article><h3 id="Submatrices"><a class="docs-heading-anchor" href="#Submatrices">Submatrices</a><a id="Submatrices-1"></a><a class="docs-heading-anchor-permalink" href="#Submatrices" title="Permalink"></a></h3><p>Submatrices are only available for matrix spaces, not for matrix algebras and generally only available for generic matrices built on Julia arrays.</p><p>Submatrices return a new matrix with the same entries as the submatrix with the given range of rows and columns. They are best illustrated with examples.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, BigInt[1 2 3; 2 3 4; 3 4 5])
+[1   2   3]
+[2   3   4]
+[3   4   5]
+
+julia&gt; N1 = M[1:2, :]
+[1   2   3]
+[2   3   4]
+
+julia&gt; N2 = M[:, :]
+[1   2   3]
+[2   3   4]
+[3   4   5]
+
+julia&gt; N3 = M[2:3, 2:3]
+[3   4]
+[4   5]
+</code></pre><h3 id="Elementary-row-and-column-operations"><a class="docs-heading-anchor" href="#Elementary-row-and-column-operations">Elementary row and column operations</a><a id="Elementary-row-and-column-operations-1"></a><a class="docs-heading-anchor-permalink" href="#Elementary-row-and-column-operations" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="add_column-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement" href="#add_column-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement"><code>add_column</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">add_column(a::MatrixElem{T}, s::RingElement, i::Int, j::Int, rows = 1:nrows(a)) where T &lt;: RingElement</code></pre><p>Create a copy of <span>$a$</span> and add <span>$s$</span> times the <span>$i$</span>-th row to the <span>$j$</span>-th row of <span>$a$</span>.</p><p>By default, the transformation is applied to all rows of <span>$a$</span>. This can be changed using the optional <code>rows</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6477-L6485">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="add_column!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement" href="#add_column!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement"><code>add_column!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">add_column!(a::MatrixElem{T}, s::RingElement, i::Int, j::Int, rows = 1:nrows(a)) where T &lt;: RingElement</code></pre><p>Add <span>$s$</span> times the <span>$i$</span>-th row to the <span>$j$</span>-th row of <span>$a$</span>.</p><p>By default, the transformation is applied to all rows of <span>$a$</span>. This can be changed using the optional <code>rows</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6456-L6463">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="add_row-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement" href="#add_row-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement"><code>add_row</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">add_row(a::MatrixElem{T}, s::RingElement, i::Int, j::Int, cols = 1:ncols(a)) where T &lt;: RingElement</code></pre><p>Create a copy of <span>$a$</span> and add <span>$s$</span> times the <span>$i$</span>-th row to the <span>$j$</span>-th row of <span>$a$</span>.</p><p>By default, the transformation is applied to all columns of <span>$a$</span>. This can be changed using the optional <code>cols</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6512-L6519">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="add_row!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement" href="#add_row!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64, Int64}} where T&lt;:RingElement"><code>add_row!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">add_row!(a::MatrixElem{T}, s::RingElement, i::Int, j::Int, cols = 1:ncols(a)) where T &lt;: RingElement</code></pre><p>Add <span>$s$</span> times the <span>$i$</span>-th row to the <span>$j$</span>-th row of <span>$a$</span>.</p><p>By default, the transformation is applied to all columns of <span>$a$</span>. This can be changed using the optional <code>cols</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6491-L6498">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multiply_column-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#multiply_column-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>multiply_column</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiply_column(a::MatrixElem{T}, s::RingElement, i::Int, rows = 1:nrows(a)) where T &lt;: RingElement</code></pre><p>Create a copy of <span>$a$</span> and multiply the <span>$i$</span>th column of <span>$a$</span> with <span>$s$</span>.</p><p>By default, the transformation is applied to all rows of <span>$a$</span>. This can be changed using the optional <code>rows</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6546-L6553">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multiply_column!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#multiply_column!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>multiply_column!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiply_column!(a::MatrixElem{T}, s::RingElement, i::Int, rows = 1:nrows(a)) where T &lt;: RingElement</code></pre><p>Multiply the <span>$i$</span>th column of <span>$a$</span> with <span>$s$</span>.</p><p>By default, the transformation is applied to all rows of <span>$a$</span>. This can be changed using the optional <code>rows</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6527-L6534">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multiply_row-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#multiply_row-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>multiply_row</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiply_row(a::MatrixElem{T}, s::RingElement, i::Int, cols = 1:ncols(a)) where T &lt;: RingElement</code></pre><p>Create a copy of <span>$a$</span> and multiply  the <span>$i$</span>th row of <span>$a$</span> with <span>$s$</span>.</p><p>By default, the transformation is applied to all columns of <span>$a$</span>. This can be changed using the optional <code>cols</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6580-L6587">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="multiply_row!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#multiply_row!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>multiply_row!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">multiply_row!(a::MatrixElem{T}, s::RingElement, i::Int, cols = 1:ncols(a)) where T &lt;: RingElement</code></pre><p>Multiply the <span>$i$</span>th row of <span>$a$</span> with <span>$s$</span>.</p><p>By default, the transformation is applied to all columns of <span>$a$</span>. This can be changed using the optional <code>cols</code> argument.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6561-L6568">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = ZZ[1 2 3; 2 3 4; 4 5 5]
+[1   2   3]
+[2   3   4]
+[4   5   5]
+
+julia&gt; add_column(M, 2, 3, 1)
+[ 7   2   3]
+[10   3   4]
+[14   5   5]
+
+julia&gt; add_row(M, 1, 2, 3)
+[1   2   3]
+[2   3   4]
+[6   8   9]
+
+julia&gt; multiply_column(M, 2, 3)
+[1   2    6]
+[2   3    8]
+[4   5   10]
+
+julia&gt; multiply_row(M, 2, 3)
+[1    2    3]
+[2    3    4]
+[8   10   10]</code></pre><h3 id="Swapping-rows-and-columns"><a class="docs-heading-anchor" href="#Swapping-rows-and-columns">Swapping rows and columns</a><a id="Swapping-rows-and-columns-1"></a><a class="docs-heading-anchor-permalink" href="#Swapping-rows-and-columns" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="swap_rows-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#swap_rows-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>swap_rows</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">swap_rows(a::MatrixElem{T}, i::Int, j::Int) where T &lt;: NCRingElement</code></pre><p>Return a matrix <span>$b$</span> with the entries of <span>$a$</span>, where the <span>$i$</span>th and <span>$j$</span>th row are swapped.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = identity_matrix(ZZ, 3)
+[1   0   0]
+[0   1   0]
+[0   0   1]
+
+julia&gt; swap_rows(M, 1, 2)
+[0   1   0]
+[1   0   0]
+[0   0   1]
+
+julia&gt; M  # was not modified
+[1   0   0]
+[0   1   0]
+[0   0   1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6301-L6324">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="swap_rows!-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#swap_rows!-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>swap_rows!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">swap_rows!(a::MatrixElem{T}, i::Int, j::Int) where T &lt;: NCRingElement</code></pre><p>Swap the <span>$i$</span>th and <span>$j$</span>th row of <span>$a$</span> in place. The function returns the mutated matrix (since matrices are assumed to be mutable in AbstractAlgebra.jl).</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = identity_matrix(ZZ, 3)
+[1   0   0]
+[0   1   0]
+[0   0   1]
+
+julia&gt; swap_rows!(M, 1, 2)
+[0   1   0]
+[1   0   0]
+[0   0   1]
+
+julia&gt; M  # was modified
+[0   1   0]
+[1   0   0]
+[0   0   1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6332-L6355">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="swap_cols-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#swap_cols-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>swap_cols</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">swap_cols(a::MatrixElem{T}, i::Int, j::Int) where T &lt;: NCRingElement</code></pre><p>Return a matrix <span>$b$</span> with the entries of <span>$a$</span>, where the <span>$i$</span>th and <span>$j$</span>th row are swapped.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6368-L6373">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="swap_cols!-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement" href="#swap_cols!-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64, Int64}} where T&lt;:RingElement"><code>swap_cols!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">swap_cols!(a::MatrixElem{T}, i::Int, j::Int) where T &lt;: NCRingElement</code></pre><p>Swap the <span>$i$</span>th and <span>$j$</span>th column of <span>$a$</span> in place. The function returns the mutated matrix (since matrices are assumed to be mutable in AbstractAlgebra.jl).</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6381-L6386">source</a></section></article><p>Swap the rows of <code>M</code> in place. The function returns the mutated matrix (since matrices are assumed to be mutable in AbstractAlgebra.jl).</p><h3 id="Concatenation"><a class="docs-heading-anchor" href="#Concatenation">Concatenation</a><a id="Concatenation-1"></a><a class="docs-heading-anchor-permalink" href="#Concatenation" title="Permalink"></a></h3><p>The following are only available for matrix spaces, not for matrix algebras.</p><pre><code class="language-julia hljs">hcat(M::T, N::T) where T &lt;: MatElem</code></pre><p>Return the horizontal concatenation of <span>$M$</span> and <span>$N$</span>. It is assumed that the number of rows of <span>$M$</span> and <span>$N$</span> are the same.</p><pre><code class="language-julia hljs">vcat(M::T, N::T) where T &lt;: MatElem</code></pre><p>Return the vertical concatenation of <span>$M$</span> and <span>$N$</span>. It is assumed that the number of columns of <span>$M$</span> and <span>$N$</span> are the same.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, BigInt[1 2 3; 2 3 4; 3 4 5])
+[1   2   3]
+[2   3   4]
+[3   4   5]
+
+julia&gt; N = matrix(ZZ, BigInt[1 0 1; 0 1 0; 1 0 1])
+[1   0   1]
+[0   1   0]
+[1   0   1]
+
+julia&gt; P = hcat(M, N)
+[1   2   3   1   0   1]
+[2   3   4   0   1   0]
+[3   4   5   1   0   1]
+
+julia&gt; Q = vcat(M, N)
+[1   2   3]
+[2   3   4]
+[3   4   5]
+[1   0   1]
+[0   1   0]
+[1   0   1]
+</code></pre><h3 id="Similar-and-zero"><a class="docs-heading-anchor" href="#Similar-and-zero">Similar and zero</a><a id="Similar-and-zero-1"></a><a class="docs-heading-anchor-permalink" href="#Similar-and-zero" title="Permalink"></a></h3><p>Both <code>similar</code> and <code>zero</code> construct new matrices, but the entries are either undefined with <code>similar</code> or zero-initialized with <code>zero</code>.</p><pre><code class="language-julia hljs">similar(x::MatElem, R::Ring=base_ring(x))
+zero(x::MatElem, R::Ring=base_ring(x))</code></pre><p>Construct the matrix with the same dimensions as the given matrix, and the same base ring unless explicitly specified.</p><pre><code class="language-julia hljs">similar(x::MatElem, R::Ring, r::Int, c::Int)
+similar(x::MatElem, r::Int, c::Int)
+zero(x::MatElem, R::Ring, r::Int, c::Int)
+zero(x::MatElem, r::Int, c::Int)</code></pre><p>Construct the <span>$r\times c$</span> matrix with <code>R</code> as base ring (which defaults to the base ring of the the given matrix). If <span>$x$</span> belongs to a matrix algebra and <span>$r \neq c$</span>, an exception is raised, and it&#39;s also possible to specify only one <code>Int</code> as the order (e.g. <code>similar(x, n)</code>).</p><pre><code class="language-julia hljs">Base.isassigned(M::MatElem, i, j)</code></pre><p>Test whether the given matrix has a value associated with indices <code>i</code> and <code>j</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, BigInt[3 1 2; 2 0 1])
+[3   1   2]
+[2   0   1]
+
+julia&gt; isassigned(M, 1, 2)
+true
+
+julia&gt; isassigned(M, 4, 4)
+false
+
+julia&gt; A = similar(M)
+[#undef   #undef   #undef]
+[#undef   #undef   #undef]
+
+julia&gt; isassigned(A, 1, 2)
+false
+
+julia&gt; B = zero(M)
+[0   0   0]
+[0   0   0]
+
+julia&gt; C = similar(M, 4, 5)
+[#undef   #undef   #undef   #undef   #undef]
+[#undef   #undef   #undef   #undef   #undef]
+[#undef   #undef   #undef   #undef   #undef]
+[#undef   #undef   #undef   #undef   #undef]
+
+julia&gt; base_ring(B)
+Integers
+
+julia&gt; D = zero(M, QQ, 2, 2)
+[0//1   0//1]
+[0//1   0//1]
+
+julia&gt; base_ring(D)
+Rationals</code></pre><h3 id="Symmetry-testing"><a class="docs-heading-anchor" href="#Symmetry-testing">Symmetry testing</a><a id="Symmetry-testing-1"></a><a class="docs-heading-anchor-permalink" href="#Symmetry-testing" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_symmetric-Tuple{MatrixElem}" href="#is_symmetric-Tuple{MatrixElem}"><code>is_symmetric</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_symmetric(M::MatrixElem)</code></pre><p>Return <code>true</code> if the given matrix is symmetric with respect to its main diagonal, i.e., <code>transpose(M) == M</code>, otherwise return <code>false</code>.</p><p>Alias for <code>LinearAlgebra.issymmetric</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, [1 2 3; 2 4 5; 3 5 6])
+[1   2   3]
+[2   4   5]
+[3   5   6]
+
+julia&gt; is_symmetric(M)
+true
+
+julia&gt; N = matrix(ZZ, [1 2 3; 4 5 6; 7 8 9])
+[1   2   3]
+[4   5   6]
+[7   8   9]
+
+julia&gt; is_symmetric(N)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1305-L1332">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_skew_symmetric-Tuple{MatrixElem}" href="#is_skew_symmetric-Tuple{MatrixElem}"><code>is_skew_symmetric</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_skew_symmetric(M::MatrixElem)</code></pre><p>Return <code>true</code> if the given matrix is skew symmetric with respect to its main diagonal, i.e., <code>transpose(M) == -M</code>, otherwise return <code>false</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = matrix(ZZ, [0 -1 -2; 1 0 -3; 2 3 0])
+[0   -1   -2]
+[1    0   -3]
+[2    3    0]
+
+julia&gt; is_skew_symmetric(M)
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2424-L2441">source</a></section></article><h3 id="Powering"><a class="docs-heading-anchor" href="#Powering">Powering</a><a id="Powering-1"></a><a class="docs-heading-anchor-permalink" href="#Powering" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="powers-Tuple{MatElem, Int64}" href="#powers-Tuple{MatElem, Int64}"><code>powers</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">powers(a::Union{NCRingElement, MatElem}, d::Int)</code></pre><p>Return an array <span>$M$</span> of &quot;powers&quot; of <code>a</code> where <span>$M[i + 1] = a^i$</span> for <span>$i = 0..d$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; M = ZZ[1 2 3; 2 3 4; 4 5 5]
+[1   2   3]
+[2   3   4]
+[4   5   5]
+
+julia&gt; A = powers(M, 4)
+5-element Vector{AbstractAlgebra.Generic.MatSpaceElem{BigInt}}:
+ [1 0 0; 0 1 0; 0 0 1]
+ [1 2 3; 2 3 4; 4 5 5]
+ [17 23 26; 24 33 38; 34 48 57]
+ [167 233 273; 242 337 394; 358 497 579]
+ [1725 2398 2798; 2492 3465 4044; 3668 5102 5957]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/NCRings.jl#L234-L255">source</a></section></article><h3 id="Gram-matrix"><a class="docs-heading-anchor" href="#Gram-matrix">Gram matrix</a><a id="Gram-matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Gram-matrix" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="gram-Tuple{MatElem}" href="#gram-Tuple{MatElem}"><code>gram</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">gram(x::MatElem)</code></pre><p>Return the Gram matrix of <span>$x$</span>, i.e. if <span>$x$</span> is an <span>$r\times c$</span> matrix return the <span>$r\times r$</span> matrix whose entries <span>$i, j$</span> are the dot products of the <span>$i$</span>-th and <span>$j$</span>-th rows, respectively.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; B = gram(A)
+[2*t^2 + 2*t + 2   t^3 + 2*t^2 + t                   2*t^2 + t - 1]
+[t^3 + 2*t^2 + t       t^4 + 2*t^2                       t^3 + 3*t]
+[  2*t^2 + t - 1         t^3 + 3*t   t^4 + 2*t^3 + 4*t^2 + 6*t + 9]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1402-L1430">source</a></section></article><h3 id="Trace"><a class="docs-heading-anchor" href="#Trace">Trace</a><a id="Trace-1"></a><a class="docs-heading-anchor-permalink" href="#Trace" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="tr-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#tr-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>tr</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">tr(x::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Return the trace of the matrix <span>$a$</span>, i.e. the sum of the diagonal elements. We require the matrix to be square.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; b = tr(A)
+t^2 + 3*t + 2
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1450-L1475">source</a></section><section><div><pre><code class="language-julia hljs">tr(x::AbstractAssociativeAlgebraElem{T}) where T -&gt; T</code></pre><p>Returns the trace of <span>$x$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/thofma/Hecke.jl/blob/v0.30.0/src/AlgAss/Elem.jl#L947-L951">source</a></section></article><h3 id="Content"><a class="docs-heading-anchor" href="#Content">Content</a><a id="Content-1"></a><a class="docs-heading-anchor-permalink" href="#Content" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="content-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#content-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>content</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">content(x::MatrixElem{T}) where T &lt;: RingElement</code></pre><p>Return the content of the matrix <span>$a$</span>, i.e. the greatest common divisor of all its entries, assuming it exists.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; b = content(A)
+1
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1491-L1516">source</a></section></article><h3 id="Permutation"><a class="docs-heading-anchor" href="#Permutation">Permutation</a><a id="Permutation-1"></a><a class="docs-heading-anchor-permalink" href="#Permutation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="*-Union{Tuple{T}, Tuple{Perm, MatElem{T}}} where T&lt;:RingElement" href="#*-Union{Tuple{T}, Tuple{Perm, MatElem{T}}} where T&lt;:RingElement"><code>*</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">*(P::perm, x::MatrixElem{T}) where T &lt;: NCRingElement</code></pre><p>Apply the pemutation <span>$P$</span> to the rows of the matrix <span>$x$</span> and return the result.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, t = polynomial_ring(QQ, &quot;t&quot;)
+(Univariate polynomial ring in t over rationals, t)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in t over rationals
+
+julia&gt; G = SymmetricGroup(3)
+Full symmetric group over 3 elements
+
+julia&gt; A = S([t + 1 t R(1); t^2 t t; R(-2) t + 2 t^2 + t + 1])
+[t + 1       t             1]
+[  t^2       t             t]
+[   -2   t + 2   t^2 + t + 1]
+
+julia&gt; P = G([1, 3, 2])
+(2,3)
+
+julia&gt; B = P*A
+[t + 1       t             1]
+[   -2   t + 2   t^2 + t + 1]
+[  t^2       t             t]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1536-L1568">source</a></section></article><h3 id="LU-factorisation"><a class="docs-heading-anchor" href="#LU-factorisation">LU factorisation</a><a id="LU-factorisation-1"></a><a class="docs-heading-anchor-permalink" href="#LU-factorisation" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="lu-Union{Tuple{T}, Tuple{MatElem{T}, AbstractAlgebra.SymmetricGroup}} where T&lt;:FieldElem" href="#lu-Union{Tuple{T}, Tuple{MatElem{T}, AbstractAlgebra.SymmetricGroup}} where T&lt;:FieldElem"><code>lu</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">lu(A::MatrixElem{T}, P = SymmetricGroup(nrows(A))) where {T &lt;: FieldElement}</code></pre><p>Return a tuple <span>$r, p, L, U$</span> consisting of the rank of <span>$A$</span>, a permutation <span>$p$</span> of <span>$A$</span> belonging to <span>$P$</span>, a lower triangular matrix <span>$L$</span> and an upper triangular matrix <span>$U$</span> such that <span>$p(A) = LU$</span>, where <span>$p(A)$</span> stands for the matrix whose rows are the given permutation <span>$p$</span> of the rows of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1643-L1650">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="fflu-Union{Tuple{T}, Tuple{MatElem{T}, AbstractAlgebra.SymmetricGroup}} where T&lt;:RingElem" href="#fflu-Union{Tuple{T}, Tuple{MatElem{T}, AbstractAlgebra.SymmetricGroup}} where T&lt;:RingElem"><code>fflu</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">fflu(A::MatrixElem{T}, P = SymmetricGroup(nrows(A))) where {T &lt;: RingElement}</code></pre><p>Return a tuple <span>$r, d, p, L, U$</span> consisting of the rank of <span>$A$</span>, a denominator <span>$d$</span>, a permutation <span>$p$</span> of <span>$A$</span> belonging to <span>$P$</span>, a lower triangular matrix <span>$L$</span> and an upper triangular matrix <span>$U$</span> such that <span>$p(A) = LDU$</span>, where <span>$p(A)$</span> stands for the matrix whose rows are the given permutation <span>$p$</span> of the rows of <span>$A$</span> and such that <span>$D$</span> is the diagonal matrix diag<span>$(p_1, p_1p_2, \ldots, p_{n-2}p_{n-1}, p_{n-1}p_n)$</span> where the <span>$p_i$</span> are the inverses of the diagonal entries of <span>$L$</span>. The denominator <span>$d$</span> is set to <span>$\pm \mathrm{det}(S)$</span> where <span>$S$</span> is an appropriate submatrix of <span>$A$</span> (<span>$S = A$</span> if <span>$A$</span> is square and nonsingular) and the sign is decided by the parity of the permutation.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1793-L1806">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;)
+(Univariate polynomial ring in x over rationals, x)
+
+julia&gt; K, = residue_field(R, x^3 + 3x + 1); a = K(x);
+
+julia&gt; S = matrix_space(K, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over residue field of univariate polynomial ring modulo x^3 + 3*x + 1
+
+julia&gt; A = S([K(0) 2a + 3 a^2 + 1; a^2 - 2 a - 1 2a; a^2 - 2 a - 1 2a])
+[      0   2*x + 3   x^2 + 1]
+[x^2 - 2     x - 1       2*x]
+[x^2 - 2     x - 1       2*x]
+
+julia&gt; r, P, L, U = lu(A)
+(2, (1,2), [1 0 0; 0 1 0; 1 0 1], [x^2-2 x-1 2*x; 0 2*x+3 x^2+1; 0 0 0])
+
+julia&gt; r, d, P, L, U = fflu(A)
+(2, 3*x^2 - 10*x - 8, (1,2), [x^2-2 0 0; 0 3*x^2-10*x-8 0; x^2-2 0 1], [x^2-2 x-1 2*x; 0 3*x^2-10*x-8 -4*x^2-x-2; 0 0 0])
+</code></pre><h3 id="Reduced-row-echelon-form"><a class="docs-heading-anchor" href="#Reduced-row-echelon-form">Reduced row-echelon form</a><a id="Reduced-row-echelon-form-1"></a><a class="docs-heading-anchor-permalink" href="#Reduced-row-echelon-form" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="rref_rational-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#rref_rational-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>rref_rational</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rref_rational(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return a tuple <span>$(r, A, d)$</span> consisting of the rank <span>$r$</span> of <span>$M$</span> and a denominator <span>$d$</span> in the base ring of <span>$M$</span> and a matrix <span>$A$</span> such that <span>$A/d$</span> is the reduced row echelon form of <span>$M$</span>. Note that the denominator is not usually minimal.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1911-L1918">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem" href="#rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem"><code>rref</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rref(M::MatrixElem{T}) where {T &lt;: FieldElement}</code></pre><p>Return a tuple <span>$(r, A)$</span> consisting of the rank <span>$r$</span> of <span>$M$</span> and a reduced row echelon form <span>$A$</span> of <span>$M$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1985-L1990">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#is_rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>is_rref</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_rref(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return <code>true</code> if <span>$M$</span> is in reduced row echelon form, otherwise return <code>false</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1997-L2002">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem" href="#is_rref-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem"><code>is_rref</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_rref(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return <code>true</code> if <span>$M$</span> is in reduced row echelon form, otherwise return <code>false</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L1997-L2002">source</a></section><section><div><pre><code class="language-julia hljs">is_rref(M::MatrixElem{T}) where {T &lt;: FieldElement}</code></pre><p>Return <code>true</code> if <span>$M$</span> is in reduced row echelon form, otherwise return <code>false</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2027-L2032">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;)
+(Univariate polynomial ring in x over rationals, x)
+
+julia&gt; K, = residue_field(R, x^3 + 3x + 1); a = K(x);
+
+julia&gt; S = matrix_space(K, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over residue field of univariate polynomial ring modulo x^3 + 3*x + 1
+
+julia&gt; M = S([K(0) 2a + 3 a^2 + 1; a^2 - 2 a - 1 2a; a^2 + 3a + 1 2a K(1)])
+[            0   2*x + 3   x^2 + 1]
+[      x^2 - 2     x - 1       2*x]
+[x^2 + 3*x + 1       2*x         1]
+
+julia&gt; r, A = rref(M)
+(3, [1 0 0; 0 1 0; 0 0 1])
+
+julia&gt; is_rref(A)
+true
+
+julia&gt; R, x = polynomial_ring(ZZ, &quot;x&quot;)
+(Univariate polynomial ring in x over integers, x)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in x over integers
+
+julia&gt; M = S([R(0) 2x + 3 x^2 + 1; x^2 - 2 x - 1 2x; x^2 + 3x + 1 2x R(1)])
+[            0   2*x + 3   x^2 + 1]
+[      x^2 - 2     x - 1       2*x]
+[x^2 + 3*x + 1       2*x         1]
+
+julia&gt; r, A, d = rref_rational(M)
+(3, [-x^5-2*x^4-15*x^3-18*x^2-8*x-7 0 0; 0 -x^5-2*x^4-15*x^3-18*x^2-8*x-7 0; 0 0 -x^5-2*x^4-15*x^3-18*x^2-8*x-7], -x^5 - 2*x^4 - 15*x^3 - 18*x^2 - 8*x - 7)
+
+julia&gt; is_rref(A)
+true</code></pre><h3 id="Determinant"><a class="docs-heading-anchor" href="#Determinant">Determinant</a><a id="Determinant-1"></a><a class="docs-heading-anchor-permalink" href="#Determinant" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="det-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#det-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>det</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">det(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the determinant of the matrix <span>$M$</span>. We assume <span>$M$</span> is square.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;)
+(Univariate polynomial ring in x over rationals, x)
+
+julia&gt; A = R[x 1; 1 x^2];
+
+julia&gt; d = det(A)
+x^3 - 1</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2238-L2254">source</a></section></article><h3 id="Rank"><a class="docs-heading-anchor" href="#Rank">Rank</a><a id="Rank-1"></a><a class="docs-heading-anchor-permalink" href="#Rank" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="rank-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#rank-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>rank</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">rank(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the rank of the matrix <span>$M$</span>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = QQ[1 2; 3 4];
+
+julia&gt; d = rank(A)
+2</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2603-L2616">source</a></section></article><h3 id="Minors"><a class="docs-heading-anchor" href="#Minors">Minors</a><a id="Minors-1"></a><a class="docs-heading-anchor-permalink" href="#Minors" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="minors-Tuple{MatElem, Int64}" href="#minors-Tuple{MatElem, Int64}"><code>minors</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minors(A::MatElem, k::Int)</code></pre><p>Return an array consisting of the <code>k</code>-minors of <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = ZZ[1 2 3; 4 5 6]
+[1   2   3]
+[4   5   6]
+
+julia&gt; minors(A, 2)
+3-element Vector{BigInt}:
+ -3
+ -6
+ -3
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2358-L2377">source</a></section></article><h3 id="Exterior-power"><a class="docs-heading-anchor" href="#Exterior-power">Exterior power</a><a id="Exterior-power-1"></a><a class="docs-heading-anchor-permalink" href="#Exterior-power" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="exterior_power-Tuple{MatElem, Int64}" href="#exterior_power-Tuple{MatElem, Int64}"><code>exterior_power</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">exterior_power(A::MatElem, k::Int) -&gt; MatElem</code></pre><p>Return the <code>k</code>-th exterior power of <code>A</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = matrix(ZZ, 3, 3, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+julia&gt; exterior_power(A, 2)
+[-3    -6   -3]
+[-6   -12   -6]
+[-3    -6   -3]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2390-L2405">source</a></section></article><h3 id="Pfaffian"><a class="docs-heading-anchor" href="#Pfaffian">Pfaffian</a><a id="Pfaffian-1"></a><a class="docs-heading-anchor-permalink" href="#Pfaffian" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="pfaffian-Tuple{MatElem}" href="#pfaffian-Tuple{MatElem}"><code>pfaffian</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">pfaffian(M::MatElem)</code></pre><p>Return the Pfaffian of a skew-symmetric matrix <code>M</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2456-L2460">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="pfaffians-Tuple{MatElem, Int64}" href="#pfaffians-Tuple{MatElem, Int64}"><code>pfaffians</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">pfaffians(M::MatElem, k::Int)</code></pre><p>Return a vector consisting of the <code>k</code>-Pfaffians of a skew-symmetric matrix <code>M</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L2474-L2478">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, [&quot;x$i&quot; for i in 1:6])
+(Multivariate polynomial ring in 6 variables over rationals, AbstractAlgebra.Generic.MPoly{Rational{BigInt}}[x1, x2, x3, x4, x5, x6])
+
+julia&gt; M = R[0 x[1] x[2] x[3]; -x[1] 0 x[4] x[5]; -x[2] -x[4] 0 x[6]; -x[3] -x[5] -x[6] 0]
+[  0    x1    x2   x3]
+[-x1     0    x4   x5]
+[-x2   -x4     0   x6]
+[-x3   -x5   -x6    0]
+
+julia&gt; pfaffian(M)
+x1*x6 - x2*x5 + x3*x4
+
+julia&gt; pfaffians(M, 2)
+6-element Vector{AbstractAlgebra.Generic.MPoly{Rational{BigInt}}}:
+ x1
+ x2
+ x4
+ x3
+ x5
+ x6
+ </code></pre><h3 id="Linear-solving"><a class="docs-heading-anchor" href="#Linear-solving">Linear solving</a><a id="Linear-solving-1"></a><a class="docs-heading-anchor-permalink" href="#Linear-solving" title="Permalink"></a></h3><p>See <a href="../linear_solving/#solving_chapter">Linear Solving &amp; Kernel</a></p><h3 id="Inverse"><a class="docs-heading-anchor" href="#Inverse">Inverse</a><a id="Inverse-1"></a><a class="docs-heading-anchor-permalink" href="#Inverse" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="inv-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#inv-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>inv</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">inv(M::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Given a non-singular <span>$n\times n$</span> matrix over a ring, return an <span>$n\times n$</span> matrix <span>$X$</span> such that <span>$MX = I_n$</span>, where <span>$I_n$</span> is the <span>$n\times n$</span> identity matrix. If <span>$M$</span> is not invertible over the base ring an exception is raised.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3857-L3864">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_invertible_with_inverse-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#is_invertible_with_inverse-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>is_invertible_with_inverse</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_invertible_with_inverse(A::MatrixElem{T}; side::Symbol = :left) where {T &lt;: RingElement}</code></pre><p>Given an <span>$n\times m$</span> matrix <span>$A$</span> over a ring, return a tuple <code>(flag, B)</code>. If <code>side</code> is <code>:right</code> and <code>flag</code> is true, <span>$B$</span> is the right inverse of <span>$A$</span> i.e. <span>$AB$</span> is the <span>$n\times n$</span> unit matrix. If <code>side</code> is <code>:left</code> and <code>flag</code> is true, <span>$B$</span> is the left inverse of <span>$A$</span> i.e. <span>$BA$</span> is the <span>$m\times m$</span> unit matrix. If <code>flag</code> is false, no right or left inverse exists.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3878-L3886">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_invertible-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#is_invertible-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>is_invertible</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_invertible(A::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return true if a given square matrix is invertible, false otherwise. If the inverse should also be computed, use <code>is_invertible_with_inverse</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3898-L3903">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;)
+(Univariate polynomial ring in x over rationals, x)
+
+julia&gt; K, = residue_field(R, x^3 + 3x + 1); a = K(x);
+
+julia&gt; S = matrix_space(K, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over residue field of univariate polynomial ring modulo x^3 + 3*x + 1
+
+julia&gt; A = S([K(0) 2a + 3 a^2 + 1; a^2 - 2 a - 1 2a; a^2 + 3a + 1 2a K(1)])
+[            0   2*x + 3   x^2 + 1]
+[      x^2 - 2     x - 1       2*x]
+[x^2 + 3*x + 1       2*x         1]
+
+julia&gt; X = inv(A)
+[-343//7817*x^2 + 717//7817*x - 2072//7817   -4964//23451*x^2 + 2195//23451*x - 11162//23451    -232//23451*x^2 - 4187//23451*x - 1561//23451]
+[ 128//7817*x^2 - 655//7817*x + 2209//7817      599//23451*x^2 - 2027//23451*x - 1327//23451   -1805//23451*x^2 + 2702//23451*x - 7394//23451]
+[ 545//7817*x^2 + 570//7817*x + 2016//7817     -1297//23451*x^2 - 5516//23451*x - 337//23451   8254//23451*x^2 - 2053//23451*x + 16519//23451]
+
+julia&gt; is_invertible(A)
+true
+
+julia&gt; is_invertible_with_inverse(A)
+(true, [-343//7817*x^2+717//7817*x-2072//7817 -4964//23451*x^2+2195//23451*x-11162//23451 -232//23451*x^2-4187//23451*x-1561//23451; 128//7817*x^2-655//7817*x+2209//7817 599//23451*x^2-2027//23451*x-1327//23451 -1805//23451*x^2+2702//23451*x-7394//23451; 545//7817*x^2+570//7817*x+2016//7817 -1297//23451*x^2-5516//23451*x-337//23451 8254//23451*x^2-2053//23451*x+16519//23451])
+
+julia&gt; R, x = polynomial_ring(ZZ, &quot;x&quot;)
+(Univariate polynomial ring in x over integers, x)
+
+julia&gt; S = matrix_space(R, 3, 3)
+Matrix space of 3 rows and 3 columns
+  over univariate polynomial ring in x over integers
+
+julia&gt; A = S([R(0) 2x + 3 x^2 + 1; x^2 - 2 x - 1 2x; x^2 + 3x + 1 2x R(1)])
+[            0   2*x + 3   x^2 + 1]
+[      x^2 - 2     x - 1       2*x]
+[x^2 + 3*x + 1       2*x         1]
+
+julia&gt; X, d = pseudo_inv(A)
+([4*x^2-x+1 -2*x^3+3 x^3-5*x^2-5*x-1; -2*x^3-5*x^2-2*x-2 x^4+3*x^3+2*x^2+3*x+1 -x^4+x^2+2; -x^3+2*x^2+2*x-1 -2*x^3-9*x^2-11*x-3 2*x^3+3*x^2-4*x-6], -x^5 - 2*x^4 - 15*x^3 - 18*x^2 - 8*x - 7)
+</code></pre><h3 id="Nullspace"><a class="docs-heading-anchor" href="#Nullspace">Nullspace</a><a id="Nullspace-1"></a><a class="docs-heading-anchor-permalink" href="#Nullspace" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="nullspace-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem" href="#nullspace-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:FieldElem"><code>nullspace</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">nullspace(M::MatElem{T}) where {T &lt;: RingElement}</code></pre><p>Return a tuple <span>$(\nu, N)$</span> consisting of the nullity <span>$\nu$</span> of <span>$M$</span> and a basis <span>$N$</span> (consisting of column vectors) for the right nullspace of <span>$M$</span>, i.e. such that <span>$MN$</span> is the zero matrix. If <span>$M$</span> is an <span>$m\times n$</span> matrix <span>$N$</span> will be an <span>$n\times \nu$</span> matrix. Note that the nullspace is taken to be the vector space kernel over the fraction field of the base ring if the latter is not a field. In AbstractAlgebra we use the name &quot;kernel&quot; for a function to compute an integral kernel.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(ZZ, &quot;x&quot;)
+(Univariate polynomial ring in x over integers, x)
+
+julia&gt; S = matrix_space(R, 4, 4)
+Matrix space of 4 rows and 4 columns
+  over univariate polynomial ring in x over integers
+
+julia&gt; M = S([-6*x^2+6*x+12 -12*x^2-21*x-15 -15*x^2+21*x+33 -21*x^2-9*x-9;
+              -8*x^2+8*x+16 -16*x^2+38*x-20 90*x^2-82*x-44 60*x^2+54*x-34;
+              -4*x^2+4*x+8 -8*x^2+13*x-10 35*x^2-31*x-14 22*x^2+21*x-15;
+              -10*x^2+10*x+20 -20*x^2+70*x-25 150*x^2-140*x-85 105*x^2+90*x-50])
+[  -6*x^2 + 6*x + 12   -12*x^2 - 21*x - 15    -15*x^2 + 21*x + 33     -21*x^2 - 9*x - 9]
+[  -8*x^2 + 8*x + 16   -16*x^2 + 38*x - 20     90*x^2 - 82*x - 44    60*x^2 + 54*x - 34]
+[   -4*x^2 + 4*x + 8    -8*x^2 + 13*x - 10     35*x^2 - 31*x - 14    22*x^2 + 21*x - 15]
+[-10*x^2 + 10*x + 20   -20*x^2 + 70*x - 25   150*x^2 - 140*x - 85   105*x^2 + 90*x - 50]
+
+julia&gt; n, N = nullspace(M)
+(2, [1320*x^4-330*x^2-1320*x-1320 1056*x^4+1254*x^3+1848*x^2-66*x-330; -660*x^4+1320*x^3+1188*x^2-1848*x-1056 -528*x^4+132*x^3+1584*x^2+660*x-264; 396*x^3-396*x^2-792*x 0; 0 396*x^3-396*x^2-792*x])</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3914-L3947">source</a></section><section><div><pre><code class="language-julia hljs">nullspace(M::MatElem{T}) where {T &lt;: FieldElement}</code></pre><p>Return a tuple <span>$(\nu, N)$</span> consisting of the nullity <span>$\nu$</span> of <span>$M$</span> and a basis <span>$N$</span> (consisting of column vectors) for the right nullspace of <span>$M$</span>, i.e. such that <span>$MN$</span> is the zero matrix. If <span>$M$</span> is an <span>$m\times n$</span> matrix <span>$N$</span> will be an <span>$n\times \nu$</span> matrix.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L3987-L3994">source</a></section></article><h3 id="Hessenberg-form"><a class="docs-heading-anchor" href="#Hessenberg-form">Hessenberg form</a><a id="Hessenberg-form-1"></a><a class="docs-heading-anchor-permalink" href="#Hessenberg-form" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="hessenberg-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#hessenberg-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>hessenberg</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hessenberg(A::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the Hessenberg form of <span>$M$</span>, i.e. an upper Hessenberg matrix which is similar to <span>$M$</span>. The upper Hessenberg form has nonzero entries above and on the diagonal and in the diagonal line immediately below the diagonal.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L4153-L4160">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_hessenberg-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#is_hessenberg-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>is_hessenberg</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_hessenberg(A::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return <code>true</code> if <span>$M$</span> is in Hessenberg form, otherwise returns <code>false</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L4168-L4172">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, = residue_ring(ZZ, 7);
+
+julia&gt; S = matrix_space(R, 4, 4)
+Matrix space of 4 rows and 4 columns
+  over residue ring of integers modulo 7
+
+julia&gt; M = S([R(1) R(2) R(4) R(3); R(2) R(5) R(1) R(0);
+              R(6) R(1) R(3) R(2); R(1) R(1) R(3) R(5)])
+[1   2   4   3]
+[2   5   1   0]
+[6   1   3   2]
+[1   1   3   5]
+
+julia&gt; A = hessenberg(M)
+[1   5   5   3]
+[2   1   1   0]
+[0   1   3   2]
+[0   0   2   2]
+
+julia&gt; is_hessenberg(A)
+true
+</code></pre><h3 id="Characteristic-polynomial"><a class="docs-heading-anchor" href="#Characteristic-polynomial">Characteristic polynomial</a><a id="Characteristic-polynomial-1"></a><a class="docs-heading-anchor-permalink" href="#Characteristic-polynomial" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="charpoly-Union{Tuple{T}, Tuple{PolyRing{T}, MatrixElem{T}}} where T&lt;:RingElem" href="#charpoly-Union{Tuple{T}, Tuple{PolyRing{T}, MatrixElem{T}}} where T&lt;:RingElem"><code>charpoly</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">charpoly(Y::MatrixElem{T}) where {T &lt;: RingElement}
+charpoly(S::PolyRing{T}, Y::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the characteristic polynomial <span>$p$</span> of the square matrix <span>$Y$</span>. If a polynomial ring <span>$S$</span> over the same base ring as <span>$Y$</span> is supplied, the resulting polynomial is an element of it.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, = residue_ring(ZZ, 7);
+
+julia&gt; S = matrix_space(R, 4, 4)
+Matrix space of 4 rows and 4 columns
+  over residue ring of integers modulo 7
+
+julia&gt; T, y = polynomial_ring(R, &quot;y&quot;)
+(Univariate polynomial ring in y over residue ring, y)
+
+julia&gt; M = S([R(1) R(2) R(4) R(3); R(2) R(5) R(1) R(0);
+              R(6) R(1) R(3) R(2); R(1) R(1) R(3) R(5)])
+[1   2   4   3]
+[2   5   1   0]
+[6   1   3   2]
+[1   1   3   5]
+
+julia&gt; A = charpoly(T, M)
+y^4 + 2*y^2 + 6*y + 2
+
+julia&gt; A = charpoly(M)
+x^4 + 2*x^2 + 6*x + 2
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L4436-L4470">source</a></section></article><h3 id="Minimal-polynomial"><a class="docs-heading-anchor" href="#Minimal-polynomial">Minimal polynomial</a><a id="Minimal-polynomial-1"></a><a class="docs-heading-anchor-permalink" href="#Minimal-polynomial" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="minpoly-Union{Tuple{T}, Tuple{PolyRing{T}, MatElem{T}, Bool}} where T&lt;:RingElem" href="#minpoly-Union{Tuple{T}, Tuple{PolyRing{T}, MatElem{T}, Bool}} where T&lt;:RingElem"><code>minpoly</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">minpoly(M::MatElem{T}, charpoly_only::Bool = false) where {T &lt;: RingElement}
+minpoly(S::PolyRing{T}, M::MatElem{T}, charpoly_only::Bool = false) where {T &lt;: RingElement}</code></pre><p>Return the minimal polynomial <span>$p$</span> of the square matrix <span>$M$</span>. If a polynomial ring <span>$S$</span> over the same base ring as <span>$Y$</span> is supplied, the resulting polynomial is an element of it.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R = GF(13)
+Finite field F_13
+
+julia&gt; S, y = polynomial_ring(R, &quot;y&quot;)
+(Univariate polynomial ring in y over finite field F_13, y)
+
+julia&gt; M = R[7 6 1;
+             7 7 5;
+             8 12 5]
+[7    6   1]
+[7    7   5]
+[8   12   5]
+
+julia&gt; A = minpoly(S, M)
+y^2 + 10*y
+
+julia&gt; A = minpoly(M)
+x^2 + 10*x
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L4642-L4673">source</a></section></article><h3 id="Transforms"><a class="docs-heading-anchor" href="#Transforms">Transforms</a><a id="Transforms-1"></a><a class="docs-heading-anchor-permalink" href="#Transforms" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="similarity!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, T}} where T&lt;:RingElem" href="#similarity!-Union{Tuple{T}, Tuple{MatElem{T}, Int64, T}} where T&lt;:RingElem"><code>similarity!</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">similarity!(A::MatrixElem{T}, r::Int, d::T) where {T &lt;: RingElement}</code></pre><p>Applies a similarity transform to the <span>$n\times n$</span> matrix <span>$M$</span> in-place. Let <span>$P$</span> be the <span>$n\times n$</span> identity matrix that has had all zero entries of row <span>$r$</span> replaced with <span>$d$</span>, then the transform applied is equivalent to <span>$M = P^{-1}MP$</span>. We require <span>$M$</span> to be a square matrix. A similarity transform preserves the minimal and characteristic polynomials of a matrix.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, = residue_ring(ZZ, 7);
+
+julia&gt; S = matrix_space(R, 4, 4)
+Matrix space of 4 rows and 4 columns
+  over residue ring of integers modulo 7
+
+julia&gt; M = S([R(1) R(2) R(4) R(3); R(2) R(5) R(1) R(0);
+              R(6) R(1) R(3) R(2); R(1) R(1) R(3) R(5)])
+[1   2   4   3]
+[2   5   1   0]
+[6   1   3   2]
+[1   1   3   5]
+
+julia&gt; similarity!(M, 1, R(3))
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L6241-L6269">source</a></section></article><h3 id="Hermite-normal-form"><a class="docs-heading-anchor" href="#Hermite-normal-form">Hermite normal form</a><a id="Hermite-normal-form-1"></a><a class="docs-heading-anchor-permalink" href="#Hermite-normal-form" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="hnf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#hnf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>hnf</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hnf(A::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the upper right row Hermite normal form of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5356-L5360">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="hnf_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#hnf_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>hnf_with_transform</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hnf_with_transform(A)</code></pre><p>Return the tuple <span>$H, U$</span> consisting of the upper right row Hermite normal form <span>$H$</span> of <span>$A$</span> together with invertible matrix <span>$U$</span> such that <span>$UA = H$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5365-L5370">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_hnf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#is_hnf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>is_hnf</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_hnf(M::MatrixElem{T}) where T &lt;: RingElement</code></pre><p>Return <code>true</code> if the matrix is in Hermite normal form.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5375-L5379">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = matrix(ZZ, [2 3 -1; 3 5 7; 11 1 12])
+[ 2   3   -1]
+[ 3   5    7]
+[11   1   12]
+
+julia&gt; H = hnf(A)
+[1   0   255]
+[0   1    17]
+[0   0   281]
+
+julia&gt; is_hnf(H)
+true
+
+julia&gt; H, U = hnf_with_transform(A)
+([1 0 255; 0 1 17; 0 0 281], [-47 28 1; -3 2 0; -52 31 1])
+
+julia&gt; U*A
+[1   0   255]
+[0   1    17]
+[0   0   281]</code></pre><h3 id="Smith-normal-form"><a class="docs-heading-anchor" href="#Smith-normal-form">Smith normal form</a><a id="Smith-normal-form-1"></a><a class="docs-heading-anchor-permalink" href="#Smith-normal-form" title="Permalink"></a></h3><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_snf-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement" href="#is_snf-Union{Tuple{MatrixElem{T}}, Tuple{T}} where T&lt;:RingElement"><code>is_snf</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_snf(A::MatrixElem{T}) where T &lt;: RingElement</code></pre><p>Return <code>true</code> if <span>$A$</span> is in Smith Normal Form.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5429-L5433">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="snf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#snf-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>snf</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">snf(A::MatrixElem{T}) where {T &lt;: RingElement}</code></pre><p>Return the Smith normal form of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5579-L5583">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="snf_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem" href="#snf_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:RingElem"><code>snf_with_transform</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">snf_with_transform(A)</code></pre><p>Return the tuple <span>$S, T, U$</span> consisting of the Smith normal form <span>$S$</span> of <span>$A$</span> together with invertible matrices <span>$T$</span> and <span>$U$</span> such that <span>$TAU = S$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5588-L5593">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; A = matrix(ZZ, [2 3 -1; 3 5 7; 11 1 12])
+[ 2   3   -1]
+[ 3   5    7]
+[11   1   12]
+
+julia&gt; S = snf(A)
+[1   0     0]
+[0   1     0]
+[0   0   281]
+
+julia&gt; S, T, U = snf_with_transform(A)
+([1 0 0; 0 1 0; 0 0 281], [1 0 0; 7 1 0; 229 31 1], [0 -3 26; 0 2 -17; -1 0 1])
+
+julia&gt; T*A*U
+[1   0     0]
+[0   1     0]
+[0   0   281]</code></pre><h3 id="(Weak)-Popov-form"><a class="docs-heading-anchor" href="#(Weak)-Popov-form">(Weak) Popov form</a><a id="(Weak)-Popov-form-1"></a><a class="docs-heading-anchor-permalink" href="#(Weak)-Popov-form" title="Permalink"></a></h3><p>AbstractAlgebra.jl provides algorithms for computing the (weak) Popov of a matrix with entries in a univariate polynomial ring over a field.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_weak_popov-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64}} where T&lt;:AbstractAlgebra.Generic.Poly" href="#is_weak_popov-Union{Tuple{T}, Tuple{MatrixElem{T}, Int64}} where T&lt;:AbstractAlgebra.Generic.Poly"><code>is_weak_popov</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_weak_popov(P::MatrixElem{T}, rank::Int) where T &lt;: PolyRingElem</code></pre><p>Return <code>true</code> if <span>$P$</span> is a matrix in weak Popov form of the given rank.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5604-L5608">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="weak_popov-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem" href="#weak_popov-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem"><code>weak_popov</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">weak_popov(A::MatElem{T}) where {T &lt;: PolyRingElem}</code></pre><p>Return the weak Popov form of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5687-L5691">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="weak_popov_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem" href="#weak_popov_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem"><code>weak_popov_with_transform</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">weak_popov_with_transform(A::MatElem{T}) where {T &lt;: PolyRingElem}</code></pre><p>Compute a tuple <span>$(P, U)$</span> where <span>$P$</span> is the weak Popov form of <span>$A$</span> and <span>$U$</span> is a transformation matrix so that <span>$P = UA$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5696-L5701">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="popov-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem" href="#popov-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem"><code>popov</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">popov(A::MatElem{T}) where {T &lt;: PolyRingElem}</code></pre><p>Return the Popov form of <span>$A$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5959-L5963">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="popov_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem" href="#popov_with_transform-Union{Tuple{MatElem{T}}, Tuple{T}} where T&lt;:PolyRingElem"><code>popov_with_transform</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">popov_with_transform(A::MatElem{T}) where {T &lt;: PolyRingElem}</code></pre><p>Compute a tuple <span>$(P, U)$</span> where <span>$P$</span> is the Popov form of <span>$A$</span> and <span>$U$</span> is a transformation matrix so that <span>$P = UA$</span>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Nemocas/AbstractAlgebra.jl/blob/v0.40.1/src/Matrix.jl#L5968-L5973">source</a></section></article><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, x = polynomial_ring(QQ, &quot;x&quot;);
+
+julia&gt; A = matrix(R, map(R, Any[1 2 3 x; x 2*x 3*x x^2; x x^2+1 x^3+x^2 x^4+x^2+1]))
+[1         2           3               x]
+[x       2*x         3*x             x^2]
+[x   x^2 + 1   x^3 + x^2   x^4 + x^2 + 1]
+
+julia&gt; P = weak_popov(A)
+[   1                        2                    3   x]
+[   0                        0                    0   0]
+[-x^3   -2*x^3 + x^2 - 2*x + 1   -2*x^3 + x^2 - 3*x   1]
+
+julia&gt; P, U = weak_popov_with_transform(A)
+([1 2 3 x; 0 0 0 0; -x^3 -2*x^3+x^2-2*x+1 -2*x^3+x^2-3*x 1], [1 0 0; -x 1 0; -x^3-x 0 1])
+
+julia&gt; U*A
+[   1                        2                    3   x]
+[   0                        0                    0   0]
+[-x^3   -2*x^3 + x^2 - 2*x + 1   -2*x^3 + x^2 - 3*x   1]</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../Hecke/sparse/intro/">« Sparse linear algebra</a><a class="docs-footer-nextpage" href="../matrix_algebras/">Generic matrix algebras »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Friday 1 March 2024 13:28">Friday 1 March 2024</span>. Using Julia version 1.10.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
