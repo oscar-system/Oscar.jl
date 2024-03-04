@@ -124,7 +124,7 @@ function (R::Singular.LPRing)(a::FreeAssAlgElem)
   return finish(B)
 end
 
-function (A::FreeAssAlgebra)(a::NCRingElem)
+function (A::FreeAssAlgebra)(a::Singular.slpalg)
   B = MPolyBuildCtx(A)
   for (c,e) in zip(Oscar.coefficients(a), Singular.exponent_words(a))
     push_term!(B, base_ring(A)(c), e)
