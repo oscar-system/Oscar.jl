@@ -1,12 +1,10 @@
 include("MBOld.jl")
 
-"""
-We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
-check basic properties of the result. For example we know the size of our monomial basis. These properties get partially
-used in the algorithm and could therefore be true for false results. We have another basic algorithm that solves the 
-problem without the recursion, weightspaces and saving of computations. The third test compares the results we can 
-compute with the weaker version.
-"""
+# We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
+# check basic properties of the result. For example we know the size of our monomial basis. These properties get partially
+# used in the algorithm and could therefore be true for false results. We have another basic algorithm that solves the 
+# problem without the recursion, weightspaces and saving of computations. The third test compares the results we can 
+# compute with the weaker version.
 
 function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   # old algorithm

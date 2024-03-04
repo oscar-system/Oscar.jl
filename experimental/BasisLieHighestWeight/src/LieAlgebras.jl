@@ -63,9 +63,7 @@ end
 function matrices_of_operators_gap(
   L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
 )
-  """
-  used to create action_matrices_of_operators
-  """
+  # used in tensor_matrices_of_operators
   M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
   matrices_of_operators = [
     sparse_matrix(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))) for
@@ -78,10 +76,12 @@ function matrices_of_operators_gap(
   return matrices_of_operators
 end
 
+@doc raw"""
+    weight(L::LieAlgebraStructure, operator::GAP.Obj) -> Vector{ZZRingElem}
+
+Calculate the weight of `operator` w.r.t. the fundamental weights w_i.
+"""
 function weight(L::LieAlgebraStructure, operator::GAP.Obj)
-  """
-  Calculates the weight in w_i for operator
-  """
   @req !iszero(operator) "Operators should be non-zero"
   basis = GAPWrap.Basis(L.lie_algebra_gap)
   basis_ind = GAP.Globals.Position(basis, operator)
