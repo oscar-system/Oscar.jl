@@ -517,8 +517,9 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
   is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
-  A, p = quo(R, ideal(R, g))
-  return is_regular_sequence(p.(g[2:end]))
+  A, p = quo(R, ideal(R, g[1]))
+  red_seq = elem_type(A)[p(f) for f in g[2:end]]
+  return is_regular_sequence(red_seq)
 end
 
 
