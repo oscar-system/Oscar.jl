@@ -273,6 +273,8 @@ end
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
 function lift(C::GModule, mp::Map)
+  @show C
+  @show mp
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
@@ -282,9 +284,6 @@ function lift(C::GModule, mp::Map)
   @assert codomain(mp) == N
 
   H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
-  if order(H2) > 1
-    global last_in = (C, mp)
-  end
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
@@ -311,27 +310,44 @@ function lift(C::GModule, mp::Map)
   end
 
   allG = []
+  
+  for h = H2
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
 
-  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
-  #TODO: the projection maps seem to be rather slow - in particular
-  #      as they SHOULD be trivial...
-  global last_k = k
-  @show D, dim(D), E
-  for x = k
-    epi = pDE[1](mk(x)) #the map
-    chn = mH2(pDE[2](mk(x))) #the tail data
-    if (epi,chn) in seen
-      continue
-    else
-      push!(seen, (epi, chn))
+    s = hom(D, K, [zero(K) for i=1:ngens(D)])
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
+    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
+    @assert all(x->isone(GGpro(x)), rel)
+    rhs = [preimage(GGinj, x) for x = rel]
+    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
+
+    fl, pe = try
+      true, preimage(s, K(rhs))
+    catch
+      false, zero(D)
     end
-    @show chn
+    if !fl
+      @show :no_sol
+      continue
+    end
+    k, mk = kernel(s)
+    for x = k
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
+      if is_surjective(hm)
+        push!(allG, hm)
+      else
+        @show :not_sur
+      end
+    end
+  end
+
+
     #TODO: not all "chn" yield distinct groups - the factoring by the
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c) (and the weird lemma)
-#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
     gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(GapObj(h))], zero(M)) for h = gens(N)]
