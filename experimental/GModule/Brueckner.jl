@@ -339,12 +339,31 @@ end
 
 Oscar.is_finite(M::AbstractAlgebra.FPModule{<:FinFieldElem}) = true
 
+function Oscar.map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  G = parent(g)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    return init
+  end
+  gX = g.X
+
+  if GAP.Globals.IsPcGroup(G.X)
+    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(G.X), gX)
+  else  # GAP.Globals.IsPcpGroup(G.X)
+    l = GAP.Globals.Exponents(gX)
+  end
+  ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
+  return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
+end
+
 """
   mp: G ->> Q
   C a F_p[Q]-module
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
 function lift(C::GModule, mp::Map)
+  @show C
+  @show mp
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
@@ -353,15 +372,10 @@ function lift(C::GModule, mp::Map)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  _ = Oscar.GrpCoh.H_two(C)
-  ssc, mH2 = get_attribute(C, :H_two_symbolic_chain)
-  sc = (x,y) -> ssc(x, y)[1]
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  a = sc(one(N), one(N))
-  E = domain(a)
-  DE, pDE, iDE = direct_product(D, E, task = :both)
 
   #=
     G    -->> N
@@ -382,92 +396,47 @@ function lift(C::GModule, mp::Map)
   =#
 
   K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
-  s = hom(DE, K, [zero(K) for i=1:ngens(DE)])
-  j = 1
-  for r = R
-    a = (one(N), hom(DE, M, [zero(M) for i=1:ngens(DE)]))
-    for i = Oscar.GrpCoh.word(r)
-      if i<0
-        h = inv(mp(G[-i]))
-        m = -pDE[1]*pro[-i]*action(C, h)  - pDE[2]*sc(inv(h), h)
-      else
-        h = mp(G[i])
-        m = pDE[1]*pro[i]
-      end
-      # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
-      a = (a[1]*h, m + a[2]*action(C, h) + pDE[2]*sc(a[1], h))
-    end
-    @assert isone(a[1])
-    s += a[2]*iK[j]
-    j += 1
-  end
-  #so kern(s) should be exactly all possible quotients that allow a
-  #projection of G. They are not all surjective. However, lets try:
-  k, mk = kernel(s)
-  allG = []
-  z = get_attribute(C, :H_two)[1]  #tail (H2) -> cochain
 
-  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
-  #TODO: the projection maps seem to be rather slow - in particular
-  #      as they SHOULD be trivial...
-  for x = k
-    epi = pDE[1](mk(x)) #the map
-    chn = mH2(pDE[2](mk(x))) #the tail data
-    if (epi,chn) in seen
-      continue
-    else
-      push!(seen, (epi, chn))
+  allG = []
+
+  for h = H2
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
+
+    s = hom(D, K, [zero(K) for i=1:ngens(D)])
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
+    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
+    @assert all(x->isone(GGpro(x)), rel)
+    rhs = [preimage(GGinj, x) for x = rel]
+    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
+
+    fl, pe = try
+      true, preimage(s, K(rhs))
+    catch
+      false, zero(D)
     end
+    if !fl
+      @show :no_sol
+      continue
+    end
+    k, mk = kernel(s)
+    for x = k
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
+      if is_surjective(hm)
+        push!(allG, hm)
+      else
+        @show :not_sur
+      end
+    end
+  end
+
+
     #TODO: not all "chn" yield distinct groups - the factoring by the
     #      co-boundaries is missing
     #      not all "epi" are epi, ie. surjective. The part of the thm
     #      is missing...
     # (Thm 15, part b & c) (and the weird lemma)
-#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
 
-
-    @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
-    @assert is_surjective(GGpro)
-    if get_assertion_level(:BruecknerSQ) > 1
-      _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert is_isomorphic(GG, _GG)
-    end
-
-    function reduce(g) #in G
-      h = mp(g)
-      c = ssc(h, one(N))[2]
-      if length(c) == 0
-        return c
-      end
-      d = Int[abs(c[1]), sign(c[1])]
-      for i=c[2:end]
-        if abs(i) == d[end-1]
-          d[end] += sign(i)
-        else
-          push!(d, abs(i), sign(i))
-        end
-      end
-      return d
-    end
-    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-#    @show map(order, l), order(prod(l))
-#    @show map(order, gens(G)), order(prod(gens(G)))
-
-    h = try
-          hom(G, GG, l)
-        catch
-          @show :crash
-          continue
-        end
-    if !is_surjective(h)
-#      @show :darn
-      continue
-    else
-#      @show :bingo
-    end
-    push!(allG, h)
-  end
   return allG
 end
 
