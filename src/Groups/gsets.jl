@@ -69,8 +69,40 @@ function Base.show(io::IO, x::GSetByElements)
   end
 end
 
-# TODO: document `acting_group`, `action_function`
+"""
+    acting_group(Omega::GSetByElements)
+
+Return the group `G` acting on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> acting_group(gset(G, [1])) == G
+true
+```
+"""
 acting_group(Omega::GSetByElements) = Omega.group
+
+@doc raw"""
+    action_function(Omega::GSetByElements)
+
+Return the function $f: \Omega \times G \to \Omega$ that defines the G-set.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> action_function(gset(G, [1])) == ^
+true
+
+julia> action_function(gset(G, [[1, 2]])) == on_tuples
+true
+
+julia> action_function(gset(G, on_sets, [[1, 2]])) == on_sets
+true
+```
+"""
 action_function(Omega::GSetByElements) = Omega.action_function
 
 # The following works for all G-set types that support attributes
@@ -111,7 +143,7 @@ Note that the indexing of points in `Omega` is used by
 ```jldoctest
 julia> G = symmetric_group(4);
 
-julia> length(gset(G, [[1]]))  # natural action
+julia> length(gset(G, [1]))  # natural action
 4
 
 julia> length(gset(G, [[1, 2]]))  # action on ordered pairs
@@ -241,7 +273,7 @@ function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
     return ElementOfGSet(Omega, fun(omega.obj, g))
 end
 
-==(omega1::ElementOfGSet, omega2::ElementOfGSet) = 
+==(omega1::ElementOfGSet, omega2::ElementOfGSet) =
   ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
 
 function Base.hash(omega::ElementOfGSet, h::UInt)
@@ -687,6 +719,7 @@ end
 
 Return `true` if `omega1`, `omega2` are in the same orbit of `Omega`,
 and `false` otherwise.
+To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 
 # Examples
 ```jldoctest
@@ -709,9 +742,10 @@ is_conjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
     is_conjugate_with_data(Omega::GSet, omega1, omega2)
 
 Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
-If yes, return `true, g` where `g` is an element in the group `G` of
+If yes, return `(true, g)` where `g` is an element in the group `G` of
 `Omega` that maps `omega1` to `omega2`.
-If not, return `false, nothing`.
+If not, return `(false, nothing)`.
+If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 
 # Examples
 ```jldoctest
@@ -1016,7 +1050,7 @@ the action is transitive and the point stabilizers are maximal in `G`.
 ```jldoctest
 julia> G = alternating_group(6);
 
-julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
+julia> mx = filter(is_transitive, map(representative, maximal_subgroup_classes(G)))
 3-element Vector{PermGroup}:
  Permutation group of degree 6 and order 24
  Permutation group of degree 6 and order 36

@@ -25,15 +25,13 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
+polynomial_ring(C::Ring, V::Vector{String}; cached::Bool = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
-The input `ordering=:lex` refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending
-order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z.
 
 ###### Examples
 
@@ -230,7 +228,7 @@ we follow the former book.
 
 ### Types
 
-Multivariate rings with gradings are modelled by objects of type
+Multivariate rings with gradings are modeled by objects of type
 `MPolyDecRing{T, S}  :< MPolyRing{T}`, with elements of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
@@ -264,7 +262,7 @@ grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 ```
 ```@docs
-graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
+graded_polynomial_ring(C::Ring, V::Vector{String}, W)
 ```
 
 ## Tests on Graded Rings

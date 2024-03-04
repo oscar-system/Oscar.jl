@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart, transform_to_weierstrass
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart_on_minimal_model, transform_to_weierstrass
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -20,7 +20,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   E::EllipticCurve{BaseCurveFieldType}
   MWL::Vector{EllipticCurvePoint{BaseCurveFieldType}} # basis for the mordell weil group
   MWLtors::Vector{EllipticCurvePoint{BaseCurveFieldType}} # torsion sections
-  Weierstrasschart::AbsSpec
+  Weierstrasschart::AbsAffineScheme
   Weierstrassmodel::CoveredScheme
   inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
   inc_Y::CoveredClosedEmbedding # inclusion of Y in its ambient blown up projective bundle
@@ -96,7 +96,7 @@ Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 """
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField}, euler_characteristic::Int,
                           mwl_basis::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[]) where {
-                          BaseField <: Frac{<:PolyRingElem{<:FieldElem}}}
+                          BaseField <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_basis) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, euler_characteristic, mwl_basis)
   return S
@@ -338,7 +338,7 @@ function weierstrass_model(X::EllipticSurface)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
-  a = a_invars(E)
+  a = a_invariants(E)
   U = affine_charts(P)[1]  # the standard Weierstrass chart
   (x, y, t) = gens(OO(U))
   @assert all(denominator(i)==1 for i in a)
@@ -377,7 +377,7 @@ function _separate_singularities!(X::EllipticSurface)
 
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
-  refined_charts = AbsSpec[]
+  refined_charts = AbsAffineScheme[]
   U = P[1][1]  # the weierstrass_chart
   IsingU = I_sing_P(U)::MPolyIdeal
   if isone(IsingU)
@@ -778,7 +778,7 @@ Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
 function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
   S0,_ = weierstrass_model(S)
   underlying_scheme(S) # cache stuff
-  D = IdDict{AbsSpec, RingElem}()
+  D = IdDict{AbsAffineScheme, RingElem}()
   k = base_ring(S0)
   P = k.(P)
 
@@ -1028,7 +1028,8 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
   M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
-  kerdim, K = kernel(M)
+  K = kernel(M; side = :right)
+  kerdim = ncols(K)
   result = Tuple{elem_type(Bt),elem_type(Bt)}[]
   t = gen(Bt)
   for j in 1:kerdim
@@ -1154,7 +1155,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 
     # Make sure the coefficient of y² is one (or a square) so that 
     # completing the square works. 
-    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.FracFieldElem
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
@@ -1166,7 +1167,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
     
     # Make sure the coefficient of y² is one (or a square) so that 
     # completing the square works. 
-    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.Frac
+    c = my_const(coeff(eqn1, [x2, y2], [0, 2]))::AbstractAlgebra.Generic.FracFieldElem
     eqn1 = inv(unit(factor(c)))*eqn1
 
     eqn2, phi2 = _normalize_hyperelliptic_curve(eqn1)
@@ -1214,7 +1215,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
-      d = F2-vec(tor)
+      d = F2 - _vec(tor)
       if all(isone(denominator(i)) for i in d)
         found = true
         T0 = mordell_weil_torsion(X)[i]
@@ -1358,7 +1359,7 @@ function extended_ade(ADE::Symbol, n::Int)
     G[n,1] = -1
   end
   @assert rank(G) == n
-  return -G, left_kernel(G)[2]
+  return -G, kernel(G; side = :left)
 end
 
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
@@ -1493,6 +1494,23 @@ on the curve defined by `g`, i.e. `g(P) == 0`.
 """
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
+  F = fraction_field(R)
+
+  # In case of variables in the wrong order, switch and transform the result.
+  if x == R[2] && y == R[1]
+    switch = hom(R, R, reverse(gens(R)))
+    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
+    new_trans = MapFromFunc(F, F, f->begin
+                                switch_num = switch(numerator(f))
+                                switch_den = switch(denominator(f))
+                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
+                                num = numerator(interm_res)
+                                den = denominator(interm_res)
+                                switch(num)//switch(den)
+                            end
+                           )
+    return switch(g_trans), new_trans
+  end
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
   @assert y in gens(R) "third argument must be a variable of the parent of the first"
@@ -1502,9 +1520,6 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   kkxy, Y = polynomial_ring(kkx, :y, cached=false)
 
   imgs = [kkxy(X), Y]
-  if x == R[2] && y == R[1]
-    imgs = reverse(imgs)
-  end
   split_map = hom(R, kkxy, imgs)
 
   G = split_map(g)
@@ -1557,7 +1572,6 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     #@assert x == evaluate(x1, [x2, y2])
     #@assert y == evaluate(y1, [x2, y2])
   end
-  F = fraction_field(R)
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
   # TODO: eventually add the inverse.
   trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
@@ -1593,11 +1607,11 @@ function _is_in_weierstrass_form(f::MPolyRingElem)
   return f == (-(y^2 + a1*x*y + a3*y) + (x^3 + a2*x^2 + a4*x + a6))
 end
 
-function evaluate(f::AbstractAlgebra.Generic.Frac{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:MPolyRingElem}, a::Vector{T}) where {T<:RingElem}
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
-function evaluate(f::AbstractAlgebra.Generic.Frac{<:PolyRingElem}, a::RingElem)
+function evaluate(f::AbstractAlgebra.Generic.FracFieldElem{<:PolyRingElem}, a::RingElem)
   return evaluate(numerator(f), a)//evaluate(denominator(f), a)
 end
 
@@ -1638,9 +1652,9 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
 
   f_loc = first(gens(modulus(OO(U))))
   @assert f == R_to_kkt_frac_XY(f_loc) && _is_in_weierstrass_form(f) "local equation is not in Weierstrass form"
-  a = a_invars(E)
+  a = a_invariants(E)
 
-  u_loc = u[U]::AbstractAlgebra.Generic.Frac # the representative on the Weierstrass chart
+  u_loc = u[U]::AbstractAlgebra.Generic.FracFieldElem # the representative on the Weierstrass chart
 
   # Set up the ambient_coordinate_ring of the new Weierstrass-chart
   kkt2, t2 = polynomial_ring(kk, names[3], cached=false)
@@ -1703,7 +1717,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 1 we expect the following cancellation to be possible:
+    # p. 45, l. 1 we expect the following cancelation to be possible:
     divisor_num = evaluate(numerator(x0), x2)
     divisor_den = evaluate(denominator(x0), x2)
     divisor = divisor_den * y2 - divisor_num
@@ -1732,7 +1746,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     eqn1 = numerator(f_trans)
     # According to 
     #   A. Kumar: "Elliptic Fibrations on a generic Jacobian Kummer surface" 
-    # p. 45, l. 15 we expect the following cancellation to be possible:
+    # p. 45, l. 15 we expect the following cancelation to be possible:
     success, eqn1 = divides(eqn1, y2)
     @assert success "equation did not come out in the anticipated form"
     return eqn1, phi

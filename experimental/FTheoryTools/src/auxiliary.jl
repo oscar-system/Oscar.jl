@@ -22,7 +22,7 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   D2_coeffs = divisor_class(D2).coeff
   m1 = reduce(vcat, [D1_coeffs, D2_coeffs])
   m2 = transpose(f_rays[1:2,:])
-  u_matrix = solve_left(b_grades, (-1)*m2*m1)
+  u_matrix = solve(b_grades, (-1)*m2*m1; side = :left)
   
   # Form toric ambient space
   a_rays = zero_matrix(ZZ, nrows(b_rays) + nrows(f_rays), ncols(b_rays) + ncols(f_rays))
@@ -35,10 +35,10 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   
   # Compute divisor group and the class group of a_space
   a_space_divisor_group = free_abelian_group(nrows(a_rays))
-  a_space_class_group = free_abelian_group(ncols(b_grades) + rank(class_group(fiber_amb_space)))
+  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group(fiber_amb_space)))
   
   # Compute grading of Cox ring of a_space
-  a_space_grading = zero_matrix(ZZ, rank(a_space_divisor_group), rank(a_space_class_group))
+  a_space_grading = zero_matrix(ZZ, torsion_free_rank(a_space_divisor_group), torsion_free_rank(a_space_class_group))
   a_space_grading[1:nrows(b_grades), 1:ncols(b_grades)] = b_grades
   a_space_grading[1+nrows(b_rays):nrows(b_rays) + nrows(f_grades), 1+ncols(b_grades):ncols(b_grades) + ncols(f_grades)] = f_grades
   a_space_grading[1+nrows(b_rays), 1:ncols(D1_coeffs)] = D1_coeffs

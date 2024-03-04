@@ -58,7 +58,7 @@ include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
-include("Schemes/SimplifiedSpec.jl")
+include("Schemes/SimplifiedAffineScheme.jl")
 include("Schemes/CoherentSheaves.jl")
 include("Schemes/LazyGluing.jl")
 include("Schemes/CartierDivisor.jl")
@@ -84,4 +84,5 @@ include("Schemes/ToricBlowups/methods.jl")
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
 
 include("Schemes/DerivedPushforward.jl")
+include("Schemes/Resolution_structure.jl")
 

@@ -90,9 +90,9 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   end
 end
 
-function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsSpec)
+function maps_with_given_codomain(f::AbsCoveredSchemeMorphism, V::AbsAffineScheme)
   fcov = covering_morphism(f)
-  result = Vector{AbsSpecMor}()
+  result = Vector{AbsAffineSchemeMor}()
   for U in keys(morphisms(fcov))
     floc = morphisms(fcov)[U]
     codomain(floc) === V || continue
@@ -133,14 +133,14 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
-    g::AbsSpecMor, ginv::AbsSpecMor)
+    g::AbsAffineSchemeMor, ginv::AbsAffineSchemeMor)
   set_attribute!(g, :inverse, ginv)
   set_attribute!(ginv, :inverse, g)
   return _register_birationality(f, g)
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
-    g::AbsSpecMor
+    g::AbsAffineSchemeMor
   )
   set_attribute!(f, :is_birational, true)
   set_attribute!(f, :iso_on_open_subset, g)

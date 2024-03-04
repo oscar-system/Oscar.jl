@@ -15,17 +15,17 @@ export VarietyFunctionFieldElem
 mutable struct VarietyFunctionField{BaseRingType<:Field,
                                     FracFieldType<:AbstractAlgebra.Generic.FracField,
                                     CoveredSchemeType<:AbsCoveredScheme,
-                                    SpecType<:AbsSpec
+                                    AffineSchemeType<:AbsAffineScheme
                                    } <: Field
   kk::BaseRingType
   X::CoveredSchemeType
-  U::SpecType  # representative patch to represent rational functions
+  U::AffineSchemeType  # representative patch to represent rational functions
   KK::FracFieldType
 
   function VarietyFunctionField(
       X::AbsCoveredScheme;
       check::Bool=true,
-      representative_patch::AbsSpec=default_covering(X)[1]
+      representative_patch::AbsAffineScheme=default_covering(X)[1]
     )
     @check is_irreducible(X) "variety is not irreducible"
     representative_patch in default_covering(X) || error("representative patch not found")
@@ -38,7 +38,7 @@ end
 ########################################################################
 # Elements of VarietyFunctionFields                                    #
 ########################################################################
-mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac,
+mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.FracFieldElem,
                                         ParentType<:VarietyFunctionField
                                        }
   KK::ParentType
@@ -46,7 +46,7 @@ mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.Frac,
 
   function VarietyFunctionFieldElem(
       KK::VarietyFunctionField,
-      f::AbstractAlgebra.Generic.Frac;
+      f::AbstractAlgebra.Generic.FracFieldElem;
       check::Bool=true
     )
     representative_field(KK) == parent(f) || error("element does not have the correct parent")
@@ -116,7 +116,7 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
   restriction_func::Function # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
 
   function PreSheafOnScheme(X::Scheme, production_func::Any, restriction_func::Any;
-      OpenType=AbsSpec, OutputType=Any, RestrictionType=Any,
+      OpenType=AbsAffineScheme, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
     return new{typeof(X), OpenType, OutputType, RestrictionType,
@@ -130,13 +130,13 @@ end
 ########################################################################
 # Simplified Spectra                                                   #
 ########################################################################
-@attributes mutable struct SimplifiedSpec{BaseRingType, RingType<:Ring} <: AbsSpec{BaseRingType, RingType}
-  X::AbsSpec
-  Y::AbsSpec
-  f::AbsSpecMor
-  g::AbsSpecMor
+@attributes mutable struct SimplifiedAffineScheme{BaseRingType, RingType<:Ring} <: AbsAffineScheme{BaseRingType, RingType}
+  X::AbsAffineScheme
+  Y::AbsAffineScheme
+  f::AbsAffineSchemeMor
+  g::AbsAffineSchemeMor
 
-  function SimplifiedSpec(X::AbsSpec, Y::AbsSpec, f::AbsSpecMor, g::AbsSpecMor;
+  function SimplifiedAffineScheme(X::AbsAffineScheme, Y::AbsAffineScheme, f::AbsAffineSchemeMor, g::AbsAffineSchemeMor;
       check::Bool=true
     )
     domain(f) === X || error("map is not compatible")
@@ -169,9 +169,9 @@ regular functions on ``X``.
 
 Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
- * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::AbsAffineScheme` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`;
- * `W::SpecOpen` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
+ * `W::AffineSchemeOpenSubscheme` with `ambient_scheme(W)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``𝒪`` across charts, implicitly using the
 identifications given by the gluings in the `default_covering`.
@@ -185,48 +185,48 @@ identifications given by the gluings in the `default_covering`.
   OO::PreSheafOnScheme
 
   ### Structure sheaf on affine schemes
-  function StructureSheafOfRings(X::AbsSpec)
-    function is_open_func(U::AbsSpec, V::AbsSpec)
+  function StructureSheafOfRings(X::AbsAffineScheme)
+    function is_open_func(U::AbsAffineScheme, V::AbsAffineScheme)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
 
-    function production_func(F::AbsPreSheaf, U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
       return OO(U)
     end
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       OU = F(U) # assumed to be previously cached
       OV = F(V) # same as above
       return hom(OV, OU, gens(OU), check=false) # check=false assures quicker computation
     end
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
-                    OpenType=AbsSpec, OutputType=Ring,
+                    OpenType=AbsAffineScheme, OutputType=Ring,
                     RestrictionType=Map,
                     is_open_func=is_open_func
                    )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
+    return new{typeof(X), Union{AbsAffineScheme, AffineSchemeOpenSubscheme}, Ring, Map}(R)
   end
 
   ### Structure sheaf on covered schemes
   function StructureSheafOfRings(X::AbsCoveredScheme)
 
     ### Production of the rings of regular functions; to be cached
-    function production_func(F::AbsPreSheaf, U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
       return OO(U)
     end
-    function production_func(F::AbsPreSheaf, U::SpecOpen)
+    function production_func(F::AbsPreSheaf, U::AffineSchemeOpenSubscheme)
       return OO(U)
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       V === U || error("basic affine patches must be the same")
       return identity_map(OO(V))
     end
     function restriction_func(
         F::AbsPreSheaf, 
-        V::AbsSpec, 
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+        V::AbsAffineScheme, 
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
       )
       OV = F(V) # Assumed to be cached or produced on the fly.
       OU = F(U) # Same as above.
@@ -252,8 +252,8 @@ identifications given by the gluings in the `default_covering`.
     end
 
     function restriction_func(F::AbsPreSheaf, 
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-        U::AbsSpec
+        V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+        U::AbsAffineScheme
       )
       OV = F(V)
       OU = F(U) 
@@ -267,7 +267,7 @@ identifications given by the gluings in the `default_covering`.
         return hom(OV, OU, psi.(phi.(gens(OV))))
         ### deprecated code below;
         # kept for the moment because of possible incompatibilities with gluings 
-        # along SpecOpens.
+        # along AffineSchemeOpenSubschemes.
         function rho_func(a::RingElem)
           parent(a) === OV || error("element does not belong to the correct ring")
           # We may assume that all denominators admissible in V are
@@ -290,8 +290,8 @@ identifications given by the gluings in the `default_covering`.
       end
     end
     function restriction_func(F::AbsPreSheaf, 
-        V::Union{<:PrincipalOpenSubset, <:SimplifiedSpec},
-        U::Union{<:PrincipalOpenSubset, <:SimplifiedSpec}
+        V::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme},
+        U::Union{<:PrincipalOpenSubset, <:SimplifiedAffineScheme}
       )
       OV = F(V)
       OU = F(U)
@@ -326,7 +326,7 @@ identifications given by the gluings in the `default_covering`.
       error("arguments are invalid")
     end
 
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, W::SpecOpen)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, W::AffineSchemeOpenSubscheme)
       OV = F(V)
       OW = F(W)
       V in default_covering(X) || return false
@@ -345,10 +345,10 @@ identifications given by the gluings in the `default_covering`.
     end
 
     ### cleaned up until here ###
-    # We do not make SpecOpen compatible with the tree structures, yet. 
-    # All SpecOpen's are hence required to have an ambient_scheme on the top level. 
+    # We do not make AffineSchemeOpenSubscheme compatible with the tree structures, yet. 
+    # All AffineSchemeOpenSubscheme's are hence required to have an ambient_scheme on the top level. 
 
-    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::SpecOpen)
+    function restriction_func(F::AbsPreSheaf, V::PrincipalOpenSubset, W::AffineSchemeOpenSubscheme)
       error("method not implemented at the moment")
       OV = F(V)
       OW = F(W)
@@ -372,7 +372,7 @@ identifications given by the gluings in the `default_covering`.
         return MapFromFunc(OV, OW, rho_func2)
       end
     end
-    function restriction_func(F::AbsPreSheaf, V::SpecOpen, W::SpecOpen)
+    function restriction_func(F::AbsPreSheaf, V::AffineSchemeOpenSubscheme, W::AffineSchemeOpenSubscheme)
       OV = F(V)
       OW = F(W)
       if ambient_scheme(V) === ambient_scheme(W)
@@ -391,11 +391,11 @@ identifications given by the gluings in the `default_covering`.
     end
 
     R = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=Union{AbsSpec, SpecOpen}, OutputType=Ring,
+                      OpenType=Union{AbsAffineScheme, AffineSchemeOpenSubscheme}, OutputType=Ring,
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes(X)
                      )
-    return new{typeof(X), Union{AbsSpec, SpecOpen}, Ring, Map}(R)
+    return new{typeof(X), Union{AbsAffineScheme, AffineSchemeOpenSubscheme}, Ring, Map}(R)
   end
 end
 
@@ -409,7 +409,7 @@ A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.
 
 Note that due to technical reasons, the admissible open subsets are restricted
 to the following:
- * `U::AbsSpec` among the `basic_patches` of the `default_covering` of `X`;
+ * `U::AbsAffineScheme` among the `basic_patches` of the `default_covering` of `X`;
  * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
 
 One can call the restriction maps of ``ℐ`` across charts, implicitly using the
@@ -421,17 +421,17 @@ identifications given by the gluings in the `default_covering`.
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
-  ID::IdDict{AbsSpec, Ideal} # the ideals on the patches of some covering of X
+  ID::IdDict{AbsAffineScheme, Ideal} # the ideals on the patches of some covering of X
   OOX::StructureSheafOfRings # the structure sheaf on X
   I::PreSheafOnScheme # the underlying presheaf of ideals for caching
 
   ### Ideal sheaves on covered schemes
-  function IdealSheaf(X::AbsCoveredScheme, ID::IdDict{AbsSpec, Ideal};
+  function IdealSheaf(X::AbsCoveredScheme, ID::IdDict{AbsAffineScheme, Ideal};
       check::Bool=true
     )
     OOX = StructureSheafOfRings(X)
 
-    function production_func(F::AbsPreSheaf, U::AbsSpec)
+    function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
       # If U is an affine chart on which the ideal has already been described, take that.
       haskey(ID, U) && return ID[U]
       # Transferring from another chart did not work. That means 
@@ -440,9 +440,9 @@ identifications given by the gluings in the `default_covering`.
       # and assemble the ideal from there.
       V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
-      # Check for some SimplifiedSpec lurking around
-      if any(x->(x isa SimplifiedSpec), V)
-        i = findfirst(x->(x isa SimplifiedSpec), V)
+      # Check for some SimplifiedAffineScheme lurking around
+      if any(x->(x isa SimplifiedAffineScheme), V)
+        i = findfirst(x->(x isa SimplifiedAffineScheme), V)
         W = V[i]
         _, g = identification_maps(W)
         return ideal(OO(U), pullback(g).(gens(ID[W])))
@@ -466,9 +466,9 @@ identifications given by the gluings in the `default_covering`.
       if !is_open_func(F)(V, space(F)) 
         V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
-        # Check for some SimplifiedSpec lurking around
-        if any(x->(x isa SimplifiedSpec), V)
-          i = findfirst(x->(x isa SimplifiedSpec), V)
+        # Check for some SimplifiedAffineScheme lurking around
+        if any(x->(x isa SimplifiedAffineScheme), V)
+          i = findfirst(x->(x isa SimplifiedAffineScheme), V)
           W = V[i]
           _, g = identification_maps(W)
           return ideal(OO(U), pullback(g).(gens(ID[W])))
@@ -490,7 +490,7 @@ identifications given by the gluings in the `default_covering`.
       IU = ideal(OO(U), rho.(gens(IV)))
       return IU
     end
-    function production_func(F::AbsPreSheaf, U::SimplifiedSpec)
+    function production_func(F::AbsPreSheaf, U::SimplifiedAffineScheme)
       haskey(ID, U) && return ID[U]
       V = original(U)
       # In case the original is leading out of the admissible domain, 
@@ -498,9 +498,9 @@ identifications given by the gluings in the `default_covering`.
       if !is_open_func(F)(V, space(F)) 
         V = [W for W in keys(ID) if has_ancestor(x->(x===U), W)] # gather all patches under U
 
-        # Check for some SimplifiedSpec lurking around
-        if any(x->(x isa SimplifiedSpec), V)
-          i = findfirst(x->(x isa SimplifiedSpec), V)
+        # Check for some SimplifiedAffineScheme lurking around
+        if any(x->(x isa SimplifiedAffineScheme), V)
+          i = findfirst(x->(x isa SimplifiedAffineScheme), V)
           W = V[i]
           _, g = identification_maps(W)
           return ideal(OO(U), pullback(g).(gens(ID[W])))
@@ -523,18 +523,18 @@ identifications given by the gluings in the `default_covering`.
     end
 
     ### Production of the restriction maps; to be cached
-    function restriction_func(F::AbsPreSheaf, V::AbsSpec, U::AbsSpec)
+    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       return OOX(V, U) # This does not check containment of the arguments
                        # in the ideal. But this is not a parent check and
                        # hence expensive, so we might want to not do that.
     end
 
     Ipre = PreSheafOnScheme(X, production_func, restriction_func,
-                      OpenType=AbsSpec, OutputType=Ideal,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
                       RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_specopen(X)
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    I = new{typeof(X), AbsSpec, Ideal, Map}(ID, OOX, Ipre)
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(ID, OOX, Ipre)
     @check begin
       # Check that all ideal sheaves are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic

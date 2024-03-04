@@ -155,7 +155,7 @@ end
 # Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
+function dimension_via_molien_series(::Type{T}, R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
   if !is_molien_series_implemented(R)
     return -1
   end
@@ -168,7 +168,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
 end
 
 @doc raw"""
-     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+     iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
@@ -241,7 +241,7 @@ julia> collect(B)
  x[3]^2
 ```
 """
-function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
+function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
   @assert d >= 0 "Degree must be non-negative"
 
   if algorithm == :default
@@ -279,7 +279,7 @@ function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
 end
 
 @doc raw"""
-    iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
 return an iterator over a basis for the semi-invariants (or relative invariants)
@@ -337,9 +337,9 @@ julia> collect(B)
 
 ```
 """
-iterate_basis(R::InvRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
+iterate_basis(R::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
 
-function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function iterate_basis_reynolds(R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negative"
   if chi !== nothing
@@ -358,11 +358,11 @@ function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunc
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
 
-  return InvRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
+  return FinGroupInvarRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
 end
 
 # Sadly, we can't really do much iteratively here.
-function iterate_basis_linear_algebra(IR::InvRing, d::Int)
+function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   @assert d >= 0 "Degree must be non-negative"
 
   R = polynomial_ring(IR)
@@ -372,7 +372,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
+    return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
   end
 
   mons_iterator = monomials_of_degree(R, d)
@@ -380,7 +380,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
+    return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
   end
 
   mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
@@ -410,16 +410,16 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       end
     end
   end
-  n, N = right_kernel(M)
+  N = kernel(M, side = :right)
 
-  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, nothing, mons_iterator, mons, N)
+  return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, ncols(N), false, nothing, mons_iterator, mons, N)
 end
 
-Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
+Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
-Base.length(BI::InvRingBasisIterator) = BI.dim
+Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
+function Base.show(io::IO, ::MIME"text/plain", BI::FinGroupInvarRingBasisIterator)
   io = pretty(io)
   println(io, "Iterator over a basis of the component of degree $(BI.degree)")
   print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
@@ -429,7 +429,7 @@ function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
   end
 end
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
+function Base.show(io::IO, BI::FinGroupInvarRingBasisIterator)
   if get(io, :supercompact, false)
     print(io, "Iterator")
   else
@@ -439,21 +439,21 @@ function Base.show(io::IO, BI::InvRingBasisIterator)
   end
 end
 
-function Base.iterate(BI::InvRingBasisIterator)
+function Base.iterate(BI::FinGroupInvarRingBasisIterator)
   if BI.reynolds
     return iterate_reynolds(BI)
   end
   return iterate_linear_algebra(BI)
 end
 
-function Base.iterate(BI::InvRingBasisIterator, state)
+function Base.iterate(BI::FinGroupInvarRingBasisIterator, state)
   if BI.reynolds
     return iterate_reynolds(BI, state)
   end
   return iterate_linear_algebra(BI, state)
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
   @assert BI.reynolds
   if BI.dim == 0
     return nothing
@@ -484,7 +484,7 @@ function iterate_reynolds(BI::InvRingBasisIterator)
   end
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator, state)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
   @assert BI.reynolds
 
   B = state[1]
@@ -518,7 +518,7 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
   end
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
   @assert !BI.reynolds
   if BI.dim == 0
     return nothing
@@ -540,7 +540,7 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
   return inv(AbstractAlgebra.leading_coefficient(f))*f, 2
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
   @assert !BI.reynolds
   if state > BI.dim
     return nothing

@@ -51,30 +51,11 @@ function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) w
     return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
 end
 
-# Decompose a tropical polynomial into parts that Polymake can eat.
-# First function deals with the coefficients,
-# Second function then deals with the entire polynomial.
-function homogenize_and_convert_to_pm(t::TropicalSemiringElem{minOrMax}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
-   if isinf(t)
-      return Polymake.TropicalNumber{Add}()
-   else
-      return Polymake.TropicalNumber{Add}(Polymake.new_rational_from_fmpq(data(t)))
-   end
-end
-
+# Decompose and homogenize a tropical polynomial into parts that Polymake can eat.
 function homogenize_and_convert_to_pm(f::Oscar.MPolyRingElem{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-   Add = (minOrMax==typeof(max)) ? Polymake.Max : Polymake.Min
-   coeffs = Polymake.TropicalNumber{Add}[]
    td = total_degree(f)
-   exps = Vector{Int}[]
-   for (c,alpha) in zip(coefficients(f),exponents(f))
-      push!(coeffs, homogenize_and_convert_to_pm(c))
-      prepend!(alpha, td-sum(alpha))
-      push!(exps, alpha)
-   end
-   exps = matrix(ZZ, exps)
-   coeffs = Polymake.Vector{Polymake.TropicalNumber{Add, Polymake.Rational}}(coeffs)
+   exps = matrix(ZZ, collect([td-sum(alpha); alpha] for alpha in exponents(f)))
+   coeffs = collect(coefficients(f))
    return coeffs, exps
 end
 
@@ -142,7 +123,7 @@ Min tropical hypersurface
 """
 function tropical_hypersurface(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing;
                                weighted_polyhedral_complex_only::Bool=false)
-    # initialise nu as the trivial valuation if not specified by user
+    # initialize nu as the trivial valuation if not specified by user
     isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(f)))
 
     tropf = tropical_polynomial(f,nu)
@@ -175,9 +156,8 @@ julia> # tropical_hypersurface(Delta) # issue 2628
 function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min;
                                weighted_polyhedral_complex_only::Bool=false)
 
-    PMinOrMax =  (minOrMax==typeof(min)) ? Polymake.Min : Polymake.Max
-    coeffs = Polymake.TropicalNumber{PMinOrMax}.(Polymake.new_integer_from_fmpz.(min_weights(Delta)))
-    exps = ZZ.(matrix(QQ,points(Delta)))
+    coeffs = min_weights(Delta)
+    exps = points(Delta)
     pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
     pmhyp = Polymake.tropical.affine_chart(pmhypproj)
 

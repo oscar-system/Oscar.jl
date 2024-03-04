@@ -2,20 +2,20 @@
 # Finding patches                                                      #
 ########################################################################
 
-function getindex(C::Covering, X::AbsSpec)
+function getindex(C::Covering, X::AbsAffineScheme)
   for i in 1:length(patches(C))
     X === patches(C)[i] && return i
   end
   error("affine scheme could not be found among the patches")
 end
 
-function Base.in(U::AbsSpec, C::Covering)
-  for i in 1:npatches(C)
+function Base.in(U::AbsAffineScheme, C::Covering)
+  for i in 1:n_patches(C)
     U === C[i] && return true
   end
   return false
   ### Affine refinements not implemented at the moment!
-#  for i in 1:npatches(C)
+#  for i in 1:n_patches(C)
 #    if haskey(affine_refinements(C), C[i])
 #      V = affine_refinements(C)[C[i]]
 #      for (V, a) in affine_refinements(C)[C[i]]
@@ -26,13 +26,13 @@ function Base.in(U::AbsSpec, C::Covering)
 #  return false
 end
 
-function Base.indexin(U::AbsSpec, C::Covering)
-  for i in 1:npatches(C)
+function Base.indexin(U::AbsAffineScheme, C::Covering)
+  for i in 1:n_patches(C)
     U === C[i] && return (i, 0, 0)
   end
   return (0,0,0)
   ### Affine refinements not implemented at the moment!
-#  for i in 1:npatches(C)
+#  for i in 1:n_patches(C)
 #    if haskey(affine_refinements(C), C[i])
 #      V = affine_refinements(C)[C[i]]
 #      for j in 1:length(V)
@@ -49,7 +49,7 @@ end
 ########################################################################
 # Functionality for lazy gluing                                       #
 ########################################################################
-function neighbor_patches(C::Covering, U::AbsSpec)
+function neighbor_patches(C::Covering, U::AbsAffineScheme)
   gg = gluing_graph(C)
   n = neighbors(gg, C[U])
   return [C[i] for i in n]
@@ -57,7 +57,7 @@ end
 
 ## compute the gluing graph for the given covering and store it
 function update_gluing_graph(C::Covering; all_dense::Bool=false)
-  n = npatches(C)
+  n = n_patches(C)
   gg = Graph{Undirected}(n)
   for (X, Y) in keys(gluings(C))
     if all_dense
@@ -74,7 +74,7 @@ function update_gluing_graph(C::Covering; all_dense::Bool=false)
 end
 
 ## prune the covering by throwing away empty charts and then compute
-## the gluing graph afterwards 
+## the gluing graph afterwards
 ## (relevant data for connectedness of gluing)
 function pruned_gluing_graph(C::Covering)
   v = findall(U->!is_empty(U), C.patches)
@@ -98,7 +98,7 @@ function transition_graph(C::Covering)
     edge_dict = Dict{Tuple{Int, Int}, Int}()
     edge_count = 1::Int
     C.transition_graph = Graph{Undirected}(0)
-    for v in 1:nvertices(gluing_graph(C))
+    for v in 1:n_vertices(gluing_graph(C))
       W = neighbors(gluing_graph(C), v)
       for i in 1:length(W)-1
         for j in i+1:length(W)
@@ -124,24 +124,24 @@ function transition_graph(C::Covering)
 end
 
 ### fill transitions
-# Whenever three schemes X ↩ U ↪ Y ↩ V ↪ Z are glued with 
-# U ∩ V dense in both U and V, one can infer a gluing of 
-# X and Z. This is done by crawling through the gluing graph, 
-# updating the gluings, and proceeding until nothing more 
+# Whenever three schemes X ↩ U ↪ Y ↩ V ↪ Z are glued with
+# U ∩ V dense in both U and V, one can infer a gluing of
+# X and Z. This is done by crawling through the gluing graph,
+# updating the gluings, and proceeding until nothing more
 # can be done.
 function fill_transitions!(C::Covering)
   gg = gluing_graph(C)
   dirty = true
   while dirty
     dirty = false
-    for v in 1:nvertices(gg)
+    for v in 1:n_vertices(gg)
       W = neighbors(gg, v)
       for i in 1:length(W)-1
         for j in i+1:length(W)
-          # TODO: replace the `is_dense` command by one that really checks that the 
-          # intersection of U and V is dense in both U and V and not in their ambient 
-          # variety. This implementation certainly works, but it is not as general 
-          # as it could be, yet. 
+          # TODO: replace the `is_dense` command by one that really checks that the
+          # intersection of U and V is dense in both U and V and not in their ambient
+          # variety. This implementation certainly works, but it is not as general
+          # as it could be, yet.
           if !has_edge(gg, W[i], W[j]) && is_dense(intersect(gluing_domains(C[W[i],v])[2], gluing_domains(C[v,W[j]])[1]))
             new_gluing = maximal_extension(compose(C[W[i], v], C[v, W[j]]))
             add_gluing!(C, new_gluing)
@@ -172,7 +172,7 @@ function Base.length(C::Covering)
 end
 
 function all_patches(C::Covering)
-  result = Vector{AbsSpec}()
+  result = Vector{AbsAffineScheme}()
   for U in patches(C)
     push!(result, U)
     if haskey(affine_refinements(C), U)
@@ -190,7 +190,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = AbsSpec
+Base.eltype(C::Covering) = AbsAffineScheme
 
 ########################################################################
 # Building a Covering                                                  #
@@ -198,7 +198,7 @@ Base.eltype(C::Covering) = AbsSpec
 @doc raw"""
     add_gluing!(C::Covering, G::AbsGluing)
 
-Add a gluing `G` to the covering `C`. 
+Add a gluing `G` to the covering `C`.
 
 The `patches` of `G` must be among the `affine_charts` of `C`.
 
@@ -208,9 +208,9 @@ julia> P1, (x,y) = QQ["x", "y"];
 
 julia> P2, (u,v) = QQ["u", "v"];
 
-julia> U1 = Spec(P1);
+julia> U1 = spec(P1);
 
-julia> U2 = Spec(P2);
+julia> U2 = spec(P2);
 
 julia> C = Covering([U1, U2]) # A Covering with two disjoint affine charts
 Covering
@@ -266,7 +266,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::Covering)
   else
     l = ndigits(length(C))
     println(io, "Covering")
-    print(io, Indent(), "described by patches") 
+    print(io, Indent(), "described by patches")
     print(io, Indent())
     for i in 1:length(C)
       li = ndigits(i)
@@ -292,7 +292,7 @@ function Base.show(io::IO, C::Covering)
   if get(io, :supercompact, false)
     print(io, "Covering")
   else
-    print(io,  "Covering with ", ItemQuantity(npatches(C), "patch"))
+    print(io,  "Covering with ", ItemQuantity(n_patches(C), "patch"))
   end
 end
 
@@ -303,17 +303,17 @@ end
 @doc raw"""
     common_refinement(C::Covering, D::Covering)
 
-For two `Covering`s `C` and `D`, calculate a common refinement 
-`E` and return a triple ``(E, φ, ψ)`` with ``φ : E → C`` 
-and ``ψ : E → D`` the `CoveringMorphism`s with the inclusion maps. 
+For two `Covering`s `C` and `D`, calculate a common refinement
+`E` and return a triple ``(E, φ, ψ)`` with ``φ : E → C``
+and ``ψ : E → D`` the `CoveringMorphism`s with the inclusion maps.
 
-!!! note Since the `Covering`s do not know about any `AbsCoveredScheme`, 
+!!! note Since the `Covering`s do not know about any `AbsCoveredScheme`,
 the computation of the refinement has to rely on the intrinsic tree
-structure of their `patches`. Due to these limitations, only special 
+structure of their `patches`. Due to these limitations, only special
 cases are implemented; see the source code for details.
 """
 function common_refinement(C::Covering, D::Covering)
-  if C === D 
+  if C === D
     phi = identity_map(C)
     return C, phi, phi
   end
@@ -329,8 +329,8 @@ function common_refinement(C::Covering, D::Covering)
   dirty_C = copy(patches(C))
   dirty_D = copy(patches(D))
 
-  map_dict_C = IdDict{AbsSpec, AbsSpecMor}()
-  map_dict_D = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict_C = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  map_dict_D = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in dirty_C
     if has_ancestor_in(patches(D), U)
       f, _ = _find_chart(U, D)
@@ -349,7 +349,7 @@ function common_refinement(C::Covering, D::Covering)
   dirty_C = filter!(x->!(x in keys(map_dict_C)), dirty_C)
   dirty_D = filter!(x->!(x in keys(map_dict_D)), dirty_D)
 
-  #TODO: Check that all leftover dirty patches are already 
+  #TODO: Check that all leftover dirty patches are already
   #covered by those in the keysets. What if this is not the case?
 
   E = Covering(collect(keys(map_dict_C)))
@@ -359,7 +359,7 @@ function common_refinement(C::Covering, D::Covering)
   return E, phi, psi
 end
 
-function has_ancestor_in(L::Vector, U::AbsSpec)
+function has_ancestor_in(L::Vector, U::AbsAffineScheme)
   return has_ancestor(x->any(y->(y===x), L), U)
 end
 
@@ -367,7 +367,7 @@ function is_refinement(D::Covering, C::Covering)
   if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
     return false, nothing
   end
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(D)
     f, _ = _find_chart(U, C)
     map_dict[U] = f
@@ -382,7 +382,7 @@ function base_change(phi::Any, C::Covering)
   U = patches(C)
   patch_change = [base_change(phi, V) for V in U]
 
-  gluing_dict = IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}()
+  gluing_dict = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   for i in 1:length(U)
     (A, map_A) = patch_change[i]
     for j in 1:length(U)
@@ -394,13 +394,13 @@ function base_change(phi::Any, C::Covering)
   end
   CC = Covering([V for (V, _) in patch_change], gluing_dict)
 
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (V, phi) in patch_change
     mor_dict[V] = phi
   end
 
   # Maintain decomposition information if applicable
-  decomp_dict = IdDict{AbsSpec, Vector{RingElem}}()
+  decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
   if has_decomposition_info(C)
     for (U, psi) in patch_change
       V = codomain(psi)

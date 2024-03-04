@@ -14,7 +14,7 @@ Polymake, Antic and Singular.
 OSCAR requires Julia 1.6 or newer. In principle it can be installed and used
 like any other Julia package; doing so will take a couple of minutes:
 
-```julia
+```
 julia> using Pkg
 julia> Pkg.add("Oscar")
 julia> using Oscar
@@ -31,21 +31,13 @@ in the OSCAR manual to learn more on how to contribute to OSCAR.
 
 ## Examples of usage
 
-```julia
+```
 julia> using Oscar
- -----    -----    -----      -      -----
-|     |  |     |  |     |    | |    |     |
-|     |  |        |         |   |   |     |
-|     |   -----   |        |     |  |-----
-|     |        |  |        |-----|  |   |
-|     |  |     |  |     |  |     |  |    |
- -----    -----    -----   -     -  -     -
-
-...combining (and extending) ANTIC, GAP, Polymake and Singular
-Version 0.15.0-DEV ...
-... which comes with absolutely no warranty whatsoever
-Type: '?Oscar' for more information
-(c) 2019-2024 by The OSCAR Development Team
+  ___   ____   ____    _    ____
+ / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+| | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+| |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.1.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -54,7 +46,7 @@ julia> zk = maximal_order(k)
 Maximal order of Imaginary quadratic field defined by x^2 + 5
 with basis AbsSimpleNumFieldElem[1, sqrt(-5)]
 
-julia> factorisations(zk(6))
+julia> factorizations(zk(6))
 2-element Vector{Fac{AbsSimpleNumFieldOrderElem}}:
  -1 * -3 * 2
  -1 * (-sqrt(-5) - 1) * (-sqrt(-5) + 1)
@@ -107,7 +99,7 @@ by Submodule with 1 generator
 
 Of course, the cornerstones are also available directly:
 
-```julia
+```
 julia> C = Polymake.polytope.cube(3);
 
 julia> C.F_VECTOR
@@ -128,7 +120,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 0.15.0-DEV, The OSCAR Team, 2024. (https://www.oscar-system.org)
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.1.0-DEV, The OSCAR Team, 2024. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
 
@@ -138,7 +130,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 0.15.0-DEV},
+                      Version 1.1.0-DEV},
       year         = {2024},
       url          = {https://www.oscar-system.org},
       }

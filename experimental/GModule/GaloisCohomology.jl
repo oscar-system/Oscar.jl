@@ -6,7 +6,7 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
-import Oscar: pretty, Lowercase
+import Oscar: pretty, Lowercase, Indent, Dedent
 
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
@@ -88,8 +88,8 @@ end
 The natural `ZZ[H]` module where `H`, a subgroup of the
   automorphism group acts on the ray class group.
 """
-function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, nf(order(codomain((mR)))))[2])
-  k = nf(order(codomain(mR)))
+function Oscar.gmodule(H::PermGroup, mR::MapRayClassGrp, mG = automorphism_group(PermGroup, Hecke.nf(order(codomain((mR)))))[2])
+  k = Hecke.nf(order(codomain(mR)))
   G = domain(mG)
 
   ac = Hecke.induce_action(mR, [image(mG, G(g)) for g = gens(H)])
@@ -145,14 +145,14 @@ function Oscar.gmodule(H::PermGroup, mu::Map{FinGenAbGroup, FacElemMon{AbsSimple
   return _gmodule(base_ring(codomain(mu)), H, mu, mG)
 end
 
-function Oscar.gmodule(H::PermGroup, mu::Map{FinGenAbGroup, AbsSimpleNumFieldOrder}, mG = automorphism_group(PermGroup, nf(codomain(mu)))[2])
+function Oscar.gmodule(H::PermGroup, mu::Map{FinGenAbGroup, AbsSimpleNumFieldOrder}, mG = automorphism_group(PermGroup, Hecke.nf(codomain(mu)))[2])
   #TODO: preimage for sunits can fail (inf. loop) if
   # (experimentally) the ideals in S are not coprime or include 1
   # or if the s-unit is not in the image (eg. action and not closed set S)
   u = domain(mu)
   U = [mu(g) for g = gens(u)]
   zk = codomain(mu)
-  k = nf(zk)
+  k = Hecke.nf(zk)
   G = domain(mG)
   ac = [hom(u, u, [preimage(mu, zk(mG(G(g))(k(x)))) for x = U]) for g = gens(H)]
   return gmodule(H, ac)
@@ -542,7 +542,7 @@ Follows Debeerst rather closely...
 function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert domain(sigma) == codomain(sigma) == M
   @assert all(x->sigma(sigma(x)) == x, gens(M))
-  @assert is_free(M) && rank(M) == ngens(M)
+  @assert is_free(M) && torsion_free_rank(M) == ngens(M)
 
   K, mK = kernel(id_hom(M)+sigma)
   fl, mX = has_complement(mK)
@@ -557,8 +557,8 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
-  @assert is_trivial(_S) || rank(_S) == ngens(_S) 
-  @assert rank(_K) == ngens(_K) 
+  @assert is_trivial(_S) || torsion_free_rank(_S) == ngens(_S) 
+  @assert torsion_free_rank(_K) == ngens(_K) 
 
   m = matrix(FinGenAbGroupHom(_mS * mSK * inv((_mK))))
   # elt in S * m = elt in K
@@ -1021,7 +1021,7 @@ julia> k, a = number_field(x^4 - 12*x^3 + 36*x^2 - 36*x + 9);
 
 julia> a = ray_class_field(8*3*maximal_order(k), n_quo = 2);
 
-julia> a = filter(isnormal, subfields(a, degree = 2));
+julia> a = filter(is_normal, subfields(a, degree = 2));
 
 julia> I = idel_class_gmodule(k);
 
@@ -1045,7 +1045,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelPar
   mR = A.rayclassgroupmap
   mQ = A.quotientmap
   zk = order(m0)
-  @req order(automorphism_group(nf(zk))[1]) == degree(zk) "base field must be normal"
+  @req order(automorphism_group(Hecke.nf(zk))[1]) == degree(zk) "base field must be normal"
   if gcd(degree(A), degree(base_field(A))) == 1
     s, ms = split_extension(gmodule(A))
     return permutation_group(s), ms
@@ -1060,7 +1060,7 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelPar
   @assert Oscar.GrpCoh.istwo_cocycle(a)
   gA = gmodule(A, idel_parent.mG)
   qA = cohomology_group(gA, 2)
-  n = degree(nf(zk))
+  n = degree(Hecke.nf(zk))
   aa = map_entries(a, parent = gA) do x
     x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
     J = ideal(idel_parent, x, coprime = m0)
@@ -1125,15 +1125,15 @@ For a 2-cochain with with values in the multiplicative group of a number field,
 compute the local invariant of the algebra at the completion at the prime
 ideal or embeddings given.
 """
-function local_index(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, P::AbsSimpleNumFieldOrderIdeal, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; B = nothing, index_only::Bool = false)
+function local_index(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, P::AbsSimpleNumFieldOrderIdeal, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; B = nothing, index_only::Bool = false)
   return local_index([CC], P, mG, B = B, index_only = index_only)[1]
 end
 
-function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; index_only::Bool = false)
+function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; index_only::Bool = false)
   return local_index([C], emb, mG)[1]
 end
 
-function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; index_only::Bool = false)
+function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; index_only::Bool = false)
   if is_real(emb)
     return [Hecke.QmodnZ()(0) for x = CC]
   end
@@ -1198,8 +1198,8 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
   return hom(l, L, hom(bl, bL, rt), im_data)
 end
 
-function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, P::AbsSimpleNumFieldOrderIdeal, mG::Map = automorphism_group(PermGroup, nf(order(P)))[2]; B::Any = nothing, index_only::Bool = false)
-  k = nf(order(P))
+function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, P::AbsSimpleNumFieldOrderIdeal, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; B::Any = nothing, index_only::Bool = false)
+  k = Hecke.nf(order(P))
 
   if B !== nothing && haskey(B.lp, P)
     data = B.lp[P]
@@ -1292,7 +1292,7 @@ end
 
 For `K/k` a number field, where `k` has to be Antic or QQField and `K` Antic
 return a container for the relative Brauer group parametrizing central
-simple algebras with center `k` that are split by `K` (thus can be realised
+simple algebras with center `k` that are split by `K` (thus can be realized
 as a 2-cochain with values in `K`)
 """
 mutable struct RelativeBrauerGroup
@@ -1398,14 +1398,12 @@ end
 
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   io = pretty(io)
-  print(io, "Element of relative Brauer group of $(parent(a).k)\n")
-  ioC = IOContext(io, :supercompact => true, :compact => true)
+  print(io, "Element of relative Brauer group of ", Lowercase(), parent(a).k)
+  io = IOContext(io, :supercompact => true, :compact => true)
   print(io, Indent())
-  for (p,v) = a.data
-    show(ioC, p)
-    print(io, " -> ")
-    show(ioC, v)
-    print(io, "\n")
+  data = sort(collect(a.data); by =(x -> first(x) isa AbsSimpleNumFieldEmbedding ? Inf : minimum(first(x))))
+  for (p,v) in data
+    print(io, "\n", p, " -> ", v)
   end
   print(io, Dedent())
 end
@@ -1514,11 +1512,35 @@ an infinite direct sum of the local Brauer groups.
 
 The second return value is a map translating between the local data
 and explicit 2-cochains.
+
+```jldoctest
+julia> G = SL(2,5)
+SL(2,5)
+
+julia> T = character_table(G);
+
+julia> R = gmodule(T[9])
+G-module for G acting on vector space of dimension 6 over abelian closure of Q
+
+julia> S = gmodule(CyclotomicField, R)
+G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
+
+julia> B, mB = relative_brauer_group(base_ring(S), character_field(S));
+
+julia> B
+Relative Brauer group for cyclotomic field of order 5 over number field of degree 1 over QQ
+
+julia> b = B(S)
+Element of relative Brauer group of number field of degree 1 over QQ
+  <2, 2> -> 1//2 + Z
+  <5, 5> -> 0 + Z
+  Complex embedding of number field -> 1//2 + Z
+```
 """
 function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimpleNumField} = QQ)
   G, mG = automorphism_group(PermGroup, K)
   if k != QQ 
-    fl, mp = issubfield(k, K)
+    fl, mp = is_subfield(k, K)
     p = mp(gen(k))
     @assert fl
     s, ms = sub(G, [x for x = G if mG(x)(p) == p])
@@ -1596,7 +1618,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
       push!(lb, RelativeBrauerGroupElem(B, d))
     end
   
-    fl, x = cansolve(lb, b)
+    fl, x = can_solve_with_solution(lb, b)
     @assert fl
  
     return map_entries(mS*mMC, z[2](image(mq, q(x.coeff))), parent = mu)
@@ -1631,7 +1653,7 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrderIdeal, Hecke.NumFiel
 end
 
 #write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
-function Oscar.cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+function Oscar.can_solve_with_solution(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A
@@ -1890,7 +1912,7 @@ function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
         s, ms = sub(q.M, collect(o), false)
-        if rank(s) == length(o)
+        if torsion_free_rank(s) == length(o)
           q, _mq = quo(q, ms, false)
           if first
             mq = _mq
