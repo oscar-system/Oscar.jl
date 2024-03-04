@@ -106,7 +106,7 @@ function ideal_membership(a::FreeAssAlgElem, I::Vector{T}, deg_bound::Int=-1) wh
   @assert all(x -> parent(x) == R, I) "parent mismatch"
 
   
-  gb, _ = groebner_basis(I, deg_bound, false)
+  gb = groebner_basis(I, deg_bound; protocol=false)
   
     
   deg_bound = max(maximum(total_degree.(gb)),total_degree(a))
@@ -130,9 +130,9 @@ function (R::Singular.LPRing)(a::FreeAssAlgElem)
   return finish(B)
 end
 
-_to_lpring(a::FreeAssAlgebra,deg_bound::Int) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound)
+_to_lpring(a::FreeAssAlgebra, deg_bound::Int) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound)
 
-function _to_FreeAssAlgElem(A::FreeAssAlgebra,a::NCRingElem)
+function _to_FreeAssAlgElem(A::FreeAssAlgebra, a::NCRingElem)
     B = 0
     for (c,e) in zip(Oscar.coefficients(a), Singular.exponent_words(a))
         x = base_ring(A)(c)
@@ -173,52 +173,34 @@ Ideal generating system with elements
 4 -> y^2*x + y*z*y
 ```
 """
-function groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1, protocol::Bool=false)
-   isdefined(I, :gb) && return I.gb, "" 
-   gb, prot = groebner_basis(I.gens, deg_bound, protocol)
-   I.gb = gb
-   return gb, prot
+function groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)
+  isdefined(I, :gb) && return I.gb
+  gb = groebner_basis(I.gens, deg_bound, protocol=protocol)
+  I.gb = gb
+  return gb
 end
-function groebner_basis(g::IdealGens{T}, deg_bound::Int=-1, protocol::Bool=false) where T <: FreeAssAlgElem
-    gb, prot = groebner_basis(collect(g), deg_bound, protocol)
-    return IdealGens(gb), prot
+function groebner_basis(g::IdealGens{T}, deg_bound::Int=-1; protocol::Bool=false) where T <: FreeAssAlgElem
+    gb = groebner_basis(collect(g), deg_bound, protocol=protocol)
+    return IdealGens(gb)
 end
-function groebner_basis(g::Vector{<:T}, deg_bound::Int=-1, protocol::Bool=false) where T <: FreeAssAlgElem
+function groebner_basis(g::Vector{<:T}, deg_bound::Int=-1; protocol::Bool=false) where T <: FreeAssAlgElem
   R = parent(g[1])
   @assert all(x -> parent(x) == R, g) "parent mismatch"
   @assert deg_bound >= 0 || !protocol "computing with a protocol requires a degree bound"
 
   if deg_bound == -1
-      return AbstractAlgebra.groebner_basis(g), ""
+      return AbstractAlgebra.groebner_basis(g)
   end
     
   lpring, _ = _to_lpring(R, deg_bound)
   lp_I_gens = lpring.(g)
 
   I = Singular.Ideal(lpring, lp_I_gens)
- 
-  gb = gens(Singular.std(I))
+  gb = nothing 
 
-  if protocol
-    io = IOBuffer()
-
-    old_stdout = stdout
-    rd, wr = redirect_stdout()
-
-    Singular.with_prot(true) do; 
-        gb = gens(Singular.std(I))
-    end
-
-    redirect_stdout(old_stdout)
-    close(wr)
-    write(io, read(rd))
-    close(rd)
-
-    prot = String(take!(io))
-
-
-    return _to_FreeAssAlgElem.(Ref(R),gb), prot
+  Singular.with_prot(protocol) do; 
+    gb = gens(Singular.std(I))
   end
+  return _to_FreeAssAlgElem.(Ref(R),gb)
     
-  return _to_FreeAssAlgElem.(Ref(R), gb) , ""
 end

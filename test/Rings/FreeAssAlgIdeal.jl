@@ -27,9 +27,8 @@ end
   @test ideal_membership(f1, I2, 4) 
   @test ideal_membership(f1, I2) 
   @test !isdefined(I2, :gb)
-  gb, prot = groebner_basis(I2, 3, true)
+  gb = groebner_basis(I2, 3, protocol=true)
   @test isdefined(I2, :gb)
-  @test prot != "" 
 end
 
 
@@ -59,9 +58,9 @@ end
     f2 = x^2 + y^2
     I = ideal([f1, f2])
 
-    gb, prot = groebner_basis(I, 3,true)
+    gb = groebner_basis(I, 3, protocol=true)
     @test maximum(total_degree.(gb))==3
     @test isdefined(I, :gb)
-    gb2, _ = groebner_basis([f1, f2], 5, false)
+    gb2 = groebner_basis([f1, f2], 5, protocol=false)
     @test maximum(total_degree.(gb2))==5
 end
