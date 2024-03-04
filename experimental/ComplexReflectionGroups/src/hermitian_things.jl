@@ -43,7 +43,7 @@ end
 
 
 ###########################################################################################
-# Scalar product
+# Hermitian scalar product
 ###########################################################################################
 function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: QQAlgFieldElem
 
@@ -56,6 +56,35 @@ function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::Abstrac
         s += v[i]*conj(w[i])
     end
     return s
+end
+
+###########################################################################################
+# Canonical pairing (not really needed here for the Hermitian stuff but I need it and it
+# somewhat fits here).
+###########################################################################################
+function canonical_pairing(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem
+
+    V = parent(v)
+    K = base_ring(V)
+    n = dim(V)
+    s = zero(K)
+    for i=1:n
+        s += v[i]*w[i]
+    end
+    return s
+end
+
+###########################################################################################
+# Complex conjugate of a vector
+###########################################################################################
+function complex_conjugation(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: QQAlgFieldElem
+
+    V = parent(v)
+    K = base_ring(V)
+    n = dim(V)
+    conj = complex_conjugation2(K)
+    return V([conj(v[i]) for i=1:n])
+
 end
 
 ###########################################################################################
