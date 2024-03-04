@@ -91,7 +91,7 @@ function add_map_embedded!(f::AbsDesingMor, phi::BlowupMorphism)
   if f.transform_type == :strict
     X_strict, inc_strict,_ = strict_transform(phi, f.embeddings[end])
     push!(f.embeddings, inc_strict)
-  ifelse f.transform_type == :weak
+  elseif f.transform_type == :weak
     I_trans,b = weak_transform_with_multiplicity(phi, f.controlled_transform)
     push!(f.ex_mult,b)
     f.controlled_transform = I_trans
@@ -131,7 +131,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::IdealSheaf,
     if b == 0
       I_trans, b = weak_transform_with_multiplicity(phi,I)
       f.transform_type = :weak
-    ifelse b > 0
+    elseif b > 0
       I_trans = controlled_transform(phi, I, b)
       f.transform_type = :controlled
     end
@@ -179,7 +179,15 @@ function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::
 end
 
 function embedded_desingularization(inc::ClosedEmbedding; algorithm::Symbol=:BEV)
-  #TODO: Convert to a CoveredClosedEmbedding
+  return embedded_desingularization(CoveredClosedEmbedding(inc); algorithm)
+end
+
+function CoveredClosedEmbedding(inc::ClosedEmbedding)
+  dom = CoveredScheme(domain(inc))
+  cod = CoveredScheme(codomain(inc))
+  mor_dict = IdDict{AbsSpec, ClosedEmbedding}(dom[1][1] => inc)
+  cov_mor = CoveringMorphism(default_covering(dom), default_covering(cod), mor_dict; check=false)
+  return CoveredClosedEmbedding(dom, cod, cov_mor; check=false)
 end
 
 function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
@@ -214,7 +222,7 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   error("not implemented yet")    
 end
 
-function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
+function desingularization(X::AbsSpec; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
 end
 
