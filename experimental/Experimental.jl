@@ -84,4 +84,5 @@ include("Schemes/ToricBlowups/methods.jl")
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
 
 include("Schemes/DerivedPushforward.jl")
+include("Schemes/Resolution_structure.jl")
 
