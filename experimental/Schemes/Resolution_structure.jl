@@ -381,5 +381,53 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   =#
 end
 
+function find_refinement_with_local_system_of_params_rec(
+    W::AbsAffineScheme, 
+    mod_gens::Vector{PolyType} = lifted_numerator.(gens(modulus(OO(W)))),
+    row_ind::Vector{Int} = Int[],
+    col_ind::Vector{Int} = Int[],
+    trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
+    check::Bool=true
+  ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
 
+  # End of recursion
+  n = dim(ambient_coordinate_ring(W))
+  if length(row_ind) == n - dim(W)
+    return [(W, row_ind, col_ind, prod(trans_mat[row_ind[k], col_ind[k]] for k in 1:dim(W); init=one(OO(W))))]
+  end
+
+  # generate the unit ideal of OO(W) with the entries of trans_mat
+  n = nrows(trans_mat)
+  r = ncols(trans_mat)
+  all_entries_ind = [[i, j] for i in 1:n if !(i in row_ind) for j in 1:r if !(j in col_ind)]
+  all_entries = elem_type(OO(W))[trans_mat[i, j] for (i, j) in all_entries_ind]
+  entry_id = ideal(OO(W), all_entries)
+  lambda = coordinates(one(OO(W)), entry_id)
+
+  non_zero_entries = [k for k in 1:length(lambda) if !is_zero(lambda[k])]
+
+  loc_results = Tuple{<:AbsAffineScheme, Vector{Int}, Vector{Int}, <:RingElem}[]
+  for k in non_zero_entries
+    i, j = all_entries_ind[k]
+    h_ij = trans_mat[i, j]
+    U_ij = hypersurface_complement(W, h_ij)
+    res_mat = change_base_ring(OO(U_ij), trans_mat) # TODO: Avoid checks here
+    new_row_ind = vcat(row_ind, [i])
+    new_col_ind = vcat(col_ind, [j])
+    
+    # Do Gaussian elimination on the matrix to kill off the other entries in this row
+    u = res_mat[i, j]
+    inv_u = inv(u)
+    for l in 1:r
+      l in new_col_ind && continue
+      res_mat = add_column!(res_mat, -inv_u * res_mat[i, l], j, l)
+    end
+    loc_results = vcat(loc_results, 
+          find_refinement_with_local_system_of_params_rec(
+              U_ij, mod_gens, new_row_ind, new_col_ind, res_mat; check=check
+             )
+         )
+  end
+  return loc_results
+end
 
