@@ -14,6 +14,7 @@ export complex_reflection_group
 export complex_reflection_group_type
 export complex_reflection_group_model
 export complex_reflection_group_dual
+export complex_reflection_group_cartan_matrix
 
 ###########################################################################################
 # Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
@@ -27,7 +28,7 @@ export complex_reflection_group_dual
 # code there are several transpose operation for the final generators.
 ###########################################################################################
 
-function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:LT)
+function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:Magma)
     
     # this will be the list of matrix groups corresponding to the components of G
     component_groups = MatrixGroup[]
@@ -959,8 +960,7 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
                     V = vector_space(K,3)
                     matspace = matrix_space(K, 3, 3)
 
-                    # W is the reflection group of the line system of type H3
-                    # We create this line system here.
+                    # The line system H3
                     cycshift = elem_type(matspace)[]
                     push!(cycshift, identity_matrix(K, 3))
                     push!(cycshift, matrix(K,3,3,[0 1 0; 0 0 1; 1 0 0])) #(2 3 1)
@@ -975,8 +975,8 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
                     refls = Set([unitary_reflection(l) for l in lines])
 
                     # I guessed the roots of generating reflections from the proof of 
-                    # Theorem 8.10. The line system above is the star-closure of the 
-                    # following lines.
+                    # Theorem 8.10 (page 144). 
+                    # The line system H3 is the star-closure of the following lines.
                     a = V([0,1,0])
                     b = 1//2*V([K(1),τ,τ^-1])
                     p = V([1,0,0])  
@@ -1022,7 +1022,39 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
             elseif t == 24
                 
                 if model == :LT
-                    nothing
+                    # See Lehrer & Taylor (2009), page 108
+                    # This group is realized by the line system J_3^{(4)}
+                    R,x = polynomial_ring(QQ)
+                    K,i = number_field(x^2+1, "i")
+                    R,x = polynomial_ring(K)
+                    K,sqrt7 = number_field(x^2-7, "√7")
+                    i = K(i)
+                    V = vector_space(K,3)
+                    matspace = matrix_space(K, 3, 3)
+
+                    # The the line system J_3^{(4)}
+                    lambda = -1//2*(1 + i*sqrt7)
+
+                    lines = [1//2*V([lambda^2,lambda^2,0]), 1//2*V([lambda^2,-lambda^2,0])]
+                    lines = vcat(lines, [1//2*V([lambda^2,0,lambda^2]), 1//2*V([lambda^2,0,-lambda^2])])
+                    lines = vcat(lines, [1//2*V([0,lambda^2,lambda^2]), 1//2*V([0,lambda^2,-lambda^2])])
+                    lines = vcat(lines, [V([lambda,0,0]), V([0,lambda,0]), V([0,0,lambda])])
+
+                    lines = vcat(lines, [1//2*V([lambda,lambda,K(2)]), 1//2*V([lambda,-lambda,K(2)]), 1//2*V([-lambda,lambda,K(2)]), 1//2*V([-lambda,-lambda,K(2)])])
+                    lines = vcat(lines, [1//2*V([lambda,K(2),lambda]), 1//2*V([lambda,K(2),-lambda]), 1//2*V([-lambda,K(2),lambda]), 1//2*V([-lambda,K(2),-lambda])]) 
+                    lines = vcat(lines, [1//2*V([K(2),lambda,lambda]), 1//2*V([K(2),lambda,-lambda]), 1//2*V([K(2),-lambda,lambda]), 1//2*V([K(2),-lambda,- lambda])])                 
+
+                    refls = Set([unitary_reflection(l) for l in lines])
+
+                    # I guessed the roots of generating reflections from the proof of 
+                    # Lemma 7.34 (page 129)
+
+                    x = 1//2*V([lamba,lamba,K(2)])  
+
+                    # Now, create the corresponding generators
+                    #gens = elem_type(matspace)[]
+
+                    
 
                 elseif model == :Magma
                     K,zeta_7 = cyclotomic_field(7)
@@ -1775,11 +1807,11 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
 end
 
 # Convenience constructors
-complex_reflection_group(i::Int, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(i), model)
+complex_reflection_group(i::Int, model::Symbol=:Magma) = complex_reflection_group(ComplexReflectionGroupType(i), model)
 
-complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(m,p,n), model)
+complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:Magma) = complex_reflection_group(ComplexReflectionGroupType(m,p,n), model)
 
-complex_reflection_group(X::Vector, model::Symbol=:LT) = complex_reflection_group(ComplexReflectionGroupType(X), model)
+complex_reflection_group(X::Vector, model::Symbol=:Magma) = complex_reflection_group(ComplexReflectionGroupType(X), model)
 
 function complex_reflection_group_type(G::MatrixGroup)
     if has_attribute(G, :complex_reflection_group_type)
@@ -1807,4 +1839,38 @@ function complex_reflection_group_dual(W::MatrixGroup)
 
     return WD
 
+end
+
+function complex_reflection_group_cartan_matrix(W::MatrixGroup)
+
+    if !is_complex_reflection_group(W)
+        throw(ArgumentError("Group is not a complex reflection group"))
+    end
+
+    # We collect roots and coroots of the generators of W
+    gen_roots = []
+    gen_coroots = []
+
+    # If reflections are assigned already, we take these roots and coroots
+    if has_attribute(W, :complex_reflections)
+        refls = collect(get_attribute(W, :complex_reflections))
+        for g in gens(W)
+            i = findfirst(w->matrix(w)==matrix(g), collect(refls))
+            push!(gen_roots, root(refls[i]))
+            push!(gen_coroots, coroot(refls[i]))
+        end
+    else
+    # Otherwise, we compute roots and coroots
+        for g in gens(W)
+            b,g_data = is_complex_reflection_with_data(g)
+            push!(gen_roots, root(g_data))
+            push!(gen_coroots, coroot(g_data))
+        end
+    end
+
+    K = base_ring(W)
+    n = length(gen_roots)
+    C = matrix(K,n,n,[ canonical_pairing(gen_coroots[j], gen_roots[i]) for i=1:n for j=1:n ]) 
+
+    return C
 end
