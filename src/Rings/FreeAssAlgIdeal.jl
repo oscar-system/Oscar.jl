@@ -130,20 +130,16 @@ function (R::Singular.LPRing)(a::FreeAssAlgElem)
   return finish(B)
 end
 
+function (A::FreeAssAlgebra)(a::NCRingElem)
+    B = MPolyBuildCtx(A)
+    for (c,e) in zip(Oscar.coefficients(a), Singular.exponent_words(a))
+        push_term!(B, base_ring(A)(c), e)
+    end 
+    return finish(B)
+end
+
 _to_lpring(a::FreeAssAlgebra, deg_bound::Int) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound)
 
-function _to_FreeAssAlgElem(A::FreeAssAlgebra, a::NCRingElem)
-    B = 0
-    for (c,e) in zip(Oscar.coefficients(a), Singular.exponent_words(a))
-        x = base_ring(A)(c)
-        if e == [] 
-            B+= x
-            continue
-        end
-        B+= x * (prod(FreeAssAlgElem[A[i] for i in e]))
-    end 
-    return B
-end
 
 @doc raw"""
     groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1, protocol::Bool=false)
@@ -194,6 +190,6 @@ function groebner_basis(g::Vector{<:T}, deg_bound::Int=-1; protocol::Bool=false)
   Singular.with_prot(protocol) do; 
     gb = gens(Singular.std(I))
   end
-  return _to_FreeAssAlgElem.(Ref(R),gb)
+  return R.(gb)
     
 end

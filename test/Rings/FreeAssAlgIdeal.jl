@@ -47,7 +47,7 @@ end
   free, _ = free_associative_algebra(QQ, ["x", "y", "z"])
   f1 = x*y + y*z
 
-  F1 = Oscar._to_FreeAssAlgElem(free, f1)
+  F1 = free(f1)
   @test isa(F1,FreeAssAlgElem)
 
 end 
