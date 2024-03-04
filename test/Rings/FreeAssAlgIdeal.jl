@@ -27,7 +27,7 @@ end
   @test ideal_membership(f1, I2, 4) 
   @test ideal_membership(f1, I2) 
   @test !isdefined(I2, :gb)
-  gb = groebner_basis(I2, 3, protocol=true)
+  gb = groebner_basis(I2, 3; protocol=true)
   @test isdefined(I2, :gb)
 end
 
@@ -50,15 +50,15 @@ end
   @test isa(F1,FreeAssAlgElem)
 end 
 
-@testset "FreeAssAlgIdeal.groebner_bassis" begin
+@testset "FreeAssAlgIdeal.groebner_basis" begin
     free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
     f1 = x*y + y*z
     f2 = x^2 + y^2
     I = ideal([f1, f2])
 
-    gb = groebner_basis(I, 3, protocol=true)
+    gb = groebner_basis(I, 3; protocol=true)
     @test maximum(total_degree.(gb))==3
     @test isdefined(I, :gb)
-    gb2 = groebner_basis([f1, f2], 5, protocol=false)
+    gb2 = groebner_basis([f1, f2], 5; protocol=false)
     @test maximum(total_degree.(gb2))==5
 end
