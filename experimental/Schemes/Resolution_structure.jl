@@ -389,6 +389,10 @@ function find_refinement_with_local_system_of_params_rec(
     trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
     check::Bool=true
   ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
+  @show row_ind
+  @show col_ind
+  show(stdout, "text/plain", trans_mat)
+  println()
 
   # End of recursion
   n = dim(ambient_coordinate_ring(W))
@@ -431,6 +435,7 @@ function find_refinement_with_local_system_of_params_rec(
   return loc_results
 end
 
+<<<<<<< HEAD
 ##################################################################################################
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
@@ -475,3 +480,91 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
   return IdealSheaf(Delta_dict)
 end
  
+=======
+
+########################################################################
+# test for snc                                                         #
+########################################################################
+
+function is_snc(divs::Vector{<:EffectiveCartierDivisor})
+  is_empty(divs) && error("list of divisors must not be empty")
+  X = scheme(first(divs))
+  @assert all(d->scheme(d) === X, divs)
+  @assert is_smooth(X)
+  r = length(divs)
+  triv_cov = trivializing_covering.(divs)
+
+  com_ref, incs = common_refinement(triv_cov, default_covering(X))
+
+  for U in patches(com_ref)
+    loc_eqns = elem_type(OO(U))[]
+    for k in 1:length(incs)
+      I = ideal_sheaf(divs[k])
+      inc = incs[k]
+      V = codomain(inc)
+      h = first(gens(I(V)))
+      hh = pullback(inc, h)
+      push!(loc_eqns, hh)
+    end
+    is_regular_sequence(loc_eqns) || return false
+  end
+  return true
+end
+
+function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
+  isempty(list) && error("list of coverings must not be empty")
+
+  if length(list) == 1
+    result = first(list)
+    return result, [identity_map(result)]
+  end
+  patch_list = AbsAffineScheme[]
+  anc_list = AbsAffineScheme[]
+  to_U_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  to_V_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+
+  if length(list) == 2
+    for U in patches(list[1])
+      match_found = false
+      for V in patches(list[2])
+        success, W = _have_common_ancestor(U, V)
+        !success && continue
+        match_found = true
+        push!(anc_list, W)
+        #inc_U = _flatten_open_subscheme(U, W)
+        #inc_V = _flatten_open_subscheme(V, W)
+        inc_U, h_U = _find_chart(U, W)
+        inc_U = PrincipalOpenEmbedding(inc_U, h_U; check=false)
+        inc_V, h_V = _find_chart(V, W)
+        inc_V = PrincipalOpenEmbedding(inc_V, h_V; check=false)
+
+        UV, to_U, to_V = fiber_product(inc_U, inc_V) 
+        push!(patch_list, UV)
+        to_U_dict[UV] = to_U
+        to_V_dict[UV] = to_V
+      end
+      !match_found && error("no common ancestor found for $U and $V")
+    end
+    #anc_cov = Covering(anc_list)
+    #inherit_glueings!(anc_cov, def_cov)
+    result = Covering(patch_list)
+    inherit_glueings!(result, def_cov)
+
+    tot_inc1 = CoveringMorphism(result, list[1], to_U_dict; check=false)
+    tot_inc2 = CoveringMorphism(result, list[2], to_V_dict; check=false)
+    return result, [tot_inc1, tot_inc2]
+  end
+
+  # More than two entries
+  n = length(list)
+  k = div(n, 2)
+  res1, inc1 = common_refinement(list[1:k], def_cov)
+  res2, inc2 = common_refinement(list[k+1:end], def_cov) 
+
+  result, inc_tot = common_refinement([res1, res2], def_cov)
+  return result, vcat([compose(inc_tot[1], inc1[k]) for k in 1:length(inc1)], 
+                      [compose(inc_tot[2], inc2[k]) for k in 1:length(inc2)]
+                     )
+end
+
+>>>>>>> 45cf6c6b0a44385a2ae3cb584e1dc69290d5b70b
