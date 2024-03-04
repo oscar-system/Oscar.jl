@@ -158,7 +158,7 @@ julia> f2 = x^2 + y^2;
 
 julia> I = ideal([f1, f2]);
 
-julia> gb = groebner_basis(I, 3, protocol=false);
+julia> gb = groebner_basis(I, 3, protocol=false)
 Ideal generating system with elements
 1 -> x*y + y*z
 2 -> x^2 + y^2
