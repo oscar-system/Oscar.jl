@@ -182,12 +182,10 @@ function embedded_desingularization(inc::ClosedEmbedding; algorithm::Symbol=:BEV
   return embedded_desingularization(CoveredClosedEmbedding(inc); algorithm)
 end
 
-function CoveredClosedEmbedding(inc::ClosedEmbedding)
-  dom = CoveredScheme(domain(inc))
-  cod = CoveredScheme(codomain(inc))
-  mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}(dom[1][1] => inc)
-  cov_mor = CoveringMorphism(default_covering(dom), default_covering(cod), mor_dict; check=false)
-  return CoveredClosedEmbedding(dom, cod, cov_mor; check=false)
+function CoveredClosedEmbedding(inc::ClosedEmbedding; domain=CoveredScheme(domain(inc)), codomain=CoveredScheme(codomain(inc)))
+  mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}(domain[1][1] => inc)
+  cov_mor = CoveringMorphism(default_covering(domain), default_covering(codomain), mor_dict; check=false)
+  return CoveredClosedEmbedding(domain, codomain, cov_mor; check=false)
 end
 
 function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
@@ -303,12 +301,12 @@ end
 ###################################################################################################
 
 function unit_ideal_sheaf(X::AbsCoveredScheme)
-  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), [one(OO(U))]) for U in affine_patches(X))
+  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), [one(OO(U))]) for U in affine_charts(X))
   return IdealSheaf(X, dd, check=false)
 end
 
 function zero_ideal_sheaf(X::AbsCoveredScheme)
-  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), elem_type(OO(U))[]) for U in affine_patches(X))
+  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), elem_type(OO(U))[]) for U in affine_charts(X))
   return IdealSheaf(X, dd, check=false)
 end
 
@@ -440,7 +438,7 @@ end
 # test for snc                                                         #
 ########################################################################
 
-function is_snc(divs::Vector{<:EffectiveCartierDivisor})
+function non_snc_locus(divs::Vector{<:EffectiveCartierDivisor})
   is_empty(divs) && error("list of divisors must not be empty")
   X = scheme(first(divs))
   @assert all(d->scheme(d) === X, divs)
@@ -450,19 +448,29 @@ function is_snc(divs::Vector{<:EffectiveCartierDivisor})
 
   com_ref, incs = common_refinement(triv_cov, default_covering(X))
 
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}() # ideal sheaf of the non_snc_locus
   for U in patches(com_ref)
     loc_eqns = elem_type(OO(U))[]
     for k in 1:length(incs)
       I = ideal_sheaf(divs[k])
-      inc = incs[k]
+      inc = incs[k][U]
       V = codomain(inc)
       h = first(gens(I(V)))
-      hh = pullback(inc, h)
+      hh = pullback(inc)(h)
+      is_unit(hh) && continue # Not every divisor needs to be visible here
       push!(loc_eqns, hh)
     end
-    is_regular_sequence(loc_eqns) || return false
+    if isempty(loc_eqns) || is_regular_sequence(loc_eqns)
+      ideal_dict[U] = ideal(OO(U), one(OO(U))) # Nothing visible here
+      continue
+    end
+
+    # Determine the non-snc-locus
+    K = koszul_complex(KoszulComplex, loc_eqns)
+    k = findfirst(k->!is_zero(homology(K, k)[1]), 1:length(loc_eqns))
+    ideal_dict[U] = annihilator(homology(K, k)[1])
   end
-  return true
+  return IdealSheaf(X, ideal_dict; check=false)
 end
 
 function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
@@ -521,3 +529,11 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
                      )
 end
 
+function strict_transform(bl::AbsSimpleBlowdownMorphism, inc::ClosedEmbedding)
+  B = codomain(bl)
+  @assert length(affine_charts(B)) == 1 && first(affine_charts(B)) === codomain(inc)
+  inc_cov = CoveredClosedEmbedding(inc, codomain=B)
+  return strict_transform(bl, inc_cov)
+end
+
+is_graded(R::Ring) = false
