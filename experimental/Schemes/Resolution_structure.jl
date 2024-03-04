@@ -431,3 +431,47 @@ function find_refinement_with_local_system_of_params_rec(
   return loc_results
 end
 
+##################################################################################################
+
+function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
+       ambient_param_data::IdDict{<:AbsAffineScheme, Tuple{Vector{Int},Vector{Int},<:RingElem}}; check::Bool=true)
+
+  W = codomain(inc)                                
+  @check is_smooth(W) "codomain of embedding needs to be smooth"
+  @check is_equidimensional(W) "codomain of embedding needs to be equidimensional"
+  @check is_refinement(Cov, default_covering(W)) "given covering needs to be covering of ambient scheme"   
+  I_X = small_generating_set(image_ideal(inc))              # ideal sheaf describing X on W
+
+  Delta_dict = IdDict{AbsAffineScheme,Ideal}
+  for U in Cov
+
+    I = I_X[U]
+    if is_one(I)
+      Delta_dict[U] = I
+      continue
+    end
+
+    amb_row,amb_col,h = ambient_param_data[U]
+    mod_gens = lifted_numerator.(gens(modulus(OO(U))))
+    JM = jacobian_matrix(mod_gens)
+    if amb_col < length(mod_gens)
+      JM = [JM[i,j] for i in 1:nrows(JM) for j in amb_col]
+    submat_for_minor = [[i, j] for i in amb_row for j in amb_col)]
+    Ainv, h2 = pseudo_inv(submat_for_minor)
+    h == h2 || error("inconsistent input data")
+    JM = JM * Ainv
+    I_gens = lifted_numerator.(gens(I))
+    JI = jacobian_matrix(I_gens)
+    result_mat = [JI[i,j]*h for i in 1:nrows(JI) for j in 1:ncols(JI)]
+    for i in [1::nrows(result_mat)]
+      for j in [1::ncols(result_mat)]
+        result_mat[i,j] = result_mat[i,j]-JI[i,j]*JM[i,i]
+@show result_mat
+      end
+    end
+    Delta_dict[U] = ideal(OO(U),vec(collect(result_mat)))
+  end
+
+  return IdealSheaf(Delta_dict)
+end
+ 
