@@ -5,60 +5,6 @@ export _desing_curve
 # Desingularization morphism: birational map between covered schemes with smooth domain
 #####################################################################################################
 
-@doc raw"""
-    BlowUpSequence{
-    DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme
-   } <: AbsDesingMor{
-                                 DomainType,
-                                 CodomainType,
-                                }
-
-
-"""
-@attributes mutable struct BlowUpSequence{
-                                          DomainType<:AbsCoveredScheme,
-                                          CodomainType<:AbsCoveredScheme
-                                         }<:AbsBlowdownMorphism{
-                                                                DomainType, CodomainType, 
-                                                                BlowUpSequence{DomainType, CodomainType}
-                                                               }
-  maps::Vector{<:BlowupMorphism}                 # count right to left:
-                                                 # original scheme is codomain of map 1
-  
-  embeddings::Vector{<:AbsCoveredSchemeMorphism} # if set,
-                                                 # assert codomain(maps[i])===codomain(embeddings[i]) 
-  # boolean flags
-  is_embedded::Bool                              # do not set embeddings, ex_mult, controlled_transform etc
-                                                 #     if is_embedded == false
-  resolves_sing::Bool                            # domain(maps[end]) smooth?
-  is_trivial::Bool                               # codomain already smooth?
-  transform_type::Symbol                         # can be :strict, :weak or :control
-                                                 #     only relevant for is_embedded == true
-
-  # fields for caching, may be filled during computation
-  ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
-                                                 # lives in domain(maps[end])
-  ex_mult::Vector{Int64]                         # multiplicities of exceptional divisors removed from
-                                                 # controlled or weak transform, not set for is_embedded == false
-                                                 # and transform_type == strict
-  controlled_transform::IdealSheaf               # holds weak or controlled transform according to transform_type
-
-  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
-  composed_map::AbsCoveredSchemeMorphism        
-  exceptional_divisor::WeilDivisor               # exceptional divisor of composed_map
-  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
-                                                 # restricted to domain(embeddings[end])
-
-  function BlowUpSequence(maps::Vector{<:BlowupMorphism})
-    n = length(maps)
-    for i in 1:n-1
-      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
-    end
-    return new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
-  end
-end
-
 # Fehlt: NormalizationMorphism fuer Schemata -- muessten wir haben, sobald wir Lipman machen wollen
 #
 #@attributes mutable struct LipmanStyleSequence{
@@ -95,7 +41,7 @@ end
 ##################################################################################################
 # getters
 ##################################################################################################
-maps(phi::AbsDesingMor) = phi.maps
+maps(phi::AbsDesingMor) = copy(phi.maps)
 last_map(phi::AbsDesingMor) = phi.maps[end]
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
 
@@ -115,10 +61,10 @@ end
 ##################################################################################################
 # setting values in DesingMors -- Watch out: only place with direct access to fields!!!
 ##################################################################################################
-function add_map!(f::AbsDesingMor,phi::BlowupMorphism)
+function add_map!(f::AbsDesingMor, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
-  push!(ex_div,Oscar.exceptional_divisor(phi))
+  push!(ex_div, Oscar.exceptional_divisor(phi))
   f.ex_div = ex_div
   return f
 end
@@ -139,20 +85,20 @@ end
 
 function add_map_embedded!(f::AbsDesingMor, phi::BlowupMorphism)
   push!(f.maps, phi)
-  ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
-  push!(ex_div,Oscar.exceptional_divisor(phi))
+  ex_div = [strict_transform(phi, E) for E in f.ex_div[1:end]]
+  push!(ex_div, Oscar.exceptional_divisor(phi))
   f.ex_div = ex_div
   if f.transform_type == :strict
-    X_strict,inc_strict,_ = strict_transform(phi,f.embeddings[end])
+    X_strict, inc_strict,_ = strict_transform(phi, f.embeddings[end])
     push!(f.embeddings, inc_strict)
   ifelse f.transform_type == :weak
-    I_trans,b = weak_transform_with_multiplicity(phi,f.controlled_transform)
+    I_trans,b = weak_transform_with_multiplicity(phi, f.controlled_transform)
     push!(f.ex_mult,b)
     f.controlled_transform = I_trans
   else
     I_trans = controlled_transform(phi, f.controlled_transform, f.ex_mult[end])
     f.controlled_transform = I_trans
-    push!(f.ex_mult,f.ex_mult[end])
+    push!(f.ex_mult, f.ex_mult[end])
   end
   return f
 end
@@ -165,13 +111,12 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredCl
   if !is_one(center(phi))
     f.is_trivial = false
     X_strict,inc_strict,_ = strict_transform(phi,inc)
-    f.embeddings = [f,inc_strict]
+    f.embeddings = [f, inc_strict]
     f.resolves_sing = false                              # we have no information, whether we are done
                                                          # without further computation
-    end
   else
     f.is_trivial = true
-    f.embeddings = [inc,inc]
+    f.embeddings = [inc, inc]
     f.resolves_sing = false
   end
   return f
@@ -184,17 +129,16 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::IdealSheaf,
   if !is_one(center(phi))
     f.is_trivial = false
     if b == 0
-      I_trans,b = weak_transform_with_multiplicity(phi,I)
+      I_trans, b = weak_transform_with_multiplicity(phi,I)
       f.transform_type = :weak
     ifelse b > 0
-      I_trans = controlled_transform(phi,I,b)
+      I_trans = controlled_transform(phi, I, b)
       f.transform_type = :controlled
     end
     f.controlled_transform = I_trans                     # CAUTION: b is considered set once and for all
     f.ex_mult = [b]
     f.resolves_sing = false                              # we have no information, whether we are done
                                                          # without further computation
-    end
   else
     f.is_trivial = true
     f.controlled_transform = I
@@ -234,6 +178,10 @@ function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::
   error("not implemented yet")
 end
 
+function embedded_desingularization(inc::ClosedEmbedding; algorithm::Symbol=:BEV)
+  #TODO: Convert to a CoveredClosedEmbedding
+end
+
 function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   I_sl = Oscar.ideal_sheaf_of_singular_locus(X)
   
@@ -264,6 +212,10 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
 #    return_value = _desing_jung(X)
 #   end       
   error("not implemented yet")    
+end
+
+function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
+  return desingularization(CoveredScheme(X); algorithm)
 end
 
 function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
@@ -353,7 +305,7 @@ function zero_ideal_sheaf(X::AbsCoveredScheme)
 end
 
 function identity_blow_up(X::AbsCoveredScheme)
-  f = BlowupMorphism(X,unit_ideal_sheaf(X))
+  f = BlowupMorphism(X, unit_ideal_sheaf(X))
   return f
 end
 

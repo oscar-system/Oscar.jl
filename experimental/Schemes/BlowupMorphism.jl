@@ -827,3 +827,61 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsSimpleBlowdownMorphism)
   return composite_map(f, g)
 end
 
+########################################################################
+# Resolutions of singularities                                         #
+########################################################################
+
+@doc raw"""
+    BlowUpSequence{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme
+   } <: AbsDesingMor{
+                                 DomainType,
+                                 CodomainType,
+                                }
+
+
+"""
+@attributes mutable struct BlowUpSequence{
+                                          DomainType<:AbsCoveredScheme,
+                                          CodomainType<:AbsCoveredScheme
+                                         }<:AbsBlowdownMorphism{
+                                                                DomainType, CodomainType, 
+                                                                BlowUpSequence{DomainType, CodomainType}
+                                                               }
+  maps::Vector{<:BlowupMorphism}                 # count right to left:
+                                                 # original scheme is codomain of map 1
+  
+  embeddings::Vector{<:AbsCoveredSchemeMorphism} # if set,
+                                                 # assert codomain(maps[i])===codomain(embeddings[i]) 
+  # boolean flags
+  is_embedded::Bool                              # do not set embeddings, ex_mult, controlled_transform etc
+                                                 #     if is_embedded == false
+  resolves_sing::Bool                            # domain(maps[end]) smooth?
+  is_trivial::Bool                               # codomain already smooth?
+  transform_type::Symbol                         # can be :strict, :weak or :control
+                                                 #     only relevant for is_embedded == true
+
+  # fields for caching, may be filled during computation
+  ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
+                                                 # lives in domain(maps[end])
+  ex_mult::Vector{Int}                           # multiplicities of exceptional divisors removed from
+                                                 # controlled or weak transform, not set for is_embedded == false
+                                                 # and transform_type == strict
+  controlled_transform::IdealSheaf               # holds weak or controlled transform according to transform_type
+
+  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
+  composed_map::AbsCoveredSchemeMorphism        
+  exceptional_divisor::WeilDivisor               # exceptional divisor of composed_map
+  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+                                                 # restricted to domain(embeddings[end])
+
+  function BlowUpSequence(maps::Vector{<:BlowupMorphism})
+    n = length(maps)
+    for i in 1:n-1
+      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
+    end
+    return new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
+  end
+end
+
