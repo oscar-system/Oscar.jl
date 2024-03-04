@@ -85,12 +85,13 @@ answer. If `deg_bound` is not provided, the default value is `-1`, which means
 that no degree bound is imposed, which leads to a computation that uses a much
 slower algorithm, that may not terminate, but returns a full groebner basis if
 ```jldoctest
-free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
-f1 = x*y + y*z
-I = ideal([f1])
-ideal_membership(f1, I, 4)
+julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
 
-# output
+julia> f1 = x*y + y*z;
+
+julia> I = ideal([f1]);
+
+julia> ideal_membership(f1, I, 4)
 true
 ```
 """
@@ -103,15 +104,11 @@ end
 function ideal_membership(a::FreeAssAlgElem, I::Vector{<:FreeAssAlgElem}, deg_bound::Int=-1)
   R = parent(a)
   @assert all(x -> parent(x) == R, I) "parent mismatch"
-
   gb = groebner_basis(I, deg_bound; protocol=false)
-  
   deg_bound = max(maximum(total_degree.(gb)),total_degree(a))
-
   lpring, _ = _to_lpring(R, deg_bound)
 
   lp_I = Singular.Ideal(lpring, lpring.(gb))
-
   return iszero(reduce(lpring(a), lp_I))
 end
 
