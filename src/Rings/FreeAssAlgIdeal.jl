@@ -84,7 +84,7 @@ inconclusive answer, but larger `deg_bound`s give more confidence in a negative
 answer. If `deg_bound` is not provided, the default value is `-1`, which means 
 that no degree bound is imposed, which leads to a computation that uses a much
 slower algorithm, that may not terminate, but returns a full groebner basis if
-```jldoctest
+```jldoctest; filter = r"(coeff \d+ already initialized\n|)"s
 julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
 
 julia> f1 = x*y + y*z;
