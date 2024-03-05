@@ -135,10 +135,9 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
   # but we want to avoid using fraction field of Ry during row reduction 
   mb_ring, z = graded_polynomial_ring(F, n)
-  o = monomial_ordering(mb_ring, :lex)
 
   # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
-  I_K = stanley_reisner_ideal(Fyx, K)
+  R_K, _ = stanley_reisner_ring(Fyx, K)
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
     r = dim_face + 1
@@ -146,11 +145,20 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
     mb = reverse(monomial_basis(mb_ring, r))
     Y = matrix(Fy, hcat(y))
     A = Vector{MPolyRingElem}[]
+    mb_exponents = first.(collect.(exponents.(mb))) # gets monomial exponents
 
     for b in mb
       # need to compare with some alternatives
-      transformed_monomial = evaluate(b, Y * gens(Fyx))
-      generic_col = collect(coefficients.(normal_form(transformed_monomial, I_K)))
+      transformed_monomial = evaluate(b, Y * gens(R_K))
+
+      # we need to iterate through exponents here since the functions terms, coefficients or exponents
+      # do not return 0 terms and we need to make sure the generic col aligns with the others
+      # this is needed for the case when the field has finite characteristic
+      # we use the lift because currently there is no function for get the coeff of
+      # a MPolyQuoRingElem, which means we also need to check if it's zero before adding the coefficient
+      generic_col = [
+        !is_zero(R_K(monomial(Fyx, e))) ? coeff(lift(transformed_monomial), e) : Fy(0)
+        for e in mb_exponents]
 
       push!(A, generic_col)
     end
