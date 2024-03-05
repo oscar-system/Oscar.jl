@@ -592,26 +592,56 @@ end
     V = __find_chart(U, default_covering(X))
 
     function prod_fun(F::AbsPreSheaf, U2::AbsAffineScheme)
-      if __has_ancestor(x->(x===U2), U)
+      if has_ancestor(x->(x===U2), U)
         iso = _flatten_open_subscheme(U, U2)
         iso_inv = inverse(iso)
         pb_P = pullback(iso_inv)(P)
         return ideal(OO(U2), gens(saturated_ideal(pb_P)))
       end
 
-      if __has_ancestor(x->(x===V), U2)
+      if has_ancestor(x->(x===V), U2)
         return OOX(V, U2)(F(V))
       end
 
       V2 = __find_chart(U2, default_covering(X))
-      PV = F(V)
+      if haskey(object_cache(F), V2) && V2 !== U2
+        return OOX(V2, U2)(F(V2))
+      end
 
-      glue = default_covering(X)[V, V2]
-      f, g = gluing_morphisms(glue)
-      
-      I = pullback(g)(F(codomain(g)))
-      return ideal(OO(U2), gens(saturated_ideal(I)))
+      F(V) # Fill the cache with at least one element
+
+      fat = [W for W in keys(object_cache(F)) if any(x->x===W, affine_charts(X)) && !isone(F(W))]
+
+      function complexity(X1::AbsAffineScheme)
+        init = maximum(total_degree.(lifted_numerator.(gens(F(X1)))); init=0)
+        glue = default_covering(X)[V, X1]
+        if glue isa SimpleGluing || (glue isa LazyGluing && is_computed(glue))
+          return init
+        end
+        return init + 1000
+      end
+
+      sort!(fat, by=complexity)
+      for W in fat
+        glue = default_covering(X)[W, V2]
+        f, g = gluing_morphisms(glue)
+        if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
+          I2 = F(codomain(g))
+          I = pullback(g)(I2)
+          isone(I) && continue
+          return OOX(V2, U2)(ideal(OO(V2), gens(saturated_ideal(I))))
+        else
+          Z = subscheme(W, F(W))
+          pZ = preimage(g, Z, check=false)
+          is_empty(pZ) && continue
+          ZV = closure(pZ, V2, check=false)
+          return OOX(V2, U2)(ideal(OO(V2), [g for g in OO(V2).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)]))
+        end
+      end
+      # If nothing pulls back to this chart, the ideal sheaf is trivial here.
+      return ideal(OO(V2), one(OO(V2)))
     end
+
     function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
       return OOX(V, U) # This does not check containment of the arguments
                        # in the ideal. But this is not a parent check and
@@ -627,3 +657,106 @@ end
   end
 end
 
+@attributes mutable struct SumIdealSheaf{SpaceType, OpenType, OutputType,
+                                         RestrictionType
+                                        } <: AbsIdealSheaf{
+                                                           SpaceType, OpenType,
+                                                           OutputType, RestrictionType
+                                                          }
+  I1::AbsIdealSheaf
+  I2::AbsIdealSheaf
+  underlying_presheaf::AbsPreSheaf
+
+  function SumIdealSheaf(
+      I1::AbsIdealSheaf,
+      I2::AbsIdealSheaf
+    )
+    @assert scheme(I1) === scheme(I2)
+    X = scheme(I1)
+    OOX = OO(X)
+
+    function prod_fun(F::AbsPreSheaf, U::AbsAffineScheme)
+      return I1(U) + I2(U)
+    end
+    function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+      return OOX(V, U) # This does not check containment of the arguments
+                       # in the ideal. But this is not a parent check and
+                       # hence expensive, so we might want to not do that.
+    end
+    Ipre = PreSheafOnScheme(X, prod_fun, res_fun,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(I1, I2, Ipre)
+    return I
+  end
+end
+
+@attributes mutable struct ProductIdealSheaf{SpaceType, OpenType, OutputType,
+                                             RestrictionType
+                                            } <: AbsIdealSheaf{
+                                                               SpaceType, OpenType,
+                                                               OutputType, RestrictionType
+                                                              }
+  I1::AbsIdealSheaf
+  I2::AbsIdealSheaf
+  underlying_presheaf::AbsPreSheaf
+
+  function ProductIdealSheaf(
+      I1::AbsIdealSheaf,
+      I2::AbsIdealSheaf
+    )
+    @assert scheme(I1) === scheme(I2)
+    X = scheme(I1)
+    OOX = OO(X)
+
+    function prod_fun(F::AbsPreSheaf, U::AbsAffineScheme)
+      return I1(U) * I2(U)
+    end
+    function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+      return OOX(V, U) # This does not check containment of the arguments
+                       # in the ideal. But this is not a parent check and
+                       # hence expensive, so we might want to not do that.
+    end
+    Ipre = PreSheafOnScheme(X, prod_fun, res_fun,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(I1, I2, Ipre)
+    return I
+  end
+end
+
+@attributes mutable struct SimplifiedIdealSheaf{SpaceType, OpenType, OutputType,
+                                             RestrictionType
+                                            } <: AbsIdealSheaf{
+                                                               SpaceType, OpenType,
+                                                               OutputType, RestrictionType
+                                                              }
+  orig::AbsIdealSheaf
+  underlying_presheaf::AbsPreSheaf
+
+  function SimplifiedIdealSheaf(
+      orig::AbsIdealSheaf
+    )
+    X = scheme(orig)
+
+    function prod_fun(F::AbsPreSheaf, U::AbsAffineScheme)
+      return ideal(OO(U), small_generating_set(orig(U)))
+    end
+    function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+      return OO(X)(V, U) # This does not check containment of the arguments
+                       # in the ideal. But this is not a parent check and
+                       # hence expensive, so we might want to not do that.
+    end
+    Ipre = PreSheafOnScheme(X, prod_fun, res_fun,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(I1, I2, Ipre)
+    return I
+  end
+end

@@ -8,9 +8,12 @@ export subscheme
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 underlying_presheaf(I::PrimeIdealSheafFromChart) = I.F
+underlying_presheaf(I::SumIdealSheaf) = I.underlying_presheaf
+underlying_presheaf(I::ProductIdealSheaf) = I.underlying_presheaf
+underlying_presheaf(I::SimplifiedIdealSheaf) = I.underlying_presheaf
 
 # an alias for the user's convenience
-scheme(I::IdealSheaf) = space(I)
+scheme(I::AbsIdealSheaf) = space(I)
 
 @doc raw"""
     IdealSheaf(X::AbsProjectiveScheme, g::Vector{<:RingElem})
@@ -156,7 +159,14 @@ on one affine open subset ``U`` among the `basic_patches` of the
 of ``X`` since otherwise, the extension of the ideal sheaf to other
 charts can not be inferred.
 """
-function IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}) where {RET<:RingElem}
+function IdealSheaf(
+    X::AbsCoveredScheme, U::AbsAffineScheme, 
+    g::Vector{RET}; check::Bool=false
+  ) where {RET<:RingElem}
+  I = ideal(OO(U), g)
+  @check is_prime(I) "ideal must be prime"
+  return PrimeIdealSheafFromChart(X, U, I)
+
   C = default_covering(X)
   for f in g
     parent(f) === OO(U) || error("the generators do not belong to the correct ring")
@@ -249,6 +259,7 @@ end
 #end
 
 function +(I::AbsIdealSheaf, J::AbsIdealSheaf)
+  return SumIdealSheaf(I, J)
   X = space(I)
   X == space(J) || error("ideal sheaves are not defined over the same scheme")
   new_dict = IdDict{AbsAffineScheme, Ideal}()
@@ -260,6 +271,7 @@ function +(I::AbsIdealSheaf, J::AbsIdealSheaf)
 end
 
 function *(I::AbsIdealSheaf, J::AbsIdealSheaf)
+  return ProductIdealSheaf(I, J)
   X = space(I)
   X == space(J) || error("ideal sheaves are not defined over the same scheme")
   new_dict = IdDict{AbsAffineScheme, Ideal}()
@@ -564,6 +576,10 @@ We say that a sheaf of ideals is prime if its support is irreducible and
   return length(PD)==1
 end
 
+function is_prime(I::PrimeIdealSheafFromChart)
+  return true
+end
+
 @doc raw"""
     is_locally_prime(I::AbsIdealSheaf) -> Bool
 
@@ -576,7 +592,10 @@ at every point $p$ is one or prime.
   return all(U->is_prime(I(U)) || is_one(I(U)), basic_patches(default_covering(space(I))))
 end
 
+is_locally_prime(I::PrimeIdealSheafFromChart) = true
+
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
+  has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return true
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
@@ -584,6 +603,8 @@ function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I
   all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
   return true
 end
+
+is_equidimensional(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::MPolyIdeal)
   decomp = equidimensional_decomposition_weak(I)
@@ -955,6 +976,11 @@ function (phi::Map{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   return ideal(S, phi.(gens(I)))
 end
 
+# Workaround for ambiguity
+function (id::AbstractAlgebra.Generic.IdentityMap{D})(I::Ideal) where {D<:Ring}
+  return I
+end
+
 # Necessary for removing ambiguities
 function (phi::AbstractAlgebra.Generic.CompositeMap{D, C})(I::Ideal) where {D<:Ring, C<:Ring}
   base_ring(I) === domain(phi) || error("ideal not defined over the domain of the map")
@@ -999,6 +1025,8 @@ end
   end
   return IdealSheaf(X, ID, check=false)
 end
+
+radical(I::PrimeIdealSheafFromChart) = I
 
 function small_generating_set(II::AbsIdealSheaf)
   X = scheme(II)
@@ -1051,6 +1079,64 @@ function Base.show(io::IO, I::AbsIdealSheaf)
     end
   end
 end
+
+function Base.show(io::IO, ::MIME"text/plain", I::PrimeIdealSheafFromChart)
+  print(io, "Prime ideal sheaf on ", scheme(I), " extended from ", I.P, " on ", I.U)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", I::SumIdealSheaf)
+  io = pretty(io)
+  print(io, "Sum of \n")
+  print(io, Indent())
+  print(io, I.I1, "\n")
+  print(io, Dedent())
+  print(io, "and \n")
+  print(io, Indent())
+  print(io, I.I2, "\n")
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, ::MIME"text/plain", I::ProductIdealSheaf)
+  io = pretty(io)
+  print(io, "Product of \n")
+  print(io, Indent())
+  print(io, I.I1, "\n")
+  print(io, Dedent())
+  print(io, "and \n")
+  print(io, Indent())
+  print(io, I.I2, "\n")
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, I::PrimeIdealSheafFromChart)
+  io = pretty(io)
+  print(io, "Prime ideal sheaf on ", scheme(I), " extended from ", I.P, " on ", I.U)
+end
+
+function Base.show(io::IO, I::SumIdealSheaf)
+  io = pretty(io)
+  print(io, "Sum of \n")
+  print(io, Indent())
+  print(io, I.I1, "\n")
+  print(io, Dedent())
+  print(io, "and \n")
+  print(io, Indent())
+  print(io, I.I2, "\n")
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, I::ProductIdealSheaf)
+  io = pretty(io)
+  print(io, "Product of \n")
+  print(io, Indent())
+  print(io, I.I1, "\n")
+  print(io, Dedent())
+  print(io, "and \n")
+  print(io, Indent())
+  print(io, I.I2, "\n")
+  print(io, Dedent())
+end
+
 
 # This semi compact printing is used for nested printings, like in blow-up or
 # for the description of Cartier divisors and algebraic cycles.
