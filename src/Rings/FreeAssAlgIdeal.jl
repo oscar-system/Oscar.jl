@@ -78,12 +78,10 @@ end
 @doc raw"""
     ideal_membership(a::FreeAssAlgElem, I::FreeAssAlgIdeal, deg_bound::Int)
 
-Return `true` if calculations with intermediate degrees bounded by `deg_bound`
-prove that $a$ is in $I$. Otherwise, a return of `false` indicates an
-inconclusive answer, but larger `deg_bound`s give more confidence in a negative
-answer. If `deg_bound` is not provided, the default value is `-1`, which means 
-that no degree bound is imposed, which leads to a computation that uses a much
-slower algorithm, that may not terminate, but returns a full groebner basis if
+Returns `true` if intermediate degree calculations bounded by `deg_bound` prove that $a$ is in $I$.
+Otherwise, returning `false` indicates an inconclusive answer, but larger `deg_bound`s give more confidence in a negative answer. 
+If `deg_bound` is not specified, the default value is `-1`, which means that no degree bound is imposed,
+resulting in a calculation using a much slower algorithm that may not terminate, but will return a full Groebner basis if it does.
 ```jldoctest; filter = r"(coeff \d+ already initialized\n|)"s
 julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
 
