@@ -1213,7 +1213,8 @@ end
   D = hom(C, OmegaPn)
   Omega = homology(D, 0);
   is_graded(Omega)
-  SOmega, a, b = Oscar._alt_simplify(Omega)
+  SOmega, b = simplify(Omega)
+  a = get_attribute(b, :inverse)
   @test is_graded(SOmega)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
