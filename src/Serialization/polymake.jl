@@ -36,15 +36,15 @@ function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   T<:Union{Cone{<:scalar_types}, Polyhedron{<:scalar_types}, PolyhedralFan{<:scalar_types}, 
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex}}
   inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-  if T <: PolyhedralObject{QQFieldElem}
-     return T(inner_object)
-   elseif T <: PolyhedralObject{Float64}
-     return T(inner_object, AbstractAlgebra.Floats{Float64}())
-   else
-      error("Unsupported object type $T for loading polymake object")
-   end
+  if T <: PolyhedralObject{Float64}
+    return T(inner_object, AbstractAlgebra.Floats{Float64}())
+  end
+  try
+    return T(inner_object)
+  catch e
+    error("Unsupported object type $T for loading polymake object")
+  end
 end
-
 
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
