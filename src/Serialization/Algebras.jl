@@ -45,7 +45,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Ve
       load_object(s, Int)
     end
     # guarantees e is a Int[]
-    e = Vector{Int}(e)
+    e = convert(Vector{Int}, e)
     push_term!(elem, loaded_coeff, e)
   end
 
