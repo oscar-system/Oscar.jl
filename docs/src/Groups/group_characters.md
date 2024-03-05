@@ -109,6 +109,7 @@ all_character_table_names
 
 ```@docs
 character_field
+conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
@@ -140,6 +141,25 @@ orders_centralizers
 orders_class_representatives
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
+regular_character(tbl::GAPGroupCharacterTable)
+```
+
+The following properties of a group can be read off from its
+character table.
+Therefore it is supported to call these functions with a character table.
+
+```@docs
+is_abelian(tbl::GAPGroupCharacterTable)
+is_almost_simple(tbl::GAPGroupCharacterTable)
+is_cyclic(tbl::GAPGroupCharacterTable)
+is_elementary_abelian(tbl::GAPGroupCharacterTable)
+is_nilpotent(tbl::GAPGroupCharacterTable)
+is_perfect(tbl::GAPGroupCharacterTable)
+is_quasisimple(tbl::GAPGroupCharacterTable)
+is_simple(tbl::GAPGroupCharacterTable)
+is_solvable(tbl::GAPGroupCharacterTable)
+is_sporadic_simple(tbl::GAPGroupCharacterTable)
+is_supersolvable(tbl::GAPGroupCharacterTable)
 ```
 
 ## Construct group characters from groups
@@ -150,6 +170,7 @@ natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFie
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
+regular_character(G::GAPGroup)
 ```
 
 ## Operations for group characters

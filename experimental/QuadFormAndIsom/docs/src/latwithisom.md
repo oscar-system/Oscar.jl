@@ -15,7 +15,7 @@ ZZLatWithIsom
 ```
 
 It is seen as a quadruple $(Vf, L, f, n)$ where $Vf = (V, f_a)$ consists of
-the ambient rational quadratic space $V$ of $L$ and an isometry $f_a$ of $V$
+the ambient rational quadratic space $V$ of $L$, and an isometry $f_a$ of $V$
 preserving $L$ and inducing $f$ on $L$. The integer $n$ is the order of $f$,
 which is a divisor of the order of the isometry $f_a\in O(V)$.
 
@@ -115,8 +115,7 @@ rescale(::ZZLatWithIsom, ::RationalUnion)
 ## Type for finite order isometries
 
 Given a lattice with isometry $Lf := (L, f)$ where $f$ is of finite order $n$,
-one can compute the *type* of $Lf$, which can be seen as an equivalent of the
-*genus* used to classified single lattices.
+one can compute the *type* of $Lf$.
 
 ```@docs
 type(::ZZLatWithIsom)
@@ -182,6 +181,8 @@ project and it can be indirectly used through the general following method:
 ```@docs
 image_centralizer_in_Oq(::ZZLatWithIsom)
 ```
+
+Note: hermitian Miranda-Morrison is only available for even lattices.
 
 For an implementation of the regular Miranda-Morrison theory, we refer to the
 function `image_in_Oq` which actually computes the image of

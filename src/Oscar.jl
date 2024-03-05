@@ -39,24 +39,17 @@ if Sys.iswindows()
 end
 
 function _print_banner()
-  println(" -----    -----    -----      -      -----   ")
-  println("|     |  |     |  |     |    | |    |     |  ")
-  println("|     |  |        |         |   |   |     |  ")
-  println("|     |   -----   |        |     |  |-----   ")
-  println("|     |        |  |        |-----|  |   |    ")
-  println("|     |  |     |  |     |  |     |  |    |   ")
-  println(" -----    -----    -----   -     -  -     -  ")
-  println()
-  println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
-  print("Version")
-  printstyled(" $VERSION_NUMBER ", color = :green)
-  print("... \n ... which comes with absolutely no warranty whatsoever")
-  println()
-  println("Type: '?Oscar' for more information")
-  println("(c) 2019-2024 by The OSCAR Development Team")
+  if displaysize(stdout)[2] >= 79
+    println(
+      raw"""  ___   ____   ____    _    ____
+             / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+            | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+            | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+             \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+  else
+    println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
+  end
 end
-
-
 
 function __init__()
   if Sys.iswindows()
@@ -83,7 +76,7 @@ function __init__()
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
   GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
   withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
     GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
   end
@@ -101,6 +94,8 @@ function __init__()
      "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
      "fga",      # dealing with free groups
      "forms",    # bilinear/sesquilinear/quadratic forms
+     "packagemanager", # has been loaded already by GAP.jl
+     "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
      "repsn",    # constructing representations of finite groups
      "smallgrp", # small groups library
@@ -108,6 +103,12 @@ function __init__()
      "wedderga", # provides a function to compute Schur indices
      ]
     GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+  end
+  # We want some GAP packages. (It is no error if they cannot be loaded.)
+  for pkg in [
+     "ferret",   # backtrack in permutation groups
+     ]
+    GAP.Packages.load(pkg)
   end
   __init_group_libraries()
 

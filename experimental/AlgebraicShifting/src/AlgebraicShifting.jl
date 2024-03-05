@@ -79,13 +79,19 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     matrix_base = Fx
   else
     matrix_base = base_ring(change_of_basis)
+    if matrix_base isa MPolyRing
+      is_generic = true
+    end
   end
 
   # might not be needed
   cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
-    # look into why there is sort here
+    # is needed here since otherwise the sets are not
+    # in lex order, seubsets is being called from Hecke,
+    # maybe we should look into this and see if polymake's
+    # is preffered?
     nCk = sort(subsets(n, dim_face + 1))
     entry_type = elem_type(matrix_base)
 

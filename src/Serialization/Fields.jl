@@ -53,6 +53,10 @@ function load_object(s:: DeserializerState, ::Type{Field})
 end
 
 ################################################################################
+# floats
+@register_serialization_type AbstractAlgebra.Floats{Float64} "Floats"
+
+################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
 
@@ -399,7 +403,7 @@ end
 
 # elements
 function save_object(s::SerializerState, r::ArbFieldElem)
-  c_str = ccall((:arb_dump_str, Nemo.Arb_jll.libarb), Ptr{UInt8}, (Ref{ArbFieldElem},), r)
+  c_str = ccall((:arb_dump_str, Nemo.libarb), Ptr{UInt8}, (Ref{ArbFieldElem},), r)
   save_object(s, unsafe_string(c_str))
   
   # free memory
@@ -409,7 +413,7 @@ end
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
   r = Nemo.ArbFieldElem()
   load_node(s) do str
-    ccall((:arb_load_str, Nemo.Arb_jll.libarb),
+    ccall((:arb_load_str, Nemo.libarb),
           Int32, (Ref{ArbFieldElem}, Ptr{UInt8}), r, str)
   end
   r.parent = parent

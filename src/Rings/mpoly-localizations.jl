@@ -125,7 +125,7 @@ function Base.show(io::IO, S::MPolyPowersOfElement)
     print(io, ItemQuantity(length(denominators(S)), "element"))
   else
     print(io, "Products of (")
-    join(io, denominators(S), ",")
+    join(io, denominators(S), ", ")
     print(io, ")")
   end
 end

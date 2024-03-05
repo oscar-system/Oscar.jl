@@ -3,7 +3,7 @@
 ########################################################
 
 @doc raw"""
-    algebraic_set(X::Spec; is_reduced=false, check=true) -> AffineAlgebraicSet
+    algebraic_set(X::AffineScheme; is_reduced=false, check=true) -> AffineAlgebraicSet
 
 Convert `X` to an `AffineAlgebraicSet` by considering its reduced structure.
 
@@ -11,7 +11,7 @@ If `is_reduced` is set, assume that `X` is already reduced.
 If `is_reduced` and `check` are set,
 check that `X` is actually geometrically reduced as claimed.
 """
-function algebraic_set(X::Spec; is_reduced::Bool=false, check::Bool=true)
+function algebraic_set(X::AffineScheme; is_reduced::Bool=false, check::Bool=true)
   return AffineAlgebraicSet(X, is_reduced=is_reduced, check=check)
 end
 
@@ -32,7 +32,7 @@ defined by ideal (x^3 + y^2 + y + 1, x)
 ```
 """
 function algebraic_set(I::MPolyIdeal{<:MPolyRingElem}; is_radical::Bool=false, check::Bool=true)
-  X = Spec(base_ring(I), I)
+  X = spec(base_ring(I), I)
   return algebraic_set(X, is_reduced=is_radical, check=check)
 end
 

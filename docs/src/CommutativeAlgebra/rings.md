@@ -228,7 +228,7 @@ we follow the former book.
 
 ### Types
 
-Multivariate rings with gradings are modelled by objects of type
+Multivariate rings with gradings are modeled by objects of type
 `MPolyDecRing{T, S}  :< MPolyRing{T}`, with elements of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.

@@ -500,7 +500,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
     S, _ = graded_polynomial_ring(F, "x" => 0:binomial(n, t)-1)
   end
   
-  X = projective_scheme(S)
+  X = proj(S)
   if t == 1
     ideal_Gr = ideal(S, elem_type(S)[zero(S)])
   else

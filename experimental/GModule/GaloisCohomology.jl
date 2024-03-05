@@ -542,7 +542,7 @@ Follows Debeerst rather closely...
 function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert domain(sigma) == codomain(sigma) == M
   @assert all(x->sigma(sigma(x)) == x, gens(M))
-  @assert is_free(M) && rank(M) == ngens(M)
+  @assert is_free(M) && torsion_free_rank(M) == ngens(M)
 
   K, mK = kernel(id_hom(M)+sigma)
   fl, mX = has_complement(mK)
@@ -557,8 +557,8 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
 
   _K, _mK = snf(K)
   _S, _mS = snf(S)
-  @assert is_trivial(_S) || rank(_S) == ngens(_S) 
-  @assert rank(_K) == ngens(_K) 
+  @assert is_trivial(_S) || torsion_free_rank(_S) == ngens(_S) 
+  @assert torsion_free_rank(_K) == ngens(_K) 
 
   m = matrix(FinGenAbGroupHom(_mS * mSK * inv((_mK))))
   # elt in S * m = elt in K
@@ -1618,7 +1618,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
       push!(lb, RelativeBrauerGroupElem(B, d))
     end
   
-    fl, x = cansolve(lb, b)
+    fl, x = can_solve_with_solution(lb, b)
     @assert fl
  
     return map_entries(mS*mMC, z[2](image(mq, q(x.coeff))), parent = mu)
@@ -1653,7 +1653,7 @@ function (a::RelativeBrauerGroupElem)(p::Union{NumFieldOrderIdeal, Hecke.NumFiel
 end
 
 #write (or try to write) `b` as a ZZ-linear combination of the elements in `A`
-function cansolve(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
+function Oscar.can_solve_with_solution(A::Vector{RelativeBrauerGroupElem}, b::RelativeBrauerGroupElem)
   @assert all(x->parent(x) == parent(b), A)
   lp = Set(collect(keys(b.data)))
   for a = A
@@ -1912,7 +1912,7 @@ function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
       o = Oscar.orbit(q, rand(gens(q.M)))
       if length(o) == order(group(q))
         s, ms = sub(q.M, collect(o), false)
-        if rank(s) == length(o)
+        if torsion_free_rank(s) == length(o)
           q, _mq = quo(q, ms, false)
           if first
             mq = _mq

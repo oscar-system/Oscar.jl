@@ -9,11 +9,11 @@ end
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
 
-Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates 
+Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates
 the numerical type of the edge lengths.
 
 # Examples
-Make a phylogenetic tree with 4 leaves from its Newick representation and print 
+Make a phylogenetic tree with 4 leaves from its Newick representation and print
 its taxa and cophenetic matrix.
 ```jldoctest
 julia> phylo_t = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
@@ -38,7 +38,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
 
   # load graph properties
   pm_ptree.ADJACENCY
-  
+
   return PhylogeneticTree{T}(pm_ptree)
 end
 
@@ -92,7 +92,6 @@ end
     adjacency_tree(ptree::PhylogeneticTree)
 
 Returns the underlying graph of the phylogenetic tree `ptree`.
-
 # Examples
 Make a phylogenetic tree with given Newick format and print its underlying graph.
 
@@ -100,12 +99,31 @@ Make a phylogenetic tree with given Newick format and print its underlying graph
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
 julia> adjacency_tree(ptree)
-Undirected graph with 7 nodes and the following edges:
-(2, 1)(3, 2)(4, 2)(5, 4)(6, 4)(7, 1)
+Directed graph with 7 nodes and the following edges:
+(1, 2)(1, 7)(2, 3)(2, 4)(4, 5)(4, 6)
 ```
 """
 function adjacency_tree(ptree::PhylogeneticTree)
-  return Graph{Undirected}(pm_object(ptree).ADJACENCY)
+  udir_tree = Graph{Undirected}(ptree.pm_ptree.ADJACENCY)
+  n = nv(udir_tree)
+
+  dir_tree = Graph{Directed}(n)
+
+  queue = [1]
+  visited = fill(false, n)
+  visited[1] = true
+  while length(queue) > 0
+    x = popfirst!(queue)
+    for y in neighbors(udir_tree, x)
+      if visited[y] == false
+        add_edge!(dir_tree, x, y)
+        push!(queue, y)
+        visited[y] = true
+      end
+    end
+  end
+
+  return dir_tree
 end
 
 function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
@@ -248,9 +266,9 @@ function tropical_median_consensus(arr::Vector{PhylogeneticTree{T}}) where {T <:
 
   phylo_type = Polymake.bigobject_type(pm_object(first(arr)))
   pm_arr = Polymake.Array{Polymake.BigObject}(phylo_type, n)
-  
+
   pm_arr .= pm_object.(arr)
-    
+
   pm_cons_tree = Polymake.tropical.tropical_median_consensus(pm_arr)
   return PhylogeneticTree{T}(pm_cons_tree)
 end

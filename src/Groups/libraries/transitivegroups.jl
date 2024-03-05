@@ -159,6 +159,10 @@ may be of one of the following forms:
 - `func` selects groups for which the function `func` returns `true`
 - `!func` selects groups for which the function `func` returns `false`
 
+As a special case, the first argument may also be one of the following:
+- `intval` selects groups whose degree equals `intval`; this is equivalent to `degree => intval`
+- `intlist` selects groups whose degree is in `intlist`; this is equivalent to `degree => intlist`
+
 The following functions are currently supported as values for `func`:
 - `degree`
 - `is_abelian`
@@ -182,6 +186,14 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
+julia> all_transitive_groups(4)
+5-element Vector{PermGroup}:
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Alt(4)
+ Sym(4)
+
 julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
  Alt(3)
@@ -189,9 +201,12 @@ julia> all_transitive_groups(degree => 3:5, is_abelian)
  Permutation group of degree 4
  Permutation group of degree 5
 ```
-returns the list of all abelian transitive groups acting on 3, 4 or 5 points.
 """
 function all_transitive_groups(L...)
+   @req !isempty(L) "must specify at least one filter"
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (degree => L[1], L[2:end]...)
+   end
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]

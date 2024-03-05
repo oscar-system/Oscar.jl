@@ -505,7 +505,15 @@ function gens(G::MatrixGroup)
    return G.gens
 end
 
-gen(G::MatrixGroup, i::Int) = gens(G)[i]
+# Note that the `gen(G::GAPGroup, i::Int)` method cannot be used
+# for `MatrixGroup` because of the `:gens` attribute.
+function gen(G::MatrixGroup, i::Int)
+  i == 0 && return one(G)
+  L = gens(G)
+  0 < i && i <= length(L) && return L[i]
+  i < 0 && -i <= length(L) && return inv(L[-i])
+  @req false "i must be in the range -$(length(L)):$(length(L))"
+end
 
 number_of_generators(G::MatrixGroup) = length(gens(G))
 

@@ -1,4 +1,4 @@
-function (X::AbsSpec{BRT})(p::AbsProjectiveRationalPoint) where BRT
+function (X::AbsAffineScheme{BRT})(p::AbsProjectiveRationalPoint) where BRT
   # certainly not the fastest for the standard affine covering
   # ... but it will work in general.
   P = codomain(p)
@@ -27,13 +27,13 @@ The coordinates are with respect to the ambient space of its ambient scheme.
 """
 coordinates(p::AffineRationalPoint) = p.coordinates
 
-function (X::AbsSpec)(coordinates::Vector; check::Bool=true)
+function (X::AbsAffineScheme)(coordinates::Vector; check::Bool=true)
   k = base_ring(X)
   coordinates = k.(coordinates)
   return AffineRationalPoint(rational_point_set(X), coordinates, check=check)
 end
 
-function (X::AbsSpec)(p::AffineRationalPoint; check::Bool=true)
+function (X::AbsAffineScheme)(p::AffineRationalPoint; check::Bool=true)
   if codomain(p) === X
     return X
   end
@@ -83,7 +83,7 @@ function ideal(P::AbsAffineRationalPoint)
   return I
 end
 
-function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyRing})
+function _in(P::AbsAffineRationalPoint, X::AbsAffineScheme{<:Any,<:MPolyRing})
   # X is affine space
   return ambient_space(P) == X
 end
@@ -92,7 +92,7 @@ function evaluate(f::MPolyRingElem, P::AbsAffineRationalPoint)
   return evaluate(f, coordinates(P))
 end
 
-function _in(P::AbsAffineRationalPoint, X::AbsSpec{<:Any,<:MPolyQuoRing})
+function _in(P::AbsAffineRationalPoint, X::AbsAffineScheme{<:Any,<:MPolyQuoRing})
   ambient_space(P) == ambient_space(X) || return false
   c = coordinates(P)
   for f in gens(saturated_ideal(defining_ideal(X)))
@@ -111,13 +111,13 @@ function _in(P::AbsAffineRationalPoint, X::AbsAffineAlgebraicSet{<:Any,<:MPolyQu
   return true
 end
 
-function _in(P::AbsAffineRationalPoint, X::AbsSpec)
+function _in(P::AbsAffineRationalPoint, X::AbsAffineScheme)
   # slow fallback for affine opens
   # this should be improved
   return is_subscheme(scheme(P), X)
 end
 
-function Base.in(P::AbsAffineRationalPoint, X::AbsSpec)
+function Base.in(P::AbsAffineRationalPoint, X::AbsAffineScheme)
   codomain(P) === X && return true
   return _in(P, X)
 end
@@ -127,7 +127,7 @@ function Base.in(P::AbsAffineRationalPoint, X::AbsCoveredScheme)
 end
 
 @doc raw"""
-    scheme(P::AbsAffineRationalPoint) -> AbsSpec
+    scheme(P::AbsAffineRationalPoint) -> AbsAffineScheme
 
 Return the rational point ``P`` viewed as a reduced, affine subscheme
 of its ambient affine space.
@@ -135,7 +135,7 @@ of its ambient affine space.
 function scheme(P::AbsAffineRationalPoint)
   I = ideal(P)
   R = OO(ambient_space(P))
-  return Spec(R, I)
+  return spec(R, I)
 end
 
 @doc raw"""
@@ -150,7 +150,7 @@ function closed_embedding(P::AbsAffineRationalPoint)
 end
 
 
-function (f::AbsSpecMor{<:AbsSpec{S},<:AbsSpec{S},<:Any,<:Any,Nothing})(P::AbsAffineRationalPoint) where {S}
+function (f::AbsAffineSchemeMor{<:AbsAffineScheme{S},<:AbsAffineScheme{S},<:Any,<:Any,Nothing})(P::AbsAffineRationalPoint) where {S}
   # The Nothing type parameter assures that the base morphism is trivial.
   @req domain(f) == codomain(P) "$(P) not in domain"
   @req base_ring(domain(f)) == base_ring(codomain(f)) "schemes must be defined over the same base ring. Try to map the point as an ideal instead"
@@ -166,11 +166,11 @@ function MPolyComplementOfKPointIdeal(P::AbsAffineRationalPoint)
   return MPolyComplementOfKPointIdeal(R, coordinates(P))
 end
 
-function is_smooth(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+function is_smooth(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "not a point on X"
   U = MPolyComplementOfKPointIdeal(P)
   R = OO(codomain(P))
-  XU = Spec(localization(R, U)[1])
+  XU = spec(localization(R, U)[1])
   return is_smooth(XU)
 end
 
@@ -183,13 +183,13 @@ is_smooth(P::AbsAffineRationalPoint) = is_smooth(codomain(P),P)
 
 
 @doc raw"""
-    tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint) -> AlgebraicSet
+    tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint) -> AlgebraicSet
 
 Return the Zariski tangent space of `X` at its rational point `P`.
 
 See also [`tangent_space(P::AbsAffineRationalPoint{<:Field})`](@ref)
 """
-function tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)
+function tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
   @req P in X "the point needs to lie on the algebraic set"
   J = jacobian_matrix(gens(saturated_ideal(defining_ideal(X))))
   v = coordinates(P)
@@ -205,7 +205,7 @@ end
 
 Return the Zariski tangent space of the ambient scheme of `P` at its point `P`.
 
-See also [`tangent_space(X::AbsSpec{<:Field}, P::AbsAffineRationalPoint)`](@ref)
+See also [`tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)`](@ref)
 """
 tangent_space(P::AbsAffineRationalPoint{<:FieldElem}) = tangent_space(codomain(P), P)
 
@@ -241,7 +241,7 @@ function decide_du_val_singularity(P::AbsAffineRationalPoint{<:FieldElem,<:Any})
   return d[1][1],d[1][3]
 end
 
-function stalk(X::AbsSpec, P::AbsAffineRationalPoint)
+function stalk(X::AbsAffineScheme, P::AbsAffineRationalPoint)
   P in X || error("not a point of X")
   S = MPolyComplementOfKPointIdeal(P)
   return localization(OO(X),S)

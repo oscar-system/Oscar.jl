@@ -60,7 +60,7 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false,
     elseif algorithm == :via_oscar
       for tau in ray_list
         tau_dual = polarize(cone(tau))
-        ideal_dict = IdDict{AbsSpec, Ideal}()
+        ideal_dict = IdDict{AbsAffineScheme, Ideal}()
         for U in affine_charts(X)
           if !(tau in cone(U))
             ideal_dict[U] = ideal(OO(U), one(OO(U)))
@@ -100,7 +100,7 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
   # sheaves for these, we can hence do so for every divisor.
   @assert all(x->x>=0, c) "divisor must be effective"
   ray_list = rays(polyhedral_fan(X)) # All rays of the polyhedral fan of X
-  ideal_dict = IdDict{AbsSpec, Ideal}() # The final output: A list of ideals, one for each 
+  ideal_dict = IdDict{AbsAffineScheme, Ideal}() # The final output: A list of ideals, one for each 
                                         # affine_chart of X
 
   for U in affine_charts(X) # Iterate through the charts
