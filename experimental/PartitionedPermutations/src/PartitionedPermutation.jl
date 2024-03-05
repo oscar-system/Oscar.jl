@@ -42,7 +42,7 @@ julia> partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])
 PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 ```
 """
-function partitioned_permutation(p::Perm{Int}, V::Vector{Int}, check::Bool=true)
+function partitioned_permutation(p::Perm{Int}, V::Vector{Int}; check::Bool=true)
     return PartitionedPermutation(p, V; check)
 end
 
