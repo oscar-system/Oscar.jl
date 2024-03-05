@@ -4,6 +4,59 @@ CurrentModule = Oscar
 
 # Complex reflection groups
 
+We begin with a short theoretical review of complex reflection groups to be precise about definitions before we discuss the implemented functions. The standard reference is [LT09](@cite).
+
+## Theoretical review
+
+Throughout, let $V$ be a finite-dimensional vector space over $\mathbb{C}$. The **fix space** of an element $g \in \mathrm{GL}(V)$ is 
+
+$$\mathrm{Fix}(g) = \{ v \in V \mid gv = v \} = \mathrm{Ker}(1-g) \;.$$
+
+We call $g$ a (complex) **reflection** if $g$ is of *finite order* and its fix space is a *hyperplane*. 
+
+Let $(\cdot, \cdot)$ be an inner product on $V$. We always assume that $(\cdot, \cdot)$ is linear in the first component and conjugate-linear in the second component. We say that $g$ leaves $(\cdot,\cdot)$ **invariant**, or that $g$ is a **unitrary** transformation with respect to $(\cdot,\cdot)$, if $(gv,gw) = (v,w)$ for all $v,w \in V$. It is a standard fact that if $G \subset \mathrm{GL}(V)$ is a *finite* subgroup, then there exists a inner product on $V$ which is $G$-invariant, i.e. $g$-invariant for all $g \in G$.
+
+Now, let $g \in \mathrm{GL}(V)$ be a reflection. Since $g$ is a assumed to be of finite order, the group $\langle g \rangle \subset \mathrm{GL}(V)$ is of finite order and so there exists a $g$-invariant inner product on $V$. We then say that $g$ is a **unitary reflection** with respect to such an inner product. The orthogonal decomposition
+
+$$V = \mathrm{Ker}(1-g) \oplus \mathrm{Ker}(1-g)^\perp$$
+
+is $g$-stable and
+
+$$\mathrm{Ker}(1-g)^\perp = \mathrm{Im}(1-g)$$
+
+so that we have a $g$-stable orthogonal decomposition
+
+$$V = \mathrm{Ker}(1-g) \oplus \mathrm{Im}(1-g)^\perp \;.$$
+
+Since $\mathrm{Ker}(1-g)$ is a hyperplane, the complement $\mathrm{Im}(1-g)$ is a line. A non-zero element $\alpha$ on this line is called a **root** of $g$. A root is unique up to multiplication with a non-zero scalar. We then have $g \alpha = \zeta \alpha$ for some primitive $m$-throot of unity $\zeta$, where $m$ is the order of $g$.
+
+Let $V^*$ be the dual space of $V$ and let $\langle \cdot, \cdot \rangle \colon V^* \times V$ be the canonical pairing $\langle \varphi,v \rangle = \varphi(v)$. Since this pairing is perfect, the "orthogonal" complement of the hyperplane $H = \mathrm{Ker}(1-g)$ with respect to this pairing is 1-dimensional. This means that a linear form $L_H \in V^*$ with $\mathrm{Ker}(L_H) = H$ is unique up to multiplication with a non-zero scalar. Note that $\alpha \notin H$, so $L_H(\alpha) \neq 0$, and from the decomposition $V = H \oplus \langle \alpha \rangle$ we see that we can write $g$ as
+
+$$gv = v - (1-\zeta)\frac{L_H(v)}{L_H(\alpha)} \alpha \;.$$
+
+Set
+
+$$\alpha^\vee = (1-\zeta)\frac{L_H(\cdot)}{L_H(\alpha)} \in V^*$$
+
+so that
+
+$$gv = v - \alpha^\vee(v) \alpha \;.$$
+
+Note that $\alpha^\vee$ is the unique linear form on $V$ with $\mathrm{Ker}(\alpha^\vee) = H$ and
+
+$$\alpha^\vee(\alpha) = 1-\zeta \;.$$
+
+We call $\alpha^\vee$ the **coroot** of $g$ with respect to $\alpha$. If $g$ is unitary with respect to an inner product $(\cdot, \cdot)$, we can take $L_H = (\cdot,\alpha)$ so that 
+
+$$\alpha^\vee = (1-\zeta) \frac{(\cdot,\alpha)}{(\alpha,\alpha)} \;.$$
+
+
+
+!!! warning
+    In OSCAR—like in most computer algebra systems—matrices $A$ act from the *right* on vectors $x$ and consequently the kernel of $A$ consists of the vectors $x$ with $xA = 0$. The same applies to the image and any other construction involving the action. In the written literature, however, matrices usually acts from the *left*. Hence, to transfer results between the computer and the literature, one usually needs to *transpose* the matrices.
+
+ 
+
 ## Showcase
 As a demonstration, we create the exceptional complex reflection group $G_{4}$ in the
 notation of Shepard & Todd [ST54](@cite). We choose as *model*—meaning a concrete matrix

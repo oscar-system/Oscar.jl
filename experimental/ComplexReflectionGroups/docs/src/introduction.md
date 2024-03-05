@@ -10,12 +10,12 @@ This project implements complex reflection groups [LT09](@cite).
 
 The list of features at the moment is:
 
-* Explicit matrix groups models of complex reflection groups, especially various models for
+* Explicit matrix group models of complex reflection groups, especially various models for
   the exceptional groups: the unitary models from Lehrer & Taylor [LT09](@cite), the
   invariant models from Marin & Michel [MM10](@cite) as implemented in CHEVIE
   [Mic15](@cite), the integral models as implemented by Taylor in Magma [BCP97](@cite).
 
-* A structure for the *type* of a complex reflection group, i.e., its
+* A structure for the type of a complex reflection group, i.e., its
   $\mathrm{GL}_n(\mathbb{C})$-conjugacy class as labeled by Shephard & Todd [ST54](@cite).
   This allows to implement functions and data for complex reflection groups that do not
   depend on an explicit representative like the order of the group, the number of
@@ -25,6 +25,25 @@ The list of features at the moment is:
 * A structure that encapsulates data of a complex reflection and functions determining such
   data for a reflection given by a matrix: root, coroot, hyperplane, non-trivial eigenvalue,
   order, whether it is unitary.
+
+
+## Showcase
+
+```@juliarepl
+julia> W = complex_reflection_group_type([33, (8,4,6)])
+Complex reflection group type G33 x G(8,4,6)
+
+julia> order(W)
+2446118092800
+
+julia> num_reflections(W)
+171
+
+julia> complex_reflection_group(W)
+Direct product of
+ Matrix group of degree 5 over cyclotomic field of order 3
+ Matrix group of degree 6 over cyclotomic field of order 8
+```
 
 ## Future plans
 
