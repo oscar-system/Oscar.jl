@@ -393,7 +393,7 @@ end
 function save_object(s::SerializerState, obj::SMat)
   save_data_array(s) do
     for r in obj
-      save_object(s, collect(zip(r.pos,r.values)))
+      save_object(s, collect(r))
     end
   end
 end
