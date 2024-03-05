@@ -435,9 +435,45 @@ function find_refinement_with_local_system_of_params_rec(
 end
 
 ##################################################################################################
+#  locus of order at least b and of maximal order
+##################################################################################################
+
+function _delta_ideal_for_order(inc::CoveredClosedEmbedding)
+
+  W = codomain(inc)
+  I = image_ideal(inc)
+
+  Delta_dict = IdDict{AbsAffineScheme,Ideal}()
+
+  for U in affine_charts(W)
+    XU, inc_U = sub(U,I(U))
+    Cov,Chart_dict = Oscar.find_refinement_with_local_system_of_params(U)
+    Delta_dict[U] = (Oscar._delta_ideal_for_order(Oscar.CoveredClosedEmbedding(inc_U), Cov, Chart_dict))(U)
+  end
+
+  return IdealSheaf(W,Delta_dict;check=false)
+end
+
+function _delta_list(inc::CoveredClosedEmbedding)
+
+  W = codomain(inc)
+  I = image_ideal(inc)
+  Delta_list = typeof(I)[]
+  while !is_one(I)
+    push!(Delta_list, I)
+    inc = Oscar.CoveredClosedEmbedding(scheme(I),I)
+    I = Oscar._delta_ideal_for_order(inc)
+  end
+
+  return Delta_list
+end
+
+
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
-       ambient_param_data::IdDict{<:AbsAffineScheme, Tuple{Vector{Int64},Vector{Int64},<:QQMPolyRingElem}}; check::Bool=true)
+       ambient_param_data::IdDict{<:AbsAffineScheme,
+                                  Tuple{Vector{Int64},Vector{Int64},<:QQMPolyRingElem}};
+       check::Bool=true)
 
   W = codomain(inc)                                
   @check is_smooth(W) "codomain of embedding needs to be smooth"
@@ -475,7 +511,7 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
     Delta_dict[U] = ideal(OO(U),vec(collect(result_mat)))
   end
 
-  return IdealSheaf(W,Delta_dict)
+  return small_generating_set(IdealSheaf(W,Delta_dict))
 end
  
 ########################################################################
