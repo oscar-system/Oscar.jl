@@ -1,5 +1,6 @@
 ## Warnung: show auf desingMor geht noch nicht!!!
 export _desing_curve
+export  find_refinement_with_local_system_of_params
 
 #####################################################################################################
 # Desingularization morphism: birational map between covered schemes with smooth domain
@@ -436,18 +437,24 @@ end
 ##################################################################################################
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
-       ambient_param_data::IdDict{<:AbsAffineScheme, Tuple{Vector{Int},Vector{Int},<:RingElem}}; check::Bool=true)
+       ambient_param_data::IdDict{<:AbsAffineScheme, Tuple{Vector{Int64},Vector{Int64},<:QQMPolyRingElem}}; check::Bool=true)
 
   W = codomain(inc)                                
   @check is_smooth(W) "codomain of embedding needs to be smooth"
-  @check is_equidimensional(W) "codomain of embedding needs to be equidimensional"
-  @check is_refinement(Cov, default_covering(W)) "given covering needs to be covering of ambient scheme"   
-  I_X = small_generating_set(image_ideal(inc))              # ideal sheaf describing X on W
+#  @check is_equidimensional(W) "codomain of embedding needs to be equidimensional"
+@show typeof(image_ideal(inc))
+  I_X = small_generating_set(image_ideal(inc))         # ideal sheaf describing X on W
+@show I_X
+for V in affine_charts(W)
+@show I_X(V)
+end
 
-  Delta_dict = IdDict{AbsAffineScheme,Ideal}
+  Delta_dict = IdDict{AbsAffineScheme,Ideal}()
+@show Cov
   for U in Cov
-
-    I = I_X[U]
+@show U
+    I = I_X(U)
+@show I
     if is_one(I)
       Delta_dict[U] = I
       continue
@@ -458,7 +465,8 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
     JM = jacobian_matrix(mod_gens)
     if amb_col < length(mod_gens)
       JM = [JM[i,j] for i in 1:nrows(JM) for j in amb_col]
-    submat_for_minor = [[i, j] for i in amb_row for j in amb_col)]
+    end
+    submat_for_minor = [[i, j] for i in amb_row for j in amb_col]
     Ainv, h2 = pseudo_inv(submat_for_minor)
     h == h2 || error("inconsistent input data")
     JM = JM * Ainv
