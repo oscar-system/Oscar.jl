@@ -682,7 +682,7 @@ struct CoveredProjectiveGluingData
   P::AbsProjectiveScheme
   Q::AbsProjectiveScheme
   G::AbsGluing
-  I::IdealSheaf
+  I::AbsIdealSheaf
 end
 
 function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
@@ -757,12 +757,12 @@ function blow_up(
 end
 
 @doc raw"""
-    blow_up(I::IdealSheaf)
+    blow_up(I::AbsIdealSheaf)
 
 Return the blow-up morphism of blowing up of the underlying scheme of ``I``  at ``I``.
 """
 function blow_up(
-    I::IdealSheaf;
+    I::AbsIdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
     var_name::VarName=:s,
