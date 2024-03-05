@@ -438,6 +438,14 @@ end
 #  locus of order at least b and of maximal order
 ##################################################################################################
 
+function max_order_locus(I::IdealSheaf)
+  return _delta_list(I)[end]
+end
+
+function locus_of_order_geq_b(I::IdealSheaf, b::Int)
+  return _delta_list(I,b)[end]
+end
+
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding)
 
   W = codomain(inc)
@@ -455,20 +463,24 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding)
 end
 
 function _delta_list(inc::CoveredClosedEmbedding)
-
-  W = codomain(inc)
   I = image_ideal(inc)
+  return _delta_list(I)
+end
+
+function _delta_list(I::IdealSheaf, b::Int=0)
+  W = scheme(I)
+  is_smooth(W) || error("ambient scheme needs to be smooth")
   Delta_list = typeof(I)[]
-  while !is_one(I)
+  j = 0
+  while (( !is_one(I) && b == 0 ) || ( j < b ))
     push!(Delta_list, I)
     inc = Oscar.CoveredClosedEmbedding(scheme(I),I)
     I = Oscar._delta_ideal_for_order(inc)
+    j = j + 1
   end
 
   return Delta_list
 end
-
-
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
        ambient_param_data::IdDict{<:AbsAffineScheme,
