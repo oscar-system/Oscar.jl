@@ -577,10 +577,10 @@ end
 @doc raw"""
     connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
 
-Compute the connected sum of two complexes. Parameters f1 and f2 specify which facet
+Compute the connected sum of two abstract simplicial complexes. Parameters `f1` and `f2` specify which facet
  of the first and second complex correspondingly are glued together. Default is the
 0-th facet of both. The vertices in the selected facets are identified with each
-other according to their order in the facet (that is, in icreasing index order).
+other according to their order in the facet (that is, in increasing index order).
 
 # Examples
 ```jldoctest
@@ -603,7 +603,7 @@ end
 @doc raw"""
     deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
 
-Remove the given face and all the faces containing it. 
+Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
