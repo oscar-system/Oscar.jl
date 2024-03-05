@@ -139,6 +139,8 @@ function __init__()
   add_verbosity_scope(:hilbert)
   add_assertion_scope(:hilbert)
 
+  add_verbosity_scope(:BasisLieHighestWeight)
+
   add_verbosity_scope(:FTheoryModelPrinter)
 
   add_verbosity_scope(:LinearQuotients)
