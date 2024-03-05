@@ -88,18 +88,18 @@ function length(pp::PartitionedPermutation)
 end
 
 """
-    length2(pp::PartitionedPermutation)
+    adjusted_length(pp::PartitionedPermutation)
 
 Return the adjusted length of a partitioned permutation as described in [CMSS07](@cite) as `|(V, pi)|`
 for a partition `V` and a permutation `pi`.
 
 # Examples
 ```jldoctest
-julia> length2(partitioned_permutation(Perm([2, 1]), [1, 1]))
+julia> adjusted_length(partitioned_permutation(Perm([2, 1]), [1, 1]))
 1
 ```
 """
-function length2(pp::PartitionedPermutation)
+function adjusted_length(pp::PartitionedPermutation)
     p = get_permutation(pp)
     V = get_partition(pp)
     return parent(p).n - (2*number_of_blocks(V) - length(cycles(p)))

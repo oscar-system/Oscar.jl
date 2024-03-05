@@ -32,7 +32,7 @@ export is_dominated_by
 export cycle_partition
 export join
 export length
-export length2
+export adjusted_length
 export _enumerate_all_partitions
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
@@ -54,7 +54,7 @@ export is_dominated_by
 export cycle_partition
 export join
 export length
-export length2
+export adjusted_length
 export _enumerate_all_partitions
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
