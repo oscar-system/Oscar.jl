@@ -586,7 +586,7 @@ other according to their order in the facet (that is, in icreasing index order).
 ```jldoctest
 julia> K = torus();
 
-julia> surface_genus_2 = connected(K, K)
+julia> surface_genus_2 = connected_sum(K, K)
 Abstract simplicial complex of dimension 2 on 4 vertices
 
 julia> homology(surface_genus_2, 1)
