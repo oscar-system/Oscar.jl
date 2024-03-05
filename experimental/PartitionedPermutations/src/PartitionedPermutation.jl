@@ -84,7 +84,8 @@ julia> length(partitioned_permutation(Perm([2, 1]), [1, 1]))
 ```
 """
 function length(pp::PartitionedPermutation)
-    return parent(get_permutation(pp)).n
+    V = get_partition(pp)
+    return length(upper_points(V)) + length(lower_points(V))
 end
 
 """
