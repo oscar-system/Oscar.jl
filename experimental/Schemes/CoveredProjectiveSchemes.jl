@@ -477,6 +477,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
   p = covered_projection_to_base(Bl_W)
   p_cov = covering_morphism(p)
   for i in 1:ngens(I)
+    @assert !iszero(gen(I, i))
     U = affine_charts(Y)[i]
     p_res = p_cov[U]
     W === codomain(p_res) || error("codomain not correct")

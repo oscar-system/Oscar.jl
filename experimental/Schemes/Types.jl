@@ -596,7 +596,7 @@ end
         iso = _flatten_open_subscheme(U, U2)
         iso_inv = inverse(iso)
         pb_P = pullback(iso_inv)(P)
-        return ideal(OO(U2), gens(saturated_ideal(pb_P)))
+        return ideal(OO(U2), [g for g in OO(U2).(gens(saturated_ideal(pb_P))) if !iszero(g)])
       end
 
       if has_ancestor(x->(x===V), U2)
