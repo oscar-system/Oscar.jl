@@ -353,7 +353,7 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   minor_dict = IdDict{AbsAffineScheme, Tuple{Vector{Int}, Vector{Int}, elem_type(R)}}()
   for (i, j) in non_zero_indices
     h_ij = M_ext[i, j]
-    U_ij = hypersurface_complement(W, h_ij)
+    U_ij = PrincipalOpenSubset(W, OO(W)(h_ij))
     I = ordered_multi_index(i, codim, n)
     J = ordered_multi_index(j, codim, r)
     push!(ref_patches, U_ij)
@@ -375,7 +375,7 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
 
   for (i, j) in non_zero_indices
     h_ij = M[i, j]
-    U_ij = hypersurface_complement(W, h_ij)
+    U_ij = PrincipalOpenSubset(W, h_ij)
   end
   =#
 end
@@ -413,7 +413,7 @@ function find_refinement_with_local_system_of_params_rec(
   for k in non_zero_entries
     i, j = all_entries_ind[k]
     h_ij = trans_mat[i, j]
-    U_ij = hypersurface_complement(W, h_ij)
+    U_ij = PrincipalOpenSubset(W, OO(W)(h_ij))
     res_mat = change_base_ring(OO(U_ij), trans_mat) # TODO: Avoid checks here
     new_row_ind = vcat(row_ind, [i])
     new_col_ind = vcat(col_ind, [j])
@@ -463,19 +463,27 @@ end
     amb_row,amb_col,h = ambient_param_data[U]
     mod_gens = lifted_numerator.(gens(modulus(OO(U))))
     JM = jacobian_matrix(mod_gens)
-    if amb_col < length(mod_gens)
-      JM = [JM[i,j] for i in 1:nrows(JM) for j in amb_col]
+    if length(amb_col) < length(mod_gens)
+      JM = JM[:, amb_col]
     end
-    submat_for_minor = [[i, j] for i in amb_row for j in amb_col]
+    #submat_for_minor = [JM[i, j] for i in amb_row for j in amb_col]
+    submat_for_minor = JM[amb_row, amb_col]
     Ainv, h2 = pseudo_inv(submat_for_minor)
     h == h2 || error("inconsistent input data")
     JM = JM * Ainv
     I_gens = lifted_numerator.(gens(I))
     JI = jacobian_matrix(I_gens)
-    result_mat = [JI[i,j]*h for i in 1:nrows(JI) for j in 1:ncols(JI)]
-    for i in [1::nrows(result_mat)]
-      for j in [1::ncols(result_mat)]
-        result_mat[i,j] = result_mat[i,j]-JI[i,j]*JM[i,i]
+    result_mat = h*JI
+    @show typeof(result_mat)
+    Base.show(stdout, "text/plain", result_mat)
+    println()
+    Base.show(stdout, "text/plain", JI)
+    println()
+    Base.show(stdout, "text/plain", JM)
+    println()
+    for i in 1:nrows(result_mat)
+      for j in 1:ncols(result_mat)
+        result_mat[i,j] = result_mat[i,j]-JI[i,j]*JM[i,1]
 @show result_mat
       end
     end
