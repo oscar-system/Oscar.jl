@@ -1802,6 +1802,8 @@ function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:
         set_attribute!(matgrp, :complex_reflection_group_type, G)
         set_attribute!(matgrp, :complex_reflection_group_model, modellist)
         set_attribute!(matgrp, :is_irreducible, false)
+
+        return matgrp
     end
 
 end
