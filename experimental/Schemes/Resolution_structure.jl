@@ -442,19 +442,11 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
   W = codomain(inc)                                
   @check is_smooth(W) "codomain of embedding needs to be smooth"
 #  @check is_equidimensional(W) "codomain of embedding needs to be equidimensional"
-@show typeof(image_ideal(inc))
   I_X = small_generating_set(image_ideal(inc))         # ideal sheaf describing X on W
-@show I_X
-for V in affine_charts(W)
-@show I_X(V)
-end
 
   Delta_dict = IdDict{AbsAffineScheme,Ideal}()
-@show Cov
   for U in Cov
-@show U
     I = I_X(U)
-@show I
     if is_one(I)
       Delta_dict[U] = I
       continue
@@ -464,33 +456,26 @@ end
     mod_gens = lifted_numerator.(gens(modulus(OO(U))))
     JM = jacobian_matrix(mod_gens)
     if length(amb_col) < length(mod_gens)
-      JM = JM[:, amb_col]
+      JM_essential = JM[:, amb_col]
+    else
+      JM_essential = JM
     end
-    #submat_for_minor = [JM[i, j] for i in amb_row for j in amb_col]
     submat_for_minor = JM[amb_row, amb_col]
     Ainv, h2 = pseudo_inv(submat_for_minor)
     h == h2 || error("inconsistent input data")
-    JM = JM * Ainv
+    JM_essential = JM_essential * Ainv
     I_gens = lifted_numerator.(gens(I))
     JI = jacobian_matrix(I_gens)
     result_mat = h*JI
-    @show typeof(result_mat)
-    Base.show(stdout, "text/plain", result_mat)
-    println()
-    Base.show(stdout, "text/plain", JI)
-    println()
-    Base.show(stdout, "text/plain", JM)
-    println()
-    for i in 1:nrows(result_mat)
+    for i in 1:length(amb_col)
       for j in 1:ncols(result_mat)
-        result_mat[i,j] = result_mat[i,j]-JI[i,j]*JM[i,1]
-@show result_mat
+        result_mat[:,j] = result_mat[:,j] - [JM_essential[k,i] * JI[amb_row[i],j] for k in 1:nrows(JM_essential)]
       end
     end
     Delta_dict[U] = ideal(OO(U),vec(collect(result_mat)))
   end
 
-  return IdealSheaf(Delta_dict)
+  return IdealSheaf(W,Delta_dict)
 end
  
 ########################################################################
