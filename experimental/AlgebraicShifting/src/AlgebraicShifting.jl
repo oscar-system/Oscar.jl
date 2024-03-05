@@ -138,7 +138,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
   o = monomial_ordering(mb_ring, :lex)
 
   # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
-  R_K, _ = stanley_reisner_ring(Fyx, K)
+  I_K = stanley_reisner_ideal(Fyx, K)
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
     r = dim_face + 1
@@ -149,22 +149,12 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
 
     for b in mb
       # need to compare with some alternatives
-      transformed_monomial = evaluate(b, Y * gens(R_K))
+      transformed_monomial = evaluate(b, Y * gens(Fyx))
+      generic_col = collect(coefficients.(normal_form(transformed_monomial, I_K)))
 
-      # double check this line
-      # is stanley reisner ring over Z needed to then reduce later
-      # stanley reisner over F is cheaper
-      # this part will need to be adjusted for finite fields
-      # there should be no lifting
-      non_zero_terms = filter(x -> !is_zero(R_K(x)), collect(terms(lift(transformed_monomial))))
-
-      
-      # coefficients is a function for polynomials but since we are looking at the terms
-      # i.e. we are seperating by monomials already, we know the first coefficient is just
-      # the coefficient of the monomial
-      generic_col = first.(coefficients.(non_zero_terms))
       push!(A, generic_col)
     end
+    
     C = matrix(Fy, reduce(hcat, A))
     Oscar.ModStdQt.ref_ff_rc!(C)
     
