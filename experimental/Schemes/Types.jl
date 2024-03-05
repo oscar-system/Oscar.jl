@@ -402,22 +402,32 @@ end
 ########################################################################
 # Ideal sheaves on covered schemes                                     #
 ########################################################################
+
+@doc raw"""
+    AbsIdealSheaf <: AbsPreSheaf
+
+A sheaf of ideals ``I`` on an `AbsCoveredScheme` ``X``.
+
+For an affine open subset ``U ⊂ X`` call ``I(U)`` to obtain an ideal 
+in `OO(U)` representing `I`.
+"""
+abstract type AbsIdealSheaf{SpaceType, OpenType, OutputType,
+                            RestrictionType
+                           } <: AbsPreSheaf{
+                                            SpaceType, OpenType,
+                                            OutputType, RestrictionType
+                                           }
+end
+
 @doc raw"""
     IdealSheaf <: AbsPreSheaf
 
-A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X``.
-
-Note that due to technical reasons, the admissible open subsets are restricted
-to the following:
- * `U::AbsAffineScheme` among the `basic_patches` of the `default_covering` of `X`;
- * `U::PrincipalOpenSubset` with `ambient_scheme(U)` in the `basic_patches` of the `default_covering` of `X`.
-
-One can call the restriction maps of ``ℐ`` across charts, implicitly using the
-identifications given by the gluings in the `default_covering`.
+A sheaf of ideals ``ℐ`` on an `AbsCoveredScheme` ``X`` which is specified 
+by a collection of concrete ideals on some open covering of ``X``.
 """
 @attributes mutable struct IdealSheaf{SpaceType, OpenType, OutputType,
                                       RestrictionType
-                                     } <: AbsPreSheaf{
+                                     } <: AbsIdealSheaf{
                                                       SpaceType, OpenType,
                                                       OutputType, RestrictionType
                                                      }
@@ -557,3 +567,63 @@ identifications given by the gluings in the `default_covering`.
     return I
   end
 end
+
+@attributes mutable struct PrimeIdealSheafFromChart{SpaceType, OpenType, OutputType,
+                                                    RestrictionType
+                                                   } <: AbsIdealSheaf{
+                                                                      SpaceType, OpenType,
+                                                                      OutputType, RestrictionType
+                                                                     }
+  X::AbsCoveredScheme
+  U::AbsAffineScheme
+  P::Ideal
+  F::PreSheafOnScheme
+
+  function PrimeIdealSheafFromChart(
+      X::AbsCoveredScheme,
+      U::AbsAffineScheme,
+      P::Ideal
+    )
+    @assert base_ring(P) === OO(U)
+    @assert has_ancestor(x->any(y->y===x, affine_charts(X)), U) "the given affine scheme can not be matched with the affine charts of the covered scheme"
+
+    OOX = OO(X)
+
+    V = __find_chart(U, default_covering(X))
+
+    function prod_fun(F::AbsPreSheaf, U2::AbsAffineScheme)
+      if __has_ancestor(x->(x===U2), U)
+        iso = _flatten_open_subscheme(U, U2)
+        iso_inv = inverse(iso)
+        pb_P = pullback(iso_inv)(P)
+        return ideal(OO(U2), gens(saturated_ideal(pb_P)))
+      end
+
+      if __has_ancestor(x->(x===V), U2)
+        return OOX(V, U2)(F(V))
+      end
+
+      V2 = __find_chart(U2, default_covering(X))
+      PV = F(V)
+
+      glue = default_covering(X)[V, V2]
+      f, g = gluing_morphisms(glue)
+      
+      I = pullback(g)(F(codomain(g)))
+      return ideal(OO(U2), gens(saturated_ideal(I)))
+    end
+    function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+      return OOX(V, U) # This does not check containment of the arguments
+                       # in the ideal. But this is not a parent check and
+                       # hence expensive, so we might want to not do that.
+    end
+    Ipre = PreSheafOnScheme(X, prod_fun, res_fun,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, U, P, Ipre)
+    return I
+  end
+end
+
