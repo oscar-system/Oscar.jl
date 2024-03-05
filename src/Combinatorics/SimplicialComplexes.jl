@@ -575,7 +575,7 @@ end
 ###############################################################################
 
 @doc raw"""
-     connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+    connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
 
 Compute the connected sum of two complexes. Parameters f1 and f2 specify which facet
  of the first and second complex correspondingly are glued together. Default is the
@@ -584,11 +584,10 @@ other according to their order in the facet (that is, in icreasing index order).
 
 # Examples
 ```jldoctest
-julia> K1 = torus();
+julia> K = torus();
 
-julia> K2 = torus();
-
-julia> surface_genus_2 = connected(K1, K2)
+julia> surface_genus_2 = connected(K, K)
+Abstract simplicial complex of dimension 2 on 4 vertices
 
 julia> homology(surface_genus_2, 1)
 Z^4
@@ -602,13 +601,13 @@ function connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, 
 end
 
 @doc raw"""
-     deletion(K::SimplicialComplex, face::Set{Int})
+    deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
 
 Remove the given face and all the faces containing it. 
 
 # Examples
 ```jldoctest
-julia> K = simpicial_complex([[1, 2, 3], [2, 3, 4]]);
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
 
 julia> K_with_deletion = deletion(K, Set([1, 2]));
 
@@ -618,8 +617,7 @@ julia> facets(K_with_deletion)
  Set([4, 2, 3])
 ```
 """
-function deletion(K::SimplicialComplex, face::Set{Int})
-  pm_set = Polymake.convert_to_pm_type(Set{Int})
-  pm_face = convert(pm_set, Polymake.to_zero_based_indexing(face))
-  return SimplicialComplex(Polymake.topaz.deletion(Oscar.pm_object(K), pm_face))
+function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+  zero_based = Polymake.to_zero_based_indexing(face)
+  return SimplicialComplex(Polymake.topaz.deletion(pm_object(K), zero_based))
 end
