@@ -472,7 +472,7 @@ end
 
 function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering, 
        ambient_param_data::IdDict{<:AbsAffineScheme,
-                                  Tuple{Vector{Int64},Vector{Int64},<:QQMPolyRingElem}};
+                                 <: Tuple{Vector{Int64},Vector{Int64},<:RingElem}};
        check::Bool=true)
 
   W = codomain(inc)                                
