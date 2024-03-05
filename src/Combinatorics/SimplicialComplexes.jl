@@ -587,7 +587,7 @@ other according to their order in the facet (that is, in icreasing index order).
 julia> K = torus();
 
 julia> surface_genus_2 = connected_sum(K, K)
-Abstract simplicial complex of dimension 2 on 4 vertices
+Abstract simplicial complex of dimension 2 on 11 vertices
 
 julia> homology(surface_genus_2, 1)
 Z^4
