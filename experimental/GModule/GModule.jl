@@ -277,7 +277,7 @@ function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPM
   return C
 end
 
-function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumField}})
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   return _minimize(C)
 end
 
