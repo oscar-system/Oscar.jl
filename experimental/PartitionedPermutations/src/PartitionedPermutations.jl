@@ -12,6 +12,10 @@ import Base:
 
 import Oscar:
     @req,
+    cycle_partition,
+    cycles,
+    is_dominated_by,
+    number_of_blocks,
     Perm,
     symmetric_group,
     join,
@@ -20,7 +24,6 @@ import Oscar:
     upper_points,
     SetPartition,
     subsets,
-    cycles,
     Generic,
     size
 
@@ -28,9 +31,6 @@ import Oscar:
 export PartitionedPermutation
 export partitioned_permutation
 
-export is_dominated_by
-export cycle_partition
-export join
 export length
 export adjusted_length
 export _enumerate_all_partitions
@@ -38,7 +38,6 @@ export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
 
 
-include("SetPartitionFunctions.jl")
 include("PartitionedPermutation.jl")
 include("PartitionedPermutationProducts.jl")
 include("EnumeratePartitionedPermutations.jl")
@@ -50,9 +49,6 @@ using .PartitionedPermutations
 export PartitionedPermutation
 export partitioned_permutation
 
-export is_dominated_by
-export cycle_partition
-export join
 export length
 export adjusted_length
 export _enumerate_all_partitions
