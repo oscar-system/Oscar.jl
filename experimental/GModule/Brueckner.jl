@@ -273,8 +273,6 @@ end
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
 function lift(C::GModule, mp::Map)
-  @show C
-  @show mp
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
@@ -284,6 +282,9 @@ function lift(C::GModule, mp::Map)
   @assert codomain(mp) == N
 
   H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  if order(H2) > 1
+    global last_in = (C, mp)
+  end
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
@@ -308,7 +309,6 @@ function lift(C::GModule, mp::Map)
   if length(S) != 0
     X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
-
   allG = []
   
   for h = H2
@@ -361,7 +361,7 @@ function lift(C::GModule, mp::Map)
     k, mk = kernel(s)
 
     if is_zero(h) && length(S) > 0 #Satz 15 in Brueckner, parts a and b
-      u = [preimage(mp, x) for x = gens(N)]
+      u = [preimage(mp, x) for x = gens(N)] 
       ss = elem_type(X)[]
       sss = elem_type(D)[]
       for h = gens(D)
@@ -371,27 +371,33 @@ function lift(C::GModule, mp::Map)
       end
       ss = hom(D, X, ss)
       sss = hom(D, D, sss)
-      kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1])
+      kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1]) 
       q, mq = quo(k, kk)
       k = q
       mk = pseudo_inv(mq)*mk
     end
-    @show [pro[i](epi) for i=1:ngens(G)]
-    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-#    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = try
-          hom(G, GG, l)
-        catch
-          @show :crash
-          global last_in = (C, mp)
-          continue
-        end
-    if !is_surjective(h)
-#      @show :darn
+    fl, pe = try
+      true, preimage(s, K(rhs))
+    catch
+      false, zero(D)
+    end
+    if !fl
+      @show :no_sol
       continue
-    else
-#      @show :bingo
+    end
+
+    for x = k
+      if is_zero(h) && is_zero(x)
+        @show :skip, dim(k)
+        continue
+      end
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
+      if is_surjective(hm)
+        push!(allG, hm)
+      else #should not be possible any more
+        @show :not_sur
+      end
     end
   end
 
@@ -404,7 +410,7 @@ function solvable_quotient(G::Oscar.GAPGroup)
 end
 
 #= issues/ TODO
- - does one need all SQs? are all maximal ones (in the sense of
+ - does one need all SQs? are all maximal ones (in the sense of 
    no further extension possible) isomorphic?
  - part c: this will extend by the modules several times (a maximal
    number of times), useful if as above, any maximal chain will do
@@ -438,7 +444,7 @@ H2, mH2, _ = Oscar.GrpCoh.H_two(C; redo = true, lazy = true);
 T, mT = Oscar.GrpCoh.compatible_pairs(C)
 G = gmodule(T, [Oscar.hom(H2, H2, [preimage(mH2, mT(g, mH2(a))) for a = gens(H2)]) for g = gens(T)])
 
-then ones wants the orbits of "elements" in G...
+then one wants the orbits of "elements" in G...
 
 gset(matrix_group([matrix(x) for x= action(G)]))
 @time orbits(ans)
