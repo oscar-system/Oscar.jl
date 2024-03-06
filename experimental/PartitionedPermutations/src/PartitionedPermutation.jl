@@ -64,11 +64,11 @@ function deepcopy_internal(pp::PartitionedPermutation, stackdict::IdDict)
     return q
 end
 
-function get_partition(pp::PartitionedPermutation)
+function partition(pp::PartitionedPermutation)
     return pp.V
 end
 
-function get_permutation(pp::PartitionedPermutation)
+function permutation(pp::PartitionedPermutation)
     return pp.p
 end
 
@@ -84,7 +84,7 @@ julia> length(partitioned_permutation(Perm([2, 1]), [1, 1]))
 ```
 """
 function length(pp::PartitionedPermutation)
-    V = get_partition(pp)
+    V = partition(pp)
     return length(upper_points(V)) + length(lower_points(V))
 end
 
@@ -101,7 +101,7 @@ julia> adjusted_length(partitioned_permutation(Perm([2, 1]), [1, 1]))
 ```
 """
 function adjusted_length(pp::PartitionedPermutation)
-    p = get_permutation(pp)
-    V = get_partition(pp)
+    p = permutation(pp)
+    V = partition(pp)
     return parent(p).n - (2*number_of_blocks(V) - length(cycles(p)))
 end

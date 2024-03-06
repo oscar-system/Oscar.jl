@@ -26,14 +26,16 @@ import Oscar:
     subsets,
     Generic,
     size,
-    set_partition
+    set_partition,
+    partition,
+    permutation
 
 
 export PartitionedPermutation
 export partitioned_permutation
 
-export get_partition
-export get_permutation
+export partition
+export permutation
 export length
 export adjusted_length
 export enumerate_partitioned_permutations
@@ -51,9 +53,9 @@ using .PartitionedPermutations
 export PartitionedPermutation
 export partitioned_permutation
 
+export partition
+export permutation
 export length
-export get_partition
-export get_permutation
 export adjusted_length
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
