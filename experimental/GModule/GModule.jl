@@ -460,7 +460,7 @@ end
 
 TODO
 """
-function gmodule(::typeof(CyclotomicField), C::GModule)
+function gmodule(a::Type{CyclotomicField}, C::GModule)
   @assert isa(base_ring(C), QQAbField)
   d = dim(C)
   l = 1
@@ -1506,19 +1506,19 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   return gmodule(G, [hom(F, F, x) for x = v])
 end
 
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{FqFieldElem}}) where {T <: Oscar.GAPGroup}
+  k = base_ring(C.M)
+  A = abelian_group([characteristic(k) for i=1:rank(C.M)*absolute_degree(k)])
+  return GModule(group(C), [hom(A, A, map_entries(x->lift(ZZ, x), hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...))) for y = C.ac])
+end
 
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
   A = free_abelian_group(rank(C.M))
   return Oscar.gmodule(Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
 
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{FpFieldElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{<:Union{FpFieldElem, fpFieldElem}}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
-  return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
-end
-
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
-  A = abelian_group([characteristic(base_ring(C)) for i=1:dim(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
 
@@ -1532,6 +1532,7 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return Oscar.gmodule(A, Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
 
+#TODO: for modern fin. fields as well
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
   A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
