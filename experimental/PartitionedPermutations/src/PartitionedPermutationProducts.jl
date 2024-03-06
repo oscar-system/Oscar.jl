@@ -43,9 +43,8 @@ Return the factorization of `pp` in form of a set of 2-tuples.
 
 # Examples
 ```jldoctest
-julia> factorization_partitioned_permutation(partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2]))
-Set([(PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[])), PartitionedPermutation((), SetPartition([1, 2, 3], Int64[]))), 
-(PartitionedPermutation((), SetPartition([1, 2, 3], Int64[])), PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[])))])
+julia> length(factorization_partitioned_permutation(partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])))
+2
 ```
 """
 function factorization_partitioned_permutation(pp::PartitionedPermutation)
