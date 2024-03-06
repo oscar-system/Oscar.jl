@@ -32,7 +32,7 @@ function *(pp_1::PartitionedPermutation, pp_2::PartitionedPermutation)
     if adjusted_length(pp_1) + adjusted_length(pp_2) == adjusted_length(product_pp)
         return product_pp
     else
-        return PartitionedPermutation(Perm(1:length(pp_1)), cycle_partition(Perm(1:length(pp_1))).upper_points)
+        return PartitionedPermutation(Perm(1:length(pp_1)), upper_points(cycle_partition(Perm(1:length(pp_1)))))
     end
 end
 
