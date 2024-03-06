@@ -330,7 +330,6 @@ function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
   mnf = minimal_nonfaces(IncidenceMatrix, K)
   gens = [ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ]
   # currently no way to set as a universal groebner basis
-  # to set that?
   I = IdealGens(R, gens, default_ordering(R); isGB=true, isReduced=true)
   return ideal(I)
 end
