@@ -528,9 +528,10 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
       push!(chr, (c, K(n)))
       continue
     end
-    #use T = action(C, r) instead?
-    p = preimage(phi, r)
-    T = map_word(p, ac; genimgs_inv = iac)
+    #use T = action(C, r) instead? Trying this, seems to work.
+    # p = preimage(phi, r)
+    # T = map_word(p, ac; genimgs_inv = iac)
+    T = action(C,r)
     push!(chr, (c, trace(matrix(T))))
   end
   return chr
