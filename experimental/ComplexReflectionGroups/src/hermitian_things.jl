@@ -14,7 +14,6 @@ export is_orthogonal
 # I will only do one minor extension following Tommy Hofmanns suggestion:
 complex_conjugation(K::QQAbField) = conj
 
-
 ###########################################################################################
 # Hermitian scalar product
 ###########################################################################################
