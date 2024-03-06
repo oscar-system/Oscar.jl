@@ -672,7 +672,7 @@ Given a cellular binomial ideal `I`, return the associated primes of `I`.
 The result is defined over the abelian closure of $\mathbb Q$. In the output, if needed, the generator for roots of unities is denoted by `zeta`. So `zeta(3)`, for example, stands for a primitive third root of unity.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"(coeff \d+ already initialized\n|)"
 julia> R, x = polynomial_ring(QQ, "x" => 1:6)
 (Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5], x[6]])
 
@@ -919,7 +919,7 @@ The result is defined over the abelian closure of $\mathbb Q$. In the output, if
 
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"(coeff \d+ already initialized\n|)"s
 julia> R, (x,y,z) =  polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 

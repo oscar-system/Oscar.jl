@@ -9,26 +9,29 @@ of group actions, focusing on finite and linearly reductive groups, respectively
 
 The basic setting in this context consists of a group $G$, a field $K$, a vector space
 $V$ over $K$ of finite dimension $n,$ and  a representation $\rho: G \to \text{GL}(V)$ of $G$ on $V$.
-The induced action on the dual vector space $V^\ast$,
+The induced right action on the dual vector space $V^\ast$,
 
 $V^\ast  \times G \to V^\ast, (f, \pi)\mapsto f \;\!   . \;\! \pi  := f\circ \rho(\pi),$
 
-extends to an action of $G$ on the graded symmetric algebra
+extends to a right action of $G$ on the graded symmetric algebra
 
 $K[V]:=S(V^*)=\bigoplus_{d\geq 0} S^d V^*$
 
 which preserves the grading.
 
-The *invariants* of $G$ are the fixed points of this action, its *invariant ring* is the graded subalgebra
+!!! note
+    In OSCAR, group actions are by convention assumed to be right actions and we follow this convention with our definition above.
+    Note, however, that the left action given by $\pi \;\!   . \;\! f :=  f \circ \rho(\pi^{-1})$ is quite common in the literature.
+	
+The *invariants* of $G$ are the fixed points of the action defined above, its *invariant ring* is the graded subalgebra
 
 $K[V]^G:=\{f\in K[V] \mid f \;\!   . \;\! \pi =f {\text { for any }} \pi\in G\} \subset K[V].$
 
-Explicitly, the choice of a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$
-gives rise to isomorphisms $\text{GL}(V) \cong \text{GL}_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
-After identifying $\text{GL}(V)$ with $\text{GL}_n(K)$ and $K[V]$ with $K[x_1, \dots, x_n]$ by means of
-these isomorphisms, the action of $G$ on $K[V]$ is given as follows:
+Explicitly, fixing a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$,
+we may identify $\GL(V) \cong \GL_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
+Then the action of an element $\pi \in G$ with $\rho(\pi) = (a_{i, j})$ on a polynomial $f\in K[x_1,\dots, x_n]$ is given as follows:
 
-$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n)  = f((x_1, \dots, x_n) \cdot \rho(\pi)).$
+$(f \;\!   . \;\! \pi)  (x_1, \dots, x_n) = f\bigl(\sum_j a_{1, j}x_j, \dots, \sum_j a_{n, j}x_j\bigr).$
 
 Accordingly, $K[V]^G$ may be regarded as a graded subalgebra of $K[x_1, \dots, x_n]$:
 

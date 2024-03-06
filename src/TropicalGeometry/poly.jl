@@ -207,6 +207,86 @@ end
 
 ################################################################################
 #
+#  Basic functions
+#
+################################################################################
+
+@doc raw"""
+    newton_subdivision(f::Generic.MPoly{TropicalSemiringElem{minOrMax}}) where minOrMax<:Union{typeof(min),typeof(max)}
+
+Return the dual subdivision on `exponents(f)` with weights `coefficients(f)` (min-convention) or `-coefficients(f)` (max-convention).  It is dual to `tropical_hypersurface(f)`.
+
+# Examples
+```jldoctest
+julia> _, (x,y) = polynomial_ring(tropical_semiring(),["x", "y"]);
+
+julia> f = 1+x+y+x^2;
+
+julia> Deltaf = newton_subdivision(f)
+Subdivision of points in ambient dimension 2
+
+julia> points(Deltaf)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [2, 0]
+ [1, 0]
+ [0, 1]
+ [0, 0]
+
+julia> maximal_cells(Deltaf)
+2-element SubObjectIterator{Vector{Int64}}:
+ [2, 3, 4]
+ [1, 2, 3]
+
+```
+"""
+function newton_subdivision(f::Generic.MPoly{TropicalSemiringElem{minOrMax}}) where minOrMax<:Union{typeof(min),typeof(max)}
+    # preserve_ordering=true, since weights of regular subdivisions have to be in min-convention,
+    # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
+    # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
+    weights = QQ.(coefficients(f); preserve_ordering=true)
+    points = matrix(QQ,collect(exponents(f)))
+    return subdivision_of_points(points,weights)
+end
+
+
+@doc raw"""
+    newton_subdivision(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+
+Return the dual subdivision on `exponents(f)` with weights `nu.(coefficients(f))` (min-convention) or `-nu.(coefficients(f))` (max-convention).  It is dual to `tropical_hypersurface(f,nu)`.
+
+# Examples
+```jldoctest
+julia> _, (x,y) = QQ["x", "y"];
+
+julia> nu = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
+
+julia> f = 2+x+y+x^2;
+
+julia> Deltaf = newton_subdivision(f,nu)
+Subdivision of points in ambient dimension 2
+
+julia> points(Deltaf)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [2, 0]
+ [1, 0]
+ [0, 1]
+ [0, 0]
+
+julia> maximal_cells(Deltaf)
+2-element SubObjectIterator{Vector{Int64}}:
+ [2, 3, 4]
+ [1, 2, 3]
+
+```
+"""
+function newton_subdivision(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+    tropf = tropical_polynomial(f,nu)
+    return newton_subdivision(tropf)
+end
+
+################################################################################
+#
 #  Outdated code
 #
 ################################################################################

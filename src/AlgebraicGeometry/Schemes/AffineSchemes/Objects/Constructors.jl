@@ -513,7 +513,7 @@ Spectrum
   of localization
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    at products of (x1,x2)
+    at products of (x1, x2)
 ```
 """
 function hypersurface_complement(X::AbsAffineScheme, f::Vector{<:RingElem})

@@ -4,8 +4,8 @@
   bl = blow_up(P2, [1, 1])
 
   @testset "Basic tests for simple toric blowdown" begin
-    @test rank(domain(grid_morphism(bl))) == 2
-    @test rank(codomain(grid_morphism(bl))) == 2
+    @test torsion_free_rank(domain(grid_morphism(bl))) == 2
+    @test torsion_free_rank(codomain(grid_morphism(bl))) == 2
     @test matrix(morphism_on_torusinvariant_weil_divisor_group(bl)) == matrix(ZZ, [1 0 0; 0 1 0; 0 0 1; 1 1 0])
     @test matrix(morphism_on_torusinvariant_cartier_divisor_group(bl)) == matrix(morphism_on_torusinvariant_weil_divisor_group(bl))
   end

@@ -14,7 +14,8 @@
   TX,_ = hom(Om1X,F1X);
   TXamb,_ = pushforward(inc_X,TX);
   W1X,_ = hom(TX,F1X)
-  M, a, b = Oscar._alt_simplify(W1X)
+  M, b = Oscar.simplify(W1X)
+  a = get_attribute(b, :inverse)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
   @test compose(a, b) == identity_map(domain(a))
@@ -34,7 +35,8 @@ end
   I = ideal(S, [f, g]);
   X, inc_X = sub(IP5, I);
   Om1X = Oscar.relative_cotangent_module(X);
-  M, a, b = Oscar._alt_simplify(Om1X)
+  M, b = Oscar.simplify(Om1X)
+  a = get_attribute(b, :inverse)
   @test is_isomorphism(a)
   @test is_isomorphism(b)
   @test compose(a, b) == identity_map(domain(a))

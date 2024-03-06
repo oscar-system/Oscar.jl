@@ -34,17 +34,17 @@
     @test betti_number(F5, 4) == 1
     @test length(affine_open_covering(F5)) == 4
     @test dim(polyhedral_fan(F5)) == 2
-    @test rank(torusinvariant_weil_divisor_group(F5)) == 4
-    @test rank(character_lattice(F5)) == 2
+    @test torsion_free_rank(torusinvariant_weil_divisor_group(F5)) == 4
+    @test torsion_free_rank(character_lattice(F5)) == 2
     @test ngens(cox_ring(F5)) == 4
     @test length(stanley_reisner_ideal(F5).gens) == 2
     @test length(irrelevant_ideal(F5).gens) == 4
     @test dim(nef_cone(F5)) == 2
     @test dim(mori_cone(F5)) == 2
-    @test rank(domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))) == 2
-    @test rank(codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))) == 4
-    @test rank(class_group(F5)) == 2
-    @test rank(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(F5))) == 2
+    @test torsion_free_rank(domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))) == 2
+    @test torsion_free_rank(codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))) == 4
+    @test torsion_free_rank(class_group(F5)) == 2
+    @test torsion_free_rank(codomain(map_from_torusinvariant_weil_divisor_group_to_class_group(F5))) == 2
     @test transpose(matrix(ZZ,rays(F5))) == matrix(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5))
     @test domain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5)) == character_lattice(F5)
     @test codomain(map_from_character_lattice_to_torusinvariant_weil_divisor_group(F5)) == torusinvariant_weil_divisor_group(F5)

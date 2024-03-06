@@ -181,13 +181,7 @@ end
 function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do array
-    loaded_array = []
-    for index in 1:length(array)
-      load_node(s, index) do entry
-        push!(loaded_array, f((index, entry)))
-      end
-    end
-    return loaded_array
+    [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]
   end
 end
 

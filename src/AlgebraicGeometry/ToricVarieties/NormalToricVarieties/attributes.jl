@@ -198,7 +198,7 @@ julia> coordinate_names(antv)
 ```
 """
 @attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:rank(torusinvariant_weil_divisor_group(v))]
+    return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -679,8 +679,8 @@ julia> torusinvariant_prime_divisors(p2)
 @attr Vector{ToricDivisor} function torusinvariant_prime_divisors(v::NormalToricVarietyType)
     ti_divisors = torusinvariant_weil_divisor_group(v)
     prime_divisors = ToricDivisor[]
-    for i in 1:rank(ti_divisors)
-        coeffs = zeros(Int, rank(ti_divisors))
+    for i in 1:torsion_free_rank(ti_divisors)
+        coeffs = zeros(Int, torsion_free_rank(ti_divisors))
         coeffs[i] = 1
         push!(prime_divisors, toric_divisor(v, coeffs))
     end
@@ -756,7 +756,7 @@ Map
     number_of_cones = size(max_cones)[1]
     
     # compute quantities needed to construct the matrices
-    rc = rank(character_lattice(v))
+    rc = torsion_free_rank(character_lattice(v))
     number_ray_is_part_of_max_cones = [length(max_cones[:, k].s) for k in 1:number_of_rays]
     s = sum(number_ray_is_part_of_max_cones)
     cones_ray_is_part_of = [filter(x -> max_cones[x, r], 1:number_of_cones) for r in 1:number_of_rays]
@@ -784,7 +784,7 @@ Map
     end
     
     # compute the matrix for mapping to torusinvariant Weil divisors
-    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, rank(torusinvariant_weil_divisor_group(v)))
+    map_to_weil_divisors = zero_matrix(ZZ, number_of_cones * rc, torsion_free_rank(torusinvariant_weil_divisor_group(v)))
     for i in 1:number_of_rays
         map_to_weil_divisors[(cones_ray_is_part_of[i][1]-1)*rc+1:cones_ray_is_part_of[i][1]*rc, i] = [ZZRingElem(-c) for c in fan_rays[:, i]]
     end

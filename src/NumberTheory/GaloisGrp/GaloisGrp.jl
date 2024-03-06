@@ -2709,8 +2709,43 @@ function are_disjoint(G::GaloisCtx, S::GaloisCtx)
   return false
 end
 function are_disjoint(G::GaloisCtx{T}, S::GaloisCtx{T}) where T <: Union{Hecke.qAdicRootCtx, ComplexRootCtx}
-  r = isone(gcd(order(G.G), order(S.G))) || 
-      isone(gcd(ZZ(discriminant(G.f)), ZZ(discriminant(S.f))))
+  #assumes the polynomials (G.f, S.f) are irreducible
+  @vprint :GaloisGroup 2 "testing for disjointness...."
+  r = isone(gcd(order(G.G), order(S.G)))
+  r && @vprint :GaloisGroup 2 "group orders are coprime\n"
+  r && return r 
+  #if the field discs are coprime, the (splitting) fields are disjoint
+  #so if the poly discs are already coprime we are save
+  #if the gcd of the poly discs is small, we can try to compute
+  #the p-maximal order orders so see if the p-maximal discs are coprime
+  #
+  
+  g =  gcd(ZZ(discriminant(G.f)), ZZ(discriminant(S.f)))
+  r = isone(g)
+  r && @vprint :GaloisGroup 2 "poly discs are coprime\n"
+  if !r #&& (degree(G.f) > 10 || degree(S.f) > 10) && nbits(g) < 20  #try harder
+    if degree(G.f) > degree(S.f)
+      G, S = S, G
+    end 
+    @vprint :GaloisGroup 2 "\n poly discs have small gcd ($g)..."
+    o1 = any_order(number_field(G.f, cached = false, check = false)[1])
+    p = radical(g)
+    O1 = pmaximal_overorder(o1, p)
+    p = gcd(discriminant(O1), p)
+    if isone(p)
+      @vprint :GaloisGroup 2 "p-maximal order of 1st is p-free\n"
+      return true
+    end
+    o2 = any_order(number_field(S.f, cached = false, check = false)[1])
+    O2 = pmaximal_overorder(o2, p)
+    @vprint :GaloisGroup 2 "p-maximal order of 2nd is "
+    p = gcd(discriminant(O2), p)
+    if isone(p)
+      @vprint :GaloisGroup 2 "p-free\n"
+      return true
+    end
+    @vprint :GaloisGroup 2 "not p-free ($p is left), no decision\n"
+  end
   return r
 end
 

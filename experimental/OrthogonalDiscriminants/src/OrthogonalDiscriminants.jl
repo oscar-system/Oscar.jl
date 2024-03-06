@@ -26,6 +26,7 @@ end
 include("utils.jl")
 include("data.jl")
 include("gram_det.jl")
+include("direct.jl")
 include("theoretical.jl")
 include("exports.jl")
 

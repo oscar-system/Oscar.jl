@@ -320,7 +320,7 @@ end
   T1 = tor(M, Q, 1)
   T2 = tor(M, Q, 2)
   @test is_canonically_isomorphic(present_as_cokernel(T0), M_coker)
-  @test is_canonically_isomorphic(simplify(present_as_cokernel(T1))[1], M_coker)
+  @test is_canonically_isomorphic(Oscar._old_simplify(present_as_cokernel(T1))[1], M_coker)
   @test iszero(T2)
 
   E0 = ext(Q, M, 0)
@@ -337,7 +337,7 @@ end
   E4 = ext(M, Q, 4)
   @test iszero(E0)
   @test iszero(E1)
-  @test is_canonically_isomorphic(present_as_cokernel(simplify(E2)[1]), M_coker)
+  @test is_canonically_isomorphic(present_as_cokernel(Oscar._old_simplify(E2)[1]), M_coker)
   @test is_canonically_isomorphic(E3, M_coker)
   @test iszero(E4)
 end
@@ -462,7 +462,7 @@ end
   A1 = R[x*y R(0)]
   B1 = R[R(0) R(1)]
   M1 = SubquoModule(A1,B1)
-  M2,i2,p2 = simplify(M1)
+  M2,i2,p2 = Oscar._old_simplify(M1)
   for k=1:5
     elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:1])), M1)
     @test elem == i2(p2(elem))
@@ -487,7 +487,7 @@ end
   A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:2])
   B1 = matrix([randpoly(R,0:15,2,1) for i=1:1,j=1:2])
   M1 = SubquoModule(A1,B1)
-  M2,i2,p2 = simplify(M1)
+  M2,i2,p2 = Oscar._old_simplify(M1)
   for k=1:5
     elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1,i=1:3])), M1)
     @test elem == i2(p2(elem))
@@ -503,7 +503,7 @@ end
   A1 = matrix([randpoly(R,0:15,2,1) for i=1:3,j=1:3])
   B1 = matrix([randpoly(R,0:15,2,1) for i=1:2,j=1:3])
   M1 = SubquoModule(A1,B1)
-  M2,i2,p2 = simplify(M1)
+  M2,i2,p2 = Oscar._old_simplify(M1)
 
   for k=1:5
     elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:3])), M1)
@@ -518,7 +518,7 @@ end
   @test is_bijective(p2)
 
   M1 = SubquoModule(B1,A1)
-  M2,i2,p2 = simplify(M1)
+  M2,i2,p2 = Oscar._old_simplify(M1)
   for k=1:5
     elem = SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, i=1:2])), M1)
     @test elem == i2(p2(elem))

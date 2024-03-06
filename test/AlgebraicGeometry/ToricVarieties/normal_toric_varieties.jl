@@ -9,8 +9,8 @@
   @testset "Basic properties" begin
     @test is_complete(ntv) == true
     @test is_projective_space(ntv) == false
-    @test rank(torusinvariant_cartier_divisor_group(ntv)) == 4
-    @test rank(domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(ntv))) == 4
+    @test torsion_free_rank(torusinvariant_cartier_divisor_group(ntv)) == 4
+    @test torsion_free_rank(domain(map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(ntv))) == 4
     @test is_complete(ntv2) == true
     @test length(ntv3) == 1
     @test is_projective_space(ntv3[1]) == true

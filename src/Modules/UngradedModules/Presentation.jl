@@ -511,7 +511,7 @@ e[2]
 function prune_with_map(M::ModuleFP)
   # TODO: take special care of graded modules 
   # by stripping off the grading and rewrapping it afterwards.
-  N, a, b = _alt_simplify(M)
+  N, b = simplify(M)
   return N, b
 end
 

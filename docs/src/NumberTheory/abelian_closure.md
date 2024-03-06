@@ -20,7 +20,7 @@ abelian_closure(::QQField)
 Given the abelian closure, the generator can be recovered as follows:
 
 ```@docs
-gen(::QQAbField)
+gen(::QQAbField{AbsSimpleNumField})
 atlas_irrationality
 atlas_description
 ```

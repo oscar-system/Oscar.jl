@@ -104,13 +104,13 @@ end
   JJ = ideal(RR, X^2 - Y^6);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), (H, iso) = multi_hilbert_series(A);
-  @test is_free(H) && isone(rank(H))
+  @test is_free(H) && isone(torsion_free_rank(H))
   S, t = laurent_polynomial_ring(ZZ, "t");
   (numer2, denom2), (H, iso) = multi_hilbert_series(A; parent=S);
-  @test is_free(H) && isone(rank(H))
+  @test is_free(H) && isone(torsion_free_rank(H))
   Smult, (T,) = polynomial_ring(ZZ, ["t"]);
   (numer3, denom3), (H, iso) = multi_hilbert_series(A; parent=Smult);
-  @test is_free(H) && isone(rank(H))
+  @test is_free(H) && isone(torsion_free_rank(H))
   @test numer1 == evaluate(numer2, T)
   @test numer3 == evaluate(numer2, first(gens(parent(numer3))))
 end

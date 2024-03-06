@@ -49,3 +49,19 @@ end
     end
   end
 end
+
+@testset "p-groups" begin
+  rx = r"syl\((?<p>\d+)\)"
+  info = all_od_infos(characteristic => 0,
+                 comment_matches => (x -> any(y -> startswith(y, "syl"), x)))
+  for entry in info[1:100]
+    chi = Oscar.OrthogonalDiscriminants.character_of_entry(entry)
+    c = filter(x -> startswith(x, "syl"), entry[:comment])
+    for e in c
+      p = parse(Int, match(rx, e)[:p])
+      (flag, valstring) = Oscar.OrthogonalDiscriminants.od_from_p_subgroup(chi, p)
+      @test flag
+      @test valstring == entry[:valuestring]
+    end
+  end
+end

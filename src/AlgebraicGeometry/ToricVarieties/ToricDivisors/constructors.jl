@@ -68,7 +68,7 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function divisor_of_character(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion}
-    r = rank(character_lattice(v))
+    r = torsion_free_rank(character_lattice(v))
     @req length(character) == r "Character must consist of $r integers"
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))

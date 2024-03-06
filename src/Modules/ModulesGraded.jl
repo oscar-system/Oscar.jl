@@ -3077,8 +3077,7 @@ end
 function _regularity_bound(M::SubquoModule)
   @assert is_graded(M) "module must be graded"
   S = base_ring(M)
-  G = grading_group(S)
-  @assert is_free(G) && isone(rank(G)) "base ring must be ZZ-graded"
+  @assert is_z_graded(S) "base ring must be ZZ-graded"
   @assert all(x->degree(Int, x; check=false) >= 0, gens(S)) "base ring variables must be non-negatively graded"
   res = free_resolution(M)
   result = maximum((x->degree(Int, x; check=false)).(gens(res[0])))

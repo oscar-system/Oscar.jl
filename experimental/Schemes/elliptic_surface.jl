@@ -1,4 +1,4 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart, transform_to_weierstrass
+export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart_on_minimal_model, transform_to_weierstrass
 
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
@@ -1494,6 +1494,23 @@ on the curve defined by `g`, i.e. `g(P) == 0`.
 """
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
+  F = fraction_field(R)
+
+  # In case of variables in the wrong order, switch and transform the result.
+  if x == R[2] && y == R[1]
+    switch = hom(R, R, reverse(gens(R)))
+    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
+    new_trans = MapFromFunc(F, F, f->begin
+                                switch_num = switch(numerator(f))
+                                switch_den = switch(denominator(f))
+                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
+                                num = numerator(interm_res)
+                                den = denominator(interm_res)
+                                switch(num)//switch(den)
+                            end
+                           )
+    return switch(g_trans), new_trans
+  end
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
   @assert y in gens(R) "third argument must be a variable of the parent of the first"
@@ -1503,9 +1520,6 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   kkxy, Y = polynomial_ring(kkx, :y, cached=false)
 
   imgs = [kkxy(X), Y]
-  if x == R[2] && y == R[1]
-    imgs = reverse(imgs)
-  end
   split_map = hom(R, kkxy, imgs)
 
   G = split_map(g)
@@ -1558,7 +1572,6 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     #@assert x == evaluate(x1, [x2, y2])
     #@assert y == evaluate(y1, [x2, y2])
   end
-  F = fraction_field(R)
   @assert F === parent(x1) "something is wrong with caching of fraction fields"
   # TODO: eventually add the inverse.
   trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))

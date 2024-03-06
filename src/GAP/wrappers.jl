@@ -120,8 +120,9 @@ GAP.@wrap InducedClassFunction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj)::GapObj
 GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
-GAP.@wrap IntFFE(x::Any)::GapInt
+GAP.@wrap InducedCyclic(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
+GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap Irr(x::GapObj)::GapObj
 GAP.@wrap IsAbelian(x::Any)::Bool
@@ -185,6 +186,7 @@ GAP.@wrap IsNilpotentGroup(x::Any)::Bool
 GAP.@wrap IsNormal(x::Any, y::Any)::Bool
 GAP.@wrap IsNumberField(x::Any)::Bool
 GAP.@wrap IsNumberFieldByMatrices(x::Any)::Bool
+GAP.@wrap IsomorphismFpGroup(x::GapObj)::GapObj
 GAP.@wrap IsomorphismFpGroupByGenerators(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsomorphismFpGroupByPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap IsOne(x::Any)::Bool

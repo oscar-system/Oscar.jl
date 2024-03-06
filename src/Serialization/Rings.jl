@@ -2,10 +2,10 @@
 # Common union types
 
 # this will need a better name at some point
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem}
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem, SMat}
 
 # this union will also need a better name at some point
-const RingMatSpaceUnion = Union{Ring, MatSpace, FreeAssAlgebra}
+const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssAlgebra}
 
 ################################################################################
 # Utility functions for ring parent tree
@@ -358,6 +358,8 @@ end
 # Matrices
 @register_serialization_type MatSpace uses_id
 @register_serialization_type MatElem uses_params
+@register_serialization_type SMatSpace uses_id
+@register_serialization_type SMat uses_params
 
 function save_object(s::SerializerState, obj::MatSpace)
   save_data_dict(s) do
@@ -367,15 +369,33 @@ function save_object(s::SerializerState, obj::MatSpace)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatSpace})
+function save_object(s::SerializerState, obj::SMatSpace)
+  save_data_dict(s) do
+    save_typed_object(s, base_ring(obj), :base_ring)
+    # getters currently do not seem to exist
+    save_object(s, obj.cols, :ncols)
+    save_object(s, obj.rows, :nrows)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:Union{MatSpace, SMatSpace}})
   base_ring = load_typed_object(s, :base_ring)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)
 end
 
+# elems
 function save_object(s::SerializerState, obj::MatElem)
   save_object(s, Array(obj))
+end
+
+function save_object(s::SerializerState, obj::SMat)
+  save_data_array(s) do
+    for r in obj
+      save_object(s, collect(r))
+    end
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{<:MatElem}, parents::Vector)
@@ -395,6 +415,38 @@ function load_object(s::DeserializerState, ::Type{<:MatElem}, parents::Vector)
     return parent()
   end
   return parent(m)
+end
+
+function load_object(s::DeserializerState, ::Type{<:SMat}, parents::Vector)
+  parent = parents[end]
+  base = base_ring(parent)
+  T = elem_type(base)
+  M = sparse_matrix(base)
+
+  if serialize_with_params(T)
+    if length(parents) == 1
+      params = base_ring(parent)
+    else
+      params = parents[1:end - 1]
+    end
+
+    load_array_node(s) do _
+      row_entries = Tuple{Int, T}[]
+      load_array_node(s) do _
+        push!(row_entries, load_object(s, Tuple, [Int, (T, params)]))
+      end
+      push!(M, sparse_row(base, row_entries))
+    end
+  else
+    load_array_node(s) do _
+      row_entries = Tuple{Int, T}[]
+      load_array_node(s) do _
+        push!(row_entries, load_object(s, Tuple, [Int, T]))
+      end
+      push!(M, sparse_row(base, row_entries))
+    end
+  end
+  return M
 end
 
 ################################################################################

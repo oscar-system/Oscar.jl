@@ -182,6 +182,7 @@ export acting_domain
 export acting_group
 export acting_subgroup
 export action
+export action_function
 export action_homomorphism
 export add_edge!
 export add_gluing!
@@ -378,6 +379,7 @@ export conjugate
 export conjugate_group
 export conjugate_transpose
 export connected_components
+export connected_sum
 export connectivity_function
 export contains
 export continued_fraction_hirzebruch_jung
@@ -1062,6 +1064,7 @@ export negwdegrevlex
 export neighbors
 export newick
 export newton_polytope
+export newton_subdivision
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid

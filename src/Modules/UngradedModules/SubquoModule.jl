@@ -1657,8 +1657,23 @@ If $M = (P + Q) / Q$ then return $F / Q$ where `F == ambient_free_module(M)`.
 If $M$ is a submodule of a free module, then the (ambient) free module is returned.
 
 If `task == :with_morphism`, return also the canonical inclusion.
+
+# Examples
+
+```jldoctest
+julia> mat = matrix(QQ, [0 -1; 0 0]);
+
+julia> U = image(mat)
+Submodule with 1 generator
+1 -> -e[2]
+represented as subquotient with no relations.
+
+julia> ambient_module(U)
+Free module of rank 2 over Rational field
+```
 """
 function ambient_module(M::SubquoModule, task = :none)
+  F = ambient_free_module(M)
   if !isdefined(M, :quo)
     if task == :none
       return F
@@ -1666,7 +1681,6 @@ function ambient_module(M::SubquoModule, task = :none)
       return F, hom(M,F,[repres(v) for v in gens(M)])
     end
   end
-  F = ambient_free_module(M)
   g = SubModuleOfFreeModule(F,basis(F))
   SQ = SubquoModule(g, M.quo)
   if task == :none
