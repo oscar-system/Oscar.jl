@@ -1,7 +1,7 @@
 """
     *(pp_1::PartitionedPermutation, pp_2::PartitionedPermutation)
 
-Return the product of two partitioned permutations as described.
+Return the product of two partitioned permutations as described in [CMS07](@cite).
 
 # Examples
 ```jldoctest

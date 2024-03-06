@@ -1,6 +1,6 @@
 # Partitioned Permutations
 
-This project implements algorithms for working with partitioned permutations. These are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants. The central reference is the paper [CMSS07](@cite).
+This project implements algorithms for working with partitioned permutations. These are used in the context of Free Probability Theory to model higher order freeness and higher order free cumulants. The central reference is the paper [CMS07](@cite).
 
 ## Mathematical Background
 
