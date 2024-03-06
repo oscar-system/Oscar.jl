@@ -85,3 +85,5 @@ include("ExteriorAlgebra/ExteriorAlgebra.jl")
 
 include("Schemes/DerivedPushforward.jl")
 
+
+include("Schemes/Tjurina.jl")
