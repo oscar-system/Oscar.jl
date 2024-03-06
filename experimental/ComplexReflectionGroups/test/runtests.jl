@@ -1,7 +1,7 @@
 @testset "Complex reflection groups" begin
 
     #######################################################################################
-    # Testing ComplexReflection
+    # Complex reflections
     #######################################################################################
 
     # Example 1
@@ -70,29 +70,30 @@
     # is_complex_reflection_group etc. To perform an honest test, we create a copy of the
     # matrix group which then has no attributes set and run the tests on this copy.
 
-    # CHEVIE models for exceptional groups
-    # for n=4:37
-    #     W = complex_reflection_group(n ; model=:CHEVIE)
-    #     W_copy = matrix_group(gens(W))
-    #     @test order(W) == order(W_copy)
-    #     @test is_complex_reflection_group(W_copy) == true
-    # end
+    for model in [:CHEVIE, :Magma, :LT]
+        for n=4:37
 
-    # # Magma models for exceptional groups
-    # for n=4:37
-    #     W = complex_reflection_group(n ; model=:Magma)
-    #     W_copy = matrix_group(gens(W))
-    #     @test order(W) == order(W_copy)
-    #     @test is_complex_reflection_group(W_copy) == true
-    # end
+            #LT not yet implemented for n > 23
+            if model == :LT && n > 23
+                continue
+            end
 
-    # # LT models for exceptional groups (>22 missing here at the moment)
-    # for n=4:22
-    #     W = complex_reflection_group(n ; model=:LT)
-    #     W_copy = matrix_group(gens(W))
-    #     @test order(W) == order(W_copy)
-    #     @test is_complex_reflection_group(W_copy) == true
-    #     @test is_unitary(W_copy) == true #LT models are unitary
-    # end
+            W = complex_reflection_group(n, model)
+            W_copy = matrix_group(gens(W))
+            @test order(W) == order(W_copy)
+            @test is_complex_reflection_group(W_copy) == true
+
+            # LT models are unitary
+            if model == :LT
+                @test is_unitary(W_copy) == true
+            end
+
+            # Test in a few cases if we find all reflections (would be too much work
+            # for the big groups).
+            if n in [4,12,23,25,28]
+                @test length(complex_reflections(W_copy)) == num_reflections(complex_reflection_group_type(W))
+            end
+        end
+    end
 
 end
