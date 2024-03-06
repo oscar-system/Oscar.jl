@@ -408,7 +408,7 @@ end
 """
     number_of_blocks(p::SetPartition)
 
-Return the number of blocks of a `p`.
+Return the number of blocks of `p`.
 
 # Examples
 ```jldoctest
@@ -425,10 +425,10 @@ function number_of_blocks(p::SetPartition)
 end
 
 """
-    is_dominated_by(V::SetPartition, W::SetPartition)
+    is_dominated_by(p::SetPartition, q::SetPartition)
 
-Check if the set partition `V` is dominated by the set partition `W`. This is the case if every block of `V`
-is contained in exactly one block of `W`.
+Check if the set partition `p` is dominated by the set partition `q`. This is the case if every block of `p`
+is contained in exactly one block of `q`.
 
 # Examples
 ```jldoctest
@@ -436,23 +436,23 @@ julia> is_dominated_by(set_partition([1, 1, 2], [1, 2, 3]), set_partition([1, 1,
 true
 ```
 """
-function is_dominated_by(V::SetPartition, W::SetPartition)
-    @req size(V) == size(W) "arguments must have the same size"
+function is_dominated_by(p::SetPartition, q::SetPartition)
+    @req size(p) == size(q) "arguments must have the same size"
 
-    # obtain vectors describing the partitions V and W
-    V_vec = vcat(upper_points(V), lower_points(V))
-    W_vec = vcat(upper_points(W), lower_points(W))
+    # obtain vectors describing the partitions p and q
+    p_vec = vcat(upper_points(p), lower_points(p))
+    q_vec = vcat(upper_points(q), lower_points(q))
 
-    # introduce a dictionary to store a mapping from the blocks of V to the blocks of W
+    # introduce a dictionary to store a mapping from the blocks of p to the blocks of q
     block_map = Dict{Int, Int}()
 
-    for (index, block) in enumerate(V_vec)
-        # if the block of the index in V has already been mapped to a block of W,
+    for (index, block) in enumerate(p_vec)
+        # if the block of the index in p has already been mapped to a block of q,
         # check if the mapping is consistent, otherwise add the mapping
-        if haskey(block_map, block) && W_vec[index] != block_map[block]
+        if haskey(block_map, block) && q_vec[index] != block_map[block]
             return false
         else
-            block_map[block] = W_vec[index]
+            block_map[block] = q_vec[index]
         end
     end
     return true
@@ -484,10 +484,10 @@ function cycle_partition(p::Perm{Int})
 end
 
 """
-    join(V::SetPartition, W::SetPartition)
+    join(p::SetPartition, q::SetPartition)
 
-Return the join of `V` and `W`. This is the unqiue set partition, where two elements are in the same block of the partition
-iff this is the case in `V` or `W`.
+Return the join of `p` and `q`. This is the unqiue set partition, where two elements are in the same block of the partition
+iff this is the case in `p` or `q`.
 
 # Examples
 ```jldoctest
@@ -495,14 +495,14 @@ julia> join(SetPartition([1, 2], [2, 3]), SetPartition([1, 2], [1, 3]))
 SetPartition([1, 1], [1, 2])
 ```
 """
-function join(V::SetPartition, W::SetPartition)
-    @req length(upper_points(V)) == length(upper_points(W)) "V and W must have the same number of upper points"
-    @req length(lower_points(V)) == length(lower_points(W)) "V and W must have the same number of lower points"
+function join(p::SetPartition, q::SetPartition)
+    @req length(upper_points(p)) == length(upper_points(q)) "p and q must have the same number of upper points"
+    @req length(lower_points(p)) == length(lower_points(q)) "p and q must have the same number of lower points"
 
-    _V = SetPartition(vcat(upper_points(V), lower_points(V)), vcat(upper_points(V), lower_points(V)))
-    _W = SetPartition(vcat(upper_points(W), lower_points(W)), vcat(upper_points(W), lower_points(W)))
+    _p = SetPartition(vcat(upper_points(p), lower_points(p)), vcat(upper_points(p), lower_points(p)))
+    _q = SetPartition(vcat(upper_points(q), lower_points(q)), vcat(upper_points(q), lower_points(q)))
 
-    join_V_W = upper_points(compose(_V, _W))
+    join_p_q = upper_points(compose(_p, _q))
 
-    return SetPartition(join_V_W[1:length(upper_points(V))], join_V_W[(length(upper_points(V))+1):end])
+    return SetPartition(join_p_q[1:length(upper_points(p))], join_p_q[(length(upper_points(p))+1):end])
 end
