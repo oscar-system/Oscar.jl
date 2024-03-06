@@ -172,6 +172,125 @@ function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme{<:Ring, <:MPolyQuoL
 end
 
 ########################################################################
+# Normalization                                                        #
+########################################################################
+
+## Example
+# R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+# I = ideal(R, z*x^2 + y^3)
+# X = covered_scheme(proj(R, I))
+# C = X.coverings[1]
+# gluing_example = X[1][1,2]
+# Oscar.normalization(C)
+# Oscar.normalization(X)
+
+# Warning: assume scheme integral
+function normalization(X::AbsCoveredScheme)
+  X_norm = normalization(X.coverings[1])
+  return CoveredScheme(X_norm[1]), X_norm[2]
+end
+
+# Warning: assume scheme integral
+function normalization(C::Covering)
+  X_i_norm_outputs = _normalization.(patches(C))
+  C_norm = Covering(first.(first.(X_i_norm_outputs)))
+  n = n_patches(C_norm)
+  for i in 1:n
+    for j in (i+1):n
+      gluing_i_j = _normalization(C[i,j], X_i_norm_outputs[i][1], X_i_norm_outputs[j][1])
+      add_gluing!(C_norm, gluing_i_j)
+    end
+  end
+  second(xs) = xs[2]
+  morphisms = second.(first.(X_i_norm_outputs))
+  covering_morphism_dict = IdDict(zip(domain.(morphisms), morphisms))
+  normalization_map = CoveringMorphism(C_norm, C, covering_morphism_dict)
+  return C_norm, normalization_map
+end
+
+# Warning: assume patches irreducible
+# Input is gluing of X_1 and X_2 and the output of the _normalization
+# function of X_1 and X_2
+function _normalization(
+  G::SimpleGluing,
+  X_1_norm_output,
+  X_2_norm_output,
+)
+  (X_1_norm, F_1, hom_to_K_1) = X_1_norm_output
+  (X_2_norm, F_2, hom_to_K_2) = X_2_norm_output
+  X_1, X_2 = patches(G)
+  U_1, U_2 = gluing_domains(G)
+  g_1, g_2 = gluing_morphisms(G)
+  codomain(F_1) === X_1 || error("Codomain of F_1=$(F_1) should be X_1=$(X_1).")
+  codomain(F_2) === X_2 || error("Codomain of F_2=$(F_2) should be X_2=$(X_2).")
+
+  # We assume X_i_norm, F_i, hom_to_K_i are defined as below
+  # X_1_norm, F_1, hom_to_K_1 = _normalization(X_1)[1]
+  # X_2_norm, F_2, hom_to_K_2 = _normalization(X_2)[1]
+
+  U_1_norm = PrincipalOpenSubset(X_1_norm, pullback(F_1)(complement_equation(U_1)))
+  U_2_norm = PrincipalOpenSubset(X_2_norm, pullback(F_2)(complement_equation(U_2)))
+
+  # TODO: disable check
+  U_1_norm_mor = restrict(F_1, U_1_norm, U_1)
+  U_2_norm_mor = restrict(F_2, U_2_norm, U_2)
+
+  hom_to_U_2_norm_coordinates = elem_type(OO(U_1_norm))[]
+  for a in hom_to_K_2.(coordinates(X_2_norm))
+    b_num = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(numerator(a))))
+    b_denom = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(denominator(a))))
+    # TODO remove check that b_denom is invertible
+    push!(hom_to_U_2_norm_coordinates, b_num * inv(b_denom))
+  end
+  hom_to_U_2_norm = morphism(U_1_norm, U_2_norm, hom_to_U_2_norm_coordinates)
+
+  hom_to_U_1_norm_coordinates = elem_type(OO(U_2_norm))[]
+  for a in hom_to_K_1.(coordinates(X_1_norm))
+    b_num = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(numerator(a))))
+    b_denom = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(denominator(a))))
+    # TODO remove check that b_denom is invertible
+    push!(hom_to_U_1_norm_coordinates, b_num * inv(b_denom))
+  end
+  hom_to_U_1_norm = morphism(U_2_norm, U_1_norm, hom_to_U_1_norm_coordinates)
+
+  return SimpleGluing(
+    X_1_norm,
+    X_2_norm,
+    hom_to_U_2_norm,
+    hom_to_U_1_norm;
+    check=true
+  )
+end
+
+# Warning: assume scheme reduced
+function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec)
+  A = OO(X)
+  A_norm = normalization(A; algorithm)
+  output = []
+  for (A_k, f_k, a_k) in A_norm
+    K = total_ring_of_fractions(X)
+    d_k = base_ring(K)(a_k[1])
+    # Workaround, normalization for rings buggy if already normal
+    if is_one(d_k)
+      X_k = X
+      F_k = identity_map(X)
+      homomorphism_to_K = hom(A_k, K, coordinates(X_k); check=true)
+      push!(output, (X_k, F_k, homomorphism_to_K))
+      continue
+    end
+    X_k = spec(A_k)
+    F_k = morphism(X_k, X, f_k; check=true)
+    homomorphism_to_K_coordinates = vcat(
+      [ K(base_ring(K)(g_k), d_k, true) for g_k in gens(a_k[2])[1:end-1] ],
+      gens(A),
+    )
+    homomorphism_to_K = hom(A_k, K, homomorphism_to_K_coordinates; check=true)
+    push!(output, (X_k, F_k, homomorphism_to_K))
+  end
+  return output
+end
+
+########################################################################
 # High level constructors of subschemes                                #
 ########################################################################
 
