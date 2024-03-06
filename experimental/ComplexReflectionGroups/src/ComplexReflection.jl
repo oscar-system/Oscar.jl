@@ -13,7 +13,6 @@ export is_complex_reflection_with_data
 export is_complex_reflection
 export is_root_of_unity_with_data
 export is_root_of_unity
-export is_complex_reflection_group
 export complex_reflections
 
 ###########################################################################################
