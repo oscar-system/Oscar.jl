@@ -155,7 +155,7 @@ function unitary_reflection(root::AbstractAlgebra.Generic.FreeModuleElem{T}, zet
         throw(ArgumentError("root needs to be nonzero."))
     end
 
-    conj = complex_conjugation2(K)
+    conj = complex_conjugation(K)
 
     coeff = (1-zeta)//scalar_product(root,root)
 
