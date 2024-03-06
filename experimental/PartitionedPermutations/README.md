@@ -27,7 +27,7 @@ We implemented the type `PartitionedPermutation` together with the following met
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* Björn Schäfer
-* Sebastian Volz
+* Björn Schäfer (bjoern.schaefer@stud.tu-darmstadt.de)
+* Sebastian Volz (s8sevolz@stud.uni-saarland.de)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
