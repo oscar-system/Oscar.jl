@@ -122,7 +122,7 @@ If you have used OSCAR in the preparation of a paper please cite it as described
     [OSCAR]
         OSCAR -- Open Source Computer Algebra Research system, Version 1.1.0-DEV, The OSCAR Team, 2024. (https://www.oscar-system.org)
     [OSCAR-book]
-        Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, The OSCAR book, 2024.
+        Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, The Computer Algebra System OSCAR: Algorithms and Examples, 2024.
 
 If you are using BibTeX, you can use the following BibTeX entries:
 
