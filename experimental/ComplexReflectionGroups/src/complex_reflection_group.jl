@@ -1843,6 +1843,29 @@ function complex_reflection_group_dual(W::MatrixGroup)
 
 end
 
+
+###########################################################################################
+# Checking if a matrix group is a complex reflection group.
+###########################################################################################
+function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldElem
+    if has_attribute(G, :is_complex_reflection_group)
+        return get_attribute(G, :is_complex_reflection_group)
+    end
+    
+    for g in gens(G)
+        if !is_complex_reflection(g)
+            set_attribute!(G, :is_complex_reflection_group, false)
+            return false
+        end
+    end
+
+    set_attribute!(G, :is_complex_reflection_group, true)
+    return true
+end
+
+###########################################################################################
+# Cartan matrix
+###########################################################################################
 function complex_reflection_group_cartan_matrix(W::MatrixGroup)
 
     if !is_complex_reflection_group(W)
@@ -1850,29 +1873,18 @@ function complex_reflection_group_cartan_matrix(W::MatrixGroup)
     end
 
     # We collect roots and coroots of the generators of W
-    gen_roots = []
-    gen_coroots = []
+    roots = []
+    coroots = []
 
-    # If reflections are assigned already, we take these roots and coroots
-    if has_attribute(W, :complex_reflections)
-        refls = collect(get_attribute(W, :complex_reflections))
-        for g in gens(W)
-            i = findfirst(w->matrix(w)==matrix(g), collect(refls))
-            push!(gen_roots, root(refls[i]))
-            push!(gen_coroots, coroot(refls[i]))
-        end
-    else
-    # Otherwise, we compute roots and coroots
-        for g in gens(W)
-            b,g_data = is_complex_reflection_with_data(g)
-            push!(gen_roots, root(g_data))
-            push!(gen_coroots, coroot(g_data))
-        end
+    for g in gens(W)
+        b,g_data = is_complex_reflection_with_data(g)
+        push!(roots, root(g_data))
+        push!(coroots, coroot(g_data))
     end
 
     K = base_ring(W)
-    n = length(gen_roots)
-    C = matrix(K,n,n,[ canonical_pairing(gen_coroots[j], gen_roots[i]) for i=1:n for j=1:n ]) 
+    n = length(roots)
+    C = matrix(K,n,n,[ canonical_pairing(coroots[j], roots[i]) for i=1:n for j=1:n ]) 
 
     return C
 end

@@ -3,6 +3,9 @@
 QQAlgField = Union{NumField, QQField, QQBarField, QQAbField}
 QQAlgFieldElem = Union{NumFieldElem, QQFieldElem, QQBarFieldElem, QQAbElem}
 
+include("dual_vector_space.jl")
+include("is_root_of_unity.jl")
+
 include("ComplexReflectionGroupType.jl")
 include("complex_reflection_group.jl")
 include("hermitian_things.jl")
