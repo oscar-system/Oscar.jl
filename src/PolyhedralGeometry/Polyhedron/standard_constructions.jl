@@ -242,13 +242,13 @@ Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
 icosahedron() = polyhedron(Polymake.polytope.icosahedron());
 
-const _johnson_names = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24,
-                                 25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
-                                 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
-                                 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-                                 61, 64, 68, 69, 70, 71, 72, 73, 74, 75,
-                                 77, 78, 79, 82, 84, 85, 86, 87, 88, 89,
-                                 90, 92])
+const _johnson_indexes_from_oscar = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24,
+                                              25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
+                                              41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+                                              51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+                                              61, 64, 68, 69, 70, 71, 72, 73, 74, 75,
+                                              77, 78, 79, 82, 84, 85, 86, 87, 88, 89,
+                                              90, 92])
 
 @doc raw"""
     johnson_solid(i::Int)
@@ -259,7 +259,7 @@ A Johnson solid is a 3-polytope whose facets are regular polygons, of various go
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
 function johnson_solid(index::Int)
-  if index in _johnson_names
+  if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/JohnsonSrc
     str_index = lpad(index, 2, '0')
