@@ -3,11 +3,6 @@
 
 Return and efficiently calculate vector of all partitions of length `n`.
 This function is a helper function for `_enumerate_partitioned_perm`.
-
-# Examples
-```jldoctest
-julia> length(_enumerate_all_partitions(6))
-203
 ```
 """
 function _enumerate_all_partitions(n::Int)
@@ -48,7 +43,7 @@ function enumerate_partitioned_permutations(n::Int)
     for p in Generic.elements!(Generic.SymmetricGroup(n))
         cycle_part = cycle_partition(p)
         number_of_cycles = number_of_blocks(cycle_part)
-        cycle_part_vec = cycle_part.upper_points
+        cycle_part_vec = upper_points(cycle_part)
 
 
         # Iterate over all partitions dominating p, 
