@@ -185,6 +185,15 @@ function descent_to(M::GModule, phi::Map)
 end
 
 
+function descent_to(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  success, N, psi = can_be_defined_over_with_data(M, phi)
+  success || error("Module cannot be written over $k")
+  return N
+end
+
+
 """
     descent_to_minimal_degree_field(M::GModule)
 
