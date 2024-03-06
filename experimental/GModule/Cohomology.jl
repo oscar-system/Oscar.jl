@@ -543,6 +543,10 @@ function Oscar.relations(F::FPGroup)
   return [(x, z) for x = R]
 end
 
+function Oscar.relators(F::PcGroup)
+  return [x[1] for x = relations(F)]
+end
+
 function Oscar.relations(G::PcGroup)
    # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
    Ggens = GAPWrap.GeneratorsOfGroup(G.X)
@@ -669,6 +673,7 @@ end
 (C::CoChain{1})(g::NTuple{1, <:Oscar.BasicGAPGroupElem}) = C(g[1])
 
 #should support lazy via call-back.
+#which should be used by default...
 """
 Evaluate a 2-cochain, a 2-cochain is a map from pairs of group elements
 into the module
@@ -1058,6 +1063,7 @@ UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
 almost the same as Holt
 =#
+#TODO: lazy = true, or even remove it
 function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = false)
   z = get_attribute(C, :H_two)
   if !redo && z !== nothing
@@ -2234,6 +2240,21 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
   return C, CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, c)
 end
 
+function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
+  G = GL(dim(F), base_ring(F))
+  return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
+                         x->hom(F, F, x.elm),
+                         y->G(matrix(y)))
+end
+
+function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+  return G(matrix(h))
+end
+
+function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+  return h*G
+end
+
 """
 Let C be a G-module with G action on M. Then this function find the
 subgroup of 'Aut(M) x Aut(G)' that is compatible with the G-module
@@ -2254,13 +2275,16 @@ function compatible_pairs(C::GModule)
 
   autG = automorphism_group(G)
   autM = automorphism_group(M)
+  if isa(autM, Tuple)
+    autM = autM[1]
+  end
 
   D, emb, pro = direct_product(autM, autG, morphisms = true)
 
   function action_on_chain(g::GAPGroupElem, c::CoChain{2, S, T}) where {S, T}
     al = pro[1](func(g)::elem_type(D))::elem_type(autM)
     ga = pro[2](func(g)::elem_type(D))::elem_type(autG)
-    if isdefined(C, :D)
+    if isdefined(c, :D)
       d = Dict{Tuple{S, S}, T}(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
       return CoChain{2, S, T}(C, d, ab->al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))))
     else
