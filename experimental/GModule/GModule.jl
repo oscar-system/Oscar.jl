@@ -42,7 +42,7 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
     m = collect(Hecke.coefficients(c))
     m = vcat(m, zeros(k, degree(h) - length(m)))
     r = m
-    for i=2:degree(h)
+    for i in 2:degree(h)
       c = shift_left(c, 1) % h
       m = collect(Hecke.coefficients(c))
       m = vcat(m, zeros(k, degree(h) - length(m)))
@@ -90,12 +90,12 @@ function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.F
   F = free_module(domain(phi), dim(M)*d)
   _, _, rep = relative_field(phi)
 
-  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x = transpose(matrix(y))]...)) for y = M.ac])
+  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x in transpose(matrix(y))]...)) for y in M.ac])
 end
 
 function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
-  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x in transpose(matrix(y))]...)) for y in C.ac])
 end
 
 
@@ -268,13 +268,13 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
     for X in res[sres:end]
       for p in lp
         F = free_module(GF(p), dim(M))
-        pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x = map(matrix, action(M))])
+        pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x in map(matrix, action(M))])
         S = maximal_submodule_bases(pM)
         pG = p.*gens(M.M)
-        for s = S
-          x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i=1:nrows(s)]))
+        for s in S
+          x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
 
-          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h = M.ac]), mx)
+          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h in M.ac]), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
