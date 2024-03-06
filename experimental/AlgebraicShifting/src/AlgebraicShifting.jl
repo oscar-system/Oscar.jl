@@ -151,7 +151,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex)
       # need to compare with some alternatives
       transformed_monomial = evaluate(b, Y * gens(Fyx))
       generic_col = collect(coefficients.(normal_form(transformed_monomial, I_K)))
-
+      println(generic_col)
       push!(A, generic_col)
     end
     
