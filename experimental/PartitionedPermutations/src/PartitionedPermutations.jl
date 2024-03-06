@@ -25,7 +25,8 @@ import Oscar:
     SetPartition,
     subsets,
     Generic,
-    size
+    size,
+    set_partition
 
 
 export PartitionedPermutation

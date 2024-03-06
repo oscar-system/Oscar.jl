@@ -21,7 +21,7 @@ struct PartitionedPermutation
     V::SetPartition
 
     function PartitionedPermutation(p::Perm{Int}, V::Vector{Int}; check::Bool=true)
-        _V = SetPartition(V, Int[])
+        _V = set_partition(V, Int[])
         if check
             @req parent(p).n == length(V) "permutation and partition must have the same length"
             @req is_dominated_by(cycle_partition(p), _V) "permutation must be dominated by partition"
