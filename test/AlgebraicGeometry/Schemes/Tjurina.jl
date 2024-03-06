@@ -228,4 +228,3 @@ end
   @test !is_contact_equivalent(L(x^9+y^2+z^2), L(x^3+y^5))
 end
 
-# @test_throws ErrorException("Ideal does not describe finite set of points") X1 = SpaceGerm(X,ideal(OO(X),[x-1,y-2,z-1]))

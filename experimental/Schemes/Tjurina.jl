@@ -39,12 +39,12 @@ julia> tjurina_algebra(f)
 Quotient
   of multivariate polynomial ring in 2 variables x, y
     over rational field
-  by ideal(x^3 - y^2, 3*x^2, -2*y)
+  by ideal (x^3 - y^2, 3*x^2, -2*y)
 ```
 """
 function tjurina_algebra(f::MPolyRingElem)
   R = parent(f)
-  return MPolyQuoRing(R, ideal(R, f) + jacobi_ideal(f))
+  return MPolyQuoRing(R, ideal(R, f) + jacobian_ideal(f))
 end
 
 
@@ -69,7 +69,7 @@ julia> tjurina_algebra(X)
 Quotient
   of multivariate polynomial ring in 2 variables x, y
     over rational field
-  by ideal(x^3 - y^2, 3*x^2, -2*y)
+  by ideal (x^3 - y^2, 3*x^2, -2*y)
 ```
 """
 function tjurina_algebra(X::AffineScheme{<:Field,<:MPolyQuoRing})
@@ -99,7 +99,7 @@ Localization
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(-x^3 + y^2, -3*x^2, 2*y)
+    by ideal (x^3 - y^2, 3*x^2, -2*y)
   at complement of maximal ideal of point (0, 0)
 ```
 """
@@ -133,16 +133,16 @@ julia> tjurina_algebra(L(x^3-y^2))
 Localization
   of quotient
     of multivariate polynomial ring in 2 variables x, y
-      over finite field of degree 1 over GF(2)
-    by ideal(x^3 + y^2, x^2, 0)
+      over prime field of characteristic 2
+    by ideal (x^3 + y^2, x^2, 0)
   at complement of maximal ideal of point (0, 0)
 
 julia> tjurina_algebra(L(x^3-y^2), 1)
 Localization
   of quotient
     of multivariate polynomial ring in 2 variables x, y
-      over finite field of degree 1 over GF(2)
-    by ideal(x^3 + y^2, x^3, 0, x^2*y, 0)
+      over prime field of characteristic 2
+    by ideal (x^3 + y^2, x^3, 0, x^2*y, 0)
   at complement of maximal ideal of point (0, 0)
 ```
 """
@@ -196,7 +196,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^3 - y^2)
+    by ideal (x^3 - y^2)
 
 julia> tjurina_number(X)
 2
@@ -535,7 +535,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
     I = m^2*J
   else  ## equivalence == :contact
     ord_f != 0 || return 0
-    I = m*a + m^2*jacobi_ideal(a)
+    I = m*a + m^2*jacobian_ideal(a)
   end
   G = standard_basis(I, ordering = negdeglex(parent(a)))
   h = Singular.highcorner(G.gens.S)
