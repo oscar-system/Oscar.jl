@@ -17,10 +17,10 @@ PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 """
 function *(pp_1::PartitionedPermutation, pp_2::PartitionedPermutation)
     # obtain the partitions and permutations from pp_1 and pp_2
-    V_1 = get_partition(pp_1)
-    V_2 = get_partition(pp_2)
-    p_1 = get_permutation(pp_1)
-    p_2 = get_permutation(pp_2) 
+    V_1 = partition(pp_1)
+    V_2 = partition(pp_2)
+    p_1 = permutation(pp_1)
+    p_2 = permutation(pp_2) 
 
     # compute the join of V_1 and V_2, the composition of p_1 and p_2
     W = join(V_1, V_2)
@@ -49,7 +49,7 @@ Set([(PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[])), Partition
 ```
 """
 function factorization_partitioned_permutation(pp::PartitionedPermutation)
-    size = length(upper_points(get_partition(pp)))
+    size = length(upper_points(partition(pp)))
 
     product_pairs = Set{Tuple{PartitionedPermutation, PartitionedPermutation}}()
     for pp_1 in enumerate_partitioned_permutations(size)

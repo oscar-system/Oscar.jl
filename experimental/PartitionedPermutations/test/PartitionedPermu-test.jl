@@ -1,7 +1,7 @@
 @testset "PartitionedPermutation" begin
     @testset "PartitionedPermutation Constructor" begin
-        @test get_permutation(partitioned_permutation(Perm([2, 1, 3, 4]), [1, 1, 2, 2])) == Perm([2, 1, 3, 4])
-        @test get_partition(partitioned_permutation(Perm([2, 1, 3, 4]), [1, 1, 2, 2])) == set_partition([1, 1, 2, 2], Int64[])
+        @test permutation(partitioned_permutation(Perm([2, 1, 3, 4]), [1, 1, 2, 2])) == Perm([2, 1, 3, 4])
+        @test partition(partitioned_permutation(Perm([2, 1, 3, 4]), [1, 1, 2, 2])) == set_partition([1, 1, 2, 2], Int64[])
 
         @test_throws ArgumentError partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2, 2])
         @test_throws ArgumentError partitioned_permutation(Perm([2, 1, 3, 4]), [1, 2, 3, 3])

@@ -2,7 +2,7 @@
     _enumerate_all_partitions(n::Int)
 
 Return and efficiently calculate vector of all partitions of length `n`.
-This function is a helper function for `_enumerate_partitioned_perm`.
+This function is a helper function for `enumerate_partitioned_permutations`.
 ```
 """
 function _enumerate_all_partitions(n::Int)

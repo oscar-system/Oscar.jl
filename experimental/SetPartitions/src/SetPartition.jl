@@ -406,26 +406,22 @@ function compose_count_loops(p::SetPartition, q::SetPartition)
 end
 
 """
-    number_of_blocks(V::SetPartition)
+    number_of_blocks(p::SetPartition)
 
-Return the number of blocks of a `SetPartition`.
+Return the number of blocks of a `p`.
 
 # Examples
 ```jldoctest
-julia> number_of_blocks(SetPartition([1, 2, 3], [2, 1, 3, 3]))
+julia> number_of_blocks(set_partition([1, 2, 3], [2, 1, 3, 3]))
 3
 ```
 """
-function number_of_blocks(V::SetPartition)
+function number_of_blocks(p::SetPartition)
     # obtain one vector describing the partition V
-    vec = vcat(upper_points(V), lower_points(V))
+    vec = vcat(upper_points(p), lower_points(p))
 
     # return the maximum number in vec
-    if length(vec) != 0
-        return maximum(vec)
-    else
-        return 0
-    end
+    maximum(vec; init=0)
 end
 
 """
@@ -436,7 +432,7 @@ is contained in exactly one block of `W`.
 
 # Examples
 ```jldoctest
-julia> is_dominated_by(SetPartition([1, 1, 2], [1, 2, 3]), SetPartition([1, 1, 2], [1, 2, 1]))
+julia> is_dominated_by(set_partition([1, 1, 2], [1, 2, 3]), set_partition([1, 1, 2], [1, 2, 1]))
 true
 ```
 """
