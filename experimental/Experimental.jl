@@ -57,6 +57,7 @@ include("Schemes/IdealSheaves.jl")
 include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
+include("Schemes/StructureSheaf.jl")
 
 include("Schemes/SimplifiedAffineScheme.jl")
 include("Schemes/CoherentSheaves.jl")
