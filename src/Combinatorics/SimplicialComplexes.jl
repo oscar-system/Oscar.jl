@@ -623,10 +623,11 @@ function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:Abstrac
 end
 
 @doc raw"""
-    automorphism_group(K::SimplicialComplex)
+    automorphism_group(K::SimplicialComplex; action=:on_vertices)
 
 Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
-The action of the group can be either on vertices or on the facets of `K`.
+The action of the group can be either on the vertices by passing `:on_vertices` to the
+`action` keyword argument or on the facets by passing `:on_facets`.
 
 # Examples
 ```jldoctest
