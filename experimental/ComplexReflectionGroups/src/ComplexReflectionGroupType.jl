@@ -18,7 +18,7 @@ export ComplexReflectionGroupType
 
 export complex_reflection_group_type
 export is_irreducible
-export is_exceptional
+#export is_exceptional
 export order
 export components
 export num_components
