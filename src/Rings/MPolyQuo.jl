@@ -1790,7 +1790,7 @@ function small_generating_set(I::MPolyQuoIdeal)
   # generating set.
   Q = base_ring(I)
   # Temporary workaround, see #3499
-  return filter!(!iszero, Q.(small_generating_set(saturated_ideal(I))))
+  return unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I)))))
 
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 
