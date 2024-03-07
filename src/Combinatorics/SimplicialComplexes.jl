@@ -661,3 +661,30 @@ function automorphism_group(K::SimplicialComplex; action=:on_vertices)
     error("unsupported keyword passed to action")
   end
 end
+
+@doc raw"""
+    on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+
+Given a simplicial complex `K` return the simplicial complex corresponding
+to a permutation on it's vertices given by `g`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> G = automorphism_group(K)
+Permutation group of degree 4
+
+julia> g = collect(G)[2]
+(1,5,4,2,3)
+
+julia> on_simplicial_complex(K, g)
+Abstract simplicial complex of dimension 2 on 5 vertices
+```
+"""
+function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+  @req order(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
+  new_facets = on_sets_sets(Set(facets(K)), g)
+  simplicial_complex(collect(new_facets))
+end

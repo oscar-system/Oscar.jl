@@ -1110,6 +1110,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_simplicial_complex
 export on_subgroups
 export on_tuples
 export one!
