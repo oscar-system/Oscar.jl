@@ -224,7 +224,7 @@ julia> I = ideal([x^3-y^2*z]);
 
 julia> Y = proj(P);
 
-julia> II = AbsIdealSheaf(Y, I);
+julia> II = IdealSheaf(Y, I);
 
 julia> R = ZZ;
 
@@ -265,7 +265,7 @@ julia> I = ideal([x^3-y^2*z]);
 
 julia> Y = proj(P);
 
-julia> II = AbsIdealSheaf(Y, I);
+julia> II = IdealSheaf(Y, I);
 
 julia> R = ZZ;
 
