@@ -282,6 +282,10 @@ function *(I::AbsIdealSheaf, J::AbsIdealSheaf)
   return IdealSheaf(X, new_dict, check=false)
 end
 
+function simplify(I::AbsIdealSheaf)
+  return SimplifiedIdealSheaf(I)
+end
+
 @doc raw"""
     simplify!(I::AbsIdealSheaf)
 
@@ -1028,13 +1032,19 @@ end
 
 radical(I::PrimeIdealSheafFromChart) = I
 
+# TODO: This function should be removed for ideal sheaves! 
+# Reason: There is no "generating set" for ideal sheaves and even if there was, 
+# this is not what the function returns. Whatever it is doing should probably 
+# be subsumed under `simplify` and `simlpify!`.
+# Why not remove it straight away? @afkafkafk13 is using it in the resolutions of singularities. 
+# We will talk about the removal on Monday, March 11, 2024.
 function small_generating_set(II::AbsIdealSheaf)
   X = scheme(II)
   # If there is a simplified covering, do the calculations there.
   covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
   ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(covering)
-    ID[U] = ideal(base_ring(II(U)),small_generating_set(saturated_ideal(II(U))))
+    ID[U] = ideal(OO(U), filter!(!iszero, OO(U).(small_generating_set(saturated_ideal(II(U))))))
   end
   return(IdealSheaf(X, ID, check = false))
 end
@@ -1289,13 +1299,13 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:AbsIdealShe
   return new_cov
 end
 
-@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(I::MPolyQuoLocalizedIdeal)
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyQuoLocalizedIdeal)
   L = base_ring(I)
   g = small_generating_set(saturated_ideal(I))
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
 end
 
-@attr Vector{<:MPolyLocRingElem} function small_generating_set(I::MPolyLocalizedIdeal)
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyLocalizedIdeal)
   L = base_ring(I)
   g = small_generating_set(saturated_ideal(I))
   return Vector{elem_type(L)}([gg for gg in L.(g) if !iszero(gg)])
@@ -1334,3 +1344,6 @@ function Base.:^(II::AbsIdealSheaf, k::IntegerUnion)
   r = k - b
   return II^b * II^r
 end
+
+original_chart(P::PrimeIdealSheafFromChart) = P.U
+
