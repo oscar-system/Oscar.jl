@@ -422,9 +422,9 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       d = 1 # only a lower bound is known
     end
     s = subfields(base_ring(V))
-    s = [x for x = s if degree(x[1]) >= d*degree(k)]
+    s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
-    for (m, mm) = s
+    for (m, mm) in s
       if m == base_ring(V)
         @vprint :MinField 1 "no smaller field possible\n"
         return V
