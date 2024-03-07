@@ -25,7 +25,7 @@ with restrictions
   4: ideal(x_2_4)
 ```
 """
-@attr IdealSheaf function ideal_sheaf(td::ToricDivisor)
+@attr AbsIdealSheaf function ideal_sheaf(td::ToricDivisor)
   @assert is_cartier(td) "ideal sheaf can only be generated if the divisor is cartier"
   X = toric_variety(td)
   if is_prime(td)
@@ -142,21 +142,14 @@ Theorem 3.2.6.
 function ideal_sheaf(X::NormalToricVariety, tau::Cone)
   @assert tau in fan(X) "cone must be in the fan of the variety"
   A = _to_matrix(rays(tau))
-  @show matrix(ZZ, rays(tau))
   A = matrix(ZZ, rays(tau))
   (r, K) = kernel(A)
-  @show K
-  @show typeof(K)
   w = _colum_vectors_to_rays(K)
-  @show w
   w = vcat(w, -w)
-  @show w
   # TODO: Can we use a direct command instead of this hack?
   tau_perp = positive_hull(w)
   # Maybe it's a mistake in the book and we really need the dual?
   #tau_perp = polarize(tau)
-  @show rays(tau_perp)
-  @show lineality_space(tau_perp)
   ideal_dict = IdDict{AbsAffineScheme, Ideal}()
   # We are using Equation (3.2.7) in CLS to determine the local 
   # form of the ideal.
@@ -164,7 +157,6 @@ function ideal_sheaf(X::NormalToricVariety, tau::Cone)
     cu = cone(U)
     cu_pol = weight_cone(U)
     inter = intersect(tau_perp, cu_pol)
-    @show rays(inter)
     @assert is_pointed(inter) "intersection must be a pointed cone"
     hb_inter = hilbert_basis(inter)
     if iszero(length(hb_inter))
@@ -172,23 +164,15 @@ function ideal_sheaf(X::NormalToricVariety, tau::Cone)
       #ideal_dict[U] = ideal(OO(U), elem_type(OO(U))[])
       continue
     end
-    @show hb_inter
     B = _to_integer_column_matrix(hb_inter)
     hb_cu_pol = hilbert_basis(cu_pol)
     A = _to_integer_column_matrix(hb_cu_pol)
     C = identity_matrix(ZZ, ncols(A))
-    @show A
-    @show B
-    @show C
     # For some reason `solve_mixed` returns the transpose of the actual solution, 
     # so we have to correct this.
     S = transpose(solve_mixed(ZZMatrix, A, B, C))
-    @show S
     x = gens(OO(U))
-    @show x
-    @show prod(x[i]^S[i, 1] for i in 1:length(x); init=one(OO(U)))
     g = elem_type(OO(U))[prod(x[i]^S[i, j] for i in 1:length(x); init=one(OO(U))) for j in 1:ncols(S)] # The generators of the ideal on U
-    @show g
     ideal_dict[U] = ideal(OO(U), g)
   end
   #return IdealSheaf(X, ideal_dict, check=true) #TODO: Set to false
