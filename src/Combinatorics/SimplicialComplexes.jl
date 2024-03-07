@@ -579,20 +579,19 @@ end
 ###############################################################################
 
 @doc raw"""
-     connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+    connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
 
-Compute the connected sum of two complexes. Parameters f1 and f2 specify which facet
+Compute the connected sum of two abstract simplicial complexes. Parameters `f1` and `f2` specify which facet
  of the first and second complex correspondingly are glued together. Default is the
 0-th facet of both. The vertices in the selected facets are identified with each
-other according to their order in the facet (that is, in icreasing index order).
+other according to their order in the facet (that is, in increasing index order).
 
 # Examples
 ```jldoctest
-julia> K1 = torus();
+julia> K = torus();
 
-julia> K2 = torus();
-
-julia> surface_genus_2 = connected(K1, K2)
+julia> surface_genus_2 = connected_sum(K, K)
+Abstract simplicial complex of dimension 2 on 11 vertices
 
 julia> homology(surface_genus_2, 1)
 Z^4
@@ -606,13 +605,13 @@ function connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, 
 end
 
 @doc raw"""
-     deletion(K::SimplicialComplex, face::Set{Int})
+    deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
 
-Remove the given face and all the faces containing it. 
+Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = simpicial_complex([[1, 2, 3], [2, 3, 4]]);
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
 
 julia> K_with_deletion = deletion(K, Set([1, 2]));
 
@@ -622,8 +621,37 @@ julia> facets(K_with_deletion)
  Set([4, 2, 3])
 ```
 """
-function deletion(K::SimplicialComplex, face::Set{Int})
-  pm_set = Polymake.convert_to_pm_type(Set{Int})
-  pm_face = convert(pm_set, Polymake.to_zero_based_indexing(face))
-  return SimplicialComplex(Polymake.topaz.deletion(Oscar.pm_object(K), pm_face))
+function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+  zero_based = Polymake.to_zero_based_indexing(face)
+  return SimplicialComplex(Polymake.topaz.deletion(pm_object(K), zero_based))
+end
+
+@doc raw"""
+    automorphism_group(K::SimplicialComplex)
+
+Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
+The action of the group can be either on vertices or on the facets of `K`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> automorphism_group(K; action=:on_vertices)
+Permutation group of degree 4
+
+julia> automorphism_group(K; action=:on_facets)
+Permutation group of degree 1
+```
+"""
+function automorphism_group(K::SimplicialComplex; action=:on_vertices)
+  I = minimal_nonfaces(IncidenceMatrix, K)
+
+  if action == :on_vertices
+    return automorphism_group(I; action=:on_cols)
+  end
+
+  if action == :on_facets
+    return automorphism_group(I; action=:on_rows)
+  end
 end

@@ -242,69 +242,13 @@ Construct the regular icosahedron, one out of two exceptional Platonic solids.
 """
 icosahedron() = polyhedron(Polymake.polytope.icosahedron());
 
-const _johnson_names = Dict{Int, String}((9 => "Johnson solid J9: Elongated pentagonal pyramid"),
-                                         (10 => "Johnson solid J10: Gyroelongated square pyramid"),
-                                         (13 => "Johnson solid J13: Pentagonal bipyramid"),
-                                         (16 => "Johnson solid J16: Elongated pentagonal bipyramid"),
-                                         (17 => "Johnson solid J17: Gyroelongated square bipyramid"),
-                                         (18 => "Johnson solid J18: Elongated triangular cupola"),
-                                         (20 => "Johnson solid J20: Elongated pentagonal cupola"),
-                                         (21 => "Johnson solid J21: Elongated pentagonal rotunda"),
-                                         (22 => "Johnson solid J22: Gyroelongated triangular cupola"),
-                                         (23 => "Johnson solid J23: Gyroelongated square cupola"),
-                                         (24 => "Johnson solid J24: Gyroelongated pentagonal cupola"),
-                                         (25 => "Johnson solid J25: Gyroelongated pentagonal rotunda"),
-                                         (30 => "Johnson solid J30: Pentagonal orthobicupola"),
-                                         (32 => "Johnson solid J32: Pentagonal orthocupolarotunda"),
-                                         (33 => "Johnson solid J33: Pentagonal gyrocupolarotunda"),
-                                         (34 => "Johnson solid J34: Pentagonal orthobirotunda"),
-                                         (35 => "Johnson solid J35: Elongated triangular orthobicupola"),
-                                         (36 => "Johnson solid J36: Elongated triangular gyrobicupola"),
-                                         (38 => "Johnson solid J38: Elongated pentagonal orthobicupola"),
-                                         (39 => "Johnson solid J39: Elongated pentagonal gyrobicupola"),
-                                         (40 => "Johnson solid J40: Elongated pentagonal orthocupolarotunda"),
-                                         (41 => "Johnson solid J41: Elongated pentagonal gyrocupolarotunda"),
-                                         (42 => "Johnson solid J42: Elongated pentagonal orthobirotunda"),
-                                         (43 => "Johnson solid J43: Elongated pentagonal gyrobirotunda"),
-                                         (44 => "Johnson solid J44: Gyroelongated triangular bicupola"),
-                                         (45 => "Johnson solid J45: Gyroelongated square bicupola"),
-                                         (46 => "Johnson solid J46: Gyroelongated pentagonal bicupola"),
-                                         (47 => "Johnson solid J47: Gyroelongated pentagonal cupolarotunda"),
-                                         (48 => "Johnson solid J48: Gyroelongated pentagonal birotunda"),
-                                         (49 => "Johnson solid J49: Augmented triangular prism"),
-                                         (50 => "Johnson solid J50: Biaugmented triangular prism"),
-                                         (51 => "Johnson solid J51: Triaugmented triangular prism"),
-                                         (52 => "Johnson solid J52: Augmented pentagonal prism"),
-                                         (53 => "Johnson solid J53: Biaugmented pentagonal prism"),
-                                         (54 => "Johnson solid J54: Augmented hexagonal prism"),
-                                         (55 => "Johnson solid J55: Parabiaugmented hexagonal prism"),
-                                         (56 => "Johnson solid J56: Metabiaugmented hexagonal prism"),
-                                         (57 => "Johnson solid J57: Triaugmented hexagonal prism"),
-                                         (58 => "Johnson solid J58: Augmented dodecahedron"),
-                                         (59 => "Johnson solid J59: Parabiaugmented dodecahedron"),
-                                         (60 => "Johnson solid J60: Metabiaugmented dodecahedron"),
-                                         (61 => "Johnson solid J61: Triaugmented dodecahedron"),
-                                         (64 => "Johnson solid J64: Augmented tridiminished icosahedron"),
-                                         (68 => "Johnson solid J68: Augmented truncated dodecahedron"),
-                                         (69 => "Johnson solid J69: Parabiaugmented truncated dodecahedron"),
-                                         (70 => "Johnson solid J70: Metabiaugmented truncated dodecahedron"),
-                                         (71 => "Johnson solid J71: Triaugmented truncated dodecahedron"),
-                                         (72 => "Johnson solid J72: Gyrate rhombicosidodecahedron"),
-                                         (73 => "Johnson solid J73: Parabigyrate rhombicosidodecahedron"),
-                                         (74 => "Johnson solid J74: Metabigyrate rhombicosidodecahedron"),
-                                         (75 => "Johnson solid J75: Trigyrate rhombicosidodecahedron"),
-                                         (77 => "Johnson solid J77: Paragyrate diminished rhombicosidodecahedron"),
-                                         (78 => "Johnson solid J78: Metagyrate diminished rhombicosidodecahedron"),
-                                         (79 => "Johnson solid J79: Bigyrate diminished rhombicosidodecahedron"),
-                                         (82 => "Johnson solid J82: Gyrate bidiminished rhombicosidodecahedron"),
-                                         (84 => "Johnson solid J84: Snub disphenoid"),
-                                         (85 => "Johnson solid J85: Snub square antiprism"),
-                                         (86 => "Johnson solid J86: Sphenocorona"),
-                                         (87 => "Johnson solid J87: Augmented sphenocorona"),
-                                         (88 => "Johnson solid J88: Sphenomegacorona"),
-                                         (89 => "Johnson solid J89: Hebesphenomegacorona"),
-                                         (90 => "Johnson solid J90: Disphenocingulum"),
-                                         (92 => "Johnson solid J92: Triangular hebesphenorotunda"))
+const _johnson_indexes_from_oscar = Set{Int}([9, 10, 13, 16, 17, 18, 20, 21, 22, 23, 24,
+                                              25, 30, 32, 33, 34, 35, 36, 38, 39, 40,
+                                              41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+                                              51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
+                                              61, 64, 68, 69, 70, 71, 72, 73, 74, 75,
+                                              77, 78, 79, 82, 84, 85, 86, 87, 88, 89,
+                                              90, 92])
 
 @doc raw"""
     johnson_solid(i::Int)
@@ -315,7 +259,7 @@ A Johnson solid is a 3-polytope whose facets are regular polygons, of various go
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
 """
 function johnson_solid(index::Int)
-  if haskey(_johnson_names, index)
+  if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/JohnsonSrc
     str_index = lpad(index, 2, '0')

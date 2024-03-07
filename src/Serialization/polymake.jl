@@ -126,6 +126,11 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
       end
     end
   end
+  description = Polymake.getdescription(bo)
+
+  if !isempty(description)
+    data["_description"] = String(description)
+  end
   data
 end
 
@@ -148,6 +153,10 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
       Polymake.take(obj, key_str, convert(Polymake.PolymakeType, v))
     end
   end
+  if haskey(dict, "_description")
+    Polymake.setdescription!(obj, dict["_description"])
+  end
+  return obj
 end
 
 function _dict_to_bigobject(dict::Dict{String, Any})
