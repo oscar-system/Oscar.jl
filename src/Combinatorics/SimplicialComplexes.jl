@@ -640,7 +640,7 @@ julia> automorphism_group(K; action=:on_facets)
 Permutation group of degree 1
 ```
 """
-function automorphism_group(K::SimplicialComplex; action=:on_vertices) 
+function automorphism_group(K::SimplicialComplex; action=:on_vertices)
   I = minimal_nonfaces(IncidenceMatrix, K)
 
   if action == :on_vertices
