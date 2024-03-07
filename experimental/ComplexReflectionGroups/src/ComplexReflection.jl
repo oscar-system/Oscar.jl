@@ -1,9 +1,11 @@
 export ComplexReflection
 export unitary_reflection
 export complex_reflection
-#export root #Already exported by LieAlgebras
 export root_line
 export root_line_inclusion
+#export coroot 
+#coroot is defined in experimental/LieAlgebras. Therefore we need to do:
+import Oscar.LieAlgebras: coroot
 export coroot_form
 export hyperplane
 export hyperplane_inclusion
@@ -14,6 +16,7 @@ export is_complex_reflection
 export is_root_of_unity_with_data
 export is_root_of_unity
 export complex_reflections
+
 
 ###########################################################################################
 # Structure for complex reflections
