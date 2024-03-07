@@ -141,6 +141,16 @@ end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
+
+   @testset "with prescribed minimal characteristic" begin
+     G0 = matrix_group(inputs[1])
+     G, g = Oscar.isomorphic_group_over_finite_field(G0)
+     @test characteristic(base_ring(G)) == 3
+     G7, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 7)
+     @test characteristic(base_ring(G7)) == 7
+     G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
+     @test G === G3
+   end
 end
 
 @testset "matrix group over QQBar" begin

@@ -22,7 +22,7 @@
     @test betti_number(BP2, 3) == 0
     @test betti_number(BP2, 4) == 1
     @test euler_characteristic(BP2) == 4
-    @test rank(picard_group(BP2)) == 2
+    @test torsion_free_rank(picard_group(BP2)) == 2
   end
 
   @testset "Trigger issue of PR3006" begin

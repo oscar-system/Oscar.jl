@@ -17,7 +17,7 @@ end
 ################################################################################
 
 # DK15, Algorithm 3.7.5
-function secondary_invariants_modular(RG::InvRing)
+function secondary_invariants_modular(RG::FinGroupInvarRing)
   Rgraded = polynomial_ring(RG)
   # We have to compute a lot with these polynomials and the grading only
   # gets in the way (one cannot ask for total_degree and even if one could
@@ -154,7 +154,7 @@ end
 ################################################################################
 
 # DK15, Algorithm 3.7.2 and Kin07, Section 4 "Improved new algorithm"
-function secondary_invariants_nonmodular(RG::InvRing)
+function secondary_invariants_nonmodular(RG::FinGroupInvarRing)
   @assert !is_modular(RG)
   Rext = polynomial_ring(RG)
   Rgraded = _internal_polynomial_ring(RG)
@@ -286,7 +286,7 @@ end
 #
 ################################################################################
 
-function _secondary_invariants(IR::InvRing)
+function _secondary_invariants(IR::FinGroupInvarRing)
   if isdefined(IR, :secondary)
     return nothing
   end
@@ -299,7 +299,7 @@ function _secondary_invariants(IR::InvRing)
 end
 
 @doc raw"""
-    secondary_invariants(IR::InvRing)
+    secondary_invariants(IR::FinGroupInvarRing)
 
 Return a system of secondary invariants for `IR` as a `Vector` sorted by
 increasing degree. The result is cached, so calling this function again 
@@ -332,13 +332,13 @@ julia> secondary_invariants(IR)
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
 """
-function secondary_invariants(IR::InvRing)
+function secondary_invariants(IR::FinGroupInvarRing)
   _secondary_invariants(IR)
   return copy(IR.secondary.invars)
 end
 
 @doc raw"""
-    irreducible_secondary_invariants(IR::InvRing)
+    irreducible_secondary_invariants(IR::FinGroupInvarRing)
 
 Return a system of irreducible secondary invariants for `IR` as a `Vector` sorted
 by increasing degree. The result is cached, so calling this function again will
@@ -387,7 +387,7 @@ julia> irreducible_secondary_invariants(IR)
  x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2
 ```
 """
-function irreducible_secondary_invariants(IR::InvRing)
+function irreducible_secondary_invariants(IR::FinGroupInvarRing)
   _secondary_invariants(IR)
   is_invars = elem_type(polynomial_ring(IR))[]
   for i = 1:length(IR.secondary.invars)
@@ -404,8 +404,8 @@ end
 
 # Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
 @doc raw"""
-    semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
-    relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+    semi_invariants(IR::FinGroupInvarRing, chi::GAPGroupClassFunction)
+    relative_invariants(IR::FinGroupInvarRing, chi::GAPGroupClassFunction)
 
 Given an irreducible character `chi` of the underlying group, return a system of
 semi-invariants (or relative invariants) with respect to `chi`.
@@ -436,7 +436,7 @@ julia> semi_invariants(RS2, chi)
 
 ```
 """
-function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
+function semi_invariants(RG::FinGroupInvarRing, chi::GAPGroupClassFunction)
   @assert is_zero(characteristic(coefficient_ring(RG)))
   @assert is_irreducible(chi)
 
@@ -494,4 +494,4 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
   return semi_invars
 end
 
-relative_invariants(RG::InvRing, chi::GAPGroupClassFunction) = semi_invariants(RG, chi)
+relative_invariants(RG::FinGroupInvarRing, chi::GAPGroupClassFunction) = semi_invariants(RG, chi)
