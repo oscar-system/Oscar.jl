@@ -1545,3 +1545,72 @@ function produce_object(I::SimplifiedIdealSheaf, U::AbsAffineScheme)
   return ideal(OO(U), small_generating_set(original_ideal_sheaf(I)(U)))
 end
 
+### PullbackIdealSheaf
+morphism(I::PullbackIdealSheaf) = I.f
+original_ideal_sheaf(I::PullbackIdealSheaf) = I.orig
+underlying_presheaf(I::PullbackIdealSheaf) = I.Ipre
+
+function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
+  f = morphism(I)
+  J = original_ideal_sheaf(I)
+  f_cov = covering_morphism(f)
+  dom = domain(f_cov)
+  X = scheme(I)
+
+  # The easy case: We can just pull back
+  if any(x->x===U, patches(dom))
+    f_loc = f_cov[U]
+    V = codomain(f_loc)
+    return pullback(f_loc)(original_ideal_sheaf(I)(V))
+  end
+
+  # We are in a chart below a patch in the domain covering
+  if has_ancestor(x->any(y->y===x, patches(dom)), U)
+    V = __find_chart(U, dom)
+    return OO(X)(V, U)(I(V))
+  end
+
+  # We are in some other branch.
+  V = __find_chart(U, default_covering(X))
+
+  if V === U
+    # Construct the ideal directly on the root
+    subs = AbsAffineScheme[V for V in patches(dom) if has_ancestor(x->x===U, V)]
+    length(subs) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+    # Just return the unit ideal so that the 
+    # associated subscheme is empty.
+    result = ideal(OO(U), one(OO(U)))
+    sub_surface = AbsAffineScheme[]
+    for V in subs
+      cut = false
+      while !cut
+        if V isa SimplifiedAffineScheme && original(V) !== U
+          V = original(V)
+          continue
+        end
+        if V isa PrincipalOpenSubset && ambient_scheme(V) !== U
+          V = ambient_scheme(V)
+          continue
+        end
+        cut = true
+      end
+      any(x->x===V, sub_surface) && continue
+      push!(sub_surface, V)
+    end
+
+    if any(x->(x isa SimplifiedAffineScheme), sub_surface)
+      i = findfirst(x->(x isa SimplifiedAffineScheme), sub_surface)
+      W = sub_surface[i]
+      _, g = identification_maps(W)
+      return ideal(OO(U), pullback(g).(gens(I(W))))
+    end
+
+    for VV in sub_surface
+      result = intersect(result, ideal(OO(U), gens(saturated_ideal(I(VV)))))
+    end
+    return result
+  end
+
+  # Infer the ideal from the root
+  return OO(X)(V, U)(I(V))
+end

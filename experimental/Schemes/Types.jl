@@ -394,3 +394,32 @@ end
   end
 end
 
+@attributes mutable struct PullbackIdealSheaf{SpaceType, OpenType, OutputType,
+                                              RestrictionType
+                                             } <: AbsIdealSheaf{
+                                                                SpaceType, OpenType,
+                                                                OutputType, RestrictionType
+                                                               }
+  f::AbsCoveredSchemeMorphism
+  orig::AbsIdealSheaf
+  Ipre::PreSheafOnScheme
+
+  function PullbackIdealSheaf(
+      f::AbsCoveredSchemeMorphism,
+      orig::AbsIdealSheaf
+    )
+    X = domain(f)
+    Y = codomain(f)
+    @assert Y === scheme(orig)
+
+    Ipre = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(f, orig, Ipre)
+    return I
+  end
+end
+
+
