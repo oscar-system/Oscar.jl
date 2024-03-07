@@ -141,8 +141,6 @@ function betti_table(C::AbsHyperComplex;
     upper_bound::Union{Int, Nothing}=(has_upper_bound(C) ? Oscar.upper_bound(C) : nothing),
     project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false
   )
-  @show upper_bound
-  @show lower_bound
   @assert dim(C) == 1 "complex must be one-dimensional"
   @assert lower_bound !== nothing && upper_bound !== nothing "explicit bounds must be known"
   @assert direction(C, 1) == :chain "only implemented for chain complexes"
