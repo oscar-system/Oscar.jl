@@ -69,9 +69,9 @@
   @testset "automorphism groups" begin
     K = simplicial_complex([[1, 2], [2, 3]])
     G = automorphism_group(K)
-    @test G == permutation_group(3, [cperm([1, 3])])
+    @test G == permutation_group(3, cperm.([[1, 2, 3], [1, 3, 2]]))
 
     G = automorphism_group(K; action=:on_facets)
-    @test is_trivial(G)
+    @test G == permutation_group(2, [cperm([1, 2])])
   end
 end
