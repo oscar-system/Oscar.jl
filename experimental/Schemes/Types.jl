@@ -592,6 +592,7 @@ end
     V = __find_chart(U, default_covering(X))
 
     function prod_fun(F::AbsPreSheaf, U2::AbsAffineScheme)
+      # we are in the same ancestor tree, but on top of the defining chart
       if has_ancestor(x->(x===U2), U)
         iso = _flatten_open_subscheme(U, U2)
         iso_inv = inverse(iso)
@@ -599,10 +600,14 @@ end
         return ideal(OO(U2), [g for g in OO(U2).(gens(saturated_ideal(pb_P))) if !iszero(g)])
       end
 
+      # we are in the same ancestor tree, but somewhere else;
+      # reconstruct from the root
       if has_ancestor(x->(x===V), U2)
         return OOX(V, U2)(F(V))
       end
 
+      # we are in a different tree;
+      # reconstruct from that root
       V2 = __find_chart(U2, default_covering(X))
       if haskey(object_cache(F), V2) && V2 !== U2
         return OOX(V2, U2)(F(V2))
@@ -639,7 +644,7 @@ end
         end
       end
       # If nothing pulls back to this chart, the ideal sheaf is trivial here.
-      return ideal(OO(V2), one(OO(V2)))
+      return ideal(OO(U2), one(OO(U2)))
     end
 
     function res_fun(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
@@ -756,7 +761,7 @@ end
                       RestrictionType=Map,
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
-    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(I1, I2, Ipre)
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(orig, Ipre)
     return I
   end
 end
