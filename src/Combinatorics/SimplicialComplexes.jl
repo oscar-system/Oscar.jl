@@ -621,3 +621,33 @@ function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:Abstrac
   zero_based = Polymake.to_zero_based_indexing(face)
   return SimplicialComplex(Polymake.topaz.deletion(pm_object(K), zero_based))
 end
+
+@doc raw"""
+    automorphism_group(K::SimplicialComplex)
+
+Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
+The action of the group can be either on vertices or on the facets of `K`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> automorphism_group(K; action=:on_vertices)
+Permutation group of degree 4
+
+julia> automorphism_group(K; action=:on_facets)
+Permutation group of degree 1
+```
+"""
+function automorphism_group(K::SimplicialComplex; action=:on_vertices) 
+  I = minimal_nonfaces(IncidenceMatrix, K)
+
+  if action == :on_vertices
+    return automorphism_group(I; action=:on_cols)
+  end
+
+  if action == :on_facets
+    return automorphism_group(I; action=:on_rows)
+  end
+end
