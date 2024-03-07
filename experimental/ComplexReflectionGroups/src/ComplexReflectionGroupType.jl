@@ -36,10 +36,10 @@ export is_coxeter_group
 export is_rational
 export is_weyl_group
 export coxeter_number
-export is_shephard_group
+#export is_shephard_group
 export is_spetsial
 export num_reflection_classes
-export field_of_definition
+#export field_of_definition
 
 struct ComplexReflectionGroupType
     type::Vector{Union{Int, Tuple{Int,Int,Int}}}
@@ -623,58 +623,58 @@ function center(G::ComplexReflectionGroupType)
 
 end
 
-function field_of_definition(G::ComplexReflectionGroupType)
-    # Reference is Geck & Malle (2006)
+# function field_of_definition(G::ComplexReflectionGroupType)
+#     # Reference is Geck & Malle (2006)
 
-    fields = Field[]
+#     fields = Field[]
 
-    for t in G.type
-        if isa(t, Int)
-            i = t
-            if i == 4
-                K,z = cyclotomic_field(3)
-            elseif i == 5
-                K,z = cyclotomic_field(3)
-            elseif i == 6
-                K,z = cyclotomic_field(12)
-            elseif i == 7
-                K,z = cyclotomic_field(12)
-            elseif i == 8
-                K,z = cyclotomic_field(4)
-            elseif i == 9
-                K,z = cyclotomic_field(8)
-            elseif i == 10
-                K,z = cyclotomic_field(12)
-            elseif i == 11
-                K,z = cyclotomic_field(24)
-            elseif i == 12
-                R,X = polynomial_ring(QQ, "X")
-                f = X^2 + 2
-                K,z = number_field(f)
-            elseif i == 13
-                K,z = cyclotomic_field(8)
-            elseif i == 14
-                R,X = polynomial_ring(QQ, "X")
-                f1 = X^3 - 1
-                f2 = X^2 + 2
-                K,(a,b) = number_field([f1,f2])
-            else
-                nothing #Not finished yet!
-            end
-            push!(fields, K)
-        else
-            m = ZZ(t[1])
-            p = ZZ(t[2])
-            n = ZZ(t[3])
-        end
-    end
+#     for t in G.type
+#         if isa(t, Int)
+#             i = t
+#             if i == 4
+#                 K,z = cyclotomic_field(3)
+#             elseif i == 5
+#                 K,z = cyclotomic_field(3)
+#             elseif i == 6
+#                 K,z = cyclotomic_field(12)
+#             elseif i == 7
+#                 K,z = cyclotomic_field(12)
+#             elseif i == 8
+#                 K,z = cyclotomic_field(4)
+#             elseif i == 9
+#                 K,z = cyclotomic_field(8)
+#             elseif i == 10
+#                 K,z = cyclotomic_field(12)
+#             elseif i == 11
+#                 K,z = cyclotomic_field(24)
+#             elseif i == 12
+#                 R,X = polynomial_ring(QQ, "X")
+#                 f = X^2 + 2
+#                 K,z = number_field(f)
+#             elseif i == 13
+#                 K,z = cyclotomic_field(8)
+#             elseif i == 14
+#                 R,X = polynomial_ring(QQ, "X")
+#                 f1 = X^3 - 1
+#                 f2 = X^2 + 2
+#                 K,(a,b) = number_field([f1,f2])
+#             else
+#                 nothing #Not finished yet!
+#             end
+#             push!(fields, K)
+#         else
+#             m = ZZ(t[1])
+#             p = ZZ(t[2])
+#             n = ZZ(t[3])
+#         end
+#     end
 
-    if length(fields) == 1
-        return fields[1]
-    else
-        println(fields)
-        # From Lars Göttgens
-        return reduce(compositum, fields; init=rationals_as_number_field()[1])[1]
-    end
+#     if length(fields) == 1
+#         return fields[1]
+#     else
+#         println(fields)
+#         # From Lars Göttgens
+#         return reduce(compositum, fields; init=rationals_as_number_field()[1])[1]
+#     end
 
-end
+# end
