@@ -71,6 +71,10 @@
     G = automorphism_group(K)
     @test G == permutation_group(3, cperm.([[1, 2, 3], [1, 3, 2]]))
 
+    g = collect(G)[2]
+    G_K = on_simplicial_complex(K, g)
+    @test facets(simplicial_complex([[1, 3], [2, 3]])) == facets(G_K)
+    
     G = automorphism_group(K; action=:on_facets)
     @test G == permutation_group(2, [cperm([1, 2])])
   end
