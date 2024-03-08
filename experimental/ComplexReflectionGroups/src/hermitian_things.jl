@@ -59,7 +59,7 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
     # create the conjugate transpose of M
     K = base_ring(M)
     n = ncols(M)
-    
+
     conj = complex_conjugation(K)
     Mct = transpose(map_entries(conj, M))
 
