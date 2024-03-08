@@ -18,6 +18,8 @@ complex_conjugation(K::QQAbField) = conj
 ###########################################################################################
 function scalar_product(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: QQAlgFieldElem
 
+  @req parent(v) === parent(w) "Incompatible vector spaces"
+  
   V = parent(v)
   K = base_ring(V)
   n = dim(V)
