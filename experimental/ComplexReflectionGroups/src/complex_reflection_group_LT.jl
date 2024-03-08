@@ -9,13 +9,13 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-    r1prime = ω//2 * matspace(K[-1-i -1+i ; 1+i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1prime = omega//2 * matspace(K[-1-i -1+i ; 1+i -1+i])
 
     push!(gens, transpose(r1))
     push!(gens, transpose(r1prime))
@@ -27,13 +27,13 @@ function complex_reflection_group_LT(n::Int)
      R,x = polynomial_ring(QQ)
      K,i = number_field(x^2+1, "i")
      R,x = polynomial_ring(K)
-     K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+     K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
      i = K(i)
      matspace = matrix_space(K, 2, 2)
      gens = elem_type(matspace)[]
 
-     r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-     r2prime = ω//2 * matspace(K[-1+i 1-i ; -1-i -1-i])
+     r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+     r2prime = omega//2 * matspace(K[-1+i 1-i ; -1-i -1-i])
 
      push!(gens, transpose(r1))
      push!(gens, transpose(r2prime))
@@ -45,13 +45,13 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
   
     push!(gens, transpose(r))
     push!(gens, transpose(r1))
@@ -63,14 +63,14 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-    r2 = ω//2 * matspace(K[-1+i -1+i ; 1+i -1-i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r2 = omega//2 * matspace(K[-1+i -1+i ; 1+i -1-i])
   
     push!(gens, transpose(r))
     push!(gens, transpose(r1))
@@ -98,7 +98,7 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
@@ -116,12 +116,12 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r4prime = 1//2 * matspace(K[1+i -1+i ; -1+i 1+i])
   
     push!(gens, transpose(r1))
@@ -134,15 +134,15 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
-    ω = K(ω)
+    omega = K(omega)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
     r4 = matspace(K[1 0 ; 0 i])
 
@@ -157,7 +157,7 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
@@ -177,7 +177,7 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
@@ -197,15 +197,15 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
-    ω = K(ω)
+    omega = K(omega)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r3prime = 1//sqrt2 * matspace(K[1 1 ; 1 -1])
 
     push!(gens, transpose(r1))
@@ -218,16 +218,16 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is primitive 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is primitive 3rd root of unity
     R,x = polynomial_ring(K)
-    K,sqrt2 = number_field(x^2-2, "√2")
+    K,sqrt2 = number_field(x^2-2, is_unicode_allowed() ? "√2" : "sqrt2")
     i = K(i)
-    ω = K(ω)
+    omega = K(omega)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
     r3 = 1//sqrt2 * matspace(K[1 -1 ; -1 -1])
 
     push!(gens, transpose(r))
@@ -241,17 +241,17 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+    K,zeta = number_field(x^2 + (-tau + 1)*x + 1, is_unicode_allowed() ? "ζ" : "zeta") #zeta is prim 5th root of uni
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
-    r5prime = -ζ^2//2 * matspace(K[τ-i -τ+1 ; τ-1 τ+i])
+    r5 = zeta^2//2 * matspace(K[-tau+i -tau+1 ; tau-1 -tau-i])
+    r5prime = -zeta^2//2 * matspace(K[tau-i -tau+1 ; tau-1 tau+i])
 
     push!(gens, transpose(r5))
     push!(gens, transpose(r5prime))
@@ -263,16 +263,16 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+    K,zeta = number_field(x^2 + (-tau + 1)*x + 1, is_unicode_allowed() ? "ζ" : "zeta") #zeta is prim 5th root of uni
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
+    r5 = zeta^2//2 * matspace(K[-tau+i -tau+1 ; tau-1 -tau-i])
     r = matspace(K[1 0 ; 0 -1])
 
     push!(gens, transpose(r5))
@@ -285,22 +285,22 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+    K,zeta = number_field(x^2 + (-tau + 1)*x + 1, is_unicode_allowed() ? "ζ" : "zeta") #zeta is prim 5th root of uni
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is prim 3rd root of unity
     i = K(i)
-    τ = K(τ)
-    ζ = K(ζ)
+    tau = K(tau)
+    zeta = K(zeta)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-    r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r5 = zeta^2//2 * matspace(K[-tau+i -tau+1 ; tau-1 -tau-i])
 
     push!(gens, transpose(r1^2))
     push!(gens, transpose(r5))
@@ -312,23 +312,23 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ζ = number_field(x^2 + (-τ + 1)*x + 1, "ζ") #ζ is prim 5th root of uni
+    K,zeta = number_field(x^2 + (-tau + 1)*x + 1, is_unicode_allowed() ? "ζ" : "zeta") #zeta is prim 5th root of uni
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is prim 3rd root of unity
     i = K(i)
-    τ = K(τ)
-    ζ = K(ζ)
+    tau = K(tau)
+    zeta = K(zeta)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-    r5 = ζ^2//2 * matspace(K[-τ+i -τ+1 ; τ-1 -τ-i])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r5 = zeta^2//2 * matspace(K[-tau+i -tau+1 ; tau-1 -tau-i])
 
     push!(gens, transpose(r))
     push!(gens, transpose(r1))
@@ -341,17 +341,17 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is prim 3rd root of unity
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
-    r1 = ω//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
-    r1primeprime = ω//2 * matspace(K[-τ*i-1 (-τ+1)*i ; (-τ+1)*i τ*i-1])
+    r1 = omega//2 * matspace(K[-1-i 1-i ; -1-i -1+i])
+    r1primeprime = omega//2 * matspace(K[-tau*i-1 (-tau+1)*i ; (-tau+1)*i tau*i-1])
 
     push!(gens, transpose(r1))
     push!(gens, transpose(r1primeprime))
@@ -363,17 +363,17 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     R,x = polynomial_ring(K)
-    K,ω = number_field(x^2+x+1, "ω") #ω is prim 3rd root of unity
+    K,omega = number_field(x^2+x+1, is_unicode_allowed() ? "ω" : "omega") #omega is prim 3rd root of unity
     i = K(i)
-    τ = K(τ)
+    tau = K(tau)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
-    r1primeprime = ω//2 * matspace(K[-τ*i-1 (-τ+1)*i ; (-τ+1)*i τ*i-1])
+    r1primeprime = omega//2 * matspace(K[-tau*i-1 (-tau+1)*i ; (-tau+1)*i tau*i-1])
 
     push!(gens, transpose(r))
     push!(gens, transpose(r1primeprime))
@@ -385,14 +385,14 @@ function complex_reflection_group_LT(n::Int)
     R,x = polynomial_ring(QQ)
     K,i = number_field(x^2+1, "i")
     R,x = polynomial_ring(K)
-    K,τ = number_field(x^2-x-1, "τ") #τ is golden ratio
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau") #tau is golden ratio
     i = K(i)
     matspace = matrix_space(K, 2, 2)
     gens = elem_type(matspace)[]
 
     r = matspace(K[1 0 ; 0 -1])
     rprime = matspace(K[0 1 ; 1 0])
-    rprimeprime = 1//2 * matspace(K[τ (τ-1)*i+1 ; (-τ+1)*i+1 -τ])
+    rprimeprime = 1//2 * matspace(K[tau (tau-1)*i+1 ; (-tau+1)*i+1 -tau])
 
     push!(gens, transpose(r))
     push!(gens, transpose(rprime))
@@ -404,7 +404,7 @@ function complex_reflection_group_LT(n::Int)
     # See Lehrer & Taylor (2009), page 110
     # This group is realized by the line system H3
     R,x = polynomial_ring(QQ)
-    K,τ = number_field(x^2-x-1, "τ")
+    K,tau = number_field(x^2-x-1, is_unicode_allowed() ? "τ" : "tau")
     V = vector_space(K,3)
     matspace = matrix_space(K, 3, 3)
 
@@ -415,10 +415,10 @@ function complex_reflection_group_LT(n::Int)
     push!(cycshift, matrix(K,3,3,[0 0 1; 1 0 0; 0 1 0])) #(3 1 2) 
 
     lines = [V([1,0,0])*A for A in cycshift]
-    lines = vcat(lines, [1//2*V([K(1),τ,τ^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),τ,-τ^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),-τ,τ^-1])*A for A in cycshift])
-    lines = vcat(lines, [1//2*V([K(1),-τ,-τ^-1])*A for A in cycshift])
+    lines = vcat(lines, [1//2*V([K(1),tau,tau^-1])*A for A in cycshift])
+    lines = vcat(lines, [1//2*V([K(1),tau,-tau^-1])*A for A in cycshift])
+    lines = vcat(lines, [1//2*V([K(1),-tau,tau^-1])*A for A in cycshift])
+    lines = vcat(lines, [1//2*V([K(1),-tau,-tau^-1])*A for A in cycshift])
 
     refls = Set([unitary_reflection(l) for l in lines])
 
@@ -426,7 +426,7 @@ function complex_reflection_group_LT(n::Int)
     # Theorem 8.10 (page 144). 
     # The line system H3 is the star-closure of the following lines.
     a = V([0,1,0])
-    b = 1//2*V([K(1),τ,τ^-1])
+    b = 1//2*V([K(1),tau,tau^-1])
     p = V([1,0,0])  
 
     # Now, create the corresponding generators
