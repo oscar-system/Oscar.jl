@@ -185,14 +185,20 @@ end
 # Oscar.normalization(X)
 
 # Warning: assume scheme integral
-function normalization(X::AbsCoveredScheme)
-  X_norm = normalization(X.coverings[1])
-  return CoveredScheme(X_norm[1]), X_norm[2]
+function normalization(X::AbsCoveredScheme; check::Bool=true)
+  orig_cov = default_covering(X)
+  if has_attribute(X, :simplified_covering)
+    orig_cov = simplified_covering(X)
+  end
+  X_norm_cov, pr_cov = normalization(orig_cov; check)
+  Y = CoveredScheme(X_norm_cov)
+  pr = CoveredSchemeMorphism(Y, X, pr_cov)
+  return Y, pr
 end
 
 # Warning: assume scheme integral
-function normalization(C::Covering)
-  X_i_norm_outputs = _normalization.(patches(C))
+function normalization(C::Covering; check::Bool=true)
+  X_i_norm_outputs = [_normalization(U; check) for U in patches(C)]
   C_norm = Covering(first.(first.(X_i_norm_outputs)))
   n = n_patches(C_norm)
   for i in 1:n
@@ -208,14 +214,38 @@ function normalization(C::Covering)
   return C_norm, normalization_map
 end
 
+struct NormalizationGluingData
+  original_gluing::AbsGluing
+  norm_output1 # TODO: Add some types here?
+  norm_output2
+  check::Bool
+end
+
+function _normalization(
+    G::AbsGluing,
+    X_1_norm_output, # output of _normalization
+    X_2_norm_output; # output of _normalization
+    check::Bool=true
+  )
+  data = NormalizationGluingData(G, X_1_norm_output, X_2_norm_output, check)
+  X, Y = patches(G)
+  return LazyGluing(X, Y, _compute_normalization, data)
+end
+
 # Warning: assume patches irreducible
 # Input is gluing of X_1 and X_2 and the output of the _normalization
 # function of X_1 and X_2
-function _normalization(
-  G::SimpleGluing,
-  X_1_norm_output,
-  X_2_norm_output,
-)
+function _compute_normalization(
+    data::NormalizationGluingData
+  )
+  # Initialize the variables
+  G = data.original_gluing
+  X_1_norm_output = data.norm_output1
+  X_2_norm_output = data.norm_output2
+  check = data.check
+
+  A, B = patches(G)
+  @check is_integral(A) && is_integral(B) "schemes must be integral"
   (X_1_norm, F_1, hom_to_K_1) = X_1_norm_output
   (X_2_norm, F_2, hom_to_K_2) = X_2_norm_output
   X_1, X_2 = patches(G)
@@ -262,14 +292,31 @@ function _normalization(
   )
 end
 
+# Todo: Normalizations of localizations
+#function _normalization(X::AbsAffineScheme{<:Field, <:MPolyLocRing}; algorithm=:equidimDec)
+#  L = OO(X)
+#  R = base_ring(L)
+#  Y, phi, loc = _normalization(spec(R))[1]
+#end
+
+function _normalization(X::AbsAffineScheme{<:Field, <:MPolyRing}; algorithm=:equidimDec, check::Bool=true)
+  R = OO(X)
+  K = total_ring_of_fractions(R)
+  Y = spec(R)
+  phi = morphism(Y, X, gens(OO(X)); check=false)
+  loc = hom(R, K, [K(x, one(R), true) for x in gens(R)])
+  return [(X, phi, loc)]
+end
+
 # Warning: assume scheme reduced
-function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec)
+function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec, check::Bool=true)
+  @check is_integral(X)
   A = OO(X)
   A_norm = normalization(A; algorithm)
-  output = []
+  output = Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}[]
   for (A_k, f_k, a_k) in A_norm
     K = total_ring_of_fractions(X)
-    d_k = base_ring(K)(a_k[1])
+    d_k = base_ring(K)(a_k[1]) # An element so that 1/(d_k) J_k = A_k; J_k = d_k[2]
     # Workaround, normalization for rings buggy if already normal
     if is_one(d_k)
       X_k = X
@@ -279,12 +326,12 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:
       continue
     end
     X_k = spec(A_k)
-    F_k = morphism(X_k, X, f_k; check=true)
+    F_k = morphism(X_k, X, f_k; check=true) # Set to false after testing
     homomorphism_to_K_coordinates = vcat(
       [ K(base_ring(K)(g_k), d_k, true) for g_k in gens(a_k[2])[1:end-1] ],
       gens(A),
     )
-    homomorphism_to_K = hom(A_k, K, homomorphism_to_K_coordinates; check=true)
+    homomorphism_to_K = hom(A_k, K, homomorphism_to_K_coordinates; check=true) # Set to false after testing
     push!(output, (X_k, F_k, homomorphism_to_K))
   end
   return output
