@@ -2,8 +2,6 @@
 #
 # Ulrich Thiel, 2024
 
-export symplectic_reflection_group
-export is_symplectic_reflection_group
 
 function symplectic_reflection_group(W::MatrixGroup)
 

@@ -3,8 +3,6 @@
 
 # Ulrich Thiel, 2024
 
-export is_unitary
-export is_orthogonal
 
 
 ###########################################################################################
@@ -59,12 +57,12 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
     end
 
     # create the conjugate transpose of M
-    conj = complex_conjugation(K)
-    Mct = transpose(map_entries(conj, M))
-
     K = base_ring(M)
     n = ncols(M)
     
+    conj = complex_conjugation(K)
+    Mct = transpose(map_entries(conj, M))
+
     return M*Mct == identity_matrix(K,n)
 
 end

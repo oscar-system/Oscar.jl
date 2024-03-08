@@ -14,32 +14,6 @@
 #
 # Ulrich Thiel, 2023 
 
-export ComplexReflectionGroupType
-
-export complex_reflection_group_type
-export is_irreducible
-#export is_exceptional
-export order
-export components
-export num_components
-export is_imprimitive
-export is_primitive
-export num_reflections
-export is_well_generated
-export is_pseudo_real
-export degrees
-export codegrees
-export coexponents
-export num_hyperplanes
-export is_real
-export is_coxeter_group
-export is_rational
-export is_weyl_group
-export coxeter_number
-#export is_shephard_group
-export is_spetsial
-export num_reflection_classes
-#export field_of_definition
 
 struct ComplexReflectionGroupType
     type::Vector{Union{Int, Tuple{Int,Int,Int}}}

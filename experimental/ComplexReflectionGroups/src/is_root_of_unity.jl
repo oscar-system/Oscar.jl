@@ -3,8 +3,6 @@
 #
 # Ulrich Thiel, 2024
 
-export is_root_of_unity_with_data
-export is_root_of_unity
 
 function is_root_of_unity_with_data(x::QQFieldElem)
 
