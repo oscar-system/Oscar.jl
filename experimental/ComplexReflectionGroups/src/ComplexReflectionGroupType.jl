@@ -14,7 +14,6 @@
 #
 # Ulrich Thiel, 2023 
 
-
 struct ComplexReflectionGroupType
     type::Vector{Union{Int, Tuple{Int,Int,Int}}}
 
@@ -77,7 +76,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::ComplexReflectionGroupType)
     end
     for t in G.type
         print(io,"G")
-        if isa(t, Int) == 1
+        if isa(t, Int)
             print(io,t)
         else
             print(io, "(", t[1], ",", t[2], ",", t[3], ")")
@@ -425,7 +424,7 @@ function is_pseudo_real(G::ComplexReflectionGroupType)
     excpreal = [ 12, 13, 22, 23, 24, 27, 28, 29, 30, 31, 33, 34, 35, 36, 37 ]
 
     for t in G.type
-        if isa(t, Int) == 1
+        if isa(t, Int)
             if !(t in excpreal)
                 return false
             end
