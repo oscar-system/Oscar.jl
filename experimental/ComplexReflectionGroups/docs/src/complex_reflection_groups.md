@@ -43,7 +43,7 @@ $$V = \mathrm{Ker}(1-g) \oplus \mathrm{Im}(1-g)^\perp \;.$$
 Since $\mathrm{Ker}(1-g)$ is a hyperplane, the complement $\mathrm{Im}(1-g)$ is a line. A
 non-zero element $\alpha$ on this line is called a **root** of $g$. A root is unique up to
 multiplication with a non-zero scalar. We then have $g \alpha = \zeta \alpha$ for some
-primitive $m$-throot of unity $\zeta$, where $m$ is the order of $g$.
+primitive $m$-th root of unity $\zeta$, where $m$ is the order of $g$.
 
 Let $V^*$ be the dual space of $V$ and let $\langle \cdot, \cdot \rangle \colon V^* \times
 V$ be the canonical pairing $\langle \varphi,v \rangle = \varphi(v)$. Since this pairing is
@@ -143,7 +143,7 @@ julia> fundamental_invariants(IR)
 
 One feature of our implementation is that we explicitly support *different models*. The
 reason is that different models may have different properties. For example, note that in the
-above example the first fundamental invariant has a coefficient in which $\omega$ occurrs,
+above example the first fundamental invariant has a coefficient in which $\omega$ occurs,
 so it is not defined over the rational numbers. It is somewhat surprising and astonishing
 that it has been proven by Marin & Michel [MM10](@cite) that there always exists a model
 having the property that they have a system of fundamental invariants defined over the
