@@ -1,0 +1,308 @@
+# the bijection between the cycles of the bot/top permutation
+# is given implicitly by using lists and considering the order
+# of the cycles
+struct CylinderDiagram
+    bot::Vector{Vector{Int64}}
+    top::Vector{Vector{Int64}}
+    cycles_count::Int64
+    separatrix_count::Int64
+    function CylinderDiagram(bot, top)
+        max = 1;
+        for cycle in bot
+            for i in cycle
+                if(i > max)
+                    max = i
+                end
+            end
+        end
+        new(bot, top, length(bot), max + 1)
+    end
+end
+
+function cylinders(cylinder_diagram)
+    result = Vector{Vector{Vector{Int64}}}()
+    for i in 1:cylinder_diagram.cycles_count
+        push!(result, [cylinder_diagram.bot[i], cylinder_diagram.top[i]])
+    end
+    return result
+end
+
+# computes the system of equations whose solutions are the realizable cylinder
+# coordinates
+function system_of_equations(cylinder_diagram)
+    M = zero_matrix(ZZ, cylinder_diagram.cycles_count, cylinder_diagram.separatrix_count)
+    for (i, (bot, top)) in enumerate(cylinders(cylinder_diagram))
+        for t in top
+            M[i, t + 1] = 1
+        end
+        for b in bot
+            M[i, b + 1] -= 1
+        end
+    end
+    return M
+end
+
+# positive integer linear combinations of the computed rays
+# give possible lengths for the separatrix of the cylinder diagram
+# i.e. the resulting surface exists
+function compute_rays(equations, separatrix_count)
+    if(is_zero(equations))
+        n = separatrix_count
+        return [Int[i == j for j in 1:n] for i in 1:n]
+    end
+    neg_identity = -identity_matrix(ZZ, separatrix_count)
+    cone = cone_from_inequalities(neg_identity, equations)
+    r = rays(cone)
+    r = map(inner -> map(Int, inner), r)
+    return r
+end
+
+# generate all possible linear combinations
+# m: number of parameters in linear combination, parameters have integer values from 1 to n
+function all_combinations(n, m)
+    combinations = [[]]
+
+    for _ in 1:m
+        new_combinations = []
+        for current in combinations
+            for i in 1:n
+                push!(new_combinations, [current..., i])
+            end
+        end
+        combinations = new_combinations
+    end
+    return combinations
+end
+
+# lengths are realizable if they are solutions to the equations for the lengths
+# arising from the cylinder diagram
+function realizable_lengths(rays, n)
+    l  = length(rays)
+    combinations = partition_degree(l, n) # all_combinations(n, l)
+
+    result = []
+    exceeded = false
+    for combination in combinations
+        linear_combination = combination[1] * rays[1]
+        for i in 2:l
+            linear_combination = linear_combination + combination[i] * rays[i]
+            if sum(linear_combination) > n
+                exceeded = true
+                break
+            end
+        end
+        if exceeded == false 
+            push!(result, linear_combination)
+        end
+        exceeded = false
+    end
+    return result
+end
+
+function realizable_lengths_of_cylinder_diagram(cyl, n)
+    equations = system_of_equations(cyl)
+    r = compute_rays(equations, cyl.separatrix_count)
+    return realizable_lengths(r, n)
+end
+
+# based on Donald E. Knuth The Art of Computer Programming Algorithm H p.300
+# implementation from Sage
+function product_gray_code(m)
+    n = 0
+    k = 0
+    # assumes each radix is >= 2
+    new_m = []
+    mm = []
+    for i in m
+        if i <= 0
+            throw(ArgumentError("accepts only positive radices")) 
+        elseif i >= 2
+            push!(new_m, i - 1)
+            push!(mm, k)
+            n += 1
+        end
+        k += 1
+    end
+
+    m = new_m
+    f = collect(1:n+1)
+    o = ones(Int, n)
+    a = zeros(Int, n)
+    results = []
+
+    j = f[1]
+    while j != n + 1
+        f[1] = 1
+        oo = o[j]
+        a[j] += oo
+        if a[j] == 0 || a[j] == m[j]
+            f[j] = f[j + 1]
+            f[j + 1] = j + 1
+            o[j] = -oo
+        end
+
+        push!(results, (mm[j] + 1, oo))
+        j = f[1]
+    end
+
+    return results
+end
+
+# get origamis from cylinder diagram and realizable lengths
+function origami_from_cylinder_coordinates(cyl_diagram, lengths, heights)
+    # the total width of each cylinder is the sum of the lengths of the separatrices
+    widths = [sum(lengths[i+1] for i in bot) for bot in cyl_diagram.bot]
+    areas = [heights[i] * widths[i] for i in 1:cyl_diagram.cycles_count]
+
+    v = [0]
+    for a in areas
+        push!(v, v[end] + a)
+    end
+
+    # prepare for twist
+    sep_bottom_pos = zeros(Int64, cyl_diagram.separatrix_count)
+    for (i, bot) in enumerate(cyl_diagram.bot)
+        w = 0
+        for j in bot
+            sep_bottom_pos[j + 1] = v[i] + w
+            w += lengths[j + 1]
+        end
+    end
+
+    # horizontal permutation
+    lx = collect(1:v[end])
+    for i in 1:cyl_diagram.cycles_count
+        for j in v[i]:widths[i]:(v[i+1]-1)
+            lx[j+widths[i]] = j
+        end
+    end
+    lx = perm([x + 1 for x in lx])
+
+    ly::Vector{Int64} = []
+    for i in 1:cyl_diagram.cycles_count
+        append!(ly, (v[i]+widths[i]):(v[i+1]-1))
+        append!(ly, zeros(Int64, widths[i]))
+    end
+
+    for (i, top_seps) in enumerate(cyl_diagram.top)
+        top = []
+        rev_top_seps = reverse(top_seps)
+        for k in rev_top_seps
+            append!(top, sep_bottom_pos[k+1]:(sep_bottom_pos[k+1]+lengths[k+1]-1))
+        end
+        ly[(v[i+1]-widths[i]+1):(v[i+1])] = top
+    end
+    
+    no_twist = origami(lx, perm([x + 1 for x in ly]))
+    results = [no_twist]
+
+    ly = [x+1 for x in ly]
+
+    for (i, o) in product_gray_code(widths)
+        if o == 1
+            insert!(ly, v[i+1]-widths[i]+1, popat!(ly, v[i+1]))
+        else
+            insert!(ly, v[i+1], popat!(ly, v[i+1]-widths[i]+1))
+        end
+        new_entry = origami(lx, perm(ly))
+        push!(results, new_entry)
+    end
+
+    return results
+end
+
+function cylinder_diagrams_h11()
+    c1 = CylinderDiagram([[0,3,1,2]], [[0,3,1,2]])
+    c2 = CylinderDiagram([[0], [1,2,3]], [[1], [0,2,3]])
+    c3 = CylinderDiagram([[0,3], [1,2]], [[1,3], [0,2]])
+    c4 = CylinderDiagram([[0,1], [2], [3]], [[2,3], [1], [0]])
+    return [c1, c2, c3, c4]
+end
+
+function origamis_in_h11(m, n)
+    cylinder_diagrams = cylinder_diagrams_h11()
+    origamis = []
+    for cyl in cylinder_diagrams
+        equations = system_of_equations(cyl)
+        rays = compute_rays(equations, cyl.separatrix_count)
+        lengths = realizable_lengths(rays, m)
+        heights = all_combinations(n, cyl.cycles_count)
+        for l in lengths
+            for h in heights
+                o = origami_from_cylinder_coordinates(cyl, l, h)
+                append!(origamis, o)
+            end
+        end
+    end
+    return origamis
+end
+
+# max: the number that will be partitioned
+# n: the number of parts max will be divided into
+function partition_degree(n::Int, max::Int, current::Vector{Int} = Vector{Int}(), 
+    combinations::Vector{Vector{Int}} = Vector{Vector{Int}}(), sumSoFar::Int = 0)
+    if sumSoFar > max
+        return combinations  # Return early if the current sum exceeds the max
+    end
+
+    if length(current) == n
+        if sumSoFar <= max
+        push!(combinations, copy(current))  # Add the valid combination to the list
+        end
+    return combinations
+    end
+
+    for i in 1:(max - sumSoFar)
+        push!(current, i)  # Append the current number to the combination
+        partition_degree(n, max, current, combinations, sumSoFar + i)  # Recur with the updated combination and sum
+        pop!(current)  # Remove the last element to backtrack
+    end
+
+    return combinations  # Return the list of all valid combinations
+end
+
+# kinda brute force
+function possible_lengths_and_heights(cyl_diagram, degree)
+    potential_heights = partition_degree(cyl_diagram.cycles_count, degree)
+    potential_lengths = realizable_lengths_of_cylinder_diagram(cyl_diagram, degree)
+    result = []
+    cyls = cylinders(cyl_diagram)
+    for h in potential_heights
+        for l in potential_lengths
+
+            square_count = 0
+            for i in 1:cyl_diagram.cycles_count
+                cycle_length = length(cyls[i][1])
+                length_sum = 0
+                for j in 1:cycle_length
+                    length_sum += l[cyls[i][1][j]+1]
+                end
+                square_count += length_sum * h[i]
+            end
+
+            if square_count == degree
+                push!(result, [l, h])
+            end
+        end
+    end
+
+    return result
+end
+
+function origamis_in_h11(degree)
+    diagrams = cylinder_diagrams_h11()
+    origamis = []
+    for c in diagrams
+        lengths_heights = possible_lengths_and_heights(c, degree)
+        for entry in lengths_heights
+            append!(origamis, origami_from_cylinder_coordinates(c, entry[1], entry[2]))
+        end
+    end
+    return origamis
+end
+
+# matrix = [1 -1 0 0]
+# r = ComputeRays(matrix)
+# println(rays)
+# lengths = RealizableLengths(r, 3)
+# println(lengths)
