@@ -1,6 +1,6 @@
-mutable struct Origami
+struct Origami
     o::GapObj
     h::PermGroupElem
     v::PermGroupElem
-    d::Oscar.Integer
+    d::Int
 end
