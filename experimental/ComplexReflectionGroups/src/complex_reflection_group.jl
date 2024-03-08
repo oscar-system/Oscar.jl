@@ -23,70 +23,70 @@
 ###########################################################################################
 
 function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
-    
-    # this will be the list of matrix groups corresponding to the components of G
-    component_groups = MatrixGroup[]
+  
+  # this will be the list of matrix groups corresponding to the components of G
+  component_groups = MatrixGroup[]
 
-    # list of models of the components
-    modellist = []
+  # list of models of the components
+  modellist = []
 
-    for C in components(G)
+  for C in components(G)
 
-        t = C.type[1]
+    t = C.type[1]
 
-        # Get default model for C
-        if model == :default
-            if isa(t,Int)
-                Cmodel = :Magma
-            else
-                (m,p,n) = t
-                if m == 1 && p == 1
-                    Cmodel = :CHEVIE
-                else
-                    Cmodel = :Magma
-                end
-            end
+    # Get default model for C
+    if model == :default
+      if isa(t,Int)
+        Cmodel = :Magma
+      else
+        (m,p,n) = t
+        if m == 1 && p == 1
+          Cmodel = :CHEVIE
         else
-            Cmodel = model
+          Cmodel = :Magma
         end
-        
-        if Cmodel == :LT
-            matgrp = complex_reflection_group_LT(t)
-        elseif Cmodel == :Magma
-            matgrp = complex_reflection_group_Magma(t)
-        elseif Cmodel == :CHEVIE
-            matgrp = complex_reflection_group_CHEVIE(t)
-        else
-            error("Specified model not found")
-        end
-
-        # set attributes that are already known from type
-        set_attribute!(matgrp, :order, order(C))
-        set_attribute!(matgrp, :is_complex_reflection_group, true)
-        set_attribute!(matgrp, :complex_reflection_group_type, C)
-        set_attribute!(matgrp, :complex_reflection_group_model, [Cmodel])
-        set_attribute!(matgrp, :is_irreducible, true)
-
-        # add to list
-        push!(component_groups, matgrp)
-        push!(modellist, model)
-    end
-
-    if length(component_groups) == 1
-        # treat this as a special case because direct_product([G]) will have type direct
-        # product which looks weird for a single group.
-        return component_groups[1]
+      end
     else
-        matgrp = direct_product(component_groups)
-
-        set_attribute!(matgrp, :order, order(G))
-        set_attribute!(matgrp, :is_complex_reflection_group, true)
-        set_attribute!(matgrp, :complex_reflection_group_type, G)
-        set_attribute!(matgrp, :complex_reflection_group_model, modellist)
-        set_attribute!(matgrp, :is_irreducible, false)
-
-        return matgrp
+      Cmodel = model
     end
+    
+    if Cmodel == :LT
+      matgrp = complex_reflection_group_LT(t)
+    elseif Cmodel == :Magma
+      matgrp = complex_reflection_group_Magma(t)
+    elseif Cmodel == :CHEVIE
+      matgrp = complex_reflection_group_CHEVIE(t)
+    else
+      error("Specified model not found")
+    end
+
+    # set attributes that are already known from type
+    set_attribute!(matgrp, :order, order(C))
+    set_attribute!(matgrp, :is_complex_reflection_group, true)
+    set_attribute!(matgrp, :complex_reflection_group_type, C)
+    set_attribute!(matgrp, :complex_reflection_group_model, [Cmodel])
+    set_attribute!(matgrp, :is_irreducible, true)
+
+    # add to list
+    push!(component_groups, matgrp)
+    push!(modellist, model)
+  end
+
+  if length(component_groups) == 1
+    # treat this as a special case because direct_product([G]) will have type direct
+    # product which looks weird for a single group.
+    return component_groups[1]
+  else
+    matgrp = direct_product(component_groups)
+
+    set_attribute!(matgrp, :order, order(G))
+    set_attribute!(matgrp, :is_complex_reflection_group, true)
+    set_attribute!(matgrp, :complex_reflection_group_type, G)
+    set_attribute!(matgrp, :complex_reflection_group_model, modellist)
+    set_attribute!(matgrp, :is_irreducible, false)
+
+    return matgrp
+  end
 
 end
 
@@ -101,30 +101,30 @@ complex_reflection_group(X::Vector, model::Symbol=:default) = complex_reflection
 
 
 function complex_reflection_group_type(G::MatrixGroup)
-    if has_attribute(G, :complex_reflection_group_type)
-        return get_attribute(G, :complex_reflection_group_type)
-    end
-    return nothing
-    # this should be upgraded later to work with a general matrix group (identifying the
-    # type from scratch is not so easy though)
+  if has_attribute(G, :complex_reflection_group_type)
+    return get_attribute(G, :complex_reflection_group_type)
+  end
+  return nothing
+  # this should be upgraded later to work with a general matrix group (identifying the
+  # type from scratch is not so easy though)
 end
 
 function complex_reflection_group_model(G::MatrixGroup)
-    if has_attribute(G, :complex_reflection_group_model)
-        return get_attribute(G, :complex_reflection_group_model)
-    end
-    return nothing
+  if has_attribute(G, :complex_reflection_group_model)
+    return get_attribute(G, :complex_reflection_group_model)
+  end
+  return nothing
 end
 
 function complex_reflection_group_dual(W::MatrixGroup)
 
-    WD = matrix_group([transpose(matrix(w^-1)) for w in gens(W)])
+  WD = matrix_group([transpose(matrix(w^-1)) for w in gens(W)])
 
-    set_attribute!(WD, :order, order(W))
-    set_attribute!(WD, :is_complex_reflection_group, true)
-    set_attribute!(WD, :complex_reflection_group_type, complex_reflection_group_type(W))
+  set_attribute!(WD, :order, order(W))
+  set_attribute!(WD, :is_complex_reflection_group, true)
+  set_attribute!(WD, :complex_reflection_group_type, complex_reflection_group_type(W))
 
-    return WD
+  return WD
 
 end
 
@@ -133,19 +133,19 @@ end
 # Checking if a matrix group is a complex reflection group.
 ###########################################################################################
 function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldElem
-    if has_attribute(G, :is_complex_reflection_group)
-        return get_attribute(G, :is_complex_reflection_group)
+  if has_attribute(G, :is_complex_reflection_group)
+    return get_attribute(G, :is_complex_reflection_group)
+  end
+  
+  for g in gens(G)
+    if !is_complex_reflection(g)
+      set_attribute!(G, :is_complex_reflection_group, false)
+      return false
     end
-    
-    for g in gens(G)
-        if !is_complex_reflection(g)
-            set_attribute!(G, :is_complex_reflection_group, false)
-            return false
-        end
-    end
+  end
 
-    set_attribute!(G, :is_complex_reflection_group, true)
-    return true
+  set_attribute!(G, :is_complex_reflection_group, true)
+  return true
 end
 
 ###########################################################################################
@@ -153,23 +153,23 @@ end
 ###########################################################################################
 function complex_reflection_group_cartan_matrix(W::MatrixGroup)
 
-    if !is_complex_reflection_group(W)
-        throw(ArgumentError("Group is not a complex reflection group"))
-    end
+  if !is_complex_reflection_group(W)
+    throw(ArgumentError("Group is not a complex reflection group"))
+  end
 
-    # We collect roots and coroots of the generators of W
-    roots = []
-    coroots = []
+  # We collect roots and coroots of the generators of W
+  roots = []
+  coroots = []
 
-    for g in gens(W)
-        b,g_data = is_complex_reflection_with_data(g)
-        push!(roots, root(g_data))
-        push!(coroots, coroot(g_data))
-    end
+  for g in gens(W)
+    b,g_data = is_complex_reflection_with_data(g)
+    push!(roots, root(g_data))
+    push!(coroots, coroot(g_data))
+  end
 
-    K = base_ring(W)
-    n = length(roots)
-    C = matrix(K,n,n,[ canonical_pairing(coroots[j], roots[i]) for i=1:n for j=1:n ]) 
+  K = base_ring(W)
+  n = length(roots)
+  C = matrix(K,n,n,[ canonical_pairing(coroots[j], roots[i]) for i=1:n for j=1:n ]) 
 
-    return C
+  return C
 end
