@@ -97,7 +97,7 @@ function complex_reflection(root::AbstractAlgebra.Generic.FreeModuleElem{T}, cor
   end
 
   if coroot == 0
-    throw(ArgumentError("root needs to be nonzero."))
+    throw(ArgumentError("coroot needs to be nonzero."))
   end
 
   zeta = 1 - canonical_pairing(root,coroot)
@@ -273,7 +273,7 @@ function is_complex_reflection_with_data(w::MatrixGroupElem{T}) where T <: QQAlg
   if has_attribute(G, :complex_reflections)
     refls = collect(get_attribute(G, :complex_reflections))
     i = findfirst(g->matrix(g)==matrix(w), refls)
-    if i != nothing
+    if i !== nothing
       w_data = refls[i]
       return true, w_data
     end
@@ -293,7 +293,7 @@ function complex_reflection(w::MatrixGroupElem{T}) where T <: QQAlgFieldElem
   b,w_data = is_complex_reflection_with_data(w)
 
   if !b
-    throw(ArgumentError("Group element is not a reflection"))
+    throw(ArgumentError("Group element is not a complex reflection"))
   end
 
   return w_data
