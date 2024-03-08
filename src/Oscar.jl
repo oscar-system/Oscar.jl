@@ -38,7 +38,18 @@ if Sys.iswindows()
   windows_error()
 end
 
-
+function _print_banner()
+  if displaysize(stdout)[2] >= 79
+    println(
+      raw"""  ___   ____   ____    _    ____
+             / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
+            | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
+            | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
+             \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+  else
+    println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
+  end
+end
 
 function __init__()
   if Sys.iswindows()
@@ -49,21 +60,7 @@ function __init__()
   set_seed!(rand(UInt32))
 
   if isinteractive() && Base.JLOptions().banner != 0
-    println(" -----    -----    -----      -      -----   ")
-    println("|     |  |     |  |     |    | |    |     |  ")
-    println("|     |  |        |         |   |   |     |  ")
-    println("|     |   -----   |        |     |  |-----   ")
-    println("|     |        |  |        |-----|  |   |    ")
-    println("|     |  |     |  |     |  |     |  |    |   ")
-    println(" -----    -----    -----   -     -  -     -  ")
-    println()
-    println("...combining (and extending) ANTIC, GAP, Polymake and Singular")
-    print("Version")
-    printstyled(" $VERSION_NUMBER ", color = :green)
-    print("... \n ... which comes with absolutely no warranty whatsoever")
-    println()
-    println("Type: '?Oscar' for more information")
-    println("(c) 2019-2023 by The OSCAR Development Team")
+    _print_banner()
   end
 
   append!(_gap_group_types,
@@ -72,75 +69,92 @@ function __init__()
         (GAP.Globals.IsPcGroup, PcGroup),
         (GAP.Globals.IsMatrixGroup, MatrixGroup),
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
+        (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
-    __GAP_info_messages_off()
-    # make Oscar module accessible from GAP (it may not be available as
-    # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
-    GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
-    GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-    GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"))
-    withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
-      GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
-    end
-    for pkg in [
-       "atlasrep",
-       "ctbllib",  # character tables
-       "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
-       "fga",      # dealing with free groups
-       "forms",    # bilinear/sesquilinear/quadratic forms
-       "primgrp",  # primitive groups library
-       "repsn",    # constructing representations of finite groups
-       "sla",      # computing with simple Lie algebras
-       "smallgrp", # small groups library
-       "transgrp", # transitive groups library
-       "wedderga", # provides a function to compute Schur indices
-       ]
-      GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
-    end
-    __init_group_libraries()
+  __GAP_info_messages_off()
+  # make Oscar module accessible from GAP (it may not be available as
+  # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
+  GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
+  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+  end
+  # We want newer versions of some GAP packages than the distributed ones.
+  # (But we do not complain if the installation fails.)
+  for (pkg, version) in [
+     ("repsn", "3.1.1"),
+     ]
+    GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+  end
+  # We need some GAP packages.
+  for pkg in [
+     "atlasrep",
+     "ctbllib",  # character tables
+     "crisp",    # faster normal subgroups, socles, p-socles for finite solvable groups
+     "fga",      # dealing with free groups
+     "forms",    # bilinear/sesquilinear/quadratic forms
+     "packagemanager", # has been loaded already by GAP.jl
+     "polycyclic", # needed for Oscar's pc groups
+     "primgrp",  # primitive groups library
+     "repsn",    # constructing representations of finite groups
+     "smallgrp", # small groups library
+     "transgrp", # transitive groups library
+     "wedderga", # provides a function to compute Schur indices
+     ]
+    GAP.Packages.load(pkg) || error("cannot load the GAP package $pkg")
+  end
+  # We want some GAP packages. (It is no error if they cannot be loaded.)
+  for pkg in [
+     "ferret",   # backtrack in permutation groups
+     ]
+    GAP.Packages.load(pkg)
+  end
+  __init_group_libraries()
 
-    add_verbose_scope(:K3Auto)
-    add_assert_scope(:K3Auto)
+  add_verbosity_scope(:K3Auto)
+  add_assertion_scope(:K3Auto)
 
-    add_verbose_scope(:EllipticSurface)
-    add_assert_scope(:EllipticSurface)
+  add_verbosity_scope(:EllipticSurface)
+  add_assertion_scope(:EllipticSurface)
 
-    add_verbose_scope(:MorphismFromRationalFunctions)
-    add_assert_scope(:MorphismFromRationalFunctions)
+  add_verbosity_scope(:MorphismFromRationalFunctions)
+  add_assertion_scope(:MorphismFromRationalFunctions)
 
-    add_verbose_scope(:Glueing)
-    add_assert_scope(:Glueing)
+  add_verbosity_scope(:Gluing)
+  add_assertion_scope(:Gluing)
 
-    add_verbose_scope(:Intersections)
-    add_assert_scope(:Intersections)
+  add_verbosity_scope(:Intersections)
+  add_assertion_scope(:Intersections)
 
-    add_verbose_scope(:MaximalAssociatedPoints)
-    add_assert_scope(:MaximalAssociatedPoints)
+  add_verbosity_scope(:MaximalAssociatedPoints)
+  add_assertion_scope(:MaximalAssociatedPoints)
 
-    add_verbose_scope(:Divisors)
-    add_assert_scope(:Divisors)
+  add_verbosity_scope(:Divisors)
+  add_assertion_scope(:Divisors)
 
-    add_verbose_scope(:Blowup)
-    add_assert_scope(:Blowup)
+  add_verbosity_scope(:Blowup)
+  add_assertion_scope(:Blowup)
 
-    add_verbose_scope(:hilbert)
-    add_assert_scope(:hilbert)
+  add_verbosity_scope(:hilbert)
+  add_assertion_scope(:hilbert)
 
-    add_verbose_scope(:GlobalTateModel)
-    add_verbose_scope(:WeierstrassModel)
-    add_verbose_scope(:HypersurfaceModel)
-    add_verbose_scope(:FTheoryConstructorInformation)
-    
-    add_verbosity_scope(:LinearQuotients)
+  add_verbosity_scope(:BasisLieHighestWeight)
 
-    add_assertion_scope(:ZZLatWithIsom)
-    add_verbosity_scope(:ZZLatWithIsom)
+  add_verbosity_scope(:FTheoryModelPrinter)
 
-    # Pkg.is_manifest_current() returns false if the manifest might be out of date
-    # (but might return nothing when there is no project_hash)
-    if is_dev && VERSION >= v"1.8" && Pkg.is_manifest_current() === false
-      @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
-    end
+  add_verbosity_scope(:LinearQuotients)
+
+  add_assertion_scope(:ZZLatWithIsom)
+  add_verbosity_scope(:ZZLatWithIsom)
+
+  # Pkg.is_manifest_current() returns false if the manifest might be out of date
+  # (but might return nothing when there is no project_hash)
+  if is_dev && VERSION >= v"1.8" && false === (VERSION < v"1.11.0-DEV.1135" ?
+      Pkg.is_manifest_current() :
+      Pkg.is_manifest_current(dirname(Base.active_project())))
+    @warn "Project dependencies might have changed, please run `]up` or `]resolve`."
+  end
 end
 
 const PROJECT_TOML = Pkg.TOML.parsefile(joinpath(@__DIR__, "..", "Project.toml"))
@@ -199,9 +213,8 @@ include("assertions.jl")
 
 include("exports.jl")
 
-# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
-@alias characteristic_polynomial charpoly  # FIXME
-@alias minimal_polynomial minpoly  # FIXME
+include("aliases.jl")
+
 
 include("printing.jl")
 include("fallbacks.jl")
@@ -230,6 +243,9 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
+include("Combinatorics/Compositions.jl")
+include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
 include("Rings/lazypolys.jl") # uses StraightLinePrograms
@@ -257,9 +273,6 @@ if is_dev
 #  include("../examples/ModStdQt.jl")
   include("../examples/PrimDec.jl")
 end
-
-
-include("aliases.jl")
 
 include("deprecations.jl")
 

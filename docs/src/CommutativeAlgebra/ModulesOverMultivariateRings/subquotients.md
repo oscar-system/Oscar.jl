@@ -52,7 +52,7 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 All OSCAR types for the finitely presented modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
+they are modeled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -73,7 +73,7 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 - `base_ring(M)` refers to `R`,
 - `ambient_free_module(M)` to `F`,
 - `gens(M)` to the generators of `M`, 
-- `ngens(M)` to the number of these generators, 
+- `number_of_generators(M)` / `ngens(M)` to the number of these generators, 
 - `M[i]`, `gen(M, i)` to the `i`th such generator,
 - `ambient_representatives_generators(M)` to the ambient representatives of the generators of `M` in `F`,
 - `relations(M)` to the relations of `M`, and
@@ -118,7 +118,7 @@ julia> gens(M)
  x*e[1]
  y*e[1]
 
-julia> ngens(M)
+julia> number_of_generators(M)
 2
 
 julia> gen(M, 2)
@@ -359,11 +359,11 @@ intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ## Submodules and Quotients
 
 ```@docs
-sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
 ```@docs
-quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 ```
 
 ## Homomorphisms From Subqotients

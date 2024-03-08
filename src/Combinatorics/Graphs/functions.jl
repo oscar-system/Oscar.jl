@@ -23,10 +23,10 @@ Make a directed graph with 5 vertices and print the number of nodes and edges.
 ```jldoctest
 julia> g = Graph{Directed}(5);
 
-julia> nv(g)
+julia> n_vertices(g)
 5
 
-julia> ne(g)
+julia> n_edges(g)
 0
 ```
 """
@@ -80,7 +80,7 @@ function graph_from_adjacency_matrix(::Type{T}, G::Union{MatElem, Matrix}) where
 end
 
 
-_has_node(G::Graph, node::Int64) = 0 < node <= nv(G)
+_has_node(G::Graph, node::Int64) = 0 < node <= n_vertices(G)
 
 @doc raw"""
     add_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
@@ -98,15 +98,15 @@ true
 julia> add_edge!(g, 1, 2)
 false
 
-julia> ne(g)
+julia> n_edges(g)
 1
 ```
 """
 function add_edge!(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
   _has_node(g, source) && _has_node(g, target) || return false
-  old_nedges = nedges(g)
+  old_nedges = n_edges(g)
   Polymake._add_edge(pm_object(g), source-1, target-1)
-  return nedges(g) == old_nedges + 1
+  return n_edges(g) == old_nedges + 1
 end
 
 
@@ -124,21 +124,21 @@ julia> g = Graph{Directed}(2);
 julia> add_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> n_edges(g)
 1
 
 julia> rem_edge!(g, 1, 2)
 true
 
-julia> ne(g)
+julia> n_edges(g)
 0
 ```
 """
 function rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
   has_edge(g, s, t) || return false
-  old_nedges = nedges(g)
+  old_nedges = n_edges(g)
   Polymake._rem_edge(pm_object(g), s-1, t-1)
-  return nedges(g) == old_nedges - 1
+  return n_edges(g) == old_nedges - 1
 end
 
 
@@ -152,21 +152,21 @@ added.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> n_vertices(g)
 2
 
 julia> add_vertex!(g)
 true
 
-julia> nv(g)
+julia> n_vertices(g)
 3
 ```
 """
 function add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g)
-    old_nvertices = nv(g)
+    old_nvertices = n_vertices(g)
     Polymake._add_vertex(pmg)
-    return nv(g) - 1 == old_nvertices
+    return n_vertices(g) - 1 == old_nvertices
 end
 
 
@@ -180,23 +180,23 @@ was actually removed, `false` otherwise.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> n_vertices(g)
 2
 
 julia> rem_vertex!(g, 1)
 true
 
-julia> nv(g)
+julia> n_vertices(g)
 1
 ```
 """
 function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
   _has_node(g, v) || return false
   pmg = pm_object(g)
-  old_nvertices = nv(g)
+  old_nvertices = n_vertices(g)
   result = Polymake._rem_vertex(pmg, v-1)
   Polymake._squeeze(pmg)
-  return nv(g) + 1 == old_nvertices
+  return n_vertices(g) + 1 == old_nvertices
 end
 
 
@@ -210,12 +210,12 @@ were actually added to the graph `g`.
 ```jldoctest
 julia> g = Graph{Directed}(2);
 
-julia> nv(g)
+julia> n_vertices(g)
 2
 
 julia> add_vertices!(g, 5);
 
-julia> nv(g)
+julia> n_vertices(g)
 7
 ```
 """
@@ -334,10 +334,8 @@ end
 ##  Accessing properties
 ################################################################################
 ################################################################################
-@alias nv nvertices
-
 @doc raw"""
-    nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of vertices of a graph.
 
@@ -348,16 +346,16 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> nv(g)
+julia> n_vertices(g)
 8
 ```
 """
-function nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.nv(pm_object(g))
 end
 
 @doc raw"""
-    ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+    n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
 Return the number of edges of a graph.
 
@@ -368,15 +366,13 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> ne(g)
+julia> n_edges(g)
 12
 ```
 """
-function ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     return Polymake.ne(pm_object(g))
 end
-
-@alias nedges ne
 
 @doc raw"""
     edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
@@ -398,7 +394,7 @@ julia> collect(edges(g))
 ```
 """
 function edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), ne(g))
+    return EdgeIterator(Polymake.edgeiterator(pm_object(g)), n_edges(g))
 end
 
 
@@ -588,7 +584,9 @@ julia> incidence_matrix(g)
 []
 ```
 """
-incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}} = IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
+function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+  IncidenceMatrix(Polymake.graph.incidence_matrix(pm_object(g)))
+end
 
 @doc raw"""
     signed_incidence_matrix(g::Graph{Directed})
@@ -636,7 +634,7 @@ julia> automorphism_group_generators(g)
 function automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
     pmg = pm_object(g);
     result = Polymake.graph.automorphisms(pmg)
-    return _pm_arr_arr_to_group_generators(result, nv(g))
+    return _pm_arr_arr_to_group_generators(result, n_vertices(g))
 end
 
 
@@ -919,10 +917,10 @@ julia> c = cube(3);
 
 julia> g = edgegraph(c);
 
-julia> nv(g)
+julia> n_vertices(g)
 8
 
-julia> ne(g)
+julia> n_edges(g)
 12
 ```
 """
@@ -950,10 +948,10 @@ julia> c = cube(3);
 
 julia> g = dualgraph(c);
 
-julia> nv(g)
+julia> n_vertices(g)
 6
 
-julia> ne(g)
+julia> n_edges(g)
 12
 ```
 """
@@ -1034,7 +1032,7 @@ Construct the fractional cut polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_cut_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_cut_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_cut_polytope(pm_object(G)))
@@ -1051,7 +1049,7 @@ Construct the fractional matching polytope of the graph $G$.
 julia> G = complete_graph(4);
 
 julia> fractional_matching_polytope(G)
-Polyhedron in ambient dimension 6
+Polytope in ambient dimension 6
 ```
 """
 fractional_matching_polytope(G::Graph{Undirected}) = polyhedron(Polymake.polytope.fractional_matching_polytope(pm_object(G)))
@@ -1066,13 +1064,13 @@ _to_string(::Type{Polymake.Directed}) = "Directed"
 _to_string(::Type{Polymake.Undirected}) = "Undirected"
 
 function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-  if nedges(G) > 0
-    println(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and the following edges:")  # at least one new line is needed
+  if n_edges(G) > 0
+    println(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and the following edges:")  # at least one new line is needed
     for e in edges(G)
       print(io, "($(src(e)), $(dst(e)))")
     end
   else
-    print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and no edges")
+    print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and no edges")
   end
 end
 
@@ -1080,6 +1078,56 @@ function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Po
   if get(io, :supercompact, false)
     print(io, "$(_to_string(T)) graph")
   else
-    print(io, "$(_to_string(T)) graph with $(nvertices(G)) nodes and $(nedges(G)) edges")
+    print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and $(n_edges(G)) edges")
   end
+end
+
+function graph_from_edges(::Type{T},
+                          edges::Vector{Edge},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
+
+  g = Graph{T}(max(n_needed, n_vertices))
+  for e in edges
+    add_edge!(g, src(e), dst(e))
+  end
+
+  return g
+end
+
+function graph_from_edges(::Type{T},
+                          edges::EdgeIterator,
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+  return graph_from_edges(T, collect(edges), n_vertices)
+end
+
+@doc raw"""
+    graph_from_edges(edges::Vector{Vector{Int}})
+    graph_from_edges(::Type{T}, edges::Vector{Vector{Int}}, n_vertices::Int=-1) where {T <:Union{Directed, Undirected}}
+
+Creates a graph from a vector of edges. There is an optional input for number of vertices, `graph_from_edges`  will
+ignore any negative integers and throw an error when the input is less than the maximum vertex index in edges.
+
+# Examples
+```jldoctest
+julia> G = graph_from_edges([[1,3],[3,5],[4,5],[2,4],[2,3]])
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 2)(5, 3)(5, 4)
+
+julia> G = graph_from_edges(Directed, [[1,3]], 4)
+Directed graph with 4 nodes and the following edges:
+(1, 3)
+```
+"""
+function graph_from_edges(::Type{T},
+                          edges::Vector{Vector{Int}},
+                          n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
+  return graph_from_edges(T, [Edge(e[1], e[2]) for e in edges], n_vertices)
+end
+
+function graph_from_edges(edges::Vector{Vector{Int}},
+                          n_vertices::Int=-1)
+  return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end

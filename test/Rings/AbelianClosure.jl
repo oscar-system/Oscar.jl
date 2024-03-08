@@ -15,10 +15,10 @@ end
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QQAbField
-    @test elem_type(K) === QQAbElem{nf_elem}
-    @test elem_type(typeof(K)) === QQAbElem{nf_elem}
-    @test parent_type(QQAbElem{nf_elem}) === QQAbField{AnticNumberField}
-    @test parent_type(one(K)) === QQAbField{AnticNumberField}
+    @test elem_type(K) === QQAbElem{AbsSimpleNumFieldElem}
+    @test elem_type(typeof(K)) === QQAbElem{AbsSimpleNumFieldElem}
+    @test parent_type(QQAbElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
+    @test parent_type(one(K)) === QQAbField{AbsSimpleNumField}
 
     a = @inferred K()
     @test a isa QQAbElem
@@ -160,7 +160,7 @@ end
     end
   end
 
-  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo._GF]
+  @testset "Reduction to finite fields" for gf_fun in [GF, Nemo.Native.GF]
     K, z = abelian_closure(QQ)
     F = gf_fun(2, 1)
     @test reduce(z(2), F) == one(F)
@@ -264,6 +264,10 @@ end
     @test length(roots(x^15-2^15)) == 15
 
     @test order(z(5)) == 5
+
+    @test cbrt(K(8))^3 == K(8)
+    @test_throws ErrorException("Element 4 does not have a cube root") cbrt(K(4))
+
   end
 
   @testset "Automorphism" begin
@@ -291,6 +295,9 @@ end
       x, y, n = Oscar.AbelianClosure.quadratic_irrationality_info(a)
       @test ((a - x)//y)^2 == n
     end
+
+    @test sqrt(K(2))^2 == K(2)
+    @test_throws ErrorException("Element zeta(4) + 1 does not have a square root") sqrt(z(4)+1)
 
     @test Oscar.AbelianClosure.quadratic_irrationality_info(z(5)) === nothing
 
@@ -357,13 +364,13 @@ end
   @testset "Syntax to create number fields from QabElem" begin
     K, z = abelian_closure(QQ)
     F, a = QQ[z(5)]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 4
     F, a = QQ[[z(5), z(3)]]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 8
     F, a = QQ[z(5), z(3)]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 8
   end
 

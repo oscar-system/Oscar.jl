@@ -15,6 +15,9 @@
     I = ideal(R, [x])
     gb = groebner_basis_f4(I)
     @test normal_form(y, I) == y
+    @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
+    @test Oscar._normal_form_f4([y], I) == [y]
+    @test normal_form(y, I) == y
     G = groebner_basis(I)
     J = ideal(R, y)
     @test reduce(J.gens, G) == [y]
@@ -56,6 +59,13 @@
     @test q * F + [r] != [f]
     u, q, r = reduce_with_quotients_and_unit(f, F, ordering=neglex(R))
     @test q * F + [r] == u * [f]
+    # Issue 3105
+    R, (x,y,z) = QQ[:x, :y, :z]
+    f = x^3 - x^2*y - x^2*z + x
+    f1 = x^2*y - z
+    f2 = x*y - 1
+    _,r = reduce_with_quotients(f, [f1, f2], ordering = deglex(R))
+    @test r == x^3-x^2*z
     I = ideal(R,[y^2 - x, x^3 - 2*y^2])
     @test is_groebner_basis(I.gens, ordering=degrevlex(R)) == true
     @test is_groebner_basis(I.gens, ordering=lex(R)) == false
@@ -77,6 +87,9 @@
         1971025*x2 - 97197721632*x4^7 + 73975630752*x4^6 - 12121915032*x4^5 - 2760941496*x4^4 + 814792828*x4^3 - 1678512*x4^2 - 9158924*x4,
         5913075*x1 - 159690237696*x4^7 + 31246269696*x4^6 + 27439610544*x4^5 - 6475723368*x4^4 - 838935856*x4^3 + 275119624*x4^2 + 4884038*x4 - 5913075]
     @test elements(J.gb[lex(R)]) == H
+    R, (x,y) = polynomial_ring(AcbField(64),["x","y"])
+    I = ideal([x^2+y^2+1//3,x^2+x*y+1//3*x])
+    @test_throws ArgumentError groebner_basis(I)
 end
 
 @testset "groebner leading ideal" begin
@@ -141,13 +154,13 @@ end
 end
 
 @testset "f4" begin
-  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"], ordering=:degrevlex)
+  R, (x1,x2,x3,x4) = polynomial_ring(GF(next_prime(2^28)), ["x1", "x2", "x3", "x4"])
   I = ideal(R,[x1+2*x2+2*x3+2*x4-1,
           x1^2+2*x2^2+2*x3^2+2*x4^2-x1,
           2*x1*x2+2*x2*x3+2*x3*x4-x2,
           x2^2+2*x1*x3+2*x2*x4-x3])
   H = groebner_basis_f4(I);
-  G = fpMPolyRingElem[x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
+  G = [x1 + 2*x2 + 2*x3 + 2*x4 + 268435458
                 x3^2 + 2*x2*x4 + 76695850*x3*x4 + 115043772*x4^2 + 115043768*x2 + 191739613*x3 + 230087535*x4
                 x2*x3 + 268435457*x2*x4 + 230087533*x3*x4 + 76695842*x4^2 + 210913575*x2 + 38347923*x3 + 153391692*x4
                 x2^2 + 2*x2*x4 + 153391692*x3*x4 + 230087538*x4^2 + 230087536*x2 + 115043768*x3 + 191739613*x4
@@ -158,7 +171,7 @@ end
   @test isdefined(I, :gb)
   @test I.gb[degrevlex(gens(base_ring(I)))].O == G
   H = groebner_basis_f4(I, eliminate=2);
-  G = fpMPolyRingElem[x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
+  G = [x3^2*x4 + 73209671*x3*x4^2 + 260301051*x4^3 + 188447115*x3^2 + 167207272*x3*x4 + 120660383*x4^2 + 210590781*x3 + 109814506*x4
                 x3^3 + 156877866*x3*x4^2 + 59264971*x4^3 + 224858274*x3^2 + 183605206*x3*x4 + 130731555*x4^2 + 110395535*x3 + 158620953*x4
                 x4^4 + 167618101*x3*x4^2 + 102789335*x4^3 + 193931678*x3^2 + 156155981*x3*x4 + 60823186*x4^2 + 239040667*x3 + 127377432*x4
                 x3*x4^3 + 99215126*x3*x4^2 + 261328123*x4^3 + 132228634*x3^2 + 93598185*x3*x4 + 85654356*x4^2 + 3613010*x3 + 240673711*x4]

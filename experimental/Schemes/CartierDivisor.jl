@@ -13,10 +13,10 @@ export trivializing_covering
 
   function EffectiveCartierDivisor(
       X::AbsCoveredScheme, 
-      D::IdDict{<:AbsSpec, <:RingElem};
+      D::IdDict{<:AbsAffineScheme, <:RingElem};
       trivializing_covering::Covering=begin
-        C = Covering(collect(keys(D)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
-        inherit_glueings!(C, default_covering(X))
+        C = Covering(collect(keys(D)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
+        inherit_gluings!(C, default_covering(X))
         C
       end,
       check::Bool=true
@@ -24,7 +24,7 @@ export trivializing_covering
     for U in patches(trivializing_covering)
       U in keys(D) || error("the divisor must be prescribed on all patches of its trivializing covering")
     end
-    ID = IdDict{AbsSpec, Ideal}()
+    ID = IdDict{AbsAffineScheme, Ideal}()
     for U in keys(D)
       ID[U] = ideal(OO(U), D[U])
     end
@@ -40,7 +40,7 @@ export trivializing_covering
   end
 end
 
-function (C::EffectiveCartierDivisor)(U::AbsSpec)
+function (C::EffectiveCartierDivisor)(U::AbsAffineScheme)
   return gens(C.I(U))
 end
 
@@ -54,7 +54,7 @@ function EffectiveCartierDivisor(I::IdealSheaf;
     check::Bool=true
   )
   X = scheme(I)
-  eq_dict = IdDict{AbsSpec, RingElem}()
+  eq_dict = IdDict{AbsAffineScheme, RingElem}()
   for U in patches(trivializing_covering)
     isone(ngens(I(U))) || error("ideal sheaf is not principal on the given covering")
     eq_dict[U] = first(gens(I(U)))
@@ -149,7 +149,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -161,9 +161,9 @@ Effective cartier divisor
     3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
-    1: ideal(-(y//x)^2*(z//x) + 1)
-    2: ideal((x//y)^3 - (z//y))
-    3: ideal((x//z)^3 - (y//z)^2)
+    1: Ideal (-(y//x)^2*(z//x) + 1)
+    2: Ideal ((x//y)^3 - (z//y))
+    3: Ideal ((x//z)^3 - (y//z)^2)
 
 julia> cartier_divisor(E)
 Cartier divisor
@@ -215,7 +215,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -227,9 +227,9 @@ Effective cartier divisor
     3: [(x//z), (y//z)]   affine 2-space
 defined by
   sheaf of ideals with restrictions
-    1: ideal(-(y//x)^2*(z//x) + 1)
-    2: ideal((x//y)^3 - (z//y))
-    3: ideal((x//z)^3 - (y//z)^2)
+    1: Ideal (-(y//x)^2*(z//x) + 1)
+    2: Ideal ((x//y)^3 - (z//y))
+    3: Ideal ((x//z)^3 - (y//z)^2)
 ```
 """
 effective_cartier_divisor(I::IdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)
@@ -238,7 +238,7 @@ function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRin
   parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
   d = degree(f)
   X = covered_scheme(IP)
-  triv_dict = IdDict{AbsSpec, RingElem}()
+  triv_dict = IdDict{AbsAffineScheme, RingElem}()
   for U in affine_charts(X)
     triv_dict[U] = dehomogenization_map(IP, U)(f)
   end
@@ -283,7 +283,7 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
     components_here = minimal_primes(I_temp)
     for comp in components_here
       I_temp, saturation_index = saturation_with_index(I_temp, comp)
-      temp_dict=IdDict{AbsSpec,Ideal}()
+      temp_dict=IdDict{AbsAffineScheme,Ideal}()
       temp_dict[U] = comp
       I_sheaf_temp = IdealSheaf(X, extend!(cov, temp_dict), check=false)
       push!(associated_primes_temp, (I_sheaf_temp, saturation_index))

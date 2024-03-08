@@ -17,17 +17,17 @@ via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(P) - 1 &&
-    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
+    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, n_facets(P))
   n = face_dim - length(lineality_space(P))
   n < 0 && return nothing
   pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -350,7 +350,7 @@ vertices(P::Polyhedron) = vertices(PointVector, P)
 _vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 @doc raw"""
-    nrays(P::Polyhedron)
+    n_rays(P::Polyhedron)
 
 Return the number of rays of `P`, i.e. the number of rays of the recession cone
 of `P`.
@@ -361,22 +361,22 @@ The two-dimensional positive orthant has two rays.
 julia> PO = convex_hull([0 0],[1 0; 0 1])
 Polyhedron in ambient dimension 2
 
-julia> nrays(PO)
+julia> n_rays(PO)
 2
 ```
 The upper half-plane has no ray, since it has lineality.
 ```jldoctest
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
-julia> nrays(UH)
+julia> n_rays(UH)
 0
 ```
 """
-nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
-_nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+n_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_rays(P) : 0
+_n_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
-    nvertices(P::Polyhedron)
+    n_vertices(P::Polyhedron)
 
 Return the number of vertices of `P`.
 
@@ -385,12 +385,12 @@ The 3-cube's number of vertices can be obtained with this input:
 ```jldoctest
 julia> C = cube(3);
 
-julia> nvertices(C)
+julia> n_vertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
-_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
+n_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_vertices(P) : 0
+_n_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _n_rays(P)
 
 @doc raw"""
     rays(as::Type{T} = RayVector, P::Polyhedron)
@@ -468,7 +468,7 @@ rays(P::Polyhedron) = rays(RayVector, P)
 _rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc raw"""
-    nfacets(P::Polyhedron)
+    n_facets(P::Polyhedron)
 
 Return the number of facets of `P`.
 
@@ -476,11 +476,11 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> nfacets(cross_polytope(5))
+julia> n_facets(cross_polytope(5))
 32
 ```
 """
-function nfacets(P::Polyhedron)
+function n_facets(P::Polyhedron)
   n = size(pm_object(P).FACETS, 1)::Int
   return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
@@ -502,12 +502,12 @@ julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
@@ -521,8 +521,8 @@ x_3 <= 1
 """
 facets(
   as::Type{T}, P::Polyhedron{S}
-) where {R,S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S},Polyhedron{S}}} =
-  SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
+) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
+  SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
   U::Type{AffineHalfspace{S}}, P::Polyhedron{S}, i::Base.Integer
@@ -782,7 +782,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -821,7 +821,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -903,7 +903,7 @@ Number of vertices in each facet.
 # Example
 ```jldoctest
 julia> p = johnson_solid(4) 
-Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
 julia> facet_sizes(p)
 10-element Vector{Int64}:
@@ -1052,7 +1052,7 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -1074,7 +1074,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -1094,7 +1094,7 @@ Compute the $h^*$ polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
@@ -1116,7 +1116,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
@@ -1138,13 +1138,13 @@ Check whether `P` is a lattice polytope, i.e. it is bounded and has integral ver
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 true
 
 julia> c = cube(3, 0, 4//3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 false
@@ -1165,7 +1165,7 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_very_ample(c)
 true
@@ -1203,10 +1203,10 @@ Check whether `P` is a subset of the polyhedron `Q`.
 # Examples
 ```jldoctest
 julia> P = cube(3,0,1)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> Q = cube(3,-1,2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> issubset(P, Q)
 true
@@ -1263,7 +1263,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_normal(C)
 true
@@ -1301,7 +1301,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> is_simple(c)
 true
@@ -1383,7 +1383,7 @@ end
     g_vector(P::Polyhedron)
 
 Return the (toric) $g$-vector of a polytope.
-Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Defined by $g_0 = 1$ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
 Undefined for unbounded polyhedra.
 
 # Examples
@@ -1409,7 +1409,7 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> relative_interior_point(square)
 2-element PointVector{QQFieldElem}:

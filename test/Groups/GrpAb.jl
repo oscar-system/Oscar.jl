@@ -12,21 +12,21 @@
   @test order(codomain(g)) == 2
 end
 
-@testset "describe for GrpAbFinGen" begin
-  @test describe(abelian_group(GrpAbFinGen, Int[])) == "0"
-  @test describe(abelian_group(GrpAbFinGen, Int[0])) == "Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0])) == "Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2])) == "Z/2"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2])) == "Z/2 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2])) == "Z/2 + Z^2"
-  @test describe(abelian_group(GrpAbFinGen, Int[2, 4])) == "Z/2 + Z/4"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
-  @test describe(abelian_group(GrpAbFinGen, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
+@testset "describe for FinGenAbGroup" begin
+  @test describe(abelian_group(FinGenAbGroup, Int[])) == "0"
+  @test describe(abelian_group(FinGenAbGroup, Int[0])) == "Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0])) == "Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2])) == "Z/2"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2])) == "Z/2 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2])) == "Z/2 + Z^2"
+  @test describe(abelian_group(FinGenAbGroup, Int[2, 4])) == "Z/2 + Z/4"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 2, 4])) == "Z/2 + Z/4 + Z"
+  @test describe(abelian_group(FinGenAbGroup, Int[0, 0, 2, 4])) == "Z/2 + Z/4 + Z^2"
 end
 
-@testset "group functions for finite GrpAbFinGen" begin
+@testset "group functions for finite FinGenAbGroup" begin
   @testset for para in [ [2, 3, 4], Int[], [2, 4] ]
-    G1 = abelian_group(GrpAbFinGen, para)
+    G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
     primes = [p for (p, e) in collect(factor(order(G1)))]
@@ -40,7 +40,7 @@ end
     # properties
     @test is_abelian(G1) == is_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
-    @test is_finitelygenerated(G1) == is_finitelygenerated(G2)
+    @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)
     @test is_pgroup(G1) == is_pgroup(G2)
     @test is_quasisimple(G1) == is_quasisimple(G2)
@@ -53,8 +53,8 @@ end
     @test images(iso, frattini_subgroup(G1)[1]) == frattini_subgroup(G2)
     @test is_pgroup_with_prime(G1) == is_pgroup_with_prime(G2)
     @test nilpotency_class(G1) == nilpotency_class(G2)
-    @test number_conjugacy_classes(G1) == order(G1)
-    @test number_conjugacy_classes(Int, G1) isa Int
+    @test number_of_conjugacy_classes(G1) == order(G1)
+    @test number_of_conjugacy_classes(Int, G1) isa Int
     @test order(G1) == order(G2)
     @test images(iso, socle(G1)[1]) == socle(G2)
     @test images(iso, solvable_radical(G1)[1]) == solvable_radical(G2)
@@ -83,8 +83,9 @@ end
     end
 
     # conjugacy classes of subgroups
-    CC = conjugacy_classes_subgroups(G1)
-    @test length(CC) == length(conjugacy_classes_subgroups(G2))
+    CC = subgroup_classes(G1)
+    @test length(CC) == length(subgroup_classes(G2))
+    @test length(CC) == length(collect(subgroups(G1)))
     @test all(C -> length(C) == 1, CC)
     @test rand(CC[1]) == representative(CC[1])
     @test acting_group(CC[1]) == G1
@@ -98,28 +99,31 @@ end
       K = representative(C2)
       @test is_conjugate(G1, H, K) == (H == K)
       @test is_conjugate_with_data(G1, H, K)[1] == (H == K)
-      @test is_conjugate_subgroup(G1, H, K) == is_subgroup(K, H)[1]
+      @test is_conjugate_subgroup(G1, H, K) == is_subset(K, H)
+      @test is_conjugate_subgroup_with_data(G1, H, K) == (is_subset(K, H), zero(G1))
     end
     C = CC[1]
     for H in C
       @test H == representative(C)
     end
-    S1 = subgroup_reps(G1)
-    S2 = subgroup_reps(G2)
-    @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    S1 = map(representative, subgroup_classes(G1))
+    S2 = map(representative, subgroup_classes(G2))
+    @test sort!([order(x) for x in S1]) == sort!([order(x) for x in S2])
     for n in 2:4
-      S1 = subgroup_reps(G1, order = ZZ(n))
-      S2 = subgroup_reps(G2, order = ZZ(n))
+      S1 = subgroup_classes(G1, order = n)
+      S2 = subgroup_classes(G2, order = n)
       @test length(S1) == length(S2)
     end
     for n in 1:4
-      S1 = low_index_subgroup_reps(G1, n)
-      S2 = low_index_subgroup_reps(G2, n)
+      S1 = low_index_subgroup_classes(G1, n)
+      S2 = low_index_subgroup_classes(G2, n)
       @test length(S1) == length(S2)
+      @test length(S1) == length(collect(low_index_subgroups(G1, n)))
     end
-    S1 = conjugacy_classes_maximal_subgroups(G1)
-    S2 = conjugacy_classes_maximal_subgroups(G2)
+    S1 = maximal_subgroup_classes(G1)
+    S2 = maximal_subgroup_classes(G2)
     @test sort!([length(x) for x in S1]) == sort!([length(x) for x in S2])
+    @test length(S1) == length(collect(maximal_subgroups(G1)))
 
     # operations
     x = representative(rand(cc))
@@ -137,8 +141,10 @@ end
 
     # operations depending on sets of primes
     for P in subsets(Set(primes))
-      @test [images(iso, S)[1] for S in hall_subgroup_reps(G1, collect(P))] ==
-            hall_subgroup_reps(G2, collect(P))
+      @test [images(iso, representative(C))[1] for C in hall_subgroup_classes(G1, collect(P))] ==
+            map(representative, hall_subgroup_classes(G2, collect(P)))
+      @test [images(iso, C)[1] for C in hall_subgroups(G1, collect(P))] ==
+            collect(hall_subgroups(G2, collect(P)))
     end
     @test sort!([order(images(iso, S)[1]) for S in hall_system(G1)]) ==
           sort!([order(S) for S in hall_system(G2)])
@@ -161,9 +167,9 @@ end
   end
 end
 
-@testset "abelian_invariants_schur_multiplier for GrpAbFinGen" begin
+@testset "abelian_invariants_schur_multiplier for FinGenAbGroup" begin
   for g in all_small_groups(1:50, is_abelian)
-    gg = codomain(isomorphism(GrpAbFinGen, g))
+    gg = codomain(isomorphism(FinGenAbGroup, g))
     @test abelian_invariants_schur_multiplier(g) == abelian_invariants_schur_multiplier(gg)
     @test abelian_invariants(schur_multiplier(g)) == abelian_invariants_schur_multiplier(g)
   end

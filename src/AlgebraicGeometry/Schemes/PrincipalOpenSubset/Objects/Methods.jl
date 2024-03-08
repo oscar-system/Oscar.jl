@@ -6,7 +6,7 @@
 ########################################################################
 # Preimages of PrincipalOpenSubsets                                    #
 ########################################################################
-function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true) 
+function preimage(f::AbsAffineSchemeMor, U::PrincipalOpenSubset; check::Bool=true) 
   if ambient_scheme(U) != codomain(f) 
     Z = preimage(f, ambient_scheme(U), check=check)
     h = lifted_numerator(complement_equation(U))
@@ -20,7 +20,7 @@ function preimage(f::AbsSpecMor, U::PrincipalOpenSubset; check::Bool=true)
   return PrincipalOpenSubset(domain(f), prod(pbh; init=one(OO(domain(f)))))
 end
 
-function preimage(f::AbsSpecMor{<:AbsSpec, <:PrincipalOpenSubset}, U::PrincipalOpenSubset; check::Bool=true) 
+function preimage(f::AbsAffineSchemeMor{<:AbsAffineScheme, <:PrincipalOpenSubset}, U::PrincipalOpenSubset; check::Bool=true) 
   if ambient_scheme(U) === ambient_scheme(codomain(f))
     h = lifted_numerator(complement_equation(U))
     fac = factor(h)
@@ -73,7 +73,7 @@ end
 ########################################################################
 
 function base_change(phi::Any, U::PrincipalOpenSubset;
-    ambient_map::AbsSpecMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
+    ambient_map::AbsAffineSchemeMor=base_change(phi, ambient_scheme(U))[2] # the base change on the ambient scheme
   )
   Y = domain(ambient_map)
   pbf = pullback(ambient_map)

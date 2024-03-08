@@ -16,7 +16,8 @@ function linear_quotient(G::MatrixGroup)
 end
 
 function show(io::IO, L::LinearQuotient)
-  print(io, "Linear quotient by $(group(L))")
+  io = pretty(io)
+  print(io, "Linear quotient by ", Lowercase(), group(L))
 end
 
 group(L::LinearQuotient) = L.group
@@ -34,7 +35,7 @@ function fixed_root_of_unity(L::LinearQuotient)
   elseif e == 2
     L.root_of_unity = (K(-1), e)
   else
-    K isa AnticNumberField || throw(Hecke.NotImplemented())
+    K isa AbsSimpleNumField || throw(Hecke.NotImplemented())
     fl, l = Hecke.is_cyclotomic_type(K)
     fl || throw(Hecke.NotImplemented())
     if is_odd(l)
@@ -81,7 +82,7 @@ function class_group(L::LinearQuotient)
   else
     K = G
   end
-  A, KtoA = maximal_abelian_quotient(GrpAbFinGen, K)
+  A, KtoA = maximal_abelian_quotient(FinGenAbGroup, K)
   snfA, snfAtoA = snf(A)
   A = snfA
   KtoA = compose(KtoA, inv(snfAtoA))
@@ -116,8 +117,8 @@ function age(g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
 
   powers_of_zeta = _powers_of_root_of_unity(zeta[1]^q, order(Int, g))
-  sp = spectrum(g.elm)
-  return ZZRingElem(sum( m*powers_of_zeta[e] for (e, m) in sp ))//order(g)
+  eig = eigenvalues_with_multiplicities(g.elm)
+  return ZZRingElem(sum( m*powers_of_zeta[e] for (e, m) in eig ))//order(g)
 end
 
 @doc raw"""

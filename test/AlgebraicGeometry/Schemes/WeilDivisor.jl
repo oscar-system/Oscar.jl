@@ -4,7 +4,7 @@
   # Set up the base ℙ¹ with coordinates s and t
   S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
 
-  base_P1 = ProjectiveScheme(S)
+  base_P1 = proj(S)
 
   # split this into the standard covering
   bc = standard_covering(base_P1)
@@ -12,7 +12,7 @@
   A1s = patches(bc)[1]
   A1t = patches(bc)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -22,7 +22,7 @@
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 
@@ -33,10 +33,10 @@
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -49,7 +49,7 @@
   Oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
-  
+
   @test D + 2*E == D + E + E
 
   KK = VarietyFunctionField(X)
@@ -102,7 +102,7 @@ end
 @testset "orders on divisors" begin
   kk = QQ
   R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  X = Spec(R)
+  X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1
@@ -157,7 +157,7 @@ end
   KK = function_field(X)
   U = X[1][2]
   u, v = gens(OO(U))
-  f = KK(u, v) 
+  f = KK(u, v)
   @test !in_linear_system(f, D)
 end
 
@@ -177,7 +177,7 @@ end
   @test intersect(D2, D3) == 1
 end
 
-@testset "decomposition" begin 
+@testset "decomposition" begin
   P3 = projective_space(QQ, 3)
   S = homogeneous_coordinate_ring(P3)
   (x, y, z, w) = gens(S)
@@ -186,9 +186,9 @@ end
   X = covered_scheme(P3)
   D = weil_divisor(II)
   E = Oscar.irreducible_decomposition(D)
-  @test length(keys(coefficient_dict(E))) == 2
-  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
-  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test length(keys(Oscar.coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
 end
 
 @testset "intersection numbers on surfaces" begin

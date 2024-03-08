@@ -23,6 +23,21 @@ function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=t
   return result
 end
 
+function kaehler_differentials(R::MPolyDecRing; cached::Bool=true)
+  if cached && haskey(_kaehler_differentials(R), 1)
+    return _kaehler_differentials(R)[1]
+  end
+  n = ngens(R)
+  result = graded_free_module(R, [1 for i in 1:n])
+  symb = symbols(R)
+  result.S = [Symbol("d"*String(symb[i])) for i in 1:n]
+  set_attribute!(result, :show, show_kaehler_differentials)
+
+  cached && (_kaehler_differentials(R)[1] = result)
+  set_attribute!(result, :is_kaehler_differential_module, (R, 1))
+  return result
+end
+
 function kaehler_differentials(R::MPolyQuoRing; cached::Bool=true)
   if cached && haskey(_kaehler_differentials(R), 1)
     return _kaehler_differentials(R)[1]
@@ -36,6 +51,29 @@ function kaehler_differentials(R::MPolyQuoRing; cached::Bool=true)
   phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
   phi_res, _, _ = change_base_ring(R, phi)
   M = cokernel(phi_res)
+  set_attribute!(M, :show, show_kaehler_differentials)
+
+  cached && (_kaehler_differentials(R)[1] = M)
+  set_attribute!(M, :is_kaehler_differential_module, (R, 1))
+  return M
+end
+
+function kaehler_differentials(R::MPolyQuoRing{<:MPolyDecRingElem}; cached::Bool=true)
+  if cached && haskey(_kaehler_differentials(R), 1)
+    return _kaehler_differentials(R)[1]
+  end
+  n = ngens(R)
+  P = base_ring(R)
+  OmegaP = kaehler_differentials(P)
+  f = gens(modulus(R))
+  r = length(f)
+  Pr = graded_free_module(P, r)
+  @assert is_graded(OmegaP)
+  phi = hom(Pr, OmegaP, [exterior_derivative(a, parent=OmegaP) for a in f])
+  phi_res = _change_base_ring_and_preserve_gradings(R, phi)
+  @assert is_graded(codomain(phi_res))
+  M = cokernel(phi_res)
+  @assert is_graded(M)
   set_attribute!(M, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = M)
@@ -112,7 +150,7 @@ end
 
 # printing of kaehler differentials
 function show_kaehler_differentials(io::IO, M::ModuleFP)
-  success, F, p = is_exterior_power(M)
+  success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   if success 
     if is_unicode_allowed() 
@@ -130,7 +168,7 @@ function show_kaehler_differentials(io::IO, M::ModuleFP)
 end
 
 function show_kaehler_differentials(io::IO, ::MIME"text/html", M::ModuleFP)
-  success, F, p = is_exterior_power(M)
+  success, F, p = _is_exterior_power(M)
   R = base_ring(F)
   io = IOContext(io, :compact => true)
   if success 

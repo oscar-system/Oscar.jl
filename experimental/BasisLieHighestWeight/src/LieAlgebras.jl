@@ -16,7 +16,7 @@ end
 rank(L::LieAlgebraStructure) = L.rank
 
 @attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
-  R = GAP.Globals.RootSystem(L.lie_algebra_gap)
+  R = GAPWrap.RootSystem(L.lie_algebra_gap)
   C = matrix(QQ, GAP.Globals.CartanMatrix(R))
   return C
 end
@@ -43,23 +43,31 @@ function cartan_sub_basis(L::LieAlgebraStructure)
 end
 
 function root_system_gap(L::LieAlgebraStructure)
-  return GAP.Globals.RootSystem(L.lie_algebra_gap)
+  return GAPWrap.RootSystem(L.lie_algebra_gap)
 end
 
-function num_positive_roots(L::LieAlgebraStructure)
+function number_of_positive_roots(L::LieAlgebraStructure)
   return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
+end
+
+function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
+  hw_ = Int.(hw)
+  @req Oscar.LieAlgebras.is_dominant_weight(hw_) "Not a dominant weight."
+  return T(GAPWrap.DimensionOfHighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(hw_))))
+end
+
+function dim_of_simple_module(L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, L, hw)
 end
 
 function matrices_of_operators_gap(
   L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
 )
-  """
-  used to create action_matrices_of_operators
-  """
+  # used in tensor_matrices_of_operators
   M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
   matrices_of_operators = [
-    sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))) # TODO: remove transpose?
-    for o in operators
+    sparse_matrix(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))) for
+    o in operators
   ]
   denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))
   common_denominator = lcm(denominators)# // 1
@@ -68,16 +76,18 @@ function matrices_of_operators_gap(
   return matrices_of_operators
 end
 
+@doc raw"""
+    weight(L::LieAlgebraStructure, operator::GAP.Obj) -> Vector{ZZRingElem}
+
+Calculate the weight of `operator` w.r.t. the fundamental weights w_i.
+"""
 function weight(L::LieAlgebraStructure, operator::GAP.Obj)
-  """
-  Calculates the weight in w_i for operator
-  """
   @req !iszero(operator) "Operators should be non-zero"
-  basis = GAP.Globals.Basis(L.lie_algebra_gap)
+  basis = GAPWrap.Basis(L.lie_algebra_gap)
   basis_ind = GAP.Globals.Position(basis, operator)
-  denom = GAP.Globals.Coefficients(basis, operator)[basis_ind]
+  denom = GAPWrap.Coefficients(basis, operator)[basis_ind]
   return [
-    ZZ(GAP.Globals.Coefficients(basis, h * operator)[basis_ind]//denom) for
+    ZZ(GAPWrap.Coefficients(basis, h * operator)[basis_ind]//denom) for
     h in cartan_sub_basis(L)
   ]
 end

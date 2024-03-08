@@ -4,17 +4,17 @@
 #
 ################################################################################
 
-coefficient_ring(I::InvRing) = I.field
+coefficient_ring(I::FinGroupInvarRing) = I.field
 
-polynomial_ring(I::InvRing) = I.poly_ring
+polynomial_ring(I::FinGroupInvarRing) = I.poly_ring
 
-action(I::InvRing) = I.action
+action(I::FinGroupInvarRing) = I.action
 
-group(I::InvRing) = I.group
+group(I::FinGroupInvarRing) = I.group
 
-is_modular(I::InvRing) = I.modular
+is_modular(I::FinGroupInvarRing) = I.modular
 
-function _internal_polynomial_ring(I::InvRing)
+function _internal_polynomial_ring(I::FinGroupInvarRing)
   if isdefined(I, :poly_ring_internal)
     return I.poly_ring_internal
   end
@@ -32,7 +32,7 @@ function __cast_forced(R::MPolyRing{T}, f::MPolyRingElem{T}) where T
 end
 
 # Assumes that parent(f) === I.poly_ring
-function _cast_in_internal_poly_ring(I::InvRing, f::MPolyRingElem)
+function _cast_in_internal_poly_ring(I::FinGroupInvarRing, f::MPolyRingElem)
   if !isdefined(I, :poly_ring_internal)
     return f
   end
@@ -41,7 +41,7 @@ end
 
 # Assumes that parent(f) === I.poly_ring_internal, if this is assigned,
 # and parent(f) === I.poly_ring otherwise
-function _cast_in_external_poly_ring(I::InvRing, f::MPolyRingElem)
+function _cast_in_external_poly_ring(I::FinGroupInvarRing, f::MPolyRingElem)
   if !isdefined(I, :poly_ring_internal)
     return f
   end
@@ -63,10 +63,12 @@ function invariant_ring(R::MPolyDecRing, M::Vector{<: MatrixElem})
   return invariant_ring(R, matrix_group([change_base_ring(K, g) for g in M]))
 end
 
-invariant_ring(matrices::MatrixElem{T}...) where {T} = invariant_ring(collect(matrices))
+function invariant_ring(m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring([m, ms...])
+end
 
-function invariant_ring(R::MPolyDecRing, matrices::MatrixElem{T}...) where {T}
-  return invariant_ring(R, collect(matrices))
+function invariant_ring(R::MPolyDecRing, m::MatrixElem{T}, ms::MatrixElem{T}...) where {T} 
+  return invariant_ring(R, [m, ms...])
 end
 
 function invariant_ring(K::Field, M::Vector{<: MatrixElem})
@@ -101,16 +103,12 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1]);
 julia> G = matrix_group(M1, M2);
 
 julia> IRm = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> IRp = invariant_ring(symmetric_group(3))
-Invariant ring of
-  Permutation group of degree 3 and order 6
-with generators
-  PermGroupElem[(1,2,3), (1,2)]
+Invariant ring
+  of Sym(3)
 
 julia> coefficient_ring(IRp)
 Rational field
@@ -118,26 +116,34 @@ Rational field
 """
 function invariant_ring(G::MatrixGroup)
   action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
-  return InvRing(base_ring(G), G, action)
+  return FinGroupInvarRing(base_ring(G), G, action)
 end
 
 function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
   action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
-  return InvRing(base_ring(G), G, action, R)
+  return FinGroupInvarRing(base_ring(G), G, action, R)
 end
 
-invariant_ring(K::Field, G::PermGroup) = InvRing(K, G, gens(G))
+invariant_ring(K::Field, G::PermGroup) = FinGroupInvarRing(K, G, gens(G))
 
 invariant_ring(G::PermGroup) = invariant_ring(QQ, G)
 
-invariant_ring(R::MPolyDecRing, G::PermGroup) = InvRing(coefficient_ring(R), G, gens(G), R)
+invariant_ring(R::MPolyDecRing, G::PermGroup) = FinGroupInvarRing(coefficient_ring(R), G, gens(G), R)
 
-function Base.show(io::IO, IR::InvRing)
+function Base.show(io::IO, ::MIME"text/plain", RG::FinGroupInvarRing)
   io = pretty(io)
-  println(io, "Invariant ring of")
-  println(io, Indent(), group(IR), Dedent())
-  println(io, "with generators")
-  print(io, Indent(), action(IR))
+  println(io, "Invariant ring")
+  print(io, Indent(), "of ", Lowercase(), group(RG), Dedent())
+end
+
+function Base.show(io::IO, RG::FinGroupInvarRing)
+  if get(io, :supercompact, false)
+    print(io, "Invariant ring")
+  else
+    io = pretty(io)
+    print(io, "Invariant ring of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), group(RG))
+  end
 end
 
 # Return a map performing the right action of M on the ring R.
@@ -192,7 +198,7 @@ right_action(f::MPolyRingElem, p::PermGroupElem) = right_action(parent(f), p)(f)
 #
 ################################################################################
 
-function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, GrpT, PolyRingElemT}
+function reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, PolyRingElemT}) where {FldT, GrpT, PolyRingElemT}
   @assert !is_modular(IR)
 
   if isdefined(IR, :reynolds_operator)
@@ -213,7 +219,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
 end
 
 @doc raw"""
-     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
+     reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
 projecting onto `IR`.
@@ -238,19 +244,17 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]
@@ -268,13 +272,11 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> R = polynomial_ring(IR)
 Multivariate polynomial ring in 3 variables over GF(3) graded by
@@ -283,7 +285,7 @@ Multivariate polynomial ring in 3 variables over GF(3) graded by
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+3-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]
  x[2]
  x[3]
@@ -301,7 +303,7 @@ julia> reynolds_operator(IR, f)
 0
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
+function reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
   @assert !is_modular(IR)
   @assert parent(f) === polynomial_ring(IR)
 
@@ -311,12 +313,12 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, 
   return IR.reynolds_operator(f)
 end
 
-function reynolds_operator(IR::InvRing, f::MPolyRingElem)
+function reynolds_operator(IR::FinGroupInvarRing, f::MPolyRingElem)
   @assert parent(f) === forget_grading(polynomial_ring(IR))
   return reynolds_operator(IR, polynomial_ring(IR)(f))
 end
 
-function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroupClassFunction) where {FldT, GrpT, PolyRingElemT}
+function reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroupClassFunction) where {FldT, GrpT, PolyRingElemT}
 # I expect that this also works in the non-modular case, but haven't found a reference.
   # The only reference for this version of the reynolds operator appears to be [Gat96].
   @assert is_zero(characteristic(coefficient_ring(IR)))
@@ -340,7 +342,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
 end
 
 @doc raw"""
-     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
+     reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
        where {FldT, GrpT, T <: MPolyRingElem}
 
 In the case of characteristic zero, return the image of `f` under the twisted
@@ -388,17 +390,17 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
 ```
 """
-function reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
+function reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
   return reynolds_operator(IR, chi)(f)
 end
 
-function reynolds_operator(IR::InvRing, f::MPolyRingElem, chi::GAPGroupClassFunction)
+function reynolds_operator(IR::FinGroupInvarRing, f::MPolyRingElem, chi::GAPGroupClassFunction)
   @assert parent(f) === forget_grading(polynomial_ring(IR))
   return reynolds_operator(IR, polynomial_ring(IR)(f), chi)
 end
@@ -410,7 +412,7 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+     basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
@@ -441,13 +443,11 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> basis(IR, 6)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -460,29 +460,27 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 
 julia> G = matrix_group(M)
 Matrix group of degree 3
-  over finite field of characteristic 3
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over GF(3)
-with generators
-  fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> basis(IR, 2)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 
 julia> basis(IR, 3)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]*x[2]*x[3]
  x[1]^2*x[3] + 2*x[2]^2*x[3]
 ```
 """
-basis(IR::InvRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
+basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default) = collect(iterate_basis(IR, d, algorithm))
 
 @doc raw"""
-    basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+    basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
 return a basis for the semi-invariants (or relative invariants) in degree `d`
@@ -508,7 +506,7 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> basis(IR, 6, trivial_character(G))
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -521,7 +519,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -530,7 +528,7 @@ julia> basis(R, 3, chi)
 
 ```
 """
-basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(IR, d, chi))
+basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(IR, d, chi))
 
 ################################################################################
 #
@@ -554,7 +552,7 @@ basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction) = collect(iterate_basis(I
 #
 ################################################################################
 
-function _molien_series_char0(S::PolyRing, I::InvRing)
+function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   G = group(I)
   n = degree(G)
   K = coefficient_ring(I)
@@ -580,7 +578,7 @@ function _molien_series_char0(S::PolyRing, I::InvRing)
   return num//den
 end
 
-function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function _molien_series_nonmodular_via_gap(S::PolyRing, I::FinGroupInvarRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   @assert !is_modular(I)
   G = group(I)
   @assert G isa MatrixGroup || G isa PermGroup
@@ -589,13 +587,13 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
     if is_zero(characteristic(coefficient_ring(I)))
       psi = natural_character(G).values
     else
-      psi = [GAP.Globals.BrauerCharacterValue(GAP.Globals.Representative(c))
-             for c in GAP.Globals.ConjugacyClasses(t)]
+      psi = [GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c))
+             for c in GAPWrap.ConjugacyClasses(t)]
     end
   else
     deg = GAP.Obj(degree(G))
-    psi = [deg - GAP.Globals.NrMovedPoints(GAP.Globals.Representative(c))
-           for c in GAP.Globals.ConjugacyClasses(t)]
+    psi = [deg - GAP.Globals.NrMovedPoints(GAPWrap.Representative(c))
+           for c in GAPWrap.ConjugacyClasses(t)]
   end
   if chi === nothing
     info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t,
@@ -610,7 +608,7 @@ function _molien_series_nonmodular_via_gap(S::PolyRing, I::InvRing, chi::Union{G
 end
 
 @doc raw"""
-    molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
+    molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
 
 In the non-modular case, return the Molien series of `I` as a rational function.
 
@@ -652,7 +650,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)
@@ -661,7 +659,7 @@ julia> molien_series(IR, chi)
 t//(t^3 - t^2 - t + 1)
 ```
 """
-function molien_series(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function molien_series(S::PolyRing, I::FinGroupInvarRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   if isdefined(I, :molien_series) && chi === nothing
     if parent(I.molien_series) === S
       return I.molien_series
@@ -682,7 +680,7 @@ function molien_series(S::PolyRing, I::InvRing, chi::Union{GAPGroupClassFunction
   end
 end
 
-function molien_series(I::InvRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function molien_series(I::FinGroupInvarRing, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   if chi === nothing
     if !isdefined(I, :molien_series)
       S, t = polynomial_ring(QQ, "t", cached = false)
@@ -698,7 +696,7 @@ end
 # There are some situations where one needs to know whether one can ask for the
 # Molien series without throwing an error.
 # And maybe some day we can also compute Molien series in some modular cases.
-is_molien_series_implemented(I::InvRing) = !is_modular(I)
+is_molien_series_implemented(I::FinGroupInvarRing) = !is_modular(I)
 
 ################################################################################
 #

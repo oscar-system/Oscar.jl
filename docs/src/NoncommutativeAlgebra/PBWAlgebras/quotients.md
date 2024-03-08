@@ -16,7 +16,7 @@ functionality for dealing with quotients of PBW-algebras modulo two-sided ideals
 
 ## Types
 
-GR-algebras are modelled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
+GR-algebras are modeled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgQuoElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the GR-algebra
 is defined (the type `S` is added for internal use).
 
@@ -50,7 +50,7 @@ If `Q=A/I` is the quotient ring of a PBW-algebra `A` modulo a two-sided ideal `I
 - `base_ring(Q)` refers to `A`,
 - `modulus(Q)` to `I`,
 - `gens(Q)` to the generators of `Q`,
-- `ngens(Q)` to the number of these generators, and
+- `number_of_generators(Q)` / `ngens(Q)` to the number of these generators, and
 - `gen(Q, i)` as well as `Q[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -80,7 +80,7 @@ julia> gens(Q)
  y
  z
 
-julia> ngens(Q)
+julia> number_of_generators(Q)
 3
 
 julia> gen(Q, 2)

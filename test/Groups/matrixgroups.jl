@@ -97,7 +97,7 @@ end
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
       @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == matrix(one(G))
-      if F isa AnticNumberField
+      if F isa AbsSimpleNumField
          flag, n = Hecke.is_cyclotomic_type(F)
          @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z, z, one(F)]))) == n
       end
@@ -141,6 +141,31 @@ end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])
    @test order(Oscar.isomorphic_group_over_finite_field(G)[1]) == 1
+
+   @testset "with prescribed minimal characteristic" begin
+     G0 = matrix_group(inputs[1])
+     G, g = Oscar.isomorphic_group_over_finite_field(G0)
+     @test characteristic(base_ring(G)) == 3
+     G7, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 7)
+     @test characteristic(base_ring(G7)) == 7
+     G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
+     @test G === G3
+   end
+end
+
+@testset "matrix group over QQBar" begin
+   K = algebraic_closure(QQ)
+   e = one(K)
+   s, c = sinpi(2*e/5), cospi(2*e/5)
+   r = matrix([ c -s ; s c ]);
+   t = matrix(K, [ -1 0 ; 0 1 ]);
+   G = matrix_group(r, t)
+   @test order(G) == 10
+
+   p = K.([0,1])
+   orb = orbit(G, *, p)
+   @test length(orb) == 5
+
 end
 
 @testset "Type operations" begin
@@ -364,6 +389,38 @@ end
    @test_throws ArgumentError matrix_group([x1,x3])
 end
 
+@testset "map_entries for matrix groups" begin
+  mat = matrix(ZZ, 2, 2, [1, 1, 0, 1])
+  G = matrix_group(mat)
+  T = trivial_subgroup(G)[1]
+  @test length(gens(T)) == 0
+  for R in [GF(2), GF(3, 2), residue_ring(ZZ, 6)[1]]
+    red = map_entries(R, G)
+    @test matrix(gen(red, 1)) == map_entries(R, mat)
+    red = map_entries(R, T)
+    @test matrix(one(red)) == map_entries(R, one(mat))
+  end
+
+  F = GF(2)
+  mp = MapFromFunc(ZZ, F, x -> F(x))
+  red = map_entries(mp, G)
+  @test red == map_entries(F, G)
+  red = map_entries(mp, T)
+  @test red == map_entries(F, T)
+
+  G1 = special_linear_group(2, 9)
+  G2 = map_entries(x -> x^3, G1)
+  @test gens(G1) != gens(G2)
+  @test G1 == G2
+  T = trivial_subgroup(G1)[1]
+  @test length(gens(T)) == 0
+  @test map_entries(x -> x^3, T) == trivial_subgroup(G2)[1]
+
+  mat = matrix(QQ, 2, 2, [2, 1, 0, 1])
+  G = matrix_group(mat)
+  @test_throws ArgumentError map_entries(GF(2), G)
+end
+
 @testset "Iterator" begin
    G = SL(2,3)
    N = 0
@@ -449,7 +506,7 @@ end
    @test order(y)==8
    @test base_ring(x)==F
    @test nrows(y)==2
-   @test x*matrix(y) isa fqPolyRepMatrix
+   @test x*matrix(y) isa typeof(matrix(y))
    @test matrix(x*y)==matrix(x)*y
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
@@ -532,8 +589,8 @@ end
 
    G = GL(2,3)
    @test length(conjugacy_classes(G))==8
-   @test length(@inferred conjugacy_classes_subgroups(G))==16
-   @test length(@inferred conjugacy_classes_maximal_subgroups(G))==3
+   @test length(@inferred subgroup_classes(G))==16
+   @test length(@inferred maximal_subgroup_classes(G))==3
 end
 
 @testset "Jordan structure" begin
@@ -629,6 +686,8 @@ end
    G = isometry_group(L)
    @test order(G) == 12
    @test isometry_group(L) == orthogonal_group(L)
+   L = lattice(q, QQ[1 0; 0 1]) # avoid caching
+   @test isometry_group(L, depth = 1, bacher_depth = 0) == orthogonal_group(L)
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 

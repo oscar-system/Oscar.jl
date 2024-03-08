@@ -55,12 +55,11 @@ Hypersurface model over a concrete base
 ```
 """
 function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
-  
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
-    @vprint :HypersurfaceModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   if completeness_check
     @req is_complete(base) "Base space must be complete"
@@ -71,10 +70,16 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   
   # Construct the model
   hypersurface_equation = generic_section(anticanonical_bundle(ambient_space))
-  model = HypersurfaceModel(base, ambient_space, fiber_ambient_space, hypersurface_equation)
-  set_attribute!(model, :base_fully_specified, true)
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  gens_S = gens(cox_ring(ambient_space))
+  for k in 1:length(gens_S)
+    explicit_model_sections[string(gens_S[k])] = gens_S[k]
+  end
+  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation, hypersurface_equation, base, ambient_space, fiber_ambient_space)
+  set_attribute!(model, :partially_resolved, false)
   return model
 end
+
 
 
 ################################################
@@ -161,29 +166,6 @@ Hypersurface model over a not fully specified base
 """
 function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
   
-  # Is there a grading [1, 0, ..., 0]?
-  Kbar_grading_present = false
-  for i in 1:ncols(auxiliary_base_grading)
-    col = auxiliary_base_grading[:,i]
-    if length(col) == 1 && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-  end
-  
-  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
-  if Kbar_grading_present == false
-    @req ("Kbar" in auxiliary_base_vars) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
-    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
-    Kbar_grading[1] = 1
-    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
-    push!(auxiliary_base_vars, "Kbar")
-  end
-  
   # Compute simple information
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
   set_base_vars = Set(auxiliary_base_vars)
@@ -197,10 +179,10 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   
   # Inform about the assume Kbar grading
-  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
   # Construct the spaces
-  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2, p)
+  (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, auxiliary_base_vars, d, fiber_ambient_space, D1, D2)
   
   # Map p to coordinate ring of ambient space
   gens_S = gens(S)
@@ -211,9 +193,19 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   end
   hypersurface_equation = hom(parent(p), S, image_list)(p)
 
+  # Remember the parametrization of the hypersurface equation
+  hypersurface_equation_parametrization = eval_poly(string(p), coordinate_ring(auxiliary_ambient_space))
+
+  # Remember the explicit model sections
+  gens_R = gens(coordinate_ring(auxiliary_base_space))
+  explicit_model_sections = Dict{String, MPolyRingElem}()
+  for k in 1:length(gens_R)
+    explicit_model_sections[string(gens_R[k])] = gens_R[k]
+  end
+
   # Construct the model
-  model = HypersurfaceModel(auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space, hypersurface_equation)
-  set_attribute!(model, :base_fully_specified, false)
+  model = HypersurfaceModel(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, auxiliary_base_space, auxiliary_ambient_space, fiber_ambient_space)
+  set_attribute!(model, :partially_resolved, false)
   return model
 end
 
@@ -223,9 +215,16 @@ end
 ################################################
 
 function Base.show(io::IO, h::HypersurfaceModel)
-  if base_fully_specified(h)
-    print(io, "Hypersurface model over a concrete base")
+  properties_string = String[]
+  if is_partially_resolved(h)
+    push!(properties_string, "Partially resolved hypersurface model over a")
   else
-    print(io, "Hypersurface model over a not fully specified base")
+    push!(properties_string, "Hypersurface model over a")
   end
+  if is_base_space_fully_specified(h)
+    push!(properties_string, "concrete base")
+  else
+    push!(properties_string, "not fully specified base")
+  end
+  join(io, properties_string, " ")
 end

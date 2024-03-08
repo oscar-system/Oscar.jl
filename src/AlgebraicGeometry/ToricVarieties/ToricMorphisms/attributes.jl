@@ -44,8 +44,8 @@ Normal toric variety
 
 julia> grid_morphism(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
 grid_morphism(tm::ToricMorphism) = tm.grid_morphism
@@ -64,21 +64,21 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_weil_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_weil_divisor_group(tm::ToricMorphism)
     d = domain(tm)
     cod = codomain(tm)
     cod_rays = matrix(ZZ, rays(cod))
     images = matrix(ZZ, rays(d)) * matrix(grid_morphism(tm))
-    mapping_matrix = matrix(ZZ, zeros(ZZ, rank(torusinvariant_weil_divisor_group(cod)), 0))
+    mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
       j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
-      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k, :] for k in 1:nrays(cod)])
-      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i, :])))
+      m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
+      mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
     end
     return hom(torusinvariant_weil_divisor_group(d), torusinvariant_weil_divisor_group(cod), transpose(mapping_matrix))
 end
@@ -97,11 +97,11 @@ Normal toric variety
 
 julia> morphism_on_torusinvariant_cartier_divisor_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^4
-  to GrpAb: Z^4
+  from Z^4
+  to Z^4
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_torusinvariant_cartier_divisor_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_embedding = map_from_torusinvariant_cartier_divisor_group_to_torusinvariant_weil_divisor_group(domain_variety)
@@ -124,11 +124,11 @@ Normal toric variety
 
 julia> morphism_on_class_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_class_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_class_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_weil_divisor_group_to_class_group(domain_variety))
@@ -151,11 +151,11 @@ Normal toric variety
 
 julia> morphism_on_picard_group(toric_identity_morphism(F4))
 Map
-  from GrpAb: Z^2
-  to GrpAb: Z^2
+  from Z^2
+  to Z^2
 ```
 """
-@attr GrpAbFinGenMap function morphism_on_picard_group(tm::ToricMorphism)
+@attr FinGenAbGroupHom function morphism_on_picard_group(tm::ToricMorphism)
     domain_variety = domain(tm)
     codomain_variety = codomain(tm)
     domain_preinverse = preinverse(map_from_torusinvariant_cartier_divisor_group_to_picard_group(domain_variety))
@@ -223,7 +223,7 @@ Covering
   image_cones = [positive_hull(matrix(ZZ, rays(c)) * A) for c in domain_cones]
 
   # construct the corresponding morphism of rings
-  morphism_dict = IdDict{AbsSpec, AbsSpecMor}()
+  morphism_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   domain_cov = default_covering(X) # ordering of the patches must be the same as `maximal_cones`
   codomain_cov = default_covering(Y)
   for i in 1:n_maximal_cones(X)
@@ -240,13 +240,13 @@ Covering
     hb_V_mat = matrix(ZZ, hb_V)
     hb_V_img = hb_V_mat * At
     hb_U_mat = matrix(ZZ, hb_U)
-    sol = solve_left(hb_U_mat, hb_V_img)
+    sol = solve(hb_U_mat, hb_V_img; side = :left)
     @assert sol*hb_U_mat == hb_V_img
     @assert all(x->x>=0, sol)
 
     # assemble the monomials where the variables of OO(V) are mapped
     imgs = [prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for i in 1:nrows(sol)]
-    morphism_dict[U] = SpecMor(U, V, imgs)
+    morphism_dict[U] = morphism(U, V, imgs)
   end
   return CoveringMorphism(domain_cov, codomain_cov, morphism_dict, check=false)
 end

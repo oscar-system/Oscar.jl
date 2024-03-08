@@ -20,7 +20,7 @@ one(x::GAPGroupElem)
 is_finiteorder(x::GAPGroupElem)
 gens(::GAPGroup)
 has_gens(::GAPGroup)
-ngens(G::GAPGroup)
+number_of_generators(G::GAPGroup)
 gen(::GAPGroup, i::Int)
 small_generating_set(G::GAPGroup)
 Base.rand(G::GAPGroup)
@@ -70,18 +70,18 @@ is_finite(G::GAPGroup)
 is_trivial(G::GAPGroup)
 is_cyclic(G::GAPGroup)
 is_abelian(G::GAPGroup)
-is_elementary_abelian
-is_pgroup
-is_pgroup_with_prime
-is_nilpotent
-is_supersolvable
-is_solvable
-is_perfect
+is_elementary_abelian(G::GAPGroup)
+is_pgroup(G::GAPGroup)
+is_pgroup_with_prime(::Type{T}, G::GAPGroup) where T <: IntegerUnion
+is_nilpotent(G::GAPGroup)
+is_supersolvable(G::GAPGroup)
+is_solvable(G::GAPGroup)
+is_perfect(G::GAPGroup)
 is_simple(G::GAPGroup)
-is_almostsimple
-is_quasisimple
-is_sporadic_simple
-is_finitelygenerated
+is_almost_simple(G::GAPGroup)
+is_quasisimple(G::GAPGroup)
+is_sporadic_simple(G::GAPGroup)
+is_finitely_generated(G::GAPGroup)
 ```
 
 
@@ -97,5 +97,5 @@ describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
 prime_of_pgroup
 derived_length
-schur_multiplier(G::Union{GAPGroup, GrpAbFinGen})
+schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
 ```

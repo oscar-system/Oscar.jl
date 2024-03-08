@@ -70,7 +70,7 @@ mutable struct MPolyPowersOfElement{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyPowersOfElement) = S.R
+ring(S::MPolyPowersOfElement) = S.R
 
 ### additional constructors
 MPolyPowersOfElement(f::RET) where {RET<:MPolyRingElem} = MPolyPowersOfElement(parent(f), [f])
@@ -85,7 +85,7 @@ function Base.in(
     S::MPolyPowersOfElement{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   R = parent(f)
-  R == ambient_ring(S) || return false
+  R === ring(S) || return false
   if iszero(f) 
     return false
   end
@@ -102,7 +102,7 @@ Base.iterate(U::MPolyPowersOfElement) = (length(U.a)>0 ? (U.a[1], 1) : nothing)
 Base.iterate(U::MPolyPowersOfElement, a::Tuple{<:MPolyRingElem, Int}) = (a[2] < length(U.a) ? (U.a[a[2]+1], a[2]+1) : nothing)
 Base.iterate(U::MPolyPowersOfElement, i::Int) = (i < length(U.a) ? (U.a[i+1], i+1) : nothing)
 
-is_trivial(U::MPolyPowersOfElement) = (U == units_of(ambient_ring(U)))
+is_trivial(U::MPolyPowersOfElement) = (U == units_of(ring(U)))
 
 ### printing
 
@@ -110,7 +110,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyPowersOfElement)
   io = pretty(io)
   println(io, "Multiplicative subset")
   print(io, Indent())
-  println(io, "of ", Lowercase(), ambient_ring(S))
+  println(io, "of ", Lowercase(), ring(S))
   print(io, "given by the products of ")
   print(io, "[")
   join(io, denominators(S), ", ")
@@ -125,26 +125,26 @@ function Base.show(io::IO, S::MPolyPowersOfElement)
     print(io, ItemQuantity(length(denominators(S)), "element"))
   else
     print(io, "Products of (")
-    join(io, denominators(S), ",")
+    join(io, denominators(S), ", ")
     print(io, ")")
   end
 end
 
 ### generation of random elements 
 function rand(S::MPolyPowersOfElement, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  R = ambient_ring(S)
+  R = ring(S)
   return prod(f^rand(0:2) for f in denominators(S); init = one(R))::elem_type(R)
 end
 
 function rand(rng::Random.AbstractRNG, S::MPolyPowersOfElement, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  R = ambient_ring(S)
+  R = ring(S)
   return prod(f^rand(rng, 0:2) for f in denominators(S); init = one(R))::elem_type(R)
 end
 
 ### simplification. 
 # Replaces each element d by its list of square free prime divisors.
 function simplify!(S::MPolyPowersOfElement)
-  R = ambient_ring(S)
+  R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
     for a in factor(d)
@@ -156,7 +156,7 @@ function simplify!(S::MPolyPowersOfElement)
 end
 
 function simplify(S::MPolyPowersOfElement)
-  R = ambient_ring(S)
+  R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
     for a in factor(d)
@@ -192,11 +192,11 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
 
 julia> S = complement_of_prime_ideal(ideal([x]))
 Complement
-  of prime ideal(x)
+  of prime ideal (x)
   in multivariate polynomial ring in 2 variables over QQ
 
 julia> (S,)
-(Complement of prime ideal(x),)
+(Complement of prime ideal (x),)
 
 ```
 """
@@ -228,8 +228,7 @@ mutable struct MPolyComplementOfPrimeIdeal{
 end
 
 ### required getter functions
-ambient_ring(
-    S::MPolyComplementOfPrimeIdeal) = S.R
+ring(S::MPolyComplementOfPrimeIdeal) = S.R
 
 ### required functionality
 function Base.in(
@@ -247,7 +246,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfPrimeIdeal)
   io = pretty(io)
   println(io, "Complement")
   println(io, Indent(), "of prime ", Lowercase(), prime_ideal(S))
-  print(io, "in ", Lowercase(), ambient_ring(S))
+  print(io, "in ", Lowercase(), ring(S))
   print(io, Dedent())
 end
 
@@ -255,13 +254,14 @@ function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
   if get(io, :supercompact, false)
     print(io, "Complement of prime ideal")
   else
-    print(io, "Complement of prime ", prime_ideal(S))
+    io = pretty(io)
+    print(io, "Complement of prime ", Lowercase(), prime_ideal(S))
   end
 end
 
 ### generation of random elements 
 function rand(S::MPolyComplementOfPrimeIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  f = rand(ambient_ring(S), v1, v2, v3)
+  f = rand(ring(S), v1, v2, v3)
   if f in prime_ideal(S)
     return rand(S, v1, v2, v3)
   end
@@ -269,7 +269,7 @@ function rand(S::MPolyComplementOfPrimeIdeal, v1::AbstractUnitRange{Int}, v2::Ab
 end
 
 function rand(rng::Random.AbstractRNG, S::MPolyComplementOfPrimeIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  f = rand(rng, ambient_ring(S), v1, v2, v3)
+  f = rand(rng, ring(S), v1, v2, v3)
   if f in prime_ideal(S)
     return rand(rng, S, v1, v2, v3)
   end
@@ -341,16 +341,16 @@ end
 # MPolyComplementOfPrimeIdeal. In order to treat them in 
 # parallel, we introduce the analogous method here. 
 function prime_ideal(S::MPolyComplementOfKPointIdeal) 
-  kk = coefficient_ring(ambient_ring(S))
+  kk = coefficient_ring(ring(S))
   # TODO: Test whether kk is an integral domain
   if !isdefined(S, :m)
-    R = ambient_ring(S)
+    R = ring(S)
     x = gens(R)
     n = ngens(R)
     m = ideal(R, [x[i]-a for (i, a) in enumerate(point_coordinates(S))])
     set_attribute!(m, :is_prime=>true)
     kk isa Field && set_attribute!(m, :is_maximal=>true)
-    set_attribute!(m, :dim=>dim(coefficient_ring(ambient_ring(S))))
+    set_attribute!(m, :dim=>dim(coefficient_ring(ring(S))))
     S.m = m
   end
   return S.m
@@ -398,11 +398,12 @@ return the multiplicatively closed subset ``R\setminus P.``
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
-ideal(x)
+Ideal generated by
+  x
 
 julia> U = complement_of_prime_ideal(P)
 Complement
-  of prime ideal(x)
+  of prime ideal (x)
   in multivariate polynomial ring in 3 variables over QQ
 ```
 """
@@ -430,7 +431,7 @@ Multiplicative subset
 powers_of_element(f::MPolyRingElem) = MPolyPowersOfElement(f)
 
 ### required getter functions
-ambient_ring(S::MPolyComplementOfKPointIdeal) = S.R
+ring(S::MPolyComplementOfKPointIdeal) = S.R
 
 ### additional getter functions 
 point_coordinates(S::MPolyComplementOfKPointIdeal) = S.a
@@ -440,8 +441,8 @@ function Base.in(
     f::RingElemType, 
     S::MPolyComplementOfKPointIdeal{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  parent(f) == ambient_ring(S) || return false
-  return !(evaluate(f, point_coordinates(S)) == zero(ambient_ring(S)))
+  parent(f) == ring(S) || return false
+  return !(evaluate(f, point_coordinates(S)) == zero(ring(S)))
 end
 
 ### printing
@@ -454,7 +455,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfKPointIdeal)
   join(io, point_coordinates(S), ", ")
   println(io, ")")
   print(io, Dedent())
-  print(io, "in ", Lowercase(), ambient_ring(S))
+  print(io, "in ", Lowercase(), ring(S))
   print(io, Dedent())
 end
 
@@ -471,14 +472,14 @@ end
 
 ### generation of random elements 
 function rand(S::MPolyComplementOfKPointIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  f = rand(ambient_ring(S), v1, v2, v3)
+  f = rand(ring(S), v1, v2, v3)
   if !(f in S)
     return rand(S, v1, v2, v3)
   end
   return f
 end
 function rand(rng::Random.AbstractRNG, S::MPolyComplementOfKPointIdeal, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  f = rand(rng, ambient_ring(S), v1, v2, v3)
+  f = rand(rng, ring(S), v1, v2, v3)
   if !(f in S)
     return rand(rng, S, v1, v2, v3)
   end
@@ -509,7 +510,7 @@ julia> S = complement_of_point_ideal(R,[1,2]);
 
 julia> T = powers_of_element(x);
 
-julia> ST = MPolyProductOfMultSets(R, [S, T])
+julia> ST = Oscar.MPolyProductOfMultSets(R, [S, T])
 Product of the multiplicative sets
   complement of maximal ideal of point (1, 2)
   products of (x)
@@ -535,14 +536,14 @@ mutable struct MPolyProductOfMultSets{
 
   function MPolyProductOfMultSets(R::RT, U::Vector{<:AbsMPolyMultSet{BRT, BRET, RT, RET}}) where {BRT<:Ring, BRET<:RingElement, RT<:MPolyRing, RET<:MPolyRingElem}
     for s in U
-      ambient_ring(s) == R || error("multiplicative set does not live in the given ring")
+      ring(s) == R || error("multiplicative set does not live in the given ring")
     end
     return new{typeof(coefficient_ring(R)), elem_type(coefficient_ring(R)), typeof(R), elem_type(R)}(R, U)
   end
 end
 
 ### required getter functions
-ambient_ring(S::MPolyProductOfMultSets) = S.R
+ring(S::MPolyProductOfMultSets) = S.R
 
 ### additional functionality
 getindex(S::MPolyProductOfMultSets, i::Integer) = S.U[i]
@@ -553,7 +554,7 @@ function Base.in(
     f::RingElemType, 
     S::MPolyProductOfMultSets{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
-  R = ambient_ring(S)
+  R = ring(S)
   divides(one(R), f)[1] && return true
   U = sets(S)
   for s in U
@@ -604,10 +605,10 @@ end
 
 ### generation of random elements 
 function rand(S::MPolyProductOfMultSets, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
+  return prod([rand(s, v1, v2, v3) for s in sets(S)])::elem_type(ring(S))
 end
 function rand(rng::Random.AbstractRNG, S::MPolyProductOfMultSets, v1::AbstractUnitRange{Int}, v2::AbstractUnitRange{Int}, v3::AbstractUnitRange{Int})
-  return prod([rand(rng, s, v1, v2, v3) for s in sets(S)])::elem_type(ambient_ring(S))
+  return prod([rand(rng, s, v1, v2, v3) for s in sets(S)])::elem_type(ring(S))
 end
 
 ########################################################################
@@ -653,7 +654,7 @@ mutable struct MPolyLeadingMonOne{
 end
 
 ### required getter functions
-ambient_ring(S::MPolyLeadingMonOne) = S.R
+ring(S::MPolyLeadingMonOne) = S.R
 
 ### additional constructors
 MPolyLeadingMonOne(ord::MonomialOrdering) = MPolyLeadingMonOne(ord.R, ord)
@@ -666,7 +667,7 @@ function Base.in(
     S::MPolyLeadingMonOne{BaseRingType, BaseRingElemType, RingType, RingElemType}
   ) where {BaseRingType, BaseRingElemType, RingType, RingElemType}
   R = parent(f)
-  R == ambient_ring(S) || return false
+  R == ring(S) || return false
   if iszero(f)
     return false
   end
@@ -678,7 +679,7 @@ function Base.show(io::IO,::MIME"text/plain", S::MPolyLeadingMonOne)
   io = pretty(io)
   println(io, "Elements")
   print(io, Indent())
-  println(io, "of ", ambient_ring(S))
+  println(io, "of ", ring(S))
   print(io, Dedent())
   println(io, "with leading monomial 1 w.r.t. ")
   print(io, Indent())
@@ -704,7 +705,7 @@ end
 ⊂(T::AbsMPolyMultSet, U::AbsMPolyMultSet) = issubset(T, U)
 
 function issubset(T::AbsMPolyMultSet, U::AbsMPolyMultSet) 
-  ambient_ring(T) == ambient_ring(U) || return false
+  ring(T) == ring(U) || return false
   error("comparison of multiplicative sets of type $(typeof(T)) and $(typeof(U)) is not implemented")
 end
 
@@ -728,8 +729,8 @@ function issubset(
     T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
   b = point_coordinates(T)
   for i in 1:length(a)
@@ -742,8 +743,8 @@ function issubset(
     T::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(T)
   for i in 1:length(a)
     (gen(R, i)- R(a[i])) in prime_ideal(U) || return false
@@ -755,8 +756,8 @@ function issubset(
     T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET},
     U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
   for f in gens(prime_ideal(T))
     iszero(evaluate(f, a)) || return false
@@ -897,16 +898,16 @@ Product of the multiplicative sets
 ```
 """
 function product(T::AbsMPolyMultSet, U::AbsMPolyMultSet)
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   issubset(T, U) && return U
   issubset(U, T) && return T
   return MPolyProductOfMultSets(R, [T, U])
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets} 
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   new_sets = Vector()
   for S in sets(T)
     push!(new_sets, S)
@@ -931,8 +932,8 @@ function product(T::MST, U::MST) where {MST<:MPolyProductOfMultSets}
 end
 
 function product(T::MPolyProductOfMultSets{BRT, BRET, RT, RET}, U::MST) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   for V in sets(T)
     issubset(U, T) && return T
   end
@@ -946,8 +947,8 @@ end
 product(U::MST, T::MPolyProductOfMultSets{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET, MST<:AbsMPolyMultSet{BRT, BRET, RT, RET}} = product(T, U)
 
 function product(T::MPolyComplementOfPrimeIdeal{BRT, BRET, RT, RET}, U::MPolyComplementOfKPointIdeal{BRT, BRET, RT, RET}) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   P = prime_ideal(T)
   for f in gens(P)
     if iszero(evaluate(f, point_coordinates(U)))
@@ -965,8 +966,8 @@ function product(
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyComplementOfKPointIdeal}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   a = point_coordinates(U)
   b = point_coordinates(T)
   for i in 1:length(a)
@@ -976,8 +977,8 @@ function product(T::MST, U::MST) where {MST<:MPolyComplementOfKPointIdeal}
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   if issubset(prime_ideal(T), prime_ideal(U))
     return T
   end
@@ -988,8 +989,8 @@ function product(T::MST, U::MST) where {MST<:MPolyComplementOfPrimeIdeal}
 end
 
 function product(T::MST, U::MST) where {MST<:MPolyPowersOfElement}
-  R = ambient_ring(T) 
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T) 
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   new_denoms = Vector{elem_type(R)}()
   for f in denominators(T)
     for g in denominators(U)
@@ -1015,8 +1016,8 @@ function product(
     U::AbsMPolyMultSet{BRT, BRET, RT, RET},
     T::MPolyPowersOfElement{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   for a in denominators(T)
     a in U || return MPolyProductOfMultSets(R, [U, T])
   end
@@ -1027,8 +1028,8 @@ function product(
     T::MPolyPowersOfElement{BRT, BRET, RT, RET},
     U::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   for a in denominators(T)
     a in U || return MPolyProductOfMultSets(R, [U, T])
   end
@@ -1039,8 +1040,8 @@ function product(
     T::MPolyPowersOfElement{BRT, BRET, RT, RET},
     U::MPolyProductOfMultSets{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET}
-  R = ambient_ring(T)
-  R == ambient_ring(U) || error("multiplicative sets do not belong to the same ring")
+  R = ring(T)
+  R == ring(U) || error("multiplicative sets do not belong to the same ring")
   keep_denom = Vector{RET}()
   for a in denominators(T)
     a in U || (push!(keep_denom, a))
@@ -1070,7 +1071,7 @@ end
 function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyPowersOfElement;
                                                                check::Bool=true
                                                               )
-  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
   S = codomain(phi) 
   SU = MPolyPowersOfElement(S, phi.(denominators(U)))
   return SU
@@ -1079,7 +1080,7 @@ end
 function (phi::MPolyAnyMap{<:MPolyRing, <:MPolyRing, Nothing})(U::MPolyComplementOfPrimeIdeal;
                                                                check::Bool=true
                                                               )
-  ambient_ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
+  ring(U) === domain(phi) || error("multiplicative set does not lay in the domain of the morphism")
   S = codomain(phi) 
   Q = ideal(S, phi.(gens(prime_ideal(U))))
   SU = MPolyComplementOfPrimeIdeal(S, Q, check=check)
@@ -1126,7 +1127,7 @@ at a multiplicative set ``S ⊂ R`` of type `MultSetType`.
       S::MultSetType
     ) where {RingType<:MPolyRing, MultSetType<:AbsMPolyMultSet}
     # TODO: Add some sanity checks here?
-    ambient_ring(S) == R || error("the multiplicative set is not contained in the given ring")
+    ring(S) == R || error("the multiplicative set is not contained in the given ring")
     k = coefficient_ring(R)
     R_loc = new{typeof(k), elem_type(k), RingType, elem_type(R), MultSetType}(R, S)
     return R_loc
@@ -1139,7 +1140,7 @@ inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
 gens(W::MPolyLocRing) = W.(gens(base_ring(W)))
-ngens(W::MPolyLocRing) = ngens(base_ring(W))
+number_of_generators(W::MPolyLocRing) = number_of_generators(base_ring(W))
 
 ### required extension of the localization function
 @doc raw"""
@@ -1153,11 +1154,12 @@ Return the localization of `R` at `U`, together with the localization map.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
-ideal(x)
+Ideal generated by
+  x
 
 julia> U = complement_of_prime_ideal(P)
 Complement
-  of prime ideal(x)
+  of prime ideal (x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(R, U);
@@ -1166,12 +1168,12 @@ julia> Rloc
 Localization
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
-  at complement of prime ideal(x)
+  at complement of prime ideal (x)
 
 julia> iota
 Ring homomorphism
   from multivariate polynomial ring in 3 variables over QQ
-  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x)
+  to localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x)
 defined by
   x -> x
   y -> y
@@ -1180,7 +1182,7 @@ defined by
 """ localization(R::MPolyRing, U::AbsMPolyMultSet)
 
 function localization(S::AbsMPolyMultSet)
-    R = ambient_ring(S)
+    R = ring(S)
     Rloc = MPolyLocRing(R, S)
     #iota = MapFromFunc(R, Rloc, x -> Rloc(x))
     iota = hom(R, Rloc, Rloc.(gens(R)), check=false)
@@ -1280,11 +1282,11 @@ mutable struct MPolyLocRingElem{
   } 
 
   W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-  frac::AbstractAlgebra.Generic.Frac{RingElemType}
+  frac::AbstractAlgebra.Generic.FracFieldElem{RingElemType}
 
   function MPolyLocRingElem(
       W::MPolyLocRing{BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType},
-      f::AbstractAlgebra.Generic.Frac{RingElemType};
+      f::AbstractAlgebra.Generic.FracFieldElem{RingElemType};
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
     base_ring(parent(f)) == base_ring(W) || error(
@@ -1381,7 +1383,7 @@ end
     RingType, 
     RingElemType, 
     MultSetType
-  })(f::AbstractAlgebra.Generic.Frac{RingElemType}; check::Bool=true) where {
+  })(f::AbstractAlgebra.Generic.FracFieldElem{RingElemType}; check::Bool=true) where {
     BaseRingType, 
     BaseRingElemType, 
     RingType, 
@@ -1502,11 +1504,12 @@ Return `true`, if `f` is a unit of `parent(f)`, `false` otherwise.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> P = ideal(R, [x])
-ideal(x)
+Ideal generated by
+  x
 
 julia> U = complement_of_prime_ideal(P)
 Complement
-  of prime ideal(x)
+  of prime ideal (x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> Rloc, iota = localization(U);
@@ -1647,7 +1650,6 @@ end
 ### required getter functions
 gens(I::MPolyLocalizedIdeal) = copy(I.gens)
 gen(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
-getindex(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyLocalizedIdeal) = I.W
 
 ### type getters
@@ -1657,7 +1659,7 @@ ideal_type(L::MPolyLocRing) = ideal_type(typeof(L))
 ### additional getter functions 
 map_from_base_ring(I::MPolyLocalizedIdeal) = I.map_from_base_ring
 is_saturated(I::MPolyLocalizedIdeal) = I.is_saturated
-ngens(I::MPolyLocalizedIdeal) = length(I.gens)
+number_of_generators(I::MPolyLocalizedIdeal) = length(I.gens)
 
 function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
   L = base_ring(I)
@@ -1692,14 +1694,12 @@ julia> R,(x,y,z,w) = QQ["x","y","z","w"];
 
 julia> f = x+y+z+w-1;
 
-julia> T = MPolyPowersOfElement(f);
+julia> T = powers_of_element(f);
 
 julia> RL,phiL = localization(R,T);
 
 julia> I=ideal(RL,RL.([x+y+z,w-1]))
-Ideal
-  of localized ring
-with 2 generators
+Ideal generated by
   x + y + z
   w - 1
 
@@ -1707,38 +1707,28 @@ julia> is_one(I)
 true
 
 julia> J=ideal(RL,RL.([x^2,y]))
-Ideal
-  of localized ring
-with 2 generators
+Ideal generated by
   x^2
   y
 
 julia> K=ideal(RL,RL.([x]))
-Ideal
-  of localized ring
-with 1 generator
+Ideal generated by
   x
 
 julia> intersect(J,K)
-Ideal
-  of localized ring
-with 2 generators
+Ideal generated by
   x*y
   x^2
 
 julia> intersect(I,J,K)
-Ideal
-  of localized ring
-with 4 generators
+Ideal generated by
   x*y*w - x*y
   x^2*w - x^2
   x^2*y + x*y^2 + x*y*z
   x^3 + x^2*z - x*y^2 - x*y*z
 
 julia> intersect([I,J,K])
-Ideal
-  of localized ring
-with 4 generators
+Ideal generated by
   x*y*w - x*y
   x^2*w - x^2 + x*y*w - x*y
   x^2*y + x*y^2 + x*y*z
@@ -1848,13 +1838,12 @@ Multiplicative subset
 julia> Rloc, iota = localization(R, U);
 
 julia> I = ideal(Rloc, [x+x^2])
-Ideal
-  of localized ring
-with 1 generator
+Ideal generated by
   x^2 + x
 
 julia> SI = saturated_ideal(I)
-ideal(x + 1)
+Ideal generated by
+  x + 1
 
 julia> base_ring(SI)
 Multivariate polynomial ring in 1 variable x
@@ -1868,13 +1857,12 @@ Complement
 julia> Rloc, iota = localization(R, U);
 
 julia> I = ideal(Rloc, [x+x^2])
-Ideal
-  of localized ring
-with 1 generator
+Ideal generated by
   x^2 + x
 
 julia> saturated_ideal(I)
-ideal(x)
+Ideal generated by
+  x
 ```
 """
 function saturated_ideal(I::MPolyLocalizedIdeal)
@@ -2166,33 +2154,33 @@ julia> R, (x, y) = QQ["x", "y"]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y^2+1])
-ideal(x, y^2 + 1)
+Ideal generated by
+  x
+  y^2 + 1
 
-julia> U = MPolyComplementOfPrimeIdeal(I)
+julia> U = complement_of_prime_ideal(I)
 Complement
-  of prime ideal(x, y^2 + 1)
+  of prime ideal (x, y^2 + 1)
   in multivariate polynomial ring in 2 variables over QQ
 
-julia> L = MPolyLocRing(R, U)
-Localization
-  of multivariate polynomial ring in 2 variables x, y
-    over rational field
-  at complement of prime ideal(x, y^2 + 1)
+julia> L, _ = localization(R, U)
+(Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal (x, y^2 + 1), Hom: multivariate polynomial ring -> localized ring)
 
 julia> J = ideal(L,[y*(x^2+(y^2+1)^2)])
-Ideal
-  of localized ring
-with 1 generator
+Ideal generated by
   x^2*y + y^5 + 2*y^3 + y
 
 julia> saturated_ideal(J)
-ideal(x^2 + y^4 + 2*y^2 + 1)
+Ideal generated by
+  x^2 + y^4 + 2*y^2 + 1
 
 julia> JJ = ideal(R,[y*(x^2+(y^2+1)^2)])
-ideal(x^2*y + y^5 + 2*y^3 + y)
+Ideal generated by
+  x^2*y + y^5 + 2*y^3 + y
 
 julia> saturated_ideal(JJ)
-ideal(x^2*y + y^5 + 2*y^3 + y)
+Ideal generated by
+  x^2*y + y^5 + 2*y^3 + y
 
 ```
 """
@@ -2332,37 +2320,44 @@ Localization
   at complement of maximal ideal of point (1, 2)
 
 julia> I = ideal(SinvR, gens(SinvR))
-Ideal
-  of localized ring
-with 2 generators
+Ideal generated by
   x
   y
 
 julia> (I,)
-(ideal(x, y),)
+(Ideal (x, y),)
 
 ```
 """
-function Base.show(io::IO,::MIME"text/plain", I::MPolyLocalizedIdeal)
-  n = ngens(I)
+function Base.show(io::IO, ::MIME"text/plain", I::MPolyLocalizedIdeal)
   io = pretty(io)
-  println(io, "Ideal")
-  println(IOContext(io,  :supercompact=>true), Indent(), "of ", Lowercase(), base_ring(I))
-  if n > 0
-    print(io, Dedent())
-    println(io, "with ", ItemQuantity(ngens(I),"generator"))
-    print(io, Indent())
-    join(IOContext(io,  :supercompact=>true), gens(I), "\n")
+  print(io, "Ideal ")
+  if ngens(I) == 0
+    print(io, "with ", ItemQuantity(ngens(I), "generator"))
   else
-    print(io, Dedent())
-    print(io, "with ", ItemQuantity(ngens(I),"generator"))
+    print(io, "generated by")
+    for f in gens(I)
+      print(io, "\n", Indent(), f, Dedent())
+    end
   end
 end
 
+function _get_generators_string_one_line(I::Union{MPolyIdeal, MPolyLocalizedIdeal}, character_limit::Int = 100)
+  # Try a full list of generators if it fits $character_limit characters
+  gen_string = "("*join(gens(I), ", ")*")"
+  if length(gen_string) <= character_limit
+    return gen_string
+  end
+
+  return "with $(ItemQuantity(ngens(I), "generator"))"
+end
+
 function Base.show(io::IO, I::MPolyLocalizedIdeal)
-  print(io, "ideal(")
-  join(io, gens(I), ", ")
-  print(io, ")")
+  if get(io, :supercompact, false)
+    print(io, "Ideal")
+  else
+    print(io, "Ideal ", _get_generators_string_one_line(I))
+  end
 end
 
 @attr function shifted_ideal(
@@ -2452,7 +2447,7 @@ function coordinates(
     return transpose(T * transpose(L(one(R), denominator(a), check=false)*map_entries(L, coordinates(numerator(a), pre_saturated_ideal(I)))))
   end
 
-  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  i = findfirst(x->(x isa MPolyPowersOfElement), U)
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
@@ -2514,7 +2509,7 @@ function ideal_membership(
 
   numerator(a) in pre_saturated_ideal(I) && return true
 
-  i = findfirst(x->(typeof(x)<:MPolyPowersOfElement), U)
+  i = findfirst(x->(x isa MPolyPowersOfElement), U)
   if !isnothing(i)
     if !has_attribute(I, :popped_ideal)
       S = popat!(U, i)
@@ -2641,7 +2636,7 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
-mutable struct MPolyLocalizedRingHom{
+@attributes mutable struct MPolyLocalizedRingHom{
                                      DomainType<:MPolyLocRing, 
                                      CodomainType<:Ring, 
                                      RestrictedMapType<:Map
@@ -2730,7 +2725,7 @@ julia> TL, _ =  localization(T, UT);
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 
@@ -2827,7 +2822,7 @@ julia> TL, _ =  localization(T, UT);
 
 julia> PHI = hom(RQL, TL, TL.([t, t^2, t^3]))
 Ring homomorphism
-  from localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  from localization of RQ at complement of maximal ideal
   to localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
 defined by
   x -> t
@@ -2837,7 +2832,7 @@ defined by
 julia> PSI = hom(TL, RQL, RQL.([x]))
 Ring homomorphism
   from localization of multivariate polynomial ring in 1 variable over QQ at complement of maximal ideal of point (0)
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 
@@ -2898,7 +2893,7 @@ defined by
 julia> psi = restricted_map(PSI)
 Ring homomorphism
   from multivariate polynomial ring in 1 variable over QQ
-  to localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  to localization of RQ at complement of maximal ideal
 defined by
   t -> x
 ```
@@ -2916,7 +2911,13 @@ function compose(
   )
   codomain(f) === domain(g) || error("maps are not compatible")
   R = base_ring(domain(f))
-  return MPolyLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
+  res = restricted_map(f)
+  if codomain(res) === domain(g)
+    return MPolyLocalizedRingHom(domain(f), codomain(g), compose(res, g), check=false)
+  else
+    new_res = MapFromFunc(domain(res), codomain(g), x->g(domain(g)(res(x))))
+    return MPolyLocalizedRingHom(domain(f), codomain(g), new_res, check=false)
+  end
 end
 
 (f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
@@ -2981,13 +2982,13 @@ function derivative(f::MPolyLocRingElem, i::Int)
   return parent(f)(divexact(num, g), divexact(den, g), check=false)
 end
 
-function jacobi_matrix(f::MPolyLocRingElem)
+function jacobian_matrix(f::MPolyLocRingElem)
   L = parent(f)
   n = nvars(base_ring(L))
   return matrix(L, n, 1, [derivative(f, i) for i=1:n])
 end
 
-function jacobi_matrix(g::Vector{<:MPolyLocRingElem})
+function jacobian_matrix(g::Vector{<:MPolyLocRingElem})
   R = parent(g[1])
   n = nvars(base_ring(R))
   @assert all(x->parent(x) == R, g)
@@ -3043,11 +3044,12 @@ julia> y in S
 false
 
 julia> P = ideal(R, [x])
-ideal(x)
+Ideal generated by
+  x
 
 julia> T = complement_of_prime_ideal(P)
 Complement
-  of prime ideal(x)
+  of prime ideal (x)
   in multivariate polynomial ring in 3 variables over QQ
 
 julia> y in T
@@ -3097,16 +3099,14 @@ julia> R, (x, y) = QQ["x", "y"];
 julia> L, phi = localization(R, complement_of_point_ideal(R, [1, 2]));
 
 julia> I = ideal(L, [x-1, y-2])^2
-Ideal
-  of localized ring
-with 4 generators
+Ideal generated by
   x^2 - 2*x + 1
   x*y - 2*x - y + 2
   x*y - 2*x - y + 2
   y^2 - 4*y + 4
 
 julia> minimal_generating_set(I)
-3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+3-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  y^2 - 4*y + 4
  x*y - 2*x - y + 2
  x^2 - 2*x + 1
@@ -3173,16 +3173,14 @@ julia> R, (x, y) = QQ["x", "y"];
 julia> L, phi = localization(R, powers_of_element(x));
 
 julia> I = ideal(L, [x*(x-1), y])^2
-Ideal
-  of localized ring
-with 4 generators
+Ideal generated by
   x^4 - 2*x^3 + x^2
   x^2*y - x*y
   x^2*y - x*y
   y^2
 
 julia> small_generating_set(I)
-3-element Vector{MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, MPolyPowersOfElement{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+3-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyPowersOfElement{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  y^2
  x*y - y
  x^2 - 2*x + 1
@@ -3215,13 +3213,24 @@ function grading_group(L::MPolyLocRing{<:Ring, <:RingElem, <:MPolyDecRing})
   return grading_group(base_ring(L))
 end
 
-function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
-  return degree(numerator(a)) - degree(denominator(a))
+function degree(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(numerator(a); check) - degree(denominator(a); check)
+end
+
+function degree(::Type{Int}, a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Int, numerator(a); check) - degree(Int, denominator(a); check)
+end
+
+function degree(::Type{Vector{Int}}, a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}; check::Bool=true)
+  return degree(Vector{Int}, numerator(a); check) - degree(Vector{Int}, denominator(a); check)
+end
+
+function _degree_fast(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
+  return _degree_fast(numerator(a)) - _degree_fast(denominator(a))
 end
 
 function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
   return is_homogeneous(numerator(a)) && is_homogeneous(denominator(a))
 end
 
-
-
+coefficient_ring(L::MPolyLocRing) = coefficient_ring(base_ring(L))

@@ -4,7 +4,7 @@
   S, (u,v) = graded_polynomial_ring(R, ["u", "v"])
 
   I = ideal(S, [x*v - y*u])
-  X = ProjectiveScheme(S, I)
+  X = proj(S, I)
   CX, id = affine_cone(X)
   p = covered_projection_to_base(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
@@ -19,7 +19,7 @@
   S, (u,v) = graded_polynomial_ring(QQ, ["u", "v"])
 
   I = ideal(S, [u])
-  X = ProjectiveScheme(S, I)
+  X = proj(S, I)
   CX, id = affine_cone(X)
   @test OO(CX).(Oscar.homogeneous_coordinates_on_affine_cone(X)) == [id(g) for g in gens(S)]
   hc = Oscar.homogeneous_coordinates_on_affine_cone(X)
@@ -31,10 +31,10 @@
   #@test is_well_defined(phi) # deprecated
 
   # test for relative projective space over MPolyQuoLocalizedRings
-  Y = Spec(R)
+  Y = spec(R)
   Q = OO(Y)
   S, (u,v) = graded_polynomial_ring(Q, ["u", "v"])
-  X = ProjectiveScheme(S)
+  X = proj(S)
 
   phi = ProjectiveSchemeMor(X, X, [u^2, v^2])
 
@@ -46,8 +46,8 @@ end
 @testset "projective_schemes_2" begin
   R, (x, y, z) = QQ["x", "y", "z"]
   I = ideal(R, [x^2-y*z])
-  X = Spec(R, I)
-  U = SpecOpen(X, [x, y])
+  X = spec(R, I)
+  U = AffineSchemeOpenSubscheme(X, [x, y])
   P = projective_space(OO(U), 1)
   S = homogeneous_coordinate_ring(P)
   Y = subscheme(P, [OO(U)(x)*S[1]- OO(U)(y)*S[2], OO(U)(z)*S[1] - OO(U)(x)*S[2]]) # Coercion needs to be carried out manually.
@@ -59,7 +59,6 @@ end
   @test pullback(projection_to_base(Y))(a)*s0 == s1
 end
 
-
 @testset "projective schemes as covered schemes" begin
   P3 = projective_space(QQ,3)
   S = homogeneous_coordinate_ring(P3)
@@ -68,6 +67,17 @@ end
   U = patches(Fc)[1]
   V = patches(Fc)[2]
   Oscar.intersect_in_covering(U,V,Fc[1])
+end
+
+@testset "singular schemes" begin
+  A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+  B, _ = quo(A, ideal(A, [x^2 + y^2]));
+  C = proj(B)
+  @test !is_smooth(C; algorithm=:projective_jacobian)
+  C = proj(B)
+  @test !is_smooth(C; algorithm=:covered_jacobian)
+  C = proj(B)
+  @test !is_smooth(C; algorithm=:affine_cone)
 end
 
 @testset "Fermat lines" begin
@@ -84,12 +94,12 @@ end
   groebner_basis(defining_ideal(line))
 end
 
-@testset "Issue #1580" begin 
+@testset "Issue #1580" begin
   R,(x,) = polynomial_ring(GF(3),["x"])
   Rx,i = localization(R, x)
   x = Rx(x)
   P2 = projective_space(Rx, 2)
-  affine_cone(P2) 
+  affine_cone(P2)
   @test covered_scheme(P2) isa CoveredScheme
 end
 
@@ -136,17 +146,17 @@ end
 #  @test projective_scheme_type(OO(Y)) == typeof(IP2_Y)
 #  @test projective_scheme_type(OO(U)) == typeof(IP2_U)
 #  @test projective_scheme_type(OO(UY)) == typeof(IP2_UY)
-# 
+#
 #  @test projective_scheme_type(X) == typeof(IP2_X)
 #  @test projective_scheme_type(Y) == typeof(IP2_Y)
 #  @test projective_scheme_type(U) == typeof(IP2_U)
 #  @test projective_scheme_type(UY) == typeof(IP2_UY)
-# 
+#
 #  @test base_ring_type(IP2_X) == typeof(OO(X))
 #  @test base_ring_type(IP2_Y) == typeof(OO(Y))
 #  @test base_ring_type(IP2_U) == typeof(OO(U))
 #  @test base_ring_type(IP2_UY) == typeof(OO(UY))
-# 
+#
 #  @test ring_type(IP2_X) == typeof(homogeneous_coordinate_ring(IP2_X))
 #  @test ring_type(IP2_Y) == typeof(homogeneous_coordinate_ring(IP2_Y))
 #  @test ring_type(IP2_U) == typeof(homogeneous_coordinate_ring(IP2_U))
@@ -176,13 +186,12 @@ end
   @test sprint(show, IP2_U) isa String
   @test sprint(show, IP2_UY) isa String
 
-
-  W = SpecOpen(UY, [x-1, y-1])
+  W = AffineSchemeOpenSubscheme(UY, [x-1, y-1])
   IP2_W = projective_space(W, 2, var_name="w")
   CW = affine_cone(IP2_W)
   pCW = projection_to_base(IP2_W)
 
-  WY = SpecOpen(Y, [x-y, x+y-2])
+  WY = AffineSchemeOpenSubscheme(Y, [x-y, x+y-2])
   WtoWY = inclusion_morphism(W, WY)
   IP2_WY = projective_space(WY, 2, var_name="w")
   _, map = fiber_product(pullback(WtoWY), IP2_WY)
@@ -202,8 +211,8 @@ end
 
   incYtoX = inclusion_morphism(Y, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_Y), pullback(incYtoX), gens(homogeneous_coordinate_ring(IP2_Y)))
-  YtoX = ProjectiveSchemeMor(IP2_Y, IP2_X, 
-                             h, 
+  YtoX = ProjectiveSchemeMor(IP2_Y, IP2_X,
+                             h,
                              incYtoX
                             );
   @test YtoX == inclusion_morphism(IP2_Y, IP2_X)
@@ -214,8 +223,8 @@ end
 
   incUtoX = inclusion_morphism(U, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_U), pullback(incUtoX), gens(homogeneous_coordinate_ring(IP2_U)))
-  UtoX = ProjectiveSchemeMor(IP2_U, IP2_X, 
-                             h, 
+  UtoX = ProjectiveSchemeMor(IP2_U, IP2_X,
+                             h,
                              incUtoX
                             );
   @test UtoX == inclusion_morphism(IP2_U, IP2_X)
@@ -226,8 +235,8 @@ end
 
   incUYtoY = inclusion_morphism(UY, Y)
   h = hom(homogeneous_coordinate_ring(IP2_Y), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoY), gens(homogeneous_coordinate_ring(IP2_UY)))
-  UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y, 
-                              h, 
+  UYtoY = ProjectiveSchemeMor(IP2_UY, IP2_Y,
+                              h,
                               incUYtoY
                              );
   @test UYtoY == inclusion_morphism(IP2_UY, IP2_Y)
@@ -238,8 +247,8 @@ end
 
   incUYtoX = inclusion_morphism(UY, X)
   h = hom(homogeneous_coordinate_ring(IP2_X), homogeneous_coordinate_ring(IP2_UY), pullback(incUYtoX), gens(homogeneous_coordinate_ring(IP2_UY)))
-  UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X, 
-                              h, 
+  UYtoX = ProjectiveSchemeMor(IP2_UY, IP2_X,
+                              h,
                               incUYtoX
                              );
   IP2_UY2, map = fiber_product(incUYtoX, IP2_X)
@@ -264,25 +273,33 @@ end
 @testset "properties of projective schemes" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   S, _ = grade(R)
-  X = ProjectiveScheme(S)
+  X = proj(S)
   I = ideal(S, x^2 - y*z)
   Q, _ = quo(S, I)
-  C = ProjectiveScheme(Q)
+  C = proj(Q)
   @test homogeneous_coordinate_ring(C) === Q
   @test dim(C) == 1
   @test degree(C) == 2
-  @test is_smooth(C)
+  @test is_smooth(C; algorithm=:projective_jacobian)
+  C = proj(Q)
+  @test is_smooth(C; algorithm=:covered_jacobian)
+  C = proj(Q)
+  @test is_smooth(C; algorithm=:affine_cone)
   @test arithmetic_genus(C) == 0
 
   R, (x,y,z,w) = QQ["x", "y", "z", "w"]
   S, _ = grade(R)
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)
-  Y = ProjectiveScheme(Q)
+  Y = proj(Q)
   @test homogeneous_coordinate_ring(Y) === Q
   @test dim(Y) == 2
   @test degree(Y) == 4
-  @test is_smooth(Y)
+  @test is_smooth(Y; algorithm=:projective_jacobian)
+  Y = proj(Q)
+  @test is_smooth(Y; algorithm=:covered_jacobian)
+  Y = proj(Q)
+  @test is_smooth(Y; algorithm=:affine_cone)
   @test arithmetic_genus(Y) == 1
   @test is_reduced(Y)
   @test is_integral(Y)
@@ -306,8 +323,8 @@ end
   X2 = subscheme(P2, ideal(R, [x0^2*x1,x0*x1^2,x0*x1*x2]))
   X3 = subscheme(P2, ideal(R,[x0]))
   @test X1 == X2
-  @test issubset(X1, P2)
-  @test issubset(X1, X2)
+  @test is_subscheme(X1, P2)
+  @test is_subscheme(X1, X2)
 end
 
 @testset "closed embeddings" begin
@@ -324,7 +341,7 @@ end
   inc2_cov = covered_scheme_morphism(inc2)
   j1, j2 = fiber_product(inc_cov, inc2_cov)
   @test pushforward(inc_cov)(image_ideal(j2)) == pushforward(inc2_cov)(image_ideal(j1))
-  
+
   @test X === domain(inc)
   @test IP2 === codomain(inc)
   T = homogeneous_coordinate_ring(X)
@@ -335,7 +352,7 @@ end
   map_on_affine_cones(inc_Y)
   inc_comp = compose(inc_Y, inc)
   @test inc_comp isa Oscar.ProjectiveClosedEmbedding
-  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)), 
+  phi = hom(homogeneous_coordinate_ring(codomain(inc_comp)),
             homogeneous_coordinate_ring(domain(inc_comp)),
             pullback(inc_comp).(gens(homogeneous_coordinate_ring(codomain(inc_comp))))
            )
@@ -350,3 +367,16 @@ end
   Y = covered_scheme(X)
   @test length(affine_charts(Y)) == 2
 end
+
+@testset "cotangent modules" begin
+  X = projective_space(QQ, [:x, :y, :z, :w])
+  W = Oscar.relative_cotangent_module(X)
+  R = homogeneous_coordinate_ring(X)
+  (x, y, z, w) = gens(R)
+  f = x^4 + y^4 + z^4 + w^4
+  S, inc_S = sub(X, f)
+  RS = homogeneous_coordinate_ring(S)
+  #W1 = Oscar.kaehler_differentials(RS)
+  WS = Oscar.relative_cotangent_module(S)
+end
+

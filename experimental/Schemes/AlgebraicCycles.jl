@@ -81,7 +81,7 @@ function coeff(D::AbsAlgebraicCycle, I::IdealSheaf)
 end
 
 function is_effective(A::AbsAlgebraicCycle)
-  return all(coeff(A, I)>=0 for A in components(A))
+  return all(coeff(A, I)>=0 for I in components(A))
 end
 
 function Base.:<=(A::AbsAlgebraicCycle,B::AbsAlgebraicCycle)
@@ -184,7 +184,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y);
 
@@ -222,7 +222,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -263,7 +263,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 

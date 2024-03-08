@@ -26,7 +26,7 @@ end
 function __init_group_libraries()
   props = [
     is_abelian => GAP.Globals.IsAbelian,
-    is_almostsimple => GAP.Globals.IsAlmostSimple,
+    is_almost_simple => GAP.Globals.IsAlmostSimple,
     is_cyclic => GAP.Globals.IsCyclic,
     is_nilpotent => GAP.Globals.IsNilpotent,
     is_perfect => GAP.Globals.IsPerfect,
@@ -44,12 +44,12 @@ function __init_group_libraries()
 
   _group_filter_attrs[exponent] = (_IntOrIntVec, GAP.Globals.Exponent, nothing)
   _group_filter_attrs[order] = (_IntOrIntVec, GAP.Globals.Size, nothing)
-  _group_filter_attrs[number_conjugacy_classes] = (_IntOrIntVec, GAP.Globals.NrConjugacyClasses, nothing)
+  _group_filter_attrs[number_of_conjugacy_classes] = (_IntOrIntVec, GAP.Globals.NrConjugacyClasses, nothing)
 
   copy!(_permgroup_filter_attrs, _group_filter_attrs)
   _add_bool_attr(_permgroup_filter_attrs, is_transitive, GAP.Globals.IsTransitive)
   _add_bool_attr(_permgroup_filter_attrs, is_primitive, GAP.Globals.IsPrimitive)
-  _permgroup_filter_attrs[number_moved_points] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
+  _permgroup_filter_attrs[number_of_moved_points] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[degree] = (_IntOrIntVec, GAP.Globals.NrMovedPoints, nothing)
   _permgroup_filter_attrs[transitivity] = (_IntOrIntVec, GAP.Globals.Transitivity, nothing)
 

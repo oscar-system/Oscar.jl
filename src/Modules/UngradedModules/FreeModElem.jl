@@ -177,17 +177,12 @@ function basis(F::AbstractFreeMod, i::Int)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
 
-function getindex(F::AbstractFreeMod, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 @doc raw"""
     base_ring(F::AbstractFreeMod)
 
 Return the underlying ring of `F`.
 """
-base_ring(F::FreeMod) = F.R
+base_ring(F::FreeMod) = (F.R)::base_ring_type(F)
 
 #TODO: Parent - checks everywhere!!!
 
@@ -294,3 +289,5 @@ Return `true` if `f` is zero, `false` otherwise.
 """
 is_zero(f::AbstractFreeModElem) = iszero(coordinates(f))
 
+simplify!(a::FreeModElem) = a
+simplify(a::FreeModElem) = a

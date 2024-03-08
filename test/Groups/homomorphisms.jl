@@ -5,7 +5,7 @@
      x = gen(H, 1)
      y = image(emb, x)
      @test preimage(emb, y) == x
-     @test any(g -> ! haspreimage(emb, g)[1], gens(G))
+     @test any(g -> ! has_preimage_with_preimage(emb, g)[1], gens(G))
    end
 end
 
@@ -220,10 +220,10 @@ end
       @test H == D
    end
 
-   @testset "Finite abelian GAPGroup to GrpAbFinGen" begin
+   @testset "Finite abelian GAPGroup to FinGenAbGroup" begin
       for invs in [[1], [2, 3, 4], [6, 8, 9, 15]], T in [PermGroup, PcGroup, FPGroup]
          G = abelian_group(T, invs)
-         iso = @inferred isomorphism(GrpAbFinGen, G)
+         iso = @inferred isomorphism(FinGenAbGroup, G)
          A = codomain(iso)
          @test order(G) == order(A)
          for x in gens(G)
@@ -233,7 +233,7 @@ end
       end
    end
 
-   @testset "Finite GrpAbFinGen to GAPGroup" begin
+   @testset "Finite FinGenAbGroup to GAPGroup" begin
 #     @testset for Agens in [Int[], [2, 4, 8], [2, 3, 4], [2, 12],
 #T problem with GAP's `AbelianGroup`;
 #T see https://github.com/gap-system/gap/issues/5430
@@ -251,7 +251,7 @@ end
       end
    end
 
-   @testset "Infinite GrpAbFinGen to GAPGroup" begin
+   @testset "Infinite FinGenAbGroup to GAPGroup" begin
       Agens = matrix(ZZ, 2, 2, [2, 3, 0, 0])
       A = abelian_group(Agens)
       for T in [FPGroup]
@@ -264,12 +264,12 @@ end
       end
    end
 
-   @testset "GrpAbFinGen to GrpAbFinGen" begin
+   @testset "FinGenAbGroup to FinGenAbGroup" begin
       A = abelian_group([2, 3, 4])
-      iso = @inferred isomorphism(GrpAbFinGen, A)
+      iso = @inferred isomorphism(FinGenAbGroup, A)
    end
 
-   @testset "GrpGen to GAPGroups" begin
+   @testset "MultTableGroup to GAPGroups" begin
       for G in [Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB()),
                 Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())]
          for T in [FPGroup, PcGroup, PermGroup]
@@ -326,19 +326,33 @@ end
    end
 
    @testset "Group types as constructors" begin
-      G = symmetric_group(4)
-      for (T, f) in [(FPGroup, fp_group), (PcGroup, pc_group), (PermGroup, permutation_group)]
-        H = T(G)
-        @test H isa T
-        @test is_isomorphic(G, H)[1]
+      @testset "Source $G" for G in [
+            cyclic_group(5),
+            dihedral_group(10),
+            symmetric_group(4),
+            transitive_group(5,2),
+            #abelian_group(5),  # FIXME error in is_isomorphic
+            ]
+         @testset "Range type $T" for (T, f) in [
+              (FPGroup, fp_group),
+              (PcGroup, pc_group),
+              (PermGroup, permutation_group),
+              #(FinGenAbGroup, FinGenAbGroup),  # FIXME: errors
+              ]
+            H = T(G)
+            @test H isa T
+            @test has_order(H)
+            @test is_isomorphic(G, H)[1]
 
-        H = f(G)
-        @test H isa T
-        @test is_isomorphic(G, H)[1]
+            H = f(G)
+            @test H isa T
+            @test has_order(H)
+            @test is_isomorphic(G, H)[1]
+         end
       end
 
       G = cyclic_group(5)
-      T = GrpAbFinGen
+      T = FinGenAbGroup
       H = T(G)
       @test H isa T
       @test order(H) == order(G)
@@ -387,13 +401,13 @@ end
        @test is_surjective(f)
 
        G = abelian_group(PermGroup, [2, 2])
-       f = @inferred isomorphism(GrpAbFinGen, G)
-       @test codomain(f) isa GrpAbFinGen
+       f = @inferred isomorphism(FinGenAbGroup, G)
+       @test codomain(f) isa FinGenAbGroup
        @test domain(f) == G
      # @test is_injective(f)
      # @test is_surjective(f)
 
-       @test_throws ArgumentError isomorphism(GrpAbFinGen, symmetric_group(5))
+       @test_throws ArgumentError isomorphism(FinGenAbGroup, symmetric_group(5))
        @test_throws ArgumentError isomorphism(PcGroup, symmetric_group(5))
        @test_throws ArgumentError isomorphism(PermGroup, free_group(1))
 
@@ -402,11 +416,11 @@ end
        @test permutation_group(G) isa PermGroup
        @test pc_group(G) isa PcGroup
        @test FPGroup(G) isa FPGroup
-       @test_throws ArgumentError GrpAbFinGen(G)
+       @test_throws ArgumentError FinGenAbGroup(G)
    end
 end
 
-@testset "Homomorphism GAPGroup to GrpAbFinGen" begin
+@testset "Homomorphism GAPGroup to FinGenAbGroup" begin
    # G abelian, A isomorphic to G
    G = abelian_group( PermGroup, [ 2, 4 ] )
    A = abelian_group( [ 2, 4 ] )
@@ -471,12 +485,12 @@ end
    @test order(kernel(mp)[1]) == 1
 end
 
-TestDirectProds=function(G1,G2)
+function test_direct_prods(G1,G2)
    G = direct_product(G1,G2)
-   f1 = embedding(G,1)
-   f2 = embedding(G,2)
-   p1 = projection(G,1)
-   p2 = projection(G,2)
+   f1 = canonical_injection(G,1)
+   f2 = canonical_injection(G,2)
+   p1 = canonical_projection(G,1)
+   p2 = canonical_projection(G,2)
 
    @test is_injective(f1)
    @test is_injective(f2)
@@ -510,7 +524,7 @@ end
    C2 = cyclic_group(2)
    C4 = cyclic_group(4)
    G = direct_product(C2,C4)
-   TestDirectProds(C2,C4)
+   test_direct_prods(C2,C4)
    @test order(G)==8
    @test is_abelian(G)
    @test !is_cyclic(G)
@@ -520,7 +534,7 @@ end
    C3 = cyclic_group(3)
    C7 = cyclic_group(7)
    G = direct_product(C3,C7)
-   TestDirectProds(C3,C7)
+   test_direct_prods(C3,C7)
    @test order(G)==21
    @test is_abelian(G)
    @test is_cyclic(G)
@@ -530,20 +544,20 @@ end
    S4 = symmetric_group(4)
    A5 = alternating_group(5)
    G = direct_product(S4,A5)
-   TestDirectProds(S4,A5)
+   test_direct_prods(S4,A5)
    @test order(G)==1440
    @test typeof(G)==DirectProductGroup
 end
 
-TestKernels = function(G,H,f)
+function test_kernel(G,H,f)
    K,i = kernel(f)
    Im = image(f)[1]
 
    @test preimage(f,H)==(G,id_hom(G))
    @test preimage(f,sub(H,[one(H)])[1])==(K,i)
    z=rand(Im)
-   @test haspreimage(f,z)[1]
-   @test f(haspreimage(f,z)[2])==z
+   @test has_preimage_with_preimage(f,z)[1]
+   @test f(has_preimage_with_preimage(f,z)[2])==z
 
    @test is_injective(i)
    for j in 1:ngens(K)
@@ -564,19 +578,19 @@ end
 @testset "Kernel and cokernel" begin
    G=symmetric_group(4)
    z=rand(G)
-   TestKernels(G,G,hom(G,G, x -> x^z))
+   test_kernel(G,G,hom(G,G, x -> x^z))
    
    C=cyclic_group(2)
-   TestKernels(G,C,hom(G,C,gens(G),[C[1],C[1]]))      #sign
+   test_kernel(G,C,hom(G,C,gens(G),[C[1],C[1]]))      #sign
 
    G=GL(2,7)
    C=cyclic_group(6)
-   TestKernels(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
+   test_kernel(G,C,hom(G,C,gens(G),[C[1],one(C)]))        #determinant
 
    G=abelian_group(PcGroup,[3,3,3])
    H=abelian_group(PcGroup,[3,3])
    f=hom(G,H,gens(G),[H[1],one(H),one(H)])
-   TestKernels(G,H,f)
+   test_kernel(G,H,f)
 end
 
 @testset "Automorphism group of Sym(n)" begin
@@ -651,6 +665,24 @@ end
 
    @test is_isomorphic(A,GL(2,3))
    @test order(inner_automorphism_group(A)[1])==1
+
+   # Create an Oscar group from a group of automorphisms in GAP.
+   G = alternating_group(6)
+   A = automorphism_group(G)
+   fun = Oscar._get_type(A.X)
+   B = fun(A.X)
+   @test B == A
+   @test B !== A
+   @test B.X === A.X
+
+   F = free_group(2)
+   x, y = gens(F)
+   Q, = quo(F, [x^-3*y^-3*x^-1*y*x^-2,
+                x*y^-1*x^-1*y*x^-1*y^-1*x^3*y^-1,
+                x*y^-1*x^-1*y^2*x^-2*y^-1*x^2])
+   A = automorphism_group(Q)
+   q = gen(Q, 1)
+   @test all(a -> a(preimage(a, q)) == q, collect(A))
 end
 
 @testset "Composition of mappings" begin

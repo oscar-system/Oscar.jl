@@ -1,6 +1,6 @@
 
-@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsSpec{BaseRingType, RingType}
-  defining_ideal::Union{Ideal,NumFieldOrdIdl}
+@attributes mutable struct MatroidRealizationSpace{BaseRingType, RingType} <: AbsAffineScheme{BaseRingType, RingType}
+  defining_ideal::Union{Ideal,NumFieldOrderIdeal}
   inequations::Vector{RingElem}
   ambient_ring::Ring
   realization_matrix::Union{MatElem,Nothing}
@@ -8,12 +8,12 @@
   q::Union{Int,Nothing}
   ground_ring::Ring
   one_realization::Bool
-  
+
   # Fields for caching
-  underlying_scheme::AbsSpec{BaseRingType, RingType}
+  underlying_scheme::AbsAffineScheme{BaseRingType, RingType}
 
   function MatroidRealizationSpace(
-    I::Union{Ideal,NumFieldOrdIdl},
+    I::Union{Ideal,NumFieldOrderIdeal},
     ineqs::Vector{<:RingElem},
     R::Ring,
     mat::Union{MatElem,Nothing},
@@ -33,12 +33,13 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
   if has_attribute(RS, :is_realizable) && !is_realizable(RS)
-    if RS.char == nothing && RS.q == nothing
+    if RS.char === nothing && RS.q === nothing
       print(io, "The matroid is not realizable.")
     else
       print(io, "The matroid is not realizable over the specified field or characteristic.")
     end
   else
+    io = pretty(io)
     if RS.one_realization
       println(io, "One realization is given by")
     elseif has_attribute(RS, :is_realizable) && is_realizable(RS)
@@ -46,12 +47,11 @@ function Base.show(io::IO, ::MIME"text/plain", RS::MatroidRealizationSpace)
     elseif !has_attribute(RS, :is_realizable)
       println(io, "The realization space is")
     end
-
+    print(io, Indent())
     show(io, MIME("text/plain"), RS.realization_matrix)
-    print(io, "\nin the ", RS.ambient_ring)
+    print(io, "\n", Dedent(), "in the ", Lowercase(), RS.ambient_ring)
     I = RS.defining_ideal
-    if (I isa NumFieldOrdIdl && I.gen != ZZ(0)) ||
-      (I isa Ideal && !iszero(I))
+    if !iszero(I)
       print(io, "\nwithin the vanishing set of the ideal\n", I)
     end
     if length(RS.inequations) > 0
@@ -64,13 +64,13 @@ end
     is_realizable(M; char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing)
 
 * If char = nothing, then this function determines whether the matroid is realizable over some field.
-  
+
 * If `char == 0`, then this function determines whether the matroid is realizable over some field of
     characteristic 0.
-  
+
 * If char = p is prime, this function determines whether the matroid is realizable
     over the finite field ``GF(p)``.
-  
+
 * If `char == p` and `q` is a power of `p`, this function determines whether the matroid is realizable over the
     finite field ``GF(q)``.
 """
@@ -112,12 +112,12 @@ inequations(RS::MatroidRealizationSpace) = RS.inequations
 @doc raw"""
     ambient_ring(RS::MatroidRealizationSpace)
 
-The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`. 
+The polynomial ring containing the ideal `defining_ideal(RS)` and the polynomials in `inequations(RS)`.
 """
 ambient_ring(RS::MatroidRealizationSpace) = RS.ambient_ring
 
-### The following method uses types which are declared only later. 
-# Hence hit has been moved to 
+### The following method uses types which are declared only later.
+# Hence hit has been moved to
 #
 #   src/AlgebraicGeometry/Schemes/AffineSchemes/Objects/Methods.jl.
 #=
@@ -127,7 +127,7 @@ function underlying_scheme(RS::MatroidRealizationSpace{<:Field, <:MPolyQuoLocRin
   P = ambient_ring(RS)::MPolyRing
   I = defining_ideal(RS)::MPolyIdeal
   U = powers_of_element(inequations)::MPolyPowersOfElement
-  RS.underlying_scheme = Spec(R, I, U)
+  RS.underlying_scheme = spec(R, I, U)
   return RS.underlying_scheme
 end
 =#
@@ -139,7 +139,7 @@ end
     realization_matrix(RS::MatroidRealizationSpace)
 
 A matrix with entries in ambient_ring(RS) whose columns, when filled in with values satisfying equalities
-from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid. 
+from `defining_ideal(RS)` and inequations from `inequations(RS)`, form a realization for the matroid.
 """
 realization_matrix(RS::MatroidRealizationSpace) = RS.realization_matrix
 
@@ -229,7 +229,7 @@ end
       q::Union{Int,Nothing}=nothing,
       ground_ring::Ring=ZZ
     )::MatroidRealizationSpace
-        
+
 This function returns the data for the coordinate ring of the matroid realization space of the matroid `M`
 as a `MatroidRealizationSpace`. This function has several optional parameters.
 
@@ -258,40 +258,39 @@ julia> M = fano_matroid();
 
 julia> RS = realization_space(M)
 The realization space is
-[0   1   1   1   1   0   0]
-[1   0   1   1   0   1   0]
-[1   0   1   0   1   0   1]
-in the Integer ring
+  [0   1   1   1   1   0   0]
+  [1   0   1   1   0   1   0]
+  [1   0   1   0   1   0   1]
+in the integer ring
 within the vanishing set of the ideal
 2ZZ
 
 julia> realization_space(non_fano_matroid())
 The realization space is
-[1   1   0   0   1   1   0]
-[0   1   1   1   1   0   0]
-[0   1   1   0   0   1   1]
-in the Integer ring
+  [1   1   0   0   1   1   0]
+  [0   1   1   1   1   0   0]
+  [0   1   1   0   0   1   1]
+in the integer ring
 avoiding the zero loci of the polynomials
 RingElem[2]
 
 julia> realization_space(pappus_matroid(), char=0)
 The realization space is
-[1   0   1   0   x2   x2                 x2^2    1    0]
-[0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
-[0   0   0   1   x2   x1                x1*x2   x1   x2]
-in the Multivariate polynomial ring in 2 variables over QQ
+  [1   0   1   0   x2   x2                 x2^2    1    0]
+  [0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
+  [0   0   0   1   x2   x1                x1*x2   x1   x2]
+in the multivariate polynomial ring in 2 variables over QQ
 avoiding the zero loci of the polynomials
 RingElem[x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2]
 
 julia> realization_space(uniform_matroid(3,6))
 The realization space is
-[1   0   0   1    1    1]
-[0   1   0   1   x1   x3]
-[0   0   1   1   x2   x4]
-in the Multivariate polynomial ring in 4 variables over ZZ
+  [1   0   0   1    1    1]
+  [0   1   0   1   x1   x3]
+  [0   0   1   1   x2   x4]
+in the multivariate polynomial ring in 4 variables over ZZ
 avoiding the zero loci of the polynomials
 RingElem[x1*x4 - x2*x3, x2 - x4, x1 - x3, x1*x4 - x1 - x2*x3 + x2 + x3 - x4, x3 - x4, x4 - 1, x3 - 1, x3, x4, x1 - x2, x2 - 1, x1 - 1, x1, x2]
-
 ```
 """
 function realization_space(
@@ -381,7 +380,7 @@ function realization_space(
 
   def_ideal = ideal(polyR, eqs)
   def_ideal = ideal(groebner_basis(def_ideal))
-  if isone(def_ideal) 
+  if isone(def_ideal)
     RS = MatroidRealizationSpace(def_ideal, ineqs, polyR, nothing, char, q, ground_ring)
     set_attribute!(RS, :is_realizable, :false)
     return RS
@@ -395,18 +394,18 @@ function realization_space(
     RS = reduce_realization_space(RS)
   end
 
-  if q != nothing
+  if q != nothing && RS.ambient_ring isa MPolyRing
     I = RS.defining_ideal
     R = RS.ambient_ring
     eqs = Vector{RingElem}()
     for x in gens(R)
       push!(eqs, x^q - x)
     end
-    I = I + ideal(R,eqs)
+    I = I + ideal(R, eqs)
     RS.defining_ideal = I
     if isone(RS.defining_ideal)
-        set_attribute!(RS, :is_realizable, :false)
-        return RS
+      set_attribute!(RS, :is_realizable, :false)
+      return RS
     end
   end
 
@@ -442,12 +441,12 @@ function find_good_basis_heuristically(M::Matroid)
   return min_basis
 end
 
-# Return the prime divisors of f. 
+# Return the prime divisors of f.
 function poly_2_prime_divisors(f::RingElem)
   return map(first, factor(f))
 end
 
-# Return the unique prime divisors of the elements of Sgen, again no exponents. 
+# Return the unique prime divisors of the elements of Sgen, again no exponents.
 function gens_2_prime_divisors(Sgens::Vector{<:RingElem})
   return unique!(vcat([poly_2_prime_divisors(f) for f in Sgens]...))
 end
@@ -460,29 +459,29 @@ function stepwise_saturation(I::MPolyIdeal, Sgens::Vector{<:RingElem})
 end
 
 @doc raw"""
-    realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing, 
-      saturate::Bool=false, 
+    realization(M::Matroid; B::Union{GroundsetType,Nothing} = nothing,
+      saturate::Bool=false,
       char::Union{Int,Nothing}=nothing, q::Union{Int,Nothing}=nothing
     )::MatroidRealizationSpace
-        
+
 This function tries to find one realization in the matroid realization space of
-the matroid `M`. The output is again a `MatroidRealizationSpace`. 
+the matroid `M`. The output is again a `MatroidRealizationSpace`.
 
 If the matroid is only realizable over an extension of the prime field the
 extension field is specified as a splitting field of an irreducible polynomial.
-Every root of this polynomial gives an equivalent realization of the matroid. 
+Every root of this polynomial gives an equivalent realization of the matroid.
 
 This function has several optional parameters. Note that one must input either
-the characteristic or a specific field of definition for the realization. 
+the characteristic or a specific field of definition for the realization.
 
 * `B` is a basis of M that specifies which columns of `realization_matrix(M)`
   form the identity matrix. The default is `nothing`, in which case the basis is
   chosen for you.
-  
+
 * `char` specifies the characteristic of the coefficient ring, and is used to determine if the matroid
   is realizable over a field of this characteristic. The default is `nothing`.
 
-* `q` is an integer, and when char = p, this input is used to determine whether the matroid 
+* `q` is an integer, and when char = p, this input is used to determine whether the matroid
   is realizable over the finite field ``GF(p^{q})``. The default is `nothing`.
 
 * `reduce` determines whether a reduced realization space is returned which means that the equations
@@ -495,27 +494,26 @@ the characteristic or a specific field of definition for the realization.
 ```jldoctest
 julia> realization(pappus_matroid(), char=0)
 One realization is given by
-[1   0   1   0   2   2   4   1   0]
-[0   1   1   0   1   1   1   1   1]
-[0   0   0   1   2   3   6   3   2]
-in the Rational field
+  [1   0   1   0   2   2   4   1   0]
+  [0   1   1   0   1   1   1   1   1]
+  [0   0   0   1   2   3   6   3   2]
+in the rational field
 
 julia> realization(pappus_matroid(), q=4)
 One realization is given by
-[1   0   1   0   x1 + 1   x1 + 1   x1    1        0]
-[0   1   1   0        1        1    1    1        1]
-[0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
-in the Multivariate polynomial ring in 1 variable over GF(2)
+  [1   0   1   0   x1 + 1   x1 + 1   x1    1        0]
+  [0   1   1   0        1        1    1    1        1]
+  [0   0   0   1   x1 + 1       x1    1   x1   x1 + 1]
+in the multivariate polynomial ring in 1 variable over GF(2)
 within the vanishing set of the ideal
-ideal(x1^2 + x1 + 1)
+Ideal (x1^2 + x1 + 1)
 
 julia> realization(uniform_matroid(3,6), char=5)
 One realization is given by
-[1   0   0   1   1   1]
-[0   1   0   1   4   3]
-[0   0   1   1   3   2]
-in the Finite field of characteristic 5
-
+  [1   0   0   1   1   1]
+  [0   1   0   1   4   3]
+  [0   0   1   1   3   2]
+in the prime field of characteristic 5
 ```
 """
 function realization(
@@ -556,10 +554,10 @@ function realization(RS::MatroidRealizationSpace)
 
   if dim(Inew) == 0
     for p in minimal_primes(Inew)
-        if !any(i -> i in p, RS.inequations)
-            Inew = p
-            break
-        end
+      if !any(i -> i in p, RS.inequations)
+        Inew = p
+        break
+      end
     end
     RSnew = MatroidRealizationSpace(Inew, Vector{RingElem}(), R, RS.realization_matrix, RS.char, RS.q, RS.ground_ring)
     RSnew = reduce_realization_space(RSnew)
@@ -772,13 +770,13 @@ function reduce_realization_space(
   nr, nc = size(X)
   Igens = gens(MRS.defining_ideal)
   Sgens = MRS.inequations
-  
+
   # 0 is in the inequations, thus it is not realizable
   if R(0) in Sgens
     MRS.realization_matrix = nothing
     set_attribute!(MRS, :is_realizable, :false)
     return MRS
-  end  
+  end
   xnew_str = ["x$i" for i in 1:length(xs) if !(xs[i] in elim)]
 
   if length(xnew_str) == 0
@@ -822,11 +820,14 @@ function reduce_realization_space(
       normal_Sgens = Vector{RingElem}()
     else
       Sgens_new = phi.(Sgens)
-      normal_Sgens = gens_2_prime_divisors([normal_form(g, Inew) for g in Sgens_new])
+      normal_Sgens = [normal_form(g, Inew) for g in Sgens_new]
+      if !(ambR(0) in normal_Sgens)
+        normal_Sgens = gens_2_prime_divisors(Sgens_new)
+      end
     end
   end
 
-  if isone(Inew)
+  if isone(Inew) || ambR(0) in normal_Sgens
     MRS_new = MatroidRealizationSpace(Inew, normal_Sgens, ambR, nothing, MRS.char, MRS.q, MRS.ground_ring)
     set_attribute!(MRS_new, :is_realizable, :false)
     return MRS_new

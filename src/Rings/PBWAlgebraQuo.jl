@@ -13,7 +13,7 @@ export PBWAlgQuo, PBWAlgQuoElem
 #      achieve this a "new" pointer to the Singular ring is needed;
 #      this pointer is a new data field (sring) in PBQAlgQuo.
 #
-#  To preserve the original behaviour the new field "sdata" in PBWAlgQuo
+#  To preserve the original behavior the new field "sdata" in PBWAlgQuo
 #  is set to the same value as the field "sdata" in PBWAlg (unless
 #  created by constructor for exterior_algebra.
 #
@@ -114,8 +114,8 @@ end
 
 ####
 
-function ngens(Q::PBWAlgQuo)
-  return ngens(base_ring(Q))  # EQUIV  ngens(Q.sring)  ???
+function number_of_generators(Q::PBWAlgQuo)
+  return number_of_generators(base_ring(Q))  # EQUIV  number_of_generators(Q.sring)  ???
 end
 
 function gens(Q::PBWAlgQuo)
@@ -124,10 +124,6 @@ end
 
 function gen(Q::PBWAlgQuo, i::Int)
   return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, gen(Q.sring, i)))
-end
-
-function Base.getindex(Q::PBWAlgQuo, i::Int)
-  return gen(Q, i)
 end
 
 function zero(Q::PBWAlgQuo)
@@ -238,7 +234,7 @@ Map defined by a julia-function with inverse
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal;  SpecialImpl::Union{Nothing, Singular.PluralRing{S}} = nothing)  where {S}
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal; SpecialImpl::Union{Nothing, Singular.PluralRing} = nothing)
   @assert (Q == base_ring(I));
   ### No idea how to check whether SpecialImpl is sane!
 #??? Check if I is ideal of squares of gens then produce ExtAlg???
@@ -279,11 +275,11 @@ function (Q::PBWAlgQuo)(a::PBWAlgElem)
 end
 
 function (Q::PBWAlgQuo)()
-  return PBWAlgQuoElem(Q, base_ring(Q)())
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(0)))
 end
 
 function (Q::PBWAlgQuo{T, S})(c::T) where {T, S}
-  return PBWAlgQuoElem(Q, base_ring(Q)(c))
+  return PBWAlgQuoElem(Q, PBWAlgElem(base_ring(Q), Q.sring(c)))
 end
 
 function (Q::PBWAlgQuo)(c::IntegerUnion)

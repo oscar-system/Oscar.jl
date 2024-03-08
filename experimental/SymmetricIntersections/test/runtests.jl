@@ -4,7 +4,7 @@ using Oscar
 @testset "Elevators" begin
   W = sort(rand(1:5, 10))
   S, x = graded_polynomial_ring(QQ, 10, W; cached=false)
-  
+
   function weight(p)
     return degree(p).coeff[1]
   end
@@ -14,7 +14,7 @@ using Oscar
     Oscar.number_of_elevations(el) == 0 && continue
     Si, SitoS = homogeneous_component(S, i)
     @test Oscar.number_of_elevations(el) == dim(Si)
-    @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si))) 
+    @test Set([prod(x[l]) for l in el]) == Set(SitoS.(gens(Si)))
   end
 
   S, x = graded_polynomial_ring(QQ, 10; cached=false)
@@ -29,7 +29,7 @@ end
 @testset "Linear representations" begin
   E = small_group(8, 4)
   RR = @inferred representation_ring(E)
-  @test base_field(RR) isa AnticNumberField
+  @test base_field(RR) isa AbsSimpleNumField
   @test underlying_group(RR) === E
   @test order(Oscar.character_table_underlying_group(RR)) == 8
   @test all(chi -> is_irreducible(chi), Oscar.irreducible_characters_underlying_group(RR))
@@ -46,7 +46,7 @@ end
 
   co = rand(1:2, 3)
   chi = sum([co[j]*chis[j] for j in 1:3])
-    
+
   chid = symmetric_power(conj(chi), 4)
   cd = @inferred character_decomposition(chid)
   @test sum([c[1]*Int(degree(c[2])) for c in cd]) == Int(degree(chid))
@@ -135,7 +135,7 @@ end
   @test is_faithful(rep, p)
 
   @test count(prep2 -> is_similar(prep, prep2), fpr) == 1
-   
+
   f = representation_mapping_linear_lift(prep)
   @test order(domain(f)) == 64
   @test codomain(f) isa MatrixGroup
@@ -146,7 +146,7 @@ end
   @test all(m -> size(m) == (n,n), mr)
   mg = matrix_group(mr)
   Z, _ = center(mg)
-  els = filter(m -> is_diagonal(matrix(m)) && (length(eigvals(matrix(m))) == 1), collect(Z))
+  els = filter(m -> is_diagonal(matrix(m)) && (length(eigenvalues(matrix(m))) == 1), collect(Z))
   Q, _ = quo(mg, els)
   @test is_isomorphic(G, Q)
 
@@ -201,15 +201,15 @@ end
   cd = character_decomposition(chi)
   nu = cd[1][1]*cd[1][2]
   @test is_isotypical(nu)
-  isog = @inferred Oscar.isotypical_grassmannian(preph, nu)
+  isog = Oscar.isotypical_grassmannian(preph, nu)
   @test Oscar.submodule_character(isog) == nu
   @test Oscar.submodule_dimension(isog) == Int(degree(nu))
   @test Oscar.module_representation(isog) === linear_lift(preph)
   @test is_irreducible(isog)
   @test !is_empty(isog)
-  Iisog = @inferred defining_ideal(isog)
+  Iisog = defining_ideal(isog)
   @test projective_dimension(isog) == dim(Iisog)-1
-  std_el = @inferred standard_element(isog)
+  std_el = standard_element(isog)
   std_el = reduce(vcat, std_el)
   @test is_submodule(linear_lift(preph), std_el)
   r = action_on_submodule(linear_lift(preph), std_el)
@@ -226,7 +226,7 @@ end
   @test_throws ErrorException defining_ideal(cg)
   d = 0
   for nu2 in cd
-    isog = @inferred Oscar.isotypical_factor(cg, nu2)
+    isog = Oscar.isotypical_factor(cg, nu2)
     d += dim(defining_ideal(isog)) - 1
   end
   @test projective_dimension(cg) == d
@@ -235,15 +235,15 @@ end
   @test is_submodule(linear_lift(preph), std_el)
   r = action_on_submodule(linear_lift(preph), std_el)
   @test character_representation(r) == nu
-  ig = @inferred Oscar.invariant_grassmannian(prep, 2)
+  ig = Oscar.invariant_grassmannian(prep, 2)
   @test Oscar.submodule_dimension(ig) == 2
   @test Oscar.module_representation(ig) == linear_lift(prep)
   @test !is_irreducible(ig)
   @test !is_empty(ig)
-  Iig = @inferred defining_ideal(ig)
+  Iig = defining_ideal(ig)
   @test projective_dimension(ig) == dim(Iig) - 1
   for nu in constituents(character_linear_lift(prep), 2)
-    cg = @inferred Oscar.irreducible_component(ig, nu)
+    cg = Oscar.irreducible_component(ig, nu)
     @test projective_dimension(cg) <= projective_dimension(ig)
   end
 
@@ -258,7 +258,7 @@ end
   @test Oscar.submodule_dimension(dg) == 2
   @test Oscar.module_representation(dg) == linear_lift(prep2)
   @test Oscar.submodule_determinant_character(dg) == l
-  Idg = @inferred defining_ideal(dg)
+  Idg = defining_ideal(dg)
   @test projective_dimension(dg) == dim(Idg) - 1
   @test is_irreducible(dg) == (length(primary_decomposition(Idg)) == 1)
 
@@ -273,7 +273,7 @@ end
   (prep, symci) = rand(si)
   @test all(S -> projective_group_action(S) === prep, symci)
   S = symci[1]
-  M = @inferred underlying_space_of_modules(S)
+  M = underlying_space_of_modules(S)
   chi = Oscar.submodule_character(M)
   fs, n = parametrization_data(S)[1]
   @test n == 1
@@ -281,9 +281,9 @@ end
   @test all(f -> f[1] isa MPolyDecRingElem, fs)
   @test all(f -> is_semi_invariant_polynomial(linear_lift(prep), f[1]), fs)
   f = rand(fs)[1]
-  r = @inferred linear_representation(linear_lift(prep), f)
+  r = linear_representation(linear_lift(prep), f)
   @test character_representation(r) == chi
-  std_el = @inferred standard_element(S)
+  std_el = standard_element(S)
   @test is_invariant_ideal(linear_lift(prep), std_el)
 
   si = symmetric_intersections(small_group(96, 204), 4, 2, 3)
@@ -294,7 +294,7 @@ end
   @test all(I -> is_invariant_ideal(linear_lift(prep), I), Is)
   i = rand(1:length(Is))
   I = Is[i]
-  r = @inferred linear_representation(linear_lift(prep), I)
+  r = linear_representation(linear_lift(prep), I)
   @test character_representation(r) == chis[i]
 end
 

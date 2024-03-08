@@ -34,7 +34,7 @@ end
 # TnBundle, TnVariety - varieties with a torus action and equivariant bundles
 #
 # A Tⁿ-abstract_variety X is represented as the set of fixed points X.points, each
-# labelled using some value of type P (e.g. an array), and has a multiplicity e
+# labeled using some value of type P (e.g. an array), and has a multiplicity e
 # (orbifold multiplicity);
 # 
 # A Tⁿ-equivariant bundle on X is represented by its localization/restriction

@@ -57,6 +57,7 @@
         "Nemo/qadic.md",
      ],
      "Nemo/finitefield.md",
+     "Nemo/algebraic.md",
      "Fields/algebraic_closure_fp.md",
   ],
 
@@ -152,6 +153,7 @@
   "Invariant Theory" => [
      "InvariantTheory/intro.md",
      "InvariantTheory/finite_groups.md",
+     "InvariantTheory/tori.md",
      "InvariantTheory/reductive_groups.md",
   ],
 
@@ -163,7 +165,7 @@
         "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
-        "AlgebraicGeometry/Schemes/CoveringsAndGlueings.md",
+        "AlgebraicGeometry/Schemes/CoveringsAndGluings.md",
         "AlgebraicGeometry/Schemes/CoveredSchemeMorphisms.md",
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
@@ -213,33 +215,6 @@
      ]
   ],
 
- "Noncommutative Algebra" => [
-    "NoncommutativeAlgebra/intro.md",
-    "PBW-Algebras" => [
-    "NoncommutativeAlgebra/PBWAlgebras/intro.md",
-    "NoncommutativeAlgebra/PBWAlgebras/creation.md",
-    "NoncommutativeAlgebra/PBWAlgebras/ideals.md",
-    "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
-    ],
-    "NoncommutativeAlgebra/free_associative_algebra.md",
-  ],
-
-  "Combinatorics" => [
-      "Combinatorics/graphs.md",
-      "Combinatorics/matroids.md",
-      "Combinatorics/simplicialcomplexes.md",
-      "Combinatorics/partitions.md",
-      "Combinatorics/tableaux.md",
-      "Combinatorics/schur_polynomials.md",
-  ],
-
-  "Straight Line Programs" => [
-      "StraightLinePrograms/intro.md",
-      "StraightLinePrograms/gapslps.md",
-      "StraightLinePrograms/abstractalgebra.md",
-   ],
-
-
   "Tropical Geometry" => [
      "TropicalGeometry/intro.md",
      "TropicalGeometry/semiring.md",
@@ -252,6 +227,34 @@
      "TropicalGeometry/tropicalization.md",
   ],
 
+ "Noncommutative Algebra" => [
+    "NoncommutativeAlgebra/intro.md",
+    "PBW-Algebras" => [
+    "NoncommutativeAlgebra/PBWAlgebras/intro.md",
+    "NoncommutativeAlgebra/PBWAlgebras/creation.md",
+    "NoncommutativeAlgebra/PBWAlgebras/ideals.md",
+    "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
+    ],
+    "NoncommutativeAlgebra/free_associative_algebra.md",
+  ],
+
+  "Combinatorics" => [
+    "Combinatorics/graphs.md",
+    "Combinatorics/matroids.md",
+    "Combinatorics/simplicialcomplexes.md",
+    "Combinatorics/phylogenetic_trees.md",
+    "Enumerative combinatorics" => [
+      "Combinatorics/EnumerativeCombinatorics/partitions.md",
+      "Combinatorics/EnumerativeCombinatorics/tableaux.md",
+      "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
+    ],
+  ],
+
+  "Straight Line Programs" => [
+      "StraightLinePrograms/intro.md",
+      "StraightLinePrograms/gapslps.md",
+      "StraightLinePrograms/abstractalgebra.md",
+   ],
 
   "References" => "references.md",
   "Index" => "manualindex.md",
