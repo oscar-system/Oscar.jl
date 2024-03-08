@@ -285,6 +285,10 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
    elseif flag2
      FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
      f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
+   elseif degree(FO) == 1
+     FG = GAP.Globals.Rationals::GapObj
+     f = x -> GAP.Obj(coeff(x, 0))
+     finv = x -> FO(QQ(x))
    else
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
