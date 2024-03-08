@@ -110,7 +110,7 @@ function components(G::ComplexReflectionGroupType)
   return [ ComplexReflectionGroupType(t) for t in G.type ]
 end
 
-function num_components(G::ComplexReflectionGroupType)
+function number_of_components(G::ComplexReflectionGroupType)
   return length(G.type)
 end
 
@@ -214,7 +214,7 @@ function direct_product(G1::ComplexReflectionGroupType, G2::ComplexReflectionGro
   return direct_product([G1,G2])
 end
 
-function num_reflections(G::ComplexReflectionGroupType)
+function number_of_reflections(G::ComplexReflectionGroupType)
 
   N = ZZ(0)
 
@@ -409,7 +409,7 @@ function coexponents(G::ComplexReflectionGroupType)
 
 end 
 
-function num_hyperplanes(G::ComplexReflectionGroupType)
+function number_of_hyperplanes(G::ComplexReflectionGroupType)
 
   # See Geck & Malle (2003), Section 1.7
 
@@ -499,7 +499,7 @@ end
 
 function coxeter_number(G::ComplexReflectionGroupType)
 
-  return div(num_reflections(G) + num_hyperplanes(G), rank(G))
+  return div(number_of_reflections(G) + number_of_hyperplanes(G), rank(G))
 
 end
 
@@ -554,7 +554,7 @@ function is_spetsial(G::ComplexReflectionGroupType)
   return true
 end
 
-function num_reflection_classes(G::ComplexReflectionGroupType)
+function number_of_reflection_classes(G::ComplexReflectionGroupType)
 
   N = ZZ(0)
 

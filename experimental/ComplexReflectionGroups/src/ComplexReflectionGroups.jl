@@ -62,11 +62,17 @@ export is_weyl_group
 export is_well_generated
 export is_unitary
 export linear_form
-export num_components
-export num_hyperplanes
-export num_reflections
-export num_reflection_classes
+export number_of_components
+export number_of_hyperplanes
+export number_of_reflections
+export number_of_reflection_classes
 export root_line
 export root_line_inclusion
 export symplectic_reflection_group
 export unitary_reflection
+
+# Aliases
+@alias n_components number_of_components
+@alias n_hyperplanes number_of_hyperplanes
+@alias n_reflections number_of_reflections
+@alias n_reflection_classes number_of_reflection_classes
