@@ -91,7 +91,7 @@
             # Test in a few cases if we find all reflections (would be too much work
             # for the big groups).
             if n in [4,12,23,25,28]
-                @test length(complex_reflections(W_copy)) == num_reflections(complex_reflection_group_type(W))
+                @test length(complex_reflections(W_copy)) == number_of_reflections(complex_reflection_group_type(W))
             end
         end
     end
