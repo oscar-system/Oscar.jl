@@ -19,7 +19,8 @@ include("types.jl")
 include("canonical.jl")
 include("deck_group.jl")
 include("action.jl")
-include("special_origigami.jl")
+include("special_origami.jl")
+include("generate.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -296,4 +297,7 @@ export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         veech_group_is_even, are_equivalent, normalform_conjugators,
         point_reflections, automorphisms, in_deck_group, deck_group, is_normal,
         origami_disconnected, action_s, action_t, action_s_inv, action_t_inv,
-        action_sl2, random_origami, staircase_origami
+        action_sl2, random_origami, staircase_origami, CylinderDiagram, compute_rays,
+        all_combinations, realizable_lengths, origami_from_cylinder_coordinates, product_gray_code,
+        cylinders, system_of_equations, origamis_in_h11, cylinder_diagrams_h11,
+        possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram
