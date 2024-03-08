@@ -19,3 +19,21 @@
   minimal_betti_table(FI)
   simplify(FI)
 end
+
+@testset "Betti tables over quotient rings" begin
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+  I = ideal(R, z)
+  A, _ = quo(R, I)
+  (x, y, z) = gens(A)
+
+  F = graded_free_module(A, 1)
+
+  J, inc = sub(F, [x*F[1], y*F[1]])
+
+  M = cokernel(inc)
+
+  res, aug = free_resolution(Oscar.SimpleFreeResolution, M)
+
+  betti_table(res; upper_bound=3)
+  minimal_betti_table(res; upper_bound=3)
+end
