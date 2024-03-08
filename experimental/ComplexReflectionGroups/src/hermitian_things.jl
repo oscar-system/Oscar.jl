@@ -14,6 +14,7 @@ export is_orthogonal
 # I will only do one minor extension following Tommy Hofmanns suggestion:
 complex_conjugation(K::QQAbField) = conj
 
+
 ###########################################################################################
 # Hermitian scalar product
 ###########################################################################################
@@ -58,11 +59,12 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
     end
 
     # create the conjugate transpose of M
+    conj = complex_conjugation(K)
+    Mct = transpose(map_entries(conj, M))
+
     K = base_ring(M)
     n = ncols(M)
-    conj = complex_conjugation(K)
-    Mct = transpose(matrix(K, n, n, [conj(x) for x in M]))
-
+    
     return M*Mct == identity_matrix(K,n)
 
 end
@@ -74,5 +76,5 @@ end
 function is_unitary(G::MatrixGroup{T}) where T <: QQAlgFieldElem
     
     return all(is_unitary, gens(G))
-    
+
 end
