@@ -10,13 +10,6 @@
 #
 # Ulrich Thiel, 2023 
 
-export complex_reflection_group
-export complex_reflection_group_type
-export complex_reflection_group_model
-export complex_reflection_group_dual
-export complex_reflection_group_cartan_matrix
-export is_complex_reflection_group
-
 ###########################################################################################
 # Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
 # For example the kernel of a matrix A is the space of all vectors such that x*A=0 

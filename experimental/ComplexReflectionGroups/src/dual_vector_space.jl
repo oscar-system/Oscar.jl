@@ -2,8 +2,6 @@
 #
 # Ulrich Thiel, 2023 
 
-export canonical_pairing
-export linear_form
 
 function canonical_pairing(v::AbstractAlgebra.Generic.FreeModuleElem{T}, w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: FieldElem
 
