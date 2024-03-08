@@ -34,3 +34,4 @@ julia> order(W)
 - [ ] With the same explanation as above: Drinfeld–Hecke algebras (which includes symplectic reflection algebras and rational Cherednik algebras)
 
  - [ ] Identification of the type of a complex reflection group (challenging)
+ 
