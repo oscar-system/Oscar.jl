@@ -72,10 +72,7 @@ function is_unitary(M::MatrixGroupElem{T}) where T <: QQAlgFieldElem
 end
 
 function is_unitary(G::MatrixGroup{T}) where T <: QQAlgFieldElem
-    for g in gens(G)
-        if is_unitary(g) == false
-            return false
-        end
-    end
-    return true
+    
+    return all(is_unitary, gens(G))
+    
 end
