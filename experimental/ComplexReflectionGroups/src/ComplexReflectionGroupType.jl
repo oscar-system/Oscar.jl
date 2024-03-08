@@ -25,7 +25,7 @@ struct ComplexReflectionGroupType
     typenorm = Vector{Union{Int, Tuple{Int,Int,Int}}}()
 
     for t in type
-      @req isa(t, Int) || isa(t, Tuple{Int,Int,Int}) "Type must be a vector of integers (for exceptional groups) or of 3-element vectors (for the infinite series)"
+      @req isa(t, Int) || isa(t, Tuple{Int,Int,Int}) "Type must be a vector of integers (for exceptional groups) or of 3-element tuples (for the infinite series)"
 
       # Will be the normalized type
       tnorm = t
@@ -115,11 +115,9 @@ function number_of_components(G::ComplexReflectionGroupType)
 end
 
 function is_irreducible(G::ComplexReflectionGroupType)
-  if length(G.type) == 1
-    return true
-  else
-    return false
-  end
+  
+  return length(G.type) == 1
+
 end
 
 # Isomorphism check
