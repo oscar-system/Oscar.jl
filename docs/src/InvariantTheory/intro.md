@@ -2,7 +2,7 @@
 CurrentModule = Oscar
 ```
 
-# Introduction
+# [Introduction](@id invariant_theory)
 
 The invariant theory part of OSCAR provides functionality for computing polynomial invariants
 of group actions, focusing on finite and linearly reductive groups, respectively.
