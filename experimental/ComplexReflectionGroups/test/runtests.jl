@@ -61,6 +61,22 @@
     @test b == true
     @test order(s_data) == 2
 
+    #######################################################################################
+    # is_complex_reflection_group
+    #######################################################################################
+
+    # The following is a fun example I found by brute force search: the following two
+    # elements are contained in complex_reflection_group(4, :Magma) and they generate this
+    # group but they are not reflections (ker(I-g) = 0). But nontheless the group they
+    # generate is G4, so a complex reflection group. So, this is a nice test for 
+    # is_complex_reflection_group.
+    K,z = cyclotomic_field(3)
+    g1 = matrix(K,2,2,[-1 -z-1; 0 -z])
+    g2 = matrix(K,2,2,[0 -1; 1 0])
+    @test is_complex_reflection(g1) == false
+    @test is_complex_reflection(g2) == false
+    G = matrix_group([g1,g2])
+    @test is_complex_reflection_group(G) == true
 
     #######################################################################################
     # Exceptional complex reflection groups

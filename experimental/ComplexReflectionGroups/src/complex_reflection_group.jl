@@ -130,19 +130,28 @@ end
 # Checking if a matrix group is a complex reflection group.
 ###########################################################################################
 function is_complex_reflection_group(G::MatrixGroup{T}) where T <: QQAlgFieldElem
+  
+  # First, check if we already know that G is a complex reflection group
   if has_attribute(G, :is_complex_reflection_group)
     return get_attribute(G, :is_complex_reflection_group)
   end
   
-  for g in gens(G)
-    if !is_complex_reflection(g)
-      set_attribute!(G, :is_complex_reflection_group, false)
-      return false
-    end
+  # Now, check if the (fixed) generating set happens to consist of reflections.
+  if all(is_complex_reflection, gens(G))
+    set_attribute!(G, :is_complex_reflection_group, true)
+    return true
   end
 
-  set_attribute!(G, :is_complex_reflection_group, true)
-  return true
+  # Last attempt: determine all reflections and see if they generate the group (this is
+  # then equivalent to being a complex reflection group).
+  refls = collect(complex_reflections(G))
+  H,f = sub(G, [G(matrix(w)) for w in refls])
+  if H == G
+    set_attribute!(G, :is_complex_reflection_group, true)
+    return true
+  end
+
+  return false
 end
 
 ###########################################################################################
