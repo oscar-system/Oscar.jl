@@ -10,18 +10,6 @@
 #
 # Ulrich Thiel, 2023 
 
-###########################################################################################
-# Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
-# For example the kernel of a matrix A is the space of all vectors such that x*A=0 
-# (confusingly, this is usually referred to a s the *left kernel*....). The same holds for
-# Magma and also CHEVIE.
-# 
-# This means that when we take matrices for the models from the literature in which 
-# matrices act from the left (the usual convention for non-computer stuff), like the book
-# by Lehrer & Taylor, we need to transpose these matrices! This is why down there in the
-# code there are several transpose operation for the final generators.
-###########################################################################################
-
 function complex_reflection_group(G::ComplexReflectionGroupType, model::Symbol=:default)
   
   # this will be the list of matrix groups corresponding to the components of G
@@ -98,8 +86,9 @@ complex_reflection_group(m::Int, p::Int, n::Int, model::Symbol=:default) = compl
 complex_reflection_group(X::Vector, model::Symbol=:default) = complex_reflection_group(ComplexReflectionGroupType(X), model)
 
 
-
-
+############################################################################################
+# Getter functions
+############################################################################################
 function complex_reflection_group_type(G::MatrixGroup)
   if has_attribute(G, :complex_reflection_group_type)
     return get_attribute(G, :complex_reflection_group_type)
@@ -116,8 +105,16 @@ function complex_reflection_group_model(G::MatrixGroup)
   return nothing
 end
 
+############################################################################################
+# The dual of a complex reflection group, i.e. the dual of the natural representation of
+# the matrix group. This is of course a general operation of matrix group but this function
+# here (applied to a complex reflection group) sets several attributes 
+############################################################################################
 function complex_reflection_group_dual(W::MatrixGroup)
 
+  if !is_complex_reflection_group(W)
+    error("Group is not a complex reflection group")
+  end
   WD = matrix_group([transpose(matrix(w^-1)) for w in gens(W)])
 
   set_attribute!(WD, :order, order(W))

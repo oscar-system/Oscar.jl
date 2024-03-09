@@ -1,7 +1,20 @@
+# The unitary models of complex reflection groups by Lehrer & Taylor (2009).
+#
+# Ulrich Thiel, 2024
+
 
 ###########################################################################################
-# Models from Lehrer & Taylor (2009)
+# Important remark: In OSCAR, matrices act by default from the right on vectors, so x*A. 
+# For example the kernel of a matrix A is the space of all vectors such that x*A=0 
+# (confusingly, this is usually referred to a s the *left kernel*....). The same holds for
+# Magma and also CHEVIE.
+# 
+# This means that when we take matrices for the models from the literature in which 
+# matrices act from the left (the usual convention for non-computer stuff), like the book
+# by Lehrer & Taylor, we need to transpose these matrices! This is why down there in the
+# code there are several transpose operation for the final generators.
 ###########################################################################################
+
 function complex_reflection_group_LT(n::Int)
 
   if n == 4
