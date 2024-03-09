@@ -28,9 +28,12 @@ function symplectic_reflection_group(W::MatrixGroup)
 end
 
 function is_symplectic_reflection_group(G::MatrixGroup)
+
   if has_attribute(G, :is_symplectic_reflection_group)
     return get_attribute(G, :is_symplectic_reflection_group)
   end
-  return false 
+  
   #this should be upgraded later to work with a general matrix group
+  error("Not implemented yet")
+  
 end
