@@ -68,6 +68,7 @@ export number_of_reflections
 export number_of_reflection_classes
 export root_line
 export root_line_inclusion
+export symplectic_doubling
 export symplectic_reflection_group
 export unitary_reflection
 
