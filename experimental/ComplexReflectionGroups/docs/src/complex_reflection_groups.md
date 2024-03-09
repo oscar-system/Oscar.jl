@@ -95,7 +95,7 @@ it is indeed a unitary reflection, and then we compute additional data like a ro
 hyperplane, and the non-trivial eigenvalue of this reflection. We have implemented an own
 type encapsulating such data of a reflection.
 
-```@jldoctest
+```jldoctest
 julia> W = complex_reflection_group(4, :LT)
 Matrix group of degree 2
   over relative number field of degree 2 over number field
@@ -130,7 +130,7 @@ julia> eigenvalue(w_data)
 One can now run all avaialable matrix group functionality in OSCAR on this group. For 
 example one can compute its invariant ring:
 
-```@jldoctest
+```jldoctest
 julia> IR = invariant_ring(W)
 Invariant ring
   of matrix group of degree 2 over relative number field
@@ -150,7 +150,7 @@ having the property that they have a system of fundamental invariants defined ov
 rational numbers. These models are implemented in CHEVIE [Mic15](@cite). We again look at
 $G_4$.
 
-```@jldoctest
+```jldoctest
 julia> W = complex_reflection_group(4, :CHEVIE)
 Matrix group of degree 2
   over cyclotomic field of order 3
@@ -178,7 +178,7 @@ when choosing models. Both the models from [LT09](@cite) and from [MM10](@cite) 
 fractions. The models implemented in [BCP97](@cite) (by Taylor) have the advantage of being
 defined over the ring of integers in a cyclotomic field, so they do not involve fractions:
 
-```@jldoctest
+```jldoctest
 julia> W = complex_reflection_group(4, :Magma)
 Matrix group of degree 2
   over cyclotomic field of order 3
@@ -194,7 +194,7 @@ therefore support this in our implementation.
 
 Another feature of our implementation is that we do not just implement matrix models but 
 
-```@jldoctest
+```jldoctest
 julia> W = complex_reflection_group_type([23, (2,1,4)])
 Complex reflection group type G23 x G(2,1,4)
 

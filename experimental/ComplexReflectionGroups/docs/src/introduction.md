@@ -29,7 +29,7 @@ The list of features at the moment is:
 
 ## Showcase
 
-```@jldoctest
+```jldoctest
 julia> W = complex_reflection_group_type([33, (8,4,6)])
 Complex reflection group type G33 x G(8,4,6)
 
