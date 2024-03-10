@@ -164,7 +164,7 @@ end
 ###########################################################################################
 # Construction of a complex reflection from matrix
 ###########################################################################################
-function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldElem
+function is_complex_reflection_with_data(w::MatElem{T}; debug::Bool=false) where T <: QQAlgFieldElem
   
   if !is_square(w)
     return false, nothing
@@ -180,24 +180,37 @@ function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldEle
   H, Hincl = kernel(f)
 
   if dim(H) != n-1
+    if debug
+      println("Fixed space is not a hyperplane")
+    end
     return false, nothing
   end
+
+  # Now that we know that the fixed space of w is a hyperplane, the only remaining thing we
+  # need to check is whether w is of finite order and that w is actually an element of GL,
+  # i.e. invertible. We first do the following necessary check because we have to compute it
+  # for the data anyways.
 
   R, Rincl = image(f)
 
-  # If H \cap R != {0} then w is not of finite order: 
-  # if w is of finite order, then image(1-w) is the orthogonal complement of ker(1-w)
-  # with respect to a w-invariant scalar product, which exists since w is of finite order.
-  # I am not sure if this is an if and only if, but we will determine the order of w 
-  # below anyways.
+  # If H \cap R != {0} then w is not of finite order: if w is of finite order, then
+  # image(1-w) is the orthogonal complement of ker(1-w) with respect to a w-invariant scalar
+  # product, which exists since w is of finite order.
+  
   HcapR, HcapRincl = intersect(H,R)
 
   if dim(HcapR) > 0
+    if debug
+      println("Matrix is not of finite order")
+    end
     return false, nothing
   end
 
-  # Now, if H \cap R = {0}, then R must be 1-dimensional and we take as root a (the) basis
-  # vector
+  # It could still happen that w is not of finite order, e.g. w = matrix(QQ,2,2,[2 0; 0 1]).
+  # We now do the actual test whether w is of finite order.
+
+  # If H \cap R = {0}, then R must be 1-dimensional and we take as root a (the) basis
+  # vector.
   alpha = Rincl(gens(R)[1])
 
   # Now, we need to determine the scalar zeta by which w acts on alpha (we do not yet know
@@ -211,21 +224,27 @@ function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldEle
   end
   zeta = alpha_w[i]//alpha[i]
 
-  # if zeta = 0, then w is not invertible
-  # this happens for example for w = matrix(QQ,2,2,[1 0; 0 0])
+  # w is not invertible if and only if zeta == 0.
+  # This happens for example for w = matrix(QQ,2,2,[1 0; 0 0])
   if zeta == 0
+    if debug
+      println("Matrix is not invertible")
+    end
     return false, nothing
   end
 
   # zeta needs to be of finite order (so that w is of finite order), i.e. zeta needs
-  # to be a root of unity
+  # to be a root of unity.
   b, d = is_root_of_unity_with_data(zeta)
 
   if b == false
+    if debug
+      println("Matrix is not of finite order")
+    end
     return false, nothing
   end
 
-  # Now, determine the coroot.
+  # Now, w is indeed a reflection. Next, determine the coroot.
   # We have h*(I-w) = 0 for any h \in H. This means that h*v = 0 for any column v of I-w.
   # We thus take L_H to be a non-zero column of I-w, considered as a row vector.
   # Normalization yields the coroot of w with respect to alpha.
@@ -242,9 +261,9 @@ function is_complex_reflection_with_data(w::MatElem{T}) where T <: QQAlgFieldEle
 
 end
 
-function is_complex_reflection(w::MatElem{T}) where T <: QQAlgFieldElem
+function is_complex_reflection(w::MatElem{T}; debug::Bool=false) where T <: QQAlgFieldElem
 
-  b,data = is_complex_reflection_with_data(w)
+  b,data = is_complex_reflection_with_data(w; debug=debug)
   return b
 
 end
