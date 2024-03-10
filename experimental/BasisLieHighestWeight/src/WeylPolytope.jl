@@ -29,6 +29,7 @@ calculated by checking which dominant weight lies in the orbit of the weight und
 
 The weights are given as coefficients to the fundamental weights $\omega_i$.
 """
+# TODO Use here Demazure module
 function get_dim_weightspace(L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem})
   # calculate dimension for dominant weights with GAP
   root_system = root_system_gap(L)

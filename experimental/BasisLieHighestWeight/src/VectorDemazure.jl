@@ -11,8 +11,9 @@
 #hierbei bestimmen wir l_i durch
 #for j in 0:s-1
 #  wj = W([i_{s+1-j},i_{s+2-j}, \ldots, i_s])
-#  l_{s-j} =  coefficients(wj*lambda)[i_{s_j}]
+#  l_{s-j} =  coefficients(wj*lambda)[i_{s_j}]  # TODO >= 0
 #end
+
 
 using ..Oscar
 using ..Oscar: GAPWrap, IntegerUnion, _is_weighted

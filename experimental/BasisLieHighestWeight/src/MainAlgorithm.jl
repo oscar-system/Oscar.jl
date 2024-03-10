@@ -322,7 +322,6 @@ function add_by_hand(
     operators, [asVec(v) for v in operators_twisted], weights_w_twisted, weights_alpha_twisted
   )
 
-
   matrices_of_operators = tensor_matrices_of_operators(
     # L, highest_weight, birational_sequence.operators
     L, highest_weight_twisted_true, birational_sequence.operators
@@ -330,8 +329,8 @@ function add_by_hand(
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   
   # starting vector v
-  v0 = sparse_row(ZZ, [(1, 1)]) 
-
+  v0 = sparse_row(ZZ, [(1, 1)])
+  
   push!(set_mon, ZZx(1))
   # required monomials of each weightspace
   weightspaces = get_dim_weightspace(L, highest_weight)
@@ -599,6 +598,7 @@ function highest_weight_demazure(
   twisted_indx = []
   for i in 1:length(simple_roots)
     # Twist with w^{-1}
+    # TODO Use w here
     root = copy(simple_roots[i])
     for k in 1:length(reduced_expression)
       GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], root)
