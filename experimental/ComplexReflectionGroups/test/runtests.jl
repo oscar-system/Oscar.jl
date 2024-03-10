@@ -61,6 +61,11 @@
     @test b == true
     @test order(s_data) == 2
 
+    # Example 8 (matrix whose fixed space is a hyperplane and which is diagonalizble but
+    # which is not of finite order)
+    w = matrix(QQ,2,2,[2 0; 0 1])
+    @test is_complex_reflection(t) == false
+
     #######################################################################################
     # is_complex_reflection_group
     #######################################################################################
