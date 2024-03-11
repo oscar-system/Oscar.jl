@@ -677,10 +677,10 @@ julia> G = automorphism_group(K)
 Permutation group of degree 4
 
 julia> g = collect(G)[2]
-(1,5,4,2,3)
+(1,2)(3,4)
 
 julia> on_simplicial_complex(K, g)
-Abstract simplicial complex of dimension 2 on 5 vertices
+Abstract simplicial complex of dimension 2 on 4 vertices
 ```
 """
 function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
