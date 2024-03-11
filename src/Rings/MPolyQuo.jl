@@ -266,12 +266,10 @@ HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm
     return MPolyQuoIdeal(Ox, ideal(R, V))
   end
 end
-@enable_all_show_via_expressify MPolyQuoIdeal
 
 function AbstractAlgebra.expressify(a::MPolyQuoIdeal; context = nothing)
   return Expr(:call, :ideal, [expressify(g, context = context) for g in gens(a)]...)
 end
-
 
 @doc raw"""
     base_ring(a::MPolyQuoIdeal)
