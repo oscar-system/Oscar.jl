@@ -62,7 +62,8 @@ function vector_space_dimension(A::MPolyQuoRing)
   end
   I = A.I
   G = standard_basis(I)
-  @req dim(I) == 0 "The ideal must be zero-dimensional"
+  # We check '<=' because I might be the whole ring, so dim(I) == -1
+  @req dim(I) <= 0 "The ideal must be zero-dimensional"
   return Singular.vdim(singular_generators(G, G.ord))
 end
 
@@ -100,6 +101,9 @@ function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   I = A.I
   G = standard_basis(I)
+  if dim(I) == -1 # I is the whole ring
+    return elem_type(base_ring(A))[]
+  end
   @req dim(I) == 0 "The ideal must be zero-dimensional"
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
