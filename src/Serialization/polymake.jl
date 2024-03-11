@@ -36,15 +36,15 @@ function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   T<:Union{Cone{<:scalar_types}, Polyhedron{<:scalar_types}, PolyhedralFan{<:scalar_types}, 
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex}}
   inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-  if T <: PolyhedralObject{QQFieldElem}
-     return T(inner_object)
-   elseif T <: PolyhedralObject{Float64}
-     return T(inner_object, AbstractAlgebra.Floats{Float64}())
-   else
-      error("Unsupported object type $T for loading polymake object")
-   end
+  if T <: PolyhedralObject{Float64}
+    return T(inner_object, AbstractAlgebra.Floats{Float64}())
+  end
+  try
+    return T(inner_object)
+  catch e
+    error("Unsupported object type $T for loading polymake object")
+  end
 end
-
 
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
@@ -126,6 +126,11 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
       end
     end
   end
+  description = Polymake.getdescription(bo)
+
+  if !isempty(description)
+    data["_description"] = String(description)
+  end
   data
 end
 
@@ -148,6 +153,10 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
       Polymake.take(obj, key_str, convert(Polymake.PolymakeType, v))
     end
   end
+  if haskey(dict, "_description")
+    Polymake.setdescription!(obj, dict["_description"])
+  end
+  return obj
 end
 
 function _dict_to_bigobject(dict::Dict{String, Any})

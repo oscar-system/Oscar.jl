@@ -65,7 +65,7 @@ Invariant ring
   of matrix group of degree 3 over K
 
 julia> affine_algebra(IR)
-(Quotient of multivariate polynomial ring by ideal with 1 generator, Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (9*y1^6 + y1^3*y2^3 - 6*y1^3*y2*y3 + 3*y1^3*y4 - y2*y3*y4 + y3^3 + y4^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
 function affine_algebra(IR::FinGroupInvarRing; algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)
