@@ -154,6 +154,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
   g_ord = ords[2]
   d_ord = ords[3]
     
+  # Check for cases where there cannot be Tate monodromy
   if d_ord == 0
     kod_type = "I_0"
   elseif d_ord == 1 && f_ord == 0 && g_ord == 0
@@ -169,6 +170,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
   elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
     kod_type = "Non-minimal"
   else
+    # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
     S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
     ring_map = hom(R, S, gens(S)[2:end])
@@ -177,23 +179,39 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
     
+    # Compute monodromy polynomial and check factorization for remaining cases
     if f_ord == 0 && g_ord == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(9 * poly_g, [locus], [0]), evaluate(2 * poly_f, [locus], [0]))
+      g_quotient = divrem(9 * poly_g, locus)[2]
+      f_quotient = divrem(2 * poly_f, locus)[2]
+      quotient_val = div(g_quotient, f_quotient)
+
+      monodromy_poly = _psi^2 + quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^2), [locus], [0])
+      g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+
+      monodromy_poly = _psi^2 - g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
     elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      monodromy_poly =  _psi^3 + _psi * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
+      f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+      g_quotient = divrem(div(poly_g, locus^3), locus)[2]
+      
+      monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7 && d_ord % 2 == 1
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^3)
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 8 && d_ord % 2 == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^2)
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
+      d_quotient = div(poly_d, locus^d_ord)
+      f_quotient = div(2 * poly_f, locus^2)
+      g_quotient = div(9 * poly_g, locus^3)
+      num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
+      den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
+      quotient_val = div(num_quotient, den_quotient)
+
+      monodromy_poly = _psi^2 + quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^4), [locus], [0])
+      g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+
+      monodromy_poly = _psi^2 - g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
     else
       kod_type = "Unrecognized"
