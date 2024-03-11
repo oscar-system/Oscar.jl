@@ -175,35 +175,60 @@ end
 # Normalization                                                        #
 ########################################################################
 
-## Example
+## Example integral
 # R, (x, y, z) = grade(QQ["x", "y", "z"][1])
 # I = ideal(R, z*x^2 + y^3)
 # X = covered_scheme(proj(R, I))
 # C = X.coverings[1]
 # gluing_example = X[1][1,2]
-# Oscar.normalization(C)
+# Oscar._normalization_integral(C)
+# Oscar._normalization_integral(X)
+
+## Example non-integral
+# R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+# I = ideal(R, (z*x^2 + y^3)*(x))
+# X = covered_scheme(proj(R, I))
+# irred_comps = scheme.(Oscar.maximal_associated_points(ideal_sheaf(X)))
+# is_integral(irred_comps[1])
 # Oscar.normalization(X)
 
-# Warning: assume scheme integral
+# Input: a reduced covered scheme X
+# Output: a list of pairs (Y_i, f_i) where Y_i is a normal scheme and
+#         f_i is a morphism from Y_i to X. The disjoint union of the Y_i
+#         is the normalization of X and the f_i are the restrictions of
+#         the normalization morphism to Y_i.
 function normalization(X::AbsCoveredScheme; check::Bool=true)
+  @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
+  irred_comps = scheme.(Oscar.maximal_associated_points(ideal_sheaf(X)))
+  # Bug? is_integral(irred_comps[1]) outputs false
+  # norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
+  # norm_map_to_X(Xi) =
+  # return [(Xi, norm_map_to_X(Xi)) for Xi in irred_comps]
+end
+
+function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
+  @check is_integral(X) "The scheme X=$(X) needs to be integral."
   orig_cov = default_covering(X)
   if has_attribute(X, :simplified_covering)
     orig_cov = simplified_covering(X)
   end
-  X_norm_cov, pr_cov = normalization(orig_cov; check)
+  X_norm_cov, pr_cov = _normalization_integral(orig_cov; check)
   Y = CoveredScheme(X_norm_cov)
   pr = CoveredSchemeMorphism(Y, X, pr_cov)
   return Y, pr
 end
 
-# Warning: assume scheme integral
-function normalization(C::Covering; check::Bool=true)
-  X_i_norm_outputs = [_normalization(U; check) for U in patches(C)]
+function _normalization_integral(C::Covering; check::Bool=true)
+  X_i_norm_outputs = [_normalization_affine(U; check) for U in patches(C)]
   C_norm = Covering(first.(first.(X_i_norm_outputs)))
   n = n_patches(C_norm)
   for i in 1:n
     for j in (i+1):n
-      gluing_i_j = _normalization(C[i,j], X_i_norm_outputs[i][1], X_i_norm_outputs[j][1])
+      gluing_i_j = _normalization_integral(
+        C[i,j],
+        X_i_norm_outputs[i][1],
+        X_i_norm_outputs[j][1]
+      )
       add_gluing!(C_norm, gluing_i_j)
     end
   end
@@ -214,29 +239,27 @@ function normalization(C::Covering; check::Bool=true)
   return C_norm, normalization_map
 end
 
-struct NormalizationGluingData
+struct NormalizationIntegralGluingData
   original_gluing::AbsGluing
-  norm_output1 # TODO: Add some types here?
-  norm_output2
+  norm_output1::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}
+  norm_output2::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}
   check::Bool
 end
 
-function _normalization(
+function _normalization_integral(
     G::AbsGluing,
-    X_1_norm_output, # output of _normalization
-    X_2_norm_output; # output of _normalization
+    X_1_norm_output, # _normalization_affine(X_1)[1]
+    X_2_norm_output; # _normalization_affine(X_2)[1]
     check::Bool=true
   )
-  data = NormalizationGluingData(G, X_1_norm_output, X_2_norm_output, check)
+  data = NormalizationIntegralGluingData(G, X_1_norm_output, X_2_norm_output, check)
   X, Y = patches(G)
-  return LazyGluing(X, Y, _compute_normalization, data)
+  return LazyGluing(X, Y, _compute_normalization_integral, data)
 end
 
 # Warning: assume patches irreducible
-# Input is gluing of X_1 and X_2 and the output of the _normalization
-# function of X_1 and X_2
-function _compute_normalization(
-    data::NormalizationGluingData
+function _compute_normalization_integral(
+    data::NormalizationIntegralGluingData
   )
   # Initialize the variables
   G = data.original_gluing
@@ -255,8 +278,8 @@ function _compute_normalization(
   codomain(F_2) === X_2 || error("Codomain of F_2=$(F_2) should be X_2=$(X_2).")
 
   # We assume X_i_norm, F_i, hom_to_K_i are defined as below
-  # X_1_norm, F_1, hom_to_K_1 = _normalization(X_1)[1]
-  # X_2_norm, F_2, hom_to_K_2 = _normalization(X_2)[1]
+  # X_1_norm, F_1, hom_to_K_1 = _normalization_affine(X_1)[1]
+  # X_2_norm, F_2, hom_to_K_2 = _normalization_affine(X_2)[1]
 
   U_1_norm = PrincipalOpenSubset(X_1_norm, pullback(F_1)(complement_equation(U_1)))
   U_2_norm = PrincipalOpenSubset(X_2_norm, pullback(F_2)(complement_equation(U_2)))
@@ -299,7 +322,7 @@ end
 #  Y, phi, loc = _normalization(spec(R))[1]
 #end
 
-function _normalization(X::AbsAffineScheme{<:Field, <:MPolyRing}; algorithm=:equidimDec, check::Bool=true)
+function _normalization_affine(X::AbsAffineScheme{<:Field, <:MPolyRing}; algorithm=:equidimDec, check::Bool=true)
   R = OO(X)
   K = total_ring_of_fractions(R)
   Y = spec(R)
@@ -309,8 +332,8 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyRing}; algorithm=:equ
 end
 
 # Warning: assume scheme reduced
-function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec, check::Bool=true)
-  @check is_integral(X)
+function _normalization_affine(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec, check::Bool=true)
+  @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
   A = OO(X)
   A_norm = normalization(A; algorithm)
   output = Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}[]
