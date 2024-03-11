@@ -208,7 +208,7 @@ Toric line bundle on a normal toric variety
 julia> kbar = anticanonical_bundle(B3)
 Toric line bundle on a normal toric variety
 
-julia> w = generic_section(w_bundle);
+julia> w = basis_of_global_sections(w_bundle)[1];
 
 julia> a21 = generic_section(kbar^2 * w_bundle^(-1));
 
