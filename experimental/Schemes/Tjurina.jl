@@ -80,7 +80,6 @@ end
 
 
 @doc raw"""
-    tjurina_algebra(X::HypersurfaceGerm)
     tjurina_algebra(X::HypersurfaceGerm, k::Integer = 0)
 
 Return the `k`-th local Tjurina algebra of `(X,p)` at `p`. 
@@ -276,11 +275,9 @@ end
 
 
 function _order(f::MPolyRingElem)                                                                                 #TODO:  export???
-  f != 0 || return -1
-  x = gens(parent(f))
-  n = length(x)
-  degrees = [sum([degree(m, j) for j in 1:n]) for m in monomials(f)]
-  return minimum(degrees)
+  !is_zero(f) || return -1
+  n = nvars(parent(f))
+  return minimum(sum(e) for e in AbstractAlgebra.exponent_vectors(f))
 end
 
 @doc raw"""
@@ -400,7 +397,6 @@ end
 
 ###############################################################################
 @doc raw"""
-    determinacy_bound(f::MPolyLocRingElem)
     determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
 Compute some determinacy bound of 'f' w.r.t. ':right' or ':contact' equivalence.
@@ -447,8 +443,7 @@ function determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
     ord_f != 0 || return 0
     k = tjurina_number(f)
   end
-  characteristic(parent(f)) != 0 || return k + 1
-  characteristic(parent(f)) == 0 || return 2*k - ord_f + 2
+  return characteristic(parent(f)) == 0 ? k + 1 : 2*k - ord_f + 2
 end
 
 
@@ -541,11 +536,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
   h = Singular.highcorner(G.gens.S)
   l = total_degree(R(h))  
   ## m^(l+1) \subseteq I
-  ## char. 0:                                         
-  characteristic(R) != 0 || (k = l)
-  ## pos. char.: 2*(l-1) - order_as_series(f) + 2
-  characteristic(R) == 0 || (k = 2*l - order_as_series(f))
-  return k
+  return characteristic(R) == 0 ? l : 2*l - order_as_series(f)
 end
 
 
@@ -616,7 +607,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   n != -1 || error("infinite dimensional vectorspaces") 
   ## Save minimalngens of m^k during calculation
   ngens_m_k = [length(mA_basis)]  
-  while(length(mA_basis) != n-1) 
+  while length(mA_basis) != n-1
     k += 1
     gens_mA_k = minimal_generating_set(mA^k)
     ngens_m_k = vcat(ngens_m_k, length(gens_mA_k))
@@ -625,8 +616,8 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
     length(mA_basis) == length(mB_basis) || return false
   end
   ## lift bases
-  mA_basis = [lifted_numerator(mA_basis[j]) for j in 1:length(mA_basis)]  
-  mB_basis = [lifted_numerator(mB_basis[j]) for j in 1:length(mB_basis)]
+  mA_basis = lifted_numerator.(mA_basis)
+  mB_basis = lifted_numerator.(mB_basis)
   ## check if isomorphism exists
   S, t = polynomial_ring(coefficient_ring(R), ngens_m_k[1]*length(mB_basis), :t)
   P, iota = change_base_ring(S, R)    
