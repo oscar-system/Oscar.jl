@@ -223,9 +223,9 @@ with domain
 and exceptional divisor
   effective cartier divisor defined by
     sheaf of ideals with restrictions
-      1a: ideal(x)
-      2a: ideal(y)
-      3a: ideal(z)
+      1a: Ideal (x)
+      2a: Ideal (y)
+      3a: Ideal (z)
 
 julia> E = exceptional_divisor(bl)
 Effective cartier divisor
@@ -235,9 +235,9 @@ Effective cartier divisor
     3: [(s0//s2), (s1//s2), z]   scheme(0, 0, 0)
 defined by
   sheaf of ideals with restrictions
-    1: ideal(x)
-    2: ideal(y)
-    3: ideal(z)
+    1: Ideal (x)
+    2: Ideal (y)
+    3: Ideal (z)
 
 julia> Z = center(bl)
 Prime ideal sheaf on Scheme over QQ covered with 1 patch extended from Ideal (x, y, z) on Affine 3-space
