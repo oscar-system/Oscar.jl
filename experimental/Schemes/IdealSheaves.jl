@@ -1106,11 +1106,9 @@ function Base.show(io::IO, ::MIME"text/plain", I::SumIdealSheaf)
   io = pretty(io)
   print(io, "Sum of \n")
   print(io, Indent())
-  print(io, I.I1, "\n")
-  print(io, Dedent())
-  print(io, "and \n")
-  print(io, Indent())
-  print(io, I.I2, "\n")
+  for J in summands(I)
+    print(io, J, "\n")
+  end
   print(io, Dedent())
 end
 
@@ -1118,28 +1116,19 @@ function Base.show(io::IO, ::MIME"text/plain", I::ProductIdealSheaf)
   io = pretty(io)
   print(io, "Product of \n")
   print(io, Indent())
-  print(io, I.I1, "\n")
+  for J in factors(I)
+    print(io, J, "\n")
+  end
   print(io, Dedent())
-  print(io, "and \n")
-  print(io, Indent())
-  print(io, I.I2, "\n")
-  print(io, Dedent())
-end
-
-function Base.show(io::IO, I::PrimeIdealSheafFromChart)
-  io = pretty(io)
-  print(io, "Prime ideal sheaf on ", scheme(I), " extended from ", I.P, " on ", I.U)
 end
 
 function Base.show(io::IO, I::SumIdealSheaf)
   io = pretty(io)
   print(io, "Sum of \n")
   print(io, Indent())
-  print(io, I.I1, "\n")
-  print(io, Dedent())
-  print(io, "and \n")
-  print(io, Indent())
-  print(io, I.I2, "\n")
+  for J in summands(I)
+    print(io, J, "\n")
+  end
   print(io, Dedent())
 end
 
@@ -1147,14 +1136,19 @@ function Base.show(io::IO, I::ProductIdealSheaf)
   io = pretty(io)
   print(io, "Product of \n")
   print(io, Indent())
-  print(io, I.I1, "\n")
-  print(io, Dedent())
-  print(io, "and \n")
-  print(io, Indent())
-  print(io, I.I2, "\n")
+  for J in factors(I)
+    print(io, J, "\n")
+  end
   print(io, Dedent())
 end
 
+function Base.show(io::IO, I::PrimeIdealSheafFromChart)
+  io = pretty(io)
+  print(io, "Prime ideal sheaf on ", 
+        Lowercase(), scheme(I), " extended from ", 
+        Lowercase(), I.P, " on ", 
+        Lowercase(), I.U)
+end
 
 # This semi compact printing is used for nested printings, like in blow-up or
 # for the description of Cartier divisors and algebraic cycles.
