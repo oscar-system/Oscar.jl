@@ -5,7 +5,7 @@ export tjurina_number
 export order_as_series
 
 
-export is_finitelydetermined
+export is_finitely_determined
 export determinacy_bound
 export sharper_determinacy_bound
 
@@ -53,7 +53,7 @@ end
     tjurina_algebra(X::AffineScheme{<:Field,<:MPolyQuoRing})
 
 Return the global Tjurina algebra of the affine scheme `X`, if `X` is a hypersurface.
-Return an error otherwise.
+Throws an error otherwise.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -227,11 +227,6 @@ julia> tjurina_number(X)
 ```
 """
 function tjurina_number(X::HypersurfaceGerm, k::Integer = 0)                                    #TODO: simplify after vec_dim is improved
-  # Fix for zero dimensional vector space
-  I = modulus(tjurina_algebra(X, k))
-  if base_ring(I)(1) in I
-    return 0
-  end
   # Fix for infinite dimensional vector space
   try
     return vector_space_dimension(tjurina_algebra(X, k))
@@ -275,7 +270,7 @@ end
 
 
 function _order(f::MPolyRingElem)                                                                                 #TODO:  export???
-  !is_zero(f) || return -1
+  !is_zero(f) || return PosInf()
   n = nvars(parent(f))
   return minimum(sum(e) for e in AbstractAlgebra.exponent_vectors(f))
 end
@@ -284,7 +279,6 @@ end
     order_as_series(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
 
 Return the order of the series expansion of an element of a local ring at the localized point.
-Return -1 if infinite.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -317,26 +311,26 @@ end
 
 ###############################################################################
 @doc raw"""
-    is_finitelydetermined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, equivalence::Symbol = :contact)
+    is_finitely_determined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, equivalence::Symbol = :contact)
 
-Return if 'f' is finitely determined w.r.t. ':right' or ':contact' equivalence.
-By default computes w.r.t. contact equivalence.
+Return if 'f' is finitely determined with respect to ':right' or ':contact' equivalence.
+By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
-julia> is_finitelydetermined(L(x^3-y^2))
+julia> is_finitely_determined(L(x^3-y^2))
 true
 
-julia> is_finitelydetermined(L(x^3-y^2), :right)
+julia> is_finitely_determined(L(x^3-y^2), :right)
 true
 ```
 """
-function is_finitelydetermined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, equivalence::Symbol = :contact)
+function is_finitely_determined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, equivalence::Symbol = :contact)
   equivalence == :right || equivalence == :contact || error("Equivalence typ must be ':right' or ':contact'.")
-  f != 0 || return false
+  !iszero(f) || return false
   ord_f = order_as_series(f)
   ## smooth case, 1-determined
   ord_f != 1 || return true 
@@ -351,7 +345,7 @@ function is_finitelydetermined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any,
       L, _ = localization(R, complement_of_point_ideal(R, [coefficient_ring(R)(0) for i = 1:ngens(R)]))
       f_shifted = L(a//b) 
       f_new = f_shifted-(constant_coefficient(a)//constant_coefficient(b))
-      return is_finitelydetermined(f_new, equivalence)
+      return is_finitely_determined(f_new, equivalence)
     end
     X = HypersurfaceGerm(quo(parent(f), ideal(parent(f), f))[1])
     try                                                                                         #TODO: simplify after vec_dim is improved
@@ -369,10 +363,10 @@ end
 
 
 @doc raw"""
-    is_finitelydetermined(X::HypersurfaceGerm, equivalence::Symbol = :contact)
+    is_finitely_determined(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Return if the hypersurface germ 'X' is finitely determined w.r.t. ':right' or ':contact' equivalence. 
-By default computes w.r.t. contact equivalence.
+Return if the hypersurface germ 'X' is finitely determined with respect to ':right' or ':contact' equivalence. 
+By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -381,16 +375,16 @@ julia> f = x^2 - y^2;
 
 julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, f))[1]), [0, 0]);
 
-julia> is_finitelydetermined(X)
+julia> is_finitely_determined(X)
 true
 
-julia> is_finitelydetermined(X, :right)
+julia> is_finitely_determined(X, :right)
 true
 ```
 """
-function is_finitelydetermined(X::HypersurfaceGerm, equivalence::Symbol = :contact)
+function is_finitely_determined(X::HypersurfaceGerm, equivalence::Symbol = :contact)
   f = defining_ideal(X)[1]
-  return is_finitelydetermined(f, equivalence)
+  return is_finitely_determined(f, equivalence)
 end
 
 
@@ -399,9 +393,9 @@ end
 @doc raw"""
     determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of 'f' w.r.t. ':right' or ':contact' equivalence.
+Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
 Return -1 if not finitely determined. 
-By default computes w.r.t. contact equivalence.
+By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
@@ -423,7 +417,7 @@ function determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
   ord_f = order_as_series(f)
   ## if the order of f is 1, then f is right and contact equivalent to its 1-jet (smooth case)
   ord_f != 1 || return 1
-  is_finitelydetermined(f, equivalence) || return -1
+  is_finitely_determined(f, equivalence) || return -1
   if equivalence == :right
     if ord_f == 0     
       ## A unit has the same right-determinacy as the power series without the constant term.
@@ -452,9 +446,9 @@ end
     determinacy_bound(X::HypersurfaceGerm)
     determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of the hypersurface germ 'X' w.r.t. ':right' or ':contact' equivalence.
+Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
 Return -1 if not finitely determined. 
-By default computes w.r.t. contact equivalence.
+By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
@@ -484,9 +478,9 @@ end
     sharper_determinacy_bound(f::MPolyLocRingElem)
     sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of 'f' w.r.t. ':right' or ':contact' equivalence.
+Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
 Return -1 if not finitely determined. 
-By default computes w.r.t. contact equivalence.
+By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
 some sharper determinacy bound than the function determinacy_bound. 
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
@@ -510,7 +504,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
   ord_f = order_as_series(f)
   ## if the order of f is 1, then f is right and contact equivalent to its 1-jet (smooth case)
   ord_f != 1 || return 1  
-  is_finitelydetermined(f::MPolyLocRingElem, equivalence) ||  return -1
+  is_finitely_determined(f::MPolyLocRingElem, equivalence) ||  return -1
   R = base_ring(parent(f))
   m = ideal(gens(R))
   ## shift to 0 for computation w.r.t. local order  
@@ -535,7 +529,9 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
   G = standard_basis(I, ordering = negdeglex(parent(a)))
   h = Singular.highcorner(G.gens.S)
   l = total_degree(R(h))  
-  ## m^(l+1) \subseteq I
+  ## m^(l+1) \subseteq I  
+  ## char. 0: l
+  ## pos. char.: 2*(l-1) - order_as_series(f) + 2
   return characteristic(R) == 0 ? l : 2*l - order_as_series(f)
 end
 
@@ -545,9 +541,9 @@ end
     sharper_determinacy_bound(X::HypersurfaceGerm)
     sharper_determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
-Compute some determinacy bound of the hypersurface germ 'X' w.r.t. ':right' or ':contact' equivalence.
+Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
 Return -1 if not finitely determined. 
-By default computes w.r.t. contact equivalence.
+By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
 some sharper determinacy bound than the function determinacy_bound. 
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
@@ -610,9 +606,9 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   while length(mA_basis) != n-1
     k += 1
     gens_mA_k = minimal_generating_set(mA^k)
-    ngens_m_k = vcat(ngens_m_k, length(gens_mA_k))
-    mA_basis = vcat(mA_basis, gens_mA_k)
-    mB_basis = vcat(mB_basis, minimal_generating_set(mB^k))
+    push!(ngens_m_k, length(gens_mA_k))
+    append!(mA_basis, gens_mA_k)
+    append!(mB_basis, minimal_generating_set(mB^k))
     length(mA_basis) == length(mB_basis) || return false
   end
   ## lift bases
@@ -630,7 +626,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
     for j in 1:length(mB_basis)
       img += t[(i*length(mB_basis)+j)]*iota(mB_basis[j])
     end
-    phi = vcat(phi, img)
+    phi = push!(phi, img)
   end 
   ## calculate det of transformation matrix by using its block structure
   detM = S(1)
@@ -653,7 +649,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   for f in gens(I_A)
     h = normal_form(evaluate(f, phi), iota(I_B), ordering = negdeglex(P))
     for c in coefficients(h, ordering=negdeglex(P))
-      I = vcat(I, c)
+      I = push!(I, c)
     end
   end
   ## check if det(M) \neq 0 possible for some parameters in V(I)
@@ -702,7 +698,7 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   ## check if f = u*g for some unit u with the help of the principal ideals generated by f and g.
   ideal(L, f_poly) != ideal(L, g_poly) || return true  
   ## checking contact equivalence via finite determinacy
-  if is_finitelydetermined(f_poly)    
+  if is_finitely_determined(f_poly)    
     k_f = sharper_determinacy_bound(f_poly)
     k_g = sharper_determinacy_bound(g_poly)
     ## sharper_determinacy_bound returns the same determinancy bound if f and g are contact equivalent
