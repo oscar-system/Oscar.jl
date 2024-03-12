@@ -44,4 +44,4 @@ Once the version is at X.Y.0 the version can be registered in the julia registry
 
 ## Bugfix releases
 
-Further bugfix releases X.Y.Z can be created in a similar manner, skipping the pre-relases.
+Further bugfix releases X.Y.Z can be created in a similar manner, skipping the pre-releases.
