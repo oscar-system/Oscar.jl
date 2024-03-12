@@ -3,6 +3,11 @@
   @test 2 == tjurina_number(y^2 - x^3)
   @test 4 == tjurina_number(change_coefficient_ring(GF(2), y^2 - x^3))
   @test 3 == tjurina_number((y^2 - x^2)*(x-1))
+  @test PosInf() == tjurina_number((x-1)^2)
+  @test 0 == tjurina_number(AffineScheme(quo(R, ideal(R, one(R)))[1]))
+  @test 10 == tjurina_number(AffineScheme(quo(R, ideal(R, x^5 + x^2*y^2 + y^5))[1]))
+  @test 3 == tjurina_number(AffineScheme(quo(R, ideal(R, x^2 - y^4))[1]))
+  @test PosInf() == tjurina_number(AffineScheme(quo(R, ideal(R, zero(R)))[1]))
 end
 
 @testset "lokal Tjurina number" begin
@@ -11,7 +16,11 @@ end
   @test 1 == tjurina_number(L((y^2 - x^2)*(x-1)))
   @test 0 == tjurina_number(L((x-3)^9-(y+5)^7))
   @test 7 == tjurina_number(L((x^6 + x*y^2)*(x+23)^12*(y-6)^12))
-  @test -1 == tjurina_number(L(x^2))
+  @test PosInf() == tjurina_number(L(x^2))
+  @test 12 == tjurina_number(HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^4 + y^5))[1]), [0, 0]))
+  @test 0 == tjurina_number(HypersurfaceGerm(AffineScheme(quo(R, ideal(R, one(R)))[1]), [0, 0]))
+  @test 4 == tjurina_number(HypersurfaceGerm(AffineScheme(quo(R, ideal(R, (x-1)^3 + (x-1)*(y-2)^2))[1]), [1, 2]))
+  @test PosInf() == tjurina_number(HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^2))[1]), [0, 0]))
 end
 
 @testset "is_finitely_determined" begin
@@ -64,16 +73,16 @@ end
   R, (x,y) = QQ["x", "y"]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
   @test_throws ErrorException("Equivalence typ must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
-  @test -1 == determinacy_bound(L(0)) 
-  @test -1 == determinacy_bound(L(0), :right)  
+  @test PosInf() == determinacy_bound(L(0)) 
+  @test PosInf() == determinacy_bound(L(0), :right)  
   @test 1 == determinacy_bound(L(x^2+y))
   @test 1 == determinacy_bound(L(x^2+y), :right)
-  @test -1 == determinacy_bound(L(x^2))
-  @test -1 == determinacy_bound(L(x^2), :right)  
+  @test PosInf() == determinacy_bound(L(x^2))
+  @test PosInf() == determinacy_bound(L(x^2), :right)  
   @test 2 == determinacy_bound(L(x^2+y^2))
   @test 2 == determinacy_bound(L(x^2+y^2), :right)   
   @test 0 == determinacy_bound(L(1))
-  @test -1 == determinacy_bound(L(1), :right)   
+  @test PosInf() == determinacy_bound(L(1), :right)   
   @test 0 == determinacy_bound(L(x^2+y+1))
   @test 1 == determinacy_bound(L(x^2+y+1), :right)
   @test 0 == determinacy_bound(L(x^2+y^2+1))
@@ -93,16 +102,16 @@ end
 @testset "determinacy_bound positive characteristic" begin
   R, (x,y) = GF(2)["x", "y"]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
-  @test -1 == determinacy_bound(L(0))
-  @test -1 == determinacy_bound(L(0), :right)
+  @test PosInf() == determinacy_bound(L(0))
+  @test PosInf() == determinacy_bound(L(0), :right)
   @test 0 == determinacy_bound(L(1))
-  @test -1 == determinacy_bound(L(1), :right)
+  @test PosInf() == determinacy_bound(L(1), :right)
   @test 1 == determinacy_bound(L(x))
   @test 1 == determinacy_bound(L(x), :right) 
   @test 8 == determinacy_bound(L(x^3+y^2))
-  @test -1 == determinacy_bound(L(x^3+y^2), :right)  
-  @test -1 == determinacy_bound(L(x^2+y^2))
-  @test -1 == determinacy_bound(L(x^2+y^2), :right)  
+  @test PosInf() == determinacy_bound(L(x^3+y^2), :right)  
+  @test PosInf() == determinacy_bound(L(x^2+y^2))
+  @test PosInf() == determinacy_bound(L(x^2+y^2), :right)  
   @test 13 == determinacy_bound(L(x^3+x*y^3))
   @test 13 == determinacy_bound(L(x^3+x*y^3), :right)
   @test 22 == determinacy_bound(L(x^5+x^2*y^2+y^5))
@@ -113,16 +122,16 @@ end
   R, (x,y) = QQ["x", "y"]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
   @test_throws ErrorException("Equivalence typ must be ':right' or ':contact'.") determinacy_bound(L(0), :leftright)
-  @test -1 == sharper_determinacy_bound(L(0)) 
-  @test -1 == sharper_determinacy_bound(L(0), :right)  
+  @test PosInf() == sharper_determinacy_bound(L(0)) 
+  @test PosInf() == sharper_determinacy_bound(L(0), :right)  
   @test 1 == sharper_determinacy_bound(L(x^2+y))
   @test 1 == sharper_determinacy_bound(L(x^2+y), :right)
-  @test -1 == sharper_determinacy_bound(L(x^2))
-  @test -1 == sharper_determinacy_bound(L(x^2), :right)  
+  @test PosInf() == sharper_determinacy_bound(L(x^2))
+  @test PosInf() == sharper_determinacy_bound(L(x^2), :right)  
   @test 2 == sharper_determinacy_bound(L(x^2+y^2))
   @test 2 == sharper_determinacy_bound(L(x^2+y^2), :right)   
   @test 0 == sharper_determinacy_bound(L(1))
-  @test -1 == sharper_determinacy_bound(L(1), :right)   
+  @test PosInf() == sharper_determinacy_bound(L(1), :right)   
   @test 0 == sharper_determinacy_bound(L(x^2+y+1))
   @test 1 == sharper_determinacy_bound(L(x^2+y+1), :right)
   @test 0 == sharper_determinacy_bound(L(x^2+y^2+1))
@@ -142,16 +151,16 @@ end
 @testset "sharper_determinacy_bound positive characteristic" begin
   R, (x,y) = GF(2)["x", "y"]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
-  @test -1 == sharper_determinacy_bound(L(0))
-  @test -1 == sharper_determinacy_bound(L(0), :right)
+  @test PosInf() == sharper_determinacy_bound(L(0))
+  @test PosInf() == sharper_determinacy_bound(L(0), :right)
   @test 0 == sharper_determinacy_bound(L(1))
-  @test -1 == sharper_determinacy_bound(L(1), :right)
+  @test PosInf() == sharper_determinacy_bound(L(1), :right)
   @test 1 == sharper_determinacy_bound(L(x))
   @test 1 == sharper_determinacy_bound(L(x), :right) 
   @test 4 == sharper_determinacy_bound(L(x^3+y^2))
-  @test -1 == sharper_determinacy_bound(L(x^3+y^2), :right)  
-  @test -1 == sharper_determinacy_bound(L(x^2+y^2))
-  @test -1 == sharper_determinacy_bound(L(x^2+y^2), :right)  
+  @test PosInf() == sharper_determinacy_bound(L(x^3+y^2), :right)  
+  @test PosInf() == sharper_determinacy_bound(L(x^2+y^2))
+  @test PosInf() == sharper_determinacy_bound(L(x^2+y^2), :right)  
   @test 7 == sharper_determinacy_bound(L(x^3+x*y^3))
   @test 7 == sharper_determinacy_bound(L(x^3+x*y^3), :right)
   @test 6 == sharper_determinacy_bound(L(x^5+x^2*y^2+y^5))
@@ -192,7 +201,7 @@ end
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
   @test !is_contact_equivalent(L(x^5+y^2), L(x^6+y^2))  
   ## not isolated
-  @test_throws ErrorException("Unable to determine if is contact equivalent. (Singularity is not isolated)") is_contact_equivalent(L(x^5+x^3), L(-y^3))
+  @test_throws ErrorException("Unable to determine if is contact equivalent. (Singularities are not isolated)") is_contact_equivalent(L(x^5+x^3), L(-y^3))
 end
 
 @testset "Mather-Yau Isomorphismtest" begin
@@ -202,6 +211,21 @@ end
   @test is_contact_equivalent(L(x^7+y^4), L((x+x*y)^4-y^7))  
   @test is_contact_equivalent(L(x^5-x^2*y^2+y^5), L(x^5+2*x^2*y^2+y^5))
   @test is_contact_equivalent(L(x^3+y^4), L(x^4+(x-y)^3))
+  ## pos. char.
+  R, (x,y) = GF(7)["x", "y"]
+  L,_  = localization(R, complement_of_point_ideal(R, [0, 0])) 
+  @test is_contact_equivalent(L(x^2+y^2),L(x*y)) 
+  @test is_contact_equivalent(L(x^2+y^3),L(x^3+y^2))  
+  @test is_contact_equivalent(L(x^4+y^3),L(x^3-5*y^4))
+end
+
+@testset "Mather-Yau with tjurina_number infinity" begin
+  R, (x,y,z) = QQ["x", "y", "z"]
+  L,_  = localization(R, complement_of_point_ideal(R, [0, 0, 0]))  
+  @test is_contact_equivalent(zero(L), L(0//(x+1)))
+  @test is_contact_equivalent(L(x^2+y^2), L(y^2+z^2)) 
+  @test !is_contact_equivalent(L(z^2), L(x^2+y^2))
+  @test !is_contact_equivalent(L(x^2+y^2), L(x^2+y^2-z^2))
 end
 
 @testset "ADE-Singularities" begin  

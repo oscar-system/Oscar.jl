@@ -1,9 +1,7 @@
 export tjurina_algebra
 export tjurina_number
 
-#export order
 export order_as_series
-
 
 export is_finitely_determined
 export determinacy_bound
@@ -116,7 +114,6 @@ end
 
 
 @doc raw"""
-    tjurina_algebra(f::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
     tjurina_algebra(f::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, k::Integer = 0)
 
 Return the `k`-th local Tjurina algebra of `(V(f),p)` at `p`. 
@@ -163,7 +160,7 @@ end
 @doc raw"""
     tjurina_number(f::MPolyRingElem)
 
-Return the global Tjurina number of a polynomial `f`. Return -1 if infinite.
+Return the global Tjurina number of a polynomial `f`.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -176,14 +173,14 @@ julia> tjurina_number(f)
 """
 function tjurina_number(f::MPolyRingElem)
   isa(coefficient_ring(f), AbstractAlgebra.Field) || error("The polynomial requires a coefficient ring that is a field.")
-  return vector_space_dimension(tjurina_algebra(f))
+  R = tjurina_algebra(f)
+  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
 end
 
 @doc raw"""
     tjurina_number(X::AffineScheme{<:Field,<:MPolyQuoRing})
 
 Return the global Tjurina number of the affine scheme `X`, if `X` is a hypersurface.
-Return -1 if infinite.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -202,18 +199,18 @@ julia> tjurina_number(X)
 ```
 """
 function tjurina_number(X::AffineScheme{<:Field,<:MPolyQuoRing}) 
-  return vector_space_dimension(tjurina_algebra(X))
+  R = tjurina_algebra(X)
+  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
 end
 
 
 
 @doc raw"""
-    tjurina_number(X::HypersurfaceGerm)
     tjurina_number(X::HypersurfaceGerm, k::Integer = 0)
 
 Return the `k`-th local Tjurina number of `(X,p)` at `p`. 
 By default computes the local Tjurina number (`k=0`) at `p`.
-Higher Tjurina numbers are of interest in positive characteristic. Return -1 if infinite.
+Higher Tjurina numbers are of interest in positive characteristic.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -226,25 +223,20 @@ julia> tjurina_number(X)
 2
 ```
 """
-function tjurina_number(X::HypersurfaceGerm, k::Integer = 0)                                    #TODO: simplify after vec_dim is improved
+function tjurina_number(X::HypersurfaceGerm, k::Integer = 0)                                    
   # Fix for infinite dimensional vector space
-  try
-    return vector_space_dimension(tjurina_algebra(X, k))
-  catch
-    return -1
-  end
+  R = tjurina_algebra(X, k)
+  return dim(modulus(R)) <= 0 ? vector_space_dimension(R) : PosInf()
 end
 
 
 
 @doc raw"""
-    tjurina_number(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
     tjurina_number(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, k::Integer = 0)
 
 Return the `k`-th local Tjurina number of `(V(f),p)` at `p`. 
 By default computes the local Tjurina number (`k=0`) at `p`.
 Higher Tjurina numbers are of interest in positive characteristic. 
-Return -1 if infinite.
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x", "y"];
@@ -258,7 +250,7 @@ julia> tjurina_number(f)
 ```
 """
 function tjurina_number(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, k::Integer = 0)
-  X = HypersurfaceGerm(quo(parent(f), ideal(parent(f), f))[1])
+  X = HypersurfaceGerm(quo(parent(f), ideal(parent(f), [f]))[1])
   return tjurina_number(X, k)
 end
 
@@ -269,7 +261,7 @@ end
 ################################################################################
 
 
-function _order(f::MPolyRingElem)                                                                                 #TODO:  export???
+function _order(f::MPolyRingElem)
   !is_zero(f) || return PosInf()
   n = nvars(parent(f))
   return minimum(sum(e) for e in AbstractAlgebra.exponent_vectors(f))
@@ -348,14 +340,9 @@ function is_finitely_determined(f::MPolyLocRingElem{<:Field, <:Any, <:Any, <:Any
       return is_finitely_determined(f_new, equivalence)
     end
     X = HypersurfaceGerm(quo(parent(f), ideal(parent(f), f))[1])
-    try                                                                                         #TODO: simplify after vec_dim is improved
-      return milnor_number(X) != -1
-    catch
-      return false
-    end
-  end
-  if equivalence == :contact
-    return tjurina_number(f) != -1
+    return dim(modulus(milnor_algebra(X))) <= 0 ? true : false
+  else  ## equivalence == :contact
+    return tjurina_number(f) != PosInf()
   end
 end
 
@@ -394,7 +381,7 @@ end
     determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
 Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
-Return -1 if not finitely determined. 
+Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
@@ -417,7 +404,7 @@ function determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
   ord_f = order_as_series(f)
   ## if the order of f is 1, then f is right and contact equivalent to its 1-jet (smooth case)
   ord_f != 1 || return 1
-  is_finitely_determined(f, equivalence) || return -1
+  is_finitely_determined(f, equivalence) || return PosInf()
   if equivalence == :right
     if ord_f == 0     
       ## A unit has the same right-determinacy as the power series without the constant term.
@@ -443,11 +430,10 @@ end
 
 
 @doc raw"""
-    determinacy_bound(X::HypersurfaceGerm)
     determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
 Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
-Return -1 if not finitely determined. 
+Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
@@ -475,11 +461,10 @@ end
 
 
 @doc raw"""
-    sharper_determinacy_bound(f::MPolyLocRingElem)
     sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :contact)
 
 Compute some determinacy bound of 'f' with respect to ':right' or ':contact' equivalence.
-Return -1 if not finitely determined. 
+Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
 some sharper determinacy bound than the function determinacy_bound. 
@@ -504,7 +489,7 @@ function sharper_determinacy_bound(f::MPolyLocRingElem, equivalence::Symbol = :c
   ord_f = order_as_series(f)
   ## if the order of f is 1, then f is right and contact equivalent to its 1-jet (smooth case)
   ord_f != 1 || return 1  
-  is_finitely_determined(f::MPolyLocRingElem, equivalence) ||  return -1
+  is_finitely_determined(f::MPolyLocRingElem, equivalence) ||  return PosInf()
   R = base_ring(parent(f))
   m = ideal(gens(R))
   ## shift to 0 for computation w.r.t. local order  
@@ -538,11 +523,10 @@ end
 
 
 @doc raw"""
-    sharper_determinacy_bound(X::HypersurfaceGerm)
     sharper_determinacy_bound(X::HypersurfaceGerm, equivalence::Symbol = :contact)
 
 Compute some determinacy bound of the hypersurface germ 'X' with respect to ':right' or ':contact' equivalence.
-Return -1 if not finitely determined. 
+Return infinity if not finitely determined. 
 By default computes with respect to contact equivalence.
 At the cost of a higher computation time this function computes in general 
 some sharper determinacy bound than the function determinacy_bound. 
@@ -586,10 +570,16 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
   ## check id isomorphism
   modulus(underlying_quotient(A)) != modulus(underlying_quotient(B)) || return true
   ## basic dimension checks
-  n = vector_space_dimension(A)
-  n == vector_space_dimension(B) || return false
-  n != 0 || return true
-  n != 1 || return true   
+  d = dim(modulus(A))
+  d == dim(modulus(B)) || return false
+  if d <= 0
+    n = vector_space_dimension(A)
+    n == vector_space_dimension(B) || return false
+    n != 0 || return true
+    n != 1 || return true
+  else
+    n = PosInf()
+  end     
   ## calculate bases and check if A and B have the same vector_space_dimension modulo m^k
   k = 1
   mA = ideal(A, gens(A))
@@ -600,7 +590,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
     ## edim(A) == 1 
   length(mA_basis) != 1 || return true
   ## can't do more for infinite dimensional vectorspaces
-  n != -1 || error("infinite dimensional vectorspaces") 
+  n != PosInf() || error("infinite dimensional vectorspaces") 
   ## Save minimalngens of m^k during calculation
   ngens_m_k = [length(mA_basis)]  
   while length(mA_basis) != n-1
@@ -653,7 +643,7 @@ function _is_isomorphic_as_K_algebra(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <
     end
   end
   ## check if det(M) \neq 0 possible for some parameters in V(I)
-  return !radical_membership(detM, ideal(S, I))
+  return !(detM in radical(ideal(S,I)))
 end
 
 
@@ -686,7 +676,9 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   ## units are contact equivalent
   ord_f != 0 || return true
   ## power series of order 1 are contact equivalent to each other
-  ord_f != 1 || return true 
+  ord_f != 1 || return true
+  ## f = g = 0
+  ord_f != PosInf() || return true 
   ## tjurina number is invariant under contact equivalence
   tjurina_number(f) == tjurina_number(g) || return false
   ## Switching to polynomial representatives and shifting to origin for computations w.r.t. local ordering
@@ -717,8 +709,13 @@ function is_contact_equivalent(f::MPolyLocRingElem, g::MPolyLocRingElem)
   ## characteristic 0 
   characteristic(base_ring(parent(f))) != 0 || return _is_isomorphic_as_K_algebra(tjurina_algebra(f_poly), tjurina_algebra(g_poly))
   ## positive characteristic  
-  tjurina_number(f_poly) >= 0 || error("Unable to determine if is contact equivalent. (Singularity is not isolated)")
-  k = 2*tjurina_number(f_poly) - 2*order_as_series(f_poly) + 4
+  tjurina_number(f_poly) != PosInf() || error("Unable to determine if is contact equivalent. (Singularities are not isolated)")
+  ## calculate smallest k such that m^(deg(highcorner) + 1) = m^([k/2] + ord_f) \subseteq I
+  a = numerator(f_poly)
+  I = m*a + m^2*jacobian_ideal(a)
+  G = standard_basis(I, ordering = negdeglex(parent(a)))
+  h = Singular.highcorner(G.gens.S)
+  k = 2*(total_degree(R(h)) + 1 - ord_f)
   ## check k-th tjurina number
   tjurina_number(f_poly, k) == tjurina_number(g_poly, k) || return false
   ## check via Mather-Yau-Theorem for positive characteristic
@@ -752,6 +749,3 @@ function is_contact_equivalent(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   g = defining_ideal(Y)[1]
   return is_contact_equivalent(f, g)
 end
-
-
-
