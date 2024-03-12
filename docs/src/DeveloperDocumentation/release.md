@@ -27,7 +27,7 @@ The list of backported PRs may be added to the commit message for the merge.
 
 ### Conflicts
 
-If changes from another PR cannot be cleanly applied to the backports branch it may be necessary to create a separate PR targeting the _backports branch_ to manually backport changes from that PR and resolve any conflicts.
+If changes from another PR cannot be cleanly applied to the backports branch it may be necessary to create a separate PR targeting the _backports branch_ to manually backport changes from that PR and resolve any conflicts. Make sure that the branch for this PR branches off from the release branch and not from master (to avoid picking up unrelated commits). Then cherry-pick the relevant commits and fix any conflicts.
 
 ## Pre-releases
 
