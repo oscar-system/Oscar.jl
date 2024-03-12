@@ -80,6 +80,8 @@ using Oscar: _integer_variables
           end
 
           nfdodecahedron = normal_fan(dodecahedron())
+          # add some extra properties to check save / load
+          Polymake.give(Oscar.pm_object(nfdodecahedron), :MAXIMAL_CONES_FACETS)
           test_save_load_roundtrip(path, nfdodecahedron) do loaded
             @test n_rays(nfdodecahedron) == n_rays(loaded)
             @test number_of_maximal_cones(nfdodecahedron) == number_of_maximal_cones(loaded)
