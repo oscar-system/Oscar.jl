@@ -178,7 +178,7 @@ function basis_coordinate_ring_kodaira_compute(
     push!(monomial_basis_k, mb)
   end
 
-  return collect(zip(monomial_basis_k, length.(monomials_new_k)))
+  return collect(zip(monomial_basis_k, monomials_new_k))
 end
 
 function compute_monomials(
