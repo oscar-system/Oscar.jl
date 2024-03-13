@@ -153,3 +153,27 @@ end
   
   @test w == Oscar.underlying_divisor(w)
 end
+
+@testset "general ideal sheaves from ideals in cox ring" begin
+  c = cone([1 1; -1 1]) 
+  ntv = normal_toric_variety(c) 
+  x1, x2 = gens(cox_ring(ntv)) 
+  my_ideal = ideal([x1*x2]) 
+  is_complete(ntv) 
+  has_torusfactor(ntv) 
+  ideal_sheaf(ntv, my_ideal)
+
+  p231 = weighted_projective_space(NormalToricVariety, [2,3,1]) 
+  x1, x2, x3 = gens(cox_ring(p231)) 
+  my_ideal = ideal([x1*x2]) 
+  II = ideal_sheaf(p231, my_ideal) 
+  pr = blow_up(p231, ideal([x1, x2]))
+  pullback(pr, II)
+  @test is_subset(total_transform(pr, II), strict_transform(pr, II))
+
+  X = p231*p231
+  a, b, c, x, y, z = gens(cox_ring(X))
+  I = ideal(cox_ring(X), [a^3 + b^2 + c^2*a^2, a*x, a*y^2 - 25*c^2*z^6])
+  II = IdealSheaf(X, I)
+end
+
