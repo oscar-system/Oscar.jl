@@ -1334,11 +1334,11 @@ is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 @doc raw"""
     is_johnson_solid(P::Polyhedron)
 
-Checks whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive. 
+Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
 
-#Exmple
+# Examples
 ```
-julia> J = johnson_solid(37) 
+julia> J = johnson_solid(37)
 Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
 julia> is_johnson_solid(J) 
@@ -1350,9 +1350,9 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transiti
 @doc raw"""
     is_archimedean_solid(P::Polyhedron)
 
-Checks whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces. 
+Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces.
 This will not recognize solids with approximate coordinates, such as the Snub Cube and Snub Dodecahedron, only
-algebraically precise solids. 
+algebraically precise solids.
 
 # Examples
 ```jldoctest
@@ -1374,7 +1374,7 @@ is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_fac
 @doc raw"""
     is_platonic_solid(P::Polyhedron)
 
-Checks whether `P` is a Platonic solid.
+Check whether `P` is a Platonic solid.
 
 # Examples
 ```jldoctest
@@ -1396,7 +1396,7 @@ function _is_3d_pol_reg_faces(P::Polyhedron)
     v = vertices(edge)
     edgelength = _squared_distance(v[1], v[2])
   end
-    
+
   for edge in pedges[2:end]
     v = vertices(edge)
     _squared_distance(v[1], v[2]) == edgelength || return false
@@ -1431,9 +1431,9 @@ end
 _has_equal_faces(P::Polyhedron) = allequal([n_vertices(f) for f in faces(P, 2)])
 
 @doc raw"""
-    is_platonic_solid(P::Polyhedron)
+    is_vertex_transitive(P::Polyhedron)
 
-Checks whether `P` is vertex transitive
+Check whether `P` is vertex transitive.
 
 # Examples
 ```jldoctest
@@ -1442,11 +1442,9 @@ true
 
 julia> is_vertex_transitive(pyramid(cube(2)))
 false
-
 ```
 """
 is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
-
 
 @doc raw"""
     f_vector(P::Polyhedron)
