@@ -118,7 +118,7 @@ function basis_coordinate_ring_kodaira_compute(
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{Vector{ZZRingElem}}()
   monomials_k = Set{ZZMPolyRingElem}[]        # monomial basis of the module k*highest_weight
-  monomials_new_k = Set{ZZMPolyRingElem}[]    # store the monomials that are not products of basis monomials of smaller degree
+  monomials_new_k = Vector{ZZMPolyRingElem}[] # store the monomials that are not products of basis monomials of smaller degree
   sizehint!(monomials_k, degree)
   sizehint!(monomials_new_k, degree)
   monomial_basis_k = MonomialBasis[]
@@ -161,6 +161,7 @@ function basis_coordinate_ring_kodaira_compute(
       L, i * highest_weight, birational_sequence, monomial_ordering, monomials
     )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
+    monomials_new_sorted = sort(collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
     if isempty(monomials_new)
       set_attribute!(
         mb,
@@ -170,11 +171,11 @@ function basis_coordinate_ring_kodaira_compute(
       )
     else
       set_attribute!(
-        mb, :minkowski_gens => minkowski_gens, :new_monomials => monomials_new
+        mb, :minkowski_gens => minkowski_gens, :new_monomials => monomials_new_sorted
       )
     end
     push!(monomials_k, monomials)
-    push!(monomials_new_k, monomials_new)
+    push!(monomials_new_k, monomials_new_sorted)
     push!(monomial_basis_k, mb)
   end
 
