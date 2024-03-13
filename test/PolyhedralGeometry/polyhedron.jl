@@ -582,11 +582,33 @@
 
 end
 
-@testset "Johnson solids" begin
+@testset "Regular solids" begin
   
   for i in Oscar._johnson_indexes_from_oscar
     j = johnson_solid(i)
     @test j isa Polyhedron{<:EmbeddedNumFieldElem}
     @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i))
   end
+
+  let p = platonic_solid("dodecahedron")
+    @test is_platonic_solid(p)
+    @test !is_archimedean_solid(p)
+    @test !is_johnson_solid(p)
+    @test is_vertex_transitive(p)
+  end
+
+  let a = archimedean_solid("rhombicuboctahedron")
+    @test !is_platonic_solid(a)
+    @test is_archimedean_solid(a)
+    @test !is_johnson_solid(a)
+    @test is_vertex_transitive(a)
+  end
+
+  let j = johnson_solid(69)
+    @test !is_platonic_solid(j)
+    @test !is_archimedean_solid(j)
+    @test is_johnson_solid(j)
+    @test !is_vertex_transitive(j)
+  end
+  
 end
