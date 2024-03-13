@@ -15,6 +15,7 @@ Matroid of rank 2 on 3 elements
 
 julia> chow_ring(M)
 Quotient
-  of multivariate polynomial ring in 3 variables x_{Edge(2, 1)}, x_{Edge(3, 1)}, x_{Edge(3, 2)}
+  of multivariate polynomial ring in 3 variables x_{Edge(2, 1)}, x_{Edge(3, 1)}, x_{Edge(3, 2)
+  }
     over rational field
   by ideal with 5 generators
