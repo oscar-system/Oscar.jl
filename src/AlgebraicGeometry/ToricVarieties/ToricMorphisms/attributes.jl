@@ -245,15 +245,7 @@ Covering
     offset_mat = zero_matrix(ZZ, nrows(hb_U_mat), 1)
     sol_list = Vector{ZZMatrix}()
     for k in 1:nrows(hb_V_img)
-      # We manually create the transpose of the k-th row of hb_V_mat.
-      # Why? Because the implemented method returns something of type 
-      # LinearAlgebra.Transpose and that is not diguested by the function 
-      # we want to use. We don't know about a converter. This is fucked up
-      # and a pain in the ass for every developer. Please improve!
-      b = zero_matrix(ZZ, ncols(hb_V_img), 1)
-      for j in 1:ncols(hb_V_img)
-        b[j, 1] = hb_V_img[k, j]
-      end
+      b = transpose(hb_V_img[k:k, :])
       push!(sol_list, solve_mixed(ZZMatrix, transpose(hb_U_mat), b, id_mat, offset_mat))
     end
     # For some weird reason `solve_mixed` solves A*x = b, but returns x as a 1xn-matrix (not nx1).
