@@ -25,26 +25,25 @@ include(joinpath(pkgdir(REPL),"test","FakeTerminals.jl"))
 function sanitize_output(s::AbstractString)
   result = s
   println("length before: ", length(result))
-  # result = replace(result, r"\r\e\[0Kjulia>"=>"")
-  # result = replace(result, r"\r\e\[0Kjulia>"=>"")
-  # result = replace(result, r"\r\S*julia>"=>"julia>")
-  # result = replace(result, r"\e\[\d+[A-Z]julia>"=>"")
-  lbefore = length(result)+1
-  while length(result) < lbefore
-    lbefore = length(result)
+  lafter = length(result)
+  lbefore = lafter+1
+  while lafter < lbefore
+    lbefore = lafter
     result = replace(result, r"\r\e\[\d+[A-Z]"=>"")
     result = replace(result, r"\e\[\?\d+[a-z]"=>"")
     result = replace(result, r"\r\r\n"=>"")
     result = replace(result, r"julia> julia> julia>" => "julia>")
+    lafter = length(result)
   end
-  # result = replace(result, r"\r"=>"")
-
   println("length after: ", length(result))
   return result[1:length(result)-32]
 end
 
-function run_repl_string(s::AbstractString)
-
+function run_repl_string(s::AbstractString; jlcon_mode=true)
+  input_string = s
+  if jlcon_mode
+    input_string = "\e[200~$s\e[201~\n"
+  end
   input = Pipe()
   err = Pipe()
   Base.link_pipe!(input, reader_supports_async=true, writer_supports_async=true)
@@ -59,7 +58,7 @@ function run_repl_string(s::AbstractString)
   repltask = @async begin
     REPL.run_repl(repl)
   end
-  input_task = @async write(stdin_write, "\e[200~$s\e[201~\n")
+  input_task = @async write(stdin_write, input_string)
   wait(input_task)
   input_task = @async write(stdin_write, "\x04")
   wait(input_task)
@@ -82,6 +81,9 @@ for (chapter, example_list) in ordered_examples
         content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
         computed = run_repl_string(content)
         @test content == computed
+      elseif occursin("jl", example)
+        content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+        run_repl_string(content; jlcon_mode=false)
       end
     # else
     #   println("   "*example*" excluded")
