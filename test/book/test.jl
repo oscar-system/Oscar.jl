@@ -78,6 +78,12 @@ oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
 for (chapter, example_list) in ordered_examples
   println(chapter)
+  auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+  if isfile(auxmain)
+    include(auxmain)
+  end
+  Oscar.set_seed!(42)
+  Oscar.randseed!(42)
   for example in example_list
     full_file = joinpath(chapter, example)
     exclude = filter(s->occursin(s, full_file), excluded)
