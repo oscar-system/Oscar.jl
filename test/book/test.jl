@@ -11,16 +11,56 @@ const excluded = [
                   "number-theory/intro_plot_lattice.jlcon",                                   
                   "number-theory/intro5_0.jlcon",                                             
                   # Excluded for easier testing
-                  "specialized",
                   "number-theory",
                   "groups",
                   "algebraic-geometry",
                   "introduction",
+                  "specialized/boehm-breuer-git-fans",
+                  "specialized/markwig-ristau-schleis-faithful-tropicalization",
+                  "specialized/holt-ren-tropical-geometry",
+                  "specialized/bies-turner-string-theory-applications",
+                  "specialized/aga-boehm-hoffmann-markwig-traore",
+                  "specialized/joswig-kastner-lorenz-confirmable-workflows",
+                  "cornerstones/number-theory",
+                  "cornerstones/groups",
+                  "introduction/introduction",
+                  "specialized/eder-mohr-ideal-theoretic",
+                  "specialized/kuehne-schroeter-matroids",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization",
+                  "specialized/flake-fourier-monomial-bases",
+                  "specialized/brandhorst-zach-fibration-hopping",
+                  "specialized/breuer-nebe-parker-orthogonal-discriminants",
+                  "cornerstones/algebraic-geometry",
+                  "specialized/decker-schmitt-invariant-theory",
+                  # "specialized/bies-kastner-toric-geometry",
+                  # Excluded for Plots.jl
+                  "g-vectors.jl",
+                  "g-vectors-upper-bound.jl",
                  ]  
 
 using REPL
+using Random
+using Pkg
+import Random.Xoshiro
 include(joinpath(pkgdir(REPL),"test","FakeTerminals.jl"))
 
+
+function normalize_repl_output(s::AbstractString)
+  result = string(s)
+  lafter = length(result)
+  lbefore = lafter+1
+  while lafter < lbefore
+    lbefore = lafter
+    result = replace(result, r"^       "m => "")
+    result = strip(result)
+    result = replace(result, r"julia>$"s => "")
+    lafter = length(result)
+  end
+  while result[length(result)-5:length(result)] == "julia>"
+    result = strip(result[1:length(result)-6])
+  end
+  return strip(result)
+end
 
 function sanitize_output(s::AbstractString)
   result = s
@@ -35,8 +75,8 @@ function sanitize_output(s::AbstractString)
     result = replace(result, r"julia> julia> julia>" => "julia>")
     lafter = length(result)
   end
-  println("length after: ", length(result))
-  return result[1:length(result)-32]
+  result = replace(result, r"julia> visualize\(PC\)julia> visualize\(PC\)" => "julia> visualize(PC)")
+  return normalize_repl_output(result)
 end
 
 function set_task_rngstate!(state::Xoshiro)
@@ -96,36 +136,39 @@ pushfirst!(custom_load_path, plots)
 oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
 for (chapter, example_list) in ordered_examples
-  println(chapter)
-  copy!(LOAD_PATH, custom_load_path)
-  auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
-  if isfile(auxmain)
-    # add overlay project for aux file
-    temp = mktempdir()
-    Pkg.activate(temp; io=devnull)
-    pushfirst!(LOAD_PATH, "$act_proj")
-    include(auxmain)
-    LOAD_PATH[1] = temp
-    Pkg.activate("$act_proj"; io=devnull)
-  end
-  Oscar.set_seed!(42)
-  Oscar.randseed!(42)
-  rng = copy(Random.default_rng())
-  for example in example_list
-    full_file = joinpath(chapter, example)
-    exclude = filter(s->occursin(s, full_file), excluded)
-    if length(exclude) == 0
-      println("   "*example)
-      if occursin("jlcon", example)
-        content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-        computed = run_repl_string(content, rng)
-        @test chomp(content) == chomp(computed)
-      elseif occursin("jl", example)
-        content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-        run_repl_string(content, rng; jlcon_mode=false)
+  @testset "$chapter" begin
+    println(chapter)
+    copy!(LOAD_PATH, custom_load_path)
+    auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+    if isfile(auxmain)
+      # add overlay project for aux file
+      temp = mktempdir()
+      Pkg.activate(temp; io=devnull)
+      pushfirst!(LOAD_PATH, "$act_proj")
+      include(auxmain)
+      LOAD_PATH[1] = temp
+      Pkg.activate("$act_proj"; io=devnull)
+    end
+    Oscar.set_seed!(42)
+    Oscar.randseed!(42)
+    rng = copy(Random.default_rng())
+    for example in example_list
+      full_file = joinpath(chapter, example)
+      exclude = filter(s->occursin(s, full_file), excluded)
+      if length(exclude) == 0
+        println("   "*example)
+        if occursin("jlcon", example)
+          content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+          content = strip(content)
+          computed = run_repl_string(content, rng)
+          @test normalize_repl_output(content) == computed
+        elseif occursin("jl", example)
+          content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+          run_repl_string(content, rng; jlcon_mode=false)
+        end
+      # else
+      #   println("   "*example*" excluded")
       end
-    # else
-    #   println("   "*example*" excluded")
     end
   end
 end
