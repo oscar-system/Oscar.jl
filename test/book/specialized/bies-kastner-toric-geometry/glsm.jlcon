@@ -1,0 +1,8 @@
+julia> normal_toric_varieties_from_glsm([[1,1,1]])
+1-element Vector{NormalToricVariety}:
+ Normal toric variety
+
+julia> normal_toric_varieties_from_glsm([[1,1,-1,-1]])
+2-element Vector{NormalToricVariety}:
+ Normal toric variety
+ Normal toric variety

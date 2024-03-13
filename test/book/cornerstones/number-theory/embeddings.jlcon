@@ -1,0 +1,19 @@
+julia> Qx, x = QQ["x"];
+
+julia> K, a = number_field(x^3 - 2, "a");
+
+julia> signature(K)
+(1, 1)
+
+julia> real_embeddings(K)
+1-element Vector{AbsSimpleNumFieldEmbedding}:
+ Complex embedding corresponding to 1.26 of K
+
+julia> embs = complex_embeddings(K) # printed with limited precision
+3-element Vector{AbsSimpleNumFieldEmbedding}:
+ Complex embedding corresponding to 1.26 of K
+ Complex embedding corresponding to -0.63 + 1.09 * i of K
+ Complex embedding corresponding to -0.63 - 1.09 * i of K
+
+julia> embs[1](a - 1)
+[0.2599210499 +/- 8.44e-11]

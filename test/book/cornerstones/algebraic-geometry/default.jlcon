@@ -1,0 +1,4 @@
+julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, 2]);
+
+julia> default_ordering(S)
+wdegrevlex([x, y], [1, 2])

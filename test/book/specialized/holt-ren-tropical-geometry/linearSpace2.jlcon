@@ -1,0 +1,13 @@
+julia> A = matrix(QQ,[1 1 1 0; 1 1 0 1])
+[1   1   1   0]
+[1   1   0   1]
+
+julia> TropL1 = tropical_linear_space(A, nu) # not Stiefel
+Min tropical linear space
+
+julia> tropA = nu.(A)
+[(0)   (0)     (0)   infty]
+[(0)   (0)   infty     (0)]
+
+julia> TropL2 = tropical_linear_space(tropA) # not equal TropL1
+Min tropical linear space

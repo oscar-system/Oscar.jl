@@ -1,0 +1,12 @@
+julia> include("generic_root_count/src/main.jl")
+
+julia> A,(a0,a1,a2,a3,a4,b0,b1,b2,b3,b4) = QQ["a0","a1","a2","a3","a4","b0","b1","b2","b3","b4"];
+
+julia> R,(u,v) = A["u","v"];
+
+julia> f = a0+a1*u+a2*v+a3*u*(u^2+v^2)+a4*u*(u^2+v^2)^2;
+
+julia> g = b0+b1*u+b2*v+b3*v*(u^2+v^2)+b4*v*(u^2+v^2)^2;
+
+julia> generic_root_count([f,g])
+9

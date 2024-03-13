@@ -1,0 +1,40 @@
+julia> G = linearly_reductive_group(:SL, 2, QQ)
+Reductive group SL2
+  over QQ
+
+julia> r = representation_on_forms(G, 2)
+Representation of SL2
+  on symmetric forms of degree 2
+
+julia> RG = invariant_ring(r)
+Invariant Ring of
+graded multivariate polynomial ring in 3 variables over QQ
+  under group action of SL2
+
+julia> fundamental_invariants(RG)
+1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ -X[1]*X[3] + X[2]^2
+
+julia> G = linearly_reductive_group(:SL, 3, QQ);
+
+julia> r = representation_on_forms(G, 3);
+
+julia> S, x = graded_polynomial_ring(QQ, "x" => 1:10);
+
+julia> RG = invariant_ring(S, r);
+
+julia> 75*reynolds_operator(RG, x[5]^4)
+x[1]*x[4]*x[8]*x[10] - x[1]*x[4]*x[9]^2 - x[1]*x[5]*x[7]*x[10] + x[1]*x[5]*x[8]*x[9] + x[1]*x[6]*x[7]*x[9] - x[1]*x[6]*x[8]^2 - x[2]^2*x[8]*x[10] + x[2]^2*x[9]^2 + x[2]*x[3]*x[7]*x[10] - x[2]*x[3]*x[8]*x[9] + x[2]*x[4]*x[5]*x[10] - x[2]*x[4]*x[6]*x[9] - 2*x[2]*x[5]^2*x[9] + 3*x[2]*x[5]*x[6]*x[8] - x[2]*x[6]^2*x[7] - x[3]^2*x[7]*x[9] + x[3]^2*x[8]^2 - x[3]*x[4]^2*x[10] + 3*x[3]*x[4]*x[5]*x[9] - x[3]*x[4]*x[6]*x[8] - 2*x[3]*x[5]^2*x[8] + x[3]*x[5]*x[6]*x[7] + x[4]^2*x[6]^2 - 2*x[4]*x[5]^2*x[6] + x[5]^4
+
+julia> T = torus_group(QQ,2)
+Torus of rank 2
+  over QQ
+
+julia> r = representation_from_weights(T, [1 0; 0 1; -1 -1; -1 1]);
+
+julia> RT = invariant_ring(r);
+
+julia> fundamental_invariants(RT)
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ X[1]*X[2]*X[3]
+ X[1]^2*X[3]*X[4]

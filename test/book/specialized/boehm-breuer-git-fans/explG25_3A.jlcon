@@ -1,0 +1,6 @@
+julia> perm_actions = GITFans.action_on_orbit_cone_orbits(orbit_list, matrix_action);
+
+julia> perm_actions[1]
+Group homomorphism
+  from permutation group of degree 10 and order 120
+  to permutation group of degree 10

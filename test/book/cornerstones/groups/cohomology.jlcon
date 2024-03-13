@@ -1,0 +1,13 @@
+julia> irreducible_modules(symmetric_group(3))
+3-element Vector{GModule}:
+ G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of Q
+ G-module for Sym(3) acting on vector space of dimension 1 over abelian closure of Q
+ G-module for Sym(3) acting on vector space of dimension 2 over abelian closure of Q
+
+julia> G = symmetric_group(3);
+
+julia> A = abelian_group([2,2,2])
+(Z/2)^3
+
+julia> M = gmodule(G, [hom(A, A, permuted(gens(A), g)) for g in gens(G)])
+G-module for G acting on A

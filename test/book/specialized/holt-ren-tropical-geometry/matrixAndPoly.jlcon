@@ -1,0 +1,27 @@
+julia> T = tropical_semiring()
+Min tropical semiring
+
+julia> M = matrix(T,[0 1; 2 3])
+[(0)   (1)]
+[(2)   (3)]
+
+julia> v = T.([-1,-1])
+2-element Vector{TropicalSemiringElem{typeof(min)}}:
+ (-1)
+ (-1)
+
+julia> M^2*v
+2-element Vector{TropicalSemiringElem{typeof(min)}}:
+ (-1)
+ (1)
+
+julia> R,(x,y) = T["x","y"];
+
+julia> f = 1*x^2+2*y^2+0
+(1)*x^2 + (2)*y^2 + (0)
+
+julia> f^2+2*f
+(2)*x^4 + (3)*x^2*y^2 + (4)*y^4 + (1)*x^2 + (2)*y^2 + (0)
+
+julia> evaluate(f,T.([1,1]))
+(0)

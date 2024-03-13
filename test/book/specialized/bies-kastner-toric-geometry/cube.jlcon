@@ -1,0 +1,5 @@
+julia> c = cube(3)
+Polytope in ambient dimension 3
+
+julia> tv = normal_toric_variety(c)
+Normal toric variety

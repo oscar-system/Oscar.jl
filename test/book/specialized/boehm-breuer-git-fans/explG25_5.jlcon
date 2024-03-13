@@ -1,0 +1,34 @@
+julia> fanobj = GITFans.hashes_to_polyhedral_fan(orbit_list, hash_list, matrix_action)
+Polyhedral fan in ambient dimension 5
+
+julia> println(f_vector(fanobj))
+ZZRingElem[20, 110, 240, 225, 76]
+
+julia> c = cones(fanobj, 5)[1]
+Polyhedral cone in ambient dimension 5
+
+julia> rays(c)
+5-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1, 0, 0, -1]
+ [1, 0, 1, 1, 0]
+ [1, 1, 0, 0, 0]
+ [1, 1, 0, 1, 0]
+ [1, 1, 1, 0, 0]
+
+julia> dim(fanobj)
+5
+
+julia> n_rays(fanobj)
+20
+
+julia> n_maximal_cones(fanobj)
+76
+
+julia> n_cones(fanobj)
+671
+
+julia> is_pointed(fanobj)
+true
+
+julia> is_complete(fanobj)
+false

@@ -1,0 +1,7 @@
+julia> IM = IncidenceMatrix(T);
+
+julia> V = matrix(QQ, vertices(C));
+
+julia> PC = polyhedral_complex(IM,V);
+
+julia> visualize(PC)

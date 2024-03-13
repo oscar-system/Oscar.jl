@@ -1,0 +1,17 @@
+julia> m = matrix(ZZ, [1 2; 3 4])
+[1   2]
+[3   4]
+
+julia> snf(m)
+[1   0]
+[0   2]
+
+julia> methods(snf, Tuple{MatrixElem{ZZRingElem}})
+# 2 methods for generic function "snf" from AbstractAlgebra:
+ [1] snf(x::ZZMatrix)
+     @ Nemo ~/.julia/packages/Nemo/xwSoX/src/flint/fmpz_mat.jl:1096
+ [2] snf(a::MatrixElem{T}) where T<:RingElement
+     @ ~/.julia/packages/AbstractAlgebra/dsta0/src/Matrix.jl:5431
+
+julia> invoke(snf, Tuple{MatrixElem{ZZRingElem}}, m) == snf(m)
+true

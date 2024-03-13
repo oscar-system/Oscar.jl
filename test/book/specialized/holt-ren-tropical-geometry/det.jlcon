@@ -1,0 +1,9 @@
+julia> T = tropical_semiring()
+Min tropical semiring
+
+julia> M = matrix(T,[0 1; 2 3])
+[(0)   (1)]
+[(2)   (3)]
+
+julia> det(M)
+(3)

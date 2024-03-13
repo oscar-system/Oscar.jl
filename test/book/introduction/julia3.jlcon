@@ -1,0 +1,21 @@
+julia> Qx,x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> QQx, xx = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> Qx === QQx
+true
+
+julia> x == xx
+true
+
+julia> Qx, x = polynomial_ring(QQ, :x, cached = false)
+(Univariate polynomial ring in x over QQ, x)
+
+julia> Qx == QQx
+false
+
+julia> x + xx
+ERROR: Incompatible polynomial rings in polynomial operation
+[...]

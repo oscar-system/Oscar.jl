@@ -1,0 +1,12 @@
+julia> verts1 = [898 -614; -570 817; 892 -594];
+
+julia> verts2 = [-603 -481; -623 -127; -36 732];
+
+julia> verts3 = [-548 -864; -151 873; 800 -861];
+
+julia> pols = convex_hull.([verts1, verts2, verts3]);
+
+julia> Delta = get_polytope_from_cycle(get_tropical_cycle(pols)...);
+
+julia> print(f_vector(Delta))
+ZZRingElem[25, 49, 26]

@@ -1,0 +1,49 @@
+julia> fields = [d for d in 1:10^6 if
+                 d != 1 && is_fundamental_discriminant(d)];
+
+julia> length(fields)
+303957
+
+julia> clgrps = [class_group(quadratic_field(d, cached = false)[1])[1]
+                 for d in fields];
+
+julia> using Tally;
+
+julia> tally(clgrps,
+             by = x -> sylow_subgroup(x, 5)[1],
+             equivalence = (x, y) -> is_isomorphic(x, y)[1])
+Tally with 303957 items in 4 groups:
+[Z/1]     | 291400 | 95.869%
+[Z/5]     |  12324 |  4.055%
+[Z/25]    |    230 |  0.076%
+[(Z/5)^2] |      3 |  0.001%
+
+julia> ab_grps = abelian_group.([[1], [5], [25], [5, 5]]);
+
+julia> w = prod(1 - 1/5.0^i for i in 2:1000)
+0.9504159948390403
+
+julia> [ 100 * w/(1.0 * (order(A) * 
+         order(automorphism_group(A)))) for A in ab_grps]
+4-element Vector{BigFloat}:
+ 95.041[...]
+  4.752[...]
+  0.190[...]
+  0.007[...]
+
+julia> clnumbs = order.(clgrps);
+
+julia> x = range(1, length(clnumbs), 1000);
+
+julia> values = [count(c -> is_divisible_by(c, 5),
+                       clnumbs[1:Int(ceil(step))])/Int(ceil(step)) for
+                 step in x];
+
+julia> pr = 1 - prod(1 - 1/5.0^i for i in 2:1000)
+0.04958400516095973
+
+julia> using Plots;
+       plot(x, [values fill(pr, length(x))], linewidth = 2,
+            xlabel = "Number of fields",
+            label = ["Proportion" "Prediction"])
+Plot{Plots.GRBackend() n=2}

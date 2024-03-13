@@ -1,0 +1,12 @@
+julia> F, o = finite_field(7,2)
+(Finite field of degree 2 and characteristic 7, o)
+
+julia> R, (y,z) = F["y","z"]
+(Multivariate polynomial ring in 2 variables over GF(7, 2), FqMPolyRingElem[y, z])
+
+julia> save("p.mrdi", 2*y^3*z^4 + (o + 3)*z^2 + 5*o*y + 1)
+
+julia> save("q.mrdi", y^17*z^3 + (o + 4)*z + 2*o*y)
+
+julia> print( load("p.mrdi") + load("q.mrdi") )
+y^17*z^3 + 2*y^3*z^4 + (o + 3)*z^2 + (o + 4)*z + 1

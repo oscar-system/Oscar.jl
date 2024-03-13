@@ -1,0 +1,20 @@
+julia> v = normal_toric_variety(IncidenceMatrix([[1], [2], [3]]), [[1, 0], [0, 1], [-1, -1]])
+Normal toric variety
+
+julia> is_complete(v)
+false
+
+julia> chow_ring(v)
+Quotient
+  of multivariate polynomial ring in 3 variables x1, x2, x3
+    over rational field
+  by ideal (x1 - x3, x2 - x3, x1*x2, x1*x3, x2*x3)
+
+julia> M = cycle_matroid(complete_graph(3))
+Matroid of rank 2 on 3 elements
+
+julia> chow_ring(M)
+Quotient
+  of multivariate polynomial ring in 3 variables x_{Edge(2, 1)}, x_{Edge(3, 1)}, x_{Edge(3, 2)}
+    over rational field
+  by ideal with 5 generators

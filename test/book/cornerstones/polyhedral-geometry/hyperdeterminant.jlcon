@@ -1,0 +1,24 @@
+julia> CubeFacets = [lattice_points(F) for F in faces(C,2)];
+
+julia> VariableIndices = [[c+[1,1,1] for c=Vector{Vector{Int}}(F)] 
+                           for F=CubeFacets];
+
+julia> FacialDeterminants = [c[v[1]...]*c[v[4]...]-c[v[2]...]*c[v[3]...] 
+                             for v=VariableIndices]
+6-element Vector{QQMPolyRingElem}:
+ c[0, 0, 0]*c[0, 1, 1] - c[0, 1, 0]*c[0, 0, 1]
+ c[1, 0, 0]*c[1, 1, 1] - c[1, 1, 0]*c[1, 0, 1]
+ c[0, 0, 0]*c[1, 0, 1] - c[1, 0, 0]*c[0, 0, 1]
+ c[0, 1, 0]*c[1, 1, 1] - c[1, 1, 0]*c[0, 1, 1]
+ c[0, 0, 0]*c[1, 1, 0] - c[1, 0, 0]*c[0, 1, 0]
+ c[0, 0, 1]*c[1, 1, 1] - c[1, 0, 1]*c[0, 1, 1]
+
+julia> E222 = D222*prod(FacialDeterminants);
+
+julia> NP = newton_polytope(E222);
+
+julia> dim(NP)
+4
+
+julia> show(f_vector(NP))
+ZZRingElem[74, 152, 100, 22]

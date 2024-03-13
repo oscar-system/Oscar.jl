@@ -1,0 +1,32 @@
+julia> using Oscar.GITFans
+
+julia> Q = [
+            1  1   0   0   0
+            1  0   1   1   0
+            1  0   1   0   1
+            1  0   0   1   1
+            0  1   0   0  -1
+            0  1   0  -1   0
+            0  1  -1   0   0
+            0  0   1   0   0
+            0  0   0   1   0
+            0  0   0   0   1
+            ];
+
+julia> n = nrows(Q);
+
+julia> Qt, T = polynomial_ring(QQ, :T => 1:n);
+
+julia> D = free_abelian_group(ncols(Q));
+
+julia> w = [D(Q[i, :]) for i = 1:n];
+
+julia> R, T = grade(Qt, w);
+
+julia> a = ideal([
+               T[5]*T[10] - T[6]*T[9] + T[7]*T[8],
+               T[1]*T[9]  - T[2]*T[7] + T[4]*T[5],
+               T[1]*T[8]  - T[2]*T[6] + T[3]*T[5],
+               T[1]*T[10] - T[3]*T[7] + T[4]*T[6],
+               T[2]*T[10] - T[3]*T[9] + T[4]*T[8],
+           ]);

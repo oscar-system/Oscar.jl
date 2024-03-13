@@ -1,0 +1,6 @@
+julia> info = all_od_infos(characteristic => 0, degree => 1);
+
+julia> all(x -> x[:valuestring] == "?" ||
+                is_odd(parse(Int, x[:valuestring])),
+           info)
+true

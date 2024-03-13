@@ -1,0 +1,48 @@
+julia> Qx, x = QQ["x"];
+
+julia> K, a = number_field([x^2 - 2, x^2 - 3]);
+
+julia> a[1]^2 == 2 && a[2]^2 == 3
+true
+
+julia> k, b = quadratic_field(3);
+
+julia> kt, t = k["t"];
+
+julia> L, c = number_field(t^2 - 2);
+
+julia> base_field(L) == k
+true
+
+julia> base_field(K) == QQ
+true
+
+julia> degree(K)
+4
+
+julia> degree(L)
+2
+
+julia> absolute_degree(K)
+4
+
+julia> absolute_norm(c)
+4
+
+julia> f = hom(K, K, [-a[1], -a[2]]);
+
+julia> f(a[1]) == -a[1] && f(a[2]) == -a[2]
+true
+
+julia> g = hom(L, L, hom(k, k, -b), -c);
+
+julia> g(c) == -c && g(L(b)) == L(-b)
+true
+
+julia> Lprime, LprimetoL = absolute_simple_field(L);
+
+julia> defining_polynomial(Lprime)
+x^4 - 10*x^2 + 1
+
+julia> C, _ = class_group(ring_of_integers(Lprime)); order(C)
+1

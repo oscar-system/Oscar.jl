@@ -1,0 +1,5 @@
+julia> cone_list = positive_hull.([[1, 1, 0],[1, 2, 3], [1,0,1], [-1, -1, -4//3]]);
+
+julia> weight_list = ones(Int64, 4);
+
+julia> cone_list, weight_list = get_chow_fan(cone_list,weight_list);
