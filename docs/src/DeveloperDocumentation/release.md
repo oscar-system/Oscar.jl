@@ -42,7 +42,7 @@ For OSCAR 1.0.0 we plan to have one or two release candidates but unlike julia a
 
 Once the version is at X.Y.0 the version can be registered in the julia registry with `@JuliaRegistrator register()`. In this case TagBot will create the corresponding release, but preferrably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
 
-Consider deploying a released version at [https://zenodo.org/](zenodo).
+Consider deploying a released version at [zenodo](https://zenodo.org/).
 
 ## Bugfix releases
 
