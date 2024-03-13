@@ -1336,6 +1336,9 @@ is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
 
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
 # Examples
 ```
 julia> J = johnson_solid(37)
@@ -1351,8 +1354,9 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transiti
     is_archimedean_solid(P::Polyhedron)
 
 Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces.
-This will not recognize solids with approximate coordinates, such as the Snub Cube and Snub Dodecahedron, only
-algebraically precise solids.
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
 
 # Examples
 ```jldoctest
@@ -1362,10 +1366,10 @@ Polytope in ambient dimension 3
 julia> is_archimedean_solid(TO)
 true
 
-julia> SC = archimedean_solid("snub_cube")
-Polytope in ambient dimension 3 with Float64 type coefficients
+julia> T = tetrahedron()
+Polytope in ambient dimension 3
 
-julia> is_archimedean_solid(SC)
+julia> is_archimedean_solid(T)
 false
 ```
 """
@@ -1375,6 +1379,9 @@ is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_fac
     is_platonic_solid(P::Polyhedron)
 
 Check whether `P` is a Platonic solid.
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
 
 # Examples
 ```jldoctest
