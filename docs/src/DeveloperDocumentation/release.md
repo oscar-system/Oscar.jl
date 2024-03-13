@@ -31,7 +31,7 @@ If changes from another PR cannot be cleanly applied to the backports branch it 
 
 ## Pre-releases
 
-For the next pre-release create a new PR to the release branch adjusting the version, this may be merged with a rebase to avoid some extra commits. That commit can then be tagged on GitHub as a new Pre-Release.
+For the next pre-release create a new PR to the release branch adjusting the version, this may be merged with a rebase to avoid some extra commits. That commit can then be tagged on GitHub as a new pre-release.
 
 !!! note
     Pre-releases cannot be registered in the julia registry.
@@ -41,6 +41,8 @@ For OSCAR 1.0.0 we plan to have one or two release candidates but unlike julia a
 ## Releases
 
 Once the version is at X.Y.0 the version can be registered in the julia registry with `@JuliaRegistrator register()`. In this case TagBot will create the corresponding release, but preferrably recheck and clean up the list of changes since unfortunately TagBot currently does not take the branch into account and will show all PRs that have been merged to master.
+
+Consider deploying a released version at [https://zenodo.org/](zenodo).
 
 ## Bugfix releases
 
