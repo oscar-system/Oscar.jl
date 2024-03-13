@@ -1331,6 +1331,61 @@ false
 """
 is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
+is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transitive(P)
+
+is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !has_equal_faces(P) && is_vertex_transitive(P)
+
+is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && has_equal_faces(P) && is_vertex_transitive(P)
+
+function _is_3d_pol_reg_faces(P::Polyhedron)
+    # dimension
+    dim(P) == 3 || return false
+
+    # constant edge length
+    pedges = faces(P, 1)
+
+    edgelength = nothing
+    let edge = pedges[1]
+        v = vertices(edge)
+        edgelength = _squared_distance(v[1], v[2])
+    end
+    
+    for edge in pedges[2:end]
+        v = vertices(edge)
+        _squared_distance(v[1], v[2]) == edgelength || return false
+    end
+
+    pfaces = faces(P, 2)
+
+    # face vertices on circle
+    for face in pfaces
+        n = n_vertices(face)
+        if n >= 4
+            fverts = vertices(face)
+            m = sum(fverts)//n
+            dist = nothing
+            let v = fverts[1]
+                dist = _squared_distance(v, m)
+            end
+
+            for v in fverts[2:end]
+                _squared_distance(v, m) == dist || return false
+            end
+        end
+    end
+    return true
+end
+
+function _squared_distance(p::PointVector, q::PointVector)
+    d = p - q
+    return d[1]^2 + d[2]^2 + d[3]^2
+end
+
+has_equal_faces(P::Polyhedron) = allequal([n_vertices(f) for f in faces(P, 2)])
+
+is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
+
+
 @doc raw"""
     f_vector(P::Polyhedron)
 

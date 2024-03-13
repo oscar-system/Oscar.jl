@@ -732,6 +732,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_archimedean_solid
 export is_ball
 export is_basepoint_free
 export is_bicoset
@@ -804,6 +805,7 @@ export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, s
 export is_isomorphic_with_map
 export is_isomorphic_with_permutation
 export is_isomorphism
+export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
@@ -828,6 +830,7 @@ export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
+export is_platonic_solid
 export is_pointed
 export is_positively_graded
 export is_primary
