@@ -240,7 +240,25 @@ Covering
     hb_V_mat = matrix(ZZ, hb_V)
     hb_V_img = hb_V_mat * At
     hb_U_mat = matrix(ZZ, hb_U)
-    sol = solve(hb_U_mat, hb_V_img; side = :left)
+    #sol = solve(hb_U_mat, hb_V_img; side = :left) # deprecated! It was giving vectors with negative entries.
+    id_mat = identity_matrix(ZZ, nrows(hb_U_mat))
+    offset_mat = zero_matrix(ZZ, nrows(hb_U_mat), 1)
+    sol_list = Vector{ZZMatrix}()
+    for k in 1:nrows(hb_V_img)
+      # We manually create the transpose of the k-th row of hb_V_mat.
+      # Why? Because the implemented method returns something of type 
+      # LinearAlgebra.Transpose and that is not diguested by the function 
+      # we want to use. We don't know about a converter. This is fucked up
+      # and a pain in the ass for every developer. Please improve!
+      b = zero_matrix(ZZ, ncols(hb_V_img), 1)
+      for j in 1:ncols(hb_V_img)
+        b[j, 1] = hb_V_img[k, j]
+      end
+      push!(sol_list, solve_mixed(ZZMatrix, transpose(hb_U_mat), b, id_mat, offset_mat))
+    end
+    # For some weird reason `solve_mixed` solves A*x = b, but returns x as a 1xn-matrix (not nx1).
+    sol = vcat(sol_list...)
+
     @assert sol*hb_U_mat == hb_V_img
     @assert all(x->x>=0, sol)
 
