@@ -39,7 +39,15 @@ function sanitize_output(s::AbstractString)
   return result[1:length(result)-32]
 end
 
-function run_repl_string(s::AbstractString; jlcon_mode=true)
+function set_task_rngstate!(state::Xoshiro)
+  Random.setstate!(Random.default_rng(), state.s0, state.s1, state.s2, state.s3, state.s4)
+end
+function get_task_rngstate!(state::Xoshiro)
+  t = current_task()
+  Random.setstate!(state, t.rngState0, t.rngState1, t.rngState2, t.rngState3, t.rngState4)
+end
+
+function run_repl_string(s::AbstractString, rng::Random.Xoshiro; jlcon_mode=true)
   input_string = s
   if jlcon_mode
     input_string = "\e[200~$s\e[201~\n"
@@ -59,7 +67,9 @@ function run_repl_string(s::AbstractString; jlcon_mode=true)
   # repl.specialdisplay = REPL.REPLDisplay(repl)
   repltask = @async begin
     redirect_stdout(output.in) do
+      set_task_rngstate!(rng)
       REPL.run_repl(repl)
+      get_task_rngstate!(rng)
     end
   end
   input_task = @async write(stdin_write, input_string)
@@ -84,6 +94,7 @@ for (chapter, example_list) in ordered_examples
   end
   Oscar.set_seed!(42)
   Oscar.randseed!(42)
+  rng = copy(Random.default_rng())
   for example in example_list
     full_file = joinpath(chapter, example)
     exclude = filter(s->occursin(s, full_file), excluded)
@@ -91,11 +102,11 @@ for (chapter, example_list) in ordered_examples
       println("   "*example)
       if occursin("jlcon", example)
         content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-        computed = run_repl_string(content)
+        computed = run_repl_string(content, rng)
         @test content == computed
       elseif occursin("jl", example)
         content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-        run_repl_string(content; jlcon_mode=false)
+        run_repl_string(content, rng; jlcon_mode=false)
       end
     # else
     #   println("   "*example*" excluded")
