@@ -1,0 +1,2 @@
+julia> fanobj = GITFans.git_fan(a, Q, G)
+Polyhedral fan in ambient dimension 5

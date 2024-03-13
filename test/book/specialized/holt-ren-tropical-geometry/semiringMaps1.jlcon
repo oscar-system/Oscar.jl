@@ -1,0 +1,8 @@
+julia> nu = tropical_semiring_map(GF(3))
+Map into Min tropical semiring encoding the trivial valuation on Prime field of characteristic 3
+
+julia> nu.([0,1,2])
+3-element Vector{TropicalSemiringElem{typeof(min)}}:
+ infty
+ (0)
+ (0)

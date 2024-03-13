@@ -1,0 +1,126 @@
+julia> nonbases(vamos_matroid())
+5-element Vector{Vector{Int64}}:
+ [1, 2, 3, 4]
+ [1, 2, 5, 6]
+ [1, 2, 7, 8]
+ [3, 4, 5, 6]
+ [5, 6, 7, 8]
+
+julia> M = moebius_kantor_matroid();
+
+julia> nonbases(M)
+8-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [1, 4, 5]
+ [1, 7, 8]
+ [2, 4, 6]
+ [2, 5, 8]
+ [3, 4, 7]
+ [3, 6, 8]
+ [5, 6, 7]
+
+julia> realization_space(M)
+The realization space is
+  [1   0   1   0   1     0         1    1]
+  [0   1   1   0   0     1         1   x1]
+  [0   0   0   1   1   -x1   -x1 + 1    1]
+in the multivariate polynomial ring in 1 variable over ZZ
+within the vanishing set of the ideal
+Ideal (x1^2 - x1 + 1)
+avoiding the zero loci of the polynomials
+RingElem[x1, x1 - 1, x1^2 + 1]
+
+julia> X = matrix(GF(2), [1 0 1 0 1 0 1; 0 1 1 0 0 1 1; 0 0 0 1 1 1 1])
+[1   0   1   0   1   0   1]
+[0   1   1   0   0   1   1]
+[0   0   0   1   1   1   1]
+
+julia> F = matroid_from_matrix_columns(X)
+Matroid of rank 3 on 7 elements
+
+julia> realization_space(F, simplify=false)
+The realization space is
+  [0   1    1    1    1   0   0]
+  [1   0    1   x2    0   1   0]
+  [1   0   x1    0   x3   0   1]
+in the multivariate polynomial ring in 3 variables over ZZ
+within the vanishing set of the ideal
+Ideal (2, x3 + 1, x2 - 1, x1 + 1)
+avoiding the zero loci of the polynomials
+RingElem[x2, x3, x1, x1*x2 - x2*x3 + x3, x1 - x3 - 1, x1 + x2 - 1]
+
+julia> realization_space(F, simplify=true)
+The realization space is
+  [0   1   1   1   1   0   0]
+  [1   0   1   1   0   1   0]
+  [1   0   1   0   1   0   1]
+in the integer ring
+within the vanishing set of the ideal
+2ZZ
+
+julia> is_realizable(F, char=5)
+false
+
+julia> realization_space(non_fano_matroid())
+The realization space is
+  [1   1   0   0   1   1   0]
+  [0   1   1   1   1   0   0]
+  [0   1   1   0   0   1   1]
+in the integer ring
+avoiding the zero loci of the polynomials
+RingElem[2]
+
+julia> is_realizable(vamos_matroid())
+false
+
+julia> is_realizable(M, q=9)
+true
+
+julia> qs = [2,3,4,5,7,8,9,11,13];
+
+julia> println([is_realizable(M, q=a) for a in qs])
+Bool[0, 1, 1, 0, 1, 0, 1, 0, 1]
+
+julia> M = cycle_matroid(complete_graph(4));
+
+julia> realization_space(M)
+The realization space is
+  [1   0   1   0   1    0]
+  [0   1   1   0   0    1]
+  [0   0   0   1   1   -1]
+in the integer ring
+
+julia> db = Polymake.Polydb.get_db();
+
+julia> collection = db["Matroids.Small"];
+
+julia> query = Dict("RANK"=>3,"N_ELEMENTS"=>9,"SIMPLE"=>true);
+
+julia> results = Polymake.Polydb.find(collection, query);
+
+julia> oscar_matroids = [Matroid(pm) for pm in results];
+
+julia> length(oscar_matroids)
+383
+
+julia> char_0_matroids = [M for M in oscar_matroids 
+        if is_realizable(M, char=0)];
+
+julia> length(char_0_matroids)
+370
+
+julia> RS = realization_space(pappus_matroid(), char=0)
+The realization space is
+  [1   0   1   0   x2   x2                 x2^2    1    0]
+  [0   1   1   0    1    1   -x1*x2 + x1 + x2^2    1    1]
+  [0   0   0   1   x2   x1                x1*x2   x1   x2]
+in the multivariate polynomial ring in 2 variables over QQ
+avoiding the zero loci of the polynomials
+RingElem[x1 - x2, x2, x1, x2 - 1, x1 + x2^2 - x2, x1 - 1, x1*x2 - x1 - x2^2]
+
+julia> realization(RS)
+One realization is given by
+  [1   0   1   0   2   2   4   1   0]
+  [0   1   1   0   1   1   1   1   1]
+  [0   0   0   1   2   3   6   3   2]
+in the rational field
