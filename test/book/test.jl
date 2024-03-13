@@ -83,14 +83,30 @@ function run_repl_string(s::AbstractString, rng::Random.Xoshiro; jlcon_mode=true
   return sanitize_output(result)
 end
 
+# add overlay project for plots
+custom_load_path = []
+copy!(custom_load_path, Base.DEFAULT_LOAD_PATH)
+act_proj = dirname(Base.active_project())
+plots = mktempdir()
+Pkg.activate(plots; io=devnull)
+Pkg.add("Plots"; io=devnull)
+Pkg.activate("$act_proj"; io=devnull)
+pushfirst!(custom_load_path, plots)
 
 oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
 for (chapter, example_list) in ordered_examples
   println(chapter)
+  copy!(LOAD_PATH, custom_load_path)
   auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
   if isfile(auxmain)
+    # add overlay project for aux file
+    temp = mktempdir()
+    Pkg.activate(temp; io=devnull)
+    pushfirst!(LOAD_PATH, "$act_proj")
     include(auxmain)
+    LOAD_PATH[1] = temp
+    Pkg.activate("$act_proj"; io=devnull)
   end
   Oscar.set_seed!(42)
   Oscar.randseed!(42)
@@ -103,7 +119,7 @@ for (chapter, example_list) in ordered_examples
       if occursin("jlcon", example)
         content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
         computed = run_repl_string(content, rng)
-        @test content == computed
+        @test chomp(content) == chomp(computed)
       elseif occursin("jl", example)
         content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
         run_repl_string(content, rng; jlcon_mode=false)
@@ -114,3 +130,4 @@ for (chapter, example_list) in ordered_examples
   end
 end
 
+copy!(LOAD_PATH, Base.DEFAULT_LOAD_PATH)
