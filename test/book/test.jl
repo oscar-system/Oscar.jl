@@ -45,25 +45,31 @@ function run_repl_string(s::AbstractString; jlcon_mode=true)
     input_string = "\e[200~$s\e[201~\n"
   end
   input = Pipe()
+  output = Pipe()
   err = Pipe()
   Base.link_pipe!(input, reader_supports_async=true, writer_supports_async=true)
-  outputbuf = IOBuffer()
+  #outputbuf = IOBuffer()
+  Base.link_pipe!(output, reader_supports_async=true, writer_supports_async=true)
   Base.link_pipe!(err, reader_supports_async=true, writer_supports_async=true)
   stdin_write = input.in
   options = REPL.Options(confirm_exit=false, hascolor=false)
   # options.extra_keymap = REPL.LineEdit.escape_defaults
-  repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, outputbuf, err.in, options.hascolor), options.hascolor, false)
+  repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, output.in, err.in, options.hascolor), options.hascolor, false)
   repl.options = options
   # repl.specialdisplay = REPL.REPLDisplay(repl)
   repltask = @async begin
-    REPL.run_repl(repl)
+    redirect_stdout(output.in) do
+      REPL.run_repl(repl)
+    end
   end
   input_task = @async write(stdin_write, input_string)
+  output_task = @async read(output.out, String)
   wait(input_task)
   input_task = @async write(stdin_write, "\x04")
   wait(input_task)
   wait(repltask)
-  result = String(take!(outputbuf))
+  close(output)
+  result = fetch(output_task)
   return sanitize_output(result)
 end
 
