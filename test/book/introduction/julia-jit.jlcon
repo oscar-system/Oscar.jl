@@ -1,0 +1,5 @@
+julia> @time class_group(quadratic_field(7)[1]);
+  0.659554 seconds (916.73 k allocations: 60.414 MiB, 4.44% gc time, 94.30% compilation time)
+
+julia> @time class_group(quadratic_field(11)[1]);
+  0.003981 seconds (82.12 k allocations: 4.215 MiB)

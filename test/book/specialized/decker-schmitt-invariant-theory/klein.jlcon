@@ -1,0 +1,78 @@
+julia> A = matrix(QQ, [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0])
+[0   1   0   0]
+[1   0   0   0]
+[0   0   0   1]
+[0   0   1   0]
+
+julia> B = matrix(QQ, [0 0 1 0; 0 0 0 1; 1 0 0 0; 0 1 0 0])
+[0   0   1   0]
+[0   0   0   1]
+[1   0   0   0]
+[0   1   0   0]
+
+julia> K4 = matrix_group(A, B)
+Matrix group of degree 4
+  over rational field
+
+julia> small_group_identification(K4)
+(4, 2)
+
+julia> describe(K4)
+"C2 x C2"
+
+julia> RK4 = invariant_ring(K4);
+
+julia> MSK4 = molien_series(RK4)
+(t^2 - t + 1)//(t^6 - 2*t^5 - t^4 + 4*t^3 - t^2 - 2*t + 1)
+
+julia> expand(MSK4, 4)
+1 + t + 4*t^2 + 5*t^3 + 11*t^4 + O(t^5)
+
+julia> primary_invariants(RK4)
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[1]^2 + x[2]^2 + x[3]^2 + x[4]^2
+ x[1]*x[2] + x[3]*x[4]
+ x[1]*x[3] + x[2]*x[4]
+
+julia> secondary_invariants(RK4)
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ 1
+ x[1]^3 + x[2]^3 + x[3]^3 + x[4]^3
+
+julia> fundamental_invariants(RK4)
+5-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[1]^2 + x[2]^2 + x[3]^2 + x[4]^2
+ x[1]*x[2] + x[3]*x[4]
+ x[1]*x[3] + x[2]*x[4]
+ x[1]^3 + x[2]^3 + x[3]^3 + x[4]^3
+
+julia> A = matrix(GF(2), [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]);
+
+julia> B = matrix(GF(2), [0 0 1 0; 0 0 0 1; 1 0 0 0; 0 1 0 0]);
+
+julia> RK42 = invariant_ring(matrix_group(A, B));
+
+julia> primary_invariants(RK42)
+4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[2]*x[3] + x[1]*x[4]
+ x[1]*x[2] + x[1]*x[3] + x[2]*x[4] + x[3]*x[4]
+ x[1]*x[2]*x[3]*x[4]
+
+julia> secondary_invariants(RK42)
+4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ 1
+ x[1]*x[3] + x[2]*x[4]
+ x[2]^2*x[3] + x[2]*x[3]^2 + x[1]^2*x[4] + x[1]*x[4]^2
+ x[1]*x[2]^2*x[3]^2 + x[1]*x[2]*x[3]^3 + x[1]^3*x[3]*x[4] + x[2]^3*x[3]*x[4] + x[2]^2*x[3]^2*x[4] + x[1]^2*x[2]*x[4]^2 + x[1]^2*x[3]*x[4]^2 + x[1]*x[2]*x[4]^3
+
+julia> fundamental_invariants(RK42)
+6-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[1]*x[3] + x[2]*x[4]
+ x[2]*x[3] + x[1]*x[4]
+ x[1]*x[2] + x[1]*x[3] + x[2]*x[4] + x[3]*x[4]
+ x[2]^2*x[3] + x[2]*x[3]^2 + x[1]^2*x[4] + x[1]*x[4]^2
+ x[1]*x[2]*x[3]*x[4]

@@ -1,0 +1,12 @@
+julia> R = [1 0; 0 -1; -1 0; 0 1];
+
+julia> IM = IncidenceMatrix([[1,2],[2,3],[3,4],[1,4]]);
+
+julia> ntv = normal_toric_variety(IM, R)
+Normal toric variety
+
+julia> is_complete(ntv)
+true
+
+julia> is_smooth(ntv)
+true
