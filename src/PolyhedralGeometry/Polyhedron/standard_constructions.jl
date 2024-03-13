@@ -718,7 +718,7 @@ Construct a Platonic solid with the name given by String `s` from the list
 below.
 
 # Arguments
-- `s::String`: The name of the desired Archimedean solid.
+- `s::String`: The name of the desired Platonic solid.
     Possible values:
     - "tetrahedron" : Tetrahedron.
           Regular polytope with four triangular facets.

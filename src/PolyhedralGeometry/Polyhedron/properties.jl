@@ -1331,58 +1331,120 @@ false
 """
 is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
+@doc raw"""
+    is_johnson_solid(P::Polyhedron)
+
+Checks whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive. 
+
+#Exmple
+```
+julia> J = johnson_solid(37) 
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> is_johnson_solid(J) 
+true
+```
+"""
 is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transitive(P)
 
-is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !has_equal_faces(P) && is_vertex_transitive(P)
+@doc raw"""
+    is_archimedean_solid(P::Polyhedron)
 
-is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && has_equal_faces(P) && is_vertex_transitive(P)
+Checks whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces. 
+This will not recognize solids with approximate coordinates, such as the Snub Cube and Snub Dodecahedron, only
+algebraically precise solids. 
+
+# Examples
+```jldoctest
+julia> TO = archimedean_solid("truncated_octahedron")
+Polytope in ambient dimension 3
+
+julia> is_archimedean_solid(TO)
+true
+
+julia> SC = archimedean_solid("snub_cube")
+Polytope in ambient dimension 3 with Float64 type coefficients
+
+julia> is_archimedean_solid(SC)
+false
+```
+"""
+is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_faces(P) && is_vertex_transitive(P)
+
+@doc raw"""
+    is_platonic_solid(P::Polyhedron)
+
+Checks whether `P` is a Platonic solid.
+
+# Examples
+```jldoctest
+julia> is_platonic_solid(cube(3))
+true
+```
+"""
+is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && _has_equal_faces(P) && is_vertex_transitive(P)
 
 function _is_3d_pol_reg_faces(P::Polyhedron)
-    # dimension
-    dim(P) == 3 || return false
+  # dimension
+  dim(P) == 3 || return false
 
-    # constant edge length
-    pedges = faces(P, 1)
+  # constant edge length
+  pedges = faces(P, 1)
 
-    edgelength = nothing
-    let edge = pedges[1]
-        v = vertices(edge)
-        edgelength = _squared_distance(v[1], v[2])
-    end
+  edgelength = nothing
+  let edge = pedges[1]
+    v = vertices(edge)
+    edgelength = _squared_distance(v[1], v[2])
+  end
     
-    for edge in pedges[2:end]
-        v = vertices(edge)
-        _squared_distance(v[1], v[2]) == edgelength || return false
+  for edge in pedges[2:end]
+    v = vertices(edge)
+    _squared_distance(v[1], v[2]) == edgelength || return false
+  end
+
+  pfaces = faces(P, 2)
+
+  # face vertices on circle
+  for face in pfaces
+    n = n_vertices(face)
+    if n >= 4
+      fverts = vertices(face)
+      m = sum(fverts)//n
+      dist = nothing
+      let v = fverts[1]
+        dist = _squared_distance(v, m)
+      end
+
+      for v in fverts[2:end]
+        _squared_distance(v, m) == dist || return false
+      end
     end
-
-    pfaces = faces(P, 2)
-
-    # face vertices on circle
-    for face in pfaces
-        n = n_vertices(face)
-        if n >= 4
-            fverts = vertices(face)
-            m = sum(fverts)//n
-            dist = nothing
-            let v = fverts[1]
-                dist = _squared_distance(v, m)
-            end
-
-            for v in fverts[2:end]
-                _squared_distance(v, m) == dist || return false
-            end
-        end
-    end
-    return true
+  end
+  return true
 end
 
 function _squared_distance(p::PointVector, q::PointVector)
-    d = p - q
-    return d[1]^2 + d[2]^2 + d[3]^2
+  d = p - q
+  return d[1]^2 + d[2]^2 + d[3]^2
 end
 
-has_equal_faces(P::Polyhedron) = allequal([n_vertices(f) for f in faces(P, 2)])
+_has_equal_faces(P::Polyhedron) = allequal([n_vertices(f) for f in faces(P, 2)])
 
+@doc raw"""
+    is_platonic_solid(P::Polyhedron)
+
+Checks whether `P` is vertex transitive
+
+# Examples
+```jldoctest
+julia> is_vertex_transitive(cube(3))
+true
+
+julia> is_vertex_transitive(pyramid(cube(2)))
+false
+
+```
+"""
 is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
 
 

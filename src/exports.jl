@@ -881,6 +881,7 @@ export is_unit
 export is_unital
 export is_vertical_k_separation
 export is_very_ample
+export is_vertex_transitive
 export is_weakly_connected
 export is_welldefined
 export is_z_graded
