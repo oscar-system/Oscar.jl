@@ -1336,6 +1336,8 @@ is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
 
+See also [`johnson_solid`](@ref).
+
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
 
@@ -1354,6 +1356,8 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transiti
     is_archimedean_solid(P::Polyhedron)
 
 Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces.
+
+See also [`archimedean_solid`](@ref).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1379,6 +1383,8 @@ is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_fac
     is_platonic_solid(P::Polyhedron)
 
 Check whether `P` is a Platonic solid.
+
+See also [`platonic_solid`](@ref).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
