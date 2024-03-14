@@ -27,7 +27,7 @@ const excluded = [
                   "specialized/eder-mohr-ideal-theoretic",
                   # "specialized/kuehne-schroeter-matroids",
                   "specialized/rose-sturmfels-telen-tropical-implicitization",
-                  "specialized/flake-fourier-monomial-bases",
+                  # "specialized/fang-fourier-monomial-bases",
                   "specialized/brandhorst-zach-fibration-hopping",
                   # "specialized/breuer-nebe-parker-orthogonal-discriminants",
                   "cornerstones/algebraic-geometry",
@@ -39,7 +39,14 @@ const excluded = [
                  ]  
 
 const broken = [
+                  # Something broken in Oscar
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
+                  # Output width depends on terminal size #3515
+                  "specialized/fang-fourier-monomial-bases/nz.jlcon",
+                  "specialized/fang-fourier-monomial-bases/lusztig.jlcon",
+                  "specialized/fang-fourier-monomial-bases/string.jlcon",
+                  "specialized/fang-fourier-monomial-bases/fflv.jlcon",
+                  "specialized/fang-fourier-monomial-bases/basis.jlcon",
                ]
 
 dispsize = (40, 120)
@@ -48,6 +55,7 @@ using REPL
 using Random
 using Pkg
 import Random.Xoshiro
+using Test
 include(joinpath(pkgdir(REPL),"test","FakeTerminals.jl"))
 
 
@@ -60,7 +68,7 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
-    result = replace(result, r"\n\s*#[^\n]*\n"s => "\n")
+    result = replace(result, r"\n\s*#[^\n]*generic[^\n]*\n"s => "\n")
     lafter = length(result)
   end
   return strip(result)
