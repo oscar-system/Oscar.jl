@@ -42,6 +42,8 @@ const broken = [
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
                ]
 
+dispsize = (40, 120)
+
 using REPL
 using Random
 using Pkg
@@ -104,13 +106,14 @@ function run_repl_string(s::AbstractString, rng::Random.Xoshiro; jlcon_mode=true
   Base.link_pipe!(output, reader_supports_async=true, writer_supports_async=true)
   Base.link_pipe!(err, reader_supports_async=true, writer_supports_async=true)
   stdin_write = input.in
+  out_stream = IOContext(output.in, :displaysize=>dispsize)
   options = REPL.Options(confirm_exit=false, hascolor=false)
   # options.extra_keymap = REPL.LineEdit.escape_defaults
-  repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, output.in, err.in, options.hascolor), options.hascolor, false)
+  repl = REPL.LineEditREPL(FakeTerminals.FakeTerminal(input.out, out_stream, err.in, options.hascolor), options.hascolor, false)
   repl.options = options
   # repl.specialdisplay = REPL.REPLDisplay(repl)
   repltask = @async begin
-    redirect_stdout(output.in) do
+    redirect_stdout(out_stream) do
       set_task_rngstate!(rng)
       REPL.run_repl(repl)
       get_task_rngstate!(rng)
@@ -139,7 +142,7 @@ pushfirst!(custom_load_path, plots)
 
 oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
-withenv("LINES" => 40, "COLUMNS" => 120, "DISPLAY" => "") do
+withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
   for (chapter, example_list) in ordered_examples
     @testset "$chapter" begin
       println(chapter)
