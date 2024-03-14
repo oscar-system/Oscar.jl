@@ -2101,7 +2101,7 @@ flag_pluecker_ideal(dimensions::Vector{Int}, n::Int; minimal::Bool=true) = flag_
 
 function flag_pluecker_ideal(ring::MPolyRing{<: FieldElem}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
-  L = sum([binomial(n, d) for d in dimensions])
+  L = sum(binomial(n, d) for d in dimensions)
   @req L == ngens(ring) "The ring does not have the correct amount of variables"
   
   base_field = base_ring(ring)  
