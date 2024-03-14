@@ -37,10 +37,10 @@ with restrictions
   4: ideal(x_1_4)
 ```
 """
-function total_transform(f::AbsSimpleBlowdownMorphism, II::IdealSheaf)
+function total_transform(f::AbsSimpleBlowdownMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
 
-function total_transform(f::AbsBlowdownMorphism, II::IdealSheaf)
+function total_transform(f::AbsBlowdownMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
