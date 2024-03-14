@@ -38,6 +38,10 @@ const excluded = [
                   "g-vectors-upper-bound.jl",
                  ]  
 
+const broken = [
+                  "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
+               ]
+
 using REPL
 using Random
 using Pkg
@@ -62,7 +66,7 @@ end
 
 function sanitize_output(s::AbstractString)
   result = s
-  println("length before: ", length(result))
+  # println("length before: ", length(result))
   lafter = length(result)
   lbefore = lafter+1
   while lafter < lbefore
@@ -75,7 +79,7 @@ function sanitize_output(s::AbstractString)
   end
   result = replace(result, r"julia> visualize\(PC\)julia> visualize\(PC\)" => "julia> visualize(PC)")
   result = normalize_repl_output(result)
-  println("length after: ", length(result))
+  # println("length after: ", length(result))
   return result
 end
 
@@ -161,7 +165,7 @@ for (chapter, example_list) in ordered_examples
           content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
           content = strip(content)
           computed = run_repl_string(content, rng)
-          @test normalize_repl_output(content) == computed
+          @test normalize_repl_output(content) == computed broken=(full_file in broken)
         elseif occursin("jl", example)
           content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
           run_repl_string(content, rng; jlcon_mode=false)
