@@ -25,7 +25,7 @@ const excluded = [
                   "cornerstones/groups",
                   "introduction/introduction",
                   "specialized/eder-mohr-ideal-theoretic",
-                  "specialized/kuehne-schroeter-matroids",
+                  # "specialized/kuehne-schroeter-matroids",
                   "specialized/rose-sturmfels-telen-tropical-implicitization",
                   "specialized/flake-fourier-monomial-bases",
                   "specialized/brandhorst-zach-fibration-hopping",
@@ -60,10 +60,17 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
-    result = replace(result, r"^\s*#.*$"m => "")
+    result = replace(result, r"\n\s*#[^\n]*\n"s => "\n")
     lafter = length(result)
   end
   return strip(result)
+end
+
+
+function sanitize_input(s::AbstractString)
+  result = s
+  result = normalize_repl_output(result)
+  return result
 end
 
 function sanitize_output(s::AbstractString)
@@ -167,7 +174,7 @@ withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
           println("   "*example)
           if occursin("jlcon", example)
             content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-            content = strip(content)
+            content = sanitize_input(content)
             computed = run_repl_string(content, rng)
             @test normalize_repl_output(content) == computed broken=(full_file in broken)
           elseif occursin("jl", example)
