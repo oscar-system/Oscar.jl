@@ -147,9 +147,19 @@ end
   R = base_ring(F)
   P = base_ring(R)
   I = modulus(R)
+  J = ideal(P, gens(groebner_basis(I))) # a groebner basis has already been computed.
   FP = FreeMod(P, rank(F))
-  IFP, inc = I*FP
+  IFP, inc = J*FP
   M, p = quo(FP, IFP)
+  # Manually set a groebner basis
+  # This is brittle! Please improve!
+  gb = M.quo.gens
+  ord = default_ordering(M.quo)
+  gb.ordering = ord
+  singular_assure(gb)
+  gb.isGB = true
+  gb.S.isGB = true
+  M.quo.groebner_basis[ord] = gb
   return M
 end
 
