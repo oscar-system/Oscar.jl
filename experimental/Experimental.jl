@@ -71,6 +71,8 @@ include("Schemes/MorphismFromRationalFunctions.jl")
 
 include("Schemes/ToricIdealSheaves/auxiliary.jl")
 include("Schemes/ToricIdealSheaves/constructors.jl")
+include("Schemes/ToricIdealSheaves/attributes.jl")
+include("Schemes/ToricIdealSheaves/methods.jl")
 
 include("Schemes/ToricDivisors/constructors.jl")
 include("Schemes/ToricDivisors/attributes.jl")

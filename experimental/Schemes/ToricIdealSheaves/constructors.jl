@@ -105,7 +105,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
     end
   end
 
-  return IdealSheaf(X, ideal_dict, check=true) # TODO: Set the check to false eventually.
+  return IdealSheaf(X, ideal_dict, check=false) # TODO: Set the check to false eventually.
 end
 
 @doc raw"""
