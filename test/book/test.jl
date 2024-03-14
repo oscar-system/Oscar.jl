@@ -11,7 +11,7 @@ const excluded = [
                   "number-theory/intro_plot_lattice.jlcon",                                   
                   "number-theory/intro5_0.jlcon",                                             
                   # Excluded for easier testing
-                  "number-theory",
+                  # "number-theory",
                   "groups",
                   "algebraic-geometry",
                   "introduction",
