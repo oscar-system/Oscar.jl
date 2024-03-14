@@ -2257,7 +2257,7 @@ If `I` is the zero ideal an empty list is returned.
 
 If the localization is at a point, a minimal set of generators is returned.
 """
-@attr Vector{<:MPolyQuoLocRingElem} function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal},
@@ -2267,10 +2267,10 @@ If the localization is at a point, a minimal set of generators is returned.
   L = localized_ring(Q)
 
   J = pre_image_ideal(I)
-  return filter(!iszero, Q.(small_generating_set(J)))
+  return unique!(filter(!iszero, Q.(small_generating_set(J))))
 end
 
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyPowersOfElement}
@@ -2280,7 +2280,7 @@ function small_generating_set(
   L = localized_ring(Q)
 
   J = pre_image_ideal(I)
-  return filter(!iszero, Q.(small_generating_set(J)))
+  return unique!(filter(!iszero, Q.(small_generating_set(J))))
 end
 
 dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))

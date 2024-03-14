@@ -25,7 +25,7 @@ with restrictions
   4: ideal(x_2_4)
 ```
 """
-@attr IdealSheaf function ideal_sheaf(td::ToricDivisor)
+@attr AbsIdealSheaf function ideal_sheaf(td::ToricDivisor)
   @assert is_cartier(td) "ideal sheaf can only be generated if the divisor is cartier"
   X = toric_variety(td)
   if is_prime(td)

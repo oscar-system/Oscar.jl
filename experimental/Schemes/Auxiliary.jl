@@ -81,7 +81,7 @@ function pushforward(f::AbsCoveredSchemeMorphism)
   return UniversalPushforwardSymbol{typeof(f)}(f)
 end
 
-function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
+function pullback(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
   X = domain(f)
   Y = codomain(f)
   scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
