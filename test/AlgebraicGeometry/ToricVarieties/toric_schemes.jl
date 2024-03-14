@@ -167,6 +167,8 @@ end
   x1, x2, x3 = gens(cox_ring(p231)) 
   my_ideal = ideal([x1*x2]) 
   II = ideal_sheaf(p231, my_ideal) 
+  JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(p231, my_ideal)
+  @test II == JJ
   pr = blow_up(p231, ideal([x1, x2]))
   pullback(pr, II)
   @test is_subset(total_transform(pr, II), strict_transform(pr, II))
@@ -175,5 +177,7 @@ end
   a, b, c, x, y, z = gens(cox_ring(X))
   I = ideal(cox_ring(X), [a^3 + b^2 + c^2*a^2, a*x, a*y^2 - 25*c^2*z^6])
   II = IdealSheaf(X, I)
+  JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(X, I);
+  @test II == JJ
 end
 

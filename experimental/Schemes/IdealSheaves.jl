@@ -1453,6 +1453,21 @@ function produce_object(F::IdealSheaf, U::SimplifiedAffineScheme)
   return IU
 end
 
+### Some generic functionality to allow for the production of objects 
+# to happen only on the `affine_charts` of a given scheme.
+function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
+  X = scheme(F)
+
+  # If this is an affine chart, delegate to a specialized production method
+  if any(V->V===U, affine_charts(X))
+    return produce_object_on_affine_chart(F, U)
+  end
+
+  # Otherwise, construct the object generically from the affine charts.
+  V = __find_chart(U, default_covering(X))
+  return OO(X)(V, U)(I(V))
+end
+
 ### PrimeIdealSheafFromChart
 function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   # Initialize some local variables

@@ -422,4 +422,26 @@ end
   end
 end
 
+mutable struct ToricIdealSheafFromCoxRingIdeal{SpaceType, OpenType, OutputType,
+                                               RestrictionType
+                                              } <: AbsIdealSheaf{
+                                                                 SpaceType, OpenType,
+                                                                 OutputType, RestrictionType
+                                                                }
+
+  X::NormalToricVariety
+  I::MPolyIdeal
+  underlying_presheaf::PreSheafOnScheme
+
+  function ToricIdealSheafFromCoxRingIdeal(X::NormalToricVariety, I::MPolyIdeal)
+    @assert cox_ring(X) === base_ring(I) "incompatible rings"
+    Ipre = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(X, I, Ipre)
+    return I
+  end
+end
 

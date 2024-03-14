@@ -85,15 +85,7 @@ function pullback(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
   X = domain(f)
   Y = codomain(f)
   scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
-  phi = covering_morphism(f)
-  ID = IdDict{AbsAffineScheme, Ideal}()
-  for U in patches(domain(phi))
-    f_U = phi[U]
-    V = codomain(f_U)
-    pbf = pullback(f_U)
-    ID[U] = ideal(OO(U), pbf.(gens(II(V))))
-  end
-  return IdealSheaf(X, ID, check=false)
+  return PullbackIdealSheaf(f, II)
 end
 
 function pullback(f::CompositeCoveredSchemeMorphism, C::EffectiveCartierDivisor)
