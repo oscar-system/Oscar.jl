@@ -18,10 +18,10 @@ const excluded = [
                   "specialized/boehm-breuer-git-fans",
                   "specialized/markwig-ristau-schleis-faithful-tropicalization",
                   "specialized/holt-ren-tropical-geometry",
-                  "specialized/bies-turner-string-theory-applications",
+                  # "specialized/bies-turner-string-theory-applications",
                   "specialized/aga-boehm-hoffmann-markwig-traore",
                   "specialized/joswig-kastner-lorenz-confirmable-workflows",
-                  "cornerstones/number-theory",
+                  # "cornerstones/number-theory",
                   "cornerstones/groups",
                   "introduction/introduction",
                   "specialized/eder-mohr-ideal-theoretic",
@@ -29,7 +29,7 @@ const excluded = [
                   "specialized/rose-sturmfels-telen-tropical-implicitization",
                   "specialized/flake-fourier-monomial-bases",
                   "specialized/brandhorst-zach-fibration-hopping",
-                  "specialized/breuer-nebe-parker-orthogonal-discriminants",
+                  # "specialized/breuer-nebe-parker-orthogonal-discriminants",
                   "cornerstones/algebraic-geometry",
                   "specialized/decker-schmitt-invariant-theory",
                   # "specialized/bies-kastner-toric-geometry",
@@ -54,10 +54,8 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
+    result = replace(result, r"^\s*#.*$"m => "")
     lafter = length(result)
-  end
-  while result[length(result)-5:length(result)] == "julia>"
-    result = strip(result[1:length(result)-6])
   end
   return strip(result)
 end
@@ -76,7 +74,9 @@ function sanitize_output(s::AbstractString)
     lafter = length(result)
   end
   result = replace(result, r"julia> visualize\(PC\)julia> visualize\(PC\)" => "julia> visualize(PC)")
-  return normalize_repl_output(result)
+  result = normalize_repl_output(result)
+  println("length after: ", length(result))
+  return result
 end
 
 function set_task_rngstate!(state::Xoshiro)
