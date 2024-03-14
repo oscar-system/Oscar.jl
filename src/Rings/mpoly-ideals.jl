@@ -2089,8 +2089,8 @@ function flag_pluecker_ideal(F::Field, dimensions::Vector{Int}, n::Int; minimal:
 
   !minimal && return I 
   # Computes the groebner_basis of the ideal
-  converted_generators = collect(groebner_basis(I; ordering = degrevlex(base_ring(I))))
   o = degrevlex(R)
+  converted_generators = collect(groebner_basis(I; ordering = o))
   return ideal(IdealGens(R, converted_generators, o;
                    keep_ordering=true,
                    isReduced=true,
