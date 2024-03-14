@@ -549,5 +549,5 @@ end
 
   R, _ = polynomial_ring(QQ, 6)
   I = flag_pluecker_ideal(R,dimension_vector, ambient_dimension, minimal=false)
-  @test dim(R) == 6
+  @test isa(I, Ideal)
 end
