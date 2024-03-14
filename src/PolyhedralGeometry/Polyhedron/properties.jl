@@ -1443,7 +1443,7 @@ end
 
 function _has_equal_faces(P::Polyhedron)
   nv = [n_vertices(f) for f in faces(P, 2)]
-  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv))
+  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
 end
 
 @doc raw"""
