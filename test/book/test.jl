@@ -139,39 +139,41 @@ pushfirst!(custom_load_path, plots)
 
 oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
-for (chapter, example_list) in ordered_examples
-  @testset "$chapter" begin
-    println(chapter)
-    copy!(LOAD_PATH, custom_load_path)
-    auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
-    if isfile(auxmain)
-      # add overlay project for aux file
-      temp = mktempdir()
-      Pkg.activate(temp; io=devnull)
-      pushfirst!(LOAD_PATH, "$act_proj")
-      include(auxmain)
-      LOAD_PATH[1] = temp
-      Pkg.activate("$act_proj"; io=devnull)
-    end
-    Oscar.set_seed!(42)
-    Oscar.randseed!(42)
-    rng = copy(Random.default_rng())
-    for example in example_list
-      full_file = joinpath(chapter, example)
-      exclude = filter(s->occursin(s, full_file), excluded)
-      if length(exclude) == 0
-        println("   "*example)
-        if occursin("jlcon", example)
-          content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-          content = strip(content)
-          computed = run_repl_string(content, rng)
-          @test normalize_repl_output(content) == computed broken=(full_file in broken)
-        elseif occursin("jl", example)
-          content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-          run_repl_string(content, rng; jlcon_mode=false)
+withenv("LINES" => 40, "COLUMNS" => 120, "DISPLAY" => "") do
+  for (chapter, example_list) in ordered_examples
+    @testset "$chapter" begin
+      println(chapter)
+      copy!(LOAD_PATH, custom_load_path)
+      auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+      if isfile(auxmain)
+        # add overlay project for aux file
+        temp = mktempdir()
+        Pkg.activate(temp; io=devnull)
+        pushfirst!(LOAD_PATH, "$act_proj")
+        include(auxmain)
+        LOAD_PATH[1] = temp
+        Pkg.activate("$act_proj"; io=devnull)
+      end
+      Oscar.set_seed!(42)
+      Oscar.randseed!(42)
+      rng = copy(Random.default_rng())
+      for example in example_list
+        full_file = joinpath(chapter, example)
+        exclude = filter(s->occursin(s, full_file), excluded)
+        if length(exclude) == 0
+          println("   "*example)
+          if occursin("jlcon", example)
+            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+            content = strip(content)
+            computed = run_repl_string(content, rng)
+            @test normalize_repl_output(content) == computed broken=(full_file in broken)
+          elseif occursin("jl", example)
+            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+            run_repl_string(content, rng; jlcon_mode=false)
+          end
+        # else
+        #   println("   "*example*" excluded")
         end
-      # else
-      #   println("   "*example*" excluded")
       end
     end
   end
