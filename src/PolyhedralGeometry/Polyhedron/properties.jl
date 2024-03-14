@@ -1441,7 +1441,10 @@ function _squared_distance(p::PointVector, q::PointVector)
   return d[1]^2 + d[2]^2 + d[3]^2
 end
 
-_has_equal_faces(P::Polyhedron) = allequal([n_vertices(f) for f in faces(P, 2)])
+function _has_equal_faces(P::Polyhedron)
+  nv = [n_vertices(f) for f in faces(P, 2)]
+  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv))
+end
 
 @doc raw"""
     is_vertex_transitive(P::Polyhedron)
