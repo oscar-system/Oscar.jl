@@ -2099,7 +2099,7 @@ end
 
 flag_pluecker_ideal(dimensions::Vector{Int}, n::Int; minimal::Bool=true) = flag_pluecker_ideal(QQ,dimensions,n, minimal=minimal)
 
-function flag_pluecker_ideal(ring::MPolyRing, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
+function flag_pluecker_ideal(ring::MPolyRing{<: FieldElem}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
   base_field = base_ring(ring)  
   I = flag_pluecker_ideal(base_field, dimensions, n; minimal = false) 
   
