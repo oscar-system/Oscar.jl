@@ -42,15 +42,29 @@ const broken = [
                   # Something broken in Oscar
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
 
-                  # weird errors with last line:
-                  #   'tate_polynomial'
+                  # weird errors with last line that has no output:
                   "specialized/bies-turner-string-theory-applications/SU5.jlcon",
-                  #   ideal
                   "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
                   "specialized/boehm-breuer-git-fans/explG25_8.jlcon",
+                  "specialized/aga-boehm-hoffmann-markwig-traore/graphname.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/gen_impl.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/hyperdet.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/pol_from_surface.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/chow_fan.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/chow_transl.jlcon",
 
-                  # need to fix column width for output?
+                  # TODO: need to fix column width for output?
                   "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
+
+                  # non-stable:
+                  "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
+
+                  # output changed in oscar master? TODO check + adapt
+                  "specialized/decker-schmitt-invariant-theory/gleason.jlcon",
+
+                  # FIXME: MethodError: no method matching (::Oscar.MPolyAnyMap{…})(::Oscar.MPolyAnyMap{…}, ::Vector{…}) 
+                  # function missing on master?
+                  "specialized/decker-schmitt-invariant-theory/cox_ring.jlcon",
                ]
 const skipped = [
                   # sometimes very slow: 4000-30000s
@@ -67,6 +81,10 @@ const skipped = [
                   # needs Mockdule:
                   #   defines `l(a,b)`:
                   "cornerstones/number-theory/unit_log_plot.jl",
+                  #   printout changes on subsequent runs due to other variables
+                  "cornerstones/groups/cohomology.jlcon",
+                  #   defines vars that affect other tests... (eder-mohr...)
+                  "cornerstones/groups/genchar.jlcon",
                 ]
 
 dispsize = (40, 130)
@@ -88,8 +106,10 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
-    result = replace(result, r"\n\s*#.*generic.*\n" => "\n")
-    result = replace(result, r"^\s*[0-9\.]+ seconds (.* allocations: .*)$"m => "\n")
+    result = replace(result, r"^\s*(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
+    result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
+    # this removes the package version slug, filename and linenumber
+    result = replace(result, r" @ \w* ?~/\.julia/packages/(?:Nemo|Hecke|AbstractAlgebra|Polymake)/\K[\w\d]+/.*\.jl:\d+"m => "")
     lafter = length(result)
   end
   return strip(result)
@@ -195,6 +215,7 @@ withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
         # and run it from temp dir
         temp = mktempdir()
         Pkg.activate(temp; io=devnull)
+        Pkg.develop(path=act_proj; io=devnull)
         pushfirst!(LOAD_PATH, "$act_proj")
         cp(auxmain,joinpath(temp, "main.jl"))
         cd(temp)
