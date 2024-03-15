@@ -238,7 +238,7 @@ gluing_morphisms(PG::ProjectiveGluing) = (PG.f, PG.g)
     )
     C in coverings(Y) || error("covering not listed")
     for P in values(projective_patches)
-      base_scheme(P) in patches(C) || error("base scheme not found in covering")
+      any(x->x===base_scheme(P), patches(C)) || error("base scheme not found in covering")
     end
     for (U, V) in keys(gluings(C))
       (U, V) in keys(projective_gluings) || error("not all projective gluings were provided")
