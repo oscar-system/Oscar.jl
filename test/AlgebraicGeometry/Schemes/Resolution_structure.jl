@@ -1,4 +1,4 @@
-@testset "desingularization of curves" begin
+@testset "embedded desingularization of curves" begin
   R,(x,y) = polynomial_ring(QQ,2)
   I=ideal(R,[x^2-y^5])
   W = CoveredScheme(Spec(R))
@@ -16,3 +16,29 @@
   @test !is_empty(singular_locus(domain(phi.embeddings[2]))[1])
   @test is_empty(singular_locus(domain(phi.embeddings[3]))[1])
 end
+
+@testset "non-embedded desingularization of curves" begin
+  R,(x,y) = polynomial_ring(QQ,2)
+  I=ideal(R,[x^2-y^5])
+  W = CoveredScheme(Spec(R))
+  IS = IdealSheaf(W,affine_charts(W)[1],gens(I))
+  X = subscheme(IS)
+  phi = Oscar.desingularization(X)
+  @test length(phi.ex_div) == 2
+  aff_charts = affine_charts(domain(phi))
+  sl1,_ = singular_locus(aff_charts[1])
+  sl2,_ = singular_locus(aff_charts[2])
+  sl3,_ = singular_locus(aff_charts[3])
+  @test is_one(modulus(OO(sl1)))
+  @test is_one(modulus(OO(sl2)))
+  @test is_one(modulus(OO(sl3)))
+end
+
+#@testset "order of an ideal"
+#  R,(x,y,z) = polynomial_ring(QQ,3)
+#  W = CoveredScheme(spec(R))
+#  I = ideal(R,[x*y,x^3+y^3+z^3-x*y*z])
+#  IS = IdealSheaf(W,affine_charts(W)[1], gens(I))
+#  Y = Oscar.max_order_locus(IS)
+#end
+
