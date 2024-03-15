@@ -1,4 +1,15 @@
 #######################################################
+#  Structs
+
+struct QSModel
+  P::Polyhedron{QQFieldElem} # maybe these will all be ZZRingElem?
+  ray_generators::Vector{QQFieldElem}
+  
+end
+
+
+
+#######################################################
 # 1. User interface for literature models
 #######################################################
 
@@ -210,8 +221,26 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
         index_in_data_base = l
       end
     end
-    @req index_in_data_base != -1 "Provided model index not supported for QSMs"
+    
+    try
+      poly_inx = model_parameters["k"]
+      polytope = load(joinpath(@__DIR__, "Models/QSMDB", "$poly_inx.mrdi"))
+    catch 
+      error("Provided model index not supported for QSMs")
+    end
 
+    rays = Polymake.get_attachment(pm_object(polytope), "RayGeneratorsofB3")
+
+    # the attachment seems to be polymake rational array, but can maybe be converted in the actually file
+    # to be a polymake incidence matrix? or we can even start a new struct that has these already as oscar types
+    max_cones_ = Polymake.get_attachment(Oscar.pm_object(polytope), "TriangulationOfB3")
+
+    # also seems like we only care about the vertices of the polytope?
+
+    # can we just convert all these polytope to toric varieties  and keep track of the vertices?
+    # that way we can just store the toric varietis and just do
+    #  base_space = load(joinpath(@__DIR__, "Models/QSMDB", "$poly_inx.mrdi"))
+    
     # Construct the base in question
     rays = [[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["RayGeneratorsOfB3"]]
     max_cones = IncidenceMatrix([[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["TriangulationOfB3"]])
