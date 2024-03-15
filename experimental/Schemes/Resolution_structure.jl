@@ -63,7 +63,7 @@ end
 ##################################################################################################
 # setting values in DesingMors -- Watch out: only place with direct access to fields!!!
 ##################################################################################################
-function add_map!(f<:BlowUpSequence, phi::BlowupMorphism)
+function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
   push!(ex_div, Oscar.exceptional_divisor(phi))
@@ -85,7 +85,7 @@ function initialize_blow_up_sequence(phi::BlowupMorphism)
   return f
 end
 
-function add_map_embedded!(f<:BlowUpSequence, phi::BlowupMorphism)
+function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = typeof(f.ex_div[1])[strict_transform(phi, E) for E in f.ex_div[1:end]]
   push!(ex_div, Oscar.exceptional_divisor(phi))
@@ -581,7 +581,9 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
         result_mat[:,j] = result_mat[:,j] - [JM_essential[k,i] * JI[amb_row[i],j] for k in 1:nrows(JM_essential)]
       end
     end
-    Delta_dict[U] = ideal(OO(U),vec(collect(result_mat)))
+    Ivec = copy(gens(I))
+    append!(Ivec,[a for a in OO(U).(collect(result_mat))])
+    Delta_dict[U] = ideal(OO(U),Ivec)
   end
 
   return small_generating_set(IdealSheaf(W,Delta_dict))
