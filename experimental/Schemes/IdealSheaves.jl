@@ -161,7 +161,7 @@ to the other charts of ``X`` is well defined.
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
     I::Ideal; check::Bool=false
-  ) where
+  )
   @assert base_ring(I) === OO(U) || error("ideal not defined in the correct ring")
   @check is_prime(I) "ideal must be prime"
   return PrimeIdealSheafFromChart(X, U, I)
@@ -175,7 +175,7 @@ function IdealSheaf(
 end
 
 ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, g; check)
-ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, I; check)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) = IdealSheaf(X, U, I; check)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme,
