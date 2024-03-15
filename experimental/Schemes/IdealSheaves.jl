@@ -167,6 +167,12 @@ function IdealSheaf(
   return PrimeIdealSheafFromChart(X, U, I)
 end
 
+function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=CoveredScheme(X))
+  @assert base_ring(I) === OO(X)
+  @assert length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme))
+  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
+end
+
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
     g::Vector{RET}; check::Bool=false
