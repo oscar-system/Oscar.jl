@@ -364,7 +364,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
   t = gens(S)
   if is_regular_sequence(gens(I))
     # construct the blowup manually
-    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
+    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r for j in i+1:r+1])
     IPY = subscheme(IPW, J)
     # Compute the IdealSheaf for the exceptional divisor
     ID = IdDict{AbsAffineScheme, RingElem}()
@@ -384,7 +384,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     # Prepare the decomposition data
     decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
     for k in 1:ngens(I)
-      U = affine_charts(Y)[i]
+      U = affine_charts(Y)[k]
       decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
     end
 

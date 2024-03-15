@@ -45,6 +45,7 @@ export  find_refinement_with_local_system_of_params
 maps(phi::AbsDesingMor) = copy(phi.maps)
 last_map(phi::AbsDesingMor) = phi.maps[end]
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
+embeddings(phi::BlowUpSequence) = phi.embeddings
 
 ## do not use!!! (for forwarding and certain emergenies)
 function underlying_morphism(phi::AbsDesingMor)
@@ -86,7 +87,7 @@ end
 
 function add_map_embedded!(f::AbsDesingMor, phi::BlowupMorphism)
   push!(f.maps, phi)
-  ex_div = [strict_transform(phi, E) for E in f.ex_div[1:end]]
+  ex_div = typeof(f.ex_div[1])[strict_transform(phi, E) for E in f.ex_div[1:end]]
   push!(ex_div, Oscar.exceptional_divisor(phi))
   f.ex_div = ex_div
   if f.transform_type == :strict
@@ -255,12 +256,11 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::IdealSheaf)
   decomp = Oscar.maximal_associated_points(pushforward(f)(I_sl))
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
-  phi = initialize_embedded_blow_up_sequence(current_blow_up,f)
+  phi = initialize_embedded_blowup_sequence(current_blow_up,f)
   decomp = [strict_transform(current_blow_up,J) for J in decomp]
-
   I_sl_temp = I_sl
   while !is_one(I_sl_temp)
-    while length(I_sl_temp) > 0
+    while length(decomp) > 0
       I = small_generating_set(pop!(decomp))
       phi = _do_blow_up_embedded(phi,I)
       if length(decomp)>0
@@ -268,15 +268,66 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::IdealSheaf)
       end
     end
     last_emb = embeddings(phi)[end]
-    I_sl_temp = Oscar.ideal_sheaf_of_singular_locus(image_ideal(last_emb))
+    I_sl_temp = pushforward(last_emb, Oscar.ideal_sheaf_of_singular_locus(domain(last_emb)))
     decomp = Oscar.maximal_associated_points(I_sl_temp)
   end
 
-## note: normal crossing test currently not implemented
-# phi = _ensure_ncr(phi)  
+  phi = _ensure_ncr(phi)
   phi.resolves_sing = true
-  return(phi)
+  return phi
 end
+
+function _ensure_ncr(f::AbsDesingMor)
+  current_divs = exceptional_divisor_list(f)
+
+# this first step can only come into play, if the centers were not determined algorithmically
+# it is ensured by all standard desingularization algorithms
+  I_bad = non_snc_locus(current_divs)
+  while !is_one(I_bad)
+    decomp = Oscar.maximal_associated_points(I_bad)
+    while length(decomp)>0
+      I = small_generating_set(pop!(decomp))
+      f =_do_blow_up_embedded(f,I)
+      if length(decomp)>0
+        decomp = [strict_transform(last_map(f),J) for J in decomp]
+      end
+    end
+    I_bad = non_snc_locus(exceptional_divisor_list(f))
+  end
+
+# now ensure the transversal intersections with the strict transform
+  current_divs = copy(exceptional_divisor_list(f))
+  I_X = image_ideal(f.embeddings[end])
+  while !is_empty(current_divs)
+    one_div = popfirst!(current_divs)       ## we need a FIFO here, not the usual LIFO
+    I_temp = I_X + ideal_sheaf(one_div)
+    last_emb = embeddings(f)[end]
+    inc_temp = CoveredClosedEmbedding(scheme(I_temp), I_temp)
+    next_locus = Oscar.ideal_sheaf_of_singular_locus(domain(inc_temp))
+    decomp = Oscar.maximal_associated_points(pushforward(inc_temp, next_locus ))
+    while !is_empty(decomp)
+      I = small_generating_set(pop!(decomp))
+      f =_do_blow_up_embedded(f,I)
+      I_X = image_ideal(f.embeddings[end])
+      current_divs = [strict_transform(last_map(f),J) for J in current_divs]
+      push!(current_divs, exceptional_divisor_list(f)[end])
+    end
+  end
+
+# finally make sure not too many exceptional divisors meet the strict transform in the same point
+  n_max = dim(I_X)
+  current_divs = copy(exceptional_divisor_list(f))
+  _,inter_div = divisor_intersections_with_X(current_divs,I_X)
+  while !is_empty(inter_div)
+    cent = small_generating_set(pop!(inter_div))
+    f =_do_blow_up_embedded(f,cent)
+    if length(inter_div)>0
+      inter_div = [strict_transform(last_map(f),J) for J in inter_div]
+    end
+  end
+  return f
+end
+
 
 function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
   old_sequence = maps(f)
@@ -287,13 +338,13 @@ function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
   return(f)
 end
 
-function _do_blow_up_embedded(phi,I)
-  old_sequence = maps(f)
+function _do_blow_up_embedded(phi::AbsDesingMor,cent::IdealSheaf)
+  old_sequence = maps(phi)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
   current_blow_up = blow_up(cent,var_name=string("v", length(old_sequence), "_"))
-  add_map_embedded!(f, current_blow_up)
-  return(f)
+  add_map_embedded!(phi, current_blow_up)
+  return(phi)
 end
 
 
@@ -529,6 +580,66 @@ end
 ########################################################################
 # test for snc                                                         #
 ########################################################################
+
+function divisor_intersections_with_X(current_div, I_X)
+  scheme(I_X) == scheme(current_div[1]) || error("underlying schemes do not match")
+  n_max = dim(I_X)
+
+  inter_div_dict = Dict{Vector{Int},Tuple{IdealSheaf,Int}}()
+  old_keys = Vector{Int}[]
+  empty_keys = Vector{Int}[]
+  essential_inter = [unit_ideal_sheaf(scheme(I_X))]  # initialize it to the right type
+
+# initialization: each divisor + I_X
+  for k in 1:length(current_div)
+    Idiv = ideal_sheaf(current_div[k]) + I_X
+    if !is_one(Idiv)
+      inter_div_dict[[k]] = (Idiv,0)
+      push!(old_keys, [k])
+    end
+  end
+  new_keys = copy(empty_keys)
+
+# add intersections
+  while !is_empty(old_keys)
+    old_keyvec = popfirst!(old_keys)         # this is the intersection to which we add a new divisor
+    for i in (old_keyvec[end]+1):length(current_div)
+      copykey = copy(old_keyvec)
+      if haskey(inter_div_dict, [i])
+        push!(copykey,i)                     # here we add it
+        Idiv = inter_div_dict[[i]][1] + inter_div_dict[old_keyvec][1]
+        if !is_one(Idiv)
+                                             # it intersects
+          subsetlist = subsets(old_keyvec,length(old_keyvec)-1)
+          subsetlist = [push!(a,i) for a in subsetlist]
+          if (sum([inter_div_dict[a][2] for a in subsetlist])> 0)
+                                             # offending intersection, known before
+            inter_div_dict[copykey] = (Idiv,2)
+            push!(new_keys,copykey)
+          elseif dim(Idiv) == n_max - length(copykey)
+                                             # non-offending intersection
+            inter_div_dict[copykey] = (Idiv,0)
+            push!(new_keys,copykey)
+          else
+                                             # offending intersection, new
+            inter_div_dict[copykey] = (Idiv,1)
+            push!(new_keys,copykey)
+            push!(essential_inter, Idiv)
+          end
+        end
+      end
+    end
+
+    # go to next higher number of intersecting divisors
+    if is_empty(old_keys)
+      old_keys = copy(new_keys)
+      new_keys = copy(empty_keys)    
+    end    
+  end
+
+  _ = popfirst!(essential_inter)                    # kill the dummy entry from initialization
+  return inter_div_dict, essential_inter
+end
 
 function non_snc_locus(divs::Vector{<:EffectiveCartierDivisor})
   is_empty(divs) && error("list of divisors must not be empty")
