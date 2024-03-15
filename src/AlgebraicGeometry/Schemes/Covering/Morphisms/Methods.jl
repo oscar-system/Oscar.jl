@@ -300,8 +300,8 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       h_V = complement_equation(V_VV)
       h_UV = [pullback(to_U)(h_U), pullback(to_V)(h_V)]
       U_UUxV_VV = PrincipalOpenSubset(UxV, h_UV)
-      f_res_U = restrict(to_U, U_UUxV_VV, U_UU, check=true)
-      g_res_V = restrict(to_V, U_UUxV_VV, V_VV, check=true)
+      f_res_U = restrict(to_U, U_UUxV_VV, U_UU, check=false)
+      g_res_V = restrict(to_V, U_UUxV_VV, V_VV, check=false)
       # TODO: Can we produce U_UUxV_VV as a PrincipalOpenSubset of UxV 
       # with a generic `fiber_product` routine? If so, what should the 
       # signature and functionality be? We need it as a PrincipalOpenSubset
@@ -312,8 +312,8 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
       h_VV = complement_equation(VV_V)
       h_UUVV = [pullback(to_UU)(h_UU), pullback(to_VV)(h_VV)]
       UU_UxVV_V = PrincipalOpenSubset(UUxVV, h_UUVV)
-      f_res_UU = restrict(to_UU, UU_UxVV_V, UU_U, check=true)
-      g_res_VV = restrict(to_VV, UU_UxVV_V, VV_V, check=true)
+      f_res_UU = restrict(to_UU, UU_UxVV_V, UU_U, check=false)
+      g_res_VV = restrict(to_VV, UU_UxVV_V, VV_V, check=false)
 
       simple_to_double_U, double_to_simple_U = gluing_morphisms(UUU)
       simple_to_double_V, double_to_simple_V = gluing_morphisms(VVV)
@@ -340,7 +340,7 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
            fiber_product=(UxV, to_U, to_V)
           )
       double_to_simple = restrict(pre_glue_double_to_simple, domain(pre_glue_double_to_simple), 
-                                  U_UUxV_VV
+                                  U_UUxV_VV; check=false
                                  )
       pre_glue_simple_to_double = induced_map_to_fiber_product(
            compose(f_res_U, compose(simple_to_double_U, inc_UU)),
@@ -349,15 +349,15 @@ function fiber_product(f::CoveringMorphism, g::CoveringMorphism)
            fiber_product=(UUxVV, to_UU, to_VV)
           )
       simple_to_double = restrict(pre_glue_simple_to_double, domain(pre_glue_simple_to_double), 
-                                  UU_UxVV_V
+                                  UU_UxVV_V; check=false
                                  )
 
-      new_gluing = Gluing(UxV, UUxVV, simple_to_double, double_to_simple)
+      new_gluing = Gluing(UxV, UUxVV, simple_to_double, double_to_simple; check=false)
       add_gluing!(result, new_gluing)
     end
   end
-  to_A = CoveringMorphism(result, A, maps_to_A)
-  to_B = CoveringMorphism(result, B, maps_to_B)
+  to_A = CoveringMorphism(result, A, maps_to_A; check=false)
+  to_B = CoveringMorphism(result, B, maps_to_B; check=false)
   return result, to_A, to_B
 end
 
