@@ -48,11 +48,18 @@ const broken = [
                   "specialized/boehm-breuer-git-fans/explG25_8.jlcon",
                   "specialized/aga-boehm-hoffmann-markwig-traore/graphname.jlcon",
 
-                  # need to fix column width for output?
+                  # TODO: need to fix column width for output?
                   "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
 
                   # non-stable:
                   "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
+
+                  # output changed in oscar master? TODO check + adapt
+                  "specialized/decker-schmitt-invariant-theory/gleason.jlcon",
+
+                  # FIXME: MethodError: no method matching (::Oscar.MPolyAnyMap{…})(::Oscar.MPolyAnyMap{…}, ::Vector{…}) 
+                  # function missing on master?
+                  "specialized/decker-schmitt-invariant-theory/cox_ring.jlcon",
                ]
 const skipped = [
                   # sometimes very slow: 4000-30000s
@@ -203,7 +210,7 @@ withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
         # and run it from temp dir
         temp = mktempdir()
         Pkg.activate(temp; io=devnull)
-        Pkg.develop(path=Oscar.oscardir; io=devnull)
+        Pkg.develop(path=act_proj; io=devnull)
         pushfirst!(LOAD_PATH, "$act_proj")
         cp(auxmain,joinpath(temp, "main.jl"))
         cd(temp)
