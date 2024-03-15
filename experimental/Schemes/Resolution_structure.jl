@@ -598,7 +598,7 @@ function divisor_intersections_with_X(current_div, I_X)
   inter_div_dict = Dict{Vector{Int},Tuple{AbsIdealSheaf,Int}}()
   old_keys = Vector{Int}[]
   empty_keys = Vector{Int}[]
-  essential_inter = [unit_ideal_sheaf(scheme(I_X))]  # initialize it to the right type
+  essential_inter = AbsIdealSheaf[]
 
 # initialization: each divisor + I_X
   for k in 1:length(current_div)
@@ -647,7 +647,6 @@ function divisor_intersections_with_X(current_div, I_X)
     end    
   end
 
-  _ = popfirst!(essential_inter)                    # kill the dummy entry from initialization
   return inter_div_dict, essential_inter
 end
 
