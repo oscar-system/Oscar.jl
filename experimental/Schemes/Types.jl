@@ -422,12 +422,12 @@ end
   end
 end
 
-mutable struct ToricIdealSheafFromCoxRingIdeal{SpaceType, OpenType, OutputType,
-                                               RestrictionType
-                                              } <: AbsIdealSheaf{
-                                                                 SpaceType, OpenType,
-                                                                 OutputType, RestrictionType
-                                                                }
+@attributes mutable struct ToricIdealSheafFromCoxRingIdeal{SpaceType, OpenType, OutputType,
+                                                           RestrictionType
+                                                          } <: AbsIdealSheaf{
+                                                                             SpaceType, OpenType,
+                                                                             OutputType, RestrictionType
+                                                                            }
 
   X::NormalToricVariety
   I::MPolyIdeal
