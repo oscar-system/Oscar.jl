@@ -1,5 +1,5 @@
 using Pkg
-Pkg.add("Tally")
+Pkg.add("Tally"; io=devnull)
 
 
 # pre-run some computation so that the same code doesn't affect the seeding when
