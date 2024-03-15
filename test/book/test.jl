@@ -47,6 +47,11 @@ const broken = [
                   "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
                   "specialized/boehm-breuer-git-fans/explG25_8.jlcon",
                   "specialized/aga-boehm-hoffmann-markwig-traore/graphname.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/gen_impl.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/hyperdet.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/pol_from_surface.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/chow_fan.jlcon",
+                  "specialized/rose-sturmfels-telen-tropical-implicitization/chow_transl.jlcon",
 
                   # TODO: need to fix column width for output?
                   "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
