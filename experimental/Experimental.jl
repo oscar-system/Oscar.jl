@@ -41,50 +41,10 @@ for pkg in Oscar.exppkgs
   include("$pkg/src/$pkg.jl")
 end
 
-include("Rings.jl")
-include("ModStd.jl")
-include("GModule.jl")
-
-include("MatrixGroups/matrix.jl")
-
-include("Schemes/Types.jl")
-include("Schemes/CoveredScheme.jl")
-include("Schemes/FunctionFields.jl")
-include("Schemes/ProjectiveModules.jl")
-include("Schemes/SpaceGerms.jl")
-include("Schemes/Sheaves.jl")
-include("Schemes/IdealSheaves.jl")
-include("Schemes/AlgebraicCycles.jl")
-include("Schemes/WeilDivisor.jl")
-include("Schemes/CoveredProjectiveSchemes.jl")
-include("Schemes/StructureSheaf.jl")
-
-include("Schemes/SimplifiedAffineScheme.jl")
-include("Schemes/CoherentSheaves.jl")
-include("Schemes/LazyGluing.jl")
-include("Schemes/CartierDivisor.jl")
-include("Schemes/Auxiliary.jl")
-include("Schemes/BlowupMorphism.jl")
-include("Schemes/duValSing.jl")
-include("Schemes/elliptic_surface.jl")
-include("Schemes/MorphismFromRationalFunctions.jl")
-
-include("Schemes/ToricIdealSheaves/auxiliary.jl")
-include("Schemes/ToricIdealSheaves/constructors.jl")
-include("Schemes/ToricIdealSheaves/attributes.jl")
-include("Schemes/ToricIdealSheaves/methods.jl")
-
-include("Schemes/ToricDivisors/constructors.jl")
-include("Schemes/ToricDivisors/attributes.jl")
-
-include("Schemes/NormalToricVarieties/attributes.jl")
-
-include("Schemes/ToricBlowups/types.jl")
-include("Schemes/ToricBlowups/constructors.jl")
-include("Schemes/ToricBlowups/attributes.jl")
-include("Schemes/ToricBlowups/methods.jl")
-
-include("ExteriorAlgebra/ExteriorAlgebra.jl")
-
-include("Schemes/DerivedPushforward.jl")
-
+# Force some structure for `oldexppkgs`
+for pkg in oldexppkgs
+  if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
+  end
+  include("$pkg/$pkg.jl")
+end

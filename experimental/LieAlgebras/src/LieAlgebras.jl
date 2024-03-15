@@ -64,10 +64,8 @@ import ..Oscar:
   lower_central_series,
   matrix,
   normalizer,
-  number_of_generators, ngens,
-  number_of_positive_roots, n_positive_roots, # aliases do not work in experimental
-  number_of_roots, n_roots,                   # aliases do not work in experimental
-  number_of_simple_roots, n_simple_roots,     # aliases do not work in experimental
+  number_of_generators,
+  ngens,
   order,
   parent_type,
   rank,
@@ -158,9 +156,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, n_positive_roots # aliases do not work in experimental
-export number_of_roots, n_roots                   # aliases do not work in experimental
-export number_of_simple_roots, n_simple_roots     # aliases do not work in experimental
+export number_of_positive_roots
+export number_of_roots
+export number_of_simple_roots
 export permutations
 export permutations_with_sign
 export positive_coroot
@@ -191,6 +189,14 @@ export weyl_group
 export weyl_orbit
 export word
 
+function number_of_positive_roots end
+function number_of_roots end
+function number_of_simple_roots end
+
+@alias n_positive_roots number_of_positive_roots
+@alias n_roots number_of_roots
+@alias n_simple_roots number_of_simple_roots
+
 include("Combinatorics.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
@@ -211,7 +217,7 @@ include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
 
-end
+end # module LieAlgebras
 
 using .LieAlgebras
 
@@ -278,9 +284,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, n_positive_roots  # aliases do not work in experimental
-export number_of_roots, n_roots                    # aliases do not work in experimental
-export number_of_simple_roots, n_simple_roots      # aliases do not work in experimental
+export number_of_positive_roots, n_positive_roots  # alias lives in a submodule
+export number_of_roots, n_roots                    # alias lives in a submodule
+export number_of_simple_roots, n_simple_roots      # alias lives in a submodule
 export positive_coroot
 export positive_coroots
 export positive_root
