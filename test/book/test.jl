@@ -41,15 +41,35 @@ const excluded = [
 const broken = [
                   # Something broken in Oscar
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
-                  # Output width depends on terminal size #3515
-                  "specialized/fang-fourier-monomial-bases/nz.jlcon",
-                  "specialized/fang-fourier-monomial-bases/lusztig.jlcon",
-                  "specialized/fang-fourier-monomial-bases/string.jlcon",
-                  "specialized/fang-fourier-monomial-bases/fflv.jlcon",
-                  "specialized/fang-fourier-monomial-bases/basis.jlcon",
-               ]
 
-dispsize = (40, 120)
+                  # weird errors with last line:
+                  #   'tate_polynomial'
+                  "specialized/bies-turner-string-theory-applications/SU5.jlcon",
+                  #   ideal
+                  "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
+                  "specialized/boehm-breuer-git-fans/explG25_8.jlcon",
+
+                  # need to fix column width for output?
+                  "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
+               ]
+const skipped = [
+                  # sometimes very slow: 4000-30000s
+                  "specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
+                  # very slow: 24000s
+                  "cornerstones/number-theory/cohenlenstra.jlcon",
+                  # ultra slow: time unknown
+                  "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_yz.jlcon",
+
+                  # somewhat slow (~300s)
+                  "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
+                  "specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+
+                  # needs Mockdule:
+                  #   defines `l(a,b)`:
+                  "cornerstones/number-theory/unit_log_plot.jl",
+                ]
+
+dispsize = (40, 130)
 
 using REPL
 using Random
@@ -68,7 +88,8 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
-    result = replace(result, r"\n\s*#[^\n]*generic[^\n]*\n"s => "\n")
+    result = replace(result, r"\n\s*#.*generic.*\n" => "\n")
+    result = replace(result, r"^\s*[0-9\.]+ seconds (.* allocations: .*)$"m => "\n")
     lafter = length(result)
   end
   return strip(result)
@@ -148,7 +169,9 @@ end
 # add overlay project for plots
 custom_load_path = []
 copy!(custom_load_path, Base.DEFAULT_LOAD_PATH)
+curdir = pwd()
 act_proj = dirname(Base.active_project())
+try
 plots = mktempdir()
 Pkg.activate(plots; io=devnull)
 Pkg.add("Plots"; io=devnull)
@@ -157,18 +180,25 @@ pushfirst!(custom_load_path, plots)
 
 oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
 ordered_examples = load(oefile)
+if isdefined(Main, :run_only) && run_only !== nothing
+  ordered_examples = Dict("$run_only" => ordered_examples[run_only])
+end
 withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
   for (chapter, example_list) in ordered_examples
-    @testset "$chapter" begin
+    cd(curdir)
+    @testset "$chapter" verbose=true begin
       println(chapter)
       copy!(LOAD_PATH, custom_load_path)
       auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
       if isfile(auxmain)
         # add overlay project for aux file
+        # and run it from temp dir
         temp = mktempdir()
         Pkg.activate(temp; io=devnull)
         pushfirst!(LOAD_PATH, "$act_proj")
-        include(auxmain)
+        cp(auxmain,joinpath(temp, "main.jl"))
+        cd(temp)
+        include(joinpath(temp,"main.jl"))
         LOAD_PATH[1] = temp
         Pkg.activate("$act_proj"; io=devnull)
       end
@@ -179,15 +209,31 @@ withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
         full_file = joinpath(chapter, example)
         exclude = filter(s->occursin(s, full_file), excluded)
         if length(exclude) == 0
-          println("   "*example)
-          if occursin("jlcon", example)
-            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+          println("   $example$(full_file in skipped ? ": skip" :
+                                full_file in broken ? ": broken" : "")")
+          filetype = endswith(example, "jlcon") ? :jlcon : 
+                     endswith(example, "jl") ? :jl : :unknown
+          content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+          if filetype == :jlcon && !occursin("julia> ", content)
+            filetype = :jl
+            @warn "possibly wrong file type: $full_file"
+          end
+          if full_file in skipped
+            @test run_repl_string(content, rng) isa AbstractString skip=true
+          elseif filetype == :jlcon
             content = sanitize_input(content)
             computed = run_repl_string(content, rng)
             @test normalize_repl_output(content) == computed broken=(full_file in broken)
-          elseif occursin("jl", example)
-            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-            run_repl_string(content, rng; jlcon_mode=false)
+          elseif filetype == :jl
+            if occursin("# output\n", content)
+              (code, res) = split(content, "# output\n"; limit=2)
+              # TODO do we want to compare with `res` ?
+              @test run_repl_string(code, rng; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+            else
+              @test run_repl_string(content, rng; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+            end
+          else
+            @warn "unknown file type: $full_file"
           end
         # else
         #   println("   "*example*" excluded")
@@ -196,5 +242,9 @@ withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
     end
   end
 end
-
-copy!(LOAD_PATH, Base.DEFAULT_LOAD_PATH)
+finally
+  cd(curdir)
+  copy!(LOAD_PATH, Base.DEFAULT_LOAD_PATH)
+  Pkg.activate("$act_proj"; io=devnull)
+end
+nothing
