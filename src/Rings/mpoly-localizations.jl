@@ -1289,7 +1289,7 @@ mutable struct MPolyLocRingElem{
       f::AbstractAlgebra.Generic.FracFieldElem{RingElemType};
       check::Bool=true
     ) where {BaseRingType, BaseRingElemType, RingType, RingElemType, MultSetType}
-    base_ring(parent(f)) == base_ring(W) || error(
+    base_ring(parent(f)) === base_ring(W) || error(
       "the numerator and denominator of the given fraction do not belong to the original ring before localization"
       )
     @check begin
@@ -2920,7 +2920,7 @@ function compose(
   end
 end
 
-(f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), domain(f).(gens(I)))
+(f::MPolyLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 function ==(f::MPolyLocalizedRingHom, g::MPolyLocalizedRingHom) 
   f === g && return true

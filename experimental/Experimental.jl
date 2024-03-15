@@ -41,6 +41,7 @@ for pkg in Oscar.exppkgs
   include("$pkg/src/$pkg.jl")
 end
 
+<<<<<<< HEAD
 include("Rings.jl")
 include("ModStd.jl")
 include("GModule.jl")
@@ -86,3 +87,12 @@ include("ExteriorAlgebra/ExteriorAlgebra.jl")
 include("Schemes/DerivedPushforward.jl")
 include("Schemes/Resolution_structure.jl")
 
+=======
+# Force some structure for `oldexppkgs`
+for pkg in oldexppkgs
+  if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
+  end
+  include("$pkg/$pkg.jl")
+end
+>>>>>>> 0540d11168a2b3a3ab4732cec1eafa99f9887974

@@ -2633,7 +2633,10 @@ function generators_of_degree(
   return [g for g in gens(F) if degree(g) == d]
 end
 
-function _indices_of_generators_of_degree(F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true) where {T<:MPolyDecRingElem}
+function _indices_of_generators_of_degree(
+    F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true
+  ) where {T<:Union{MPolyDecRingElem{<:FieldElem}, 
+                    MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}}}
   return Int[i for (i, g) in enumerate(gens(F)) if degree(g; check) == d]
 end
 
@@ -2641,8 +2644,10 @@ function _constant_sub_matrix(
     phi::FreeModuleHom{T, T},
     d::FinGenAbGroupElem;
     check::Bool=true
-  ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
-  S = base_ring(domain(phi))::MPolyDecRing
+  ) where {RET<:Union{MPolyDecRingElem{<:FieldElem}, 
+                      MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}
+                     }, T<:FreeMod{RET}}
+  S = base_ring(domain(phi))::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
   kk = coefficient_ring(S)::Field
   F = domain(phi)
   G = codomain(phi)
@@ -2657,11 +2662,14 @@ function _constant_sub_matrix(
     for (j, k) in enumerate(ind_cod)
       success, c = _has_index(v, k)
       !success && continue
-      result[i, j] = first(coefficients(c))
+      result[i, j] = _constant_coeff(c)
     end
   end
   return ind_dom, ind_cod, result
 end
+
+_constant_coeff(f::MPolyDecRingElem) = first(coefficients(f))
+_constant_coeff(f::MPolyQuoRingElem) = first(coefficients(lift(f)))
 
 # TODO: This will be provided soon from different sources.
 function complex(F::FreeResolution) 
