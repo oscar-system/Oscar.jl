@@ -371,13 +371,28 @@ end
 # Refinements to find local systems of parameters
 ########################################################################
 
+function find_refinement_with_local_system_of_params(W::AbsAffineScheme{<:Field, <:MPolyRing}; check::Bool=true)
+  U = PrincipalOpenSubset(W, one(OO(W)))
+  res_cov = Covering([U])
+  R = ambient_coordinate_ring(W)
+  minor_dict = IdDict{AbsAffineScheme, Tuple{Vector{Int}, Vector{Int}, elem_type(R)}}()
+  minor_dict[U] = (Int[], Int[], one(R))
+  return res_cov, minor_dict
+end
+
 function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::Bool=true)
   @check is_smooth(W) "scheme must be smooth"
   @check is_equidimensional(W) "scheme must be equidimensional"
   mod_gens = lifted_numerator.(gens(modulus(OO(W))))::Vector{<:MPolyRingElem}
-  M = jacobi_matrix(mod_gens)
+  # We run into difficulties for the zero ideal as a modulus.
+  # To get the matrix of minors of jac(I) we use `induced_map_on_exterior_power` below.
+  # It is mathematical convention that ⋀⁰R⁰ = R¹. But that's unfortunately not 
+  # coherent with the generic indexing we use in the implementation below. 
+  # Should this assertion lead to problems, one can still replace throwing an error 
+  # by inserting the shortcut from the method above and returning that. 
+  @assert !isempty(mod_gens) "method not implemented for empty modulus; try to create the scheme without modulus instead"
   R = ambient_coordinate_ring(W)
-  @assert base_ring(M) === R
+  M = jacobian_matrix(R, mod_gens)
 
   n = nrows(M) # the number of variables in the ambient_ring
   r = ncols(M) # the number of generators
@@ -553,7 +568,8 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
 
     amb_row,amb_col,h = ambient_param_data[U]
     mod_gens = lifted_numerator.(gens(modulus(OO(U))))
-    JM = jacobian_matrix(mod_gens)
+    R = ambient_coordinate_ring(U)
+    JM = jacobian_matrix(R, mod_gens)
     if length(amb_col) < length(mod_gens)
       JM_essential = JM[:, amb_col]
     else
