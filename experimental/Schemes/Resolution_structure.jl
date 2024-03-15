@@ -169,7 +169,6 @@ function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::
   ## I_sl non-empty, we need to do something
   dimX = dim(domain(f))
   if dimX == 1
-@show "overriding algorithm for curve case"
     return _desing_emb_curve(f,I_sl)
 #  elseif ((dimX == 2) && (algorithm == :CJS))
 #    return _desing_CJS(f)
@@ -207,7 +206,6 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
 # here the keyword algorithm ensures that the desired method is called
   dimX = dim(X)
   if dimX == 1
-@show "overriding specified method for curves: use naive method"
     return_value = _desing_curve(X, I_sl)
   end
 #  if ((dimX == 2) && (algorithm==:Lipman))
@@ -454,10 +452,6 @@ function find_refinement_with_local_system_of_params_rec(
     trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
     check::Bool=true
   ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
-  @show row_ind
-  @show col_ind
-  show(stdout, "text/plain", trans_mat)
-  println()
 
   # End of recursion
   n = dim(ambient_coordinate_ring(W))
