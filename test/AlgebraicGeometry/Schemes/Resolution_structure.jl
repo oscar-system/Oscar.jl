@@ -34,11 +34,11 @@ end
   @test is_one(modulus(OO(sl3)))
 end
 
-#@testset "order of an ideal"
-#  R,(x,y,z) = polynomial_ring(QQ,3)
-#  W = CoveredScheme(spec(R))
-#  I = ideal(R,[x*y,x^3+y^3+z^3-x*y*z])
-#  IS = IdealSheaf(W,affine_charts(W)[1], gens(I))
-#  Y = Oscar.max_order_locus(IS)
-#end
+@testset "order of an ideal" begin
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  W = CoveredScheme(spec(R))
+  I = ideal(R,[x*y,x^3+y^3+z^3-x*y*z])
+  IS = IdealSheaf(W,affine_charts(W)[1], gens(I))
+  Y = Oscar.max_order_locus(IS)
+end
 
