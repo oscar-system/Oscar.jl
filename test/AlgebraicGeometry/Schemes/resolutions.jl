@@ -2,7 +2,7 @@
   R, (x, y, z) = QQ[:x, :y, :z]
   f = x^4 + y^2 + z^2
   I = ideal(R, f)
-  IA3 = Spec(R)
+  IA3 = AffineScheme(R)
   inc_X = ClosedEmbedding(IA3, I)
   X = domain(inc_X)
   origin = ideal(R, [x, y, z])
