@@ -530,7 +530,7 @@ end
 function _delta_list(I::AbsIdealSheaf, b::Int=0)
   W = scheme(I)
   is_smooth(W) || error("ambient scheme needs to be smooth")
-  Delta_list = typeof(I)[]
+  Delta_list = AbsIdealSheaf[]
   j = 0
   while (( !is_one(I) && b == 0 ) || ( j < b ))
     push!(Delta_list, I)
