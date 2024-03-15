@@ -124,7 +124,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredCl
   return f
 end
 
-function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::IdealSheaf, b::Int)
+function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealSheaf, b::Int)
   f = BlowUpSequence([phi])
   f.ex_div = [Oscar.exceptional_divisor(phi)]
   f.is_embedded = true
@@ -226,7 +226,7 @@ function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
 end
 
-function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
+function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in desingularization(X) 
   decomp = Oscar.maximal_associated_points(I_sl)
   I = small_generating_set(pop!(decomp))
@@ -251,7 +251,7 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
   return(phi)
 end
 
-function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::IdealSheaf)
+function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in embedded_desingularization(f)
   decomp = Oscar.maximal_associated_points(pushforward(f)(I_sl))
   I = small_generating_set(pop!(decomp))
@@ -329,7 +329,7 @@ function _ensure_ncr(f::AbsDesingMor)
 end
 
 
-function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
+function _do_blow_up(f::AbsDesingMor, cent::AbsIdealSheaf)
   old_sequence = maps(f)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
@@ -338,7 +338,7 @@ function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
   return(f)
 end
 
-function _do_blow_up_embedded(phi::AbsDesingMor,cent::IdealSheaf)
+function _do_blow_up_embedded(phi::AbsDesingMor,cent::AbsIdealSheaf)
   old_sequence = maps(phi)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
@@ -504,11 +504,11 @@ end
 #  locus of order at least b and of maximal order
 ##################################################################################################
 
-function max_order_locus(I::IdealSheaf)
+function max_order_locus(I::AbsIdealSheaf)
   return _delta_list(I)[end]
 end
 
-function locus_of_order_geq_b(I::IdealSheaf, b::Int)
+function locus_of_order_geq_b(I::AbsIdealSheaf, b::Int)
   return _delta_list(I,b)[end]
 end
 
@@ -533,7 +533,7 @@ function _delta_list(inc::CoveredClosedEmbedding)
   return _delta_list(I)
 end
 
-function _delta_list(I::IdealSheaf, b::Int=0)
+function _delta_list(I::AbsIdealSheaf, b::Int=0)
   W = scheme(I)
   is_smooth(W) || error("ambient scheme needs to be smooth")
   Delta_list = typeof(I)[]
@@ -601,7 +601,7 @@ function divisor_intersections_with_X(current_div, I_X)
   scheme(I_X) == scheme(current_div[1]) || error("underlying schemes do not match")
   n_max = dim(I_X)
 
-  inter_div_dict = Dict{Vector{Int},Tuple{IdealSheaf,Int}}()
+  inter_div_dict = Dict{Vector{Int},Tuple{AbsIdealSheaf,Int}}()
   old_keys = Vector{Int}[]
   empty_keys = Vector{Int}[]
   essential_inter = [unit_ideal_sheaf(scheme(I_X))]  # initialize it to the right type
