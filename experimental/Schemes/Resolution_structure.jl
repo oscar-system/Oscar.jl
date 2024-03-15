@@ -124,7 +124,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredCl
   return f
 end
 
-function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::IdealSheaf, b::Int)
+function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealSheaf, b::Int)
   f = BlowUpSequence([phi])
   f.ex_div = [Oscar.exceptional_divisor(phi)]
   f.is_embedded = true
@@ -169,7 +169,6 @@ function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::
   ## I_sl non-empty, we need to do something
   dimX = dim(domain(f))
   if dimX == 1
-@show "overriding algorithm for curve case"
     return _desing_emb_curve(f,I_sl)
 #  elseif ((dimX == 2) && (algorithm == :CJS))
 #    return _desing_CJS(f)
@@ -207,7 +206,6 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
 # here the keyword algorithm ensures that the desired method is called
   dimX = dim(X)
   if dimX == 1
-@show "overriding specified method for curves: use naive method"
     return _desing_curve(X, I_sl)
   end
 #  if ((dimX == 2) && (algorithm==:Lipman))
@@ -226,7 +224,7 @@ function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
 end
 
-function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
+function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in desingularization(X) 
   decomp = Oscar.maximal_associated_points(I_sl)
   I = small_generating_set(pop!(decomp))
@@ -251,7 +249,7 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::IdealSheaf)
   return(phi)
 end
 
-function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::IdealSheaf)
+function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in embedded_desingularization(f)
   decomp = Oscar.maximal_associated_points(pushforward(f)(I_sl))
   I = small_generating_set(pop!(decomp))
@@ -329,7 +327,7 @@ function _ensure_ncr(f::AbsDesingMor)
 end
 
 
-function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
+function _do_blow_up(f::AbsDesingMor, cent::AbsIdealSheaf)
   old_sequence = maps(f)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
@@ -338,7 +336,7 @@ function _do_blow_up(f::AbsDesingMor, cent::IdealSheaf)
   return(f)
 end
 
-function _do_blow_up_embedded(phi::AbsDesingMor,cent::IdealSheaf)
+function _do_blow_up_embedded(phi::AbsDesingMor,cent::AbsIdealSheaf)
   old_sequence = maps(phi)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
@@ -371,13 +369,28 @@ end
 # Refinements to find local systems of parameters
 ########################################################################
 
+function find_refinement_with_local_system_of_params(W::AbsAffineScheme{<:Field, <:MPolyRing}; check::Bool=true)
+  U = PrincipalOpenSubset(W, one(OO(W)))
+  res_cov = Covering([U])
+  R = ambient_coordinate_ring(W)
+  minor_dict = IdDict{AbsAffineScheme, Tuple{Vector{Int}, Vector{Int}, elem_type(R)}}()
+  minor_dict[U] = (Int[], Int[], one(R))
+  return res_cov, minor_dict
+end
+
 function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::Bool=true)
   @check is_smooth(W) "scheme must be smooth"
   @check is_equidimensional(W) "scheme must be equidimensional"
   mod_gens = lifted_numerator.(gens(modulus(OO(W))))::Vector{<:MPolyRingElem}
-  M = jacobi_matrix(mod_gens)
+  # We run into difficulties for the zero ideal as a modulus.
+  # To get the matrix of minors of jac(I) we use `induced_map_on_exterior_power` below.
+  # It is mathematical convention that ⋀⁰R⁰ = R¹. But that's unfortunately not 
+  # coherent with the generic indexing we use in the implementation below. 
+  # Should this assertion lead to problems, one can still replace throwing an error 
+  # by inserting the shortcut from the method above and returning that. 
+  @assert !isempty(mod_gens) "method not implemented for empty modulus; try to create the scheme without modulus instead"
   R = ambient_coordinate_ring(W)
-  @assert base_ring(M) === R
+  M = jacobian_matrix(R, mod_gens)
 
   n = nrows(M) # the number of variables in the ambient_ring
   r = ncols(M) # the number of generators
@@ -439,10 +452,6 @@ function find_refinement_with_local_system_of_params_rec(
     trans_mat::MatrixElem{RingElemType} = change_base_ring(OO(W), jacobi_matrix(mod_gens));
     check::Bool=true
   ) where {PolyType <: MPolyRingElem, RingElemType <: RingElem}
-  @show row_ind
-  @show col_ind
-  show(stdout, "text/plain", trans_mat)
-  println()
 
   # End of recursion
   n = dim(ambient_coordinate_ring(W))
@@ -489,11 +498,11 @@ end
 #  locus of order at least b and of maximal order
 ##################################################################################################
 
-function max_order_locus(I::IdealSheaf)
+function max_order_locus(I::AbsIdealSheaf)
   return _delta_list(I)[end]
 end
 
-function locus_of_order_geq_b(I::IdealSheaf, b::Int)
+function locus_of_order_geq_b(I::AbsIdealSheaf, b::Int)
   return _delta_list(I,b)[end]
 end
 
@@ -518,7 +527,7 @@ function _delta_list(inc::CoveredClosedEmbedding)
   return _delta_list(I)
 end
 
-function _delta_list(I::IdealSheaf, b::Int=0)
+function _delta_list(I::AbsIdealSheaf, b::Int=0)
   W = scheme(I)
   is_smooth(W) || error("ambient scheme needs to be smooth")
   Delta_list = typeof(I)[]
@@ -553,7 +562,8 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding, Cov::Covering,
 
     amb_row,amb_col,h = ambient_param_data[U]
     mod_gens = lifted_numerator.(gens(modulus(OO(U))))
-    JM = jacobian_matrix(mod_gens)
+    R = ambient_coordinate_ring(U)
+    JM = jacobian_matrix(R, mod_gens)
     if length(amb_col) < length(mod_gens)
       JM_essential = JM[:, amb_col]
     else
@@ -585,10 +595,10 @@ function divisor_intersections_with_X(current_div, I_X)
   scheme(I_X) == scheme(current_div[1]) || error("underlying schemes do not match")
   n_max = dim(I_X)
 
-  inter_div_dict = Dict{Vector{Int},Tuple{IdealSheaf,Int}}()
+  inter_div_dict = Dict{Vector{Int},Tuple{AbsIdealSheaf,Int}}()
   old_keys = Vector{Int}[]
   empty_keys = Vector{Int}[]
-  essential_inter = [unit_ideal_sheaf(scheme(I_X))]  # initialize it to the right type
+  essential_inter = AbsIdealSheaf[]
 
 # initialization: each divisor + I_X
   for k in 1:length(current_div)
@@ -637,7 +647,6 @@ function divisor_intersections_with_X(current_div, I_X)
     end
   end
 
-  _ = popfirst!(essential_inter)                    # kill the dummy entry from initialization
   return inter_div_dict, essential_inter
 end
 
