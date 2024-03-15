@@ -208,7 +208,7 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   dimX = dim(X)
   if dimX == 1
 @show "overriding specified method for curves: use naive method"
-    return_value = _desing_curve(X, I_sl)
+    return _desing_curve(X, I_sl)
   end
 #  if ((dimX == 2) && (algorithm==:Lipman))
 #    error("not implemented yet")
@@ -633,8 +633,8 @@ function divisor_intersections_with_X(current_div, I_X)
     # go to next higher number of intersecting divisors
     if is_empty(old_keys)
       old_keys = copy(new_keys)
-      new_keys = copy(empty_keys)    
-    end    
+      new_keys = copy(empty_keys)
+    end
   end
 
   _ = popfirst!(essential_inter)                    # kill the dummy entry from initialization
