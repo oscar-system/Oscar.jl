@@ -1,9 +1,10 @@
 @testset "embedded desingularization of curves" begin
   R,(x,y) = polynomial_ring(QQ,2)
   I=ideal(R,[x^2-y^5])
-  W = CoveredScheme(Spec(R))
-  IS = IdealSheaf(W,affine_charts(W)[1],gens(I))
-  inc_X = Oscar.CoveredClosedEmbedding(W,IS)
+  W = AffineScheme(R)
+  IS = IdealSheaf(W,I)
+  WC = scheme(IS)
+  inc_X = Oscar.CoveredClosedEmbedding(WC,IS)
   phi = Oscar.embedded_desingularization(inc_X)
   @test length(phi.ex_div) == 4
   @test is_empty(singular_locus(domain(phi.embeddings[end]))[1])
@@ -20,8 +21,8 @@ end
 @testset "non-embedded desingularization of curves" begin
   R,(x,y) = polynomial_ring(QQ,2)
   I=ideal(R,[x^2-y^5])
-  W = CoveredScheme(Spec(R))
-  IS = IdealSheaf(W,affine_charts(W)[1],gens(I))
+  W = AffineScheme(R)
+  IS = IdealSheaf(W,I)
   X = subscheme(IS)
   phi = Oscar.desingularization(X)
   @test length(phi.ex_div) == 2
@@ -36,19 +37,20 @@ end
 
 @testset "order of an ideal" begin
   R,(x,y,z) = polynomial_ring(QQ,3)
-  W = CoveredScheme(spec(R))
+  W = AffineScheme(R)
   I = ideal(R,[(x+y)^3+z^4])
-  IS = IdealSheaf(W,affine_charts(W)[1], gens(I))
+  IS = IdealSheaf(W,I)
+  WC = scheme(IS)
   IY = Oscar.max_order_locus(IS)
   decomp = Oscar.maximal_associated_points(IY)
   @test length(decomp) == 1
-  @test decomp[1] == IdealSheaf(W,affine_charts(W)[1],[z,x+y])
-  JS = IdealSheaf(W, affine_charts(W)[1],[x^2*y^2-z^5,x^3])
+  @test decomp[1] == IdealSheaf(W,ideal(R,[z,x+y]), covered_scheme=WC)
+  JS = IdealSheaf(W, ideal(R,[x^2*y^2-z^5,x^3]), covered_scheme=WC)
   li = Oscar._delta_list(JS)
   @test length(li) == 3
   @test li[1] == JS
-  @test Oscar.radical(li[2]) == IdealSheaf(W,affine_charts(W)[1],[x,z])
+  @test Oscar.radical(li[2]) == IdealSheaf(W,ideal(R,[x,z]), covered_scheme=WC)
   @test Oscar.radical(li[2]) == Oscar.radical(Oscar.locus_of_order_geq_b(JS,2))
-  @test Oscar.radical(li[3]) == IdealSheaf(W,affine_charts(W)[1],[x,y,z])
+  @test Oscar.radical(li[3]) == IdealSheaf(W,ideal(R,[x,y,z]),covered_scheme=WC)
 end
 
