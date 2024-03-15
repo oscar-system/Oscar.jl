@@ -63,7 +63,7 @@ end
 ##################################################################################################
 # setting values in DesingMors -- Watch out: only place with direct access to fields!!!
 ##################################################################################################
-function add_map!(f::AbsDesingMor, phi::BlowupMorphism)
+function add_map!(f<:BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
   push!(ex_div, Oscar.exceptional_divisor(phi))
@@ -85,7 +85,7 @@ function initialize_blow_up_sequence(phi::BlowupMorphism)
   return f
 end
 
-function add_map_embedded!(f::AbsDesingMor, phi::BlowupMorphism)
+function add_map_embedded!(f<:BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = typeof(f.ex_div[1])[strict_transform(phi, E) for E in f.ex_div[1:end]]
   push!(ex_div, Oscar.exceptional_divisor(phi))
@@ -229,7 +229,7 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   decomp = Oscar.maximal_associated_points(I_sl)
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
-  phi = initialize_blow_up_sequence(current_blow_up)
+  phi = initialize_blow_up_sequence(current_blow_up)::BlowUpSequence
   decomp = [strict_transform(current_blow_up,J) for J in decomp]
   
   I_sl_temp = I_sl
@@ -254,7 +254,7 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   decomp = Oscar.maximal_associated_points(pushforward(f)(I_sl))
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
-  phi = initialize_embedded_blowup_sequence(current_blow_up,f)
+  phi = initialize_embedded_blowup_sequence(current_blow_up,f)::BlowUpSequence
   decomp = [strict_transform(current_blow_up,J) for J in decomp]
   I_sl_temp = I_sl
   while !is_one(I_sl_temp)
