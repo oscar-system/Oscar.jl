@@ -15,7 +15,7 @@ true
 julia> RS3 = invariant_ring(QQ, symmetric_group(3));
 
 julia> R = polynomial_ring(RS3)
-Multivariate polynomial ring in 3 variables over QQ graded by 
+Multivariate polynomial ring in 3 variables over QQ graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
