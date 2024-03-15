@@ -17,9 +17,9 @@ julia> scalar(T,4,h)
 
 julia> print_decomposition(T, h)
 Decomposing character 9:
-  <1,9> = 1
-  <2,9> = 2
-  <3,9> = 2
+  <1,9> = 1  
+  <2,9> = 2  
+  <3,9> = 2  
   <4,9> = 0  with possible exceptions:
     (2*n1)//(q - 1) ∈ ℤ
   <5,9> = 0  with possible exceptions:
@@ -37,7 +37,6 @@ Decomposing character 9:
     ((q + 1)*n1)//(q^2 + q + 1) ∈ ℤ
     (q*n1)//(q^2 + q + 1) ∈ ℤ
     (n1)//(q^2 + q + 1) ∈ ℤ
-
 julia> chardeg(T, lincomb!(T,[1,2,2],[1,2,3]))
 2*q^3 + 2*q^2 + 2*q + 1
 
