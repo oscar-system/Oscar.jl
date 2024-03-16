@@ -22,6 +22,22 @@
   R,x = polynomial_ring(QQ, "x")
   v = T[f(1), f(1)]
 
+  # test that remove_zero_rows uses the correct epsilon
+  pm_eps = Polymake._get_global_epsilon()
+  @test pm_eps < 0.00005
+
+  pf1 = polyhedron([1.0 0.0; 0.0 1.0; 0.0 0.0], [1.0, 1.0, 0.0])
+  # three proper ineq, minus the zero row but plus the 1,0,0... row
+  @test nrows(Oscar.pm_object(pf1).INEQUALITIES) == 3
+  @test n_vertices(pf1) == 1
+  pf2 = polyhedron([1.0 0.0; 0.0 1.0; 0.0 0.0], [1.0, 1.0, pm_eps/2])
+  @test nrows(Oscar.pm_object(pf2).INEQUALITIES) == 3
+  @test n_vertices(pf2) == 1
+  # non-zero row is not removed
+  pf3 = polyhedron([1.0 0.0; 0.0 1.0; 0.0 0.0], [1.0, 1.0, pm_eps*2])
+  @test nrows(Oscar.pm_object(pf3).INEQUALITIES) == 4
+  @test n_vertices(pf3) == 1
+
   @testset "core functionality" begin
     @test matrix(f, rays(Q1))*v == T[f(2)]
     @test matrix(f, vertices(Q1))*v == T[f(1), f(0), f(1)]
