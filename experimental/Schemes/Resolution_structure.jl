@@ -426,22 +426,6 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
   res_cov = Covering(ref_patches)
   inherit_glueings!(res_cov, Covering(W))
   return res_cov, minor_dict
- #=
-  all_entries = Vector{Int}[[i, j] for i in 1:n for j in 1:r]
-  M_vec = elem_type(R)[M[i, j] for i in 1:n for j in 1:r]
-
-  J = ideal(OO(W), M_vec)
-  lambda_vec = coordinates(one(OO(W)), J)
-  lambda = elem_type(OO(W))[lambda_vec[(i-1)*r + j] for i in 1:n, j in 1:r]
-
-  nonzero_indices_linear = [k for k in 1:length(lambda_vec) if !is_zero(lambda_vec[k])]
-  non_zero_indices = [[i, j] for i in 1:n, j in 1:r if !is_zero(lambda_vec[(i-1)*r + j])]
-
-  for (i, j) in non_zero_indices
-    h_ij = M[i, j]
-    U_ij = PrincipalOpenSubset(W, h_ij)
-  end
-  =#
 end
 
 function find_refinement_with_local_system_of_params_rec(
