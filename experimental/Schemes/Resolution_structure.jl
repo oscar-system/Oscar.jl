@@ -275,7 +275,7 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   return phi
 end
 
-function _ensure_ncr(f::AbsDesingMor)
+function _ensure_ncr!(f::AbsDesingMor)
   current_divs = exceptional_divisor_list(f)
 
 # this first step can only come into play, if the centers were not determined algorithmically
