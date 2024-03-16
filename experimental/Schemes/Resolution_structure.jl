@@ -236,7 +236,7 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   while !is_one(I_sl_temp)
     while length(decomp) > 0
       I = small_generating_set(pop!(decomp))
-      phi = _do_blow_up(phi,I)
+      phi = _do_blow_up!(phi,I)
       if length(decomp)>0 
         decomp = [strict_transform(last_map(phi),J) for J in decomp]
       end
@@ -260,7 +260,7 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   while !is_one(I_sl_temp)
     while length(decomp) > 0
       I = small_generating_set(pop!(decomp))
-      phi = _do_blow_up_embedded(phi,I)
+      phi = _do_blow_up_embedded!(phi,I)
       if length(decomp)>0
         decomp = [strict_transform(last_map(phi),J) for J in decomp]
       end
@@ -270,7 +270,7 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
     decomp = Oscar.maximal_associated_points(I_sl_temp)
   end
 
-  phi = _ensure_ncr(phi)
+  phi = _ensure_ncr!(phi)
   phi.resolves_sing = true
   return phi
 end
@@ -285,7 +285,7 @@ function _ensure_ncr!(f::AbsDesingMor)
     decomp = Oscar.maximal_associated_points(I_bad)
     while length(decomp)>0
       I = small_generating_set(pop!(decomp))
-      f =_do_blow_up_embedded(f,I)
+      f =_do_blow_up_embedded!(f,I)
       if length(decomp)>0
         decomp = [strict_transform(last_map(f),J) for J in decomp]
       end
@@ -305,7 +305,7 @@ function _ensure_ncr!(f::AbsDesingMor)
     decomp = Oscar.maximal_associated_points(pushforward(inc_temp, next_locus ))
     while !is_empty(decomp)
       I = small_generating_set(pop!(decomp))
-      f =_do_blow_up_embedded(f,I)
+      f =_do_blow_up_embedded!(f,I)
       I_X = image_ideal(f.embeddings[end])
       current_divs = [strict_transform(last_map(f),J) for J in current_divs]
       push!(current_divs, exceptional_divisor_list(f)[end])
@@ -318,7 +318,7 @@ function _ensure_ncr!(f::AbsDesingMor)
   _,inter_div = divisor_intersections_with_X(current_divs,I_X)
   while !is_empty(inter_div)
     cent = small_generating_set(pop!(inter_div))
-    f =_do_blow_up_embedded(f,cent)
+    f =_do_blow_up_embedded!(f,cent)
     if length(inter_div)>0
       inter_div = [strict_transform(last_map(f),J) for J in inter_div]
     end
