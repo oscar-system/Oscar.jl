@@ -336,7 +336,7 @@ function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
   return(f)
 end
 
-function _do_blow_up_embedded(phi::AbsDesingMor,cent::AbsIdealSheaf)
+function _do_blow_up_embedded!(phi::AbsDesingMor,cent::AbsIdealSheaf)
   old_sequence = maps(phi)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
