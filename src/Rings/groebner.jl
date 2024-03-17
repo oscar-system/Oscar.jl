@@ -1048,7 +1048,7 @@ function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem
   end
 
   AJ = AlgebraicSolving.Ideal(J.gens.O)
-  AJ.gb[0] = J.gb[degrevlex(base_ring(J))].gens.O
+  AJ.gb[0] = oscar_groebner_generators(J, degrevlex(base_ring(J)), true)
   
   return AlgebraicSolving.normal_form(A, AJ)
 end
