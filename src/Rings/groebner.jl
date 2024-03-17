@@ -305,6 +305,47 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc raw"""
+    standard_basis_with_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
+
+Return a standard basis of `I` with respect to `ordering`. `ordering` needs to be local, the coefficient ring needs to be `QQ`.
+The algorithm first computes a standard basis over a finite field in order to get a highest corner fast. Then this highest corner
+is used to speed up the standard basis computation over `QQ´.
+"""
+function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+    @req is_local(ordering) "Monomial ordering must be local for this variant."
+    @req coefficient_ring(I) == QQ "Base ring must be QQ."
+
+    p = 32003
+    #p = next_prime(rand(2^30:2^31))
+
+    R     = base_ring(I)
+    Rp, t = polynomial_ring(GF(p), R.S)
+    Ip    = ideal(Rp, gens(I))
+    
+    hc = Singular.highcorner(singular_groebner_generators(Ip, ordering))
+    if iszero(hc)
+      #= fall back to general standard basis algorithm =#
+      ssb = Singular.std(singular_generators(I, ordering))
+    else
+      #= construct hc over QQ =#
+      sr = singular_poly_ring(R)
+      sf = base_ring(sr)
+      ct = MPolyBuildCtx(sr)
+      push_term!(ct, sf(1), Singular.leading_exponent_vector(hc))
+      #= apply highest corner variant of standard basis algorithm =#
+      ssb = Singular.std_with_HC(singular_generators(I, ordering), finish(ct))
+    end
+
+    sb = IdealGens(I.gens.Ox, ssb, false)
+    sb.isGB = true
+    sb.ord  = ordering
+    if isdefined(sb, :S)
+        sb.S.isGB = true
+    end
+    return sb
+end
+
+@doc raw"""
     groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
 Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 algorithm.
@@ -1602,7 +1643,6 @@ multi-modular strategy.
 !!! note
     This function is probabilistic and returns a correct result
     only with high probability.
-
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x","y","z"]);
 
