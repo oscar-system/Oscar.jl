@@ -1745,11 +1745,35 @@ Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 
-# Canonical Matrix strategy:
-# - any ModOrdering is embedded into a suitable polynomial ring
-# - take canonical matrix there
-# - take product ordering
-# - pray to the gods
+# For equality checking and hashing
+# we produce a matrix representation by embedding the module (and its ordering) into a polynomial ring
+# then we build the matrix in this ring
+
+function _embedded_ring_ordering(o::ModuleOrdering)
+  return _embedded_ring_ordering(o.o)
+end
+
+function _embedded_ring_ordering(o::ModOrdering)
+  return SymbOrdering(o.ord, o.gens)
+end
+
+function _embedded_ring_ordering(o::AbsGenOrdering)
+  return deepcopy(o)
+end
+
+function _embedded_ring_ordering(o::ModProdOrdering)
+  ea = _embedded_ring_ordering(o.a)
+  shift = maximum(ea.vars)
+  eb = _embedded_ring_ordering(o.b)
+  eb.vars .+= shift 
+  return ea*eb
+end
+
+function _canonical_matrix(o::ModuleOrdering)
+  nvrs = ngens(o.M) + ngens(base_ring(o.M))
+  eo = _embedded_ring_ordering(o)
+  return canonical_matrix(nvrs, eo)
+end
 
 #### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
 
