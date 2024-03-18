@@ -38,6 +38,7 @@ include("MonomialOrder.jl")
 include("RootConversion.jl")
 include("WeylPolytope.jl")
 include("VectorDemazure.jl")
+include("DemazureOperatorsDictionary.jl")
 include("MainAlgorithm.jl")
 include("UserFunctions.jl")
 

@@ -554,36 +554,26 @@ end
 
 
 
-
 function basis_lie_highest_weight_demazure(
   type::Symbol,
   rank::Int,
   highest_weight::Vector{Int},
-  reduced_expression::Vector{Int},
-  # TODO birational_sequence
+  reduced_expression::Vector{Int};
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-
-  # operators_twisted = operators_demazure(L, reduced_expression)
-  # highest_weight_twisted = highest_weight_demazure(L, reduced_expression )
   chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, reduced_expression)
-
-  println("\n operators_twisted: ", operators)
-
-  monomial_basis = basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering; highest_weight_twisted=reduced_expression
+  operators = operators_demazure(L, chevalley_basis, reduced_expression)
+  return basis_lie_highest_weight_compute(
+    L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression=reduced_expression
   )
-
-  return MonomialBasisDemazure(reduced_expression, monomial_basis)
 end
 
 
-# basis_lie_highest_weight with reduced_expression as input and change 1 to  2
+# basis_lie_highest_weight with reduced_expression as input and change 1 to 2
 # Delete highest_weight_twisted
 # Only change v0
-# Option 1: (w can operatre on modul M in matrices_of_operators_gap)
+# Option 1: (w can operate on modul M in matrices_of_operators_gap)
 #   Apply w from right to left on v0   vw = w*v0 
 # Option 2:
 #   #vw = f_{\alpha_{i_1}}^{l_1} \cdots f_{\alpha_{i_s}}^{l_s}.v0_ muss von rechts und f_ (2) muss e_ (1), d.h. 1 nutzen

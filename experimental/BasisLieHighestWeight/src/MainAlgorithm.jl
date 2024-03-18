@@ -3,7 +3,7 @@ function basis_lie_highest_weight_compute(
   highest_weight::Vector{Int},
   operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
   monomial_ordering_symb::Symbol;
-  highest_weight_twisted::Vector{Int}=[-1] 
+  reduced_expression::Vector{Int}=[-1] 
 )
   # Pseudocode:
 
@@ -38,10 +38,6 @@ function basis_lie_highest_weight_compute(
   #     return set_mon
 
   highest_weight = ZZ.(highest_weight)
-  if  highest_weight_twisted == [-1]
-    highest_weight_twisted = highest_weight
-  end
-  highest_weight_twisted = highest_weight_twisted
   # The function precomputes objects that are independent of the highest weight and that can be used in all recursion 
   # steps. Then it starts the recursion and returns the result.
 
@@ -72,7 +68,7 @@ function basis_lie_highest_weight_compute(
     monomial_ordering,
     calc_highest_weight,
     no_minkowski; 
-    highest_weight_twisted=highest_weight_twisted
+    reduced_expression=reduced_expression
   )
 
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
@@ -196,7 +192,7 @@ function compute_monomials(
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}};
-  highest_weight_twisted::Vector{Int},
+  reduced_expression::Vector{Int},
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
@@ -223,7 +219,7 @@ function compute_monomials(
   if is_fundamental(highest_weight) || sum(abs.(highest_weight)) == 0
     push!(no_minkowski, highest_weight)
     set_mon = add_by_hand(
-      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}(); highest_weight_twisted=highest_weight_twisted
+      L, birational_sequence, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}(); reduced_expression=reduced_expression
     )
     push!(calc_highest_weight, highest_weight => set_mon)
     return set_mon
@@ -252,7 +248,7 @@ function compute_monomials(
         monomial_ordering,
         calc_highest_weight,
         no_minkowski; 
-        highest_weight_twisted=highest_weight_twisted
+        reduced_expression=reduced_expression
       )
       mon_lambda_2 = compute_monomials(
         L,
@@ -262,7 +258,7 @@ function compute_monomials(
         monomial_ordering,
         calc_highest_weight,
         no_minkowski; 
-        highest_weight_twisted=highest_weight_twisted
+        reduced_expression=reduced_expression
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
@@ -274,7 +270,7 @@ function compute_monomials(
     if length(set_mon) < gap_dim
       push!(no_minkowski, highest_weight)
       set_mon = add_by_hand(
-        L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon; highest_weight_twisted=highest_weight_twisted
+        L, birational_sequence, ZZx, highest_weight, monomial_ordering, set_mon; reduced_expression=reduced_expression
       )
     end
 
@@ -321,11 +317,25 @@ function add_new_monomials!(
   set_mon::Set{ZZMPolyRingElem},
   zero_coordinates::Vector{Int},
 )
+<<<<<<< HEAD
   # If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   # polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
+=======
+  """
+  If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
+  monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
+  to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
+  Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
+  polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
+  """
+  println("add_new_monomials: ")
+  println("weight_w: ", weight_w)
+  println("zero_coordinates: ", zero_coordinates)
+  println("birational_sequence.weights_alpha: ", birational_sequence.weights_alpha)
+>>>>>>> e55b8df7 (New files)
 
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
@@ -397,38 +407,54 @@ function add_by_hand(
   highest_weight::Vector{ZZRingElem},
   monomial_ordering::MonomialOrdering,
   set_mon::Set{ZZMPolyRingElem};
-  highest_weight_twisted::Vector{Int},
+  reduced_expression::Vector{Int},
 )
   # This function calculates the missing monomials by going through each non full weightspace and adding possible 
   # monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-  println("highest_weight_twisted: ", highest_weight_twisted)
-  reduced_expression = Int.(highest_weight)
-  highest_weight_twisted_true = ZZ.(highest_weight_demazure(L, highest_weight_twisted, reduced_expression))
-  operators_twisted = operators_demazure(L, reduced_expression)
+  # println("reduced_expression: ", reduced_expression)
+  #reduced_expression = Int.(highest_weight)
+  #highest_weight_twisted_true = ZZ.(highest_weight_demazure(L, highest_weight_twisted, reduced_expression))
+  #operators_twisted = operators_demazure(L, reduced_expression)
   
-  weights_w_twisted = [weight(L, op) for op in operators_twisted] # weights of the operators
-  weights_alpha_twisted = [w_to_alpha(L, weight_w) for weight_w in weights_w_twisted] # other root system
+  #weights_w_twisted = [weight(L, op) for op in operators_twisted] # weights of the operators
+  #weights_alpha_twisted = [w_to_alpha(L, weight_w) for weight_w in weights_w_twisted] # other root system
 
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
-  birational_sequence_twisted = BirationalSequence(
-    operators, [asVec(v) for v in operators_twisted], weights_w_twisted, weights_alpha_twisted
-  )
+  # asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
+  #birational_sequence_twisted = BirationalSequence(
+  #  operators, [asVec(v) for v in operators_twisted], weights_w_twisted, weights_alpha_twisted
+  #)
 
   matrices_of_operators = tensor_matrices_of_operators(
-    # L, highest_weight, birational_sequence.operators
-    L, highest_weight_twisted_true, birational_sequence.operators
+    L, highest_weight, birational_sequence.operators
+    # L, highest_weight_twisted_true, birational_sequence.operators
   )
   space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   
   # starting vector v
-  v0 = sparse_row(ZZ, [(1, 1)])
-  
-  push!(set_mon, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = get_dim_weightspace(L, highest_weight)
+  # identify coordinates that are trivially zero because of the action on the generator
+  if reduced_expression == [-1]
+    println("NORMAL WEIGHTSPACES")
+    v0 = sparse_row(ZZ, [(1, 1)])
+    weightspaces = get_dim_weightspace(L, highest_weight)  
+    zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
+  else
+    println("DEMAZURE WEIGHTSPACES")
+    v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators)
+    # v0 = sparse_row(ZZ, [(1, 1)])
+    weightspaces = get_dim_weightspace_demazure(L, highest_weight, reduced_expression)  # demazure
+    zero_coordinates = Int[]
+  end
+  push!(set_mon, ZZx(1))
+
+  println("\n\n")
+  println("v0: ", v0)
+  println("weightspaces: ", weightspaces)
+
+
   # sort the monomials from the minkowski-sum by their weightspaces
   set_mon_in_weightspace = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
@@ -452,12 +478,13 @@ function add_by_hand(
   # Oscar dependendencies. But I plan to reimplement this. 
   # insert known monomials into basis
 
+  println("weights_with_non_full_weightspace: ", weights_with_non_full_weightspace)
   for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
 
   # identify coordinates that are trivially zero because of the action on the generator
-  zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
+  # zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
 
   # calculate new monomials
   for weight_w in weights_with_non_full_weightspace
@@ -601,6 +628,20 @@ function compute_sub_weights(highest_weight::Vector{ZZRingElem})
 end
 
 function operators_demazure(
+  L::LieAlgebraStructure,
+  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  birational_sequence::Vector{Int},
+)
+  @req all(i -> 1 <= i <= num_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
+
+  return [chevalley_basis[1][i] for i in birational_sequence]
+end
+
+
+
+
+
+function operators_demazure_old(
   L::LieAlgebraStructure,
   reduced_expression::Vector{Int},
 )
