@@ -342,6 +342,7 @@ function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering
     if isdefined(sb, :S)
         sb.S.isGB = true
     end
+    I.gb[ordering] = sb
     return sb
 end
 
