@@ -23,28 +23,29 @@ const orderedpkgs = [
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
 
+# force trigger recompile when folder changes
+include_dependency(".")
+
 # Error if something is incomplete in experimental
 for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
+    haskey(ENV, "OSCAR_TEST_NOEXPERIMENTAL") && continue
     error("experimental/$pkg is incomplete: $pkg/src/$pkg.jl missing. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
   path = joinpath(expdir, pkg, "test")
   if !isdir(path) || length(filter(endswith(".jl"), readdir(path))) == 0
     error("experimental/$pkg is incomplete: $pkg/test/ missing or empty. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
-end
-
-# force trigger recompile when folder changes
-include_dependency(".")
-
-for pkg in Oscar.exppkgs
+  # Load the package
   include("$pkg/src/$pkg.jl")
 end
 
 # Force some structure for `oldexppkgs`
 for pkg in oldexppkgs
   if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
+    haskey(ENV, "OSCAR_TEST_NOEXPERIMENTAL") && continue
     error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
   end
+  # Load the package
   include("$pkg/$pkg.jl")
 end
