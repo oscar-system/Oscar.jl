@@ -44,6 +44,8 @@ function get_dim_weightspace(L::LieAlgebraStructure, highest_weight::Vector{ZZRi
       weightspaces[highest_weight - weight] = dim
     end
   end
+  println("get_dim_weightspace: ", weightspaces)
+
   return weightspaces
 end
 

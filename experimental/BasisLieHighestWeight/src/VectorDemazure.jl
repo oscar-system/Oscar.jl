@@ -24,8 +24,8 @@ function demazure_vw(
     lambda::Vector{ZZRingElem},
     matrices_of_operators,
 )
-    println("")
-    println("matrices_of_operators: ")
+    #println("")
+    #println("matrices_of_operators: ")
     for mat in matrices_of_operators
         # println(Matrix(mat))
         println(transpose(Matrix(mat)))
@@ -38,29 +38,28 @@ function demazure_vw(
     s = length(reduced_expression)
 
     # Write lambda as sum of simple roots in GAP
-    lambda_gap = simple_roots[1] - simple_roots[1]
-    for i in 1:length(lambda)
-        lambda_gap = lambda_gap + Int(lambda[i]) * simple_roots[i]
-    end
-    println("lambda in GAP: ", lambda_gap)
+    lambda_gap = GAP.Obj(Int.(lambda))
+    #println("lambda in GAP: ", lambda_gap)
 
     # Calculate l_j = w^{-1} w_{s+1-j} ... w^{-1} w_{s} lambda
     l_j = []
+    extremal_weight = []
     for j in 0:(s-1)
-        println("")
-        println("j = ", j)
+        #println("")
+        #println("j = ", j)
 
         wj_lambda = copy(lambda_gap)
         for i in s:-1:(s + 1 - j)
-            println("i = ", i)
+            #println("i = ", i)
 
             GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[i], wj_lambda)
+            #println("wj_lambda: ", wj_lambda)
 
             # Twist with w^{-1} = w_s ... w_1
-            for k in 1:s
-                print(" ", k)
-                GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], wj_lambda)
-            end
+            #for k in 1:s
+            #    print(" ", k)
+            #    wj_lambda = GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], wj_lambda)
+            #end
         end
 
         # Felix comment:
@@ -70,46 +69,45 @@ function demazure_vw(
         #end
 
 
-        println("start twist: ", wj_lambda)
         # Twist with w^{-1} = w_s ... w_1
         #for k in 1:s
         #    print(" ", k)
         #    GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], wj_lambda)
         #end
-        println("middle twist: ", wj_lambda)
         #for k in 1:s
         #    print(" ", s-k+1)
         #    GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[s-k+1], wj_lambda)
         #end
-        println("end twist: ", wj_lambda)
 
         # Convert wj_lambda to alpha basis
-        wj_lambda = w_to_alpha(L, ZZ.(wj_lambda))
-        println("in alpha_i: ", wj_lambda)
+        # wj_lambda = w_to_alpha(L, ZZ.(wj_lambda))
+        # println("in alpha_i: ", wj_lambda)
         
-        l_smj = Int.(wj_lambda)[reduced_expression[s - j]]
+        l_smj = wj_lambda[reduced_expression[s - j]]
 
-        println("w_j * lambda = ", wj_lambda)
-        println("l_{s-j} = ", l_smj)
+        #println("w_j * lambda = ", wj_lambda)
+        #println("l_{s-j} = ", l_smj)
         pushfirst!(l_j, l_smj)
+
+        extremal_weight = ZZ.(wj_lambda)  
     end
     println("l_j: ", l_j)
 
     # Calculate vw
     vw = sparse_row(ZZ, [(1, 1)])
     for j in length(l_j):-1:1
-        println("j: ", j, " l_j:", l_j[j])
+        #println("j: ", j, " l_j:", l_j[j])
         for _ in 1:l_j[j]
-            mat = transpose(matrices_of_operators[j])
-            vw = vw * mat
-            # vw = vw * matrices_of_operators[j]
+            #mat = transpose(matrices_of_operators[j])
+            #vw = vw * mat
+            vw = vw * matrices_of_operators[j]
         end
-        println("vw, j: ", j, " ", vw)
+        # println("vw, j: ", j, " ", vw)
     end
 
     println("vw: ", vw)
 
-    return vw
+    return vw, extremal_weight
 end
 
 #lie_alg = lie_algebra(:A, 2)

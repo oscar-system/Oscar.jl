@@ -32,6 +32,10 @@ function calc_base_dicts(base::Oscar.BasisLieHighestWeight.MonomialBasis)::Vecto
   return base_dicts
 end
 
+# TODO Test with B3, highest_weight = [2, 2, 2], reduced_expression = [3, 2, 3, 1, 2, 3, 1, 2, 1]
+# Oder kleiner test
+
+
 @testset "Test DemazureOperatorsDimensions" begin
   type = :A
   rank = 4

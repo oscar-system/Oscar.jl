@@ -74,9 +74,15 @@ function basis_lie_highest_weight_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
+<<<<<<< HEAD
   mb = MonomialBasis(L, highest_weight, birational_sequence, monomial_ordering, set_mon)
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
+=======
+
+  return MonomialBasis(
+    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
+>>>>>>> 1fc74fe2 (Demazure module)
   )
   return mb
 end
@@ -357,6 +363,10 @@ function add_new_monomials!(
   end
   number_mon_in_weightspace = length(set_mon_in_weightspace[weight_w])
   # go through possible monomials one by one and check if it extends the basis
+  println("weight_w: ", weight_w)
+  println("poss_mon_in_weightspace: ", poss_mon_in_weightspace)
+  println("set_mon: ", set_mon)
+
   while number_mon_in_weightspace < dim_weightspace
     i += 1
     mon = poss_mon_in_weightspace[i]
@@ -439,13 +449,15 @@ function add_by_hand(
   if reduced_expression == [-1]
     println("NORMAL WEIGHTSPACES")
     v0 = sparse_row(ZZ, [(1, 1)])
-    weightspaces = get_dim_weightspace(L, highest_weight)  
+    weightspaces = get_dim_weightspace(L, highest_weight)
     zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
   else
     println("DEMAZURE WEIGHTSPACES")
-    v0 = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators)
+    v0, extremal_weight = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators)
     # v0 = sparse_row(ZZ, [(1, 1)])
-    weightspaces = get_dim_weightspace_demazure(L, highest_weight, reduced_expression)  # demazure
+    # weightspaces = get_dim_weightspace_demazure(L, highest_weight, reduced_expression)  # demazure
+    println("extremal_weight: ", extremal_weight)
+    weightspaces = get_dim_weightspace_demazure(L, highest_weight, extremal_weight, reduced_expression)  # demazure
     zero_coordinates = Int[]
   end
   push!(set_mon, ZZx(1))
