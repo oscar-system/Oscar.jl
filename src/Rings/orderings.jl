@@ -1775,6 +1775,14 @@ function _canonical_matrix(o::ModuleOrdering)
   return canonical_matrix(nvrs, eo)
 end
 
+function Base.:(==)(o1::ModuleOrdering, o2::ModuleOrdering)
+  return _canonical_matrix(o1) == _canonical_matrix(o2)
+end
+
+function Base.hash(o::ModuleOrdering, h::UInt)
+  return hash(_canonical_matrix(o), h)
+end
+
 #### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
 
 function _cmp_vector_monomials(
