@@ -13,11 +13,11 @@ struct SubdivisionOfPoints{T} <: PolyhedralObject{T}
 end
 
 
-# default scalar type: `QQFieldElem`
+# default scalar type: guess from input, fallback to QQ
 subdivision_of_points(points::AbstractCollection[PointVector], cells) =
-  subdivision_of_points(QQFieldElem, points, cells)
+  subdivision_of_points(_guess_fieldelem_type(points), points, cells)
 subdivision_of_points(points::AbstractCollection[PointVector], weights::AbstractVector) =
-  subdivision_of_points(QQFieldElem, points, weights)
+  subdivision_of_points(_guess_fieldelem_type(points), points, weights)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
@@ -58,7 +58,7 @@ function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollecti
   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
   arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
+    POINTS = homogenized_matrix(points,1),
     MAXIMAL_CELLS = arr,
   ), parent_field)
 end
@@ -95,7 +95,7 @@ function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollecti
   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
   SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
+    POINTS = homogenized_matrix(points,1),
     WEIGHTS = weights,
   ), parent_field)
 end

@@ -223,12 +223,12 @@ end
 # Assume that `FO` and `FG` are cyclotomic fields with the same conductor
 # in Oscar and GAP, respectively.
 # (Cyclotomic fields are easier to handle than general number fields.)
-function _iso_oscar_gap_field_cyclotomic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::GAP.GapObj)
    N = conductor(FO)
    cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 
-   f = function(x::Nemo.nf_elem)
+   f = function(x::Nemo.AbsSimpleNumFieldElem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
       return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
    end
@@ -251,7 +251,7 @@ end
 # Assume that `FO` and `FG` are quadratic fields with the same square root
 # in Oscar and GAP, respectively.
 # (Quadratic fields are easier to handle than general number fields.)
-function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.GapObj)
+function _iso_oscar_gap_field_quadratic_functions(FO::AbsSimpleNumField, FG::GAP.GapObj)
    flag, N = Hecke.is_quadratic_type(FO)
    @assert flag
 
@@ -261,7 +261,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AnticNumberField, FG::GAP.
    zG = GAPWrap.Sqrt(GAP.Obj(N))
    B = GAPWrap.BasisNC(FG, GapObj([oG, zG]))
 
-   f = function(x::Nemo.nf_elem)
+   f = function(x::Nemo.AbsSimpleNumFieldElem)
       return GAP.Obj(coeff(x,0)) * oG + GAP.Obj(coeff(x,1)) * zG
    end
 
@@ -285,6 +285,10 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
    elseif flag2
      FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
      f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
+   elseif degree(FO) == 1
+     FG = GAP.Globals.Rationals::GapObj
+     f = x -> GAP.Obj(coeff(x, 0))
+     finv = x -> FO(QQ(x))
    else
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
@@ -402,8 +406,8 @@ Admissible values of `R` and the corresponding `S` are currently as follows.
 |:------------------------------------ |:---------------------------------- |
 | `ZZ`                                 | `Integers`                         |
 | `QQ`                                 | `Rationals`                        |
-| `residue_ring(ZZ, n)`                | `mod(Integers, n)`                 |
-| `finite_field(p, d)[1]`               | `GF(p, d)`                        |
+| `residue_ring(ZZ, n)[1]`             | `mod(Integers, n)`                 |
+| `finite_field(p, d)[1]`              | `GF(p, d)`                        |
 | `cyclotomic_field(n)[1]`             | `CF(n)`                            |
 | `number_field(f::QQPolyRingElem)[1]` | `AlgebraicExtension(Rationals, g)` |
 | `abelian_closure(QQ)[1]`             | `Cyclotomics`                      |

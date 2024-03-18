@@ -26,7 +26,7 @@ power_base_to_hom_gens(HBB::HomBasisBuilder) = HBB.power_base_to_hom_gens
 
 # Computes for any element g in gens(G) a matrix N such that
 # (e_i*N)*polys == G_action(polys[i], g)
-function action_on_basis(G::GrpAbFinGen, G_action::Function, polys::Vector{<: MPolyRingElem{T}}) where {T <: FieldElem}
+function action_on_basis(G::FinGenAbGroup, G_action::Function, polys::Vector{<: MPolyRingElem{T}}) where {T <: FieldElem}
   @req !isempty(polys) "Input must not be empty"
 
   R = parent(polys[1])
@@ -43,8 +43,7 @@ function action_on_basis(G::GrpAbFinGen, G_action::Function, polys::Vector{<: MP
     # Little bit of a waste to recompute the rref of M all the time.
     # But I don't see how to do it better and mats should not contain many
     # elements anyways.
-    fl, sol = can_solve_with_solution(M, N, side = :left)
-    @assert fl
+    sol = solve(M, N, side = :left)
 
     push!(res, sol)
   end
@@ -140,8 +139,7 @@ function fill_degree!(HBB::HomBasisBuilder, d::Int)
     M = vcat(M, N)
   end
 
-  fl, sol = can_solve_with_solution(V, M, side = :left)
-  @assert fl
+  sol = solve(V, M, side = :left)
 
   # The i-th row of sol gives the coefficient of inhom_gens[row_to_gen[i]] in
   # the basis hom_basisd.
@@ -264,7 +262,7 @@ function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Sy
 
   invars = elem_type(R)[ forget_grading(StoR(x)) for x in gens(S) ]
 
-  if istrivial(A)
+  if is_trivial(A)
     T = grade(forget_grading(S), [ zero(A) for i in 1:ngens(S) ])[1]
 
     relsT = elem_type(T)[ T(forget_grading(r)) for r in gens(modulus(Q)) ]

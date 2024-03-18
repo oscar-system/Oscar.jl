@@ -311,7 +311,7 @@ end
 ###################################################################
 # This function is also private/local to this file.
 
-# Think of a graph where each vertex is labelled by an indeterminate.
+# Think of a graph where each vertex is labeled by an indeterminate.
 # Each PP in the list L is interpreted as saying that all indeterminates
 # involved in that PP are "connected".  The task is to find (minimal)
 # connected components of the entire graph.
@@ -1099,7 +1099,7 @@ function _hilbert_series_ring(parent::Union{Nothing, Ring}, m::Int)
   if m == 1
     VAR = [:t]
   else
-    VAR = [_make_variable("t", i) for i = 1:m]
+    VAR = [Symbol("t[$i]") for i = 1:m]
   end
   HSRing, _ = laurent_polynomial_ring(ZZ, VAR)
   return HSRing

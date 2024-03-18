@@ -160,22 +160,22 @@ end
 
 
 @doc raw"""
-    npolyhedra(TropV::TropicalVariety)
+    n_polyhedra(TropV::TropicalVariety)
 
 Return the number of polyhedra of `TropV`.
 """
-function npolyhedra(TropV::TropicalVarietySupertype)
-    return npolyhedra(TropV.polyhedralComplex)
+function n_polyhedra(TropV::TropicalVarietySupertype)
+    return n_polyhedra(TropV.polyhedralComplex)
 end
 
 
 @doc raw"""
-    nvertices(TropV::TropicalVariety)
+    n_vertices(TropV::TropicalVariety)
 
 Return the number of vertices of `TropV`.
 """
-function nvertices(TropV::TropicalVarietySupertype)
-    return nvertices(TropV.polyhedralComplex)
+function n_vertices(TropV::TropicalVarietySupertype)
+    return n_vertices(TropV.polyhedralComplex)
 end
 
 

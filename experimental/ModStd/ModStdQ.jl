@@ -6,7 +6,7 @@ import Oscar: MPolyIdeal, BiPolyArray, IdealGens, Hecke, AbstractAlgebra
 import Hecke: induce_rational_reconstruction, induce_crt
 
 function __init__()
-  Hecke.add_verbose_scope(:ModStdQ)
+  Hecke.add_verbosity_scope(:ModStdQ)
 end
 
 function (R::fpMPolyRing)(f::QQMPolyRingElem)
@@ -69,7 +69,7 @@ function exp_groebner_assure(I::MPolyIdeal{QQMPolyRingElem}, ord::Symbol = :degr
     p = iterate(ps, p)[1]
     @vprint :ModStdQ 2 "Main loop: using $p\n"
 #    nbits(d) > 1700 && error("too long")
-    R = residue_ring(ZZ, Int(p)) #fpMPolyRingElem missing...
+    R = residue_ring(ZZ, Int(p))[1] #fpMPolyRingElem missing...
     Rt, t = polynomial_ring(R, symbols(Qt), cached = false)
     @vtime :ModStdQ 3 Ip = Oscar.IdealGens([Rt(x) for x = gI], keep_ordering = false)
     Gp = Oscar.exp_groebner_basis(Ip, ord = ord, complete_reduction = true)

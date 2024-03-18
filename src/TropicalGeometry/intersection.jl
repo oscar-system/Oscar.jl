@@ -28,7 +28,7 @@ function stable_intersection(TropV1::TropicalVarietySupertype{minOrMax,true}, Tr
                 sigma12 = intersect(sigma1, sigma2)
                 i = findfirst(isequal(sigma12), Sigma12)
                 if isnothing(i)
-                    push!(Sigma12, intersect(sigma1, sigma2))
+                    push!(Sigma12, sigma12)
                     push!(mults12, m1*m2*tropical_intersection_multiplicity(sigma1,sigma2))
                 else
                     mults12[i] += m1*m2*tropical_intersection_multiplicity(sigma1,sigma2)
@@ -58,7 +58,7 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     M = hcat(M, zero_matrix(QQ, nrows(M), 1))
     N = affine_equation_matrix(affine_hull(sigma1))
     N = hcat(N, zero_matrix(QQ, nrows(N), 1))
-    sigma1Prime = polyhedron((M[:,2:end],[-M[:,1]...]), (N[:,2:end],[-N[:,1]...]))
+    sigma1Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...]))
 
     # construct sigma2Prime = (sigma2 x {0}) + RR_{>=0} * (perturbation,1)
     M = affine_inequality_matrix(facets(sigma2))
@@ -68,7 +68,7 @@ function intersect_after_perturbation(sigma1::Polyhedron{QQFieldElem}, sigma2::P
     v = zero_matrix(QQ, 1, ncols(N))
     v[1,end] = 1 # v = last unit vector
     N = vcat(N, v)
-    sigma2Prime = polyhedron((M[:,2:end],[-M[:,1]...]), (N[:,2:end],[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
+    sigma2Prime = polyhedron((M[:,2:end],QQFieldElem[-M[:,1]...]), (N[:,2:end],QQFieldElem[-N[:,1]...])) + convex_hull(zero_matrix(QQ, 1, ncols(N) - 1), matrix(QQ, [vcat(perturbation, [1])]))
 
     sigma12Prime = intersect(sigma1Prime, sigma2Prime)
     # @req codim(sigma1Prime)+codim(sigma2Prime)==codim(sigma12Prime) "perturbation "*string(perturbation)*" not generic"
@@ -82,18 +82,17 @@ end
 # Output: the tropical intersection number as defined in [Maclagan-Sturmfels, Definition 3.6.5]
 # todo: rewrite function below so that it takes polyhedra as input
 function tropical_intersection_multiplicity(sigma1::Polyhedron,sigma2::Polyhedron)
-    B1 = kernel_basis(affine_equation_matrix(affine_hull(sigma1))[:,2:end])
-    B1 = matrix(ZZ,[ numerator.(b .* lcm(denominator.(b))) for b in B1 ])
+    B1 = kernel(affine_equation_matrix(affine_hull(sigma1))[:,2:end], side = :right)
+    B1 = matrix(ZZ,[ numerator.(B1[:, i] .* lcm(denominator.(B1[:, i]))) for i in 1:ncols(B1) ])
     B1 = saturate(B1)
 
-    B2 = kernel_basis(affine_equation_matrix(affine_hull(sigma2))[:,2:end])
-    B2 = matrix(ZZ,[ numerator.(b .* lcm(denominator.(b))) for b in B2 ])
+    B2 = kernel(affine_equation_matrix(affine_hull(sigma2))[:,2:end], side = :right)
+    B2 = matrix(ZZ,[ numerator.(B2[:, i] .* lcm(denominator.(B2[:, i]))) for i in 1:ncols(B2) ])
     B2 = saturate(B2)
 
     @req ncols(B1) == ncols(B2) && nrows(B1)+nrows(B2) >= ncols(B1) "polyhedra do not span ambient space"
 
-    snfB12 = snf(vcat(B1,B2))
-    return abs(prod([snfB12[i,i] for i in 1:ncols(snfB12)]))
+    return abs(prod(elementary_divisors(vcat(B1,B2))))
 end
 
 

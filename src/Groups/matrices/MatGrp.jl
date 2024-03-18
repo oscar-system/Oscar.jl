@@ -102,13 +102,7 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   error("$x has neither :X nor :elm")
 end
 
-function change_base_ring(R::Ring, G::MatrixGroup)
-  g = dense_matrix_type(R)[]
-  for h in gens(G)
-    push!(g, map_entries(R, h.elm))
-  end
-  return matrix_group(g)
-end
+change_base_ring(R::Ring, G::MatrixGroup) = map_entries(R, G)
 
 ########################################################################
 #
@@ -117,12 +111,13 @@ end
 ########################################################################
 
 function _print_matrix_group_desc(io::IO, x::MatrixGroup)
+  io = pretty(io)
+  print(io, LowercaseOff(), string(x.descr), "(", x.deg ,",")
   if x.descr==:GU || x.descr==:SU
-    print(io, string(x.descr), "(",x.deg,",",characteristic(x.ring)^(div(degree(x.ring),2)),")")
+    print(io, characteristic(x.ring)^(div(degree(x.ring),2)),")")
   elseif x.ring isa Field && is_finite(x.ring)
-    print(io, string(x.descr), "(",x.deg,",",order(x.ring),")")
+    print(io, order(x.ring),")")
   else
-    print(io, string(x.descr), "(",x.deg,",")
     print(IOContext(io, :supercompact => true), x.ring)
     print(io ,")")
   end
@@ -131,7 +126,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   println(io, "Matrix group of degree ", degree(x))
-  io = AbstractAlgebra.pretty(io)
+  io = pretty(io)
   print(io, Indent())
   print(io, "over ", Lowercase(), base_ring(x))
   print(io, Dedent())
@@ -204,12 +199,25 @@ function assign_from_description(G::MatrixGroup)
 end
 
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-function Base.getproperty(G::MatrixGroup, sym::Symbol)
+function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
    isdefined(G,sym) && return getfield(G,sym)
 
    if sym === :ring_iso
-      G.ring_iso = iso_oscar_gap(G.ring)
+      if T === QQBarFieldElem
+         # get all matrix entries into one vector
+         entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
+         # construct a number field over which all matrices are already defined
+         nf, nf_to_QQBar = number_field(QQ, entries)
+         psi = pseudo_inv(nf_to_QQBar)
+         iso = iso_oscar_gap(nf)
+         G.ring_iso = MapFromFunc(G.ring, codomain(iso),
+                                  x -> iso(preimage(nf_to_QQBar, x)),
+                                  y -> preimage(iso,nf_to_QQBar(y))
+                                  )
+      else
+         G.ring_iso = iso_oscar_gap(G.ring)
+      end
 
    elseif sym === :X
       if isdefined(G,:descr)
@@ -241,17 +249,10 @@ end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-function Base.iterate(G::MatrixGroup)
-  L=GAPWrap.Iterator(G.X)::GapObj
-  @assert ! GAPWrap.IsDoneIterator(L)
-  i = GAPWrap.NextIterator(L)::GapObj
-  return MatrixGroupElem(G, i), L
-end
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return MatrixGroupElem(G, i), state
 end
@@ -437,18 +438,18 @@ matrix(x::MatrixGroupElem) = x.elm
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
 
 """
-    nrows(x::MatrixGroupElem)
+    number_of_rows(x::MatrixGroupElem)
 
 Return the number of rows of the underlying matrix of `x`.
 """
-nrows(x::MatrixGroupElem) = nrows(matrix(x))
+number_of_rows(x::MatrixGroupElem) = number_of_rows(matrix(x))
 
 """
-    ncols(x::MatrixGroupElem)
+    number_of_columns(x::MatrixGroupElem)
 
 Return the number of columns of the underlying matrix of `x`.
 """
-ncols(x::MatrixGroupElem) = ncols(matrix(x))
+number_of_columns(x::MatrixGroupElem) = number_of_columns(matrix(x))
 
 #
 size(x::MatrixGroupElem) = size(matrix(x))
@@ -504,14 +505,22 @@ function gens(G::MatrixGroup)
    return G.gens
 end
 
-gen(G::MatrixGroup, i::Int) = gens(G)[i]
+# Note that the `gen(G::GAPGroup, i::Int)` method cannot be used
+# for `MatrixGroup` because of the `:gens` attribute.
+function gen(G::MatrixGroup, i::Int)
+  i == 0 && return one(G)
+  L = gens(G)
+  0 < i && i <= length(L) && return L[i]
+  i < 0 && -i <= length(L) && return inv(L[-i])
+  @req false "i must be in the range -$(length(L)):$(length(L))"
+end
 
-ngens(G::MatrixGroup) = length(gens(G))
+number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
 compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
 
-function compute_order(G::MatrixGroup{T}) where {T <: Union{nf_elem, QQFieldElem}}
+function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the Rationals or over a number field,
     the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
@@ -540,6 +549,53 @@ function order(::Type{T}, G::MatrixGroup) where T <: IntegerUnion
    return T(res)::T
 end
 
+"""
+    map_entries(f, G::MatrixGroup)
+
+Return the matrix group obtained by applying `f` element-wise to
+each generator of `G`.
+
+`f` can be a ring or a field, a suitable map, or a Julia function.
+
+# Examples
+```jldoctest
+julia> mat = matrix(ZZ, 2, 2, [1, 1, 0, 1]);
+
+julia> G = matrix_group(mat);
+
+julia> G2 = map_entries(x -> -x, G)
+Matrix group of degree 2
+  over integer ring
+
+julia> is_finite(G2)
+false
+
+julia> order(map_entries(GF(3), G))
+3
+```
+"""
+function map_entries(f, G::MatrixGroup)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    z = f(zero(base_ring(G)))
+    return matrix_group(parent(z), degree(G), MatrixGroupElem[])
+  else
+    imgs = [map_entries(f, matrix(x)) for x in gens(G)]
+    return matrix_group(imgs)
+  end
+end
+
+function map_entries(R::Ring, G::MatrixGroup)
+  imgs = [map_entries(R, matrix(x)) for x in gens(G)]
+  return matrix_group(R, degree(G), imgs)
+end
+
+function map_entries(mp::Map, G::MatrixGroup)
+  imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
+  return matrix_group(codomain(mp), degree(G), imgs)
+end
+
+
 ########################################################################
 #
 # Constructors
@@ -565,7 +621,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = general_linear_group(2,F)
 GL(2,7)
@@ -599,7 +655,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_linear_group(2,F)
 SL(2,7)
@@ -634,7 +690,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -671,7 +727,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = symplectic_group(2,F)
 Sp(2,7)
@@ -723,7 +779,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = special_orthogonal_group(1,2,F)
 SO+(2,7)
@@ -776,7 +832,7 @@ Currently, this function only supports rings of type `FqField`.
 # Examples
 ```jldoctest
 julia> F = GF(7,1)
-Finite field of degree 1 over GF(7)
+Prime field of characteristic 7
 
 julia> H = omega_group(1,2,F)
 Omega+(2,7)

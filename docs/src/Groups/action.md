@@ -52,11 +52,17 @@ A G-set provides an explicit bijection between the elements of the set and
 the corresponding set of positive integers on which the induced permutation
 group acts,
 see [`action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup`](@ref).
+Note that the explicit elements of a G-set `Omega` can be obtained using
+`collect(Omega)`.
 
 ```@docs
 gset(G::GAPGroup, fun::Function, Omega)
 permutation
+acting_group(Omega::GSetByElements)
+action_function(Omega::GSetByElements)
 action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
+is_conjugate(Omega::GSet, omega1, omega2)
+is_conjugate_with_data(Omega::GSet, omega1, omega2)
 orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
 orbit(G::PermGroup, omega)
 orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup

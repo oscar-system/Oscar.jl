@@ -168,7 +168,8 @@ end
                    (leading_coefficient(f), leading_exponent(f))
 
    Fp = GF(7)
-   R, (x, y, z) = polynomial_ring(Fp, 3, ordering = :deglex)
+   # Explicitly using an ordering different from the internal_ordering
+   R, (x, y, z) = polynomial_ring(Fp, 3, internal_ordering = :deglex)
    f = x*y + 5*z^3
    @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
    @test leading_monomial(f; ordering = lex(R)) == x*y
@@ -212,7 +213,7 @@ function test_opposite_ordering(a)
   R = base_ring(a)
   b = opposite_ordering(R, a)
   M = matrix(a)
-  N = reduce(hcat, [M[:,i] for i in ncols(M):-1:1])
+  N = reduce(hcat, [M[:,i:i] for i in ncols(M):-1:1])
   @test b == matrix_ordering(gens(R), N)
   @test a == opposite_ordering(R, b)
 end
@@ -322,7 +323,7 @@ end
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, singular(O))
-      @test O == monomial_ordering(R, ordering(singular_poly_ring(R, O)))
+      @test O == monomial_ordering(R, Singular.ordering(singular_poly_ring(R, O)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))

@@ -99,7 +99,7 @@ function collect_subfields(C::Oscar.GaloisGrp.GaloisCtx{Hecke.qAdicRootCtx},filt
       # pseudotest / other with VB
       #TODO
       SF = Oscar.GaloisGrp.subfield(S, bls)
-      if typeof(SF) == Tuple{AnticNumberField, NfToNfMor} # i.e not equal nothing -> update SF
+      if typeof(SF) == Tuple{AbsSimpleNumField, NumFieldHom} # i.e not equal nothing -> update SF
         push!(FieldList,(bls,SF))
         push!(VB,bls)
       end

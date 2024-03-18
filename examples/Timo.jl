@@ -8,9 +8,9 @@ function timo(f::QQPolyRingElem, p_all::Vector{Int})
 
   all_g = [x for x = G]
   @show :aut
-  @time au = Oscar.SolveRadical.recognise(S, K, [K.pe^g for g = all_g])
+  @time au = Oscar.SolveRadical.recognize(S, K, [K.pe^g for g = all_g])
 #  au = Hecke.closure([hom(k.fld, k.fld, x) for x = au])
-#recognise seems to be faster than closure - and keeps the link
+#recognize seems to be faster than closure - and keeps the link
 #between the Galois group and the automorphisms
   @time au = [hom(K.fld, K.fld, x, check = false) for x = au]
   

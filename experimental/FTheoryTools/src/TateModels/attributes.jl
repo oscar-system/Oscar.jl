@@ -202,7 +202,7 @@ Weierstrass model over a not fully specified base -- SU(5)xU(1) restricted Tate 
   # Compute parametrization of Weierstrass sections
   parametrization = defining_section_parametrization(t)
   param_keys = collect(keys(parametrization))
-  new_defining_section_parametrization = Dict{String, MPolyElem}()
+  new_defining_section_parametrization = Dict{String, MPolyRingElem}()
   if length(param_keys) > 0
     # Find ring to evaluate polynomials into
     R = parent(parametrization[param_keys[1]])
@@ -352,7 +352,7 @@ julia> length(singular_loci(t))
 2
 
 julia> singular_loci(t)[2]
-(ideal(w), (1, 2, 3), "III")
+(Ideal (w), (1, 2, 3), "III")
 ```
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(t::GlobalTateModel)

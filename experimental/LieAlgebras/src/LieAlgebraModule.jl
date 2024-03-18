@@ -54,7 +54,7 @@ Return the Lie algebra `V` is a module over.
 """
 base_lie_algebra(V::LieAlgebraModule) = V.L
 
-ngens(L::LieAlgebraModule) = dim(L)
+number_of_generators(L::LieAlgebraModule) = dim(L)
 
 gens(L::LieAlgebraModule) = basis(L)
 
@@ -155,12 +155,12 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
   io = pretty(io)
   println(io, _module_type_to_string(V))
   println(io, Indent(), "of dimension $(dim(V))")
-  if is_dual(V)[1] ||
-    is_direct_sum(V)[1] ||
-    is_tensor_product(V)[1] ||
-    is_exterior_power(V)[1] ||
-    is_symmetric_power(V)[1] ||
-    is_tensor_power(V)[1]
+  if _is_dual(V)[1] ||
+    _is_direct_sum(V)[1] ||
+    _is_tensor_product(V)[1] ||
+    _is_exterior_power(V)[1] ||
+    _is_symmetric_power(V)[1] ||
+    _is_tensor_power(V)[1]
     _show_inner(io, V)
   end
   print(io, Dedent())
@@ -169,38 +169,38 @@ function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
 end
 
 function _show_inner(io::IO, V::LieAlgebraModule)
-  if is_standard_module(V)
+  if _is_standard_module(V)
     println(io, "standard module")
-  elseif ((fl, W) = is_dual(V); fl)
+  elseif ((fl, W) = _is_dual(V); fl)
     println(io, "dual of ", Lowercase())
     print(io, Indent())
     _show_inner(io, W)
     print(io, Dedent())
-  elseif ((fl, Ws) = is_direct_sum(V); fl)
+  elseif ((fl, Ws) = _is_direct_sum(V); fl)
     println(io, "direct sum with direct summands")
     print(io, Indent())
     for W in Ws
       _show_inner(io, W)
     end
     print(io, Dedent())
-  elseif ((fl, Ws) = is_tensor_product(V); fl)
+  elseif ((fl, Ws) = _is_tensor_product(V); fl)
     println(io, "tensor product with tensor factors")
     print(io, Indent())
     for W in Ws
       _show_inner(io, W)
     end
     print(io, Dedent())
-  elseif ((fl, W, k) = is_exterior_power(V); fl)
+  elseif ((fl, W, k) = _is_exterior_power(V); fl)
     println(io, "$(ordinal_number_string(k)) exterior power of")
     print(io, Indent())
     _show_inner(io, W)
     print(io, Dedent())
-  elseif ((fl, W, k) = is_symmetric_power(V); fl)
+  elseif ((fl, W, k) = _is_symmetric_power(V); fl)
     println(io, "$(ordinal_number_string(k)) symmetric power of")
     print(io, Indent())
     _show_inner(io, W)
     print(io, Dedent())
-  elseif ((fl, W, k) = is_tensor_power(V); fl)
+  elseif ((fl, W, k) = _is_tensor_power(V); fl)
     println(io, "$(ordinal_number_string(k)) tensor power of")
     print(io, Indent())
     _show_inner(io, W)
@@ -221,19 +221,19 @@ function Base.show(io::IO, V::LieAlgebraModule)
 end
 
 function _module_type_to_string(V::LieAlgebraModule)
-  if is_standard_module(V)
+  if _is_standard_module(V)
     return "Standard module"
-  elseif is_dual(V)[1]
+  elseif _is_dual(V)[1]
     return "Dual module"
-  elseif is_direct_sum(V)[1]
+  elseif _is_direct_sum(V)[1]
     return "Direct sum module"
-  elseif is_tensor_product(V)[1]
+  elseif _is_tensor_product(V)[1]
     return "Tensor product module"
-  elseif is_exterior_power(V)[1]
+  elseif _is_exterior_power(V)[1]
     return "Exterior power module"
-  elseif is_symmetric_power(V)[1]
+  elseif _is_symmetric_power(V)[1]
     return "Symmetric power module"
-  elseif is_tensor_power(V)[1]
+  elseif _is_tensor_power(V)[1]
     return "Tensor power module"
   else
     return "Abstract Lie algebra module"
@@ -354,24 +354,24 @@ function (V::LieAlgebraModule{C})(
 ) where {C<:FieldElem}
   if length(a) == 1 && V === parent(a[1])
     return a[1]
-  elseif ((fl, W) = is_dual(V); fl)
+  elseif ((fl, W) = _is_dual(V); fl)
     @req length(a) == 1 "Invalid input length."
     @req W === parent(v) "Incompatible modules."
     return V(coefficients(v))
-  elseif ((fl, Vs) = is_direct_sum(V); fl)
+  elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
     return sum(inji(ai) for (ai, inji) in zip(a, canonical_injections(V)); init=zero(V))
-  elseif is_tensor_product(V)[1]
+  elseif _is_tensor_product(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
-  elseif is_exterior_power(V)[1]
+  elseif _is_exterior_power(V)[1]
     pure = get_attribute(V, :wedge_pure_function)
     return pure(a)::elem_type(V)
-  elseif is_symmetric_power(V)[1]
+  elseif _is_symmetric_power(V)[1]
     pure = get_attribute(V, :mult_pure_function)
     return pure(a)::elem_type(V)
-  elseif is_tensor_power(V)[1]
+  elseif _is_tensor_power(V)[1]
     pure = get_attribute(V, :tensor_pure_function)
     return pure(a)::elem_type(V)
   else
@@ -384,15 +384,15 @@ function (V::LieAlgebraModule{C})(a::LieAlgebraModuleElem{C}...) where {C<:Field
 end
 
 function _is_allowed_input_length(V::LieAlgebraModule, a::Int)
-  if ((fl, Vs) = is_direct_sum(V); fl)
+  if ((fl, Vs) = _is_direct_sum(V); fl)
     return a == length(Vs)
-  elseif ((fl, Vs) = is_tensor_product(V); fl)
+  elseif ((fl, Vs) = _is_tensor_product(V); fl)
     return a == length(Vs)
-  elseif ((fl, W, k) = is_exterior_power(V); fl)
+  elseif ((fl, W, k) = _is_exterior_power(V); fl)
     return a == k
-  elseif ((fl, W, k) = is_symmetric_power(V); fl)
+  elseif ((fl, W, k) = _is_symmetric_power(V); fl)
     return a == k
-  elseif ((fl, W, k) = is_tensor_power(V); fl)
+  elseif ((fl, W, k) = _is_tensor_power(V); fl)
     return a == k
   else
     throw(ArgumentError("Invalid input."))
@@ -518,11 +518,11 @@ end
 ###############################################################################
 
 @doc raw"""
-    is_standard_module(V::LieAlgebraModule{C}) -> Bool
+    _is_standard_module(V::LieAlgebraModule{C}) -> Bool
 
 Check whether `V` has been constructed as a standard module.
 """
-function is_standard_module(V::LieAlgebraModule)
+function _is_standard_module(V::LieAlgebraModule)
   if has_attribute(V, :is_standard_module)
     @assert get_attribute(V, :is_standard_module)::Bool === true
     return true
@@ -531,13 +531,13 @@ function is_standard_module(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_dual(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}
+    _is_dual(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}
 
 Check whether `V` has been constructed as a dual module.
 If it has, return `true` and the base module.
 If not, return `false` as the first return value, and an arbitrary value for the second.
 """
-function is_dual(V::LieAlgebraModule)
+function _is_dual(V::LieAlgebraModule)
   if has_attribute(V, :is_dual)
     W = get_attribute(V, :is_dual)::typeof(V)
     return (true, W)
@@ -546,13 +546,13 @@ function is_dual(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_direct_sum(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
+    _is_direct_sum(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
 
 Check whether `V` has been constructed as a direct sum of modules.
 If it has, return `true` and the summands.
 If not, return `false` as the first return value, and an empty vector for the second.
 """
-function is_direct_sum(V::LieAlgebraModule)
+function _is_direct_sum(V::LieAlgebraModule)
   if has_attribute(V, :is_direct_sum)
     summands = get_attribute(V, :is_direct_sum)::Vector{typeof(V)}
     return (true, summands)
@@ -561,13 +561,13 @@ function is_direct_sum(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_tensor_product(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
+    _is_tensor_product(V::LieAlgebraModule{C}) -> Bool, Vector{LieAlgebraModule{C}}
 
 Check whether `V` has been constructed as a tensor product of modules.
 If it has, return `true` and the tensor factors.
 If not, return `false` as the first return value, and an empty vector for the second.
 """
-function is_tensor_product(V::LieAlgebraModule)
+function _is_tensor_product(V::LieAlgebraModule)
   if has_attribute(V, :is_tensor_product)
     factors = get_attribute(V, :is_tensor_product)::Vector{typeof(V)}
     return (true, factors)
@@ -576,13 +576,13 @@ function is_tensor_product(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_exterior_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
+    _is_exterior_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
 
 Check whether `V` has been constructed as an exterior power of a module.
 If it has, return `true`, the base module, and the power.
 If not, return `false` as the first return value, and arbitrary values for the other two.
 """
-function is_exterior_power(V::LieAlgebraModule)
+function _is_exterior_power(V::LieAlgebraModule)
   if has_attribute(V, :is_exterior_power)
     W, k = get_attribute(V, :is_exterior_power)::Tuple{typeof(V),Int}
     return (true, W, k)
@@ -591,13 +591,13 @@ function is_exterior_power(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_symmetric_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
+    _is_symmetric_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
 
 Check whether `V` has been constructed as an symmetric power of a module.
 If it has, return `true`, the base module, and the power.
 If not, return `false` as the first return value, and arbitrary values for the other two.
 """
-function is_symmetric_power(V::LieAlgebraModule)
+function _is_symmetric_power(V::LieAlgebraModule)
   if has_attribute(V, :is_symmetric_power)
     W, k = get_attribute(V, :is_symmetric_power)::Tuple{typeof(V),Int}
     return (true, W, k)
@@ -606,13 +606,13 @@ function is_symmetric_power(V::LieAlgebraModule)
 end
 
 @doc raw"""
-    is_tensor_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
+    _is_tensor_power(V::LieAlgebraModule{C}) -> Bool, LieAlgebraModule{C}, Int
 
 Check whether `V` has been constructed as a tensor power of a module.
 If it has, return `true`, the base module, and the power.
 If not, return `false` as the first return value, and arbitrary values for the other two.
 """
-function is_tensor_power(V::LieAlgebraModule)
+function _is_tensor_power(V::LieAlgebraModule)
   if has_attribute(V, :is_tensor_power)
     W, k = get_attribute(V, :is_tensor_power)::Tuple{typeof(V),Int}
     return (true, W, k)
@@ -797,7 +797,7 @@ function dual(V::LieAlgebraModule{C}; cached::Bool=true) where {C<:FieldElem}
     -transpose(transformation_matrix(V, i))
   end
 
-  s = if is_standard_module(V)
+  s = if _is_standard_module(V)
     [Symbol("$(s)*") for s in symbols(V)]
   else
     [Symbol("($(s))*") for s in symbols(V)]
@@ -855,7 +855,7 @@ function direct_sum(V::LieAlgebraModule{C}, Vs::LieAlgebraModule{C}...) where {C
   else
     [
       Symbol("$s^($j)") for (j, Vj) in enumerate(Vs) for
-      s in (is_standard_module(Vj) ? symbols(Vj) : (x -> "($x)").(symbols(Vj)))
+      s in (_is_standard_module(Vj) ? symbols(Vj) : (x -> "($x)").(symbols(Vj)))
     ]
   end
 
@@ -923,10 +923,10 @@ function tensor_product(
     symbols(Vs[1])
   else
     [
-      Symbol(join(s, " ⊗ ")) for s in
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for s in
       reverse.(
         ProductIterator([
-          is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
+          _is_standard_module(Vi) ? symbols(Vi) : (x -> "($x)").(symbols(Vi)) for
           Vi in reverse(Vs)
         ])
       )
@@ -995,20 +995,26 @@ together with a map that computes the wedge product of `k` elements of `V`.
 
 # Examples
 ```jldoctest
-julia> L = special_linear_lie_algebra(QQ, 3);
+julia> L = special_linear_lie_algebra(QQ, 2);
 
-julia> V = symmetric_power(standard_module(L), 3)[1]; # some module
+julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 45 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
+(Exterior power module of dimension 3 over sl_2, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
 
 julia> E
 Exterior power module
-  of dimension 45
+  of dimension 3
   2nd exterior power of
-    3rd symmetric power of
+    2nd symmetric power of
       standard module
-over special linear Lie algebra of degree 3 over QQ
+over special linear Lie algebra of degree 2 over QQ
+
+julia> basis(E)
+3-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^2)^(v_1*v_2)
+ (v_1^2)^(v_2^2)
+ (v_1*v_2)^(v_2^2)
 ```
 """
 function exterior_power(
@@ -1043,10 +1049,13 @@ function exterior_power(
     [Symbol("1")]
   elseif k == 1
     symbols(V)
-  elseif is_standard_module(V)
-    [Symbol(join(s, " ∧ ")) for s in combinations(symbols(V), k)]
+  elseif _is_standard_module(V)
+    [Symbol(join(s, (is_unicode_allowed() ? "∧" : "^"))) for s in combinations(symbols(V), k)]
   else
-    [Symbol(join((x -> "($x)").(s), " ∧ ")) for s in combinations(symbols(V), k)]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "∧" : "^"))) for
+      s in combinations(symbols(V), k)
+    ]
   end
 
   E = LieAlgebraModule{C}(L, dim_E, transformation_matrices, s; check=false)
@@ -1115,20 +1124,33 @@ together with a map that computes the product of `k` elements of `V`.
 
 # Examples
 ```jldoctest
-julia> L = special_linear_lie_algebra(QQ, 3);
+julia> L = special_linear_lie_algebra(QQ, 4);
 
-julia> V = exterior_power(standard_module(L), 2)[1]; # some module
+julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
-julia> S, map = symmetric_power(V, 3)
-(Symmetric power module of dimension 10 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
+julia> S, map = symmetric_power(V, 2)
+(Symmetric power module of dimension 10 over sl_4, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
 
 julia> S
 Symmetric power module
   of dimension 10
-  3rd symmetric power of
-    2nd exterior power of
+  2nd symmetric power of
+    3rd exterior power of
       standard module
-over special linear Lie algebra of degree 3 over QQ
+over special linear Lie algebra of degree 4 over QQ
+
+julia> basis(S)
+10-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^v_2^v_3)^2
+ (v_1^v_2^v_3)*(v_1^v_2^v_4)
+ (v_1^v_2^v_3)*(v_1^v_3^v_4)
+ (v_1^v_2^v_3)*(v_2^v_3^v_4)
+ (v_1^v_2^v_4)^2
+ (v_1^v_2^v_4)*(v_1^v_3^v_4)
+ (v_1^v_2^v_4)*(v_2^v_3^v_4)
+ (v_1^v_3^v_4)^2
+ (v_1^v_3^v_4)*(v_2^v_3^v_4)
+ (v_2^v_3^v_4)^2
 ```
 """
 function symmetric_power(
@@ -1163,7 +1185,7 @@ function symmetric_power(
     [Symbol("1")]
   elseif k == 1
     symbols(V)
-  elseif is_standard_module(V)
+  elseif _is_standard_module(V)
     [
       Symbol(
         join(
@@ -1260,16 +1282,28 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
-julia> T, map = tensor_power(V, 3)
-(Tensor power module of dimension 27 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
+julia> T, map = tensor_power(V, 2)
+(Tensor power module of dimension 9 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
 
 julia> T
 Tensor power module
-  of dimension 27
-  3rd tensor power of
+  of dimension 9
+  2nd tensor power of
     2nd exterior power of
       standard module
 over special linear Lie algebra of degree 3 over QQ
+
+julia> basis(T)
+9-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+ (v_1^v_2)(x)(v_1^v_2)
+ (v_1^v_2)(x)(v_1^v_3)
+ (v_1^v_2)(x)(v_2^v_3)
+ (v_1^v_3)(x)(v_1^v_2)
+ (v_1^v_3)(x)(v_1^v_3)
+ (v_1^v_3)(x)(v_2^v_3)
+ (v_2^v_3)(x)(v_1^v_2)
+ (v_2^v_3)(x)(v_1^v_3)
+ (v_2^v_3)(x)(v_2^v_3)
 ```
 """
 function tensor_power(
@@ -1302,10 +1336,16 @@ function tensor_power(
     [Symbol("1")]
   elseif k == 1
     symbols(V)
-  elseif is_standard_module(V)
-    [Symbol(join(s, " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+  elseif _is_standard_module(V)
+    [
+      Symbol(join(s, (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   else
-    [Symbol(join((x -> "($x)").(s), " ⊗ ")) for s in reverse.(ProductIterator(symbols(V), k))]
+    [
+      Symbol(join((x -> "($x)").(s), (is_unicode_allowed() ? "⊗" : "(x)"))) for
+      s in reverse.(ProductIterator(symbols(V), k))
+    ]
   end
 
   T = LieAlgebraModule{C}(L, dim_T, transformation_matrices, s; check=false)

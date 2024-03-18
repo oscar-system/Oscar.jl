@@ -74,7 +74,7 @@
     # Inspect the fan object.
     @test f_vector(fanobj) == [20, 110, 240, 225, 76]
     c = cones(fanobj, 5)[1]
-    @test nrays(fanobj) == 20
+    @test n_rays(fanobj) == 20
     @test dim(fanobj) == 5
     @test n_maximal_cones(fanobj) == 76
     @test n_cones(fanobj) == 671

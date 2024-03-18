@@ -44,7 +44,7 @@ function Base.show(io::IO, ::MIME"text/plain", Q::MPolyQuoRing)
    print(io, Indent(), "of ", Lowercase())
    show(io, MIME("text/plain"), base_ring(Q))
    println(io)
-   print(io, "by ", modulus(Q))
+   print(io, "by ", Lowercase(), modulus(Q))
    print(io, Dedent())
 end
 
@@ -56,14 +56,14 @@ function Base.show(io::IO, Q::MPolyQuoRing)
     print(io, "Quotient of multivariate polynomial ring")
   else
     # nested printing allowed
-    print(io, "Quotient of multivariate polynomial ring by ", modulus(Q))
+    io = pretty(io)
+    print(io, "Quotient of multivariate polynomial ring by ", Lowercase(), modulus(Q))
   end
 end
 
 gens(Q::MPolyQuoRing) = [Q(x) for x = gens(base_ring(Q))]
-ngens(Q::MPolyQuoRing) = ngens(base_ring(Q))
+number_of_generators(Q::MPolyQuoRing) = number_of_generators(base_ring(Q))
 gen(Q::MPolyQuoRing, i::Int) = Q(gen(base_ring(Q), i))
-Base.getindex(Q::MPolyQuoRing, i::Int) = Q(base_ring(Q)[i])::elem_type(Q)
 base_ring(Q::MPolyQuoRing) = base_ring(Q.I)
 coefficient_ring(Q::MPolyQuoRing) = coefficient_ring(base_ring(Q))
 modulus(Q::MPolyQuoRing) = Q.I
@@ -291,7 +291,7 @@ julia> base_ring(a)
 Quotient
   of multivariate polynomial ring in 3 variables x, y, z
     over rational field
-  by ideal(-x^2 + y, -x^3 + z)
+  by ideal (-x^2 + y, -x^3 + z)
 ```
 """
 function base_ring(a::MPolyQuoIdeal)
@@ -331,7 +331,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
@@ -347,10 +347,9 @@ function gens(a::MPolyQuoIdeal)
 end
 
 gen(a::MPolyQuoIdeal, i::Int) = a.gens.Ox(a.gens.O[i])
-getindex(a::MPolyQuoIdeal, i::Int) = gen(a, i)
 
 @doc raw"""
-    ngens(a::MPolyQuoIdeal)
+    number_of_generators(a::MPolyQuoIdeal)
 
 Return the number of generators of `a`.
 
@@ -360,16 +359,16 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x^2 + y, -x^3 + z), Map: multivariate polynomial ring -> A)
 
 julia> a = ideal(A, [x-y])
 ideal(x - y)
 
-julia> ngens(a)
+julia> number_of_generators(a)
 1
 ```
 """
-function ngens(a::MPolyQuoIdeal)
+function number_of_generators(a::MPolyQuoIdeal)
   oscar_assure(a)
   return length(a.gens.O)
 end
@@ -872,7 +871,7 @@ end
 # The above method for `simplify` assume that there is a singular backend which 
 # can be used. However, we are using (graded) quotient rings also with coefficient 
 # rings R which can not be translated to Singular; for instance when R is again 
-# a polynomial ring, or a quotient/localization thereof, or even a `SpecOpenRing`. 
+# a polynomial ring, or a quotient/localization thereof, or even an `AffineSchemeOpenSubschemeRing`. 
 # Still in many of those cases, we can use `RingFlattening` to bind a computational 
 # backend. In particular, this allows us to do ideal_membership tests; see 
 # the file `flattenings.jl` for details. 
@@ -967,7 +966,7 @@ julia> A
 Quotient
   of multivariate polynomial ring in 2 variables x, y
     over rational field
-  by ideal(x^2 - y^3, x - y)
+  by ideal (x^2 - y^3, x - y)
 
 julia> typeof(A)
 MPolyQuoRing{QQMPolyRingElem}
@@ -978,7 +977,7 @@ QQMPolyRingElem
 julia> p
 Map defined by a julia-function with inverse
   from multivariate polynomial ring in 2 variables over QQ
-  to quotient of multivariate polynomial ring by ideal(x^2 - y^3, x - y)
+  to quotient of multivariate polynomial ring by ideal (x^2 - y^3, x - y)
 
 julia> p(x)
 x
@@ -990,7 +989,7 @@ MPolyQuoRingElem{QQMPolyRingElem}
 julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> B, _ = quo(S, ideal(S, [x^2*z-y^3, x-y]))
-(Quotient of multivariate polynomial ring by ideal(x^2*z - y^3, x - y), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x^2*z - y^3, x - y), Map: S -> B)
 
 julia> typeof(B)
 MPolyQuoRing{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}
@@ -1235,7 +1234,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
   l = _kbase(Q)
   V = free_module(K, length(l))
   function im(a::Generic.FreeModuleElem)
-    @assert parent(a) == V
+    @assert parent(a) === V
     b = R(0)
     for k=1:length(l)
       c = a[k]
@@ -1270,7 +1269,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
 end
 
 # To fix printing of fraction fields of MPolyQuoRing
-function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.Frac{T};
+function AbstractAlgebra.expressify(a::AbstractAlgebra.Generic.FracFieldElem{T};
     context = nothing) where {T <: MPolyQuoRingElem}
   n = numerator(a, false)
   d = denominator(a, false)
@@ -1314,7 +1313,7 @@ Given a homogeneous element `f` of a $\mathbb Z$-graded affine algebra, return t
 julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"] );
 
 julia> A, p = quo(R, ideal(R, [y-x, z^3-x^3]))
-(Quotient of multivariate polynomial ring by ideal(-x + y, -x^3 + z^3), Map: graded multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (-x + y, -x^3 + z^3), Map: R -> A)
 
 julia> f = p(y^2-x^2+z^4)
 -x^2 + y^2 + z^4
@@ -1323,7 +1322,7 @@ julia> degree(f)
 [4]
 
 julia> typeof(degree(f))
-GrpAbFinGenElem
+FinGenAbGroupElem
 
 julia> degree(Int, f)
 4
@@ -1332,20 +1331,25 @@ julia> typeof(degree(Int, f))
 Int64
 ```
 """
-function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function degree(a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   simplify(a)
   @req !iszero(a) "Element must be non-zero"
-  return degree(a.f)
+  return degree(a.f; check)
 end
 
-function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function _degree_fast(a::MPolyQuoRingElem{<:MPolyDecRingElem})
+  simplify(a)
+  @req !iszero(a) "Element must be non-zero"
+  return _degree_fast(a.f)
+end
+function degree(::Type{Int}, a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   @assert is_z_graded(base_ring(parent(a)))
-  return Int(degree(a)[1])
+  return Int(degree(a; check)[1])
 end
 
-function degree(::Type{Vector{Int}}, a::MPolyQuoRingElem{<:MPolyDecRingElem})
+function degree(::Type{Vector{Int}}, a::MPolyQuoRingElem{<:MPolyDecRingElem}; check::Bool=true)
   @assert is_zm_graded((base_ring(parent(a))))
-  d = degree(a)
+  d = degree(a; check)
   return Int[d[i] for i=1:ngens(parent(d))]
 end
 
@@ -1353,7 +1357,7 @@ is_filtered(q::MPolyQuoRing) = is_filtered(base_ring(q))
 is_graded(q::MPolyQuoRing) = is_graded(base_ring(q))
 
 @doc raw"""
-    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(f::MPolyQuoRingElem{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given an element `f` of a graded affine algebra, and given an element `g` of the
 grading group of that algebra, return the homogeneous component of `f` of degree `g`.
@@ -1383,7 +1387,7 @@ julia> homogeneous_component(f, 4)
 z^4
 ```
 """
-function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(a::MPolyQuoRingElem{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   simplify(a)
   return homogeneous_component(a.f, d)
 end
@@ -1413,7 +1417,7 @@ julia> f = p(y^2-x^2+x*y*z+z^4)
 -x^2 + x*y*z + y^2 + z^4
 
 julia> homogeneous_components(f)
-Dict{GrpAbFinGenElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
+Dict{FinGenAbGroupElem, MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}} with 2 entries:
   [4] => z^4
   [3] => y^2*z
 ```
@@ -1462,7 +1466,7 @@ julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> A, _ = quo(R, ideal(R, [x^2*z-y^3, x-y]));
 
 julia> grading_group(A)
-GrpAb: Z
+Z
 ```
 """
 function grading_group(A::MPolyQuoRing{<:MPolyDecRingElem})
@@ -1490,10 +1494,10 @@ end
 ################################################################
 
 @doc raw"""
-    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::GrpAbFinGenElem)
+    homogeneous_component(A::MPolyQuoRing{<:MPolyDecRingElem}, g::FinGenAbGroupElem)
 
 Given a graded quotient `A` of a multivariate polynomial ring over a field, 
-where the grading group is free of type `GrpAbFinGen`, and given an element `g` of 
+where the grading group is free of type `FinGenAbGroup`, and given an element `g` of 
 that group, return the homogeneous component of `A` of degree `g`. Additionally, return
 the embedding of the component into `A`.
 
@@ -1525,7 +1529,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from r_[2] of dim 10
+  from R_[2] of dim 10
   to graded multivariate polynomial ring in 4 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
@@ -1552,7 +1556,7 @@ julia> EMB = L[2]
 Map defined by a julia-function with inverse
   from quotient space over:
   Rational field with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal(-x*z + y^2, -w*z + x*y, -w*y + x^2)
+  to quotient of multivariate polynomial ring by ideal (-x*z + y^2, -w*z + x*y, -w*y + x^2)
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 z^2
@@ -1566,7 +1570,7 @@ w^2
 
 ```jldoctest
 julia> G = abelian_group([0, 0])
-GrpAb: Z^2
+Z^2
 
 julia> W = [G[1], G[1], G[2], G[2], G[2]];
 
@@ -1578,7 +1582,7 @@ julia> HC = gens(L[1]);
 
 julia> EMB = L[2]
 Map defined by a julia-function with inverse
-  from homogeneous component of graded multivariate polynomial ring in 5 variables over QQ of degree [2 1]
+  from S_[2 1] of dim 9
   to graded multivariate polynomial ring in 5 variables over QQ
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
@@ -1604,7 +1608,7 @@ julia> EMB = L[2]
 Map defined by a julia-function with inverse
   from quotient space over:
   Rational field with 7 generators and no relations
-  to quotient of multivariate polynomial ring by ideal(x[1]*y[1] - x[2]*y[2])
+  to quotient of multivariate polynomial ring by ideal (x[1]*y[1] - x[2]*y[2])
 
 julia> for i in 1:length(HC) println(EMB(HC[i])) end
 x[2]^2*y[3]
@@ -1616,7 +1620,7 @@ x[1]^2*y[3]
 x[1]^2*y[2]
 ```
 """
-function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::GrpAbFinGenElem)
+function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbGroupElem)
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
   D = parent(d)
@@ -1754,7 +1758,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 end
 
 @doc raw"""
-    small_generating_set(I::MPolyIdeal)
+    small_generating_set(I::MPolyQuoIdeal)
 
 Given a ideal `I` of an affine algebra over a field, return an array
 containing set of generators of `I`, which is usually smaller than the
@@ -1785,6 +1789,8 @@ function small_generating_set(I::MPolyQuoIdeal)
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.
   Q = base_ring(I)
+  # Temporary workaround, see #3499
+  return unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I)))))
 
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 
