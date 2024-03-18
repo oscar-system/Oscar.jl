@@ -1,8 +1,7 @@
 name: Invalidations
 
 on:
-  # pull_request:
-  workflow_dispatch:
+  pull_request:
 
 concurrency:
   # Skip intermediate builds: always.
