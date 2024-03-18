@@ -130,9 +130,10 @@ Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
-- `:fglm` (implementation of the FGLM algorithm in *Singular*), and
-- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
+- `:fglm` (implementation of the FGLM algorithm in *Singular*),
+- `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -171,6 +172,8 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     end
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
+  elseif algorithm == :hc
+    standard_basis_highest_corner(I, ordering=ordering)
   elseif algorithm == :hilbert
     weights = _find_weights(gens(I))
     if !any(iszero, weights)
