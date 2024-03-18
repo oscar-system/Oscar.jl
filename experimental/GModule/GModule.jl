@@ -427,25 +427,41 @@ function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
   return [gmodule(ZZ, m) for m in z]
 end
 
+function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:MatElem{<:QQAbElem}})
+  l = 1
+  C = base_ring(V[1])
+  for g = V
+    l = lcm(l, lcm(collect(map_entries(x->Hecke.is_cyclotomic_type(parent(x.data))[2], g))))
+  end
+  K = cyclotomic_field(C, l)[1]
+  return [map_entries(x->K(x.data), x) for x = V]
+end
+
+function Oscar.map_entries(::Type{CyclotomicField}, V::MatElem{<:QQAbElem})
+  return map_entries(CyclotomicField, [V])[1]
+end
 """
     gmodule(k::Field, C::GModule)
 
 TODO
 """
-function gmodule(a::Type{CyclotomicField}, C::GModule)
+function gmodule(::Type{CyclotomicField}, C::GModule)
   @assert isa(base_ring(C), QQAbField)
   d = dim(C)
-  l = 1
-  for g = C.ac
-    l = lcm(l, lcm(collect(map_entries(x->Hecke.is_cyclotomic_type(parent(x.data))[2], matrix(g)))))
-  end
-  K = cyclotomic_field(base_ring(C), l)[1]
-  F = free_module(K, dim(C))
   if d == 0
+    K = cyclotomic_field(C, 1)[1]
+    F = free_module(K, dim(C))
     h = hom(F, F, elem_type(F)[])
     return gmodule(F, group(C), typeof(h)[hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
   end
-  return gmodule(F, group(C), [hom(F, F, map_entries(x->K(x.data), matrix(x))) for x = C.ac])
+  M = map_entries(CyclotomicField, map(matrix, action(C)))
+  K = base_ring(M[1])
+  F = free_module(K, dim(C))
+  return gmodule(F, group(C), [hom(F, F, x) for x = M])
+end
+
+function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbElem})
+  return matrix_group(map_entries(CyclotomicField, map(matrix, gens(G))))
 end
 
 function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
@@ -1483,11 +1499,6 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return GModule(group(C), [hom(A, A, map_entries(x->lift(ZZ, x), hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...))) for y = C.ac])
 end
 
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
-  A = free_abelian_group(rank(C.M))
-  return Oscar.gmodule(Group(C), [hom(A, A, matrix(x)) for x = C.ac])
-end
-
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{<:Union{FpFieldElem, fpFieldElem}}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
@@ -1504,22 +1515,21 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
 end
 
 #TODO: for modern fin. fields as well
-function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
+function Oscar.abelian_group(M::AbstractAlgebra.FPModule{<:FinFieldElem})
   k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
-  n = degree(k)
-  function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
+  n = absolute_degree(k)
+  A = abelian_group([characteristic(k) for i = 1:dim(M)*n])
+  function to_A(m::AbstractAlgebra.FPModuleElem{<:FinFieldElem})
     a = ZZRingElem[]
     for i=1:dim(M)
       c = m[i]
-      for j=0:n-1
-        push!(a, coeff(c, j))
-      end
+      d = absolute_coordinates(c)
+      append!(a, [lift(ZZ, x) for x = d])
     end
     return A(a)
   end
   function to_M(a::FinGenAbGroupElem)
-    m = fqPolyRepFieldElem[]
+    m = elem_type(k)[]
     for i=1:dim(M)
       push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
     end
