@@ -137,6 +137,7 @@ function reps(K, G::Oscar.GAPGroup)
           # other conjugates.
           for j in 2:p
             for k in (pos+1):length(R)
+              @show base_ring(R[k]), base_ring(M)
               if length(Oscar.GModuleFromGap.hom_base(
                           gmodule(M, s, conjreps[j]), R[k])) > 0
                 todo[k] = false
@@ -228,13 +229,13 @@ Implements the SQ-Algorithm by Brueckner, Chap 1.3
 
 If necessary, the prime(s) p that can be used are computed as well.
 """
-function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
+function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit::Int = typemax(Int))
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
   if length(primes) == 0
     @vprint :BruecknerSQ 1 "primes not provided, searching...\n"
-    lp = find_primes(mQ)
+    lp = find_primes(mQ) 
   else
     lp = map(ZZRingElem, primes)
   end
@@ -242,7 +243,7 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
 
   allR = []
   for p = lp
-    _, j = ppio(order(Q), p)
+    _, j = ppio(exponent(Q), p)
     f = j == 1 ? 1 : modord(p, j)
     @assert (p^f-1) % j == 0
     @vprint :BruecknerSQ 2 "computing reps over GF($p, $f)\n"
@@ -259,9 +260,12 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
       @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
       @vprint :BruecknerSQ 2 "... lift...\n"
       iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @vtime :BruecknerSQ 2 l = lift(iii, mQ)
+      @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       append!(allR, [x for x in l])# if is_surjective(x)])
+      if length(allR) >= limit
+        return allR
+      end
     end
   end
   return allR
@@ -272,7 +276,7 @@ end
   C a F_p[Q]-module
   Find all extensions of Q my C s.th. mp can be lifted to an epi.
 """
-function lift(C::GModule, mp::Map)
+function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   #m: G->group(C)
   #compute all(?) of H^2 that will describe groups s.th. m can be lifted to
 
@@ -281,10 +285,10 @@ function lift(C::GModule, mp::Map)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
-  if order(H2) > 1
-    global last_in = (C, mp)
-  end
+  @show C
+  @time H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  @show H2
+  global last_in = C
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
@@ -395,6 +399,9 @@ function lift(C::GModule, mp::Map)
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
       if is_surjective(hm)
         push!(allG, hm)
+        if length(allG) >= limit
+          return allG
+        end
       else #should not be possible any more
         @show :not_sur
       end
@@ -409,6 +416,18 @@ function solvable_quotient(G::Oscar.GAPGroup)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
+function sq(mp::Map, primes::Vector)
+  while true
+    @time nw = brueckner(mp; limit = 1, primes)
+    if length(nw) == 0
+      return mp
+    end
+    mp = nw[1]
+  end
+end
+
+
+
 #= issues/ TODO
  - does one need all SQs? are all maximal ones (in the sense of 
    no further extension possible) isomorphic?
@@ -421,6 +440,14 @@ end
  - gmodule -> matrix group (in some cases)
  - filter for special targets (which???)
  - does this work with gmodules in char 0?
+
+According to Max: 
+ - if G is finite, then the maximal quotient is unique: the quotient
+   modulo G'''' the infinite derived subgroup
+ - if G is infinite and has a maximal quotient then it is also unique
+
+So we can adjust the strategy accordingly.
+In particular Satz 15 c should be implemented.
 =#
 
 #= EXAMPLE

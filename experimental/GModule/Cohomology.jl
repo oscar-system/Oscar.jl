@@ -542,6 +542,7 @@ function Oscar.relations(F::Union{FPGroup, SubFPGroup})
 end
 
 function Oscar.relators(F::PcGroup)
+  #TODO: do it properly!!!!
   return [x[1] for x = relations(F)]
 end
 
@@ -1150,15 +1151,18 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     if pos[r] == 0
       return
     end
-    T = pro[pos[r]]
+#    T = pro[pos[r]]
+    T = nothing
     for i=w[p+length(R[r][1]):end]
       if i < 0
-        T = T*iac[-i]
+        T = (T === nothing) ? iac[-i] : T*iac[-i]
+#        T = T*iac[-i]
       else
-        T = T*ac[i]
+        T = (T === nothing) ? ac[i] : T * ac[i]
+#        T = T*ac[i]
       end
     end
-    C.T += T
+    C.T += T === nothing ? pro[pos[r]] : pro[pos[r]] * T
   end
   c.f = symbolic_collect
 
@@ -1235,7 +1239,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   if length(all_T) == 0
     mm = hom(D, Q, elem_type(Q)[zero(Q) for i=1:ngens(D)], check = false)
   else
-    mm = sum(all_T[i]*jinj[i] for i = 1:length(all_T))
+    mm = my_sum(all_T[i]*jinj[i] for i = 1:length(all_T))
   end
   @vprint :GroupCohomology 2 "computing 2-cycles...\n"
 #  return mm;
@@ -1383,6 +1387,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   function TailToCoChain(t)
+      @show t
     c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
       #w = ABC and B == r[1], B -> r[2] * tail[r]
       # -> A r[2] C C(tail)
@@ -1392,6 +1397,7 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
       if pos[r] == 0
         return
       end
+      @show T
       T = pro[pos[r]](t)
       for i=w[p+length(R[r][1]):end]
         if i < 0
@@ -1547,6 +1553,31 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   # the group generators (g_i, 0)
   # r -> s gives a relation r s^-1 which should evaluate, using gamma
   # to (0, t) where t is the tail for this rule
+end
+
+function my_sum(a)
+# @time _ = sum(a)
+  aa = first(a)
+  c = zero_matrix(base_ring(aa.matrix), nrows(aa.matrix), ncols(aa.matrix))
+  for x = a
+    add!(c, c, x.matrix)
+  end
+  h = hom(domain(aa), codomain(aa), c; check = false)
+  return h
+  return sum(a)
+end
+
+function Oscar.add!(a::FqMatrix, b::FqMatrix, c::FqMatrix)
+  ccall((:fq_default_mat_add, Nemo.libflint), Cvoid, (Ref{FqMatrix}, Ref{FqMatrix}, Ref{FqMatrix}, Ref{FqField}), a, b, c, base_ring(a))
+  return a
+end
+
+function Base.sum(a::Vector{FqMatrix})
+  c = deepcopy(a[1])
+  for i=2:length(a)
+    add!(c, c, a[i])
+  end
+  return c
 end
 
 function Base.iszero(x::AbstractAlgebra.Generic.ModuleHomomorphism)
@@ -2016,6 +2047,10 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   Mp = GAP.Globals.Pcgs(GapObj(fM))
   @assert length(Mp) == ngens(fM) == ngens(M)
 #  @assert all(x->Mp[x] == GapObj(gen(fM, x)), 1:ngens(M))
+  #problem/ TODO: Z/100Z has a useful GAP-pc-group has 4 gens (of
+  #order 2, 2, 5, 5
+  #so need to switch GAP to the other Pc-Groups and/or drop this 
+  #assert
   Mo = GAP.Globals.RelativeOrders(Mp)
 
   CN = GAP.Globals.SingleCollector(GapObj(N), GAP.Globals.Concatenation(Go, Mo))
@@ -2159,6 +2194,7 @@ end
 
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
   G = GL(dim(F), base_ring(F))
+  set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
                          x->hom(F, F, matrix(x)),
                          y->G(matrix(y)))
@@ -2170,6 +2206,13 @@ end
 
 function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
   return h*G
+end
+
+function Oscar.hom(g::MatrixGroupElem)
+  G = parent(g)
+  p = get_attribute(G, :aut_group)
+  p === nothing && error("Matrix group must be the automorphism group of some module")
+  return hom(p, p, matrix(g))
 end
 
 """
@@ -2242,6 +2285,7 @@ end
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
+  global last_C = C
   if gcd(order(C.M), order(C.G)) == 1
     return [split_extension(C)]
   end
@@ -2259,8 +2303,13 @@ function all_extensions(C::GModule)
   return all_G
 end
 
-function all_extensions(M::FinGenAbGroup, G::PermGroup) #the cohomology wants it
+(G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
+
+function all_extensions(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::Oscar.GAPGroup) #the cohomology wants it
   A = automorphism_group(M)
+  if isa(A, Tuple)
+    A = A[1]
+  end
   l = GAP.Globals.AllHomomorphismClasses(GapObj(G), GapObj(A))
   all_G = []
   for i = l
