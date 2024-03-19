@@ -606,6 +606,10 @@ Return whether `I` is a radical ideal.
 Computes the radical.
 """
 @attr Bool function is_radical(I::MPolyIdeal)
+  if has_attribute(I, :is_prime) && is_prime(I)
+    return true
+  end
+
   return I == radical(I)
 end
 #######################################################
@@ -729,6 +733,11 @@ function primary_decomposition(
   for (P, Q) in dec
     push!(result, (ideal(R, unique!([x for x in iso.(gens(P)) if !iszero(x)])), 
                    ideal(R, unique!([x for x in iso.(gens(Q)) if !iszero(x)]))))
+  end
+
+  for (Q,P) in result
+    set_attribute!(P, :is_prime=>true)
+    set_attribute!(Q, :is_primary=>true)
   end
 
   cache && set_attribute!(I, :primary_decomposition=>result)
@@ -1049,6 +1058,11 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=tru
     cache && set_attribute!(I, :minimal_primes=>result)
     return result
   end
+
+  for Ptemp in V
+    set_attribute!(Ptemp, :is_prime=>true)
+  end
+
   return V
 end
 
@@ -1117,13 +1131,22 @@ julia> L = equidimensional_decomposition_weak(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
     A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_decomposition_weak(map_coefficients(pseudo_inv(mA), I))
-    return typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
+    retval =  typeof(I)[map_coefficients(mA, x, parent = R) for x = eq]
+    for Itemp in retval
+      set_attribute!(Itemp, :is_equidimensional=>true)
+    end
+    return retval
   end
   l = Singular.LibPrimdec.equidim(singular_polynomial_ring(I), singular_generators(I))
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
     return typeof(I)[]
   end
+
+  for Itemp in V
+    set_attribute!(Itemp, :is_equidimensional=>true)
+  end
+
   return V
 end
 
@@ -1134,7 +1157,11 @@ end
   R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
   I_ext = ideal(R_ext, iso_inv.(gens(I)))
   res = equidimensional_decomposition_weak(I_ext)
-  return typeof(I)[ideal(R, unique!([x for x in iso.(gens(I)) if !iszero(x)])) for I in res]
+  retval =  typeof(I)[ideal(R, unique!([x for x in iso.(gens(I)) if !iszero(x)])) for I in res]
+  for Itemp in retval
+    set_attribute!(Itemp, :is_equidimensional=>true)
+  end
+  return retval
 end
 
 
@@ -1177,13 +1204,24 @@ julia> L = equidimensional_decomposition_radical(I)
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
     A, mA = absolute_simple_field(base_ring(R))
     eq = equidimensional_decomposition_radical(map_coefficients(pseudo_inv(mA), I))
-    return typeof(I)[map_coefficients(mA, x) for x = eq]
+    retval = typeof(I)[map_coefficients(mA, x) for x = eq]
+    for Itemp in retval
+      set_attribute!(Itemp, :is_radical=>true)
+      set_attribute!(Itemp, :is_equidimensional=>true)
+    end
+    return retval
   end
   l = Singular.LibPrimdec.prepareAss(singular_polynomial_ring(I), singular_generators(I))
   V = [ideal(R, i) for i in l]
   if length(V) == 1 && is_one(gen(V[1], 1))
     return typeof(I)[]
   end
+
+  for Ptemp in V
+    set_attribute!(Ptemp, :is_radical=>true)
+    set_attribute!(Ptemp, :is_equidimensional=>true)
+  end
+
   return V
 end
 
@@ -1194,7 +1232,12 @@ end
   R_ext, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
   I_ext = ideal(R_ext, iso_inv.(gens(I)))
   res = equidimensional_decomposition_weak(I_ext)
-  return [ideal(R, unique!(iso.(gens(I)))) for I in res]
+  retval = [ideal(R, unique!(iso.(gens(I)))) for I in res]
+  for Itemp in retval
+    set_attribute!(Itemp, :is_equidimensional=>true)
+    set_attribute!(Itemp, :is_radical=>true)
+  end
+  return retval
 end
 
 #######################################################
@@ -1543,6 +1586,10 @@ true
 ```
 """
 @attr Bool function is_primary(I::MPolyIdeal)
+  if has_attribute(I, :is_prime) && is_prime(I)
+    return true
+  end
+
   D = primary_decomposition(I)
   return length(D) == 1
 end

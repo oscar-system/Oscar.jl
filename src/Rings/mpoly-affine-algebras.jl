@@ -868,9 +868,9 @@ julia> is_reduced(A)
 false
 ```
 """
-function is_reduced(A::MPolyQuoRing) 
+@attr Bool function is_reduced(A::MPolyQuoRing)
   I = A.I
-  return I == radical(I)
+  return is_radical(I)
 end
 
 @doc raw"""
@@ -892,12 +892,13 @@ julia> is_normal(A)
 true
 ```
 """
-function is_normal(A::MPolyQuoRing)
+@attr Bool function is_normal(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
 
   I = A.I
   # TODO remove old1 & old2 once new Singular jll is out
+# QUESTION: How old is this? Has this been fixed yet?
   old1 = Singular.libSingular.set_option("OPT_REDSB", false)
   old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
   f = Singular.LibNormal.isNormal(singular_generators(I))::Int
@@ -936,7 +937,7 @@ julia> is_cohen_macaulay(A)
 false
 ```
 """
-function is_cohen_macaulay(A::MPolyQuoRing)
+@attr Bool function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -1264,6 +1265,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
       newSR = l[1][i][1]::Singular.PolyRing
       newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
       newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
+      set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
       idgens = base_ring(A).(gens(l[2][i]))

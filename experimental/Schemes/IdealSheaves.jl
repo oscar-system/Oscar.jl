@@ -576,28 +576,34 @@ at every point $p$ is one or prime.
 end
 
 function is_equidimensional(I::IdealSheaf; covering=default_covering(scheme(I)))
+  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
-  all(x->x==d, local_dims) || return false
-  all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
-  return true
+  if !all(x->x==d, local_dims) ||
+     !all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering))
+    set_attribute!(I, :is_equidimensional=>false)
+    return false
+  else
+    set_attribute!(I, :is_equidimensional=>true)
+    return true
+  end
 end
 
-function is_equidimensional(I::MPolyIdeal)
+@attr Bool function is_equidimensional(I::MPolyIdeal)
   decomp = equidimensional_decomposition_weak(I)
   return isone(length(decomp))
 end
 
-function is_equidimensional(I::MPolyQuoIdeal)
+@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
   is_equidimensional(saturated_ideal(I))
 end
 
-function is_equidimensional(I::MPolyLocalizedIdeal)
+@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
   return is_equidimensional(saturated_ideal(I))
 end
 
-function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
   return is_equidimensional(pre_image_ideal(I))
 end
 
@@ -821,6 +827,9 @@ function maximal_associated_points(I::IdealSheaf; covering=default_covering(sche
 
 # make sure to return ideal sheaves, not dicts
   associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  for Itemp in associated_primes_result
+    set_attribute!(Itemp, :is_prime=>true)
+  end
   return associated_primes_result
 end
 
@@ -885,6 +894,9 @@ function associated_points(I::IdealSheaf)
 
 # make sure to return ideal sheaves, not dicts
   associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  for Itemp in associated_primes_result
+    set_attribute!(Itemp, :is_prime=>true)
+  end
   return associated_primes_result
 end
 
