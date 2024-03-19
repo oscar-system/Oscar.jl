@@ -11,3 +11,9 @@ function underlying_scheme(RS::MatroidRealizationSpace{BRT, RT}) where {BRT<:Rin
   return RS.underlying_scheme::AffineScheme{BRT, RT}
 end
 
+# Exports
+export inequations
+export is_realizable
+export realization
+export realization_matrix
+export realization_space

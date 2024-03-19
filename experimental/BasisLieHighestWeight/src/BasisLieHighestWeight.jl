@@ -11,6 +11,7 @@ import Oscar: dim
 import Oscar: dim_of_simple_module
 import Oscar: monomial_ordering
 import Oscar: monomials
+import Oscar: number_of_positive_roots, n_positive_roots
 
 import Base: length
 

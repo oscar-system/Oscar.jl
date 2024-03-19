@@ -20,7 +20,7 @@ element as `new_ray`. In addition to this `new_ray`, our design of toric blowdow
 underlying toric morphism. With an eye towards covered schemes as possible return value, any toric blowdown
 morphism must also know (to compute) its blowup center in the form of an ideal sheaf. The following constructor
 allows to set this ideal sheaf center upon construction:
-- `toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf)`
+- `toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::AbsIdealSheaf)`
 The "working-horse" constructor however is the following:
 - `toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String)`
 This constructor will, among others, construct the underlying toric morphism. In addition, we can then specify
@@ -69,7 +69,7 @@ blowdown morphisms:
 - `morphism_on_picard_group(bl::ToricBlowdownMorphism)`.
 The total and strict transform of ideal sheaves along toric blowdown morphisms can be computed:
 ```@docs
-total_transform(f::AbsSimpleBlowdownMorphism, II::IdealSheaf)
+total_transform(f::AbsSimpleBlowdownMorphism, II::AbsIdealSheaf)
 ```
 
 
