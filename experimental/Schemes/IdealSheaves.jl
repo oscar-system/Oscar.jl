@@ -333,33 +333,28 @@ end
 For an ideal sheaf ``ℐ`` on an `AbsCoveredScheme` ``X`` return
 the subscheme ``Y ⊂ X`` given by the zero locus of ``ℐ``.
 """
-function subscheme(I::AbsIdealSheaf)
+function subscheme(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = space(I)
-  C = default_covering(X)
-  new_patches = [subscheme(U, I(U)) for U in basic_patches(C)]
+  C = covering
+  new_patches = IdDict{AbsAffineScheme, AbsAffineScheme}([U=>subscheme(U, I(U)) for U in basic_patches(C) if !isone(I(U))])
   new_gluings = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}()
   decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
-  for (U, V) in keys(gluings(C))
-    i = C[U]
-    j = C[V]
-    Unew = new_patches[i]
-    Vnew = new_patches[j]
-    G = C[U, V]
-    #new_gluings[(Unew, Vnew)] = restrict(C[U, V], Unew, Vnew, check=false)
-    new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction,
+  for (U, Unew) in new_patches
+    for (V, Vnew) in new_patches
+      (U, V) in keys(gluings(C)) || continue # No gluing before, no gluing after.
+      old_glue = C[U, V]
+      new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction,
                                              RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
                                             )
-    #new_gluings[(Vnew, Unew)] = inverse(new_gluings[(Unew, Vnew)])
-    new_gluings[(Vnew, Unew)] = LazyGluing(Vnew, Unew, inverse, new_gluings[(Unew, Vnew)])
+      #new_gluings[(Vnew, Unew)] = LazyGluing(Vnew, Unew, inverse, new_gluings[(Unew, Vnew)])
+    end
   end
-  Cnew = Covering(new_patches, new_gluings, check=false)
+  Cnew = Covering(collect(values(new_patches)), new_gluings, check=false)
 
   # Inherit decomposition information if applicable
   if has_decomposition_info(C)
-    for k in 1:length(new_patches)
-      U = new_patches[k]
-      V = basic_patches(C)[k]
-      set_decomposition_info!(Cnew, U, elem_type(OO(U))[OO(U)(a, check=false) for a in decomposition_info(C)[V]])
+    for (U, V) in new_patches
+      set_decomposition_info!(Cnew, V, elem_type(OO(V))[OO(V)(a, check=false) for a in decomposition_info(C)[U]])
     end
   end
   return CoveredScheme(Cnew)
@@ -1623,3 +1618,11 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
   # Infer the ideal from the root
   return OO(X)(V, U)(I(V))
 end
+
+function sub(I::AbsIdealSheaf)
+  X = scheme(I)
+  inc = CoveredClosedEmbedding(X, I)
+  return domain(inc), inc
+end
+
+
