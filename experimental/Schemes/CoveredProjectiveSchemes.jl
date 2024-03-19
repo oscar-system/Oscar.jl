@@ -364,7 +364,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
   t = gens(S)
   if is_regular_sequence(gens(I))
     # construct the blowup manually
-    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
+    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r for j in i+1:r+1])
     IPY = subscheme(IPW, J)
     # Compute the IdealSheaf for the exceptional divisor
     ID = IdDict{AbsAffineScheme, RingElem}()
@@ -384,7 +384,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     # Prepare the decomposition data
     decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
     for k in 1:ngens(I)
-      U = affine_charts(Y)[i]
+      U = affine_charts(Y)[k]
       decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
     end
 
@@ -518,8 +518,9 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
   is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
-  A, p = quo(R, ideal(R, g))
-  return is_regular_sequence(p.(g[2:end]))
+  A, p = quo(R, ideal(R, g[1]))
+  red_seq = elem_type(A)[p(f) for f in g[2:end]]
+  return is_regular_sequence(red_seq)
 end
 
 

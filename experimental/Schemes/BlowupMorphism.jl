@@ -3,6 +3,36 @@ export center
 export exceptional_divisor
 export projection
 
+@doc raw"""
+    AbsDesingMor{
+                                  DomainType<:AbsCoveredScheme,
+                                  CodomainType<:AbsCoveredScheme,
+                                  BlowdownMorphismType
+       } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 Nothing,
+                                 BlowdownMorphismType
+                                }
+Abstract type for desingularizations ``f : X -> Y `` of schemes where
+
+  * ``Y`` is the scheme of which the singularities are to be resolved
+  * ``f`` is a birational proper map 
+          may for instance be BlowUpSequence or Lipman-style combination of blow-ups and normalization
+  * ``Y`` is a regular scheme
+"""
+abstract type AbsDesingMor{
+                           DomainType<:AbsCoveredScheme,
+                           CodomainType<:AbsCoveredScheme,
+                           BlowdownMorphismType
+                          } <: AbsCoveredSchemeMorphism{
+                                                        DomainType,
+                                                        CodomainType,
+                                                        Nothing,
+                                                        BlowdownMorphismType
+                                                       }
+end
+
 ########################################################################
 # An abstract type for blowdown morphisms.
 #
@@ -12,14 +42,8 @@ export projection
 ########################################################################
 abstract type AbsBlowdownMorphism{DomainType<:AbsCoveredScheme,
                                   CodomainType<:AbsCoveredScheme,
-                                  BaseMorphismType<:Nothing,
                                   BlowdownMorphismType
-   } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 BaseMorphismType,
-                                 BlowdownMorphismType
-                                }
+                                 } <: AbsDesingMor{DomainType, CodomainType, BlowdownMorphismType}
 end
 
 # The interface inherits all functionality from AbsCoveredSchemeMorphism.
@@ -95,12 +119,10 @@ end
 ########################################################################
 abstract type AbsSimpleBlowdownMorphism{DomainType<:AbsCoveredScheme,
                                      CodomainType<:AbsCoveredScheme,
-                                     BaseMorphismType<:Nothing,
                                      BlowdownMorphismType
     } <: AbsBlowdownMorphism{
                              DomainType,
                              CodomainType,
-                             BaseMorphismType,
                              BlowdownMorphismType
                             }
 end
@@ -246,12 +268,10 @@ Prime ideal sheaf on Scheme over QQ covered with 1 patch extended from Ideal (x,
 @attributes mutable struct BlowupMorphism{
      DomainType<:AbsCoveredScheme, # Not a concrete type in general because this is lazy
      CodomainType<:AbsCoveredScheme,
-     BaseMorphismType # Nothing in case of no base change
    } <: AbsSimpleBlowdownMorphism{
                                   DomainType,
                                   CodomainType,
-                                  BaseMorphismType,
-                                  BlowupMorphism
+                                  BlowupMorphism{DomainType, CodomainType}
                                  }
   projective_bundle::CoveredProjectiveScheme
   codomain::CodomainType   # in general a CoveredScheme
@@ -266,7 +286,7 @@ Prime ideal sheaf on Scheme over QQ covered with 1 patch extended from Ideal (x,
     )
     X = base_scheme(IP)
     X === scheme(I) || error("ideal sheaf not compatible with blown up variety")
-    return new{AbsCoveredScheme, typeof(X), Nothing}(IP, X, I)
+    return new{AbsCoveredScheme, typeof(X)}(IP, X, I)
   end
 end
 
@@ -801,5 +821,64 @@ end
 
 function compose(f::AbsCoveredSchemeMorphism, g::AbsSimpleBlowdownMorphism)
   return composite_map(f, g)
+end
+
+########################################################################
+# Resolutions of singularities                                         #
+########################################################################
+
+@doc raw"""
+    BlowUpSequence{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme
+   } <: AbsDesingMor{
+                                 DomainType,
+                                 CodomainType,
+                                }
+
+
+"""
+@attributes mutable struct BlowUpSequence{
+                                          DomainType<:AbsCoveredScheme,
+                                          CodomainType<:AbsCoveredScheme
+                                         }<:AbsBlowdownMorphism{
+                                                                DomainType, CodomainType, 
+                                                                BlowUpSequence{DomainType, CodomainType}
+                                                               }
+  maps::Vector{<:BlowupMorphism}                 # count right to left:
+                                                 # original scheme is codomain of map 1
+  
+  embeddings::Vector{<:AbsCoveredSchemeMorphism} # if set,
+                                                 # assert codomain(maps[i])===codomain(embeddings[i]) 
+  # boolean flags
+  is_embedded::Bool                              # do not set embeddings, ex_mult, controlled_transform etc
+                                                 #     if is_embedded == false
+  resolves_sing::Bool                            # domain(maps[end]) smooth?
+  is_trivial::Bool                               # codomain already smooth?
+  transform_type::Symbol                         # can be :strict, :weak or :control
+                                                 #     only relevant for is_embedded == true
+
+  # fields for caching, may be filled during computation
+  ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
+                                                 # lives in domain(maps[end])
+  ex_mult::Vector{Int}                           # multiplicities of exceptional divisors removed from
+                                                 # controlled or weak transform, not set for is_embedded == false
+                                                 # and transform_type == strict
+  controlled_transform::AbsIdealSheaf               # holds weak or controlled transform according to transform_type
+
+  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
+  underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
+  exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
+  exceptional_locus::WeilDivisor                 # exceptional locus of composed map
+  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+                                                 # restricted to domain(embeddings[end])
+
+  function BlowUpSequence(maps::Vector{<:BlowupMorphism})
+    n = length(maps)
+    for i in 1:n-1
+      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
+    end
+    return new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
+  end
 end
 

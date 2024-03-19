@@ -149,43 +149,39 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal)
 
-Set up an ideal sheaf on ``X`` by specifying a set of generators ``g``
+Set up an ideal sheaf on ``X`` by specifying an ideal ``I``
 on one affine open subset ``U`` among the `basic_patches` of the
 `default_covering` of ``X``.
 
-**Note:** The set ``U`` has to be dense in its connected component
-of ``X`` since otherwise, the extension of the ideal sheaf to other
-charts can not be inferred.
+**Note:** The ideal ``I`` has to be prime so that its extension 
+to the other charts of ``X`` is well defined. 
 """
+function IdealSheaf(
+    X::AbsCoveredScheme, U::AbsAffineScheme, 
+    I::Ideal; check::Bool=false
+  )
+  @assert base_ring(I) === OO(U) || error("ideal not defined in the correct ring")
+  @check is_prime(I) "ideal must be prime"
+  return PrimeIdealSheafFromChart(X, U, I)
+end
+
+function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=CoveredScheme(X))
+  @assert base_ring(I) === OO(X)
+  @assert length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme))
+  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
+end
+
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
     g::Vector{RET}; check::Bool=false
   ) where {RET<:RingElem}
-  I = ideal(OO(U), g)
-  @check is_prime(I) "ideal must be prime"
-  return PrimeIdealSheafFromChart(X, U, I)
-
-  C = default_covering(X)
-  for f in g
-    parent(f) === OO(U) || error("the generators do not belong to the correct ring")
-  end
-  if !any(x->x===U, patches(C))
-    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
-    U_flat = codomain(inc_U_flat)::PrincipalOpenSubset
-    V = ambient_scheme(U_flat)
-    J = saturated_ideal(pullback(inverse(inc_U_flat))(ideal(OO(U), g)))
-    return IdealSheaf(X, V, OO(V).(gens(J)))
-  end
-  D = IdDict{AbsAffineScheme, Ideal}()
-  D[U] = ideal(OO(U), g)
-  D = extend!(C, D)
-  I = IdealSheaf(X, D, check=false)
-  return I
+  return IdealSheaf(X, U, ideal(OO(U), g); check)
 end
 
-ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, g; check)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) = IdealSheaf(X, U, I; check)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme,
