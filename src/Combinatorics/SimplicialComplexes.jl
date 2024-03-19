@@ -688,7 +688,7 @@ Abstract simplicial complex of dimension 2 on 4 vertices
 ```
 """
 function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
-  @req order(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
+  @req degree(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
   new_facets = on_sets_sets(Set(facets(K)), g)
   simplicial_complex(collect(new_facets))
 end
