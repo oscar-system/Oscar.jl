@@ -93,8 +93,8 @@
   phi = K(-8*t^8 + 4*t^7 + 6*t^5 + 4*x*t^3 + 3*t^4 - 13*x*t^2 - 7*y*t^2 - 12*t^3 - 12*x*t + 12*y*t - 14*t^2 - 14*x - y - 10*t + 10)//K(6*t^8 - 5*t^7 + 14*t^6 - 7*x*t^4 - 13*t^5 - 5*x*t^3 - 6*x*t^2 - 5*t^3 - 9*x*t - 10*t^2 + 4*x - 8*t + 4)
   @test Oscar.order_on_divisor(phi, D, check=false) == -1
 
-  (x,z,t) = coordinates(adeK3[1][2])
-  o = weil_divisor(ideal_sheaf(adeK3, adeK3[1][2], [z,x]), check=false)
+  (x,z,t) = coordinates(adeK3[1][1])
+  o = weil_divisor(ideal_sheaf(adeK3, adeK3[1][1], [z,x]), check=false)
   @test order_on_divisor(K(z), o, check=false) == 3
   @test order_on_divisor(K(x), o, check=false) == 1
 end
