@@ -207,6 +207,9 @@ Base.convert(::Type{<:Polymake.Graph{T}}, g::Graph{T}) where T<:Union{Directed,U
 function remove_zero_rows(A::AbstractMatrix)
     A[findall(x->!iszero(x),collect(eachrow(A))),:]
 end
+function remove_zero_rows(A::AbstractMatrix{Float64})
+  A[findall(x->!isapprox(x,zero(x),atol=Polymake._get_global_epsilon()),collect(eachrow(A))),:]
+end
 function remove_zero_rows(A::Oscar.MatElem)
     remove_zero_rows(Matrix(A))
 end

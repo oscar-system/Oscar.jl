@@ -13,7 +13,7 @@
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
     R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
     I = ideal(R, [x])
-    gb = groebner_basis_f4(I)
+    gb = groebner_basis(I)
     @test normal_form(y, I) == y
     @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
     @test Oscar._normal_form_f4([y], I) == [y]

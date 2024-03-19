@@ -20,7 +20,7 @@
   g = hom(F, M, phi.(f.(gens(domain(f)))))
   K, inc = kernel(g)
   tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
+  KK, inc2 = sub(domain(f), unique!(filter!(!iszero, tr.(gens(K)))))
   return KK, inc2
 end
 

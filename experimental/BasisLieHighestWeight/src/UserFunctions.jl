@@ -130,9 +130,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = chevalley_basis[1] # TODO: change to [2]
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -145,9 +143,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, birational_sequence)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 function basis_lie_highest_weight(
@@ -160,9 +156,7 @@ function basis_lie_highest_weight(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -214,9 +208,7 @@ function basis_lie_highest_weight_lusztig(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_lusztig(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -287,9 +279,7 @@ function basis_lie_highest_weight_string(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -329,10 +319,9 @@ function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::V
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = reverse(chevalley_basis[1]) # TODO: change to [2]
-  # we reverse the order here to have simple roots at the right end, this is then a good ordering. Simple roots at the right end speed up the program very much
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
-  )
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering.
+  # simple roots at the right end speed up the program very much
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
 @doc raw"""
@@ -403,7 +392,162 @@ function basis_lie_highest_weight_nz(
   L = lie_algebra(type, rank)
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_by_index(L, chevalley_basis, reduced_expression)
-  return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering
+  return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
+end
+
+@doc raw"""
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Int}; monomial_ordering::Symbol=:degrevlex)
+    basis_coordinate_ring_kodaira(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int, birational_sequence::Vector{Vector{Int}}; monomial_ordering::Symbol=:degrevlex)
+
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
+with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+
+!!! warn
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+    
+If no birational sequence is specified, all operators in the order of `basis_lie_highest_weight_operators` are used.
+A birational sequence of type `Vector{Int}` is a sequence of indices of operators in `basis_lie_highest_weight_operators`.
+A birational sequence of type `Vector{Vector{Int}}` is a sequence of weights in terms of the simple roots $\alpha_i$.
+
+`monomial_ordering` describes the monomial ordering used for the basis.
+If this is a weighted ordering, the height of the corresponding root is used as weight.
+
+# Example
+```jldoctest
+julia> bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
+6-element Vector{Tuple{MonomialBasis, Int64}}:
+ (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, 7)
+ (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, 5)
+ (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, 14)
+ (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, 7)
+ (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, 12)
+ (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, 8)
+
+julia> bases[end][1]
+Monomial basis of a highest weight module
+  of highest weight [6, 0]
+  of dimension 714
+  with monomial ordering invlex([x1, x2, x3, x4, x5, x6])
+over Lie algebra of type G2
+  where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
+    [1, 0]
+    [0, 1]
+    [1, 1]
+    [2, 1]
+    [3, 1]
+    [3, 2]
+  and the basis was generated by Minkowski sums of the bases of the following highest weight modules:
+    [1, 0]
+    [2, 0]
+    [3, 0]
+    [4, 0]
+    [5, 0]
+    [6, 0]
+```
+"""
+function basis_coordinate_ring_kodaira(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  degree::Int;
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = chevalley_basis[1] # TODO: change to [2]
+  return basis_coordinate_ring_kodaira_compute(
+    L, highest_weight, degree, operators, monomial_ordering
+  )
+end
+
+function basis_coordinate_ring_kodaira(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  degree::Int,
+  birational_sequence::Vector{Int};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis, birational_sequence)
+  return basis_coordinate_ring_kodaira_compute(
+    L, highest_weight, degree, operators, monomial_ordering
+  )
+end
+
+function basis_coordinate_ring_kodaira(
+  type::Symbol,
+  rank::Int,
+  highest_weight::Vector{Int},
+  degree::Int,
+  birational_sequence::Vector{Vector{Int}};
+  monomial_ordering::Symbol=:degrevlex,
+)
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
+  return basis_coordinate_ring_kodaira_compute(
+    L, highest_weight, degree, operators, monomial_ordering
+  )
+end
+
+@doc raw"""
+    basis_coordinate_ring_kodaira_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int; monomial_ordering::Symbol=:degrevlex)
+
+Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
+of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
+with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+
+!!! warn
+    Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
+    This might change in a minor release.
+
+The the birational sequence used consists of all operators in descening height of the corresponding root, i.e. a "good" ordering.
+
+The monomial ordering is fixed to `degrevlex`. 
+
+# Example
+```jldoctest
+julia> bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
+6-element Vector{Tuple{MonomialBasis, Int64}}:
+ (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, 7)
+ (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, 0)
+ (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, 0)
+ (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, 0)
+ (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, 0)
+ (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, 0)
+
+julia> bases[end][1]
+Monomial basis of a highest weight module
+  of highest weight [6, 0]
+  of dimension 714
+  with monomial ordering degrevlex([x1, x2, x3, x4, x5, x6])
+over Lie algebra of type G2
+  where the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):
+    [3, 2]
+    [3, 1]
+    [2, 1]
+    [1, 1]
+    [0, 1]
+    [1, 0]
+  and the basis was generated by Minkowski sums of the bases of the following highest weight modules:
+    [1, 0]
+```
+"""
+function basis_coordinate_ring_kodaira_ffl(
+  type::Symbol, rank::Int, highest_weight::Vector{Int}, degree::Int
+)
+  monomial_ordering = :degrevlex
+  L = lie_algebra(type, rank)
+  chevalley_basis = chevalley_basis_gap(L)
+  operators = reverse(chevalley_basis[1]) # TODO: change to [2]
+  # we reverse the order here to have simple roots at the right end, this is then a good ordering.
+  # simple roots at the right end speed up the program very much
+  return basis_coordinate_ring_kodaira_compute(
+    L, highest_weight, degree, operators, monomial_ordering
   )
 end

@@ -65,10 +65,10 @@ julia> center(blow_down_morphism)
 Sheaf of ideals
   on normal toric variety
 with restrictions
-  1: ideal(x_3_1, x_2_1)
-  2: ideal(x_3_2, x_2_2)
-  3: ideal(1)
-  4: ideal(1)
+  1: Ideal (x_3_1, x_2_1)
+  2: Ideal (x_3_2, x_2_2)
+  3: Ideal (1)
+  4: Ideal (1)
 ```
 """
 function center(bl::ToricBlowdownMorphism)

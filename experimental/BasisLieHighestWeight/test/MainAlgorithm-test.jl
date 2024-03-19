@@ -1,12 +1,10 @@
 include("MBOld.jl")
 
-"""
-We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
-check basic properties of the result. For example we know the size of our monomial basis. These properties get partially
-used in the algorithm and could therefore be true for false results. We have another basic algorithm that solves the 
-problem without the recursion, weightspaces and saving of computations. The third test compares the results we can 
-compute with the weaker version.
-"""
+# We are testing our code in multiple ways. First, we calculated two small examples per hand and compare those. Then we 
+# check basic properties of the result. For example we know the size of our monomial basis. These properties get partially
+# used in the algorithm and could therefore be true for false results. We have another basic algorithm that solves the 
+# problem without the recursion, weightspaces and saving of computations. The third test compares the results we can 
+# compute with the weaker version.
 
 function compare_algorithms(dynkin::Symbol, n::Int64, lambda::Vector{Int64})
   # old algorithm
@@ -561,6 +559,39 @@ end
       #check_dimension(:F, 4, [2,0,1,0], monomial_ordering)
       #check_dimension(:G, 2, [1,0], monomial_ordering)
       #check_dimension(:G, 2, [2,2], monomial_ordering)
+    end
+  end
+end
+
+@testset "Coordinate ring of Kodaira embedding" begin
+  @testset "general case" begin
+    mbs = basis_coordinate_ring_kodaira(
+      :B, 3, [0, 0, 1], 4, [3, 2, 3, 2, 1, 2, 3, 2, 1]; monomial_ordering=:neglex
+    )
+    @test length(mbs) == 4
+    @test dim(mbs[1][1]) == mbs[1][2]
+    @test mbs[2][2] > 0
+    @test mbs[3][2] == 0
+    @test mbs[4][2] == 0
+  end
+
+  @testset "FFL" begin
+    for case in [
+      (:A, 3, [1, 0, 1], 4),
+      (:B, 2, [1, 1], 4),
+      (:D, 4, [1, 0, 1, 0], 4),
+      (:G, 2, [1, 0], 6),
+    ]
+      dynkin, n, lambda, degree = case
+      mbs = basis_coordinate_ring_kodaira_ffl(dynkin, n, lambda, degree)
+      L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
+      gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda))
+      @test length(mbs) == degree
+      @test dim(mbs[1][1]) == gap_dim
+      @test dim(mbs[1][1]) == mbs[1][2]
+      for i in 2:degree
+        @test mbs[i][2] == 0
+      end
     end
   end
 end
