@@ -42,7 +42,8 @@ export  find_refinement_with_local_system_of_params
 ##################################################################################################
 # getters
 ##################################################################################################
-maps(phi::AbsDesingMor) = copy(phi.maps)
+morphisms(phi::AbsDesingMor) = copy(phi.maps)
+morphism(phi::AbsDesingMor,i::Int) = copy(phi.maps[i])
 last_map(phi::AbsDesingMor) = phi.maps[end]
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
 embeddings(phi::BlowUpSequence) = phi.embeddings
@@ -50,7 +51,7 @@ embeddings(phi::BlowUpSequence) = phi.embeddings
 ## do not use!!! (for forwarding and certain emergenies)
 function underlying_morphism(phi::AbsDesingMor)
   if !isdefined(phi, :underlying_morphism)
-    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(maps(phi)))
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
   end
   return phi.underlying_morphism
 end
@@ -319,7 +320,7 @@ end
 
 
 function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
-  old_sequence = maps(f)
+  old_sequence = morphisms(f)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
   current_blow_up = blow_up(cent,var_name=string("v", length(old_sequence), "_"))
@@ -328,7 +329,7 @@ function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
 end
 
 function _do_blow_up_embedded!(phi::AbsDesingMor,cent::AbsIdealSheaf)
-  old_sequence = maps(phi)
+  old_sequence = morphisms(phi)
   X = domain(old_sequence[end])
   X === scheme(cent) || error("center needs to be defined on same scheme")
   current_blow_up = blow_up(cent,var_name=string("v", length(old_sequence), "_"))
@@ -640,7 +641,7 @@ function non_snc_locus(divs::Vector{<:EffectiveCartierDivisor})
       I = ideal_sheaf(divs[k])
       inc = incs[k][U]
       V = codomain(inc)
-      h = first(gens(I(V)))
+      h = gen(I(V),1)
       hh = pullback(inc)(h)
       is_unit(hh) && continue # Not every divisor needs to be visible here
       push!(loc_eqns, hh)
@@ -747,34 +748,34 @@ end
 # so we need to repeat the procedure for the specific types 
 # of the second argument.
 function strict_transform(phi::BlowUpSequence, a::Any)
-  for psi in maps(phi)
+  for psi in morhpisms(phi)
     a = strict_transform(psi, a)
   end
   return a
 end
 
 function total_transform(phi::BlowUpSequence, a::Any)
-  for psi in maps(phi)
+  for psi in morphisms(phi)
     a = total_transform(psi, a)
   end
   return a
 end
 
 function strict_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
-  for psi in maps(phi)
+  for psi in morphisms(phi)
     a = strict_transform(psi, a)
   end
   return a
 end
 
 function total_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
-  for psi in maps(phi)
+  for psi in morphisms(phi)
     a = total_transform(psi, a)
   end
   return a
 end
 
 function center(phi::BlowUpSequence)
-  return center(last(maps(phi)))
+  return center(last_map(phi)))
 end
 
