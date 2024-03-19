@@ -182,7 +182,7 @@ Cartier divisor
   on scheme over QQ covered with 3 patches
 with coefficients in integer ring
 defined by the formal sum of
-  1 * sheaf of ideals
+  1 * effective cartier divisor on scheme over QQ covered with 3 patches
 ```
 """
 cartier_divisor(E::EffectiveCartierDivisor) = CartierDivisor(E)
