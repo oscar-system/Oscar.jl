@@ -867,8 +867,9 @@ end
   controlled_transform::AbsIdealSheaf               # holds weak or controlled transform according to transform_type
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
-  composed_map::AbsCoveredSchemeMorphism        
-  exceptional_divisor::WeilDivisor               # exceptional divisor of composed_map
+  underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
+  exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
+  exceptional_locus::WeilDivisor                 # exceptional locus of composed map
   exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
                                                  # restricted to domain(embeddings[end])
 

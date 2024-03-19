@@ -49,15 +49,10 @@ embeddings(phi::BlowUpSequence) = phi.embeddings
 
 ## do not use!!! (for forwarding and certain emergenies)
 function underlying_morphism(phi::AbsDesingMor)
-  if !isdefined(phi, :composed_map)
-    len=length(maps(phi))
-    result=underlying_morphism(maps(phi)[1])
-    for i in 2:len
-      result = compose(underlying_morphism(maps(phi)[i]), result)
-    end
-    phi.composed_map = result
+  if !isdefined(phi, :underlying_morphism)
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(maps(phi)))
   end
-  return phi.composed_map
+  return phi.underlying_morphism
 end
 
 ##################################################################################################
@@ -735,4 +730,59 @@ function strict_transform(bl::AbsSimpleBlowdownMorphism, inc::ClosedEmbedding)
 end
 
 is_graded(R::Ring) = false
+
+########################################################################
+# Implement the interface specified in 
+# experimental/Schemes/BlowupMorphism.jl
+########################################################################
+
+function exceptional_divisor(phi::BlowUpSequence)
+  #TODO: Check whether the full resolution has already been computed?
+  if !isdefined(phi, :exceptional_divisor)
+    phi.exceptional_divisor = sum(phi.ex_div; init=CartierDivisor(domain(phi), ZZ))
+  end
+  return phi.exceptional_divisor
+end
+
+function exceptional_locus(phi::BlowUpSequence)
+  if !isdefined(phi, :exceptional_locus)
+    phi.exceptional_locus = weil_divisor(exceptional_divisor(phi))
+  end
+  return phi.exceptional_locus
+end
+
+# The following two methods will be ambiguous in general
+# so we need to repeat the procedure for the specific types 
+# of the second argument.
+function strict_transform(phi::BlowUpSequence, a::Any)
+  for psi in maps(phi)
+    a = strict_transform(psi, a)
+  end
+  return a
+end
+
+function total_transform(phi::BlowUpSequence, a::Any)
+  for psi in maps(phi)
+    a = total_transform(psi, a)
+  end
+  return a
+end
+
+function strict_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
+  for psi in maps(phi)
+    a = strict_transform(psi, a)
+  end
+  return a
+end
+
+function total_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
+  for psi in maps(phi)
+    a = total_transform(psi, a)
+  end
+  return a
+end
+
+function center(phi::BlowUpSequence)
+  return center(last(maps(phi)))
+end
 
