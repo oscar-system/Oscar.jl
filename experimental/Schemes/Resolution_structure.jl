@@ -61,14 +61,14 @@ end
 function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
-  push!(ex_div, Oscar.exceptional_divisor(phi))
+  push!(ex_div, exceptional_divisor(phi))
   f.ex_div = ex_div
   return f
 end
 
 function initialize_blow_up_sequence(phi::BlowupMorphism)
   f = BlowUpSequence([phi])
-  f.ex_div = [Oscar.exceptional_divisor(phi)]
+  f.ex_div = [exceptional_divisor(phi)]
   if !is_one(center(phi))
     f.is_trivial = false
   else
@@ -83,7 +83,7 @@ end
 function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
   ex_div = typeof(f.ex_div[1])[strict_transform(phi, E) for E in f.ex_div[1:end]]
-  push!(ex_div, Oscar.exceptional_divisor(phi))
+  push!(ex_div, exceptional_divisor(phi))
   f.ex_div = ex_div
   if f.transform_type == :strict
     X_strict, inc_strict,_ = strict_transform(phi, f.embeddings[end])
@@ -102,7 +102,7 @@ end
 
 function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredClosedEmbedding)
   f = BlowUpSequence([phi])
-  f.ex_div = [Oscar.exceptional_divisor(phi)]
+  f.ex_div = [exceptional_divisor(phi)]
   f.is_embedded = true
   f.transform_type = :strict
   if !is_one(center(phi))
@@ -121,7 +121,7 @@ end
 
 function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealSheaf, b::Int)
   f = BlowUpSequence([phi])
-  f.ex_div = [Oscar.exceptional_divisor(phi)]
+  f.ex_div = [exceptional_divisor(phi)]
   f.is_embedded = true
   if !is_one(center(phi))
     f.is_trivial = false
@@ -151,7 +151,7 @@ end
 # desingularization workers
 ##################################################################################################
 function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::Symbol=:BEV)
-  I_sl = Oscar.ideal_sheaf_of_singular_locus(domain(f))
+  I_sl = ideal_sheaf_of_singular_locus(domain(f))
 
   ## trivial case: domain(f) was already smooth
   if is_one(I_sl)
@@ -185,7 +185,7 @@ function CoveredClosedEmbedding(inc::ClosedEmbedding; domain=CoveredScheme(domai
 end
 
 function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
-  I_sl = Oscar.ideal_sheaf_of_singular_locus(X)
+  I_sl = ideal_sheaf_of_singular_locus(X)
   
   ## trivial case: X is already smooth
   if is_one(I_sl)
@@ -221,7 +221,7 @@ end
 
 function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in desingularization(X) 
-  decomp = Oscar.maximal_associated_points(I_sl)
+  decomp = maximal_associated_points(I_sl)
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
   phi = initialize_blow_up_sequence(current_blow_up)::BlowUpSequence
@@ -236,8 +236,8 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
         decomp = [strict_transform(last_map(phi),J) for J in decomp]
       end
     end
-    I_sl_temp = Oscar.ideal_sheaf_of_singular_locus(domain(last_map(phi)))
-    decomp = Oscar.maximal_associated_points(I_sl_temp)
+    I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(phi)))
+    decomp = maximal_associated_points(I_sl_temp)
   end
 
   phi.resolves_sing = true
@@ -246,7 +246,7 @@ end
 
 function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   ## note: I_sl not unit_ideal_sheaf, because this has been caught before in embedded_desingularization(f)
-  decomp = Oscar.maximal_associated_points(pushforward(f)(I_sl))
+  decomp = maximal_associated_points(pushforward(f)(I_sl))
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
   phi = initialize_embedded_blowup_sequence(current_blow_up,f)::BlowUpSequence
@@ -261,8 +261,8 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
       end
     end
     last_emb = embeddings(phi)[end]
-    I_sl_temp = pushforward(last_emb, Oscar.ideal_sheaf_of_singular_locus(domain(last_emb)))
-    decomp = Oscar.maximal_associated_points(I_sl_temp)
+    I_sl_temp = pushforward(last_emb, ideal_sheaf_of_singular_locus(domain(last_emb)))
+    decomp = maximal_associated_points(I_sl_temp)
   end
 
   phi = _ensure_ncr!(phi)
@@ -277,7 +277,7 @@ function _ensure_ncr!(f::AbsDesingMor)
 # it is ensured by all standard desingularization algorithms
   I_bad = non_snc_locus(current_divs)
   while !is_one(I_bad)
-    decomp = Oscar.maximal_associated_points(I_bad)
+    decomp = maximal_associated_points(I_bad)
     while length(decomp)>0
       I = small_generating_set(pop!(decomp))
       f =_do_blow_up_embedded!(f,I)
@@ -296,8 +296,8 @@ function _ensure_ncr!(f::AbsDesingMor)
     I_temp = I_X + ideal_sheaf(one_div)
     last_emb = embeddings(f)[end]
     inc_temp = CoveredClosedEmbedding(scheme(I_temp), I_temp)
-    next_locus = Oscar.ideal_sheaf_of_singular_locus(domain(inc_temp))
-    decomp = Oscar.maximal_associated_points(pushforward(inc_temp, next_locus ))
+    next_locus = ideal_sheaf_of_singular_locus(domain(inc_temp))
+    decomp = maximal_associated_points(pushforward(inc_temp, next_locus ))
     while !is_empty(decomp)
       I = small_generating_set(pop!(decomp))
       f =_do_blow_up_embedded!(f,I)
@@ -494,8 +494,8 @@ function _delta_ideal_for_order(inc::CoveredClosedEmbedding)
 
   for U in affine_charts(W)
     XU, inc_U = sub(U,I(U))
-    Cov,Chart_dict = Oscar.find_refinement_with_local_system_of_params(U)
-    Delta_dict[U] = (Oscar._delta_ideal_for_order(Oscar.CoveredClosedEmbedding(inc_U), Cov, Chart_dict))(U)
+    Cov,Chart_dict = find_refinement_with_local_system_of_params(U)
+    Delta_dict[U] = (_delta_ideal_for_order(CoveredClosedEmbedding(inc_U), Cov, Chart_dict))(U)
   end
 
   return IdealSheaf(W,Delta_dict;check=false)
@@ -513,8 +513,8 @@ function _delta_list(I::AbsIdealSheaf, b::Int=0)
   j = 0
   while (( !is_one(I) && b == 0 ) || ( j < b ))
     push!(Delta_list, I)
-    inc = Oscar.CoveredClosedEmbedding(scheme(I),I)
-    I = Oscar._delta_ideal_for_order(inc)
+    inc = CoveredClosedEmbedding(scheme(I),I)
+    I = _delta_ideal_for_order(inc)
     j = j + 1
   end
 
