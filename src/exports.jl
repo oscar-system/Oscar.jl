@@ -1064,6 +1064,7 @@ export negwdegrevlex
 export neighbors
 export newick
 export newton_polytope
+export newton_subdivision
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid

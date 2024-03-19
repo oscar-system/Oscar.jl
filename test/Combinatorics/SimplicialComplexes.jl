@@ -65,4 +65,13 @@
     K2 = simplicial_complex([[1, 2], [2, 3]])
     @test is_isomorphic(K1, K2)
   end
+
+  @testset "automorphism groups" begin
+    K = simplicial_complex([[1, 2], [2, 3]])
+    G = automorphism_group(K)
+    @test G == permutation_group(3, [cperm([1, 3])])
+
+    G = automorphism_group(K; action=:on_facets)
+    @test is_trivial(G)
+  end
 end
