@@ -107,6 +107,18 @@ function +(C::CartierDivisor, D::CartierDivisor)
   return CartierDivisor(scheme(C), coefficient_ring(C), coeff_dict)
 end
 
+function +(C::CartierDivisor, D::EffectiveCartierDivisor) 
+  return C + CartierDivisor(D)
+end
+
+function +(C::EffectiveCartierDivisor, D::EffectiveCartierDivisor) 
+  return CartierDivisor(C) + CartierDivisor(D)
+end
+
+function +(C::EffectiveCartierDivisor, D::CartierDivisor) 
+  return CartierDivisor(C) + D
+end
+
 function *(a::RingElem, C::CartierDivisor)
   parent(a) === coefficient_ring(C) || return coefficient_ring(C)(a)*C
   coeff_dict = IdDict{EffectiveCartierDivisor, typeof(a)}()
@@ -170,7 +182,7 @@ Cartier divisor
   on scheme over QQ covered with 3 patches
 with coefficients in integer ring
 defined by the formal sum of
-  1 * sheaf of ideals
+  1 * effective cartier divisor on scheme over QQ covered with 3 patches
 ```
 """
 cartier_divisor(E::EffectiveCartierDivisor) = CartierDivisor(E)
@@ -504,7 +516,9 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor)
       kI = length(co_str[i])
       print(io, " "^(k-kI)*"$(C[I]) * ")
       print(io, Lowercase())
-      show(IOContext(io, :show_scheme => false), ideal_sheaf(I))
+      show(IOContext(io, :show_scheme => false), I)
+      #show(IOContext(io, :show_scheme => false), ideal_sheaf(I))
+      print(io, "\n")
     end
     print(io, Dedent())
   end
