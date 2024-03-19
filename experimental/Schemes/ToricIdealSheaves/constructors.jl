@@ -199,6 +199,32 @@ function Base.in(tau::Cone, Sigma::PolyhedralFan)
 end
 
 function _dehomogenize_to_chart(X::NormalToricVariety, I::MPolyIdeal, k::Int)
+  # We use CLS, Proposition 5.2.10 and Exercise 5.2.5.
+  IM = maximal_cones(IncidenceMatrix, X)
+  U = affine_charts(X)[k]
+
+#  # We first create the morphism \pi_s* from p. 224, l. 3.
+#  indices = [k for k in row(IM, k)]
+#  help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+#  imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
+#  phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
+# 
+#  # Now we need to create alpha*.
+#  # We do this with the description on p. 224 in CLS.
+#  hb_U = hilbert_basis(weight_cone(U))
+#  r = matrix(ZZ, rays(U))
+#  imgs_alpha_star = [prod(x_rho[l]^Int(dot(hb_U[j], r[l, :])) for l in 1:nrows(r); init=one(help_ring)) for j in 1:length(hb_U)]
+# 
+#  J = phi_s_star(I)
+#  Q, pr = quo(help_ring, J)
+#  help_map = hom(OO(U), Q, pr.(imgs_alpha_star); check=false) # TODO: Set to false
+#  ker = kernel(help_map)
+#  return ker
+
+  # For some reason, the composite computation below is faster. It would be 
+  # interesting to know why. The code above is expected to be the winner 
+  # and therefore left here for the moment.
+
   S = cox_ring(X)
   r = matrix(ZZ, rays(X))
   max_cones = maximal_cones(X)
@@ -210,15 +236,24 @@ function _dehomogenize_to_chart(X::NormalToricVariety, I::MPolyIdeal, k::Int)
   I_loc = loc_map(I)
   
   U = affine_charts(X)[k]
-  hb_U = hilbert_basis(polarize(sigma)) # corresponds to the variables of OO(U)
+  hb_U = hilbert_basis(polarize(sigma)) # Corresponds to the variables of OO(U).
   x = gens(S_loc)
   img_gens = [prod(x[l]^Int(dot(hb_U[j], r[l, :])) for l in 1:nrows(r); init=one(S_loc)) for j in 1:length(hb_U)]
-  A, pr = quo(S_loc, I_loc)
-  y = pr.(img_gens)
-  # preimage is not implemented for these maps, but kernel works. So we use that for the moment.
-  #beta = hom(OO(U), S_loc, img_gens; check=true)
-  help = hom(OO(U), A, y)
-  #J = preimage(beta, I_loc)
-  kernel(help)
+  beta_star = hom(OO(U), S_loc, img_gens; check=false)
+
+  # Assemble the dehomogenization map phi_sigma^star.
+  indices = [k for k in row(IM, k)]
+  help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+  imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
+  phi_s_star = hom(S_loc, help_ring, imgs_phi_star)
+
+  # Compute the preimage of I_loc under beta.
+  # However, preimage is not implemented for these maps:
+  # J = preimage(beta, I_loc)
+  # Instead, kernel works. So we use that for the moment...
+  I_dehom = phi_s_star(I)
+  A, pr = quo(help_ring, I_dehom)
+  help_map = hom(OO(U), A, pr.(phi_s_star.(img_gens)); check=false)
+  return kernel(help_map)
 end
 
