@@ -196,3 +196,23 @@ end
   JJ = pushforward(bl, E)
   @test JJ == II
 end
+
+@testset "subschemes of ideal sheaves" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+
+  X = covered_scheme(IP2)
+  S = homogeneous_coordinate_ring(IP2)
+  x, y, z = gens(S)
+  I = ideal(S, [x*y, x*z, y*z])
+  II = IdealSheaf(IP2, I)
+  H = IdealSheaf(IP2, ideal(S, z))
+  Y = subscheme(II + H)
+  U = affine_charts(Y)
+  @test length(U) == 2
+  f, g = glueing_morphisms(Y[1][U[1], U[2]])
+  A = domain(f)
+  B = domain(g)
+  @test isempty(A)
+  @test isempty(B)
+end
+

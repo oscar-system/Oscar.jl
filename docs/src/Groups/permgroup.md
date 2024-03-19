@@ -89,6 +89,7 @@ sign(g::PermGroupElem)
 isodd(g::PermGroupElem)
 iseven(g::PermGroupElem)
 cycle_structure(g::PermGroupElem)
+cycles(g::PermGroupElem)
 ```
 
 ## Permutations as functions
