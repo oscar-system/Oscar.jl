@@ -139,6 +139,11 @@
           @test original == loaded
         end
       end
+
+      original = Dict{Symbol, Int}()
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
     end
 
     @testset "Testing (de)serialization of Set" begin
