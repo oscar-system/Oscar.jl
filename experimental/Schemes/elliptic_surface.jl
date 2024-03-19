@@ -229,7 +229,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
     for i in r+1:n
       vT[1,i] = intersect(T,basisA[i])
     end
-    push!(torsV, solve_left(GA_QQ,vT))
+    push!(torsV, solve(GA_QQ,vT; side = :left))
   end
   gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
@@ -1800,7 +1800,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     @assert (an*xx+bn*yy+cn)//(ad*xx+bd*yy+cd) == u_frac "decomposition failed"
 
 
-    v = solve(matrix(parent(an),2,2,[-an, bn,-ad, bd]), matrix(parent(an),2,1,[cn,cd]))
+    v = solve(matrix(parent(an),2,2,[-an, bn,-ad, bd]), matrix(parent(an),2,1,[cn,cd]); side = :right)
     x0 = v[1,1]
     y0 = v[2,1]
     @assert evaluate(f_loc,[x0,y0,gen(parent(x0))])==0
@@ -1865,7 +1865,7 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   B = u[1:rk-r,:]*BMWL
 
   MWL = lll(lattice(V, B, isbasis=false))
-  u = solve_left(BMWL, basis_matrix(MWL))
+  u = solve(BMWL, basis_matrix(MWL); side = :left)
   u = ZZ.(u)
   mwl_basis = [sum(u[i,j]*mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
   return MWL,mwl_basis
