@@ -642,7 +642,8 @@ end
 @doc raw"""
     cycles(g::PermGroupElem)
 
-Return the cycles of the permutation `g` as a list of integer vectors.
+Return all cycles (including trivial ones) of the permutation `g` as
+a sorted list of integer vectors.
 
 # Examples
 ```jldoctest
