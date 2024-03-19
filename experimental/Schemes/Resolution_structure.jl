@@ -237,7 +237,7 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   end
 
   phi.resolves_sing = true
-  return(phi)
+  return phi
 end
 
 function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
@@ -589,32 +589,28 @@ function divisor_intersections_with_X(current_div, I_X)
 
 # add intersections
   while !is_empty(old_keys)
-    old_keyvec = popfirst!(old_keys)         # this is the intersection to which we add a new divisor
+    old_keyvec = popfirst!(old_keys)       # this is the intersection to which we add a new divisor
     for i in (old_keyvec[end]+1):length(current_div)
+      haskey(inter_div_dict, [i]) || continue     # divisor i meets X at all
       copykey = copy(old_keyvec)
-      if haskey(inter_div_dict, [i])
-        push!(copykey,i)                     # here we add it
-        Idiv = inter_div_dict[[i]][1] + inter_div_dict[old_keyvec][1]
-        if !is_one(Idiv)
-                                             # it intersects
-          subsetlist = subsets(old_keyvec,length(old_keyvec)-1)
-          subsetlist = [push!(a,i) for a in subsetlist]
-          if (sum([inter_div_dict[a][2] for a in subsetlist])> 0)
-                                             # offending intersection, known before
-            inter_div_dict[copykey] = (Idiv,2)
-            push!(new_keys,copykey)
-          elseif dim(Idiv) == n_max - length(copykey)
-                                             # non-offending intersection
-            inter_div_dict[copykey] = (Idiv,0)
-            push!(new_keys,copykey)
-          else
-                                             # offending intersection, new
-            inter_div_dict[copykey] = (Idiv,1)
-            push!(new_keys,copykey)
-            push!(essential_inter, Idiv)
-          end
-        end
+      push!(copykey,i)                     # here we add it
+      Idiv = inter_div_dict[[i]][1] + inter_div_dict[old_keyvec][1]
+      !is_one(Idiv) || continue            # it intersects
+
+      subsetlist = subsets(old_keyvec,length(old_keyvec)-1)
+      subsetlist = [push!(a,i) for a in subsetlist]
+      if (sum([inter_div_dict[a][2] for a in subsetlist])> 0)
+                                           # offending intersection, known before
+        inter_div_dict[copykey] = (Idiv,2)
+      elseif dim(Idiv) == n_max - length(copykey)
+                                           # non-offending intersection
+        inter_div_dict[copykey] = (Idiv,0)
+      else
+                                           # offending intersection, new
+        inter_div_dict[copykey] = (Idiv,1)
+        push!(essential_inter, Idiv)
       end
+      push!(new_keys,copykey)
     end
 
     # go to next higher number of intersecting divisors
