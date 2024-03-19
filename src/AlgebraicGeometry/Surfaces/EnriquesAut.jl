@@ -55,7 +55,7 @@ function deltaYbarplus(SY,SX)
   return roots_mod2 = Set([change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(phi(i))))) for i in sv2])
 end
 
-function EnriquesBorcherdsCtx(SY::ZLat, SX::ZLat, L26::ZLat, weyl::ZZMatrix)
+function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   # X K3 ---> Y Enriques
   ECtx = EnriquesBorcherdsCtx()
   ECtx.L26 = L26
@@ -627,7 +627,7 @@ function ellfib_number(SY, SX, L26)
   return length(orbX), [representative(i) for i in orbX]
 end
 
-function fibration_types(fbar::TorQuadModElem, SY, SX, L26)
+function fibration_types(fbar::TorQuadModuleElem, SY, SX, L26)
   DY = discriminant_group(SY)
   Sm = orthogonal_submodule(SX, SY)
   phi, inc_Dplus, _ = glue_map(SX, SY, Sm)
