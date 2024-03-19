@@ -69,11 +69,7 @@ end
 function initialize_blow_up_sequence(phi::BlowupMorphism)
   f = BlowUpSequence([phi])
   f.ex_div = [exceptional_divisor(phi)]
-  if !is_one(center(phi))
-    f.is_trivial = false
-  else
-    f.is_trivial = true
-  end
+  f.is_trivial = is_one(center(phi))
   f.resolves_sing = false                                # we have no information, wether we are done
                                                          # without further computation
   f.is_embedded = false
