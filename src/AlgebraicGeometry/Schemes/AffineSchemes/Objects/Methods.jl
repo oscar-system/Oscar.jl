@@ -248,10 +248,15 @@ function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:
   return output
 end
 
-# documented for `Scheme` already
-function normalization(X::AbsAffineScheme; check::Bool=true)
+# further documented for `Scheme`
+"""
+    normalization(X::AbsAffineScheme)
+
+the keyword argument `algorithm` is passed on to the normalization method of the coordinate ring
+"""
+function normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
   @check is_reduced(X) "only reduced schemes can be normalized"
-  norm_outputs = _normalization(X)
+  norm_outputs = _normalization(X; algorithm)
   return [i[1:2] for i in norm_outputs]
 end
 

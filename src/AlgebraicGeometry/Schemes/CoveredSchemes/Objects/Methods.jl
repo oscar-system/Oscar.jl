@@ -162,10 +162,11 @@ end
 """
     normalization(X::Scheme; check::Bool=true) -> Vector{Tuple{Scheme, Morphism}}
 
-Compute
+Return the normalization of the reduced scheme ``X``.
+
 # Input:
 - A reduced scheme ``X``
-- if `check` is `true` confirm that ``X`` is reduced.
+- if `check` is `true` confirm that ``X`` is reduced; this is expensive
 
 # Output:
 A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
