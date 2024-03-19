@@ -209,7 +209,7 @@ end
   Y = subscheme(II + H)
   U = affine_charts(Y)
   @test length(U) == 2
-  f, g = glueing_morphisms(Y[1][U[1], U[2]])
+  f, g = gluing_morphisms(Y[1][U[1], U[2]])
   A = domain(f)
   B = domain(g)
   @test isempty(A)
