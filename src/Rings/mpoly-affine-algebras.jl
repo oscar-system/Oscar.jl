@@ -1338,7 +1338,7 @@ defined by
   y -> y
 
 julia> LL[1][3]
-(y, ideal(x, y))
+(y, Ideal (x, y))
 ```
 """
 function normalization(A::MPolyQuoRing; algorithm=:equidimDec)

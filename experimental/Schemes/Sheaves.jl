@@ -5,7 +5,31 @@ export space
 export underlying_presheaf
 
 ########################################################################
-# The AbsPreSheaf interface                                               #
+# The AbsPreSheaf interface                                            
+#
+# Architecture for an `AbsPreSheaf` `F` on a scheme `X`
+#
+# User facing calls are `F(U)` for the object and `F(U, V)` for the 
+# restriction maps for admissible open subsets `U` and `V` of `X`.
+#
+# The objects and restriction maps must be cached. This can be 
+# automated by using a concrete instance of `PreSheafOnScheme` in the 
+# internals and making it available as `underlying_presheaf` of `F`. 
+#
+# If an object `M` for `U` is not found in the cache, then it is 
+# produced by a call to 
+#
+#   produce_object(F, U)
+#
+# and then cached. The method of this function must thus be overwritten 
+# for the concrete type of `F`. 
+#
+# Similarly for the production of the restriction maps: In this case 
+# the user needs to implement a method of 
+#
+#   produce_restriction_map(F, U, V)
+#
+# for the concrete type of sheaf. 
 ########################################################################
 @doc raw"""
     space(F::AbsPreSheaf)
@@ -16,6 +40,12 @@ function space(F::AbsPreSheaf)
   return space(underlying_presheaf(F))
 end
 
+function scheme(F::AbsPreSheaf)
+  return scheme(underlying_presheaf(F))
+end
+
+scheme(F::PreSheafOnScheme) = space(F)
+
 @doc raw"""
     (F::AbsPreSheaf)(U; cached=true)
 
@@ -23,8 +53,18 @@ For a sheaf ``ℱ`` on a space ``X`` and an (admissible) open set
 ``U ⊂ X`` check whether ``U`` is open in ``X`` and return ``ℱ(U)``.
 """
 function (F::AbsPreSheaf{<:Any, OpenType, OutputType})(U::T; cached::Bool=true) where {OpenType, OutputType, T<:OpenType}
-  return (underlying_presheaf(F))(U, cached=cached)::OutputType
+  cached && haskey(object_cache(F), U) && return object_cache(F)[U]
+  result = produce_object(F, U)::OutputType
+  cached && (object_cache(F)[U] = result)
+  return result
 end
+
+function produce_object(F::AbsPreSheaf, U)
+  error("method for `produce_object` must be overwritten for sheaves of type $(typeof(F))")
+end
+
+### temporary workaround
+produce_object(F::AbsPreSheaf, U::AbsAffineScheme) = production_func(F)(F, U)
 
 @doc raw"""
     restriction_map(F::AbsPreSheaf, U, V)
@@ -34,10 +74,36 @@ open sets ``U, V ⊂ X`` check whether ``U ⊂ V ⊂ X`` are open and
 return the restriction map ``ℱ(V) → ℱ(U)``.
 """
 function restriction_map(F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType},
-    U::Type1, V::Type2
+    U::Type1, V::Type2;
+    check::Bool=false
   ) where {OpenType, OutputType, RestrictionType, Type1<:OpenType, Type2<:OpenType}
+  inc = incoming_restrictions(F, F(V))
+  inc !== nothing && haskey(inc, U) && return (inc[U])::RestrictionType
+
+  # Check whether the given pair is even admissible.
+  check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
+
+  # Hand the production of the restriction over to the internal method
+  rho = produce_restriction_map(F, U, V)
+
+  # Sanity checks
+  # disabled for the moment because of the ideal sheaves: They use the ring maps.
+  #domain(rho) === F(U) || error("domain of the produced restrition is not correct")
+  #codomain(rho) === F(V) || error("codomain of the produced restrition is not correct")
+
+  # Cache the result in the attributes of F(V)
+  inc isa IdDict{<:OpenType, <:RestrictionType} && (inc[U] = rho) # It is the restriction coming from U.
+  return rho::RestrictionType
+
   return restriction_map(underlying_presheaf(F), U, V)::RestrictionType
 end
+
+function produce_restriction_map(F::AbsPreSheaf, U, V)
+  error("method for `produce_restriction_map` must be overwritten for sheaves of type $(typeof(F))")
+end
+
+### Temporary workaround
+produce_restriction_map(F::AbsPreSheaf, U::AbsAffineScheme, V::AbsAffineScheme) = restriction_func(F)(F, U, V)
 
 # An alias for shorter notation
 function (F::AbsPreSheaf{<:Any, OpenType, OutputType, RestrictionType})(
@@ -63,6 +129,9 @@ end
 function object_cache(F::AbsPreSheaf)
   return object_cache(underlying_presheaf(F))
 end
+
+production_func(F::AbsPreSheaf) = production_func(underlying_presheaf(F))
+restriction_func(F::AbsPreSheaf) = restriction_func(underlying_presheaf(F))
 
 ########################################################################
 # Implementation of PreSheafOnScheme                                   #
@@ -108,7 +177,7 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
   check && (is_open_func(F)(V, U) || error("the second argument is not open in the first"))
 
   # Hand the production of the restriction over to the internal method
-  rho = restriction_func(F)(F, U, V)
+  rho = produce_restriction_map(F, U, V)
 
   # Sanity checks
   # disabled for the moment because of the ideal sheaves: They use the ring maps.

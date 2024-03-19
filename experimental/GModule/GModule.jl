@@ -1,3 +1,7 @@
+include("Cohomology.jl")
+include("GaloisCohomology.jl")
+include("Misc.jl")
+
 module GModuleFromGap
 using Oscar
 using Hecke
@@ -1685,3 +1689,5 @@ export restriction_of_scalars
 export trivial_gmodule
 export gmodule_minimal_field
 export gmodule_over
+
+include("Brueckner.jl")

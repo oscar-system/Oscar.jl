@@ -38,7 +38,7 @@ scheme(D::AbsAlgebraicCycle) = scheme(underlying_cycle(D))
 
 # For an element `I` of `components(D)`, this returns the coefficient 
 # of `I` in the formal sum for `D`.
-getindex(D::AbsAlgebraicCycle, I::IdealSheaf) = getindex(underlying_cycle(D), I)
+getindex(D::AbsAlgebraicCycle, I::AbsIdealSheaf) = getindex(underlying_cycle(D), I)
 
 @doc raw"""
     components(D::AbsAlgebraicCycle)
@@ -59,7 +59,7 @@ set_name!(X::AbsAlgebraicCycle, name::String) = set_attribute!(X, :name, name)
 name(X::AbsAlgebraicCycle) = get_attribute(X, :name)::String
 has_name(X::AbsAlgebraicCycle) = has_attribute(X, :name)
 
-function setindex!(D::AbsAlgebraicCycle, c::RingElem, I::IdealSheaf)
+function setindex!(D::AbsAlgebraicCycle, c::RingElem, I::AbsIdealSheaf)
   parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
   return setindex!(underlying_cycle(D), c, I)
 end
@@ -71,7 +71,7 @@ end
 # implementation of the arithmetic. 
 coefficient_dict(D::AbsAlgebraicCycle) = coefficient_dict(underlying_cycle(D))
 
-function coeff(D::AbsAlgebraicCycle, I::IdealSheaf)
+function coeff(D::AbsAlgebraicCycle, I::AbsIdealSheaf)
   d = coefficient_dict(D)
   if I in keys(d)
     return d[I]
@@ -116,12 +116,12 @@ end
 
   X::CoveredSchemeType # the parent
   R::CoefficientRingType # the ring of coefficients
-  coefficients::IdDict{IdealSheaf, CoefficientRingElemType} # the formal linear combination
+  coefficients::IdDict{AbsIdealSheaf, CoefficientRingElemType} # the formal linear combination
 
   function AlgebraicCycle(
       X::AbsCoveredScheme,
       R::CoefficientRingType, 
-      coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
+      coefficients::IdDict{<:AbsIdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
     for D in keys(coefficients)
@@ -141,7 +141,7 @@ end
 
 ### implementation of the essential functionality
 scheme(D::AlgebraicCycle) = D.X
-getindex(D::AlgebraicCycle, I::IdealSheaf) = (D.coefficients)[I]
+getindex(D::AlgebraicCycle, I::AbsIdealSheaf) = (D.coefficients)[I]
 
 components(D::AlgebraicCycle) = collect(keys(D.coefficients))
 coefficient_dict(D::AlgebraicCycle) = D.coefficients
@@ -151,7 +151,7 @@ set_name!(X::AlgebraicCycle, name::String) = set_attribute!(X, :name, name)
 name(X::AlgebraicCycle) = get_attribute(X, :name)::String
 has_name(X::AlgebraicCycle) = has_attribute(X, :name)
 
-function setindex!(D::AlgebraicCycle, c::RingElem, I::IdealSheaf)
+function setindex!(D::AlgebraicCycle, c::RingElem, I::AbsIdealSheaf)
   parent(c) === coefficient_ring(D) || error("coefficient does not belong to the correct ring")
   coefficient_dict(D)[I] = c
 end
@@ -163,7 +163,7 @@ Return the zero `AlgebraicCycle` over `X` with coefficients
 in `R`.
 """
 function AlgebraicCycle(X::AbsCoveredScheme, R::Ring)
-  D = IdDict{IdealSheaf, elem_type(R)}()
+  D = IdDict{AbsIdealSheaf, elem_type(R)}()
   return AlgebraicCycle(X, R, D)
 end
 
@@ -199,19 +199,19 @@ with coefficients in integer ring
 algebraic_cycle(X::AbsCoveredScheme, R::Ring) = AlgebraicCycle(X, R)
 
 @doc raw"""
-    AlgebraicCycle(I::IdealSheaf, R::Ring)
+    AlgebraicCycle(I::AbsIdealSheaf, R::Ring)
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients 
 in ``R`` for a sheaf of prime ideals ``I``.
 """
-function AlgebraicCycle(I::IdealSheaf, R::Ring)
+function AlgebraicCycle(I::AbsIdealSheaf, R::Ring)
   D = AlgebraicCycle(space(I), R)
   D[I] = one(R)
   return D
 end
 
 @doc raw"""
-    algebraic_cycle(I::IdealSheaf, R::Ring) -> AlgebraicCycle
+    algebraic_cycle(I::AbsIdealSheaf, R::Ring) -> AlgebraicCycle
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
 in ``R`` for a sheaf of prime ideals ``I``.
@@ -237,22 +237,22 @@ given as the formal sum of
 
 ```
 """
-algebraic_cycle(I::IdealSheaf, R::Ring) = AlgebraicCycle(I, R)
+algebraic_cycle(I::AbsIdealSheaf, R::Ring) = AlgebraicCycle(I, R)
 
 @doc raw"""
-    AlgebraicCycle(I::IdealSheaf)
+    AlgebraicCycle(I::AbsIdealSheaf)
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
 """
-function AlgebraicCycle(I::IdealSheaf)
+function AlgebraicCycle(I::AbsIdealSheaf)
   D = AlgebraicCycle(space(I), ZZ)
   D[I] = one(ZZ)
   return D
 end
 
 @doc raw"""
-    algebraic_cycle(I::IdealSheaf) -> AlgebraicCycle
+    algebraic_cycle(I::AbsIdealSheaf) -> AlgebraicCycle
 
 Return the `AlgebraicCycle` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
@@ -277,11 +277,11 @@ given as the formal sum of
   1 * sheaf of ideals
 ```
 """
-algebraic_cycle(I::IdealSheaf) = AlgebraicCycle(I)
+algebraic_cycle(I::AbsIdealSheaf) = AlgebraicCycle(I)
 
 ### copy constructor
 function copy(D::AlgebraicCycle) 
-  new_dict = IdDict{IdealSheaf, elem_type(coefficient_ring_type(D))}()
+  new_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring_type(D))}()
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
@@ -396,7 +396,7 @@ function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
   X === scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("coefficient rings do not coincide")
-  dict = IdDict{IdealSheaf, elem_type(R)}()
+  dict = IdDict{AbsIdealSheaf, elem_type(R)}()
   for I in keys(coefficient_dict(D))
     dict[I] = D[I]
   end
@@ -416,7 +416,7 @@ function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
 end
 
 function -(D::T) where {T<:AbsAlgebraicCycle}
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+  dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
   for I in keys(coefficient_dict(D))
     dict[I] = -D[I]
   end
@@ -426,7 +426,7 @@ end
 -(D::T, E::T) where {T<:AbsAlgebraicCycle} = D + (-E)
 
 function *(a::RingElem, E::AbsAlgebraicCycle)
-  dict = IdDict{IdealSheaf, elem_type(coefficient_ring(E))}()
+  dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(E))}()
   for I in keys(coefficient_dict(E))
     c = a*E[I]
     if iszero(c)
@@ -441,7 +441,7 @@ end
 *(a::Int, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
 *(a::Integer, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
 
-+(D::AbsAlgebraicCycle, I::IdealSheaf) = D + AbsAlgebraicCycle(I)
++(D::AbsAlgebraicCycle, I::AbsIdealSheaf) = D + AbsAlgebraicCycle(I)
 
 @doc raw"""
     irreducible_decomposition(D::AbsAlgebraicCycle)
@@ -453,7 +453,7 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
   all(I->is_prime(I), keys(coefficient_dict(D))) && return D
   result = zero(D)
   for (I, a) in coefficient_dict(D)
-    next_dict = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+    next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
     decomp = maximal_associated_points(I)
     for P in decomp
       k = _colength_in_localization(I, P)
@@ -464,7 +464,7 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
   return result
 end
 
-function _colength_in_localization(Q::IdealSheaf, P::IdealSheaf; covering=simplified_covering(scheme(P)))
+function _colength_in_localization(Q::AbsIdealSheaf, P::AbsIdealSheaf; covering=simplified_covering(scheme(P)))
   X = scheme(Q)
   X === scheme(P) || error("ideal sheaves do not live on the same scheme")
   n = minimum([ngens(OO(U)) for U in patches(covering) if !isone(P(U))])

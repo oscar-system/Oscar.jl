@@ -47,7 +47,6 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
-export CompleteIntersectionGerm
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -84,7 +83,6 @@ export Halfspace
 export Hecke
 export HilbertData
 export Hyperplane
-export HypersurfaceGerm
 export IncidenceMatrix
 export K3Chamber
 export K3_surface_automorphism_group
@@ -110,7 +108,6 @@ export ModuleFPElem
 export ModuleFPHom
 export ModuleOrdering
 export MonomialOrdering
-export MorphismFromRationalFunctions
 export Nemo
 export NormalToricVariety
 export OO
@@ -153,7 +150,6 @@ export SimpleGluing
 export SimplicialComplex
 export Singular
 export Sp
-export SpaceGerm
 export SubObjectIterator
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
@@ -232,7 +228,6 @@ export ambient_coordinates
 export ambient_dim
 export ambient_embedding
 export ambient_free_module
-export ambient_germ
 export ambient_module
 export ambient_representative
 export ambient_representatives_generators
@@ -263,7 +258,6 @@ export bases
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
-export basis_representation
 export bell
 export betti
 export betti_number
@@ -363,7 +357,6 @@ export complement_system, has_complement_system, set_complement_system
 export complements
 export complete_bipartite_graph
 export complete_graph
-export complete_intersection_germ
 export complex_projective_plane
 export components
 export compose
@@ -429,8 +422,6 @@ export default_ordering
 export defines_automorphism
 export defining_equation
 export defining_ideal
-export defining_ring_element
-export defining_ring_elements
 export deginvlex
 export deglex
 export degree
@@ -491,7 +482,6 @@ export element_to_homomorphism
 export elementary_symmetric
 export elements
 export eliminate
-export elliptic_parameter
 export embedding
 export embedding_orthogonal_group
 export epimorphism_from_free_group
@@ -577,7 +567,6 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
-export germ_at_point
 export getindex_safe
 export girth
 export gkz_vector
@@ -616,7 +605,6 @@ export hall_subgroup
 export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
-export has_du_val_singularities
 export has_edge
 export has_nonempty_intersection
 export has_perfect_groups
@@ -659,7 +647,6 @@ export hyperplane
 export hyperplanes
 export hypersimplex
 export hypersurface_complement
-export hypersurface_germ
 export hypertruncated_cube
 export icosahedron
 export id_hom
@@ -667,7 +654,6 @@ export ideal
 export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
-export ideal_sheaf
 export identifier
 export identity_map
 export image
@@ -682,7 +668,6 @@ export independent_sets
 export index
 export index_of_gen
 export index_of_leading_term
-export index_of_new_ray
 export indicator
 export induce
 export induce_shift
@@ -690,7 +675,6 @@ export induced_automorphism
 export induced_cyclic
 export induced_map_on_exterior_power
 export induced_ring_ordering
-export inequations
 export initial
 export inneighbors
 export inner_automorphism
@@ -797,7 +781,6 @@ export is_invariant
 export is_inverse_of
 export is_invertible
 export is_irreducible
-export is_isolated_singularity
 export is_isomorphic
 export is_isomorphic_to_alternating_group, has_is_isomorphic_to_alternating_group, set_is_isomorphic_to_alternating_group
 export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, set_is_isomorphic_to_symmetric_group
@@ -843,7 +826,6 @@ export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
-export is_realizable
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -990,8 +972,6 @@ export maximal_polyhedra, maximal_polyhedra_and_multiplicities
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
 export metadata
-export milnor_algebra
-export milnor_number
 export min_revlex_basis_encoding
 export min_weights
 export minimal_betti_table
@@ -1165,7 +1145,6 @@ export pitman_stanley_polytope
 export plane_curve
 export platonic_solid
 export pluecker_indices
-export point
 export point_coordinates
 export point_matrix
 export point_vector
@@ -1245,7 +1224,6 @@ export rank
 export rank_action
 export rational_equivalence_class
 export rational_point_conic
-export rational_point_coordinates
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
 export ray_degrees
@@ -1257,9 +1235,6 @@ export read_metadata
 export reading_word
 export real_projective_plane
 export real_solutions
-export realization
-export realization_matrix
-export realization_space
 export recession_cone
 export reduce
 export reduce_fraction
@@ -1392,7 +1367,6 @@ export stable_intersection
 export stable_set_polytope
 export standard_basis
 export standard_basis_with_transformation_matrix
-export standard_covering
 export standard_tableaux
 export stanley_reisner_ideal
 export stanley_reisner_ring
@@ -1446,7 +1420,6 @@ export torusinvariant_prime_divisors
 export torusinvariant_weil_divisor_group
 export total_degree
 export total_space
-export total_transform
 export transform
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
@@ -1468,7 +1441,6 @@ export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
 export twist
-export two_neighbor_step
 export two_sided_ideal
 export underlying_gluing
 export underlying_quotient

@@ -21,26 +21,26 @@ julia> x, y, z = gens(S);
 
 julia> I = ideal_sheaf(P2, ideal([x*y]))
 Sheaf of ideals
-  on normal, smooth toric variety
+  on normal toric variety
 with restrictions
-  1: ideal(x_1_1*x_2_1)
-  2: ideal(x_2_2)
-  3: ideal(x_1_3)
+  1: Ideal (x_1_1*x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (x_1_3)
 
 julia> total_transform(bl, I)
 Sheaf of ideals
   on normal toric variety
 with restrictions
-  1: ideal(x_1_1*x_2_1^2)
-  2: ideal(x_1_2^2*x_2_2)
-  3: ideal(x_2_3)
-  4: ideal(x_1_4)
+  1: Ideal (x_1_1*x_2_1^2)
+  2: Ideal (x_1_2^2*x_2_2)
+  3: Ideal (x_2_3)
+  4: Ideal (x_1_4)
 ```
 """
-function total_transform(f::AbsSimpleBlowdownMorphism, II::IdealSheaf)
+function total_transform(f::AbsSimpleBlowdownMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
 
-function total_transform(f::AbsBlowdownMorphism, II::IdealSheaf)
+function total_transform(f::AbsBlowdownMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end

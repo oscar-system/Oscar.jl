@@ -54,7 +54,7 @@
 function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false, algorithm::Symbol=:via_polymake)
   return get_attribute!(X, :_torusinvariant_weil_divisors) do
     ray_list = rays(polyhedral_fan(X))
-    ideal_sheaves = Vector{IdealSheaf}()
+    ideal_sheaves = Vector{AbsIdealSheaf}()
     if algorithm == :via_polymake
       ideal_sheaves = [_ideal_sheaf_via_polymake(X, i; check) for i in 1:length(ray_list)]
     elseif algorithm == :via_oscar
@@ -76,7 +76,7 @@ function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false,
     else
       error("algorithm not recognized")
     end
-    generating_divisors = [WeilDivisor(X, ZZ, IdDict{IdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
+    generating_divisors = [WeilDivisor(X, ZZ, IdDict{AbsIdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
     result = generating_divisors
     return result
   end::Vector{<:AbsWeilDivisor}
@@ -93,7 +93,7 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
   #    combination of the rays r in the fan F. 
   #
   # Output:
-  #  an IdealSheaf representing this divisor, but not a divisor itself, yet
+  #  an AbsIdealSheaf representing this divisor, but not a divisor itself, yet
   #
   # The rays correspond to 'primitive divisors' from which everything 
   # else can be composed in the toric case. If we can write down ideal 
