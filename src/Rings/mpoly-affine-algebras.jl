@@ -1254,6 +1254,8 @@ function _conv_normalize_alg(algorithm::Symbol)
     return "prim"
   elseif algorithm == :equidimDec
     return "equidim"
+  elseif algorithm == :isPrime
+    return "isPrim"
   else
     error("algorithm invalid")
   end
@@ -1303,6 +1305,7 @@ By default (`algorithm = :equidimDec`), as a first step on its way to find the d
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
 Alternatively, if specified by `algorithm = :primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
+If specified by `algorithm = :isPrime`, assume that $I$ is prime.
 
 See [GLS10](@cite).
 
