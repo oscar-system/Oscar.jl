@@ -199,11 +199,15 @@ end
 #         the normalization morphism to Y_i.
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
-  irred_comps = scheme.(Oscar.maximal_associated_points(ideal_sheaf(X)))
-  # Bug? is_integral(irred_comps[1]) outputs false
-  # norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
-  # norm_map_to_X(Xi) =
-  # return [(Xi, norm_map_to_X(Xi)) for Xi in irred_comps]
+  irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
+  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]),irred_comps_sheaf[i])
+                for i in 1:length(irred_comps_sheaf)]
+  irred_comps = [domain(inc_i) for inc_i in inc_maps]
+  norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
+  ret_value = [( domain(norm_pairs[i][2]),
+                 compose(norm_pairs[i][2],inc_maps[i]) )
+                 for i in 1:length(norm_pairs)]
+  return ret_value
 end
 
 function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
@@ -219,7 +223,7 @@ function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
 end
 
 function _normalization_integral(C::Covering; check::Bool=true)
-  X_i_norm_outputs = [_normalization_affine(U; check) for U in patches(C)]
+  X_i_norm_outputs = [_normalization_affine(U; check) for U in patches(C) if !is_empty(U)]
   C_norm = Covering(first.(first.(X_i_norm_outputs)))
   n = n_patches(C_norm)
   for i in 1:n
