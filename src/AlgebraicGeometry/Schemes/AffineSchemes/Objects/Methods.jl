@@ -250,9 +250,20 @@ end
 
 # further documented for `Scheme`
 """
-    normalization(X::AbsAffineScheme)
+    normalization(X::AbsAffineScheme) -> Vector{Tuple{AbsAffineScheme, AbsAffineSchemeMor}}
 
-the keyword argument `algorithm` is passed on to the normalization method of the coordinate ring
+Return the normalization of the reduced affine scheme ``X``.
+
+# Input:
+- A reduced affine scheme ``X``
+- if `check` is `true` confirm that ``X`` is reduced; this is expensive
+- the keyword argument `algorithm` is passed on to [`normalization(::MPolyQuoRing)`](@ref)
+
+# Output:
+A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
+``f_i`` is a morphism from ``Y_i`` to ``X``.
+The disjoint union of the ``Y_i`` is the normalization of ``X``
+and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
 """
 function normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
   @check is_reduced(X) "only reduced schemes can be normalized"

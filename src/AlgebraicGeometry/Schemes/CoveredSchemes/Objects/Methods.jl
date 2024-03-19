@@ -160,7 +160,7 @@ end
 
 
 """
-    normalization(X::Scheme; check::Bool=true) -> Vector{Tuple{Scheme, Morphism}}
+    normalization(X::AbsCoveredScheme; check::Bool=true) -> Vector{Tuple{CoveredScheme, CoveredSchemeMorphism}}
 
 Return the normalization of the reduced scheme ``X``.
 
@@ -174,9 +174,6 @@ A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
 The disjoint union of the ``Y_i`` is the normalization of ``X``
 and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
 """
-normalization(X::Scheme; check::Bool=true) = error("not implemented")
-
-
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
   irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
