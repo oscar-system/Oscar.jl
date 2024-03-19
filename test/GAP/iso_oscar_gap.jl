@@ -226,7 +226,7 @@ end
 
    # absolute number fields
    R, x = polynomial_ring(QQ, "x")
-   pols = [ x^2 - 5, x^2 + 3, x^3 - 2,  # simple
+   pols = [ x - 1, x^2 - 5, x^2 + 3, x^3 - 2,  # simple
             [x^2 - 2, x^2 + 1] ]        # non-simple
    fields = Any[number_field(pol)[1] for pol in pols]
 
@@ -256,7 +256,7 @@ end
    end
 
    # an application
-   K = fields[4]
+   K = fields[5]
    a, b = gens(K)
    M1 = 1/a*matrix(K, [1 1; 1 -1])
    M2 = matrix(K, [1 0 ; 0 b])

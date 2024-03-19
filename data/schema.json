@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "data": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "patternProperties": {
+            "^[a-zA-Z0-9_]*": {
+              "$ref": "#/$defs/data"
+            }
+          },
+          "type": "object",
+          "not": { "required": [ "_ns" ] }
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/data"
+          },
+          "type": "array"
+        },
+        {
+          "$ref": "https://polymake.org/schemas/data.json"
+        }
+      ]
+    }
+  },
+  "$id": "https://oscar-system.org/schemas/mrdi.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "_ns": {
+      "type": "object"
+    },
+    "_refs": {
+      "patternProperties": {
+        "^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$": {
+          "$ref": "#"
+        }
+      },
+      "type": "object"
+    },
+    "_type": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "params": {
+              "$ref": "#/$defs/data"
+            }
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "data": {
+      "$ref": "#/$defs/data"
+    }
+  },
+  "required": [
+    "_type"
+  ],
+  "type": "object"
+}

@@ -39,9 +39,6 @@ function n_vertices end
 
 function number_of_partitions end
 function number_of_patches end
-function number_of_positive_roots end               # from experimental/LieAlgebras
-function number_of_roots end                        # from experimental/LieAlgebras
-function number_of_simple_roots end                 # from experimental/LieAlgebras
 
 # these are kept for compatibility with Graphs.jl / GraphsBase.jl
 @alias ne n_edges
@@ -62,9 +59,6 @@ function number_of_simple_roots end                 # from experimental/LieAlgeb
 
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
-@alias n_positive_roots number_of_positive_roots
-@alias n_roots number_of_roots
-@alias n_simple_roots number_of_simple_roots
 
 # aliases for consistency with oscar style
 @alias n_columns ncols

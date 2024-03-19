@@ -127,7 +127,7 @@ is_chain_complex(C::AbsSimpleComplex) = direction(C) == :chain
 is_cochain_complex(C::AbsSimpleComplex) = !is_chain_complex(C)
 has_upper_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
 has_upper_bound(C::AbsHyperComplex) = (isone(dim(C)) ? has_upper_bound(C, 1) : error("complex must be one-dimensional"))
-has_lower_bound(C::AbsSimpleComplex) = has_upper_bound(C, 1)
+has_lower_bound(C::AbsSimpleComplex) = has_lower_bound(C, 1)
 has_lower_bound(C::AbsHyperComplex) = (isone(dim(C)) ? has_lower_bound(C, 1) : error("complex must be one-dimensional"))
 upper_bound(C::AbsSimpleComplex) = upper_bound(C, 1)
 upper_bound(C::AbsHyperComplex) = (isone(dim(C)) ? upper_bound(C, 1) : error("complex must be one-dimensional"))

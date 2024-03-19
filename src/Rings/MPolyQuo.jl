@@ -1758,7 +1758,7 @@ function minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 end
 
 @doc raw"""
-    small_generating_set(I::MPolyIdeal)
+    small_generating_set(I::MPolyQuoIdeal)
 
 Given a ideal `I` of an affine algebra over a field, return an array
 containing set of generators of `I`, which is usually smaller than the
@@ -1789,6 +1789,8 @@ function small_generating_set(I::MPolyQuoIdeal)
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.
   Q = base_ring(I)
+  # Temporary workaround, see #3499
+  return unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I)))))
 
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 

@@ -8,7 +8,7 @@ export trivializing_covering
                                                    CoveredSchemeType<:AbsCoveredScheme
                                                   }
   X::CoveredSchemeType
-  I::IdealSheaf
+  I::AbsIdealSheaf
   C::Covering
 
   function EffectiveCartierDivisor(
@@ -49,7 +49,7 @@ ideal_sheaf(C::EffectiveCartierDivisor) = C.I
 scheme(C::EffectiveCartierDivisor) = C.X
 trivializing_covering(C::EffectiveCartierDivisor) = C.C
 
-function EffectiveCartierDivisor(I::IdealSheaf; 
+function EffectiveCartierDivisor(I::AbsIdealSheaf; 
     trivializing_covering::Covering=default_covering(scheme(I)),
     check::Bool=true
   )
@@ -232,7 +232,7 @@ defined by
     3: Ideal ((x//z)^3 - (y//z)^2)
 ```
 """
-effective_cartier_divisor(I::IdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)
+effective_cartier_divisor(I::AbsIdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)
 
 function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
@@ -256,7 +256,7 @@ end
 @doc raw"""
     irreducible_decomposition(C::EffectiveCartierDivisor)
 
-Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `IdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
+Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `AbsIdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
 """
 function irreducible_decomposition(C::EffectiveCartierDivisor)
   X = scheme(C)
@@ -381,7 +381,7 @@ function pushforward(inc::CoveredClosedEmbedding, W::WeilDivisor)
   Y = codomain(inc)
   X === scheme(W) || error("divisor not defined on the domain")
   kk = coefficient_ring(W)
-  ideal_dict = IdDict{IdealSheaf, elem_type(kk)}()
+  ideal_dict = IdDict{AbsIdealSheaf, elem_type(kk)}()
   for I in components(W)
     pfI = pushforward(inc)(I)
     ideal_dict[pfI] = W[I]
