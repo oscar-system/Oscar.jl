@@ -776,6 +776,6 @@ function total_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
 end
 
 function center(phi::BlowUpSequence)
-  return center(last_map(phi)))
+  return center(last_map(phi))
 end
 
