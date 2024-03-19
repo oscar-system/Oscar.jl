@@ -374,3 +374,46 @@ end
   @test dim(Y) == 0
   @test degree(Y) == 4
 end
+
+@testset "normalization" begin
+  R, (x,y) = polynomial_ring(QQ,[:x,:y])
+  # non-normal
+  I = ideal(R, x^3-y^2)
+  X1 = spec(R,I)
+  N1 = normalization(X1)
+  @test length(N1) == 1
+  @test is_smooth(N1[1][1])
+  # normal
+  J = ideal(R, x)
+  X2 = spec(R, J)
+  N2 = normalization(X2)
+  @test length(N2) == 1
+  @test is_smooth(N2[1][1])
+  # reducible
+  K = ideal(R, x^4-y^2*x)
+  X3 = spec(R,K)
+  N3 = normalization(X3)
+  @test all(is_smooth(i[1]) for i in N3)
+  @test length(N3) == 2
+
+  # normalization in positive characteristic
+  R, (x,y) = polynomial_ring(GF(5),[:x,:y])
+  # non-normal
+  I = ideal(R, x^3-y^2)
+  X1 = spec(R,I)
+  N1 = normalization(X1)
+  @test length(N1) == 1
+  @test is_smooth(N1[1][1])
+  # normal
+  J = ideal(R, x)
+  X2 = spec(R, J)
+  N2 = normalization(X2)
+  @test length(N2) == 1
+  @test is_smooth(N2[1][1])
+  # reducible
+  K = ideal(R, x^4-y^2*x)
+  X3 = spec(R,K)
+  N3 = normalization(X3)
+  @test all(is_smooth(i[1]) for i in N3)
+  @test length(N3) == 2
+end
