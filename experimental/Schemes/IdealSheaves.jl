@@ -1618,3 +1618,11 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
   # Infer the ideal from the root
   return OO(X)(V, U)(I(V))
 end
+
+function sub(I::AbsIdealSheaf)
+  X = scheme(I)
+  inc = CoveredClosedEmbedding(X, I)
+  return domain(inc), inc
+end
+
+
