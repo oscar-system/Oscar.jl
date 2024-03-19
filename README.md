@@ -158,5 +158,3 @@ Forschungsgemeinschaft DFG within the
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg?branch=master
 [codecov-url]: https://codecov.io/gh/oscar-system/Oscar.jl
-
-Hello here is Marius
