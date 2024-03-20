@@ -6,7 +6,13 @@ global infoLevel = 0
 # The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
 ###############################################################
 @doc raw"""
-    groebner_walk(I::MPolyIdeal; startOrder::MonomialOrdering = default_ordering(base_ring(I)), targetOrder::Symbol = lex(base_ring(I)), walktype::Symbol = :standard, perturbationDegree::Int = 2)
+    groebner_walk(
+        I::MPolyIdeal; 
+        startOrder::MonomialOrdering = default_ordering(base_ring(I)), 
+        targetOrder::Symbol = lex(base_ring(I)), 
+        walktype::Symbol = :standard, 
+        perturbationDegree::Int = 2
+    )
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk.
 The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
