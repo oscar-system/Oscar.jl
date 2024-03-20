@@ -20,6 +20,8 @@ concurrency:
   # Cancel intermediate builds, but only if it is a pull request build.
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
+# For local testing, run `ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl` to initialize
+# and `rm experimental/NoExperimental_whitelist.jl` for cleanup
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -40,8 +42,8 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
-      - name: "Set ENV"
-        run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
       - name: "Set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
@@ -64,8 +66,8 @@ jobs:
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
-      - name: "Set ENV"
-        run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "Setup package"
@@ -91,8 +93,8 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'
-      - name: "Set ENV"
-        run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
       - name: Build package
         uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
