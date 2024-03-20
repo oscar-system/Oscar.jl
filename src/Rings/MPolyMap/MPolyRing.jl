@@ -136,6 +136,13 @@ function _evaluate_plain(F::MPolyAnyMap{<: MPolyRing}, u)
   return evaluate(u, F.img_gens)
 end
 
+# See the comment in MPolyQuo.jl
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
+  A = codomain(F)
+  v = evaluate(lift(u), lift.(_images(F)))
+  return simplify(A(v))
+end
+
 function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), u,
