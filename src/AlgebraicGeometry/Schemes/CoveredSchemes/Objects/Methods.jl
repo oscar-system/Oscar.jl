@@ -195,7 +195,7 @@ function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
   end
   X_norm_cov, pr_cov = _normalization_integral(orig_cov; check)
   Y = CoveredScheme(X_norm_cov)
-  pr = CoveredSchemeMorphism(Y, X, pr_cov)
+  pr = CoveredSchemeMorphism(Y, X, pr_cov; check=false)
   return Y, pr
 end
 
@@ -216,7 +216,7 @@ function _normalization_integral(C::Covering; check::Bool=true)
   second(xs) = xs[2]
   morphisms = second.(first.(X_i_norm_outputs))
   covering_morphism_dict = IdDict(zip(domain.(morphisms), morphisms))
-  normalization_map = CoveringMorphism(C_norm, C, covering_morphism_dict)
+  normalization_map = CoveringMorphism(C_norm, C, covering_morphism_dict; check=false)
   return C_norm, normalization_map
 end
 
@@ -273,8 +273,7 @@ function _compute_normalization_integral(
   for a in hom_to_K_2.(coordinates(X_2_norm))
     b_num = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(numerator(a))))
     b_denom = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(denominator(a))))
-    # TODO remove check that b_denom is invertible
-    push!(hom_to_U_2_norm_coordinates, b_num * inv(b_denom))
+    push!(hom_to_U_2_norm_coordinates, divexact(b_num , b_denom))
   end
   hom_to_U_2_norm = morphism(U_1_norm, U_2_norm, hom_to_U_2_norm_coordinates)
 
@@ -282,8 +281,7 @@ function _compute_normalization_integral(
   for a in hom_to_K_1.(coordinates(X_1_norm))
     b_num = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(numerator(a))))
     b_denom = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(denominator(a))))
-    # TODO remove check that b_denom is invertible
-    push!(hom_to_U_1_norm_coordinates, b_num * inv(b_denom))
+    push!(hom_to_U_1_norm_coordinates, divexact(b_num ,b_denom))
   end
   hom_to_U_1_norm = morphism(U_2_norm, U_1_norm, hom_to_U_1_norm_coordinates; check=false)
 
