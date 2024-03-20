@@ -1,5 +1,4 @@
 # Add your new types, functions, and methods here.
-# :)
 
 struct PhylogeneticModel
   n_states::Int
