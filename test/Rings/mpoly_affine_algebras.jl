@@ -94,6 +94,8 @@ end
   @test vector_space_dimension(quo(r, ideal(r, [one(r)]))[1]) == 0
   @test is_finite_dimensional_vector_space(quo(r, ideal(r, [one(r)]))[1])
 
+  @test !is_finite_dimensional_vector_space(r)
+
   r, (x, y) = polynomial_ring(ZZ, [:x, :y])
   @test_throws ErrorException vector_space_dimension(quo(r, ideal(r, [x, y]))[1])
 end
