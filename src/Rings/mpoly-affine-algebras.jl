@@ -19,11 +19,45 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing) 
+function dim(A::MPolyQuoRing)
   I = A.I
   return dim(I)
 end
 
+@doc raw"""
+    is_finite_dimensional_vector_space(A::MPolyQuoRing)
+
+If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
+`K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
+as a `K`-vector space, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
+
+julia> is_finite_dimensional_vector_space(A)
+true
+
+julia> A, _ = quo(R, ideal(R, [x]));
+
+julia> is_finite_dimensional_vector_space(A)
+false
+```
+"""
+function is_finite_dimensional_vector_space(A::MPolyQuoRing)
+  # We check '<=' because A might be the zero ring, so dim(A) == -1
+  return dim(A) <= 0
+end
+
+struct InfiniteDimensionError <: Exception
+end
+
+function Base.showerror(io::IO, err::InfiniteDimensionError)
+  println(io, "Infinite-dimensional vector space")
+  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
+end
 
 @doc raw"""
     vector_space_dimension(A::MPolyQuoRing)
@@ -31,6 +65,10 @@ end
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A` 
 as a `K`-vector space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -60,10 +98,9 @@ function vector_space_dimension(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
     error("vector_space_dimension requires a coefficient ring that is a field")
   end
-  I = A.I
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  I = modulus(A)
   G = standard_basis(I)
-  # We check '<=' because I might be the whole ring, so dim(I) == -1
-  @req dim(I) <= 0 "The ideal must be zero-dimensional"
   return Singular.vdim(singular_generators(G, G.ord))
 end
 
@@ -74,6 +111,10 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R` 
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -99,16 +140,15 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = A.I
   G = standard_basis(I)
   if dim(I) == -1 # I is the whole ring
     return elem_type(base_ring(A))[]
   end
-  @req dim(I) == 0 "The ideal must be zero-dimensional"
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
-
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
