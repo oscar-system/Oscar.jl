@@ -24,6 +24,7 @@ import Base: parent
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
   Qt = parent(f)
@@ -142,6 +143,23 @@ function can_be_defined_over(M::GModule, phi::Map)
   error("not yet ...")
 end
 
+function can_be_defined_over(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+  return true
+end
+
 
 """
     can_be_defined_over_with_data(M::GModule, phi::Map)
@@ -161,6 +179,38 @@ function can_be_defined_over_with_data(M::GModule, phi::Map)
   error("not yet ...")
 end
 
+function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+
+  B = hB[1]
+  D = norm(B, s, os)
+  lambda = D[1,1]
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
+  alpha = norm_equation(K, preimage(phi, lambda))
+  B *= inv(alpha)
+  @hassert :MinField 2 isone(norm(B, s, os))
+  D = hilbert90_cyclic(B, s, os)
+  Di = inv(D)
+  F = free_module(k, dim(M))
+  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])
+  # TODO: Get this map working
+  # psi = GModuleHom(N, M, , phi)
+  psi = nothing
+  return (true, N, psi)
+end
 
 """
     descent_to(M::GModule, phi::Map)
@@ -185,6 +235,15 @@ function descent_to(M::GModule, phi::Map)
 end
 
 
+function descent_to(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  success, N, psi = can_be_defined_over_with_data(M, phi)
+  success || error("Module cannot be written over $k")
+  return N
+end
+
+
 """
     descent_to_minimal_degree_field(M::GModule)
 
@@ -200,10 +259,27 @@ where `M` is a module over `R`.
 
 (modules over finite fields or number fields)
 """
-function descent_to_minimal_degree_field(M::GModule)
-  error("not yet ...")
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}})
+  return C
 end
 
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  #always over char field
+  K = base_ring(C)
+  d = 0
+  while d < absolute_degree(K)-1
+    d += 1
+    absolute_degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
+    D = gmodule_over(k, C, do_error = false)
+    D === nothing || return D
+  end
+  return C
+end
+
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+  return _minimize(C)
+end
 
 """
     invariant_lattice_classes(M::GModule, phi::Map)
@@ -267,7 +343,7 @@ Oscar.rank(M::AbstractAlgebra.Generic.Submodule{ZZRingElem}) = ngens(M)
 function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   C = Gap(M)
   S = GAP.Globals.MTX.BasesMaximalSubmodules(C)
-  res = []
+  res = dense_matrix_type(base_ring(M))[]
   for s = S
     if length(s) == 0
       m = matrix(base_ring(M), 0, dim(M), [])
@@ -420,7 +496,7 @@ end
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
   #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
-  return [gmodule(QQ, m) for m in z]
+  return [gmodule(QQ, descent_to_minimal_degree_field(m)) for m in z]
 end
 
 function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
@@ -503,7 +579,8 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
     end
     #use T = action(C, r) instead?
     p = preimage(phi, r)
-    T = map_word(p, ac; genimgs_inv = iac)
+    T = action(C, r)
+    # T = map_word(p, ac; genimgs_inv = iac)
     push!(chr, (c, trace(matrix(T))))
   end
   return chr
@@ -608,7 +685,7 @@ function Hecke.frobenius(K::FinField, i::Int=1)
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -625,10 +702,10 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   #always over char field
   K =  base_ring(C)
   d = 0
-  while d < degree(K)-1
+  while d < absolute_degree(K)-1
     d += 1
-    degree(K) % d == 0 || continue
-    k = GF(Int(characteristic(K)), d)
+    absolute_degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
@@ -640,7 +717,7 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 end
 
 """
-    gmodule_over(Field, GModule)
+    gmodule_over(k::Field, C::GModule)
 """
 function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}; do_error::Bool = false)
   #mathematically, k needs to contain the character field
@@ -1566,7 +1643,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
- global last_f = f
+ # global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
