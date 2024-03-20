@@ -19,10 +19,10 @@ julia> ideal_sheaf(td)
 Sheaf of ideals
   on normal, smooth toric variety
 with restrictions
-  1: ideal(x_2_1)
-  2: ideal(x_2_2)
-  3: ideal(1)
-  4: ideal(x_2_4)
+  1: Ideal (x_2_1)
+  2: Ideal (x_2_2)
+  3: Ideal (1)
+  4: Ideal (x_2_4)
 ```
 """
 @attr AbsIdealSheaf function ideal_sheaf(td::ToricDivisor)

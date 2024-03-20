@@ -570,9 +570,13 @@ julia> is_equidimensional(Y)
 false
 ```
 """
+## equidimensional decomposition only available for schemes over a field
 @attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))
-# equidimensional decomposition only available for schemes over a field
+  if has_attribute(I, :is_equidimensional)
+    return is_equidimensional(I)
+  end
+
   P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
@@ -595,7 +599,7 @@ Check whether the affine scheme `X` is reduced.
 """
 @attr Bool function is_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
-  return is_reduced(quo(base_ring(I), I)[1])
+  return is_radical(I)
 end
 
 ## make is_reduced agnostic to quotient ring
@@ -734,7 +738,8 @@ Check whether the affine scheme `X` is irreducible.
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true
                                            ## integral = irreducible + reduced
-  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
+  I = saturated_ideal(modulus(OO(X)))
+  return is_primary(I)
 end
 
 is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyRing}) = true

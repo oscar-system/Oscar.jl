@@ -107,7 +107,9 @@ is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
 ## Methods
 ```@docs
 tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
+normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
 ```
+
 ### Comparison
 
 Two schemes ``X`` and ``Y`` can be compared if their ambient affine spaces are equal.
