@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Affine Algebras and Their Ideals
+# [Affine Algebras and Their Ideals](@id affine_algebras)
 
 With regard to notation, we use *affine algebra* as a synonym for *quotient of a multivariate polynomial ring by an ideal*.
 More specifically, if $R$ is a multivariate polynomial ring with coefficient ring $C$, and $A=R/I$ is the quotient of $R$
@@ -14,14 +14,14 @@ discuss functionality for handling such algebras in OSCAR.
 
 !!! note
     To emphasize this point: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
-    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on modules.
+    $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on [modules](@ref modules_multivariate).
 
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
     basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
     to the monomial ordering entered by the user when creating the quotient; if no such ordering is entered, OSCAR will use the
-	`default_ordering` on the underlying polynomial ring; see the section on Gröbner/Standard Bases for default orderings in OSCAR).
+	`default_ordering` on the underlying polynomial ring; see the section on [Gröbner/Standard Bases](@ref gb_fields) for default orderings in OSCAR).
 	Once computed, the Gröbner basis is cached for later reuse.
 
 !!! note
@@ -31,7 +31,7 @@ discuss functionality for handling such algebras in OSCAR.
 !!! note
     In OSCAR, elements of a quotient $A = R/I$ are not necessarily represented by polynomials which are reduced with regard to $I$.
     That is, if $f\in R$ is the internal polynomial representative of an element of $A$, then $f$ may not be the normal form mod $I$
-    with respect to the default ordering on $R$ (see the section on *Gröbner/Standard Bases* for normal forms). Operations involving
+    with respect to the default ordering on $R$ (see the section on [Gröbner/Standard Bases](@ref gb_fields) for normal forms). Operations involving
     Gröbner basis computations may lead to (partial) reductions. The function `simplify` discussed in this section computes fully
     reduced representatives.
 
