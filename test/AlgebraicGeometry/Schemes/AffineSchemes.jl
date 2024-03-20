@@ -416,4 +416,12 @@ end
   N3 = normalization(X3)
   @test all(is_smooth(i[1]) for i in N3)
   @test length(N3) == 2
+
+  # data corruption bug, throws an error if bug reappears
+  P,(a,b) = polynomial_ring(QQ,[:a,:b])
+  I = ideal(P,a^2-b)
+  Q = normalization(quo(P,I)[1])[1][1]
+  R = base_ring(Q)
+  J = ideal(R, R[1])
+  Sat = saturation(modulus(Q),J)
 end
