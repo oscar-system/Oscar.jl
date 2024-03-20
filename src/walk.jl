@@ -62,10 +62,10 @@ matrix_ordering([x, y], [1 0; 0 1])
 """
 function groebner_walk(
   I::MPolyIdeal,
-  startOrder::MonomialOrdering=default_ordering(base_ring(I)),
-  targetOrder::MonomialOrdering=lex(base_ring(I)),
-  walktype::Symbol=:standard,
-  perturbationDegree::Int=2,
+  startOrder::MonomialOrdering = default_ordering(base_ring(I)),
+  targetOrder::MonomialOrdering = lex(base_ring(I)),
+  walktype::Symbol = :standard,
+  perturbationDegree = 2,
 )
   S = canonical_matrix(startOrder)
   T = canonical_matrix(targetOrder)
@@ -73,12 +73,12 @@ function groebner_walk(
 end
 
 @doc raw"""
-    groebnerwalk(
+    groebner_walk(
       G::Oscar.IdealGens,
       S::Union{Matrix{T}, MatElem{T}},
       T::Union{Matrix{T}, MatElem{T}},
       walktype::Symbol = :standard,
-      p::Int = 2
+      perturbationDegree::Int = 2
     ) where T
 Computes a reduced Groebner basis w.r.t. the monomial order T by converting the reduced Groebner basis G w.r.t. the monomial order S using the Groebner Walk.
 One can choose a strategy of:
@@ -178,7 +178,8 @@ function groebner_walk(
   )
   Gb = walk(Gb)
 
-  # @vprintln :intermediate "Cones crossed: " delete_step_counter()
+  @vprintln :groebner_walk "Cones crossed: " 
+  delete_step_counter()
   return Oscar.IdealGens(gens(Gb), matrix_ordering(base_ring(G), T); isGB=true)
 end
 
@@ -204,8 +205,8 @@ end
 ###############################################################
 
 function standard_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  # @vprintln :intermediate "standard_walk results"
-  # @vprintln :intermediate "Crossed Cones in: "
+  @vprintln :groebner_walk "standard_walk results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
   Gb = standard_walk(G, S, T, S[1, :], T[1, :])
 
@@ -228,11 +229,10 @@ function standard_walk(
     end
     if infoLevel >= 1
       raise_step_counter()
-      # @vprintln :intermediate currweight
-      if infoLevel == 2
-        # @vprintln :detailed G
-      end
     end
+
+    @vprintln :groebner_walk currweight
+    @vprintln :groebner_walk 2 G
   end
 end
 
@@ -270,20 +270,18 @@ function generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
   Lm = [leading_term(g; ordering=matrix_ordering(base_ring(G), S)) for g in G]
   v = next_gamma(G, Lm, [0], S, T)
   ordNew = matrix_ordering(base_ring(G), T)
-  if infoLevel >= 1
-    @vprintln :intermediate "generic_walk results"
-    # @vprintln :intermediate "Facets crossed for: "
-  end
+
+  @vprintln :groebner_walk "generic_walk results"
+  @vprintln :groebner_walk "Facets crossed for: "
+
   while !isempty(v)
     G, Lm = generic_step(G, Lm, v, ordNew)
     raise_step_counter()
 
-    if infoLevel >= 1
-      # @vprintln :intermediate v
-      if infoLevel == 2
-        # @vprintln :detailed G
-      end
-    end
+
+  @vprintln :groebner_walk v
+  @vprintln :groebner_walk 2 G
+
     G = Oscar.IdealGens(G, ordNew)
     v = next_gamma(G, Lm, v, S, T)
   end
@@ -307,8 +305,8 @@ end
 ###############################################################
 
 function perturbed_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}, p::Int)
-  # @vprintln(:intermediate, "perturbed_walk results")
-  # @vprintln(:intermediate, "Crossed Cones in: ")
+  @vprintln :groebner_walk "perturbed_walk results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
   currweight = perturbed_vector(G, S, p)
 
@@ -346,8 +344,8 @@ firstStepMode = false
 # - checks if an entry of an intermediate weight vector is bigger than int32. In case of that the Buchberger-Algorithm is used to compute the Groebner basis of the ideal of the initialforms.
 ###############################################################
 function fractal_walk_combined(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  # @vprintln(:intermediate, "fractal_walk_combined results")
-  # @vprintln(:intermediate, "Crossed Cones in: ")
+  @vprintln :groebner_walk "fractal_walk_combined results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
   global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(base_ring(G))]
   return fractal_walk_combined(G, S, T, S[1, :], pTargetWeights, 1)
