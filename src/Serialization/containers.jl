@@ -67,7 +67,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
-      loaded_v = load_array_node(s) do _
+      loaded_v::Vector{params} = load_array_node(s) do _
         load_ref(s)
       end
     else
