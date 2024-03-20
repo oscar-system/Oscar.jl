@@ -242,7 +242,7 @@ end
 
 function standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int})
   R = base_ring(G)
-  ordAlt = G.ord
+  ordAlt = ordering(G)
   Gw = 0
 
   #check if no entry of w is bigger than Int32. If it´s bigger multiply it by 0.1 and round.
