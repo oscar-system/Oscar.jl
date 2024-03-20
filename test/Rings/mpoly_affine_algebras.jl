@@ -42,6 +42,14 @@
 
   R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
   @test_throws ArgumentError is_normal(quo(R, ideal(R, [x - y^3]))[1])
+
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  Q, _ = quo(R, ideal(R, [(x^2 - y^3)]))
+  for (S, M, FI) in normalization(Q, algorithm=:isPrime)
+    @test parent(FI[1]) == Q
+    @test isa(FI[2], Oscar.Ideal)
+    @test parent(M(Q(x+y))) == S
+  end
 end
 
 @testset "mpoly_affine_algebras.integral_basis" begin

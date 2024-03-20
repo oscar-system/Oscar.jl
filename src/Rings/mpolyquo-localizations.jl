@@ -1945,6 +1945,11 @@ function primary_decomposition(
   end
   deleteat!(result, erase)
   
+  for (Q,P) in result
+    set_attribute!(P, :is_prime=>true)
+    set_attribute!(Q, :is_primary=>true)
+  end
+
   cache && set_attribute!(I, :primary_decomposition=>result)
   return result
 end
@@ -1969,6 +1974,11 @@ function minimal_primes(
     push!(erase,i)
   end
   deleteat!(result, erase)
+
+  for Ptemp in result
+    set_attribute!(Ptemp, :is_prime=>true)
+  end
+
   return result
 end
 

@@ -155,3 +155,143 @@ function base_change(phi::Any, X::AbsCoveredScheme)
   XX = CoveredScheme(CC)
   return XX, CoveredSchemeMorphism(XX, X, f_CC)
 end
+
+
+
+
+"""
+    normalization(X::AbsCoveredScheme; check::Bool=true) -> Vector{Tuple{CoveredScheme, CoveredSchemeMorphism}}
+
+Return the normalization of the reduced scheme ``X``.
+
+# Input:
+- A reduced scheme ``X``
+- if `check` is `true` confirm that ``X`` is reduced; this is expensive
+
+# Output:
+A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
+``f_i`` is a morphism from ``Y_i`` to ``X``.
+The disjoint union of the ``Y_i`` is the normalization of ``X``
+and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
+"""
+function normalization(X::AbsCoveredScheme; check::Bool=true)
+  @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
+  irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
+  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]),irred_comps_sheaf[i])
+                for i in 1:length(irred_comps_sheaf)]
+  irred_comps = [domain(inc_i) for inc_i in inc_maps]
+  norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
+  ret_value = [( domain(norm_pairs[i][2]),
+                 compose(norm_pairs[i][2],inc_maps[i]) )
+                 for i in 1:length(norm_pairs)]
+  return ret_value
+end
+
+function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
+  @check is_integral(X) "The scheme X=$(X) needs to be integral."
+  orig_cov = default_covering(X)
+  if has_attribute(X, :simplified_covering)
+    orig_cov = simplified_covering(X)
+  end
+  X_norm_cov, pr_cov = _normalization_integral(orig_cov; check)
+  Y = CoveredScheme(X_norm_cov)
+  pr = CoveredSchemeMorphism(Y, X, pr_cov)
+  return Y, pr
+end
+
+function _normalization_integral(C::Covering; check::Bool=true)
+  X_i_norm_outputs = [_normalization(U; check, algorithm=:isPrime) for U in patches(C) if !is_empty(U)]
+  C_norm = Covering(first.(first.(X_i_norm_outputs)))
+  n = n_patches(C_norm)
+  for i in 1:n
+    for j in i+1:n
+      gluing_i_j = _normalization_integral(
+        C[i,j],
+        X_i_norm_outputs[i][1],
+        X_i_norm_outputs[j][1]
+      )
+      add_gluing!(C_norm, gluing_i_j)
+    end
+  end
+  second(xs) = xs[2]
+  morphisms = second.(first.(X_i_norm_outputs))
+  covering_morphism_dict = IdDict(zip(domain.(morphisms), morphisms))
+  normalization_map = CoveringMorphism(C_norm, C, covering_morphism_dict)
+  return C_norm, normalization_map
+end
+
+struct NormalizationIntegralGluingData
+  original_gluing::AbsGluing
+  norm_output1::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}
+  norm_output2::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}
+  check::Bool
+end
+
+function _normalization_integral(
+    G::AbsGluing,
+    X_1_norm_output, # _normalization(X_1)[1]
+    X_2_norm_output; # _normalization(X_2)[1]
+    check::Bool=true
+  )
+  data = NormalizationIntegralGluingData(G, X_1_norm_output, X_2_norm_output, check)
+  X_1_norm = X_1_norm_output[1]
+  X_2_norm = X_2_norm_output[1]
+  return LazyGluing(X_1_norm, X_2_norm, _compute_normalization_integral, data)
+end
+
+# Warning: assume patches irreducible
+function _compute_normalization_integral(
+    data::NormalizationIntegralGluingData
+  )
+  # Initialize the variables
+  G = data.original_gluing
+  X_1_norm_output = data.norm_output1
+  X_2_norm_output = data.norm_output2
+  check = data.check
+
+  A, B = patches(G)
+  #@check is_integral(A) && is_integral(B) "schemes must be integral"
+  (X_1_norm, F_1, hom_to_K_1) = X_1_norm_output
+  (X_2_norm, F_2, hom_to_K_2) = X_2_norm_output
+  X_1, X_2 = patches(G)
+  U_1, U_2 = gluing_domains(G)
+  g_1, g_2 = gluing_morphisms(G)
+  codomain(F_1) === X_1 || error("Codomain of F_1=$(F_1) should be X_1=$(X_1).")
+  codomain(F_2) === X_2 || error("Codomain of F_2=$(F_2) should be X_2=$(X_2).")
+
+  # We assume X_i_norm, F_i, hom_to_K_i are defined as below
+  # X_1_norm, F_1, hom_to_K_1 = _normalization_affine(X_1)[1]
+  # X_2_norm, F_2, hom_to_K_2 = _normalization_affine(X_2)[1]
+
+  U_1_norm = PrincipalOpenSubset(X_1_norm, pullback(F_1)(complement_equation(U_1)))
+  U_2_norm = PrincipalOpenSubset(X_2_norm, pullback(F_2)(complement_equation(U_2)))
+
+  U_1_norm_mor = restrict(F_1, U_1_norm, U_1; check=false)
+  U_2_norm_mor = restrict(F_2, U_2_norm, U_2; check=false)
+
+  hom_to_U_2_norm_coordinates = elem_type(OO(U_1_norm))[]
+  for a in hom_to_K_2.(coordinates(X_2_norm))
+    b_num = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(numerator(a))))
+    b_denom = pullback(U_1_norm_mor)(pullback(g_1)(OO(U_2)(denominator(a))))
+    # TODO remove check that b_denom is invertible
+    push!(hom_to_U_2_norm_coordinates, b_num * inv(b_denom))
+  end
+  hom_to_U_2_norm = morphism(U_1_norm, U_2_norm, hom_to_U_2_norm_coordinates)
+
+  hom_to_U_1_norm_coordinates = elem_type(OO(U_2_norm))[]
+  for a in hom_to_K_1.(coordinates(X_1_norm))
+    b_num = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(numerator(a))))
+    b_denom = pullback(U_2_norm_mor)(pullback(g_2)(OO(U_1)(denominator(a))))
+    # TODO remove check that b_denom is invertible
+    push!(hom_to_U_1_norm_coordinates, b_num * inv(b_denom))
+  end
+  hom_to_U_1_norm = morphism(U_2_norm, U_1_norm, hom_to_U_1_norm_coordinates; check=false)
+
+  return SimpleGluing(
+    X_1_norm,
+    X_2_norm,
+    hom_to_U_2_norm,
+    hom_to_U_1_norm;
+    check=false
+  )
+end
