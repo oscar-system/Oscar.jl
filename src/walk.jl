@@ -41,33 +41,18 @@ Standard Walk (:standard) computes the Walk like it´s presented in Cox, Little 
 # Examples
 
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"], ordering = :degrevlex);
+julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
 
 julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
-julia> groebnerwalk(I, degrevlex(R), lex(R), :standard)
-standard_walk results
-Crossed Cones in: 
-[4, 3]
-[4, 1]
-[12, 1]
-[1, 0]
-Cones crossed: 4
+julia> groebner_walk(I, degrevlex(R), lex(R), :standard)
 Gröbner basis with elements
 1 -> y^16
 2 -> x + y^12 - y^8 + y^4
 with respect to the ordering
 matrix_ordering([x, y], [1 0; 0 1])
 
-julia> groebnerwalk(I, degrevlex(R), lex(R), :perturbed, 2)
-perturbed_walk results
-Crossed Cones in: 
-[4, 3]
-[4, 1]
-[5, 1]
-[12, 1]
-[1, 0]
-Cones crossed: 5
+julia> groebner_walk(I, degrevlex(R), lex(R), :perturbed, 2)
 Gröbner basis with elements
 1 -> y^16
 2 -> x + y^12 - y^8 + y^4
