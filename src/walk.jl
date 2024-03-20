@@ -279,8 +279,8 @@ function generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
     raise_step_counter()
 
 
-  @vprintln :groebner_walk v
-  @vprintln :groebner_walk 2 G
+    @vprintln :groebner_walk v
+    @vprintln :groebner_walk 2 G
 
     G = Oscar.IdealGens(G, ordNew)
     v = next_gamma(G, Lm, v, S, T)
@@ -386,28 +386,28 @@ function fractal_walk_combined(
     # -> Checking if G is already a Groebner basis w.r.t. T solves this problem and reduces computational effort since next_weight_fractal_walk returns 1 in the last step on every local path.
     if t == 1 && p != 1
       if same_cone(G, T)
-        # @vprintln(:intermediate, "depth $p: in cone ", currweight, ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", currweight, ".")...
 
         # Check if a target weight of pTargetWeights[p] and pTargetWeights[p-1] lies in the wrong cone.
         if !inCone(G, T, pTargetWeights, p)
           global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-          # @vprintln(:intermediate, "depth $p: not in cone ", pTargetWeights[p], ".")
+          @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
         end
         return G
       end
     elseif t == [0] # The Groebner basis w.r.t. the target weight and T is already computed.
       if inCone(G, T, pTargetWeights, p)
-        # @vprintln(:intermediate,"depth $p: in cone ", pTargetWeights[p], ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", pTargetWeights[p], ".")...
         return G
       end
       global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-      # @vprintln(:intermediate,"depth $p: not in cone ", pTargetWeights[p], ".")
+      @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
       continue
     end
 
     # skip a step for target monomial order lex.
     if t == 1 && p == 1
-      # @vprintln(:intermediate,"depth $p: recursive call in ", pTargetWeights[p])
+      @vprintln :groebner_walk ("depth $p: recursive call in ", pTargetWeights[p])...
       return fractal_walk_combined(G, S, T, w, pTargetWeights, p + 1)
     else
       w = w + t * (pTargetWeights[p] - w)
@@ -430,7 +430,7 @@ function fractal_walk_combined(
 
           if !inCone(G, T, pTargetWeights, p)
             global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-            # @vprintln(:intermediate,"depth $p: not in cone ", pTargetWeights[p], ".")
+            @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
           end
           return G
         end
@@ -442,10 +442,10 @@ function fractal_walk_combined(
           Gw; ordering=ordNew, complete_reduction=true, algorithm=:buchberger
         )
 
-        # @vprintln(:intermediate,"depth $p: conversion in ", w, ".")
+        @vprintln :groebner_walk ("depth $p: conversion in ", w, ".")...
         raise_step_counter()
       else
-        # @vprintln(:intermediate,"depth $p: recursive call in $w.")
+        @vprintln :groebner_walk "depth $p: recursive call in $w."
         H = fractal_walk_combined(
           Oscar.IdealGens(R, gens(Gw), ordAlt),
           S,
@@ -471,14 +471,14 @@ end
 ###############################################################
 
 function fractal_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  # @vprintln(:intermediate, "FractalWalk_standard results")
-  # @vprintln(:intermediate, "Crossed Cones in: ")
+  @vprintln :groebner_walk "FractalWalk_standard results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
   global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(base_ring(G))]
-  return fractal_recursiv(G, S, T, S[1, :], pTargetWeights, 1)
+  return fractal_recursion_step(G, S, T, S[1, :], pTargetWeights, 1)
 end
 
-function fractal_recursiv(
+function fractal_recursion_step(
   G::Oscar.IdealGens,
   S::Matrix{Int},
   T::Matrix{Int},
@@ -498,22 +498,22 @@ function fractal_recursiv(
     # -> Checking if G is already a Groebner basis w.r.t. T solves this problem and reduces computational effort since next_weight_fractal_walk returns 1 in the last step on every local path.        if t == 1 && p != 1
     if t == 1 && p != 1
       if same_cone(G, T)
-        # @vprintln(:intermediate,"depth $p: in cone ", currweight, ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", currweight, ".")...
 
         # Check if a target weight of pTargetWeights[p] and pTargetWeights[p-1] lies in the wrong cone.
         if !inCone(G, T, pTargetWeights, p)
           global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-          # @vprintln(:intermediate,"depth $p: not in cone ", pTargetWeights[p], ".")
+          @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
         end
         return G
       end
     elseif t == [0] # The Groebner basis w.r.t. the target weight and T is already computed.
       if inCone(G, T, pTargetWeights, p)
-        # @vprintln(:intermediate,"depth $p: in cone ", pTargetWeights[p], ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", pTargetWeights[p], ".")...
         return G
       end
       global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-      # @vprintln(:intermediate,"depth $p: not in cone ", pTargetWeights[p], ".")
+      @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
       continue
     end
 
@@ -537,7 +537,7 @@ function fractal_recursiv(
 
         if !inCone(G, T, pTargetWeights, p)
           global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-          # @vprintln(:intermediate,"depth $p: not in cone ", pTargetWeights[p], ".")
+          @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
         end
         return G
       end
@@ -549,11 +549,11 @@ function fractal_recursiv(
         Gw; ordering=ordNew, complete_reduction=true, algorithm=:buchberger
       )
 
-      # @vprintln(:intermediate,"depth $p: conversion in ", w, ".")
+      @vprintln :groebner_walk ("depth $p: conversion in ", w, ".")...
       raise_step_counter()
     else
-      # @vprintln(:intermediate,"depth $p: recursive call in $w.")
-      H = fractal_recursiv(
+      @vprintln :groebner_walk "depth $p: recursive call in $w."
+      H = fractal_recursion_step(
         Oscar.IdealGens(R, gens(Gw), ordAlt),
         S,
         T,
@@ -575,17 +575,17 @@ end
 ###############################################################
 
 function fractal_walk_start_order(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  # @vprintln(:intermediate, "fractal_walk_withStartorder results")
-  # @vprintln(:intermediate, "Crossed Cones in: ")
+  @vprintln :groebner_walk "fractal_walk_withStartorder results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
 
   global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(
     Singular.base_ring(G)
   )]
-  return fractal_walk_recursiv_startorder(G, S, T, S[1, :], pTargetWeights, 1)
+  return fractal_walk_recursive_startorder(G, S, T, S[1, :], pTargetWeights, 1)
 end
 
-function fractal_walk_recursiv_startorder(
+function fractal_walk_recursive_startorder(
   G::Oscar.IdealGens,
   S::Matrix{Int},
   T::Matrix{Int},
@@ -618,22 +618,22 @@ function fractal_walk_recursiv_startorder(
     # -> Checking if G is already a Groebner basis w.r.t. T solves this problem and reduces computational effort since next_weight_fractal_walk returns 1 in the last step on every local path.        if t == 1 && p != 1
     if t == 1 && p != 1
       if same_cone(G, T)
-        # @vprintln(:intermediate, "depth $p: in cone ", currweight, ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", currweight, ".")...
 
         # Check if a target weight of pTargetWeights[p] and pTargetWeights[p-1] lies in the wrong cone.
         if !inCone(G, T, pTargetWeights, p)
           global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-          # @vprintln(:intermediate, "depth $p: not in cone ", pTargetWeights[p], ".")
+          @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
         end
         return G
       end
     elseif t == [0] # The Groebner basis w.r.t. the target weight and T is already computed.
       if inCone(G, T, pTargetWeights, p)
-        # @vprintln(:intermediate, "depth $p: in cone ", pTargetWeights[p], ".")
+        @vprintln :groebner_walk ("depth $p: in cone ", pTargetWeights[p], ".")...
         return G
       end
       global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-      # @vprintln(:intermediate, "depth $p: not in cone ", pTargetWeights[p], ".")
+      @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
       continue
     end
 
@@ -653,7 +653,7 @@ function fractal_walk_recursiv_startorder(
 
         if !inCone(G, T, pTargetWeights, p)
           global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(R)]
-          # @vprintln(:intermediate, "depth $p: not in cone ", pTargetWeights[p], ".")
+          @vprintln :groebner_walk ("depth $p: not in cone ", pTargetWeights[p], ".")...
         end
         return G
       end
@@ -666,11 +666,11 @@ function fractal_walk_recursiv_startorder(
         Gw; ordering=ordNew, complete_reduction=true, algorithm=:buchberger
       )
 
-      # @vprintln(:intermediate, "depth $p: conversion in ", w, ".")
+      @vprintln :groebner_walk  ("depth $p: conversion in ", w, ".")...
       raise_step_counter()
     else
-      # @vprintln(:intermediate, "depth $p: recursive call in $w.")
-      H = fractal_walk_recursiv_startorder(
+      @vprintln :groebner_walk "depth $p: recursive call in $w."
+      H = fractal_walk_recursive_startorder(
         Oscar.IdealGens(R, gens(Gw), ordAlt),
         S,
         T,
@@ -694,8 +694,8 @@ end
 ###############################################################
 
 function tran_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  # @vprintln(:intermediate, "tran_walk results")
-  # @vprintln(:intermediate, "Crossed Cones in: ")
+  @vprintln :groebner_walk "tran_walk results"
+  @vprintln :groebner_walk "Crossed Cones in: "
 
   currweight = S[1, :]
   tarweight = T[1, :]
@@ -718,7 +718,7 @@ function tran_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
     end
     if w == tarweight
       if same_cone(G, T)
-        # @vprintln(:intermediate, "Cones crossed: ", counter)
+        @vprintln :groebner_walk ("Cones crossed: ", counter)...
         return G
       elseif inSeveralCones(initials(G, tarweight))
         tarweight = representation_vector(G, T)
@@ -726,10 +726,9 @@ function tran_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
       end
     end
     G = standard_step_without_int32_check(G, w, T)
-      # @vprintln(:intermediate, w)
-      if infoLevel == 2
-        # @vprintln(:detailed, G)
-      end
+
+    @vprintln :groebner_walk w
+    @vprintln :groebner_walk 2 G
 
     currweight = w
     raise_step_counter()
