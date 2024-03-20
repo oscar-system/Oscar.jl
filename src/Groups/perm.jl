@@ -120,6 +120,9 @@ julia> x = perm([2,4,6,1,3,5])
 
 julia> parent(x)
 Sym(6)
+with 2 generators
+  (1,2,3,4,5,6)
+  (1,2)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
@@ -228,6 +231,9 @@ julia> y=cperm(A,[1,2,3]);
 
 julia> z=cperm([1,2,3]); parent(z)
 Sym(3)
+with 2 generators
+  (1,2,3)
+  (1,2)
 
 julia> x==y
 true
@@ -252,12 +258,18 @@ true
 ```jldoctest
 julia> G=symmetric_group(5)
 Sym(5)
+with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> x = cperm(G,[[1,2],[3,4]])
 (1,2)(3,4)
 
 julia> parent(x)
 Sym(5)
+with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 ```
 
 Equivalent permutations can be created using [`perm`](@ref) and [`@perm`](@ref):
@@ -735,6 +747,9 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 
 julia> parent(x)
 Sym(8)
+with 2 generators
+  (1,2,3,4,5,6,7,8)
+  (1,2)
 
 julia> y = cperm([1,2,3],[4,5],[6,7,8])
 (1,2,3)(4,5)(6,7,8)
@@ -792,6 +807,9 @@ julia> gens = @perm 14 [
  
 julia> parent(gens[1])
 Sym(14)
+with 2 generators
+  (1,2,3,4,5,6,7,8,9,10,11,12,13,14)
+  (1,2)
 ```
 """
 macro perm(n,gens)
@@ -822,6 +840,9 @@ julia> x = cperm([1,2,3], [4,5]);  y = cperm([1,4]);
 
 julia> permutation_group(5, [x, y])
 Permutation group of degree 5
+with 2 generators
+  (1,2,3)(4,5)
+  (1,4)
 ```
 """
 function permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
@@ -838,6 +859,9 @@ given by permutations in cycle notation.
 ```jldoctest
 julia> g = @permutation_group(7, (1,2), (1,2,3)(4,5))
 Permutation group of degree 7
+with 2 generators
+  (1,2)
+  (1,2,3)(4,5)
 
 julia> degree(g)
 7

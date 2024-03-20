@@ -43,6 +43,9 @@ It describes a free abelian group of rank `n`.
 ```jldoctest
 julia> G = pc_group(collector(2))
 Pc group of infinite order
+with 2 generators
+  g1
+  g2
 
 julia> is_abelian(G)
 true
@@ -341,6 +344,9 @@ julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
 
 julia> gg = pc_group(c)
 Pc group of order 6
+with 2 generators
+  f1
+  f2
 
 julia> describe(gg)
 "S3"

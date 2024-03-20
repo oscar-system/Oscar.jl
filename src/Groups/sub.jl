@@ -782,6 +782,9 @@ An exception is thrown if `N` is not a normal subgroup of `G`.
 ```jldoctest
 julia> G = symmetric_group(4)
 Sym(4)
+with 2 generators
+  (1,2,3,4)
+  (1,2)
 
 julia> N = pcore(G, 2)[1];
 
@@ -961,6 +964,8 @@ Z/2
 
 julia> schur_multiplier(PcGroup, alternating_group(6))
 Pc group of order 6
+with 1 generator
+  f1
 
 julia> schur_multiplier(abelian_group([2, 12]))
 Z/2

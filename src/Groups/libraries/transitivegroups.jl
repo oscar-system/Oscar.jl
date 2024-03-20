@@ -85,6 +85,9 @@ The output is a group of type `PermGroup`.
 ```jldoctest
 julia> transitive_group(5,4)
 Alt(5)
+with 2 generators
+  (1,2,3,4,5)
+  (3,4,5)
 
 julia> transitive_group(5,6)
 ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
@@ -116,6 +119,8 @@ true
 
 julia> S = sub(G, [perm([1, 3, 4, 5, 2])])[1]
 Permutation group of degree 7
+with 1 generator
+  (2,3,4,5)
 
 julia> is_transitive(S)
 false

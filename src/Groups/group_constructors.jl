@@ -21,6 +21,9 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 ```jldoctest
 julia> G = symmetric_group(5)
 Sym(5)
+with 2 generators
+  (1,2,3,4,5)
+  (1,2)
 
 julia> order(G)
 120
@@ -57,6 +60,9 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 ```jldoctest
 julia> G = alternating_group(5)
 Alt(5)
+with 2 generators
+  (1,2,3,4,5)
+  (3,4,5)
 
 julia> order(G)
 60
@@ -94,12 +100,18 @@ Return the cyclic group of order `n`, as an instance of type `T`.
 ```jldoctest
 julia> G = cyclic_group(5)
 Pc group of order 5
+with 1 generator
+  f1
 
 julia> G = cyclic_group(PermGroup, 5)
 Permutation group of degree 5 and order 5
+with 1 generator
+  (1,2,3,4,5)
 
 julia> G = cyclic_group(PosInf())
 Pc group of infinite order
+with 1 generator
+  g1
 
 ```
 """
@@ -137,6 +149,9 @@ and throw an error otherwise.
 ```jldoctest
 julia> g = permutation_group(5, [cperm(1:3), cperm(4:5)])
 Permutation group of degree 5
+with 2 generators
+  (1,2,3)
+  (4,5)
 
 julia> cyclic_generator(g)
 (1,2,3)(4,5)
@@ -241,6 +256,9 @@ The group is represented as a permutation group.
 ```jldoctest
 julia> g = projective_general_linear_group(2, 3)
 Permutation group of degree 4 and order 24
+with 2 generators
+  (3,4)
+  (1,2,4)
 
 julia> order(g)
 24
@@ -264,6 +282,9 @@ The group is represented as a permutation group.
 ```jldoctest
 julia> g = projective_special_linear_group(2, 3)
 Permutation group of degree 4 and order 12
+with 2 generators
+  (2,3,4)
+  (1,2)(3,4)
 
 julia> order(g)
 12
@@ -287,6 +308,9 @@ The group is represented as a permutation group.
 ```jldoctest
 julia> g = projective_symplectic_group(2, 3)
 Permutation group of degree 4 and order 12
+with 2 generators
+  (2,3,4)
+  (1,2)(3,4)
 
 julia> order(g)
 12
@@ -311,6 +335,9 @@ The group is represented as a permutation group.
 ```jldoctest
 julia> g = projective_unitary_group(2, 3)
 Permutation group of degree 10 and order 24
+with 2 generators
+  (3,4)(5,8)(6,9)(7,10)
+  (1,2,6)(3,7,10)(4,8,5)
 
 julia> order(g)
 24
@@ -334,6 +361,9 @@ The group is represented as a permutation group.
 ```jldoctest
 julia> g = projective_special_unitary_group(2, 3)
 Permutation group of degree 10 and order 12
+with 2 generators
+  (2,9,6)(3,8,10)(4,7,5)
+  (1,2)(5,10)(6,9)(7,8)
 
 julia> order(g)
 12
@@ -550,12 +580,21 @@ where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
 ```jldoctest
 julia> dihedral_group(6)
 Pc group of order 6
+with 2 generators
+  f1
+  f2
 
 julia> dihedral_group(PermGroup, 6)
 Permutation group of degree 3
+with 2 generators
+  (1,2,3)
+  (2,3)
 
 julia> dihedral_group(PosInf())
 Pc group of infinite order
+with 2 generators
+  g1
+  g2
 
 julia> dihedral_group(7)
 ERROR: ArgumentError: n must be a positive even integer or infinity
@@ -607,12 +646,22 @@ where `n` is a power of 2 and `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
 ```jldoctest
 julia> g = quaternion_group(8)
 Pc group of order 8
+with 3 generators
+  x
+  y
+  y2
 
 julia> quaternion_group(PermGroup, 8)
 Permutation group of degree 8
+with 2 generators
+  (1,5,3,7)(2,8,4,6)
+  (1,2,3,4)(5,6,7,8)
 
 julia> g = quaternion_group(FPGroup, 8)
 Finitely presented group of order 8
+with 2 generators
+  r
+  s
 
 julia> relators(g)
 3-element Vector{FPGroupElem}:

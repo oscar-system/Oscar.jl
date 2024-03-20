@@ -128,7 +128,21 @@ function Base.show(io::IO, ::MIME"text/plain", x::MatrixGroup)
   println(io, "Matrix group of degree ", degree(x))
   io = pretty(io)
   print(io, Indent())
-  print(io, "over ", Lowercase(), base_ring(x))
+  println(io, "over ", Lowercase(), base_ring(x))
+  print(io, Dedent())
+  has_gens(x) || return
+  n = ngens(x)
+  println(io, "with ", ItemQuantity(n, "generator"))
+  print(io, Indent())
+  # TODO: can we do something similar to what `show` for vectors does and
+  # restrict this to fill one screen by default?
+  for (i, g) in enumerate(gens(x))
+    show(io, MIME"text/plain"(), g)
+    if i < n
+      println(io)
+      println(io)
+    end
+  end
   print(io, Dedent())
 end
 

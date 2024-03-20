@@ -464,9 +464,16 @@ be a subgroup of the domain of `g`.
 ```jldoctest
 julia> C = cyclic_group(20)
 Pc group of order 20
+with 3 generators
+  f1
+  f2
+  f3
 
 julia> S = automorphism_group(C)
 Aut( <pc group of size 20 with 3 generators> )
+with 2 generators
+  [ f3^3, f1*f2*f3^3 ] -> [ f3^3, f1*f3 ]
+  [ f1*f2*f3^3, f3^3 ] -> [ f1*f2*f3^3, f3 ]
 
 julia> H, _ = sub(C, [gens(C)[1]^4])
 (Pc group of order 5, Hom: H -> C)
@@ -545,6 +552,11 @@ julia> G = symmetric_group(6);
 
 julia> H = sylow_subgroup(G, 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> index(G, H)
 45
