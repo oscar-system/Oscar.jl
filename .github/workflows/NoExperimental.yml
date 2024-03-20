@@ -42,8 +42,6 @@ jobs:
           include-matrix: false
       - name: "Set ENV"
         run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
-      - name: "Delete experimental"
-        run: julia --color=yes etc/no-experimental.jl init
       - name: "Set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
@@ -68,8 +66,6 @@ jobs:
           include-matrix: false
       - name: "Set ENV"
         run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
-      - name: "Delete experimental"
-        run: julia --color=yes etc/no-experimental.jl init
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "Setup package"
@@ -97,8 +93,6 @@ jobs:
           version: '1.10'
       - name: "Set ENV"
         run: echo "OSCAR_TEST_NOEXPERIMENTAL=true" >> $GITHUB_ENV
-      - name: "Delete experimental"
-        run: julia --color=yes etc/no-experimental.jl init
       - name: Build package
         uses: julia-actions/julia-buildpkg@v1
       - name: Install dependencies
