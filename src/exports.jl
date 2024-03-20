@@ -84,6 +84,7 @@ export Hecke
 export HilbertData
 export Hyperplane
 export IncidenceMatrix
+export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
 export LazyPoly
@@ -757,6 +758,7 @@ export is_fano
 export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
+export is_finite_dimensional_vector_space
 export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_finiteorder
 export is_flat

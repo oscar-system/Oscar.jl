@@ -1740,6 +1740,14 @@ function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
   return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
+function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)
+  throw(NotImplementedError(:is_finite_dimensional_vector_space, R))
+end
+
+function is_finite_dimensional_vector_space(R::MPAnyNonQuoRing)
+  return false
+end
+
 ### Conversion of ideals in the original ring to localized ideals
 function (W::MPolyQuoLocRing{BRT, BRET, RT, RET, MST})(I::MPolyIdeal{RET}) where {BRT, BRET, RT, RET, MST}
   return MPolyQuoLocalizedIdeal(W, W.(gens(I)))
