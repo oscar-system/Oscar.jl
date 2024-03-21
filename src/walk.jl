@@ -13,19 +13,27 @@ global infoLevel = 0
         walktype::Symbol = :standard, 
         perturbationDegree::Int = 2
     )
+    groebner_walk(
+        G::Oscar.IdealGens,
+        startOrder::Union{Matrix{N}, MatElem{N}},
+        targetOrder::Union{Matrix{N}, MatElem{N}},
+        walktype::Symbol = :standard,
+        perturbationDegree::Int = 2
+    ) where N
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk.
 The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
 One can choose a strategy of:
-Standard Walk (:standard) computes the Walk like it´s presented in Cox, Little & O´Shea (2005).
+- Standard Walk (:standard) computes the Walk like as presented in Cox, Little & O´Shea (2005).
 - Generic Walk (:generic) computes the Walk as presented in Fukuda, Jensen, Lauritzen & Thomas (2005).
 - Perturbed Walk (:perturbed, with p = degree of the perturbation) computes the Walk ass presented in Amrhein, Gloor & Küchlin (1997).
 - Tran's Walk (:tran) computes the Walk like as presented in Tran (2000).
 - Fractal Walk (:fractalcombined) computes the Walk like as presented in Amrhein & Gloor (1998) with multiple extensions. The target monomial order has to be lex. This version uses the Buchberger algorithm to skip weight vectors with entries bigger than Int32.
 - Fractal Walk (:fractal) computes the Walk as presented in Amrhein & Gloor (1998). Perturbs only the target vector.
 
-#Arguments
-- `G::Oscar.IdealGens`: ideal one wants to compute a Groebner basis for.
+# Arguments
+- `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
+- `G::Oscar.IdealGens`: generators of an ideal one wants to compute a Groebner basis for.
 - `startOrder::MonomialOrdering=:degrevlex`: monomial order to begin the conversion.
 - `targetOrder::MonomialOrdering=:lex`: monomial order one wants to compute a Groebner basis for.
 - `walktype::Symbol=standard`: strategy of the Groebner Walk. One can choose a strategy of:
@@ -36,7 +44,6 @@ Standard Walk (:standard) computes the Walk like it´s presented in Cox, Little 
     - `fractal`: standard-version of the Fractal Walk,
     - `fractalcombined`: combined Version of the Fractal Walk. Target monomial order needs to be lex,
 - `perturbationDegree::Int=2`: perturbationdegree for the perturbed Walk.
-
 
 # Examples
 
@@ -58,60 +65,6 @@ Gröbner basis with elements
 2 -> x + y^12 - y^8 + y^4
 with respect to the ordering
 matrix_ordering([x, y], [1 0; 0 1])
-```
-"""
-function groebner_walk(
-  I::MPolyIdeal,
-  startOrder::MonomialOrdering = default_ordering(base_ring(I)),
-  targetOrder::MonomialOrdering = lex(base_ring(I)),
-  walktype::Symbol = :standard,
-  perturbationDegree = 2,
-)
-  S = canonical_matrix(startOrder)
-  T = canonical_matrix(targetOrder)
-  return groebner_walk(I, S, T, walktype, perturbationDegree)
-end
-
-@doc raw"""
-    groebner_walk(
-      G::Oscar.IdealGens,
-      S::Union{Matrix{T}, MatElem{T}},
-      T::Union{Matrix{T}, MatElem{T}},
-      walktype::Symbol = :standard,
-      perturbationDegree::Int = 2
-    ) where T
-Computes a reduced Groebner basis w.r.t. the monomial order T by converting the reduced Groebner basis G w.r.t. the monomial order S using the Groebner Walk.
-One can choose a strategy of:
-Standard Walk (:standard) computes the Walk like it´s presented in Cox et al. (2005).
-Generic Walk (:generic) computes the Walk like it´s presented in Fukuda et al. (2005).
-Perturbed Walk (:perturbed, with p = degree of the perturbation) computes the Walk like it´s presented in Amrhein et al. (1997).
-Tran´s Walk (:tran) computes the Walk like it´s presented in Tran (2000).
-Fractal Walk (:fractal) computes the Walk like it´s presented in Amrhein & Gloor (1998). Pertubes only the target vector.
-Fractal Walk (:fractalcombined) computes the Walk like it´s presented in Amrhein & Gloor (1998) with multiple extensions. The target monomial order has to be lex. This version uses the Buchberger Algorithm to skip weightvectors with entries bigger than Int32.
-Set infoLevel to trace the walk:
-    -'infoLevel=0': no detailed printout,
-    -'infoLevel=1': adds intermediate weight vectors,
-    -'infoLevel=2': adds information about the Groebner basis.
-
-#Arguments
--`G::Oscar.IdealGens`: Groebner basis to convert to the Groebner basis w.r.t. the target order T. G needs to be a Groebner basis w.r.t. the start order S.
--`S::Union{Matrix{N}, MatElem{N}}`: start monomial order w.r.t. the Groebner basis G. Note that S has to be a nxn-matrix with rank(S)=n and its first row needs to have positive entries.
--`T::Union{Matrix{N}, MatElem{N}}`: target monomial order one wants to compute a Groebner basis for. Note that T has to be a nxn-matrix with rank(T)=n and its first row needs to have positive entries.
--`walktype::Symbol=standard`: strategy of the Groebner Walk. One can choose a strategy of:
-    - `standard`: Standard Walk (default),
-    - `perturbed`: Perturbed Walk,
-    - `tran`: Tran´s Walk,
-    - `generic`: Generic Walk,
-    - `fractal`: standard-version of the Fractal Walk,
-    - `fractalcombined`: combined version of the Fractal Walk. The target monomial order needs to be lex,
--`p::Int=2`: perturbationdegree for the perturbed Walk.
-
-# Examples
-
-```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"], ordering = :degrevlex);
-
-julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
 julia> groebnerwalk(I, [1 1; 0 -1], [1 0; 0 1], :standard)
 standard_walk results
@@ -143,6 +96,19 @@ with respect to the ordering
 matrix_ordering([x, y], [1 0; 0 1])
 ```
 """
+function groebner_walk(
+  I::MPolyIdeal,
+  startOrder::MonomialOrdering = default_ordering(base_ring(I)),
+  targetOrder::MonomialOrdering = lex(base_ring(I)),
+  walktype::Symbol = :standard,
+  perturbationDegree = 2
+)
+  S = canonical_matrix(startOrder)
+  T = canonical_matrix(targetOrder)
+  
+  return groebner_walk(I, S, T, walktype, perturbationDegree)
+end
+
 function groebner_walk(
   G::Union{Oscar.IdealGens,MPolyIdeal},
   S::Union{Matrix{N},MatElem{N}},
