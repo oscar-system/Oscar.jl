@@ -206,27 +206,17 @@ end
 # The standard step is used for the strategies standard and perturbed.
 ###############################################################
 
-function standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int})
+function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target_ordering::MonomialOrdering)
   R = base_ring(G)
-  ordAlt = ordering(G)
-  Gw = 0
+  current_ordering = ordering(G)
 
-  #check if no entry of w is bigger than Int32. If it´s bigger multiply it by 0.1 and round.
-  if !checkInt32(w)
-    Gw = ideal(initials(G, w))
-    w, b = truncw(G, w, gens(Gw))
-    !b && throw(
-      error("Some entries of the intermediate weight-vector $w are bigger than int32")
-    )
-  else
-    Gw = ideal(initials(G, w))
-  end
-  ordNew = create_order(R, w, T)
-  H = groebner_basis(Gw; ordering=ordNew, complete_reduction=true, algorithm=:buchberger)
-  #H = liftGW2(G, ordAlt, Gw, H, ordNew)
-  H = lift(G, ordAlt, H, ordNew)
+  Gw = ideal(initial_forms(G,w))
+  H = groebner_basis(Gw; ordering=target_ordering, complete_reduction=true) |> (x->lift(G, current_ordering, x, target_ordering))
+
   return interreduce_walk(H)
 end
+
+standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_order(base_ring(G), w, T))
 
 ###############################################################
 # Generic-version of the Groebner Walk.
