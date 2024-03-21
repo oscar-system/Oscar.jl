@@ -1302,11 +1302,13 @@ function _conv_normalize_alg(algorithm::Symbol)
 end
 
 function _conv_normalize_data(A::MPolyQuoRing, l, br)
+# Note: The ugly construction of newAmap is due to the need to avoid
+# inheriting corrupted internal data of the ideal
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
       newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
-      newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
+      newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
