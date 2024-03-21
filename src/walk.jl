@@ -1086,28 +1086,26 @@ function truncw(G::Oscar.IdealGens, w::Vector{Int}, inw::Vector{T}) where {T<:MP
 end
 
 # returns the initialform of G w.r.t. the given weight vector.
-function initials(G::Oscar.IdealGens, w::Vector{Int})
-  R = base_ring(G)
-  inits = elem_type(R)[]
-  for g in gens(G)
-    inw = MPolyBuildCtx(R)
-    maxw = 0
-    eczip = zip(AbstractAlgebra.exponent_vectors(g), coefficients(g))
-    for (e, c) in eczip
-      tmpw = dot(w, e)
-      if maxw == tmpw
-        push_term!(inw, c, e)
-      elseif maxw < tmpw
-        inw = MPolyBuildCtx(R)
-        push_term!(inw, c, e)
-        maxw = tmpw
-      end
+function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
+  R = parent(f)
+
+  ctx = MPolyBuildCtx(R)
+
+  exponent_vectors = exponent_vector.(monomials(f), Ref(1))
+  WE = dot.(Ref(w), Vector{ZZRingElem}.(exponent_vectors))
+  maxw = maximum(WE)
+
+  for (e,c, we) in zip(exponent_vectors, coefficients(f), WE) 
+    if we == maxw
+      push_term!(ctx, c, e)
     end
-    h = finish(inw)
-    push!(inits, h)
   end
-  return inits
+
+  return finish(ctx)
 end
+
+initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem}) = initial_form.(G, Ref(w))
+initial_forms(G::Oscar.IdealGens, w::Vector{Int}) = initial_form.(G, Ref(ZZ.(w)))
 
 function difference_lead_tail(I::Oscar.IdealGens)
   v = Vector{Int}[]
