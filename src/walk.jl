@@ -97,6 +97,7 @@ matrix_ordering([x, y], [1 0; 0 1])
 ```
 """
 function groebner_walk(
+  ::Type{Int},
   I::MPolyIdeal,
   startOrder::MonomialOrdering = default_ordering(base_ring(I)),
   targetOrder::MonomialOrdering = lex(base_ring(I)),
@@ -107,6 +108,28 @@ function groebner_walk(
   T = canonical_matrix(targetOrder)
   
   return groebner_walk(I, S, T, walktype, perturbationDegree)
+end
+
+function groebner_walk(
+  I::MPolyIdeal,
+  start_ordering::MonomialOrdering = default_ordering(base_ring(I)),
+  target_ordering::MonomialOrdering = lex(base_ring(I)),
+  walk_type::Symbol = :standard,
+  perturbationDegree = 2
+)
+  if walk_type == :standard
+    walk = (x) -> standard_walk(x, start_ordering, target_ordering)
+  else
+    throw(NotImplementedError(:groebner_walk, walk_type))
+  end
+
+  Gb = groebner_basis(I; ordering=start_ordering, complete_reduction=true)
+  Gb = walk(Gb)
+
+  # @vprintln :groebner_walk "Cones crossed: " 
+  # delete_step_counter()
+
+  return Oscar.IdealGens(gens(Gb), target_ordering; isGB=true)
 end
 
 function groebner_walk(
@@ -170,34 +193,50 @@ end
 # Implementation of the standard walk.
 ###############################################################
 
-function standard_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  @vprintln :groebner_walk "standard_walk results"
-  @vprintln :groebner_walk "Crossed Cones in: "
+function standard_walk(
+  G::Oscar.IdealGens, 
+  start_ordering::MonomialOrdering, 
+  target_ordering::MonomialOrdering
+)
+  
+  start_weight = canonical_matrix(start_ordering)[1,:]
+  target_weight = canonical_matrix(target_ordering)[1,:]
 
-  Gb = standard_walk(G, S, T, S[1, :], T[1, :])
-
-  return Gb
+  return standard_walk(G, start_ordering, target_ordering, start_weight, target_weight)
 end
+
+standard_walk(G::Oscar.IdealGens, S::ZZMatrix, T::ZZMatrix) = standard_walk(
+  G, 
+  matrix_ordering(base_ring(G), S),
+  matrix_ordering(base_ring(G), T), 
+  S[1, :], 
+  T[1, :]
+)
 
 function standard_walk(
   G::Oscar.IdealGens,
-  S::Matrix{Int},
-  T::Matrix{Int},
-  currweight::Vector{Int},
-  tarweight::Vector{Int},
+  start_ordering::MonomialOrdering,
+  target_ordering::MonomialOrdering,
+  current_weight::Vector{ZZRingElem},
+  target_weight::Vector{ZZRingElem}
 )
+  @vprintln :groebner_walk "Results for standard_walk"
+  @vprintln :groebner_walk "Crossed Cones in: "
+
   while true
-    G = standard_step(G, currweight, T)
-    if currweight == tarweight
+    G = standard_step(G, current_weight, target_ordering)
+
+    if current_weight == target_weight
       return G
     else
-      currweight = next_weight(G, currweight, tarweight)
+      current_weight = next_weight(G, current_weight, target_weight)
     end
+
     if infoLevel >= 1
       raise_step_counter()
     end
 
-    @vprintln :groebner_walk currweight
+    @vprintln :groebner_walk current_weight
     @vprintln :groebner_walk 2 G
   end
 end
@@ -209,14 +248,20 @@ end
 function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target_ordering::MonomialOrdering)
   R = base_ring(G)
   current_ordering = ordering(G)
+  next_ordering = weight_ordering(w, target_ordering)
 
   Gw = ideal(initial_forms(G,w))
-  H = groebner_basis(Gw; ordering=target_ordering, complete_reduction=true) |> (x->lift(G, current_ordering, x, target_ordering))
+
+  H = groebner_basis(Gw; ordering=next_ordering, complete_reduction=true) 
+  H = lift(G, current_ordering, H, next_ordering)
+
+  @vprintln :groebner_walk 3 Gw
+  @vprintln :groebner_walk 3 H
 
   return interreduce_walk(H)
 end
 
-standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_order(base_ring(G), w, T))
+standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_ordering(base_ring(G), w, T))
 
 ###############################################################
 # Generic-version of the Groebner Walk.
@@ -1042,21 +1087,13 @@ end
 ###############################################################
 
 # returns the next intermediate weight vector.
-function next_weight(G::Oscar.IdealGens, cw::Vector{Int}, tw::Vector{Int})
-  tmin = 1
-  for v in difference_lead_tail(G)
-    tdotw = dot(tw, v)
-    if tdotw < 0
-      cdotw = dot(cw, v)
-      t = cdotw//(cdotw - tdotw)
-      if t < tmin
-        tmin = t
-      end
-    end
-  end
-  return convert_bounding_vector(
-    cw + BigInt(numerator(tmin))//BigInt(denominator(tmin)) * (tw - cw)
-  )
+function next_weight(G::Oscar.IdealGens, cw::Vector{ZZRingElem}, tw::Vector{ZZRingElem})
+  V = difference_lead_tail(G)
+  tmin = minimum(c//(c-t) for (c,t) in zip(dot.(Ref(cw), V), dot.(Ref(tw), V)) if t<0; init=1)
+
+  @vprintln :groebner_walk 3 (QQ.(cw) + tmin * QQ.(tw-cw))
+
+  return QQ.(cw) + tmin * QQ.(tw-cw) |> convert_bounding_vector
 end
 
 # multiplies every entry of the given weight w with 0.1 as long as it stays on the same halfspace as w.
@@ -1085,7 +1122,7 @@ function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
   WE = dot.(Ref(w), Vector{ZZRingElem}.(exponent_vectors))
   maxw = maximum(WE)
 
-  for (e,c, we) in zip(exponent_vectors, coefficients(f), WE) 
+  for (e,c,we) in zip(exponent_vectors, coefficients(f), WE) 
     if we == maxw
       push_term!(ctx, c, e)
     end
@@ -1178,22 +1215,24 @@ function same_cone(G::Oscar.IdealGens, T::Matrix{Int})
   return true
 end
 
-# lifts the Groebner basis G to the Groebner basis w.r.t. the Ring Rn like it´s presented in Fukuda et al. (2005).
+# TODO: Actual docstring
+# lifts the Groebner basis G to the Groebner basis w.r.t. the Ring Rn like as presented in Fukuda et al. (2005).
 function lift(
   G::Oscar.IdealGens,
-  orderingAlt::MonomialOrdering,
+  current::MonomialOrdering,
   H::Oscar.IdealGens,
-  ordering::MonomialOrdering,
+  target::MonomialOrdering,
 )
   G = Oscar.IdealGens(
     [
       gen - Oscar.IdealGens(
-        [reduce(gen, gens(G); ordering=orderingAlt, complete_reduction=true)], ordering
+        [reduce(gen, gens(G); ordering=current, complete_reduction=true)], target
       )[1] for gen in gens(H)
     ],
-    ordering;
+    target;
     isGB=true,
   )
+
   return G
 end
 
@@ -1248,24 +1287,8 @@ function division_algorithm(p::T, f::Vector{T}, R::MPolyRing) where {T<:MPolyRin
 end
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
-function convert_bounding_vector(wtemp::Vector{T}) where {T<:Rational{BigInt}}
-  w = Vector{Int}()
-  g = gcd(wtemp)
-  for i in 1:length(wtemp)
-    push!(w, float(divexact(wtemp[i], g)))
-  end
-  return w
-end
+convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
-# converts a vector wtemp by dividing the entries with gcd(wtemp).
-function convert_bounding_vector(wtemp::Vector{T}) where {T<:Number}
-  w = Vector{Int}()
-  g = gcd(wtemp)
-  for i in 1:length(wtemp)
-    push!(w, float(divexact(wtemp[i], g)))
-  end
-  return w
-end
 
 # returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
 function create_order(R::MPolyRing, cw::Array{L,1}, T::Matrix{Int}) where {L<:Number}
@@ -1333,14 +1356,6 @@ function equalitytest(G::Oscar.IdealGens, K::Oscar.IdealGens)
     return true
   end
   return false
-end
-
-function dot(v::Vector{Int}, w::Vector{Int})
-  sum = 0
-  for i in 1:length(v)
-    @inbounds sum += v[i] * w[i]
-  end
-  return sum
 end
 
 function ordering_as_matrix(w::Vector{Int}, ord::Symbol)
