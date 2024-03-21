@@ -23,6 +23,19 @@ const orderedpkgs = [
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
 
+# force trigger recompile when folder changes
+include_dependency(".")
+
+# setup for the NoExperimental CI job
+# For local testing, run `ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl` to initialize
+# and `rm experimental/NoExperimental_whitelist.jl` for cleanup
+isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
+if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  include(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  filter!(in(whitelist), exppkgs)
+  filter!(in(whitelist), oldexppkgs)
+end
+
 # Error if something is incomplete in experimental
 for pkg in exppkgs
   if !isfile(joinpath(expdir, pkg, "src", "$pkg.jl"))
@@ -32,13 +45,8 @@ for pkg in exppkgs
   if !isdir(path) || length(filter(endswith(".jl"), readdir(path))) == 0
     error("experimental/$pkg is incomplete: $pkg/test/ missing or empty. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
-end
-
-# force trigger recompile when folder changes
-include_dependency(".")
-
-for pkg in Oscar.exppkgs
-  include("$pkg/src/$pkg.jl")
+  # Load the package
+  include(joinpath(expdir, pkg, "src", "$pkg.jl"))
 end
 
 # Force some structure for `oldexppkgs`
@@ -46,5 +54,6 @@ for pkg in oldexppkgs
   if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
     error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
   end
-  include("$pkg/$pkg.jl")
+  # Load the package
+  include(joinpath(expdir, pkg, "$pkg.jl"))
 end
