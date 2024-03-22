@@ -413,6 +413,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
   
   allG = []
+
+  #if order(H2) > ? use "all_extensions" compatible pairs to reduce
+  #candidates. Also in general, check if this is legal.
   
   for h = H2
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
@@ -427,6 +430,15 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
 
     k, mk = kernel(s)
+
+    #TODO: needs to work with length(S) == 0 as well.
+    #(stupid) example:
+    # G = codomain(isomorphism(FPGroup, abelian_group([2,2,2,2])))
+    # f1 = Oscar.RepPc.solvable_quotient(G)
+    # f2 = Oscar.RepPc.sq(f1, [2])
+    # then 1st iteration N = (), so S = [], but the extension
+    # should be possible with M^4 = C_2^4
+    # (and it should be done)
 
     if is_zero(h) && length(S) > 0 #Satz 15 in Brueckner, parts a and b
       u = [preimage(mp, x) for x = gens(N)] 
@@ -443,7 +455,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       q, mq = quo(k, kk)
       k = q
       if dim(k) > 0
-        @show "multiplicity", k, length(Oscar.GModuleFromGap.hom_base(C, C))
+        @show "multiplicity", dim(k), length(Oscar.GModuleFromGap.hom_base(C, C)), order(N)
       end
       mk = pseudo_inv(mq)*mk
     end
@@ -460,11 +472,12 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
 
     for x = k
       if is_zero(h) && is_zero(x)
-        @show :skip, dim(k)
+        @show :skip, dim(k), order(N)
         continue
       end
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
       if is_surjective(hm)
+        @show h, x, order(N)
         push!(allG, hm)
         if length(allG) >= limit
           return allG

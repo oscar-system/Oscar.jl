@@ -1388,7 +1388,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
   end
 
   function TailToCoChain(t)
-      @show t
     c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
       #w = ABC and B == r[1], B -> r[2] * tail[r]
       # -> A r[2] C C(tail)
@@ -1398,7 +1397,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
       if pos[r] == 0
         return
       end
-      @show T
       T = pro[pos[r]](t)
       for i=w[p+length(R[r][1]):end]
         if i < 0
@@ -1559,9 +1557,9 @@ end
 function my_sum(a)
 # @time _ = sum(a)
   aa = first(a)
-  c = zero_matrix(base_ring(aa.matrix), nrows(aa.matrix), ncols(aa.matrix))
+  c = zero_matrix(base_ring(matrix(aa)), nrows(matrix(aa)), ncols(matrix(aa)))
   for x = a
-    add!(c, c, x.matrix)
+    add!(c, c, matrix(x))
   end
   h = hom(domain(aa), codomain(aa), c; check = false)
   return h
@@ -1762,11 +1760,21 @@ function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
   error("only H^0, H^1 and H^2 are supported")
 end
 
+#TODO: decide the direction of the maps:
+# fp_with... 
+# iso...
+#seem to require opposites.
+#
 function fp_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem})
   p, mp = pc_group_with_isomorphism(M, refine = false)
   mf = isomorphism(FPGroup, p)
   return codomain(mf), inv(mf)*mp
 end
+
+function Oscar.isomorphism(::Type{FPGroup}, M::AbstractAlgebra.FPModule{<:FinFieldElem})
+  return pseudo_inv(fp_group_with_isomorphism(M)[2])
+end
+
 
 #########################################################
 #XXX: should be in AA and supplemented by a proper quo
@@ -2056,7 +2064,7 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   M = Module(C)
   ac = action(C)
   iac = inv_action(C)
-  mfM = inv(isomorphism(FPGroup, M))
+  mfM = pseudo_inv(isomorphism(FPGroup, M))
   fM = domain(mfM)
 
   N = free_group(ngens(G) + ngens(fM))
@@ -2363,20 +2371,25 @@ end
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
-  global last_C = C
   if gcd(order(C.M), order(C.G)) == 1
     return [split_extension(C)]
   end
-  H2, mH2, _ = cohomology_group(C, 2)
+  H2, mH2, _ = H_two(C; lazy = true)
   if order(H2) == 1
     return [extension(mH2(zero(H2)))]
   end
   T, mT = compatible_pairs(C)
-  G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
-  O = orbits(G)
+  if isa(H2, AbstractAlgebra.FPModule)
+    X = gmodule(T, [hom(H2, H2, [preimage(mH2, mT(g, mH2(a))) for a = gens(H2)]) for g = gens(T)])
+    G = gset(matrix_group(map(matrix, action(X))))
+    O = [H2(representative(o).v) for o = orbits(G)]
+  else
+    G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
+    O = [representative(o) for o = orbits(G)]
+  end
   all_G = []
   for o = O
-    push!(all_G, extension(mH2(representative(o)))[1])
+    push!(all_G, extension(mH2(o))[1])
   end
   return all_G
 end
