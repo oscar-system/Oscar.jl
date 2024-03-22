@@ -5,16 +5,13 @@ broken = [
                   # non-stable:
                   "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
 
-                  # output changed in oscar master? TODO check + adapt
-                  "specialized/decker-schmitt-invariant-theory/gleason.jlcon",
-
-                  # output changes?
-                  "specialized/decker-schmitt-invariant-theory/cox_ring.jlcon",
-
                   # backtrace err
                   "introduction/introduction/julia.jlcon",
                   "introduction/introduction/julia2.jlcon",
                   "introduction/introduction/julia3.jlcon",
+
+                  #  broken with recent changes ...
+                  "specialized/bies-turner-string-theory-applications/SU5-2.jlcon",
                ]
 skipped = [
                   # sometimes very slow: 4000-30000s
