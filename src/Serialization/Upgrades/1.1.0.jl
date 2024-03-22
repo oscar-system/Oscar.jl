@@ -6,13 +6,16 @@
 # in the old tree.
 
 push!(upgrade_scripts_set, UpgradeScript(
-  v"1.0.0",
-  function upgrade_1_0_0(s::UpgradeState, dict::Dict)
+  v"1.1.0",
+  function upgrade_1_1_0(s::UpgradeState, dict::Dict)
 
     upgraded_dict = dict
 
     if haskey(dict, :_type) && dict[:_type] == "ZZLatWithIsom"
-      haskey(dict[:data], :basis) || (upgraded_dict[:data][:basis] = dict[:data][:lattice][:data][:basis])
+      # Now we store basis, before not. But basis is stored in :lattice
+      if !haskey(dict[:data], :basis)
+        upgraded_dict[:data][:basis] = dict[:data][:lattice][:data][:basis]
+      end
     end
 
     return upgraded_dict
