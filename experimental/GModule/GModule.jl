@@ -115,12 +115,12 @@ The syntax `M ⊗ phi` is supported.
 case that `S` is a number field and `R` is the ring of integers in `S`,
 for example `R = ZZ` and `S = QQ`)
 """
-function extension_of_scalars(M::GModule, phi::Map)
-  @assert domain(phi) == base_ring(M)
-
+function extension_of_scalars(M::GModule, phi)
   d = dim(M)
-  F = free_module(codomain(phi), d)
-  return GModule(F, group(M), [hom(F, F, map_entries(phi, matrix(x))) for x in M.ac])
+  X = [map_entries(phi, matrix(x)) for x = action(M)]
+  k = base_ring(X[1])
+  F = free_module(k, d)
+  return GModule(F, group(M), [hom(F, F, x) for x in X])
 end
 
 
@@ -564,7 +564,13 @@ function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 end
 
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}})
-  return Oscar.class_function(group(C), [x[2] for x = _character(C)])
+  chr = get_attribute(C, :character)
+  if chr !== nothing
+    return chr
+  end
+  chr = Oscar.class_function(group(C), [x[2] for x = _character(C)])
+  set_attribute!(C, :character=>chr)
+  return chr
 end
 
 function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
@@ -1194,6 +1200,22 @@ function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:
   return b
 end
 
+function Oscar.map_entries(::Type{FinField}, A::Vector{<:MatElem{<:AlgClosureElem{<:FinField}}})
+  l = mapreduce(a->reduce(lcm, map_entries(degree, a); init = 1), lcm, A; init = 1)
+  K = ext_of_degree(base_ring(A[1]), l)
+  return [map_entries(K, a) for a = A]
+end
+
+function Oscar.map_entries(::Type{FinField}, a::MatElem{AlgClosureElem{<:FinField}})
+  return map_entries(FinField, [a])[1]
+end
+
+function gmodule(::Type{FinField}, C::GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem}})
+  A = map_entries(FinField, map(matrix, action(C)))
+  F = free_module(base_ring(A[1]), dim(C))
+  return gmodule(C.G, [hom(F, F, x) for x = A])
+end
+
 function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:AlgClosureElem{<:FinField}}}
 
   C1 = gmodule(FinField, C)
@@ -1203,10 +1225,10 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:A
   l = lcm(Cf, Df)
   K = ext_of_degree(base_ring(C), l)
   if l != Cf
-    C1 = gmodule(K, C1)
+    C1 = extension_of_scalars(C1, K)
   end
   if l != Df
-    D1 = gmodule(K, D1)
+    D1 = externsion_of_scalars(D1, K)
   end
   h = Oscar.GModuleFromGap.hom_base(C1, D1)
   if length(h) == 0
