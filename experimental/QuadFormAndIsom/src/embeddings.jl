@@ -644,12 +644,12 @@ function _primitive_extensions_generic(
     ok, ek, pk = is_prime_power_with_data(k)
     @vprintln :ZZLatWithIsom 1 "Glue order: $(k)"
 
-    if elM || elN || (ok && ek == 1)
+    if (elM && pM != 1) || (elN && pN != 1) || (ok && ek == 1)
       # We look for a glue kernel which is an elementary p-group
       _p = max(pM, pN, pk)
       _, VMinqM = _get_V(id_hom(qM), minimal_polynomial(identity_matrix(QQ, 1)), _p)
       subsM = _subgroups_orbit_representatives_and_stabilizers_elementary(VMinqM, GM, k, _p, fqM)
-    elseif prM || prN || ok
+    elseif (prM && pM != 1) || (prN && pN != 1) || ok
       # We look for a glue kernel which is a p-group
       _, VMinqM = primary_part(qM, max(pM, pN, pk))
       subsM = _subgroups_orbit_representatives_and_stabilizers(VMinqM, GM, k, fqM)
@@ -973,6 +973,12 @@ function _classes_isomorphic_subgroups(q::TorQuadModule,
 
   !is_divisible_by(order(q), ordH) && return res
 
+  if ordH == 1
+    _, j = sub(q, elem_type(q)[])
+    push!(res, (j, O))
+    return res
+  end
+
   # Trivial case: we look for subgroups in a given primary part of q
   ok, e, p = is_prime_power_with_data(ordH)
   if ok
@@ -1292,7 +1298,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   elseif classification == :emb
     cs = :embsub
   else
-    cs = classification
+    cs = :subsub
   end
 
   # We can carry out the unimodular case apart thanks to Nikulin,
@@ -1336,7 +1342,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
     for K in orths
       ok, pe = primitive_extensions(M, K; q, even, classification = cs)
       !ok && continue
-      classification == :none && return ok, results
+      classification == :none && return true, results
       if !isempty(pe)
         append!(results, pe)
         classification == :first && return true, results
@@ -1375,11 +1381,6 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
   # M2 is M seen in V, and T2 is T seen in V
   for (V, M2, T2) in Vs
     resV = Tuple{ZZLat, ZZLat, ZZLat}[]
-    if rank(V) == rank(GL)
-      genus(V) != genus(GL) && continue
-      push!(resV, (V, V, orthogonal_submodule(V, V)))
-      continue
-    end
 
     # We need to classify the primitive embeddings of V in GL up to the actions
     # of O(T) and O(M) (for sublattices; otherwise only up to O(T))
@@ -1423,7 +1424,7 @@ function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :su
       GK, _ = image_in_Oq(K)
       ok, pe = _primitive_extensions_generic(V, K, GV, GK, (:plain, :plain); even, exist_only=(classification == :none), first=(classification == :first), q=discriminant_group(GL))
       !ok && continue
-      classification == :none && true, results
+      classification == :none && return true, results
       !isempty(pe) && append!(resV, Tuple{ZZLat, ZZLat, ZZLat}[lattice.(t) for t in pe])
     end
     isempty(resV) && continue
