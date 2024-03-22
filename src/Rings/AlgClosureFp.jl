@@ -271,8 +271,14 @@ function map_entries(K::FinField, M::MatElem{<:AlgClosureElem})
   N = zero_matrix(K, nrows(M), ncols(M))
   for i=1:nrows(M)
     for j=1:ncols(M)
-      embed(parent(data(M[i,j])), K)
-      N[i,j] = K(data(M[i,j]))
+      try
+        embed(parent(data(M[i,j])), K)
+        N[i,j] = K(data(M[i,j]))
+      catch e  # if M[i,j] is not minimized, then the embed can fail
+        b = minimize(M[i,j])
+        embed(parent(data(b)), K)
+        N[i,j] = K(data(b))
+      end
     end
   end
   return N
