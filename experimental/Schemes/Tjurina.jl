@@ -1,14 +1,3 @@
-export tjurina_algebra
-export tjurina_number
-
-export order_as_series
-
-export is_finitely_determined
-export determinacy_bound
-export sharper_determinacy_bound
-
-export is_contact_equivalent
-
 ## literature:
 ##        Greuel, Lossen, Shustin: 'Introduction to Singularities and Deformations'
 
