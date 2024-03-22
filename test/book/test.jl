@@ -5,17 +5,8 @@ broken = [
                   # more control chars??
                   "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
 
-                  # TODO: need to fix column width for output?
-                  #"specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
-
                   # non-stable:
                   "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
-
-                  # output changed in oscar master? TODO check + adapt
-                  "specialized/decker-schmitt-invariant-theory/gleason.jlcon",
-
-                  # output changes?
-                  "specialized/decker-schmitt-invariant-theory/cox_ring.jlcon",
 
                   # backtrace err
                   "introduction/introduction/julia.jlcon",
