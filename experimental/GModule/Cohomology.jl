@@ -1568,11 +1568,6 @@ function my_sum(a)
   return sum(a)
 end
 
-function Oscar.add!(a::FqMatrix, b::FqMatrix, c::FqMatrix)
-  ccall((:fq_default_mat_add, Nemo.libflint), Cvoid, (Ref{FqMatrix}, Ref{FqMatrix}, Ref{FqMatrix}, Ref{FqField}), a, b, c, base_ring(a))
-  return a
-end
-
 function Base.sum(a::Vector{FqMatrix})
   c = deepcopy(a[1])
   for i=2:length(a)
