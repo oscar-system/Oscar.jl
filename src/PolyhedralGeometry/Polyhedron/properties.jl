@@ -1377,7 +1377,7 @@ julia> is_archimedean_solid(T)
 false
 ```
 """
-is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_faces(P) && is_vertex_transitive(P)
+is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_faces(P) && is_vertex_transitive(P) && !_is_prismic_or_antiprismic(P)
 
 @doc raw"""
     is_platonic_solid(P::Polyhedron)
@@ -1461,6 +1461,28 @@ false
 ```
 """
 is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
+
+function _is_prismic_or_antiprismic(P::Polyhedron)
+  nvf = facet_sizes(P)
+  # nvfs contains vector entries [i, j] where j is the amount of i-gonal faces of P
+  nvfs = [[i, sum(nvf .== i)] for i in unique(nvf)]
+  # an (anti-)prism can only have 2 different types of faces
+  # n-gons and either squares/triangles (for prisms/antiprisms respectively)
+  # if n == 1 this function will not be called either way
+  length(nvfs) == 2 || return false
+  # there are exactly 2 n-gons, and only n-gons can occur exactly twice
+  a = findfirst(x -> x[2] == 2, nvfs)
+  isnothing(a) && return false
+  # with length(nvfs) == 2, b is the other index than a
+  b = 3 - a
+  m = nvfs[b][1]
+  # the faces that are not n-gons have to be squares or triangles
+  m == 3 || m == 4 || return false
+  n = nvfs[a][1]
+  # P has to have exactly n vertices and
+  # the amount of squares needs to be n or the amount of triangles needs to be 2n
+  return 2n == n_vertices(P) && (5 - m)*n == nvfs[b][2]
+end
 
 @doc raw"""
     f_vector(P::Polyhedron)
