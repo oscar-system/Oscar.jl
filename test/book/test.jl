@@ -6,7 +6,7 @@ broken = [
                   "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
 
                   # TODO: need to fix column width for output?
-                  "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
+                  #"specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
 
                   # non-stable:
                   "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
