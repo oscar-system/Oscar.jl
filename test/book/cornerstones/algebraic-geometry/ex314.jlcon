@@ -68,10 +68,12 @@ M1 -> M
 e[1] -> (-x_0*x_3 + x_1*x_2)*e[1]
 Graded module homomorphism of degree [2]
 
+
 julia> phi2 = psi(tohomM1M(hom1[2]))
 M1 -> M
 e[1] -> (-x_0*x_2 + x_1^2)*e[1]
 Graded module homomorphism of degree [2]
+
 
 julia> kerphi2, _ = kernel(phi2);
 
