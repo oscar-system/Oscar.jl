@@ -265,7 +265,7 @@ end
   @test length(admissible_triples(E6, 3; pA=2, pB = 4)) == 1
 end
 
-@testset "Enumeration of hermitian lattices with isometry" begin
+@testset "Enumeration of lattices with isometry of hermitian type" begin
   # Infinite isometry: chi is a Salem polynomial
   G = genus(torsion_quadratic_module(QQ[0;]), (9, 1))
   _, x = QQ["x"]
@@ -384,6 +384,10 @@ end
   ok, reps = primitive_embeddings(GL, A2)
   @test ok
   @test !is_even(reps[1][3])
+
+  k = integer_lattice(; gram=QQ[4;])
+  I = direct_sum(hyperbolic_plane_lattice(), k)[1]
+  @test primitive_embeddings(I, k; classification=:none)[1]
 end
 
 @testset "Equivariant primitive extensions" begin
