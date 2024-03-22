@@ -1,42 +1,9 @@
-excluded = String[
-                  # Excluded for easier testing
-                  #"number-theory", # OK! + TODO check cohenlenstra
-                  #"groups", # OK!
-                  "algebraic-geometry",
-                  #"polyhedral-geometry", # OK! but volume conflicts with mixedsubdiv from tropical
-                  #"introduction", # OK!
-                  #"specialized/boehm-breuer-git-fans", # OK!
-                  #"specialized/markwig-ristau-schleis-faithful-tropicalization", # OK!
-                  #"specialized/holt-ren-tropical-geometry", # OK!
-                  #"specialized/bies-turner-string-theory-applications", # OK!
-                  #"specialized/aga-boehm-hoffmann-markwig-traore", # OK!
-                  #"specialized/joswig-kastner-lorenz-confirmable-workflows", # OK!
-                  #"specialized/eder-mohr-ideal-theoretic", # OK!
-                  #"specialized/kuehne-schroeter-matroids", # OK!
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization", # OK! + broken...
-                  #"specialized/fang-fourier-monomial-bases", # OK!
-                  #"specialized/brandhorst-zach-fibration-hopping", # OK! + TODO check long
-                  #"specialized/breuer-nebe-parker-orthogonal-discriminants", # OK! + TODO waiting for fix
-                  #"specialized/decker-schmitt-invariant-theory", # OK! + FIXME
-                  #"specialized/bies-kastner-toric-geometry", # OK!
-                 ]  
-
 broken = [
                   # Something broken in Oscar
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
 
                   # more control chars??
                   "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
-
-                  # weird errors with last line that has no output:
-                  #"specialized/bies-turner-string-theory-applications/SU5.jlcon",
-                  #"specialized/boehm-breuer-git-fans/explG25_8.jlcon",
-                  #"specialized/aga-boehm-hoffmann-markwig-traore/graphname.jlcon",
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization/gen_impl.jlcon",
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization/hyperdet.jlcon",
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization/pol_from_surface.jlcon",
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization/chow_fan.jlcon",
-                  #"specialized/rose-sturmfels-telen-tropical-implicitization/chow_transl.jlcon",
 
                   # TODO: need to fix column width for output?
                   "specialized/markwig-ristau-schleis-faithful-tropicalization/eliminate_xz.jlcon",
@@ -73,13 +40,11 @@ dispsize = (40, 130)
 using Oscar
 
 using REPL
-using Random
 using Pkg
-import Random.Xoshiro
 using Test
 isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTerminals.jl"))
 
-
+# this is run on both sample and output
 function normalize_repl_output(s::AbstractString)
   result = string(s)
   lafter = length(result)
@@ -89,7 +54,9 @@ function normalize_repl_output(s::AbstractString)
     result = replace(result, r"^       "m => "")
     result = strip(result)
     result = replace(result, r"julia>$"s => "")
+    # canonicalize numbered anonymous functions
     result = replace(result, r"^\s*(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
+    # remove timings
     result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
     # this removes the package version slug, filename and linenumber
     result = replace(result, r" @ \w* ?~/\.julia/packages/(?:Nemo|Hecke|AbstractAlgebra|Polymake)/\K[\w\d]+/.*\.jl:\d+"m => "")
@@ -105,14 +72,16 @@ function sanitize_input(s::AbstractString)
   return result
 end
 
+# this is only applied to the output
 function sanitize_output(s::AbstractString)
   result = s
-  # println("length before: ", length(result))
   lafter = length(result)
   lbefore = lafter+1
   while lafter < lbefore
     lbefore = lafter
+    # remove mockdule from prompt-prefix
     result = replace(result, r"\(Main\.__\d+\) julia>"m => "julia>")
+    # remove control characters
     result = replace(result, r"\r\e\[\d+[A-Z]"=>"")
     result = replace(result, r"\e\[\?\d+[a-z]"=>"")
     result = replace(result, r"\r\r\n"=>"")
@@ -126,19 +95,9 @@ function sanitize_output(s::AbstractString)
     result = replace(result, "\n\njulia> println(\"\\nEND_BLOCK\");" => "")
     lafter = length(result)
   end
-  result = replace(result, r"julia> visualize\(PC\)julia> visualize\(PC\)" => "julia> visualize(PC)")
   result = normalize_repl_output(result)
-  # println("length after: ", length(result))
   return result
 end
-
-#function set_task_rngstate!(state::Xoshiro)
-#  Random.setstate!(Random.default_rng(), state.s0, state.s1, state.s2, state.s3, state.s4)
-#end
-#function get_task_rngstate!(state::Xoshiro)
-#  t = current_task()
-#  Random.setstate!(state, t.rngState0, t.rngState1, t.rngState2, t.rngState3, t.rngState4)
-#end
 
 function get_preamble(modstr::String)
   return """
@@ -162,11 +121,10 @@ struct MockREPLHelper
   function MockREPLHelper(prefix::AbstractString)
     sym = Symbol("__", lstrip(string(gensym()), '#'))
     mockdule = Module(sym)
-    # make it accessible
+    # make it accessible from Main
     setproperty!(Main, sym, mockdule)
     Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
     Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
-    #global replmockdule[] = mockdule
 
     input = Pipe()
     output = Pipe()
@@ -181,9 +139,7 @@ struct MockREPLHelper
     repl.options = options
     Base.active_repl = repl
     repltask = @async begin
-      #set_task_rngstate!(rng)
       REPL.run_repl(repl)
-      #get_task_rngstate!(rng)
     end
     preout = redirect_stdout(out_stream) do
       preamble_task = @async write(stdin_write, get_preamble(string(mockdule)))
@@ -272,36 +228,37 @@ function test_chapter(chapter::String="")
           run_repl_string(mockrepl, """Oscar.randseed!(42);""")
           for example in example_list
             full_file = joinpath(chapter, example)
-            exclude = filter(s->occursin(s, full_file), excluded)
-            if length(exclude) == 0
-              println("    $example$(full_file in skipped ? ": skip" :
-                                     full_file in broken ? ": broken" : "")")
-              filetype = endswith(example, "jlcon") ? :jlcon :
-                         endswith(example, "jl") ? :jl : :unknown
-              content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-              if filetype == :jlcon && !occursin("julia> ", content)
-                filetype = :jl
-                @warn "possibly wrong file type: $full_file"
-              end
-              if full_file in skipped
-                @test run_repl_string(mockrepl, content) isa AbstractString skip=true
-              elseif filetype == :jlcon
-                content = sanitize_input(content)
-                computed = run_repl_string(mockrepl, content)
-                @test normalize_repl_output(content) == computed broken=(full_file in broken)
-              elseif filetype == :jl
-                if occursin("# output\n", content)
-                  (code, res) = split(content, "# output\n"; limit=2)
-                  # TODO do we want to compare with `res` ?
-                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
-                else
-                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+            println("    $example$(full_file in skipped ? ": skip" :
+                                   full_file in broken ? ": broken" : "")")
+            filetype = endswith(example, "jlcon") ? :jlcon :
+                       endswith(example, "jl") ? :jl : :unknown
+            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+            if filetype == :jlcon && !occursin("julia> ", content)
+              filetype = :jl
+              @warn "possibly wrong file type: $full_file"
+            end
+            if full_file in skipped
+              @test run_repl_string(mockrepl, content) isa AbstractString skip=true
+            elseif filetype == :jlcon
+              content = sanitize_input(content)
+              computed = run_repl_string(mockrepl, content)
+              @test normalize_repl_output(content) == computed broken=(full_file in broken)
+              if !in(full_file, broken)
+                a = normalize_repl_output(content)
+                if a != computed && isdefined(Main, :deepdiff)
+                  println(deepdiff(a,computed))
                 end
-              else
-                @warn "unknown file type: $full_file"
               end
-            # else
-            #   println("   "*example*" excluded")
+            elseif filetype == :jl
+              if occursin("# output\n", content)
+                (code, res) = split(content, "# output\n"; limit=2)
+                # TODO do we want to compare with `res` ?
+                @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+              else
+                @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+              end
+            else
+              @warn "unknown file type: $full_file"
             end
           end
           println("  closing mockrepl: $(mockrepl.mockdule)")
@@ -310,6 +267,7 @@ function test_chapter(chapter::String="")
       end
     end
   finally
+    # restore some state
     Main.REPL.activate(Main)
     Pkg.activate("$act_proj"; io=devnull)
     cd(curdir)
