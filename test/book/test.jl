@@ -201,68 +201,67 @@ function test_chapter(chapter::String="")
       ordered_examples = Dict("$chapter" => ordered_examples[chapter])
     end
     withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
-      for (chapter, example_list) in ordered_examples
-        cd(curdir)
-        @testset "$chapter" verbose=true begin
-          println(chapter)
-          mockrepl = MockREPLHelper(chapter)
-          println("  created mockrepl: $(mockrepl.mockdule)")
+      @testset "OscarBookExamples" verbose=true begin
+        for (chapter, example_list) in ordered_examples
+          cd(curdir)
+          @testset "$chapter" verbose=true begin
+            println(chapter)
+            mockrepl = MockREPLHelper(chapter)
+            println("  created mockrepl: $(mockrepl.mockdule)")
 
-          copy!(LOAD_PATH, custom_load_path)
-          auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
-          if isfile(auxmain)
-            # add overlay project for aux file
-            # and run it from temp dir
-            temp = mktempdir()
-            Pkg.activate(temp; io=devnull)
-            Pkg.develop(path=act_proj; io=devnull)
-            pushfirst!(LOAD_PATH, "$act_proj")
-            cp(auxmain,joinpath(temp, "main.jl"))
-            cd(temp)
-            run_repl_string(mockrepl, """include("$(joinpath(temp,"main.jl"))")\n""")
-            LOAD_PATH[1] = temp
-            Pkg.activate("$act_proj"; io=devnull)
-            println("      done with aux")
-          end
-
-          run_repl_string(mockrepl, """Oscar.randseed!(42);""")
-          for example in example_list
-            full_file = joinpath(chapter, example)
-            println("    $example$(full_file in skipped ? ": skip" :
-                                   full_file in broken ? ": broken" : "")")
-            filetype = endswith(example, "jlcon") ? :jlcon :
-                       endswith(example, "jl") ? :jl : :unknown
-            content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
-            if filetype == :jlcon && !occursin("julia> ", content)
-              filetype = :jl
-              @warn "possibly wrong file type: $full_file"
+            copy!(LOAD_PATH, custom_load_path)
+            auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            if isfile(auxmain)
+              # add overlay project for aux file
+              # and run it from temp dir
+              temp = mktempdir()
+              Pkg.activate(temp; io=devnull)
+              Pkg.develop(path=act_proj; io=devnull)
+              pushfirst!(LOAD_PATH, "$act_proj")
+              cp(auxmain,joinpath(temp, "main.jl"))
+              cd(temp)
+              run_repl_string(mockrepl, """include("$(joinpath(temp,"main.jl"))")\n""")
+              LOAD_PATH[1] = temp
+              Pkg.activate("$act_proj"; io=devnull)
+              println("      done with aux")
             end
-            if full_file in skipped
-              @test run_repl_string(mockrepl, content) isa AbstractString skip=true
-            elseif filetype == :jlcon
-              content = sanitize_input(content)
-              computed = run_repl_string(mockrepl, content)
-              @test normalize_repl_output(content) == computed broken=(full_file in broken)
-              if !in(full_file, broken)
-                a = normalize_repl_output(content)
-                if a != computed && isdefined(Main, :deepdiff)
-                  println(deepdiff(a,computed))
+
+            run_repl_string(mockrepl, """Oscar.randseed!(42);""")
+            for example in example_list
+              full_file = joinpath(chapter, example)
+              println("    $example$(full_file in skipped ? ": skip" :
+                                     full_file in broken ? ": broken" : "")")
+              filetype = endswith(example, "jlcon") ? :jlcon :
+                         endswith(example, "jl") ? :jl : :unknown
+              content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
+              if filetype == :jlcon && !occursin("julia> ", content)
+                filetype = :jl
+                @warn "possibly wrong file type: $full_file"
+              end
+              if full_file in skipped
+                @test run_repl_string(mockrepl, content) isa AbstractString skip=true
+              elseif filetype == :jlcon
+                content = sanitize_input(content)
+                computed = run_repl_string(mockrepl, content)
+                res = @test normalize_repl_output(content) == computed broken=(full_file in broken)
+                if res isa Test.Fail && isdefined(Main, :deepdiff)
+                  println(deepdiff(normalize_repl_output(content),computed))
                 end
-              end
-            elseif filetype == :jl
-              if occursin("# output\n", content)
-                (code, res) = split(content, "# output\n"; limit=2)
-                # TODO do we want to compare with `res` ?
-                @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+              elseif filetype == :jl
+                if occursin("# output\n", content)
+                  (code, res) = split(content, "# output\n"; limit=2)
+                  # TODO do we want to compare with `res` ?
+                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                else
+                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                end
               else
-                @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                @warn "unknown file type: $full_file"
               end
-            else
-              @warn "unknown file type: $full_file"
             end
+            println("  closing mockrepl: $(mockrepl.mockdule)")
+            close_repl(mockrepl)
           end
-          println("  closing mockrepl: $(mockrepl.mockdule)")
-          close_repl(mockrepl)
         end
       end
     end
