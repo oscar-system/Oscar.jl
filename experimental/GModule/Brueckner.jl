@@ -17,9 +17,19 @@ Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_ma
  - construct characters along the way as well?
  - compare characters rather than the hom_base
  - maybe reason from theory what reps are going to be new?
+ - find reps for Galois orbits only?
  - conjugate to smallest field?
  - allow trivial stuff
 =#
+
+function is_iso(A::GModule, B::GModule)
+  if isa(base_ring(A), QQAbField)
+    return (character(A) == character(B))
+  end
+  h = Oscar.GModuleFromGap.hom_base(A, B)
+  return length(h) > 0
+end
+
 """
   For K a finite field, Q, a number field or QQAb, find all
 abs. irred. representations of G.
@@ -144,10 +154,9 @@ function reps(K, G::Oscar.GAPGroup)
           # we do not induce the representations equivalent to the
           # other conjugates.
           for j in 2:p
+            MM = gmodule(M, s, conjreps[j])
             for k in (pos+1):length(R)
-              @show base_ring(R[k]), base_ring(M)
-              if length(Oscar.GModuleFromGap.hom_base(
-                          gmodule(M, s, conjreps[j]), R[k])) > 0
+              if is_iso(MM, R[k]) 
                 todo[k] = false
                 continue
               end
@@ -261,6 +270,9 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       @vtime :BruecknerSQ 2 I = reps(GF(Int(p), f), Q)
     end
     @vprint :BruecknerSQ 1 "have $(length(I)) representations\n"
+    #TODO: the reps can be galois conjugate, so we're processing a lot
+    # repeatedly in doublicate or worse.
+    #need to find Galois orbits!
 
     for i = I
       @vprint :BruecknerSQ 1 "starting to process module\n"
@@ -373,10 +385,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  @show C
-  @time H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
-  @show H2
-  global last_in = C
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
@@ -432,6 +442,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1]) 
       q, mq = quo(k, kk)
       k = q
+      if dim(k) > 0
+        @show "multiplicity", k, length(Oscar.GModuleFromGap.hom_base(C, C))
+      end
       mk = pseudo_inv(mq)*mk
     end
 
