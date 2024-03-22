@@ -5,7 +5,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Invariants of Finite Groups
 
-In this section, with notation as in the introduction to this chapter, $G$ will be a *finite* group.
+In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter, $G$ will be a *finite* group.
 
 !!! note
      The ssumption that $G$ is finite implies:
