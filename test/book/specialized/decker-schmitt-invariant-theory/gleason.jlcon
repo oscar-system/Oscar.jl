@@ -20,7 +20,7 @@ julia> RG = invariant_ring(G);
 julia> f = fundamental_invariants(RG)
 2-element Vector{MPolyDecRingElem{AbsNonSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsNonSimpleNumFieldElem}}}:
  x[1]^8 + 14*x[1]^4*x[2]^4 + x[2]^8
- x[1]^24 + 10626//1025*x[1]^20*x[2]^4 + 735471//1025*x[1]^16*x[2]^8 + 2704156//1025*x[1]^12*x[2]^12 + 735471//1025*x[1]^8*x[2]^16 + 10626//1025*x[1]^4*x[2]^20 + x[2]^24
+ x[1]^20*x[2]^4 - 4*x[1]^16*x[2]^8 + 6*x[1]^12*x[2]^12 - 4*x[1]^8*x[2]^16 + x[1]^4*x[2]^20
 
 julia> A, AtoR = affine_algebra(RG)
 (Quotient of multivariate polynomial ring by ideal (0), Hom: A -> graded multivariate polynomial ring)
