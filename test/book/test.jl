@@ -2,9 +2,6 @@ broken = [
                   # Something broken in Oscar
                   "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
 
-                  # more control chars??
-                  "specialized/boehm-breuer-git-fans/explG25_1.jlcon",
-
                   # non-stable:
                   "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
 
@@ -70,18 +67,22 @@ function sanitize_output(s::AbstractString)
   lbefore = lafter+1
   while lafter < lbefore
     lbefore = lafter
+    # remove control characters:
+    #   kill line including previous line (move_up)
+    result = replace(result, r"^.*\n.*?\e\[1A\r\e\[0K"m=>"")
+    #   kill line
+    result = replace(result, r"^.*(?<!\e\[1A)\r\e\[0K"m=>"")
+    #   move right
+    result = replace(result, r"\r\e\[\d+C"=>"")
+    #   empty line with \r
+    result = replace(result, r"^\r\r\n"m=>"")
+
     # remove mockdule from prompt-prefix
     result = replace(result, r"\(Main\.__\d+\) julia>"m => "julia>")
-    # remove control characters
-    result = replace(result, r"\r\e\[\d+[A-Z]"=>"")
-    result = replace(result, r"\e\[\?\d+[a-z]"=>"")
-    result = replace(result, r"\r\r\n"=>"")
-    # due to not interpreting control characters we need to remove duplicate prompts
-    result = replace(result, r"(julia> ){2,}" => "julia> ")
-    # replace weird duplicated comments
+
+    # replace weird duplicated non-comments
     result = replace(result, r"^(#.*)\n\1$"m => s"\1")
-    # replace weird duplicated lines
-    result = replace(result, r"^(julia> .*)\1$"m => s"\1")
+
     # remove end marker
     result = replace(result, "\n\njulia> println(\"\\nEND_BLOCK\");" => "")
     lafter = length(result)
