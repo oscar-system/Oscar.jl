@@ -150,6 +150,18 @@ end
   FP = FreeMod(P, rank(F))
   IFP, inc = I*FP
   M, p = quo(FP, IFP)
+  # Manually set a groebner basis
+  # This is brittle! Please improve!
+  J = ideal(P, gens(groebner_basis(I))) # a groebner basis has already been computed.
+  JFP, _ = J*FP
+  G, _ = quo(FP, JFP)
+  gb = G.quo.gens
+  ord = default_ordering(M.quo)
+  gb.ordering = ord
+  singular_assure(gb)
+  gb.isGB = true
+  gb.S.isGB = true
+  M.quo.groebner_basis[ord] = gb
   return M
 end
 
