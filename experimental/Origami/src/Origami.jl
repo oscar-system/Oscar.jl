@@ -304,4 +304,5 @@ export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         action_sl2, random_origami, staircase_origami, CylinderDiagram, compute_rays,
         all_combinations, realizable_lengths, origami_from_cylinder_coordinates, product_gray_code,
         cylinders, system_of_equations, origamis_in_h11, cylinder_diagrams_h11,
-        possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram
+        possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram,
+        x_origami, elevator_origami
