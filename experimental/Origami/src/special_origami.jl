@@ -35,3 +35,36 @@ function staircase_origami(length::Integer, height::Integer, steps::Integer)
 
     return normal_form(origami(h, v))
 end
+
+function x_origami(half_degree::Integer)
+    sigma_h = cperm(1:2*half_degree)
+    sigma_v = cperm()
+
+    for tile in 1:half_degree
+        sigma_v = sigma_v * @perm (2 * tile - 1, 2 * tile)
+    end
+
+    return normal_form(origami(sigma_h, sigma_v))
+end
+
+function elevator_origami(length::Integer, height::Integer, steps::Integer)
+    sigma_h = cperm()
+    sigma_h_step = Vector{PermGroupElem}(undef, steps)
+
+    for step in 1:steps
+        sigma_h_step[step] = cperm((step-1)*(length+height)+1:(step-1)*(length+height)+length)
+        sigma_h = sigma_h * sigma_h_step[step]
+    end
+
+    sigma_v = cperm()
+    sigma_v_step = Vector{PermGroupElem}(undef, steps-1)
+    for step in 1:(steps-1)
+        sigma_v_step[step] = cperm(step*length+(step-1)*height:step*(length+height)+1)
+        sigma_v = sigma_v * sigma_v_step[step]
+    end
+    last_connection = collect(steps*length+(steps-1)*height:steps*(length+height))
+    push!(last_connection, 1)
+    sigma_v = sigma_v * cperm(last_connection)
+
+    return normal_form(origami(sigma_h, sigma_v))
+end
