@@ -307,4 +307,5 @@ export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         cylinders, system_of_equations, origamis_in_h11, cylinder_diagrams_h11,
         possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram,
         x_origami, elevator_origami, homology, non_taut_part_of_homology,
-        action_of_matrix_on_non_taut, shadow_veech_group, homology_to_string
+        action_of_matrix_on_non_taut, shadow_veech_group, homology_to_string,
+        action_of_matrix_on_homology
