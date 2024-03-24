@@ -21,6 +21,7 @@ include("deck_group.jl")
 include("action.jl")
 include("special_origami.jl")
 include("generate.jl")
+include("homology_action.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -305,4 +306,5 @@ export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         all_combinations, realizable_lengths, origami_from_cylinder_coordinates, product_gray_code,
         cylinders, system_of_equations, origamis_in_h11, cylinder_diagrams_h11,
         possible_lengths_and_heights, partition_degree, realizable_lengths_of_cylinder_diagram,
-        x_origami, elevator_origami
+        x_origami, elevator_origami, homology, non_taut_part_of_homology,
+        action_of_matrix_on_non_taut, shadow_veech_group, homology_to_string
