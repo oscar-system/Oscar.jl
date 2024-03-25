@@ -10,6 +10,7 @@ end
 graph(pm::PhylogeneticModel) = pm.graph
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
 number_states(pm::PhylogeneticModel) = pm.n_states
+polyn_ring(pm::PhylogeneticModel) = pm.R
 
 function jukes_cantor_model(graph::Graph{Directed})
   ns = 4
@@ -81,6 +82,15 @@ function probability_map(pm::PhylogeneticModel)
 end
 
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
+
+function hadamardmatrix()
+  H = [1 1 1 1
+       1 1 -1 -1 
+       1 -1 1 -1
+       1 -1 -1 1]
+  return H
+end
+
 # We need the parameter leaf_number in order to determine the right size of
 # the Kronecker product. 
 # TODO: line 138 mutates f_equivclasses, i.e. an object from outside the function.
@@ -88,7 +98,7 @@ end
 # so I add the missing equivalence class again in line 175. 
 # We should find out whether there is a better way to do this.
 function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  leaf_number = length(leaves(graph(pm)))
+  R = polyn_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
@@ -97,49 +107,69 @@ function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Di
   nq = length(f_equivclasses)
 
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
-  prob_justsortedkeys = collect(keys(p_equivclasses))
-  for p_eqclass in prob_justsortedkeys
+  p_equivclasses_sorted = collect(keys(p_equivclasses))
+  for p_eqclass in p_equivclasses_sorted
       sort!(p_eqclass)
   end
-  sort!(prob_justsortedkeys)
+  sort!(p_equivclasses_sorted)
 
-  fourier_justsortedkeys = collect(keys(f_equivclasses))
-  for f_eqclass in fourier_justsortedkeys
+  f_equivclasses_sorted = collect(keys(f_equivclasses))
+  for f_eqclass in f_equivclasses_sorted
       sort!(f_eqclass)
   end
-  sort!(fourier_justsortedkeys)
+  sort!(f_equivclasses_sorted)
 
   H = hadamardmatrix()
-  M = transpose(bigkroneckerproduct(H,leaf_number)) # Why no normalizing constant?
-  Minv = Rational.(one(M)/M)
-  
-  N_pToq = R.(Int.(zeros(nq, np)))
-  for i in 1:nq
-      current_fourier_keys = fourier_justsortedkeys[i]
-      current_fkeys_lexorder = map(getlexicographicorder,current_fourier_keys)
-      for j in 1:np
-          current_prob_class = prob_justsortedkeys[j]
-          current_pkeys_lexorder = map(getlexicographicorder,current_prob_class)
-          current_entriesin_M = [M[pkey, fkey] for fkey in current_fkeys_lexorder, pkey in current_pkeys_lexorder] 
-          N_pToq[i,j] = R.(1//(length(current_prob_class)*length(current_fourier_keys))*sum(current_entriesin_M))
-          #N_pToq[i,j] = R.(1//(length(eqClassQ[2][i])*length(eqClassP[2][j]))*sum(sum(M[eqClassQ[2][i],eqClassP[2][j]], dims=2)))
-      end
-  end
 
-  N_qTop = R.(Int.(zeros(np, nq)))
-  for i in 1:np
-      current_prob_class = prob_justsortedkeys[i]
-      current_pkeys_lexorder = map(getlexicographicorder,current_prob_class)
-      for j in 1:nq
-          current_fourier_keys = fourier_justsortedkeys[j]
-          current_fkeys_lexorder = map(getlexicographicorder,current_fourier_keys)
-          current_entriesin_Minv = [Minv[fkey, pkey] for fkey in current_fkeys_lexorder, pkey in current_pkeys_lexorder] 
-          N_qTop[i,j] = R.(sum(current_entriesin_Minv))
-          #N_qTop[i,j] = R.((sum(sum(Minv[eqClassP[2][i],eqClassQ[2][j]], dims=2))))
+  specialized_ft_matrix = R.(Int.(zeros(nq, np)))
+  for i in 1:nq
+      current_fourier_classes = f_equivclasses_sorted[i]
+      for j in 1:np
+          current_prob_classes = p_equivclasses_sorted[j]
+          current_entriesin_M = [prod([H[y,x] for (x,y) in zip(p,q)]) for p in current_prob_classes, q in current_fourier_classes]
+          specialized_ft_matrix[i,j] = R.(1//(length(current_prob_classes)*length(current_fourier_classes))*sum(current_entriesin_M))
       end
   end
   get!(f_equivclasses, class0, R(0))
-  return (N_pToq, N_qTop)
+  return specialized_ft_matrix
+end
+
+function inverse_specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
+  R = polyn_ring(pm)
+
+  class0 = findall(x -> x ==0, f_equivclasses)[1]
+  delete!(f_equivclasses, class0)
+
+  np = length(p_equivclasses)
+  nq = length(f_equivclasses)
+
+  ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+  p_equivclasses_sorted = collect(keys(p_equivclasses))
+  for p_eqclass in p_equivclasses_sorted
+      sort!(p_eqclass)
+  end
+  sort!(p_equivclasses_sorted)
+
+  f_equivclasses_sorted = collect(keys(f_equivclasses))
+  for f_eqclass in f_equivclasses_sorted
+      sort!(f_eqclass)
+  end
+  sort!(f_equivclasses_sorted)
+
+  H = hadamardmatrix()
+  Hinv = 1//4 * H 
+
+  inverse_spec_ft_matrix = R.(Int.(zeros(np, nq)))
+  for i in 1:np
+      current_prob_class = p_equivclasses_sorted[i]
+      for j in 1:nq
+          current_fourier_class = f_equivclasses_sorted[j]
+          current_entriesin_Minv = [prod([Hinv[y,x] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
+          inverse_spec_ft_matrix[i,j] = R.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entriesin_Minv))
+      end
+  end
+  get!(f_equivclasses, class0, R(0))
+  return inverse_spec_ft_matrix
 end
 
 -
