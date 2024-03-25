@@ -1217,6 +1217,7 @@ end
 
 # TODO: Actual docstring
 # lifts the Groebner basis G to the Groebner basis w.r.t. the Ring Rn like as presented in Fukuda et al. (2005).
+#add theorem reference here 
 function lift(
   G::Oscar.IdealGens,
   current::MonomialOrdering,
