@@ -19,6 +19,7 @@ const oldexppkgs = [
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "ComplexReflectionGroups"   # Because LieAlgebra implements coroot 
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
