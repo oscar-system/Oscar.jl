@@ -222,9 +222,9 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
 end
 
 
-################################################################
-# 7: Blowups
-################################################################
+##################################################################
+# 7: Blowups (old helper function, to be used for family of bases)
+##################################################################
 
 function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
   # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
@@ -382,3 +382,34 @@ eval_poly(n::Number, R) = R(n)
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
+
+
+
+##########################################
+### 10 strict_transform helpers
+##########################################
+
+_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf; coordinate_name = "e") = strict_transform(bd, II)
+
+function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal; coordinate_name = "e")
+  center_ideal = ideal_in_cox_ring(center(bd))
+  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
+    return strict_transform(bd, II)
+  end
+  S = cox_ring(domain(bd))
+  _e = eval_poly(coordinate_name, S)
+  images = MPolyRingElem[]
+  for v in gens(S)
+    v == _e && continue
+    if string(v) in [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+      push!(images, v * _e)
+    else
+      push!(images, v)
+    end
+  end
+  ring_map = hom(cox_ring(codomain(bd)), S, images)
+  total_transform = ring_map(ideal_in_cox_ring(II))
+  exceptional_ideal = total_transform + ideal([_e])
+  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
+  return ideal_sheaf(domain(bd), strict_transform)
+end
