@@ -68,6 +68,22 @@ function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, Polyhedral
   Polymake.visual(pmo; kwargs...)
 end
 
+function compose_visualization(P::Vararg{Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}}) where T<:Union{Float64, FieldElem}
+  for p in P
+    _prepare_visualization(p)
+  end
+  vis = [Polymake.visual(Polymake.Visual, pm_object(p)) for p in P]
+  if isdefined(Main, :IJulia) && Main.IJulia.inited
+    # this will return a visual object,
+    # the visualization is then triggered by the show method
+    return Polymake.call_function(:common, :compose, vis...)
+  else
+    # this will call visual in void context and trigger the background viewer
+    Polymake.call_function(Nothing, :common, :compose, vis...)
+    return nothing
+  end
+end
+
 function _prepare_visualization(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}) where T<:Union{Float64, FieldElem}
   d = ambient_dim(P)
   b = P isa Polyhedron
