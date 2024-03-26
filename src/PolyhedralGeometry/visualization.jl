@@ -62,7 +62,13 @@ These arguments can be given as a string:
 - `Transformation`: `Matrix{Float64}` describing the linear transformation. TODO
 - `Offset`: `Vector{Float64}` describing the shift, to be applied after the linear transformation. TODO
 """
-function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}; kwargs...) where T<:Union{Float64, FieldElem}
+function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{Float64, FieldElem}
+  _prepare_visualization(P)
+  pmo = pm_object(P)
+  Polymake.visual(pmo; kwargs...)
+end
+
+function _prepare_visualization(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}) where T<:Union{Float64, FieldElem}
   d = ambient_dim(P)
   b = P isa Polyhedron
   if b && d == 4
@@ -76,11 +82,9 @@ function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, Polyhedral
   if !Polymake.exists(pm_object(P), "RAY_LABELS")
     pm_object(P).RAY_LABELS = string.(1:Oscar.pm_object(P).N_RAYS)
   end
-  pmo = pm_object(P)
-  Polymake.visual(pmo; kwargs...)
 end
 
-function visualize(P::SubdivisionOfPoints{T}; kwargs...) where T<:Union{FieldElem, Float64}
+function _prepare_visualization(P::SubdivisionOfPoints{T}) where T<:Union{Float64, FieldElem}
   d = ambient_dim(P)
   @req d <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
   # polymake will by default use 0:n-1 as labels so we assign labels
@@ -89,6 +93,4 @@ function visualize(P::SubdivisionOfPoints{T}; kwargs...) where T<:Union{FieldEle
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
     pm_object(P).POINT_LABELS = string.(1:Oscar.pm_object(P).N_POINTS)
   end
-  pmo = pm_object(P)
-  Polymake.visual(pmo)
 end
