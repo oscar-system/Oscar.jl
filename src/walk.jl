@@ -1086,7 +1086,20 @@ end
 # Several Procedures for the Groebner Walk
 ###############################################################
 
-# returns the next intermediate weight vector.
+
+# Computes the next weight vector as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Little, O'Shea, 2005)
+#= Input: - G, a reduced GB w.r.t the current monomial order
+          - cw, a weight vector in the current Gröbner cone (corresponding to G)
+          - tw a target vector in the Gröbner cone of the target monomial order
+  
+  Output: - The point furthest along the line segment conv(cw,tw) still in the starting cone
+
+  QUESTIONS: - why are we making pointers with Ref()? Also, does the conversion at the end work? Type stable? 
+             - 
+  COMMENTS:  - even in the standard walk, it makes more sense to work with integer weight vectors. (do this by multiplying with the gcd at the end)
+            
+          
+=# 
 function next_weight(G::Oscar.IdealGens, cw::Vector{ZZRingElem}, tw::Vector{ZZRingElem})
   V = difference_lead_tail(G)
   tmin = minimum(c//(c-t) for (c,t) in zip(dot.(Ref(cw), V), dot.(Ref(tw), V)) if t<0; init=1)
@@ -1133,6 +1146,26 @@ end
 
 initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem}) = initial_form.(G, Ref(w))
 initial_forms(G::Oscar.IdealGens, w::Vector{Int}) = initial_form.(G, Ref(ZZ.(w)))
+
+
+# Computes a list of "Bounding vectors" of a generating set of I 
+
+# If the generating set is a G.B w.r.t some monmial order, 
+# then the bounding vectors form an H-description of the Gröbner cone
+
+# cf. "Using algebraic geometry", pg. 437 (CLO, 2005)
+
+#= Input: - generators of an ideal I (in practice a reduced G.B)
+  
+  Output: - a list of integer vectors of the form "exponent vector of leading monomial" - "exponent vector of tail monomial" 
+  
+  QUESTIONS: - are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
+             - type instability? Do I want ints or ringelements? 
+  
+  COMMENTS:  - rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
+             - generally, this is one of the routines where it would be really nice to have a "marked Gröbner basis" object
+  =# 
+
 
 function difference_lead_tail(I::Oscar.IdealGens)
   v = Vector{Int}[]
@@ -1216,8 +1249,19 @@ function same_cone(G::Oscar.IdealGens, T::Matrix{Int})
 end
 
 # TODO: Actual docstring
-# lifts the Groebner basis G to the Groebner basis w.r.t. the Ring Rn like as presented in Fukuda et al. (2005).
-#add theorem reference here 
+#= Lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
+  
+  Input:  - G , the reduced G.B of I w.r.t current
+          - current, the current monomial order
+          - H, the reduced G.B of inw(I) w.r.t the next weight vector w 
+          - target, the next monomial order 
+  
+  Output: - an inclusion minimal G.B of target obtained by subtracting normal forms
+
+  QUESTION: why do we need "target" in Oscar.IdealGens(...)? 
+
+  COMMENT: I think "target" is inappropriately named. It is rather "next_ordering" (i.e the target order, refined by w)
+=#
 function lift(
   G::Oscar.IdealGens,
   current::MonomialOrdering,
@@ -1304,7 +1348,8 @@ function create_order(R::MPolyRing, cw::Array{L,1}, T::Matrix{Int}) where {L<:Nu
   return ord
 end
 
-# interreduces the Groebner basis G.
+# interreduces the Groebner basis G. 
+# each element of G is replaced by its normal form w.r.t the other elements of G and the current monomial order 
 function interreduce_walk(G::Oscar.IdealGens)
   Rn = base_ring(G)
   Generator = collect(gens(G))
