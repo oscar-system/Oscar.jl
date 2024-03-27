@@ -312,7 +312,7 @@ function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiring
     isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(I)))
 
     # check that the input ideal is homogeneous and of degree 1
-    @req all(isone,total_degree(Iterators.flatten(monomials.(gens(I))))) "generators of ideal must be linear and homogeneous"
+    @req all(isone, total_degree.(Iterators.flatten(monomials.(gens(I))))) "generators of ideal must be linear and homogeneous"
 
     x = gens(base_ring(I))
     G = gens(I)
