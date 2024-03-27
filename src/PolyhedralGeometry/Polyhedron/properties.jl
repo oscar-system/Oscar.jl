@@ -1332,6 +1332,173 @@ false
 is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 @doc raw"""
+    is_johnson_solid(P::Polyhedron)
+
+Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
+
+See also [`johnson_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```
+julia> J = johnson_solid(37)
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> is_johnson_solid(J) 
+true
+```
+"""
+is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transitive(P)
+
+@doc raw"""
+    is_archimedean_solid(P::Polyhedron)
+
+Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces.
+
+See also [`archimedean_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```jldoctest
+julia> TO = archimedean_solid("truncated_octahedron")
+Polytope in ambient dimension 3
+
+julia> is_archimedean_solid(TO)
+true
+
+julia> T = tetrahedron()
+Polytope in ambient dimension 3
+
+julia> is_archimedean_solid(T)
+false
+```
+"""
+is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_faces(P) && is_vertex_transitive(P) && !_is_prismic_or_antiprismic(P)
+
+@doc raw"""
+    is_platonic_solid(P::Polyhedron)
+
+Check whether `P` is a Platonic solid.
+
+See also [`platonic_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```jldoctest
+julia> is_platonic_solid(cube(3))
+true
+```
+"""
+is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && _has_equal_faces(P) && is_vertex_transitive(P)
+
+function _is_3d_pol_reg_faces(P::Polyhedron)
+  # dimension
+  dim(P) == 3 || return false
+
+  # constant edge length
+  pedges = faces(P, 1)
+
+  edgelength = nothing
+  let edge = pedges[1]
+    v = vertices(edge)
+    edgelength = _squared_distance(v[1], v[2])
+  end
+
+  for edge in pedges[2:end]
+    v = vertices(edge)
+    _squared_distance(v[1], v[2]) == edgelength || return false
+  end
+
+  pfaces = faces(P, 2)
+
+  # face vertices on circle
+  for face in pfaces
+    n = n_vertices(face)
+    if n >= 4
+      fverts = vertices(face)
+      m = sum(fverts)//n
+      dist = nothing
+      let v = fverts[1]
+        dist = _squared_distance(v, m)
+      end
+
+      for v in fverts[2:end]
+        _squared_distance(v, m) == dist || return false
+      end
+    end
+  end
+  return true
+end
+
+function _squared_distance(p::PointVector, q::PointVector)
+  d = p - q
+  return d[1]^2 + d[2]^2 + d[3]^2
+end
+
+function _has_equal_faces(P::Polyhedron)
+  nv = [n_vertices(f) for f in faces(P, 2)]
+  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
+end
+
+@doc raw"""
+    is_vertex_transitive(P::Polyhedron)
+
+Check whether `P` is vertex transitive.
+
+# Examples
+```jldoctest
+julia> is_vertex_transitive(cube(3))
+true
+
+julia> is_vertex_transitive(pyramid(cube(2)))
+false
+```
+"""
+is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
+
+function _is_prismic_or_antiprismic(P::Polyhedron)
+  nvf = facet_sizes(P)
+  # nvfs contains vector entries [i, j] where j is the amount of i-gonal faces of P
+  nvfs = [[i, sum(nvf .== i)] for i in unique(nvf)]
+  # an (anti-)prism can only have 2 different types of faces
+  # n-gons and either squares/triangles (for prisms/antiprisms respectively)
+  # if n == 1 this function will not be called either way
+  length(nvfs) == 2 || return false
+  # there are exactly 2 n-gons, and only n-gons can occur exactly twice
+  a = findfirst(x -> x[2] == 2, nvfs)
+  isnothing(a) && return false
+  # with length(nvfs) == 2, b is the other index than a
+  b = 3 - a
+  m = nvfs[b][1]
+  # the faces that are not n-gons have to be squares or triangles
+  m == 3 || m == 4 || return false
+  n = nvfs[a][1]
+  # P has to have exactly n vertices and
+  # the amount of squares needs to be n or the amount of triangles needs to be 2n
+  2n == n_vertices(P) && (5 - m)*n == nvfs[b][2] || return false
+  dg = dualgraph(P)
+  ngon_is = findall(x -> x == n, nvf)
+  has_edge(dg, ngon_is...) && return false
+  rem_vertex!(dg, ngon_is[2])
+  rem_vertex!(dg, ngon_is[1])
+  degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
+  degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
+  dg = dualgraph(P)
+  if m == 3
+    bigdg = Polymake.graph.Graph(ADJACENCY = dg.pm_graph)
+    return bigdg.BIPARTITE
+  else
+    return true
+  end
+end
+
+@doc raw"""
     f_vector(P::Polyhedron)
 
 Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
