@@ -11,7 +11,7 @@ function save_type_params(s::SerializerState, gtm::GlobalTateModel)
     save_object(s, encode_type(GlobalTateModel), :name)
     base = base_space(gtm)
     ambient = ambient_space(gtm)
-    tate_polynomial_ring = parent(gtm.tate_polynomial)
+    tate_polynomial_ring = parent(tate_polynomial(gtm))
     explicit_model_section_ring = parent(gtm.explicit_model_sections["a1"])
     parametrizing_sections = collect(keys(gtm.defining_section_parametrization))
     if length(parametrizing_sections) > 0

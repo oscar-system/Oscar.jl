@@ -882,3 +882,13 @@ end
   end
 end
 
+
+
+########################################################################
+# Convenience method                                                   #
+########################################################################
+
+function blow_up(m::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name = "e")
+  @assert m === scheme(I) "Incompatible scheme and ideal sheaf"
+  return blow_up(I)
+end

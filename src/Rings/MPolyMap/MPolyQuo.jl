@@ -110,6 +110,15 @@ function _evaluate_plain(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   return evaluate(lift(u), _images(F))
 end
 
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoRing}, u)
+  # This workaround deals with the fact that arithmetic in quotient rings is TERRIBLY slow.
+  # All the simplify calls make it unusable in this case, probably due to the fact that
+  # setting `is_reduced` flags does not pay off in such iterative procedures.
+  A = codomain(F)
+  v = evaluate(lift(u), lift.(_images(F)))
+  return simplify(A(v))
+end
+
 function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), lift(u),

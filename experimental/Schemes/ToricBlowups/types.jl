@@ -8,28 +8,41 @@
 
   toric_morphism::ToricMorphism
   index_of_new_ray::Integer
-  center::IdealSheaf
+  center::ToricIdealSheafFromCoxRingIdeal
   exceptional_divisor::ToricDivisor
 
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String)
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, center::ToricIdealSheafFromCoxRingIdeal, new_ray::AbstractVector{<:IntegerUnion})
+
+    # Compute position of new ray
+    new_rays = matrix(ZZ, rays(new_variety))
+    position_new_ray = nothing
+    for i in 1:nrows(new_rays)
+      if new_ray == new_rays[i, :]
+        position_new_ray = i
+        break
+      end
+    end
+    @req position_new_ray !== nothing "Could not identify position of new ray"
+
+    # Set variable names of the new variety
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
     new_vars = Vector{String}(undef, n_rays(v) + 1)
-    index_of_new_ray = nothing
     for i in 1:n_rays(v)+1
         j = findfirst(==(rays(new_variety)[i]), rays(v))
         new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
-        j === nothing && (index_of_new_ray = i)
     end
-    @assert index_of_new_ray !==nothing "New ray not found -- some error in blow-up of toric variety"
     set_attribute!(new_variety, :coordinate_names, new_vars)
+    @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
+
+    # Construct the toric morphism and construct the object
     bl = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, index_of_new_ray)
+    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, position_new_ray, center)
   end
 end
 
-toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf) = ToricBlowdownMorphism(bl, new_ray, center)
-toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String) = ToricBlowdownMorphism(Y, new_ray, coordinate_name)
+#toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf) = ToricBlowdownMorphism(bl, new_ray, center)
+#toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String) = ToricBlowdownMorphism(Y, new_ray, coordinate_name)
 
 
 
