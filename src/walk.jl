@@ -1119,12 +1119,6 @@ end
           - tw a target vector in the Gröbner cone of the target monomial order
   
   Output: - The point furthest along the line segment conv(cw,tw) still in the starting cone
-
-  QUESTIONS: - why are we making pointers with Ref()? Also, does the conversion at the end work? Type stable? 
-             - 
-  COMMENTS:  - even in the standard walk, it makes more sense to work with integer weight vectors. (do this by multiplying with the gcd at the end)
-            
-          
 =# 
 function next_weight(G::Oscar.IdealGens, cw::Vector{ZZRingElem}, tw::Vector{ZZRingElem})
   V = difference_lead_tail(G)
@@ -1359,17 +1353,7 @@ convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} 
 
 
 # returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
-function create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number}
-  s = size(T)
-  if s[1] == s[2]
-    ord = weight_ordering(cw, matrix_ordering(R, T))
-  elseif s[1] - s[2] == 1
-    ord = weight_ordering(cw, matrix_ordering(R, T))
-  else
-    ord = weight_ordering(cw, matrix_ordering(R, T))
-  end
-  return ord
-end
+create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} = weight_ordering(cw, matrix_ordering(R, T))
 
 # interreduces the Groebner basis G. 
 # each element of G is replaced by its normal form w.r.t the other elements of G and the current monomial order 
