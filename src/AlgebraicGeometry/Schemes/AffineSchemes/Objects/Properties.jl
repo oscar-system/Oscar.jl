@@ -88,9 +88,9 @@ end
 # (2.1) MPolyRing in first argument
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
+  ) where {BRT}
   return OO(X) === OO(Y)
 end
 
@@ -138,9 +138,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
@@ -192,9 +192,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -257,9 +257,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))

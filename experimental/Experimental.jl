@@ -9,7 +9,7 @@ const oldexppkgs = [
   "MatrixGroups",
   "ModStd",
   "Rings",
-  "Schemes",
+  "Schemes"
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -18,9 +18,9 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "BasisLieHighestWeight",   # needs code from LieAlgebras
 ]
-exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
+exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs) && (x != "FTheoryTools"), readdir(expdir))
 append!(exppkgs, orderedpkgs)
 
 # force trigger recompile when folder changes
@@ -58,3 +58,5 @@ for pkg in oldexppkgs
   # Load the package
   include(joinpath(expdir, pkg, "$pkg.jl"))
 end
+
+include("FTheoryTools/src/FTheoryTools.jl")

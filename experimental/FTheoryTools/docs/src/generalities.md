@@ -35,7 +35,6 @@ We currently support the following attributes:
 coordinate_ring(f::FamilyOfSpaces)
 weights(f::FamilyOfSpaces)
 dim(f::FamilyOfSpaces)
-stanley_reisner_ideal(f::FamilyOfSpaces)
 irrelevant_ideal(f::FamilyOfSpaces)
 ideal_of_linear_relations(f::FamilyOfSpaces)
 ```
@@ -71,6 +70,8 @@ is_partially_resolved(m::AbstractFTheoryModel)
 
 ```@docs
 blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
 put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
 ```

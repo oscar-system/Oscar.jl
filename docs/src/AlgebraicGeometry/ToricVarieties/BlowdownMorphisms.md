@@ -37,18 +37,23 @@ For our most specialized blow-up method, we focus on the n-th cone in the fan of
 This cone need not be maximal! The ensuing star subdivision will subdivide this cone about its "diagonal"
 (the sum of all its rays). The result of this will always be a toric variety:
 ```@docs
-blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::String = "e")
+blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 ```
 More generally, we can provide a primitive element in the fan of the variety in question. The resulting
 star subdivision leads to a polyhedral fan, or put differently, the blow-up along this center is always toric:
 ```@docs
-blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
+blow_up(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
 ```
-Finally, and most generally, we encode the blowup center by a homogeneous ideal in the Cox ring.
+Most generally, we encode the blowup center by a homogeneous ideal in the Cox ring.
 Such blowups center may easily lead to non-toric blowups, i.e. the return value of the following method
 could well be non-toric.
 ```@docs
-blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::String = "e")
+blow_up(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
+```
+Instead of providing the ideal, it is possible to turn a homogeneous ideal in the Cox ring into an
+ideal sheaf. Consequently, we also provide the support for the following method.
+```@docs
+blow_up(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
 ```
 
 

@@ -147,6 +147,7 @@ the following attributes:
 weierstrass_section_f(w::WeierstrassModel)
 weierstrass_section_g(w::WeierstrassModel)
 weierstrass_polynomial(w::WeierstrassModel)
+weierstrass_ideal_sheaf(w::WeierstrassModel)
 ```
 The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
 fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
