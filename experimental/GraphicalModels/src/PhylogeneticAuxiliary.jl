@@ -13,8 +13,8 @@ function group_sum(pm::PhylogeneticModel, states::Vector{Int})
     return sum(group[states]).%2
 end
   
-  
-function which_group_element(pm::PhylogeneticModel, elem::Vector{Vector{Int64}})
+function which_group_element(pm::PhylogeneticModel, elem::Vector{Int64})
+#function which_group_element(pm::PhylogeneticModel, elem::Vector{Vector{Int64}})
     group = group_model(pm)
     return findall([all(group[i].==elem) for i in 1:length(group)])[1]
 end
