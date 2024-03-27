@@ -1,9 +1,21 @@
 module GroebnerWalk
 using Oscar
 
+exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
+
 include("walk.jl")
 
 export groebner_walk
+export standard_walk
+
+export initial_form
+export initial_forms
+
+
+
+export standard_step
+export next_weight
+export difference_lead_tail
 
 function __init__()
     add_verbosity_scope(:groebner_walk)
