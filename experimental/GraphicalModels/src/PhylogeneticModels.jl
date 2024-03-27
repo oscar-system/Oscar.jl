@@ -105,7 +105,14 @@ function jukes_cantor_model(graph::Graph{Directed})
       b b a b
       b b b a]) for (a,b,e) in zip(list_a, list_b, edges(graph))
     )
-    return PhylogeneticModel(ns, graph, R, matrices)
+
+    S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2))
+    fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
+            [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
+    
+    group = [[0,0], [0,1], [1,0], [1,1]]
+
+    return PhylogeneticModel(ns, graph, R , S, matrices, fourier_param, group)
 end
 
 #= ### 
@@ -142,7 +149,14 @@ function kimura2_model(graph::Graph{Directed})
       c b a b
       c c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edges(graph))
     )
-    return PhylogeneticModel(ns, graph, R, matrices)
+
+    S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3))
+    fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
+            [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,3]] for (i, e) in zip(1:ne, edges(graph)))
+    
+    group = [[0,0], [0,1], [1,0], [1,1]]
+
+    return PhylogeneticModel(ns, graph, R, S, matrices, fourier_param, group)
 end
 
 # Kimura 3
@@ -157,7 +171,14 @@ function kimura3_model(graph::Graph{Directed})
       c b a b
       d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edges(graph))
     )
-    return PhylogeneticModel(ns, graph, R, matrices)
+
+    S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2))
+    fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
+            [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,4]] for (i, e) in zip(1:ne, edges(graph)))
+    
+    group = [[0,0], [0,1], [1,0], [1,1]]
+
+    return PhylogeneticModel(ns, graph, R, S, matrices, fourier_param, group)
 end
 
 # general Markov model
