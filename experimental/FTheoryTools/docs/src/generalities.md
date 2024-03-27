@@ -35,7 +35,6 @@ We currently support the following attributes:
 coordinate_ring(f::FamilyOfSpaces)
 weights(f::FamilyOfSpaces)
 dim(f::FamilyOfSpaces)
-stanley_reisner_ideal(f::FamilyOfSpaces)
 irrelevant_ideal(f::FamilyOfSpaces)
 ideal_of_linear_relations(f::FamilyOfSpaces)
 ```
