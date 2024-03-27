@@ -128,14 +128,12 @@ function hadamardmatrix()
   return H
 end
 
-# We need the parameter leaf_number in order to determine the right size of
-# the Kronecker product. 
 # TODO: line 138 mutates f_equivclasses, i.e. an object from outside the function.
 # This makes the function a !-function. We do not want f_equivclasses to be changed, 
 # so I add the missing equivalence class again in line 175. 
 # We should find out whether there is a better way to do this.
 function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  R = polyn_ring(pm)
+  R = probablities_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
@@ -172,7 +170,7 @@ function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Di
 end
 
 function inverse_specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  R = polyn_ring(pm)
+  R = probablities_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
