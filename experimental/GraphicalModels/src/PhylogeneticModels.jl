@@ -164,8 +164,8 @@ function inverse_specialized_fourier_transform(pm::PhylogeneticModel, p_equivcla
       current_prob_class = p_equivclasses_sorted[i]
       for j in 1:nq
           current_fourier_class = f_equivclasses_sorted[j]
-          current_entriesin_Minv = [prod([Hinv[y,x] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
-          inverse_spec_ft_matrix[i,j] = R.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entriesin_Minv))
+          current_entriesin_Minv = [prod([Hinv[x,y] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
+          inverse_spec_ft_matrix[i,j] = R.(sum(current_entriesin_Minv))
       end
   end
   get!(f_equivclasses, class0, R(0))
