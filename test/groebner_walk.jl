@@ -34,9 +34,9 @@
 	ideals = []
 	infoLevel = 1
 	for i ∈ 2:nvars(R)
-		push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :perturbed, i))
+		push!(ideals, groebner_walk(id, degrevlex(R), lex(R), :perturbed, i))
 	end
-	push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :standard))
+	push!(ideals, groebner_walk(id, degrevlex(R), lex(R), :standard))
 	# push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :tran))
 
 	push!(ideals, groebnerwalk(id, degrevlex(R), lex(R), :fractal))
