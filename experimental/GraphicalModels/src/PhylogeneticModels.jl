@@ -10,7 +10,6 @@ end
 graph(pm::PhylogeneticModel) = pm.graph
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
 number_states(pm::PhylogeneticModel) = pm.n_states
-polyn_ring(pm::PhylogeneticModel) = pm.R
 
 function jukes_cantor_model(graph::Graph{Directed})
   ns = 4
