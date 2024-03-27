@@ -1,3 +1,6 @@
+include("PhylogeneticAuxiliary.jl")
+include("PhylogeneticParametrisation.jl")
+
 # Add your new types, functions, and methods here.
 
 # specifying all common phylogenetic models
