@@ -138,5 +138,15 @@
         @test n_vertices(G2) == 13
         @test n_edges(G2) == 5
 
+        ei = edges(G2)
+        @test length(ei) == 5
+
+        ee = collect(ei)
+        @test length(ei) == 0
+        @test collect(ei) == Edge[]
+
+        GG2 = graph_from_edges(Undirected, ee)
+        @test is_isomorphic(G2, GG2)
+
     end
 end
