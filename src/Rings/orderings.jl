@@ -1719,26 +1719,32 @@ end
 
 # For ordering the generators (I think)
 mutable struct ModOrdering{T} <: AbsModOrdering
-   gens::T
-   ord::Symbol
-   function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
-     r = new{T}()
-     r.gens = u
-     r.ord = s
-     return r
-   end
+  gens::T
+  ord::Symbol
+  function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
+    r = new{T}()
+    r.gens = u
+    r.ord = s
+    return r
+  end
 end
 
 mutable struct ModuleOrdering{S}
-   M::S
-   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+  M::S
+  o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+
+  canonical_matrix::ZZMatrix
+
+  function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
+    return new{S}(M, o)
+  end
 end
 
 base_ring(a::ModuleOrdering) = a.M
 
 mutable struct ModProdOrdering <: AbsModOrdering
-   a::AbsOrdering
-   b::AbsOrdering
+  a::AbsOrdering
+  b::AbsOrdering
 end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
@@ -1746,7 +1752,7 @@ Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
 
 # For equality checking and hashing
-# we produce a matrix representation by embedding the module (and its ordering) into a polynomial ring
+# we produce a matrix representation by embedding the underlying free module (and its ordering) into a polynomial ring
 # then we build the matrix in this ring
 
 function _embedded_ring_ordering(o::ModuleOrdering)
@@ -1769,18 +1775,25 @@ function _embedded_ring_ordering(o::ModProdOrdering)
   return ea*eb
 end
 
-function _canonical_matrix(o::ModuleOrdering)
+function _canonical_matrix_intern(o::ModuleOrdering)
   nvrs = ngens(o.M) + ngens(base_ring(o.M))
   eo = _embedded_ring_ordering(o)
   return canonical_matrix(nvrs, eo)
 end
 
+function canonical_matrix(o::ModuleOrdering)
+  if !isdefined(o, :canonical_matrix)
+    o.canonical_matrix = _canonical_matrix_intern(o)
+  end
+  return o.canonical_matrix
+end
+
 function Base.:(==)(o1::ModuleOrdering, o2::ModuleOrdering)
-  return _canonical_matrix(o1) == _canonical_matrix(o2)
+  return canonical_matrix(o1) == canonical_matrix(o2)
 end
 
 function Base.hash(o::ModuleOrdering, h::UInt)
-  return hash(_canonical_matrix(o), h)
+  return hash(canonical_matrix(o), h)
 end
 
 #### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
