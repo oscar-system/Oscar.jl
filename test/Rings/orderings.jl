@@ -430,4 +430,10 @@ end
   oo = lex(gens(F))*lex(gens(R))
   @test o == oo
   @test hash(o) == hash(oo)
+
+  F = FreeMod(R, 1)
+  o = lex(gens(F))*degrevlex(gens(R))
+  oo = degrevlex(gens(R))*invlex(gens(F))
+  @test o == oo
+  @test hash(o) == hash(oo)
 end

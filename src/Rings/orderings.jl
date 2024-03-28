@@ -1783,7 +1783,11 @@ end
 
 function canonical_matrix(o::ModuleOrdering)
   if !isdefined(o, :canonical_matrix)
-    o.canonical_matrix = _canonical_matrix_intern(o)
+    if isone(ngens(o.M))
+      o.canonical_matrix = canonical_matrix(induced_ring_ordering(o))
+    else
+      o.canonical_matrix = _canonical_matrix_intern(o)
+    end
   end
   return o.canonical_matrix
 end
