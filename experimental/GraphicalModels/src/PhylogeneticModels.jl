@@ -76,7 +76,7 @@ output??
 
 number_states(pm::PhylogeneticModel) = pm.n_states
 
-probablities_ring(pm::PhylogeneticModel) = pm.prob_ring
+probabilities_ring(pm::PhylogeneticModel) = pm.prob_ring
 fourier_ring(pm::PhylogeneticModel) = pm.fourier_ring
 fourier_parameters(pm::PhylogeneticModel) = pm.fourier_params
 group_model(pm::PhylogeneticModel) = pm.group
@@ -220,7 +220,7 @@ end
 # so I add the missing equivalence class again in line 175. 
 # We should find out whether there is a better way to do this.
 function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  R = probablities_ring(pm)
+  R = probabilities_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
@@ -257,7 +257,7 @@ function specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Di
 end
 
 function inverse_specialized_fourier_transform(pm::PhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  R = probablities_ring(pm)
+  R = probabilities_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
