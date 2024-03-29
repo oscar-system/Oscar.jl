@@ -565,18 +565,6 @@ function basis_lie_highest_weight_demazure(
   chevalley_basis = chevalley_basis_gap(L)
   operators = operators_demazure(L, chevalley_basis, reduced_expression)
   return basis_lie_highest_weight_compute(
-    L, chevalley_basis, highest_weight, operators, monomial_ordering; reduced_expression=reduced_expression
+    L, highest_weight, operators, monomial_ordering; reduced_expression=reduced_expression
   )
 end
-
-
-# basis_lie_highest_weight with reduced_expression as input and change 1 to 2
-# Delete highest_weight_twisted
-# Only change v0
-# Option 1: (w can operate on modul M in matrices_of_operators_gap)
-#   Apply w from right to left on v0   vw = w*v0 
-# Option 2:
-#   #vw = f_{\alpha_{i_1}}^{l_1} \cdots f_{\alpha_{i_s}}^{l_s}.v0_ muss von rechts und f_ (2) muss e_ (1), d.h. 1 nutzen
-#   Still use e_ for algorithm, only use f_ for vw, in our case use [2] to calculate f_ because of transpose * and use it for vw
-# Use demazure dimension instead of get_dim_weightspaces
-#lie_alg = lie_algebra(:A, 2), reduced_expression = Vector{Int}([1, 2, 1]) for this case we can use get_dim_weightspaces

@@ -74,15 +74,9 @@ function basis_lie_highest_weight_compute(
   # monomials = sort(collect(set_mon); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
   minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(gen), reverse(gen))))
   # output
-<<<<<<< HEAD
   mb = MonomialBasis(L, highest_weight, birational_sequence, monomial_ordering, set_mon)
   set_attribute!(
     mb, :algorithm => basis_lie_highest_weight_compute, :minkowski_gens => minkowski_gens
-=======
-
-  return MonomialBasis(
-    L, highest_weight, monomial_ordering, set_mon, minkowski_gens, birational_sequence
->>>>>>> 1fc74fe2 (Demazure module)
   )
   return mb
 end
@@ -323,25 +317,11 @@ function add_new_monomials!(
   set_mon::Set{ZZMPolyRingElem},
   zero_coordinates::Vector{Int},
 )
-<<<<<<< HEAD
   # If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
   # polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
-=======
-  """
-  If a weightspace is missing monomials, we need to calculate them by trial and error. We would like to go through all
-  monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
-  to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
-  Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
-  polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
-  """
-  println("add_new_monomials: ")
-  println("weight_w: ", weight_w)
-  println("zero_coordinates: ", zero_coordinates)
-  println("birational_sequence.weights_alpha: ", birational_sequence.weights_alpha)
->>>>>>> e55b8df7 (New files)
 
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
@@ -362,11 +342,8 @@ function add_new_monomials!(
     i += 1
   end
   number_mon_in_weightspace = length(set_mon_in_weightspace[weight_w])
-  # go through possible monomials one by one and check if it extends the basis
-  println("weight_w: ", weight_w)
-  println("poss_mon_in_weightspace: ", poss_mon_in_weightspace)
-  println("set_mon: ", set_mon)
 
+  # go through possible monomials one by one and check if it extends the basis
   while number_mon_in_weightspace < dim_weightspace
     i += 1
     mon = poss_mon_in_weightspace[i]
@@ -422,21 +399,6 @@ function add_by_hand(
   # This function calculates the missing monomials by going through each non full weightspace and adding possible 
   # monomials manually by computing their corresponding vectors and checking if they enlargen the basis.
 
-  # initialization
-  # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
-  # println("reduced_expression: ", reduced_expression)
-  #reduced_expression = Int.(highest_weight)
-  #highest_weight_twisted_true = ZZ.(highest_weight_demazure(L, highest_weight_twisted, reduced_expression))
-  #operators_twisted = operators_demazure(L, reduced_expression)
-  
-  #weights_w_twisted = [weight(L, op) for op in operators_twisted] # weights of the operators
-  #weights_alpha_twisted = [w_to_alpha(L, weight_w) for weight_w in weights_w_twisted] # other root system
-
-  # asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
-  #birational_sequence_twisted = BirationalSequence(
-  #  operators, [asVec(v) for v in operators_twisted], weights_w_twisted, weights_alpha_twisted
-  #)
-
   matrices_of_operators = tensor_matrices_of_operators(
     L, highest_weight, birational_sequence.operators
     # L, highest_weight_twisted_true, birational_sequence.operators
@@ -446,26 +408,16 @@ function add_by_hand(
   # starting vector v
   # required monomials of each weightspace
   # identify coordinates that are trivially zero because of the action on the generator
-  if reduced_expression == [-1]
-    println("NORMAL WEIGHTSPACES")
+  if reduced_expression == [-1]  # Regular case
     v0 = sparse_row(ZZ, [(1, 1)])
     weightspaces = get_dim_weightspace(L, highest_weight)
     zero_coordinates = compute_zero_coordinates(birational_sequence, highest_weight)
-  else
-    println("DEMAZURE WEIGHTSPACES")
+  else  # Demazure
     v0, extremal_weight = demazure_vw(L, reduced_expression, highest_weight, matrices_of_operators)
-    # v0 = sparse_row(ZZ, [(1, 1)])
-    # weightspaces = get_dim_weightspace_demazure(L, highest_weight, reduced_expression)  # demazure
-    println("extremal_weight: ", extremal_weight)
     weightspaces = get_dim_weightspace_demazure(L, highest_weight, extremal_weight, reduced_expression)  # demazure
     zero_coordinates = Int[]
   end
   push!(set_mon, ZZx(1))
-
-  println("\n\n")
-  println("v0: ", v0)
-  println("weightspaces: ", weightspaces)
-
 
   # sort the monomials from the minkowski-sum by their weightspaces
   set_mon_in_weightspace = Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}}()
@@ -490,7 +442,6 @@ function add_by_hand(
   # Oscar dependendencies. But I plan to reimplement this. 
   # insert known monomials into basis
 
-  println("weights_with_non_full_weightspace: ", weights_with_non_full_weightspace)
   for weight_w in weights_with_non_full_weightspace
     add_known_monomials!(weight_w, set_mon_in_weightspace, matrices_of_operators, space, v0)
   end
@@ -647,128 +598,4 @@ function operators_demazure(
   @req all(i -> 1 <= i <= num_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
 
   return [chevalley_basis[1][i] for i in birational_sequence]
-end
-
-
-
-
-
-function operators_demazure_old(
-  L::LieAlgebraStructure,
-  reduced_expression::Vector{Int},
-)
-  """
-  Compute the operators associated with the demazure module.
-  s := length(w)
-  \beta_k := w^{-1} (\alpha_{i_k})
-          = s_{i_s} … s_{i_1}} (\alpha_{i_k})
-  """
-  chevalley_basis = chevalley_basis_gap(L)
-  println("\n chevalley_basis: \n", chevalley_basis)
-
-  rs = root_system_gap(L)
-  simple_roots = GAP.Globals.SimpleSystem(rs)
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-  negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(rs))
-  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
-  # Simple reflection acts on SimpleRoots and we search for the result in PositiveRoots
-  println("\n simple_roots: \n", simple_roots)
-  println("\n positive_roots: \n", positive_roots)
-  println("\n negative_roots: \n", negative_roots)
-  
-  # operators =  operators_by_index(L, chevalley_basis, reduced_expression)
-  # println("\n operators: \n", operators)
-
-  # Twist with w^{-1}
-  #for i in 1:length(operators)
-  #  println("i: ", i)
-  #  for k in 1:length(reduced_expression)
-  #    println("k: ", k, " ", operators[i])
-  #    w_k = reduced_expression[k]
-  #    operators[i] = operators[k] * chevalley_basis[1][w_k]
-  #  end
-  #end
-  #println("operators: ", operators)
-
-  twisted_roots = []
-  twisted_indx = []
-  for i in 1:length(simple_roots)
-    # Twist with w^{-1}
-    root = copy(simple_roots[i])
-    for k in 1:length(reduced_expression)
-      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], root)
-    end
-
-    root_ind_pos = findfirst(==(Vector{Int}(root)), positive_roots)
-    root_ind_neg = findfirst(==(Vector{Int}(root)), negative_roots)
-    @req !isnothing(root_ind_pos) || !isnothing(root_ind_neg) "$root not found"
-    if !isnothing(root_ind_pos)
-      push!(twisted_roots, chevalley_basis[1][root_ind_pos])
-      push!(twisted_indx, (1, root_ind_pos))
-    elseif !isnothing(root_ind_neg)
-      push!(twisted_roots, chevalley_basis[2][root_ind_neg])
-      push!(twisted_indx, (-1, root_ind_neg))
-    end
-  end
-
-  operators_twisted = [twisted_roots[i] for i in reduced_expression]
-
-  println("operators_twisted: ", operators_twisted)
-
-  return operators_twisted
-end
-
-
-
-
-function highest_weight_demazure(
-  L::LieAlgebraStructure,
-  reduced_expression::Vector{Int},
-  highest_weight::Vector{Int}
-)
-  """
-  Compute the operators associated with the demazure module.
-  s := length(w)
-  \beta_k := w^{-1} (\alpha_{i_k})
-          = s_{i_s} … s_{i_1}} (\alpha_{i_k})
-  """
-  chevalley_basis = chevalley_basis_gap(L)
-
-  rs = root_system_gap(L)
-  simple_roots = GAP.Globals.SimpleSystem(rs)
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-  negative_roots = Vector{Vector{Int}}(GAP.Globals.NegativeRoots(rs))
-  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
-
-  twisted_roots = []
-  twisted_indx = []
-  for i in 1:length(simple_roots)
-    # Twist with w^{-1}
-    # TODO Use w here
-    root = copy(simple_roots[i])
-    for k in 1:length(reduced_expression)
-      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, reduced_expression[k], root)
-    end
-
-    root_ind_pos = findfirst(==(Vector{Int}(root)), positive_roots)
-    root_ind_neg = findfirst(==(Vector{Int}(root)), negative_roots)
-    @req !isnothing(root_ind_pos) || !isnothing(root_ind_neg) "$root not found"
-    if !isnothing(root_ind_pos)
-      push!(twisted_roots, chevalley_basis[1][root_ind_pos])
-      push!(twisted_indx, (1, root_ind_pos))
-    elseif !isnothing(root_ind_neg)
-      push!(twisted_roots, chevalley_basis[2][root_ind_neg])
-      push!(twisted_indx, (-1, root_ind_neg))
-    end
-  end
-
-  highest_weight_twisted = zeros(Int, length(highest_weight))
-  for i in 1:length(highest_weight)
-    pos_neg, indx = twisted_indx[i]
-    highest_weight_twisted[indx] += highest_weight[i] * pos_neg
-  end
-
-  println("highest_weight_twisted: ", highest_weight_twisted)
-
-  return highest_weight_twisted
 end

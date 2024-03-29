@@ -1,9 +1,3 @@
-# using AbstractAlgebra
-
-include("./LieAlgebras.jl")
-include("./RootConversion.jl")
-
-# Original functions (demazure_scalar_prod and demazure_s) remain the same
 function demazure_scalar_prod(beta::Int, lambda::Vector{Int})
     # only valid for simple roots
     # transpose of cartan-matrix
@@ -24,6 +18,9 @@ function demazure_operator_monom_dictionary(
     beta_wi::Vector{Int},
     lambda_old::Vector{Int}
 )
+    """
+    Apply recursive formula
+    """
     lambda = copy(lambda_old)
     scalar_prod = demazure_scalar_prod(beta, lambda)
 
@@ -62,31 +59,33 @@ function demazure_operator_dictionary(
     return new_dict
 end
 
-# Main function to generate the summary using a dictionary
-# demazure_character
-# struct with typ, rank and dictionary
-# need reduced expression of simple roots
-# demazure module dimension that sums the dictionary
 
-# DimensionOfHighestWeightModule got implemented by Lars
-# if length(birational_sequence) < count of positive roots of Lie-Algebra then its Demazure-Module
-# GAP-dimension rename to module_dim
-# Minimize distance of two lambda_1 and lambda_2 for sub_weights
-# basis_lie_highest_weight(2* lambda) / 2 chain of polytopes, at some point stationary
-# s_1, ..., s_2 start from left
 function demazure_operators_summary_dictionary(
     type::Symbol,   
     rank::Int,
     lambda::Vector{Int},
     weyl_word::Vector{Int}
 )
+    """
+    Calculates the dimension of all weightspaces and returns them as a dictionary key => weight.
+    Uses the formulas of to build up recursion.
+
+    @misc{fourier2005tensor,
+    title={Tensor product structure of affine Demazure modules and limit constructions}, 
+    author={Ghislain Fourier and Peter Littelmann},
+    year={2005},
+    eprint={math/0412432},
+    archivePrefix={arXiv},
+    primaryClass={math.RT}
+    }
+
+    Start of chapter 2.2 Demazure operators(page 10)
+    """
     # Initialization
     dict = Dict(lambda => 1)
 
     alpha_wi_list = [alpha_to_w(LieAlgebraStructure(type, rank), [i == j ? QQ(1) : QQ(0) for i in 1:rank]) for j in 1:rank]
     alpha_wi_list = [Int.(x) for x in alpha_wi_list]
-
-    # println(alpha_wi_list)
 
     sub_word = []
     sub_dicts = [dict]
@@ -95,20 +94,9 @@ function demazure_operators_summary_dictionary(
 
         push!(sub_word, alpha_i)
         push!(sub_dicts, copy(dict))
-        #println("sub_word: ", sub_word)
-        #println(length(dict))
-        #println("total dimensions: ", sum(values(dict)))
     end
 
     # Process the dictionary as needed
-    # ...
-    #for (key, value) in dict
-    #    println("Lambda: $key, Value: $value")
-    #end
-
-    # println("result dim: ", sum(values(dict)))
-    # println("log2: ", log2(sum(values(dict))))
-
     return sub_dicts
 end
 
@@ -133,8 +121,8 @@ function get_dim_weightspace_demazure(L::LieAlgebraStructure, highest_weight::Ve
     result = Dict{Vector{ZZRingElem}, Int}()
     for (key, value) in demazure_dict
         # Convert the key to ZZ, apply the transformation, and assign the value
-        # transformed_key = ZZ.(-key .+ extremal_weight)
         transformed_key = ZZ.(key .- extremal_weight)
+        # transformed_key = ZZ.(key .- extremal_weight)
         result[transformed_key] = value # w_to_alpha(lie_algebra(type, rank), ZZ.(value))  # value
     end
 
