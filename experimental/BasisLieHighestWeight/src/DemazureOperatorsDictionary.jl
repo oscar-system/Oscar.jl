@@ -115,8 +115,6 @@ function get_dim_weightspace_demazure(L::LieAlgebraStructure, highest_weight::Ve
     """
     demazure_dict =  demazure_operators_summary_dictionary(L.lie_type, L.rank, Int.(highest_weight), weyl_word)
     demazure_dict = demazure_dict[end]
-
-    print("demazure_dict: ", demazure_dict)
     
     result = Dict{Vector{ZZRingElem}, Int}()
     for (key, value) in demazure_dict

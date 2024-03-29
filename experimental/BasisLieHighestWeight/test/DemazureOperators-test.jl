@@ -10,6 +10,7 @@ include("../src/RootConversion.jl")
 include("../src/DemazureOperatorsDictionary.jl")
 
 function calc_base_dicts(base::Oscar.BasisLieHighestWeight.MonomialBasis)::Vector{Dict{Vector{Int}, Int}}
+  # Given a monomial basis, it calculates the dimension of each weightspace as a dict weight => dimension
   L = base.lie_algebra
   weight_w = base.birational_sequence.weights_w
   
@@ -32,20 +33,16 @@ function calc_base_dicts(base::Oscar.BasisLieHighestWeight.MonomialBasis)::Vecto
   return base_dicts
 end
 
-# TODO Test with B3, highest_weight = [2, 2, 2], reduced_expression = [3, 2, 3, 1, 2, 3, 1, 2, 1]
-# Oder kleiner test
+function test_demazure_operator_dimension(type::Symbol, rank::Int, highest_weight::Vector{Int}, reduced_expression::Vector{Int})
+  # Compares the dimension of each weightspace as calculated with basis_lie_highest_weight and 
+  # the dimension obtained with demazure_operators_summary_dictionary and get_dim_weightspace_demazure match.
 
+  # demazure_operators_summary_dictionary
+  # 1. Test if for all monomials with only the last k entries non-zero the number of monomials match
+  # 2. Test if total dimension matches
 
-@testset "Test DemazureOperatorsDimensions" begin
-  type = :A
-  rank = 4
-  highest_weight = [1, 1, 1, 1]
-  reduced_expression = [4, 3, 2, 1, 2, 3, 4, 3, 2, 3]
-  #type = :A
-  #rank = 2
-  #highest_weight = [1, 1]
-  #reduced_expression = [1, 2, 1]
-
+  # get_dim_weightspace_demazure
+  # 3. Each weightspace should match
   base = BasisLieHighestWeight.basis_lie_highest_weight(type, rank, highest_weight, reduced_expression)
   demazure_dimensions =  demazure_operators_summary_dictionary(type, rank, highest_weight, reduced_expression)
   base_dicts = calc_base_dicts(base)
@@ -59,13 +56,9 @@ end
           new_key = - key .+ highest_weight
           demazure_dict[new_key] = value
       end
-      # demazure_dict = demazure_dict_old
 
       base_dict = base_dicts[i]
       @testset "sub_word" begin
-        println("sub_word: ", sub_word)
-        println("total dimensions demazure_dict: ", sum(values(demazure_dict)))
-        println("total dimensions base_dict: ", sum(values(base_dict)))
         @test isequal(sum(values(demazure_dict)), sum(values(base_dict)))  
         @test isequal(demazure_dict, base_dict)
       end
@@ -76,20 +69,20 @@ end
       end
   end
 
-  println("")
-
   # Convert keys of last base_dict to ZZRingElem
-  demazure_dict = get_dim_weightspace_demazure(lie_algebra(type, rank), ZZ.(highest_weight), reduced_expression)
+  demazure_dict = get_dim_weightspace_demazure(lie_algebra(type, rank), ZZ.(highest_weight), ZZ.(highest_weight), reduced_expression)
   base_dict = Dict{Vector{ZZRingElem}, Int}()
   for (key, value) in base_dicts[end]
-      transformed_key = ZZ.(key)
+      transformed_key = ZZ.(- key)  # Demazure function has because of transposed operators a - here.
       base_dict[transformed_key] = value
   end
 
-
-  println("sub_word: ", sub_word)
-  println("total dimensions demazure_dict: ", sum(values(demazure_dict)))
-  println("total dimensions base_dict: ", sum(values(base_dict)))
   @test isequal(sum(values(demazure_dict)), sum(values(base_dict)))  
   @test isequal(demazure_dict, base_dict)
+end
+
+@testset "Test DemazureOperatorsDimensions" begin
+  test_demazure_operator_dimension(:A, 2, [1, 1], [1, 2, 1])
+  test_demazure_operator_dimension(:A, 4, [1, 1, 1, 1], [4, 3, 2, 1, 2, 3, 4, 3, 2, 3])
+  test_demazure_operator_dimension(:B, 3, [2, 2, 2], [3, 2, 3, 1, 2, 3, 1, 2, 1])
 end
