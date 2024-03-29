@@ -112,6 +112,9 @@ on the highest weight vector.
 function compute_zero_coordinates(
   bir_sequence::BirationalSequence, highest_weight::Vector{ZZRingElem}
 )
+  println("bir_sequence : ", bir_sequence)
+  println("highest_weight : ", highest_weight)
+
   n = length(bir_sequence.weights_alpha)
   m = length(highest_weight)
   non_zeros = Set{Int}(findall(!iszero, highest_weight))

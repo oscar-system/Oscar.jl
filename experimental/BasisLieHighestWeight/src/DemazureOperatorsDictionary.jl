@@ -100,14 +100,6 @@ function demazure_operators_summary_dictionary(
     return sub_dicts
 end
 
-# Example usage
-#type = "A"
-#rank = 2
-#lambda = [1, 1]
-#weyl_word = [1, 2, 1]
-#result_dict = demazure_operators_summary_dictionary(type, rank, lambda, weyl_word)
-
-
 # GAP demazure character
 function get_dim_weightspace_demazure(L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, extremal_weight::Vector{ZZRingElem}, weyl_word::Vector{Int})
     """
@@ -120,8 +112,7 @@ function get_dim_weightspace_demazure(L::LieAlgebraStructure, highest_weight::Ve
     for (key, value) in demazure_dict
         # Convert the key to ZZ, apply the transformation, and assign the value
         transformed_key = ZZ.(key .- extremal_weight)
-        # transformed_key = ZZ.(key .- extremal_weight)
-        result[transformed_key] = value # w_to_alpha(lie_algebra(type, rank), ZZ.(value))  # value
+        result[transformed_key] = value
     end
 
     return result
