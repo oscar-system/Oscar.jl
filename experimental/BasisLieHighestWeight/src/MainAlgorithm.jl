@@ -192,7 +192,7 @@ function compute_monomials(
   monomial_ordering::MonomialOrdering,
   calc_highest_weight::Dict{Vector{ZZRingElem},Set{ZZMPolyRingElem}},
   no_minkowski::Set{Vector{ZZRingElem}};
-  reduced_expression::Vector{Int},
+  reduced_expression::Vector{Int}=[-1],
 )
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
