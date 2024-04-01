@@ -1404,10 +1404,8 @@ function _is_3d_pol_reg_faces(P::Polyhedron)
   # constant edge length
   pedges = faces(P, 1)
 
-  edgelength = nothing
-  let edge = pedges[1]
-    v = vertices(edge)
-    edgelength = _squared_distance(v[1], v[2])
+  edgelength = let v = vertices(pedges[1])
+    _squared_distance(v[1], v[2])
   end
 
   for edge in pedges[2:end]
@@ -1423,10 +1421,7 @@ function _is_3d_pol_reg_faces(P::Polyhedron)
     if n >= 4
       fverts = vertices(face)
       m = sum(fverts)//n
-      dist = nothing
-      let v = fverts[1]
-        dist = _squared_distance(v, m)
-      end
+      dist = _squared_distance(fverts[1], m)
 
       for v in fverts[2:end]
         _squared_distance(v, m) == dist || return false
@@ -1438,11 +1433,11 @@ end
 
 function _squared_distance(p::PointVector, q::PointVector)
   d = p - q
-  return d[1]^2 + d[2]^2 + d[3]^2
+  return dot(d, d)
 end
 
 function _has_equal_faces(P::Polyhedron)
-  nv = [n_vertices(f) for f in faces(P, 2)]
+  nv = facet_sizes(P)
   return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
 end
 
