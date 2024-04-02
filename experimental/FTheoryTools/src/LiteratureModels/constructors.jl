@@ -4,7 +4,6 @@
 struct QSModel
   hs::HypersurfaceModel
 
-  # what is this??
   IndexFacetInteriorDivisors::Vector{Int}
   
   # can be more specific in the future
@@ -31,7 +30,7 @@ struct QSModel
   # help with heuristics for computing triangulation
   # if TriangQuick is true then Triangulationestimate is exact
   TriangQuick::Bool
-  TriangulationEstimate::Int
+  TriangulationEstimate::BigInt
   MaxLatticePtsInFacet::Int
   
   PolyInx::Int
