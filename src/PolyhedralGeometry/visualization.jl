@@ -68,11 +68,11 @@ function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, Polyhedral
   Polymake.visual(pmo; kwargs...)
 end
 
-function compose_visualization(P::Vararg{Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}}) where T<:Union{Float64, FieldElem}
+function compose_visualization(P::Vararg{Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}}; kwargs::Dict = Dict{Int, Nothing}()) where T<:Union{Float64, FieldElem}
   for p in P
     _prepare_visualization(p)
   end
-  vis = [Polymake.visual(Polymake.Visual, pm_object(p)) for p in P]
+  vis = [Polymake.visual(Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...) for i in 1:length(P)]
   if isdefined(Main, :IJulia) && Main.IJulia.inited
     # this will return a visual object,
     # the visualization is then triggered by the show method
