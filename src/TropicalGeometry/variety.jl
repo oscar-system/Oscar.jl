@@ -143,7 +143,7 @@ If `skip_saturation==true`, will not saturate `I` with respect to the product of
 If `skip_primary_decomposition==true`, will not decompose `I`.
 
 !!! warning
-    `tropical_variety` is currently under development and only works for ideal that primary decompose into
+    `tropical_variety` is currently under development and only works for ideals that primary decompose into
     principal, linear, and binomial ideals.
 
 # Examples
