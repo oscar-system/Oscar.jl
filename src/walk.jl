@@ -1025,6 +1025,7 @@ end
 # tests if v>0 w.r.t. the ordering M.
 greater_than_zero(M::MonomialOrdering, v::Vector{Int}) = greater_than_zero(canonical_matrix(M), v)
 # TODO What is the definition?
+# This should be the ordering on Q^n induced by M: ( u <_M v iff Mu <_lex Mv)?  
 function greater_than_zero(M::Matrix{Int}, v::Vector{Int})
   nrows, ncols = size(M)
   for i in 1:nrows
@@ -1041,6 +1042,7 @@ end
 
 # tests if v<0 w.r.t. the ordering M.
 less_than_zero(M::MonomialOrdering, v::Vector{Int}) = less_than_zero(canonical_matrix(M), v)
+less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = less_than_zero(M, v)
 function less_than_zero(M::Matrix{Int}, v::Vector{Int})
   nrows, ncols = size(M)
   for i in 1:nrows
@@ -1549,4 +1551,26 @@ function inSeveralCones(Gw::Vector{T}) where {T<:MPolyRingElem}
     return true
   end
   return false
+end
+
+
+#Create a copy of the "lift" function (to export it without conflicts)
+
+function lift2(
+  G::Oscar.IdealGens, # momentane GB
+  current::MonomialOrdering,
+  H::Oscar.IdealGens, # soll GB von initial forms sein
+  target::MonomialOrdering,
+)
+  G = Oscar.IdealGens(
+    [
+      gen - Oscar.IdealGens(
+        [reduce(gen, gens(G); ordering=current, complete_reduction=true)], target
+      )[1] for gen in gens(H)
+    ],
+    target;
+    isGB=true,
+  )
+
+  return G
 end
