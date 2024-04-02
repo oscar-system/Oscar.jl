@@ -6,7 +6,6 @@ const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "ExteriorAlgebra",
   "GModule",
-  "MatrixGroups",
   "ModStd",
   "Rings",
   "Schemes",
