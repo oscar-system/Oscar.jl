@@ -8,7 +8,6 @@ const oldexppkgs = [
   "GModule",
   "MatrixGroups",
   "ModStd",
-  "Rings",
   "Schemes",
 ]
 # DEVELOPER OPTION:
