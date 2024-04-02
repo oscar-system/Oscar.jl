@@ -269,13 +269,13 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   for (key, value) in model_sections
     @req is_effective(toric_divisor_class(value)) "Encountered a non-effective model section"
-    #explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    explicit_model_sections[key] = generic_section(toric_line_bundle(value))
     # Lead to error when computing singular loci - currently only monomials allowed...
-    explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+    #explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
   end
   for (key, value) in internal_model_sections
     @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) model section"
-    explicit_model_sections[key] = generic_section(toric_line_bundle(value));
+    explicit_model_sections[key] = generic_section(toric_line_bundle(value))
   end
 
   # Construct the model

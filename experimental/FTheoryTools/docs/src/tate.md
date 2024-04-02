@@ -162,6 +162,7 @@ tate_section_a3(t::GlobalTateModel)
 tate_section_a4(t::GlobalTateModel)
 tate_section_a6(t::GlobalTateModel)
 tate_polynomial(t::GlobalTateModel)
+tate_ideal_sheaf(t::GlobalTateModel)
 ```
 The base space can be obtained with `base_space`, the ambient space with `ambient_space` and the
 fiber ambient space with `fiber_ambient_space`. Recall that `is_base_space_fully_specified` will
