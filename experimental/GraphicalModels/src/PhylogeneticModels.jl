@@ -166,7 +166,7 @@ end
 function kimura3_model(graph::Graph{Directed})
     ns = 4
     ne = n_edges(graph)
-    R, list_a, list_b , list_c, list_d= polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne, d => 1:ne)
+    R, list_a, list_b , list_c, list_d= polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne, :d => 1:ne)
     
     matrices = Dict{Edge, MatElem}(e => matrix(R, [
       a b c d
@@ -175,7 +175,7 @@ function kimura3_model(graph::Graph{Directed})
       d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edges(graph))
     )
 
-    S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2))
+    S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:4))
     fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
             [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,4]] for (i, e) in zip(1:ne, edges(graph)))
     
