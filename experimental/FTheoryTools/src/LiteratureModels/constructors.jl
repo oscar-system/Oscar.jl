@@ -2,9 +2,44 @@
 #  Structs
 
 struct QSModel
-  P::Polyhedron{QQFieldElem} # maybe these will all be ZZRingElem?
-  ray_generators::Vector{QQFieldElem}
+  hs::HypersurfaceModel
+
+  # what is this??
+  IndexFacetInteriorDivisors::Vector{Int}
   
+  # can be more specific in the future
+  vertices::Vector
+
+  # basic information about V(x_i) restricted to Kbar = Ci
+  GenusCi::Dict{Int, Int}
+  degree_anticanonical_bundle_restricted_to_Ci::Dict{Int, Int}
+  intersections_among_Ci_Cj::Matrix{Int}
+  intersections_among_nontrivial_Ci_Cj::Matrix{Int}
+  
+  # non simplified dual graph
+  dual_graph::Graph{Undirected}
+  components_of_dual_graph::Vector{String}
+  degree_anticanonical_divisor_of_tv_restricted_on_components::Vector{Int}
+  genus_of_components_of_dual_graph::Vector{Int}
+  
+  # simplified dual graph
+  simplified_dual_graph::Graph{Undirected}
+  components_of_simplified_dual_graph::Vector{String}
+  degree_of_Kbar_on_components_simplified_dual_graph::Vector{Int}
+  genus_of_components_of_simplified_dual_graph::Vector{Int}
+
+  # help with heuristics for computing triangulation
+  # if TriangQuick is true then Triangulationestimate is exact
+  TriangQuick::Bool
+  TriangulationEstimate::Int
+  MaxLatticePtsInFacet::Int
+  
+  PolyInx::Int
+  Kbar3::Int
+  h11::Int
+  h12::Int
+  h13::Int
+  h22::Int
 end
 
 
