@@ -10,6 +10,7 @@ const oldexppkgs = [
   "ModStd",
   "Rings",
   "Schemes",
+  "FTheoryTools" # Must be loaded after the schemes.
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -18,7 +19,7 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "BasisLieHighestWeight",   # needs code from LieAlgebras
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
