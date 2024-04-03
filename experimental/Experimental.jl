@@ -5,7 +5,6 @@
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "GModule",
-  "Rings",
   "Schemes",
   "FTheoryTools" # Must be loaded after the schemes.
 ]

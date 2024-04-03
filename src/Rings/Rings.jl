@@ -30,6 +30,7 @@ include("FunctionField.jl")
 include("AbelianClosure.jl")
 include("AlgClosureFp.jl")
 include("Laurent.jl")
+include("binomial_ideals.jl")
 
 include("PBWAlgebra.jl")
 include("PBWAlgebraQuo.jl")

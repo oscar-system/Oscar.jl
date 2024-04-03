@@ -265,8 +265,6 @@ include("Serialization/main.jl")
 
 include("../experimental/Experimental.jl")
 
-include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
-
 if is_dev
 #  include("../examples/ModStdNF.jl")
 #  include("../examples/ModStdQ.jl")
