@@ -1136,7 +1136,7 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   F = base_ring(G)
   n = degree(G)
   q = GAP.Obj(order(F))
-  V = VectorSpace(F, n)
+  V = vector_space(F, n)
   orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))
   orbreps = [GAP.Globals.BasisVectors(GAPWrap.Basis(orb[1])) for orb in orbs]
   stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}

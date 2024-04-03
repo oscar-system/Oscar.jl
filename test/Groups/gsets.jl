@@ -281,7 +281,7 @@ end
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
-    V = VectorSpace(F, n)
+    V = vector_space(F, n)
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]

@@ -1387,7 +1387,7 @@ function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) 
     push!(b, s)
   end
 
-  F = FreeModule(K, length(b); cached = false)
+  F = free_module(K, length(b); cached = false)
   function g(x::T)
     @assert parent(x) == R
     v = zero(F)

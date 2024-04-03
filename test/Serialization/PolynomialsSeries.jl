@@ -117,7 +117,7 @@ cases = [
       end
 
       @testset "Universal Polynomial over $(case[4])" begin
-        R = UniversalPolynomialRing(case[1])
+        R = universal_polynomial_ring(case[1])
         z, w = gens(R, ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
