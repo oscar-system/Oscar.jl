@@ -355,7 +355,7 @@ end
    @test length(string(O4)) > 2
    @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
 
-   K = FreeModule(R, 4)
+   K = free_module(R, 4)
 
    O5 = invlex(gens(K))*degrevlex(gens(R))
    @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
