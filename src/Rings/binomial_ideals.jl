@@ -465,7 +465,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
 
   Delta = cell[2]   #cell variables
   if isempty(Delta)
-    return QQAbModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QQAbModule.QQAb)], Set{Int64}())
+    return QQAbModule.partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QQAb)], Set{Int64}())
   end
 
   #now consider the case where Delta is not empty
@@ -709,7 +709,7 @@ function cellular_associated_primes(I::MPolyIdeal{QQMPolyRingElem}, RQQAb::MPoly
     error("Input ideal is not cellular")
   end
 
-  associated_primes = Vector{MPolyIdeal{Generic.MPoly{QQAbModule.QQAbElem{AbsSimpleNumFieldElem}}}}()  #this will hold the set of associated primes of I
+  associated_primes = Vector{MPolyIdeal{Generic.MPoly{QQAbElem{AbsSimpleNumFieldElem}}}}()  #this will hold the set of associated primes of I
   R = base_ring(I)
   
   U = cellular_standard_monomials(I)  #set of standard monomials

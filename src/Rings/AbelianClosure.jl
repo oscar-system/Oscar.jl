@@ -1153,7 +1153,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 end
 
 """
-    quadratic_irrationality_info(a::QQAbModule.QQAbElem)
+    quadratic_irrationality_info(a::QQAbElem)
 
 Return `(x, y, n)`, where `x`, `y` are of type `QQFieldElem` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.
