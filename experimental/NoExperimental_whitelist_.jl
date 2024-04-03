@@ -7,6 +7,5 @@ whitelist = String[
   "GModule",                    # many doctest failures and `MethodError: no method matching numerator(::QQPolyRingElem)`
   "InvariantTheory",            # `undefined binding 'linearly_reductive_group' in `@docs` block in src/InvariantTheory/reductive_groups.md:53-55` and more docs errors`
   "ModStd",                     # `MethodError: no method matching monomial(::QQMPolyRing, ::Vector{Int64})` and many similar errors
-  "Rings",                      # used by Rings/binomial_ideals.jl, see https://github.com/oscar-system/Oscar.jl/blob/13282dfd07b6aee58e433a45353f48261cda787b/src/Oscar.jl#L268
   "Schemes",                    # TODO: untangle src/AlgebraicGeometry/Schemes/ and experimental/Schemes/
 ]
