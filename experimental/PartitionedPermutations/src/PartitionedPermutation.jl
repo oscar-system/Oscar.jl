@@ -2,28 +2,28 @@
     PartitionedPermutation
 
 The type of partitioned permutations. Fieldnames are
-- p::Perm{Int} - a permutation
+- p::PermGroupElem - a permutation
 - V::SetPartition - a partition
 If the permutation has length `n`, then the partition must have `n` upper points and 0 lower points. 
 Further, if `W` is the partition given by the cycles of `p`, then `W` must be dominated by `V` in the 
 sense that every block of `W` is contained in one block of `V`. There is one inner constructer of PartitionedPermutation:
-- PartitionedPermutation(p::Perm{Int}, V::Vector{Int}) constructs the partitioned permutation where the partition is given by the vector V.
+- PartitionedPermutation(p::PermGroupElem, V::Vector{Int}) constructs the partitioned permutation where the partition is given by the vector V.
 If the optional flag `check` is set to `false`, then the constructor skips the validation of the requirements mentioned above.
 
 # Examples
 ```jldoctest
-julia> PartitionedPermutation(Perm([2, 1, 3]), [1, 1, 2])
+julia> PartitionedPermutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2])
 PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 ```
 """
 struct PartitionedPermutation
-    p::Perm{Int}
+    p::PermGroupElem
     V::SetPartition
 
-    function PartitionedPermutation(p::Perm{Int}, V::Vector{Int}; check::Bool=true)
+    function PartitionedPermutation(p::PermGroupElem, V::Vector{Int}; check::Bool=true)
         _V = set_partition(V, Int[])
         if check
-            @req parent(p).n == length(V) "permutation and partition must have the same length"
+            @req degree(parent(p)) == length(V) "permutation and partition must have the same length"
             @req is_dominated_by(cycle_partition(p), _V) "permutation must be dominated by partition"
         end
         new(p, _V)
@@ -32,17 +32,17 @@ end
 
 
 """
-    partitioned_permutation(p::Perm{Int}, V::Vector{Int}, check::Bool=true)
+    partitioned_permutation(p::PermGroupElem, V::Vector{Int}, check::Bool=true)
 
 Construct and output a `PartitionedPermutation`.
 
 # Examples
 ```jldoctest
-julia> partitioned_permutation(Perm([2, 1, 3]), [1, 1, 2])
+julia> partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2])
 PartitionedPermutation((1,2), SetPartition([1, 1, 2], Int64[]))
 ```
 """
-function partitioned_permutation(p::Perm{Int}, V::Vector{Int}; check::Bool=true)
+function partitioned_permutation(p::PermGroupElem, V::Vector{Int}; check::Bool=true)
     return PartitionedPermutation(p, V; check)
 end
 
@@ -79,7 +79,7 @@ Return the length of a partitioned permutation, i.e. the size of the underlying 
 
 # Examples
 ```jldoctest
-julia> length(partitioned_permutation(Perm([2, 1]), [1, 1]))
+julia> length(partitioned_permutation(perm(symmetric_group(2), [2, 1]), [1, 1]))
 2
 ```
 """
@@ -96,12 +96,12 @@ for a partition `V` and a permutation `pi`.
 
 # Examples
 ```jldoctest
-julia> adjusted_length(partitioned_permutation(Perm([2, 1]), [1, 1]))
+julia> adjusted_length(partitioned_permutation(perm(symmetric_group(2), [2, 1]), [1, 1]))
 1
 ```
 """
 function adjusted_length(pp::PartitionedPermutation)
     p = permutation(pp)
     V = partition(pp)
-    return parent(p).n - (2*number_of_blocks(V) - length(cycles(p)))
+    return degree(parent(p)) - (2*number_of_blocks(V) - length(cycles(p)))
 end

@@ -40,7 +40,7 @@ function enumerate_partitioned_permutations(n::Int)
     
     partitioned_permutations = []
     # Iterate over all permutations
-    for p in Generic.elements!(Generic.SymmetricGroup(n))
+    for p in symmetric_group(n)
         cycle_part = cycle_partition(p)
         number_of_cycles = number_of_blocks(cycle_part)
         cycle_part_vec = upper_points(cycle_part)

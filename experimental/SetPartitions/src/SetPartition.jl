@@ -459,19 +459,19 @@ function is_dominated_by(p::SetPartition, q::SetPartition)
 end
 
 """
-    cycle_partition(p::Perm{Int})
+    cycle_partition(p::PermGroupElem)
 
 Return the set partition whose blocks are the cycles of the permutation `p`. This set partition has no lower points.
 
 # Examples
 ```jldoctest
-julia> cycle_partition(Perm([2, 1, 3]))
+julia> cycle_partition(perm(symmetric_group(3), [2, 1, 3]))
 SetPartition([1, 1, 2], Int64[])
 ```
 """
-function cycle_partition(p::Perm{Int})
+function cycle_partition(p::PermGroupElem)
     cycle_list = collect(cycles(p))
-    n = parent(p).n
+    n = degree(parent(p))
     partition_vector = zeros(Int64, n)
 
     for (index, cycle) in enumerate(cycle_list)
@@ -480,7 +480,7 @@ function cycle_partition(p::Perm{Int})
         end
     end
 
-    return SetPartition(partition_vector, Int64[])
+    return set_partition(partition_vector, Int64[])
 end
 
 """
@@ -491,7 +491,7 @@ iff this is the case in `p` or `q`.
 
 # Examples
 ```jldoctest
-julia> join(SetPartition([1, 2], [2, 3]), SetPartition([1, 2], [1, 3]))
+julia> join(set_partition([1, 2], [2, 3]), set_partition([1, 2], [1, 3]))
 SetPartition([1, 1], [1, 2])
 ```
 """
@@ -499,10 +499,10 @@ function join(p::SetPartition, q::SetPartition)
     @req length(upper_points(p)) == length(upper_points(q)) "p and q must have the same number of upper points"
     @req length(lower_points(p)) == length(lower_points(q)) "p and q must have the same number of lower points"
 
-    _p = SetPartition(vcat(upper_points(p), lower_points(p)), vcat(upper_points(p), lower_points(p)))
-    _q = SetPartition(vcat(upper_points(q), lower_points(q)), vcat(upper_points(q), lower_points(q)))
+    _p = set_partition(vcat(upper_points(p), lower_points(p)), vcat(upper_points(p), lower_points(p)))
+    _q = set_partition(vcat(upper_points(q), lower_points(q)), vcat(upper_points(q), lower_points(q)))
 
     join_p_q = upper_points(compose(_p, _q))
 
-    return SetPartition(join_p_q[1:length(upper_points(p))], join_p_q[(length(upper_points(p))+1):end])
+    return set_partition(join_p_q[1:length(upper_points(p))], join_p_q[(length(upper_points(p))+1):end])
 end

@@ -15,7 +15,9 @@ import Oscar:
     cycles,
     involution,
     join,
-    Perm,
+    PermGroupElem,
+    parent,
+    degree,
     tensor_product,
     @req
 
