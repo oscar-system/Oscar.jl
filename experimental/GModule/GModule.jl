@@ -24,6 +24,7 @@ import Base: parent
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
   Qt = parent(f)
