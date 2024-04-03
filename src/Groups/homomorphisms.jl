@@ -350,12 +350,12 @@ end
 
 
 """
-    preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+    preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
 
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+function preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(GapObj(f), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
@@ -855,8 +855,8 @@ permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGrou
 
 # Now for MultTableGroup
 
-# Remove once Hecke lower bound is >= 0.14.1
-@attributes MultTableGroup
+# # Remove once Hecke lower bound is >= 0.14.1
+# @attributes MultTableGroup
 
 function isomorphism(::Type{T}, A::MultTableGroup) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
@@ -937,6 +937,7 @@ function simplified_fp_group(G::FPGroup)
    H = FPGroup(GAPWrap.Image(f))
    # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
    # is deployed to Oscar
+#T do this as soon as GAP.jl guarantees GAP 4.13!
    GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
    return H, GAPGroupHomomorphism(G,H,f)
 end

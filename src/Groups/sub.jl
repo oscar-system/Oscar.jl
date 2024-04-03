@@ -51,7 +51,7 @@ function sub(gens::GAPGroupElem...)
 end
 
 """
-    is_subset(H::T, G::T) where T <: GAPGroup
+    is_subset(H::GAPGroup, G::GAPGroup)
 
 Return `true` if `H` is a subset of `G`, otherwise return `false`.
 
@@ -66,12 +66,13 @@ julia> is_subset(g, h)
 false
 ```
 """
-function is_subset(H::T, G::T) where T <: GAPGroup
+function is_subset(H::GAPGroup, G::GAPGroup)
+   _check_compatible(H, G, error = false) || return false
    return all(h -> h in G, gens(H))
 end
 
 """
-    is_subgroup(H::T, G::T) where T <: GAPGroup
+    is_subgroup(H::GAPGroup, G::GAPGroup)
 
 Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
 homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
@@ -79,7 +80,7 @@ homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 If you do not need the embedding then better call
 [`is_subset(H::T, G::T) where T <: GAPGroup`](@ref).
 """
-function is_subgroup(H::T, G::T) where T <: GAPGroup
+function is_subgroup(H::GAPGroup, G::GAPGroup)
    if !is_subset(H, G)
       return (false, nothing)
    else
@@ -92,12 +93,12 @@ function is_subgroup(H::T, G::T) where T <: GAPGroup
 end
 
 """
-    embedding(H::T, G::T) where T <: GAPGroup
+    embedding(H::GAPGroup, G::GAPGroup)
 
 Return the embedding morphism of `H` into `G`.
 An exception is thrown if `H` is not a subgroup of `G`.
 """
-function embedding(H::T, G::T) where T <: GAPGroup
+function embedding(H::GAPGroup, G::GAPGroup)
    a, f = is_subgroup(H, G)
    @req a "H is not a subgroup of G"
    return f
@@ -125,7 +126,8 @@ julia> trivial_subgroup(symmetric_group(5))
 ###############################################################################
 
 """
-    index(::Type{I} = ZZRingElem, G::T, H::T) where I <: IntegerUnion where T <: Union{GAPGroup, FinGenAbGroup}
+    index(::Type{I} = ZZRingElem, G::GAPGroup, H::GAPGroup) where I <: IntegerUnion
+    index(::Type{I} = ZZRingElem, G::FinGenAbGroup, H::FinGenAbGroup) where I <: IntegerUnion
 
 Return the index of `H` in `G`, as an instance of type `I`.
 
@@ -137,9 +139,12 @@ julia> index(G,H)
 2
 ```
 """
-index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup} = index(ZZRingElem, G, H)
+index(G::GAPGroup, H::GAPGroup) = index(ZZRingElem, G, H)
 
-function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
+index(G::FinGenAbGroup, H::FinGenAbGroup) = index(ZZRingElem, G, H)
+
+function index(::Type{I}, G::GAPGroup, H::GAPGroup) where I <: IntegerUnion
+   _check_compatible(G, H)
    i = GAP.Globals.Index(GapObj(G), GapObj(H))::GapInt
    @req (i !== GAP.Globals.infinity) "index() not supported for subgroup of infinite index, use is_finite()"
    return I(i)
@@ -288,7 +293,8 @@ Return the centralizer of `H` in `G`, i.e.,
 the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
 in `H`, together with its embedding morphism into `G`.
 """
-function centralizer(G::T, H::T) where T <: GAPGroup
+function centralizer(G::GAPGroup, H::GAPGroup)
+  _check_compatible(G, H)
   return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(H)))
 end
 
@@ -526,7 +532,7 @@ end
 ################################################################################
 
 """
-    is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+    is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
 
 Return whether `H` is a maximal subgroup of `G`, i. e.,
 whether `H` is a proper subgroup of `G` and there is no proper subgroup of `G`
@@ -551,7 +557,7 @@ julia> is_maximal_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[1])
 ERROR: ArgumentError: H is not a subgroup of G
 ```
 """
-function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+function is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
   # In earlier times, `is_maximal` returned `false` if `H` was not a subgroup
   # if `G`, but at that time `G` was the first argument.
   # In order to avoid wrong results due to the reordering of arguments,
@@ -571,7 +577,7 @@ function is_maximal_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
 end
 
 """
-    is_normalized_by(H::T, G::T) where T <: GAPGroup
+    is_normalized_by(H::GAPGroup, G::GAPGroup)
 
 Return whether the group `H` is normalized by `G`, i.e.,
 whether `H` is invariant under conjugation with elements of `G`.
@@ -594,10 +600,14 @@ julia> is_normalized_by(derived_subgroup(G)[1], sylow_subgroup(G, 2)[1])
 true
 ```
 """
-is_normalized_by(H::T, G::T) where T <: GAPGroup = GAPWrap.IsNormal(GapObj(G), GapObj(H))
+function is_normalized_by(H::GAPGroup, G::GAPGroup)
+  _check_compatible(H, G)
+  return GAPWrap.IsNormal(GapObj(G), GapObj(H))
+end
+
 
 """
-    is_normal_subgroup(H::T, G::T) where T <: GAPGroup
+    is_normal_subgroup(H::GAPGroup, G::GAPGroup)
 
 Return whether the group `H` is a normal subgroup of `G`, i.e., whether `H`
 is a subgroup of `G` that is invariant under conjugation with elements of `G`.
@@ -618,12 +628,12 @@ julia> is_normal_subgroup(derived_subgroup(G)[1], sylow_subgroup(G, 2)[1])
 false
 ```
 """
-function is_normal_subgroup(H::T, G::T) where T <: GAPGroup
+function is_normal_subgroup(H::GAPGroup, G::GAPGroup)
   return is_subset(H, G) && is_normalized_by(H, G)
 end
 
 """
-    is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+    is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
 
 Return whether the subgroup `H` of `G` is characteristic in `G`,
 i.e., `H` is invariant under all automorphisms of `G`.
@@ -647,7 +657,7 @@ julia> is_characteristic_subgroup(sylow_subgroup(G, 3)[1], sylow_subgroup(G, 2)[
 ERROR: ArgumentError: H is not a subgroup of G
 ```
 """
-function is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: GAPGroup
+function is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
   if check
     @req is_subset(H, G) "H is not a subgroup of G"
   end
@@ -771,7 +781,7 @@ function quo(::Type{Q}, G::T, elements::Vector{S}) where {Q <: GAPGroup, T <: GA
 end
 
 """
-    quo([::Type{Q}, ]G::T, N::T) where {Q <: GAPGroup, T <: GAPGroup}
+    quo([::Type{Q}, ]G::GAPGroup, N::GAPGroup) where Q <: GAPGroup
 
 Return the quotient group `G/N`, together with the projection `G` -> `G/N`.
 
@@ -800,7 +810,8 @@ julia> typeof(quo(PermGroup, G, N)[1])
 PermGroup
 ```
 """
-function quo(G::T1, N::T2) where {T1 <: GAPGroup, T2 <: GAPGroup}
+function quo(G::GAPGroup, N::GAPGroup)
+  _check_compatible(G, N)
   mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(GapObj(G), GapObj(N))::GapObj
   # The call may have found out new information about `GapObj(G)`,
   # for example that `GapObj(G)` is finite.
@@ -813,7 +824,7 @@ function quo(G::T1, N::T2) where {T1 <: GAPGroup, T2 <: GAPGroup}
   return codom, GAPGroupHomomorphism(G, codom, mp)
 end
 
-function quo(::Type{Q}, G::T1, N::T2) where {Q <: GAPGroup, T1 <: GAPGroup, T2 <: GAPGroup}
+function quo(::Type{Q}, G::GAPGroup, N::GAPGroup) where Q <: GAPGroup
   F, epi = quo(G, N)
   if !(F isa Q)
     map = isomorphism(Q, F)
@@ -1111,19 +1122,17 @@ julia> derived_length(dihedral_group(8))
 
 @doc raw"""
     intersect(V::T...) where T <: Group
-    intersect(V::AbstractVector{T}) where T <: Group
+    intersect(V::AbstractVector{<:GAPGroup})
 
 If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
 together with the embeddings of $K into $G_i$.
 """
-function intersect(G1::T, V::T...) where T<:GAPGroup
+function intersect(G1::GAPGroup, V::GAPGroup...)
    return intersect([G1, V...])
 end
-#T The above method is not sufficient if subgroups can have different types.
-#T (And the result in this case will be wrong.)
 
-function intersect(V::AbstractVector{T}) where T<:GAPGroup
+function intersect(V::AbstractVector{<:GAPGroup})
    L = GapObj(V; recursive=true)
    K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]

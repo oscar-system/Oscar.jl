@@ -535,7 +535,7 @@ stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeM
 
 
 """
-    right_coset_action(G::T, U::T) where T <: GAPGroup
+    right_coset_action(G::GAPGroup, U::GAPGroup)
 
 Compute the action of `G` on the right cosets of its subgroup `U`.
 
@@ -555,7 +555,8 @@ julia> degree(codomain(act)) == index(G, H)
 true
 ```
 """
-function right_coset_action(G::T, U::T) where T <: GAPGroup
+function right_coset_action(G::GAPGroup, U::GAPGroup)
+  _check_compatible(G, U)
   mp = GAP.Globals.FactorCosetAction(G.X, U.X)
   @req mp !== GAP.Globals.fail "Invalid input"
   H = PermGroup(GAPWrap.Range(mp))

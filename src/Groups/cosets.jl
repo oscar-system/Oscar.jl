@@ -73,7 +73,8 @@ Right coset of Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
+#  @assert elem_type(H) == typeof(g)
+# no! the IsSubset test is enough!
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
@@ -243,7 +244,7 @@ true
 is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
-    right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the right cosets of `H` in `G`.
 
@@ -270,12 +271,13 @@ julia> collect(rc)
  Right coset of H with representative (1,4,3)
 ```
 """
-function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
 """
-    left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the left cosets of `H` in `G`.
 
@@ -295,7 +297,8 @@ Left cosets of
   Sym(4)
 ```
 """
-function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
@@ -361,7 +364,7 @@ end
 
 
 """
-    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
@@ -391,14 +394,15 @@ julia> collect(T)
  (1,4,3)
 ```
 """
-function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
    @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
+#T _check_compatible(G, H) ?
    return SubgroupTransversal{T, T, eltype(T)}(G, H, :right,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 """
-    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
+    left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
@@ -428,8 +432,9 @@ julia> collect(T)
  (1,3,4)
 ```
 """
-function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
    @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
+#T _check_compatible(G, H) ?
    return SubgroupTransversal{T, T, eltype(T)}(G, H, :left,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
@@ -518,7 +523,8 @@ Double coset of Sym(3)
   in Sym(5)
 ```
 """
-function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+#T what if g is in some subgroup of a group of which G, H are also a subgroup?
    @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
    @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
@@ -527,7 +533,7 @@ end
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
-    double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+    double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
 
 Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
@@ -550,7 +556,7 @@ julia> double_cosets(G,H,K)
  Double coset of H and K with representative (1,4,3)
 ```
 """
-function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+function double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
    if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else

@@ -186,7 +186,7 @@ function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
    return group_element(G, s)
 end
 
-function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{Gr}) where Gr<:Oscar.GAPGroup
+function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{Gr}) where Gr<:GAPGroup
    return rand(rng, rs[])
 end
 
@@ -234,6 +234,9 @@ end
 
 #We need a lattice of groups to implement this properly
 function _prod(x::T, y::T) where T <: GAPGroupElem
+#T not nec. same type,
+#T and for pc subgroups may need to go to the big group
+#T (write tests that model this situation)
   G = _common_parent_group(parent(x), parent(y))
   return group_element(G, GapObj(x)*GapObj(y))
 end
@@ -286,6 +289,7 @@ function Base.show(io::IO, G::FPGroup)
     end
   else
     print(io, "Finitely presented group")  # FIXME: actually some of these groups are *not* finitely presented
+#T introduce SubFPGroup
     if !is_terse(io)
     if has_order(G)
       if is_finite(G)
@@ -761,12 +765,13 @@ end
 
 # START subgroups conjugation
 """
-    conjugacy_class(G::T, H::T) where T<:Group -> GroupConjClass
+    conjugacy_class(G::Group, H::Group) -> GroupConjClass
 
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
-function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return GAPGroupConjClass(G, g, GAPWrap.ConjugacyClassSubgroups(GapObj(G),GapObj(g)))
+function conjugacy_class(G::GAPGroup, H::GAPGroup)
+#T _check_compatible
+   return GAPGroupConjClass(G, H, GAPWrap.ConjugacyClassSubgroups(GapObj(G),GapObj(H)))
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup

@@ -169,7 +169,7 @@ end
 =#
 
 @doc raw"""
-    abelian_group(::Type{T} = PcGroup, v::Vector{Int}) where T <: Group
+    abelian_group(::Type{T} = PcGroup, v::Vector{S}) where T <: Group where S <: IntegerUnion
 
 Return the direct product of cyclic groups of the orders
 `v[1]`, `v[2]`, $\ldots$, `v[n]`, as an instance of `T`.
@@ -192,7 +192,9 @@ end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubPcGroup} where T <: IntegerUnion
-  if 0 in v || (TG == PcGroup && any(x -> ! is_prime(x), v))
+  if 0 in v
+# if 0 in v || (TG == PcGroup && any(x -> ! is_prime(x), v))
+#T currently GAP's IsPcpGroup runs into various problems, due to at least one bug, so we keep the code from the master branch here.
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
     return TG(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))

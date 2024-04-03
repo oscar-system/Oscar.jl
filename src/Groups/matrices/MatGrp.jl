@@ -435,6 +435,7 @@ function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
 end
 
 comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
+#T why needed? GAPGroupElem has x^-1*x^y
 
 """
     det(x::MatrixGroupElem)

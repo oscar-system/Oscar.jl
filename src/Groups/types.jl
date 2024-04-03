@@ -355,7 +355,7 @@ end
 # *and* compatible with a given Oscar group `G`.
 
 # default: ignore `G`
-_oscar_group(obj::GapObj, G::T) where T <: GAPGroup = T(obj)
+_oscar_group(obj::GapObj, G::GAPGroup ) = T(obj)
 
 # `PermGroup`: set the degree of `G`
 function _oscar_group(obj::GapObj, G::PermGroup)
@@ -392,6 +392,7 @@ end
 #
 # "Coerce" an Oscar group `G` to one that is compatible with
 # the given Oscar group `S`.
+#T what does compatible mean?
 compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(GapObj(G), S)
 
 
@@ -581,3 +582,43 @@ function _get_type(G::GapObj)
   end
   error("Not a known type of group")
 end
+
+# Check the compatibility of two groups in the sense that an element in the
+# first group can be multiplied with an element in the second.
+#T To which group does the product belong?
+#T In which functions is this used?
+# The group *types* can be different,
+
+# and check their *contexts*
+# (in case of f.p. and p.c. groups and matrix groups)
+
+function _check_compatible(G1::GAPGroup, G2::GAPGroup; error::Bool = true)
+  error && throw(ArgumentError("G1 and G2 are not compatible"))
+  return false
+end
+
+# Any two permutation groups are compatible.
+_check_compatible(G1::PermGroup, G2::PermGroup; error::Bool = true) = true
+
+# The underlying GAP groups must belong to the same family.
+function _check_compatible(G1::Union{PcGroup, SubPcGroup}, G2::Union{PcGroup, SubPcGroup}; error::Bool = true)
+  GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
+  error && throw(ArgumentError("G1 and G2 belong to different presentations"))
+  return false
+end
+
+# # The underlying GAP groups must belong to the same family.
+# function _check_compatible(G1::Union{FPGroup, SubFPGroup}, G2::Union{FPGroup, SubFPGroup}; error::Bool = true)
+#   GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
+#   error && throw(ArgumentError("G1 and G2 belong to different presentations"))
+#   return false
+# end
+
+# The groups must have the same dimension and the same base ring.
+function _check_compatible(G1::MatrixGroup, G2::MatrixGroup; error::Bool = true)
+  base_ring(G1) == base_ring(G2) && degree(G1) == degree(G2) && return true
+  error && throw(ArgumentError("G1 and G2 must have same base_ring and degree"))
+  return false
+end
+
+#T FinGenAbGroup: how do they behave?
