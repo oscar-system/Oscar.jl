@@ -69,34 +69,74 @@ end
 @attributes mutable struct WeierstrassModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
   defining_section_parametrization::Dict{String, <: MPolyRingElem}
+  weierstrass_ideal_sheaf::AbsIdealSheaf
   weierstrass_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
+
   function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                             defining_section_parametrization::Dict{String, <: MPolyRingElem},
-                            weierstrass_polynomial::MPolyRingElem,
+                            weierstrass_ideal_sheaf::AbsIdealSheaf,
                             base_space::FTheorySpace,
                             ambient_space::FTheorySpace)
-    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-    return new(explicit_model_sections, defining_section_parametrization, weierstrass_polynomial, base_space, ambient_space, fiber_ambient_space)
+    result = new(explicit_model_sections, defining_section_parametrization)
+    result.weierstrass_ideal_sheaf = weierstrass_ideal_sheaf
+    result.base_space = base_space
+    result.ambient_space = ambient_space
+    result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return result
   end
+
+  function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                          weierstrass_polynomial::MPolyRingElem,
+                          base_space::FTheorySpace,
+                          ambient_space::FTheorySpace)
+    result = new(explicit_model_sections, defining_section_parametrization)
+    result.weierstrass_polynomial = weierstrass_polynomial
+    result.base_space = base_space
+    result.ambient_space = ambient_space
+    result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return result
+  end
+
 end
 
 
 @attributes mutable struct GlobalTateModel <: AbstractFTheoryModel
   explicit_model_sections::Dict{String, <: MPolyRingElem}
   defining_section_parametrization::Dict{String, <: MPolyRingElem}
+  tate_ideal_sheaf::AbsIdealSheaf
   tate_polynomial::MPolyRingElem
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
+
+  function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
+                          defining_section_parametrization::Dict{String, <: MPolyRingElem},
+                          tate_ideal_sheaf::AbsIdealSheaf,
+                          base_space::FTheorySpace,
+                          ambient_space::FTheorySpace)
+    result = new(explicit_model_sections, defining_section_parametrization)
+    result.tate_ideal_sheaf = tate_ideal_sheaf
+    result.base_space = base_space
+    result.ambient_space = ambient_space
+    result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return result
+  end
+
   function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                           defining_section_parametrization::Dict{String, <: MPolyRingElem},
                           tate_polynomial::MPolyRingElem,
                           base_space::FTheorySpace,
                           ambient_space::FTheorySpace)
-    fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-    return new(explicit_model_sections, defining_section_parametrization, tate_polynomial, base_space, ambient_space, fiber_ambient_space)
+    result = new(explicit_model_sections, defining_section_parametrization)
+    result.tate_polynomial = tate_polynomial
+    result.base_space = base_space
+    result.ambient_space = ambient_space
+    result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    return result
   end
+
 end
