@@ -30,6 +30,7 @@ include_dependency(".")
 isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
 if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
   include(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  issubset(whitelist, union(exppkgs, oldexppkgs)) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
   filter!(in(whitelist), exppkgs)
   filter!(in(whitelist), oldexppkgs)
 end
