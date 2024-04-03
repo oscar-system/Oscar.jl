@@ -360,26 +360,23 @@ end
 ###################################################################################
 
 mutable struct PartialCharacter{T}
-  #A has generators of the lattice in rows
-  A::ZZMatrix
-  #images of the generators are saved in b
-  b::Vector{T}
-  #Delta are the indices of the cellular variables of the associated ideal
-  #(the partial character is a partial character on Z^Delta)
-  D::Set{Int64}
-  function PartialCharacter{T}() where T 
+  A::ZZMatrix   # generators of the lattice in rows
+  b::Vector{T}  # images of the generators
+  D::Set{Int64} # indices of the cellular variables of the associated ideal
+  # (the partial character is a partial character on Z^D)
+
+  function PartialCharacter{T}() where {T}
     return new{T}()
   end
 
-  function PartialCharacter{T}(mat::ZZMatrix, vals::Vector{T}) where T
-    z = new{T}()
-    z.A = mat
-    z.b = vals
-    return z
+  function PartialCharacter{T}(mat::ZZMatrix, vals::Vector{T}) where {T}
+    return new{T}(mat, vals)
   end
 end
 
-function partial_character(A::ZZMatrix, vals::Vector{T}, variables::Set{Int} = Set{Int}()) where T <: FieldElem
+function partial_character(
+  A::ZZMatrix, vals::Vector{T}, variables::Set{Int}=Set{Int}()
+) where {T<:FieldElem}
   @assert nrows(A) == length(vals)
   z = PartialCharacter{T}(A, vals)
   if !isempty(variables)
@@ -391,8 +388,8 @@ end
 function (Chi::PartialCharacter)(b::ZZMatrix)
   @assert nrows(b) == 1
   @assert Nemo.ncols(b) == Nemo.ncols(Chi.A)
-  s = solve(Chi.A, b, side = :left)
-  return evaluate(FacElem(Dict([(Chi.b[i], s[1, i]) for i = 1:length(Chi.b)])))
+  s = solve(Chi.A, b; side=:left)
+  return evaluate(FacElem(Dict((Chi.b[i], s[1, i]) for i in 1:length(Chi.b))))
 end
 
 function (Chi::PartialCharacter)(b::Vector{ZZRingElem})
@@ -408,26 +405,21 @@ function have_same_span(A::ZZMatrix, B::ZZMatrix)
   return hnf(A) == hnf(B)
 end
 
+function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where {T<:FieldElem}
+  P === Q && return true
+  !have_same_domain(P, Q) && return false
 
-
-function Base.:(==)(P::PartialCharacter{T}, Q::PartialCharacter{T}) where T <: FieldElem
-  if P === Q
-    return true
-  end
-  if !have_same_domain(P, Q)
-    return false
-  end
-  #now test if the values taken on the generators of the lattices are equal
-  for i = 1:nrows(P.A)
-    TestVec = view(P.A, i:i, 1:Nemo.ncols(P.A))
-    if P(TestVec) != Q(TestVec)
+  # now test if the values taken on the generators of the lattices are equal
+  for i in 1:nrows(P.A)
+    test_vec = view(P.A, i:i, :)
+    if P(test_vec) != Q(test_vec)
       return false
     end
   end
   return true
 end
 
-function saturations(L::PartialCharacter{QQAbElem{T}}) where T
+function saturations(L::PartialCharacter{QQAbElem{T}}) where {T}
   #computes all saturations of the partial character L
   res = PartialCharacter{QQAbElem{T}}[]
 
@@ -438,38 +430,40 @@ function saturations(L::PartialCharacter{QQAbElem{T}}) where T
     return res
   end
 
-  #now not trivial case
+  #now non-trivial case
   H = hnf(transpose(L.A))
   H = view(H, 1:ncols(H), 1:ncols(H))
   i, d = pseudo_inv(H)  #iH = d I_n
   #so, saturation is i' * H // d
-  S = divexact(transpose(i)*L.A, d)
+  S = divexact(transpose(i) * L.A, d)
 
   B = Vector{Vector{QQAbElem{T}}}()
-  for k = 1:nrows(H)
+  for k in 1:nrows(H)
     c = i[1, k]
-    for j = 2:ncols(H)
+    for j in 2:ncols(H)
       c = gcd(c, i[j, k])
       if isone(c)
         break
       end
     end
-    mu = evaluate(FacElem(Dict(Tuple{QQAbElem{T}, ZZRingElem}[(L.b[j], div(i[j, k], c)) for j = 1:ncols(H)])))
+    mu = evaluate(
+      FacElem(Dict{QQAbElem{T},ZZRingElem}((L.b[j], div(i[j, k], c)) for j in 1:ncols(H)))
+    )
     mu1 = roots(mu, Int(div(d, c)))
-    push!(B,  mu1)
+    push!(B, mu1)
   end
   it = Hecke.cartesian_product_iterator(UnitRange{Int}[1:length(x) for x in B])
   vT = Vector{Vector{QQAbElem{T}}}()
   for I in it
-    push!(vT, [B[i][I[i]] for i = 1:length(B)])
+    push!(vT, [B[i][I[i]] for i in 1:length(B)])
   end
-  
-  for k = 1:length(vT)
-    #check if PChar(S,vT[k],L.D) puts on the right value on the lattice generators of L
+
+  for k in 1:length(vT)
+    #check if partial_character(S,vT[k],L.D) puts on the right value on the lattice generators of L
     Pnew = partial_character(S, vT[k], L.D)
     flag = true   #flag if value on lattice generators is right
-    for i = 1:Nemo.nrows(L.A)
-      if Pnew(sub(L.A, i:i ,1:Nemo.ncols(L.A))) != L.b[i]
+    for i in 1:Nemo.nrows(L.A)
+      if Pnew(sub(L.A, i:i, 1:Nemo.ncols(L.A))) != L.b[i]
         flag = false
         println("found wrong saturation (for information), we delete it")
       end

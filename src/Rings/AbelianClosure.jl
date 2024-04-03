@@ -19,7 +19,7 @@
 # Note that there are two possibilities construct a nth root of unity when n is
 # even and n%4!=0. either we can construct the field Q(z_n) or we take -z_(n/2)
 # as a primitive n-th root. to change between these two options, use
-# PCharSaturateAll with allroots or allrootsNew (change this in the code)
+# saturations with allroots or allrootsNew (change this in the code)
 
 abstract type CyclotomicField end
 
