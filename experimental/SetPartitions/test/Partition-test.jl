@@ -90,7 +90,7 @@
         @test !is_dominated_by(set_partition([1, 2, 3], [2, 1, 3, 3]), set_partition([1, 1, 2], [1, 1, 2, 3]))
     
         @test cycle_partition(perm(symmetric_group(5), [2, 1, 3, 5, 4])) == set_partition([1, 1, 2, 3, 3], Int64[])
-        @test cycle_partition(perm(symmetric_group(5), [2, 4, 6, 1, 3, 5])) == set_partition([1, 1, 2, 1, 2, 2], Int64[])
+        @test cycle_partition(perm(symmetric_group(6), [2, 4, 6, 1, 3, 5])) == set_partition([1, 1, 2, 1, 2, 2], Int64[])
     
         @test join(set_partition([1, 2, 3], [2, 1, 4, 4]), set_partition([1, 1, 1], [2, 3, 1, 1])) == set_partition([1, 1, 1], [1, 1, 1, 1])
         @test_throws ArgumentError join(set_partition([1, 2], [2, 1, 4, 4]), set_partition([1, 1, 1], [2, 3, 1, 1]))
