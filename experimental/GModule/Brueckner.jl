@@ -339,23 +339,6 @@ end
 
 Oscar.is_finite(M::AbstractAlgebra.FPModule{<:FinFieldElem}) = true
 
-function Oscar.map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
-    return init
-  end
-  gX = g.X
-
-  if GAP.Globals.IsPcGroup(G.X)
-    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(G.X), gX)
-  else  # GAP.Globals.IsPcpGroup(G.X)
-    l = GAP.Globals.Exponents(gX)
-  end
-  ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
-  return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
-end
-
 """
   mp: G ->> Q
   C a F_p[Q]-module
