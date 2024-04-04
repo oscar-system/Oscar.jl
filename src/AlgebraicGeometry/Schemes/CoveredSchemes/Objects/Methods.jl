@@ -88,7 +88,7 @@ _covering_for_printing(io::IO, X::AbsCoveredScheme) = get(io, :covering, get_att
 # The explanation of the printing are the same as the function above. We need
 # this `_show_semi_compact` for detailed nested printing. Here, we assume that
 # in our nest, we already made precised the base ring of our covered scheme.
-# 
+#
 # We then only print detailed on the covering. Note that in some cases, we night
 # not want to only print the default covering, but a simplified one or a very
 # specific one (when one prints ideal sheaves, for instance). In that case, we
@@ -157,10 +157,18 @@ function base_change(phi::Any, X::AbsCoveredScheme)
 end
 
 
-
+function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
+  @req !is_empty(Xs) "Input should be a non-empty vector."
+  covering = reduce(disjoint_union, default_covering.(Xs))
+  X = CoveredScheme(covering)
+  embed_covering(Xi) = Oscar.refinement_morphism(default_covering(Xi), covering)
+  embed(Xi) = CoveredSchemeMorphism(Xi, X, embed_covering(Xi))
+  injections = embed.(Xs)
+  return X, injections
+end
 
 """
-    normalization(X::AbsCoveredScheme; check::Bool=true) -> Vector{Tuple{CoveredScheme, CoveredSchemeMorphism}}
+    normalization(X::AbsCoveredScheme; check::Bool=true) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
 
 Return the normalization of the reduced scheme ``X``.
 
@@ -176,15 +184,21 @@ and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
 """
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
+  if is_empty(X)
+    return (X, identity_map(X), typeof(identity_map(X))[])
+  end
   irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
-  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]),irred_comps_sheaf[i])
+  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]), irred_comps_sheaf[i])
                 for i in 1:length(irred_comps_sheaf)]
   irred_comps = [domain(inc_i) for inc_i in inc_maps]
-  norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
-  ret_value = [( domain(norm_pairs[i][2]),
-                 compose(norm_pairs[i][2],inc_maps[i]) )
-                 for i in 1:length(norm_pairs)]
-  return ret_value
+  norm_pairs = [_normalization_integral(X_i; check)[2] for X_i in irred_comps]
+  Y, injs = disjoint_union(domain.(norm_pairs))
+  pr_dicts = (morphisms ∘ covering_morphism).(map(compose, norm_pairs, inc_maps))
+  pr_dict = empty(first(pr_dicts))
+  merge!(pr_dict, pr_dicts...)
+  pr_covering_mor = CoveringMorphism(default_covering(Y), default_covering(X), pr_dict; check=false)
+  pr_mor = CoveredSchemeMorphism(Y, X, pr_covering_mor; check=false)
+  return Y, pr_mor, injs
 end
 
 function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)
