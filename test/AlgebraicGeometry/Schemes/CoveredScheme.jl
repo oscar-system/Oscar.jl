@@ -328,7 +328,7 @@
     X = covered_scheme(proj(R, I))
     N = normalization(X)
     # trigger the computation of some gluings
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
     gluing_morphisms(Cnorm[1,3])
@@ -341,7 +341,7 @@
     X = covered_scheme(proj(R, I))
     N = normalization(X)
     # trigger the computation of some gluings
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
 
@@ -351,10 +351,8 @@
     X = proj(S, J)
     Xcov = covered_scheme(X)
     N = normalization(Xcov);
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
-
-
   end
 end
