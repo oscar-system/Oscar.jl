@@ -1563,11 +1563,6 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return GModule(group(C), [hom(A, A, map_entries(x->lift(ZZ, x), hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...))) for y = C.ac])
 end
 
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
-  A = free_abelian_group(rank(C.M))
-  return Oscar.gmodule(Group(C), [hom(A, A, matrix(x)) for x = C.ac])
-end
-
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{<:Union{FpFieldElem, fpFieldElem}}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
