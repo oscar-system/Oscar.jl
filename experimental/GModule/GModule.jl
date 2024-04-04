@@ -143,6 +143,23 @@ function can_be_defined_over(M::GModule, phi::Map)
   error("not yet ...")
 end
 
+function can_be_defined_over(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+  return true
+end
+
 
 """
     can_be_defined_over_with_data(M::GModule, phi::Map)
@@ -160,6 +177,39 @@ and `psi` is a map from `N` to `M`.
 """
 function can_be_defined_over_with_data(M::GModule, phi::Map)
   error("not yet ...")
+end
+
+function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+
+  B = hB[1]
+  D = norm(B, s, os)
+  lambda = D[1,1]
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
+  alpha = norm_equation(K, preimage(phi, lambda))
+  B *= inv(alpha)
+  @hassert :MinField 2 isone(norm(B, s, os))
+  D = hilbert90_cyclic(B, s, os)
+  Di = inv(D)
+  F = free_module(k, dim(M))
+  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])
+  # TODO: Get this map working
+  # psi = GModuleHom(N, M, , phi)
+  psi = nothing
+  return (true, N, psi)
 end
 
 
