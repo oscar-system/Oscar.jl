@@ -147,15 +147,15 @@ function kimura2_model(graph::Graph{Directed})
     R, list_a, list_b, list_c = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne)
     
     matrices = Dict{Edge, MatElem}(e => matrix(R, [
-      a b c c
+      a b c b
       b a b c
       c b a b
-      c c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edges(graph))
+      b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edges(graph))
     )
 
     S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3))
     fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-            [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,3]] for (i, e) in zip(1:ne, edges(graph)))
+            [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
     
     group = [[0,0], [0,1], [1,0], [1,1]]
 
@@ -170,8 +170,8 @@ function kimura3_model(graph::Graph{Directed})
     
     matrices = Dict{Edge, MatElem}(e => matrix(R, [
       a b c d
-      b a b c
-      c b a b
+      b a d c
+      c d a b
       d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edges(graph))
     )
 
