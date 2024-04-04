@@ -75,21 +75,21 @@ false
 # Base.is_finite(G::PcGroup) = true
 
 """
-    is_finiteorder(g::GAPGroupElem) -> Bool
+    is_finite_order(g::GAPGroupElem) -> Bool
 
 Return `true` if `g` has finite order, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> is_finiteorder(gen(symmetric_group(5), 1))
+julia> is_finite_order(gen(symmetric_group(5), 1))
 true
 
-julia> is_finiteorder(gen(free_group(2), 1))
+julia> is_finite_order(gen(free_group(2), 1))
 false
 
 ```
 """
-is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
+is_finite_order(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
 
 """
@@ -103,7 +103,7 @@ For a group `x`, the order of `x` is the number of elements in `x`.
 
 An exception is thrown if the order of `x` is infinite,
 use [`is_finite`](@ref) for checking the finiteness of a group,
-and [`is_finiteorder`](@ref) for checking whether a group element
+and [`is_finite_order`](@ref) for checking whether a group element
 has finite order.
 
 # Examples
@@ -121,7 +121,7 @@ julia> g = free_group(1);
 julia> is_finite(g)
 false
 
-julia> is_finiteorder(gen(g, 1))
+julia> is_finite_order(gen(g, 1))
 false
 ```
 """
