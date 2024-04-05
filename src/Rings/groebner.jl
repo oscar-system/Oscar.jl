@@ -56,6 +56,12 @@ function groebner_assure(I::MPolyIdeal, ordering::MonomialOrdering, complete_red
     end
 end
 
+function oscar_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
+  standard_basis(I, ordering=ordering, complete_reduction = complete_reduction)
+  oscar_assure(I.gb[ordering])
+  return I.gb[ordering].gens.O
+end
+
 function singular_groebner_generators(I::MPolyIdeal, ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool = false)
   standard_basis(I, ordering=ordering, complete_reduction = complete_reduction)
   return singular_generators(I.gb[ordering], ordering)
@@ -1042,7 +1048,7 @@ function _normal_form_f4(A::Vector{T}, J::MPolyIdeal) where { T <: MPolyRingElem
   end
 
   AJ = AlgebraicSolving.Ideal(J.gens.O)
-  AJ.gb[0] = J.gb[degrevlex(base_ring(J))].gens.O
+  AJ.gb[0] = oscar_groebner_generators(J, degrevlex(base_ring(J)), true)
   
   return AlgebraicSolving.normal_form(A, AJ)
 end

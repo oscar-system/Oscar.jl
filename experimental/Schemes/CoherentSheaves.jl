@@ -44,7 +44,6 @@ function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
   io = pretty(io)
   X = scheme(M)
   cov = default_covering(X)
-  D = M.ID
   print(io, "Coherent sheaf of modules")
   if has_attribute(M, :name)
     print(io, " ", get_attribute(M, :name))
@@ -62,7 +61,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::AbsCoherentSheaf)
       li = ndigits(i)
       U = cov[i]
       println(io)
-      print(io, " "^(l-li)*"$i: ", Lowercase(), D[U])
+      print(io, " "^(l-li)*"$i: ", Lowercase(), M(U))
     end
   end
   print(io, Dedent())

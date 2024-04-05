@@ -240,7 +240,17 @@ Covering
     hb_V_mat = matrix(ZZ, hb_V)
     hb_V_img = hb_V_mat * At
     hb_U_mat = matrix(ZZ, hb_U)
-    sol = solve(hb_U_mat, hb_V_img; side = :left)
+    #sol = solve(hb_U_mat, hb_V_img; side = :left) # deprecated! It was giving vectors with negative entries.
+    id_mat = identity_matrix(ZZ, nrows(hb_U_mat))
+    offset_mat = zero_matrix(ZZ, nrows(hb_U_mat), 1)
+    sol_list = Vector{ZZMatrix}()
+    for k in 1:nrows(hb_V_img)
+      b = transpose(hb_V_img[k:k, :])
+      push!(sol_list, solve_mixed(ZZMatrix, transpose(hb_U_mat), b, id_mat, offset_mat))
+    end
+    # For some weird reason `solve_mixed` solves A*x = b, but returns x as a 1xn-matrix (not nx1).
+    sol = vcat(sol_list...)
+
     @assert sol*hb_U_mat == hb_V_img
     @assert all(x->x>=0, sol)
 

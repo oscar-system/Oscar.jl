@@ -106,9 +106,9 @@ end
   X = covered_scheme(P)
   U = affine_charts(X)
   @test pbII(U[1]) isa Ideal
-  @test !haskey(pbII.I.obj_cache, U[2])
+  @test !haskey(Oscar.object_cache(pbII), U[2])
   @test pbII(U[2]) isa Ideal
-  @test haskey(pbII.I.obj_cache, U[2])
+  @test haskey(Oscar.object_cache(pbII), U[2])
 end
 
 @testset "colength of ideal sheaves" begin
