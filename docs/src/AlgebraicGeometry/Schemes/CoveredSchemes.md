@@ -27,6 +27,11 @@ In most cases, however, you may wish for the computer to provide you with a read
     covered_scheme(P::ProjectiveScheme)
 ```
 
+Other constructors:
+```@docs
+disjoint_union(Xs::Vector{<:AbsCoveredScheme})
+```
+
 ## Attributes
 To access the affine charts of a `CoveredScheme` $X$ use
 ```@docs
@@ -46,7 +51,6 @@ An `AbsCoveredScheme` may have different properties such as
 
 ## Methods
 ```@docs
-    disjoint_union(Xs::Vector{<:AbsCoveredScheme})
     fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     normalization(X::AbsCoveredScheme; check::Bool=true)
 ```
