@@ -157,7 +157,7 @@ function base_change(phi::Any, X::AbsCoveredScheme)
 end
 
 @doc raw"""
-    function disjoint_union(Xs::Vector{<:AbsCoveredScheme}) -> (AbsCoveredScheme, Vector{<:AbsCoveredSchemeMor})
+    disjoint_union(Xs::Vector{<:AbsCoveredScheme}) -> (AbsCoveredScheme, Vector{<:AbsCoveredSchemeMor})
 
 Return the disjoint union of the non-empty vector of covered schemes as
 a covered scheme.
@@ -252,7 +252,7 @@ Return the normalization of the reduced scheme ``X``.
 
 # Output:
 A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
-normal scheme, ``\nu`` is the normalization, and $\mathrm{injs}$ is a
+normal scheme, ``\nu`` is the normalization, and ``\mathrm{injs}`` is a
 vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
 the connected components of the scheme ``Y``.
 See `https://stacks.math.columbia.edu/tag/0CDV` in [Stacks](@cite) or
