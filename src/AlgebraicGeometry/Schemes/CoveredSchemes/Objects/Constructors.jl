@@ -68,6 +68,91 @@ function CoveredScheme(C::Covering)
   return X
 end
 
+@doc raw"""
+    disjoint_union(Xs::Vector{<:AbsCoveredScheme}) -> (AbsCoveredScheme, Vector{<:AbsCoveredSchemeMor})
+
+Return the disjoint union of the non-empty vector of covered schemes as
+a covered scheme.
+
+# Input:
+- a vector `Xs` of covered schemes.
+
+# Output:
+A pair ``(X, \mathrm{injections})`` where ``X`` is a covered scheme and
+``\mathrm{injections}`` is a vector of inclusion morphisms ``ı_i\colon
+X_i \to X``, where ``X`` is the disjoint union of the covered schemes
+``X_i`` in `Xs`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+
+julia> I_1 = ideal(R, z*x^2 + y^3);
+
+julia> I_2 = ideal(R, x^2 + y^2);
+
+julia> X_1 = covered_scheme(proj(R, I_1))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> X_2 = covered_scheme(proj(R, I_2))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^2 + 1)
+    2: scheme((x//y)^2 + 1)
+    3: scheme((x//z)^2 + (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> X, injections = disjoint_union([X_1, X_2]);
+
+julia> X
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+    4: scheme((y//x)^2 + 1)
+    5: scheme((x//y)^2 + 1)
+    6: scheme((x//z)^2 + (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+    4: [(y//x), (z//x)]
+    5: [(x//y), (z//y)]
+    6: [(x//z), (y//z)]
+
+julia> injections
+2-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+"""
+function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
+  @req !is_empty(Xs) "Input should be a non-empty vector."
+  covering = reduce(disjoint_union, default_covering.(Xs))
+  X = CoveredScheme(covering)
+  embed_covering(Xi) = Oscar.refinement_morphism(default_covering(Xi), covering)
+  embed(Xi) = CoveredSchemeMorphism(Xi, X, embed_covering(Xi))
+  injections = embed.(Xs)
+  return X, injections
+end
+
 ### Conversion of an affine scheme into a covered scheme
 CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
 
@@ -75,4 +160,3 @@ CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
 function empty_covered_scheme(R::RT) where {RT<:AbstractAlgebra.Ring}
   return CoveredScheme(R)
 end
-
