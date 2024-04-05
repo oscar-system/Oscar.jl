@@ -22,9 +22,9 @@ out.
 
 ## Constructors
 ```@docs
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
-    morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+    morphism(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
 ```
 ## Attributes
 As every instance of `Map`, a morphism of projective schemes can be asked for its (co-)domain:

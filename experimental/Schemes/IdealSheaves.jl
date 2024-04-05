@@ -61,7 +61,7 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyIdeal)
   for U in patches(C)
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
-  return IdealSheaf(X_covered, I, check=true)
+  return IdealSheaf(X_covered, I, check=false)
 end
 
 function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
@@ -75,7 +75,7 @@ function IdealSheaf(X::AbsProjectiveScheme, I::MPolyQuoIdeal)
   for U in patches(C)
     I[U] = ideal(OO(U), dehomogenization_map(X, U).(g))
   end
-  return IdealSheaf(X_covered, I, check=true)
+  return IdealSheaf(X_covered, I, check=false)
 end
 
 ideal_sheaf(X::AbsProjectiveScheme, I::MPolyIdeal) = IdealSheaf(X, I)
@@ -296,31 +296,31 @@ end
 Replaces the set of generators of the ideal sheaf by a minimal
 set of random linear combinations in every affine patch.
 """
-function simplify!(I::AbsIdealSheaf)
-  new_ideal_dict = IdDict{AbsAffineScheme, Ideal}()
-  for U in basic_patches(default_covering(space(I)))
-    new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
-    #=
-    n = ngens(I(U))
-    n == 0 && continue
-    R = ambient_coordinate_ring(U)
-    kk = coefficient_ring(R)
-    new_gens = elem_type(OO(U))[]
-    K = ideal(OO(U), new_gens)
-    while !issubset(I(U), K)
-      new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
-      while new_gen in K
-        new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
-      end
-      push!(new_gens, new_gen)
-      K = ideal(OO(U), new_gens)
-    end
-    Oscar.object_cache(underlying_presheaf(I))[U] = K
-    =#
+function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
+  object_cache = I.I.obj_cache
+
+  for U in basic_patches(cov)
+    #if !any(U===i for i in keys(object_cache))
+    #  continue
+    #end
+    object_cache[U] = ideal(OO(U), small_generating_set(I(U)))
   end
   I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
   #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
+end
+
+@doc raw"""
+    simplify(I::IdealSheaf)
+
+Replaces the set of generators of the ideal sheaf by a minimal 
+set of random linear combinations in every affine patch. 
+"""
+function simplify(I::IdealSheaf, cov::Covering=default_covering(scheme(I)))
+  id_dict = IdDict{AbsAffineScheme, Ideal}(
+                U => ideal(OO(U), small_generating_set(saturated_ideal(I(U)))) for U in patches(cov)
+              )
+  return IdealSheaf(scheme(I), id_dict; check=false)
 end
 
 @doc """
@@ -560,8 +560,38 @@ end
 
 function is_one(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   return get_attribute!(I, :is_one) do
+    for U in keys(object_cache(I))
+      !is_one(cheap_sub_ideal(I, U)) && !is_one(I(U)) && return false
+    end
     return all(x->isone(I(x)), covering)
   end::Bool
+end
+
+function is_one(I::PrimeIdealSheafFromChart; covering::Covering=default_covering(scheme(I)))
+  return false
+end
+
+function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  return get_attribute!(I, :is_one) do
+    J = summands(I)
+    k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+    if k !== nothing
+      P = J[k]
+      U = original_chart(P)
+      if !is_one(cheap_sub_ideal(I, U))
+        is_one(I(U)) || return false
+      end
+    end
+
+    for U in keys(object_cache(I))
+      !is_one(I(U)) && return false
+    end
+    return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
+  end::Bool
+end
+
+function is_one(I::ProductIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  return all(x->is_one(x), factors(I))
 end
 
 @doc raw"""
@@ -806,7 +836,9 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
       isone(J) && continue
     end
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
+    dim(I(U)) == dim(I) || continue                  ## components of lesser dimension can be discarded
     components_here = minimal_primes(I(U))
+    @assert all(p->dim(p) == dim(I), components_here) "not all minimal primes have the correct dimension"
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the
       # decomposition_info in this chart
@@ -1123,7 +1155,7 @@ function Base.show(io::IO, ::MIME"text/plain", I::ProductIdealSheaf)
     print(io, J, "\n")
   end
   print(io, Dedent())
-end
+ end
 
 function Base.show(io::IO, I::SumIdealSheaf)
   io = pretty(io)
@@ -1519,10 +1551,11 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
+      complement_equation(codomain(g)) in F(W) && continue # We know the ideal is prime. No need to saturate!
       I2 = F(codomain(g))
       I = pullback(g)(I2)
-      isone(I) && continue
-      return OOX(V2, U2)(ideal(OO(V2), gens(saturated_ideal(I))))
+      I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
+      return OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
     else
       Z = subscheme(W, F(W))
       pZ = preimage(g, Z, check=false)
@@ -1554,7 +1587,7 @@ end
 original_ideal_sheaf(I::SimplifiedIdealSheaf) = I.orig
 
 function produce_object(I::SimplifiedIdealSheaf, U::AbsAffineScheme)
-  return ideal(OO(U), small_generating_set(original_ideal_sheaf(I)(U)))
+  return ideal(OO(U), small_generating_set(saturated_ideal(original_ideal_sheaf(I)(U))))
 end
 
 ### PullbackIdealSheaf
@@ -1627,10 +1660,176 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
   return OO(X)(V, U)(I(V))
 end
 
+########################################################################
+# Cheap previews of an ideal sheaf
+#
+# In some applications it is already sufficient to get one's hands on 
+# some subideal J ⊂ I on an open patch U. For instance, if one wants to 
+# know whether I + K is the unit ideal on U: If this already holds for J + K, 
+# then we do not need to go through the hustle of computing I.
+########################################################################
+
+# The default knows nothing about the ideal sheaf, so we do nothing special
+function cheap_sub_ideal(II::AbsIdealSheaf, U::AbsAffineScheme)
+  return II(U)
+end
+
+function cheap_sub_ideal(II::SumIdealSheaf, U::AbsAffineScheme)
+  return sum(cheap_sub_ideal(J, U) for J in summands(II); init = ideal(OO(U), elem_type(OO(U))[]))
+end
+
+function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
+  U2 === original_chart(II) && return II(U2)
+  haskey(object_cache(II), U2) && return II(U2)
+
+  haskey(II.cheap_sub_ideals, U2) && return II.cheap_sub_ideals[U2]
+
+  # A modification of the code in produce_object
+
+  # Initialize some local variables
+  X = scheme(II)
+  OOX = OO(X)
+  U = original_chart(II)
+
+  # we are in the same ancestor tree, but on top of the defining chart
+  if has_ancestor(x->(x===U2), U)
+    iso = _flatten_open_subscheme(U, U2)
+    iso_inv = inverse(iso)
+    pb_P = pullback(iso_inv)(P)
+    result = ideal(OO(U2), [g for g in OO(U2).(lifted_numerator.(gens(pb_P))) if !iszero(g)])
+    II.cheap_sub_ideals[U2] = result
+    return result
+  end
+
+  V = __find_chart(U, default_covering(X))
+  # we are in the same ancestor tree, but somewhere else;
+  # reconstruct from the root
+  if has_ancestor(x->(x===V), U2)
+    result = OOX(V, U2)(cheap_sub_ideal(II, V))
+    II.cheap_sub_ideals[U2] = result
+    return result
+  end
+
+  # we are in a different tree;
+  # reconstruct from that root
+  V2 = __find_chart(U2, default_covering(X))
+  if haskey(object_cache(II), V2) && V2 !== U2
+    result = OOX(V2, U2)(II(V2))
+    II.cheap_sub_ideals[U2] = result
+    return result
+  end
+
+  II(V) # Fill the cache with at least one element
+
+  fat = [W for W in keys(object_cache(II)) if any(x->x===W, affine_charts(X)) && !isone(II(W))]
+
+  function complexity(X1::AbsAffineScheme)
+    init = maximum(total_degree.(lifted_numerator.(gens(II(X1)))); init=0)
+    glue = default_covering(X)[V, X1]
+    if glue isa SimpleGluing || (glue isa LazyGluing && is_computed(glue))
+      return init
+    end
+    return init + 1000
+  end
+
+  ext = [(U, complexity(U)) for U in fat]
+  sort!(ext, by=x->x[2])
+  fat = [U for (U, _) in ext]
+  for W in fat
+    glue = default_covering(X)[W, V2]
+    f, g = gluing_morphisms(glue)
+    if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
+      I2 = II(codomain(g))
+      complement_equation(codomain(g)) in I2 && continue
+      I = pullback(g)(I2)
+    # isone(I) && continue
+      result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
+      II.cheap_sub_ideals[U2] = result
+      return result
+    else
+      Z = subscheme(W, II(W))
+      pZ = preimage(g, Z, check=false)
+      is_empty(pZ) && continue
+      ZV = closure(pZ, V2, check=false)
+      result = OOX(V2, U2)(ideal(OO(V2), [g for g in OO(V2).(lifted_numerator.(gens(modulus(OO(ZV))))) if !iszero(g)]))
+      II.cheap_sub_ideals[U2] = result
+      return result
+    end
+  end
+  # If nothing pulls back to this chart, the ideal sheaf is trivial here.
+  result = ideal(OO(U2), one(OO(U2)))
+  II.cheap_sub_ideals[U2] = result
+  return result
+end
+
+function cheap_sub_ideal(I::PullbackIdealSheaf, U::AbsAffineScheme)
+  f = morphism(I)
+  J = original_ideal_sheaf(I)
+  f_cov = covering_morphism(f)
+  dom = domain(f_cov)
+  X = scheme(I)
+
+  # The easy case: We can just pull back
+  if any(x->x===U, patches(dom))
+    f_loc = f_cov[U]
+    V = codomain(f_loc)
+    return pullback(f_loc)(cheap_sub_ideal(original_ideal_sheaf(I), V))
+  end
+
+  # We are in a chart below a patch in the domain covering
+  if has_ancestor(x->any(y->y===x, patches(dom)), U)
+    V = __find_chart(U, dom)
+    return OO(X)(V, U)(cheap_sub_ideal(I, V))
+  end
+
+  # We are in some other branch.
+  V = __find_chart(U, default_covering(X))
+
+  if V === U
+    # Construct the ideal directly on the root
+    subs = AbsAffineScheme[V for V in patches(dom) if has_ancestor(x->x===U, V)]
+    length(subs) == 0 && return ideal(OO(U), one(OO(U))) # In this case really nothing is defined here.
+    # Just return the unit ideal so that the 
+    # associated subscheme is empty.
+    result = ideal(OO(U), one(OO(U)))
+    sub_surface = AbsAffineScheme[]
+    for V in subs
+      cut = false
+      while !cut
+        if V isa SimplifiedAffineScheme && original(V) !== U
+          V = original(V)
+          continue
+        end
+        if V isa PrincipalOpenSubset && ambient_scheme(V) !== U
+          V = ambient_scheme(V)
+          continue
+        end
+        cut = true
+      end
+      any(x->x===V, sub_surface) && continue
+      push!(sub_surface, V)
+    end
+
+    if any(x->(x isa SimplifiedAffineScheme), sub_surface)
+      i = findfirst(x->(x isa SimplifiedAffineScheme), sub_surface)
+      W = sub_surface[i]
+      _, g = identification_maps(W)
+      return ideal(OO(U), pullback(g).(gens(cheap_sub_ideal(I, W))))
+    end
+
+    for VV in sub_surface
+      result = intersect(result, ideal(OO(U), gens(saturated_ideal(cheap_sub_ideal(I, VV)))))
+    end
+    return result
+  end
+
+  # Infer the ideal from the root
+  return OO(X)(V, U)(cheap_sub_ideal(I, V))
+end
+
 function sub(I::AbsIdealSheaf)
   X = scheme(I)
   inc = CoveredClosedEmbedding(X, I)
   return domain(inc), inc
 end
-
 

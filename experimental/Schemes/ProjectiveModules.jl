@@ -238,7 +238,7 @@ function _is_projective_without_denominators(A::MatElem;
       end
     end
     return true, L, mpow
-  elseif task==:without_projector
+  elseif task==:without_projector 
     return true, zero_matrix(R, n, n), 0
   end
   error("task could not be identified")
@@ -257,7 +257,7 @@ _lifted_numerator(a::MPolyQuoLocRingElem) = lifted_numerator(a)
 ########################################################################
 # Various localization routines for localizing at powers of elements   #
 #                                                                      #
-# This deserves special constructors, because we can deliver maps for  #
+# This deserves special constructors, because we can deliver maps for  # 
 # lifting which is not possible in general.                            #
 ########################################################################
 function localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
@@ -269,14 +269,14 @@ function localization(A::MPolyQuoRing, f::MPolyQuoRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any,
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                                  <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
     iszero(numerator(a)) && return zero(A)
     isone(lifted_denominator(a)) && return A(lifted_numerator(a))
     success, c = divides(numerator(a), denominator(a))
-    if !success
+    if !success 
       error("lifting not possible")
     end
     return c
@@ -293,7 +293,7 @@ function localization(A::MPolyLocRing, f::MPolyLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a, check=false)
   end
-  function func_inv(a::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any,
+  function func_inv(a::MPolyLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -314,7 +314,7 @@ function localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
     parent(a) == A || error("element does not belong to the correct ring")
     return L(a)
   end
-  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any,
+  function func_inv(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, 
                                               <:MPolyPowersOfElement}
     )
     L == parent(a) || error("element does not belong to the correct ring")
@@ -322,7 +322,7 @@ function localization(A::MPolyQuoLocRing, f::MPolyQuoLocRingElem)
     iszero(numerator(a)) && return zero(A)
     i, o = ppio(lifted_denominator(a), d)
     success, c = divides(numerator(a), parent(numerator(a))(i))
-    if !success
+    if !success 
       # last resort:
       return A(lifted_numerator(a), lifted_denominator(a))
     end

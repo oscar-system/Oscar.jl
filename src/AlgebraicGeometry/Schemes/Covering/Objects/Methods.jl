@@ -352,7 +352,7 @@ function common_refinement(C::Covering, D::Covering)
   #TODO: Check that all leftover dirty patches are already
   #covered by those in the keysets. What if this is not the case?
 
-  E = Covering(collect(keys(map_dict_C)))
+  E = Covering(collect(keys(map_dict_C)), check=false)
   #TODO: How to inherit the gluings?
   phi = CoveringMorphism(E, C, map_dict_C, check=false)
   psi = CoveringMorphism(E, D, map_dict_D, check=false)
@@ -392,7 +392,7 @@ function base_change(phi::Any, C::Covering)
       gluing_dict[A, B] = GG
     end
   end
-  CC = Covering([V for (V, _) in patch_change], gluing_dict)
+  CC = Covering([V for (V, _) in patch_change], gluing_dict, check=false)
 
   mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for (V, phi) in patch_change

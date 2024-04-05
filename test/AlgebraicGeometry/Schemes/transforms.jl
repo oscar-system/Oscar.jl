@@ -71,13 +71,13 @@ end
   dimsL1 = [dim(a) for a in L1]
   dimsL2 = [dim(a) for a in L2]
   @test length(L1) == 3
-  @test length(L2) == 2
+  @test length(L2) == 1
   onesinL1 = findall(x->x==1,dimsL1)
   zerosinL1 = findall(x->x==0,dimsL1)
   onesinL2 = findall(x->x==1,dimsL2)
   zerosinL2 = findall(x->x==0,dimsL2)
   @test length(onesinL1) == 1
   @test length(zerosinL1) == 2
-  @test length(zerosinL2) == 1
+  @test length(zerosinL2) == 0
   @test length(onesinL2) == 1
 end

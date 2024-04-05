@@ -1498,7 +1498,7 @@ function Base.show(io::IO, b::BettiTable)
     print(io, "Empty table")
     return
   end
-  
+
   T = induce_shift(b.B)
   x = collect(keys(T))
   if isempty(x)
@@ -1513,7 +1513,7 @@ function Base.show(io::IO, b::BettiTable)
     col_width_from_header = ndigits(abs(j))# + (j < 0 ? 1 : 0)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
   end
-  
+
   if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
@@ -1609,8 +1609,6 @@ function Base.show(io::IO, b::BettiTable)
     end
   end
 end
-
-
 
 
 
@@ -2689,11 +2687,15 @@ Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivari
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
 
 Put more precisely, return the truncation as an object of type `SubquoModule`. 
+
 Additionally, if `N` denotes this object,
+
 - return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
 - return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
 - do none of the above if `task = :none`.
+
 If `task = :only_morphism`, return only the inclusion map.
+
     truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
 
 Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
