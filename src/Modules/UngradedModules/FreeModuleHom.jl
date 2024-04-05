@@ -401,7 +401,6 @@ function hom(F::FreeMod, G::FreeMod)
   return GH, to_hom_map
 end
 
-
 @doc raw"""
     kernel(a::FreeModuleHom)
 

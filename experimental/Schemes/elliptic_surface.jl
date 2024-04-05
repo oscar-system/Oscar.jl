@@ -462,7 +462,7 @@ function _separate_singularities!(X::EllipticSurface)
   P = codomain(inc_S)
 
   I_sing = ideal_sheaf_of_singular_locus(S)
-  I_sing_P = radical(pushforward(inc_S)(I_sing))
+  I_sing_P = SimplifiedIdealSheaf(pushforward(inc_S)(I_sing))
 
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
@@ -594,6 +594,8 @@ function weierstrass_contraction(X::EllipticSurface)
   X0 = codomain(inc_S)
   Y0 = S
   inc_Y0 = inc_S
+  I_sing_Y0 = maximal_associated_points(ideal_sheaf_of_singular_locus(Y0))::Vector{<:AbsIdealSheaf}
+  I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
 
 
   ambient_exceptionals = EffectiveCartierDivisor[]
@@ -607,13 +609,8 @@ function weierstrass_contraction(X::EllipticSurface)
   while true
     count = count+1
     @vprint :EllipticSurface 1 "blowup number: $(count)\n"
-    @vprint :EllipticSurface 2 "computing singular locus\n"
-    I_sing_Y0 = ideal_sheaf_of_singular_locus(Y0)
-    @vprint :EllipticSurface 2 "decomposing singular locus\n"
-    I_sing_Y0 = maximal_associated_points(I_sing_Y0)
-    I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
-    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_Y0))\n"
-    if length(I_sing_Y0)==0
+    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_X0))\n"
+    if length(I_sing_X0)==0
       # stop if smooth
       break
     end
@@ -635,7 +632,7 @@ function weierstrass_contraction(X::EllipticSurface)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = simplify(I_sing_X0[1])#, cov)
+    J = SimplifiedIdealSheaf(I_sing_X0[1])
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
@@ -652,6 +649,16 @@ function weierstrass_contraction(X::EllipticSurface)
     push!(ambient_exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+
+    # transform the singular loci
+    I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
+
+    # Add eventual new components
+    @vprint :EllipticSurface 2 "computing singular locus\n"
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1)
+    I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    @vprint :EllipticSurface 2 "decomposing singular locus\n"
+    I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
 
     push!(projectionsX, pr_X1)
     push!(projectionsY, pr_Y1)
@@ -838,6 +845,8 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
     for j in 1:i-1
       @vprint :EllipticSurface 4 "$(j) "
       # we know the intersections are 0 or 1
+      G[i, j] = G[j, i] = intersect(f[i], f[j])
+      continue
       if isone(components(f[i])[1]+components(f[j])[1])
         G[i,j] = 0
       else

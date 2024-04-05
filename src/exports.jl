@@ -999,7 +999,6 @@ export monomials_of_degree
 export mori_cone
 export morphism
 export morphism_from_cox_variety
-export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group

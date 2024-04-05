@@ -150,6 +150,19 @@ end
   FP = FreeMod(P, rank(F))
   IFP, inc = I*FP
   M, p = quo(FP, IFP)
+
+  # Set the groebner basis manually as it has to be computed all over the place otherwise.
+  if !is_empty(I.gb)
+    ord, gb = first(I.gb)
+    FF = ambient_free_module(M)
+    mod_gb = ModuleGens([f*g for g in gens(FF) for f in gens(gb)])
+    mod_ord = lex(gens(FF))*ord
+    mod_gb.ordering = mod_ord
+    mod_gb.isGB = true
+    singular_assure(mod_gb)
+    mod_gb.S.isGB = true
+    M.quo.groebner_basis[mod_ord] = mod_gb
+  end
   return M
 end
 

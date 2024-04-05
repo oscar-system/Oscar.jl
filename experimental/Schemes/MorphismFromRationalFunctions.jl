@@ -1,65 +1,6 @@
 export morphism_from_rational_functions
 
-@doc raw"""
-    MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
-
-A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
-by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
-of ``𝒪(U)`` for one of the dense open `affine_chart`s ``U`` of ``X``. 
-The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some 
-`affine_chart` ``V`` of the codomain ``Y`` under this map. 
-"""
-@attributes mutable struct MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, 
-                                       CodomainType<:AbsCoveredScheme
-                                      } <: AbsCoveredSchemeMorphism{DomainType, CodomainType, 
-                                                                    MorphismFromRationalFunctions, Nothing}
-  domain::DomainType
-  codomain::CodomainType
-  domain_covering::Covering
-  codomain_covering::Covering
-  domain_chart::AbsAffineScheme
-  codomain_chart::AbsAffineScheme
-  coord_imgs::Vector{<:FieldElem}
-
-  ### Various fields for caching
-  patch_representatives::IdDict{<:AbsAffineScheme, <:Tuple{<:AbsAffineScheme, <:Vector{<:FieldElem}}}
-  realizations::IdDict{<:AbsAffineScheme, <:Vector{<:AbsAffineSchemeMor}}
-  realization_previews::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:FieldElem}}
-  maximal_extensions::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:AbsAffineSchemeMor}}
-  cheap_realizations::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:AbsAffineSchemeMor}
-  full_realization::CoveredSchemeMorphism
-
-  function MorphismFromRationalFunctions(
-      X::AbsCoveredScheme, Y::AbsCoveredScheme, 
-      U::AbsAffineScheme, V::AbsAffineScheme,
-      a::Vector{<:FieldElem};
-      check::Bool=true,
-      domain_covering::Covering=default_covering(X),
-      codomain_covering::Covering=default_covering(Y)
-    )
-    @check is_irreducible(X) "domain must be irreducible"
-    @check is_irreducible(Y) "codomain must be irreducible"
-    #_find_chart(U, default_covering(X)) !== nothing || error("patch not found in domain")
-    #_find_chart(V, default_covering(Y)) !== nothing || error("patch not found in codomain")
-    any(x->x===U, patches(default_covering(X))) || error("patch not found in domain")
-    any(x->x===V, patches(default_covering(Y))) || error("patch not found in codomain")
-    F = parent(first(a))
-    R = base_ring(F)
-    all(x->parent(x)===F, a) || error("coordinate images must be elements of the same field")
-    R === ambient_coordinate_ring(U) || error("images of pullback of the coordinates do not live in the correct ring")
-    patch_repr = IdDict{AbsAffineScheme, Tuple{AbsAffineScheme, Vector{FieldElem}}}()
-    patch_repr[U] = (V, a)
-    realizations = IdDict{AbsAffineScheme, Vector{AbsAffineSchemeMor}}()
-    realization_previews = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{FieldElem}}()
-    maximal_extensions = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{AbsAffineSchemeMor}}()
-    cheap_realizations = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsAffineSchemeMor}()
-    return new{typeof(X), typeof(Y)}(X, Y, domain_covering, codomain_covering, 
-                                     U, V, a, patch_repr, realizations, 
-                                     realization_previews, maximal_extensions,
-                                     cheap_realizations
-                                    )
-  end
-end
+# Type declaration has been moved to Types.jl
 
 domain(Phi::MorphismFromRationalFunctions) = Phi.domain
 codomain(Phi::MorphismFromRationalFunctions) = Phi.codomain
@@ -238,17 +179,17 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
   # `affine_chart` of the codomain of Phi.
   covered_codomain_patches = Vector{AbsAffineScheme}([V])
   complement_equations = Vector{elem_type(OO(U))}()
-  FY = function_field(Y)
-  FX = function_field(X)
+  FY = function_field(Y, check=Phi.run_internal_checks)
+  FX = function_field(X, check=Phi.run_internal_checks)
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
   list_for_V = _extend(U, a)
-  Psi = [morphism(W, ambient_space(V), b, check=false) for (W, b) in list_for_V]
+  Psi = [morphism(W, ambient_space(V), b, check=Phi.run_internal_checks) for (W, b) in list_for_V]
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
   # might need to restrict our domain of definition accordingly. 
-  Psi_res = [_restrict_properly(psi, V) for psi in Psi]
+  Psi_res = [_restrict_properly(psi, V; check=Phi.run_internal_checks) for psi in Psi]
   @assert all(phi->codomain(phi) === V, Psi_res)
   append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi_res])
   while !isone(ideal(OO(U), complement_equations))
@@ -269,8 +210,8 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
     total_rat_lift = [evaluate(a, rat_lift_y0) for a in rat_lift_y1]
     #total_rat_lift = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in total_rat_lift]
     list_for_V_next = _extend(U, total_rat_lift)
-    Psi = [morphism(W, ambient_space(V_next), b, check=false) for (W, b) in list_for_V_next]
-    Psi = [_restrict_properly(psi, V_next) for psi in Psi]
+    Psi = [morphism(W, ambient_space(V_next), b, check=Phi.run_internal_checks) for (W, b) in list_for_V_next]
+    Psi = [_restrict_properly(psi, V_next; check=Phi.run_internal_checks) for psi in Psi]
     append!(Psi_res, Psi)
     append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi])
     push!(covered_codomain_patches, V_next)
@@ -306,8 +247,8 @@ function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffine
   dens = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(dens))
   img_gens = [OO(U_sub)(numerator(a), denominator(a)) for a in img_gens_frac]
-  prelim = morphism(U_sub, ambient_space(V), img_gens, check=false) # TODO: Set to false
-  return _restrict_properly(prelim, V)
+  prelim = morphism(U_sub, ambient_space(V), img_gens, check=Phi.run_internal_checks) # TODO: Set to false
+  return _restrict_properly(prelim, V; check=Phi.run_internal_checks)
 end
 
 @doc raw"""
@@ -353,7 +294,7 @@ Note that `U'` need not (and usually will not) be maximal with this property.
 function random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
   img_gens_frac = realization_preview(Phi, U, V)
   U_sub, img_gens = _random_extension(U, img_gens_frac)
-  phi = morphism(U_sub, ambient_space(V), img_gens, check=true) # Set to false
+  phi = morphism(U_sub, ambient_space(V), img_gens, check=false)
   return phi
 end
 
@@ -374,29 +315,29 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineSchem
   end
   img_gens_frac = realization_preview(Phi, U, V)
   # Try to cancel the fractions heuristically
-  for (k, f) in enumerate(img_gens_frac)
-    a = numerator(f)
-    b = denominator(f)
-    aa = OO(U)(a)
-    new_num = aa
-    new_den = one(aa)
-    fac = factor(b)
-    for (p, e) in fac
-      success, q = divides(aa, OO(U)(p))
-      while success && e > 0
-        aa = q
-        e = e - 1
-        success, q = divides(aa, OO(U)(p))
-      end
-      new_den = new_den * p^e
-    end
-    @assert aa*denominator(f) == unit(fac)*new_den*numerator(f)
-    img_gens_frac[k] = inv(unit(fac))*fraction(aa)//fraction(new_den)
-  end
+# for (k, f) in enumerate(img_gens_frac)
+#   a = numerator(f)
+#   b = denominator(f)
+#   aa = OO(U)(a)
+#   new_num = aa
+#   new_den = one(aa)
+#   fac = factor(b)
+#   for (p, e) in fac
+#     success, q = divides(aa, OO(U)(p))
+#     while success && e > 0
+#       aa = q
+#       e = e - 1
+#       success, q = divides(aa, OO(U)(p))
+#     end
+#     new_den = new_den * p^e
+#   end
+#   @assert aa*denominator(f) == unit(fac)*new_den*numerator(f)
+#   img_gens_frac[k] = inv(unit(fac))*fraction(aa)//fraction(new_den)
+# end
   denoms = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
-  img_gens = [OO(U_sub)(numerator(a), denominator(a), check=true) for a in img_gens_frac] # Set to false
-  phi = morphism(U_sub, ambient_space(V), img_gens, check=true) # Set to false
+  img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in img_gens_frac] 
+  phi = morphism(U_sub, ambient_space(V), img_gens, check=false) 
   cheap_realizations(Phi)[(U, V)] = phi
   return phi
 end
@@ -417,8 +358,8 @@ function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U:
   extensions = _extend(U, img_gens_frac)
   result = AbsAffineSchemeMor[]
   for (U, g) in extensions
-    prelim = morphism(U, ambient_space(V), g, check=false)
-    push!(result, _restrict_properly(prelim, V))
+    prelim = morphism(U, ambient_space(V), g, check=Phi.run_internal_checks)
+    push!(result, _restrict_properly(prelim, V; check=Phi.run_internal_checks))
   end
   maximal_extensions(Phi)[(U, V)] = result
   return result
@@ -432,7 +373,7 @@ Computes a full realization of `Phi` as a `CoveredSchemeMorphism`. Note
 that this computation is very expensive and usage of this method should 
 be avoided.
 """
-function realize(Phi::MorphismFromRationalFunctions)
+function realize(Phi::MorphismFromRationalFunctions; check::Bool=true)
   if !isdefined(Phi, :full_realization)
     realizations = AbsAffineSchemeMor[]
     mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
@@ -446,10 +387,10 @@ function realize(Phi::MorphismFromRationalFunctions)
     domain_ref = Covering([domain(phi) for phi in realizations])
     inherit_gluings!(domain_ref, domain_covering(Phi))
     # TODO: Inherit the decomposition_info, too!
-    phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict, check=false)
+    phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict; check)
     # Make the refinement known to the domain
     push!(coverings(domain(Phi)), domain_ref)
-    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov)
+    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov; check)
   end
   return Phi.full_realization
 end
@@ -475,10 +416,6 @@ function _random_extension(U::AbsAffineScheme, a::Vector{<:FieldElem})
     J = quotient(ideal(OO(U), denominator(f)), ideal(OO(U), numerator(f)))
     I_undef = intersect(I_undef, J)
   end
-  #I_undef = radical(I_undef)
-# @show I_undef
-# @show equidimensional_decomposition_radical(saturated_ideal(I_undef))
-# I_undef = last(equidimensional_decomposition_radical(I_undef))
 
   iszero(I_undef) && error("possible domain of definition is empty")
   min_gens = small_generating_set(I_undef)
@@ -590,7 +527,7 @@ end
 # as regular functions on U' and a morphism U' → A to the `ambient_space` 
 # of V can be realized, V might be so small that we need a proper restriction 
 # of the domain. The methods below take care of that. 
-function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing})
+function _restrict_properly(f::AbsAffineScheme, V::AbsAffineScheme{<:Ring, <:MPolyRing})
   return restrict(f, domain(f), V, check=false)
 end
 
@@ -631,6 +568,10 @@ end
 # not even to speak of their transcendence degrees, this functionality is rather 
 # limited at the moment. 
 function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
+  error("not implemented")
+end
+
+function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
   all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
@@ -638,37 +579,11 @@ function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   Y = codomain(Phi)
   pushed_comps = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
   for I in components(D)
-    # Find some chart in which I is non-trivial
-    real_patches = collect(keys(realizations(Phi)))
-    k = findfirst(x->!isone(I(x)), real_patches)
-    U = first(affine_charts(X)) # Assign the variable
-    if k === nothing
-      k = findfirst(x->!isone(I(x)), affine_charts(X))
-      k === nothing && error("no affine chart found on which the component was non-trivial")
-      U = affine_charts(X)[k]
-    else
-      U = real_patches[k]
-    end
-    loc_phi = realize_on_patch(Phi, U)
-    k = findfirst(x->!isone(I(domain(x))), loc_phi)
-    k === nothing && error("no patch found on which the component was non-trivial")
-    phi = loc_phi[k]
-    U = domain(phi)
-    V = codomain(phi)
-    pb = pullback(phi)
-    Q, pr = quo(OO(U), I(U))
-    J = kernel(hom(OO(V), Q, compose(pb, pr).(gens(OO(V))), check=false))
-    # If this map is contracting the component, skip
-    dim(I(U)) == dim(J) || continue
-    JJ = IdealSheaf(Y, V, gens(J))
-    # TODO: There is a further multiplicity!
-    pushed_comps[JJ] = D[I]
+    J = _pushforward_smooth_in_codim_one_along_iso(Phi, I) # Use dispatch here
+    pushed_comps[J] = D[I]
   end
-  return AlgebraicCycle(Y, coefficient_ring(D), pushed_comps)
-end
-
-function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
-  return WeilDivisor(pushforward(Phi, underlying_cycle(D)))
+  is_empty(pushed_comps) && error("pushforward of this divisor along an alleged isomorphism is empty")
+  return WeilDivisor(AlgebraicCycle(Y, coefficient_ring(D), pushed_comps); check=false)
 end
 
 # The following attributes can not be checked algorithmically at the moment. 
@@ -758,6 +673,81 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
   return nothing
 end
 
+function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
+  X = domain(phi)
+  Y = codomain(phi)
+  scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
+  # Find a patch in Y on which this component is visible
+  V0 = original_chart(I)
+
+  for U in affine_charts(X)
+    psi = cheap_realization(phi, U, V0)
+    J = pullback(psi)(saturated_ideal(I(V0)))
+    if !isone(J)
+      JJ = IdealSheaf(X, domain(psi), gens(J))
+      return JJ
+      break
+    end
+  end
+
+  return nothing
+end
+
+function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
+  X = domain(phi)
+  Y = codomain(phi)
+  scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
+  # Find a patch in Y on which this component is visible
+  V0 = original_chart(I)
+
+  for U in affine_charts(X)
+    psi = random_realization(phi, U, V0)
+    J = pullback(psi)(saturated_ideal(I(V0)))
+    if !isone(J)
+      JJ = IdealSheaf(X, domain(psi), gens(J))
+      return JJ
+      break
+    end
+  end
+
+  return nothing
+end
+
+function _pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
+  V0 = original_chart(I)
+  X = domain(phi)
+  Y = codomain(phi)
+  V = affine_charts(Y)
+  U = affine_charts(X)
+
+  cod_patches = AbsAffineScheme[V0]
+  cod_patches = vcat(cod_patches, [U for U in keys(object_cache(I)) if any(x->x===U, affine_charts(Y))])
+  cod_patches = vcat(cod_patches, [U for U in affine_charts(Y) if !any(x->x===U, cod_patches)])
+  for U0 in U
+    I_undef = ideal(OO(U0), elem_type(OO(U0))[])
+    random_realizations = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+    for V0 in cod_patches
+      psi = random_realization(phi, U0, V0)
+      I_undef = I_undef + ideal(OO(U0), complement_equation(domain(psi)))
+      random_realizations[V0] = psi
+      if isone(I_undef)
+        break
+      end
+    end
+    if isone(I_undef)
+      J = ideal(OO(U0), elem_type(OO(U0))[])
+      for (V0, psi) in random_realizations
+        J_loc = pullback(psi, saturated_ideal(I(V0)))
+        J = J + ideal(OO(U0), lifted_numerator.(gens(J_loc)))
+      end
+      return IdealSheaf(X, U0, gens(J))
+    else
+      continue
+    end
+  end
+  error("pullback did not succeed")
+end
+
 # Similar to the above function, but this time we try pairs (U, V) and determine the 
 # maximal open subset W ⊂ U such that the restriction `W → V` of `phi` can be realized. 
 # Then we take a random linear combination `h` of the generators of the ideal for the 
@@ -787,7 +777,6 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::AbsIdea
 
   for U in all_U
     psi = random_realization(phi, U, V)
-    U_sub = domain(psi)
 
     J = pullback(psi)(saturated_ideal(I(V)))
     if !isone(J)
@@ -844,3 +833,159 @@ end
 function pullback(phi::MorphismFromRationalFunctions, D::WeilDivisor)
   return WeilDivisor(pullback(phi)(underlying_cycle(D)), check=false) 
 end
+
+function _find_good_representative_chart(I::PrimeIdealSheafFromChart)
+  return original_chart(I)
+end
+
+function _find_good_representative_chart(I::AbsIdealSheaf)
+  # We assume that I is prime
+  X = scheme(I)
+  for U in keys(object_cache(I))
+    any(x->x===U, affine_charts(X))
+    !is_one(I(U)) && return U
+  end
+  for U in affine_charts(X)
+    !is_one(I(U)) && return U
+  end
+  error("no chart found")
+end
+
+function _pushforward_smooth_in_codim_one_along_iso(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
+  U = _find_good_representative_chart(I)
+  X = domain(phi)
+  Y = codomain(phi)
+
+  # try cheap realizations first
+  sorted_charts = affine_charts(Y)
+  if has_decomposition_info(default_covering(Y))
+    info = decomposition_info(default_covering(Y))
+    sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), OO(V).(info[V]))) <= 1, sorted_charts)
+  end
+ 
+  function compl(V::AbsAffineScheme)
+    result = 0
+    if (U, V) in keys(realization_previews(phi))
+      fracs = realization_previews(phi)[(U, V)]::Vector
+      if any(f->OO(U)(denominator(f)) in I(U), fracs)
+        result = result + 100000
+      else
+        #result = sum(length(terms(numerator(f))) + length(terms(denominator(f))) for f in fracs; init=0)
+        result = sum(total_degree(numerator(f)) + total_degree(denominator(f)) for f in fracs; init=0)
+      end
+    else
+      result = result + 10
+    end
+    return result
+  end
+
+  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
+  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+
+  bad_charts = Int[]
+  for (i, V) in enumerate(sorted_charts)
+    # Find a chart in the codomain which has a chance to have the pushforward visible
+    fracs = realization_preview(phi, U, V)::Vector
+    any(f->OO(U)(denominator(f)) in I(U), fracs) && continue
+    phi_loc = cheap_realization(phi, U, V)
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        if pullback(phi_loc)(h) in I(domain(phi_loc)) 
+          # Remove this chart from the list
+          push!(bad_charts, i)
+          continue
+        end
+      end
+    end
+
+    J = preimage(pullback(phi_loc), I(domain(phi_loc)))
+    JJ = ideal(OO(V), gens(J))
+    return PrimeIdealSheafFromChart(Y, V, JJ)
+    if !is_one(JJ) #&& dim(JJ) == dim(OO(V)) - 1
+      return PrimeIdealSheafFromChart(Y, V, JJ)
+    end
+  end
+
+  sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
+  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
+  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  
+  # try random realizations second
+  loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
+
+  # The ring is smooth in codimension one. Let's find a generator of its maximal ideal
+  pp = ideal(loc_ring, gens(I(U)))
+  qq = pp^2
+  candidates = [g for g in gens(I(U)) if !(loc_ring(g) in qq)]
+  complexity(a) = total_degree(lifted_numerator(a)) + total_degree(lifted_denominator(a))
+  sort!(candidates, by=complexity)
+  isempty(candidates) && error("no element of valuation one found")
+
+  min_terms = minimum(length.(terms.(lifted_numerator.(candidates))))
+  h = candidates[findfirst(x->length(terms(lifted_numerator(x)))==min_terms, candidates)]
+
+  F1 = FreeMod(loc_ring, 1)
+
+  # Trigger caching of the attribute :is_prime for faster computation of is_zero
+  # on elements.
+  if loc_ring isa MPolyQuoLocRing
+    is_prime(modulus(underlying_quotient(loc_ring)))
+  end
+
+  P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
+
+  for V in sorted_charts
+    fs = realization_preview(phi, U, V)
+    skip = false
+    for (i, fr) in enumerate(fs)
+      a = numerator(fr)
+      b = denominator(fr)
+      aa = loc_ring(a)
+      bb = loc_ring(b)
+      count = 0
+      # If the denominator is in P, we have a problem.
+      # If the numerator is not in P, the problem is serious and this chart can 
+      # not be used.
+      # If the numerator is also in P, we can cancel the fraction by h and 
+      # start all over. 
+      while OO(U)(lifted_numerator(bb)) in I(U)
+        count = count + 1
+        if !(OO(U)(lifted_numerator(aa)) in I(U))
+          skip = true
+          break
+        end
+        bb = coordinates(bb*F1[1], P)[1]
+        aa = coordinates(aa*F1[1], P)[1]
+      end
+      skip && break
+      num = lifted_numerator(aa)*lifted_denominator(bb)
+      den = lifted_numerator(bb)*lifted_denominator(aa)
+      @assert !(OO(U)(den) in I(U))
+      fs[i] = num//den
+    end
+    skip && continue
+
+    # Copied from cheap_realization
+    denoms = [denominator(a) for a in fs]
+    U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
+    img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
+    psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
+    # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
+    #cheap_realizations(phi)[(U, V)] = psi
+    #realization_previews(phi)[(U, V)] = fs
+
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        OO(U_sub)(pullback(psi)(h)) in I(U_sub) && continue
+      end
+    end
+
+    J = preimage(pullback(psi), I(U_sub))
+    JJ = ideal(OO(V), gens(J))
+    return PrimeIdealSheafFromChart(Y, V, JJ)
+    # Else: try the next chart
+  end
+end
+

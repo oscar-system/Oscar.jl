@@ -29,7 +29,10 @@ function _derived_pushforward(M::SubquoModule)
   S = base_ring(M)
   n = ngens(S)-1
 
-  d = _regularity_bound(M) - n
+  raw_res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  res = simplify(raw_res) # minimize resolution
+  
+  d = _regularity_bound(res, 0:n+1) - n
   d = (d < 0 ? 0 : d)
 
   Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
@@ -37,13 +40,23 @@ function _derived_pushforward(M::SubquoModule)
   kosz = koszul_complex(Oscar.KoszulComplex, v)
   K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
 
-  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
   KoM = hom(K, res)
   tot = total_complex(KoM)
   tot_simp = simplify(tot)
 
   st = strand(tot_simp, 0)
   return st[1]
+end
+
+function _regularity_bound(c::AbsHyperComplex{T}, r::UnitRange) where {T<:ModuleFP}
+  isone(dim(c)) || error("complex must be one-dimensional")
+  isempty(r) && error("range must not be empty")
+  i0 = first(r)
+  result = maximum((x->degree(x; check=false)[1]).(gens(c[i0])))
+  for i in r
+    result = maximum(push!((x->degree(x; check=false)[1]).(gens(c[i])), result))
+  end
+  return result
 end
 
 # The code below is supposedly faster, because it does not need to pass 

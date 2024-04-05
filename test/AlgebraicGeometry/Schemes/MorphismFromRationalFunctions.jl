@@ -23,6 +23,42 @@
   Oscar.realize(Phi)
 end
 
+@testset "preimages for polynomial maps" begin
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, [x-y])
+  A, _ = quo(R, I)
+  phi1 = hom(R, A, gens(A))
+  @test phi1(preimage(phi1, A(y))) == A(x)
+  
+  phi2 = hom(R, A, [u^2 for u in gens(A)])
+  @test_throws ErrorException preimage(phi2, A(x))
+  @test phi2(preimage(phi2, A(x^2))) == A(x*y)
+
+  U = powers_of_element(x-1)
+  R_loc, _ = localization(R, U)
+  A_loc, _ = localization(A, U)
+
+  phi3 = hom(R, A_loc, gens(A_loc))
+  @test A(preimage(phi3, A_loc((y-1)*x//(x-1)))) == A(y)
+
+  phi4 = hom(R, R_loc, gens(R_loc))
+  @test preimage(phi4, R_loc(x)) == x
+
+  P, (_, _, u) = QQ[:x, :y, :u]
+  J = ideal(P, 1 - prod(gens(P)))
+  Q, _ = quo(P, J)
+
+  S = powers_of_element(x*y)
+  RS, _ = localization(R, S)
+  phi5 = hom(RS, Q, gens(Q)[1:2])
+  @test preimage(phi5, Q(u)) == RS(1//(x*y))
+
+  AS, _ = localization(A, S)
+  Q2, _ = quo(Q, ideal(Q, [Q[1]-Q[2]]))
+  phi6 = hom(AS, Q2, gens(Q2)[1:2])
+  @test preimage(phi6, Q2[1]) == AS[2]
+end
+
 @testset "The standard Cremona transformation" begin
   IP2_proj = projective_space(QQ, [:x, :y, :z])
   IP2 = covered_scheme(IP2_proj)

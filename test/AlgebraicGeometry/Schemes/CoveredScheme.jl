@@ -366,3 +366,4 @@
     @test !is_normal(X)
   end
 end
+
