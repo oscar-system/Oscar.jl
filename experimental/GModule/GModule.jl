@@ -24,6 +24,7 @@ import Base: parent
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
   Qt = parent(f)
@@ -42,7 +43,7 @@ function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field}
     m = collect(Hecke.coefficients(c))
     m = vcat(m, zeros(k, degree(h) - length(m)))
     r = m
-    for i=2:degree(h)
+    for i in 2:degree(h)
       c = shift_left(c, 1) % h
       m = collect(Hecke.coefficients(c))
       m = vcat(m, zeros(k, degree(h) - length(m)))
@@ -90,12 +91,12 @@ function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.F
   F = free_module(domain(phi), dim(M)*d)
   _, _, rep = relative_field(phi)
 
-  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x = transpose(matrix(y))]...)) for y = M.ac])
+  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x in transpose(matrix(y))]...)) for y in M.ac])
 end
 
 function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
   F = free_module(QQ, dim(C)*degree(base_ring(C)))
-  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
+  return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x in transpose(matrix(y))]...)) for y in C.ac])
 end
 
 
@@ -142,6 +143,23 @@ function can_be_defined_over(M::GModule, phi::Map)
   error("not yet ...")
 end
 
+function can_be_defined_over(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+  return true
+end
+
 
 """
     can_be_defined_over_with_data(M::GModule, phi::Map)
@@ -159,6 +177,39 @@ and `psi` is a map from `N` to `M`.
 """
 function can_be_defined_over_with_data(M::GModule, phi::Map)
   error("not yet ...")
+end
+
+function can_be_defined_over_with_data(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  K = base_ring(M)
+  d = absolute_degree(k)
+  @assert absolute_degree(K) != d
+
+  s = absolute_frobenius(K, d)
+  os = divexact(absolute_degree(K), d)
+  hB = hom_base(M, gmodule(M.M, Group(M),
+                      [hom(M.M, M.M, map_entries(s, matrix(x))) for x = M.ac]))
+  if length(hB) != 1
+    length(hB) > 1 && error("Module not irreducible")
+    length(hB) == 0 && return false
+  end
+
+  B = hB[1]
+  D = norm(B, s, os)
+  lambda = D[1,1]
+  @hassert :MinField 2 D == lambda*identity_matrix(K, dim(C))
+  alpha = norm_equation(K, preimage(phi, lambda))
+  B *= inv(alpha)
+  @hassert :MinField 2 isone(norm(B, s, os))
+  D = hilbert90_cyclic(B, s, os)
+  Di = inv(D)
+  F = free_module(k, dim(M))
+  N = gmodule(F, Group(M), [hom(F, F, map_entries(x -> preimage(phi, x), Di*matrix(x)*D)) for x = C.ac])
+  # TODO: Get this map working
+  # psi = GModuleHom(N, M, , phi)
+  psi = nothing
+  return (true, N, psi)
 end
 
 
@@ -185,6 +236,15 @@ function descent_to(M::GModule, phi::Map)
 end
 
 
+function descent_to(M::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, phi::Map)
+  # Only works for irreducible modules
+  k = domain(phi)
+  success, N, psi = can_be_defined_over_with_data(M, phi)
+  success || error("Module cannot be written over $k")
+  return N
+end
+
+
 """
     descent_to_minimal_degree_field(M::GModule)
 
@@ -200,8 +260,26 @@ where `M` is a module over `R`.
 
 (modules over finite fields or number fields)
 """
-function descent_to_minimal_degree_field(M::GModule)
-  error("not yet ...")
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}})
+  return C
+end
+
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+  #always over char field
+  K = base_ring(C)
+  d = 0
+  while d < absolute_degree(K)-1
+    d += 1
+    absolute_degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
+    D = gmodule_over(k, C, do_error = false)
+    D === nothing || return D
+  end
+  return C
+end
+
+function descent_to_minimal_degree_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+  return _minimize(C)
 end
 
 
@@ -241,13 +319,13 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
     for X in res[sres:end]
       for p in lp
         F = free_module(GF(p), dim(M))
-        pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x = map(matrix, action(M))])
+        pM = gmodule(M.G, [hom(F, F, map_entries(base_ring(F), x)) for x in map(matrix, action(M))])
         S = maximal_submodule_bases(pM)
         pG = p.*gens(M.M)
-        for s = S
-          x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i=1:nrows(s)]))
+        for s in S
+          x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
 
-          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h = M.ac]), mx)
+          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h in M.ac]), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
@@ -267,7 +345,7 @@ Oscar.rank(M::AbstractAlgebra.Generic.Submodule{ZZRingElem}) = ngens(M)
 function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   C = Gap(M)
   S = GAP.Globals.MTX.BasesMaximalSubmodules(C)
-  res = []
+  res = dense_matrix_type(base_ring(M))[]
   for s = S
     if length(s) == 0
       m = matrix(base_ring(M), 0, dim(M), [])
@@ -395,9 +473,9 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       d = 1 # only a lower bound is known
     end
     s = subfields(base_ring(V))
-    s = [x for x = s if degree(x[1]) >= d*degree(k)]
+    s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
-    for (m, mm) = s
+    for (m, mm) in s
       if m == base_ring(V)
         @vprint :MinField 1 "no smaller field possible\n"
         return V
@@ -420,7 +498,7 @@ end
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
   #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
-  return [gmodule(QQ, m) for m in z]
+  return [gmodule(QQ, descent_to_minimal_degree_field(m)) for m in z]
 end
 
 function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
@@ -433,7 +511,7 @@ end
 
 TODO
 """
-function gmodule(::typeof(CyclotomicField), C::GModule)
+function gmodule(a::Type{CyclotomicField}, C::GModule)
   @assert isa(base_ring(C), QQAbField)
   d = dim(C)
   l = 1
@@ -501,9 +579,10 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
       push!(chr, (c, K(n)))
       continue
     end
-    #use T = action(C, r) instead?
-    p = preimage(phi, r)
-    T = map_word(p, ac; genimgs_inv = iac)
+    #use T = action(C, r) instead? Trying this, seems to work.
+    # p = preimage(phi, r)
+    # T = map_word(p, ac; genimgs_inv = iac)
+    T = action(C,r)
     push!(chr, (c, trace(matrix(T))))
   end
   return chr
@@ -608,7 +687,7 @@ function Hecke.frobenius(K::FinField, i::Int=1)
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -625,10 +704,10 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Fi
   #always over char field
   K =  base_ring(C)
   d = 0
-  while d < degree(K)-1
+  while d < absolute_degree(K)-1
     d += 1
-    degree(K) % d == 0 || continue
-    k = GF(Int(characteristic(K)), d)
+    absolute_degree(K) % d == 0 || continue
+    k = GF(characteristic(K), d)
     D = gmodule_over(k, C, do_error = false)
     D === nothing || return D
   end
@@ -640,7 +719,7 @@ function gmodule_minimal_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 end
 
 """
-    gmodule_over(Field, GModule)
+    gmodule_over(k::Field, C::GModule)
 """
 function gmodule_over(k::FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}}; do_error::Bool = false)
   #mathematically, k needs to contain the character field
@@ -1478,19 +1557,14 @@ function Oscar.gmodule(G::Oscar.GAPGroup, v::Vector{<:MatElem})
   return gmodule(G, [hom(F, F, x) for x = v])
 end
 
-
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
-  A = free_abelian_group(rank(C.M))
-  return Oscar.gmodule(Group(C), [hom(A, A, matrix(x)) for x = C.ac])
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{FqFieldElem}}) where {T <: Oscar.GAPGroup}
+  k = base_ring(C.M)
+  A = abelian_group([characteristic(k) for i=1:rank(C.M)*absolute_degree(k)])
+  return GModule(group(C), [hom(A, A, map_entries(x->lift(ZZ, x), hvcat(dim(C), [absolute_representation_matrix(x) for x = transpose(matrix(y))]...))) for y = C.ac])
 end
 
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{FpFieldElem}}) where {T <: Oscar.GAPGroup}
+function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{<:Union{FpFieldElem, fpFieldElem}}}) where {T <: Oscar.GAPGroup}
   A = abelian_group([characteristic(base_ring(C)) for i=1:rank(C.M)])
-  return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
-end
-
-function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{fpFieldElem}}) where {T <: Oscar.GAPGroup}
-  A = abelian_group([characteristic(base_ring(C)) for i=1:dim(C.M)])
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
 
@@ -1504,6 +1578,7 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return Oscar.gmodule(A, Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
 
+#TODO: for modern fin. fields as well
 function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
   k = base_ring(M)
   A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
@@ -1566,7 +1641,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
- global last_f = f
+ # global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
