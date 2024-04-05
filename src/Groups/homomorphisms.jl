@@ -515,6 +515,20 @@ julia> codomain(iso) === ans
 true
 ```
 """
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, false)) do
+     fun = _get_iso_function(T)
+     f = fun(G.X)::GapObj
+     @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
+     H = T(GAP.Globals.ImagesSource(f)::GapObj)
+# TODO: remove the next line once GAP 4.13.0 is available in Oscar
+     GAP.Globals.UseIsomorphismRelation(G.X, H.X)
+     return GAPGroupHomomorphism(G, H, f)
+   end::GAPGroupHomomorphism{typeof(G), T}
+end
+
 function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
@@ -531,20 +545,6 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
      GAP.Globals.UseIsomorphismRelation(G.X, H.X)
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), FPGroup}
-end
-
-function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
-   # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
-   return get!(isos, (T, false)) do
-     fun = _get_iso_function(T)
-     f = fun(G.X)::GapObj
-     @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
-     H = T(GAP.Globals.ImagesSource(f)::GapObj)
-# TODO: remove the next line once GAP 4.13.0 is available in Oscar
-     GAP.Globals.UseIsomorphismRelation(G.X, H.X)
-     return GAPGroupHomomorphism(G, H, f)
-   end::GAPGroupHomomorphism{typeof(G), T}
 end
 
 

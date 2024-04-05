@@ -410,6 +410,7 @@ end
        @test is_injective(f)
        @test is_surjective(f)
 
+       G = symmetric_group(5)
        f = @inferred isomorphism(FPGroup, G)
        @test codomain(f) isa FPGroup
        @test domain(f) == G
@@ -428,7 +429,7 @@ end
        f = @inferred isomorphism(FinGenAbGroup, G)
        @test codomain(f) isa FinGenAbGroup
        @test domain(f) == G
-     # @test is_injective(f)
+     # @test is_injective(f)   # no method for GroupIsomorphismFromFunc
      # @test is_surjective(f)
 
        @test_throws ArgumentError isomorphism(FinGenAbGroup, symmetric_group(5))
