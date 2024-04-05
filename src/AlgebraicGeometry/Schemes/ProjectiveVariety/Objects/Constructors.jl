@@ -33,7 +33,7 @@ julia> (s0,s1,s2,s3) = homogeneous_coordinates(P3);
 julia> X = variety(s0^3 + s1^3 + s2^3 + s3^3)
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0^3 + s1^3 + s2^3 + s3^3)
+defined by ideal (s0^3 + s1^3 + s2^3 + s3^3)
 
 julia> dim(X)
 2
@@ -41,7 +41,7 @@ julia> dim(X)
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal(s0, s1^3 + s2^3 + s3^3)
+defined by ideal (s0, s1^3 + s2^3 + s3^3)
 
 julia> dim(Y)
 1
@@ -62,9 +62,9 @@ We require that ``R`` is a finitely generated algebra over a field ``k`` and
 moreover that the base change of ``R`` to the algebraic closure ``\bar k``
 is an integral domain.
 """
-variety(R::Ring; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::Ring; check::Bool=true) = ProjectiveVariety(proj(R), check=check)
 
-variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(ProjectiveScheme(R), check=check)
+variety(R::MPolyDecRing; check::Bool=true) = ProjectiveVariety(proj(R), check=check)
 
 
 @doc raw"""
@@ -95,7 +95,7 @@ end
 function projective_space(A::Field, var_symb::Vector{VarName})
   n = length(var_symb)
   S, _ = graded_polynomial_ring(A, var_symb)
-  return variety(projective_scheme(S), check=false)
+  return variety(proj(S), check=false)
 end
 
 
@@ -105,5 +105,5 @@ function projective_space(
     var_name::VarName=:s
   ) where {CoeffRingType<:Field}
   S, _ = graded_polynomial_ring(A, [Symbol(var_name,i) for i in 0:r])
-  return variety(projective_scheme(S), check=false)
+  return variety(proj(S), check=false)
 end

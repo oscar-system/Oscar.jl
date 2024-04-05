@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Introduction
+# [Introduction](@id linear_algebra)
 
 The linear algebra part of OSCAR provides functionality for handling
 - vectors and matrices

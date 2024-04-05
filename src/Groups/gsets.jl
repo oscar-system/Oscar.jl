@@ -15,7 +15,6 @@ import Hecke.orbit
 # - conjugacy classes of group elements
 # - conjugacy classes of subgroups
 # - block system
-abstract type GSet{T} end
 
 
 # TODO: add lots of concrete subtypes constructors, e.g. for
@@ -24,16 +23,19 @@ abstract type GSet{T} end
 # - ...
 
 
-#############################################################################
-##
-##  GSetByElements:
-##  a G-set that is willing to write down complete orbits and elements lists;
-##  fields are
-##  - the group that acts, of type `T`,
-##  - the Julia function (like `on_tuples`) that describes the action,
-##  - the seeds (something iterable) whose closure under the action is the G-set
-##  - the dictionary used to store attributes (orbits, elements, ...)
+"""
+    GSetByElements{T} <: GSet{T}
 
+Objects of this type represent G-sets that are willing to write down
+orbits and elements lists as vectors.
+These G-sets are created by default by [`gset`](@ref).
+
+The fields are
+- the group that acts, of type `T`,
+- the Julia function (for example `on_tuples`) that describes the action,
+- the seeds (something iterable) whose closure under the action is the G-set
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
 @attributes mutable struct GSetByElements{T} <: GSet{T}
     group::T
     action_function::Function
@@ -42,7 +44,7 @@ abstract type GSet{T} end
     function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where T<:GAPGroup
         @assert ! isempty(seeds)
         Omega = new{T}(G, fun, seeds, Dict{Symbol,Any}())
-        closed && set_attribute!(Omega, :elements => collect(seeds))
+        closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
     end
 end
@@ -67,9 +69,50 @@ function Base.show(io::IO, x::GSetByElements)
   end
 end
 
-# TODO: document `acting_group`, `action_function`
+"""
+    acting_group(Omega::GSetByElements)
+
+Return the group `G` acting on `Omega`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> acting_group(gset(G, [1])) == G
+true
+```
+"""
 acting_group(Omega::GSetByElements) = Omega.group
+
+@doc raw"""
+    action_function(Omega::GSetByElements)
+
+Return the function $f: \Omega \times G \to \Omega$ that defines the G-set.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4);
+
+julia> action_function(gset(G, [1])) == ^
+true
+
+julia> action_function(gset(G, [[1, 2]])) == on_tuples
+true
+
+julia> action_function(gset(G, on_sets, [[1, 2]])) == on_sets
+true
+```
+"""
 action_function(Omega::GSetByElements) = Omega.action_function
+
+# The following works for all G-set types that support attributes
+# and for which the number of elements is an `Int`.
+function action_range(Omega::GSet)
+  return get_attribute!(Omega, :action_range) do
+    return symmetric_group(length(Int, Omega))
+  end
+end
+
 
 #############################################################################
 ##
@@ -100,7 +143,7 @@ Note that the indexing of points in `Omega` is used by
 ```jldoctest
 julia> G = symmetric_group(4);
 
-julia> length(gset(G, [[1]]))  # natural action
+julia> length(gset(G, [1]))  # natural action
 4
 
 julia> length(gset(G, [[1, 2]]))  # action on ordered pairs
@@ -230,7 +273,7 @@ function ^(omega::ElementOfGSet, g::T) where {T<:AbstractAlgebra.GroupElem}
     return ElementOfGSet(Omega, fun(omega.obj, g))
 end
 
-==(omega1::ElementOfGSet, omega2::ElementOfGSet) = 
+==(omega1::ElementOfGSet, omega2::ElementOfGSet) =
   ((omega1.gset == omega2.gset) && (omega1.obj == omega2.obj))
 
 function Base.hash(omega::ElementOfGSet, h::UInt)
@@ -443,39 +486,52 @@ function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGrou
     # whether the given group element 'g' is a group element.
     pi = GAP.Globals.PermutationOp(g, omega_list, gfun)
 
-    sym = get_attribute!(Omega, :action_range) do
-      return symmetric_group(length(Omega))
-    end
-    return group_element(sym, pi)
+    return group_element(action_range(Omega), pi)
 end
 
 
-#############################################################################
-##
-##  GSetByRightTransversal:
-##  a G-set that describes the right cosets of a subgroup $H$ in a group $G$,
-##  on which $G$ acts by multiplication from the right.
-##  The G-set stores just a right transversal, not the coset objects;
-##  fields are
-##  - the group that acts, of type `T`, with elements of type `E`,
-##  - the subgroup whose cosets are the elements, of type `S`,
-##  - the right transversal, of type `SubgroupTransversal{T, S, E}`,
-##  - the dictionary used to store attributes (orbits, elements, ...)
+@doc raw"""
+    GSetBySubgroupTransversal{T, S, E} <: GSet{T}
 
-@attributes mutable struct GSetByRightTransversal{T, S, E} <: GSet{T}
+Objects of this type represent G-sets that describe the left or right cosets
+of a subgroup $H$ in a group $G$.
+The group $G$ acts on the G-set by multiplication from the right or (after
+taking inverses) from the left.
+These G-sets store just transversals,
+see [`right_transversal`](@ref) and [`left_transversal`](@ref).
+The construction of explicit right or left cosets is not necessary in order
+to compute the permutation action of elements of $G$ on the cosets.
+
+The fields are
+- the group that acts, of type `T`, with elements of type `E`,
+- the subgroup whose cosets are the elements, of type `S`,
+- the side from which the group acts (`:right` or `:left`),
+- the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
+- the dictionary used to store attributes (orbits, elements, ...).
+"""
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T}
     group::T
     subgroup::S
+    side::Symbol
     transversal::SubgroupTransversal{T, S, E}
 
-    function GSetByRightTransversal(G::T, H::S; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
+    function GSetBySubgroupTransversal(G::T, H::S, side::Symbol; check::Bool = true) where {T<:GAPGroup, S<:GAPGroup}
         check && @req is_subgroup(H, G)[1] "H must be a subgroup of G"
         E = eltype(G)
-        return new{T, S, E}(G, H, right_transversal(G, H), Dict{Symbol,Any}())
+        if side == :right
+          tr = right_transversal(G, H)
+        elseif side == :left
+          tr = left_transversal(G, H)
+        else
+          throw(ArgumentError("side must be :right or :left"))
+        end
+        return new{T, S, E}(G, H, side, tr, Dict{Symbol,Any}())
     end
 end
 
-function Base.show(io::IO, ::MIME"text/plain", x::GSetByRightTransversal)
-  println(io, "Right cosets of")
+function Base.show(io::IO, ::MIME"text/plain", x::GSetBySubgroupTransversal)
+  side = (x.side == :right ? "Right" : "Left")
+  println(io, "$side cosets of")
   io = pretty(io)
   print(io, Indent())
   println(io, Lowercase(), x.subgroup, " in")
@@ -483,83 +539,98 @@ function Base.show(io::IO, ::MIME"text/plain", x::GSetByRightTransversal)
   print(io, Dedent())
 end
 
-function Base.show(io::IO, x::GSetByRightTransversal)
+function Base.show(io::IO, x::GSetBySubgroupTransversal)
+  side = (x.side == :right ? "Right" : "Left")
   if get(io, :supercompact, false)
-    print(io, "Right cosets of groups")
+    print(io, "$side cosets of groups")
   else
-    print(io, "Right cosets of ")
+    print(io, "$side cosets of ")
     io = pretty(io)
     print(IOContext(io, :supercompact => true), Lowercase(), x.subgroup, " in ", Lowercase(), x.group)
   end
 end
 
-acting_group(Omega::GSetByRightTransversal) = Omega.group
-action_function(Omega::GSetByRightTransversal) = *
+acting_group(Omega::GSetBySubgroupTransversal) = Omega.group
+action_function(Omega::GSetBySubgroupTransversal) = ((Omega.side == :right) ? (Base.:*) : function(omega, g) return inv(g)*omega; end)
 
-function Base.in(omega::GroupCoset, Omega::GSetByRightTransversal)
-    return omega.G == Omega.group && omega.H == Omega.subgroup &&
-           omega.side == :right
+function Base.in(omega::GroupCoset, Omega::GSetBySubgroupTransversal)
+    return omega.side == Omega.side &&
+           omega.G == Omega.group && omega.H == Omega.subgroup
 end
 
-Base.length(Omega::GSetByRightTransversal) = index(Int, Omega.group, Omega.subgroup)
-Base.lastindex(Omega::GSetByRightTransversal) = length(Omega)
+Base.length(Omega::GSetBySubgroupTransversal) = index(Int, Omega.group, Omega.subgroup)
+Base.length(::Type{T}, Omega::GSetBySubgroupTransversal) where T <: IntegerUnion = index(T, Omega.group, Omega.subgroup)
 
-Base.keys(Omega::GSetByRightTransversal) = keys(1:length(Omega))
+Base.lastindex(Omega::GSetBySubgroupTransversal) = length(Omega)
 
-representative(Omega::GSetByRightTransversal) = right_coset(Omega.subgroup, one(Omega.group))
+Base.keys(Omega::GSetBySubgroupTransversal) = keys(1:length(Omega))
 
-function Base.iterate(Omega::GSetByRightTransversal, state = 1)
+function representative(Omega::GSetBySubgroupTransversal)
+  if Omega.side == :right
+    return right_coset(Omega.subgroup, one(Omega.group))
+  else
+    return left_coset(Omega.subgroup, one(Omega.group))
+  end
+end
+
+function Base.iterate(Omega::GSetBySubgroupTransversal, state = 1)
   T = Omega.transversal
   state > length(T) && return nothing
-  return (right_coset(Omega.subgroup, T[state]), state+1)
+  if Omega.side == :right
+    return (right_coset(Omega.subgroup, T[state]), state+1)
+  else
+    return (left_coset(Omega.subgroup, T[state]), state+1)
+  end
 end
 
-Base.eltype(Omega::GSetByRightTransversal{T, S, E}) where {S, T, E} = GroupCoset{T, E}
+Base.eltype(Omega::GSetBySubgroupTransversal{T, S, E}) where {S, T, E} = GroupCoset{T, E}
 
-Base.getindex(Omega::GSetByRightTransversal, i::Int) = right_coset(Omega.subgroup, Omega.transversal[i])
+function Base.getindex(Omega::GSetBySubgroupTransversal, i::Int)
+  if Omega.side == :right
+    return right_coset(Omega.subgroup, Omega.transversal[i])
+  else
+    return left_coset(Omega.subgroup, Omega.transversal[i])
+  end
+end
 
-is_transitive(Omega::GSetByRightTransversal) = true
+is_transitive(Omega::GSetBySubgroupTransversal) = true
 
 function orbit(G::T, omega::GroupCoset{T, S}) where T <: GAPGroup where S
-    @req G == omega.G "omega must be a right coset in G"
-    return GSetByRightTransversal(G, omega.H, check = false)
+    @req G == omega.G "omega must be a left or right coset in G"
+    return GSetBySubgroupTransversal(G, omega.H, omega.side, check = false)
 end
 # We could admit the more general `is_subset(G, omega.G)`.
 # One problem would be that `omega` would not be a point in the orbit,
 # according to the definition of equality for cosets.
 
-function orbit(Omega::GSetByRightTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
-    @req Omega.group == omega.G && Omega.subgroup == omega.H "omega is not in Omega"
-    return Omega
+function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
+  @req (Omega.group == omega.G && Omega.subgroup == omega.H && Omega.side == omega.side) "omega is not in Omega"
+  return Omega
 end
 
-function orbits(Omega::GSetByRightTransversal)
-    return [Omega]
-end
+orbits(Omega::GSetBySubgroupTransversal) = [Omega]
 
-function permutation(Omega::GSetByRightTransversal{T, S, E}, g::E) where T <: GAPGroup where S <: GAPGroup where E
+function permutation(Omega::GSetBySubgroupTransversal{T, S, E}, g::E) where T <: GAPGroup where S <: GAPGroup where E
   # The following works because GAP uses its `PositionCanonical`.
+  # Note that we use `GAP.Globals.OnRight` also for the case of
+  # a left transversal, since a right transversal is used on the GAP side.
   pi = GAP.Globals.PermutationOp(g.X, Omega.transversal.X, GAP.Globals.OnRight)::GapObj
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return group_element(sym, pi)
+  return group_element(action_range(Omega), pi)
 end
 
-@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByRightTransversal{T, S, E}) where T <: GAPGroup where S <: GAPGroup where E
+@attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetBySubgroupTransversal{T, S, E}) where T <: GAPGroup where S <: GAPGroup where E
   G = Omega.group
 
   # The following works because GAP uses its `PositionCanonical`.
+  # Note that we use `GAP.Globals.OnRight` also for the case of
+  # a left transversal, since a right transversal is used on the GAP side.
   acthom = GAP.Globals.ActionHomomorphism(G.X, Omega.transversal.X, GAP.Globals.OnRight)::GapObj
 
   # See the comment about `SetJuliaData` in the `action_homomorphism` method
   # for `GSetByElements`.
   GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return GAPGroupHomomorphism(G, sym, acthom)
+  return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
 
@@ -629,10 +700,7 @@ true
   # which uses `permutation` or something better for mapping elements.)
   GAP.Globals.SetJuliaData(acthom, GAP.Obj([Omega, G]))
 
-  sym = get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Omega))
-  end
-  return GAPGroupHomomorphism(G, sym, acthom)
+  return GAPGroupHomomorphism(G, action_range(Omega), acthom)
 end
 
 # for convenience: create the G-set on the fly
@@ -651,6 +719,7 @@ end
 
 Return `true` if `omega1`, `omega2` are in the same orbit of `Omega`,
 and `false` otherwise.
+To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 
 # Examples
 ```jldoctest
@@ -673,9 +742,10 @@ is_conjugate(Omega::GSet, omega1, omega2) = omega2 in orbit(Omega, omega1)
     is_conjugate_with_data(Omega::GSet, omega1, omega2)
 
 Determine whether `omega1`, `omega2` are in the same orbit of `Omega`.
-If yes, return `true, g` where `g` is an element in the group `G` of
+If yes, return `(true, g)` where `g` is an element in the group `G` of
 `Omega` that maps `omega1` to `omega2`.
-If not, return `false, nothing`.
+If not, return `(false, nothing)`.
+If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 
 # Examples
 ```jldoctest
@@ -708,7 +778,7 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
     pos2 === nothing && return false, one(G)
     img = GAP.Globals.RepresentativeAction(image(acthom)[1].X, pos1, pos2)
     img == GAP.Globals.fail && return false, one(G)
-    pre = haspreimage(acthom, group_element(image(acthom)[1], img))
+    pre = has_preimage_with_preimage(acthom, group_element(image(acthom)[1], img))
     @assert(pre[1])
     return true, pre[2]
 end
@@ -718,6 +788,7 @@ end
 acting_domain(Omega::GSet) = acting_group(Omega)
 
 Base.length(Omega::GSetByElements) = length(elements(Omega))
+Base.length(::Type{T}, Omega::GSetByElements) where T <: IntegerUnion = T(length(elements(Omega)))
 
 representative(Omega::GSetByElements) = first(Omega.seeds)
 
@@ -979,7 +1050,7 @@ the action is transitive and the point stabilizers are maximal in `G`.
 ```jldoctest
 julia> G = alternating_group(6);
 
-julia> mx = filter(is_transitive, maximal_subgroup_reps(G))
+julia> mx = filter(is_transitive, map(representative, maximal_subgroup_classes(G)))
 3-element Vector{PermGroup}:
  Permutation group of degree 6 and order 24
  Permutation group of degree 6 and order 36
@@ -1065,7 +1136,7 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   F = base_ring(G)
   n = degree(G)
   q = GAP.Obj(order(F))
-  V = VectorSpace(F, n)
+  V = vector_space(F, n)
   orbs = GAP.Globals.Orbits(G.X, GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))
   orbreps = [GAP.Globals.BasisVectors(GAPWrap.Basis(orb[1])) for orb in orbs]
   stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(G.X, v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}

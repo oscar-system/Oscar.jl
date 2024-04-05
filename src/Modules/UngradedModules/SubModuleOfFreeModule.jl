@@ -47,7 +47,7 @@ module is `F`. In particular, `rank(F) == ncols(A)` must hold.
 """
 function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} 
   subModule = SubModuleOfFreeModule{L}(F)
-  O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
+  O = [FreeModElem(sparse_row(A[i:i,:]), F) for i in 1:nrows(A)]
   subModule.gens = ModuleGens(O, F)
   subModule.matrix = A
   return subModule
@@ -324,12 +324,12 @@ function length(M::SubModuleOfFreeModule)
 end
 
 @doc raw"""
-    ngens(M::SubModuleOfFreeModule)
+    number_of_generators(M::SubModuleOfFreeModule)
 
 Return the number of generators of `M`.
 """
-function ngens(M::SubModuleOfFreeModule)
-  return ngens(M.gens)
+function number_of_generators(M::SubModuleOfFreeModule)
+  return number_of_generators(M.gens)
 end
 
 @doc raw"""

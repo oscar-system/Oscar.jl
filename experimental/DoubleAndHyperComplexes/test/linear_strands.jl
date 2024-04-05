@@ -94,3 +94,38 @@
   str, inc_str = Oscar.linear_strand(res.C[3:-1:0])
   @test_throws ErrorException str[-1] # Not a free module in degree -1
 end
+
+@testset "some more linear strands" begin
+  R, (x0, x1, x2, x3, x4) = graded_polynomial_ring(GF(3), [:x0, :x1, :x2, :x3, :x4])
+  m = ideal(R, [x3^2 + x4*(x0-x3), x2*x3 + x4*(-x1 -x2 +x4), 
+                x1*x3 + x4*(x0-x3), x0*x3 + x4*(x0 + x3), 
+                x2^2 + x4*(-x0 + x2 - x3 + x4), 
+                x1*x2 + x4*(-x0-x1 -x4), x0 * x2 + x4*(x1 + x2 + x4), 
+                x1^2 + x4*(-x0 -x2-x4), x0*x1 + x4*(-x2 + x3 + x4), 
+                x0^2 + x4*(x1 - x4)])
+
+  A, _ = quo(R, m)
+
+  res, aug = free_resolution(Oscar.SimpleFreeResolution, A)
+
+  minres = simplify(res)
+
+  res0, inc0 = Oscar.linear_strand(minres, 0)
+  betti_table(res0)
+  quo0, pr0 = cokernel(inc0)
+
+  res1, inc1 = Oscar.linear_strand(quo0, 1) 
+  betti_table(res1)
+  quo1, pr1 = cokernel(inc1)
+
+  res2, inc2 = Oscar.linear_strand(quo1, 2)
+  betti_table(res2)
+  quo2, pr2 = cokernel(inc2)
+
+  res3, inc3 = Oscar.linear_strand(quo2, 3)
+  betti_table(res3)
+  quo3, pr3 = cokernel(inc3)
+
+  betti_table(quo3)
+end
+

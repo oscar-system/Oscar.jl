@@ -61,7 +61,7 @@
   #println("starting primary decomposition of singular locus")
   decomp = Oscar.maximal_associated_points(I_sing_X3)
   #println("finished primary decomposition of singular locus")
-  l = small_generating_set.([a for a in decomp])
+  l = simplify.([a for a in decomp])
 
   #@show "blowing up first center"
   #@show gens.(l[1].(patches(Oscar.simplified_covering(X3))))
@@ -131,7 +131,7 @@
 # 
 # ref_patches = [x for x in U if !(x===V1) && !(x===V2)]
 #
-# id_dict = IdDict{AbsSpec, Ideal}()
+# id_dict = IdDict{AbsAffineScheme, Ideal}()
 # for x in ref_patches
 #   id_dict[x] = I_sing_X4(x)
 # end

@@ -98,43 +98,43 @@ end
 #############################################################
 
 # rings needed for constructions
-istar0_s_auxiliary_base_ring, (a1pp, a2pp, a3pp, a4pp, a6pp, vp, mp) = QQ["a1pp", "a2pp", "a3pp", "a4pp", "a6pp", "vp", "mp"];
-tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v) = QQ["a1p", "a2p", "a3p", "a4p", "a6p", "v"];
+istar0_s_auxiliary_base_ring, (a1pp, a2pp, a3pp, a4pp, a6pp, vp, wp, mp) = QQ["a1pp", "a2pp", "a3pp", "a4pp", "a6pp", "vp", "wp", "mp"];
+tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v, w) = QQ["a1p", "a2p", "a3p", "a4p", "a6p", "v", "w"];
 
 # construct Tate models over arbitrary base
-t_istar0_s = global_tate_model(istar0_s_auxiliary_base_ring, [1 2 3 4 6 0 2; -1 -2 -2 -3 -4 1 -1], 3, [a1pp * vp^1, mp * vp^1 + a2pp * vp^2, a3pp * vp^2, mp^2 * vp^2 + a4pp * vp^3, a6pp * vp^4]);
-t_i1 = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -1 -1 -1 1], 3, [a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^1]);
-t_i2_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -1 -1 -2 1], 3, [a1p * v^0, a2p * v^0, a3p * v^1, a4p * v^1, a6p * v^2]);
-t_i2_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -1 -1 -2 1], 3, [a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2]);
-t_i3_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -2 -2 -3 1], 3, [a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^3]);
-t_i3_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -1 -2 -3 1], 3, [a1p * v^0, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3]);
-t_i4_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -2 -2 -4 1], 3, [a1p * v^0, a2p * v^0, a3p * v^2, a4p * v^2, a6p * v^4]);
-t_i4_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -2 -4 1], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4]);
-t_i5_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -3 -3 -5 1], 3, [a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^5]);
+t_istar0_s = global_tate_model(istar0_s_auxiliary_base_ring, [1 2 3 4 6 0 2; -1 -2 -2 -3 -4 1 -1], 3, [a1pp * (vp^2 + wp)^1, mp * (vp^2 + wp)^1 + a2pp * (vp^2 + wp)^2, a3pp * (vp^2 + wp)^2, mp^2 * (vp^2 + wp)^2 + a4pp * (vp^2 + wp)^3, a6pp * (vp^2 + wp)^4]);
+t_i1 = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -1 -1 -1 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^1, a4p * (v^2 + w)^1, a6p * (v^2 + w)^1]);
+t_i2_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -1 -1 -2 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^1, a4p * (v^2 + w)^1, a6p * (v^2 + w)^2]);
+t_i2_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -1 -1 -2 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^1, a6p * (v^2 + w)^2]);
+t_i3_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -2 -2 -3 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^2, a4p * (v^2 + w)^2, a6p * (v^2 + w)^3]);
+t_i3_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -1 -2 -3 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^2, a6p * (v^2 + w)^3]);
+t_i4_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -2 -2 -4 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^2, a4p * (v^2 + w)^2, a6p * (v^2 + w)^4]);
+t_i4_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -2 -4 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^1, a3p * (v^2 + w)^2, a4p * (v^2 + w)^2, a6p * (v^2 + w)^4]);
+t_i5_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -3 -3 -5 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^5]);
 t_i5_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -2 -3 -5 1], 3, [a1p * v^0, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5]);
-t_i6_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -3 -3 -6 1], 3, [a1p * v^0, a2p * v^0, a3p * v^3, a4p * v^3, a6p * v^6]);
-t_i6_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -3 -3 -6 1], 3, [a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6]);
-t_i7_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -4 -4 -7 1], 3, [a1p * v^0, a2p * v^0, a3p * v^4, a4p * v^4, a6p * v^7]);
-t_i7_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -3 -4 -7 1], 3, [a1p * v^0, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7]);
-t_ii = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -1 -1 1], 3, [a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^1]);
-t_iii = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -1 -2 1], 3, [a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^1, a6p * v^2]);
-t_iv_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -2 -2 1], 3, [a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^2]);
-t_iv_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -2 -3 1], 3, [a1p * v^1, a2p * v^1, a3p * v^1, a4p * v^2, a6p * v^3]);
-t_istar0_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -2 -3 1], 3, [a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^3]);
-t_istar0_ss = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -2 -4 1], 3, [a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^2, a6p * v^4]);
-t_istar1_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -3 -4 1], 3, [a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^4]);
-t_istar1_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -3 -5 1], 3, [a1p * v^1, a2p * v^1, a3p * v^2, a4p * v^3, a6p * v^5]);
-t_istar2_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -3 -5 1], 3, [a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^5]);
-t_istar2_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -3 -6 1], 3, [a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^3, a6p * v^6]);
-t_istar3_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -4 -6 1], 3, [a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^6]);
-t_istar3_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -4 -7 1], 3, [a1p * v^1, a2p * v^1, a3p * v^3, a4p * v^4, a6p * v^7]);
-t_istar4_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -4 -4 -7 1], 3, [a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^7]);
-t_istar4_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -4 -4 -8 1], 3, [a1p * v^1, a2p * v^1, a3p * v^4, a4p * v^4, a6p * v^8]);
-t_ivstar_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2 -3 -4 1], 3, [a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^4]);
-t_ivstar_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2 -3 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^2, a4p * v^3, a6p * v^5]);
-t_iiistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -3 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^3, a6p * v^5]);
-t_iistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -5 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^5]);
-t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 1], 3, [a1p * v^1, a2p * v^2, a3p * v^3, a4p * v^4, a6p * v^6]);
+t_i6_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -3 -3 -6 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^6]);
+t_i6_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -3 -3 -6 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^6]);
+t_i7_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 0 -4 -4 -7 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^0, a3p * (v^2 + w)^4, a4p * (v^2 + w)^4, a6p * (v^2 + w)^7]);
+t_i7_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; 0 -1 -3 -4 -7 1], 3, [a1p * (v^2 + w)^0, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^4, a6p * (v^2 + w)^7]);
+t_ii = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -1 -1 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^1, a6p * (v^2 + w)^1]);
+t_iii = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -1 -2 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^1, a6p * (v^2 + w)^2]);
+t_iv_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -2 -2 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^2, a6p * (v^2 + w)^2]);
+t_iv_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -1 -2 -3 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^1, a4p * (v^2 + w)^2, a6p * (v^2 + w)^3]);
+t_istar0_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -2 -3 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^2, a4p * (v^2 + w)^2, a6p * (v^2 + w)^3]);
+t_istar0_ss = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -2 -4 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^2, a4p * (v^2 + w)^2, a6p * (v^2 + w)^4]);
+t_istar1_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -3 -4 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^2, a4p * (v^2 + w)^3, a6p * (v^2 + w)^4]);
+t_istar1_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -2 -3 -5 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^2, a4p * (v^2 + w)^3, a6p * (v^2 + w)^5]);
+t_istar2_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -3 -5 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^5]);
+t_istar2_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -3 -6 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^6]);
+t_istar3_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -4 -6 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^4, a6p * (v^2 + w)^6]);
+t_istar3_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -3 -4 -7 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^3, a4p * (v^2 + w)^4, a6p * (v^2 + w)^7]);
+t_istar4_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -4 -4 -7 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^4, a4p * (v^2 + w)^4, a6p * (v^2 + w)^7]);
+t_istar4_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -1 -4 -4 -8 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^1, a3p * (v^2 + w)^4, a4p * (v^2 + w)^4, a6p * (v^2 + w)^8]);
+t_ivstar_ns = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2 -3 -4 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^2, a3p * (v^2 + w)^2, a4p * (v^2 + w)^3, a6p * (v^2 + w)^4]);
+t_ivstar_s = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -2 -3 -5 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^2, a3p * (v^2 + w)^2, a4p * (v^2 + w)^3, a6p * (v^2 + w)^5]);
+t_iiistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -3 -5 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^2, a3p * (v^2 + w)^3, a4p * (v^2 + w)^3, a6p * (v^2 + w)^5]);
+t_iistar = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -5 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^2, a3p * (v^2 + w)^3, a4p * (v^2 + w)^4, a6p * (v^2 + w)^5]);
+t_nm = global_tate_model(tate_auxiliary_base_ring, [1 2 3 4 6 0; -1 -2 -3 -4 -6 1], 3, [a1p * (v^2 + w)^1, a2p * (v^2 + w)^2, a3p * (v^2 + w)^3, a4p * (v^2 + w)^4, a6p * (v^2 + w)^6]);
 
 @testset "Attributes of global Tate models over generic base space" begin
   @test parent(tate_section_a1(t_i5_s)) == coordinate_ring(base_space(t_i5_s))
@@ -233,7 +233,7 @@ end
   irr_i5_s = irrelevant_ideal(tas);
   sri_i5_s = stanley_reisner_ideal(tas);
   lin_i5_s = ideal_of_linear_relations(tas);
-  id_fin,  = _blowup_global_sequence(id_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]], irr_i5_s, sri_i5_s, lin_i5_s)
+  id_fin,  = _blowup_global_sequence(id_i5_s, [[8, 9, 6], [2, 3, 1], [3, 4], [2, 4]], irr_i5_s, sri_i5_s, lin_i5_s)
   @test string(gens(id_fin)[end]) == "-b_4_1*b_2_1*a1p*z - b_4_1*b_2_2 - b_4_1*b_2_3*b_1_3^2*a3p*z^3 + b_4_2*b_3_2*b_2_1^2*b_1_1 + b_4_2*b_3_2*b_2_1^2*b_1_3*a2p*z^2 + b_4_2*b_3_2*b_2_1*b_2_3*b_1_3^3*a4p*z^4 + b_4_2*b_3_2*b_2_3^2*b_1_3^5*a6p*z^6"
 end
 

@@ -1,0 +1,103 @@
+name: Run CI without experimental
+
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+  pull_request:
+  workflow_dispatch:
+
+# needed to allow julia-actions/cache to delete old caches that it has created
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+# For local testing, run `ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl` to initialize
+# and `rm experimental/NoExperimental_whitelist.jl` for cleanup
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [ 'short', 'long' ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v1
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
+          include-matrix: false
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
+      - name: "Set test subgroup"
+        if: ${{ matrix.group }} != ''
+        run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+
+  doctest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: "Set up Julia"
+        uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v1
+        with:
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
+          include-matrix: false
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "Setup package"
+        run: |
+          julia --project=docs --color=yes -e '
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()'
+      - name: "Run doctests"
+        run: |
+          julia \
+            --project=docs --color=yes -e'
+              using Documenter
+              include("docs/documenter_helpers.jl")
+              using Oscar
+              DocMeta.setdocmeta!(Oscar, :DocTestSetup, Oscar.doctestsetup(); recursive = true)
+              doctest(Oscar)'
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: '1.10'
+      - name: "Symlink NoExperimental_whitelist.jl"
+        run: ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl
+      - name: Build package
+        uses: julia-actions/julia-buildpkg@v1
+      - name: Install dependencies
+        run: julia --project=. --color=yes -e 'using Oscar; Oscar.doc_init(; path="docs/")'
+      - name: Build
+        run: julia --project=docs/ --color=yes docs/make.jl

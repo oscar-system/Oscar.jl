@@ -54,19 +54,28 @@ end
 @doc raw"""
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
-Returns the Weyl group defined by .
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 """
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
 end
 
 @doc raw"""
-    weyl_group(type::Tuple{Symbol, Int}...) -> WeylGroup
+    weyl_group(type::Vector{Tuple{Symbol,Int}}) -> WeylGroup
 
-Returns the Weyl group defined by .
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+"""
+function weyl_group(type::Vector{Tuple{Symbol,Int}})
+  return weyl_group(root_system(type))
+end
+
+@doc raw"""
+    weyl_group(type::Tuple{Symbol,Int}...) -> WeylGroup
+
+Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 """
 function weyl_group(type::Tuple{Symbol,Int}...)
-  return weyl_group(root_system(type...))
+  return weyl_group(root_system(collect(type)))
 end
 
 @doc raw"""
@@ -156,11 +165,11 @@ function longest_element(W::WeylGroup)
 end
 
 @doc raw"""
-    ngens(W::WeylGroup) -> Int
+    number_of_generators(W::WeylGroup) -> Int
 
 Returns the number of generators of the `W`, i.e. the rank of the underyling root system.
 """
-function ngens(W::WeylGroup)
+function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
 end
 
@@ -175,7 +184,7 @@ function order(::Type{T}, W::WeylGroup) where {T}
   end
 
   ord = T(1)
-  for (fam, rk) in type(root_system(W))
+  for (fam, rk) in root_system_type(root_system(W))
     if fam == :A
       ord *= T(factorial(rk + 1))
     elseif fam == :B || fam == :C

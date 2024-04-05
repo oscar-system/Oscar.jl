@@ -281,6 +281,11 @@ This will then be used for users which enabled Unicode using
   for new users, and
 - OSCAR library code is not allowed to call `Oscar.allow_unicode`.
 
+Objects may follow the value of `Oscar.is_unicode_allowed()` at the time of their
+creation for their printing, i.e. ignore later changes of the setting.
+This is useful for objects storing a string representation of themselves, e.g.
+generators of a module.
+
 Here is an example with and without output using Unicode:
 
 ```julia

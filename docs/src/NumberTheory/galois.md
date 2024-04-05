@@ -28,27 +28,27 @@ Galois group do not immediately give automorphisms at all.
 
 Currently, the computation of Galois groups is possible for
  
-  - `K` a simple extension of the rationals (`AnticNumberField`)
-  - `K` a simple extension of an `AnticNumberField` 
+  - `K` a simple extension of the rationals (`AbsSimpleNumField`)
+  - `K` a simple extension of an `AbsSimpleNumField` 
   - `K` a finite extension of the rational function field over the
      rationals. In this case the
      monodromy group can be computed as well, ie. the automorphism group over the
      complex numbers.
-  - `f` a polynomial over the rationals, or an `AnticNumberField`
+  - `f` a polynomial over the rationals, or an `AbsSimpleNumField`
 
 Independently of the Galois group, subfields, that is intermediate fields
 between `K` and `k` can be computed as well.
 
 ## Automorphism Group
 
-The automorphisms are computed using various specialised factoring
+The automorphisms are computed using various specialized factoring
 algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.
 
 The main information is included in the number field chapter, see for example
 
-  - [`automorphism_list(::Hecke.NumFieldMor)`](@ref)
+  - [`automorphism_list(::Hecke.NumFieldHom)`](@ref)
   - [`automorphism_group(::NumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
 
@@ -60,7 +60,7 @@ The main information is included in the number field chapter, see
   - [`Hecke.principal_subfields(K::SimpleNumField)`](@ref)
   - [`subfields(FF::Generic.FunctionField{QQFieldElem})`](@ref)
 
-By setting `set_verbose_level(:Subfields, n::Int)` to 1 or 2
+By setting `set_verbosity_level(:Subfields, n::Int)` to 1 or 2
 information about the progress can be obtained.
 
 ## Galois Group
@@ -75,11 +75,11 @@ find explicit subfields of the splitting field as well.
 
 Information about the progress is available via
  
- - `set_verbose_level(:GaloisGroup, n::Int)`
- - `set_verbose_level(:GaloisInvariants, n::Int)`
+ - `set_verbosity_level(:GaloisGroup, n::Int)`
+ - `set_verbosity_level(:GaloisInvariants, n::Int)`
 
 ```@docs
-galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
+galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
 galois_group(f::PolyRingElem{<:FieldElem})
 ```
 

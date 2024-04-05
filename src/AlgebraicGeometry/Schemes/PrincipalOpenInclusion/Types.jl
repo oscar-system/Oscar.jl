@@ -3,20 +3,20 @@
 # embedding into its ambient scheme. But this allows for an actual morphism of rings 
 # in the background, so that the identification of the domain with a principal open 
 # subset of its codomain can also be realized for schemes with different `ambient_coordinate_ring`s. 
-# This is important for the refinements, since we also allow `SimplifiedSpec`.
+# This is important for the refinements, since we also allow `SimplifiedAffineScheme`.
 @doc raw"""
-    PrincipalOpenEmbedding{DomainType, CodomainType, PullbackType} <: AbsSpecMor
+    PrincipalOpenEmbedding{DomainType, CodomainType, PullbackType} <: AbsAffineSchemeMor
 
 An open inclusion ``ι : U ↪ X`` of one affine scheme ``U`` into another 
 one ``X`` such that the image is a principal open subset. 
 """
-@attributes mutable struct PrincipalOpenEmbedding{DomainType, CodomainType, PullbackType} <: AbsSpecMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
-  inc::SpecMor{DomainType, CodomainType, PullbackType}
+@attributes mutable struct PrincipalOpenEmbedding{DomainType, CodomainType, PullbackType} <: AbsAffineSchemeMor{DomainType, CodomainType, PullbackType, OpenInclusion, Nothing}
+  inc::AffineSchemeMor{DomainType, CodomainType, PullbackType}
   complement_equations::Vector{<:RingElem}
   image::PrincipalOpenSubset
-  inverse_on_image::AbsSpecMor
+  inverse_on_image::AbsAffineSchemeMor
 
-  function PrincipalOpenEmbedding(f::AbsSpecMor, complement_equations::Vector{T}; check::Bool=true) where {T<:RingElem}
+  function PrincipalOpenEmbedding(f::AbsAffineSchemeMor, complement_equations::Vector{T}; check::Bool=true) where {T<:RingElem}
     X = domain(f)
     Y = codomain(f)
     @assert all(x->parent(x) === OO(Y), complement_equations)

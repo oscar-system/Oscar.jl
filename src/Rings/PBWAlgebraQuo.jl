@@ -13,7 +13,7 @@ export PBWAlgQuo, PBWAlgQuoElem
 #      achieve this a "new" pointer to the Singular ring is needed;
 #      this pointer is a new data field (sring) in PBQAlgQuo.
 #
-#  To preserve the original behaviour the new field "sdata" in PBWAlgQuo
+#  To preserve the original behavior the new field "sdata" in PBWAlgQuo
 #  is set to the same value as the field "sdata" in PBWAlg (unless
 #  created by constructor for exterior_algebra.
 #
@@ -114,8 +114,8 @@ end
 
 ####
 
-function ngens(Q::PBWAlgQuo)
-  return ngens(base_ring(Q))  # EQUIV  ngens(Q.sring)  ???
+function number_of_generators(Q::PBWAlgQuo)
+  return number_of_generators(base_ring(Q))  # EQUIV  number_of_generators(Q.sring)  ???
 end
 
 function gens(Q::PBWAlgQuo)
@@ -124,10 +124,6 @@ end
 
 function gen(Q::PBWAlgQuo, i::Int)
   return PBWAlgQuoElem(Q, PBWAlgElem(Q.I.basering, gen(Q.sring, i)))
-end
-
-function Base.getindex(Q::PBWAlgQuo, i::Int)
-  return gen(Q, i)
 end
 
 function zero(Q::PBWAlgQuo)

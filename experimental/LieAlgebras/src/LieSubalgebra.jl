@@ -60,7 +60,7 @@ function gen(S::LieSubalgebra, i::Int)
   return S.gens[i]
 end
 
-function ngens(S::LieSubalgebra)
+function number_of_generators(S::LieSubalgebra)
   return length(gens(S))
 end
 
@@ -213,7 +213,8 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  sol_dim, sol = left_kernel(mat)
+  sol = kernel(mat; side = :left)
+  sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)

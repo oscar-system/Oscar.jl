@@ -33,7 +33,7 @@ stored as a formal linear combination over some ring ``R`` of
   function WeilDivisor(
       X::AbsCoveredScheme,
       R::CoefficientRingType, 
-      coefficients::IdDict{<:IdealSheaf, CoefficientRingElemType};
+      coefficients::IdDict{<:AbsIdealSheaf, CoefficientRingElemType};
       check::Bool=true
     ) where {CoefficientRingType, CoefficientRingElemType}
     @check begin
@@ -60,7 +60,7 @@ end
 ### forwarding of all essential functionality
 underlying_cycle(D::WeilDivisor) = D.C
 
-@attr function dim(I::IdealSheaf)
+@attr function dim(I::AbsIdealSheaf)
   dims = [dim(I(U)) for U in affine_charts(scheme(I))]
   return maximum(dims)
 end
@@ -80,7 +80,7 @@ Return the zero `WeilDivisor` over `X` with coefficients
 in `R`.
 """
 function WeilDivisor(X::AbsCoveredScheme, R::Ring)
-  D = IdDict{IdealSheaf, elem_type(R)}()
+  D = IdDict{AbsIdealSheaf, elem_type(R)}()
   return WeilDivisor(X, R, D, check=false)
 end
 
@@ -100,7 +100,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y);
 
@@ -113,17 +113,17 @@ with coefficients in rational field
 weil_divisor(X::AbsCoveredScheme, R::Ring) = WeilDivisor(X, R)
 
 @doc raw"""
-    WeilDivisor(I::IdealSheaf)
+    WeilDivisor(I::AbsIdealSheaf)
 
 Return the `WeilDivisor` ``D = 1 ⋅ V(I)`` with coefficients
 in ``ℤ`` for a sheaf of prime ideals ``I``.
 """
-function WeilDivisor(I::IdealSheaf; check::Bool=true)
+function WeilDivisor(I::AbsIdealSheaf; check::Bool=true)
   WeilDivisor(I, ZZ, check=check)
 end
 
 @doc raw"""
-    weil_divisor(I::IdealSheaf) -> WeilDivisor
+    weil_divisor(I::AbsIdealSheaf) -> WeilDivisor
 
 Given an ideal sheaf `I`, return the prime weil divisor $D = 1 ⋅ V(I)$ with
 coefficients in the integer ring.
@@ -134,7 +134,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -146,9 +146,9 @@ given as the formal sum of
   1 * sheaf of ideals
 ```
 """
-weil_divisor(I::IdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
+weil_divisor(I::AbsIdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
 
-function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
+function WeilDivisor(I::AbsIdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check is_equidimensional(I) "ideal sheaf must be equidimensional"
   @check dim(space(I)) - dim(I) == 1 "components of a divisor must be of codimension one"
@@ -156,11 +156,11 @@ function WeilDivisor(I::IdealSheaf, R::Ring; check::Bool=true)
   return D
 end
 
-weil_divisor(I::IdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
+weil_divisor(I::AbsIdealSheaf, R::Ring; check::Bool=true) = WeilDivisor(I, R, check=check)
 
 ### copy constructor
 function copy(D::AbsWeilDivisor) 
-  new_dict = IdDict{IdealSheaf, elem_type(coefficient_ring_type(D))}()
+  new_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring_type(D))}()
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
@@ -330,7 +330,7 @@ Base.:*(a::T, E::AbsWeilDivisor) where {T<:IntegerUnion} = coefficient_ring(E)(a
 # method ambiguity requires us to also implement the following:
 Base.:*(a::Int, E::AbsWeilDivisor) = coefficient_ring(E)(a)*E
 
-Base.:+(D::AbsWeilDivisor, I::IdealSheaf) = D + WeilDivisor(I)
+Base.:+(D::AbsWeilDivisor, I::AbsIdealSheaf) = D + WeilDivisor(I)
 
 function ==(D::AbsWeilDivisor, E::AbsWeilDivisor) 
   return underlying_divisor(D) == underlying_divisor(E)
@@ -402,20 +402,20 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
 end
 
 """
-    _self_intersection(I::IdealSheaf) -> Integer
+    _self_intersection(I::AbsIdealSheaf) -> Integer
 
 For ``I`` a sheaf of pure codimension ``1`` on a surface,
 return the self-intersection of ``I`` viewed as a Weil-Divisor.
 """
-function _self_intersection(I::IdealSheaf)
+function _self_intersection(I::AbsIdealSheaf)
   has_attribute(I, :_self_intersection) || error("self intersection unknown")
   return get_attribute(I, :_self_intersection)::Int
 end
 
-function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
+function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
   patches_todo = copy(patches(covering))
-  patches_done = AbsSpec[]
+  patches_done = AbsAffineScheme[]
   result = 0
   while length(patches_todo) != 0
     U = pop!(patches_todo)
@@ -485,7 +485,7 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regula
     # we have to check that f[U] has no poles outside the support of D[U]
     J = intersect([J(U) for J in components(D)])
     incH = ClosedEmbedding(U, J)
-    W = complement(incH) # This is a SpecOpen
+    W = complement(incH) # This is a AffineSchemeOpenSubscheme
     is_regular(f, W) || return false
   end
   return true
@@ -570,7 +570,7 @@ function weil_divisor(L::LinearSystem)
   return L.D
 end
 gens(L::LinearSystem) = L.f
-ngens(L::LinearSystem) = length(L.f)
+number_of_generators(L::LinearSystem) = length(L.f)
 gen(L::LinearSystem,i::Int) = L.f[i]
 
 @doc raw"""
@@ -606,7 +606,7 @@ end
 
 
 @doc raw"""
-    _subsystem(L::LinearSystem, P::IdealSheaf, n) -> LinearSystem
+    _subsystem(L::LinearSystem, P::AbsIdealSheaf, n) -> LinearSystem
 
 Given a linear system ``L = |D|``, a sheaf of prime ideals `P` 
 and an integer `n`, return a pair ``(K, A)`` consisting
@@ -614,7 +614,7 @@ of the subsystem of elements in ``|D|`` that vanish to order at least n at ``P``
 The matrix ``A`` for its inclusion into ``L`` on the given set
 of generators.
 """
-function _subsystem(L::LinearSystem, P::IdealSheaf, n)
+function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n)
   # find one chart in which P is supported
   # TODO: There might be preferred choices for charts with
   # the least complexity.
@@ -675,7 +675,8 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
       A[i, k] = c
     end
   end
-  r, K = left_kernel(A)
+  K = kernel(A; side = :left)
+  r = nrows(K)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
   W = weil_divisor(L)
   PW = WeilDivisor(P, check=false)

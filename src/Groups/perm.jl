@@ -57,7 +57,7 @@ degree(x::PermGroup) = x.deg
     degree(g::PermGroupElem) -> Int
 
 Return the degree of the parent of `g`.
-This value is always greater or equal `number_moved_points(g)`
+This value is always greater or equal `number_of_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
@@ -83,8 +83,8 @@ julia> length(moved_points(gen(s, 1)))
 @gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
 
 @doc raw"""
-    number_moved_points(x::PermGroupElem) -> Int
-    number_moved_points(G::PermGroup) -> Int
+    number_of_moved_points(x::PermGroupElem) -> Int
+    number_of_moved_points(G::PermGroup) -> Int
 
 Return the number of those points in `1:degree(x)` or `1:degree(G)`,
 respectively, that are moved (i.e., not fixed) under the action `^`.
@@ -93,14 +93,14 @@ respectively, that are moved (i.e., not fixed) under the action `^`.
 ```jldoctest
 julia> g = symmetric_group(4);  s = sylow_subgroup(g, 3)[1];
 
-julia> number_moved_points(s)
+julia> number_of_moved_points(s)
 3
 
-julia> number_moved_points(gen(s, 1))
+julia> number_of_moved_points(gen(s, 1))
 3
 ```
 """
-@gapattribute number_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
+@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
@@ -639,6 +639,43 @@ function cycle_structures(G::PermGroup)
   return Set(cycle_structure(x) for x in r)
 end
 
+@doc raw"""
+    cycles(g::PermGroupElem)
+
+Return all cycles (including trivial ones) of the permutation `g` as
+a sorted list of integer vectors.
+
+# Examples
+```jldoctest
+julia> g = cperm(1:3, 6:7, 8:10, 11:15)
+(1,2,3)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia> cycles(g)
+6-element Vector{Vector{Int64}}:
+ [1, 2, 3]
+ [4]
+ [5]
+ [6, 7]
+ [8, 9, 10]
+ [11, 12, 13, 14, 15]
+
+julia> g = cperm()
+()
+
+julia> cycles(g)
+1-element Vector{Vector{Int64}}:
+ [1]
+```
+"""
+function cycles(g::PermGroupElem)
+  ccycles, cptrs = AbstractAlgebra.Generic.cycledec(Vector(g))
+
+  cycles = Vector{Vector{Int}}(undef, length(cptrs) - 1)
+  for i in 1:length(cptrs) - 1
+    cycles[i] = ccycles[cptrs[i]:cptrs[i + 1] - 1]
+  end
+  return cycles
+end
 
 ################################################################################
 #

@@ -80,7 +80,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom)
+    dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
     if haskey(fac.maps_to_original, i)
       # This means that for the next map a partial or 
@@ -93,7 +93,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod)
+    cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
     if haskey(fac.maps_to_original, next)
       fac.maps_to_original[next] = compose(cod_map, fac.maps_to_original[next])
@@ -122,7 +122,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       # end
       push!(img_gens_dom, v)
     end
-    dom_map_inv = hom(M, new_dom, img_gens_dom)
+    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
 
     if haskey(fac.maps_from_original, i)
       fac.maps_from_original[i] = compose(fac.maps_from_original[i], dom_map_inv)
@@ -144,7 +144,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w_new = sparse_row(base_ring(w), new_entries)
       push!(img_gens_cod, FreeModElem(w_new, new_cod))
     end
-    cod_map_inv = hom(N, new_cod, img_gens_cod)
+    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
     if haskey(fac.maps_from_original, next)
       fac.maps_from_original[next] = compose(fac.maps_from_original[next], cod_map_inv)
@@ -184,7 +184,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     # Create the maps to the old complex
     img_gens_dom = elem_type(M)[sum(c*M[j] for (j, c) in S[i]; init=zero(M)) for i in I]
     new_dom = _make_free_module(M, img_gens_dom)
-    dom_map = hom(new_dom, M, img_gens_dom)
+    dom_map = hom(new_dom, M, img_gens_dom; check=false)
 
     if haskey(fac.maps_to_original, prev)
       fac.maps_to_original[prev] = compose(dom_map, fac.maps_to_original[prev])
@@ -195,7 +195,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 
     img_gens_cod = elem_type(N)[sum(c*N[i] for (i, c) in T[j]; init=zero(N)) for j in J]
     new_cod = _make_free_module(N, img_gens_cod)
-    cod_map = hom(new_cod, N, img_gens_cod)
+    cod_map = hom(new_cod, N, img_gens_cod; check=false)
 
     if haskey(fac.maps_to_original, i)
       fac.maps_to_original[i] = compose(cod_map, fac.maps_to_original[i])
@@ -214,7 +214,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       end
       push!(img_gens_dom, v)
     end
-    dom_map_inv = hom(M, new_dom, img_gens_dom)
+    dom_map_inv = hom(M, new_dom, img_gens_dom; check=false)
 
     if haskey(fac.maps_from_original, prev)
       fac.maps_from_original[prev] = compose(fac.maps_from_original[prev], dom_map_inv)
@@ -235,7 +235,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w_new = sparse_row(base_ring(w), new_entries)
       push!(img_gens_cod, FreeModElem(w_new, new_cod))
     end
-    cod_map_inv = hom(N, new_cod, img_gens_cod)
+    cod_map_inv = hom(N, new_cod, img_gens_cod; check=false)
 
     if haskey(fac.maps_from_original, i)
       fac.maps_from_original[i] = compose(fac.maps_from_original[i], cod_map_inv)
@@ -357,7 +357,7 @@ end
 ### Helper functions
 function _make_free_module(M::ModuleFP, g::Vector{T}) where {T<:ModuleFPElem}
   if is_graded(M)
-    w = degree.(g)
+    w = _degree_fast.(g)
     return graded_free_module(base_ring(M), w)
   else
     return FreeMod(base_ring(M), length(g))
@@ -587,3 +587,98 @@ function _has_index(a::SMat, i::Int, j::Int)
   return _has_index(a[i], j)
 end
 
+### Taylormade functionality for modules
+# Provided as a hotfix for issue #3108.
+@doc raw"""
+    simplify(M::SubquoModule)
+
+Simplify the given subquotient `M` and return the simplified subquotient `N` along
+with the injection map $N \to M$ and the projection map $M \to N$. These maps are
+isomorphisms.
+The simplifcation is heuristical and includes steps like for example removing
+zero-generators or removing the i-th component of all vectors if those are
+reduced by a relation.
+"""
+function simplify(M::SubquoModule)
+  res, aug = free_resolution(SimpleFreeResolution, M)
+  simp = simplify(res)
+  simp_to_orig = map_to_original_complex(simp)
+  orig_to_simp = map_from_original_complex(simp)
+  result, Z0_to_result = homology(simp, 0)
+  Z0, inc_Z0 = kernel(simp, 0)
+
+  result_to_M = hom(result, M, 
+                    elem_type(M)[aug[0](simp_to_orig[0](inc_Z0(preimage(Z0_to_result, x)))) for x in gens(result)]; check=false)
+  M_to_result = hom(M, result,
+                    elem_type(result)[Z0_to_result(preimage(inc_Z0, orig_to_simp[0](preimage(aug[0], y)))) for y in gens(M)]; check=false)
+  set_attribute!(M_to_result, :inverse=>result_to_M)
+  set_attribute!(result_to_M, :inverse=>M_to_result)
+  #return result, M_to_result, result_to_M
+  return result, result_to_M
+end
+
+# Some special shortcuts
+function boundary(c::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+  # try to find the boundary already computed
+  und = underlying_complex(c)::HyperComplex
+  if !isdefined(und, :boundary_cache) 
+    und.boundary_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(und.boundary_cache, (i, p))
+    inc = und.boundary_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  # compute the boundary from scratch
+  orig_boundary, orig_inc = boundary(c.original_complex, p, i)
+  from_orig = map_from_original_complex(c)[i]
+  result, inc = sub(c[i], from_orig.(orig_inc.(gens(orig_boundary))))
+
+  # Cache the result
+  und.boundary_cache[(i, p)] = inc
+
+  return result, inc
+end
+
+function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType<:ModuleFP}
+  c = underlying_complex(simp)::HyperComplex
+
+  if !isdefined(c, :kernel_cache) 
+    c.kernel_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.kernel_cache, (i, p))
+    inc = c.kernel_cache[(i, p)]
+    return domain(inc), inc
+  end
+
+  if !can_compute_map(simp, p, i)
+    M = simp[i]
+    K, inc = sub(simp[i], gens(simp[i]))
+    c.kernel_cache[(i, p)] = inc
+    return K, inc
+  end
+
+  psi = map_to_original(simp)[i]
+  phi = map(c, p, i)
+  K, inc = kernel(compose(psi, phi))
+  c.kernel_cache[(i, p)] = inc
+  return K, inc
+end
+
+function homology(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {ChainType <: ModuleFP}
+  c = underlying_complex(simp)::HyperComplex
+  
+  if !isdefined(c, :homology_cache) 
+    c.homology_cache = Dict{Tuple{Tuple, Int}, Map}()
+  end
+  if haskey(c.homology_cache, (i, p))
+    pr = c.homology_cache[(i, p)]
+    return codomain(pr), pr
+  end
+
+  H, pr = quo(kernel(simp, p, i)[1], boundary(simp, p, i)[1])
+  c.homology_cache[(i, p)] = pr
+  return H, pr
+end
+
+homology(simp::SimplifiedComplex{ChainType}, i::Int) where {ChainType <: ModuleFP} = homology(simp, 1, (i,))

@@ -20,7 +20,7 @@
   g = hom(F, M, phi.(f.(gens(domain(f)))))
   K, inc = kernel(g)
   tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
+  KK, inc2 = sub(domain(f), unique!(filter!(!iszero, tr.(gens(K)))))
   return KK, inc2
 end
 
@@ -44,6 +44,7 @@ end
 # Methods which should not be necessary, but the stuff doesn't work,   #
 # unless we implement them.                                            #
 ########################################################################
+#=
 @attr function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
@@ -63,6 +64,7 @@ end
   KK, inc2 = sub(domain(f), tr.(gens(K)))
   return KK, inc2
 end
+=#
 
 function coordinates(
     v::FreeModElem{T}, 

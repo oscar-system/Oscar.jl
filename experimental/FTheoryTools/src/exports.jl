@@ -105,6 +105,7 @@ export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
+export put_over_concrete_base
 export related_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
@@ -150,6 +151,7 @@ export set_zero_section
 export singular_loci
 export su5_tate_model_over_arbitrary_3d_base
 export su5_weierstrass_model_over_arbitrary_3d_base
+export tate_ideal_sheaf
 export tate_polynomial
 export tate_section_a1
 export tate_section_a2
@@ -157,6 +159,7 @@ export tate_section_a3
 export tate_section_a4
 export tate_section_a6
 export tune
+export weierstrass_ideal_sheaf
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface
 export weierstrass_model_over_hirzebruch_surface

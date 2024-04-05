@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Gröbner/Standard Bases Over Fields
+# [Gröbner/Standard Bases Over Fields](@id gb_fields)
 
 We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.
 
@@ -77,7 +77,7 @@ julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
 
-## Monomials, Terms, and More
+## [Monomials, Terms, and More](@id monomials_terms_more)
 
 Here are examples which indicate how to recover monomials, terms, and
 more from a given polynomial.
@@ -363,7 +363,7 @@ chosen prime number rather than for $I$ itself.
 groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     destination_ordering::MonomialOrdering,
     complete_reduction::Bool = false,
-    weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+    weights::Vector{Int} = ones(Int, number_of_generators(base_ring(I))),
     hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
 ```
 
@@ -400,7 +400,7 @@ normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(b
 
 ## Syzygies
 
-We refer to the section on modules for more on syzygies.
+We refer to the section on [modules](@ref modules_multivariate) for more on syzygies.
 
 ```@docs
 syzygy_generators(G::Vector{<:MPolyRingElem})

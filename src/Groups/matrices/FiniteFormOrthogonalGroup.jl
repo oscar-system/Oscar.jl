@@ -368,14 +368,14 @@ function _lift(q::T, f::T, a) where T <: Union{ZZModMatrix, zzModMatrix}
   if mod(lift(q[end-1,end-1] + q[end,end]), 4) == 2
     g[end, end-1] = a
     g[1:end-2,end-1] = diagonal(divexact(G - f*G*transpose(f),2))
-    g[end,1:end-2] = transpose(fGinv * g[1:end-2,end-1])
+    g[end:end,1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
   else
     if a == 0
       a = zeros(R, ncols(q)-2)
     end
     g[1:end-2,end-1] = a
-    g[end,1:end-2] = transpose(fGinv * g[1:end-2,end-1])
-    t = (g[end,1:end-2]*G*transpose(g[end,1:end-2]))[1,1]
+    g[[end],1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
+    t = (g[end:end,1:end-2]*G*transpose(g[end:end,1:end-2]))[1,1]
     g[end,end-1] = divexact(t-mod(lift(t), 2), 2)
   end
   err = g*qb*transpose(g)-qb
@@ -642,9 +642,9 @@ function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
       end
       if parity[1]==1 && parity[3]==1
         # compensate
-        g[e+1, i1] = divexact((g[e+1,i1+1:i2]*G[i1+1:i2,i1+1:i2]*transpose(g[e+1,i1+1:i2]))[1,1],4)
+        g[e+1, i1] = divexact((g[e+1:e+1,i1+1:i2]*G[i1+1:i2,i1+1:i2]*transpose(g[e+1:e+1,i1+1:i2]))[1,1],4)
         # the second row depends on the third
-        g[i1+1:i2,i1] = - divexact((G[i1+1:i2,i1+1:i2]* transpose(g[i2+1:end,i1+1:i2]) * inv(G[i2+1:end,i2+1:end]))[:,end], 2)
+        g[i1+1:i2,i1:i1] = - divexact((G[i1+1:i2,i1+1:i2]* transpose(g[i2+1:end,i1+1:i2]) * inv(G[i2+1:end,i2+1:end]))[:,end:end], 2)
       end
       if g[i,j] == 1   # no need to append the identity
         push!(gens, g)

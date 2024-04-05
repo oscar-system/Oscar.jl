@@ -152,9 +152,9 @@ end
       @test K(x) == img
       @test preimage(emb, img) == x
     end
-    @test has_preimage(emb, K(one(F3)))[1]
+    @test has_preimage_with_preimage(emb, K(one(F3)))[1]
     @test preimage(emb, K(one(F3))) == one(F2)
-    @test !has_preimage(emb, K(gen(F3)))[1]
+    @test !has_preimage_with_preimage(emb, K(gen(F3)))[1]
   end
 
   @testset "Polynomial for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]

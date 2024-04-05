@@ -7,3 +7,6 @@ profile.pb.gz
 LocalPreferences.toml
 Manifest.toml
 .DS_Store
+*~
+*.swp
+/experimental/NoExperimental_whitelist.jl

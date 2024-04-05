@@ -9,6 +9,10 @@
    square_by_cells = subdivision_of_points(C,square_max_cells)
    square_by_incidence = subdivision_of_points(C,square_incidence)
 
+   # input from vectors of vectors
+   @test subdivision_of_points(vertices(C),square_weights) isa SubdivisionOfPoints
+   @test subdivision_of_points([[0,0],[1,0],[0,1],[1,1]],square_weights) isa SubdivisionOfPoints
+
    @testset "alternative inputs" begin
       @test collect(maximal_cells(square_by_incidence)) == collect(maximal_cells(square_by_weights))
       @test min_weights(square_by_cells) == min_weights(square_by_weights)
@@ -33,14 +37,14 @@
     @testset "core functionality" begin
         @test !is_regular(MOAE)
         @test is_regular(SOP0)
-        @test n_maximal_cells(MOAE) == 7
-        @test n_maximal_cells(SOP0) == 1
-        @test n_maximal_cells(SOP1) == 1
+        @test number_of_maximal_cells(MOAE) == 7
+        @test number_of_maximal_cells(SOP0) == 1
+        @test number_of_maximal_cells(SOP1) == 1
         @test min_weights(SOP1) == [0,0,0,1,1,1]
         @test dim(C1) == 6
         @test dim(CMOAE) == 4
         @test moaeimnonreg0 == maximal_cells(IncidenceMatrix, MOAE)
-        @test npoints(MOAE) == 6
+        @test number_of_points(MOAE) == 6
         @test length(points(MOAE)) == 6
         @test collect(points(MOAE))[3] == [0,0,4]
         @test gkz_vector(fulldim_MOAE) == [9,9,9,7,7,7]

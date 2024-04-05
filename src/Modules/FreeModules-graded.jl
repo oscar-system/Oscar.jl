@@ -13,7 +13,7 @@ const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRi
 # Also: qring is a Singular native. So it needs to be added to the ring creation
 
 @attributes mutable struct FreeModule_dec{T} <: ModuleFP_dec{T}
-  d::Vector{GrpAbFinGenElem}
+  d::Vector{FinGenAbGroupElem}
   R::Ring_dec
   S::Vector{Symbol}
 
@@ -26,35 +26,33 @@ const RingElem_dec = Union{MPolyDecRingElem, MPolyQuoRingElem{<:Oscar.MPolyDecRi
   end
 end
 
-function FreeModule(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) 
+function free_module(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) 
   return FreeModule_dec([grading_group(R)[0] for i=1:n], R, [Symbol("$name[$i]") for i=1:n])
 end
-free_module(R::Ring_dec, n::Int, name::VarName = :e; cached::Bool = false) = FreeModule(R, n, name, cached = cached)
 
-function FreeModule(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false)
+function free_module(R::Ring_dec, d::Vector{FinGenAbGroupElem}, name::VarName = :e; cached::Bool = false)
   return FreeModule_dec(d, R, [Symbol("$name[$i]") for i=1:length(d)])
 end
-free_module(R::Ring_dec, d::Vector{GrpAbFinGenElem}, name::VarName = :e; cached::Bool = false) = FreeModule(R, d, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
-  - FreeModule(R, n)
+  - free_module(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
 thus the "category" needs to be set explicitly
 
-^(R::Ring_dec, n::Int) = FreeModule(R, n)
+^(R::Ring_dec, n::Int) = free_module(R, n)
 =#
 
 function AbstractAlgebra.extra_name(F::FreeModule_dec)
   t = get_attribute(F, :twist)
   if t !== nothing
-    n = get_attribute(t[1], :name)
+    n = AbstractAlgebra.get_name(t[1])
     if n !== nothing
       return "$n($(t[2]))"
     end
   end
   if length(Set(F.d)) == 1
-    n = get_attribute(F.R, :name)
+    n = AbstractAlgebra.get_name(base_ring(F))
     if n !== nothing
       return "$n^$(ngens(F))($(-F.d[1]))"
     end
@@ -62,8 +60,8 @@ function AbstractAlgebra.extra_name(F::FreeModule_dec)
   return nothing
 end
 
-function (F::FreeModule_dec)(a::GrpAbFinGenElem) 
-  G = FreeModule(F.R, [x-a for x = F.d])
+function (F::FreeModule_dec)(a::FinGenAbGroupElem) 
+  G = free_module(F.R, [x-a for x = F.d])
   set_attribute!(G, :twist => (F, a))
   return G
 end
@@ -156,11 +154,6 @@ function gen(F::FreeModule_dec, i::Int)
   return FreeModuleElem_dec(s, F)
 end
 
-function Base.getindex(F::FreeModule_dec, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
-
 base_ring(F::FreeModule_dec) = F.R
 
 #TODO: Parent - checks everywhere!!!
@@ -217,7 +210,7 @@ function degree(a::FreeModuleElem_dec)
 end
 
 function homogeneous_components(a::FreeModuleElem_dec)
-  res = Dict{GrpAbFinGenElem, FreeModuleElem_dec}()
+  res = Dict{FinGenAbGroupElem, FreeModuleElem_dec}()
   F = parent(a)
   for (p,v) = a.r
     c = homogeneous_components(v)
@@ -233,7 +226,7 @@ function homogeneous_components(a::FreeModuleElem_dec)
   return res
 end
 
-function homogeneous_component(a::FreeModuleElem_dec, g::GrpAbFinGenElem)
+function homogeneous_component(a::FreeModuleElem_dec, g::FinGenAbGroupElem)
   F = parent(a)
   x = zero(F)
   for (p,v) = a.r
@@ -248,7 +241,7 @@ function is_homogeneous(a::FreeModuleElem_dec)
   end
   F = parent(a)
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   for (p,v) = a.r
     is_homogeneous(v) || return false
     if first
@@ -427,7 +420,7 @@ end
 
 function is_homogeneous(h::T) where {T <: Map_dec}
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   for i = gens(domain(h))
     hi = h(i)
     iszero(hi) && continue
@@ -443,7 +436,7 @@ end
 
 function degree(h::T) where {T <: Map_dec}
   first = true
-  local d::GrpAbFinGenElem
+  local d::FinGenAbGroupElem
   D = domain(h)
   R = base_ring(D)
   for i = gens(domain(h))
@@ -469,8 +462,8 @@ function degree(h::T) where {T <: Map_dec}
 end
 
 function homogeneous_components(h::T) where {T <: Map_dec}
-  c = Dict{GrpAbFinGenElem, typeof(h)}()
-  d = Dict{GrpAbFinGenElem, Vector{Int}}()
+  c = Dict{FinGenAbGroupElem, typeof(h)}()
+  d = Dict{FinGenAbGroupElem, Vector{Int}}()
   F = domain(h)
   im = elem_type(codomain(h))[]
   for i = 1:ngens(F)
@@ -553,7 +546,7 @@ end
 
 @doc raw"""
   A subquotient is (internally) given wia two submodules A and B of the same 
-  FreeModule F. It represents $(A+B)/B$, so elements are given as elements
+  free module F. It represents $(A+B)/B$, so elements are given as elements
   in $A+B$
 """
 struct SubquoDecModuleElem{T}
@@ -683,7 +676,7 @@ function syzygie_module(F::BiModArray; sub = 0)
   else
     [F[Val(:O), i] for i = 1:length(F.O)]
     z = grading_group(base_ring(F.F))[0]
-    G = FreeModule(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
+    G = free_module(base_ring(F.F), [iszero(x) ? z : degree(x) for x = F.O])
   end
   return SubquoDecModule(G, s)
 end
@@ -703,11 +696,6 @@ zero(SQ::SubquoDecModule) = SubquoDecModuleElem(zero(SQ.F), SQ)
 
 function Base.iszero(F::SubquoDecModule)
   return all(iszero, gens(F))
-end
-
-function Base.getindex(F::SubquoDecModule, i::Int)
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 function Base.iterate(F::BiModArray, i::Int = 1)
@@ -739,9 +727,9 @@ function presentation(SQ::SubquoDecModule)
   #TODO: wait for Hans to release Modulo(A, B) that does exactly this
   c = collect(s.sub)
   R = base_ring(SQ)
-  F = FreeModule(R, [degree(x) for x = collect(SQ.sub)])
+  F = free_module(R, [degree(x) for x = collect(SQ.sub)])
   q = elem_type(F)[]
-  w = GrpAbFinGenElem[]
+  w = FinGenAbGroupElem[]
 
   for x = c
     b = sparse_row(R)
@@ -762,20 +750,20 @@ function presentation(SQ::SubquoDecModule)
   end
   #want R^a -> R^b -> SQ -> 0
   #TODO sort grading_group and fix maps, same grading_group should be bundled (to match pretty printing)
-  G = FreeModule(R, w)
+  G = free_module(R, w)
   h_G_F = hom(G, F, q)
   @assert iszero(h_G_F) || iszero(degree(h_G_F))
   h_F_SQ = hom(F, SQ, gens(SQ))
   @assert iszero(h_F_SQ) || iszero(degree(h_F_SQ))
-  Z = FreeModule(F.R, GrpAbFinGenElem[])
-  set_attribute!(Z, :name => "Zero")
+  Z = free_module(F.R, FinGenAbGroupElem[])
+  AbstractAlgebra.set_name!(Z, "Zero")
   h_SQ_Z = hom(SQ, Z, [zero(Z) for i=1:ngens(SQ)])
   return Hecke.ComplexOfMorphisms(Oscar.ModuleFP_dec, Oscar.Map_dec[h_G_F, h_F_SQ, h_SQ_Z], check = false)
 end
 
 function presentation(F::FreeModule_dec)
-  Z = FreeModule(F.R, GrpAbFinGenElem[])
-  set_attribute!(Z, :name => "Zero")
+  Z = free_module(F.R, FinGenAbGroupElem[])
+  AbstractAlgebra.set_name!(Z, "Zero")
   return Hecke.ComplexOfMorphisms(ModuleFP_dec, Map_dec[hom(Z, F, FreeModuleElem_dec[]), hom(F, F, gens(F)), hom(F, Z, [zero(Z) for i=1:ngens(F)])], check = false)
 end
 
@@ -787,7 +775,7 @@ mutable struct SubQuoHom_dec{T1, T2} <: Map_dec{T1, T2}
     @assert length(im) == ngens(D)
     @assert all(x-> parent(x) == C, im)
 
-    local deg::GrpAbFinGenElem
+    local deg::FinGenAbGroupElem
     b = gens(D)
     for i=1:length(im)
       if iszero(im[i])
@@ -966,7 +954,7 @@ end
 
 function hom(F::FreeModule_dec, G::FreeModule_dec)
   @assert base_ring(F) == base_ring(G)
-  GH = FreeModule(F.R, [y-x for x = F.d for y = G.d])
+  GH = free_module(F.R, [y-x for x = F.d for y = G.d])
   GH.S = [Symbol("($i -> $j)") for i = F.S for j = G.S]
   set_attribute!(GH, :show => Hecke.show_hom, :hom => (F, G))
 
@@ -1035,7 +1023,7 @@ end
 function kernel(h::SubQuoHom_dec)
   D = domain(h)
   R = base_ring(D)
-  F = FreeModule(R, ngens(D))
+  F = free_module(R, ngens(D))
   hh = hom(F, codomain(h), map(h, gens(D)))
   k = kernel(hh)
   @assert domain(k[2]) == k[1]
@@ -1058,15 +1046,15 @@ function free_resolution(S::SubquoDecModule, limit::Int = -1)
     k, mk = kernel(mp[1])
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
-      Z = FreeModule(base_ring(S), GrpAbFinGenElem[])
-      set_attribute!(Z, :name => "Zero")
+      Z = free_module(base_ring(S), FinGenAbGroupElem[])
+      AbstractAlgebra.set_name!(Z, "Zero")
       h = hom(Z, domain(mp[1]), FreeModuleElem_dec[])
       insert!(mp, 1, h)
       break
     elseif limit != -1 && length(mp) > limit
       break
     end
-    F = FreeModule(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gen(k, nz)])
+    F = free_module(base_ring(S), [iszero(x) ? D[0] : degree(x) for x = gen(k, nz)])
     g = hom(F, codomain(mk), collect(k.sub)[nz])
     insert!(mp, 1, g)
   end
@@ -1083,9 +1071,9 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   k, mk = kernel(map(p2, 1))
   #Janko: have R^t1 -- g1 = map(p2, 0) -> R^t0 -> G
   #kernel g1: k -> R^t1
-  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/ca.pdf
+  #source: Janko's CA script: https://www.mathematik.uni-kl.de/~boehm/lehre/17_CA/CalciumFieldElem.pdf
   D = grading_group(M)
-  F = FreeModule(base_ring(M), GrpAbFinGenElem[iszero(x) ? D[0] : degree(x) for x = gens(k)])
+  F = free_module(base_ring(M), FinGenAbGroupElem[iszero(x) ? D[0] : degree(x) for x = gens(k)])
   g2 = hom(F, codomain(mk), collect(k.sub)) #not clean - but maps not (yet) working
   #step 2
   H_s0_t0, mH_s0_t0 = hom(domain(map(p1, 2)), domain(map(p2, 2)))
@@ -1110,7 +1098,7 @@ function hom(M::ModuleFP_dec, N::ModuleFP_dec)
   psi = kDelta[2]*pro[1]
   psi = hom(kDelta[1], H_s0_t0, [psi(g) for g = gens(kDelta[1])])
 
-  H = quo(sub(D, kDelta[1]), image(rho)[1])
+  H = quo_object(sub(D, kDelta[1]), image(rho)[1])
   set_attribute!(H, :show => Hecke.show_hom, :hom => (M, N))
 
   #x in ker delta: mH_s0_t0(pro[1](x)) should be a hom from M to N
@@ -1148,7 +1136,7 @@ end
 ##################################################
 function direct_product(F::FreeModule_dec{T}...; task::Symbol = :sum) where {T}
   R = base_ring(F[1])
-  G = FreeModule(R, vcat([f.d for f = F]...))
+  G = free_module(R, vcat([f.d for f = F]...))
   G.S = []
   for i = 1:length(F)
     s = "("
@@ -1256,7 +1244,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     t = [push!(deepcopy(x), y) for x = t  for y = 1:ngens(H)]
   end
 
-  F = FreeModule(G[1].R, d)
+  F = free_module(G[1].R, d)
   F.S = s
   set_attribute!(F, :show => Hecke.show_tensor_product, :tensor_product => G)
   if task == :none
@@ -1294,7 +1282,7 @@ function tensor_product(G::FreeModule_dec...; task::Symbol = :none)
     return Tuple(gen(G[i], t[e.r.pos[1]][i]) for i = 1:length(G))
   end
 
-  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP_dec...) = tensor_product(G..., task = :none)
@@ -1341,7 +1329,7 @@ end
 #################################################
 #
 #################################################
-function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeModule_dec, SubquoDecModule, MPolyIdeal{<:MPolyDecRingElem}}}
+function homogeneous_component(F::T, d::FinGenAbGroupElem) where {T <: Union{FreeModule_dec, SubquoDecModule, MPolyIdeal{<:MPolyDecRingElem}}}
 
   #TODO: lazy: ie. no enumeration of points
   #      apparently it is possible to get the number of points faster than the points
@@ -1385,7 +1373,7 @@ function homogeneous_component(F::T, d::GrpAbFinGenElem) where {T <: Union{FreeM
   end
 
   deg = length(B)
-  X = FreeModule(base_ring(W), deg)
+  X = free_module(base_ring(W), deg)
   set_attribute!(X, :show => show_homo_comp, :data => (F, d))
 
   function pr(g::S) where {S <: Union{FreeModuleElem_dec, SubquoDecModuleElem}}

@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{ZZRingElem}(y))==Vector{ZZRingElem}
     @test x==G(Vector(x))
-    @test is_finiteorder(x)
+    @test is_finite_order(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, ZZRingElem]
       @test order(T, x) == lcm(15,n-8)
@@ -80,7 +80,7 @@ end
             FPGroup(small_group(2, 1))
             GL(2,2)
            ]
-    H = first(subgroups(G))
+    H = rand(rand(subgroup_classes(G)))
     @test parent(one(H)) === H
     @test parent(G(one(H))) === G
   end
@@ -138,11 +138,14 @@ end
          @test K[i] == G[i]
          @test K[i] == gen(G,i)
       end
+      @test G[0] == gen(G, 0)
+      @test G[0] == one(G)
+      @test_throws BoundsError K[0]
    end
 
    G = free_group(2)
-   @test_throws AssertionError gen(G, 3)
-   @test_throws ErrorException gen(G, 0)
+   @test_throws ArgumentError gen(G, 3)
+   @test_throws ArgumentError gen(G, -3)
 end
 
 @testset "deepcopy" begin

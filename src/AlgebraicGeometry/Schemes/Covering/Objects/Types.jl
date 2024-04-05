@@ -13,11 +13,11 @@ is made from their hashes. Thus, an affine scheme must not appear more than once
 in any covering!
 """
 mutable struct Covering{BaseRingType}
-  patches::Vector{<:AbsSpec} # the basic affine patches of X
-  gluings::IdDict{Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGluing} # the gluings of the basic affine patches
-  affine_refinements::IdDict{<:AbsSpec, <:Vector{<:Tuple{<:SpecOpen, Vector{<:RingElem}}}} # optional lists of refinements
+  patches::Vector{<:AbsAffineScheme} # the basic affine patches of X
+  gluings::IdDict{Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:AbsGluing} # the gluings of the basic affine patches
+  affine_refinements::IdDict{<:AbsAffineScheme, <:Vector{<:Tuple{<:AffineSchemeOpenSubscheme, Vector{<:RingElem}}}} # optional lists of refinements
       # of the basic affine patches.
-      # These are stored as pairs (U, a) where U is a 'trivial' SpecOpen,
+      # These are stored as pairs (U, a) where U is a 'trivial' AffineSchemeOpenSubscheme,
       # meaning that its list of hypersurface equation (f₁,…,fᵣ) has empty
       # intersection in the basic affine patch X and hence satisfies
       # some equality 1 ≡ a₁⋅f₁ + a₂⋅f₂ + … + aᵣ⋅fᵣ on X.
@@ -28,16 +28,16 @@ mutable struct Covering{BaseRingType}
   gluing_graph::Graph{Undirected}
   transition_graph::Graph{Undirected}
   edge_dict::Dict{Tuple{Int, Int}, Int}
-  decomp_info::IdDict{<:AbsSpec, <:Vector{<:RingElem}}
+  decomp_info::IdDict{<:AbsAffineScheme, <:Vector{<:RingElem}}
 
   function Covering(
-      patches::Vector{<:AbsSpec},
-      gluings::IdDict{<:Tuple{<:AbsSpec, <:AbsSpec}, <:AbsGluing};
+      patches::Vector{<:AbsAffineScheme},
+      gluings::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:AbsGluing};
       check::Bool=true,
       affine_refinements::IdDict{
-          <:AbsSpec,
-          <:Vector{<:Tuple{<:SpecOpen, <:Vector{<:RingElem}}}
-         }=IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}()
+          <:AbsAffineScheme,
+          <:Vector{<:Tuple{<:AffineSchemeOpenSubscheme, <:Vector{<:RingElem}}}
+         }=IdDict{AbsAffineScheme, Vector{Tuple{AffineSchemeOpenSubscheme, Vector{RingElem}}}}()
     )
     n = length(patches)
     n > 0 || error("can not glue the empty scheme")
@@ -74,8 +74,8 @@ mutable struct Covering{BaseRingType}
 
   ### the empty covering
   function Covering(kk::Ring)
-    return new{typeof(kk)}(Vector{AbsSpec}(), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGluing}(),
-                           IdDict{AbsSpec, Vector{Tuple{SpecOpen, Vector{RingElem}}}}())
+    return new{typeof(kk)}(Vector{AbsAffineScheme}(), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}(),
+                           IdDict{AbsAffineScheme, Vector{Tuple{AffineSchemeOpenSubscheme, Vector{RingElem}}}}())
   end
 end
 

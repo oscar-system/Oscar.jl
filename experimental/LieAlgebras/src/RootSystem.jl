@@ -13,6 +13,7 @@ mutable struct RootSystem
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
+  type_ordering::Vector{Int}
 
   function RootSystem(mat::ZZMatrix)
     pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
@@ -28,19 +29,22 @@ mutable struct RootSystem
 end
 
 @doc raw"""
-    root_system(cartan_matrix::ZZMatrix; check::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{Int}; check::Bool=true) -> RootSystem
+    root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{Int}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
 Constructs the root system defined by the Cartan matrix.
 If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
+Passing `detect_type=false` will skip the detection of the root system type.
 """
-function root_system(cartan_matrix::ZZMatrix; check::Bool=true)
+function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
-  return RootSystem(cartan_matrix)
+  R = RootSystem(cartan_matrix)
+  detect_type && is_finite(weyl_group(R)) && set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+  return R
 end
 
-function root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true)
-  return root_system(matrix(ZZ, cartan_matrix); check)
+function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
+  return root_system(matrix(ZZ, cartan_matrix); kwargs...)
 end
 
 @doc raw"""
@@ -50,16 +54,20 @@ Constructs the root system of the given type. See `cartan_matrix(fam::Symbol, rk
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
-  R = root_system(cartan; check=false)
-  R.type = [(fam, rk)]
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, [(fam, rk)])
   return R
 end
 
-function root_system(types::Tuple{Symbol,Int}...)
-  cartan = cartan_matrix(types...)
-  R = root_system(cartan; check=false)
-  R.type = collect(types)
+function root_system(type::Vector{Tuple{Symbol,Int}})
+  cartan = cartan_matrix(type)
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, type)
   return R
+end
+
+function root_system(type::Tuple{Symbol,Int}...)
+  return root_system(collect(type))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
@@ -100,10 +108,10 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= n_positive_roots(R)
     return positive_coroot(R, i)
   else
-    return negative_coroot(R, i - num_positive_roots(R))
+    return negative_coroot(R, i - n_positive_roots(R))
   end
 end
 
@@ -133,12 +141,8 @@ function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
-function has_root_system_type(R::RootSystem)
-  return isdefined(R, :type)
-end
-
 function is_simple(R::RootSystem)
-  if has_root_system_type(R)
+  if is_finite(weyl_group(R))
     return length(root_system_type(R)) == 1
   end
   error("Not implemented") # TODO: implement is_simple
@@ -191,40 +195,36 @@ function negative_coroots(R::RootSystem)
 end
 
 @doc raw"""
-    num_positive_roots(R::RootSystem) -> Int
+    number_of_positive_roots(R::RootSystem) -> Int
 
 Returns the number of positive roots of `R`. This is the same as the number of negative roots.
 
 Also see: `positive_roots`, `negative_roots`.
 """
-function num_positive_roots(R::RootSystem)
+function number_of_positive_roots(R::RootSystem)
   return length(positive_roots(R))
 end
 
 @doc raw"""
-    num_roots(R::RootSystem) -> Int
+    number_of_roots(R::RootSystem) -> Int
 
 Returns the number of roots of `R`.
 
 Also see: `roots`.
 """
-function num_roots(R::RootSystem)
-  return 2 * num_positive_roots(R)
+function number_of_roots(R::RootSystem)
+  return 2 * number_of_positive_roots(R)
 end
 
 @doc raw"""
-    num_simple_roots(R::RootSystem) -> Int
+    number_of_simple_roots(R::RootSystem) -> Int
 
 Returns the number of simple roots of `R`.
 
 Also see: `simple_roots`.
 """
-function num_simple_roots(R::RootSystem)
+function number_of_simple_roots(R::RootSystem)
   return rank(R)
-end
-
-function nroots(R::RootSystem)
-  return num_roots(R)
 end
 
 @doc raw"""
@@ -245,7 +245,7 @@ end
 Returns the positive roots of `R`, starting with the simple roots in the order of `simple_roots`,
 and then increasing in height.
 
-Also see: `positive_root`, `num_positive_roots`.
+Also see: `positive_root`, `number_of_positive_roots`.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -284,8 +284,28 @@ function rank(R::RootSystem)
 end
 
 function root_system_type(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
+  has_root_system_type(R) || error("Root system type not known and cannot be determined")
   return R.type
+end
+
+function root_system_type_with_ordering(R::RootSystem)
+  return R.type, R.type_ordering
+end
+
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+end
+
+function set_root_system_type(
+  R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
+)
+  R.type = type
+  R.type_ordering = collect(ordering)
+  return nothing
 end
 
 function root_system_type_string(R::RootSystem)
@@ -301,10 +321,10 @@ This is a more efficient version for `roots(R)[i]`.
 Also see: `roots`.
 """
 function root(R::RootSystem, i::Int)
-  if i <= num_positive_roots(R)
+  if i <= n_positive_roots(R)
     return positive_root(R, i)
   else
-    return negative_root(R, i - num_positive_roots(R))
+    return negative_root(R, i - n_positive_roots(R))
   end
 end
 
@@ -342,10 +362,6 @@ Also see: `simple_root`.
 """
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
-end
-
-function type(R::RootSystem)
-  return R.type
 end
 
 @doc raw"""
@@ -816,7 +832,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s), -w.vec[s])
+  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s:s), -w.vec[s])
   return w
 end
 

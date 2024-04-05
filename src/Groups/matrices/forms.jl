@@ -380,7 +380,7 @@ The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
  and `v` lies in the radical of the corresponding bilinear form.
 """
 function radical(f::SesquilinearForm{T}) where T
-   V = VectorSpace(base_ring(f), nrows(gram_matrix(f)) )
+   V = vector_space(base_ring(f), nrows(gram_matrix(f)) )
    R = GAP.Globals.RadicalOfForm(f.X)
    GAPWrap.Dimension(R) == 0 && return sub(V, [])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]

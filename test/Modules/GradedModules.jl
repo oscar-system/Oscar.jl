@@ -1,7 +1,7 @@
 @testset "Graded Modules 1" begin
   Qx, g = polynomial_ring(QQ, 3)
   R = grade(Qx, [1,2,3])[1]
-  F = FreeModule(R, [i^2*R.D[1] for i=1:4])
+  F = free_module(R, [i^2*R.D[1] for i=1:4])
   s = sub(F, [R(g[1])^2*gen(F, 1), R(g[2])*gen(F, 1)])
   q = quo(s, [R(g[1])^4*gen(F, 1), R(g[2])^2*gen(F, 1)]) 
   @test length(presentation(q)) == 3
@@ -40,7 +40,7 @@ end
   g = y[1]^5+y[2]^5
   h = f+g
 
-  F = FreeModule(R, 1)
+  F = free_module(R, 1)
 
   s = sub(F, [derivative(h, i)*F[1] for i=1:4])
 
@@ -58,10 +58,10 @@ end
   R, (x,y) = polynomial_ring(QQ, ["x", "y"])
   R = grade(R, [0,0])
 
-  F1 = FreeModule(R, 1)
+  F1 = free_module(R, 1)
   M1 = quo(F1, [x*F1[1], y*F1[1]])
 
-  F2 = FreeModule(R, 2)
+  F2 = free_module(R, 2)
   M2 = quo(F2, [x*F2[1], y*F2[1], x*F2[2], y*F2[2]])
 
   phi = hom(M2,M1, [y*M1[1], x*M1[1]]) # zero-morphism
@@ -130,3 +130,30 @@ end
   @test length(collect(a)) == length(a) == 7 == length(collect(b))
 end
 =#
+
+@testset "simplification of graded subquos, issue #3108" begin
+  X = rational_d10_pi9_quart_1();
+  I = defining_ideal(X);
+  Pn = base_ring(I)
+  n = ngens(Pn)-1
+  c = codim(I)
+  FI = free_resolution(I)
+  FIC = FI.C;
+  r = range(FIC)
+  C = shift(FIC[first(r):-1:1], -c)
+  F = free_module(Pn, 1)
+  OmegaPn = grade(F, [n+1])
+  D = hom(C, OmegaPn)
+  Omega = homology(D, 0);
+  is_graded(Omega)
+  SOmega, b = simplify(Omega)
+  a = get_attribute(b, :inverse)
+  @test is_graded(SOmega)
+  @test is_isomorphism(a)
+  @test is_isomorphism(b)
+  M, iso = forget_grading(Omega)
+  @test is_isomorphism(iso)
+  @test is_isomorphism(inverse(iso))
+  M, _ = forget_grading(Omega)
+  prune_with_map(M)
+end
