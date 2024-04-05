@@ -543,6 +543,10 @@ function Oscar.relations(F::FPGroup)
   return [(x, z) for x = R]
 end
 
+function Oscar.relators(F::PcGroup)
+  return [x[1] for x = relations(F)]
+end
+
 function Oscar.relations(G::PcGroup)
    # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
    Ggens = GAPWrap.GeneratorsOfGroup(G.X)
@@ -572,14 +576,23 @@ end
 struct CoChain{N, G, M}
   C::GModule
   d::Dict{NTuple{N, G}, M}
+  D::Function
 
   function CoChain{N, G, M}(C::GModule, d::Dict{NTuple{N, G}, M}) where {N, G, M}
     return new{N, G, M}(C, d)
+  end
+
+  function CoChain{N, G, M}(C::GModule, d::Dict{NTuple{N, G}, M}, D) where {N, G, M}
+    return new{N, G, M}(C, d, D::Function)
   end
 end
 
 function Base.show(io::IO, C::CoChain{N}) where {N}
   print(io, "$N-cochain with values in ", C.C.M)
+end
+
+function Base.keys(C::CoChain{N}) where {N}
+  return Iterators.ProductIterator(Tuple([C.C.G for i=1:N]))
 end
 
 Oscar.Nemo.elem_type(::Type{AllCoChains{N,G,M}}) where {N,G,M} = CoChain{N,G,M}
@@ -599,11 +612,19 @@ function differential(C::CoChain{N, G, M}) where {N, G, M}
 end
 
 function action(C::CoChain, g::PermGroupElem)
-  C = deepcopy(C)
-  for x = keys(C.d)
-    C.d[x] = action(C.C, g, C.d[x])
+  CC = deepcopy(C)
+  if isdefined(C, :D)
+    for x = keys(CC.d)
+      CC.d[x] = action(C.C, g, C.d[x])
+    end
+    CC.D = x->action(C.C, g, C.D(x))
+  else
+    for x = keys(C)
+      CC.d[x] = action(C.C, g, C[x])
+    end
   end
-  return C
+
+  return CC
 end
 
 
@@ -652,6 +673,7 @@ end
 (C::CoChain{1})(g::NTuple{1, <:Oscar.BasicGAPGroupElem}) = C(g[1])
 
 #should support lazy via call-back.
+#which should be used by default...
 """
 Evaluate a 2-cochain, a 2-cochain is a map from pairs of group elements
 into the module
@@ -660,6 +682,7 @@ function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
   if haskey(C.d, (g,h))
     return C.d[(g,h)]
   end
+  return C.d[(g,h)] = C.D((g, h))
 end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
 
@@ -1040,7 +1063,8 @@ UNIVERSAL COVERS OF FINITE GROUPS
 https://arxiv.org/pdf/1910.11453.pdf
 almost the same as Holt
 =#
-function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
+#TODO: lazy = true, or even remove it
+function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bool = false)
   z = get_attribute(C, :H_two)
   if !redo && z !== nothing
     return domain(z[1]), z[1], z[2]
@@ -1406,6 +1430,37 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     return CoChain{2,elem_type(G),elem_type(M)}(C, di)
   end
 
+  function TailToCoChainLazy(t, g, h)
+    c.f = function(C::CollectCtx, w::Vector{Int}, r::Int, p::Int)
+      #w = ABC and B == r[1], B -> r[2] * tail[r]
+      # -> A r[2] C C(tail)
+      # C = c1 c2 ... C(tail):
+      @assert w[p:p+length(R[r][1])-1] == R[r][1]
+
+      if pos[r] == 0
+        return
+      end
+      T = pro[pos[r]](t)
+      for i=w[p+length(R[r][1]):end]
+        if i < 0
+          T = iac[-i](T)
+        else
+          T = ac[i](T)
+        end
+      end
+      C.T += T
+    end
+
+    c.T = zero(M)
+    if order(G) > 1
+      gg = collect(word(preimage(mFF, g)), c)
+      hh = collect(word(preimage(mFF, h)), c)
+      c.T = zero(M)
+      d = collect(vcat(gg, hh), c)
+    end
+    return c.T
+  end
+
   symbolic_chain = function(g, h)
     c.f = symbolic_collect
     if order(G) == 1
@@ -1464,10 +1519,19 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false)
     return mH2(preimage(mE, T))
   end
 
-  z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(),
+  if !lazy
+    z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(),
                    x->TailToCoChain(mE(preimage(mH2, x))), z2),
+             is_coboundary)
+           else
+    z = (MapFromFunc(H2, AllCoChains{2,elem_type(G),elem_type(M)}(),
+          x->CoChain{2, elem_type(G),elem_type(M)}(C, Dict{NTuple{2, elem_type(G)}, elem_type(M)}(), t->TailToCoChainLazy(mE(preimage(mH2, x)), t[1], t[2])),
+                   z2),
+#                   x->TailToCoChain(mE(preimage(mH2, x))), z2),
 #                         y->TailFromCoChain(y), D, AllCoChains{2,elem_type(G),elem_type(M)}()),
              is_coboundary)
+  end
+
   set_attribute!(C, :H_two => z)
   return H2, z[1], z[2]
   #now the rest...
@@ -1505,7 +1569,7 @@ function istwo_cocycle(c::CoChain{2})
 
              However, if we mix the conventions, all bets are off...
         =#
-        a = c.d[(g, h*k)] + c.d[(h, k)] - action(C, k, c.d[(g, h)])- c.d[(g*h, k)]
+        a = c(g, h*k) + c(h, k) - action(C, k, c(g, h))- c(g*h, k)
 #        @show a, iszero(a) || valuation(a)
 iszero(a) || (@show g, h, k, a ; return false)
         @assert iszero(a) # only for local stuff...|| valuation(a) > 20
@@ -2176,6 +2240,21 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
   return C, CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, c)
 end
 
+function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
+  G = GL(dim(F), base_ring(F))
+  return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
+                         x->hom(F, F, x.elm),
+                         y->G(matrix(y)))
+end
+
+function (G::MatrixGroup{T})(h::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+  return G(matrix(h))
+end
+
+function (G::MatrixGroupElem{T})(h::AbstractAlgebra.FPModuleElem{T}) where T
+  return h*G
+end
+
 """
 Let C be a G-module with G action on M. Then this function find the
 subgroup of 'Aut(M) x Aut(G)' that is compatible with the G-module
@@ -2196,14 +2275,22 @@ function compatible_pairs(C::GModule)
 
   autG = automorphism_group(G)
   autM = automorphism_group(M)
+  if isa(autM, Tuple)
+    autM = autM[1]
+  end
 
   D, emb, pro = direct_product(autM, autG, morphisms = true)
 
   function action_on_chain(g::GAPGroupElem, c::CoChain{2, S, T}) where {S, T}
     al = pro[1](func(g)::elem_type(D))::elem_type(autM)
     ga = pro[2](func(g)::elem_type(D))::elem_type(autG)
-    d = Dict{Tuple{S, S}, T}(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
-    return CoChain{2, S, T}(C, d)
+    if isdefined(c, :D)
+      d = Dict{Tuple{S, S}, T}(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c.d))
+      return CoChain{2, S, T}(C, d, ab->al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))))
+    else
+      d = Dict{Tuple{S, S}, T}(ab=> al(c((inv(ga)(ab[1]), inv(ga)(ab[2])))) for ab = keys(c))
+      return CoChain{2, S, T}(C, d)
+    end
   end
 
   h = hom(G, autM, [autM(x) for x = C.ac])
