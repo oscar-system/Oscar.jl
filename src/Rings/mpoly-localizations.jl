@@ -3027,9 +3027,14 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr function dim(I::MPolyLocalizedIdeal)
+@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
   return dim(saturated_ideal(I))
 end
+
+@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+  return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
+end
+
 
 ################################################################################
 #

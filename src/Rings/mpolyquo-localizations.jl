@@ -1333,14 +1333,7 @@ end
   R = base_ring(L)
   J = saturated_ideal(I)
   d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
-  for a in d
-      @show length(factor(a))
-  end
-  S = MPolyPowersOfElement(R, d)
-  S = simplify(S)
-  for a in denominators(S)
-      @show length(terms(a))
-  end
+  S = simplify(MPolyPowersOfElement(R, d))
   W = MPolyQuoLocRing(R, modulus(underlying_quotient(L)), S)
   id, _ =  _as_affine_algebra_with_many_variables(W)
   A = codomain(id)
@@ -2624,3 +2617,8 @@ base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyLocRing{<:Any, <:Any, <:Any,
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
 base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyQuoLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
+
+function dim(R::MPolyQuoLocRing)
+  return dim(modulus(R))
+end
+
