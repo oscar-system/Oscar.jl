@@ -285,46 +285,36 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     model_sections = Dict("s1" => kbar, "s2" => kbar, "s3" => kbar, "s5" => kbar, "s6" => kbar, "s9" => kbar)
 
     # Construct model
-    # The first line below uses only the first monomial for each model section. This is not sufficient for the QSMs!
-    # Once this limitation is removed, this one line should be sufficient. For the time being however,
-    # we tune. This requires the creation of the dict input_sections...
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, false, true)
-    input_sections = Dict("s1" => sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))]))
-    input_sections["s2"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
-    input_sections["s3"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
-    input_sections["s5"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
-    input_sections["s6"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
-    input_sections["s9"] = sum([rand(Int) * b for b in basis_of_global_sections(anticanonical_bundle(base_space))])
-    new_model = tune(model, input_sections; completeness_check = false)
 
     # Set all attributes that are known for the QSMs
-    _set_all_attributes(new_model, model_dict, model_parameters)
-    set_attribute!(new_model, :CiDegreeKbar => detailed_data_dict[index_in_data_base]["CiDegreeKbar"])
-    set_attribute!(new_model, :CiGenus => detailed_data_dict[index_in_data_base]["CiGenus"])
-    set_attribute!(new_model, :ComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfDualGraph"])
-    set_attribute!(new_model, :ComponentsOfSimplifiedDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfSimplifiedDualGraph"])
-    set_attribute!(new_model, :DegreeOfKbarOnComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnComponentsOfDualGraph"])
-    set_attribute!(new_model, :DegreeOfKbarOnVxiAndKbar => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnVxiAndKbar"])
-    set_attribute!(new_model, :EdgeList => detailed_data_dict[index_in_data_base]["EdgeList"])
-    set_attribute!(new_model, :GenusOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["GenusOfComponentsOfDualGraph"])
-    set_attribute!(new_model, :GenusVxiAndKbar => detailed_data_dict[index_in_data_base]["GenusVxiAndKbar"])
-    set_attribute!(new_model, :IndexFacetInteriorDivisors => detailed_data_dict[index_in_data_base]["IndexFacetInteriorDivisors"])
-    set_attribute!(new_model, :IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar"])
-    set_attribute!(new_model, :IntersectionAmongVxiAndKbarWithVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongVxiAndKbarWithVxjAndKbar"])
-    set_attribute!(new_model, :IntersectionNumberOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"])
-    set_attribute!(new_model, :Kbar3 => detailed_data_dict[index_in_data_base]["Kbar3"])
-    set_attribute!(new_model, :MaxLatticePtsInFacet => detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"])
-    set_attribute!(new_model, :PolyInx => detailed_data_dict[index_in_data_base]["PolyInx"])
-    set_attribute!(new_model, :TriangQuick => detailed_data_dict[index_in_data_base]["TriangQuick"])
-    set_attribute!(new_model, :TriangulationEstimate => detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
-    set_attribute!(new_model, :VERTICES => detailed_data_dict[index_in_data_base]["VERTICES"])
-    set_attribute!(new_model, :h11 => detailed_data_dict[index_in_data_base]["h11"])
-    set_attribute!(new_model, :h12 => detailed_data_dict[index_in_data_base]["h12"])
-    set_attribute!(new_model, :h13 => detailed_data_dict[index_in_data_base]["h13"])
-    set_attribute!(new_model, :h22 => detailed_data_dict[index_in_data_base]["h22"])
+    _set_all_attributes(model, model_dict, model_parameters)
+    set_attribute!(model, :CiDegreeKbar => detailed_data_dict[index_in_data_base]["CiDegreeKbar"])
+    set_attribute!(model, :CiGenus => detailed_data_dict[index_in_data_base]["CiGenus"])
+    set_attribute!(model, :ComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfDualGraph"])
+    set_attribute!(model, :ComponentsOfSimplifiedDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfSimplifiedDualGraph"])
+    set_attribute!(model, :DegreeOfKbarOnComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnComponentsOfDualGraph"])
+    set_attribute!(model, :DegreeOfKbarOnVxiAndKbar => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnVxiAndKbar"])
+    set_attribute!(model, :EdgeList => detailed_data_dict[index_in_data_base]["EdgeList"])
+    set_attribute!(model, :GenusOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["GenusOfComponentsOfDualGraph"])
+    set_attribute!(model, :GenusVxiAndKbar => detailed_data_dict[index_in_data_base]["GenusVxiAndKbar"])
+    set_attribute!(model, :IndexFacetInteriorDivisors => detailed_data_dict[index_in_data_base]["IndexFacetInteriorDivisors"])
+    set_attribute!(model, :IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar"])
+    set_attribute!(model, :IntersectionAmongVxiAndKbarWithVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongVxiAndKbarWithVxjAndKbar"])
+    set_attribute!(model, :IntersectionNumberOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"])
+    set_attribute!(model, :Kbar3 => detailed_data_dict[index_in_data_base]["Kbar3"])
+    set_attribute!(model, :MaxLatticePtsInFacet => detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"])
+    set_attribute!(model, :PolyInx => detailed_data_dict[index_in_data_base]["PolyInx"])
+    set_attribute!(model, :TriangQuick => detailed_data_dict[index_in_data_base]["TriangQuick"])
+    set_attribute!(model, :TriangulationEstimate => detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    set_attribute!(model, :VERTICES => detailed_data_dict[index_in_data_base]["VERTICES"])
+    set_attribute!(model, :h11 => detailed_data_dict[index_in_data_base]["h11"])
+    set_attribute!(model, :h12 => detailed_data_dict[index_in_data_base]["h12"])
+    set_attribute!(model, :h13 => detailed_data_dict[index_in_data_base]["h13"])
+    set_attribute!(model, :h22 => detailed_data_dict[index_in_data_base]["h22"])
 
     # Finally, return the model
-    return new_model
+    return model
 
   end
 
