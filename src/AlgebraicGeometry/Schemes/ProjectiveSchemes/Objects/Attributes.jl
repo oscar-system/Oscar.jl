@@ -618,10 +618,11 @@ function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:def
     else 
       error("algorithm not recognized")
     end
-  if g == -1
-    error("$(X) must be a geometrically integral curve")
+    if g == -1
+      error("$(X) must be a geometrically integral curve")
+    end
+    return g::Int
   end
-  return g::Int
 end
 
 
