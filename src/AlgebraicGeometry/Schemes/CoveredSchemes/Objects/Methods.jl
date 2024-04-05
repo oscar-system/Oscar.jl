@@ -88,7 +88,7 @@ _covering_for_printing(io::IO, X::AbsCoveredScheme) = get(io, :covering, get_att
 # The explanation of the printing are the same as the function above. We need
 # this `_show_semi_compact` for detailed nested printing. Here, we assume that
 # in our nest, we already made precised the base ring of our covered scheme.
-# 
+#
 # We then only print detailed on the covering. Note that in some cases, we night
 # not want to only print the default covering, but a simplified one or a very
 # specific one (when one prints ideal sheaves, for instance). In that case, we
@@ -156,35 +156,102 @@ function base_change(phi::Any, X::AbsCoveredScheme)
   return XX, CoveredSchemeMorphism(XX, X, f_CC)
 end
 
-
-
-
-"""
-    normalization(X::AbsCoveredScheme; check::Bool=true) -> Vector{Tuple{CoveredScheme, CoveredSchemeMorphism}}
+@doc raw"""
+    normalization(X::AbsCoveredScheme; check::Bool=true) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
 
 Return the normalization of the reduced scheme ``X``.
 
 # Input:
-- A reduced scheme ``X``
-- if `check` is `true` confirm that ``X`` is reduced; this is expensive
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
 
 # Output:
-A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
-``f_i`` is a morphism from ``Y_i`` to ``X``.
-The disjoint union of the ``Y_i`` is the normalization of ``X``
-and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
+A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
+normal scheme, ``\nu`` is the normalization, and ``\mathrm{injs}`` is a
+vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
+the connected components of the scheme ``Y``.
+See `https://stacks.math.columbia.edu/tag/0CDV` in [Stacks](@cite) or
+Definition 5.1 in [Liu06](@cite) for normalization.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+
+julia> I = ideal(R, z*x^2 + y^3);
+
+julia> X = covered_scheme(proj(R, I))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> Y, pr_mor, injs = normalization(X);
+
+julia> Y
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme(-T(1)*y + x, T(1)*x + y^2, T(1)^2 + y, x^2 + y^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [T(1), x, y]
+
+julia> pr_mor
+Covered scheme morphism
+  from scheme over QQ covered with 3 patches
+    1a: [(y//x), (z//x)]   scheme((y//x)^3 + (z//x))
+    2a: [(x//y), (z//y)]   scheme((x//y)^2*(z//y) + 1)
+    3a: [T(1), x, y]       scheme(-T(1)*y + x, T(1)*x + y^2, T(1)^2 + y, x^2 + y^3)
+  to scheme over QQ covered with 3 patches
+    1b: [(y//x), (z//x)]   scheme((y//x)^3 + (z//x))
+    2b: [(x//y), (z//y)]   scheme((x//y)^2*(z//y) + 1)
+    3b: [(x//z), (y//z)]   scheme((x//z)^2 + (y//z)^3)
+given by the pullback functions
+  1a -> 1b
+    (y//x) -> (y//x)
+    (z//x) -> (z//x)
+    ----------------------------------------
+  2a -> 2b
+    (x//y) -> (x//y)
+    (z//y) -> (z//y)
+    ----------------------------------------
+  3a -> 3b
+    (x//z) -> x
+    (y//z) -> y
+
+julia> injs
+1-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 3 patches
+```
 """
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
+  if is_empty(X)
+    return (X, identity_map(X), typeof(identity_map(X))[])
+  end
   irred_comps_sheaf = Oscar.maximal_associated_points(ideal_sheaf(X))
-  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]),irred_comps_sheaf[i])
+  inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]), irred_comps_sheaf[i])
                 for i in 1:length(irred_comps_sheaf)]
   irred_comps = [domain(inc_i) for inc_i in inc_maps]
-  norm_pairs = [_normalization_integral(Y_i; check) for Y_i in irred_comps]
-  ret_value = [( domain(norm_pairs[i][2]),
-                 compose(norm_pairs[i][2],inc_maps[i]) )
-                 for i in 1:length(norm_pairs)]
-  return ret_value
+  norm_pairs = [_normalization_integral(X_i; check)[2] for X_i in irred_comps]
+  Y, injs = disjoint_union(domain.(norm_pairs))
+  pr_dicts = (morphisms ∘ covering_morphism).(map(compose, norm_pairs, inc_maps))
+  pr_dict = empty(first(pr_dicts))
+  merge!(pr_dict, pr_dicts...)
+  pr_covering_mor = CoveringMorphism(default_covering(Y), default_covering(X), pr_dict; check=false)
+  pr_mor = CoveredSchemeMorphism(Y, X, pr_covering_mor; check=false)
+  return Y, pr_mor, injs
 end
 
 function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)

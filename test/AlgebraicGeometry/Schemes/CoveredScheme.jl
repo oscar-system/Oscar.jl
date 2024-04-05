@@ -328,20 +328,20 @@
     X = covered_scheme(proj(R, I))
     N = normalization(X)
     # trigger the computation of some gluings
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
     gluing_morphisms(Cnorm[1,3])
     gluing_morphisms(Cnorm[2,3])
     gluing_morphisms(Cnorm[3,3])
 
-    # Example non-integral
+    # Example non-integral, this also tests the function `disjoint_union`
     R, (x, y, z) = grade(QQ["x", "y", "z"][1])
     I = ideal(R, (z*x^2 + y^3)*(x))
     X = covered_scheme(proj(R, I))
     N = normalization(X)
     # trigger the computation of some gluings
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
 
@@ -351,10 +351,8 @@
     X = proj(S, J)
     Xcov = covered_scheme(X)
     N = normalization(Xcov);
-    Xnorm = N[1][1]
+    Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
-
-
   end
 end
