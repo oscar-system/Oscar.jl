@@ -49,9 +49,6 @@ for pkg in exppkgs
   include(joinpath(expdir, pkg, "src", "$pkg.jl"))
 end
 
-# force trigger recompile when folder changes
-include_dependency(".")
-
 # Force some structure for `oldexppkgs`
 for pkg in oldexppkgs
   if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
