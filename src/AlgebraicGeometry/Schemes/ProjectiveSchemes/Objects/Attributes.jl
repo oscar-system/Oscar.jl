@@ -592,9 +592,6 @@ The `algorithm` keyword can be specified to
   - `:primary_decomposition` to proceed with a primary decomposition
 Normalization is usually slower, but not always.
 
-The `check` keyword assures that we are indeed dealing with an integral curve.
-This is expensive.
-
 # Examples
 ```jldoctest
 julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
@@ -609,23 +606,33 @@ julia> geometric_genus(C)
 ```
 """
 function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
-  @check dim(X) == 1 "scheme must be one-dimensional"
-  @check is_reduced(X) "curve must be reduced"
-  @check is_irreducible(X) "curve must be irreducible"
   get_attribute!(X, :genus) do
     I = defining_ideal(X)
     I_sing = singular_generators(I)
     if algorithm == :default
-      return Singular.LibNormal.genus(I_sing)
+      g = Singular.LibNormal.genus(I_sing)
     elseif algorithm == :normalization
-      return Singular.LibNormal.genus(I_sing, "nor")
+      g =  Singular.LibNormal.genus(I_sing, "nor")
     elseif algorithm == :primary_decomposition
-      return Singular.LibNormal.genus(I_sing, "prim")
+      g =  Singular.LibNormal.genus(I_sing, "prim")
     else 
       error("algorithm not recognized")
     end
-  end::Int
+  if g == -1
+    error("$(X) must be a geometrically integral curve")
+  end
+  return g::Int
 end
+
+
+"""
+    genus(X::Scheme; kwargs...) -> Int
+
+Return the [`geometric_genus`]@(ref) of `X`.
+
+For this to be defined `X` must be an integral curve.
+"""
+genus(X::Scheme; kwargs...) = geometric_genus(X; kwargs...)
 
 @doc raw"""
     arithmetic_genus(X::AbsProjectiveScheme{<:Field}) -> Int

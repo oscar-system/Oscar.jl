@@ -202,23 +202,3 @@ function is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) w
   any(P in i for i in common_components(C,D)) && return false
   intersection_multiplicity(C, D, P) == 1
 end
-
-#=
-# buggy
-function geometric_genus(C::ProjectivePlaneCurve)
-  A = homogeneous_coordinate_ring(C)
-  L = normalization(A)
-  m = length(L)
-  pa = zero(ZZ)
-  for i in 1:m
-    J = L[i][1].I
-    T, _ = grade(parent(J[1]))
-    V = T.(gens(J))
-    JJ = ideal(T, V)
-    B = quo(T, JJ)
-    H = hilbert_polynomial(B[1])
-    pa = pa - ZZ(coeff(H, 0))
-  end
-  return pa + 1
-end
-=#

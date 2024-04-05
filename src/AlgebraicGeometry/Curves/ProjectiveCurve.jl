@@ -83,12 +83,6 @@ function invert_birational_map(phi::Vector{T}, C::ProjectiveCurve) where {T <: M
     return Dict(:image => gens(ideal(R, J)), :inverse => gens(ideal(R, psi)))
 end
 
-"""
-    genus(X::AbsProjectiveCurve; keyword_arguments...) -> Int
-
-Return the [`geometric_genus`]@(ref) of the irreducible curve `X`.
-"""
-genus(X::AbsProjectiveCurve; kwargs...) = geometric_genus(X; kwargs...)
 
 ################################################################################
 # The union of two curves is a curve
