@@ -156,7 +156,81 @@ function base_change(phi::Any, X::AbsCoveredScheme)
   return XX, CoveredSchemeMorphism(XX, X, f_CC)
 end
 
+@doc raw"""
+    function disjoint_union(Xs::Vector{<:AbsCoveredScheme}) -> (AbsCoveredScheme, Vector{<:AbsCoveredSchemeMor})
 
+Return the disjoint union of the non-empty vector of covered schemes as
+a covered scheme.
+
+# Input:
+- a vector `Xs` of covered schemes.
+
+# Output:
+A pair ``(X, \mathrm{injections})`` where ``X`` is a covered scheme and
+``\mathrm{injections}`` is a vector of inclusion morphisms ``ı_i\colon
+X_i \to X``, where ``X`` is the disjoint union of the covered schemes
+``X_i`` in `Xs`.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+
+julia> I_1 = ideal(R, z*x^2 + y^3);
+
+julia> I_2 = ideal(R, x^2 + y^2);
+
+julia> X_1 = covered_scheme(proj(R, I_1))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> X_2 = covered_scheme(proj(R, I_2))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^2 + 1)
+    2: scheme((x//y)^2 + 1)
+    3: scheme((x//z)^2 + (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> X, injections = disjoint_union([X_1, X_2]);
+
+julia> X
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+    4: scheme((y//x)^2 + 1)
+    5: scheme((x//y)^2 + 1)
+    6: scheme((x//z)^2 + (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+    4: [(y//x), (z//x)]
+    5: [(x//y), (z//y)]
+    6: [(x//z), (y//z)]
+
+julia> injections
+2-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+"""
 function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
   @req !is_empty(Xs) "Input should be a non-empty vector."
   covering = reduce(disjoint_union, default_covering.(Xs))
@@ -167,20 +241,84 @@ function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
   return X, injections
 end
 
-"""
+@doc raw"""
     normalization(X::AbsCoveredScheme; check::Bool=true) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
 
 Return the normalization of the reduced scheme ``X``.
 
 # Input:
-- A reduced scheme ``X``
-- if `check` is `true` confirm that ``X`` is reduced; this is expensive
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
 
 # Output:
-A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
-``f_i`` is a morphism from ``Y_i`` to ``X``.
-The disjoint union of the ``Y_i`` is the normalization of ``X``
-and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
+A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
+normal scheme, ``\nu`` is the normalization, and $\mathrm{injs}$ is a
+vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
+the connected components of the scheme ``Y``.
+See `https://stacks.math.columbia.edu/tag/0CDV` in [Stacks](@cite) or
+Definition 5.1 in [Liu](@cite) for normalization.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+
+julia> I = ideal(R, z*x^2 + y^3);
+
+julia> X = covered_scheme(proj(R, I))
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme((x//z)^2 + (y//z)^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+
+julia> Y, pr_mor, injs = normalization(X);
+
+julia> Y
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme((y//x)^3 + (z//x))
+    2: scheme((x//y)^2*(z//y) + 1)
+    3: scheme(-T(1)*y + x, T(1)*x + y^2, T(1)^2 + y, x^2 + y^3)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [T(1), x, y]
+
+julia> pr_mor
+Covered scheme morphism
+  from scheme over QQ covered with 3 patches
+    1a: [(y//x), (z//x)]   scheme((y//x)^3 + (z//x))
+    2a: [(x//y), (z//y)]   scheme((x//y)^2*(z//y) + 1)
+    3a: [T(1), x, y]       scheme(-T(1)*y + x, T(1)*x + y^2, T(1)^2 + y, x^2 + y^3)
+  to scheme over QQ covered with 3 patches
+    1b: [(y//x), (z//x)]   scheme((y//x)^3 + (z//x))
+    2b: [(x//y), (z//y)]   scheme((x//y)^2*(z//y) + 1)
+    3b: [(x//z), (y//z)]   scheme((x//z)^2 + (y//z)^3)
+given by the pullback functions
+  1a -> 1b
+    (y//x) -> (y//x)
+    (z//x) -> (z//x)
+    ----------------------------------------
+  2a -> 2b
+    (x//y) -> (x//y)
+    (z//y) -> (z//y)
+    ----------------------------------------
+  3a -> 3b
+    (x//z) -> x
+    (y//z) -> y
+
+julia> injs
+1-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 3 patches
+```
 """
 function normalization(X::AbsCoveredScheme; check::Bool=true)
   @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
