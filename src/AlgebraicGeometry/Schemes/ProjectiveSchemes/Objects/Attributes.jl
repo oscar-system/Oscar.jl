@@ -581,24 +581,44 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
 end
 
 @doc raw"""
-    genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization)
+    geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default) -> Int
 
 Given a projective curve `X` return the genus of `X`, i.e. the 
-integer `p_g = p_a - delta` where `p_a` is the arithmetic genus 
-and `delta` the delta-invariant of the curve.
+integer ``p_g = p_a - \delta`` where ``p_a`` is the arithmetic genus
+and `\delta` the ``\delta``-invariant of the curve.
 
 The `algorithm` keyword can be specified to 
-  - `:normalization` to go via the computation of a normalization
+  - `:normalization` to compute ``\delta`` a normalization
   - `:primary_decomposition` to proceed with a primary decomposition
-Normalization is usually faster, but not always.
+Normalization is usually slower, but not always.
+
+The `check` keyword assures that we are indeed dealing with an integral curve.
+This is expensive.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> C = plane_curve(z*x^2-y^3)
+Projective plane curve
+  defined by 0 = x^2*z - y^3
+
+julia> geometric_genus(C)
+0
+
+```
 """
-function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization)
-  @req dim(X) == 1 "scheme must be one-dimensional"
+function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
+  @check dim(X) == 1 "scheme must be one-dimensional"
+  @check is_reduced(X) "curve must be reduced"
+  @check is_irreducible(X) "curve must be irreducible"
   get_attribute!(X, :genus) do
     I = defining_ideal(X)
     I_sing = singular_generators(I)
-    if algorithm == :normalization
+    if algorithm == :default
       return Singular.LibNormal.genus(I_sing)
+    elseif algorithm == :normalization
+      return Singular.LibNormal.genus(I_sing, "nor")
     elseif algorithm == :primary_decomposition
       return Singular.LibNormal.genus(I_sing, "prim")
     else 
@@ -608,11 +628,11 @@ function genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:normalization
 end
 
 @doc raw"""
-    arithmetic_genus(X::AbsProjectiveScheme{<:Field})
+    arithmetic_genus(X::AbsProjectiveScheme{<:Field}) -> Int
 
-Given an equidimensional projective curve `X` return the arithmetic genus of `X`, i.e. the 
-integer `(-1)^n (h_X(0) - 1)` where `h_X` is the Hilbert polynomial of `X` 
-and `n` its dimension.
+Return the arithmetic genus of `X`, i.e. the
+integer ``(-1)^n (h_X(0) - 1)`` where ``h_X`` is the Hilbert polynomial of `X`
+and ``n`` its dimension.
 """
 @attr Int function arithmetic_genus(X::AbsProjectiveScheme{<:Field})
   A = homogeneous_coordinate_ring(X)
