@@ -2397,19 +2397,3 @@ julia> degree(I)
   return degree(A)
 end
 
-#=
-function change_base_ring(phi::Any, S::MPolyDecRing)
-  R = forget_grading(S)
-  RR, phi_R = change_base_ring(phi, R)
-  SS = MPolyDecRing(RR, generator_degrees(S))
-  res = hom(S, SS, phi, gens(SS))
-  return SS, hom(S, SS, phi, gens(SS))
-end
-
-function change_base_ring(phi::Any, R::MPolyRing)
-  kk = parent(phi(one(coefficient_ring(R))))
-  RR, _ = polynomial_ring(kk, symbols(R), cached=false)
-  psi = hom(R, RR, phi, gens(RR))
-  return RR, psi
-end
-=#
