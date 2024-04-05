@@ -322,3 +322,75 @@ end
   fiber_product(ff, ff2)
   fiber_product(ff2, ff)
 end
+
+
+@testset "preimages for polynomial maps" begin
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, [x-y])
+  A, _ = quo(R, I)
+  phi1 = hom(R, A, gens(A))
+  @test phi1(preimage(phi1, A(y))) == A(x)
+
+  phi2 = hom(R, A, [u^2 for u in gens(A)])
+  @test_throws ErrorException preimage(phi2, A(x))
+  @test phi2(preimage(phi2, A(x^2))) == A(x*y)
+
+  U = powers_of_element(x-1)
+  R_loc, _ = localization(R, U)
+  A_loc, _ = localization(A, U)
+
+  phi3 = hom(R, A_loc, gens(A_loc))
+  @test A(preimage(phi3, A_loc((y-1)*x//(x-1)))) == A(y)
+
+  phi4 = hom(R, R_loc, gens(R_loc))
+  @test preimage(phi4, R_loc(x)) == x
+
+  P, (_, _, u) = QQ[:x, :y, :u]
+  J = ideal(P, 1 - prod(gens(P)))
+  Q, _ = quo(P, J)
+
+  S = powers_of_element(x*y)
+  RS, _ = localization(R, S)
+  phi5 = hom(RS, Q, gens(Q)[1:2])
+  @test preimage(phi5, Q(u)) == RS(1//(x*y))
+
+  AS, _ = localization(A, S)
+  Q2, _ = quo(Q, ideal(Q, [Q[1]-Q[2]]))
+  phi6 = hom(AS, Q2, gens(Q2)[1:2])
+  @test preimage(phi6, Q2[1]) == AS[2]
+end
+
+@testset "normalization" begin
+  # Example integral
+  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+  I = ideal(R, z*x^2 + y^3)
+  X = covered_scheme(proj(R, I))
+  N = normalization(X)
+  # trigger the computation of some gluings
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
+  gluing_morphisms(Cnorm[1,3])
+  gluing_morphisms(Cnorm[2,3])
+  gluing_morphisms(Cnorm[3,3])
+
+  # Example non-integral
+  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+  I = ideal(R, (z*x^2 + y^3)*(x))
+  X = covered_scheme(proj(R, I))
+  N = normalization(X)
+  # trigger the computation of some gluings
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
+
+  # A non-normal Enriques surface as constructed by Enriques himself
+  S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
+  J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
+  X = proj(S, J)
+  Xcov = covered_scheme(X)
+  N = normalization(Xcov);
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
+end
