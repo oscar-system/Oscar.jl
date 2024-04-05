@@ -256,7 +256,7 @@ normal scheme, ``\nu`` is the normalization, and $\mathrm{injs}$ is a
 vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
 the connected components of the scheme ``Y``.
 See `https://stacks.math.columbia.edu/tag/0CDV` in [Stacks](@cite) or
-Definition 5.1 in [Liu](@cite) for normalization.
+Definition 5.1 in [Liu06](@cite) for normalization.
 
 # Examples
 ```jldoctest
