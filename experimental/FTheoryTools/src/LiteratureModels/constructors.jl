@@ -2,43 +2,92 @@
 #  Struct for Quadrillion F-theory Standard Model (QSM) model, i.e. QSM-Model or for short QSMModel.
 
 struct QSMModel
-  hs::HypersurfaceModel
+  # Information about the polytope underlying the F-theory QSM.
+  vertices::Vector{Vector{QQFieldElem}}
+  poly_index::Int
 
-  IndexFacetInteriorDivisors::Vector{Int}
-  
-  # can be more specific in the future
-  vertices::Vector
+  # We build toric 3-fold from triangulating the lattice points in said polytope.
+  # Oftentimes, there are a lot of such triangulations (up to 10^15 for the case at hand), which we cannot
+  # hope to enumerate in a reasonable time in a computer. The following gives us metadata, to gauge how hard
+  # this triangulation task is. First, the boolean triang_quick tells if we can hope to enumerate all
+  # triangulations in a reasonable time. This in turn is linked to the question if we can find
+  # fine regular triangulations of all facets, the difficulty of which scales primarily with the number of
+  # lattice points. Hence, we also provide the maximal number of lattice points in a facet of the polytope in question
+  # in the integer max_lattice_pts_in_facet. On top of this, an estimate for the total number of triangulations
+  # is provided by the big integer estimated_number_oftriangulations. This estimate is exact if triang_quick = true.
+  triang_quick::Bool
+  max_lattice_pts_in_facet::Int
+  estimated_number_of_triangulations::BigInt
 
-  # basic information about V(x_i) restricted to Kbar = Ci
-  GenusCi::Dict{Int, Int}
-  degree_anticanonical_bundle_restricted_to_Ci::Dict{Int, Int}
-  intersections_among_Ci_Cj::Matrix{Int}
-  intersections_among_nontrivial_Ci_Cj::Matrix{Int}
-  
-  # non simplified dual graph
-  dual_graph::Graph{Undirected}
-  components_of_dual_graph::Vector{String}
-  degree_anticanonical_divisor_of_tv_restricted_on_components::Vector{Int}
-  genus_of_components_of_dual_graph::Vector{Int}
-  
-  # simplified dual graph
-  simplified_dual_graph::Graph{Undirected}
-  components_of_simplified_dual_graph::Vector{String}
-  degree_of_Kbar_on_components_simplified_dual_graph::Vector{Int}
-  genus_of_components_of_simplified_dual_graph::Vector{Int}
+  # We select one of the many triangulations, construct a 3d toric base B3 and thereby the hypersurface model in question,
+  # that is then the key object of study of this F-theory construction.
+  hs_model::HypersurfaceModel
 
-  # help with heuristics for computing triangulation
-  # if TriangQuick is true then Triangulationestimate is exact
-  TriangQuick::Bool
-  TriangulationEstimate::BigInt
-  MaxLatticePtsInFacet::Int
-  
-  PolyInx::Int
+  # As per usual, topological data of this geometry is important. Key is the triple intersection number of the
+  # anticanonical divisor of the 3-dimensional toric base, as well as its Hodge numbers.
   Kbar3::Int
   h11::Int
   h12::Int
   h13::Int
   h22::Int
+
+  # Recall that B3 is 3-dimensional toric variety. Let s in H^0(B3, Kbar_B3), then V(s) is a K3-surface.
+  # Moreover, let xi the coordinates of the Cox ring of B3. Then V(xi) is a divisor in B3.
+  # Furthermore, Ci = V(xi) cap V(s) is a divisor in the K3-surface V(s). We study these curves Ci in large detail.
+  # Here is some information about these curves:
+  genus_ci::Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int}
+  degree_of_Kbar_of_tv_restricted_to_ci::Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int}
+  intersection_number_among_ci_cj::Matrix{Int}
+  index_facet_interior_divisors::Vector{Int}
+  intersection_number_among_nontrivial_ci_cj::Matrix{Int}
+  
+  # The collection of the Ci form a nodal curve. To every nodal curve one can associate a (dual) graph. In this graph,
+  # every irreducible component of the nodal curve becomes a node/vertex of the dual graph, and every
+  # nodal singularity of the nodal curve turns into an edge of the dual graph. Here this is rather simple.
+  # Every Ci above is an irreducible component of the nodal curve in question and the topological intersection numbers
+  # among the Ci tell us how many nodal singularities link the Ci. Hence, we construct the dual graph as follows:
+  # 1. View the Ci as nodes of an undirected graph G.
+  # 2. If the top. intersection number of Ci and Cj is zero, there is no edge between the nodes of G corresponding to Ci and Cj.
+  # 3. If the top. intersection number of Ci and Cj is n (> 0), then there are n edges between the nodes of G corresponding to Ci and Cj.
+  # The following lists the information about this dual graph.
+  # Currently, we cannot label the nodes/vertices of a OSCAR graph. However, it is important to remember what vertex/node in the
+  # dual graph corresponds to which geometric locus V(xi, s). Therefore, we keep the labels that link the node of the OSCAR graph
+  # to the geometric loci V(xi, s) in the vector components_of_dual_graph::Vector{String}. At least for now.
+  # Should it ever be possible (favorable?) to directly attach these labels to the graph, one can remove components_of_dual_graph.
+  dual_graph::Graph{Undirected}
+  components_of_dual_graph::Vector{String}
+  degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph::Dict{String, Int64}
+  genus_of_components_of_dual_graph::Dict{String, Int64}
+
+  # In our research, we conduct certain combinatoric computations based on this graph, the data in
+  # degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph, genus_of_components_of_dual_graph and a bit more meta data
+  # that is not currently included (yet). These computations are hard. It turns out, that one can replace the graph with another
+  # graph, so that the computations are easier (a.k.a. the runtimes are a lot shorter). In a nutshell, this means to remove
+  # a lot of nodes, and adjust the edges accordingly. Let me not go into more details here. A full description can e.g. be found in
+  # https://arxiv.org/abs/2104.08297 and the follow-up papers thereof. Here we collect the information of said simplified graph,
+  # by mirroring the strategy for the above dual graph.
+  simplified_dual_graph::Graph{Undirected}
+  components_of_simplified_dual_graph::Vector{String}
+  degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph::Dict{String, Int64}
+  genus_of_components_of_simplified_dual_graph::Dict{String, Int64}
+  
+end
+
+
+function _parse_rational(str::String)
+  if occursin("/", str)
+      # If the string contains a '/', parse as a rational number
+      parts = split(str, '/')
+      if length(parts) != 2
+          throw(ArgumentError("Invalid rational number format"))
+      end
+      numerator = parse(Int, parts[1])
+      denominator = parse(Int, parts[2])
+      return QQ(numerator//denominator)
+  else
+      # If the string doesn't contain a '/', parse as a whole number
+      return QQ(parse(Int, str))
+  end
 end
 
 
@@ -173,9 +222,11 @@ A yet more special instance of literature model are the F-theory QSMs. Those con
 each of which is obtained from triangulations of polytopes in the 3-dimensional Kreuzer-Skarke list. In particular,
 for each of these 708 families, a lot of information is known. Still, those geometries are also somewhat involved.
 Let us demonstrate this on the F-theory QSM based on the 4th polytope in the 3-dimensional Kreuzer-Skarke list.
-We can create and study this model as follows:
+We can create and study this model as follows (TODO: currently under development):
 ```jldoctest
-julia> model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4));
+
+julia> model = qsm_model.hs_model
 Hypersurface model over a concrete base
 
 julia> cox_ring(base_space(model))
@@ -209,6 +260,30 @@ Multivariate polynomial ring in 29 variables over QQ graded by
   x27 -> [3 2 2 0 -1 -1 1 0 0 1 1 2 0 1 -1 0 -2 -1 -3 -2 -2 1 1 -1 0 0]
   x28 -> [-2 -4 -1 -1 -1 -2 -1 -2 -3 -4 -1 -2 -2 -2 -1 -1 0 0 1 -2 1 -2 -3 -3 -3 -4]
   x29 -> [0 -1 0 -1 -1 -1 0 -1 -1 -1 0 0 0 0 0 0 0 0 0 -1 0 -1 -1 -1 -1 -1]
+
+julia> qsm_model.Kbar3
+6
+
+julia> qsm_model.triang_quick
+true
+
+julia> qsm_model.estimated_number_of_triangulations
+212533333333
+
+julia> qsm_model.dual_graph
+Undirected graph with 21 nodes and the following edges:
+(5, 1)(6, 5)(7, 6)(8, 7)(9, 4)(9, 8)(10, 1)(11, 4)(12, 3)(12, 10)(13, 3)(13, 11)(14, 1)(15, 4)(16, 3)(17, 3)(18, 2)(18, 14)(19, 2)(19, 15)(20, 2)(20, 16)(21, 2)(21, 17)
+
+julia> qsm_model.components_of_simplified_dual_graph
+4-element Vector{String}:
+ "C0"
+ "C1"
+ "C2"
+ "C3"
+
+julia> qsm_model.simplified_dual_graph
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
 ```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
@@ -256,59 +331,119 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
       end
     end
     
+    poly_inx = model_parameters["k"]
     try
-      poly_inx = model_parameters["k"]
       polytope = load(joinpath(@__DIR__, "Models/QSMDB", "$poly_inx.mrdi"))
-    catch 
+    catch
       error("Provided model index not supported for QSMs")
     end
 
-    # On my computer, the following line trigger the error "UndefVarError: `polytope` not defined"
-    # Fortunately, this is not needed (yet), and so I have outcommented it, so that this function still works and I can check the result.
+    # TODO: On my computer, the following line trigger the error "UndefVarError: `polytope` not defined":
     # rays = Polymake.get_attachment(pm_object(polytope), "RayGeneratorsofB3")
+    # Unless I am mistaken, polytope only exists in the try-catch block. Likewise, the following will not work.
     # max_cones_ = Polymake.get_attachment(Oscar.pm_object(polytope), "TriangulationOfB3")
     # base_space = load(joinpath(@__DIR__, "Models/QSMDB", "$poly_inx.mrdi"))
-    
-    # Construct the base in question
+    # I comment this out, so I can test my changes...
+
+    # Collect information about the polytope underlying the F-theory QSM in question.
+    vertices = detailed_data_dict[index_in_data_base]["VERTICES"]
+    vertices = [[_parse_rational(r) for r in v] for v in vertices]
+    poly_index = detailed_data_dict[index_in_data_base]["PolyInx"]
+    @req poly_index == poly_inx "Polytope index in original database differs from polytope index in newly build OSCAR database"
+
+    # Collect information about the fine regular star triangulations of said polytope (more details in struct QSMModel).
+    triang_quick = detailed_data_dict[index_in_data_base]["TriangQuick"]
+    max_lattice_pts_in_facet = detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"]
+    estimated_number_of_triangulations = round(BigInt, detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+
+    # Construct the hypersurface model
     rays = [[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["RayGeneratorsOfB3"]]
     max_cones = IncidenceMatrix([[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["TriangulationOfB3"]])
     base_space = normal_toric_variety(max_cones, rays; non_redundant = false)
-
-    # Compute all the model sections
     kbar = anticanonical_divisor(base_space)
     model_sections = Dict("s1" => kbar, "s2" => kbar, "s3" => kbar, "s5" => kbar, "s6" => kbar, "s9" => kbar)
+    hs_model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, false, true)
+    _set_all_attributes(hs_model, model_dict, model_parameters)
+    
+    # Collect topological data about the base space (see the struct QSMModel for more details).
+    Kbar3 = detailed_data_dict[index_in_data_base]["Kbar3"]
+    h11 = detailed_data_dict[index_in_data_base]["h11"]
+    h12 = detailed_data_dict[index_in_data_base]["h12"]
+    h13 = detailed_data_dict[index_in_data_base]["h13"]
+    h22 = detailed_data_dict[index_in_data_base]["h22"]
 
-    # Construct model
-    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, false, true)
+    # Collect information about the Ci (see the struct QSMModel for more details).
+    vars = gens(cox_ring(base_space))
+    genus_ci = Dict(zip(vars, [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["GenusVxiAndKbar"]]))
+    degree_of_Kbar_of_tv_restricted_to_ci = Dict(zip(vars, [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["DegreeOfKbarOnVxiAndKbar"]]))
+    intersection_number_among_ci_cj = detailed_data_dict[index_in_data_base]["IntersectionAmongVxiAndKbarWithVxjAndKbar"]
+    intersection_number_among_ci_cj = hcat([[parse(Int, k) for k in a] for a in intersection_number_among_ci_cj]...)
+    index_facet_interior_divisors = [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["IndexFacetInteriorDivisors"]]
+    intersection_number_among_nontrivial_ci_cj = detailed_data_dict[index_in_data_base]["IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar"]
+    intersection_number_among_nontrivial_ci_cj = hcat([[parse(Int, k) for k in a] for a in intersection_number_among_nontrivial_ci_cj]...)
 
-    # Set all attributes that are known for the QSMs
-    _set_all_attributes(model, model_dict, model_parameters)
-    set_attribute!(model, :CiDegreeKbar => detailed_data_dict[index_in_data_base]["CiDegreeKbar"])
-    set_attribute!(model, :CiGenus => detailed_data_dict[index_in_data_base]["CiGenus"])
-    set_attribute!(model, :ComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfDualGraph"])
-    set_attribute!(model, :ComponentsOfSimplifiedDualGraph => detailed_data_dict[index_in_data_base]["ComponentsOfSimplifiedDualGraph"])
-    set_attribute!(model, :DegreeOfKbarOnComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnComponentsOfDualGraph"])
-    set_attribute!(model, :DegreeOfKbarOnVxiAndKbar => detailed_data_dict[index_in_data_base]["DegreeOfKbarOnVxiAndKbar"])
-    set_attribute!(model, :EdgeList => detailed_data_dict[index_in_data_base]["EdgeList"])
-    set_attribute!(model, :GenusOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["GenusOfComponentsOfDualGraph"])
-    set_attribute!(model, :GenusVxiAndKbar => detailed_data_dict[index_in_data_base]["GenusVxiAndKbar"])
-    set_attribute!(model, :IndexFacetInteriorDivisors => detailed_data_dict[index_in_data_base]["IndexFacetInteriorDivisors"])
-    set_attribute!(model, :IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongNonTrivialVxiAndKbarWithNonTrivialVxjAndKbar"])
-    set_attribute!(model, :IntersectionAmongVxiAndKbarWithVxjAndKbar => detailed_data_dict[index_in_data_base]["IntersectionAmongVxiAndKbarWithVxjAndKbar"])
-    set_attribute!(model, :IntersectionNumberOfComponentsOfDualGraph => detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"])
-    set_attribute!(model, :Kbar3 => detailed_data_dict[index_in_data_base]["Kbar3"])
-    set_attribute!(model, :MaxLatticePtsInFacet => detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"])
-    set_attribute!(model, :PolyInx => detailed_data_dict[index_in_data_base]["PolyInx"])
-    set_attribute!(model, :TriangQuick => detailed_data_dict[index_in_data_base]["TriangQuick"])
-    set_attribute!(model, :TriangulationEstimate => detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
-    set_attribute!(model, :VERTICES => detailed_data_dict[index_in_data_base]["VERTICES"])
-    set_attribute!(model, :h11 => detailed_data_dict[index_in_data_base]["h11"])
-    set_attribute!(model, :h12 => detailed_data_dict[index_in_data_base]["h12"])
-    set_attribute!(model, :h13 => detailed_data_dict[index_in_data_base]["h13"])
-    set_attribute!(model, :h22 => detailed_data_dict[index_in_data_base]["h22"])
+    # Collect information about the dual graph (see the struct QSMModel for more details).
+    components_of_dual_graph = [String(k) for k in detailed_data_dict[index_in_data_base]["ComponentsOfDualGraph"]]
+    genus_of_components_of_dual_graph = [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["GenusOfComponentsOfDualGraph"]]
+    genus_of_components_of_dual_graph = Dict(zip(components_of_dual_graph, genus_of_components_of_dual_graph))
+    degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph = [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["DegreeOfKbarOnComponentsOfDualGraph"]]
+    degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph = Dict(zip(components_of_dual_graph, degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph))
+    intersections = [[parse(Int, k) for k in a] for a in detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"]]
+    intersections = hcat(intersections...)
+    edge_list = Vector{Int64}[]
+    for i in 1:nrows(intersections)
+      for j in i+1:ncols(intersections)
+        if intersections[i, j] != 0
+          push!(edge_list, [i, j])
+        end
+      end
+    end
+    dual_graph = graph_from_edges(edge_list)
 
-    # Finally, return the model
-    return model
+    # Collect information about the simplified dual graph (see the struct QSMModel for more details).
+    components_of_simplified_dual_graph = [String(k) for k in detailed_data_dict[index_in_data_base]["ComponentsOfSimplifiedDualGraph"]]
+    genus_of_components_of_simplified_dual_graph = [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["CiGenus"]]
+    genus_of_components_of_simplified_dual_graph = Dict(zip(components_of_simplified_dual_graph, genus_of_components_of_simplified_dual_graph))
+    degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph = [parse(Int, k) for k in detailed_data_dict[index_in_data_base]["CiDegreeKbar"]]
+    degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph = Dict(zip(components_of_simplified_dual_graph, degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph))
+    simplified_edge_list = [[parse(Int, e[1]) + 1, parse(Int, e[2]) + 1] for e in detailed_data_dict[index_in_data_base]["EdgeList"]]
+    simplified_dual_graph = graph_from_edges(simplified_edge_list)
+
+    # Collect all of this information in the struct QSMModel, which we can then use for serialization.
+    qsm_model = QSMModel(vertices,
+                          poly_index,
+                          triang_quick,
+                          max_lattice_pts_in_facet,
+                          estimated_number_of_triangulations,
+                          hs_model,
+                          Kbar3,
+                          h11,
+                          h12,
+                          h13,
+                          h22,
+                          genus_ci,
+                          degree_of_Kbar_of_tv_restricted_to_ci,
+                          intersection_number_among_ci_cj,
+                          index_facet_interior_divisors,
+                          intersection_number_among_nontrivial_ci_cj,
+                          dual_graph,
+                          components_of_dual_graph,
+                          degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
+                          genus_of_components_of_dual_graph,
+                          simplified_dual_graph,
+                          components_of_simplified_dual_graph,
+                          degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
+                          genus_of_components_of_simplified_dual_graph)
+    
+    # TODO: Antony, please notice that the serialization of hs_model (as well as Tate and Weierstrass_model) involves a
+    # a hack to serialize a dicts. Maybe this can be fixed in this PR? Maybe even must?
+
+    # TODO: Also notice, that the serialization of hs_model will forget all of the meta_data that is set by the command
+    # _set_all_attributes(hs_model, model_dict, model_parameters)
+    # So also this needs addressing?
+
+    # Finally, return the QSMModel in question...
+    return qsm_model
 
   end
 
