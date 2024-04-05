@@ -142,6 +142,7 @@ julia> injections
 2-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
  Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
  Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+```
 """
 function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
   @req !is_empty(Xs) "Input should be a non-empty vector."
