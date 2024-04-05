@@ -1,7 +1,7 @@
 #######################################################
-#  Structs
+#  Struct for Quadrillion F-theory Standard Model (QSM) model, i.e. QSM-Model or for short QSMModel.
 
-struct QSModel
+struct QSMModel
   hs::HypersurfaceModel
 
   IndexFacetInteriorDivisors::Vector{Int}
