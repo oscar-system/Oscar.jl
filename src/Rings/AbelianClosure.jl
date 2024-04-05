@@ -19,7 +19,7 @@
 # Note that there are two possibilities construct a nth root of unity when n is
 # even and n%4!=0. either we can construct the field Q(z_n) or we take -z_(n/2)
 # as a primitive n-th root. to change between these two options, use
-# PCharSaturateAll with allroots or allrootsNew (change this in the code)
+# saturations with allroots or allrootsNew (change this in the code)
 
 abstract type CyclotomicField end
 
@@ -1153,7 +1153,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 end
 
 """
-    quadratic_irrationality_info(a::QQAbModule.QQAbElem)
+    quadratic_irrationality_info(a::QQAbElem)
 
 Return `(x, y, n)`, where `x`, `y` are of type `QQFieldElem` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.

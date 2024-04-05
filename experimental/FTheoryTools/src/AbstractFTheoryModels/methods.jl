@@ -1,6 +1,7 @@
 ##########################################
-### (1) General methods
+### (1) Blow_up of F-theory models
 ##########################################
+
 
 @doc raw"""
     blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
@@ -48,26 +49,103 @@ function blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate
   return blow_up(m, I; coordinate_name = coordinate_name)
 end
 
-function _my_proper_transform(ring_map::T, p::MPolyRingElem, coordinate_name::String) where {T<:SetElem}
-  total_transform = ring_map(ideal([p]))
-  _e = eval_poly(coordinate_name, codomain(ring_map))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  return gens(strict_transform)[1]
+
+@doc raw"""
+    blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+
+Resolve an F-theory model by blowing up a locus in the ambient space.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
+7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+ x
+ y
+ z
+
+julia> blow_up(t, ideal([x, y, x1]); coordinate_name = "e1")
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+```
+"""
+function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+  return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name)
 end
 
-function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+
+@doc raw"""
+    blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
+
+Resolve an F-theory model by blowing up a locus in the ambient space.
+For this method, the blowup center is encoded by an ideal sheaf.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
+7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+ x
+ y
+ z
+
+julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+   1: Ideal (x_5_1, x_4_1, x_1_1)
+   2: Ideal (1)
+   3: Ideal (x_5_3, x_4_3, x_1_3)
+   4: Ideal (x_5_4, x_4_4, x_1_4)
+   5: Ideal (1)
+   6: Ideal (1)
+   7: Ideal (1)
+   8: Ideal (1)
+   9: Ideal (1)
+  10: Ideal (1)
+  11: Ideal (1)
+  12: Ideal (1)
+
+julia> blow_up(t, blowup_center; coordinate_name = "e1")
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+```
+"""
+function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
   
   # Cannot (yet) blowup if this is not a Tate or Weierstrass model
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Blowups are currently only supported for Tate and Weierstrass models"
-
-  # This method only works if the model is defined over a toric variety over toric scheme
-  @req base_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
-  @req ambient_space(m) isa NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
+  @req (base_space(m) isa FamilyOfSpaces) == false "Base space must be a concrete space for blowups to work"
 
   # Compute the new ambient_space
-  bd = blow_up(ambient_space(m), I; coordinate_name = coordinate_name)
+  bd = blow_up(ambient_space(m), I, coordinate_name = coordinate_name)
   new_ambient_space = domain(bd)
 
   # Compute the new base
@@ -76,41 +154,32 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   # FIXME: This is also ties in with the model sections to be saved, see below. Should the base change, so do these sections...
   new_base = base_space(m)
 
-  # Prepare ring map for the computation of the strict transform.
-  # FIXME: This assume that I is generated by indeterminates! Very special!
-  S = cox_ring(new_ambient_space)
-  _e = eval_poly(coordinate_name, S)
-  images = MPolyRingElem[]
-  for v in gens(S)
-    v == _e && continue
-    if string(v) in [string(k) for k in gens(I)]
-      push!(images, v * _e)
-    else
-      push!(images, v)
-    end
-  end
-  ring_map = hom(base_ring(I), S, images)
-
   # Construct the new model
   if m isa GlobalTateModel
-    new_pt = _my_proper_transform(ring_map, tate_polynomial(m), coordinate_name)
-    model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_pt, base_space(m), new_ambient_space)
+    new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m); coordinate_name)
+    model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
   else
-    new_pw = _my_proper_transform(ring_map, weierstrass_polynomial(m), coordinate_name)
-    model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_pw, base_space(m), new_ambient_space)
+    new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m); coordinate_name)
+    model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
   end
 
-  # Copy/overwrite known attributes from old model
+  # Copy/overwrite/set attributes
   model_attributes = m.__attrs
   for (key, value) in model_attributes
     set_attribute!(model, key, value)
   end
   set_attribute!(model, :partially_resolved, true)
+  set_attribute!(model, :blow_down_morphism, bd)
 
   # Return the model
   return model
 end
 
+
+
+##########################################
+### (3) Tuning
+##########################################
 
 @doc raw"""
     tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
@@ -208,7 +277,7 @@ Toric line bundle on a normal toric variety
 julia> kbar = anticanonical_bundle(B3)
 Toric line bundle on a normal toric variety
 
-julia> w = basis_of_global_sections(w_bundle)[1];
+julia> w = generic_section(w_bundle);
 
 julia> a21 = generic_section(kbar^2 * w_bundle^(-1));
 
@@ -626,15 +695,12 @@ end
 
 Resolve a model with the index-th resolution that is known.
 
-Careful: Currently, this assumes that all blowups are toric blowups.
-We hope to remove this requirement in the near future.
-
 ```jldoctest
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> w = torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, prime divisor on a normal toric variety
+julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, non-prime divisor on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
@@ -643,77 +709,82 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> t2 = resolve(t, 1)
 Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> cox_ring(ambient_space(t2))
-Multivariate polynomial ring in 12 variables over QQ graded by 
-  x1 -> [1 0 0 0 0 0 0]
-  x2 -> [0 1 0 0 0 0 0]
-  x3 -> [0 1 0 0 0 0 0]
-  x4 -> [0 1 0 0 0 0 0]
-  x -> [0 0 1 0 0 0 0]
-  y -> [0 0 0 1 0 0 0]
-  z -> [0 0 0 0 1 0 0]
-  e1 -> [0 0 0 0 0 1 0]
-  e4 -> [0 0 0 0 0 0 1]
-  e2 -> [-1 -3 -1 1 -1 -1 0]
-  e3 -> [0 4 1 -1 1 0 -1]
-  s -> [2 6 -1 0 2 1 1]
 ```
 """
-function resolve(m::AbstractFTheoryModel, index::Int)
+function resolve(m::AbstractFTheoryModel, resolution_index::Int)
+  # To be extended to hypersurface models...
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Resolve currently supported only for Weierstrass and Tate models"
   @req (base_space(m) isa NormalToricVariety) "Currently, resolve is only supported for models over concrete toric bases"
+  @req (ambient_space(m) isa NormalToricVariety) "Currently, resolve is only supported for singular models defined in a toric space"
   @req has_attribute(m, :resolutions) "No resolutions known for this model"
-  @req index > 0 "The resolution must be specified by a non-negative integer"
-  @req index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
+  @req resolution_index > 0 "The resolution must be specified by a non-negative integer"
+  @req resolution_index <= length(resolutions(m)) "The resolution must be specified by an integer that is not larger than the number of known resolutions"
   
   # Gather information for resolution
-  centers, exceptionals = resolutions(m)[index]
+  centers, exceptionals = resolutions(m)[resolution_index]
   nr_blowups = length(centers)
   
-  # Is this a sequence of toric blowups? (To be extended with @HechtiDerLachs and ToricSchemes).
-  resolved_ambient_space = ambient_space(m)
-  R, gR = polynomial_ring(QQ, vcat([string(g) for g in gens(cox_ring(resolved_ambient_space))], exceptionals), cached = false)
-  for center in centers
-    blow_up_center = center
-    if has_attribute(m, :explicit_model_sections)
-      explicit_model_sections = get_attribute(m, :explicit_model_sections)
-      for l in 1:length(blow_up_center)
-        if haskey(explicit_model_sections, blow_up_center[l])
-          new_locus = string(explicit_model_sections[blow_up_center[l]])
-          blow_up_center[l] = new_locus
-        end
+  # Resolve the model
+  resolved_model = m
+  blow_up_chain = []
+  for k in 1:nr_blowups
+
+    # Replace parameters in the blow_up_center with explicit_model_sections
+    blow_up_center = centers[k]
+    for l in 1:length(blow_up_center)
+      model_sections = explicit_model_sections(resolved_model)
+      if haskey(model_sections, blow_up_center[l])
+        new_locus = string(explicit_model_sections(resolved_model)[blow_up_center[l]])
+        blow_up_center[l] = new_locus
       end
     end
-    @req all(x -> x in gR, [eval_poly(p, R) for p in blow_up_center]) "Non-toric blowup currently not supported"
-  end
-  
-  # If Tate model, use the new resolve function
-  # FIXME: To be extended to Weierstrass and hypersurface models
-  if m isa GlobalTateModel
-    resolved_model = m
-    for k in 1:nr_blowups
-      # Center may involve base coordinates, subject to chosen base sections/variable names in the base. Adjust
-      blow_up_center = centers[k]
-      if has_attribute(resolved_model, :explicit_model_sections)
-        explicit_model_sections = get_attribute(resolved_model, :explicit_model_sections)
-        for l in 1:length(blow_up_center)
-          if haskey(explicit_model_sections, blow_up_center[l])
-            new_locus = string(explicit_model_sections[blow_up_center[l]])
-            blow_up_center[l] = new_locus
+
+    # Conduct the blowup
+    if ambient_space(resolved_model) isa NormalToricVariety
+      # Toric case is easy...
+      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+    else
+      
+      # Compute proper transform of center generated by anything but exceptional divisors
+      filtered_center = [c for c in blow_up_center if !(c in exceptionals)]
+      initial_ambient_space = ambient_space(m)
+      initial_cox_ring = cox_ring(initial_ambient_space)
+      initial_filtered_ideal_sheaf = ideal_sheaf(initial_ambient_space, ideal([eval_poly(l, initial_cox_ring) for l in filtered_center]))
+      bd_morphism = get_attribute(blow_up_chain[1], :blow_down_morphism)
+      filtered_ideal_sheaf = strict_transform(bd_morphism, initial_filtered_ideal_sheaf)
+      for l in 2:k-1
+        bd_morphism = get_attribute(blow_up_chain[l], :blow_down_morphism)
+        filtered_ideal_sheaf = strict_transform(bd_morphism, filtered_ideal_sheaf)
+      end
+
+      # Compute strict transform of ideal sheaves appearing in blowup center
+      exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
+      positions = [findfirst(x -> x == l, exceptionals) for l in exceptional_center]
+      exceptional_divisors = [exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for l in positions]
+      exceptional_ideal_sheafs = [ideal_sheaf(d) for d in exceptional_divisors]
+      for l in 1:length(positions)
+        if positions[l] < k-1
+          for m in positions[l]+1: k-1
+            internal_bd_morphism = get_attribute(blow_up_chain[m], :blow_down_morphism)
+            exceptional_ideal_sheafs[l] = strict_transform(internal_bd_morphism, exceptional_ideal_sheafs[l])
           end
         end
       end
-      resolved_model = blow_up(resolved_model, blow_up_center; coordinate_name = exceptionals[k])
+
+      # Compute the prepared center
+      prepared_center = filtered_ideal_sheaf
+      if length(exceptional_ideal_sheafs) > 0
+        prepared_center = prepared_center + sum(exceptional_ideal_sheafs)
+      end
+
+      # Execute the blow-up
+      resolved_model = blow_up(resolved_model, prepared_center; coordinate_name = exceptionals[k])
     end
-  else
-    # Perform resolution
-    for k in 1:nr_blowups
-      S = cox_ring(resolved_ambient_space)
-      resolved_ambient_space = domain(blow_up(resolved_ambient_space, ideal([eval_poly(g, S) for g in centers[k]]); coordinate_name = exceptionals[k]))
-    end
-    resolved_model = resolved_ambient_space
+
+    # Remember the result
+    push!(blow_up_chain, resolved_model)
+
   end
   return resolved_model
 end

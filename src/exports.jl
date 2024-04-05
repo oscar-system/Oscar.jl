@@ -760,7 +760,7 @@ export is_finalized
 export is_finite, has_is_finite, set_is_finite
 export is_finite_dimensional_vector_space
 export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
-export is_finiteorder
+export is_finite_order
 export is_flat
 export is_full_direct_product
 export is_full_fp_group

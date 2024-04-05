@@ -75,21 +75,21 @@ false
 # Base.is_finite(G::PcGroup) = true
 
 """
-    is_finiteorder(g::GAPGroupElem) -> Bool
+    is_finite_order(g::GAPGroupElem) -> Bool
 
 Return `true` if `g` has finite order, and `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> is_finiteorder(gen(symmetric_group(5), 1))
+julia> is_finite_order(gen(symmetric_group(5), 1))
 true
 
-julia> is_finiteorder(gen(free_group(2), 1))
+julia> is_finite_order(gen(free_group(2), 1))
 false
 
 ```
 """
-is_finiteorder(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
+is_finite_order(x::GAPGroupElem) = GAPWrap.IsInt(GAPWrap.Order(x.X))
 
 
 """
@@ -103,7 +103,7 @@ For a group `x`, the order of `x` is the number of elements in `x`.
 
 An exception is thrown if the order of `x` is infinite,
 use [`is_finite`](@ref) for checking the finiteness of a group,
-and [`is_finiteorder`](@ref) for checking whether a group element
+and [`is_finite_order`](@ref) for checking whether a group element
 has finite order.
 
 # Examples
@@ -121,7 +121,7 @@ julia> g = free_group(1);
 julia> is_finite(g)
 false
 
-julia> is_finiteorder(gen(g, 1))
+julia> is_finite_order(gen(g, 1))
 false
 ```
 """
@@ -1797,7 +1797,7 @@ that is described by `g` or `v`, respectively.
 
 If `g` is an element of a free group $G$, say, then the rank of $G$ must be
 equal to the length of `genimgs`, `g` is a product of the form
-$g_{i_1}^{e_i} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
+$g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
@@ -1874,6 +1874,47 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   else
     error("do not know the type of the element $gX")
   end
+  return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
+end
+
+
+@doc raw"""
+    map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+
+Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
+which is a product of the form
+$g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
+where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
+of $G$ and the $e_i$ are nonzero integers,
+and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
+
+# Examples
+```jldoctest
+julia> G = dihedral_group(10)
+Pc group of order 10
+
+julia> x, y = gens(G);  g = x * y^4
+f1*f2^4
+
+julia> map_word(g, gens(free_group(:x, :y)))
+x*y^4
+```
+"""
+function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  G = parent(g)
+  Ggens = gens(G)
+  if length(Ggens) == 0
+    return init
+  end
+  gX = g.X
+
+  if GAP.Globals.IsPcGroup(G.X)
+    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(G.X), gX)
+  else  # GAP.Globals.IsPcpGroup(G.X)
+    l = GAP.Globals.Exponents(gX)
+  end
+  @assert length(l) == length(genimgs)
+  ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
 end
 

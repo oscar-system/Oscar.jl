@@ -4,12 +4,9 @@
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "ExteriorAlgebra",
   "GModule",
-  "MatrixGroups",
-  "ModStd",
-  "Rings",
   "Schemes",
+  "FTheoryTools" # Must be loaded after the schemes.
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -18,7 +15,7 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "BasisLieHighestWeight",   # needs code from LieAlgebras
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -32,6 +29,7 @@ include_dependency(".")
 isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
 if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
   include(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  issubset(whitelist, union(exppkgs, oldexppkgs)) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
   filter!(in(whitelist), exppkgs)
   filter!(in(whitelist), oldexppkgs)
 end

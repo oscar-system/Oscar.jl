@@ -17,7 +17,7 @@ BasicGAPGroupElem{T<:GAPGroup}
 elem_type(::Type{T}) where T <: GAPGroup
 one(x::GAPGroup)
 one(x::GAPGroupElem)
-is_finiteorder(x::GAPGroupElem)
+is_finite_order(x::GAPGroupElem)
 gens(::GAPGroup)
 has_gens(::GAPGroup)
 number_of_generators(G::GAPGroup)

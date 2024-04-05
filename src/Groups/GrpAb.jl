@@ -20,7 +20,7 @@ is_element(x::FinGenAbGroupElem, G::FinGenAbGroup) = issubset(sub([x])[1], G)
 
 _coeff(x::FinGenAbGroupElem) = x.coeff
 
-function is_finiteorder(a::FinGenAbGroupElem)
+function is_finite_order(a::FinGenAbGroupElem)
   G, m = snf(a.parent)
   b = preimage(m, a)
   return any(i -> iszero(G.snf[i]) && !iszero(b[i]), 1:ngens(G))

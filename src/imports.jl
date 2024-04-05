@@ -85,7 +85,7 @@ import AbstractAlgebra:
   has_gens,
   Ideal,
   Indent,
-  is_finiteorder,
+  is_finite_order,
   is_trivial,
   is_unicode_allowed,
   Lowercase,
