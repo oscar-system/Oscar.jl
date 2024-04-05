@@ -217,12 +217,7 @@ end
 
 Return the preimage of the ideal `I` under `F`.
 """
-function preimage(
-    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
-    I::Union{MPolyIdeal, MPolyQuoIdeal}
-  ) where {T <: FieldElem,
-           U2 <: MPolyRingElem{T}, 
-           CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
+function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
   salghom = _singular_algebra_morphism(f)
@@ -231,20 +226,6 @@ function preimage(
   Ix = Singular.Ideal(CS, CS.(V))
   prIx = Singular.preimage(salghom, Ix)
   return ideal(D, D.(gens(prIx)))
-end
-
-function preimage(
-    f::MPolyAnyMap{<:MPolyQuoRing, CT}, 
-    I::Union{MPolyIdeal, MPolyQuoIdeal}
-  ) where {T <: FieldElem,
-           U2 <: MPolyRingElem{T}, 
-           CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
-  @req base_ring(I) === codomain(f) "Parent mismatch"
-  R = base_ring(domain(f))
-  help_map = hom(R, domain(f), gens(domain(f)); check=false)
-  g = compose(help_map, f)
-  K = kernel(g)
-  return ideal(domain(f), help_map.(gens(K)))
 end
 
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .
