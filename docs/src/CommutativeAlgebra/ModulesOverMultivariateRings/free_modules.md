@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Free Modules
+# [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
 over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.

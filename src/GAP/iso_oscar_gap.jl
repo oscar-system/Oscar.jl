@@ -285,6 +285,10 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
    elseif flag2
      FG = GAPWrap.Field(GAPWrap.Sqrt(GAP.Obj(N2)))
      f, finv = _iso_oscar_gap_field_quadratic_functions(FO, FG)
+   elseif degree(FO) == 1
+     FG = GAP.Globals.Rationals::GapObj
+     f = x -> GAP.Obj(coeff(x, 0))
+     finv = x -> FO(QQ(x))
    else
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
@@ -452,6 +456,15 @@ true
     of `Oscar.iso_gap_oscar(S)`,
     but that the codomain of this map is not identical with
     or even not equal to the given `R`.
+
+    Note also that `R` and `S` may differ w.r.t. some structural properties
+    because GAP does not support all kinds of constructions that are
+    possible in Oscar.
+    For example, if `R` is a non-simple number field then `S` will be a
+    simple extension because GAP knows only simple field extensions.
+    Thus using `Oscar.iso_oscar_gap(R)` for objects `R` whose recursive
+    structure is not fully supported in GAP will likely cause overhead
+    at runtime.
 """
 @attr Map function iso_oscar_gap(F)
    return _iso_oscar_gap(F)

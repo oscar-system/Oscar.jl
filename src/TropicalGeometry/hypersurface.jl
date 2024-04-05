@@ -46,7 +46,7 @@ end
 
 
 function tropical_hypersurface(TropV::TropicalVarietySupertype{minOrMax,true}) where {minOrMax<:Union{typeof(max), typeof(min)}}
-    @req codim(TropV)==1 "tropical variety codimension not one"
+    @req codim(TropV)==1 "tropical variety not one-codimensional"
     @req is_pure(TropV) "tropical variety not pure"
     return tropical_hypersurface(polyhedral_complex(TropV),multiplicities(TropV),convention(TropV))
 end
@@ -140,36 +140,37 @@ end
 @doc raw"""
     tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min; weighted_polyhedral_complex_only::Bool=false)
 
-Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax` using the minimal weights that give rise to it.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax`. To be precise, the tropical hypersurface of the tropical polynomial with exponent vectors `points(Delta)` and coefficients `min_weight(Delta)` (min-convention) or `-min_weight(Delta)` (max-convention).  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 !!! warning
-    There is a known bug when the subdivision is too easy, e.g., see example below.
+    There is a known bug when the subdivision is too simple, e.g., `tropical_hypersurface(subdivision_of_points(simplex(2),[0,0,1]))` see issue 2628.
 
 # Examples
 ```jldoctest
-julia> Delta = subdivision_of_points(simplex(2),[0,0,1])
+julia> Delta = subdivision_of_points([0 0; 1 0; 0 1; 2 0],[0,0,0,1])
 Subdivision of points in ambient dimension 2
 
-julia> # tropical_hypersurface(Delta) # issue 2628
+julia> tropical_hypersurface(Delta)
+Min tropical hypersurface
 ```
 """
 function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeof(min),typeof(max)}=min;
                                weighted_polyhedral_complex_only::Bool=false)
 
     coeffs = min_weights(Delta)
-    exps = points(Delta)
-    pmhypproj = Polymake.tropical.Hypersurface{minOrMax}(MONOMIALS=exps, COEFFICIENTS=coeffs)
-    pmhyp = Polymake.tropical.affine_chart(pmhypproj)
+    expvs = [ZZ.(alpha) for alpha in points(Delta)]
 
-    # Convert to Oscar objects
-    polyhedralComplex = polyhedral_complex(pmhyp)
-    multiplicities = Vector{ZZRingElem}(pmhypproj.WEIGHTS)
+    TT = tropical_semiring(minOrMax)
+    # preserve_ordering=true, since min_weights of regular subdivisions are always in min-convention,
+    # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
+    # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
+    coeffs = TT.(coeffs; preserve_ordering=true)
+    _,x = polynomial_ring(TT,length(first(expvs)))
+    tropf = sum([c*prod(x.^alpha) for (c,alpha) in zip(coeffs,expvs)])
+    TropH = tropical_hypersurface(tropf)
 
-    TropH = tropical_hypersurface(polyhedralComplex,multiplicities,minOrMax)
     if !weighted_polyhedral_complex_only
-        set_attribute!(TropH,:polymake_object,pmhypproj)
-        set_attribute!(TropH,:subdivision_of_points,Delta)
-        set_attribute!(TropH,:convention,minOrMax)
+        set_attribute!(TropH,:dual_subdivision,Delta)
     end
     return TropH
 end
@@ -184,7 +185,7 @@ end
 @doc raw"""
     algebraic_polynomial(TropH::TropicalHypersurface)
 
-Return the polynomial over a valued field used to construct `TropH`.  Raises an error, if it is not cached.
+Return the polynomial over a valued field used to construct `TropH`.  Raises an error if it is not cached.
 """
 function algebraic_polynomial(TropH::TropicalHypersurface)
     @req has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
@@ -210,22 +211,42 @@ end
 @doc raw"""
     dual_subdivision(TropH::TropicalHypersurface)
 
-Return the dual subdivision of `TropH`.  Raises an error, if neither it nor the the internal polymake object is cached.
+Return the dual subdivision used to construct `TropH`.  Raises an error if it is not cached.
+
+# Examples
+```jldoctest
+julia> Delta = subdivision_of_points([0 0; 1 0; 0 1; 2 0],[0,0,0,1])
+Subdivision of points in ambient dimension 2
+
+julia> th = tropical_hypersurface(Delta)
+Min tropical hypersurface
+
+julia> sop = dual_subdivision(th)
+Subdivision of points in ambient dimension 2
+
+julia> points(sop)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0]
+ [1, 0]
+ [0, 1]
+ [2, 0]
+
+julia> maximal_cells(sop)
+2-element SubObjectIterator{Vector{Int64}}:
+ [1, 2, 3]
+ [2, 3, 4]
+```
 """
 function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
-    if has_attribute(TropH,:dual_subdivision)
-        return get_attribute(TropH,:dual_subdivision)
-    elseif has_attribute(TropH,:polymake_bigobject)
-        return get_attribute(TropH,:polymake_bigobject)
-    end
-    error("neither dual subdivision nor polymake object cached")
+    @req has_attribute(TropH,:dual_subdivision) "no dual subdivision cached"
+    return get_attribute(TropH,:dual_subdivision)
 end
 
 
 @doc raw"""
     tropical_polynomial(TropH::TropicalHypersurface)
 
-Return the tropical polynomial used to construct `TropH`.  Raises an error, if it is not cached.
+Return the tropical polynomial used to construct `TropH`.  Raises an error if it is not cached.
 """
 function tropical_polynomial(TropH::TropicalHypersurface)
     @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"

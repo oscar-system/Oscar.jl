@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Introduction
+# [Introduction](@id fields)
 
 The fields part of OSCAR provides functionality for handling
 various kinds of fields:

@@ -293,7 +293,7 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   for i in 1:n
     li = ndigits(i)
     println(io)
-    print(io, " "^(l-li)*"$(i): ", Lowercase(), PU)
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), CPS[patches(base_covering(CPS))[i]])
   end
   print(io, Dedent())
 end
@@ -364,7 +364,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
   t = gens(S)
   if is_regular_sequence(gens(I))
     # construct the blowup manually
-    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r, j in i+1:r+1])
+    J = ideal(S, [t[i]*g[j] - t[j]*g[i] for i in 1:r for j in i+1:r+1])
     IPY = subscheme(IPW, J)
     # Compute the IdealSheaf for the exceptional divisor
     ID = IdDict{AbsAffineScheme, RingElem}()
@@ -384,7 +384,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:MPolyRing}, I::MPolyIdeal;
     # Prepare the decomposition data
     decomp_dict = IdDict{AbsAffineScheme, Vector{RingElem}}()
     for k in 1:ngens(I)
-      U = affine_charts(Y)[i]
+      U = affine_charts(Y)[k]
       decomp_dict[U] = gens(OO(U))[1:k-1] # Relies on the projective variables coming first!
     end
 
@@ -477,6 +477,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
   p = covered_projection_to_base(Bl_W)
   p_cov = covering_morphism(p)
   for i in 1:ngens(I)
+    @assert !iszero(gen(I, i))
     U = affine_charts(Y)[i]
     p_res = p_cov[U]
     W === codomain(p_res) || error("codomain not correct")
@@ -517,8 +518,9 @@ function is_regular_sequence(g::Vector{T}) where {T<:RingElem}
   all(x->parent(x)===R, g) || error("elements do not belong to the correct ring")
   is_unit(g[1]) && return false # See Bruns-Herzog: Cohen-Macaulay rings, section 1.1.
   is_zero_divisor(g[1]) && return false
-  A, p = quo(R, ideal(R, g))
-  return is_regular_sequence(p.(g[2:end]))
+  A, p = quo(R, ideal(R, g[1]))
+  red_seq = elem_type(A)[p(f) for f in g[2:end]]
+  return is_regular_sequence(red_seq)
 end
 
 
@@ -682,7 +684,7 @@ struct CoveredProjectiveGluingData
   P::AbsProjectiveScheme
   Q::AbsProjectiveScheme
   G::AbsGluing
-  I::IdealSheaf
+  I::AbsIdealSheaf
 end
 
 function _compute_projective_gluing(gd::CoveredProjectiveGluingData)
@@ -757,12 +759,12 @@ function blow_up(
 end
 
 @doc raw"""
-    blow_up(I::IdealSheaf)
+    blow_up(I::AbsIdealSheaf)
 
 Return the blow-up morphism of blowing up of the underlying scheme of ``I``  at ``I``.
 """
 function blow_up(
-    I::IdealSheaf;
+    I::AbsIdealSheaf;
     verbose::Bool=false,
     check::Bool=true,
     var_name::VarName=:s,

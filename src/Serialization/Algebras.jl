@@ -36,18 +36,20 @@ end
 function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Vector)
   parent_algebra = parents[end]
   coeff_type = elem_type(base_ring(parent_algebra))
-  elem = parent_algebra(0)
+  elem = MPolyBuildCtx(parent_algebra)
 
   load_array_node(s) do _
     loaded_coeff = load_object(s, coeff_type, 2)
     loaded_term = parent_algebra(loaded_coeff)
-    load_array_node(s, 1) do word
-      loaded_term *= parent_algebra[load_object(s, Int)]
+    e = load_array_node(s, 1) do _
+      load_object(s, Int)
     end
-    elem += loaded_term
+    # guarantees e is a Int[]
+    e = convert(Vector{Int}, e)
+    push_term!(elem, loaded_coeff, e)
   end
 
-  return elem
+  return finish(elem)
 end
 
 # Ideals

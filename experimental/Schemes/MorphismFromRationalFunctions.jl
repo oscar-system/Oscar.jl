@@ -636,7 +636,7 @@ function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
   X = domain(Phi)
   Y = codomain(Phi)
-  pushed_comps = IdDict{IdealSheaf, elem_type(coefficient_ring(D))}()
+  pushed_comps = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
   for I in components(D)
     # Find some chart in which I is non-trivial
     real_patches = collect(keys(realizations(Phi)))
@@ -689,7 +689,7 @@ function pullback(phi::MorphismFromRationalFunctions, C::AbsAlgebraicCycle)
   X = domain(phi)
   Y = codomain(phi)
   R = coefficient_ring(C)
-  comps = IdDict{IdealSheaf, elem_type(R)}()
+  comps = IdDict{AbsIdealSheaf, elem_type(R)}()
   for I in components(C)
     @vprint :MorphismFromRationalFunctions 1 "trying cheap pullback\n"
     pbI = _try_pullback_cheap(phi, I)
@@ -712,7 +712,7 @@ end
 # as a regular morphism f : U → V with f*(I) non-zero in OO(U). 
 # The method below tries to find such a pair in a cheap way which might not 
 # be successful.
-function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::IdealSheaf)
+function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -765,7 +765,7 @@ end
 # of `h`. With probability 1 this will produce a non-trivial pullback of I on this 
 # patch whenever I was non-trivial on V. But it is not as cheap as the method above 
 # since the rational functions must be converted to regular functions on D(h). 
-function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
+function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")
@@ -799,7 +799,7 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::IdealSh
 end
 
 ### Deprecated method below, left here for recycling.
-function _pullback(phi::MorphismFromRationalFunctions, I::IdealSheaf)
+function _pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   X = domain(phi)
   Y = codomain(phi)
   scheme(I) === Y || error("ideal sheaf not defined on the correct scheme")

@@ -546,4 +546,8 @@ end
   @test [f1] == gens(I)
   I2 = flag_pluecker_ideal(GF(3),[1,2,3], 4);
   @test length(gens(I2)) == 10
+
+  R, _ = polynomial_ring(QQ, 6)
+  I = flag_pluecker_ideal(R,dimension_vector, ambient_dimension, minimal=false)
+  @test isa(I, Ideal)
 end

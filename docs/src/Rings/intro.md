@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Introduction
+# [Introduction](@id rings)
 
 The rings part of OSCAR provides functionality for handling
 various kinds of rings: 

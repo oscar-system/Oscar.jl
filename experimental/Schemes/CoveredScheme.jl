@@ -493,14 +493,14 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
                                  CoveredSchemeMorphism
                                 }
   f::CoveredSchemeMorphism
-  I::IdealSheaf
+  I::AbsIdealSheaf
 
   function CoveredClosedEmbedding(
       X::DomainType,
       Y::CodomainType,
       f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
       check::Bool=true,
-      ideal_sheaf::IdealSheaf=IdealSheaf(Y, f, check=check)
+      ideal_sheaf::AbsIdealSheaf=IdealSheaf(Y, f, check=check)
     ) where {
              DomainType<:AbsCoveredScheme,
              CodomainType<:AbsCoveredScheme,
@@ -529,7 +529,7 @@ underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
 image_ideal(phi::CoveredClosedEmbedding) = phi.I
 
 ### user facing constructors
-function CoveredClosedEmbedding(X::AbsCoveredScheme, I::IdealSheaf;
+function CoveredClosedEmbedding(X::AbsCoveredScheme, I::AbsIdealSheaf;
         covering::Covering=default_covering(X), check::Bool=true)
   space(I) === X || error("ideal sheaf is not defined on the correct scheme")
   mor_dict = IdDict{AbsAffineScheme, ClosedEmbedding}() # Stores the morphism fᵢ : Uᵢ → Vᵢ for some covering Uᵢ ⊂ Z(I) ⊂ X.
