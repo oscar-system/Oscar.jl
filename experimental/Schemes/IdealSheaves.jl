@@ -300,9 +300,9 @@ function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
   object_cache = I.I.obj_cache
 
   for U in basic_patches(cov)
-    #if !any(U===i for i in keys(object_cache))
-    #  continue
-    #end
+    if !any(U===i for i in keys(object_cache))
+      continue
+    end
     object_cache[U] = ideal(OO(U), small_generating_set(I(U)))
   end
   return I
