@@ -1,4 +1,4 @@
-e# TODO: in this file several ways to get the preserved forms by a matrix group are implemented
+# TODO: in this file several ways to get the preserved forms by a matrix group are implemented
 # we can choose to keep all of them or only some of them
 
 ########################################################################
