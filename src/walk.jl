@@ -895,6 +895,8 @@ function facet_initials(
 end
 
 # returns the differences of the exponent vectors of the leading terms and the polynomials of the generators of I.
+#Comment: I shouldn't need the ordering T here. (Lm already consists of monomials)
+
 function difference_lead_tail(
   G::Oscar.IdealGens, Lm::Vector{L}, T::MonomialOrdering
 ) where {L<:MPolyRingElem}
@@ -1042,7 +1044,7 @@ end
 
 # tests if v<0 w.r.t. the ordering M.
 less_than_zero(M::MonomialOrdering, v::Vector{Int}) = less_than_zero(canonical_matrix(M), v)
-less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = less_than_zero(M, v)
+less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = new_less_than_zero(M, v)
 function less_than_zero(M::Matrix{Int}, v::Vector{Int})
   nrows, ncols = size(M)
   for i in 1:nrows

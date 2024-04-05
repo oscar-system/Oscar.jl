@@ -21,6 +21,8 @@ export standard_step
 export next_weight
 export lift2
 export difference_lead_tail
+export less_than_zero
+export new_less_than_zero 
 
 export new_next_gamma
 

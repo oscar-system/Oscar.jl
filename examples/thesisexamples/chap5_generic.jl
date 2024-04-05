@@ -22,7 +22,8 @@ S = canonical_matrix(o_s)
 T = canonical_matrix(o_t)
 
 new_next_gamma(G, ZZ.([0]), o_s, o_t)
-#Gfinal = groebner_walk(I, lex(R), o4; walk_type = :generic) #throws an error
+
+Gfinal = groebner_walk(I, lex(R), o_t; walk_type = :generic) #throws an error
 
 
 
