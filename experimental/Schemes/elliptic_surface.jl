@@ -1110,8 +1110,6 @@ function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
 
     I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
-    @show gens(I)
-    @show gens(IP)
     issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 
     @assert gcd(xn, xd)==1
