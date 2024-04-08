@@ -838,6 +838,7 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     dim(I(U)) == dim(I) || continue                  ## components of lesser dimension can be discarded
     components_here = minimal_primes(I(U))
+    @assert all(p->is_prime(p), components_here)
     @assert all(p->dim(p) == dim(I), components_here) "not all minimal primes have the correct dimension"
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the
@@ -1516,21 +1517,27 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     iso = _flatten_open_subscheme(U, U2)
     iso_inv = inverse(iso)
     pb_P = pullback(iso_inv)(P)
-    return ideal(OO(U2), [g for g in OO(U2).(gens(saturated_ideal(pb_P))) if !iszero(g)])
+    result = ideal(OO(U2), [g for g in OO(U2).(gens(saturated_ideal(pb_P))) if !iszero(g)])
+    @assert is_prime(result)
+    return result
   end
 
   V = __find_chart(U, default_covering(X))
   # we are in the same ancestor tree, but somewhere else;
   # reconstruct from the root
   if has_ancestor(x->(x===V), U2)
-    return OOX(V, U2)(F(V))
+    result = OOX(V, U2)(F(V))
+    @assert is_prime(result)
+    return result
   end
 
   # we are in a different tree;
   # reconstruct from that root
   V2 = __find_chart(U2, default_covering(X))
   if haskey(object_cache(F), V2) && V2 !== U2
-    return OOX(V2, U2)(F(V2))
+    result = OOX(V2, U2)(F(V2))
+    @assert is_prime(result)
+    return result
   end
 
   F(V) # Fill the cache with at least one element
@@ -1554,18 +1561,24 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
       complement_equation(codomain(g)) in F(W) && continue # We know the ideal is prime. No need to saturate!
       I2 = F(codomain(g))
       I = pullback(g)(I2)
+      I = ideal(OO(V2), lifted_numerator.(gens(I)))
       I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
-      return OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
+      result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
+      @assert is_prime(result)
+      return result
     else
       Z = subscheme(W, F(W))
       pZ = preimage(g, Z, check=false)
       is_empty(pZ) && continue
       ZV = closure(pZ, V2, check=false)
-      return OOX(V2, U2)(ideal(OO(V2), [g for g in OO(V2).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)]))
+      result = OOX(V2, U2)(ideal(OO(V2), [g for g in OO(V2).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)]))
+      @assert is_prime(result)
+      return result
     end
   end
   # If nothing pulls back to this chart, the ideal sheaf is trivial here.
-  return ideal(OO(U2), one(OO(U2)))
+  result = ideal(OO(U2), one(OO(U2)))
+  return result
 end
 
 
