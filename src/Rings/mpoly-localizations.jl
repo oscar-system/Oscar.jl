@@ -3035,6 +3035,14 @@ end
   return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
+@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+  J = shifted_ideal(I)
+  # TODO: Is there a more conceptual way to do this???
+  oo = negdegrevlex(gens(base_ring(J)))
+  standard_basis(J, ordering=oo) # result is cached, but not returned
+  return Singular.dimension(J.gb[oo].gens.S)
+end
+
 
 ################################################################################
 #
