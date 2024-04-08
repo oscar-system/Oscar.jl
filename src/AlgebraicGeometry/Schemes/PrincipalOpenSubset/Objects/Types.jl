@@ -17,7 +17,7 @@
   function PrincipalOpenSubset(X::AbsAffineScheme, f::Vector{<:RingElem})
     all(x->(parent(x) == OO(X)), f) || return PrincipalOpenSubset(X, OO(X).(f))
     U = hypersurface_complement(X, f)
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, (length(f)>0 ? prod(f) : one(OO(X))))
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, (length(f)>0 ? OO(X)(prod(lifted_numerator.(f))) : one(OO(X))))
   end
 
   # The following constructors allow to pass a ring as an extra argument.
