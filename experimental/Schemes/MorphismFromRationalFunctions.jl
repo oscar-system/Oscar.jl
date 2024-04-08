@@ -527,7 +527,7 @@ end
 # as regular functions on U' and a morphism U' → A to the `ambient_space` 
 # of V can be realized, V might be so small that we need a proper restriction 
 # of the domain. The methods below take care of that. 
-function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing})
+function _restrict_properly(f::AbsAffineScheme, V::AbsAffineScheme{<:Ring, <:MPolyRing})
   return restrict(f, domain(f), V, check=false)
 end
 
@@ -550,17 +550,17 @@ function _restrict_properly(
 end
 
 function _restrict_properly(
-f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
-) where {RT<:MPolyQuoLocRing{<:Ring, <:RingElem, 
-                        <:MPolyRing, <:MPolyRingElem, 
-                        <:MPolyPowersOfElement}
-      }
-h = denominators(inverted_set(OO(V)))
-pbh = pullback(f).(h)
-U = domain(f)
-W = ambient_scheme(U)
-UU = PrincipalOpenSubset(W, push!(OO(W).(lifted_numerator.(pbh)), complement_equation(U)))
-return restrict(f, UU, V, check=false)
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
+  ) where {RT<:MPolyQuoLocRing{<:Ring, <:RingElem, 
+                            <:MPolyRing, <:MPolyRingElem, 
+                            <:MPolyPowersOfElement}
+          }
+  h = denominators(inverted_set(OO(V)))
+  pbh = pullback(f).(h)
+  U = domain(f)
+  W = ambient_scheme(U)
+  UU = PrincipalOpenSubset(W, push!(OO(W).(lifted_numerator.(pbh)), complement_equation(U)))
+  return restrict(f, UU, V, check=false)
 end
 
 ### The natural mathematical way to deal with algebraic cycles. However, since 
@@ -568,22 +568,22 @@ end
 # not even to speak of their transcendence degrees, this functionality is rather 
 # limited at the moment. 
 function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
-error("not implemented")
+  error("not implemented")
 end
 
 function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
-is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
-#is_proper(Phi) || error("morphism must be proper")
-all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
-X = domain(Phi)
-Y = codomain(Phi)
-pushed_comps = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
-for I in components(D)
-J = _pushforward_smooth_in_codim_one_along_iso(Phi, I) # Use dispatch here
-pushed_comps[J] = D[I]
-end
-is_empty(pushed_comps) && error("pushforward of this divisor along an alleged isomorphism is empty")
-return WeilDivisor(AlgebraicCycle(Y, coefficient_ring(D), pushed_comps); check=false)
+  is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
+  #is_proper(Phi) || error("morphism must be proper")
+  all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
+  X = domain(Phi)
+  Y = codomain(Phi)
+  pushed_comps = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
+  for I in components(D)
+    J = _pushforward_smooth_in_codim_one_along_iso(Phi, I) # Use dispatch here
+    pushed_comps[J] = D[I]
+  end
+  is_empty(pushed_comps) && error("pushforward of this divisor along an alleged isomorphism is empty")
+  return WeilDivisor(AlgebraicCycle(Y, coefficient_ring(D), pushed_comps); check=false)
 end
 
 # The following attributes can not be checked algorithmically at the moment. 
@@ -591,11 +591,11 @@ end
 # are satisfied; i.e. the user has to take responsibility and confirm that 
 # they know what they're doing through these channels. 
 @attr function is_proper(phi::AbsCoveredSchemeMorphism)
-error("no method implemented to check properness")
+  error("no method implemented to check properness")
 end
 
 @attr function is_isomorphism(phi::AbsCoveredSchemeMorphism)
-error("no method implemented to check for being an isomorphism")
+  error("no method implemented to check for being an isomorphism")
 end
 
 ### Pullback of algebraic cycles along an isomorphism. 
