@@ -27,6 +27,7 @@ export AbsMultSet
 export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
+export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
 export AbstractAlgebra
 export AffineAlgebraicSet
