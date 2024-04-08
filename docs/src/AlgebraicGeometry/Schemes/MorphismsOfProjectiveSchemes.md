@@ -41,6 +41,6 @@ Moreover, we provide getters for the associated morphisms of rings:
 ```
 ## Methods
 ```@docs
-    covered_scheme_morphism(f::ProjectiveSchemeMor)
+    covered_scheme_morphism(f::AbsProjectiveSchemeMor)
 ```
 
