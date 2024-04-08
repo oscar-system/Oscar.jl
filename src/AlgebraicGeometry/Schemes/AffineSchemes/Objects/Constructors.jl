@@ -521,7 +521,6 @@ function hypersurface_complement(X::AbsAffineScheme, f::Vector{<:RingElem})
 end
 
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoLocRing}}
-    @show total_degree.(lifted_numerator.(f))
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
