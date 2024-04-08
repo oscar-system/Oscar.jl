@@ -213,11 +213,11 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 end
 
 @doc raw"""
-    preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+    preimage(F::MPolyAnyMap, I::Ideal)
 
 Return the preimage of the ideal `I` under `F`.
 """
-function preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+function preimage(F::MPolyAnyMap, I::Ideal)
   # This generic routine does not work for maps where the domain is a quotient ring. 
   # Hence it has been split into two specialized methods below.
   error("not implemented")
