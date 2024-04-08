@@ -215,7 +215,7 @@
     gg = covering_morphism(g_cov)
     dom_cov = domain(gg)
     for k in keys(gluings(dom_cov))
-        @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
+      @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
     end
   end
 
@@ -365,5 +365,39 @@
     X = covered_scheme(spec(R, I))
     @test !is_normal(X)
   end
+
+@testset "normalization" begin
+  # Example integral
+  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+  I = ideal(R, z*x^2 + y^3)
+  X = covered_scheme(proj(R, I))
+  N = normalization(X)
+  # trigger the computation of some gluings
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
+  gluing_morphisms(Cnorm[1,3])
+  gluing_morphisms(Cnorm[2,3])
+  gluing_morphisms(Cnorm[3,3])
+
+  # Example non-integral
+  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+  I = ideal(R, (z*x^2 + y^3)*(x))
+  X = covered_scheme(proj(R, I))
+  N = normalization(X)
+  # trigger the computation of some gluings
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
+
+  # A non-normal Enriques surface as constructed by Enriques himself
+  S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
+  J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
+  X = proj(S, J)
+  Xcov = covered_scheme(X)
+  N = normalization(Xcov);
+  Xnorm = N[1][1]
+  Cnorm = Xnorm[1] # a covering
+  gluing_morphisms(Cnorm[1,2])
 end
 
