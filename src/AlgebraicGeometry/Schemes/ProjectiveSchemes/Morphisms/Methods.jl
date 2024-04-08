@@ -15,42 +15,6 @@ function ==(f::AbsProjectiveSchemeMorphism{<:AbsProjectiveScheme{<:Union{<:MPoly
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
-@doc raw"""
-    covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
-
-Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
-return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
-of ``X`` and ``Y``, respectively.
-
-# Examples
-```jldoctest
-julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal([x^3-y^2*z]);
-
-julia> Y = proj(P, I);
-
-julia> f = identity_map(Y)
-Projective scheme morphism
-  from projective scheme in IP^2 over QQ
-  to projective scheme in IP^2 over QQ
-
-julia> fcov = covered_scheme_morphism(f);
-
-julia> codomain(fcov)
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: scheme(-(y//x)^2*(z//x) + 1)
-    2: scheme((x//y)^3 - (z//y))
-    3: scheme((x//z)^3 - (y//z)^2)
-  in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
-```
-"""
 @attr function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism{<:Any, <:Any, <:Any, Nothing} # No map on base rings
   )
@@ -114,6 +78,42 @@ with default covering
   return ff
 end
 
+@doc raw"""
+    covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
+
+Given a morphism of `ProjectiveScheme`s ``f : X → Y``, construct and 
+return the same morphism as a `CoveredSchemeMorphism` of the `covered_scheme`s 
+of ``X`` and ``Y``, respectively.
+
+# Examples
+```jldoctest
+julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+
+julia> I = ideal([x^3-y^2*z]);
+
+julia> Y = proj(P, I);
+
+julia> f = identity_map(Y)
+Projective scheme morphism
+  from projective scheme in IP^2 over QQ
+  to projective scheme in IP^2 over QQ
+
+julia> fcov = covered_scheme_morphism(f);
+
+julia> codomain(fcov)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
+  in the coordinate(s)
+    1: [(y//x), (z//x)]
+    2: [(x//y), (z//y)]
+    3: [(x//z), (y//z)]
+```
+"""
 @attr function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism
   ) # with map on the base rings
