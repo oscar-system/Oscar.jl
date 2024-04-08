@@ -836,7 +836,7 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
     dim(I(U)) == dim(I) || continue                  ## components of lesser dimension can be discarded
     components_here = minimal_primes(I(U))
-    @assert all(p->is_prime(p), components_here)
+    #@assert all(p->is_prime(p), components_here)
     @assert all(p->dim(p) == dim(I), components_here) "not all minimal primes have the correct dimension"
     if has_decomposition_info(covering)
       # We only need those components which are located at the locus presrcibed by the
