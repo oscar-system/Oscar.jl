@@ -305,8 +305,6 @@ function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
     #end
     object_cache[U] = ideal(OO(U), small_generating_set(I(U)))
   end
-  I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
-  #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
 end
 
