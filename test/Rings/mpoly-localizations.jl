@@ -440,3 +440,15 @@ end
   @test dim(L) == 3
 end
 
+@testset "dimensions of localized ideals" begin
+  R, (x, y) = QQ["x", "y"]
+  U = complement_of_point_ideal(R, [0, 1])
+
+  L, loc_map = localization(R, U)
+
+  I = ideal(R, [y*x, y*(y-1)])
+  @test dim(I) == 1
+  J = loc_map(I)
+  @test dim(J) == 0
+end
+
