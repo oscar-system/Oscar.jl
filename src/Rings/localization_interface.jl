@@ -662,7 +662,7 @@ function preimage(f::AbsLocalizedRingHom, I::Ideal)
   Q, proj = quo(codomain(f), I)
   result = kernel(compose(f, proj))
   if has_attribute(I, :is_prime) && get_attribute(I, :is_prime) === true
-    set_attribute!(I, :is_prime=> true)
+    set_attribute!(result, :is_prime=> true)
   end
   return result
 end
