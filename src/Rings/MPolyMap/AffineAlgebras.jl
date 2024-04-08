@@ -217,6 +217,12 @@ end
 
 Return the preimage of the ideal `I` under `F`.
 """
+function preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+  # This generic routine does not work for maps where the domain is a quotient ring. 
+  # Hence it has been split into two specialized methods below.
+  error("not implemented")
+end
+
 function preimage(
     f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
