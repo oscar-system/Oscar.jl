@@ -130,7 +130,6 @@
       @test V == subscheme(U, image_ideal(inc)(U))
     end
   end
-end
 
 
   @testset "is_integral" begin
@@ -216,181 +215,182 @@ end
     gg = covering_morphism(g_cov)
     dom_cov = domain(gg)
     for k in keys(gluings(dom_cov))
-        @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
+      @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
     end
+  end
+
+  @testset "base change" begin
+    kk, pr = quo(ZZ, 5)
+    IP1 = covered_scheme(projective_space(ZZ, 1))
+    IP1_red, red_map = base_change(pr, IP1)
+
+    IP2 = projective_space(ZZ, 2)
+    S = homogeneous_coordinate_ring(IP2)
+    (x, y, z) = gens(S)
+    I = ideal(S, x^2 + y^2 + z^2)
+    IP2_cov = covered_scheme(IP2)
+    II = IdealSheaf(IP2, I)
+
+    inc_X = Oscar.CoveredClosedEmbedding(IP2_cov, II)
+    (a, b, c) = base_change(pr, inc_X)
+    @test compose(a, inc_X) == compose(b, c)
+  end
+
+  @testset "decomposition info" begin
+    P3 = projective_space(ZZ, 3)
+    X = covered_scheme(P3)
+    kk = GF(29)
+    X29, f = base_change(kk, X)
+    @test Oscar.has_decomposition_info(default_covering(X29))
+    orig_cov = default_covering(X)
+    U = first(patches(orig_cov))
+    x, y, z = gens(OO(U))
+    V2 = PrincipalOpenSubset(U, x)
+    V1 = PrincipalOpenSubset(U, x-1)
+    new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
+    Oscar.inherit_gluings!(new_cov, orig_cov)
+    Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
+    @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
+  end
+
+  @testset "fiber products of coverings" begin
+    IP1 = projective_space(QQ, [:x, :y])
+    S = homogeneous_coordinate_ring(IP1)
+    (x, y) = gens(S)
+    X = covered_scheme(IP1)
+    cov = default_covering(X)
+    f = identity_map(cov)
+    cc, p1, p2 = fiber_product(f, f)
+    Phi = hom(S, S, [x+y, x-y])
+    phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+    g = covered_scheme_morphism(phi)
+    g_cov = covering_morphism(g)
+    cc, p1, p2 = fiber_product(g_cov, f)
+
+    orig = default_covering(X)
+    ref = domain(g_cov)
+
+    inc_cc = Oscar.refinement_morphism(ref, orig)
+    id_orig = identity_map(orig)
+
+    fp_cc_orig, p1, p2 = fiber_product(inc_cc, id_orig)
+
+    fp_orig_cc, p1, p2 = fiber_product(id_orig, inc_cc)
+
+    fp_cc_cc = fiber_product(inc_cc, inc_cc)
+  end
+
+  @testset "composition and fiber products of morphisms of covered schemes" begin
+    IP1 = projective_space(QQ, [:x, :y])
+    S = homogeneous_coordinate_ring(IP1)
+    (x, y) = gens(S)
+
+    X = covered_scheme(IP1)
+    id_X = identity_map(X)
+    fiber_product(id_X, id_X)
+
+    Phi = hom(S, S, [x+y, x-y])
+    phi = ProjectiveSchemeMor(IP1, IP1, Phi)
+    f = covered_scheme_morphism(phi)
+    f2 = covered_scheme_morphism(ProjectiveSchemeMor(IP1, IP1, Phi)) # The same, but as a non-identical copy
+
+    fiber_product(f, id_X)
+
+    compose(f, id_X)
+    compose(id_X, f)
+    compose(f, f)
+    f_cov = covering_morphism(f)
+    f_cov2 = covering_morphism(f2)
+    ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
+    ref2 = Oscar.refinement_morphism(domain(f_cov2), default_covering(X))
+    _, _, f_cov_ref = fiber_product(f_cov, ref)
+    _, _, f_cov_ref2 = fiber_product(f_cov, ref2)
+
+    ff = CoveredSchemeMorphism(X, X, f_cov_ref)
+    ff2 = CoveredSchemeMorphism(X, X, f_cov_ref2)
+    compose(id_X, ff)
+    compose(ff, id_X)
+    compose(ff, ff)
+    compose(ff, ff2)
+    compose(ff2, ff)
+
+    fiber_product(ff, f)
+    fiber_product(f, ff)
+    fiber_product(ff, ff)
+    fiber_product(ff, ff2)
+    fiber_product(ff2, ff)
+  end
+
+
+  @testset "preimages for polynomial maps" begin
+    R, (x, y) = QQ[:x, :y]
+    I = ideal(R, [x-y])
+    A, _ = quo(R, I)
+    phi1 = hom(R, A, gens(A))
+    @test phi1(preimage(phi1, A(y))) == A(x)
+
+    phi2 = hom(R, A, [u^2 for u in gens(A)])
+    @test_throws ErrorException preimage(phi2, A(x))
+    @test phi2(preimage(phi2, A(x^2))) == A(x*y)
+
+    U = powers_of_element(x-1)
+    R_loc, _ = localization(R, U)
+    A_loc, _ = localization(A, U)
+
+    phi3 = hom(R, A_loc, gens(A_loc))
+    @test A(preimage(phi3, A_loc((y-1)*x//(x-1)))) == A(y)
+
+    phi4 = hom(R, R_loc, gens(R_loc))
+    @test preimage(phi4, R_loc(x)) == x
+
+    P, (_, _, u) = QQ[:x, :y, :u]
+    J = ideal(P, 1 - prod(gens(P)))
+    Q, _ = quo(P, J)
+
+    S = powers_of_element(x*y)
+    RS, _ = localization(R, S)
+    phi5 = hom(RS, Q, gens(Q)[1:2])
+    @test preimage(phi5, Q(u)) == RS(1//(x*y))
+
+    AS, _ = localization(A, S)
+    Q2, _ = quo(Q, ideal(Q, [Q[1]-Q[2]]))
+    phi6 = hom(AS, Q2, gens(Q2)[1:2])
+    @test preimage(phi6, Q2[1]) == AS[2]
+  end
+
+  @testset "normalization" begin
+    # Example integral
+    R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+    I = ideal(R, z*x^2 + y^3)
+    X = covered_scheme(proj(R, I))
+    N = normalization(X)
+    # trigger the computation of some gluings
+    Xnorm = N[1][1]
+    Cnorm = Xnorm[1] # a covering
+    gluing_morphisms(Cnorm[1,2])
+    gluing_morphisms(Cnorm[1,3])
+    gluing_morphisms(Cnorm[2,3])
+    gluing_morphisms(Cnorm[3,3])
+
+    # Example non-integral
+    R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+    I = ideal(R, (z*x^2 + y^3)*(x))
+    X = covered_scheme(proj(R, I))
+    N = normalization(X)
+    # trigger the computation of some gluings
+    Xnorm = N[1][1]
+    Cnorm = Xnorm[1] # a covering
+    gluing_morphisms(Cnorm[1,2])
+
+    # A non-normal Enriques surface as constructed by Enriques himself
+    S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
+    J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
+    X = proj(S, J)
+    Xcov = covered_scheme(X)
+    N = normalization(Xcov);
+    Xnorm = N[1][1]
+    Cnorm = Xnorm[1] # a covering
+    gluing_morphisms(Cnorm[1,2])
   end
 end
 
-@testset "base change" begin
-  kk, pr = quo(ZZ, 5)
-  IP1 = covered_scheme(projective_space(ZZ, 1))
-  IP1_red, red_map = base_change(pr, IP1)
-
-  IP2 = projective_space(ZZ, 2)
-  S = homogeneous_coordinate_ring(IP2)
-  (x, y, z) = gens(S)
-  I = ideal(S, x^2 + y^2 + z^2)
-  IP2_cov = covered_scheme(IP2)
-  II = IdealSheaf(IP2, I)
-
-  inc_X = Oscar.CoveredClosedEmbedding(IP2_cov, II)
-  (a, b, c) = base_change(pr, inc_X)
-  @test compose(a, inc_X) == compose(b, c)
-end
-
-@testset "decomposition info" begin
-  P3 = projective_space(ZZ, 3)
-  X = covered_scheme(P3)
-  kk = GF(29)
-  X29, f = base_change(kk, X)
-  @test Oscar.has_decomposition_info(default_covering(X29))
-  orig_cov = default_covering(X)
-  U = first(patches(orig_cov))
-  x, y, z = gens(OO(U))
-  V2 = PrincipalOpenSubset(U, x)
-  V1 = PrincipalOpenSubset(U, x-1)
-  new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
-  Oscar.inherit_gluings!(new_cov, orig_cov)
-  Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
-  @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
-end
-
-@testset "fiber products of coverings" begin
-  IP1 = projective_space(QQ, [:x, :y])
-  S = homogeneous_coordinate_ring(IP1)
-  (x, y) = gens(S)
-  X = covered_scheme(IP1)
-  cov = default_covering(X)
-  f = identity_map(cov)
-  cc, p1, p2 = fiber_product(f, f)
-  Phi = hom(S, S, [x+y, x-y])
-  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
-  g = covered_scheme_morphism(phi)
-  g_cov = covering_morphism(g)
-  cc, p1, p2 = fiber_product(g_cov, f)
-
-  orig = default_covering(X)
-  ref = domain(g_cov)
-
-  inc_cc = Oscar.refinement_morphism(ref, orig)
-  id_orig = identity_map(orig)
-
-  fp_cc_orig, p1, p2 = fiber_product(inc_cc, id_orig)
-
-  fp_orig_cc, p1, p2 = fiber_product(id_orig, inc_cc)
-
-  fp_cc_cc = fiber_product(inc_cc, inc_cc)
-end
-
-@testset "composition and fiber products of morphisms of covered schemes" begin
-  IP1 = projective_space(QQ, [:x, :y])
-  S = homogeneous_coordinate_ring(IP1)
-  (x, y) = gens(S)
-
-  X = covered_scheme(IP1)
-  id_X = identity_map(X)
-  fiber_product(id_X, id_X)
-
-  Phi = hom(S, S, [x+y, x-y])
-  phi = ProjectiveSchemeMor(IP1, IP1, Phi)
-  f = covered_scheme_morphism(phi)
-  f2 = covered_scheme_morphism(ProjectiveSchemeMor(IP1, IP1, Phi)) # The same, but as a non-identical copy
-
-  fiber_product(f, id_X)
-
-  compose(f, id_X)
-  compose(id_X, f)
-  compose(f, f)
-  f_cov = covering_morphism(f)
-  f_cov2 = covering_morphism(f2)
-  ref = Oscar.refinement_morphism(domain(f_cov), default_covering(X))
-  ref2 = Oscar.refinement_morphism(domain(f_cov2), default_covering(X))
-  _, _, f_cov_ref = fiber_product(f_cov, ref)
-  _, _, f_cov_ref2 = fiber_product(f_cov, ref2)
-
-  ff = CoveredSchemeMorphism(X, X, f_cov_ref)
-  ff2 = CoveredSchemeMorphism(X, X, f_cov_ref2)
-  compose(id_X, ff)
-  compose(ff, id_X)
-  compose(ff, ff)
-  compose(ff, ff2)
-  compose(ff2, ff)
-
-  fiber_product(ff, f)
-  fiber_product(f, ff)
-  fiber_product(ff, ff)
-  fiber_product(ff, ff2)
-  fiber_product(ff2, ff)
-end
-
-
-@testset "preimages for polynomial maps" begin
-  R, (x, y) = QQ[:x, :y]
-  I = ideal(R, [x-y])
-  A, _ = quo(R, I)
-  phi1 = hom(R, A, gens(A))
-  @test phi1(preimage(phi1, A(y))) == A(x)
-
-  phi2 = hom(R, A, [u^2 for u in gens(A)])
-  @test_throws ErrorException preimage(phi2, A(x))
-  @test phi2(preimage(phi2, A(x^2))) == A(x*y)
-
-  U = powers_of_element(x-1)
-  R_loc, _ = localization(R, U)
-  A_loc, _ = localization(A, U)
-
-  phi3 = hom(R, A_loc, gens(A_loc))
-  @test A(preimage(phi3, A_loc((y-1)*x//(x-1)))) == A(y)
-
-  phi4 = hom(R, R_loc, gens(R_loc))
-  @test preimage(phi4, R_loc(x)) == x
-
-  P, (_, _, u) = QQ[:x, :y, :u]
-  J = ideal(P, 1 - prod(gens(P)))
-  Q, _ = quo(P, J)
-
-  S = powers_of_element(x*y)
-  RS, _ = localization(R, S)
-  phi5 = hom(RS, Q, gens(Q)[1:2])
-  @test preimage(phi5, Q(u)) == RS(1//(x*y))
-
-  AS, _ = localization(A, S)
-  Q2, _ = quo(Q, ideal(Q, [Q[1]-Q[2]]))
-  phi6 = hom(AS, Q2, gens(Q2)[1:2])
-  @test preimage(phi6, Q2[1]) == AS[2]
-end
-
-@testset "normalization" begin
-  # Example integral
-  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
-  I = ideal(R, z*x^2 + y^3)
-  X = covered_scheme(proj(R, I))
-  N = normalization(X)
-  # trigger the computation of some gluings
-  Xnorm = N[1][1]
-  Cnorm = Xnorm[1] # a covering
-  gluing_morphisms(Cnorm[1,2])
-  gluing_morphisms(Cnorm[1,3])
-  gluing_morphisms(Cnorm[2,3])
-  gluing_morphisms(Cnorm[3,3])
-
-  # Example non-integral
-  R, (x, y, z) = grade(QQ["x", "y", "z"][1])
-  I = ideal(R, (z*x^2 + y^3)*(x))
-  X = covered_scheme(proj(R, I))
-  N = normalization(X)
-  # trigger the computation of some gluings
-  Xnorm = N[1][1]
-  Cnorm = Xnorm[1] # a covering
-  gluing_morphisms(Cnorm[1,2])
-
-  # A non-normal Enriques surface as constructed by Enriques himself
-  S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
-  J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
-  X = proj(S, J)
-  Xcov = covered_scheme(X)
-  N = normalization(Xcov);
-  Xnorm = N[1][1]
-  Cnorm = Xnorm[1] # a covering
-  gluing_morphisms(Cnorm[1,2])
-end
