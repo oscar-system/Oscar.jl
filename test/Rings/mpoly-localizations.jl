@@ -419,7 +419,7 @@ end
   @test isone(first(minimal_generating_set(phi1(J))))
 
   small_gens = small_generating_set(phi2(J))
-  @test length(small_gens) == 1
+  @test length(small_gens) == 3 # saturated_ideal is not called here.
   @test isone(first(small_gens))
 end
 
