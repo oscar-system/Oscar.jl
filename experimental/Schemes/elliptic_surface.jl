@@ -1866,3 +1866,68 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   return MWL,mwl_basis
 end
 
+function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  @assert is_isomorphism(step) "morphism must be an isomorphism"
+  X = domain(step)
+  Y = codomain(step)
+  U = weierstrass_chart_on_minimal_model(X)
+  V = weierstrass_chart_on_minimal_model(Y)
+  lat_X = algebraic_lattice(X)[1]
+  lat_Y = algebraic_lattice(Y)[1]
+  
+  result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
+
+  for D in lat_X
+    @show D
+    @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
+    I = first(components(D))
+    # First try to push to the Weierstrass chart of Y.
+    # If that does not succeed, try matching with the fiber components in Y
+    res = _try_pushforward_to_chart(step, I, V)
+
+    match_found = false
+    if res === nothing # Pushforward into the Weierstrass chart did not succeed
+      @show "match with fiber components."
+      # gather a list of all components which are invisible in the Weierstrass chart
+      L = AbsWeilDivisor[zero_section(Y)]
+      for fiber in reducible_fibers(Y)
+        if is_zero(fiber[1][2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
+          append!(L, fiber[4][2:end])
+        else
+          append!(L, fiber[4])
+        end
+      end
+
+      for F in L
+        @show F
+        J = first(components(F))
+        VV = _find_good_representative_chart(J)
+        res = _try_pushforward_to_chart(step, I, VV)
+        @show res
+        res === nothing && continue
+
+        if J(VV) == (res::PrimeIdealSheafFromChart)(VV) 
+          result[D] = F
+          #push!(result, F)
+          match_found = true
+          break
+        end
+      end
+      #match_found && continue
+      #!match_found && error("no match found")
+      continue
+    end
+
+    res::PrimeIdealSheafFromChart
+    rr = coefficient_ring(D)
+    result[D] = WeilDivisor(AlgebraicCycle(Y, rr, 
+                                           IdDict{AbsIdealSheaf, elem_type(rr)}(res=> one(rr)); 
+                                           check=false), check=false)
+# push!(result, WeilDivisor(AlgebraicCycle(Y, rr, 
+#                                          IdDict{AbsIdealSheaf, elem_type(rr)}(res=> one(rr)); 
+#                                          check=false), check=false))
+#
+  end
+  return result
+end
+

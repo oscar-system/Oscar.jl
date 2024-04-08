@@ -989,3 +989,107 @@ function _pushforward_smooth_in_codim_one_along_iso(phi::MorphismFromRationalFun
   end
 end
 
+function _try_pushforward_to_chart(
+    phi::MorphismFromRationalFunctions, 
+    I::AbsIdealSheaf,
+    V::AbsAffineScheme
+  )
+  @assert is_prime(I) "ideal sheaf must be prime"
+  @assert is_isomorphism(phi) "morphism must be an isomorphism"
+  U = _find_good_representative_chart(I)
+  X = domain(phi)
+  Y = codomain(phi)
+  
+# fracs = realization_preview(phi, U, V)::Vector
+# any(f->OO(U)(denominator(f)) in I(U), fracs) && return nothing
+# any(f->OO(U)(denominator(f)) in I(U), fracs) && return nothing
+# phi_loc = cheap_realization(phi, U, V)
+# # Shortcut to decide whether the restriction will lead to a trivial ideal
+# if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+#   for h in denominators(inverted_set(OO(V)))
+#     if pullback(phi_loc)(h) in I(domain(phi_loc)) 
+#       @show "ideal pulls back to the unit ideal"
+#       return nothing
+#     end
+#   end
+# end
+# 
+#  J = preimage(pullback(phi_loc), I(domain(phi_loc)))
+#  JJ = ideal(OO(V), gens(J))
+#  return PrimeIdealSheafFromChart(Y, V, JJ)
+  # try random realizations second
+  loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
+
+  # The ring is smooth in codimension one. Let's find a generator of its maximal ideal
+  pp = ideal(loc_ring, gens(I(U)))
+  qq = pp^2
+  candidates = [g for g in gens(I(U)) if !(loc_ring(g) in qq)]
+  complexity(a) = total_degree(lifted_numerator(a)) + total_degree(lifted_denominator(a))
+  sort!(candidates, by=complexity)
+  isempty(candidates) && error("no element of valuation one found")
+
+  min_terms = minimum(length.(terms.(lifted_numerator.(candidates))))
+  h = candidates[findfirst(x->length(terms(lifted_numerator(x)))==min_terms, candidates)]
+
+  F1 = FreeMod(loc_ring, 1)
+
+  # Trigger caching of the attribute :is_prime for faster computation of is_zero
+  # on elements.
+  if loc_ring isa MPolyQuoLocRing
+    is_prime(modulus(underlying_quotient(loc_ring)))
+  end
+
+  P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
+
+  fs = realization_preview(phi, U, V)
+  skip = false
+  for (i, fr) in enumerate(fs)
+    a = numerator(fr)
+    b = denominator(fr)
+    aa = loc_ring(a)
+    bb = loc_ring(b)
+    count = 0
+    # If the denominator is in P, we have a problem.
+    # If the numerator is not in P, the problem is serious and this chart can 
+    # not be used.
+    # If the numerator is also in P, we can cancel the fraction by h and 
+    # start all over. 
+    while OO(U)(lifted_numerator(bb)) in I(U)
+      count = count + 1
+      if !(OO(U)(lifted_numerator(aa)) in I(U))
+        skip = true
+        break
+      end
+      bb = coordinates(bb*F1[1], P)[1]
+      aa = coordinates(aa*F1[1], P)[1]
+    end
+    skip && break
+    num = lifted_numerator(aa)*lifted_denominator(bb)
+    den = lifted_numerator(bb)*lifted_denominator(aa)
+    @assert !(OO(U)(den) in I(U))
+    fs[i] = num//den
+  end
+  skip && return nothing
+
+  # Copied from cheap_realization
+  denoms = [denominator(a) for a in fs]
+  U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
+  img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
+  psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
+  # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
+  #cheap_realizations(phi)[(U, V)] = psi
+  #realization_previews(phi)[(U, V)] = fs
+
+  # Shortcut to decide whether the restriction will lead to a trivial ideal
+  if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+    I_sub = ideal(OO(U_sub), gens(I(U))) # Manual conversion due to slow restriction map.
+    for h in denominators(inverted_set(OO(V)))
+      OO(U_sub)(pullback(psi)(h)) in I_sub && return nothing
+    end
+  end
+
+  J = preimage(pullback(psi), I(U_sub))
+  JJ = ideal(OO(V), gens(J))
+  return PrimeIdealSheafFromChart(Y, V, JJ)
+end
+
