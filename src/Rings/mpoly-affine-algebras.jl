@@ -282,7 +282,6 @@ end
 
 # TODO: The method below is missing. It should be made better and put to the correct place (AA).
 number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-number_of_generators(P::PolyRing) = 1
 
 
 @doc raw"""

@@ -520,11 +520,6 @@ end
   return degree(homogeneous_coordinate_ring(P))
 end
 
-@attr QQFieldElem function arithmetic_genus(P::AbsProjectiveScheme{<:Field})
-  h = hilbert_polynomial(P)
-  return (-1)^dim(P) * (first(coefficients(h)) - 1)
-end
-
 function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyRing})
   return relative_euler_sequence(X)[0]
 end
@@ -585,3 +580,72 @@ function relative_cotangent_module(X::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing
   return cokernel(psi)
 end
 
+@doc raw"""
+    geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default) -> Int
+
+Given a projective curve `X` return the genus of `X`, i.e. the 
+integer ``p_g = p_a - \delta`` where ``p_a`` is the arithmetic genus
+and `\delta` the ``\delta``-invariant of the curve.
+
+The `algorithm` keyword can be specified to 
+  - `:normalization` to compute ``\delta`` a normalization
+  - `:primary_decomposition` to proceed with a primary decomposition
+Normalization is usually slower, but not always.
+
+# Examples
+```jldoctest
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> C = plane_curve(z*x^2-y^3)
+Projective plane curve
+  defined by 0 = x^2*z - y^3
+
+julia> geometric_genus(C)
+0
+
+```
+"""
+function geometric_genus(X::AbsProjectiveScheme{<:Field}; algorithm::Symbol=:default, check=true)
+  get_attribute!(X, :genus) do
+    I = defining_ideal(X)
+    I_sing = singular_generators(I)
+    if algorithm == :default
+      g = Singular.LibNormal.genus(I_sing)
+    elseif algorithm == :normalization
+      g =  Singular.LibNormal.genus(I_sing, "nor")
+    elseif algorithm == :primary_decomposition
+      g =  Singular.LibNormal.genus(I_sing, "prim")
+    else 
+      error("algorithm not recognized")
+    end
+    if g == -1
+      error("$(X) must be a geometrically integral curve")
+    end
+    return g::Int
+  end
+end
+
+
+"""
+    genus(X::Scheme; kwargs...) -> Int
+
+Return the [`geometric_genus`]@(ref) of `X`.
+
+For this to be defined `X` must be an integral curve.
+"""
+genus(X::Scheme; kwargs...) = geometric_genus(X; kwargs...)
+
+@doc raw"""
+    arithmetic_genus(X::AbsProjectiveScheme{<:Field}) -> Int
+
+Return the arithmetic genus of `X`, i.e. the
+integer ``(-1)^n (h_X(0) - 1)`` where ``h_X`` is the Hilbert polynomial of `X`
+and ``n`` its dimension.
+"""
+@attr Int function arithmetic_genus(X::AbsProjectiveScheme{<:Field})
+  A = homogeneous_coordinate_ring(X)
+  h = hilbert_polynomial(A)
+  n = dim(X)
+  result = (-1)^n*(evaluate(h, 0) - 1)
+  return Int(result) # Convert QQFieldElem to integer
+end
