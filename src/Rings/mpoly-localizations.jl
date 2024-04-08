@@ -144,14 +144,7 @@ end
 ### simplification. 
 # Replaces each element d by its list of square free prime divisors.
 function simplify!(S::MPolyPowersOfElement)
-  R = ring(S)
-  new_denom = Vector{elem_type(R)}()
-  for d in denominators(S)
-    for a in factor(d)
-      !(a in new_denom) && push!(new_denom, a[1])
-    end
-  end
-  S.a = new_denom
+  S.a = denominators(simplify(S))
   return S
 end
 
@@ -159,11 +152,50 @@ function simplify(S::MPolyPowersOfElement)
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
-    for a in factor(d)
-      !(a[1] in new_denom) && push!(new_denom, a[1])
+
+    # get rid of the square free part
+    for j in 1:ngens(R)
+      c = gcd(d, derivative(d, j))
+      if isone(c) 
+        push!(new_denom, d)
+      else
+        push!(new_denom, c)
+        while divides(d, c)[1]
+          d = divexact(d, c)
+        end
+        is_one(d) || push!(new_denom, d)
+      end
+    end
+
+    simplified = true
+    while !simplified
+      found_new = false
+      c = one(R)
+      for i in 1:length(new_denom)-1
+        for j in i+1:length(new_denom)
+          c = gcd(new_denom[i], new_denom[j])
+          if !isone(c)
+            break
+          end
+        end
+        !is_one(c) && break
+      end
+
+      if is_one(c)
+        simplified = true
+      else
+        for (i, d) in enumerate(new_denom)
+          success, b = divides(d, c)
+          success && (new_denom[i] = b)
+        end
+        push!(new_denom, c)
+      end
     end
   end
+
   return MPolyPowersOfElement(R, new_denom)
+  S.a = new_denom
+  return S
 end
 
 
