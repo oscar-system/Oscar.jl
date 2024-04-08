@@ -527,7 +527,7 @@ end
 # as regular functions on U' and a morphism U' → A to the `ambient_space` 
 # of V can be realized, V might be so small that we need a proper restriction 
 # of the domain. The methods below take care of that. 
-function _restrict_properly(f::AbsAffineScheme, V::AbsAffineScheme{<:Ring, <:MPolyRing})
+function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing})
   return restrict(f, domain(f), V, check=false)
 end
 
