@@ -3071,8 +3071,7 @@ end
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
-  standard_basis(J, ordering=oo) # result is cached, but not returned
-  return Singular.dimension(J.gb[oo].gens.S)
+  return dim(leading_ideal(J, ordering=oo))
 end
 
 
