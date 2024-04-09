@@ -57,7 +57,7 @@
         ],
         "zero_section": ["0", "0", "1"],
         "generating_sections": [
-            ["1//12*(s6^2 - 4*s2*s9)", "0", "1"]T
+            ["1//12*(s6^2 - 4*s2*s9)", "0", "1", "T as in torsion?"]
         ]
     },
     "associated_models": [

@@ -57,7 +57,7 @@
         ],
         "zero_section": ["0", "0", "1"],
         "generating_sections": [
-            ["1//12*s6^2", "1//2*s1*s7*s9", "1"]T
+            ["1//12*s6^2", "1//2*s1*s7*s9", "1", "T as in torsion?"]
         ]
     },
     "associated_models": [

@@ -42,7 +42,7 @@
         "type": "hypersurface",
         "description": "The toric variety associated to F_14",
         "gauge_algebra": ["su3","su2","su2","u1"],
-        "global_gauge_quotients": [[""]]?
+        "global_gauge_quotients": [["Correct?"]]
     },
     "model_data": {
         "base_dim": 3,
