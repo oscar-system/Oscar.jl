@@ -480,18 +480,21 @@ end
 ################################################################################
 
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
-_get_iso_function(::Type{FPGroup}) = GAPWrap.IsomorphismFpGroup
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 
 """
-    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T = FPGroup
 
-Return an isomorphism from `G` to a group of type `T`.
+Return an isomorphism from `G` to a group `H` of type `T`.
 An exception is thrown if no such isomorphism exists.
 
+If `on_gens` is `true` then `gens(G)` is guaranteed to correspond to
+`gens(H)`.
+
 Isomorphisms are cached in `G`, subsequent calls of `isomorphism` with the
-same `T` yield identical results.
+same `T` (and the same value of `on_gens`) yield identical results.
 
 If only the image of such an isomorphism is needed, use `T(G)`.
 
@@ -512,19 +515,36 @@ julia> codomain(iso) === ans
 true
 ```
 """
-function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, T) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, false)) do
      fun = _get_iso_function(T)
      f = fun(G.X)::GapObj
      @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
      H = T(GAP.Globals.ImagesSource(f)::GapObj)
-     # TODO: remove the next line once https://github.com/gap-system/gap/pull/5660
-     # is deployed to Oscar
+# TODO: remove the next line once GAP 4.13.0 is available in Oscar
      GAP.Globals.UseIsomorphismRelation(G.X, H.X)
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), T}
+end
+
+function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FPGroup, on_gens)) do
+     if on_gens
+       f = GAPWrap.IsomorphismFpGroupByGenerators(G.X,
+             GAP.Globals.GeneratorsOfGroup(G.X))
+     else
+       f = GAPWrap.IsomorphismFpGroup(G.X)
+     end
+     @req f !== GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+     H = FPGroup(GAP.Globals.ImagesSource(f)::GapObj)
+# TODO: remove the next line once GAP 4.13.0 is available in Oscar
+     GAP.Globals.UseIsomorphismRelation(G.X, H.X)
+     return GAPGroupHomomorphism(G, H, f)
+   end::GAPGroupHomomorphism{typeof(G), FPGroup}
 end
 
 
@@ -536,8 +556,8 @@ An exception is thrown if `G` is not abelian or not finite.
 """
 function isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, FinGenAbGroup) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FinGenAbGroup, false)) do
      @req is_abelian(G) "the group is not abelian"
      @req is_finite(G) "the group is not finite"
 #T this restriction is not nice
@@ -569,8 +589,8 @@ An exception is thrown if no such isomorphism exists or if `A` is not finite.
 """
 function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, T) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, false)) do
      # find independent generators
      if is_diagonal(rels(A))
        exponents = diagonal(rels(A))
@@ -719,8 +739,8 @@ end
 
 function isomorphism(::Type{FinGenAbGroup}, A::FinGenAbGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, FinGenAbGroup) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FinGenAbGroup, false)) do
      return identity_map(A)
    end::AbstractAlgebra.Generic.IdentityMap{FinGenAbGroup}
 end
@@ -729,8 +749,8 @@ end
 # a presentation of a fin. gen. abelian group.
 function isomorphism(::Type{FPGroup}, A::FinGenAbGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, FPGroup) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FPGroup, false)) do
       G = free_group(ngens(A); eltype = :syllable)
       R = rels(A)
       s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
@@ -779,8 +799,8 @@ permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGrou
 
 function isomorphism(::Type{T}, A::MultTableGroup) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, A, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, T) do
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, false)) do
      S = symmetric_group(order(A))
      gensA = gens(A)
      newgens = elem_type(S)[]

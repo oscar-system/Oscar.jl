@@ -410,17 +410,26 @@ end
        @test is_injective(f)
        @test is_surjective(f)
 
+       G = symmetric_group(5)
        f = @inferred isomorphism(FPGroup, G)
        @test codomain(f) isa FPGroup
        @test domain(f) == G
        @test is_injective(f)
        @test is_surjective(f)
 
+       f2 = @inferred isomorphism(FPGroup, G, on_gens=true)
+       @test codomain(f2) isa FPGroup
+       @test domain(f2) == G
+       @test is_injective(f2)
+       @test is_surjective(f2)
+       @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
+       @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
+
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)
        @test codomain(f) isa FinGenAbGroup
        @test domain(f) == G
-     # @test is_injective(f)
+     # @test is_injective(f)   # no method for GroupIsomorphismFromFunc
      # @test is_surjective(f)
 
        @test_throws ArgumentError isomorphism(FinGenAbGroup, symmetric_group(5))
