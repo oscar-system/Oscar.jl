@@ -716,7 +716,8 @@ function _primitive_extensions_generic(
         stabHMphi, _ = sub(OHN, _stabHMphi)
         SM, _ = intersect(C, stabHMphi)
 
-        if allequal(elementary_divisors(HN))
+        elHN = elementary_divisors(HN)
+        if (k != 1) && (elHN[1] == elHN[end])
           iso = isomorphism(PermGroup, C)
         else
           iso = id_hom(C)
