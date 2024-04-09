@@ -189,7 +189,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
   # might need to restrict our domain of definition accordingly. 
-  Psi_res = [_restrict_properly(psi, V; check=Phi.run_internal_checks) for psi in Psi]
+  Psi_res = [_restrict_properly(psi, V) for psi in Psi]
   @assert all(phi->codomain(phi) === V, Psi_res)
   append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi_res])
   while !isone(ideal(OO(U), complement_equations))

@@ -37,8 +37,8 @@ end
       y = gen(SY, i)
       denom = dehom(pbf(y))
       V_i = affine_charts(Y)[i]
-      mor_dict[U_i] = SpecMor(U_i, V_j, 
-                               hom(OO(V_j), OO(U_i), 
+      mor_dict[U_i] = SpecMor(U_i, V_i, 
+                               hom(OO(V_i), OO(U_i), 
                                    [OO(U_i)(dehom(pbf(gen(SY, k)))) for k in 1:ngens(SY) if k != i];
                                    check=false
                                   )
