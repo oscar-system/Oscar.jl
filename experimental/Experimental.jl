@@ -19,7 +19,7 @@ const oldexppkgs = [
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # nees code from LieAlgebras
+  "BasisLieHighestWeight",   # needs code from LieAlgebras
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
 ]
