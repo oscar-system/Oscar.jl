@@ -1,7 +1,6 @@
 function normal_stored_origami(h::PermGroupElem, v::PermGroupElem, g::Oscar.GAPGroup)
     return Normal_stored_origami(GAP.Globals.NormalStoredOrigami(GapObj(h), GapObj(v), g), h, v, g)
 end
- #TODO  still have to figure out why the normal Origami type isnt properly working
 function as_permutation_pepresentation(o::Normal_stored_origami)
     return GAP.Globals.AsPermutationRepresentation(GapObj(o))
 end
