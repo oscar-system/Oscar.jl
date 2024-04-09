@@ -108,7 +108,7 @@ function Base.length(amm::AllModuleExponents)
   for i in 1:r
     d_loc = d - Int(degree(F[i]; check=false)[1])
     d_loc < 0 && continue
-    result = result + length(MultiIndicesOfDegree(n, d_loc))
+    result = result + number_of_weak_compositions(d_loc, n)
   end
   return result
 end
@@ -124,7 +124,7 @@ function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
   i === nothing && return nothing
   d_loc = d - Int(degree(F[i]; check=false)[1])
 
-  exp_it = MultiIndicesOfDegree(n, d_loc)
+  exp_it = weak_compositions(d_loc, n)
   res = iterate(exp_it, nothing)
   res === nothing && i == ngens(F) && return nothing
 
@@ -132,7 +132,7 @@ function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
   return (e, i), (i, exp_it, e)
 end
 
-function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, MultiIndicesOfDegree, Vector{Int}})
+function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakCompositions{Int}, Vector{Int}})
   F = underlying_module(amm)
   d = degree(amm)
   R = base_ring(F)
@@ -145,7 +145,7 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, MultiIndicesOfD
     i === nothing && return nothing
     d_loc = d - Int(degree(F[i]; check=false)[1])
 
-    exp_it = MultiIndicesOfDegree(n, d_loc)
+    exp_it = weak_compositions(d_loc, n)
     res_loc = iterate(exp_it, nothing)
     res_loc === nothing && i == ngens(F) && return nothing
 

@@ -8,4 +8,20 @@
   @test @inferred collect(weak_compositions(0, 0)) == [weak_composition(Int[])]
   @test length(weak_compositions(0, 3)) == 1
   @test @inferred collect(weak_compositions(0, 3)) == [weak_composition(Int[0, 0, 0])]
+
+  l = @inferred collect(weak_compositions(5, 3))
+  @test length(l) == 21
+  @test all(x -> sum(x) == 5, l)
+  b = unique!(l)
+  @test length(b) == length(l)
+
+  l = @inferred collect(weak_compositions(5, 0))
+  @test l == Vector{Oscar.WeakComposition{Int}}()
+  l = @inferred collect(weak_compositions(0, 7))
+  @test l == [weak_composition([0 for i in 1:7])]
+  l = @inferred collect(weak_compositions(1, 7))
+  @test length(l) == length(unique!(l)) == 7
+
+  l = @inferred collect(weak_compositions(7, 1))
+  @test l == [weak_composition([7])]
 end
