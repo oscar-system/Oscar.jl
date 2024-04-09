@@ -1,3 +1,5 @@
+const visual_supported_types = Union{PolyhedralObjectUnion, Graph, SimplicialComplex}
+
 @doc raw"""
     visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{FieldElem, Float64}
 
@@ -57,8 +59,9 @@ function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, Polyhedral
   Polymake.visual(pmo; kwargs...)
 end
 
-function compose_visualization(P::Vararg{Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}}; kwargs::Dict = Dict{Int, Nothing}()) where T<:Union{Float64, FieldElem}
+function visualize(P::Vector; kwargs::Dict = Dict{Int, Nothing}())
   for p in P
+    @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
     _prepare_visualization(p)
   end
   vis = [Polymake.visual(Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...) for i in 1:length(P)]
