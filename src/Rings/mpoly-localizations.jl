@@ -193,6 +193,7 @@ function simplify(S::MPolyPowersOfElement)
     end
   end
 
+  new_denom = unique!(elem_type(R)[a for a in new_denom if !isone(a)])
   return MPolyPowersOfElement(R, new_denom)
   S.a = new_denom
   return S
