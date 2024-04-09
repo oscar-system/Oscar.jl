@@ -367,3 +367,18 @@ h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
   @test is_partially_resolved(h) == false
   @test string.(zero_section(h)) == ["0", "-b1", "a1"]
 end
+
+
+
+#############################################################
+# 8: Test models from F-theory on all toric hypersurfaces
+#############################################################
+
+foah1 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4")
+
+@testset "Test defining data for literature model defined by model index" begin
+  @test dim(base_space(foah1)) == 3
+  @test dim(ambient_space(foah1)) == 5
+  @test is_base_space_fully_specified(foah1) == false
+  @test model_description(foah1) == "F-theory hypersurface model with fiber ambient space F_1"
+end
