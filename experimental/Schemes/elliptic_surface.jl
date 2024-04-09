@@ -1986,29 +1986,17 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         @show F
         J = first(components(F))
         res = _match_with_codomain_sheaf(step, I, J, U)
-        res === nothing && continue
+        res == false && continue
 
-        if J(VV) == (res::PrimeIdealSheafFromChart)(VV) 
-          result[D] = F
-          #push!(result, F)
-          match_found = true
-          break
-        end
+        result[D] = F
+        #push!(result, F)
+        match_found = true
+        break
       end
       #match_found && continue
       #!match_found && error("no match found")
       continue
     end
-
-    res::PrimeIdealSheafFromChart
-    rr = coefficient_ring(D)
-    result[D] = WeilDivisor(AlgebraicCycle(Y, rr, 
-                                           IdDict{AbsIdealSheaf, elem_type(rr)}(res=> one(rr)); 
-                                           check=false), check=false)
-# push!(result, WeilDivisor(AlgebraicCycle(Y, rr, 
-#                                          IdDict{AbsIdealSheaf, elem_type(rr)}(res=> one(rr)); 
-#                                          check=false), check=false))
-#
   end
   return result
 end
@@ -2062,12 +2050,9 @@ function _match_with_codomain_sheaf(
     end
     @show "done trying the cheap way"
 
-    J = preimage(pullback(phi_loc), I(domain(phi_loc)))
-    JJ = ideal(OO(V), gens(J))
-    return PrimeIdealSheafFromChart(Y, V, JJ)
-    if !is_one(JJ) #&& dim(JJ) == dim(OO(V)) - 1
-      return PrimeIdealSheafFromChart(Y, V, JJ)
-    end
+    pfI = preimage(pullback(phi_loc), I(domain(phi_loc)))
+    JJ = ideal(OO(V), gens(pfI))
+    return JJ == J(V)
   end
 
   sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
@@ -2145,9 +2130,9 @@ function _match_with_codomain_sheaf(
       end
     end
 
-    J = preimage(pullback(psi), I(U_sub))
-    JJ = ideal(OO(V), gens(J))
-    return PrimeIdealSheafFromChart(Y, V, JJ)
+    pfI = preimage(pullback(psi), I(U_sub))
+    JJ = ideal(OO(V), gens(pfI))
+    return JJ == J(V)
     # Else: try the next chart
   end
 end
