@@ -552,7 +552,7 @@ given by the pullback function
     R === ambient_coordinate_ring(U) || error("images of pullback of the coordinates do not live in the correct ring")
     patch_repr = IdDict{AbsAffineScheme, Tuple{AbsAffineScheme, Vector{FieldElem}}}()
     patch_repr[U] = (V, a)
-    realizations = IdDict{AbsAffineScheme, Vector{AbsAffineScheme}}()
+    realizations = IdDict{AbsAffineScheme, Vector{AffineSchemeMor}}()
     realization_previews = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{FieldElem}}()
     maximal_extensions = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, Vector{AbsAffineSchemeMor}}()
     cheap_realizations = IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsAffineSchemeMor}()
