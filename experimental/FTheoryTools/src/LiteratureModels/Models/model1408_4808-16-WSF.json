@@ -45,7 +45,7 @@
         "global_gauge_quotients": [["Z3", [1, 2, 3]]]
     },
     "model_data": {
-        "base_dim": 2,
+        "base_dim": 3,
         "model_sections": ["s7", "s9"],
         "base_coordinates": ["s7", "s9", "s1", "s6"],
         "f": "1//48*( - s6^4 - 24*s1*s7*s9*s6)",

@@ -45,7 +45,7 @@
         "global_gauge_quotients": [["Z6", [1, 2, 3]]]
     },
     "model_data": {
-        "base_dim": 2,
+        "base_dim": 3,
         "model_sections": ["s5", "s9"],
         "base_coordinates": ["s5", "s9", "s1", "s2", "s3", "s6"],
         "auxiliary_base_grading": [

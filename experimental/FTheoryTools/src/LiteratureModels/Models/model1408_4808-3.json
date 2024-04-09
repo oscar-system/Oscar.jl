@@ -44,7 +44,7 @@
         "gauge_algebra": ["u1"]
     },
     "model_data": {
-        "base_dim": 2,
+        "base_dim": 3,
         "model_sections": ["s7", "s9"],
         "base_coordinates": ["s7", "s9", "s1", "s2", "s3", "s4", "s5", "s6", "s8"],
         "auxiliary_base_grading": [

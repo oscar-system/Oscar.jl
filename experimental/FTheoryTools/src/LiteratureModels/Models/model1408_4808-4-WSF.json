@@ -45,7 +45,7 @@
         "discrete_factors": ["Z4"]
     },
     "model_data": {
-        "base_dim": 2,
+        "base_dim": 3,
         "model_sections": ["d8","d4"],
         "base_coordinates": ["d8","d4","d1","d2","d3","d5","d6","d7","d9"],
         "f": "1//48*(-24*d9*(-2*d5*d6^2 + d4*d6*d7 - 2*d3*d6*d8 + d2*d7*d8 - 2*d1*d8^2 - 2*d2*d4*d9 + 8*d1*d5*d9) - (d7^2 - 4*(d6*d8 + d3*d9))^2)",

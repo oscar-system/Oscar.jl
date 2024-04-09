@@ -44,7 +44,7 @@
         "gauge_algebra": ["su2","su3"]
     },
     "model_data": {
-        "base_dim": 2,
+        "base_dim": 3,
         "model_sections": ["s5", "s2"],
         "base_coordinates": ["s5", "s2", "s1", "s3", "s4", "s6", "s8"],
         "f": "1//48*(48*s2*s4*s8^2 - ( - s6^2 + 4*s3*s8)^2 - 24*s4*s5*s6*s8)",
