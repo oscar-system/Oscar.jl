@@ -227,8 +227,7 @@ function preimage(
     f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
   ) where {T <: FieldElem,
-           U2 <: MPolyRingElem{T}, 
-           CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
   salghom = _singular_algebra_morphism(f)
@@ -243,8 +242,7 @@ function preimage(
     f::MPolyAnyMap{<:MPolyQuoRing, CT}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
   ) where {T <: FieldElem,
-           U2 <: MPolyRingElem{T}, 
-           CT <: Union{MPolyRing{T}, MPolyQuoRing{U2}}}
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   R = base_ring(domain(f))
   help_map = hom(R, domain(f), gens(domain(f)); check=false)
