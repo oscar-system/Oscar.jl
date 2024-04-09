@@ -128,8 +128,8 @@ function Base.iterate(amm::AllModuleExponents, state::Nothing = nothing)
   res = iterate(exp_it, nothing)
   res === nothing && i == ngens(F) && return nothing
 
-  e, _ = res
-  return (e, i), (i, exp_it, e)
+  e, s = res
+  return (data(e), i), (i, exp_it, s)
 end
 
 function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakCompositions{Int}, Vector{Int}})
@@ -138,8 +138,8 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakComposition
   R = base_ring(F)
   n = ngens(R)
 
-  i, exp_it, e = state
-  res = iterate(exp_it, e)
+  i, exp_it, s = state
+  res = iterate(exp_it, s)
   if res === nothing
     i = findnext(i -> d - Int(degree(F[i]; check=false)[1]) >= 0, 1:ngens(F), i + 1)
     i === nothing && return nothing
@@ -149,12 +149,12 @@ function Base.iterate(amm::AllModuleExponents, state::Tuple{Int, WeakComposition
     res_loc = iterate(exp_it, nothing)
     res_loc === nothing && i == ngens(F) && return nothing
 
-    e, _ = res_loc
-    return (e, i), (i, exp_it, e)
+    e, s = res_loc
+    return (data(e), i), (i, exp_it, s)
   end
 
-  e, _ = res
-  return (e, i), (i, exp_it, e)
+  e, s = res
+  return (data(e), i), (i, exp_it, s)
 end
 
 ### Iteration over monomials in Subquos
