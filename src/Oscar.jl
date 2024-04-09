@@ -19,7 +19,6 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
-using Preferences
 using LazyArtifacts
 
 include("imports.jl")
