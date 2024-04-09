@@ -329,7 +329,7 @@ function localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ring(S) === base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
+  #issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
   U = inverted_set(L)*S
   W = MPolyQuoLocRing(base_ring(L), modulus(underlying_quotient(L)), U, underlying_quotient(L), localization(U)[1])
   return W, MapFromFunc(L, W, (x->W(lifted_numerator(x), lifted_denominator(x), check=false)))
@@ -668,7 +668,19 @@ end
 
 function inv(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
   isone(f) && return f
+  
+  if length(terms(lifted_numerator(f))) > 10000
+    L = parent(f)
+    id, id_inv = _as_affine_algebra_with_many_variables(L)
+    aa = simplify(id(L(numerator(f))))
+    bb = simplify(id(L(denominator(f))))
+    success, cc = _divides_hack(aa, bb)
+    !success && error("element can not be converted to localization")
+    return id_inv(simplify(cc))
+  end
+
   lifted_numerator(f) in inverted_set(parent(f)) && return parent(f)(denominator(f), numerator(f), check=false)
+
   return convert(parent(f), lifted_denominator(f)//lifted_numerator(f))
   return parent(f)(denominator(f), numerator(f))
   # The following was the original line:
