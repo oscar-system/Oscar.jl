@@ -54,9 +54,6 @@ using .PartitionedPermutations
 export PartitionedPermutation
 export partitioned_permutation
 
-export partition
-export permutation
-export length
 export adjusted_length
 export enumerate_partitioned_permutations
 export factorization_partitioned_permutation
