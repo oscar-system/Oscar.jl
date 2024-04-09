@@ -37,7 +37,7 @@ end
       y = gen(SY, i)
       denom = dehom(pbf(y))
       V_i = affine_charts(Y)[i]
-      mor_dict[U_i] = SpecMor(U_i, V_i, 
+      mor_dict[U_i] = AffineSchemeMor(U_i, V_i, 
                                hom(OO(V_i), OO(U_i), 
                                    [OO(U_i)(dehom(pbf(gen(SY, k)))) for k in 1:ngens(SY) if k != i];
                                    check=false
@@ -136,7 +136,7 @@ with default covering
       y = gen(SY, i)
       denom = dehom(pbf(y))
       V_i = affine_charts(Y)[i]
-      mor_dict[U_i] = SpecMor(U_i, V_i, 
+      mor_dict[U_i] = AffineSchemeMor(U_i, V_i, 
                                hom(OO(V_i), OO(U_i), coeff_map,
                                    [OO(U_i)(dehom(pbf(gen(SY, k)))) for k in 1:ngens(SY) if k != i];
                                    check=false
@@ -159,7 +159,7 @@ with default covering
       V_j = affine_charts(Y)[j]
       U_ij = PrincipalOpenSubset(U_i, denom)
       u = inv(OO(U_ij)(denom))
-      mor_dict[U_ij] = SpecMor(U_ij, V_j, 
+      mor_dict[U_ij] = AffineSchemeMor(U_ij, V_j, 
                                hom(OO(V_j), OO(U_ij), coeff_map,
                                    [OO(U_ij)(dehom(pbf(gen(SY, k))))*u for k in 1:ngens(SY) if k != j];
                                    check=false

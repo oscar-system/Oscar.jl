@@ -579,7 +579,7 @@ function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
   Y = codomain(Phi)
   pushed_comps = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
   for I in components(D)
-    J = _pushforward_smooth_in_codim_one_along_iso(Phi, I) # Use dispatch here
+    J = _pushforward_prime_divisor(Phi, I) # Use dispatch here
     pushed_comps[J] = D[I]
   end
   is_empty(pushed_comps) && error("pushforward of this divisor along an alleged isomorphism is empty")
@@ -851,7 +851,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
   error("no chart found")
 end
 
-function _pushforward_smooth_in_codim_one_along_iso(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
+function _pushforward_prime_divisor(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   U = _find_good_representative_chart(I)
   X = domain(phi)
   Y = codomain(phi)
@@ -860,7 +860,7 @@ function _pushforward_smooth_in_codim_one_along_iso(phi::MorphismFromRationalFun
   sorted_charts = affine_charts(Y)
   if has_decomposition_info(default_covering(Y))
     info = decomposition_info(default_covering(Y))
-    sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), OO(V).(info[V]))) <= 1, sorted_charts)
+    sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
   end
  
   function compl(V::AbsAffineScheme)
