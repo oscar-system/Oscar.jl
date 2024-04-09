@@ -1870,7 +1870,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   @assert is_isomorphism(step) "morphism must be an isomorphism"
   X = domain(step)
   Y = codomain(step)
-  U = weierstrass_chart_on_minimal_model(X)
+  WX = weierstrass_chart_on_minimal_model(X)
   V = weierstrass_chart_on_minimal_model(Y)
   lat_X = algebraic_lattice(X)[1]
   lat_Y = algebraic_lattice(Y)[1]
@@ -1881,6 +1881,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     @show D
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
+    U = _find_good_representative_chart(I)
     # First try to push to the Weierstrass chart of Y.
     # If that does not succeed, try matching with the fiber components in Y
     res = _try_pushforward_to_chart(step, I, V)
@@ -1901,9 +1902,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
       for F in L
         @show F
         J = first(components(F))
-        VV = _find_good_representative_chart(J)
-        res = _try_pushforward_to_chart(step, I, VV)
-        @show res
+        res = _match_with_codomain_sheaf(step, I, J, U)
         res === nothing && continue
 
         if J(VV) == (res::PrimeIdealSheafFromChart)(VV) 
@@ -1930,4 +1929,145 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   end
   return result
 end
+
+function _match_with_codomain_sheaf(
+    phi::MorphismFromRationalFunctions, 
+    I::AbsIdealSheaf,
+    J::AbsIdealSheaf,
+    U::AbsAffineScheme
+  )
+  X = domain(phi)
+  Y = codomain(phi)
+  candidates = AbsAffineScheme[U for U in affine_charts(Y) if !isone(J(U))]
+
+  function compl(V::AbsAffineScheme)
+    result = 0
+    if (U, V) in keys(realization_previews(phi))
+      fracs = realization_previews(phi)[(U, V)]::Vector
+      if any(f->OO(U)(denominator(f)) in I(U), fracs)
+        result = result + 100000
+      else
+        #result = sum(length(terms(numerator(f))) + length(terms(denominator(f))) for f in fracs; init=0)
+        result = sum(total_degree(numerator(f)) + total_degree(denominator(f)) for f in fracs; init=0)
+      end
+    else
+      result = result + 10
+    end
+    return result
+  end
+
+  @show "computing complexity"
+  sorted_charts_with_complexity = [(V, compl(V)) for V in candidates]
+  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  @show "done computing complexity"
+
+  bad_charts = Int[]
+  for (i, V) in enumerate(sorted_charts)
+    # Find a chart in the codomain which has a chance to have the pushforward visible
+    fracs = realization_preview(phi, U, V)::Vector
+    any(f->OO(U)(denominator(f)) in I(U), fracs) && continue
+    phi_loc = cheap_realization(phi, U, V)
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        if pullback(phi_loc)(h) in I(domain(phi_loc)) 
+          # Remove this chart from the list
+          push!(bad_charts, i)
+          continue
+        end
+      end
+    end
+    @show "done trying the cheap way"
+
+    J = preimage(pullback(phi_loc), I(domain(phi_loc)))
+    JJ = ideal(OO(V), gens(J))
+    return PrimeIdealSheafFromChart(Y, V, JJ)
+    if !is_one(JJ) #&& dim(JJ) == dim(OO(V)) - 1
+      return PrimeIdealSheafFromChart(Y, V, JJ)
+    end
+  end
+
+  sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
+  
+  # try random realizations second
+  loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
+
+  # The ring is smooth in codimension one. Let's find a generator of its maximal ideal
+  pp = ideal(loc_ring, gens(I(U)))
+  qq = pp^2
+  candidates = [g for g in gens(I(U)) if !(loc_ring(g) in qq)]
+  complexity(a) = total_degree(lifted_numerator(a)) + total_degree(lifted_denominator(a))
+  sort!(candidates, by=complexity)
+  isempty(candidates) && error("no element of valuation one found")
+
+  min_terms = minimum(length.(terms.(lifted_numerator.(candidates))))
+  h = candidates[findfirst(x->length(terms(lifted_numerator(x)))==min_terms, candidates)]
+
+  F1 = FreeMod(loc_ring, 1)
+
+  # Trigger caching of the attribute :is_prime for faster computation of is_zero
+  # on elements.
+  if loc_ring isa MPolyQuoLocRing
+    is_prime(modulus(underlying_quotient(loc_ring)))
+  end
+
+  P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
+
+  for V in sorted_charts
+    @show V
+    fs = realization_preview(phi, U, V)
+    skip = false
+    for (i, fr) in enumerate(fs)
+      a = numerator(fr)
+      b = denominator(fr)
+      aa = loc_ring(a)
+      bb = loc_ring(b)
+      count = 0
+      # If the denominator is in P, we have a problem.
+      # If the numerator is not in P, the problem is serious and this chart can 
+      # not be used.
+      # If the numerator is also in P, we can cancel the fraction by h and 
+      # start all over. 
+      while OO(U)(lifted_numerator(bb)) in I(U)
+        @show count
+        count = count + 1
+        if !(OO(U)(lifted_numerator(aa)) in I(U))
+          skip = true
+          break
+        end
+        bb = coordinates(bb*F1[1], P)[1]
+        aa = coordinates(aa*F1[1], P)[1]
+      end
+      skip && break
+      num = lifted_numerator(aa)*lifted_denominator(bb)
+      den = lifted_numerator(bb)*lifted_denominator(aa)
+      @assert !(OO(U)(den) in I(U))
+      fs[i] = num//den
+    end
+    skip && continue
+
+    # Copied from cheap_realization
+    denoms = [denominator(a) for a in fs]
+    U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
+    img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
+    psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
+    # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
+    #cheap_realizations(phi)[(U, V)] = psi
+    #realization_previews(phi)[(U, V)] = fs
+
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        OO(U_sub)(pullback(psi)(h)) in I(U_sub) && continue
+      end
+    end
+
+    J = preimage(pullback(psi), I(U_sub))
+    JJ = ideal(OO(V), gens(J))
+    return PrimeIdealSheafFromChart(Y, V, JJ)
+    # Else: try the next chart
+  end
+end
+
+
 
