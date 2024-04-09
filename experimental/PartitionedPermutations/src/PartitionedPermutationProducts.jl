@@ -38,17 +38,17 @@ function *(pp_1::PartitionedPermutation, pp_2::PartitionedPermutation)
 end
 
 """
-    factorization_partitioned_permutation(pp::PartitionedPermutation)
+    factorize(pp::PartitionedPermutation)
 
 Return the factorization of `pp` in form of a set of 2-tuples.
 
 # Examples
 ```jldoctest
-julia> length(factorization_partitioned_permutation(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2])))
+julia> length(factorize(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2])))
 2
 ```
 """
-function factorization_partitioned_permutation(pp::PartitionedPermutation)
+function factorize(pp::PartitionedPermutation)
     size = length(upper_points(partition(pp)))
 
     product_pairs = Set{Tuple{PartitionedPermutation, PartitionedPermutation}}()
