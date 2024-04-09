@@ -736,8 +736,9 @@ function isomorphism(::Type{FPGroup}, A::FinGenAbGroup)
       s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
            elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
       F, mF = quo(G, s)
-      @assert is_finite(A) == is_finite(F)
-      is_finite(A) && @assert order(A) == order(F)
+      set_is_abelian(F, true)
+      set_is_finite(F, is_finite(A))
+      is_finite(A) && set_order(F, order(A))
       return MapFromFunc(
         A, F,
         y->F([i => y[i] for i=1:ngens(A)]),
