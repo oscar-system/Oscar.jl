@@ -38,6 +38,7 @@ function n_rays end
 function n_vertices end
 
 function number_of_partitions end
+function number_of_weak_compositions end
 function number_of_patches end
 
 # these are kept for compatibility with Graphs.jl / GraphsBase.jl
@@ -58,6 +59,7 @@ function number_of_patches end
 @alias number_of_vertices n_vertices
 
 @alias n_partitions number_of_partitions
+@alias n_weak_compositions number_of_weak_compositions
 @alias n_patches number_of_patches
 
 # aliases for consistency with oscar style

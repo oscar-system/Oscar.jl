@@ -11,7 +11,7 @@
 
 ################################################################################
 #
-# Constructors and basic functionality
+#  Constructors and basic functionality
 #
 ################################################################################
 
@@ -97,7 +97,7 @@ function Base.setindex!(P::Partition, x::IntegerUnion, i::IntegerUnion)
   return setindex!(data(P), x, Int(i))
 end
 
-function Base.copy(P::Partition{T}) where T <: IntegerUnion
+function Base.copy(P::Partition)
   return partition(copy(data(P)))
 end
 

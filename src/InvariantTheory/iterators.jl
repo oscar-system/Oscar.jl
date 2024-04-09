@@ -132,7 +132,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
   io = pretty(io)
-  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  println(io, "Iterator over the monomials of degree $(AM.d)")
   print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
 end
 
