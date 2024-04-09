@@ -1322,15 +1322,56 @@ end
     f::MPolyAnyMap{<:MPolyRing, 
                    <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyPowersOfElement}})
+  R = domain(f)
+  W = codomain(f)
+  I = saturated_ideal(modulus(W))
+  P = base_ring(W)
+  img_gens = f.(gens(R))
+  nums = lifted_numerator.(img_gens)
+  denoms = lifted_denominator.(img_gens)
+
+  # Build up a helper ring for the graph of f using Rabinowitschs trick.
+  inverse_name=:_0
+  r = length(denoms)
+  kk = coefficient_ring(R)
+  A, t = polynomial_ring(kk, vcat([Symbol(String(inverse_name)*"$k") for k in 1:r],
+                                  symbols(P), symbols(R)); cached=false)
+  r = length(denoms)
+  theta = t[1:r]
+  n = ngens(P)
+  imgs_y = t[r+1:(r+n)]
+  imgs_x = t[r+n+1:end]
+  I = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
+                    [theta[i]*evaluate(num, imgs_y) - imgs_x[i] for (i, num) in enumerate(nums)], # Graph relations
+                    [evaluate(g, imgs_y) for g in gens(I)])) # codomain's modulus
+  # We eliminate the Rabinowitsch variables first, the codomain variables second, 
+  # and finally get to the domain variables. This elimination should be quicker 
+  # than one which does not know the Rabinowitsch property.
+  oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
+  #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
+  gb = groebner_basis(I, ordering=oo)
+
+  # TODO: Speed up and use build context.
+  res_gens = elem_type(A)[f for f in gb if all(e->all(k->is_zero(e[k]), 1:(n+r)), exponents(f))]
+  img_gens2 = vcat([zero(R) for i in 1:(n+r)], gens(R))
+  result = ideal(R, elem_type(R)[evaluate(g, img_gens2) for g in res_gens])
+  return result
+  
+  # deprecated code below
   id, _ = _as_affine_algebra_with_many_variables(codomain(f))
   g = hom(domain(f), codomain(id), id.(f.(gens(domain(f)))))
-  return kernel(g)
+  return K
 end
 
 @attr MPolyQuoIdeal function kernel(
     f::MPolyAnyMap{<:MPolyQuoRing, 
                    <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                      <:MPolyPowersOfElement}})
+  A = domain(f)
+  R = base_ring(f)
+  g = hom(R, codomain(f), f.(gens(A)); check=false)
+  K = kernel(g)
+  return ideal(A, elem_type(A)[h for h in A.(gens(K)) if !is_zero(h)])
   id, _ = _as_affine_algebra_with_many_variables(codomain(f))
   g = hom(domain(f), codomain(id), id.(f.(gens(domain(f)))); check=false)
   return kernel(g)
