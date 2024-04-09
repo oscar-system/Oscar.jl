@@ -211,7 +211,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
     #total_rat_lift = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in total_rat_lift]
     list_for_V_next = _extend(U, total_rat_lift)
     Psi = [morphism(W, ambient_space(V_next), b, check=Phi.run_internal_checks) for (W, b) in list_for_V_next]
-    Psi = [_restrict_properly(psi, V_next; check=Phi.run_internal_checks) for psi in Psi]
+    Psi = [_restrict_properly(psi, V_next) for psi in Psi]
     append!(Psi_res, Psi)
     append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi])
     push!(covered_codomain_patches, V_next)
@@ -248,7 +248,7 @@ function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffine
   U_sub = PrincipalOpenSubset(U, OO(U).(dens))
   img_gens = [OO(U_sub)(numerator(a), denominator(a)) for a in img_gens_frac]
   prelim = morphism(U_sub, ambient_space(V), img_gens, check=Phi.run_internal_checks) # TODO: Set to false
-  return _restrict_properly(prelim, V; check=Phi.run_internal_checks)
+  return _restrict_properly(prelim, V)
 end
 
 @doc raw"""
@@ -359,7 +359,7 @@ function realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U:
   result = AbsAffineSchemeMor[]
   for (U, g) in extensions
     prelim = morphism(U, ambient_space(V), g, check=Phi.run_internal_checks)
-    push!(result, _restrict_properly(prelim, V; check=Phi.run_internal_checks))
+    push!(result, _restrict_properly(prelim, V))
   end
   maximal_extensions(Phi)[(U, V)] = result
   return result

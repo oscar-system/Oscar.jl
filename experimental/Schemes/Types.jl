@@ -526,7 +526,7 @@ given by the pullback function
 
   ### Various fields for caching
   patch_representatives::IdDict{<:AbsAffineScheme, <:Tuple{<:AbsAffineScheme, <:Vector{<:FieldElem}}}
-  realizations::IdDict{<:AbsAffineScheme, <:Vector{<:AbsAffineScheme}}
+  realizations::IdDict{<:AbsAffineScheme, <:Vector{<:AffineSchemeMor}}
   realization_previews::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:FieldElem}}
   maximal_extensions::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:Vector{<:AbsAffineSchemeMor}}
   cheap_realizations::IdDict{<:Tuple{<:AbsAffineScheme, <:AbsAffineScheme}, <:AbsAffineSchemeMor}
