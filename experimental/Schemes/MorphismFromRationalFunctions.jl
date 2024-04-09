@@ -851,13 +851,16 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
   error("no chart found")
 end
 
-function _pushforward_prime_divisor(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
+function _pushforward_prime_divisor(
+    phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
+    codomain_charts::Vector{<:AbsAffineScheme} = patches(codomain_covering(phi))
+  )
   U = _find_good_representative_chart(I)
   X = domain(phi)
   Y = codomain(phi)
 
   # try cheap realizations first
-  sorted_charts = affine_charts(Y)
+  sorted_charts = codomain_charts
   if has_decomposition_info(default_covering(Y))
     info = decomposition_info(default_covering(Y))
     sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
@@ -902,9 +905,6 @@ function _pushforward_prime_divisor(phi::MorphismFromRationalFunctions, I::AbsId
     J = preimage(pullback(phi_loc), I(domain(phi_loc)))
     JJ = ideal(OO(V), gens(J))
     return PrimeIdealSheafFromChart(Y, V, JJ)
-    if !is_one(JJ) #&& dim(JJ) == dim(OO(V)) - 1
-      return PrimeIdealSheafFromChart(Y, V, JJ)
-    end
   end
 
   sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
@@ -987,6 +987,10 @@ function _pushforward_prime_divisor(phi::MorphismFromRationalFunctions, I::AbsId
     return PrimeIdealSheafFromChart(Y, V, JJ)
     # Else: try the next chart
   end
+
+  # The preselection of charts in the codomain via the optional argument 
+  # may lead to that there is no result in the end. 
+  return nothing
 end
 
 function _try_pushforward_to_chart(
@@ -1091,5 +1095,40 @@ function _try_pushforward_to_chart(
   J = preimage(pullback(psi), I(U_sub))
   JJ = ideal(OO(V), gens(J))
   return PrimeIdealSheafFromChart(Y, V, JJ)
+end
+
+function compose(
+    f::MorphismFromRationalFunctions,
+    g::MorphismFromRationalFunctions
+  )
+  @assert codomain(f) === domain(g)
+  fracs = coordinate_images(g)
+  X = domain(f)
+  Y = domain(g)
+  Z = codomain(g)
+  FY = function_field(Y; check=false)
+  imgs = FY.(fracs)
+  V = codomain_chart(f)
+  imgs_V = [b[V] for b in imgs]
+  U = domain_chart(f)
+  imgs_U = [evaluate(numerator(h), coordinate_images(f))//evaluate(denominator(h), coordinate_images(f)) for h in imgs_V]
+  return morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
+end
+
+function ideal_sheaf_of_image(phi::MorphismFromRationalFunctions)
+  X = domain(phi)
+  Y = codomain(phi)
+  U = domain_chart(phi)
+  V = codomain_chart(phi)
+  charts = vcat([V], affine_charts(Y))
+  for V in charts
+    phi_loc = random_realization(phi, U, V)
+    pb_phi = pullback(phi_loc)
+    K = kernel(pb_phi)
+    if !is_one(K)
+      return PrimeIdealSheafFromChart(Y, V, ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in gens(K)]))
+    end
+  end
+  error("image ideal could not be computed")
 end
 

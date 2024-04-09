@@ -1866,53 +1866,118 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   return MWL,mwl_basis
 end
 
+@attr function fibration_projection(X::EllipticSurface)
+  kk = base_ring(X)
+  IP1 = projective_space(kk, [:s, :t])
+  B = covered_scheme(IP1)
+  V = first(affine_charts(B))
+  U = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(U)
+  FR = fraction_field(R)
+  return morphism_from_rational_functions(X, B, U, V, [FR(gen(R, 3))])
+end
+
 function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   @assert is_isomorphism(step) "morphism must be an isomorphism"
   X = domain(step)
   Y = codomain(step)
-  WX = weierstrass_chart_on_minimal_model(X)
-  V = weierstrass_chart_on_minimal_model(Y)
+  UX = weierstrass_chart_on_minimal_model(X)
+  UY = weierstrass_chart_on_minimal_model(Y)
+  @assert codomain_chart(step) === UY
+  fracs = coordinate_images(step)
+
+  WY, _ = weierstrass_model(Y)
+  UWY = weierstrass_chart(Y)
+
+  to_weierstrass_Y = morphism_from_rational_functions(X, WY, UX, UWY, fracs, check=false)
+
+  fibration_proj_Y = fibration_projection(Y)
+
+  BY = codomain(fibration_proj_Y)
+  UBY = codomain_chart(fibration_proj_Y)
+
+  composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
+
   lat_X = algebraic_lattice(X)[1]
-  lat_Y = algebraic_lattice(Y)[1]
-  
-  result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
+
+  pre_select = IdDict{AbsWeilDivisor, AbsIdealSheaf}()
 
   for D in lat_X
-    @show D
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
-    U = _find_good_representative_chart(I)
-    # First try to push to the Weierstrass chart of Y.
-    # If that does not succeed, try matching with the fiber components in Y
-    res = _try_pushforward_to_chart(step, I, V)
+    pre_select[D] = _pushforward_prime_divisor(composit, I)
+  end
 
-    match_found = false
-    if res === nothing # Pushforward into the Weierstrass chart did not succeed
-      @show "match with fiber components."
-      # gather a list of all components which are invisible in the Weierstrass chart
-      L = AbsWeilDivisor[zero_section(Y)]
-      for fiber in reducible_fibers(Y)
-        if is_zero(fiber[1][2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
-          append!(L, fiber[4][2:end])
-        else
-          append!(L, fiber[4])
+  result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
+
+  co_ring = coefficient_ring(zero_section(Y))
+
+  n = length(lat_X)
+  mwr = rank(mordell_weil_lattice(X))
+  for (i, D) in enumerate(lat_X)
+    if i <= n - mwr
+      # D is a non-section
+      Q = pre_select[D]
+      I = first(components(D))
+      if dim(Q) == 0
+        # find the fiber 
+        if is_one(Q(UBY))
+          # collect all components
+          comps = AbsWeilDivisor[]
+          for (pt, _, F, E, _) in reducible_fibers(Y)
+            if is_zero(pt[2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
+              append!(comps, E[2:end])
+            end
+          end
+
+          # collect all charts
+          codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
+          res = _pushforward_prime_divisor(step, I; codomain_charts)
+
+          res === nothing && error("pushforward was not successful")
+
+          result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+          continue
         end
-      end
 
-      for F in L
-        @show F
-        J = first(components(F))
-        res = _match_with_codomain_sheaf(step, I, J, U)
-        res == false && continue
+        t = first(gens(OO(UBY)))
+        match = -1
+        for (i, (p, _, F, E, _)) in enumerate(reducible_fibers(Y))
+          p[2] == 0 && continue # Fiber over infinity already caught above
+          t0 = p[1]//p[2]
+          if ideal(OO(UBY), t - t0) == Q(UBY)
 
-        result[D] = F
-        #push!(result, F)
-        match_found = true
-        break
+            # Collect all patches
+            codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
+            res = _pushforward_prime_divisor(step, I; codomain_charts)
+
+            res === nothing && error("pushforward did not succeed")
+
+            result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+            match = i
+            break
+          end
+        end
+        match == -1 && error("no fiber found")
+      else
+        res = _pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+        if res === nothing 
+          println("zero section")
+          result[D] = zero_section(Y)
+          continue
+        end
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       end
-      #match_found && continue
-      #!match_found && error("no match found")
-      continue
+    else
+
+      # D is a section;
+      # build the corresponding morphism IP^1 -> X2 and compose 
+      j = i - n + mwr
+      sec_map = morphism_from_section(X, j)
+      psi = compose(sec_map, step)
+      res = ideal_sheaf_of_image(psi)
+      result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
     end
   end
   return result
@@ -1944,10 +2009,8 @@ function _match_with_codomain_sheaf(
     return result
   end
 
-  @show "computing complexity"
   sorted_charts_with_complexity = [(V, compl(V)) for V in candidates]
   sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
-  @show "done computing complexity"
 
   bad_charts = Int[]
   for (i, V) in enumerate(sorted_charts)
@@ -1965,7 +2028,6 @@ function _match_with_codomain_sheaf(
         end
       end
     end
-    @show "done trying the cheap way"
 
     pfI = preimage(pullback(phi_loc), I(domain(phi_loc)))
     JJ = ideal(OO(V), gens(pfI))
@@ -1999,7 +2061,6 @@ function _match_with_codomain_sheaf(
   P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
 
   for V in sorted_charts
-    @show V
     fs = realization_preview(phi, U, V)
     skip = false
     for (i, fr) in enumerate(fs)
@@ -2014,7 +2075,6 @@ function _match_with_codomain_sheaf(
       # If the numerator is also in P, we can cancel the fraction by h and 
       # start all over. 
       while OO(U)(lifted_numerator(bb)) in I(U)
-        @show count
         count = count + 1
         if !(OO(U)(lifted_numerator(aa)) in I(U))
           skip = true
@@ -2055,4 +2115,21 @@ function _match_with_codomain_sheaf(
 end
 
 
+function morphism_from_section(X::EllipticSurface, i::Int)
+  P = X.MWL[i]
+  @assert !P.is_infinite
+  U = weierstrass_chart_on_minimal_model(X)
+
+  B = codomain(fibration_projection(X))
+  V = codomain_chart(fibration_projection(X))
+
+  kkt = OO(V)
+  t = first(gens(kkt))
+  img_gens = [evaluate(P.coordx, t), evaluate(P.coordy, t), t]
+
+  Fkkt = fraction_field(kkt)
+  img_gens2 = Fkkt.(img_gens)
+  # TODO: Cache?
+  return morphism_from_rational_functions(B, X, V, U, img_gens2, check=false)
+end
 
