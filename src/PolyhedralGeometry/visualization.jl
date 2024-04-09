@@ -23,7 +23,6 @@ Possible arguments are:
 - `FacetColor`: Filling color of the polygons.
 - `EdgeColor`: Color of the boundary lines.
 - `PointColor`/`VertexColor`: Color of the spheres or rectangles representing the points.
-- `PointBorderColor`/`VertexBorderColor`: Color of the border line of rectangles representing the points. TODO
 
 ## Scaling and other gradient properties
 
@@ -32,16 +31,13 @@ These arguments can be given as a floating point number:
 - `FacetTransparency`: Transparency factor of the polygons between 0 (opaque) and 1 (completely translucent).
 - `EdgeThickness`: Scaling factor for the thickness of the boundary lines.
 - `PointThickness`/VertexThickness`: Scaling factor for the size of the spheres or rectangles representing the points.
-- `PointBorderThickness`/`VertexBorderThickness`: Scaling factor for the thickness of the border line of rectangles representing the points. TODO
-- `Scale`: Scale for Sketch visualization. TODO
 
 ## Camera
 
 These arguments can be given as a 3-element vector over floating point numbers:
 
 - `ViewPoint`: Position of the camera.
-- `ViewDirection`: Direction of the camera. TODO
-- `ViewUp`: TODO
+- `ViewDirection`: Direction of the camera.
 
 ## Appearance and Texts
 
@@ -50,17 +46,10 @@ These arguments can be given as a string:
 - `FacetStyle`: If set to `"hidden"`, the inner area of the polygons are not rendered at all.
 - `FacetLabels`: If set to `"hidden"`, the facet labels are not displayed (in the most cases this is the default behavior). TODO
 - `EdgeStyle`: If set to `"hidden"`, the boundary lines are not rendered.
-- `Title`: The name of the drawing. TODO
 - `Name`: The name of this visual object in the drawing.
 - `PointLabels`/`VertexLabels`: If set to `"hidden"`, no point labels are displayed.
 - `PointStyle`/`VertexStyle`: If set to `"hidden"`, neither point nor its label is rendered.
-- `LabelAlignment`: Defines the alignment of the vertex labels: `"left"`, `"right"` or `"center"`. TODO
-
-## Algebraic tools
-
-- `BoundingFacets`: TODO
-- `Transformation`: `Matrix{Float64}` describing the linear transformation. TODO
-- `Offset`: `Vector{Float64}` describing the shift, to be applied after the linear transformation. TODO
+- `LabelAlignment`: Defines the alignment of the vertex labels: `"left"`, `"right"` or `"center"`.
 """
 function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{Float64, FieldElem}
   _prepare_visualization(P)
