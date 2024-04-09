@@ -40,7 +40,7 @@ export permutation
 export length
 export adjusted_length
 export enumerate_partitioned_permutations
-export factorize
+export factorization
 
 
 include("PartitionedPermutation.jl")
@@ -56,4 +56,4 @@ export partitioned_permutation
 
 export adjusted_length
 export enumerate_partitioned_permutations
-export factorize
+export factorization
