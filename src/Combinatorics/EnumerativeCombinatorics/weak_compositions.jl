@@ -58,7 +58,7 @@ function Base.setindex!(C::WeakComposition, x::IntegerUnion, i::IntegerUnion)
 end
 
 function Base.copy(C::WeakComposition)
-  return weak_composition(copy(data(C)))
+  return weak_composition(copy(data(C)), check = false)
 end
 
 ################################################################################
