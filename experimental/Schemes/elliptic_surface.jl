@@ -104,16 +104,82 @@ julia> Base.show(stdout, X3)
 Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 ```
 """
-function elliptic_surface(generic_fiber::EllipticCurve{BaseFieldElem}, euler_characteristic::Int,
-                          mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];is_basis::Bool=true) where {
-                          BaseFieldElem <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
+function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
+                          euler_characteristic::Int,
+                          mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];
+                          is_basis::Bool=true) where {
+                          BaseField <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
   S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens)
   if is_basis
     return S
   end
+  update_mwl_basis!(S, mwl_gens)
+  return S
+end
+
+@doc raw"""
+    update_mwl_basis!(S::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
+
+Compute a reduced basis of the sublattice of the Mordell-Weil lattice spanned
+by `mwl_gens` and set these as the new generators of the Mordell-Weil lattice of
+`S`.
+"""
+function update_mwl_basis!(S::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
   mwl, mwl_basis = _compute_mwl_basis(S, mwl_gens)
   set_mordell_weil_basis!(S, mwl_basis)
+end
+
+@doc raw"""
+    algebraic_lattice_primitive_closure(S::EllipticSurface, p) -> Vector{<:EllipticCurvePoint}
+
+Return sections ``P_1,\dots P_n`` of the generic fiber, such that together with
+the generators of the algebraic lattice ``A``, they generate
+``(1/p A \cap N)`` where ``N`` is the numerical lattice of ``S``.
+
+This proceeds by computing division points in the Mordell-Weil group
+and using information coming from the discriminant group of the algebraic lattice
+to do so.
+"""
+function algebraic_lattice_primitive_closure(S::EllipticSurface, p)
+  L = algebraic_lattice(S)[3]
+  @req is_even(L) "not implemented"
+  Ld  = intersect(dual(L) , (1//p * L))
+  D = torsion_quadratic_module(Ld, L, modulus = 1, modulus_qf=2)
+  candidates = [x for x in D if !iszero(x) && iszero(quadratic_product(x))]
+  t = length(trivial_lattice(S)[1])
+  r = rank(L)
+  cc = [(x->mod(x,p)).(p*lift(c)[t+1:end]) for c in candidates]
+  unique!(cc)
+  cc = [c for c in cc if !iszero(c)]
+  pts = [division_points(sum(v[i]*S.MWL[i] for i in 1:(r-t)),p) for v in cc]
+  return [i[1] for i in pts if length(i)>0]
+end
+
+function algebraic_lattice_primitive_closure!(S::EllipticSurface, prime)
+  pts = algebraic_lattice_primitive_closure(S, prime)
+  update_mwl_basis!(S, vcat(pts, S.MWL))
+  return pts
+end
+
+@doc raw"""
+    algebraic_lattice_primitive_closure!(S::EllipticSurface)
+
+Compute the primitive closure of the algebraic lattice of `S` inside its
+numerical lattice and update the generators of its Mordell--Weil group accordingly.
+
+The algorithm works by computing suitable divison points in its Mordell Weil group.
+"""
+function algebraic_lattice_primitive_closure!(S::EllipticSurface)
+  L = algebraic_lattice(S)
+  for p in prime_divisors(ZZ(det(L)))
+    while true
+      pts = algebraic_lattice_primitive_closure!(S, p)
+      if length(pts)==0
+        break
+      end
+    end
+  end
   return S
 end
 
