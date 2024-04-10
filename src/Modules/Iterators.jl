@@ -108,7 +108,7 @@ function Base.length(amm::AllModuleExponents)
   for i in 1:r
     d_loc = d - Int(degree(F[i]; check=false)[1])
     d_loc < 0 && continue
-    result = result + number_of_weak_compositions(d_loc, n)
+    result = result + Int(number_of_weak_compositions(d_loc, n))
   end
   return result
 end
