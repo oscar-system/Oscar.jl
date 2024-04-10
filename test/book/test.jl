@@ -186,6 +186,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     copy!(custom_load_path, Base.DEFAULT_LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
+    osc_proj = dirname(Base.identify_package_env("Oscar")[2])
     try
       plots = mktempdir()
       Pkg.activate(plots; io=devnull)
@@ -213,8 +214,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               # and run it from temp dir
               temp = mktempdir()
               Pkg.activate(temp; io=devnull)
-              osc_proj = dirname(Base.identify_package_env("Oscar")[2])
-              #Pkg.develop(path=osc_proj; io=devnull)
               pushfirst!(LOAD_PATH, "$osc_proj")
               cp(auxmain,joinpath(temp, "main.jl"))
               cd(temp)
