@@ -114,6 +114,9 @@ test_large = [
               "test/Modules/ModulesGraded.jl",
               "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
              ]
+test_book = [
+             "test/book/test.jl",
+            ]
 
 test_subset = get(ENV, "OSCAR_TEST_SUBSET", "")
 if haskey(ENV, "JULIA_PKGEVAL")
@@ -121,9 +124,11 @@ if haskey(ENV, "JULIA_PKGEVAL")
 end
 
 if test_subset == "short"
-  filter!(x-> !in(relpath(x, Oscar.oscardir), test_large), testlist)
+  filter!(x-> !in(relpath(x, Oscar.oscardir), [test_large; test_book]), testlist)
 elseif test_subset == "long"
   filter!(x-> in(relpath(x, Oscar.oscardir), test_large), testlist)
+elseif test_subset == "book"
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_book), testlist)
 end
 
 
