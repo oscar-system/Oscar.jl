@@ -20,9 +20,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             "introduction/introduction/julia2.jlcon",
             "introduction/introduction/julia3.jlcon",
 
-            #  broken with recent changes ... to be fixed on master soon
-            "specialized/bies-turner-string-theory-applications/SU5-2.jlcon",
-            "cornerstones/groups/explSL25.jlcon",
+            #  broken with recent changes in hecke, needs new hecke release
             "cornerstones/number-theory/galoismod.jlcon",
            ]
   skipped = [
