@@ -29,7 +29,8 @@ import Oscar:
     size,
     set_partition,
     partition,
-    permutation
+    permutation,
+    factor
 
 
 export PartitionedPermutation
@@ -40,7 +41,6 @@ export permutation
 export length
 export adjusted_length
 export enumerate_partitioned_permutations
-export factorization
 
 
 include("PartitionedPermutation.jl")
@@ -56,4 +56,3 @@ export partitioned_permutation
 
 export adjusted_length
 export enumerate_partitioned_permutations
-export factorization

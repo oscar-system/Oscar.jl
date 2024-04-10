@@ -20,10 +20,10 @@
             partitioned_permutation(perm(symmetric_group(6), [1, 2, 3, 4, 5, 6]), [1, 2, 3, 4, 5, 6])
         @test partitioned_permutation(perm(symmetric_group(3), [1, 2, 3]), [1, 2, 3]) * partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 3]) ==
             partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2])
-        @test length(factorization(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2]))) == 2
-        @test length(factorization(partitioned_permutation(perm(symmetric_group(4), [2, 1, 4, 3]), [1, 1, 2, 2]))) <
-              length(factorization(partitioned_permutation(perm(symmetric_group(4), [1, 2, 3, 4]), [1, 2, 3, 4])))
-        @test length(factorization(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2]))) <
-              length(factorization(partitioned_permutation(perm(symmetric_group(3), [1, 2, 3]), [1, 2, 3])))
+        @test length(factor(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2]))) == 2
+        @test length(factor(partitioned_permutation(perm(symmetric_group(4), [2, 1, 4, 3]), [1, 1, 2, 2]))) <
+              length(factor(partitioned_permutation(perm(symmetric_group(4), [1, 2, 3, 4]), [1, 2, 3, 4])))
+        @test length(factor(partitioned_permutation(perm(symmetric_group(3), [2, 1, 3]), [1, 1, 2]))) <
+              length(factor(partitioned_permutation(perm(symmetric_group(3), [1, 2, 3]), [1, 2, 3])))
     end
 end
