@@ -134,19 +134,23 @@ end
 
 @everywhere testlist = $testlist
 
-# if many workers, distribute tasks across them
-# otherwise, is essentially a serial loop
-stats = reduce(merge, pmap(testlist) do x
-                        println("Starting tests for $x")
-                        Oscar.test_module(x; new=false, timed=true, tempproject=false)
-                      end)
+stats = Dict{String,NamedTuple}()
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
-if numprocs == 1 && test_subset != "short"
+# try running it first for now
+if numprocs == 1 && (test_subset == "long" || test_subset == "")
   println("Starting tests for Serialization/IPC.jl")
   push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
 end
+
+# if many workers, distribute tasks across them
+# otherwise, is essentially a serial loop
+merge!(stats, reduce(merge, pmap(testlist) do x
+                              println("Starting tests for $x")
+                              Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                            end)
+
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io
