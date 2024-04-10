@@ -36,8 +36,6 @@ function _gather_tests(path::AbstractString; ignore=[])
                      # this can only run on the main process and not on distributed workers
                      # so it is included directly in runtests
                      r"Serialization/IPC(\.jl)?$",
-                     # this is run in a separate CI job
-                     r"book/test.jl$",
                    ]
   for i in ignore
     if i isa Regex
