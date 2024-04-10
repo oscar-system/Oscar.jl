@@ -13,9 +13,6 @@ export local_invariants, global_fundamental_class, shrink
 export local_index, units_mod_ideal
 
 
-Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
-parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
-
 _can_cache_aut(::PadicField) = nothing
 function _can_cache_aut(k) 
   a = get_attribute(k, :AutGroup)
@@ -622,12 +619,6 @@ function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   =#
 
   return vcat(b[r+1:end], y[r+1:end]), [-y[i] - b[i] for i=1:r]
-end
-
-function (G::FinGenAbGroup)(x::FinGenAbGroupElem)
-  fl, m = is_subgroup(parent(x), G)
-  @assert fl
-  return m(x)
 end
 
 function Hecke.extend_easy(m::Hecke.CompletionMap, L::FacElemMon{AbsSimpleNumField})
@@ -1497,13 +1488,6 @@ function (B::RelativeBrauerGroup)(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.Mu
 end
 
 
-#trivia for QQ
-Base.minimum(::Map{QQField, AbsSimpleNumField}, I::Union{Hecke.AbsNumFieldOrderIdeal, Hecke.AbsNumFieldOrderFractionalIdeal}) = minimum(I)*ZZ
-
-Hecke.extend(::Hecke.QQEmb, mp::MapFromFunc{QQField, AbsSimpleNumField}) = complex_embeddings(codomain(mp))
-
-Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AbsSimpleNumField}) = complex_embeddings(QQ)[1]
-
 """
     relative_brauer_group(K::AbsSimpleNumField, k)
 
@@ -1929,27 +1913,6 @@ function shrink(C::GModule{PermGroup, FinGenAbGroup}, attempts::Int = 10)
     end
     prog || return q, mq
   end
-end
-
-"""
-    direct_sum(G::FinGenAbGroup, H::FinGenAbGroup, V::Vector{<:Map{FinGenAbGroup, FinGenAbGroup}})
-
-For groups `G = prod G_i` and `H = prod H_i` as well as maps `V_i: G_i -> H_i`,
-build the induced map from `G -> H`.
-"""
-function Oscar.direct_sum(G::FinGenAbGroup, H::FinGenAbGroup, V::Vector{<:Map{FinGenAbGroup, FinGenAbGroup}})
-  dG = get_attribute(G, :direct_product)
-  dH = get_attribute(H, :direct_product)
-
-  if dG === nothing || dH === nothing
-    error("both groups need to be direct products")
-  end
-  @assert length(V) == length(dG) == length(dH)
-
-  @assert all(i -> domain(V[i]) == dG[i] && codomain(V[i]) == dH[i], 1:length(V))
-  h = hom(G, H, cat([matrix(V[i]) for i=1:length(V)]..., dims=(1,2)), check = !true)
-  return h
-
 end
 
 function Oscar.simplify(C::GModule{PermGroup, FinGenAbGroup})
