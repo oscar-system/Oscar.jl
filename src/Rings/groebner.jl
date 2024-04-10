@@ -308,7 +308,7 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
 end
 
 @doc raw"""
-    standard_basis_with_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
+    standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
 
 Return a standard basis of `I` with respect to `ordering`. `ordering` needs to be local, the coefficient ring needs to be `QQ`.
 The algorithm first computes a standard basis over a finite field in order to get a highest corner fast. Then this highest corner
