@@ -370,9 +370,9 @@ end
 
 
 
-#############################################################
-# 8: Test models from F-theory on all toric hypersurfaces
-#############################################################
+#############################################################################
+# 8: Test models from F-theory on all toric hypersurfaces over arbitrary base
+#############################################################################
 
 foah1 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4")
 
@@ -381,4 +381,23 @@ foah1 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4")
   @test dim(ambient_space(foah1)) == 5
   @test is_base_space_fully_specified(foah1) == false
   @test model_description(foah1) == "F-theory hypersurface model with fiber ambient space F_1"
+end
+
+
+
+#############################################################################
+# 9: Test models from F-theory on all toric hypersurfaces over concrete base
+#############################################################################
+
+B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor(B3)
+foah1_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+
+@testset "Test defining data for literature model defined by model index" begin
+  @test dim(base_space(foah1)) == 3
+  @test dim(ambient_space(foah1)) == 5
+  @test is_base_space_fully_specified(foah1) == true
+  @test model_description(foah1) == "F-theory hypersurface model with fiber ambient space F_1"
+  @test parent(explicit_model_sections(foah1_B3)["s1"]) == cox_ring(base_space(foah1_B3))
+  @test string(hypersurface_equation_parametrization(foah1_B3)) == "s7*v^2*w + s9*v*w^2 + s1*u^3 + s2*u^2*v + s3*u*v^2 + s4*v^3 + s5*u^2*w + s6*u*v*w + s8*u*w^2 + s10*w^3"
 end
