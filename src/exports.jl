@@ -1368,6 +1368,7 @@ export src
 export stable_intersection
 export stable_set_polytope
 export standard_basis
+export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
 export standard_tableaux
 export stanley_reisner_ideal
