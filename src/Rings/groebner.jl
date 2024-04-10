@@ -318,26 +318,8 @@ function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering
     @req is_local(ordering) "Monomial ordering must be local for this variant."
     @req coefficient_ring(I) == QQ "Base ring must be QQ."
 
-    p = 32003
-    #p = next_prime(rand(2^30:2^31))
-
-    R     = base_ring(I)
-    Rp, t = polynomial_ring(GF(p), R.S)
-    Ip    = ideal(Rp, gens(I))
-    
-    hc = Singular.highcorner(singular_groebner_generators(Ip, ordering))
-    if iszero(hc)
-      #= fall back to general standard basis algorithm =#
-      ssb = Singular.std(singular_generators(I, ordering))
-    else
-      #= construct hc over QQ =#
-      sr = singular_poly_ring(R)
-      sf = base_ring(sr)
-      ct = MPolyBuildCtx(sr)
-      push_term!(ct, sf(1), Singular.leading_exponent_vector(hc))
-      #= apply highest corner variant of standard basis algorithm =#
-      ssb = Singular.std_with_HC(singular_generators(I, ordering), finish(ct))
-    end
+    #= apply highest corner standard basis variant in Singular =#
+    ssb = Singular.LibStandard.groebner(singular_groebner_generators(I, ordering), "HC")
 
     sb = IdealGens(I.gens.Ox, ssb, false)
     sb.isGB = true
