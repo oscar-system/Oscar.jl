@@ -311,8 +311,8 @@ end
     standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
 
 Return a standard basis of `I` with respect to `ordering`. `ordering` needs to be local, the coefficient ring needs to be `QQ`.
-The algorithm first computes a standard basis over a finite field in order to get a highest corner fast. Then this highest corner
-is used to speed up the standard basis computation over `QQ´.
+The algorithm first computes a standard basis over a finite field in order to get an upper bound for the highest corner fast.
+Then this bound is used to speed up the standard basis computation over `QQ´.
 """
 function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
     @req is_local(ordering) "Monomial ordering must be local for this variant."
