@@ -137,7 +137,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
 
     @Book{OSCAR-book,
       editor = {Decker, Wolfram and Eder, Christian and Fieker, Claus and Horn, Max and Joswig, Michael},
-      title = {The OSCAR book},
+      title = {{The Computer Algebra System OSCAR. Algorithms and Examples}},
       year = {2024},
     }
 
