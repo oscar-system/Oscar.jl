@@ -149,7 +149,7 @@ end
 merge!(stats, reduce(merge, pmap(testlist) do x
                               println("Starting tests for $x")
                               Oscar.test_module(x; new=false, timed=true, tempproject=false)
-                            end)
+                            end))
 
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
