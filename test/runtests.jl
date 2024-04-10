@@ -129,6 +129,10 @@ elseif test_subset == "long"
   filter!(x-> in(relpath(x, Oscar.oscardir), test_large), testlist)
 elseif test_subset == "book"
   filter!(x-> in(relpath(x, Oscar.oscardir), test_book), testlist)
+elseif test_subset == "" && !(Sys.islinux() && v"1.10" <= VERSION < v"1.11.0-DEV")
+  # book tests only on 1.10 and linux
+  @info "Skipping Oscar book tests"
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_book), testlist)
 end
 
 
