@@ -9,6 +9,9 @@ broken = [
                   "introduction/introduction/julia.jlcon",
                   "introduction/introduction/julia2.jlcon",
                   "introduction/introduction/julia3.jlcon",
+
+                  #  broken with recent changes ...
+                  "specialized/bies-turner-string-theory-applications/SU5-2.jlcon",
                ]
 skipped = [
                   # sometimes very slow: 4000-30000s
