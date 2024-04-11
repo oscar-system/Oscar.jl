@@ -123,8 +123,7 @@ end
 if test_subset == "short"
   filter!(x-> !in(relpath(x, Oscar.oscardir), test_large), testlist)
 elseif test_subset == "long"
-  testlist = joinpath.(Oscar.oscardir, test_large)
-  filter!(isfile, testlist)
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_large), testlist)
 end
 
 

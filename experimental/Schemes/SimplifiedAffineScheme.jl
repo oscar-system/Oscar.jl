@@ -87,6 +87,38 @@ function _find_chart(U::SimplifiedAffineScheme, C::Covering;
   return compose(f, h), d
 end
 
+### The same as above, but up to the chart W which must be known a priori
+function _find_chart(U::AbsAffineScheme, W::AbsAffineScheme;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  W === U || error("wrong target patch")
+  return identity_map(U), complement_equations
+end
+
+function _find_chart(U::PrincipalOpenSubset, W::AbsAffineScheme;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  U === W && return identity_map(U), complement_equations
+  V = ambient_scheme(U)
+  ceq = push!(
+              OO(V).(lifted_numerator.(complement_equations)),
+              OO(V)(lifted_numerator(complement_equation(U)))
+             )
+  (f, d) = _find_chart(V, W, complement_equations=ceq)
+  return compose(inclusion_morphism(U), f), d
+end
+
+function _find_chart(U::SimplifiedAffineScheme, W::AbsAffineScheme;
+    complement_equations::Vector{T}=elem_type(OO(U))[]
+  ) where {T<:RingElem}
+  any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
+  V = original(U)
+  f, g = identification_maps(U)
+  ceq = Vector{elem_type(OO(V))}(pullback(g).(complement_equations))
+  h, d = _find_chart(V, W, complement_equations=ceq)
+  return compose(f, h), d
+end
+
 function __find_chart(U::AbsAffineScheme, C::Covering)
   any(W->(W === U), patches(C)) || error("patch not found")
   return U
@@ -355,3 +387,4 @@ function _have_common_ancestor(U::SimplifiedAffineScheme, V::SimplifiedAffineSch
   end
   return _have_common_ancestor(original(U), original(V))
 end
+

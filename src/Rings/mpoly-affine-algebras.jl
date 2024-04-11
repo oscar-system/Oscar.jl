@@ -19,11 +19,45 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing) 
+function dim(A::MPolyQuoRing)
   I = A.I
   return dim(I)
 end
 
+@doc raw"""
+    is_finite_dimensional_vector_space(A::MPolyQuoRing)
+
+If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
+`K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
+as a `K`-vector space, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
+
+julia> is_finite_dimensional_vector_space(A)
+true
+
+julia> A, _ = quo(R, ideal(R, [x]));
+
+julia> is_finite_dimensional_vector_space(A)
+false
+```
+"""
+function is_finite_dimensional_vector_space(A::MPolyQuoRing)
+  # We check '<=' because A might be the zero ring, so dim(A) == -1
+  return dim(A) <= 0
+end
+
+struct InfiniteDimensionError <: Exception
+end
+
+function Base.showerror(io::IO, err::InfiniteDimensionError)
+  println(io, "Infinite-dimensional vector space")
+  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
+end
 
 @doc raw"""
     vector_space_dimension(A::MPolyQuoRing)
@@ -31,6 +65,10 @@ end
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A` 
 as a `K`-vector space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -60,10 +98,9 @@ function vector_space_dimension(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
     error("vector_space_dimension requires a coefficient ring that is a field")
   end
-  I = A.I
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  I = modulus(A)
   G = standard_basis(I)
-  # We check '<=' because I might be the whole ring, so dim(I) == -1
-  @req dim(I) <= 0 "The ideal must be zero-dimensional"
   return Singular.vdim(singular_generators(G, G.ord))
 end
 
@@ -74,6 +111,10 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R` 
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -99,16 +140,15 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = A.I
   G = standard_basis(I)
   if dim(I) == -1 # I is the whole ring
     return elem_type(base_ring(A))[]
   end
-  @req dim(I) == 0 "The ideal must be zero-dimensional"
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
-
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
@@ -242,7 +282,6 @@ end
 
 # TODO: The method below is missing. It should be made better and put to the correct place (AA).
 number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-number_of_generators(P::PolyRing) = 1
 
 
 @doc raw"""
@@ -868,9 +907,9 @@ julia> is_reduced(A)
 false
 ```
 """
-function is_reduced(A::MPolyQuoRing) 
+@attr Bool function is_reduced(A::MPolyQuoRing)
   I = A.I
-  return I == radical(I)
+  return is_radical(I)
 end
 
 @doc raw"""
@@ -892,12 +931,13 @@ julia> is_normal(A)
 true
 ```
 """
-function is_normal(A::MPolyQuoRing)
+@attr Bool function is_normal(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
 
   I = A.I
   # TODO remove old1 & old2 once new Singular jll is out
+# QUESTION: How old is this? Has this been fixed yet?
   old1 = Singular.libSingular.set_option("OPT_REDSB", false)
   old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
   f = Singular.LibNormal.isNormal(singular_generators(I))::Int
@@ -936,7 +976,7 @@ julia> is_cohen_macaulay(A)
 false
 ```
 """
-function is_cohen_macaulay(A::MPolyQuoRing)
+@attr Bool function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -1253,17 +1293,22 @@ function _conv_normalize_alg(algorithm::Symbol)
     return "prim"
   elseif algorithm == :equidimDec
     return "equidim"
+  elseif algorithm == :isPrime
+    return "isPrim"
   else
     error("algorithm invalid")
   end
 end
 
 function _conv_normalize_data(A::MPolyQuoRing, l, br)
+# Note: The ugly construction of newAmap is due to the need to avoid
+# inheriting corrupted internal data of the ideal
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
       newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
-      newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
+      newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
+      set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
       idgens = base_ring(A).(gens(l[2][i]))
@@ -1301,6 +1346,7 @@ By default (`algorithm = :equidimDec`), as a first step on its way to find the d
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
 Alternatively, if specified by `algorithm = :primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
+If specified by `algorithm = :isPrime`, assume that $I$ is prime.
 
 See [GLS10](@cite).
 
@@ -1338,7 +1384,7 @@ defined by
   y -> y
 
 julia> LL[1][3]
-(y, ideal(x, y))
+(y, Ideal (x, y))
 ```
 """
 function normalization(A::MPolyQuoRing; algorithm=:equidimDec)

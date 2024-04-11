@@ -2,13 +2,13 @@
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^3 + z^5
   X = CoveredScheme(spec(R, ideal(R, f)))
-  U = X[1][1] # the first chart
+  U = affine_charts(X)[1] # the first chart
 
-  IZ = IdealSheaf(X, U, OO(U).([x, y, z]))
+  IZ = IdealSheaf(U, ideal(OO(U),[x, y, z]),covered_scheme=X)
 
   bl = blow_up(IZ)
 
-  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(X), Nothing, BlowupMorphism}
+  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(X), Nothing, <:BlowupMorphism}
   @test Oscar.underlying_morphism(bl) === projection(bl)
 
   Y = domain(bl)

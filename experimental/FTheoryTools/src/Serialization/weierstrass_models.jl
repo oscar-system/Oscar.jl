@@ -11,7 +11,7 @@ function save_type_params(s::SerializerState, w::WeierstrassModel)
     save_object(s, encode_type(WeierstrassModel), :name)
     base = base_space(w)
     ambient = ambient_space(w)
-    weierstrass_polynomial_ring = parent(w.weierstrass_polynomial)
+    weierstrass_polynomial_ring = parent(weierstrass_polynomial(w))
     explicit_model_section_ring = parent(w.explicit_model_sections["f"])
     parametrizing_sections = collect(keys(defining_section_parametrization(w)))
     if length(parametrizing_sections) > 0

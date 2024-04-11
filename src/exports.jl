@@ -84,6 +84,7 @@ export Hecke
 export HilbertData
 export Hyperplane
 export IncidenceMatrix
+export InfiniteDimensionError
 export K3Chamber
 export K3_surface_automorphism_group
 export LazyPoly
@@ -757,8 +758,9 @@ export is_fano
 export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
+export is_finite_dimensional_vector_space
 export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
-export is_finiteorder
+export is_finite_order
 export is_flat
 export is_full_direct_product
 export is_full_fp_group
@@ -1367,6 +1369,7 @@ export src
 export stable_intersection
 export stable_set_polytope
 export standard_basis
+export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
 export standard_tableaux
 export stanley_reisner_ideal

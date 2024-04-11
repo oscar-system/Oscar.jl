@@ -353,15 +353,13 @@ function lift(C::GModule, mp::Map)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  _ = Oscar.GrpCoh.H_two(C)
-  ssc, mH2 = get_attribute(C, :H_two_symbolic_chain)
-  sc = (x,y) -> ssc(x, y)[1]
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  if order(H2) > 1
+    global last_in = (C, mp)
+  end
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  a = sc(one(N), one(N))
-  E = domain(a)
-  DE, pDE, iDE = direct_product(D, E, task = :both)
 
   #=
     G    -->> N
@@ -376,98 +374,71 @@ function lift(C::GModule, mp::Map)
 
    g_i is mapped to (m(g_i), pro[i](D))
    this needs to be "collected"
-
-   sc(a, b) yields sigma(a, b): E -> M, the value of the cohain as a map
-   (ie. the once e in E is chosen, sc(a, b)(e) is THE cochain
   =#
 
   K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
-  s = hom(DE, K, [zero(K) for i=1:ngens(DE)])
-  j = 1
-  for r = R
-    a = (one(N), hom(DE, M, [zero(M) for i=1:ngens(DE)]))
-    for i = Oscar.GrpCoh.word(r)
-      if i<0
-        h = inv(mp(G[-i]))
-        m = -pDE[1]*pro[-i]*action(C, h)  - pDE[2]*sc(inv(h), h)
-      else
-        h = mp(G[i])
-        m = pDE[1]*pro[i]
-      end
-      # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
-      a = (a[1]*h, m + a[2]*action(C, h) + pDE[2]*sc(a[1], h))
-    end
-    @assert isone(a[1])
-    s += a[2]*iK[j]
-    j += 1
+  S = relators(N)
+  if length(S) != 0
+    X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
-  #so kern(s) should be exactly all possible quotients that allow a
-  #projection of G. They are not all surjective. However, lets try:
-  k, mk = kernel(s)
+
   allG = []
-  z = get_attribute(C, :H_two)[1]  #tail (H2) -> cochain
 
-  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
-  #TODO: the projection maps seem to be rather slow - in particular
-  #      as they SHOULD be trivial...
-  for x = k
-    epi = pDE[1](mk(x)) #the map
-    chn = mH2(pDE[2](mk(x))) #the tail data
-    if (epi,chn) in seen
-      continue
-    else
-      push!(seen, (epi, chn))
-    end
-    #TODO: not all "chn" yield distinct groups - the factoring by the
-    #      co-boundaries is missing
-    #      not all "epi" are epi, ie. surjective. The part of the thm
-    #      is missing...
-    # (Thm 15, part b & c) (and the weird lemma)
-#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+  for h = H2
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
 
+    s = hom(D, K, [zero(K) for i=1:ngens(D)])
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
 
-    @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
-    @assert is_surjective(GGpro)
-    if get_assertion_level(:BruecknerSQ) > 1
-      _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert is_isomorphic(GG, _GG)
-    end
+    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
+    @assert all(x->isone(GGpro(x)), rel)
+    rhs = [preimage(GGinj, x) for x = rel]
+    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
 
-    function reduce(g) #in G
-      h = mp(g)
-      c = ssc(h, one(N))[2]
-      if length(c) == 0
-        return c
+    k, mk = kernel(s)
+
+    if is_zero(h) && length(S) > 0 #Satz 15 in Brueckner, parts a and b
+      u = [preimage(mp, x) for x = gens(N)]
+      ss = elem_type(X)[]
+      sss = elem_type(D)[]
+      for h = gens(D)
+        uu = [map_word(x, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)]) for x = u]
+        push!(ss, X([preimage(GGinj, map_word(r, uu, init = one(GG))) for r = relators(N)]))
+        push!(sss, D([preimage(GGinj, map_word(mp(G[i]), uu, init = one(GG))*inv(gns[i] * GGinj(pro[i](h)))) for i = 1:ngens(G)]))
       end
-      d = Int[abs(c[1]), sign(c[1])]
-      for i=c[2:end]
-        if abs(i) == d[end-1]
-          d[end] += sign(i)
-        else
-          push!(d, abs(i), sign(i))
-        end
-      end
-      return d
+      ss = hom(D, X, ss)
+      sss = hom(D, D, sss)
+      kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1])
+      q, mq = quo(k, kk)
+      k = q
+      mk = pseudo_inv(mq)*mk
     end
-    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-#    @show map(order, l), order(prod(l))
-#    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = try
-          hom(G, GG, l)
-        catch
-          @show :crash
-          continue
-        end
-    if !is_surjective(h)
-#      @show :darn
-      continue
-    else
-#      @show :bingo
+    fl, pe = try
+      true, preimage(s, K(rhs))
+    catch
+      false, zero(D)
     end
-    push!(allG, h)
+    if !fl
+      @show :no_sol
+      continue
+    end
+
+    for x = k
+      if is_zero(h) && is_zero(x)
+        @show :skip, dim(k)
+        continue
+      end
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
+      if is_surjective(hm)
+        push!(allG, hm)
+      else #should not be possible any more
+        @show :not_sur
+      end
+    end
   end
+
   return allG
 end
 
@@ -475,6 +446,53 @@ function solvable_quotient(G::Oscar.GAPGroup)
   q = cyclic_group(1)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
+
+#= issues/ TODO
+ - does one need all SQs? are all maximal ones (in the sense of
+   no further extension possible) isomorphic?
+ - part c: this will extend by the modules several times (a maximal
+   number of times), useful if as above, any maximal chain will do
+ - use (or not) compatible pairs to construct fewer possibilities
+   (if legal...)
+ - gmodules as gset, support the interface? in particular orbits?
+   (for fewer extensions)
+ - gmodule -> matrix group (in some cases)
+ - filter for special targets (which???)
+ - does this work with gmodules in char 0?
+=#
+
+#= EXAMPLE
+F = free_group("a", "b"); a,b = gens(F);
+G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^
+-1*b^2])
+f1 = Oscar.RepPc.solvable_quotient(G)
+f2 = Oscar.RepPc.brueckner(f1; primes = [2])
+Oscar.RepPc.brueckner(f2[1]; primes = [2])
+f3 = ans;
+f2 = Oscar.RepPc.brueckner(f1; primes = [2])
+f3 = Oscar.RepPc.brueckner(f2[1]; primes = [2])
+f4 = Oscar.RepPc.brueckner(f3[1]; primes = [3])
+f5 = Oscar.RepPc.brueckner(f4[1]; primes = [2])
+f6 = Oscar.RepPc.brueckner(f5[1]; primes = [2])
+f7 = Oscar.RepPc.brueckner(f6[1], primes = [2])
+
+(there is a [5] step missing)
+
+H2, mH2, _ = Oscar.GrpCoh.H_two(C; redo = true, lazy = true);
+T, mT = Oscar.GrpCoh.compatible_pairs(C)
+G = gmodule(T, [Oscar.hom(H2, H2, [preimage(mH2, mT(g, mH2(a))) for a = gens(H2)]) for g = gens(T)])
+
+then ones wants the orbits of "elements" in G...
+
+gset(matrix_group([matrix(x) for x= action(G)]))
+@time orbits(ans)
+
+this works, but constracts all elements...
+
+G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
+orbits(G)
+
+=#
 
 end #module RepPc
 

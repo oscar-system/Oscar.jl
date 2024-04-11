@@ -1,9 +1,7 @@
 module BinomialIdeal
 
 using Oscar
-Oscar.include("../experimental/Rings/QQAbAndPChars.jl")
-using Oscar.QQAbModule
-import Oscar.QQAbModule: QQAbElem, have_same_span
+using Oscar: PartialCharacter, have_same_span, partial_character
 import Oscar.lib4ti2_jll
 
 #using DelimitedFiles
@@ -31,7 +29,7 @@ import Oscar.Singular: std, Ideal, lead_exponent
 #markov4ti2(L::ZZMatrix)
 #"=="(I::Singular.sideal,J::Singular.sideal)
 #isSubset(I::Singular.sideal,J::Singular.sideal)
-#idealFromCharacter(P::PChar, R::Singular.PolyRing)
+#idealFromCharacter(P::PartialCharacter, R::Singular.PolyRing)
 #partialCharacterFromIdeal(I::Singular.sideal, R::Singular.PolyRing)
 #cellularStandardMonomials(I::Singular.sideal)
 #witnessMonomials(I::Singular.sideal)
@@ -795,8 +793,8 @@ function cellularStandardMonomials(I::Singular.sideal)
 end
 
 function my_product(P::Array)
-        T = ntuple(x->P[x], length(P))
-        return Iterators.product(T...)
+  T = ntuple(x->P[x], length(P))
+  return Iterators.product(T...)
 end
 
 function witnessMonomials(I::Singular.sideal)
@@ -812,7 +810,7 @@ function witnessMonomials(I::Singular.sideal)
         R=Singular.base_ring(I)
         Delta=cell[2]
 
-        #compute the PChar corresponding to I and the standard monomials of I \cap k[N^Delta]
+        #compute the PartialCharacter corresponding to I and the standard monomials of I \cap k[N^Delta]
         P=partialCharacterFromIdeal(I, R)
         M=cellularStandardMonomials(I)  #array of standard monomials, this is our to-do list
         Memb=Singular.spoly[]   #this will hold our set of witness monomials
@@ -932,7 +930,7 @@ function cellularMinimalAssociatedPrimes(I::Singular.sideal)
         end
 
         P=partialCharacterFromIdeal(I,I.base_ring)
-        PSat=PCharSaturateAll(P)
+        PSat=saturations(P)
         minAss=Array{Singular.sideal}[] #this will hold the set of minimal associated primes
 
         #construct the ideal (x_i \mid i \in \Delta^c)
