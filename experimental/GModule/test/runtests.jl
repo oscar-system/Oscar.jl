@@ -24,6 +24,10 @@ end
 
 
 @testset "Experimental.gmodule" begin
+  G = small_group(1, 1)
+  z = Oscar.RepPc.reps(QQ, G)
+  _, mp = Oscar.GrpCoh.fp_group_with_isomorphism(z[1])
+  @test is_bijective(mp)
 
   G = small_group(7*3, 1)
   z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
