@@ -2,6 +2,8 @@ module Misc
 using Oscar
 import Base: ==, parent
 
+export relative_field
+
 Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
 
 function primitive_element(a::Vector{QQBarFieldElem})
@@ -508,3 +510,4 @@ end
 
 end # module
 using .Misc
+export relative_field
