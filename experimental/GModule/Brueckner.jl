@@ -1,8 +1,6 @@
 module RepPc
 using Oscar
 
-export coimage
-
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
@@ -265,10 +263,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
   return allR
 end
 
-function coimage(h::Map)
-  return quo(domain(h), kernel(h)[1])
-end
-
 """
   mp: G ->> Q
   C a F_p[Q]-module
@@ -427,5 +421,3 @@ orbits(G)
 end #module RepPc
 
 using .RepPc
-
-export coimage

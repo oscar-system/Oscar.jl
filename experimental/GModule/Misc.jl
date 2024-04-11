@@ -2,6 +2,7 @@ module Misc
 using Oscar
 import Base: ==, parent
 
+export coimage
 export relative_field
 
 Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
@@ -508,6 +509,11 @@ function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::Abst
   return hom(M, N, cat(map(matrix, mp)..., dims = (1,2)))
 end
 
+function coimage(h::Map)
+  return quo(domain(h), kernel(h)[1])
+end
+
 end # module
 using .Misc
+export coimage
 export relative_field
