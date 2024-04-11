@@ -11,6 +11,9 @@ using JuliaFormatter
 # . However, currently too many files have broken formatting and since there
 # are many ongoing pull requests, we will need to extend proper formatting to
 # the entire codebase in a step by step fashion.
+#
+# In case you format some code, also add the commit hash to
+# .git-blame-ignore-revs for `git blame` to ignore these commits.
 
 
 file = @__FILE__
