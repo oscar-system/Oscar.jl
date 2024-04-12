@@ -43,21 +43,14 @@ result = 0
   enabled = [
     "src/PolyhedralGeometry",
     "src/aliases.jl",
-    "experimental/LieAlgebras",
     "experimental/BasisLieHighestWeight",
+    "experimental/ExperimentalTemplate",
+    "experimental/ExteriorAlgebra",
+    "experimental/LieAlgebras",
   ]
   skip = [
     "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
     "src/PolyhedralGeometry/Polyhedron/properties.jl",
-    "experimental/LieAlgebras/test/AbstractLieAlgebra-test.jl",
-    "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
-    "experimental/LieAlgebras/src/LieAlgebra.jl",
-    "experimental/LieAlgebras/src/LieAlgebraHom.jl",
-    "experimental/LieAlgebras/src/LieSubalgebra.jl",
-    "experimental/LieAlgebras/src/LinearLieAlgebra.jl",
-    "experimental/LieAlgebras/src/RootSystem.jl",
-    "experimental/LieAlgebras/src/Util.jl",
-    "experimental/BasisLieHighestWeight/src/MainAlgorithm.jl",
   ]
 
   # Collect all code files.
