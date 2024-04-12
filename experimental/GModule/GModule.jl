@@ -263,11 +263,6 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   return invariant_lattice_classes(MZ)
 end
 
-function _hom(f::Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}) where T
-  @assert base_ring(domain(f)) == base_ring(codomain(f))
-  return hom(domain(f), codomain(f), f.(gens(domain(f))))
-end
-
 function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{ZZRingElem}})
   res = Any[(M, sub(M.M, gens(M.M))[2])]
   sres = 1
@@ -284,8 +279,12 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-
-          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h in M.ac]), mx)
+          # Compute the restriction of the `M.G`-action from `M.M`
+          # to the submodule given by the embedding `mx`.
+          hgens = gens(domain(mx))
+          mxac = [hom(domain(mx), domain(mx),
+                      [preimage(mx, h(mx(x))) for x in hgens]) for h in M.ac]
+          r = (gmodule(M.G, mxac), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
