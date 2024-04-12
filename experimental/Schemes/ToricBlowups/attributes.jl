@@ -47,12 +47,6 @@ index_of_new_ray(bl::ToricBlowdownMorphism) = bl.index_of_new_ray
 
 Return the center of the toric blowdown morphism as ideal sheaf.
 
-Currently (October 2023), ideal sheaves are only supported for
-smooth toric varieties. Hence, there will be instances in which
-the construction of a blowdown morphism succeeds, but the center
-of the blowup, as represented by an ideal sheaf, cannot yet be
-computed.
-
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
@@ -63,7 +57,7 @@ Toric blowdown morphism
 
 julia> center(blow_down_morphism)
 Sheaf of ideals
-  on normal toric variety
+  on normal, smooth toric variety
 with restrictions
   1: Ideal (x_3_1, x_2_1)
   2: Ideal (x_3_2, x_2_2)
