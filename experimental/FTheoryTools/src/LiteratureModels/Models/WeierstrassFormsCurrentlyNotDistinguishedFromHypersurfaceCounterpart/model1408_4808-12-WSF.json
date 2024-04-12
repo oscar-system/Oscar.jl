@@ -40,9 +40,9 @@
     },
     "model_descriptors": {
         "type": "weierstrass",
-        "description": "The toric variety associated to F_12",
+        "description": "F-theory hypersurface model with fiber ambient space F_12",
         "gauge_algebra": ["su2","su2","u1","u1"],
-        "global_gauge_quotients": [["Z4", [1, 2, 3, 4]]]
+        "global_gauge_quotients": [["Z2", [1, 3]], ["Z2", [2, 4]]]
     },
     "model_data": {
         "base_dim": 3,
@@ -70,6 +70,21 @@
         ]
     },
     "associated_models": [
-        "model1408_4808-12-WSF.json"
-    ]
+        "model1408_4808-1-WSF.json",
+        "model1408_4808-2-WSF.json",
+        "model1408_4808-3-WSF.json",
+        "model1408_4808-4-WSF.json",
+        "model1408_4808-5-WSF.json",
+        "model1408_4808-6-WSF.json",
+        "model1408_4808-7-WSF.json",
+        "model1408_4808-8-WSF.json",
+        "model1408_4808-9-WSF.json",
+        "model1408_4808-10-WSF.json",
+        "model1408_4808-11-WSF.json",
+        "model1408_4808-13-WSF.json",
+        "model1408_4808-14-WSF.json",
+        "model1408_4808-15-WSF.json",
+        "model1408_4808-16-WSF.json"
+    ],
+    "related_models": ["model1408_4808-12.json"]
 }

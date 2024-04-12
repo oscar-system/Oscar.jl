@@ -40,7 +40,7 @@
     },
     "model_descriptors": {
         "type": "hypersurface",
-        "description": "The toric variety associated to F_16",
+        "description": "F-theory hypersurface model with fiber ambient space F_16",
         "gauge_algebra": ["su3", "su3", "su3"],
         "global_gauge_quotients": [["Z3", [1, 2, 3]]]
     },
@@ -57,13 +57,31 @@
         "fiber_ambient_space_max_cones": [[1, 4], [4, 7], [7, 8], [3, 8], [2, 3], [2, 9], [6, 9], [5, 6], [1, 5]],
         "fiber_ambient_space_coordinates": ["u", "v", "w", "e1", "e2", "e3", "e4", "e5", "e6"],
         "fiber_ambient_space_name": "P^{F_16}",
+        "D1": [0, 1, 0],
+        "D2": [0, 0, 1],
         "hypersurface_equation": "s1*e1^2*e2^2*e3*e4*u^3 + s6*e1*e2*e3*e4*e5*e6*u*v*w + s7*e2*e3^2*e6^3*v^2*w + s9*e1*e4^2*e5^3*v*w^2",
         "zero_section": ["0", "1", "1", "s7", "-s9", "1", "1", "1", "1"],
         "generating_sections": [
-            [""]
+            ["1", "1", "s1", "1", "1", "1", "-s7", "0", "1"],
+            ["1", "s1", "1", "1", "1", "-s9", "1", "1", "0"]
         ]
     },
     "associated_models": [
-        "model1408_4808-16-WSF.json"
-    ]
+        "model1408_4808-1.json",
+        "model1408_4808-2.json",
+        "model1408_4808-3.json",
+        "model1408_4808-4.json",
+        "model1408_4808-5.json",
+        "model1408_4808-6.json",
+        "model1408_4808-7.json",
+        "model1408_4808-8.json",
+        "model1408_4808-9.json",
+        "model1408_4808-10.json",
+        "model1408_4808-11.json",
+        "model1408_4808-12.json",
+        "model1408_4808-13.json",
+        "model1408_4808-14.json",
+        "model1408_4808-15.json"
+    ],
+    "related_models": ["model1408_4808-16-WSF.json"]
 }
