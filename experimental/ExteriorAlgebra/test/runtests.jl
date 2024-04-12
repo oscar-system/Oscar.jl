@@ -4,18 +4,17 @@
 
   ######## CONSTRUCTOR TESTs
   @test_throws ArgumentError exterior_algebra(QQ, 0)
-  @testset "exterior_algebra constructor" for (R,n) in [
-      (QQ, 1)   # --> special case (is commutative)
-      (QQ, 2)   # --> first general case
-      (QQ, 99)  # --> Also tried with 999 indets, but takes a long time [~19s]
-
-      (GF(2), 2)  # BUG??  not recognized as commutative!!
-      (GF(3), 4)
-      (residue_field(ZZ, 2)[1], 2)
-      (residue_field(ZZ, 3)[1], 4)
-      #(GF(1180591620717411303449), 2)
-      #(residue_field(ZZ, 1180591620717411303449)[1], 2)
-      ## (GF(2), 1500);   ## limit 1500 on my 32Gbyte machine (!NB printing requires a lot of space!)
+  @testset "exterior_algebra constructor" for (R, n) in [
+    (QQ, 1)   # --> special case (is commutative)
+    (QQ, 2)   # --> first general case
+    (QQ, 99)  # --> Also tried with 999 indets, but takes a long time [~19s]
+    (GF(2), 2)  # BUG??  not recognized as commutative!!
+    (GF(3), 4)
+    (residue_field(ZZ, 2)[1], 2)
+    (residue_field(ZZ, 3)[1], 4)
+    #(GF(1180591620717411303449), 2)
+    #(residue_field(ZZ, 1180591620717411303449)[1], 2)
+    ## (GF(2), 1500);   ## limit 1500 on my 32Gbyte machine (!NB printing requires a lot of space!)
   ]
     A, g = exterior_algebra(R, n)
     @test A isa PBWAlgQuo
