@@ -20,7 +20,7 @@ This project is work-in-progress.
 Please direct questions about this part of OSCAR to the following people:
 * [Simon Brandhorst](https://www.math.uni-sb.de/ag/brandhorst/index.php?lang=en).
 * [Anne Frühbis-Krüger](https://uol.de/anne-fruehbis-krueger),
-* [Matthias Zach](https://www.mathematik.uni-kl.de/en/agag/people/members),
+* [Matthias Zach](https://math.rptu.de/en/wgs/agag/people/members),
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
