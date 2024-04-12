@@ -85,13 +85,11 @@ X_i \to X``, where ``X`` is the disjoint union of the covered schemes
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R_1, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
 
-julia> I_1 = ideal(R, z*x^2 + y^3);
+julia> I_1 = ideal(R_1, z*x^2 + y^3);
 
-julia> I_2 = ideal(R, x^2 + y^2);
-
-julia> X_1 = covered_scheme(proj(R, I_1))
+julia> X_1 = covered_scheme(proj(R_1, I_1))
 Scheme
   over rational field
 with default covering
@@ -104,18 +102,18 @@ with default covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> X_2 = covered_scheme(proj(R, I_2))
+julia> R_2, (u, v) = polynomial_ring(rational_field(), ["u", "v"]);
+
+julia> I_2 = ideal(R_2, u + v^2);
+
+julia> X_2 = covered_scheme(spec(R_2, I_2))
 Scheme
   over rational field
 with default covering
   described by patches
-    1: scheme((y//x)^2 + 1)
-    2: scheme((x//y)^2 + 1)
-    3: scheme((x//z)^2 + (y//z)^2)
+    1: scheme(u + v^2)
   in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
+    1: [u, v]
 
 julia> X, injections = disjoint_union([X_1, X_2]);
 
@@ -127,21 +125,17 @@ with default covering
     1: scheme((y//x)^3 + (z//x))
     2: scheme((x//y)^2*(z//y) + 1)
     3: scheme((x//z)^2 + (y//z)^3)
-    4: scheme((y//x)^2 + 1)
-    5: scheme((x//y)^2 + 1)
-    6: scheme((x//z)^2 + (y//z)^2)
+    4: scheme(u + v^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
-    4: [(y//x), (z//x)]
-    5: [(x//y), (z//y)]
-    6: [(x//z), (y//z)]
+    4: [u, v]
 
 julia> injections
 2-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
- Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
- Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 6 patches
+ Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 4 patches
+ Hom: scheme over QQ covered with 1 patch -> scheme over QQ covered with 4 patches
 ```
 """
 function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
@@ -156,6 +150,31 @@ end
 
 ### Conversion of an affine scheme into a covered scheme
 CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
+
+@doc raw"""
+    covered_scheme(X::AbsAffineScheme) -> AbsCoveredScheme
+
+Returns a `CoveredScheme` ``C`` isomorphic to ``X``.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(rational_field(), "x" => 1:3);
+
+julia> X = spec(R);
+
+julia> C = covered_scheme(X)
+Scheme
+  over rational field
+with default covering
+  described by patches
+    1: affine 3-space
+  in the coordinate(s)
+    1: [x[1], x[2], x[3]]
+```
+"""
+function covered_scheme(X::AbsAffineScheme)
+  return CoveredScheme(X)
+end
 
 ### Construct the empty covered scheme over the ring R
 function empty_covered_scheme(R::RT) where {RT<:AbstractAlgebra.Ring}
