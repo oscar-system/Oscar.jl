@@ -157,13 +157,11 @@ function base_change(phi::Any, X::AbsCoveredScheme)
 end
 
 @doc raw"""
-    normalization(X::AbsCoveredScheme; check::Bool=true) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
+    normalization(X::AbsCoveredScheme) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
 
-Return the normalization of the reduced scheme ``X``.
+Return the normalization of the scheme ``X``.
 
-# Input:
-- a reduced scheme ``X``,
-- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
+# Input: any `AbsCoveredScheme` ``X``.
 
 # Output:
 A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
@@ -237,7 +235,6 @@ julia> injs
 ```
 """
 function normalization(X::AbsCoveredScheme; check::Bool=true)
-  @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
   if is_empty(X)
     return (X, identity_map(X), typeof(identity_map(X))[])
   end
@@ -245,7 +242,7 @@ function normalization(X::AbsCoveredScheme; check::Bool=true)
   inc_maps = [Oscar.CoveredClosedEmbedding(scheme(irred_comps_sheaf[i]), irred_comps_sheaf[i])
                 for i in 1:length(irred_comps_sheaf)]
   irred_comps = [domain(inc_i) for inc_i in inc_maps]
-  norm_pairs = [_normalization_integral(X_i; check)[2] for X_i in irred_comps]
+  norm_pairs = [_normalization_integral(X_i; check=false)[2] for X_i in irred_comps]
   Y, injs = disjoint_union(domain.(norm_pairs))
   pr_dicts = (morphisms ∘ covering_morphism).(map(compose, norm_pairs, inc_maps))
   pr_dict = empty(first(pr_dicts))

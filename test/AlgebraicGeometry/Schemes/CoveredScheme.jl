@@ -345,6 +345,11 @@
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
 
+    # Example non-reduced
+    R, (x, y, z) = rational_field()["x", "y", "z"]
+    X = CoveredScheme(spec(ideal(R, x^2)))
+    Y, pr_mor, injs = normalization(X)
+
     # A non-normal Enriques surface as constructed by Enriques himself
     S, (x0,x1,x2,x3) = graded_polynomial_ring(QQ,[:x0,:x1,:x2,:x3])
     J = ideal(S, [x1^2*x2^2*x3^2 + x0^2*x2^2*x3^2 + x0^2*x1^2*x3^2 + x0^2*x1^2*x2^2 + x0*x1*x2*x3*(x0^2+x1^2+2x0*x1+x2^2+x3^2)])
