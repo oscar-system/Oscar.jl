@@ -279,12 +279,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-          # Compute the restriction of the `M.G`-action from `M.M`
-          # to the submodule given by the embedding `mx`.
-          hgens = gens(domain(mx))
-          mxac = [hom(domain(mx), domain(mx),
-                      [preimage(mx, h(mx(x))) for x in hgens]) for h in M.ac]
-          r = (gmodule(M.G, mxac), mx)
+          r = (sub(M, mx), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
@@ -633,6 +628,15 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
   F = free_module(k, nrows(b))
   return gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators]), hom(F, C.M, b)
   return b
+end
+
+# Compute the restriction of the `M.G`-action from `M.M`
+# to the submodule given by the embedding `f`.
+function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+  @assert codomain(f) == M.M
+  S = domain(f)
+  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  return gmodule(S, M.G, Sac)
 end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
