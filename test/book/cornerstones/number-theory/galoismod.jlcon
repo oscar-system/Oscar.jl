@@ -1,0 +1,91 @@
+julia> Oscar.randseed!(3371100);
+
+julia> Qx, x = QQ["x"];
+
+julia> K, a = number_field(x^4 + 4*x^2 + 2, "a");
+
+julia> b = rand(K, -10:10) # random element with coefficients
+                           # between -10 and 10
+5*a^3 - 7*a^2 + 8*a - 8
+
+julia> A, mA = automorphism_group(K);
+
+julia> list = [mA(s)(b) for s in A]
+4-element Vector{AbsSimpleNumFieldElem}:
+ 5*a^3 - 7*a^2 + 8*a - 8
+ -7*a^3 + 7*a^2 - 26*a + 20
+ -5*a^3 - 7*a^2 - 8*a - 8
+ 7*a^3 + 7*a^2 + 26*a + 20
+
+julia> X = matrix(QQ, coordinates.(list))
+[-8     8   -7    5]
+[20   -26    7   -7]
+[-8    -8   -7   -5]
+[20    26    7    7]
+
+julia> det(X) != 0
+true
+
+julia> det(matrix(QQ, [coordinates(mA(s)(a)) for s in A]))
+0
+
+julia> V, f = galois_module(K);
+
+julia> OK = ring_of_integers(K);
+
+julia> M = f(OK);
+
+julia> is_free(M)
+false
+
+julia> fl = is_locally_free(M, 2)
+false
+
+julia> prime_decomposition_type(OK, 2)
+1-element Vector{Tuple{Int64, Int64}}:
+ (1, 4)
+
+julia> K, a = number_field(x^4 - x^3 + x^2 - x + 1, "a");
+
+julia> is_tamely_ramified(K)
+true
+
+julia> V, f = galois_module(K); OK = ring_of_integers(K); M = f(OK);
+
+julia> fl, c = is_free_with_basis(M); # the elements of c are a basis
+
+julia> b = preimage(f, c[1]) # the element might different per session
+a^3
+
+julia> A, mA = automorphism_group(K);
+
+julia> X = matrix(ZZ, [coordinates(OK(mA(s)(b))) for s in A])
+[0    0    0    1]
+[1   -1    1   -1]
+[0    0   -1    0]
+[0    1    0    0]
+
+julia> det(X)
+-1
+
+julia> k, = number_field(x^4 - 13*x^2 + 16); candidates = []; for F in abelian_normal_extensions(k, [2], ZZ(10)^13)
+         K, = absolute_simple_field(number_field(F))
+         if !is_tamely_ramified(K)
+           continue
+         end
+         if !is_isomorphic(galois_group(K)[1], quaternion_group(8))
+           continue
+         end
+         push!(candidates, K)
+       end
+
+julia> length(candidates)
+2
+
+julia> K = candidates[2]; V, f = galois_module(K); OK = ring_of_integers(K); M = f(OK);
+
+julia> fl = is_free(M)
+false
+
+julia> defining_polynomial(K)
+x^8 + 105*x^6 + 3465*x^4 + 44100*x^2 + 176400

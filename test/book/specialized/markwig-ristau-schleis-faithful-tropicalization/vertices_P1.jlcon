@@ -1,0 +1,21 @@
+julia> Kt,t = rational_function_field(QQ,"t");
+
+julia> Kxy, (x,y) = Kt["x", "y"];
+
+julia> f = (-t^2)*x^3+(t^20)*x^2*y+(t^2)*x*y^2+(t^14)*y^3+(-3*t^3)*x^2+x*y+(t^3+t^5-t^6)*y^2+(-3*t^4)*x+(t+t^2)*y+(2*t^2+t^5);
+
+julia> val_t = tropical_semiring_map(Kt,t);
+
+julia> ftrop=tropical_polynomial(f,val_t);
+
+julia> Tf=tropical_hypersurface(ftrop);
+
+julia> PC1 = polyhedral_complex(Tf);
+
+julia> vertices(PC1)
+5-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, -11]
+ [1, -2]
+ [-2, -2]
+ [0, 2]
+ [1, 1]
