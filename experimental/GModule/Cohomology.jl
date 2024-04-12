@@ -373,11 +373,6 @@ function Oscar.quo(C::GModule, mDC::Map{FinGenAbGroup, FinGenAbGroup}, add_to_la
   return S, mq
 end
 
-function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::AbstractAlgebra.Generic.DirectSumModule{T}, mp::Vector{AbstractAlgebra.Generic.ModuleHomomorphism{T}})  where T
-  @assert length(M.m) == length(mp) == length(N.m)
-  return hom(M, N, cat(map(matrix, mp)..., dims = (1,2)))
-end
-
 function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert task in [:sum, :prod, :both, :none]
   G = C[1].G
@@ -1746,71 +1741,8 @@ function fp_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem})
 end
 
 #########################################################
-#XXX: should be in AA and supplemented by a proper quo
-Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement = is_submodule(M, N)
-
-function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement
-  fl = is_submodule(N, M)
-  if fl
-    return fl, hom(M, N, elem_type(N)[N(m) for m = gens(M)])
-  else
-    return fl, hom(M, N, elem_type(N)[zero(N) for m = gens(M)])
-  end
-end
-is_sub_with_data(M::FinGenAbGroup, N::FinGenAbGroup) = is_subgroup(M, N)
-
-function Oscar.hom(V::Module, W::Module, v::Vector{<:ModuleElem}; check::Bool = true)
-  if ngens(V) == 0
-    return Generic.ModuleHomomorphism(V, W, zero_matrix(base_ring(V), ngens(V), ngens(W)))
-  end
-  return Generic.ModuleHomomorphism(V, W, reduce(vcat, [x.v for x = v]))
-end
-function Oscar.hom(V::Module, W::Module, v::MatElem; check::Bool = true)
-  return Generic.ModuleHomomorphism(V, W, v)
-end
-function Oscar.inv(M::Generic.ModuleHomomorphism)
-  return hom(codomain(M), domain(M), inv(matrix(M)))
-end
-
-function Oscar.direct_product(M::Module...; task::Symbol = :none)
-  D, inj, pro = direct_sum(M...)
-  if task == :none
-    return D
-  elseif task == :both
-    return D, pro, inj
-  elseif task == :sum
-    return D, inj
-  elseif task == :prod
-    return D, pro
-  end
-  error("illegal task")
-end
-
-Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
-Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
-Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) + matrix(b))
-Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) - matrix(b))
-Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -matrix(a))
-
 function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
   return M.matrix
-end
-
-function ==(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism})
-  domain(a) === domain(b) || return false
-  codomain(a) === codomain(b) || return false
-  return matrix(a) == matrix(b)
-end
-
-function Base.hash(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, h::UInt)
-  h = hash(domain(a), h)
-  h = hash(codomain(a), h)
-  h = hash(matrix(a), h)
-  return h
-end
-
-function Oscar.id_hom(A::AbstractAlgebra.FPModule)
-  return Generic.ModuleHomomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
 end
 
 ###########################################################
@@ -1919,19 +1851,6 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     codomain(mM), B,
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
     x->image(mM, gap_to_julia(x.X)))
-end
-
-function (k::Nemo.fpField)(a::Vector)
-  @assert length(a) == 1
-  return k(a[1])
-end
-
-function (k::fqPolyRepField)(a::Vector)
-  return k(polynomial(Native.GF(Int(characteristic(k))), a))
-end
-
-function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
-  return order(base_ring(F))^dim(F)
 end
 
 function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = true)
