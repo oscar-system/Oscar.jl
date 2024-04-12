@@ -21,9 +21,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             "introduction/introduction/julia3.jlcon",
 
             #  broken with recent changes ... to be fixed on master soon
-            "cornerstones/groups/explSL25.jlcon",
             "cornerstones/number-theory/galoismod.jlcon",
-            "specialized/bies-kastner-toric-geometry/starsubdivision.jlcon",
            ]
   skipped = [
              # sometimes very slow: 4000-30000s
