@@ -9,9 +9,6 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 @testset "OscarBookExamples" verbose=true begin
 
   broken = [
-            # Something broken in Oscar
-            "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
-
             # non-stable:
             "specialized/joswig-kastner-lorenz-confirmable-workflows/versioninfo.jlcon",
 
@@ -19,11 +16,13 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             "introduction/introduction/julia.jlcon",
             "introduction/introduction/julia2.jlcon",
             "introduction/introduction/julia3.jlcon",
-
-            #  broken with recent changes ... to be fixed on master soon
-            "cornerstones/number-theory/galoismod.jlcon",
            ]
   skipped = [
+             # Something broken, probably needs some updated GAP packages
+             "specialized/breuer-nebe-parker-orthogonal-discriminants/expl_syl.jlcon",
+
+             # these are skipped because they slow down the tests too much:
+
              # sometimes very slow: 4000-30000s
              "specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
              # very slow: 24000s
