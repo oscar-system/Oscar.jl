@@ -27,6 +27,7 @@
   # For some random large numbers, checked with Sage
   # Partitions(991).cardinality()
   @test number_of_partitions(991) == ZZ(16839773100833956878604913215477)
+  @test_throws ArgumentError number_of_partitions(-1)
 
   ############################################################################
   # partitions(n)
@@ -55,6 +56,8 @@
   @test number_of_partitions(1,1) == 1
   @test number_of_partitions(0,1) == 0
   @test number_of_partitions(2,3) == 0
+  @test_throws ArgumentError number_of_partitions(-1, 0)
+  @test_throws ArgumentError number_of_partitions(0, -1)
 
   # From https://oeis.org/A008284
   @test [ number_of_partitions(n,k) for n in 1:14 for k in 1:n ] == 

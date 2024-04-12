@@ -111,6 +111,7 @@ Return the number of weak compositions of the non-negative integer `n` into
 `k >= 0` parts.
 """
 function number_of_weak_compositions(n::IntegerUnion, k::IntegerUnion)
+  @req n >= 0 && k >= 0 "Both arguments need to be non-negative"
   return binomial(ZZ(n) + ZZ(k) - 1, ZZ(n))
 end
 

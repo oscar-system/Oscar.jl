@@ -141,6 +141,7 @@ julia> number_of_partitions(1000)
 ```
 """
 function number_of_partitions(n::IntegerUnion)
+  @req n >= 0 "The integer needs to be non-negative"
   # This function should always return a ZZRingElem, see the discussion here:
   # https://github.com/oscar-system/Oscar.jl/pull/3159 .
   # We hence "overwrite" the Nemo function number_of_partitions(::Int) which
