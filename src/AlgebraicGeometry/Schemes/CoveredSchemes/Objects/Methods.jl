@@ -173,6 +173,7 @@ julia> R, (x, y, z) = rational_field()["x", "y", "z"];
 julia> X = covered_scheme(spec(R));
 
 julia> is_normal(X)
+true
 ```
 """
 function is_normal(X::AbsCoveredScheme; check::Bool=true)
