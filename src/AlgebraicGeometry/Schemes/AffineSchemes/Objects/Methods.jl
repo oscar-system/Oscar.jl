@@ -192,6 +192,7 @@ julia> R, (x, y, z) = rational_field()["x", "y", "z"];
 julia> X = spec(R);
 
 julia> is_normal(X)
+true
 ```
 """
 function is_normal(X::AbsAffineScheme; check::Bool=true)
