@@ -159,21 +159,15 @@ function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
     return (weak_composition(c, check = false), s)
   end
 
-  for i = k - 1:-1:1
-    if !iszero(s[i])
-      s[i] -= 1
-      if i + 1 == k
-        s[k] += 1
-      else
-        s[i + 1] = 1
-        if !iszero(s[k])
-          s[i + 1] += s[k]
-          s[k] = 0
-        end
-      end
-      return (weak_composition(c, check = false), s)
-    end
+  i = findlast(!iszero, view(s, 1:(k - 1)))
+  @assert !isnothing(i)
+
+  s[i] -= 1
+  s[i + 1] = s[k] + 1
+  if i + 1 != k
+    s[k] = 0
   end
+  return (weak_composition(c, check = false), s)
 end
 
 function Base.show(io::IO, W::WeakCompositions)
