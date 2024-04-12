@@ -260,7 +260,6 @@ function labeled_matrix_formatted(io::IO, mat::Matrix{String})
       # ... compute columns widths of the corner entries and row labels ...
       leftwidth = map(textwidth, leftpart)
       leftrows = [leftwidth[i,:] for i in 1:m]
-      #widths_leftpart = map(max, leftrows...)
       widths_leftpart = [maximum(f[i] for f in leftrows; init = 0) for i in 1:length(first(leftrows))]
 
 
