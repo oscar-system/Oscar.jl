@@ -317,7 +317,7 @@ function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.
 end
 
 function maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
-  return [sub(M, s) for s = maximal_submodule_bases]
+  return [sub(M, s) for s = maximal_submodule_bases(M)]
 end
 
 
