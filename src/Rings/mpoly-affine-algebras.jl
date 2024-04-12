@@ -912,14 +912,14 @@ false
   return is_radical(I)
 end
 
-function is_normal(A::MPolyRing)
+function is_normal(A::MPolyRing; check::Bool=true)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
   @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
   return true
 end
 
 @doc raw"""
-    is_normal(A::MPolyAnyRing) -> Bool
+    is_normal(A::MPolyAnyRing; check::Bool=true) -> Bool
 
 # Input:
 - an affine algebra ``A`` over a perfect field,

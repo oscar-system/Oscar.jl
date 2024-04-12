@@ -198,7 +198,7 @@ true
 function is_normal(X::AbsAffineScheme; check::Bool=true)
   !check || is_reduced(X) || return false
   R = coordinate_ring(X)
-  return is_normal(R)
+  return is_normal(R; check=check)
 end
 
 # Todo: Normalizations of localizations

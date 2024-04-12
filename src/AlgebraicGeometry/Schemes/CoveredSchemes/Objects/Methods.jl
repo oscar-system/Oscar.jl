@@ -179,7 +179,7 @@ true
 function is_normal(X::AbsCoveredScheme; check::Bool=true)
   !check || is_reduced(X) || return false
   for U in default_covering(X)
-    is_normal(U) || return false
+    is_normal(U; check=check) || return false
   end
   return true
 end
