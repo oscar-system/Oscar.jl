@@ -24,7 +24,7 @@ General textbooks offering details on theory and algorithms include:
 
 Please direct questions about this part of OSCAR to the following people:
 * [Thomas Breuer](https://www.math.rwth-aachen.de/homes/Thomas.Breuer/),
-* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn).
+* [Max Horn](https://math.rptu.de/en/wgs/agag/people/head/prof-dr-max-horn).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 
