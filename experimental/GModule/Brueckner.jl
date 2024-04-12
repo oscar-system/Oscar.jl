@@ -16,6 +16,10 @@ Note: the reps are NOT necessarily over the smallest field.
 
 Note: the field is NOT extended - but it throws an error if it was too small.
 
+Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
+      its `gens` value, thus these generators will in general differ from
+      the generators of `G`.
+
 Implements: Brueckner, Chap 1.2.3
 """
 function reps(K, G::Oscar.GAPGroup)
@@ -78,7 +82,7 @@ function reps(K, G::Oscar.GAPGroup)
           # xX for x in the field., hence Xp = X^p is defined up
           # to p-th powers: x^p Xp, so
           # C x^p Xp = Y
-          # appliying det:
+          # applying det:
           # det(C x^p Xp) = C^n x^(pn) det(Xp) = det(Y) = root-of-1
           # so I think that shows that C is (up to p-th powers)
           # also a root-of-1
@@ -101,7 +105,7 @@ function reps(K, G::Oscar.GAPGroup)
           z[1:n,(p-1)*n+1:end] = Y
           #= This is wrong in Brueckner - or he's using a different
              conjugation. Max figured out what to do: the identity block
-             needs to be lower left, and ubbber right the inverse.
+             needs to be lower left, and upper right the inverse.
 
              He might have been doing other conjugations s.w.
           =#

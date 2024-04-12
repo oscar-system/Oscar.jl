@@ -90,6 +90,7 @@ Base.hash(a::MultGrpElem, u::UInt = UInt(1235)) = hash(a.data. u)
     r.ac = ac
     r.M = M
     @assert all(x -> domain(x) == codomain(x) == r.M, ac)
+    @assert length(ac) == number_of_generators(G)
     @hassert :GroupCohomology 1 is_consistent(r)
     return r
   end

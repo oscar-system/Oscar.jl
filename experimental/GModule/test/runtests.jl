@@ -61,20 +61,13 @@ end
   L = [
           matrix(F, [0 0 1; 1 0 0; 0 1 0]),
           matrix(F, [2 0 0; 0 1 0; 0 0 2]),
-          matrix(F, [2 0 0; 0 2 0; 0 0 1]),
-          matrix(F, [1 0 0; 0 1 0; 0 0 1])
       ]
   m = free_module(F, 3)
   M = GModule(m, G, [hom(m, m, a) for a in L])
 
   E = GF(3,6)
   phi = embed(F, E)
-  LE = [
-          matrix(E, [0 0 1; 1 0 0; 0 1 0]),
-          matrix(E, [2 0 0; 0 1 0; 0 0 2]),
-          matrix(E, [2 0 0; 0 2 0; 0 0 1]),
-          matrix(E, [1 0 0; 0 1 0; 0 0 1])
-      ]
+  LE = [map_entries(phi, x) for x in L]
   mE = free_module(E, 3)
 
   @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
