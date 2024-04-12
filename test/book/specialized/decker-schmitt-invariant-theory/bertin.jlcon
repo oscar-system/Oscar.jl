@@ -1,0 +1,30 @@
+julia> G = permutation_group(4, [ cperm([1, 2, 3, 4]) ]);
+
+julia> RG = invariant_ring(GF(2), G);
+
+julia> primary_invariants(RG)
+4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[1]*x[3] + x[2]*x[4]
+ x[1]*x[2] + x[2]*x[3] + x[1]*x[4] + x[3]*x[4]
+ x[1]*x[2]*x[3]*x[4]
+
+julia> secondary_invariants(RG)
+5-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ 1
+ x[1]^2*x[2] + x[2]^2*x[3] + x[3]^2*x[4] + x[1]*x[4]^2
+ x[1]*x[2]*x[3] + x[1]*x[2]*x[4] + x[1]*x[3]*x[4] + x[2]*x[3]*x[4]
+ x[1]^2*x[2]*x[3] + x[2]^2*x[3]*x[4] + x[1]*x[3]^2*x[4] + x[1]*x[2]*x[4]^2
+ x[1]^3*x[2]*x[3] + x[2]^3*x[3]*x[4] + x[1]*x[3]^3*x[4] + x[1]*x[2]*x[4]^3
+
+julia> M, MtoR, StoR = module_syzygies(RG);
+
+julia> M
+Subquotient of Submodule with 5 generators
+1 -> e[1]
+2 -> e[2]
+3 -> e[3]
+4 -> e[4]
+5 -> e[5]
+by Submodule with 1 generator
+1 -> t2*e[2] + (t2 + t3)*e[3] + t1*e[4]

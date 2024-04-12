@@ -1,0 +1,26 @@
+julia> function is_galois_discriminant_field(data)
+         chi = Oscar.OrthogonalDiscriminants.character_of_entry(data)
+         F, emb = character_field(chi)
+         c = conductor(emb(gen(F)))
+         galgens = Oscar.AbelianClosure.generators_galois_group_cyclotomic_field(c)
+         delta = atlas_irrationality(data[:valuestring])
+         return all(x -> is_square(preimage(emb, delta * x(delta))),
+                    galgens)
+       end;
+
+julia> info = all_od_infos(characteristic => 0, is_simple);
+
+julia> filter!(r -> r[:valuestring] != "?" &&
+                    conductor(atlas_irrationality(r[:valuestring])) > 1,
+               info);
+
+julia> length(info)
+58
+
+julia> filter!(!is_galois_discriminant_field, info);
+
+julia> length(info)
+26
+
+julia> println(sort!(collect(Set([r[:groupname] for r in info]))))
+["HN", "He", "J1", "J3", "ON", "Ru"]

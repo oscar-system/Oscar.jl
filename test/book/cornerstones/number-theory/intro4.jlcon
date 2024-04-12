@@ -1,0 +1,6 @@
+julia> Qx, x = QQ["x"];
+
+julia> K, a = embedded_number_field(x^3 - 2, 1.26);
+
+julia> 0 < a < 2
+true
