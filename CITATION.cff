@@ -31,6 +31,7 @@ preferred-citation:
     given-names: "Max"
   - family-names: "Joswig"
     given-names: "Michael"
-  title: The Computer Algebra System OSCAR. Algorithms and Examples
+  title: "The Computer Algebra System OSCAR: Algorithms and Examples"
   year: 2024
-
+  publisher:
+    name: "Springer"
