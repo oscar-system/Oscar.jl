@@ -262,7 +262,6 @@ function labeled_matrix_formatted(io::IO, mat::Matrix{String})
       leftrows = [leftwidth[i,:] for i in 1:m]
       widths_leftpart = [maximum(f[i] for f in leftrows; init = 0) for i in 1:length(first(leftrows))]
 
-
       # ... and of the column labels and matrix entries.
       rightwidth = map(textwidth, rightpart)
       rightrows = [rightwidth[i,:] for i in 1:m]
