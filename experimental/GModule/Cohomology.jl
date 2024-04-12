@@ -184,11 +184,12 @@ end
 function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
   if !isdefined(C, :F)
-    if (!isa(group(C), FPGroup)) && is_trivial(group(C))
+    G = group(C)
+    if (!isa(G, FPGroup)) && is_trivial(G)
       C.F = free_group(0)
-      C.mF = hom(group(C), C.F, gens(group(C)), elem_type(C.F)[])
+      C.mF = hom(G, C.F, elem_type(G)[], elem_type(C.F)[])
     else
-      C.F, C.mF = fp_group_with_isomorphism(gens(group(C)))
+      C.F, C.mF = fp_group_with_isomorphism(gens(G))
     end
   end
   return C.F, C.mF

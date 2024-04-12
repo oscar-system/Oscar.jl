@@ -425,6 +425,8 @@ end
        @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
        @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
 
+       @test is_bijective(isomorphism(FPGroup, symmetric_group(1), on_gens = true))
+
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)
        @test codomain(f) isa FinGenAbGroup
