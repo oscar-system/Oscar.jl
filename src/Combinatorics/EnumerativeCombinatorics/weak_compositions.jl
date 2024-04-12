@@ -109,9 +109,12 @@ Base.eltype(W::WeakCompositions{T}) where T = WeakComposition{T}
 
 Return the number of weak compositions of the non-negative integer `n` into
 `k >= 0` parts.
+If `n < 0` or `k < 0`, return `0`.
 """
 function number_of_weak_compositions(n::IntegerUnion, k::IntegerUnion)
-  @req n >= 0 && k >= 0 "Both arguments need to be non-negative"
+  if n < 0 || k < 0
+    return ZZ(0)
+  end
   return binomial(ZZ(n) + ZZ(k) - 1, ZZ(n))
 end
 

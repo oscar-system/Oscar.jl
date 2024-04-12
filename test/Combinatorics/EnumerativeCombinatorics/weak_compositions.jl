@@ -25,5 +25,6 @@
   l = @inferred collect(weak_compositions(7, 1))
   @test l == [weak_composition([7])]
 
-  @test_throws ArgumentError number_of_weak_compositions(1, -2)
+  @test number_of_weak_compositions(1, -2) == ZZ(0)
+  @test number_of_weak_compositions(-1, 0) == ZZ(0)
 end

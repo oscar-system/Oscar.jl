@@ -132,7 +132,7 @@ end
 @doc raw"""
     number_of_partitions(n::IntegerUnion)
 
-Return the number of integer partitions of `n`.
+Return the number of integer partitions of `n`. For `n < 0`, return `0`.
 
 # Examples
 ```jldoctest
@@ -141,7 +141,9 @@ julia> number_of_partitions(1000)
 ```
 """
 function number_of_partitions(n::IntegerUnion)
-  @req n >= 0 "The integer needs to be non-negative"
+  if n < 0
+    return ZZ(0)
+  end
   # This function should always return a ZZRingElem, see the discussion here:
   # https://github.com/oscar-system/Oscar.jl/pull/3159 .
   # We hence "overwrite" the Nemo function number_of_partitions(::Int) which
@@ -242,11 +244,12 @@ end
 
 Return the number of integer partitions of the non-negative integer `n` into
 `k >= 0` parts.
+If `n < 0` or `k < 0`, return `0`.
 """
 function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
-
-  @req n >= 0 "n >= 0 required"
-  @req k >= 0 "k >= 0 required"
+  if n < 0 || k < 0
+    return ZZ(0)
+  end
 
   n = ZZ(n)
   k = ZZ(k)
