@@ -439,4 +439,3 @@ function _change_base_ring(phi::Any,
   res = compose(restricted_map(Phi_W), pr)
   return L_red, hom(L, L_red, res, check=false)
 end
-
