@@ -1,0 +1,30 @@
+name: JuliaFormatter test
+
+on:
+  push:
+    branches:
+      - master
+      - 'release-*'
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # group by workflow and ref; the last slightly strange component ensures that for pull
+  # requests, we limit to 1 concurrent job, but for the master branch we don't
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.ref != 'refs/heads/master' || github.run_number }}
+  # Cancel intermediate builds, but only if it is a pull request build.
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+
+jobs:
+  check-consistent-formatting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: julia-actions/setup-julia@v2
+    - uses: julia-actions/cache@v1
+    - name: 'Check format with JuliaFormatter'
+      run: |
+        julia etc/test_formatting.jl
+      shell: bash
+      env:
+        jf-version: ${{ inputs.version }}
