@@ -52,10 +52,12 @@ base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fi
 @doc raw"""
     set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllipticCurvePoint})
 
-Set generators for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
+Set a basis for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
 
 This invalidates previous computations depending on the generators of the
-mordell weil lattice such as the `algebraic_lattice`. Use with care.
+Mordell Weil lattice such as the `algebraic_lattice`. Use with care.
+
+The points in `mwl_basis` must be linearly independent.
 """
 function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
   @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
@@ -100,8 +102,6 @@ Elliptic surface
 with generic fiber
   -x^3 + y^2 - t^7 + 2*t^6 - t^5
 
-julia> Base.show(stdout, X3)
-Elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
 ```
 """
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
@@ -171,7 +171,7 @@ numerical lattice and update the generators of its Mordell--Weil group according
 The algorithm works by computing suitable divison points in its Mordell Weil group.
 """
 function algebraic_lattice_primitive_closure!(S::EllipticSurface)
-  L = algebraic_lattice(S)
+  L = algebraic_lattice(S)[3]
   for p in prime_divisors(ZZ(det(L)))
     while true
       pts = algebraic_lattice_primitive_closure!(S, p)
@@ -295,7 +295,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
     for i in r+1:n
       vT[1,i] = intersect(T,basisA[i])
     end
-    push!(torsV, solve_left(GA_QQ,vT))
+    push!(torsV, solve(GA_QQ, vT; side=:left))
   end
   gen_tors = zip(tors, torsV)
   push!(torsV, identity_matrix(QQ,n))
@@ -632,7 +632,7 @@ function weierstrass_contraction(X::EllipticSurface)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = simplify!(I_sing_X0[1], cov)
+    J = simplify(I_sing_X0[1])#, cov)
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
@@ -1866,7 +1866,7 @@ function _elliptic_parameter_conversion(X::EllipticSurface, u::VarietyFunctionFi
     @assert (an*xx+bn*yy+cn)//(ad*xx+bd*yy+cd) == u_frac "decomposition failed"
 
 
-    v = solve(matrix(parent(an),2,2,[-an, bn,-ad, bd]), matrix(parent(an),2,1,[cn,cd]))
+    v = solve(matrix(parent(an), 2, 2, [-an, bn,-ad, bd]), matrix(parent(an), 2, 1, [cn, cd]); side=:right)
     x0 = v[1,1]
     y0 = v[2,1]
     @assert evaluate(f_loc,[x0,y0,gen(parent(x0))])==0
@@ -1923,17 +1923,17 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   rk = rank(V)
   G = ZZ.(gram_matrix(V))
   # project away from the trivial lattice
-  pr_mwl = orthogonal_projection(V,basis_matrix(SX)[1:r,:])
-  BMWL = pr_mwl.matrix[r+1:end,:]
+  pr_mwl = orthogonal_projection(V,basis_matrix(SX)[1:r, :])
+  BMWL = pr_mwl.matrix[r+1:end, :]
   GB = gram_matrix(V,BMWL)
   @assert rank(GB) == rk-r
-  _, u = hnf_with_transform(ZZ.(denominator(GB)*GB))
-  B = u[1:rk-r,:]*BMWL
+  _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
+  B = u[1:rk-r,:] * BMWL
 
   MWL = lll(lattice(V, B, isbasis=false))
-  u = solve_left(BMWL, basis_matrix(MWL))
+  u = solve(BMWL, basis_matrix(MWL); side=:left)
   u = ZZ.(u)
-  mwl_basis = [sum(u[i,j]*mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
-  return MWL,mwl_basis
+  mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
+  return MWL, mwl_basis
 end
 

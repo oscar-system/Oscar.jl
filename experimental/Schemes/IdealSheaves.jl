@@ -293,8 +293,7 @@ end
 @doc raw"""
     simplify!(I::AbsIdealSheaf)
 
-Replaces the set of generators of the ideal sheaf on each cached chart
-by a small generating set.
+Replaces the set of generators of the ideal sheaf on each cached chart by a small generating set.
 """
 function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
   object_cache = I.I.obj_cache
