@@ -534,8 +534,16 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (FPGroup, on_gens)) do
      if on_gens
-       f = GAPWrap.IsomorphismFpGroupByGenerators(G.X,
-             GAP.Globals.GeneratorsOfGroup(G.X))
+       Ggens = GAPWrap.GeneratorsOfGroup(G.X)
+       if length(Ggens) == 0
+# TODO: remove this special treatment as soon as the change from
+#       https://github.com/gap-system/gap/pull/5700 is available in Oscar
+#       (not yet in GAP 4.13.0)
+         f = GAP.Globals.GroupHomomorphismByImages(G.X, GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
+         GAP.Globals.SetIsBijective(f, true)
+       else
+         f = GAPWrap.IsomorphismFpGroupByGenerators(G.X, Ggens)
+       end
      else
        f = GAPWrap.IsomorphismFpGroup(G.X)
      end

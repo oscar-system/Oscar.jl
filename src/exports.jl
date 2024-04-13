@@ -1092,6 +1092,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_simplicial_complex
 export on_subgroups
 export on_tuples
 export one!
@@ -1368,6 +1369,7 @@ export src
 export stable_intersection
 export stable_set_polytope
 export standard_basis
+export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
 export standard_tableaux
 export stanley_reisner_ideal

@@ -8,10 +8,16 @@
 
   toric_morphism::ToricMorphism
   index_of_new_ray::Integer
-  center::ToricIdealSheafFromCoxRingIdeal
+  center::Union{ToricIdealSheafFromCoxRingIdeal, IdealSheaf}
   exceptional_divisor::ToricDivisor
 
   function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, center::ToricIdealSheafFromCoxRingIdeal, new_ray::AbstractVector{<:IntegerUnion})
+    bl = ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray)
+    bl.center = center
+    return bl
+  end
+
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion})
 
     # Compute position of new ray
     new_rays = matrix(ZZ, rays(new_variety))
@@ -37,12 +43,9 @@
 
     # Construct the toric morphism and construct the object
     bl = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, position_new_ray, center)
+    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, position_new_ray)
   end
 end
-
-#toric_blowdown_morphism(bl::ToricMorphism, new_ray::AbstractVector{<:IntegerUnion}, center::IdealSheaf) = ToricBlowdownMorphism(bl, new_ray, center)
-#toric_blowdown_morphism(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String) = ToricBlowdownMorphism(Y, new_ray, coordinate_name)
 
 
 

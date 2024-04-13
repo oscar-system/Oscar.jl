@@ -645,11 +645,12 @@ _hilbert_generator(
   T::Type{PointVector{ZZRingElem}}, C::Cone{QQFieldElem}, i::Base.Integer
 ) = point_vector(ZZ, view(pm_object(C).HILBERT_BASIS_GENERATORS[1], i, :))::T
 
-_generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) = if homogenized
-  homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0)
-else
-  pm_object(C).HILBERT_BASIS_GENERATORS[1]
-end
+_generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) =
+  if homogenized
+    homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0)
+  else
+    pm_object(C).HILBERT_BASIS_GENERATORS[1]
+  end
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 

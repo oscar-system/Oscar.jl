@@ -107,6 +107,7 @@ is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
 ## Methods
 ```@docs
 tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
+is_normal(X::AbsAffineScheme; check::Bool=true)
 normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
 ```
 
