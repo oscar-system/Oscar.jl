@@ -52,6 +52,7 @@ An `AbsCoveredScheme` may have different properties such as
 ## Methods
 ```@docs
     fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
+    is_normal(X::AbsCoveredScheme; check::Bool=true)
     normalization(X::AbsCoveredScheme; check::Bool=true)
 ```
 

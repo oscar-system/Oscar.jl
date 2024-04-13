@@ -175,6 +175,32 @@ end
 # Normalization                                                        #
 ########################################################################
 
+@doc raw"""
+    is_normal(X::AbsAffineScheme; check::Bool=true) -> Bool
+
+# Input:
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
+
+# Output:
+Returns whether the scheme ``X`` is normal.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+
+julia> X = spec(R);
+
+julia> is_normal(X)
+true
+```
+"""
+function is_normal(X::AbsAffineScheme; check::Bool=true)
+  !check || is_reduced(X) || return false
+  R = coordinate_ring(X)
+  return is_normal(R; check=check)
+end
+
 # Todo: Normalizations of localizations
 #function _normalization(X::AbsAffineScheme{<:Field, <:MPolyLocRing}; algorithm=:equidimDec)
 #  L = OO(X)
