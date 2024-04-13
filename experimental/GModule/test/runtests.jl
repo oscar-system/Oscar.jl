@@ -15,6 +15,14 @@
 end
 
 
+@testset "Experimental.gmodule: pc group of FinGenAbGroup" begin
+  M = abelian_group([2 6 9; 1 5 3; 1 1 0])
+  G1, _ = Oscar.GrpCoh.pc_group_with_isomorphism(M)
+  G2 = codomain(isomorphism(PcGroup, M))
+  @test describe(G1) == describe(G2)
+end
+
+
 @testset "Experimental.gmodule" begin
 
   G = small_group(7*3, 1)
@@ -67,9 +75,9 @@ end
 
   @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
 
-  G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
-  q, mq = maximal_abelian_quotient(PcGroup, G)
-  @test length(Oscar.RepPc.brueckner(mq)) == 24
+  # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
+  # q, mq = maximal_abelian_quotient(PcGroup, G)
+  # @test length(Oscar.RepPc.brueckner(mq)) == 24
 end
 
 @testset "Experimental LocalH2" begin

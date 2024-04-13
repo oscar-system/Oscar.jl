@@ -144,8 +144,6 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
       testlist = _gather_tests(path; ignore=ignore)
       @req !isempty(testlist) "no such file or directory: $path[.jl]"
 
-      @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
-
       use_ctime = timed && VERSION >= v"1.9.0-DEV"
       if use_ctime
         Base.cumulative_compile_timing(true)
@@ -163,6 +161,8 @@ function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, te
         # and make sure the current project is still available to allow e.g. `using Oscar`
         pushfirst!(LOAD_PATH, dirname(project_path))
         Pkg.resolve()
+      else
+        @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
       end
 
       try

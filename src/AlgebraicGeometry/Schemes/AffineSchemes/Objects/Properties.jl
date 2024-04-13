@@ -88,9 +88,9 @@ end
 # (2.1) MPolyRing in first argument
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyRing}
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
+  ) where {BRT}
   return OO(X) === OO(Y)
 end
 
@@ -138,9 +138,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoRing}
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
@@ -192,9 +192,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyLocRing}
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -257,9 +257,9 @@ end
 
 
 function is_subscheme(
-    X::AbsAffineScheme{BRT, RT},
-    Y::AbsAffineScheme{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -570,9 +570,13 @@ julia> is_equidimensional(Y)
 false
 ```
 """
+## equidimensional decomposition only available for schemes over a field
 @attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))
-# equidimensional decomposition only available for schemes over a field
+  if has_attribute(I, :is_equidimensional)
+    return is_equidimensional(I)
+  end
+
   P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
@@ -595,7 +599,7 @@ Check whether the affine scheme `X` is reduced.
 """
 @attr Bool function is_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
-  return is_reduced(quo(base_ring(I), I)[1])
+  return is_radical(I)
 end
 
 ## make is_reduced agnostic to quotient ring
@@ -734,7 +738,8 @@ Check whether the affine scheme `X` is irreducible.
   !is_empty(X) || return false
   !get_attribute(X, :is_integral, false) || return true
                                            ## integral = irreducible + reduced
-  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
+  I = saturated_ideal(modulus(OO(X)))
+  return is_primary(I)
 end
 
 is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyRing}) = true

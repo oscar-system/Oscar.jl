@@ -149,43 +149,39 @@ ideal_sheaf(X::AbsCoveredScheme) = IdealSheaf(X)
 # set up an ideal sheaf by automatic extension
 # from one prescribed set of generators on one affine patch
 @doc raw"""
-    IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector)
+    IdealSheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal)
 
-Set up an ideal sheaf on ``X`` by specifying a set of generators ``g``
+Set up an ideal sheaf on ``X`` by specifying an ideal ``I``
 on one affine open subset ``U`` among the `basic_patches` of the
 `default_covering` of ``X``.
 
-**Note:** The set ``U`` has to be dense in its connected component
-of ``X`` since otherwise, the extension of the ideal sheaf to other
-charts can not be inferred.
+**Note:** The ideal ``I`` has to be prime so that its extension 
+to the other charts of ``X`` is well defined. 
 """
+function IdealSheaf(
+    X::AbsCoveredScheme, U::AbsAffineScheme, 
+    I::Ideal; check::Bool=false
+  )
+  @assert base_ring(I) === OO(U) || error("ideal not defined in the correct ring")
+  @check is_prime(I) "ideal must be prime"
+  return PrimeIdealSheafFromChart(X, U, I)
+end
+
+function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=CoveredScheme(X))
+  @assert base_ring(I) === OO(X)
+  @assert length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme))
+  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
+end
+
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
     g::Vector{RET}; check::Bool=false
   ) where {RET<:RingElem}
-  I = ideal(OO(U), g)
-  @check is_prime(I) "ideal must be prime"
-  return PrimeIdealSheafFromChart(X, U, I)
-
-  C = default_covering(X)
-  for f in g
-    parent(f) === OO(U) || error("the generators do not belong to the correct ring")
-  end
-  if !any(x->x===U, patches(C))
-    inc_U_flat = _flatten_open_subscheme(U, default_covering(X))
-    U_flat = codomain(inc_U_flat)::PrincipalOpenSubset
-    V = ambient_scheme(U_flat)
-    J = saturated_ideal(pullback(inverse(inc_U_flat))(ideal(OO(U), g)))
-    return IdealSheaf(X, V, OO(V).(gens(J)))
-  end
-  D = IdDict{AbsAffineScheme, Ideal}()
-  D[U] = ideal(OO(U), g)
-  D = extend!(C, D)
-  I = IdealSheaf(X, D, check=false)
-  return I
+  return IdealSheaf(X, U, ideal(OO(U), g); check)
 end
 
-ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}) where {RET<:RingElem} = IdealSheaf(X, U, g)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, g; check)
+ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) = IdealSheaf(X, U, I; check)
 
 @doc raw"""
     IdealSheaf(Y::AbsCoveredScheme,
@@ -587,31 +583,37 @@ end
 is_locally_prime(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
-  has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return true
+  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)
+  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
-  all(x->x==d, local_dims) || return false
-  all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering)) || return false
-  return true
+  if !all(x->x==d, local_dims) ||
+     !all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering))
+    set_attribute!(I, :is_equidimensional=>false)
+    return false
+  else
+    set_attribute!(I, :is_equidimensional=>true)
+    return true
+  end
 end
 
 is_equidimensional(I::PrimeIdealSheafFromChart) = true
 
-function is_equidimensional(I::MPolyIdeal)
+@attr Bool function is_equidimensional(I::MPolyIdeal)
   decomp = equidimensional_decomposition_weak(I)
   return isone(length(decomp))
 end
 
-function is_equidimensional(I::MPolyQuoIdeal)
+@attr Bool function is_equidimensional(I::MPolyQuoIdeal)
   is_equidimensional(saturated_ideal(I))
 end
 
-function is_equidimensional(I::MPolyLocalizedIdeal)
+@attr Bool function is_equidimensional(I::MPolyLocalizedIdeal)
   return is_equidimensional(saturated_ideal(I))
 end
 
-function is_equidimensional(I::MPolyQuoLocalizedIdeal)
+@attr Bool function is_equidimensional(I::MPolyQuoLocalizedIdeal)
   return is_equidimensional(pre_image_ideal(I))
 end
 
@@ -835,6 +837,9 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
 
 # make sure to return ideal sheaves, not dicts
   associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  for Itemp in associated_primes_result
+    set_attribute!(Itemp, :is_prime=>true)
+  end
   return associated_primes_result
 end
 
@@ -899,6 +904,9 @@ function associated_points(I::AbsIdealSheaf)
 
 # make sure to return ideal sheaves, not dicts
   associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
+  for Itemp in associated_primes_result
+    set_attribute!(Itemp, :is_prime=>true)
+  end
   return associated_primes_result
 end
 

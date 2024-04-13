@@ -34,7 +34,7 @@ Finally, we refer to
 and regard $M$ as a submodule of that ambient module, embedded in the natural way.
 
 !!! note
-    Recall from the section on free modules that by a free $R$-module we mean a free
+    Recall from the section on [free modules](@ref free_modules) that by a free $R$-module we mean a free
     module of type $R^p$ , where we think of $R^p$ as a free module with a given
     basis, namely the basis of standard unit vectors. Accordingly, elements of free modules
     are represented by coordinate vectors, and homomorphisms between free modules by

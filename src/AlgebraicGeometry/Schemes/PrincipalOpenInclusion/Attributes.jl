@@ -23,6 +23,12 @@ function inverse_on_image(inc::PrincipalOpenEmbedding)
   Y = codomain(inc)
   U = image(inc)
 
+  if ambient_coordinate_ring(X) === ambient_coordinate_ring(U)
+    result = morphism(U, X, gens(OO(X)); check=false)
+    inc.inverse_on_image = result
+    return result
+  end
+
   res = morphism(X, U, pullback(inc).(gens(OO(Y))), check=false)
   result = inverse(res)
   inc.inverse_on_image = result

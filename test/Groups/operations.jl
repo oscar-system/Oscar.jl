@@ -61,7 +61,7 @@ end
    I[3:4,3:4] = x
    @test I==I1
    @test I[3:4,3:4]==x
-   V = VectorSpace(F,6)
+   V = vector_space(F,6)
    @test matrix([V[i] for i in 1:6])==identity_matrix(F,6)
    L = [1,4,6,2,3,5]
    P = permutation_matrix(F,L)
@@ -98,7 +98,7 @@ end
 
 @testset "Operations with vector spaces" begin
    F= GF(7, 1)
-   V=VectorSpace(F,5)
+   V=vector_space(F,5)
 
    @test V([1,0,2,0,6])==V[1]+2*V[3]-V[5]
    U = sub(V,[V[1],V[3]])[1]

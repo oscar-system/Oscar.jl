@@ -403,6 +403,8 @@ end
 Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
 of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
 with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
+of the bases of the lower degrees.
 
 !!! warn
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
@@ -418,13 +420,22 @@ If this is a weighted ordering, the height of the corresponding root is used as 
 # Example
 ```jldoctest
 julia> bases = basis_coordinate_ring_kodaira(:G, 2, [1,0], 6; monomial_ordering = :invlex)
-6-element Vector{Tuple{MonomialBasis, Int64}}:
- (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, 7)
- (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, 5)
- (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, 14)
- (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, 7)
- (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, 12)
- (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, 8)
+6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
+ (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, [1, x1, x3, x1*x3, x1^2*x3, x3*x4, x1*x3*x4])
+ (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, [x4, x1*x4, x4^2, x3*x4^2, x1*x3*x4^2])
+ (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, [x1^2*x4^2, x4^3, x1*x4^3, x4^4, x1*x4^4, x3*x4^4, x5, x2*x5, x1*x2*x5, x1^2*x2*x5, x3^2*x5, x1*x3^2*x5, x3^3*x5, x1*x3^3*x5])
+ (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, [x4^5, x1*x4^5, x4^6, x3^2*x4*x5, x1*x3^2*x4*x5, x3^2*x4^2*x5, x3^3*x4^2*x5])
+ (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, [x1^2*x4^6, x4^7, x1*x4^7, x2*x4^3*x5, x1*x2*x4^3*x5, x2*x3*x4^3*x5, x1*x2*x3*x4^3*x5, x1^2*x2*x3*x4^3*x5, x2*x3^2*x4^3*x5, x1*x2*x3^2*x4^3*x5, x1^2*x2*x3^2*x4^3*x5, x2*x4^4*x5])
+ (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, [x4^9, x1*x3*x4^4*x5, x2*x4^5*x5, x3*x4^5*x5, x3^2*x4^5*x5, x2*x3^2*x4^5*x5, x1*x2*x3^2*x4^5*x5, x3^4*x4*x5^2])
+
+julia> [length(basis[2]) for basis in bases]
+6-element Vector{Int64}:
+  7
+  5
+ 14
+  7
+ 12
+  8
 
 julia> bases[end][1]
 Monomial basis of a highest weight module
@@ -501,6 +512,8 @@ end
 Compute monomial bases for the degree-truncated coordinate ring (for all degrees up to `degree`) 
 of the Kodaira embedding of the generalized flag variety into the projective space of the highest weight module
 with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type` and rank `rank`.
+Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
+of the bases of the lower degrees.
 
 !!! warn
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
@@ -513,13 +526,22 @@ The monomial ordering is fixed to `degrevlex`.
 # Example
 ```jldoctest
 julia> bases = basis_coordinate_ring_kodaira_ffl(:G, 2, [1,0], 6)
-6-element Vector{Tuple{MonomialBasis, Int64}}:
- (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, 7)
- (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, 0)
- (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, 0)
- (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, 0)
- (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, 0)
- (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, 0)
+6-element Vector{Tuple{MonomialBasis, Vector{ZZMPolyRingElem}}}:
+ (Monomial basis of a highest weight module with highest weight [1, 0] over Lie algebra of type G2, [1, x6, x4, x3, x2, x1, x1*x6])
+ (Monomial basis of a highest weight module with highest weight [2, 0] over Lie algebra of type G2, [])
+ (Monomial basis of a highest weight module with highest weight [3, 0] over Lie algebra of type G2, [])
+ (Monomial basis of a highest weight module with highest weight [4, 0] over Lie algebra of type G2, [])
+ (Monomial basis of a highest weight module with highest weight [5, 0] over Lie algebra of type G2, [])
+ (Monomial basis of a highest weight module with highest weight [6, 0] over Lie algebra of type G2, [])
+
+julia> [length(basis[2]) for basis in bases]
+6-element Vector{Int64}:
+ 7
+ 0
+ 0
+ 0
+ 0
+ 0
 
 julia> bases[end][1]
 Monomial basis of a highest weight module
