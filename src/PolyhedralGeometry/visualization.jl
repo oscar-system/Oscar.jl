@@ -55,7 +55,13 @@ These arguments can be given as a string:
 """
 function visualize(
   P::Union{
-    Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T},SubdivisionOfPoints{T},Graph,SimplicialComplex
+    Polyhedron{T},
+    Cone{T},
+    PolyhedralFan{T},
+    PolyhedralComplex{T},
+    SubdivisionOfPoints{T},
+    Graph,
+    SimplicialComplex,
   };
   kwargs...,
 ) where {T<:Union{Float64,FieldElem}}
@@ -116,8 +122,6 @@ function _prepare_visualization(
   end
 end
 
-function _prepare_visualization(
-  P::Union{Graph,SimplicialComplex}
-)
+function _prepare_visualization(P::Union{Graph,SimplicialComplex})
   return nothing
 end
