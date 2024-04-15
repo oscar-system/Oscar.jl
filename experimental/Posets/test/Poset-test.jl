@@ -69,4 +69,22 @@
     test_poset(a2_adj_cov, a2_adj_rel)
     test_poset(b2_adj_cov, b2_adj_rel)
   end
+
+  @testset "iterate(::MaximalChainsIterator, ::Vector{Int})" begin
+    ps = poset(a2_adj_cov)
+    @test collect(maximal_chains(ps)) ==
+      [[1, 2, 4, 6], [1, 2, 5, 6], [1, 3, 4, 6], [1, 3, 5, 6]]
+
+    ps = poset(b2_adj_cov)
+    @test collect(maximal_chains(ps)) == [
+      [1, 2, 4, 6, 8],
+      [1, 2, 4, 7, 8],
+      [1, 2, 5, 6, 8],
+      [1, 2, 5, 7, 8],
+      [1, 3, 4, 6, 8],
+      [1, 3, 4, 7, 8],
+      [1, 3, 5, 6, 8],
+      [1, 3, 5, 7, 8],
+    ]
+  end
 end
