@@ -66,32 +66,29 @@ end
 
 # PosetElem constructors
 
-function poset_elem(P::Poset, i::Int)
+function (P::Poset)(i::Int)
   @req 1 <= i <= length(P.elems) "index out of range"
   return PosetElem(i, P)
 end
 
-function poset_elem(P::Poset, elem::VarName)
+function (P::Poset)(elem::VarName)
   i = findfirst(==(Symbol(elem)), P.elems)
   if isnothing(i)
     error("unknown element")
   end
 
-  return poset_elem(P, i)
-end
-
-function (P::Poset)(i::Int)
-  return poset_elem(P, i)
-end
-
-function (P::Poset)(elem::VarName)
-  return poset_elem(P, elem)
+  return Poset(i, P)
 end
 
 # MaximalChainsIterator constructors
 
+@doc raw"""
+    maximal_chains(P::Poset) -> MaximalChainsIterator
+
+Returns an iterator over the maximal chains of `P`.
+"""
 function maximal_chains(P::Poset)
-  return MaximalChainsIterator(P, false)
+  return MaximalChainsIterator(P)
 end
 
 # PosetElem functions
