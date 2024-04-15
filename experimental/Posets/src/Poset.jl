@@ -12,7 +12,7 @@ function Base.length(P::Poset)
 end
 
 function Base.show(io::IO, P::Poset)
-  print(io, "poset with $(length(P)) elements")
+  print(io, "Poset with $(ItemQuantity(length(P), "element")")
 end
 
 # PosetElem
@@ -77,7 +77,7 @@ function (P::Poset)(elem::VarName)
     error("unknown element")
   end
 
-  return Poset(i, P)
+  return PosetElem(i, P)
 end
 
 # MaximalChainsIterator constructors
