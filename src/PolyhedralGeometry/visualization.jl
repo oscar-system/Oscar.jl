@@ -55,7 +55,7 @@ These arguments can be given as a string:
 """
 function visualize(
   P::Union{
-    Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T},SubdivisionOfPoints{T}
+    Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T},SubdivisionOfPoints{T},Graph,SimplicialComplex
   };
   kwargs...,
 ) where {T<:Union{Float64,FieldElem}}
@@ -114,4 +114,10 @@ function _prepare_visualization(
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
     pm_object(P).POINT_LABELS = string.(1:(Oscar.pm_object(P).N_POINTS))
   end
+end
+
+function _prepare_visualization(
+  P::Union{Graph,SimplicialComplex}
+)
+  return nothing
 end
