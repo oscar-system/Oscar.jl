@@ -152,6 +152,14 @@ function simplify(S::MPolyPowersOfElement)
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
+    for (a, _) in factor(d)
+      a in new_denom && continue
+      push!(new_denom, a)
+    end
+  end
+  return MPolyPowersOfElement(R, new_denom)
+
+  for d in denominators(S)
 
     # get rid of the square free part
     for j in 1:ngens(R)
