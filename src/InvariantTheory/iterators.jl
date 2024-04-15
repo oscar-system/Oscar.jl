@@ -58,13 +58,11 @@ end
 
 Base.eltype(AM::AllMonomials) = elem_type(AM.R)
 
-# We are basically doing d-multicombinations of n here and those are "the same"
-# as d-combinations of n + d - 1 (according to Knuth).
-Base.length(AM::AllMonomials) = binomial(AM.n_vars + AM.d - 1, AM.d)
+Base.length(AM::AllMonomials) = length(AM.weak_comp_iter)
 
-function _build_monomial(AM::AllMonomials, c::Vector{Int})
+function _build_monomial(AM::AllMonomials, c::WeakComposition{Int})
   if AM.on_all_vars
-    return set_exponent_vector!(one(AM.R), 1, c)
+    return set_exponent_vector!(one(AM.R), 1, data(c))
   end
 
   for i in 1:AM.n_vars
@@ -77,62 +75,17 @@ function _build_monomial(AM::AllMonomials, c::Vector{Int})
   return f
 end
 
-function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
-  n = AM.n_vars
-  if n == 0
+function Base.iterate(AM::AllMonomials, state::Union{Nothing, Vector{Int}} = nothing)
+  c = iterate(AM.weak_comp_iter, state)
+  if c === nothing
     return nothing
   end
-  if AM.d == 0
-    s = zeros(Int, n)
-    s[n] = AM.d + 1
-    return one(AM.R), s
-  end
-
-  c = zeros(Int, n)
-  c[1] = AM.d
-  s = zeros(Int, n)
-  if isone(n)
-    s[1] = AM.d + 1
-    return (_build_monomial(AM, c), s)
-  end
-
-  s[1] = AM.d - 1
-  s[2] = 1
-  return (_build_monomial(AM, c), s)
-end
-
-function Base.iterate(AM::AllMonomials, s::Vector{Int})
-  n = AM.n_vars
-  d = AM.d
-  if s[n] == d + 1
-    return nothing
-  end
-  c = copy(s)
-  if s[n] == d
-    s[n] += 1
-    return (_build_monomial(AM, c), s)
-  end
-
-  for i = n - 1:-1:1
-    if !iszero(s[i])
-      s[i] -= 1
-      if i + 1 == n
-        s[n] += 1
-      else
-        s[i + 1] = 1
-        if !iszero(s[n])
-          s[i + 1] += s[n]
-          s[n] = 0
-        end
-      end
-      return (_build_monomial(AM, c), s)
-    end
-  end
+  return _build_monomial(AM, c[1]), c[2]
 end
 
 function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
   io = pretty(io)
-  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  println(io, "Iterator over the monomials of degree $(AM.d)")
   print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
 end
 

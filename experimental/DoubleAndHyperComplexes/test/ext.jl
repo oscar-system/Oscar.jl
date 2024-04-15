@@ -193,25 +193,25 @@ end
   interp = Oscar.element_to_homomorphism_map(tot, 0)
 
   # The particular results below depend on the outcome of the kernel computation 
-  # and might change! 
+  # and might change!
   phi = interp(H0[1])
   dom_tot = domain(phi)
   cod_tot = codomain(phi)
-  @test !iszero(phi[0]) 
+  @test !iszero(phi[0])
   @test !iszero(phi[1])
   @test compose(map(dom_tot, 1), phi[0]) == compose(phi[1], map(cod_tot, 1))
 
   phi = interp(H0[2])
   dom_tot = domain(phi)
   cod_tot = codomain(phi)
-  @test !iszero(phi[0]) 
-  @test !iszero(phi[1])
+  @test !iszero(phi[0])
   @test compose(map(dom_tot, 1), phi[0]) == compose(phi[1], map(cod_tot, 1))
 
   phi = interp(H0[3])
   dom_tot = domain(phi)
   cod_tot = codomain(phi)
-  @test !iszero(phi[0]) 
+  @test !iszero(phi[0])
+  @test !iszero(phi[1])
   @test compose(map(dom_tot, 1), phi[0]) == compose(phi[1], map(cod_tot, 1))
 
   # The morphisms

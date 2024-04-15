@@ -3109,10 +3109,9 @@ function rand_homogeneous(R::MPolyRing, degree::Int)
       throw(ArgumentError("Base ring is not finite"))
   end
   n = nvars(R)
-  comps = weak_compositions(degree, n)
   M = MPolyBuildCtx(R)
-  for p in comps 
-      push_term!(M, rand(K), p)
+  for p in weak_compositions(degree, n)
+    push_term!(M, rand(K), data(p))
   end
   return finish(M)
 end

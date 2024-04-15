@@ -116,6 +116,7 @@ end
 struct AllMonomials{PolyRingT}
   R::PolyRingT
   d::Int # the degree
+  weak_comp_iter::WeakCompositions{Int}
 
   on_all_vars::Bool # whether we work on all variables or a subset
   n_vars::Int # the number of variables we work on
@@ -124,7 +125,7 @@ struct AllMonomials{PolyRingT}
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int) where PolyRingT
     @assert d >= 0
-    return new{PolyRingT}(R, d, true, ngens(R))
+    return new{PolyRingT}(R, d, weak_compositions(d, ngens(R)), true, ngens(R))
   end
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int, vars::Vector{Int}) where PolyRingT
@@ -138,7 +139,7 @@ struct AllMonomials{PolyRingT}
     end
 
     tmp = zeros(Int, ngens(R))
-    return new{PolyRingT}(R, d, false, n_vars, vars, tmp)
+    return new{PolyRingT}(R, d, weak_compositions(d, n_vars), false, n_vars, vars, tmp)
   end
 end
 
