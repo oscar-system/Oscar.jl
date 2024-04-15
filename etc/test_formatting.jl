@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate(temp=true)
+Pkg.activate(; temp=true)
 Pkg.add("Test")
 Pkg.add("JuliaFormatter")
 using Test
@@ -15,14 +15,12 @@ using JuliaFormatter
 # In case you format some code, also add the commit hash to
 # .git-blame-ignore-revs for `git blame` to ignore these commits.
 
-
 file = @__FILE__
-oscardir = replace(file, "etc/test_formatting.jl"=>"")
+oscardir = replace(file, "etc/test_formatting.jl" => "")
 
 result = 0
 
 @testset "Formatting" begin
-
   function _gather_source_files(path::String)
     queue = [path]
     result = String[]
@@ -43,48 +41,42 @@ result = 0
   # Since right now only very few files are formatted, we also use a whitelist
   # approach.
   enabled = [
-             "src/PolyhedralGeometry",
-             "src/aliases.jl",
-             "experimental/LieAlgebras",
-             "experimental/BasisLieHighestWeight",
-            ]
+    "src/PolyhedralGeometry",
+    "src/aliases.jl",
+    "experimental/BasisLieHighestWeight",
+    "experimental/ExperimentalTemplate",
+    "experimental/ExteriorAlgebra",
+    "experimental/LieAlgebras",
+  ]
   skip = [
-          "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
-          "src/PolyhedralGeometry/Polyhedron/properties.jl",
-          "experimental/LieAlgebras/test/AbstractLieAlgebra-test.jl",
-          "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
-          "experimental/LieAlgebras/src/LieAlgebra.jl",
-          "experimental/LieAlgebras/src/LieAlgebraHom.jl",
-          "experimental/LieAlgebras/src/LieSubalgebra.jl",
-          "experimental/LieAlgebras/src/LinearLieAlgebra.jl",
-          "experimental/LieAlgebras/src/RootSystem.jl",
-          "experimental/LieAlgebras/src/Util.jl",
-          "experimental/BasisLieHighestWeight/src/MainAlgorithm.jl",
-         ]
+    "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
+    "src/PolyhedralGeometry/Polyhedron/properties.jl",
+  ]
 
   # Collect all code files.
   entire = [
-            _gather_source_files(joinpath(oscardir, "src/")); 
-            _gather_source_files(joinpath(oscardir, "experimental/"))
-           ]
+    _gather_source_files(joinpath(oscardir, "etc/"))
+    _gather_source_files(joinpath(oscardir, "src/"))
+    _gather_source_files(joinpath(oscardir, "experimental/"))
+  ]
 
   failed = String[]
 
   for file in entire
-    is_enabled = !isnothing(findfirst(e->occursin(e, file), enabled))
-    should_skip = !isnothing(findfirst(e->occursin(e, file), skip))
+    is_enabled = !isnothing(findfirst(e -> occursin(e, file), enabled))
+    should_skip = !isnothing(findfirst(e -> occursin(e, file), skip))
     if is_enabled && !should_skip
       # Do not actually format file, only check whether format is ok.
       res = @test format(file; overwrite=false)
       if res isa Test.Fail
         result = 1
-        filename = replace(file, oscardir=>"")
+        filename = replace(file, oscardir => "")
         push!(failed, filename)
       else
-        filename = replace(file, oscardir=>"")
+        filename = replace(file, oscardir => "")
       end
     else
-      @test format(file; overwrite=false) skip=true
+      @test format(file; overwrite=false) skip = true
     end
   end
 

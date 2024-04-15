@@ -1,2 +1,5 @@
 # Ran JuliaFormatter on most of src/PolyhedralGeometry
 ab444bbc46b5493588b2c3217ed35d86396d1260
+
+# Ran JuliaFormatter on experimental/{BasisLieHighestWieght,ExperimentalTemplate,ExteriorAlgebra,LieAlgebras}
+e71dcb305491f26d13225c0339e2e22129bb27f3

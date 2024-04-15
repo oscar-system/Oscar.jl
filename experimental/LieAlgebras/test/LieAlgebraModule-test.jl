@@ -242,7 +242,9 @@
             @test_broken ds_V !== direct_sum([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
             @test Oscar._is_direct_sum(ds_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(Oscar._is_direct_sum(ds_V)[2], [V for _ in 1:k]))
+            @test all(
+              x -> x[1] === x[2], zip(Oscar._is_direct_sum(ds_V)[2], [V for _ in 1:k])
+            )
             @test dim(ds_V) == k * dim(V)
             @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -283,7 +285,9 @@
             @test_broken tp_V !== tensor_product([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
             @test Oscar._is_tensor_product(tp_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(Oscar._is_tensor_product(tp_V)[2], [V for _ in 1:k]))
+            @test all(
+              x -> x[1] === x[2], zip(Oscar._is_tensor_product(tp_V)[2], [V for _ in 1:k])
+            )
             @test dim(tp_V) == dim(V)^k
             @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
