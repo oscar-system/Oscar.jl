@@ -1109,12 +1109,18 @@ function identity_map(W::T) where {T<:MPolyQuoLocRing}
   MPolyQuoLocalizedRingHom(W, W, identity_map(base_ring(W)))
 end
 
+function simplify(a::MPolyQuoLocRingElem)
+  p = simplify(numerator(a))
+  return parent(a)(lift(p), lifted_denominator(a); check=false)
+end
+
 ### we need to overwrite the following method because of the 
 # uncommon implementation of the numerator and denominator methods
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
-  return codomain(f)(restricted_map(f)(lifted_numerator(a)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(a))))
+  b = simplify(a)
+  return codomain(f)(restricted_map(f)(lifted_numerator(b)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(b))))
 end
 
 function compose(
@@ -1347,6 +1353,9 @@ end
   # We eliminate the Rabinowitsch variables first, the codomain variables second, 
   # and finally get to the domain variables. This elimination should be quicker 
   # than one which does not know the Rabinowitsch property.
+  @show A
+  @show gens(A)
+  @show total_degree.(denoms)
   oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
   #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
   gb = groebner_basis(I, ordering=oo)
@@ -2160,20 +2169,19 @@ function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:Nothing})(a::MP
   return codomain(f)(numerator(b), denominator(b), check=false)
 end
 
-#=
 function (f::Oscar.MPolyAnyMap{<:MPolyRing, <:MPolyQuoLocRing, <:MPolyQuoLocalizedRingHom})(a::MPolyRingElem)
-  g = get_atttribute!(f, :lifted_map) do
+  g = get_attribute!(f, :lifted_map) do
     S = domain(f)
     W = codomain(f)
     L = localized_ring(W)
     g = hom(S, L, x -> lift(f.coeff_map(x)), lift.(f.img_gens), check=false)
     set_attribute!(f, :lifted_map, g)
+    g
   end::Map{typeof(domain(f)), typeof(localized_ring(codomain(f)))}
 
   b = g(a)::MPolyLocRingElem
   return codomain(f)(numerator(b), denominator(b), check=false)
 end
-=#
 
 function vector_space(kk::Field, W::MPolyQuoLocRing;
     ordering::MonomialOrdering=degrevlex(gens(base_ring(W)))
