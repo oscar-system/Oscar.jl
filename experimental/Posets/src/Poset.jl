@@ -181,15 +181,15 @@ function Base.iterate(iter::MaximalChainsIterator, chain::Vector{Int}=[1, 1])
       return nothing
     end
 
-    j = findnext(!=(0), cov[last(chain), :], s)
+    j = findnext(!=(0), iter.poset.cov[last(chain), :], s)
     if !isnothing(j)
       break
     end
   end
 
   while !isnothing(j)
-    push!(c, j)
-    j = findnext(!=(0), cov[last(chain), :], j)
+    push!(chain, j)
+    j = findnext(!=(0), iter.poset.cov[last(chain), :], j)
   end
 
   if iter.inplace
