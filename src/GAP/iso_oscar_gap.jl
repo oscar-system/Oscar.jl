@@ -55,12 +55,18 @@ function _iso_oscar_gap(RO::Union{Nemo.zzModRing, Nemo.ZZModRing})
    return MapFromFunc(RO, RG, f, finv)
 end
 
-# Assume that `FO` and `FG` are finite fields of the same order
-# in Oscar and GAP, respectively.
-function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.fpField, Nemo.FpField}, FG::GAP.GapObj)
+_ffe_to_int(a::FqFieldElem) = Nemo._coeff(a, 0)
+_ffe_to_int(a::FqPolyRepFieldElem) = coeff(a, 0)
+_ffe_to_int(a::fqPolyRepFieldElem) = coeff(a, 0)
+_ffe_to_int(a::Union{fpFieldElem,FpFieldElem}) = lift(a)
+
+function _make_prime_field_functions(FO, FG)
    e = GAPWrap.One(FG)
 
-   f(x) = GAP.Obj(lift(x))*e
+   f = function(x)
+     y = GAP.julia_to_gap(_ffe_to_int(x))::GapInt
+     return y*e
+   end
 
    finv = function(x::GAP.Obj)
      y = GAPWrap.IntFFE(x)
@@ -68,6 +74,12 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.fpField, Nemo.FpFi
    end
 
    return (f, finv)
+end
+
+# Assume that `FO` and `FG` are finite fields of the same order
+# in Oscar and GAP, respectively.
+function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.fpField, Nemo.FpField}, FG::GAP.GapObj)
+   return _make_prime_field_functions(FO, FG)
 end
 
 function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField, fqPolyRepField}, FG::GAP.GapObj)
@@ -81,6 +93,11 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      # w.r.t. the prime field, and to decompose field elements w.r.t.
      # the corresponding basis?
      error("extensions of extension fields are not supported")
+   end
+
+   # handle prime fields first
+   if d == 1
+     return _make_prime_field_functions(FO, FG)
    end
 
    # Compute the canonical basis of `FG`.
