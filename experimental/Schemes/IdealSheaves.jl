@@ -293,33 +293,17 @@ end
 @doc raw"""
     simplify!(I::AbsIdealSheaf)
 
-Replaces the set of generators of the ideal sheaf by a minimal
-set of random linear combinations in every affine patch.
+Replaces the set of generators of the ideal sheaf on each cached chart by a small generating set.
 """
-function simplify!(I::AbsIdealSheaf)
-  new_ideal_dict = IdDict{AbsAffineScheme, Ideal}()
-  for U in basic_patches(default_covering(space(I)))
-    new_ideal_dict[U] = ideal(OO(U), small_generating_set(I(U)))
-    #=
-    n = ngens(I(U))
-    n == 0 && continue
-    R = ambient_coordinate_ring(U)
-    kk = coefficient_ring(R)
-    new_gens = elem_type(OO(U))[]
-    K = ideal(OO(U), new_gens)
-    while !issubset(I(U), K)
-      new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
-      while new_gen in K
-        new_gen = dot([rand(kk, 1:100) for i in 1:n], gens(I(U)))
-      end
-      push!(new_gens, new_gen)
-      K = ideal(OO(U), new_gens)
+function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
+  object_cache = I.I.obj_cache
+
+  for U in basic_patches(cov)
+    if !any(U===i for i in keys(object_cache))
+      continue
     end
-    Oscar.object_cache(underlying_presheaf(I))[U] = K
-    =#
+    object_cache[U] = ideal(OO(U), small_generating_set(I(U)))
   end
-  I.I.obj_cache = new_ideal_dict # for some reason the line below led to compiler errors.
-  #Oscar.object_cache(underlying_presheaf(I)) = new_ideal_dict
   return I
 end
 

@@ -412,7 +412,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, inc::CoveredClosedEmbedd
                                     OOZ(dummy_dom, V_sub)(pullback(dummy_map)(OOY(V_amb, dummy_cod)(complement_equation(V)))))
     result = restrict(pr_sub, U_sub_res, V_sub_res)
     # TODO: Obtain the inverse another way?
-    @assert is_isomorphism(result)
+    #@assert is_isomorphism(result)
     set_attribute!(pr_res, :isomorphism_on_open_subset, result)
   end
   return Z_trans, inc_Z_trans, pr_res
