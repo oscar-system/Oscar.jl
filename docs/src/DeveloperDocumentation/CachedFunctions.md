@@ -1,8 +1,52 @@
-# Functions Which Cache Things
+# Caching
 
-Many functions take in a keyword argument `cached::Bool`, which then cache or do not cache something which I am not fully qualified to comment on. (FIXME). This can sometimes lead to strange behaviour. So we document all the functions which do this, and at a future date, maybe do something with this list. 
+Several functions in OSCAR cache the output for different reasons and in different ways.
+We describe this behaviour in this section.
 
-## Oscar.jl
+## Caching the results of complex computations
+
+Many functions which are expected to have a long runtime in general (say, a function `slow_function`) store the result of the computation on the input (say, `some_input`).
+Subsequent calls of `slow_function(some_input)` will then return the identical result and be (nearly) instantaneous.
+For example, if `K` is a number field, the output of `maximal_order(K)` will be stored in `K`.
+Another prominent example would be the function `groebner_basis(::MPolyIdeal)` which stores the computed basis in the given ideal (together with the used monomial ordering).
+This kind of caching is performed either via using a field in the input (say, `some_input.slow_result`) or using attributes.
+For example, `groebner_basis(I)` stores the result in the dictionary `I.gb`, while `maximal_order(K)` uses attributes to store the maximal order.
+The only reason to disable storing hard-to-compute results should be for debugging purposes.
+We hence do not provide an option to disable this kind of caching in general.
+
+## Caching of sub or quotient structures
+
+Some structures allow caching of sub or quotient structures in a global 'lattice' object.
+At the time of this writing, this is only implemented for finitely generated abelian groups (`FinGenAbGroup`).
+For these, given a group `G` the call `H, _ = sub(G, [...])` stores `G` and `H` in a global subgroup lattice which, for example, enables the user to enter arithmetic expression like `G[1] + H[1]` without the need to explicitly map elements from one group into the other.
+The user may disable the storage of a group in the lattice with the argument `add_to_lattice` of the functions `sub`, `quo`, etc.
+
+## Caching of parent objects
+
+Another kind of caching concerns 'parent objects', that is, functions that create an ambient ring or field, in which subsequent calculations are performed.
+Many such functions cache the constructed object in a global dictionary.
+Examples are the functions `polynomial_ring` or `number_field` where creating the same ring or field twice will return the identical object.
+```julia
+julia> Qx, x = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> QQx, xx = QQ[:x]
+(Univariate polynomial ring in x over QQ, x)
+
+julia> Qx === QQx
+true
+
+julia> x == xx
+true
+```
+This is mainly intended for interactive use where this behaviour may be convenient.
+However, the parent objects constructed in this way cannot be deleted (that is, garbage collected) as they are stored in the dictionary.
+The corresponding functions therefore allow to turn off the caching with a keyword argument `cached::Bool`.
+For the OSCAR codebase and in library use, it is recommended to use these functions with `cached = false` and the code should *never* rely on caching taking place.
+
+Below we document all the functions which come with the `cached` keyword throughout OSCAR and its dependencies.
+
+### Oscar.jl
 
 28 Functions
 
@@ -35,7 +79,7 @@ Many functions take in a keyword argument `cached::Bool`, which then cache or do
 > - `extension_field(f::Generic.Poly{<:Generic.RationalFunctionFieldElem{T}}, n::String = "_a";  cached::Bool = true, check::Bool = true)`
 > - `extension_field(f::Generic.Poly{nf_elem}, n::String = "_a";  cached::Bool = true, check::Bool = true)`
 
-## Hecke.jl
+### Hecke.jl
 
 80 Functions
 
@@ -121,7 +165,7 @@ Many functions take in a keyword argument `cached::Bool`, which then cache or do
 > - `cyclotomic_extension(::Type{ClassField}, k::AbsSimpleNumField, n::Int; cached::Bool = true)`
 
 
-## Nemo
+### Nemo
 
 95 Functions
 
@@ -221,7 +265,7 @@ Many functions take in a keyword argument `cached::Bool`, which then cache or do
 > - `finite_field(p::Integer; cached::Bool = true, check::Bool = true)`
 > - `finite_field(p::ZZRingElem; cached::Bool = true, check::Bool = true)`
 
-## Abstract Algebra
+### Abstract Algebra
 
 62 Functions
 
@@ -288,7 +332,7 @@ Many functions take in a keyword argument `cached::Bool`, which then cache or do
 > - `change_coefficient_ring(R::Ring, p::PolyRingElem{T}; cached::Bool = true, parent::PolyRing = _change_poly_ring(R, parent(p)`
 > - `rel_series(R::Ring, arr::Vector{T}, len::Int, prec::Int, val::Int, var::VarName=:x; max_precision::Int=prec, cached::Bool=true)`
 
-## Singular
+### Singular
 
 10 Functions
 
@@ -303,16 +347,16 @@ Many functions take in a keyword argument `cached::Bool`, which then cache or do
 > - `CoefficientRing(R::T, cached::Bool = true)`
 > - `GAlgebra(R::PolyRing{T}, C, D; cached::Bool = true)`
 
-## GAP
+### GAP
 
-No caching here!
+None.
 
-## Polymake
+### Polymake
 
-No caching here!
+None.
 
 
-## Generation script
+### Generation script
 
 This output can be generated by running the following script inside the root folder of each project:
 
