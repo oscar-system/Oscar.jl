@@ -1991,6 +1991,8 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
+  @show "done with pre-selection."
+
   result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
 
   co_ring = coefficient_ring(zero_section(Y))
@@ -1999,6 +2001,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   mwr = rank(mordell_weil_lattice(X))
   for (i, D) in enumerate(lat_X)
     if i <= n - mwr
+      @show "not a section"
       # D is a non-section
       Q = pre_select[D]
       I = first(components(D))
@@ -2043,6 +2046,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         end
         match == -1 && error("no fiber found")
       else
+        @show "pushforward will be a section"
         res = _pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
         if res === nothing 
           println("zero section")
@@ -2053,6 +2057,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       end
     else
+      @show "pushforward of a section"
 
       # D is a section;
       # build the corresponding morphism IP^1 -> X2 and compose 

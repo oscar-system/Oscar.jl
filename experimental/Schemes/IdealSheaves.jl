@@ -1745,10 +1745,13 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   ext = [(U, complexity(U)) for U in fat]
   sort!(ext, by=x->x[2])
   fat = [U for (U, _) in ext]
+  count = 0
   for W in fat
+    @show count = count + 1
+    @show complexity(W)
     glue = default_covering(X)[W, V2]
-    f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
+      f, g = gluing_morphisms(glue)
       I2 = II(codomain(g))
       complement_equation(codomain(g)) in I2 && continue
       I = pullback(g)(I2)
@@ -1757,6 +1760,8 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
       II.cheap_sub_ideals[U2] = result
       return result
     else
+      f, g = gluing_morphisms(glue)
+      I2 = II(codomain(g))
       Z = subscheme(W, II(W))
       pZ = preimage(g, Z, check=false)
       is_empty(pZ) && continue

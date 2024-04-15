@@ -184,7 +184,10 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
+  @show ngens(OO(V))
+  @show length(a)
   list_for_V = _extend(U, a)
+  @show list_for_V
   Psi = [morphism(W, ambient_space(V), b, check=Phi.run_internal_checks) for (W, b) in list_for_V]
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
@@ -883,6 +886,7 @@ function _pushforward_prime_divisor(
   end
 
   sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
+  @show [a for (V, a) in sorted_charts_with_complexity]
   sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
 
   bad_charts = Int[]
@@ -902,6 +906,7 @@ function _pushforward_prime_divisor(
       end
     end
 
+    @show "computing preimage"
     J = preimage(pullback(phi_loc), I(domain(phi_loc)))
     JJ = ideal(OO(V), gens(J))
     return PrimeIdealSheafFromChart(Y, V, JJ)
@@ -978,7 +983,8 @@ function _pushforward_prime_divisor(
     # Shortcut to decide whether the restriction will lead to a trivial ideal
     if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
       for h in denominators(inverted_set(OO(V)))
-        OO(U_sub)(pullback(psi)(h)) in I(U_sub) && continue
+        I_sub = ideal(OO(U_sub), lifted_numerator.(gens(I(U)))) # Avoid production of the ring map, etc.
+        OO(U_sub)(pullback(psi)(h)) in I_sub && continue
       end
     end
 
