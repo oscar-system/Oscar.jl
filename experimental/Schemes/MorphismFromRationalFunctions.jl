@@ -184,10 +184,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
   A = [FX(a) for a in coordinate_images(Phi)]
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
-  @show ngens(OO(V))
-  @show length(a)
   list_for_V = _extend(U, a)
-  @show list_for_V
   Psi = [morphism(W, ambient_space(V), b, check=Phi.run_internal_checks) for (W, b) in list_for_V]
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
@@ -856,7 +853,7 @@ end
 
 function _pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
-    codomain_charts::Vector{<:AbsAffineScheme} = patches(codomain_covering(phi))
+    codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
   U = _find_good_representative_chart(I)
   X = domain(phi)
@@ -868,7 +865,7 @@ function _pushforward_prime_divisor(
     info = decomposition_info(default_covering(Y))
     sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
   end
- 
+
   function compl(V::AbsAffineScheme)
     result = 0
     if (U, V) in keys(realization_previews(phi))
