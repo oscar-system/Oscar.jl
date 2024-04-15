@@ -1125,8 +1125,9 @@ function ideal_sheaf_of_image(phi::MorphismFromRationalFunctions)
     phi_loc = random_realization(phi, U, V)
     pb_phi = pullback(phi_loc)
     K = kernel(pb_phi)
-    if !is_one(K)
-      return PrimeIdealSheafFromChart(Y, V, ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in gens(K)]))
+    res = ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in gens(K)])
+    if !is_one(res) # TODO: Abbreviate test via complement equations?
+      return PrimeIdealSheafFromChart(Y, V, res)
     end
   end
   error("image ideal could not be computed")
