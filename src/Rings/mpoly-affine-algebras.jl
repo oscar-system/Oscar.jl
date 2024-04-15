@@ -949,13 +949,7 @@ function is_normal(A::MPolyQuoRing; check::Bool=true)
     !check || is_reduced(A) || return false
 
     I = A.I
-    # TODO remove old1 & old2 once new Singular jll is out
-    # QUESTION: How old is this? Has this been fixed yet?
-    old1 = Singular.libSingular.set_option("OPT_REDSB", false)
-    old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
     f = Singular.LibNormal.isNormal(singular_generators(I))::Int
-    Singular.libSingular.set_option("OPT_REDSB", old1)
-    Singular.libSingular.set_option("OPT_RETURN_SB", old2)
     return Bool(f)
   end
 end
