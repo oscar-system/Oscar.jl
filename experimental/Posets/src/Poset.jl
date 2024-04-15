@@ -47,6 +47,13 @@ end
 
 # Poset constructors
 
+@doc raw"""
+    poset(cov::Matrix{Int}, elems::Vector{<:VarName}) -> Poset
+
+Construct a poset from covering relations `cov`, given in the form of the adjacency matrix
+of a Hasse diagram. The covering relations must be given in topological order, i.e. `cov`
+must be strictly upper triangular. By default the elements of the poset are named `x_i`.
+"""
 function poset(cov::Matrix{Int}, elems::Vector{<:VarName}=["x_$i" for i in 1:ncols(cov)])
   @req is_upper_triangular(cov, 1) "matrix must be strictly upper triangular"
   @req nrows(cov) == ncols(cov) "must be a square matrix"

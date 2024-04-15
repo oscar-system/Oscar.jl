@@ -65,7 +65,7 @@
         end
       end
     end
-    
+
     test_poset(a2_adj_cov, a2_adj_rel)
     test_poset(b2_adj_cov, b2_adj_rel)
   end
