@@ -73,9 +73,10 @@ end
 
 @doc raw"""
     elliptic_surface(generic_fiber::EllipticCurve,
-    euler_characteristic::Int, mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];
-    is_basis::Bool=true)
-    -> EllipticSurface
+                     euler_characteristic::Int,
+                     mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];
+                     is_basis::Bool=true)
+                     -> EllipticSurface
 
 Return the relatively minimal elliptic surface with generic fiber ``E/k(t)``.
 
@@ -141,7 +142,9 @@ This proceeds by computing division points in the Mordell-Weil group
 and using information coming from the discriminant group of the algebraic lattice
 to do so.
 """
-function algebraic_lattice_primitive_closure(S::EllipticSurface, p)
+algebraic_lattice_primitive_closure(S::EllipticSurface, p) = algebraic_lattice_primitive_closure(S, ZZ(p))
+
+function algebraic_lattice_primitive_closure(S::EllipticSurface, p::ZZRingElem)
   L = algebraic_lattice(S)[3]
   @req is_even(L) "not implemented"
   Ld  = intersect(dual(L) , (1//p * L))
