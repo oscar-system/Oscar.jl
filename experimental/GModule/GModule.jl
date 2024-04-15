@@ -263,11 +263,6 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   return invariant_lattice_classes(MZ)
 end
 
-function _hom(f::Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}) where T
-  @assert base_ring(domain(f)) == base_ring(codomain(f))
-  return hom(domain(f), codomain(f), f.(gens(domain(f))))
-end
-
 function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{ZZRingElem}})
   res = Any[(M, sub(M.M, gens(M.M))[2])]
   sres = 1
@@ -284,8 +279,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-
-          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h in M.ac]), mx)
+          r = (sub(M, mx), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
@@ -318,7 +312,7 @@ function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.
 end
 
 function maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
-  return [sub(M, s) for s = maximal_submodule_bases]
+  return [sub(M, s) for s = maximal_submodule_bases(M)]
 end
 
 
@@ -634,6 +628,15 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
   F = free_module(k, nrows(b))
   return gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators]), hom(F, C.M, b)
   return b
+end
+
+# Compute the restriction of the `M.G`-action from `M.M`
+# to the submodule given by the embedding `f`.
+function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+  @assert codomain(f) == M.M
+  S = domain(f)
+  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  return gmodule(S, M.G, Sac)
 end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})

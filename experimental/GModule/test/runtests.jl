@@ -72,6 +72,10 @@ end
 
   @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
 
+  G = pc_group(symmetric_group(3))
+  z = irreducible_modules(ZZ, G)
+  @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
+
   # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
   # q, mq = maximal_abelian_quotient(PcGroup, G)
   # @test length(Oscar.RepPc.brueckner(mq)) == 24
