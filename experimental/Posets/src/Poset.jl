@@ -12,14 +12,14 @@ function Base.length(P::Poset)
 end
 
 function Base.show(io::IO, P::Poset)
-  print(io, "Poset with $(ItemQuantity(length(P), "element")")
+  print(io, "Poset with $(ItemQuantity(length(P), "element"))")
 end
 
 # PosetElem
 
 struct PosetElem
-  i::Int
   parent::Poset
+  i::Int
 end
 
 function index(x::PosetElem)
@@ -58,6 +58,7 @@ function poset(cov::Matrix{Int}, elems::Vector{<:VarName}=["x_$i" for i in 1:nco
   @req is_upper_triangular(cov, 1) "matrix must be strictly upper triangular"
   @req nrows(cov) == ncols(cov) "must be a square matrix"
   @req ncols(cov) == length(elems) "size of matrix must match number of elements"
+  @req allunique(elems) "element names must be unique"
 
   d = nrows(cov)
   rel = BitMatrix(!iszero(cov[i, j]) for i in 1:d, j in 1:d)
@@ -68,7 +69,7 @@ end
 
 function (P::Poset)(i::Int)
   @req 1 <= i <= length(P.elems) "index out of range"
-  return PosetElem(i, P)
+  return PosetElem(P, i)
 end
 
 function (P::Poset)(elem::VarName)
@@ -77,7 +78,7 @@ function (P::Poset)(elem::VarName)
     error("unknown element")
   end
 
-  return PosetElem(i, P)
+  return PosetElem(P, i)
 end
 
 # MaximalChainsIterator constructors
