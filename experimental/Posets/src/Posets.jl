@@ -8,8 +8,8 @@ import Oscar: index
 export MaximalChainsIterator
 export Poset, PosetElem
 
-export poset, poset_elem
 export maximal_chains
+export poset
 
 include("Poset.jl")
 
@@ -20,5 +20,5 @@ using .Posets
 export MaximalChainsIterator
 export Poset, PosetElem
 
-export poset, poset_elem
 export maximal_chains
+export poset
