@@ -904,6 +904,7 @@ function _pushforward_prime_divisor(
     end
 
     @show "computing preimage"
+    @show gens(I(domain(phi_loc)))
     J = preimage(pullback(phi_loc), I(domain(phi_loc)))
     JJ = ideal(OO(V), gens(J))
     return PrimeIdealSheafFromChart(Y, V, JJ)

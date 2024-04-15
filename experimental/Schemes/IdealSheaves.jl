@@ -1747,8 +1747,6 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   fat = [U for (U, _) in ext]
   count = 0
   for W in fat
-    @show count = count + 1
-    @show complexity(W)
     glue = default_covering(X)[W, V2]
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
       f, g = gluing_morphisms(glue)
