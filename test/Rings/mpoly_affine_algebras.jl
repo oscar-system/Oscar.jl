@@ -37,8 +37,10 @@
     end
   end
 
-  @test !is_normal(quo(R, ideal(R, [x^2 - y^3]))[1])
-  @test is_normal(quo(R, ideal(R, [x - y^3]))[1])
+  @test !is_normal(quo(R, ideal(R, [x^2 - y^3]))[1]; check=false)
+  @test is_normal(quo(R, ideal(R, [x - y^3]))[1]; check=false)
+  @test !is_normal(quo(R, ideal(R, [x^2]))[1])
+  @test is_normal(quo(R, ideal(R, [z^2 - x*y]))[1])
 
   R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"])
   @test_throws ArgumentError is_normal(quo(R, ideal(R, [x - y^3]))[1])

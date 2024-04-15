@@ -1,4 +1,4 @@
-const visual_supported_types = Union{PolyhedralObjectUnion, Graph, SimplicialComplex}
+const visual_supported_types = Union{PolyhedralObjectUnion,Graph,SimplicialComplex}
 
 @doc raw"""
     visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{FieldElem, Float64}
@@ -53,18 +53,27 @@ These arguments can be given as a string:
 - `PointStyle`/`VertexStyle`: If set to `"hidden"`, neither point nor its label is rendered.
 - `LabelAlignment`: Defines the alignment of the vertex labels: `"left"`, `"right"` or `"center"`.
 """
-function visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}, SubdivisionOfPoints{T}}; kwargs...) where T<:Union{Float64, FieldElem}
+function visualize(
+  P::Union{
+    Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T},SubdivisionOfPoints{T}
+  };
+  kwargs...,
+) where {T<:Union{Float64,FieldElem}}
   _prepare_visualization(P)
   pmo = pm_object(P)
   Polymake.visual(pmo; kwargs...)
 end
 
-function visualize(P::Vector; kwargs::Dict = Dict{Int, Nothing}())
+function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
   for p in P
     @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
     _prepare_visualization(p)
   end
-  vis = [Polymake.visual(Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...) for i in 1:length(P)]
+  vis = [
+    Polymake.visual(
+      Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...
+    ) for i in 1:length(P)
+  ]
   if isdefined(Main, :IJulia) && Main.IJulia.inited
     # this will return a visual object,
     # the visualization is then triggered by the show method
@@ -76,29 +85,33 @@ function visualize(P::Vector; kwargs::Dict = Dict{Int, Nothing}())
   end
 end
 
-function _prepare_visualization(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}) where T<:Union{Float64, FieldElem}
+function _prepare_visualization(
+  P::Union{Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T}}
+) where {T<:Union{Float64,FieldElem}}
   d = ambient_dim(P)
   b = P isa Polyhedron
   if b && d == 4
     @req is_fulldimensional(P) "Can only visualize full-dimensional $(typeof(P)) of ambient dimension $d"
   else
-    @req d < 4  "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= $(3 + b)"
+    @req d < 4 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= $(3 + b)"
   end
   # polymake will by default use 0:n-1 as ray labels so we assign labels
   # starting from 1 here if there are no labels yet
   # (note: labels are mutable, i.e. they can be changed again later)
   if !Polymake.exists(pm_object(P), "RAY_LABELS")
-    pm_object(P).RAY_LABELS = string.(1:Oscar.pm_object(P).N_RAYS)
+    pm_object(P).RAY_LABELS = string.(1:(Oscar.pm_object(P).N_RAYS))
   end
 end
 
-function _prepare_visualization(P::SubdivisionOfPoints{T}) where T<:Union{Float64, FieldElem}
+function _prepare_visualization(
+  P::SubdivisionOfPoints{T}
+) where {T<:Union{Float64,FieldElem}}
   d = ambient_dim(P)
   @req d <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
   # polymake will by default use 0:n-1 as labels so we assign labels
   # starting from 1 here if there are no labels yet
   # (note: labels are mutable, i.e. they can be changed again later)
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
-    pm_object(P).POINT_LABELS = string.(1:Oscar.pm_object(P).N_POINTS)
+    pm_object(P).POINT_LABELS = string.(1:(Oscar.pm_object(P).N_POINTS))
   end
 end

@@ -157,6 +157,34 @@ function base_change(phi::Any, X::AbsCoveredScheme)
 end
 
 @doc raw"""
+    is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
+
+# Input:
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
+
+# Output:
+Returns whether the scheme ``X`` is normal.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+
+julia> X = covered_scheme(spec(R));
+
+julia> is_normal(X)
+true
+```
+"""
+function is_normal(X::AbsCoveredScheme; check::Bool=true)
+  !check || is_reduced(X) || return false
+  for U in default_covering(X)
+    is_normal(U; check=check) || return false
+  end
+  return true
+end
+
+@doc raw"""
     normalization(X::AbsCoveredScheme; check::Bool=true) -> (AbsCoveredScheme, AbsCoveredSchemeMor, Vector{<:AbsCoveredSchemeMor})
 
 Return the normalization of the reduced scheme ``X``.

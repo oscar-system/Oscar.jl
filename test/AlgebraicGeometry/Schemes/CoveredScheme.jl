@@ -326,9 +326,11 @@
     R, (x, y, z) = grade(QQ["x", "y", "z"][1])
     I = ideal(R, z*x^2 + y^3)
     X = covered_scheme(proj(R, I))
+    @test !is_normal(X; check=false)
     N = normalization(X)
     # trigger the computation of some gluings
     Xnorm = N[1]
+    @test is_normal(Xnorm; check=false)
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
     gluing_morphisms(Cnorm[1,3])
@@ -339,9 +341,11 @@
     R, (x, y, z) = grade(QQ["x", "y", "z"][1])
     I = ideal(R, (z*x^2 + y^3)*(x))
     X = covered_scheme(proj(R, I))
+    @test !is_normal(X; check=false)
     N = normalization(X)
     # trigger the computation of some gluings
     Xnorm = N[1]
+    @test is_normal(Xnorm; check=false)
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
 
@@ -354,5 +358,11 @@
     Xnorm = N[1]
     Cnorm = Xnorm[1] # a covering
     gluing_morphisms(Cnorm[1,2])
+
+    # Example non-reduced
+    R, (x, y) = polynomial_ring(rational_field(), ["x", "y"])
+    I = ideal(R, x^2)
+    X = covered_scheme(spec(R, I))
+    @test !is_normal(X)
   end
 end

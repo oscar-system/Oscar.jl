@@ -2,7 +2,6 @@ export exterior_algebra  # MAIN EXPORT!
 
 # Commented out old impl:  exterior_algebra_PBWAlgQuo  (allows coeffs in a non-field)
 
-
 #--------------------------------------------
 # Two implementations of exterior algebras:
 # (1) delegating everything to Singular  -- fast, coeff ring must be a field
@@ -16,7 +15,6 @@ export exterior_algebra  # MAIN EXPORT!
 
 # -------------------------------------------------------
 # Exterior algebra: delegating everything to Singular.
-
 
 #---------------------- MAIN FUNCTION ----------------------
 
@@ -46,7 +44,6 @@ export exterior_algebra  # MAIN EXPORT!
 
 #   PBWAlgQuoElem did not need to change.  Its "data" field just refers
 #   to a PBWAlgElem (namely some representative of the class).
-
 
 # Attach docstring to "abstract" function exterior_algebra, so that
 # it is automatically "inherited" by the methods.
@@ -84,51 +81,48 @@ julia> y*x
 """
 function exterior_algebra end
 
-
 # ---------------------------------
 # -- Method where caller specifies just number of variables
 
 function exterior_algebra(K::Field, numVars::Int)
-    if numVars < 1
-        throw(ArgumentError("numVars must be strictly positive, but numVars=$numVars"))
-    end
-    return exterior_algebra(K,  (1:numVars) .|> (k -> "e$k"))
+  if numVars < 1
+    throw(ArgumentError("numVars must be strictly positive, but numVars=$numVars"))
+  end
+  return exterior_algebra(K, (k -> "e$k").((1:numVars)))
 end
 
 #---------------------------------
 # Method where caller specifies name of variables.
 
 function exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
-    numVars = length(listOfVarNames)
-    if numVars == 0
-        throw(ArgumentError("no variables/indeterminates given"))
-    end
-#    if (!allunique(VarNames))
-#        throw(ArgumentError("variable names must be distinct"))
-#    end
+  numVars = length(listOfVarNames)
+  if numVars == 0
+    throw(ArgumentError("no variables/indeterminates given"))
+  end
+  #    if (!allunique(VarNames))
+  #        throw(ArgumentError("variable names must be distinct"))
+  #    end
 
-    R, indets = polynomial_ring(K, listOfVarNames)
-    SameCoeffRing = singular_coeff_ring(coefficient_ring(R))
-    M = zero_matrix(R, numVars, numVars)
-    for i in 1:numVars-1
-        for j in i+1:numVars
-            M[i,j] = -indets[i]*indets[j]
-        end
+  R, indets = polynomial_ring(K, listOfVarNames)
+  SameCoeffRing = singular_coeff_ring(coefficient_ring(R))
+  M = zero_matrix(R, numVars, numVars)
+  for i in 1:(numVars - 1)
+    for j in (i + 1):numVars
+      M[i, j] = -indets[i] * indets[j]
     end
-    PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false) # disable check since we know it is OK!
-    I = two_sided_ideal(PBW, PBW_indets.^2)
-    # Now construct the fast exteriorAlgebra in Singular;
-    # get var names from PBW in case it had "mangled" them.
-    P, _ = Singular.polynomial_ring(SameCoeffRing, string.(symbols(PBW)))
-    SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr))
-    ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
-    # Create Quotient ring with special implementation:
-    ExtAlg, _ = quo(PBW, I;  SpecialImpl = ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
-######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the have_special_impl function suffices.
-    return ExtAlg, gens(ExtAlg)
+  end
+  PBW, PBW_indets = pbw_algebra(R, M, degrevlex(indets); check=false) # disable check since we know it is OK!
+  I = two_sided_ideal(PBW, PBW_indets .^ 2)
+  # Now construct the fast exteriorAlgebra in Singular;
+  # get var names from PBW in case it had "mangled" them.
+  P, _ = Singular.polynomial_ring(SameCoeffRing, string.(symbols(PBW)))
+  SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(P.ptr))
+  ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
+  # Create Quotient ring with special implementation:
+  ExtAlg, _ = quo(PBW, I; SpecialImpl=ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
+  ######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the have_special_impl function suffices.
+  return ExtAlg, gens(ExtAlg)
 end
-
-
 
 # COMMENTED OUT "OLD IMPLEMENTATION" (so as not to lose the code)
 
@@ -137,7 +131,6 @@ end
 # # **PREFER** exterior_algebra over this SLOW implementation!
 
 # # Returns 2 components: ExtAlg, list of the gens/variables in order (e1,..,en)
-
 
 # @doc raw"""
 #     exterior_algebra_PBWAlgQuo(coeffRing::Ring, numVars::Int)
@@ -151,7 +144,6 @@ end
 
 # The second form returns an exterior algebra with given `coeffRing`, and variables named
 # as specified in `listOfVarNames` (which must be non-empty).
-
 
 # # Examples
 # ```jldoctest
@@ -196,8 +188,6 @@ end
 #     ExtAlg,QuoMap = quo(PBW, I)
 #     return ExtAlg, QuoMap.(PBW_indets)
 # end
-
-
 
 # # BUGS/DEFICIENCIES (2023-02-13):
 # # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE

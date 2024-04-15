@@ -416,7 +416,7 @@ function find_refinement_with_local_system_of_params(W::AbsAffineScheme; check::
     minor_dict[U_ij] = (indices(I), indices(J), M_ext[i, j])
   end
   res_cov = Covering(ref_patches)
-  inherit_glueings!(res_cov, Covering(W))
+  inherit_gluings!(res_cov, Covering(W))
   return res_cov, minor_dict
 end
 
@@ -694,9 +694,9 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
       !match_found && error("no common ancestor found for $U and $V")
     end
     #anc_cov = Covering(anc_list)
-    #inherit_glueings!(anc_cov, def_cov)
+    #inherit_gluings!(anc_cov, def_cov)
     result = Covering(patch_list)
-    inherit_glueings!(result, def_cov)
+    inherit_gluings!(result, def_cov)
 
     tot_inc1 = CoveringMorphism(result, list[1], to_U_dict; check=false)
     tot_inc2 = CoveringMorphism(result, list[2], to_V_dict; check=false)

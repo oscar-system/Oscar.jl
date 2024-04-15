@@ -18,42 +18,6 @@ import Oscar.GrpCoh: MultGrp, MultGrpElem
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-
-#XXX: have a type for an implicit field - in Hecke?
-#     add all(?) the other functions to it
-function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
-  k = domain(m)
-  K = codomain(m)
-  @assert base_field(k) == base_field(K)
-  kt, t = polynomial_ring(k, cached = false)
-  f = defining_polynomial(K)
-  Qt = parent(f)
-  #the Trager construction, works for extensions of the same field given
-  #via primitive elements
-  h = gcd(gen(k) - map_coefficients(k, Qt(m(gen(k))), parent = kt), map_coefficients(k, f, parent = kt))
-  coordinates = function(x::FieldElem)
-    @assert parent(x) == K
-    c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
-    c = vcat(c, zeros(k, degree(h)-length(c)))
-    return c
-  end
-  rep_mat = function(x::FieldElem)
-    @assert parent(x) == K
-    c = map_coefficients(k, Qt(x), parent = kt) % h
-    m = collect(Hecke.coefficients(c))
-    m = vcat(m, zeros(k, degree(h) - length(m)))
-    r = m
-    for i in 2:degree(h)
-      c = shift_left(c, 1) % h
-      m = collect(Hecke.coefficients(c))
-      m = vcat(m, zeros(k, degree(h) - length(m)))
-      r = hcat(r, m)
-    end
-    return transpose(matrix(r))
-  end
-  return h, coordinates, rep_mat
-end
-
 """
     restriction_of_scalars(M::GModule, phi::Map)
 
@@ -297,10 +261,6 @@ where `phi` is an embedding of `S` into `R`.
 function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQFieldElem}}, phi::Map{ZZRing, QQField})
   MZ = gmodule(ZZ, M)
   return invariant_lattice_classes(MZ)
-end
-
-function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
-  return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
 end
 
 function _hom(f::Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}) where T
@@ -1238,15 +1198,6 @@ inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)
 q, mq = quo(H, image(inj)[2])
 =#
 
-Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
-
-function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
-  k = base_ring(F)
-  @assert base_ring(G) == k
-  H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
-end
-
 function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Oscar.GAPGroup, T <: FinFieldElem}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.iso_oscar_gap(base_ring(C))
@@ -1568,39 +1519,9 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
 
-function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
-  A = free_abelian_group(rank(M))
-  return A, MapFromFunc(A, M, x->M(x.coeff), y->A(y.v))
-end
-
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
   A, mA = abelian_group(C.M)
   return Oscar.gmodule(A, Group(C), [hom(A, A, matrix(x)) for x = C.ac])
-end
-
-#TODO: for modern fin. fields as well
-function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
-  k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
-  n = degree(k)
-  function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
-    a = ZZRingElem[]
-    for i=1:dim(M)
-      c = m[i]
-      for j=0:n-1
-        push!(a, coeff(c, j))
-      end
-    end
-    return A(a)
-  end
-  function to_M(a::FinGenAbGroupElem)
-    m = fqPolyRepFieldElem[]
-    for i=1:dim(M)
-      push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
-    end
-    return M(m)
-  end
-  return A, MapFromFunc(A, M, to_M, to_A)
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
@@ -1657,44 +1578,6 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
    f = invariant_forms(C)[1]
    M = n
  end
-end
-
-function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, p::ZZRingElem, q::ZZRingElem)
-  c = parent(a)()
-  pi = invmod(p, q)
-  mul!(pi, pi, p)
-  pq = p*q
-  z = ZZRingElem(0)
-
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      c[i,j] = Hecke.induce_inner_crt(a[i,j], b[i,j], pi, pq, z)
-    end
-  end
-  return c
-end
-
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = parent(a)()
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-    end
-  end
-  return true, c
-end
-
-function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = zero_matrix(QQ, nrows(a), ncols(a))
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-      c[i,j] = n//d
-    end
-  end
-  return true, c
 end
 
 export extension_of_scalars

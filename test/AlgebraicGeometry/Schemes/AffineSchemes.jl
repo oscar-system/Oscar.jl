@@ -380,8 +380,10 @@ end
   # non-normal
   I = ideal(R, x^3-y^2)
   X1 = spec(R,I)
+  @test !is_normal(X1; check=false)
   N1 = normalization(X1)
   @test length(N1) == 1
+  @test is_normal(N1[1][1]; check=false)
   @test is_smooth(N1[1][1])
   # normal
   J = ideal(R, x)

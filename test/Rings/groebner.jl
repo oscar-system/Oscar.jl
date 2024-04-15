@@ -90,6 +90,13 @@
     R, (x,y) = polynomial_ring(AcbField(64),["x","y"])
     I = ideal([x^2+y^2+1//3,x^2+x*y+1//3*x])
     @test_throws ArgumentError groebner_basis(I)
+
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+    I = ideal(R, [x+y^2, x^2+x*y+3*y])
+    H = QQMPolyRingElem[x,y]
+    standard_basis_highest_corner(I, ordering=negdeglex(R))
+    @test elements(I.gb[negdeglex(R)]) == H
+    @test_throws ArgumentError standard_basis_highest_corner(I)
 end
 
 @testset "groebner leading ideal" begin

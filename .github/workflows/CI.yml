@@ -53,6 +53,9 @@ jobs:
           - julia-version: '1.10'
             group: 'long'
             os: macOS-latest
+          - julia-version: '1.10'
+            group: 'book'
+            os: ubuntu-latest
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'

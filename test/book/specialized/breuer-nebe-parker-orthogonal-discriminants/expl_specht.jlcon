@@ -1,0 +1,7 @@
+julia> ch = character_table("A12")[26];
+
+julia> degree(ch)
+1728
+
+julia> Oscar.OrthogonalDiscriminants.od_for_specht_module(ch)
+(true, "1")

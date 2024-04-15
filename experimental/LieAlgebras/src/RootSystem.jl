@@ -39,7 +39,9 @@ Passing `detect_type=false` will skip the detection of the root system type.
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
   R = RootSystem(cartan_matrix)
-  detect_type && is_finite(weyl_group(R)) && set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+  detect_type &&
+    is_finite(weyl_group(R)) &&
+    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
   return R
 end
 
