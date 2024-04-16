@@ -41,12 +41,14 @@ result = 0
   # Since right now only very few files are formatted, we also use a whitelist
   # approach.
   enabled = [
+    "src/InvariantTheory",
     "src/PolyhedralGeometry",
     "src/aliases.jl",
     "experimental/BasisLieHighestWeight",
     "experimental/ExperimentalTemplate",
     "experimental/ExteriorAlgebra",
     "experimental/LieAlgebras",
+    "experimental/LinearQuotients",
   ]
   skip = [
     "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
