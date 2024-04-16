@@ -386,7 +386,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
         result = result + a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
-        if !has_dimension_leq_zero(I)
+        if !has_dimension_leq_zero(I) # potentially faster for localized ideals
           if c1 == c2
             result = result + a1*a2*_self_intersection(c1)
           else
@@ -501,7 +501,7 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
     if has_decomposition_info(covering)
       h = decomposition_info(covering)[U]
       if isone(J_cheap + ideal(OO(U), elem_type(OO(U))[OO(U)(a) for a in h])) # R(a) is not type stable for R::MPolyQuoRing
-        push!(patches_done, U)
+        # push!(patches_done, U)
         continue
       end
     end

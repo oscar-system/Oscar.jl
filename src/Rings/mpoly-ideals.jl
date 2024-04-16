@@ -601,6 +601,7 @@ function radical(
     J = ideal(R, zero(R))
     if factor_generators
       # In practice this will often lead to significant speedup due to reduction of degrees.
+      # TODO:  is the following faster? radical(ab,c) = intersect(radical(a,c),radical(b,c)) 
       for g in gens(I)
         fact = factor(g)
         h = one(g)

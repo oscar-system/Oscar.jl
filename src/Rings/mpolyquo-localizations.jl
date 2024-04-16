@@ -669,7 +669,7 @@ end
 function inv(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MPolyPowersOfElement{BRT, BRET, RT, RET}}) where {BRT, BRET, RT, RET}
   isone(f) && return f
   
-  if length(terms(lifted_numerator(f))) > 10000
+  if length(lifted_numerator(f)) > 10000
     L = parent(f)
     id, id_inv = _as_affine_algebra_with_many_variables(L)
     aa = simplify(id(L(numerator(f))))
@@ -2005,7 +2005,7 @@ end
 
 ### Some auxiliary functions
 
-@attr MPolyQuoLocalizedIdeal function radical(I::MPolyQuoLocalizedIdeal)
+@attr T function radical(I::T) where {T<:MPolyQuoLocalizedIdeal}
   has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return I
   has_attribute(I, :is_radical) && get_attribute(I, :is_radical) && return I
   R = base_ring(I)

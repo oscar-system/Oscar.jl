@@ -454,7 +454,7 @@ end
 @doc raw"""
     MorphismFromRationalFunctions{DomainType<:AbsCoveredScheme, CodomainType<:AbsCoveredScheme} 
 
-A lazy type for a morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
+A lazy type for a dominant morphism ``φ : X → Y`` of `AbsCoveredScheme`s which is given 
 by a set of rational functions ``a₁,…,aₙ`` in the fraction field of the `base_ring`
 of ``𝒪(U)`` for one of the dense open `affine_chart`s ``U`` of ``X``. 
 The ``aᵢ`` represent the pullbacks of the coordinates (`gens`) of some 
@@ -542,6 +542,7 @@ given by the pullback function
     )
     @check is_irreducible(X) "domain must be irreducible"
     @check is_irreducible(Y) "codomain must be irreducible"
+    @check dim(Y) <= dim(X) "cannot be dominant"
     #_find_chart(U, default_covering(X)) !== nothing || error("patch not found in domain")
     #_find_chart(V, default_covering(Y)) !== nothing || error("patch not found in codomain")
     any(x->x===U, patches(default_covering(X))) || error("patch not found in domain")

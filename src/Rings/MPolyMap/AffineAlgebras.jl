@@ -30,7 +30,7 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 @attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
 
 @attr Any function _singular_algebra_morphism(f::MPolyAnyMap{<:MPolyRing, <:Union{MPolyRing, MPolyQuoRing}, Nothing})
-  @assert coefficient_ring(domain(f)) === coefficient_ring(codomain(f))
+  @assert coefficient_ring(domain(f)) === coefficient_ring(codomain(f))  "singular does not handle coefficient maps"
   DS = _singular_ring_domain(f)
   CS = _singular_ring_codomain(f)
   CSimgs = CS.(_images(f))

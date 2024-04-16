@@ -314,7 +314,7 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineSchem
     return cheap_realizations(Phi)[(U, V)]
   end
   img_gens_frac = realization_preview(Phi, U, V)
-  # Try to cancel the fractions heuristically
+  # Try to cancel the fractions heuristically; turns out it was too expensive in some applications due to slow divide
 # for (k, f) in enumerate(img_gens_frac)
 #   a = numerator(f)
 #   b = denominator(f)

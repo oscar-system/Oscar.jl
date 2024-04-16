@@ -1703,9 +1703,10 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
 
   # we are in the same ancestor tree, but on top of the defining chart
   if has_ancestor(x->(x===U2), U)
-    iso = _flatten_open_subscheme(U, U2)
+    iso = _flatten_open_subscheme(U, U2)  # an embedding U -> V \subseteq U2
     iso_inv = inverse(iso)
     pb_P = pullback(iso_inv)(P)
+    # avoids a saturation by discarding denominators but only produces a subideal
     result = ideal(OO(U2), [g for g in OO(U2).(lifted_numerator.(gens(pb_P))) if !iszero(g)])
     II.cheap_sub_ideals[U2] = result
     return result
