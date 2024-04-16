@@ -1,4 +1,4 @@
-const AnyVecOrMat = Union{MatElem, AbstractVecOrMat}
+const AnyVecOrMat = Union{MatElem,AbstractVecOrMat}
 
 include("helpers.jl")
 include("iterators.jl")
@@ -25,7 +25,6 @@ include("type_functions.jl")
 include("visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
-
 
 # Some temporary aliases to avoid breaking all current PRs
 pm_cone(C::Cone) = pm_object(C)

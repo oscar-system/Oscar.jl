@@ -1085,6 +1085,7 @@ export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_small_groups, has_number_of_small_groups
 export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
+export number_of_weak_compositions
 export numerator
 export objective_function
 export omega_group
@@ -1482,6 +1483,8 @@ export volume_map
 export walls
 export wdeglex
 export wdegrevlex
+export weak_composition
+export weak_compositions
 export weakly_connected_components
 export wedge
 export wedge_generator_decompose_function

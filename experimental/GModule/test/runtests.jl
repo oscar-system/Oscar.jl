@@ -24,6 +24,10 @@ end
 
 
 @testset "Experimental.gmodule" begin
+  G = small_group(1, 1)
+  z = Oscar.RepPc.reps(QQ, G)
+  _, mp = Oscar.GrpCoh.fp_group_with_isomorphism(z[1])
+  @test is_bijective(mp)
 
   G = small_group(7*3, 1)
   z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
@@ -57,23 +61,20 @@ end
   L = [
           matrix(F, [0 0 1; 1 0 0; 0 1 0]),
           matrix(F, [2 0 0; 0 1 0; 0 0 2]),
-          matrix(F, [2 0 0; 0 2 0; 0 0 1]),
-          matrix(F, [1 0 0; 0 1 0; 0 0 1])
       ]
   m = free_module(F, 3)
   M = GModule(m, G, [hom(m, m, a) for a in L])
 
   E = GF(3,6)
   phi = embed(F, E)
-  LE = [
-          matrix(E, [0 0 1; 1 0 0; 0 1 0]),
-          matrix(E, [2 0 0; 0 1 0; 0 0 2]),
-          matrix(E, [2 0 0; 0 2 0; 0 0 1]),
-          matrix(E, [1 0 0; 0 1 0; 0 0 1])
-      ]
+  LE = [map_entries(phi, x) for x in L]
   mE = free_module(E, 3)
 
   @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
+
+  G = pc_group(symmetric_group(3))
+  z = irreducible_modules(ZZ, G)
+  @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
 
   # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
   # q, mq = maximal_abelian_quotient(PcGroup, G)

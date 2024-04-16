@@ -1,0 +1,13 @@
+julia> S,(b4,b56,b6,b7)=polynomial_ring(QQ,["b4", "b56", "b6", "b7"])
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[b4, b56, b6, b7])
+
+julia> R,(x, y, z)=polynomial_ring(S,["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over multivariate polynomial ring, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}[x, y, z])
+
+julia> g = y^2-x*(x-1000^2)*(x-(1000000+b4)^2)*(x-(b4)^2)*(x-(b6+b56)^2)*(x-(b6)^2)*(x+(b7)^2);
+
+julia> f = y - b4*(1000000 + b4)*b6*(b6 + b56)*b7*x + b6*(b6 + b56)*b7*x^2 - b7*x^3;
+
+julia> Igf = ideal(R,[g,f]);
+
+julia> eliminate(Igf,[x])

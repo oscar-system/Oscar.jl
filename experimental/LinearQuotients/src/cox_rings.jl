@@ -26,7 +26,9 @@ power_base_to_hom_gens(HBB::HomBasisBuilder) = HBB.power_base_to_hom_gens
 
 # Computes for any element g in gens(G) a matrix N such that
 # (e_i*N)*polys == G_action(polys[i], g)
-function action_on_basis(G::FinGenAbGroup, G_action::Function, polys::Vector{<: MPolyRingElem{T}}) where {T <: FieldElem}
+function action_on_basis(
+  G::FinGenAbGroup, G_action::Function, polys::Vector{<:MPolyRingElem{T}}
+) where {T<:FieldElem}
   @req !isempty(polys) "Input must not be empty"
 
   R = parent(polys[1])
@@ -37,21 +39,22 @@ function action_on_basis(G::FinGenAbGroup, G_action::Function, polys::Vector{<: 
 
   res = SMat{elem_type(K)}[]
   for g in gens(G)
-    polys_g = [ G_action(f, g) for f in polys ]
+    polys_g = [G_action(f, g) for f in polys]
     N = polys_to_smat(polys_g, monomial_to_column)
 
     # Little bit of a waste to recompute the rref of M all the time.
     # But I don't see how to do it better and mats should not contain many
     # elements anyways.
-    sol = solve(M, N, side = :left)
+    sol = solve(M, N; side=:left)
 
     push!(res, sol)
   end
   return res
 end
 
-function process_eigenvector!(HBB::HomBasisBuilder, d::Int, e::Vector{<:FieldElem}, v::MatElem, is_gen::BitVector)
-
+function process_eigenvector!(
+  HBB::HomBasisBuilder, d::Int, e::Vector{<:FieldElem}, v::MatElem, is_gen::BitVector
+)
   C = power_product_cache(HBB)
   T = preimage_ring(HBB)
   basisd = all_power_products_of_degree!(C, d, true)
@@ -104,11 +107,11 @@ function fill_degree!(HBB::HomBasisBuilder, d::Int)
   basisd = all_power_products_of_degree!(C, d, true)
 
   # Whether basisd[i] is an element of inhom_gens(HBB) or not
-  is_gen = BitVector( is_one(sum(get_exponent_vector(C, f))) for f in basisd )
+  is_gen = BitVector(is_one(sum(get_exponent_vector(C, f))) for f in basisd)
 
-  gensGd = [ matrix(M) for M in action_on_basis(group(HBB), group_action(HBB), basisd) ]
+  gensGd = [matrix(M) for M in action_on_basis(group(HBB), group_action(HBB), basisd)]
 
-  ceig = common_eigenspaces(gensGd, side = :left)
+  ceig = common_eigenspaces(gensGd; side=:left)
 
   # Now translate every eigenvector into a polynomial in base_ring(HBB) and build
   # a basis of the degree d component by homogeneous polynomials (via their
@@ -139,7 +142,7 @@ function fill_degree!(HBB::HomBasisBuilder, d::Int)
     M = vcat(M, N)
   end
 
-  sol = solve(V, M, side = :left)
+  sol = solve(V, M; side=:left)
 
   # The i-th row of sol gives the coefficient of inhom_gens[row_to_gen[i]] in
   # the basis hom_basisd.
@@ -183,7 +186,7 @@ function homogeneous_generators(HBB::HomBasisBuilder)
     fill_degree!(HBB, d)
   end
 
-  phi = hom(T, T, [ power_base_to_hom_gens(HBB)[f] for f in inhom_gens(HBB) ])
+  phi = hom(T, T, [power_base_to_hom_gens(HBB)[f] for f in inhom_gens(HBB)])
   return hom_gens(HBB), degrees_of_hom_gens(HBB), phi
 end
 
@@ -206,7 +209,7 @@ end
 # of V/G.
 # Return the degree of the polynomial f as an element of codomain(GtoA),
 # assuming that f is homogeneous.
-function ab_g_degree(GtoA::Map, f::MPolyRingElem, zeta::Tuple{<:FieldElem, Int})
+function ab_g_degree(GtoA::Map, f::MPolyRingElem, zeta::Tuple{<:FieldElem,Int})
   A = codomain(GtoA)
   K = coefficient_ring(parent(f))
   @assert K === parent(zeta[1])
@@ -217,12 +220,12 @@ function ab_g_degree(GtoA::Map, f::MPolyRingElem, zeta::Tuple{<:FieldElem, Int})
   c = zeros(ZZRingElem, ngens(A))
   eldivs = elementary_divisors(A)
   for i in 1:ngens(A)
-    fi = right_action(f, GtoA\A[i])
+    fi = right_action(f, GtoA \ A[i])
     q, r = divrem(fi, f)
     @assert is_zero(r) "Polynomial is not homogeneous"
     z = first(AbstractAlgebra.coefficients(q))
     @assert parent(q)(z) == q "Polynomial is not homogeneous"
-    k = (powers_of_zeta[z]*eldivs[i])//l
+    k = (powers_of_zeta[z] * eldivs[i])//l
     @assert is_integral(k)
     c[i] = numerator(k)
   end
@@ -243,32 +246,35 @@ We use ideas from [DK17](@cite) to find homogeneous generators of the invariant 
 To get a map from `group(G)` to the grading group of the returned ring, use
 [`class_group`](@ref).
 """
-function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)
+function cox_ring(
+  L::LinearQuotient; algo_gens::Symbol=:default, algo_rels::Symbol=:groebner_basis
+)
   G = group(L)
   Grefl, GrefltoG = subgroup_of_pseudo_reflections(G)
   H, HtoG = derived_subgroup(G)
   # Compute H*Grefl
-  H = matrix_group(base_ring(G), degree(G),
-                   vcat(map(HtoG, gens(H)), map(GrefltoG, gens(Grefl))))
+  H = matrix_group(
+    base_ring(G), degree(G), vcat(map(HtoG, gens(H)), map(GrefltoG, gens(Grefl)))
+  )
   A, GtoA = class_group(L)
 
   RH = invariant_ring(H)
-  Q, QtoR = affine_algebra(RH, algo_gens = algo_gens, algo_rels = algo_rels)
+  Q, QtoR = affine_algebra(RH; algo_gens=algo_gens, algo_rels=algo_rels)
   S = base_ring(Q)
-  StoR = hom(S, codomain(QtoR), [ QtoR(f) for f in gens(Q) ])
+  StoR = hom(S, codomain(QtoR), [QtoR(f) for f in gens(Q)])
 
   Rgraded = codomain(StoR)
   R = forget_grading(Rgraded)
 
-  invars = elem_type(R)[ forget_grading(StoR(x)) for x in gens(S) ]
+  invars = elem_type(R)[forget_grading(StoR(x)) for x in gens(S)]
 
   if is_trivial(A)
-    T = grade(forget_grading(S), [ zero(A) for i in 1:ngens(S) ])[1]
+    T = grade(forget_grading(S), [zero(A) for i in 1:ngens(S)])[1]
 
-    relsT = elem_type(T)[ T(forget_grading(r)) for r in gens(modulus(Q)) ]
+    relsT = elem_type(T)[T(forget_grading(r)) for r in gens(modulus(Q))]
 
     Q, TtoQ = quo(T, ideal(T, relsT))
-    QtoR = hom(Q, Rgraded, [ Rgraded(f) for f in invars ])
+    QtoR = hom(Q, Rgraded, [Rgraded(f) for f in invars])
 
     return Q, QtoR
   end
@@ -289,10 +295,10 @@ function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Sy
   powers_of_zeta = _powers_of_root_of_unity(zeta...)
   l = zeta[2]
   eldiv = elementary_divisors(A)
-  @assert all(is_zero, [ mod(l, e) for e in eldiv ])
-  l_div_eldiv = ZZRingElem[ div(l, e) for e in eldiv ]
+  @assert all(is_zero, [mod(l, e) for e in eldiv])
+  l_div_eldiv = ZZRingElem[div(l, e) for e in eldiv]
   function eig_to_group(e::Vector{<:FieldElem})
-    return A(ZZRingElem[ div(powers_of_zeta[e[k]], l_div_eldiv[k]) for k in 1:length(e) ])
+    return A(ZZRingElem[div(powers_of_zeta[e[k]], l_div_eldiv[k]) for k in 1:length(e)])
   end
 
   HBB = HomBasisBuilder(PowerProductCache(R, invars), A, A_action, eig_to_group)
@@ -301,14 +307,18 @@ function cox_ring(L::LinearQuotient; algo_gens::Symbol = :default, algo_rels::Sy
   T = domain(phi)
 
   # Move the relations from S to T
-  StoT = hom(S, T, [ phi(gen(T, i)) for i in 1:ngens(T) ])
-  relsT = elem_type(T)[ StoT(r) for r in gens(modulus(Q)) ]
+  StoT = hom(S, T, [phi(gen(T, i)) for i in 1:ngens(T)])
+  relsT = elem_type(T)[StoT(r) for r in gens(modulus(Q))]
   T = grade(T, degrees)[1]
 
   # The relations are in general not homogeneous
-  relsT = reduce(vcat, [ collect(values(homogeneous_components(T(f)))) for f in relsT ], init = elem_type(T)[])
+  relsT = reduce(
+    vcat,
+    [collect(values(homogeneous_components(T(f)))) for f in relsT];
+    init=elem_type(T)[],
+  )
   Q, TtoQ = quo(T, ideal(T, relsT))
-  QtoR = hom(Q, Rgraded, [ Rgraded(f) for f in hom_invars ])
+  QtoR = hom(Q, Rgraded, [Rgraded(f) for f in hom_invars])
 
   return Q, QtoR
 end
@@ -343,18 +353,21 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   R = codomain(RVGtoR)
   SAbG = base_ring(RVG) # RVG is a quotient ring graded by Ab(G)
   S = forget_grading(SAbG)
-  StoR = hom(S, R, [ RVGtoR(x) for x in gens(RVG) ])
+  StoR = hom(S, R, [RVGtoR(x) for x in gens(RVG)])
   I = forget_grading(modulus(RVG))
 
-  Sdeg, _ = grade(S, [ degree(StoR(x)) for x in gens(S) ])
+  Sdeg, _ = grade(S, [degree(StoR(x)) for x in gens(S)])
 
   juniors = representatives_of_junior_elements(G, fixed_root_of_unity(L))
   # TODO: make sure the case where G is not generated by junior elements
   # is handled correctly in what follows
 
-  vals = Dict{elem_type(G), Tuple}()
+  vals = Dict{elem_type(G),Tuple}()
   for g in juniors
-    vals[g] = (weights_of_action(R, g, fixed_root_of_unity(L)), monomial_valuation(R, g, fixed_root_of_unity(L)))
+    vals[g] = (
+      weights_of_action(R, g, fixed_root_of_unity(L)),
+      monomial_valuation(R, g, fixed_root_of_unity(L)),
+    )
   end
 
   # Phase 1: Assure (*{i}) for all i (see [Yam18], [Sch23])
@@ -372,7 +385,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
 
   # Phase 2: Assure (*{1, 2}), (*{1, 3}), ..., (*{1, ..., length(juniors)})
   for i in 2:length(juniors)
-    for j in 1:i - 1
+    for j in 1:(i - 1)
       @vprint :LinearQuotients "Running phase 2 for i = $i and i' = $j\n"
       @vprint :LinearQuotients "Number of variables: $(ngens(S))\n"
       new_gens = new_generators_phase_2(StoR, I, Sdeg, SAbG, juniors, vals, i, j)
@@ -389,7 +402,9 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
   # subring of a Laurent polynomial ring over R, see [Sch23, Section 6.1].
 
   # Transform the collected generators into Laurent polynomials
-  Rt, t = laurent_polynomial_ring(forget_grading(codomain(StoR)), [ "t$i" for i in 1:length(juniors) ])
+  Rt, t = laurent_polynomial_ring(
+    forget_grading(codomain(StoR)), ["t$i" for i in 1:length(juniors)]
+  )
   gensRt = Vector{elem_type(Rt)}()
   degsRt = Vector{Vector{ZZRingElem}}()
   for x in gens(S)
@@ -407,7 +422,7 @@ function cox_ring_of_qq_factorial_terminalization(L::LinearQuotient)
 
   # Add the additional generators t_i^{-r_i} corresponding to the exceptional
   # divisors
-  r = [ order(s) for s in juniors ]
+  r = [order(s) for s in juniors]
   for i in 1:length(juniors)
     push!(gensRt, t[i]^-r[i])
     d = zeros(ZZRingElem, length(juniors))
@@ -438,7 +453,7 @@ function minimal_parts(I::MPolyIdeal, w::Vector{ZZRingElem})
   @assert nvars(R) == length(w)
 
   w1 = push!(copy(w), ZZRingElem(-1))
-  S, t = graded_polynomial_ring(K, [ "t$i" for i in 1:nvars(R) + 1 ], w1)
+  S, t = graded_polynomial_ring(K, ["t$i" for i in 1:(nvars(R) + 1)], w1)
 
   Ihom = homogenize_at_last_variable(I, S)
 
@@ -455,7 +470,7 @@ function group_homogeneous_ideal(I::MPolyIdeal, SAbG::MPolyDecRing)
 
   eldivs = elementary_divisors(A)
   for i in 1:ngens(A)
-    I = g_homogeneous_ideal(I, ZZRingElem[ degree(x)[i] for x in gens(SAbG) ], eldivs[i])
+    I = g_homogeneous_ideal(I, ZZRingElem[degree(x)[i] for x in gens(SAbG)], eldivs[i])
     if is_zero(I)
       break
     end
@@ -468,14 +483,15 @@ function g_homogeneous_ideal(I::MPolyIdeal, weights::Vector{ZZRingElem}, order::
   R = base_ring(I)
 
   w = push!(copy(weights), ZZRingElem(1))
-  S, t = graded_polynomial_ring(coefficient_ring(R), [ "t$i" for i in 1:nvars(R) + 1 ], w)
+  S, t = graded_polynomial_ring(coefficient_ring(R), ["t$i" for i in 1:(nvars(R) + 1)], w)
 
   Ihom = homogenize_at_last_variable(I, S)
 
   # Have to dance around the fact that one cannot build an inhomogeneous ideal
   # in a graded ring...
   T = forget_grading(S)
-  J = ideal(T, [ forget_grading(x) for x in gens(Ihom) ]) + ideal(T, gen(T, nvars(T))^order - 1)
+  J =
+    ideal(T, [forget_grading(x) for x in gens(Ihom)]) + ideal(T, gen(T, nvars(T))^order - 1)
   phi = hom(R, T, gens(T)[1:nvars(R)])
   return preimage(phi, J)
 end
@@ -484,18 +500,24 @@ end
 # J = I + (h_1,\dots, h_l).
 # If both ideals are homogeneous (with respect to any weights), then the h_i
 # are homogeneous too.
-function as_subideal(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where {T <: MPolyDecRingElem}
+function as_subideal(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
   R = base_ring(I)
   Q, RtoQ = quo(R, I)
-  gensJQ = minimal_generating_set(ideal(Q, [ RtoQ(f) for f in gens(J) ]))
-  return elem_type(R)[ RtoQ\f for f in gensJQ ]
+  gensJQ = minimal_generating_set(ideal(Q, [RtoQ(f) for f in gens(J)]))
+  return elem_type(R)[RtoQ \ f for f in gensJQ]
 end
 
 # Ensures (after iterative calls) (*{k}) where k is the index of the element
 # junior in the array juniors
 # See [Sch23, Algorithm 6.2.2]
-function new_generators_phase_1(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, junior::MatrixGroupElem, vals::Dict{<:MatrixGroupElem, <:Tuple})
-
+function new_generators_phase_1(
+  StoR::MPolyAnyMap,
+  I::MPolyIdeal,
+  Sdeg::MPolyDecRing,
+  SAbG::MPolyDecRing,
+  junior::MatrixGroupElem,
+  vals::Dict{<:MatrixGroupElem,<:Tuple},
+)
   S = domain(StoR)
   R = codomain(StoR)
 
@@ -520,12 +542,21 @@ function new_generators_phase_1(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
   minJ = ideal(Sdeg, group_homogeneous_ideal(J, SAbG))
 
   @vprint :LinearQuotients "Phase 1: Representing as subideal\n"
-  return [ forget_grading(f) for f in as_subideal(minI, minJ) ]
+  return [forget_grading(f) for f in as_subideal(minI, minJ)]
 end
 
 # Ensures (after iterative calls) (*A\cup {l,k}) assuming (*A\cup {l}) and (*A\cup {k}), where A is any set of indices
 # See [Sch23, Algorithm 6.2.3]
-function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDecRing, SAbG::MPolyDecRing, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, k::Int, l::Int)
+function new_generators_phase_2(
+  StoR::MPolyAnyMap,
+  I::MPolyIdeal,
+  Sdeg::MPolyDecRing,
+  SAbG::MPolyDecRing,
+  juniors::Vector{<:MatrixGroupElem},
+  vals::Dict{<:MatrixGroupElem,<:Tuple},
+  k::Int,
+  l::Int,
+)
   @req k > l "first index $k is not larger than the second index $l"
 
   S = domain(StoR)
@@ -533,36 +564,38 @@ function new_generators_phase_2(StoR::MPolyAnyMap, I::MPolyIdeal, Sdeg::MPolyDec
 
   T = S
   Ihom = I
-  inds = [ l, k ]
+  inds = [l, k]
   for i in 1:2
     @vprint :LinearQuotients "Phase 2: Homogenizing at $(inds[i])\n"
-    weights = ZZRingElem[ vals[juniors[inds[i]]][2](StoR(x)) for x in gens(S) ]
+    weights = ZZRingElem[vals[juniors[inds[i]]][2](StoR(x)) for x in gens(S)]
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
-    T, _ = graded_polynomial_ring(coefficient_ring(S), [ "t$j" for j in 1:nvars(S) + i ], weights)
+    T, _ = graded_polynomial_ring(
+      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)], weights
+    )
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
 
   @vprint :LinearQuotients "Phase 2: Setting up quotient ring\n"
-  Ilk = Ihom*ideal(T, gen(T, ngens(S) + 1)) + Ihom*ideal(T, gen(T, ngens(S) + 2))
+  Ilk = Ihom * ideal(T, gen(T, ngens(S) + 1)) + Ihom * ideal(T, gen(T, ngens(S) + 2))
   Q, TtoQ = quo(T, Ilk)
-  IhomQ = ideal(Q, [ TtoQ(x) for x in gens(Ihom) ])
-  tlkQ = ideal(Q, [ TtoQ(gen(T, ngens(S) + 1)), TtoQ(gen(T, ngens(S) + 2)) ])
+  IhomQ = ideal(Q, [TtoQ(x) for x in gens(Ihom)])
+  tlkQ = ideal(Q, [TtoQ(gen(T, ngens(S) + 1)), TtoQ(gen(T, ngens(S) + 2))])
   @vprint :LinearQuotients "Phase 2: Computing intersection\n"
   J = intersect(IhomQ, tlkQ)
   @vprint :LinearQuotients "Phase 2: Simplifying\n"
   J = simplify(J)
 
   @vprint :LinearQuotients "Phase 2: Moving generators around\n"
-  TtoS = hom(T, S, append!([ x for x in gens(S) ], [ one(S) for i in 1:2 ]))
+  TtoS = hom(T, S, append!([x for x in gens(S)], [one(S) for i in 1:2]))
   gensJ = elem_type(Q)[]
   for f in gens(J)
     if !iszero(f)
       push!(gensJ, f)
     end
   end
-  new_gens = elem_type(S)[ TtoS(TtoQ\x) for x in gensJ ]
-  Sk, _ = grade(S, ZZRingElem[ vals[juniors[k]][2](StoR(x)) for x in gens(S) ])
+  new_gens = elem_type(S)[TtoS(TtoQ \ x) for x in gensJ]
+  Sk, _ = grade(S, ZZRingElem[vals[juniors[k]][2](StoR(x)) for x in gens(S)])
   for i in 1:length(new_gens)
     f = new_gens[i]
     hc = homogeneous_components(Sk(f))
@@ -574,7 +607,13 @@ end
 
 # Update the data structures.
 # TODO: Should there be a struct for all this stuff one moves around?
-function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector{<:MPolyRingElem}, SAbGold::MPolyDecRing, L::LinearQuotient)
+function add_generators(
+  StoRold::MPolyAnyMap,
+  Iold::MPolyIdeal,
+  new_gens::Vector{<:MPolyRingElem},
+  SAbGold::MPolyDecRing,
+  L::LinearQuotient,
+)
   R = codomain(StoRold)
   K = coefficient_ring(R)
   Sold = domain(StoRold)
@@ -582,12 +621,15 @@ function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector
   _, GtoAbG = class_group(L)
   zeta = fixed_root_of_unity(L)
 
-  new_gens_imgs = elem_type(R)[ StoRold(x) for x in new_gens]
-  imgs = append!(elem_type(R)[ StoRold(x) for x in gens(Sold) ], new_gens_imgs)
+  new_gens_imgs = elem_type(R)[StoRold(x) for x in new_gens]
+  imgs = append!(elem_type(R)[StoRold(x) for x in gens(Sold)], new_gens_imgs)
   S, _ = polynomial_ring(K, "t" => 1:(ngens(Sold) + length(new_gens)))
-  Sdeg, _ = grade(S, [ degree(f) for f in imgs ])
+  Sdeg, _ = grade(S, [degree(f) for f in imgs])
 
-  AbG_degrees = append!([ degree(x) for x in gens(SAbGold) ], [ ab_g_degree(GtoAbG, f, zeta) for f in new_gens_imgs ])
+  AbG_degrees = append!(
+    [degree(x) for x in gens(SAbGold)],
+    [ab_g_degree(GtoAbG, f, zeta) for f in new_gens_imgs],
+  )
   SAbG, _ = grade(S, AbG_degrees)
 
   StoR = hom(S, R, imgs)
@@ -604,7 +646,13 @@ function add_generators(StoRold::MPolyAnyMap, Iold::MPolyIdeal, new_gens::Vector
 end
 
 # Relations of the Cox ring, see [Sch23, Algorithm 6.3.3].
-function relations(StoR::MPolyAnyMap, I::MPolyIdeal, juniors::Vector{<:MatrixGroupElem}, vals::Dict{<:MatrixGroupElem, <:Tuple}, degsRt::Vector{Vector{ZZRingElem}})
+function relations(
+  StoR::MPolyAnyMap,
+  I::MPolyIdeal,
+  juniors::Vector{<:MatrixGroupElem},
+  vals::Dict{<:MatrixGroupElem,<:Tuple},
+  degsRt::Vector{Vector{ZZRingElem}},
+)
   R = codomain(StoR)
   S = domain(StoR)
 
@@ -612,27 +660,33 @@ function relations(StoR::MPolyAnyMap, I::MPolyIdeal, juniors::Vector{<:MatrixGro
   Ihom = I
   for i in 1:length(juniors)
     @vprint :LinearQuotients "Relations: Homogenizing at $i\n"
-    weights = ZZRingElem[ vals[juniors[i]][2](StoR(x)) for x in gens(S) ]
+    weights = ZZRingElem[vals[juniors[i]][2](StoR(x)) for x in gens(S)]
     append!(weights, zeros(ZZRingElem, i))
     weights[end] = -1
-    T, _ = graded_polynomial_ring(coefficient_ring(S), [ "t$j" for j in 1:nvars(S) + i ], weights)
+    T, _ = graded_polynomial_ring(
+      coefficient_ring(S), ["t$j" for j in 1:(nvars(S) + i)], weights
+    )
     Ihom = homogenize_at_last_variable(Ihom, T)
   end
 
   @vprint :LinearQuotients "Relations: Computing Gröbner basis\n"
   # We need homogeneous generators (with respect to all gradings) of Ihom
-  gb = groebner_basis(Ihom, complete_reduction = true)
-  T, _ = graded_polynomial_ring(coefficient_ring(S), append!([ "X$i" for i in 1:ngens(S) ], [ "Y$i" for i in 1:length(juniors) ]), degsRt)
+  gb = groebner_basis(Ihom; complete_reduction=true)
+  T, _ = graded_polynomial_ring(
+    coefficient_ring(S),
+    append!(["X$i" for i in 1:ngens(S)], ["Y$i" for i in 1:length(juniors)]),
+    degsRt,
+  )
   @assert ngens(T) == ngens(base_ring(Ihom))
 
   @vprint :LinearQuotients "Relations: Finishing up\n"
-  r = [ order(s) for s in juniors ]
+  r = [order(s) for s in juniors]
   rels = Vector{elem_type(T)}()
   for f in gb
     F = MPolyBuildCtx(T)
     for (c, e) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
       ee = deepcopy(e)
-      for i in ngens(S) + 1:ngens(T)
+      for i in (ngens(S) + 1):ngens(T)
         @assert is_zero(mod(ee[i], r[i - ngens(S)]))
         ee[i] = div(ee[i], r[i - ngens(S)])
       end

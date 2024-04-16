@@ -1,0 +1,24 @@
+julia> R, (X0, X1, X2, X3) = graded_polynomial_ring(QQ, ["X$i" for i in 0:3]);
+
+julia> I = ideal(R, [X0*X2 - X1^2, X1*X3 - X2^2, X0*X3 - X1*X2]);
+
+julia> A, _ = quo(R, I);
+
+julia> hilbert_series(A)
+(2*t^3 - 3*t^2 + 1, (-t + 1)^4)
+
+julia> p = next_prime(rand(1:10000))
+4783
+
+julia> R, (X0, X1, X2, X3) = graded_polynomial_ring(GF(p), ["X$i" for i in 0:3]);
+
+julia> I = ideal(R, [X0*X2 - X1^2, X1*X3 - X2^2, X0*X3 - X1*X2]);
+
+julia> gb = groebner_basis_f4(forget_grading(I));
+
+julia> lm_ideal = ideal(R, (leading_monomial).(gens(gb)));
+
+julia> A, _ = quo(R, lm_ideal);
+
+julia> hilbert_series(A)
+(2*t^3 - 3*t^2 + 1, (-t + 1)^4)

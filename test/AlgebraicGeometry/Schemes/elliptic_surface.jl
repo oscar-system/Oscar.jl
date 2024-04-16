@@ -74,6 +74,18 @@
     @test length(Oscar.mordell_weil_torsion(X)) == 0 # no torsion points
     # u = elliptic_parameter(X, ff)
     g, phi = two_neighbor_step(X, ff)
+
+
+    #=
+    # takes far too long
+    mwl_gens_new = vcat([mwl_basis[1] + mwl_basis[2], mwl_basis[1] - mwl_basis[2]])
+    set_mordell_weil_basis!(X, mwl_gens_new)
+    @test det(algebraic_lattice(X)[3])==-96
+    algebraic_lattice_primitive_closure!(X)
+    @test det(algebraic_lattice(X)[3])==-24
+    =#
+
+
   end
 end
 
