@@ -53,6 +53,7 @@ result = 0
   skip = [
     "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
     "src/PolyhedralGeometry/Polyhedron/properties.jl",
+    "experimental/InvariantTheory/src/InvariantTheory.jl",# the path matches the whitelist entry "src/InvariantTheory"
   ]
 
   # Collect all code files.
