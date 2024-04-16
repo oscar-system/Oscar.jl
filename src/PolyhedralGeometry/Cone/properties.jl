@@ -21,9 +21,15 @@ rays(::Type{<:RayVector}, C::Cone{T}) where {T<:scalar_types} = rays(RayVector{T
 _rays(::Type{<:RayVector}, C::Cone{T}) where {T<:scalar_types} = _rays(RayVector{T}, C)
 
 @doc raw"""
-    rays(C::Cone)
+    rays([as::Type{T} = RayVector,] C::Cone)
 
-Return the rays of `C`.
+Return the rays of `C` in the format defined by `as`. The rays are defined to be the
+one-dimensional faces, so if `C` has lineality, there are no rays.
+
+See also [`rays_modulo_lineality`](@ref).
+
+Optional arguments for `as` include
+* `RayVector`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays` reveals that one of
@@ -51,13 +57,21 @@ julia> rays(P)
  [1, 0]
  [1, 3//2]
 
-julia> matrix(QQ, rays(P))
+julia> matrix(QQ, rays(RayVector, P))
 [1      0]
 [1   3//2]
 
 julia> matrix(ZZ, rays(P))
 [1   0]
 [2   3]
+```
+A half-space has no rays:
+```
+julia> UH = cone_from_inequalities([-1 0 0])
+Polyhedral cone in ambient dimension 3
+
+julia> rays(UH)
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
 rays(C::Cone{T}) where {T<:scalar_types} = rays(RayVector{T}, C)
@@ -70,6 +84,8 @@ Return the rays of the cone of `C` up to lineality as a `NamedTuple` with two
 iterators. If `C` has lineality `L`, then the iterator `rays_modulo_lineality`
 iterates over representatives of the rays of `C/L`. The iterator
 `lineality_basis` gives a basis of the lineality space `L`.
+
+See also [`rays`](@ref) and [`lineality_space`](@ref).
 
 # Examples
 For a pointed cone, with two generators, we get the usual rays:
