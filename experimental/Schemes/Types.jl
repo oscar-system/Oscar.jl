@@ -503,7 +503,7 @@ julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
 Affine scheme morphism
-  from [(t//s)]          AA^1 \ V()
+  from [(t//s)]          AA^1
   to   [(x//z), (y//z)]  affine 2-space
 given by the pullback function
   (x//z) -> (t//s)^2

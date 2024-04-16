@@ -122,7 +122,7 @@ julia> center(bu)
 Sheaf of ideals
   on normal, non-smooth toric variety
 with restriction
-  1: Ideal (x_3_1, x_2_1, x_1_1)
+  1: Ideal (0)
 
 julia> typeof(center(bu))
 IdealSheaf{NormalToricVariety, AbsAffineScheme, Ideal, Map}
