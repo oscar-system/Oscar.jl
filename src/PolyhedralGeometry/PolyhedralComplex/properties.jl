@@ -281,6 +281,9 @@ lineality, there are no rays.
 
 See also [`rays_modulo_lineality`](@ref) and [`vertices`](@ref).
 
+Optional arguments for `as` include
+* `RayVector`.
+
 # Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
