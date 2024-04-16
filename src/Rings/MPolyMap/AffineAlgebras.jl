@@ -219,6 +219,7 @@ Return the preimage of the ideal `I` under `F`.
 """
 function preimage(F::MPolyAnyMap, I::Ideal)
   # This generic routine does not work for maps where the domain is a quotient ring. 
+  # error message: _singular_algebra_morphism(...) does not have a method for this.
   # Hence it has been split into two specialized methods below.
   error("not implemented")
 end
@@ -226,7 +227,7 @@ end
 function preimage(
     f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
-  ) where {T <: FieldElem,
+  ) where {T <: RingElem,
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
@@ -241,13 +242,13 @@ end
 function preimage(
     f::MPolyAnyMap{<:MPolyQuoRing, CT}, 
     I::Union{MPolyIdeal, MPolyQuoIdeal}
-  ) where {T <: FieldElem,
+  ) where {T <: RingElem,
            CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   R = base_ring(domain(f))
   help_map = hom(R, domain(f), gens(domain(f)); check=false)
   g = compose(help_map, f)
-  K = kernel(g)
+  K = preimage(g, I)
   return ideal(domain(f), help_map.(gens(K)))
 end
 
