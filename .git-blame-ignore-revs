@@ -3,3 +3,6 @@ ab444bbc46b5493588b2c3217ed35d86396d1260
 
 # Ran JuliaFormatter on experimental/{BasisLieHighestWieght,ExperimentalTemplate,ExteriorAlgebra,LieAlgebras}
 e71dcb305491f26d13225c0339e2e22129bb27f3
+
+# Ran JuliaFormatter on src/InvariantTheory and experimental/LinearQuotients
+46f309032b476581ec57c584d5ef9f0c384ad46d
