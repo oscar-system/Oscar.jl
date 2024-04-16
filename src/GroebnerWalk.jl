@@ -6,6 +6,15 @@ exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
 include("walk.jl")
 
 
+import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix
+import Oscar.Orderings: MatrixOrdering, _support_indices
+function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
+    i = _support_indices(o.o)
+    m = ZZMatrix(1, length(w), w)
+    return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
+end
+
+#weight_ordering(w::Vector{Int}, o::MonomialOrdering) = weight_ordering(ZZ.(w), o)
 
 
 export groebner_walk
