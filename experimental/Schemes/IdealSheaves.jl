@@ -307,19 +307,6 @@ function simplify!(I::IdealSheaf, cov::Covering=default_covering(space(I)))
   return I
 end
 
-@doc raw"""
-    simplify(I::IdealSheaf)
-
-Replace the generators of the ideals on the `affine_patches` of the `scheme` of `I` 
-by a small set of generators.
-"""
-function simplify(I::IdealSheaf, cov::Covering=default_covering(scheme(I)))
-  id_dict = IdDict{AbsAffineScheme, Ideal}(
-                U => ideal(OO(U), small_generating_set(saturated_ideal(I(U)))) for U in patches(cov)
-              )
-  return IdealSheaf(scheme(I), id_dict; check=false)
-end
-
 @doc """
     subscheme(I::AbsIdealSheaf)
 
