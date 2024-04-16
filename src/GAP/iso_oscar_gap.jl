@@ -121,20 +121,25 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
 
      if FO isa FqField
        f = function(x)
-         v = [GAP.Obj(Nemo._coeff(x, i)) for i in 0:(d - 1)]
-         return sum([v[i]*basis_FG[i] for i in 1:d])
+         return sum([GAP.Obj(Nemo._coeff(x, i-1))*basis_FG[i] for i in 1:d])
        end
      else
        f = function(x)
-         v = [GAP.Obj(coeff(x, i)) for i in 0:(d - 1)]
-         return sum([v[i]*basis_FG[i] for i in 1:d])
+         return sum([GAP.Obj(coeff(x, i-1))*basis_FG[i] for i in 1:d])
        end
      end
-
-     finv = function(x::GAP.Obj)
-       v = GAPWrap.Coefficients(basis_FG, x)
-       v_int = [ZZRingElem(GAPWrap.IntFFE(v[i])) for i = 1:d]
-       return sum([v_int[i]*basis_F[i] for i = 1:d])
+     if p < 2^60
+       finv = function(x::GAP.Obj)
+         v = GAPWrap.Coefficients(basis_FG, x)
+         v_int = [GAPWrap.IntFFE(v[i])::Int for i = 1:d]
+         return FO(v_int)
+       end
+     else
+       finv = function(x::GAP.Obj)
+         v = GAPWrap.Coefficients(basis_FG, x)
+         v_int = [ZZRingElem(GAPWrap.IntFFE(v[i]))::ZZRingElem for i = 1:d]
+         return FO(v_int)
+       end
      end
    else
      # Create an Oscar field `FO2` that is compatible with `FG`
@@ -149,21 +154,19 @@ function _iso_oscar_gap_field_finite_functions(FO::Union{FqPolyRepField, FqField
      if FO isa FqField
        f = function(x)
          y = preimage(emb, x)
-         v = [GAP.Obj(Nemo._coeff(y, i)) for i in 0:(d - 1)]
-         return sum([v[i]*basis_FG[i] for i in 1:d])
+         return sum([GAP.Obj(Nemo._coeff(y, i-1))*basis_FG[i] for i in 1:d])
        end
      else
        f = function(x)
          y = preimage(emb, x)
-         v = [GAP.Obj(coeff(y, i)) for i in 0:(d - 1)]
-         return sum([v[i]*basis_FG[i] for i in 1:d])
+         return sum([GAP.Obj(coeff(y, i-1))*basis_FG[i] for i in 1:d])
        end
      end
 
      finv = function(x::GAP.Obj)
        v = GAPWrap.Coefficients(basis_FG, x)
        v_int = [ZZRingElem(GAPWrap.IntFFE(v[i])) for i = 1:d]
-       return emb(sum([v_int[i]*basis_F[i] for i = 1:d]))
+       return emb(FO2(v_int))
      end
    end
 
