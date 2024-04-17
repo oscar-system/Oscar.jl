@@ -98,7 +98,7 @@ function jukes_cantor_model(graph::Graph{Directed})
     
     group = [[0,0], [0,1], [1,0], [1,1]]
 
-    return PhylogeneticModel(ns, graph, R , S, matrices, fourier_param, group)
+    return PhylogeneticModel(ns, graph, R, S, matrices, fourier_param, group)
 end
 
 # Kimura 2
