@@ -83,6 +83,9 @@ vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_ty
 _vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
   SubObjectIterator{as}(PC, _vertex_complex, length(_vertex_indices(pm_object(PC))))
 
+vertices(as::Type{<:PointVector}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  vertices(PointVector{T}, PC)
+
 _vertex_complex(
   U::Type{PointVector{T}}, PC::PolyhedralComplex{T}, i::Base.Integer
 ) where {T<:scalar_types} = point_vector(
@@ -297,7 +300,7 @@ julia> rays(PC)
 1-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
 
-julia> matrix(QQ, rays(PC))
+julia> matrix(QQ, rays(RayVector, PC))
 [1   0]
 ```
 The following complex has no vertices:
@@ -319,6 +322,9 @@ julia> rays(PC)
 """
 rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} = rays(RayVector{T}, PC)
 _rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} = _rays(RayVector{T}, PC)
+
+rays(as::Type{<:RayVector}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
+  rays(RayVector{T}, PC)
 
 _ray_indices_polyhedral_complex(PC::Polymake.BigObject) =
   collect(Polymake.to_one_based_indexing(PC.FAR_VERTICES))
