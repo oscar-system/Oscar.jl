@@ -43,43 +43,42 @@ with default covering
     1: [(t//s)]
     2: [(s//t)]
 
-julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 2-space
-    2: affine 2-space
-    3: affine 2-space
-  in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
+julia> IP2 = projective_space(QQ, [:x, :y, :z]);
+
+julia> S = homogeneous_coordinate_ring(IP2);
+
+julia> x, y, z = gens(S);
+
+julia> IPC, inc_IPC = sub(IP2, ideal(S, [x^2 - y*z]));
+
+julia> C = covered_scheme(IPC);
 
 julia> U = first(affine_charts(IP1))
 Spectrum
   of multivariate polynomial ring in 1 variable (t//s)
     over rational field
 
-julia> V = first(affine_charts(IP2))
+julia> V = first(affine_charts(C))
 Spectrum
-  of multivariate polynomial ring in 2 variables (y//x), (z//x)
-    over rational field
+  of quotient
+    of multivariate polynomial ring in 2 variables (y//x), (z//x)
+      over rational field
+    by ideal (-(y//x)*(z//x) + 1)
 
 julia> t = first(gens(OO(U)))
 (t//s)
 
-julia> Phi = morphism_from_rational_functions(IP1, IP2, U, V, [1//t, 1//t^2]);
+julia> Phi = morphism_from_rational_functions(IP1, C, U, V, [t//one(t), 1//t]);
 
 julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
 Affine scheme morphism
   from [(t//s)]          AA^1
-  to   [(x//z), (y//z)]  affine 2-space
+  to   [(x//z), (y//z)]  scheme((x//z)^2 - (y//z))
 given by the pullback function
-  (x//z) -> (t//s)^2
-  (y//z) -> (t//s)
+  (x//z) -> (t//s)
+  (y//z) -> (t//s)^2
 
 ```
 """
@@ -277,7 +276,7 @@ function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineSch
   cod_rep = codomain_chart(Phi)
   y_cod = [a[cod_rep] for a in y]::Vector{<:FieldElem}
   x_dom = [evaluate(a, coordinate_images(Phi)) for a in y_cod]::Vector{<:FieldElem}
-  x = function_field(X).(x_dom)
+  x = function_field(X).(x_dom; check=true)
   img_gens_frac = [a[U] for a in x]
   realization_previews(Phi)[(U, V)] = img_gens_frac
   return img_gens_frac
@@ -334,8 +333,9 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineSchem
 #   @assert aa*denominator(f) == unit(fac)*new_den*numerator(f)
 #   img_gens_frac[k] = inv(unit(fac))*fraction(aa)//fraction(new_den)
 # end
-  denoms = [denominator(a) for a in img_gens_frac]
-  U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
+  denoms = OO(U).([denominator(a) for a in img_gens_frac])
+  any(is_zero, denoms) && error("some denominator was zero")
+  U_sub = PrincipalOpenSubset(U, denoms)
   img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in img_gens_frac] 
   phi = morphism(U_sub, ambient_space(V), img_gens, check=false) 
   cheap_realizations(Phi)[(U, V)] = phi
@@ -851,7 +851,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
   error("no chart found")
 end
 
-function _pushforward_prime_divisor(
+function _prepare_pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
@@ -883,7 +883,155 @@ function _pushforward_prime_divisor(
   end
 
   sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
-  @show [a for (V, a) in sorted_charts_with_complexity]
+  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+
+  bad_charts = Int[]
+  for (i, V) in enumerate(sorted_charts)
+    # Find a chart in the codomain which has a chance to have the pushforward visible
+    fracs = realization_preview(phi, U, V)::Vector
+    any(f->OO(U)(denominator(f)) in I(U), fracs) && continue
+    phi_loc = cheap_realization(phi, U, V)
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        if pullback(phi_loc)(h) in I(domain(phi_loc)) 
+          # Remove this chart from the list
+          push!(bad_charts, i)
+          continue
+        end
+      end
+    end
+    return phi_loc, U, V
+  end
+
+  sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
+  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
+  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  
+  # try random realizations second
+  loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
+
+  # The ring is smooth in codimension one. Let's find a generator of its maximal ideal
+  pp = ideal(loc_ring, gens(I(U)))
+  qq = pp^2
+  candidates = [g for g in gens(I(U)) if !(loc_ring(g) in qq)]
+  complexity(a) = total_degree(lifted_numerator(a)) + total_degree(lifted_denominator(a))
+  sort!(candidates, by=complexity)
+  isempty(candidates) && error("no element of valuation one found")
+
+  min_terms = minimum(length.(terms.(lifted_numerator.(candidates))))
+  h = candidates[findfirst(x->length(terms(lifted_numerator(x)))==min_terms, candidates)]
+
+  F1 = FreeMod(loc_ring, 1)
+
+  # Trigger caching of the attribute :is_prime for faster computation of is_zero
+  # on elements.
+  if loc_ring isa MPolyQuoLocRing
+    is_prime(modulus(underlying_quotient(loc_ring)))
+  end
+
+  P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
+
+  for V in sorted_charts
+    fs = realization_preview(phi, U, V)
+    skip = false
+    for (i, fr) in enumerate(fs)
+      a = numerator(fr)
+      b = denominator(fr)
+      aa = loc_ring(a)
+      bb = loc_ring(b)
+      count = 0
+      # If the denominator is in P, we have a problem.
+      # If the numerator is not in P, the problem is serious and this chart can 
+      # not be used.
+      # If the numerator is also in P, we can cancel the fraction by h and 
+      # start all over. 
+      while OO(U)(lifted_numerator(bb)) in I(U)
+        count = count + 1
+        if !(OO(U)(lifted_numerator(aa)) in I(U))
+          skip = true
+          break
+        end
+        bb = coordinates(bb*F1[1], P)[1]
+        aa = coordinates(aa*F1[1], P)[1]
+      end
+      skip && break
+      num = lifted_numerator(aa)*lifted_denominator(bb)
+      den = lifted_numerator(bb)*lifted_denominator(aa)
+      @assert !(OO(U)(den) in I(U))
+      fs[i] = num//den
+    end
+    skip && continue
+
+    # Copied from cheap_realization
+    denoms = OO(U).([denominator(a) for a in fs])
+    any(is_zero, denoms) && error("some denominator was zero in this chart")
+    U_sub = PrincipalOpenSubset(U, denoms)
+    img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
+    psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
+    # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
+    #cheap_realizations(phi)[(U, V)] = psi
+    #realization_previews(phi)[(U, V)] = fs
+
+    # Shortcut to decide whether the restriction will lead to a trivial ideal
+    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      for h in denominators(inverted_set(OO(V)))
+        I_sub = ideal(OO(U_sub), lifted_numerator.(gens(I(U)))) # Avoid production of the ring map, etc.
+        OO(U_sub)(pullback(psi)(h)) in I_sub && continue
+      end
+    end
+
+    return psi, U, V
+    # Else: try the next chart
+  end
+
+  # The preselection of charts in the codomain via the optional argument 
+  # may lead to that there is no result in the end. 
+  return nothing, domain_chart(phi), codomain_chart(phi)
+end
+
+function _pushforward_prime_divisor(
+    phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
+    codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
+  )
+  loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(phi, I; codomain_charts)
+  loc_map === nothing && return nothing
+  
+  U_sub = domain(loc_map)
+  J = preimage(pullback(loc_map), I(U_sub))
+  JJ = ideal(OO(cod_chart), gens(J))
+  return PrimeIdealSheafFromChart(codomain(phi), cod_chart, JJ)
+
+  #TODO: Remove deprecated code below
+
+  U = _find_good_representative_chart(I)
+  X = domain(phi)
+  Y = codomain(phi)
+
+  # try cheap realizations first
+  sorted_charts = codomain_charts
+  if has_decomposition_info(default_covering(Y))
+    info = decomposition_info(default_covering(Y))
+    sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
+  end
+
+  function compl(V::AbsAffineScheme)
+    result = 0
+    if (U, V) in keys(realization_previews(phi))
+      fracs = realization_previews(phi)[(U, V)]::Vector
+      if any(f->OO(U)(denominator(f)) in I(U), fracs)
+        result = result + 100000
+      else
+        #result = sum(length(terms(numerator(f))) + length(terms(denominator(f))) for f in fracs; init=0)
+        result = sum(total_degree(numerator(f)) + total_degree(denominator(f)) for f in fracs; init=0)
+      end
+    else
+      result = result + 10
+    end
+    return result
+  end
+
+  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
   sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
 
   bad_charts = Int[]
@@ -903,8 +1051,6 @@ function _pushforward_prime_divisor(
       end
     end
 
-    @show "computing preimage"
-    @show gens(I(domain(phi_loc)))
     J = preimage(pullback(phi_loc), I(domain(phi_loc)))
     JJ = ideal(OO(V), gens(J))
     return PrimeIdealSheafFromChart(Y, V, JJ)
@@ -970,8 +1116,9 @@ function _pushforward_prime_divisor(
     skip && continue
 
     # Copied from cheap_realization
-    denoms = [denominator(a) for a in fs]
-    U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
+    denoms = OO(U).([denominator(a) for a in fs])
+    any(is_zero, denoms) && error("some denominator was zero in this chart")
+    U_sub = PrincipalOpenSubset(U, denoms)
     img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
     psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
     # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
@@ -1119,6 +1266,9 @@ function compose(
   return morphism_from_rational_functions(X, Z, U, codomain_chart(g), imgs_U; check=false)
 end
 
+#=
+# This will not work because `phi` must be dominant. But then its image 
+# has the zero ideal sheaf associated to it.
 function ideal_sheaf_of_image(phi::MorphismFromRationalFunctions)
   X = domain(phi)
   Y = codomain(phi)
@@ -1136,4 +1286,5 @@ function ideal_sheaf_of_image(phi::MorphismFromRationalFunctions)
   end
   error("image ideal could not be computed")
 end
+=#
 
