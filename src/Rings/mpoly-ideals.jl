@@ -1964,7 +1964,10 @@ julia> small_generating_set(J)
  x*y^2 - z
 ```
 """
-function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}
+function small_generating_set(
+    I::MPolyIdeal{T};
+    algorithm::Symbol=:simple
+  ) where {T<:MPolyRingElem{<:FieldElem}}
   # For non-homogeneous ideals, we do not have a notion of minimal generating
   # set, but Singular.mstd still provides a good heuristic to find a small
   # generating set.
@@ -1992,7 +1995,7 @@ function small_generating_set(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldE
 end
 
 # in graded rings, reusing a cached gb makes sense, so use minimal_generating_set there
-small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}) = minimal_generating_set(I)
+small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; algorithm::Symbol=:simple) = minimal_generating_set(I)
 
 ################################################################################
 #

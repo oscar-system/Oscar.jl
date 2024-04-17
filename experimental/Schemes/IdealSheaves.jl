@@ -1319,10 +1319,20 @@ function _one_patch_per_component(covering::Covering, comp::Vector{<:AbsIdealShe
   return new_cov
 end
 
-@attr Vector{elem_type(base_ring(I))} function small_generating_set(I::MPolyLocalizedIdeal)
-  L = base_ring(I)
-  g = small_generating_set(pre_saturated_ideal(I))
-  return unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
+function small_generating_set(I::MPolyLocalizedIdeal; algorithm::Symbol=:simple)
+  get_attribute!(I, :small_generating_set) do
+    L = base_ring(I)
+    poly_ideal = pre_saturated_ideal(I)
+    if algorithm == :simple
+      # do nothing more
+    elseif algorithm == :with_saturation
+      poly_ideal = saturated_ideal(I)
+    else
+      error("algorithm keyword not recognized")
+    end
+    g = small_generating_set(poly_ideal)
+    unique!(elem_type(L)[gg for gg in L.(g) if !iszero(gg)])
+  end::Vector{elem_type(base_ring(I))} 
 end
 
 function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
