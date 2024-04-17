@@ -55,16 +55,16 @@ These arguments can be given as a string:
 """
 function visualize(
   P::Union{
-    Polyhedron{T},
-    Cone{T},
-    PolyhedralFan{T},
-    PolyhedralComplex{T},
-    SubdivisionOfPoints{T},
+    Polyhedron{<:Union{Float64,FieldElem}},
+    Cone{<:Union{Float64,FieldElem}},
+    PolyhedralFan{<:Union{Float64,FieldElem}},
+    PolyhedralComplex{<:Union{Float64,FieldElem}},
+    SubdivisionOfPoints{<:Union{Float64,FieldElem}},
     Graph,
     SimplicialComplex,
   };
   kwargs...,
-) where {T<:Union{Float64,FieldElem}}
+)
   _prepare_visualization(P)
   pmo = pm_object(P)
   Polymake.visual(pmo; kwargs...)
@@ -92,8 +92,8 @@ function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
 end
 
 function _prepare_visualization(
-  P::Union{Polyhedron{T},Cone{T},PolyhedralFan{T},PolyhedralComplex{T}}
-) where {T<:Union{Float64,FieldElem}}
+  P::Union{Polyhedron{<:Union{Float64,FieldElem}},Cone{<:Union{Float64,FieldElem}},PolyhedralFan{<:Union{Float64,FieldElem}},PolyhedralComplex{<:Union{Float64,FieldElem}}}
+)
   d = ambient_dim(P)
   b = P isa Polyhedron
   if b && d == 4
@@ -110,8 +110,8 @@ function _prepare_visualization(
 end
 
 function _prepare_visualization(
-  P::SubdivisionOfPoints{T}
-) where {T<:Union{Float64,FieldElem}}
+  P::SubdivisionOfPoints{<:Union{Float64,FieldElem}}
+)
   d = ambient_dim(P)
   @req d <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
   # polymake will by default use 0:n-1 as labels so we assign labels
