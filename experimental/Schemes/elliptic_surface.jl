@@ -1967,6 +1967,19 @@ function fibration(X::EllipticSurface)
   return X.fibration
 end
 
+function _local_pushforward(loc_map::AbsAffineSchemeMor, I::Ideal)
+  U_sub = domain(loc_map)
+  E, inc_E = sub(U_sub, I) # The subscheme of the divisor
+  E_simp = simplify(E) # Eliminate superfluous variables
+  id, id_inv = identification_maps(E_simp)
+
+  comp = compose(compose(id, inc_E), loc_map)
+
+  pb = pullback(comp)
+  K = kernel(pb)
+  return K
+end
+
 function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   @assert is_isomorphism(step) "morphism must be an isomorphism"
   X = domain(step)
@@ -1977,18 +1990,21 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   fracs = coordinate_images(step)
 
   WY, _ = weierstrass_model(Y)
+  UWY = weierstrass_chart(Y)
 
   to_weierstrass_Y = morphism_from_rational_functions(X, WY, UX, UWY, fracs, check=false)
 
   fibration_proj_Y = fibration(Y)
 
   BY = codomain(fibration_proj_Y)
-  UBY = codomain_chart(fibration_proj_Y)
+  UBY = codomain(covering_morphism(fibration_proj_Y)[UY])
 
   composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
 
   lat_X = algebraic_lattice(X)[1]
 
+  # We first estimate for every element in the lattic of X whether its image 
+  # will be a fiber component, or a (multi-)section.
   pre_select = IdDict{AbsWeilDivisor, AbsIdealSheaf}()
 
   for D in lat_X
@@ -1997,17 +2013,15 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
-  @show "done with pre-selection."
 
+  # Now we map them one by one using the knowledge gained above
   result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
-
   co_ring = coefficient_ring(zero_section(Y))
 
   n = length(lat_X)
   mwr = rank(mordell_weil_lattice(X))
   for (i, D) in enumerate(lat_X)
     if i <= n - mwr
-      @show "not a section"
       # D is a non-section
       Q = pre_select[D]
       I = first(components(D))
@@ -2026,14 +2040,13 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
           codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
           
           loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
-          continue
 
-          res = _pushforward_prime_divisor(step, I; codomain_charts)
-
-          res === nothing && error("pushforward was not successful")
+          K = _local_pushforward(loc_map, I(domain(loc_map)))
+          
+          JJ = ideal(OO(cod_chart), gens(K))
+          res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
           result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
-          continue
         end
 
         t = first(gens(OO(UBY)))
@@ -2048,182 +2061,41 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
             loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
             loc_map === nothing && error("pushforward did not succeed")
             match = i
-            continue
-
-            # TODO: Parametrize curves in this chart and push that
-            res = _pushforward_prime_divisor(step, I; codomain_charts)
-
-            res === nothing && error("pushforward did not succeed")
+            
+            K = _local_pushforward(loc_map, I(domain(loc_map)))
+            JJ = ideal(OO(cod_chart), gens(K))
+            res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
             result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
-            match = i
             break
           end
         end
         match == -1 && error("no fiber found")
       else
-        @show "pushforward will be a section"
+        # "pushforward will be a section"
         loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
-        continue
-        # TODO: Parametrize curves in this chart and push that
-        res = _pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
-        if res === nothing 
-          println("zero section")
-          result[D] = zero_section(Y)
-          continue
-        end
+            
+        K = _local_pushforward(loc_map, I(domain(loc_map)))
+        JJ = ideal(OO(cod_chart), gens(K))
+        res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
         result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       end
     else
-      @show "pushforward of a section"
+      # "pushforward of a section"
 
       I = first(components(D))
       loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
-      continue
-      # D is a section;
-      # build the corresponding morphism IP^1 -> X2 and compose 
-      j = i - n + mwr
-      sec_map = morphism_from_section(X, j)
-      psi = compose(sec_map, step)
-      res = ideal_sheaf_of_image(psi)
+      K = _local_pushforward(loc_map, I(domain(loc_map)))
+      JJ = ideal(OO(cod_chart), gens(K))
+      res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
       result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
     end
   end
-  return result
+
+  return WeilDivisor[result[D] for D in lat_X]
 end
-
-function _match_with_codomain_sheaf(
-    phi::MorphismFromRationalFunctions, 
-    I::AbsIdealSheaf,
-    J::AbsIdealSheaf,
-    U::AbsAffineScheme
-  )
-  X = domain(phi)
-  Y = codomain(phi)
-  candidates = AbsAffineScheme[U for U in affine_charts(Y) if !isone(J(U))]
-
-  function compl(V::AbsAffineScheme)
-    result = 0
-    if (U, V) in keys(realization_previews(phi))
-      fracs = realization_previews(phi)[(U, V)]::Vector
-      if any(f->OO(U)(denominator(f)) in I(U), fracs)
-        result = result + 100000
-      else
-        #result = sum(length(terms(numerator(f))) + length(terms(denominator(f))) for f in fracs; init=0)
-        result = sum(total_degree(numerator(f)) + total_degree(denominator(f)) for f in fracs; init=0)
-      end
-    else
-      result = result + 10
-    end
-    return result
-  end
-
-  sorted_charts_with_complexity = [(V, compl(V)) for V in candidates]
-  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
-
-  bad_charts = Int[]
-  for (i, V) in enumerate(sorted_charts)
-    # Find a chart in the codomain which has a chance to have the pushforward visible
-    fracs = realization_preview(phi, U, V)::Vector
-    any(f->OO(U)(denominator(f)) in I(U), fracs) && continue
-    phi_loc = cheap_realization(phi, U, V)
-    # Shortcut to decide whether the restriction will lead to a trivial ideal
-    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
-      for h in denominators(inverted_set(OO(V)))
-        if pullback(phi_loc)(h) in I(domain(phi_loc)) 
-          # Remove this chart from the list
-          push!(bad_charts, i)
-          continue
-        end
-      end
-    end
-
-    pfI = preimage(pullback(phi_loc), I(domain(phi_loc)))
-    JJ = ideal(OO(V), gens(pfI))
-    return JJ == J(V)
-  end
-
-  sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
-  
-  # try random realizations second
-  loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))
-
-  # The ring is smooth in codimension one. Let's find a generator of its maximal ideal
-  pp = ideal(loc_ring, gens(I(U)))
-  qq = pp^2
-  candidates = [g for g in gens(I(U)) if !(loc_ring(g) in qq)]
-  complexity(a) = total_degree(lifted_numerator(a)) + total_degree(lifted_denominator(a))
-  sort!(candidates, by=complexity)
-  isempty(candidates) && error("no element of valuation one found")
-
-  min_terms = minimum(length.(terms.(lifted_numerator.(candidates))))
-  h = candidates[findfirst(x->length(terms(lifted_numerator(x)))==min_terms, candidates)]
-
-  F1 = FreeMod(loc_ring, 1)
-
-  # Trigger caching of the attribute :is_prime for faster computation of is_zero
-  # on elements.
-  if loc_ring isa MPolyQuoLocRing
-    is_prime(modulus(underlying_quotient(loc_ring)))
-  end
-
-  P, _ = sub(F1, [h*F1[1]]) # The maximal ideal in the localized ring, but as a submodule
-
-  for V in sorted_charts
-    fs = realization_preview(phi, U, V)
-    skip = false
-    for (i, fr) in enumerate(fs)
-      a = numerator(fr)
-      b = denominator(fr)
-      aa = loc_ring(a)
-      bb = loc_ring(b)
-      count = 0
-      # If the denominator is in P, we have a problem.
-      # If the numerator is not in P, the problem is serious and this chart can 
-      # not be used.
-      # If the numerator is also in P, we can cancel the fraction by h and 
-      # start all over. 
-      while OO(U)(lifted_numerator(bb)) in I(U)
-        count = count + 1
-        if !(OO(U)(lifted_numerator(aa)) in I(U))
-          skip = true
-          break
-        end
-        bb = coordinates(bb*F1[1], P)[1]
-        aa = coordinates(aa*F1[1], P)[1]
-      end
-      skip && break
-      num = lifted_numerator(aa)*lifted_denominator(bb)
-      den = lifted_numerator(bb)*lifted_denominator(aa)
-      @assert !(OO(U)(den) in I(U))
-      fs[i] = num//den
-    end
-    skip && continue
-
-    # Copied from cheap_realization
-    denoms = [denominator(a) for a in fs]
-    U_sub = PrincipalOpenSubset(U, OO(U).(denoms))
-    img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in fs]
-    psi = morphism(U_sub, ambient_space(V), img_gens, check=false)
-    # TODO: Do we really want to cache this? The expressions become more complex by the above cancellation.
-    #cheap_realizations(phi)[(U, V)] = psi
-    #realization_previews(phi)[(U, V)] = fs
-
-    # Shortcut to decide whether the restriction will lead to a trivial ideal
-    if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
-      for h in denominators(inverted_set(OO(V)))
-        OO(U_sub)(pullback(psi)(h)) in I(U_sub) && continue
-      end
-    end
-
-    pfI = preimage(pullback(psi), I(U_sub))
-    JJ = ideal(OO(V), gens(pfI))
-    return JJ == J(V)
-    # Else: try the next chart
-  end
-end
-
 
 #=
 # The map is not dominant and can hence not be realized as a MorphismFromRationalFunctions.
@@ -2241,11 +2113,9 @@ function morphism_from_section(X::EllipticSurface, i::Int)
   @assert ngens(kkt) == 1
   t = first(gens(kkt))
   img_gens = [evaluate(P.coordx, t), evaluate(P.coordy, t), t]
-  @show img_gens
 
   Fkkt = fraction_field(kkt)
   img_gens2 = Fkkt.(img_gens)
-  @show img_gens2
   # TODO: Cache?
   return morphism_from_rational_functions(B, X, V, U, img_gens2, check=false)
 end
