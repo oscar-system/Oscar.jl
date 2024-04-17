@@ -557,6 +557,10 @@ end
 
 function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
   return get_attribute!(I, :is_one) do
+    for U in keys(object_cache(I))
+      !is_one(I(U)) && return false
+    end
+
     J = summands(I)
     k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
     if k !== nothing
@@ -567,9 +571,6 @@ function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I))
       end
     end
 
-    for U in keys(object_cache(I))
-      !is_one(I(U)) && return false
-    end
     return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
   end::Bool
 end
@@ -1499,7 +1500,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     iso_inv = inverse(iso)
     pb_P = pullback(iso_inv)(P)
     result = ideal(OO(U2), [g for g in OO(U2).(gens(saturated_ideal(pb_P))) if !iszero(g)])
-    #@assert is_one(result) || is_prime(result)
+    @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
     return result
   end
 
@@ -1508,7 +1509,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   # reconstruct from the root
   if has_ancestor(x->(x===V), U2)
     result = OOX(V, U2)(F(V))
-    #@assert is_one(result) || is_prime(result)
+    @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
     return result
   end
 
@@ -1517,7 +1518,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   V2 = __find_chart(U2, default_covering(X))
   if haskey(object_cache(F), V2) && V2 !== U2
     result = OOX(V2, U2)(F(V2))
-    #@assert is_one(result) || is_prime(result)
+    @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
     return result
   end
 
@@ -1545,7 +1546,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
       I = ideal(OO(V2), lifted_numerator.(gens(I)))
       I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
       result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
-      #@assert is_one(result) || is_prime(result)
+      @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
       return result
     else
       Z = subscheme(W, F(W))
@@ -1553,7 +1554,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
       is_empty(pZ) && continue
       ZV = closure(pZ, V2, check=false)
       result = OOX(V2, U2)(ideal(OO(V2), [g for g in OO(V2).(small_generating_set(saturated_ideal(modulus(OO(ZV))))) if !iszero(g)]))
-      #@assert is_one(result) || is_prime(result)
+      @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
       return result
     end
   end
