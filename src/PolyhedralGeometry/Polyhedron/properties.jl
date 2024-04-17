@@ -1350,12 +1350,12 @@ julia> is_johnson_solid(J)
 true
 ```
 """
-is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !is_vertex_transitive(P)
+is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !is_vertex_transitive(P)
 
 @doc raw"""
     is_archimedean_solid(P::Polyhedron)
 
-Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular faces.
+Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular facets.
 
 See also [`archimedean_solid`](@ref).
 
@@ -1377,7 +1377,7 @@ julia> is_archimedean_solid(T)
 false
 ```
 """
-is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && !_has_equal_faces(P) && is_vertex_transitive(P) && !_is_prismic_or_antiprismic(P)
+is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !_has_equal_facets(P) && is_vertex_transitive(P) && !_is_prismic_or_antiprismic(P)
 
 @doc raw"""
     is_platonic_solid(P::Polyhedron)
@@ -1395,9 +1395,9 @@ julia> is_platonic_solid(cube(3))
 true
 ```
 """
-is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_faces(P) && _has_equal_faces(P) && is_vertex_transitive(P)
+is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && _has_equal_facets(P) && is_vertex_transitive(P)
 
-function _is_3d_pol_reg_faces(P::Polyhedron)
+function _is_3d_pol_reg_facets(P::Polyhedron)
   # dimension
   dim(P) == 3 || return false
 
@@ -1413,13 +1413,13 @@ function _is_3d_pol_reg_faces(P::Polyhedron)
     _squared_distance(v[1], v[2]) == edgelength || return false
   end
 
-  pfaces = faces(P, 2)
+  pfacets = facets(Polyhedron, P)
 
-  # face vertices on circle
-  for face in pfaces
-    n = n_vertices(face)
+  # facet vertices on circle
+  for facet in pfacets
+    n = n_vertices(facet)
     if n >= 4
-      fverts = vertices(face)
+      fverts = vertices(facet)
       m = sum(fverts)//n
       dist = _squared_distance(fverts[1], m)
 
@@ -1436,7 +1436,7 @@ function _squared_distance(p::PointVector, q::PointVector)
   return dot(d, d)
 end
 
-function _has_equal_faces(P::Polyhedron)
+function _has_equal_facets(P::Polyhedron)
   nv = facet_sizes(P)
   return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
 end
@@ -1459,9 +1459,9 @@ is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action
 
 function _is_prismic_or_antiprismic(P::Polyhedron)
   nvf = facet_sizes(P)
-  # nvfs contains vector entries [i, j] where j is the amount of i-gonal faces of P
+  # nvfs contains vector entries [i, j] where j is the amount of i-gonal facets of P
   nvfs = [[i, sum(nvf .== i)] for i in unique(nvf)]
-  # an (anti-)prism can only have 2 different types of faces
+  # an (anti-)prism can only have 2 different types of facets
   # n-gons and either squares/triangles (for prisms/antiprisms respectively)
   # if n == 1 this function will not be called either way
   length(nvfs) == 2 || return false
@@ -1471,7 +1471,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # with length(nvfs) == 2, b is the other index than a
   b = 3 - a
   m = nvfs[b][1]
-  # the faces that are not n-gons have to be squares or triangles
+  # the facets that are not n-gons have to be squares or triangles
   m == 3 || m == 4 || return false
   n = nvfs[a][1]
   # P has to have exactly n vertices and
