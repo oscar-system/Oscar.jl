@@ -1,6 +1,6 @@
 struct PhylogeneticModel
-  graph::Graph{Directed}
   n_states::Int
+  graph::Graph{Directed}
   prob_ring::MPolyRing{QQFieldElem}
   fourier_ring::MPolyRing{QQFieldElem}
   trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
