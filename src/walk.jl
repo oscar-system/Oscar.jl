@@ -213,23 +213,20 @@ function standard_walk(
 
   @v_do :groebner_walk steps = 0
 
-  while true
+  while current_weight != target_weight
     G = standard_step(G, current_weight, target)
 
-    if current_weight == target_weight
-      @vprint :groebner_walk "Cones crossed: " 
-      @vprintln :groebner_walk steps
-
-      return G
-    else
-      current_weight = next_weight(G, current_weight, target_weight)
-    end
+    current_weight = next_weight(G, current_weight, target_weight)
 
     @v_do :groebner_walk steps+=1
-
     @vprintln :groebner_walk current_weight
     @vprintln :groebner_walk 2 G
   end
+
+  @vprint :groebner_walk "Cones crossed: " 
+  @vprintln :groebner_walk steps
+
+  return G
 end
 
 ###############################################################
