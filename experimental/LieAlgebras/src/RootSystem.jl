@@ -803,7 +803,7 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
 
   # reversing word means it is in short revlex normal form
   # and it is the element taking w to wt
-  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
+  return wt, weyl_group(R)(reverse!(word); normalize=false)
 end
 
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
