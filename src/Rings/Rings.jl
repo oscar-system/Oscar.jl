@@ -22,6 +22,7 @@ include("MPolyMap/base_change.jl")
 
 include("mpoly-local.jl")
 include("localization_interface.jl")
+include("mpoly-localization_types.jl")
 include("mpoly-localizations.jl")
 include("mpolyquo-localizations.jl")
 include("MPolyMap/flattenings.jl")
