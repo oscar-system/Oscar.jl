@@ -188,7 +188,6 @@ function standard_walk(
   start::MonomialOrdering, 
   target::MonomialOrdering
 )
-  
   start_weight = canonical_matrix(start)[1,:]
   target_weight = canonical_matrix(target)[1,:]
 
@@ -247,7 +246,6 @@ function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::Monomi
 
   return interreduce_walk(H)
 end
-
 standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_ordering(base_ring(G), w, T))
 
 ###############################################################
@@ -256,37 +254,28 @@ standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_ste
 
 function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
   Lm = leading_term.(G; ordering=start)
-  v = next_gamma(G, Lm, [ZZ(0)], start, target)
+  V = next_gamma(G, Lm, zeros(ZZRingElem, 1), start, target)
 
   @vprintln :groebner_walk "Results for generic_walk"
   @vprintln :groebner_walk "Facets crossed for: "
 
-end
-
-function generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
-  Lm = [leading_term(g; ordering=matrix_ordering(base_ring(G), S)) for g in G]
-  v = next_gamma(G, Lm, [0], S, T)
-  ordNew = matrix_ordering(base_ring(G), T)
-
-  @vprintln :groebner_walk "generic_walk results"
-  @vprintln :groebner_walk "Facets crossed for: "
-
-  while !isempty(v)
-    G, Lm = generic_step(G, Lm, v, ordNew)
-    raise_step_counter()
-
-
-    @vprintln :groebner_walk v
+  while !isempty(V)
+    G, Lm = generic_step(G, Lm, V, target)
+    
+    # TODO: increase step_counter here
+    @vprintln :groebner_walk V
     @vprintln :groebner_walk 2 G
 
-    G = Oscar.IdealGens(G, ordNew)
-    v = next_gamma(G, Lm, v, S, T)
+    G = IdealGens(G, target)
+    V = next_gamma(G, Lm, V, start, target)
   end
+
   return G
 end
+generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}) = generic_walk(G, monomial_ordering(base_ring(G), S), monomial_ordering(base_ring(G), T))
 
 function generic_step(
-  G::Oscar.IdealGens, Lm::Vector{T}, v::Vector{Int}, ord::MonomialOrdering
+  G::Oscar.IdealGens, Lm::Vector{T}, v::Vector{ZZRingElem}, ord::MonomialOrdering
 ) where {T<:MPolyRingElem}
   facet_Generators = facet_initials(G, Lm, v)
   H = groebner_basis(
@@ -301,25 +290,35 @@ end
 # Perturbed-version of the Groebner Walk.
 ###############################################################
 
-function perturbed_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}, p::Int)
+function perturbed_walk(
+  G::Oscar.IdealGens, 
+  start::MonomialOrdering, 
+  target::MonomialOrdering, 
+  p::Int
+)
   @vprintln :groebner_walk "perturbed_walk results"
   @vprintln :groebner_walk "Crossed Cones in: "
 
-  currweight = perturbed_vector(G, S, p)
+  R = base_ring(G)
+  S = canonical_matrix(start)
+  T = canonical_matrix(target)
 
-  while true
-    tarweight = perturbed_vector(G, T, p)
-    Tn = add_weight_vector(tarweight, T)
-    G = standard_walk(G, S, Tn, currweight, tarweight)
-    if same_cone(G, T)
-      return G
-    else
-      p = p - 1
-      currweight = tarweight
-      S = Tn
-    end
+  current_weight = perturbed_vector(G, S, p)
+
+  while !same_cone(G, target)
+    target_weight = perturbed_vector(G, T, p)
+    next_target = matrix_ordering(R, add_weight_vector(target_weight, T))
+    G = standard_walk(G, next_target, current_weight, target_weight)
+
+    p = p - 1
+    current_weight = target_weight
+    S = next_target
   end
+
+  return G
 end
+
+perturbed_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}, p::Int) = perturbed_walk(G, matrix_ordering(base_ring(G),S), matrix_ordering(base_ring(G),T), p)
 
 ###############################################################
 # The Fractal Walk
@@ -871,23 +870,22 @@ end
 
 # returns the initials of the polynomials w.r.t. the vector v.
 function facet_initials(
-  G::Oscar.IdealGens, lm::Vector{T}, v::Vector{Int}
-) where {T<:MPolyRingElem}
-  Rn = parent(first(G))
-  initials = Array{Singular.elem_type(Rn),1}(undef, 0)
-  count = 1
-  for g in G
-    inw = Singular.MPolyBuildCtx(Rn)
-    el = first(Singular.exponent_vectors(lm[count]))
-    for (e, c) in zip(Singular.exponent_vectors(g), Singular.coefficients(g))
-      if el == e || isparallel(el - e, v)
-        Singular.push_term!(inw, c, e)
+  G::Oscar.IdealGens, lm::Vector{<:MPolyRingElem}, v::Vector{ZZRingElem}
+)
+  initials = Vector{MPolyRingElem}()
+
+  # TODO: this really wants marked Gröbner bases
+  ctx = MPolyBuildCtx(base_ring(G))
+  for (g,el) in zip(G, exponent_vectors.(lm) .|> first)
+    for (c,e) in zip(coefficients(g), exponent_vectors(g))
+      if el == e || is_parallel(ZZ.(el - e), v)
+        push_term!(ctx, c, e)
       end
     end
-    h = finish(inw)
-    push!(initials, h)
-    count += 1
+
+    push!(initials, finish(ctx))
   end
+
   return initials
 end
 
@@ -903,6 +901,8 @@ function difference_lead_tail(
 
   return unique!(reduce(vcat, v))
 end
+
+difference_lead_tail(::Type{ZZRingElem}, G::Oscar.IdealGens, Lm::Vector{<:MPolyRingElem}, T::MonomialOrdering) = Vector{ZZRingElem}.(difference_lead_tail(G, Lm, T))
 
 # function difference_lead_tail(
 #   G::Oscar.IdealGens, Lm::Vector{L}, T::Union{Matrix{N},MatElem{N}}
@@ -924,7 +924,7 @@ end
 # end
 
 # returns true if the vector u is parallel to the vector v.
-function isparallel(u::Vector{Int}, v::Vector{Int})
+function is_parallel(u::Vector{T}, v::Vector{T}) where T
   count = 1
   x = 0
   for i in 1:length(u)
@@ -966,98 +966,106 @@ function lift_generic(
 end
 
 # returns all v \in V if v<0 w.r.t. the ordering represented by T and v>0 w.r.t the ordering represented by S.
-function filter_by_ordering(S::MonomialOrdering, T::MonomialOrdering, V::Vector{Vector{Int}})
+function filter_by_ordering(S::ZZMatrix, T::ZZMatrix, V::Vector{Vector{ZZRingElem}})
   pred = v->(
-    less_than_zero(canonical_matrix(T), ZZ.(v)) && 
-    greater_than_zero(canonical_matrix(S), ZZ.(v))
+    less_than_zero(T, v) && 
+    greater_than_zero(S, v)
   )
   return unique!(filter(pred, V))
 end
 
-function filter_by_ordering(S::Matrix{Int}, T::Matrix{Int}, V::Vector{Vector{Int}})
-  btz = Set{Vector{Int}}()
-  for v in V
-    if less_than_zero(T, v) && greater_than_zero(S, v)
-      push!(btz, v)
-    end
-  end
-  return btz
-end
+# function filter_by_ordering(S::Matrix{Int}, T::Matrix{Int}, V::Vector{Vector{Int}})
+#   btz = Set{Vector{Int}}()
+#   for v in V
+#     if less_than_zero(T, v) && greater_than_zero(S, v)
+#       push!(btz, v)
+#     end
+#   end
+#   return btz
+# end
 
 # returns all v \in V if w<v w.r.t. the facet-preorder.
-function filter_lf(w::Vector{Int}, S::Matrix{Int}, T::Matrix{Int}, V::Set{Vector{Int}})
-  btz = Set{Vector{Int}}()
-  for v in V
-    if less_facet(w, v, S, T)
-      push!(btz, v)
-    end
-  end
-  return btz
+# function filter_lf(w::Vector{Int}, S::Matrix{Int}, T::Matrix{Int}, V::Set{Vector{Int}})
+#   btz = Set{Vector{Int}}()
+#   for v in V
+#     if less_facet(w, v, S, T)
+#       push!(btz, v)
+#     end
+#   end
+#   return btz
+# end
+
+function filter_lf(w::Vector{ZZRingElem}, start::ZZMatrix, target::ZZMatrix, V::Vector{Vector{ZZRingElem}})
+  pred = v->less_facet(w, v, start, target)
+
+  return unique!(filter(pred, V))
 end
 
 # computes the next vector in the generic walk.
 function next_gamma(
-  G::Oscar.IdealGens, Lm::Vector{L}, w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering
-) where {L<:MPolyRingElem}
-  V = filter_by_ordering(start, target, difference_lead_tail(G, Lm, target))
-end
+  G::Oscar.IdealGens, 
+  Lm::Vector{<:MPolyRingElem}, 
+  w::Vector{ZZRingElem}, 
+  start::MonomialOrdering, 
+  target::MonomialOrdering
+)
+  S = canonical_matrix(start)
+  T = canonical_matrix(target)
+  
+  V = filter_by_ordering(S, T, difference_lead_tail(ZZRingElem, G, Lm, target))
 
-function next_gamma(
-  G::Oscar.IdealGens, Lm::Vector{L}, w::Vector{Int}, S::Matrix{Int}, T::Matrix{Int}
-) where {L<:MPolyRingElem}
-  V = filter_by_ordering(S, T, difference_lead_tail(G, Lm, T))
-  if (w != [0])
-    V = filter_lf(w, S, T, V)
+  if (w != zeros(ZZRingElem, 1))
+    V = filter_lf(w, S, T, V) #TODO
   end
+
   if isempty(V)
     return V
   end
-  minV = first(V)
-  for v in V
+
+  op = (minV,v) ->
     if less_facet(v, minV, S, T)
-      minV = v
-    end
+      return v
+    else return minV
   end
-  return minV
+
+  return foldl(op, V; init=first(V))
 end
 
 # tests if v>0 w.r.t. the ordering M.
-greater_than_zero(M::MonomialOrdering, v::Vector{Int}) = greater_than_zero(canonical_matrix(M), v)
 # TODO What is the definition?
 # This should be the ordering on Q^n induced by M: ( u <_M v iff Mu <_lex Mv)?  
-function greater_than_zero(M::Matrix{Int}, v::Vector{Int})
-  nrows, ncols = size(M)
+function greater_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
+  nrows, _ = size(M)
+
   for i in 1:nrows
-    d = 0
-    for j in 1:ncols
-      @inbounds d += M[i, j] * v[j]
-    end
+    d = dot(M[i,:], v)
+
     if d != 0
       return d > 0
     end
   end
+
   return false
 end
 
 # tests if v<0 w.r.t. the ordering M.
-less_than_zero(M::MonomialOrdering, v::Vector{Int}) = less_than_zero(canonical_matrix(M), v)
-less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = new_less_than_zero(M, v)
-function less_than_zero(M::Matrix{Int}, v::Vector{Int})
-  nrows, ncols = size(M)
+# less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = new_less_than_zero(M, v)
+function less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
+  nrows, _ = size(M)
+
   for i in 1:nrows
-    d = 0
-    for j in 1:ncols
-      @inbounds d += M[i, j] * v[j]
-    end
+    d = dot(M[i,:], v)
+
     if d != 0
       return d < 0
     end
   end
+
   return false
 end
 
 # tests if u<v w.r.t. the facet-preorder represented by the matrices S and T.
-function less_facet(u::Vector{Int}, v::Vector{Int}, S::Matrix{Int}, T::Matrix{Int})
+function less_facet(u::Vector{ZZRingElem}, v::Vector{ZZRingElem}, S::ZZMatrix, T::ZZMatrix)
   for i in 1:size(T, 1)
     for j in 1:size(S, 1)
       @inbounds Tuv = dot(T[i, :], u) * dot(S[j, :], v)
@@ -1198,35 +1206,22 @@ function difference_lead_tail(I::Oscar.IdealGens)
 end
 
 # computes a p-perturbed vector from the matrix M.
-function perturbed_vector(G::Oscar.IdealGens, M::Matrix{Int}, p::Integer)
-  m = Int[]
+function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
   n = size(M, 1)
-  for i in 1:p
-    max = M[i, 1]
-    for j in 1:n
-      temp = abs(M[i, j])
-      if temp > max
-        max = temp
-      end
-    end
-    push!(m, max)
-  end
-  msum = 0
-  for i in 2:p
-    msum += m[i]
-  end
-  maxdeg = 0
-  for g in gens(G)
-    td = deg(g, n)
-    if (td > maxdeg)
-      maxdeg = td
-    end
-  end
-  e = maxdeg * msum + 1
+  rows = [M[i,:] for i in 1:p]
+
+  m = maximum.(Ref(abs), rows)
+  m_sum = sum(m)
+  max_deg = maximum(total_degree.(G)) # TODO: I think this is total degree
+
+  e = max_deg * m_sum + 1
   w = M[1, :] * e^(p - 1)
   for i in 2:p
     w += e^(p - i) * M[i, :]
   end
+
+  w = sum(rows .* (p .- Vector(1:p)))
+
   return convert_bounding_vector(w)
 end
 
@@ -1255,16 +1250,7 @@ end
 #end
 
 # returns 'true' if the leading terms of G w.r.t the matrixordering T are the same as the leading terms of G with the current ordering.
-function same_cone(G::Oscar.IdealGens, T::Matrix{Int})
-  R = base_ring(G)
-  ord = matrix_ordering(R, T)
-  for g in gens(G)
-    if leading_term(g; ordering=ord) != leading_term(g; ordering=G.ord)
-      return false
-    end
-  end
-  return true
-end
+same_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_term.(G; ordering=T) .== leading_term.(G; ordering=ordering(G)))
 
 # TODO: Actual docstring
 #= Lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
@@ -1350,8 +1336,14 @@ function division_algorithm(p::T, f::Vector{T}, R::MPolyRing) where {T<:MPolyRin
 end
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
-convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
-
+function convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}}
+  c = gcd(w)
+  if c != 0
+    return ZZ.(floor.(w//c))
+  else
+    w
+  end
+end
 
 # returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
 create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} = weight_ordering(cw, matrix_ordering(R, T))
@@ -1468,6 +1460,8 @@ function add_weight_vector(w::Vector{Int}, M::Matrix{Int})
   ]
 end
 
+add_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = ZZMatrix(add_weight_vector(Int.(w), Matrix{Int}(M)))
+
 function ordering_as_matrix(ord::Symbol, nvars::Int)
   if ord == :lex
     return ident_matrix(nvars)
@@ -1492,23 +1486,6 @@ function ordering_as_matrix(ord::Symbol, nvars::Int)
   else
     error("not implemented")
   end
-end
-
-function deg(p::MPolyRingElem, n::Int)
-  max = 0
-  for mon in Singular.monomials(p)
-    ev = Singular.exponent_vectors(mon)
-    sum = 0
-    for e in ev
-      for i in 1:n
-        sum += e[i]
-      end
-      if (max < sum)
-        max = sum
-      end
-    end
-  end
-  return max
 end
 
 function checkInt32(w::Vector{Int})
