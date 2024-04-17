@@ -98,3 +98,4 @@ end
 @deprecate SpecOpenRingElem AffineSchemeOpenSubschemeRingElem
 @deprecate SpecSubset AffineSchemeSubset
 @deprecate StdSpec StdAffineScheme
+@deprecate morphism_of_projective_schemes morphism
