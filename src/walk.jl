@@ -8,15 +8,15 @@ global infoLevel = 0
 @doc raw"""
     groebner_walk(
         I::MPolyIdeal; 
-        startOrder::MonomialOrdering = default_ordering(base_ring(I)), 
         targetOrder::Symbol = lex(base_ring(I)), 
+        startOrder::MonomialOrdering = default_ordering(base_ring(I));
         walktype::Symbol = :standard, 
         perturbationDegree::Int = 2
     )
     groebner_walk(
         G::Oscar.IdealGens,
-        startOrder::Union{Matrix{N}, MatElem{N}},
         targetOrder::Union{Matrix{N}, MatElem{N}},
+        startOrder::Union{Matrix{N}, MatElem{N}},
         walktype::Symbol = :standard,
         perturbationDegree::Int = 2
     ) where N
@@ -34,8 +34,8 @@ One can choose a strategy of:
 # Arguments
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
 - `G::Oscar.IdealGens`: generators of an ideal one wants to compute a Groebner basis for.
-- `startOrder::MonomialOrdering=:degrevlex`: monomial order to begin the conversion.
-- `targetOrder::MonomialOrdering=:lex`: monomial order one wants to compute a Groebner basis for.
+- `target::MonomialOrdering=:lex`: monomial order one wants to compute a Groebner basis for.
+- `start::MonomialOrdering=:degrevlex`: monomial order to begin the conversion.
 - `walktype::Symbol=standard`: strategy of the Groebner Walk. One can choose a strategy of:
     - `standard`: Standard Walk,
     - `perturbed`: Perturbed Walk,
@@ -97,18 +97,20 @@ matrix_ordering([x, y], [1 0; 0 1])
 ```
 """
 function groebner_walk(
-  I::MPolyIdeal,
-  start::MonomialOrdering = default_ordering(base_ring(I)),
+  I::MPolyIdeal, 
   target::MonomialOrdering = lex(base_ring(I)),
-  perturbationDegree = 2;
-  walk_type::Symbol = :standard
+  start::MonomialOrdering = default_ordering(base_ring(I));
+  perturbation_degree = 2,
+  algorithm::Symbol = :standard
 )
-  if walk_type == :standard
+  if algorithm == :standard
     walk = (x) -> standard_walk(x, start, target)
-  elseif walk_type == :generic
+  elseif algorithm == :generic
     walk = (x) -> generic_walk(x, start, target)
+  elseif algorithm == :perturbed
+    walk = (x) -> perturbed_walk(x, start, target, perturbation_degree)
   else
-    throw(NotImplementedError(:groebner_walk, walk_type))
+    throw(NotImplementedError(:groebner_walk, algorithm))
   end
 
   Gb = groebner_basis(I; ordering=start, complete_reduction=true)
@@ -122,8 +124,8 @@ end
 
 function groebner_walk(
   G::Union{Oscar.IdealGens,MPolyIdeal},
-  S::Union{Matrix{N},MatElem{N}},
   T::Union{Matrix{N},MatElem{N}},
+  S::Union{Matrix{N},MatElem{N}},
   walktype::Symbol=:standard,
   p::Int=2,
 ) where {N}
