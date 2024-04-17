@@ -279,7 +279,7 @@ function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
   tx = deepcopy(x)
   for i in 1:length(y)
     b, j, _ = explain_lmul(tx, y[i])
-    if b
+    if !b
       deleteat!(word(tx), j)
       if isone(tx)
         return true
