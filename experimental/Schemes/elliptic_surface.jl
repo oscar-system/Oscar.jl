@@ -32,6 +32,8 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   # exceptionals not used for now
   ambient_blowups::Vector{<:BlowupMorphism}
   ambient_exceptionals::Vector{<:EffectiveCartierDivisor}
+  fibration::AbsCoveredSchemeMorphism # the projection to IP^1
+  fibration_weierstrass_model::AbsCoveredSchemeMorphism # the projection from the Weierstrass model
 
   function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
@@ -424,6 +426,7 @@ function weierstrass_model(X::EllipticSurface)
 
   P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
   P = covered_scheme(P_proj)
+  pr = covered_projection_to_base(P_proj)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
@@ -439,6 +442,7 @@ function weierstrass_model(X::EllipticSurface)
   inc_S = CoveredClosedEmbedding(P, I)
   Scov = domain(inc_S)  # The ADE singular elliptic K3 surface
   X.Weierstrasschart = Scov[1][1]
+  X.fibration_weierstrass_model = compose(inc_S, pr)
 
   X.Weierstrassmodel = Scov
   X.inc_Weierstrass = inc_S
@@ -1949,15 +1953,18 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   return MWL, mwl_basis
 end
 
-@attr function fibration_projection(X::EllipticSurface)
-  kk = base_ring(X)
-  IP1 = projective_space(kk, [:s, :t])
-  B = covered_scheme(IP1)
-  V = first(affine_charts(B))
-  U = weierstrass_chart_on_minimal_model(X)
-  R = ambient_coordinate_ring(U)
-  FR = fraction_field(R)
-  return morphism_from_rational_functions(X, B, U, V, [FR(gen(R, 3))])
+function fibration_on_weierstrass_model(X::EllipticSurface)
+  if !isdefined(X, :fibration_weierstrass_model)
+    weierstrass_model(X) # trigger caching
+  end
+  return X.fibration_weierstrass_model
+end
+
+function fibration(X::EllipticSurface)
+  if !isdefined(X, :fibration)
+    X.fibration = compose(weierstrass_contraction(X), fibration_on_weierstrass_model(X))
+  end
+  return X.fibration
 end
 
 function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
@@ -1970,11 +1977,10 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   fracs = coordinate_images(step)
 
   WY, _ = weierstrass_model(Y)
-  UWY = weierstrass_chart(Y)
 
   to_weierstrass_Y = morphism_from_rational_functions(X, WY, UX, UWY, fracs, check=false)
 
-  fibration_proj_Y = fibration_projection(Y)
+  fibration_proj_Y = fibration(Y)
 
   BY = codomain(fibration_proj_Y)
   UBY = codomain_chart(fibration_proj_Y)
@@ -2018,6 +2024,10 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
 
           # collect all charts
           codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
+          
+          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
+          continue
+
           res = _pushforward_prime_divisor(step, I; codomain_charts)
 
           res === nothing && error("pushforward was not successful")
@@ -2035,6 +2045,12 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
 
             # Collect all patches
             codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
+            loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
+            loc_map === nothing && error("pushforward did not succeed")
+            match = i
+            continue
+
+            # TODO: Parametrize curves in this chart and push that
             res = _pushforward_prime_divisor(step, I; codomain_charts)
 
             res === nothing && error("pushforward did not succeed")
@@ -2047,6 +2063,9 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         match == -1 && error("no fiber found")
       else
         @show "pushforward will be a section"
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+        continue
+        # TODO: Parametrize curves in this chart and push that
         res = _pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
         if res === nothing 
           println("zero section")
@@ -2059,6 +2078,9 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     else
       @show "pushforward of a section"
 
+      I = first(components(D))
+      loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+      continue
       # D is a section;
       # build the corresponding morphism IP^1 -> X2 and compose 
       j = i - n + mwr
@@ -2203,21 +2225,29 @@ function _match_with_codomain_sheaf(
 end
 
 
+#=
+# The map is not dominant and can hence not be realized as a MorphismFromRationalFunctions.
+# We keep the code for the moment as it will probably help us to reconstruct this map as a 
+# proper CoveredSchemeMorphism, once this is needed. 
 function morphism_from_section(X::EllipticSurface, i::Int)
   P = X.MWL[i]
   @assert !P.is_infinite
   U = weierstrass_chart_on_minimal_model(X)
 
-  B = codomain(fibration_projection(X))
-  V = codomain_chart(fibration_projection(X))
+  B = codomain(fibration(X))
+  V = codomain_chart(fibration(X))
 
-  kkt = OO(V)
+  kkt = OO(V)::MPolyRing
+  @assert ngens(kkt) == 1
   t = first(gens(kkt))
   img_gens = [evaluate(P.coordx, t), evaluate(P.coordy, t), t]
+  @show img_gens
 
   Fkkt = fraction_field(kkt)
   img_gens2 = Fkkt.(img_gens)
+  @show img_gens2
   # TODO: Cache?
   return morphism_from_rational_functions(B, X, V, U, img_gens2, check=false)
 end
+=#
 
