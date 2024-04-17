@@ -547,6 +547,11 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
          if GAP.Globals.HasFamilyPcgs(G.X)
            pcgs = GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X)
            if pcgs == Ggens
+             # `pcgs` fits *and* is an object in `GAP.Globals.IsPcgs`,
+             # for which a special `GAPWrap.IsomorphismFpGroupByGenerators`
+             # method is applicable.
+             # (Currently the alternative is a cokernel computation.
+             # It might be useful to improve this on the GAP side.)
              Ggens = pcgs
            end
          end
