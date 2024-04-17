@@ -32,6 +32,8 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   # exceptionals not used for now
   ambient_blowups::Vector{<:BlowupMorphism}
   ambient_exceptionals::Vector{<:EffectiveCartierDivisor}
+  fibration::AbsCoveredSchemeMorphism # the projection to IP^1
+  fibration_weierstrass_model::AbsCoveredSchemeMorphism # the projection from the Weierstrass model
 
   function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
@@ -424,6 +426,7 @@ function weierstrass_model(X::EllipticSurface)
 
   P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
   P = covered_scheme(P_proj)
+  pr = covered_projection_to_base(P_proj)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
@@ -439,6 +442,7 @@ function weierstrass_model(X::EllipticSurface)
   inc_S = CoveredClosedEmbedding(P, I)
   Scov = domain(inc_S)  # The ADE singular elliptic K3 surface
   X.Weierstrasschart = Scov[1][1]
+  X.fibration_weierstrass_model = compose(inc_S, pr)
 
   X.Weierstrassmodel = Scov
   X.inc_Weierstrass = inc_S
@@ -462,7 +466,7 @@ function _separate_singularities!(X::EllipticSurface)
   P = codomain(inc_S)
 
   I_sing = ideal_sheaf_of_singular_locus(S)
-  I_sing_P = radical(pushforward(inc_S)(I_sing))
+  I_sing_P = SimplifiedIdealSheaf(pushforward(inc_S)(I_sing))
 
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
@@ -594,6 +598,8 @@ function weierstrass_contraction(X::EllipticSurface)
   X0 = codomain(inc_S)
   Y0 = S
   inc_Y0 = inc_S
+  I_sing_Y0 = maximal_associated_points(ideal_sheaf_of_singular_locus(Y0))::Vector{<:AbsIdealSheaf}
+  I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
 
 
   ambient_exceptionals = EffectiveCartierDivisor[]
@@ -607,13 +613,8 @@ function weierstrass_contraction(X::EllipticSurface)
   while true
     count = count+1
     @vprint :EllipticSurface 1 "blowup number: $(count)\n"
-    @vprint :EllipticSurface 2 "computing singular locus\n"
-    I_sing_Y0 = ideal_sheaf_of_singular_locus(Y0)
-    @vprint :EllipticSurface 2 "decomposing singular locus\n"
-    I_sing_Y0 = maximal_associated_points(I_sing_Y0)
-    I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
-    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_Y0))\n"
-    if length(I_sing_Y0)==0
+    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_X0))\n"
+    if length(I_sing_X0)==0
       # stop if smooth
       break
     end
@@ -635,7 +636,7 @@ function weierstrass_contraction(X::EllipticSurface)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = simplify(I_sing_X0[1])#, cov)
+    J = SimplifiedIdealSheaf(I_sing_X0[1])
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
@@ -652,6 +653,16 @@ function weierstrass_contraction(X::EllipticSurface)
     push!(ambient_exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+
+    # transform the singular loci
+    I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
+
+    # Add eventual new components
+    @vprint :EllipticSurface 2 "computing singular locus\n"
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1)
+    I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    @vprint :EllipticSurface 2 "decomposing singular locus\n"
+    I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
 
     push!(projectionsX, pr_X1)
     push!(projectionsY, pr_Y1)
@@ -838,6 +849,8 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
     for j in 1:i-1
       @vprint :EllipticSurface 4 "$(j) "
       # we know the intersections are 0 or 1
+      G[i, j] = G[j, i] = intersect(f[i], f[j])
+      continue
       if isone(components(f[i])[1]+components(f[j])[1])
         G[i,j] = 0
       else
@@ -1939,4 +1952,172 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
   return MWL, mwl_basis
 end
+
+function fibration_on_weierstrass_model(X::EllipticSurface)
+  if !isdefined(X, :fibration_weierstrass_model)
+    weierstrass_model(X) # trigger caching
+  end
+  return X.fibration_weierstrass_model
+end
+
+function fibration(X::EllipticSurface)
+  if !isdefined(X, :fibration)
+    X.fibration = compose(weierstrass_contraction(X), fibration_on_weierstrass_model(X))
+  end
+  return X.fibration
+end
+
+function _local_pushforward(loc_map::AbsAffineSchemeMor, I::Ideal)
+  U_sub = domain(loc_map)
+  E, inc_E = sub(U_sub, I) # The subscheme of the divisor
+  E_simp = simplify(E) # Eliminate superfluous variables
+  id, id_inv = identification_maps(E_simp)
+
+  comp = compose(compose(id, inc_E), loc_map)
+
+  pb = pullback(comp)
+  K = kernel(pb)
+  return K
+end
+
+function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  @assert is_isomorphism(step) "morphism must be an isomorphism"
+  X = domain(step)
+  Y = codomain(step)
+  UX = weierstrass_chart_on_minimal_model(X)
+  UY = weierstrass_chart_on_minimal_model(Y)
+  @assert codomain_chart(step) === UY
+  fracs = coordinate_images(step)
+
+  WY, _ = weierstrass_model(Y)
+  UWY = weierstrass_chart(Y)
+
+  to_weierstrass_Y = morphism_from_rational_functions(X, WY, UX, UWY, fracs, check=false)
+
+  fibration_proj_Y = fibration(Y)
+
+  BY = codomain(fibration_proj_Y)
+  UBY = codomain(covering_morphism(fibration_proj_Y)[UY])
+
+  composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
+
+  lat_X = algebraic_lattice(X)[1]
+
+  # We first estimate for every element in the lattic of X whether its image 
+  # will be a fiber component, or a (multi-)section.
+  pre_select = IdDict{AbsWeilDivisor, AbsIdealSheaf}()
+
+  for D in lat_X
+    @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
+    I = first(components(D))
+    pre_select[D] = _pushforward_prime_divisor(composit, I)
+  end
+
+
+  # Now we map them one by one using the knowledge gained above
+  result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
+  co_ring = coefficient_ring(zero_section(Y))
+
+  n = length(lat_X)
+  mwr = rank(mordell_weil_lattice(X))
+  for (i, D) in enumerate(lat_X)
+    if i <= n - mwr
+      # D is a non-section
+      Q = pre_select[D]
+      I = first(components(D))
+      if dim(Q) == 0
+        # find the fiber 
+        if is_one(Q(UBY))
+          # collect all components
+          comps = AbsWeilDivisor[]
+          for (pt, _, F, E, _) in reducible_fibers(Y)
+            if is_zero(pt[2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
+              append!(comps, E[2:end])
+            end
+          end
+
+          # collect all charts
+          codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
+          
+          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
+
+          K = _local_pushforward(loc_map, I(domain(loc_map)))
+          
+          JJ = ideal(OO(cod_chart), gens(K))
+          res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+          result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+        end
+
+        t = first(gens(OO(UBY)))
+        match = -1
+        for (i, (p, _, F, E, _)) in enumerate(reducible_fibers(Y))
+          p[2] == 0 && continue # Fiber over infinity already caught above
+          t0 = p[1]//p[2]
+          if ideal(OO(UBY), t - t0) == Q(UBY)
+
+            # Collect all patches
+            codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
+            loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
+            loc_map === nothing && error("pushforward did not succeed")
+            match = i
+            
+            K = _local_pushforward(loc_map, I(domain(loc_map)))
+            JJ = ideal(OO(cod_chart), gens(K))
+            res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+            result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+            break
+          end
+        end
+        match == -1 && error("no fiber found")
+      else
+        # "pushforward will be a section"
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+            
+        K = _local_pushforward(loc_map, I(domain(loc_map)))
+        JJ = ideal(OO(cod_chart), gens(K))
+        res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+      end
+    else
+      # "pushforward of a section"
+
+      I = first(components(D))
+      loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+      K = _local_pushforward(loc_map, I(domain(loc_map)))
+      JJ = ideal(OO(cod_chart), gens(K))
+      res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+      result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+    end
+  end
+
+  return WeilDivisor[result[D] for D in lat_X]
+end
+
+#=
+# The map is not dominant and can hence not be realized as a MorphismFromRationalFunctions.
+# We keep the code for the moment as it will probably help us to reconstruct this map as a 
+# proper CoveredSchemeMorphism, once this is needed. 
+function morphism_from_section(X::EllipticSurface, i::Int)
+  P = X.MWL[i]
+  @assert !P.is_infinite
+  U = weierstrass_chart_on_minimal_model(X)
+
+  B = codomain(fibration(X))
+  V = codomain_chart(fibration(X))
+
+  kkt = OO(V)::MPolyRing
+  @assert ngens(kkt) == 1
+  t = first(gens(kkt))
+  img_gens = [evaluate(P.coordx, t), evaluate(P.coordy, t), t]
+
+  Fkkt = fraction_field(kkt)
+  img_gens2 = Fkkt.(img_gens)
+  # TODO: Cache?
+  return morphism_from_rational_functions(B, X, V, U, img_gens2, check=false)
+end
+=#
 

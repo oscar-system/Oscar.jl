@@ -144,8 +144,8 @@ mutable struct ProjectiveGluing{
     (fb, gb) = gluing_morphisms(G)
     (PX, QY) = (codomain(incP), codomain(incQ))
     (PU, QV) = (domain(incP), domain(incQ))
-    (base_scheme(PX) == X && base_scheme(QY) == Y) || error("base gluing is incompatible with the projective schemes")
-    domain(f) == codomain(g) == PU && domain(g) == codomain(f) == QV || error("maps are not compatible")
+    (base_scheme(PX) === X && base_scheme(QY) === Y) || error("base gluing is incompatible with the projective schemes")
+    domain(f) === codomain(g) === PU && domain(g) === codomain(f) === QV || error("maps are not compatible")
     SPU = homogeneous_coordinate_ring(domain(f))
     SQV = homogeneous_coordinate_ring(codomain(f))
     @check begin
@@ -290,10 +290,10 @@ function Base.show(io::IO, ::MIME"text/plain", CPS::CoveredProjectiveScheme)
   print(io, Dedent(), "covered with ", ItemQuantity(n, "projective patch"))
   print(io, Indent())
   l = ndigits(n)
-  for i in 1:n
+  for (i, ppp) in enumerate(pp)
     li = ndigits(i)
     println(io)
-    print(io, " "^(l-li)*"$(i): ", Lowercase(), CPS[patches(base_covering(CPS))[i]])
+    print(io, " "^(l-li)*"$(i): ", Lowercase(), ppp)
   end
   print(io, Dedent())
 end
@@ -1000,7 +1000,7 @@ end
     covered_scheme(P)
   end
   covering_pr = get_attribute(P, :covering_projection_to_base)::CoveringMorphism
-  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr)
+  return CoveredSchemeMorphism(covered_scheme(P), base_scheme(P), covering_pr; check=false)
 end
 
 

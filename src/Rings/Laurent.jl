@@ -176,7 +176,7 @@ end
 (f::LaurentMPolyAnyMap)(g::LaurentMPolyRingElem) = image(f, g)
 
 # preimage for ideals
-function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyIdeal) where {X, Y, Z}
+function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyIdeal) where {X<:Union{MPolyRing, MPolyQuoRing}, Y, Z}
   R = domain(f)
   S = codomain(f)
   if coefficient_ring(R) === base_ring(S) && f.(gens(R)) == gens(S)

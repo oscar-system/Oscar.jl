@@ -213,6 +213,7 @@ function compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
 end
 
 
+#=
 @doc raw"""
     restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme)
 
@@ -251,6 +252,10 @@ function restrict(f::AffineSchemeMor, U::AbsAffineScheme, V::AbsAffineScheme; ch
   @check is_subscheme(U, domain(f)) "second argument does not lie in the domain of the map"
   @check is_subscheme(V, codomain(f)) "third argument does not lie in the codomain of the map"
   @check is_subscheme(U, preimage(f, V)) "the image of the restriction is not contained in the restricted codomain"
+  if _has_coefficient_map(pullback(f))
+    return morphism(U, V, hom(OO(V), OO(U), coefficient_map(pullback(f)), OO(U).(_images(pullback(f)))); check)
+  end
   return morphism(U, V, (x->OO(U)(x, check=check)).(pullback(f).(gens(domain(pullback(f))))), check=check)
 end
+=#
 
