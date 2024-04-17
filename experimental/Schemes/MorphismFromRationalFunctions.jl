@@ -334,7 +334,7 @@ function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineSchem
 #   img_gens_frac[k] = inv(unit(fac))*fraction(aa)//fraction(new_den)
 # end
   denoms = OO(U).([denominator(a) for a in img_gens_frac])
-  any(is_zero, denoms) && error("some denominator was zero")
+  #any(is_zero, denoms) && error("some denominator was zero")
   U_sub = PrincipalOpenSubset(U, denoms)
   img_gens = [OO(U_sub)(numerator(a), denominator(a), check=false) for a in img_gens_frac] 
   phi = morphism(U_sub, ambient_space(V), img_gens, check=false) 
@@ -838,11 +838,33 @@ function _find_good_representative_chart(I::PrimeIdealSheafFromChart)
   return original_chart(I)
 end
 
+function _find_good_representative_chart(I::PullbackIdealSheaf)
+  f = morphism(I)
+  f_cov = covering_morphism(f)
+  J = original_ideal_sheaf(I)
+  V = _find_good_representative_chart(J)
+  list = maps_with_given_codomain(f_cov, V)
+  for f_loc in list
+    !isone(I(domain(f_loc))) && return domain(f_loc)
+  end
+
+  # if the above doesn't help, fall back to the default
+  X = scheme(I)
+  for U in keys(object_cache(I))
+    any(x->x===U, affine_charts(X)) || continue
+    !is_one(I(U)) && return U
+  end
+  for U in affine_charts(X)
+    !is_one(I(U)) && return U
+  end
+  error("no chart found")
+end
+
 function _find_good_representative_chart(I::AbsIdealSheaf)
   # We assume that I is prime
   X = scheme(I)
   for U in keys(object_cache(I))
-    any(x->x===U, affine_charts(X))
+    any(x->x===U, affine_charts(X)) || continue
     !is_one(I(U)) && return U
   end
   for U in affine_charts(X)
@@ -853,9 +875,10 @@ end
 
 function _prepare_pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
+    domain_chart::AbsAffineScheme = _find_good_representative_chart(I),
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
-  U = _find_good_representative_chart(I)
+  U = domain_chart
   X = domain(phi)
   Y = codomain(phi)
 
@@ -893,13 +916,16 @@ function _prepare_pushforward_prime_divisor(
     phi_loc = cheap_realization(phi, U, V)
     # Shortcut to decide whether the restriction will lead to a trivial ideal
     if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      is_bad_chart = false
       for h in denominators(inverted_set(OO(V)))
         if pullback(phi_loc)(h) in I(domain(phi_loc)) 
           # Remove this chart from the list
           push!(bad_charts, i)
-          continue
+          is_bad_chart = true
+          break
         end
       end
+      is_bad_chart && continue
     end
     return phi_loc, U, V
   end
@@ -975,10 +1001,15 @@ function _prepare_pushforward_prime_divisor(
 
     # Shortcut to decide whether the restriction will lead to a trivial ideal
     if OO(V) isa MPolyLocRing || OO(V) isa MPolyQuoLocRing
+      is_bad_chart = false
+      I_sub = ideal(OO(U_sub), lifted_numerator.(gens(I(U)))) # Avoid production of the ring map, etc.
       for h in denominators(inverted_set(OO(V)))
-        I_sub = ideal(OO(U_sub), lifted_numerator.(gens(I(U)))) # Avoid production of the ring map, etc.
-        OO(U_sub)(pullback(psi)(h)) in I_sub && continue
+        if OO(U_sub)(pullback(psi)(h)) in I_sub
+          is_bad_chart = true
+          break
+        end
       end
+      is_bad_chart && continue
     end
 
     return psi, U, V
