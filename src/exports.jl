@@ -897,7 +897,6 @@ export jacobian_ideal
 export jacobian_matrix
 export jennings_series, has_jennings_series, set_jennings_series
 export johnson_solid
-export jukes_cantor_model
 export k_cyclic_polytope
 export k_skeleton
 export kaehler_differentials

@@ -8,6 +8,14 @@ struct PhylogeneticModel
   group::Vector{Vector{Int64}}
 end
 
+struct FourierPhylogeneticModel
+  pm::PhylogeneticModel
+  fourier_ring::MPolyRing{QQFieldElem}
+  fourier_params::Dict{Edge, Vector{QQMPolyRingElem}}
+  group::Vector{Vector{Int64}}
+end
+
+
 # calling elements of the structure
 @doc raw"""
     graph(pm::PhylogeneticModel)
