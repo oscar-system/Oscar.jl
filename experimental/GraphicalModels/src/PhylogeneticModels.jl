@@ -1,31 +1,6 @@
-#=include("PhylogeneticAuxiliary.jl")
-include("PhylogeneticParametrisation.jl")
-=#
-# Add your new types, functions, and methods here.
-
-# specifying all common phylogenetic models
-# as separate functions using the same structure
-
-
-# 
-# specify the structure
-#
-
-"""
-    PhylogeneticModel
-
-Define four variables which fully specify a phylogenetic model: the number of states `n_states` as an integer, the directed graph `graph`, the polynomial ring `R` and the transition matrices `trans_matrices` as a dictionary between edges and elements of `R`.
-
-# Examples
-```julia-repl
-julia> pm=(4,graph_from_edges(Directed,[[4,1],[4,2],[4,3]]),?)???
-??
-```
-"""
-
 struct PhylogeneticModel
-  n_states::Int
   graph::Graph{Directed}
+  n_states::Int
   prob_ring::MPolyRing{QQFieldElem}
   fourier_ring::MPolyRing{QQFieldElem}
   trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
@@ -34,67 +9,75 @@ struct PhylogeneticModel
 end
 
 # calling elements of the structure
-"""
-    graph(pm)
+@doc raw"""
+    graph(pm::PhylogeneticModel)
 
 Return the graph of a PhylogeneticModel `pm`.
-
-# Examples
-```julia-repl
-julia> input???
-output??
-```
 """
-
 graph(pm::PhylogeneticModel) = pm.graph
 
+@doc raw"""
+    transition_matrices(pm::PhylogeneticModel)
+
+Returns a dictionary between the edges of the tree specifying a PhylogeneticModel `pm` and attached transition matrices.
 """
-    transition_matrices(pm)
-
-Return the transition matrices of a PhylogeneticModel `pm`.
-
-# Examples
-```julia-repl
-julia> input???
-output??
-```
-"""
-
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
 
+@doc raw"""
+    number_states(pm::PhylogeneticModel)
+
+Return the number of states of the PhylogeneticModel `pm`.
 """
-    number_states(pm)
-
-Return the number of states of a PhylogeneticModel `pm`.
-
-# Examples
-```julia-repl
-julia> input???
-output??
-```
-"""
-
 number_states(pm::PhylogeneticModel) = pm.n_states
 
+@doc raw"""
+    probabilities_ring(pm::PhylogeneticModel)
+
+Returns the ring of probability coordinates of the PhylogeneticModel `pm`.
+"""
 probabilities_ring(pm::PhylogeneticModel) = pm.prob_ring
+
+@doc raw"""
+    fourier_ring(pm::PhylogeneticModel)
+
+    Returns the ring of Fourier coordinates of the PhylogeneticModel `pm`.
+"""
 fourier_ring(pm::PhylogeneticModel) = pm.fourier_ring
+
+@doc raw"""
+    fourier_param(pm::PhylogeneticModel)
+
+Return the Fourier parameters of the PhylogeneticModel `pm` as a vector of eigenvalues of the transition matrices.
+"""
 fourier_parameters(pm::PhylogeneticModel) = pm.fourier_params
+
 group_model(pm::PhylogeneticModel) = pm.group
 
-#
-# specify the models
-#
 
-# Jukes Cantor [ref?]
-"""
-    jukes_cantor_model(g)
+#define group-based models
+@doc raw"""
+    jukes_cantor_model(graph::Graph{Directed})
 
-Creates an element of type `PhylogeneticModel` based on `graph g`.
+Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Jukes Cantor matrices. 
 
 # Examples
-```julia-repl
-julia> jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-PhylogeneticModel(4, Directed graph with 4 nodes and 3 edges, Multivariate polynomial ring in 6 variables over QQ, Dict{Edge, MatElem{QQMPolyRingElem}}(Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]], Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]], Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]))
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+```
+We can recover the information of `pm`
+```jldoctest
+julia> graph(pm)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+
+julia> number_states(pm)
+4
+
+julia> prob_ring(pm)
+fourier_ring(pm)
+trans_matrices(pm)
+fourier_params(pm)
+group(pm)
 ```
 """
 function jukes_cantor_model(graph::Graph{Directed})
@@ -117,28 +100,6 @@ function jukes_cantor_model(graph::Graph{Directed})
 
     return PhylogeneticModel(ns, graph, R , S, matrices, fourier_param, group)
 end
-
-#= ### 
-function old_jukes_cantor_model(graph::Graph{Directed})
-  ns = 4
-  ne = n_edges(graph)
-  R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne)
-  
-  matrices = Dict{Edge, MatElem}(e => matrix(R, [
-    a b b b
-    b a b b
-    b b a b
-    b b b a]) for (a,b,e) in zip(list_a, list_b, edges(graph))
-  )
-
-  S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2))
-  fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-          [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
-  
-  group = [[0,0], [0,1], [1,0], [1,1]]
-
-  return PhylogeneticModel(ns, graph, R, S, matrices, fourier_param, group)
-end  =#
 
 # Kimura 2
 function kimura2_model(graph::Graph{Directed})
