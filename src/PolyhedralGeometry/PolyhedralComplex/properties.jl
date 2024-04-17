@@ -154,7 +154,7 @@ rays(as::Type{RayVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types} =
 @doc raw"""
     rays_modulo_lineality(as, PC::PolyhedralComplex)
 
-Return the rays of the recession cone of `PC` up to lineality as a `NamedTuple`
+Return the rays of the recession fan of `PC` up to lineality as a `NamedTuple`
 with two iterators. If `PC` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
