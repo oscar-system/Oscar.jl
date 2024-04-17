@@ -1353,9 +1353,6 @@ end
   # We eliminate the Rabinowitsch variables first, the codomain variables second, 
   # and finally get to the domain variables. This elimination should be quicker 
   # than one which does not know the Rabinowitsch property.
-  @show A
-  @show gens(A)
-  @show total_degree.(denoms)
   oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
   #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
   gb = groebner_basis(I, ordering=oo)
