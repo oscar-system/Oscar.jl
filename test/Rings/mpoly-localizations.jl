@@ -7,7 +7,6 @@ const rng = Oscar.get_seeded_rng()
   f = x^2 + y^2 -1
   m = ideal(R, [x, y])
   I = ideal(R, f)
-  small_generating_set(I; algorithm = :simple)
   S = Oscar.MPolyComplementOfPrimeIdeal(I)
   V, _ = localization(S)
   T = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
