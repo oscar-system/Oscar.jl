@@ -471,43 +471,42 @@ with default covering
     1: [(t//s)]
     2: [(s//t)]
 
-julia> IP2 = covered_scheme(projective_space(QQ, [:x, :y, :z]))
-Scheme
-  over rational field
-with default covering
-  described by patches
-    1: affine 2-space
-    2: affine 2-space
-    3: affine 2-space
-  in the coordinate(s)
-    1: [(y//x), (z//x)]
-    2: [(x//y), (z//y)]
-    3: [(x//z), (y//z)]
+julia> IP2 = projective_space(QQ, [:x, :y, :z]);
+
+julia> S = homogeneous_coordinate_ring(IP2);
+
+julia> x, y, z = gens(S);
+
+julia> IPC, inc_IPC = sub(IP2, ideal(S, [x^2 - y*z]));
+
+julia> C = covered_scheme(IPC);
 
 julia> U = first(affine_charts(IP1))
 Spectrum
   of multivariate polynomial ring in 1 variable (t//s)
     over rational field
 
-julia> V = first(affine_charts(IP2))
+julia> V = first(affine_charts(C))
 Spectrum
-  of multivariate polynomial ring in 2 variables (y//x), (z//x)
-    over rational field
+  of quotient
+    of multivariate polynomial ring in 2 variables (y//x), (z//x)
+      over rational field
+    by ideal (-(y//x)*(z//x) + 1)
 
 julia> t = first(gens(OO(U)))
 (t//s)
 
-julia> Phi = Oscar.MorphismFromRationalFunctions(IP1, IP2, U, V, [1//t, 1//t^2]);
+julia> Phi = MorphismFromRationalFunctions(IP1, C, U, V, [t//one(t), 1//t]);
 
 julia> realizations = Oscar.realize_on_patch(Phi, U);
 
 julia> realizations[3]
 Affine scheme morphism
   from [(t//s)]          AA^1
-  to   [(x//z), (y//z)]  affine 2-space
+  to   [(x//z), (y//z)]  scheme((x//z)^2 - (y//z))
 given by the pullback function
-  (x//z) -> (t//s)^2
-  (y//z) -> (t//s)
+  (x//z) -> (t//s)
+  (y//z) -> (t//s)^2
 
 ```
 """
