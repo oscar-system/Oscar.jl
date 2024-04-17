@@ -192,12 +192,11 @@ function standard_walk(
   start_weight = canonical_matrix(start)[1,:]
   target_weight = canonical_matrix(target)[1,:]
 
-  return standard_walk(G, start, target, start_weight, target_weight)
+  return standard_walk(G, target, start_weight, target_weight)
 end
 
 standard_walk(G::Oscar.IdealGens, S::ZZMatrix, T::ZZMatrix) = standard_walk(
   G, 
-  matrix_ordering(base_ring(G), S),
   matrix_ordering(base_ring(G), T), 
   S[1, :], 
   T[1, :]
@@ -205,7 +204,6 @@ standard_walk(G::Oscar.IdealGens, S::ZZMatrix, T::ZZMatrix) = standard_walk(
 
 function standard_walk(
   G::Oscar.IdealGens,
-  start::MonomialOrdering,
   target::MonomialOrdering,
   current_weight::Vector{ZZRingElem},
   target_weight::Vector{ZZRingElem};
