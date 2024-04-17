@@ -6,8 +6,9 @@ exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
 include("walk.jl")
 
 
-import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix
+import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix, IdealGens
 import Oscar.Orderings: MatrixOrdering, _support_indices
+
 function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
     i = _support_indices(o.o)
     m = ZZMatrix(1, length(w), w)
