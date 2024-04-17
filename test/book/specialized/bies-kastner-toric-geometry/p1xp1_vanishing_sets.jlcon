@@ -1,0 +1,24 @@
+julia> P1 = projective_space(NormalToricVariety,1)
+Normal toric variety
+
+julia> v0, v1, v2 = vanishing_sets(P1*P1)
+3-element Vector{ToricVanishingSet}:
+ Toric vanishing set for cohomology indices [0]
+ Toric vanishing set for cohomology indices [1]
+ Toric vanishing set for cohomology indices [2]
+
+julia> print_constraints(polyhedra(v0)[1])
+-x_1 <= 0
+-x_2 <= 0
+
+julia> print_constraints(polyhedra(v1)[1])
+-x_2 <= 0
+x_1 <= -2
+
+julia> print_constraints(polyhedra(v1)[2])
+-x_1 <= 0
+x_2 <= -2
+
+julia> print_constraints(polyhedra(v2)[1])
+x_2 <= -2
+x_1 <= -2

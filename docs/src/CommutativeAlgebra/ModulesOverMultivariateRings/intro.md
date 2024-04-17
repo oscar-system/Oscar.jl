@@ -2,7 +2,7 @@
 CurrentModule = Oscar
 ```
 
-# Introduction
+# [Introduction](@id modules_multivariate)
 
 Our focus in this section is on finitely presented modules over rings from the following list:
 - multivariate polynomial rings (OSCAR type `MPolyRing`),
@@ -17,8 +17,8 @@ modules which naturally  includes both submodules and quotients of free modules.
 
 !!! note
     Most functions in this section rely on Gröbner (standard) bases techniques. Thus, the functions
-    should not be applied to modules over rings other than those from the list above. See the Linear
-    Algebra chapter for module types which are designed to handle modules over Euclidean
+    should not be applied to modules over rings other than those from the list above. See the [Linear
+    Algebra](@ref linear_algebra) chapter for module types which are designed to handle modules over Euclidean
     domains.
 
 !!! note

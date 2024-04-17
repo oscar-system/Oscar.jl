@@ -56,7 +56,7 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingEle
   R = base_ring(S)
   S === base_ring(b) || error("matrices must be defined over the same ring")
   nrows(b) == 1 || error("only matrices with one row are allowed!")
-  Aext = vcat(A, modulus_matrix(S, ncols(A)))
+  Aext = vcat(A, change_base_ring(S, modulus_matrix(S, ncols(A))))
   B, D = clear_denominators(Aext)
   c, u = clear_denominators(b)
   (success, y, v) = has_solution(B, c, inverted_set(S))

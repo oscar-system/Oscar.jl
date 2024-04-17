@@ -1,0 +1,56 @@
+julia> G = SL(2, 5)
+SL(2,5)
+
+julia> T = character_table(G)
+Character table of SL(2,5)
+
+  2  3                 1                 1  3                  1                  1  1  1  2
+  3  1                 .                 .  1                  .                  .  1  1  .
+  5  1                 1                 1  1                  1                  1  .  .  .
+ 
+    1a               10a               10b 2a                 5a                 5b 3a 6a 4a
+ 
+X_1  1                 1                 1  1                  1                  1  1  1  1
+X_2  2 z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2 -2 -z_5^3 - z_5^2 - 1      z_5^3 + z_5^2 -1  1  .
+X_3  2    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1 -2      z_5^3 + z_5^2 -z_5^3 - z_5^2 - 1 -1  1  .
+X_4  3    -z_5^3 - z_5^2 z_5^3 + z_5^2 + 1  3     -z_5^3 - z_5^2  z_5^3 + z_5^2 + 1  .  . -1
+X_5  3 z_5^3 + z_5^2 + 1    -z_5^3 - z_5^2  3  z_5^3 + z_5^2 + 1     -z_5^3 - z_5^2  .  . -1
+X_6  4                -1                -1  4                 -1                 -1  1  1  .
+X_7  4                 1                 1 -4                 -1                 -1  1 -1  .
+X_8  5                 .                 .  5                  .                  . -1 -1  1
+X_9  6                -1                -1 -6                  1                  1  .  .  .
+
+julia> R = gmodule(T[end])
+G-module for G acting on vector space of dimension 6 over abelian closure of Q
+
+julia> S = gmodule(CyclotomicField, R)
+G-module for G acting on vector space of dimension 6 over cyclotomic field of order 5
+
+julia> schur_index(T[end])
+2
+
+julia> gmodule_minimal_field(S)
+G-module for G acting on vector space of dimension 6 over number field of degree 4 over QQ
+
+julia> B, mB = relative_brauer_group(base_ring(S), character_field(S));
+
+julia> B
+Relative Brauer group for cyclotomic field of order 5 over number field of degree 1 over QQ
+
+julia> b = B(S)
+Element of relative Brauer group of number field of degree 1 over QQ
+  <2, 2> -> 1//2 + Z
+  <5, 5> -> 0 + Z
+  Complex embedding of number field -> 1//2 + Z
+
+julia> K = grunwald_wang(b)
+Class field defined mod (<40, 360>, InfPlc{AbsSimpleNumField, AbsSimpleNumFieldEmbedding}[Infinite place corresponding to (Complex embedding corresponding to 1.00 of number field)]) of structure Z/2
+
+julia> F, _ = absolute_simple_field(number_field(K))
+(Number field of degree 2 over QQ, Map: F -> non-simple number field)
+
+julia> L, _, F_to_L = compositum(base_ring(S), F)
+(Number field of degree 8 over QQ, Map: cyclotomic field of order 5 -> L, Map: F -> L)
+
+julia> gmodule_over(F_to_L, gmodule(L, S))
+G-module for G acting on vector space of dimension 6 over F

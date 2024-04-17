@@ -1,0 +1,9 @@
+julia> T = tetrahedron()
+Polytope in ambient dimension 3
+
+julia> vertices(T)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, -1, -1]
+ [-1, 1, -1]
+ [-1, -1, 1]
+ [1, 1, 1]

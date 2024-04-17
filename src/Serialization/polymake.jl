@@ -36,15 +36,15 @@ function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   T<:Union{Cone{<:scalar_types}, Polyhedron{<:scalar_types}, PolyhedralFan{<:scalar_types}, 
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex}}
   inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
-  if T <: PolyhedralObject{QQFieldElem}
-     return T(inner_object)
-   elseif T <: PolyhedralObject{Float64}
-     return T(inner_object, AbstractAlgebra.Floats{Float64}())
-   else
-      error("Unsupported object type $T for loading polymake object")
-   end
+  if T <: PolyhedralObject{Float64}
+    return T(inner_object, AbstractAlgebra.Floats{Float64}())
+  end
+  try
+    return T(inner_object)
+  catch e
+    error("Unsupported object type $T for loading polymake object")
+  end
 end
-
 
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
@@ -82,12 +82,14 @@ _pmdata_for_oscar(im::IncidenceMatrix, coeff::Field) = im
 _pmdata_for_oscar(g::Polymake.Graph{T}, coeff::Field) where T = Graph{T}(g)
 
 _pmdata_for_oscar(m::Polymake.Matrix, coeff::Field) = matrix(coeff, m)
+_pmdata_for_oscar(m::Polymake.Matrix{Polymake.to_cxx_type(Int)}, coeff::Field) = Matrix{Int}(m)
 _pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Integer}, coeff::Field) = matrix(ZZ, m)
 _pmdata_for_oscar(m::Polymake.Matrix{<:Polymake.Rational}, coeff::Field) = matrix(QQ, m)
 
 _pmdata_for_oscar(m::Polymake.SparseMatrix, coeff::Field) = _pmdata_for_oscar(Polymake.common.dense(m), coeff)
 
 _pmdata_for_oscar(v::Polymake.Vector, coeff::Field) = collect(elem_type(coeff), map(coeff, v))
+_pmdata_for_oscar(v::Polymake.Vector{Polymake.to_cxx_type(Int)}, coeff::Field) = Vector{Int}(v)
 _pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Integer}, coeff::Field) = collect(ZZRingElem, map(ZZ, v))
 _pmdata_for_oscar(v::Polymake.Vector{<:Polymake.Rational}, coeff::Field) = collect(QQFieldElem, map(QQ, v))
 
