@@ -263,7 +263,9 @@ end
 @doc raw"""
     <(x::WeylGroupElem, y::WeylGroupElem) -> Bool
 
-Returns whether `x` is smaller than `y` with respect to the Bruhat order.
+Returns whether `x` is smaller than `y` with respect to the Bruhat order,
+i.e., whether some (not necessarily connected) subexpression of a reduced
+decomposition of `y`, is a reduced decomposition of `x`.
 """
 function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
   @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
@@ -276,8 +278,8 @@ function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
 
   tx = deepcopy(x)
   for i in 1:length(y)
-    a, j, _ = explain_lmul(tx, y[i])
-    if a == -1
+    b, j, _ = explain_lmul(tx, y[i])
+    if b
       deleteat!(word(tx), j)
       if isone(tx)
         return true
@@ -396,8 +398,8 @@ end
 Returns the result of multiplying `x` in place from the left by the `i`th simple reflection.
 """
 function lmul!(x::WeylGroupElem, i::Integer)
-  a, j, r = explain_lmul(x, i)
-  if a == +1
+  b, j, r = explain_lmul(x, i)
+  if b
     insert!(word(x), j, r)
   else
     deleteat!(word(x), j)
@@ -407,7 +409,7 @@ function lmul!(x::WeylGroupElem, i::Integer)
 end
 
 # explains what multiplication of s_i from the left will do.
-# Returns a tuple where the first entry is +/- 1, depending on whether an insertion or deletion will happen,
+# Returns a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
 # the second entry is the position, and the third is the simple root.
 function explain_lmul(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
@@ -418,13 +420,13 @@ function explain_lmul(x::WeylGroupElem, i::Integer)
   root = insert_letter
   for s in 1:length(x)
     if x[s] == root
-      return -1, s, x[s]
+      return false, s, x[s]
     end
 
     root = parent(x).refl[Int(x[s]), Int(root)]
     if iszero(root)
       # r is no longer a minimal root, meaning we found the best insertion point
-      return +1, insert_index, insert_letter
+      return true, insert_index, insert_letter
     end
 
     # check if we have a better insertion point now. Since word[i] is a simple
@@ -435,7 +437,7 @@ function explain_lmul(x::WeylGroupElem, i::Integer)
     end
   end
 
-  return +1, insert_index, insert_letter
+  return true, insert_index, insert_letter
 end
 
 function parent_type(::Type{WeylGroupElem})

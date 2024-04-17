@@ -137,10 +137,8 @@ include(
 
     for (fam, rk) in [(:A, 3), (:B, 3), (:D, 4)]
       W = weyl_group(fam, rk)
-      for v in W
-        for w in W
-          @test (v < w) == bruhat_less(v, w)
-        end
+      for v in W, w in W
+        @test (v < w) == bruhat_less(v, w)
       end
     end
   end
