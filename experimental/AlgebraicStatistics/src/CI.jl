@@ -43,6 +43,12 @@ struct CIStmt
   end
 end
 
+Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
+  lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
+
+Base.hash(stmt::CIStmt, h::UInt) =
+  foldr(hash, stmt.I, stmt.J, stmt.K; hash(:CIStmt, h))
+
 # Allow CI"12,3|456" syntax to create a CIStmt. The short syntax
 # CI"12|345" for elementary CI statements is also supported and
 # is assumed if there is no comma.
