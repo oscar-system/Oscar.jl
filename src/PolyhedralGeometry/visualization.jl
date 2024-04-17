@@ -92,7 +92,12 @@ function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
 end
 
 function _prepare_visualization(
-  P::Union{Polyhedron{<:Union{Float64,FieldElem}},Cone{<:Union{Float64,FieldElem}},PolyhedralFan{<:Union{Float64,FieldElem}},PolyhedralComplex{<:Union{Float64,FieldElem}}}
+  P::Union{
+    Polyhedron{<:Union{Float64,FieldElem}},
+    Cone{<:Union{Float64,FieldElem}},
+    PolyhedralFan{<:Union{Float64,FieldElem}},
+    PolyhedralComplex{<:Union{Float64,FieldElem}},
+  },
 )
   d = ambient_dim(P)
   b = P isa Polyhedron
@@ -109,9 +114,7 @@ function _prepare_visualization(
   end
 end
 
-function _prepare_visualization(
-  P::SubdivisionOfPoints{<:Union{Float64,FieldElem}}
-)
+function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem}})
   d = ambient_dim(P)
   @req d <= 3 "Can not visualize $(typeof(P)) of ambient dimension $d. Supported range: 1 <= d <= 3"
   # polymake will by default use 0:n-1 as labels so we assign labels
