@@ -7,7 +7,7 @@ end
 
 
 include("GaussianGraphicalModels.jl")
-include("DiscreteGraphicalModels.jl")
+#include("DiscreteGraphicalModels.jl")
 
 
 

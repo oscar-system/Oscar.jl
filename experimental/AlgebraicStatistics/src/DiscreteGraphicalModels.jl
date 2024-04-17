@@ -7,7 +7,7 @@ end
 
 # creates a ring with variables corresponding to the joint probabilities of discrete random variables
 # associated to the vertices of G which have states (d1, ... , dn)
-function markov_ring(G::Graph{Directed}h)
+function markov_ring(G::Graph{Directed})
 
 end
 

@@ -1,11 +1,4 @@
-# Add your new types, functions, and methods here.
-
-
-
-include("PhylogeneticModels.jl")
+#include("CI.jl")
+#include("Markov.jl")
 include("GraphicalModels.jl")
-
-
-
-
-
+#include("PhylogeneticModels.jl")
