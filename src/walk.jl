@@ -116,7 +116,7 @@ function groebner_walk(
   Gb = groebner_basis(I; ordering=start, complete_reduction=true)
   Gb = walk(Gb)
 
-  # @vprintln :groebner_walk "Cones crossed: " 
+  @vprintln :groebner_walk "Cones crossed: " 
   # delete_step_counter()
 
   return Oscar.IdealGens(gens(Gb), target; isGB=true)
