@@ -207,6 +207,7 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
+export algebraic_matroid
 export algebraic_pluecker_vector
 export algebraic_polynomial
 export algebraic_set
@@ -959,6 +960,7 @@ export matroid_from_hyperplanes
 export matroid_from_matrix_columns
 export matroid_from_matrix_rows
 export matroid_from_nonbases
+export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export max_GC_rank_polytope
