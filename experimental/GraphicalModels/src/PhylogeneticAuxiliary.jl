@@ -35,8 +35,6 @@ function leaves(graph::Graph)
 end
 
 function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
-
-
     lvs = leaves(gr)
     outn = outneighbors(gr, v)
   
@@ -56,6 +54,23 @@ function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
   
     return(d)
 end
+
+function cherries(graph::Graph)
+  lvs = leaves(graph)
+  #cherr = unique([outneighbors(graph, inneighbors(graph,l)[1]) for l in lvs])
+  #cherr = cherr[findall(x -> length(intersect(x, lvs)) ==2, cherr)]
+  cherry = []
+  for l in lvs
+      in_node = inneighbors(graph,l)[1]
+      lvs_cherr = outneighbors(graph, inneighbors(graph,l)[1])
+      if issubset(lvs_cherr, lvs) == 2
+          cherry = append!(cherry, [[Edge(in_node, lvs_cherr[1]), Edge(in_node, lvs_cherr[2])]])
+      end
+  end
+  
+  return(unique(cherry))
+end
+
 
 ## COMPUTE EQUIVALENCE CLASSES ##
 # Given the dictionary of parametrisation, the functions below compute 
