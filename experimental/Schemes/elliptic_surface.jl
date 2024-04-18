@@ -848,9 +848,9 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
     @vprint :EllipticSurface 3 "\nrow $(i): \n"
     for j in 1:i-1
       @vprint :EllipticSurface 4 "$(j) "
-      # we know the intersections are 0 or 1
-      G[i, j] = G[j, i] = intersect(f[i], f[j])
-      continue
+      # we know the intersections are 0 or 1, so we can replace the line below by a shortcut.
+      # G[i, j] = G[j, i] = intersect(f[i], f[j])
+      # In the examples treated, this led to roughly a factor 3 in speed and memory consumption. 
       if isone(components(f[i])[1]+components(f[j])[1])
         G[i,j] = 0
       else
@@ -1971,6 +1971,7 @@ function _local_pushforward(loc_map::AbsAffineSchemeMor, I::Ideal)
   U_sub = domain(loc_map)
   E, inc_E = sub(U_sub, I) # The subscheme of the divisor
   E_simp = simplify(E) # Eliminate superfluous variables
+  #@show E_simp
   id, id_inv = identification_maps(E_simp)
 
   comp = compose(compose(id, inc_E), loc_map)
@@ -2021,71 +2022,66 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   n = length(lat_X)
   mwr = rank(mordell_weil_lattice(X))
   for (i, D) in enumerate(lat_X)
-    if i <= n - mwr
-      # D is a non-section
-      Q = pre_select[D]
-      I = first(components(D))
-      if dim(Q) == 0
-        # find the fiber 
-        if is_one(Q(UBY))
-          # collect all components
-          comps = AbsWeilDivisor[]
-          for (pt, _, F, E, _) in reducible_fibers(Y)
-            if is_zero(pt[2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
-              append!(comps, E[2:end])
-            end
-          end
+    @vprint :EllipticSurface 2 (i, D, pre_select[D])
+    # D is a non-section
+    Q = pre_select[D]
+    I = first(components(D))
+    @vprint :EllipticSurface 2 typeof(I)
+    dom_chart = _find_good_representative_chart(I)
+    if i > n - mwr # if this is a section
+      dom_chart = weierstrass_chart_on_minimal_model(X)
+    end
 
-          # collect all charts
-          codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
-          
-          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
-
-          K = _local_pushforward(loc_map, I(domain(loc_map)))
-          
-          JJ = ideal(OO(cod_chart), gens(K))
-          res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
-
-          result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
-        end
-
-        t = first(gens(OO(UBY)))
-        match = -1
-        for (i, (p, _, F, E, _)) in enumerate(reducible_fibers(Y))
-          p[2] == 0 && continue # Fiber over infinity already caught above
-          t0 = p[1]//p[2]
-          if ideal(OO(UBY), t - t0) == Q(UBY)
-
-            # Collect all patches
-            codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
-            loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
-            loc_map === nothing && error("pushforward did not succeed")
-            match = i
-            
-            K = _local_pushforward(loc_map, I(domain(loc_map)))
-            JJ = ideal(OO(cod_chart), gens(K))
-            res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
-
-            result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
-            break
+    if dim(Q) == 0
+      # find the fiber 
+      if is_one(Q(UBY))
+        # collect all components
+        comps = AbsWeilDivisor[]
+        for (pt, _, F, E, _) in reducible_fibers(Y)
+          if is_zero(pt[2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
+            append!(comps, E[2:end])
           end
         end
-        match == -1 && error("no fiber found")
-      else
-        # "pushforward will be a section"
-        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
-            
+
+        # collect all charts
+        codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
+
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
+
         K = _local_pushforward(loc_map, I(domain(loc_map)))
+
         JJ = ideal(OO(cod_chart), gens(K))
         res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
         result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       end
-    else
-      # "pushforward of a section"
 
-      I = first(components(D))
-      loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+      t = first(gens(OO(UBY)))
+      match = -1
+      for (i, (p, _, F, E, _)) in enumerate(reducible_fibers(Y))
+        p[2] == 0 && continue # Fiber over infinity already caught above
+        t0 = p[1]//p[2]
+        ideal(OO(UBY), t - t0) == Q(UBY) || continue
+
+        # Collect all patches
+        codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
+        loc_map === nothing && error("preparation for pushforward did not succeed")
+        match = i
+
+        K = _local_pushforward(loc_map, I(domain(loc_map)))
+        JJ = ideal(OO(cod_chart), gens(K))
+        res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+        break
+      end
+      match == -1 && error("no fiber found")
+    else
+      # "pushforward will be a section"
+      loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, domain_chart = dom_chart, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+      loc_map === nothing && error("preparation for pushforward did not succeed")
+
       K = _local_pushforward(loc_map, I(domain(loc_map)))
       JJ = ideal(OO(cod_chart), gens(K))
       res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
@@ -2094,7 +2090,13 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     end
   end
 
-  return WeilDivisor[result[D] for D in lat_X]
+  res = WeilDivisor[result[D] for D in lat_X]
+  for a in res
+    set_attribute!(first(components(a)), :_self_intersection, -2)
+  end
+  # the first one is the class of the fiber; set that one back
+  set_attribute!(first(components(first(res))), :_self_intersection, 0)
+  return res
 end
 
 #=
