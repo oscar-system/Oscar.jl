@@ -311,7 +311,11 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  if isdefined(B, :ord) && (B.ord === monorder || B.ord == monorder)
+    @hassert :IdealGens 1 monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord "orderings did not agree on the Oscar and the Singular side"
+    @assert monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord "orderings did not agree on the Oscar and the Singular side"
+    return B.gens.S
+  end
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
