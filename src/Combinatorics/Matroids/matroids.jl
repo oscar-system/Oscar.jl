@@ -1019,3 +1019,48 @@ function automorphism_group(M::Matroid)
   resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end
+
+@doc raw"""
+
+	is_quotient(Q1::Matroid,Q2::Matroid)
+
+Let Q1 and Q2 be matroids on the groundset $[n]$, with rank $rank(Q2) = rank(Q1)+1$.  Check if $Q1$ is a \emph{matroid quotient} of $Q2$.
+
+# Examples
+
+```jldoctest
+julia> Q1 = uniform_matroid(1,3)
+Matroid of rank 1 on 3 elements
+
+julia> Q2 = uniform_matroid(2,3)
+Matroid of rank 2 on 3 elements
+
+julia> is_quotient(Q1,Q2)
+true
+```
+"""
+function is_quotient(Q1::Matroid,Q2::Matroid)
+    
+    @req rank(Q1)==rank(Q2)-1 "matroids must be of successive rank"
+    
+    a = length(Q1) + 1
+    
+    B1 = [vcat(b,a) for b in bases(Q1)]
+
+    B2 = bases(Q2)
+    
+    B = vcat(B1,B2)
+   
+    try 
+        
+        M = matroid_from_bases(B,a) 
+        
+        return true
+   
+    catch
+        
+        return false
+        
+         
+    end
+end
