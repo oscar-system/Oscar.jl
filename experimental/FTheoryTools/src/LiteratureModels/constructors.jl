@@ -369,6 +369,8 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     Kbar3 = detailed_data_dict[index_in_data_base]["Kbar3"]
     h11 = detailed_data_dict[index_in_data_base]["h11"]
     h12 = detailed_data_dict[index_in_data_base]["h12"]
+
+
     h13 = detailed_data_dict[index_in_data_base]["h13"]
     h22 = detailed_data_dict[index_in_data_base]["h22"]
 
@@ -390,6 +392,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph = Dict(zip(components_of_dual_graph, degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph))
     intersections = [[parse(Int, k) for k in a] for a in detailed_data_dict[index_in_data_base]["IntersectionNumberOfComponentsOfDualGraph"]]
     intersections = hcat(intersections...)
+
     edge_list = Vector{Int64}[]
     for i in 1:nrows(intersections)
       for j in i+1:ncols(intersections)
