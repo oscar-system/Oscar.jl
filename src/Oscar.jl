@@ -246,6 +246,9 @@ include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+
+include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")
