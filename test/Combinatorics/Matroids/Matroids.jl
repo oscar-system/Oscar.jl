@@ -356,6 +356,6 @@
 	   @test is_quotient(Q1,Q2) == true
 	   Q1 = matroid_from_bases([[3]],3)
 	   Q2 = matroid_from_bases([[1,2]],3)
-	   @test is_quotient(Q1,Q2) = false
+	   @test is_quotient(Q1,Q2) == false
    end
 end
