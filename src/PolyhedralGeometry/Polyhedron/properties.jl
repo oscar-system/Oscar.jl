@@ -1355,7 +1355,8 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !is_vertex_transit
 @doc raw"""
     is_archimedean_solid(P::Polyhedron)
 
-Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex transitive polytope with regular facets.
+Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex
+transitive polytope with regular facets, but not a prism or antiprism.
 
 See also [`archimedean_solid`](@ref).
 

@@ -750,8 +750,8 @@ platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below.  The polytopes are realized with floating point numbers and thus not
-exact; Vertex-facet-incidences are correct in all cases.
+below. Some of these polytopes are realized with floating point numbers and
+thus not exact; Vertex-facet-incidences are correct in all cases.
 
 See also [`is_archimedean_solid`](@ref).
 
@@ -812,9 +812,9 @@ archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s)
 @doc raw"""
     catalan_solid(s::String)
 
-Construct a Catalan solid with the name `s` from the list
-below.  The polytopes are realized with floating point coordinates and thus are not
-exact. However, vertex-facet-incidences are correct in all cases.
+Construct a Catalan solid with the name `s` from the list below. Some of these
+polytopes are realized with floating point coordinates and thus are not exact.
+However, vertex-facet-incidences are correct in all cases.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
