@@ -194,6 +194,8 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
       pushfirst!(custom_load_path, osc_proj)
+      # make sure stdlibs are in the load path (like in the normal repl)
+      push!(custom_load_path, "@stdlib")
 
       oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
       ordered_examples = load(oefile)
