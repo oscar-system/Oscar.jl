@@ -522,7 +522,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   pres_map = map(pm, 1)
   krnel = SubquoModule(pm[0], pres_map.(gens(pm[1]))) # Create the image of pres_map without the inclusion map
 
-  # work around if we're passing the zero module to singular
+  # work around if we're passing the zero module to singular, see
+  # https://github.com/oscar-system/Singular.jl/issues/796
   if iszero(krnel)
     return M, identity_map(M)
   end
