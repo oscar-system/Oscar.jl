@@ -315,8 +315,8 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
     # Whenever both are set, the monomial orderings on the Oscar side and the Singular side should agree.
     # However, it might be the case that some (newly added) code is breaking this. In order to snoop 
     # for that, we allow for the assertion level to be put up and then this will throw. 
-    @hassert :IdealGens 1 monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord "orderings did not agree on the Oscar and the Singular side"
-    #@assert monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord "orderings did not agree on the Oscar and the Singular side"
+    @hassert :IdealGens 1 monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord
+    @assert monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord "orderings did not agree on the Oscar and the Singular side"
     return B.gens.S
   end
   SR = singular_poly_ring(B.Ox, monorder)
