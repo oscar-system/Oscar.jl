@@ -848,9 +848,9 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
     @vprint :EllipticSurface 3 "\nrow $(i): \n"
     for j in 1:i-1
       @vprint :EllipticSurface 4 "$(j) "
-      # we know the intersections are 0 or 1
-      G[i, j] = G[j, i] = intersect(f[i], f[j])
-      continue
+      # we know the intersections are 0 or 1, so we can replace the line below by a shortcut.
+      # G[i, j] = G[j, i] = intersect(f[i], f[j])
+      # In the examples treated, this led to roughly a factor 3 in speed and memory consumption. 
       if isone(components(f[i])[1]+components(f[j])[1])
         G[i,j] = 0
       else
