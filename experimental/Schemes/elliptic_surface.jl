@@ -2088,18 +2088,6 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
 
       result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
     end
-  #  else
-  #    # "pushforward of a section"
-
-  #    I = first(components(D))
-  #    loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
-  #    loc_map === nothing && error("preparation for pushforward did not succeed")
-  #    K = _local_pushforward(loc_map, I(domain(loc_map)))
-  #    JJ = ideal(OO(cod_chart), gens(K))
-  #    res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
-
-  #    result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
-  #  end
   end
 
   res = WeilDivisor[result[D] for D in lat_X]
