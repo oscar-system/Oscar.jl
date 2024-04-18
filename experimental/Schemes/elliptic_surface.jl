@@ -1972,14 +1972,12 @@ function _local_pushforward(loc_map::AbsAffineSchemeMor, I::Ideal)
   E, inc_E = sub(U_sub, I) # The subscheme of the divisor
   E_simp = simplify(E) # Eliminate superfluous variables
   #@show E_simp
-  @show gens(OO(E_simp))
-  @show gens(modulus(OO(E_simp)))
   id, id_inv = identification_maps(E_simp)
 
   comp = compose(compose(id, inc_E), loc_map)
 
   pb = pullback(comp)
-  @time K = kernel(pb)
+  K = kernel(pb)
   return K
 end
 
