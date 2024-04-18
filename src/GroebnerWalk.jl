@@ -4,7 +4,8 @@ using Oscar
 exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
 
 include("walk.jl")
-
+include("standard_walk.jl")
+include("perturbed_walk.jl")
 
 import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix, IdealGens
 import Oscar.Orderings: MatrixOrdering, _support_indices
@@ -29,7 +30,7 @@ export initial_forms
 export standard_step
 export next_weight
 export lift2
-export difference_lead_tail
+export bounding_vectors
 
 function __init__()
     add_verbosity_scope(:groebner_walk)

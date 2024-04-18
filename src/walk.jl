@@ -52,12 +52,12 @@ julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
 
 julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
-julia> groebner_walk(I, degrevlex(R), lex(R), :standard)
+julia> groebner_walk(I, lex(R))
 Gröbner basis with elements
-1 -> y^16
-2 -> x + y^12 - y^8 + y^4
+1 -> x + y^12 - y^8 + y^4
+2 -> y^16
 with respect to the ordering
-matrix_ordering([x, y], [1 0; 0 1])
+lex([x, y])
 
 julia> groebner_walk(I, degrevlex(R), lex(R), :perturbed, 2)
 Gröbner basis with elements
@@ -104,20 +104,19 @@ function groebner_walk(
   algorithm::Symbol = :standard
 )
   if algorithm == :standard
-    walk = (x) -> standard_walk(x, start, target)
+    walk = (x) -> standard_walk(x, target)
   elseif algorithm == :generic
     walk = (x) -> generic_walk(x, start, target)
   elseif algorithm == :perturbed
     walk = (x) -> perturbed_walk(x, start, target, perturbation_degree)
+  elseif walktype == :fractal
+    walk = (x) -> fractal_walk(x, start, target)
   else
     throw(NotImplementedError(:groebner_walk, algorithm))
   end
 
   Gb = groebner_basis(I; ordering=start, complete_reduction=true)
   Gb = walk(Gb)
-
-  @vprintln :groebner_walk "Cones crossed: " 
-  # delete_step_counter()
 
   return Oscar.IdealGens(gens(Gb), target; isGB=true)
 end
@@ -364,26 +363,29 @@ end
 # This version checks if an entry of an intermediate weight vector is bigger than int32. In case of that the Buchberger-Algorithm is used to compute the Groebner basis of the ideal of the initialforms.
 ###############################################################
 
-function fractal_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int})
+function fractal_walk(G::Oscar.IdealGens, S::MonomialOrdering, T::MonomialOrdering)
   @vprintln :groebner_walk "FractalWalk_standard results"
   @vprintln :groebner_walk "Crossed Cones in: "
 
-  global pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(base_ring(G))]
+  S = canonical_matrix(start)
+  T = canonical_matrix(target)
+
+  pTargetWeights = [perturbed_vector(G, T, i) for i in 1:nvars(base_ring(G))]
   return fractal_recursion_step(G, S, T, S[1, :], pTargetWeights, 1)
 end
 
 function fractal_recursion_step(
   G::Oscar.IdealGens,
-  S::Matrix{Int},
-  T::Matrix{Int},
-  currweight::Vector{Int},
-  pTargetWeights::Vector{Vector{Int}},
+  S::ZZMatrix,
+  T::ZZMatrix,
+  current_weight::Vector{ZZRingElem},
+  pTargetWeights::Vector{Vector{ZZRingElem}},
   p::Int,
 )
   R = base_ring(G)
   G.isGB = true
-  w = currweight
-  ordAlt = G.ord
+  w = current_weight
+  old_ordering = ordering(G)
   while true
     t = next_weight_fractal_walk(G, w, pTargetWeights[p])
 
@@ -392,7 +394,7 @@ function fractal_recursion_step(
     # -> Checking if G is already a Groebner basis w.r.t. T solves this problem and reduces computational effort since next_weight_fractal_walk returns 1 in the last step on every local path.        if t == 1 && p != 1
     if t == 1 && p != 1
       if same_cone(G, T)
-        @vprintln :groebner_walk ("depth $p: in cone ", currweight, ".")...
+        @vprintln :groebner_walk ("depth $p: in cone ", current_weight, ".")...
 
         # Check if a target weight of pTargetWeights[p] and pTargetWeights[p-1] lies in the wrong cone.
         if !inCone(G, T, pTargetWeights, p)
@@ -451,7 +453,7 @@ function fractal_recursion_step(
         Oscar.IdealGens(R, gens(Gw), ordAlt),
         S,
         T,
-        deepcopy(currweight),
+        deepcopy(current_weight),
         pTargetWeights,
         p + 1,
       )
@@ -460,7 +462,7 @@ function fractal_recursion_step(
     H = lift_fractal_walk(G, H, ordNew)
     G = interreduce_walk(H)
     ordAlt = ordNew
-    currweight = w
+    current_weight = w
   end
 end
 
@@ -729,7 +731,7 @@ function next_weight_fractal_walk(
     return [0]
   end
   tmin = 1
-  for v in difference_lead_tail(G)
+  for v in bounding_vectors(G)
     tw = dot(tweight, v)
     if tw < 0
       cw = dot(cweight, v)
@@ -790,7 +792,7 @@ end
 # returns the differences of the exponent vectors of the leading terms and the polynomials of the generators of I.
 #Comment: I shouldn't need the ordering T here. (Lm already consists of monomials)
 
-function difference_lead_tail(
+function bounding_vectors(
   G::Oscar.IdealGens, Lm::Vector{L}, T::MonomialOrdering
 ) where {L<:MPolyRingElem}
   lead_exp = leading_term.(Lm; ordering=T) .|> exponent_vectors .|> first
@@ -800,7 +802,7 @@ function difference_lead_tail(
   return unique!(reduce(vcat, v))
 end
 
-difference_lead_tail(::Type{ZZRingElem}, G::Oscar.IdealGens, Lm::Vector{<:MPolyRingElem}, T::MonomialOrdering) = Vector{ZZRingElem}.(difference_lead_tail(G, Lm, T))
+bounding_vectors(::Type{ZZRingElem}, G::Oscar.IdealGens, Lm::Vector{<:MPolyRingElem}, T::MonomialOrdering) = Vector{ZZRingElem}.(bounding_vectors(G, Lm, T))
 
 # function difference_lead_tail(
 #   G::Oscar.IdealGens, Lm::Vector{L}, T::Union{Matrix{N},MatElem{N}}
@@ -910,7 +912,7 @@ function next_gamma(
   S = canonical_matrix(start)
   T = canonical_matrix(target)
   
-  V = filter_by_ordering(S, T, difference_lead_tail(ZZRingElem, G, Lm, target))
+  V = filter_by_ordering(S, T, bounding_vectors(ZZRingElem, G, Lm, target))
 
   if (w != zeros(ZZRingElem, 1))
     V = filter_lf(w, S, T, V) #TODO
@@ -1033,26 +1035,6 @@ function truncw(G::Oscar.IdealGens, w::Vector{Int}, inw::Vector{T}) where {T<:MP
   end
   # converted to Vector w of the same face
   return w, true
-end
-
-# computes a p-perturbed vector from the matrix M.
-function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
-  n = size(M, 1)
-  rows = [M[i,:] for i in 1:p]
-
-  m = maximum.(Ref(abs), rows)
-  m_sum = sum(m)
-  max_deg = maximum(total_degree.(G)) # TODO: I think this is total degree
-
-  e = max_deg * m_sum + 1
-  w = M[1, :] * e^(p - 1)
-  for i in 2:p
-    w += e^(p - i) * M[i, :]
-  end
-
-  w = sum(rows .* (p .- Vector(1:p)))
-
-  return convert_bounding_vector(w)
 end
 
 # returns 'true' if the leading terms of G w.r.t the matrixorder T are the same as the leading terms of G w.r.t the weighted monomial order with weight vector t and matrix T.
