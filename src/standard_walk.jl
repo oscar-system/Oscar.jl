@@ -143,34 +143,20 @@ function next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Ve
   return QQ.(current) + tmin * QQ.(target-current) |> convert_bounding_vector
 end
 
-# Computes a list of "Bounding vectors" of a generating set of I 
-
-# If the generating set is a G.B w.r.t some monmial order, 
-# then the bounding vectors form an H-description of the Gröbner cone
-
-# cf. "Using algebraic geometry", pg. 437 (CLO, 2005)
-
-#= Input: - generators of an ideal I (in practice a reduced G.B)
-  
-  Output: - a list of integer vectors of the form "exponent vector of leading monomial" - "exponent vector of tail monomial" 
-  
-  QUESTIONS: - are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
-             - type instability? Do I want ints or ringelements? 
-  
-  COMMENTS:  - rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
-             - generally, this is one of the routines where it would be really nice to have a "marked Gröbner basis" object
-  =# 
 @doc raw"""
     bounding_vectors(I::Oscar.IdealGens)
 
 Returns a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
 "exponent vector of leading monomial" and "exponent vector of tail monomial".
-The bounding vectors form an H-description of the Gröbner cone.
+The bounding vectors form an H-description of the Gröbner cone. (cf. "Using algebraic geometry", pg. 437 (CLO, 2005)) TODO: consistent citations, compare with OSCAR
 """
 function bounding_vectors(I::Oscar.IdealGens)
   # TODO: rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
+  # TODO: Marked Gröbner basis
   lead_exp = leading_term.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
-  tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
+  # TODO: are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
+  tail_exps = zip(gens(I) .|> exponent_vectors, lead_exp) .|> splat((e, lead) -> filter(!=(lead), e))
+  # tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
   
   v = zip(lead_exp, tail_exps) .|> splat((l, t) -> Ref(l).-t)
 
