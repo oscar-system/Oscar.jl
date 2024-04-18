@@ -1021,8 +1021,7 @@ function automorphism_group(M::Matroid)
 end
 
 @doc raw"""
-
-	is_quotient(Q1::Matroid,Q2::Matroid)
+   is_quotient(Q1::Matroid,Q2::Matroid)
 
 Let Q1 and Q2 be matroids on the groundset $[n]$, with rank $rank(Q2) = rank(Q1)+1$.  Check if $Q1$ is a \emph{matroid quotient} of $Q2$.
 
@@ -1051,16 +1050,7 @@ function is_quotient(Q1::Matroid,Q2::Matroid)
     
     B = vcat(B1,B2)
    
-    try 
-        
-        M = matroid_from_bases(B,a) 
-        
-        return true
-   
-    catch
-        
-        return false
-        
-         
-    end
+    M = Polymake.matroid.Matroid(BASES = B,N_ELEMENTS = a)
+    
+    return Polymake.matroid.check_basis_exchange_axiom(M.BASES)
 end
