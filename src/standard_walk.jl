@@ -135,7 +135,7 @@ as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Lit
 - target a target vector in the Gröbner cone of the target monomial order
 """
 function next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Vector{ZZRingElem})
-  V = difference_lead_tail(G)
+  V = bounding_vectors(G)
   tmin = minimum(c//(c-t) for (c,t) in zip(dot.(Ref(current), V), dot.(Ref(target), V)) if t<0; init=1)
 
   @vprintln :groebner_walk 3 (QQ.(current) + tmin * QQ.(target-current))
@@ -161,13 +161,13 @@ end
              - generally, this is one of the routines where it would be really nice to have a "marked Gröbner basis" object
   =# 
 @doc raw"""
-    difference_lead_tail(I::Oscar.IdealGens)
+    bounding_vectors(I::Oscar.IdealGens)
 
 Returns a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
 "exponent vector of leading monomial" and "exponent vector of tail monomial".
 The bounding vectors form an H-description of the Gröbner cone.
 """
-function difference_lead_tail(I::Oscar.IdealGens)
+function bounding_vectors(I::Oscar.IdealGens)
   # TODO: rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
   lead_exp = leading_term.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
   tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
