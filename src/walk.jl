@@ -179,74 +179,6 @@ end
 function raise_step_counter()
   global counter = getstep_counter() + 1
 end
-###############################################################
-# Implementation of the standard walk.
-###############################################################
-
-function standard_walk(
-  G::Oscar.IdealGens, 
-  start::MonomialOrdering, 
-  target::MonomialOrdering
-)
-  start_weight = canonical_matrix(start)[1,:]
-  target_weight = canonical_matrix(target)[1,:]
-
-  return standard_walk(G, target, start_weight, target_weight)
-end
-
-standard_walk(G::Oscar.IdealGens, S::ZZMatrix, T::ZZMatrix) = standard_walk(
-  G, 
-  matrix_ordering(base_ring(G), T), 
-  S[1, :], 
-  T[1, :]
-)
-
-function standard_walk(
-  G::Oscar.IdealGens,
-  target::MonomialOrdering,
-  current_weight::Vector{ZZRingElem},
-  target_weight::Vector{ZZRingElem};
-)
-  @vprintln :groebner_walk "Results for standard_walk"
-  @vprintln :groebner_walk "Crossed Cones in: "
-
-  @v_do :groebner_walk steps = 0
-
-  while current_weight != target_weight
-    G = standard_step(G, current_weight, target)
-
-    current_weight = next_weight(G, current_weight, target_weight)
-
-    @v_do :groebner_walk steps+=1
-    @vprintln :groebner_walk current_weight
-    @vprintln :groebner_walk 2 G
-  end
-
-  @vprint :groebner_walk "Cones crossed: " 
-  @vprintln :groebner_walk steps
-
-  return G
-end
-
-###############################################################
-# The standard step is used for the strategies standard and perturbed.
-###############################################################
-
-function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)
-  current_ordering = ordering(G)
-  next = weight_ordering(w, target)
-
-  Gw = ideal(initial_forms(G,w))
-
-  H = groebner_basis(Gw; ordering=next, complete_reduction=true) 
-  H = lift(G, current_ordering, H, next)
-
-  @vprintln :groebner_walk 3 Gw
-  @vprintln :groebner_walk 3 H
-
-  return interreduce_walk(H)
-end
-standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_ordering(base_ring(G), w, T))
 
 ###############################################################
 # Generic-version of the Groebner Walk.
@@ -1121,23 +1053,6 @@ end
 # Several Procedures for the Groebner Walk
 ###############################################################
 
-
-# Computes the next weight vector as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Little, O'Shea, 2005)
-#= Input: - G, a reduced GB w.r.t the current monomial order
-          - cw, a weight vector in the current Gröbner cone (corresponding to G)
-          - tw a target vector in the Gröbner cone of the target monomial order
-  
-  Output: - The point furthest along the line segment conv(cw,tw) still in the starting cone
-=# 
-function next_weight(G::Oscar.IdealGens, cw::Vector{ZZRingElem}, tw::Vector{ZZRingElem})
-  V = difference_lead_tail(G)
-  tmin = minimum(c//(c-t) for (c,t) in zip(dot.(Ref(cw), V), dot.(Ref(tw), V)) if t<0; init=1)
-
-  @vprintln :groebner_walk 3 (QQ.(cw) + tmin * QQ.(tw-cw))
-
-  return QQ.(cw) + tmin * QQ.(tw-cw) |> convert_bounding_vector
-end
-
 # multiplies every entry of the given weight w with 0.1 as long as it stays on the same halfspace as w.
 function truncw(G::Oscar.IdealGens, w::Vector{Int}, inw::Vector{T}) where {T<:MPolyRingElem}
   while !checkInt32(w)
@@ -1152,57 +1067,6 @@ function truncw(G::Oscar.IdealGens, w::Vector{Int}, inw::Vector{T}) where {T<:MP
   end
   # converted to Vector w of the same face
   return w, true
-end
-
-# returns the initialform of G w.r.t. the given weight vector.
-function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
-  R = parent(f)
-
-  ctx = MPolyBuildCtx(R)
-
-  E = exponent_vectors(f)
-  WE = dot.(Ref(w), Vector{ZZRingElem}.(E))
-  maxw = maximum(WE)
-
-  for (e,c,we) in zip(E, coefficients(f), WE) 
-    if we == maxw
-      push_term!(ctx, c, e)
-    end
-  end
-
-  return finish(ctx)
-end
-
-initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem}) = initial_form.(G, Ref(w))
-initial_forms(G::Oscar.IdealGens, w::Vector{Int}) = initial_form.(G, Ref(ZZ.(w)))
-
-
-# Computes a list of "Bounding vectors" of a generating set of I 
-
-# If the generating set is a G.B w.r.t some monmial order, 
-# then the bounding vectors form an H-description of the Gröbner cone
-
-# cf. "Using algebraic geometry", pg. 437 (CLO, 2005)
-
-#= Input: - generators of an ideal I (in practice a reduced G.B)
-  
-  Output: - a list of integer vectors of the form "exponent vector of leading monomial" - "exponent vector of tail monomial" 
-  
-  QUESTIONS: - are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
-             - type instability? Do I want ints or ringelements? 
-  
-  COMMENTS:  - rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
-             - generally, this is one of the routines where it would be really nice to have a "marked Gröbner basis" object
-  =# 
-
-
-function difference_lead_tail(I::Oscar.IdealGens)
-  lead_exp = leading_term.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
-  tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
-  
-  v = zip(lead_exp, tail_exps) .|> splat((l, t) -> Ref(l).-t)
-
-  return unique!(reduce(vcat, v))
 end
 
 # computes a p-perturbed vector from the matrix M.
