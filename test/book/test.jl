@@ -181,7 +181,9 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
   function test_chapter(chapter::String="")
     # add overlay project for plots
     custom_load_path = []
-    copy!(custom_load_path, Base.DEFAULT_LOAD_PATH)
+    old_load_path = []
+    copy!(custom_load_path, LOAD_PATH)
+    copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
     act_proj = dirname(Base.active_project())
     osc_proj = dirname(Base.identify_package_env("Oscar")[2])
@@ -191,6 +193,9 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       Pkg.add("Plots"; io=devnull)
       Pkg.activate("$act_proj"; io=devnull)
       pushfirst!(custom_load_path, plots)
+      pushfirst!(custom_load_path, osc_proj)
+      # make sure stdlibs are in the load path (like in the normal repl)
+      push!(custom_load_path, "@stdlib")
 
       oefile = joinpath(Oscar.oscardir, "test/book/ordered_examples.json")
       ordered_examples = load(oefile)
@@ -215,11 +220,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               # and run it from temp dir
               temp = mktempdir()
               Pkg.activate(temp; io=devnull)
-              pushfirst!(LOAD_PATH, "$osc_proj")
               cp(auxmain,joinpath(temp, "main.jl"))
               cd(temp)
               run_repl_string(mockrepl, """include("$(joinpath(temp,"main.jl"))")\n""")
-              LOAD_PATH[1] = temp
+              pushfirst!(LOAD_PATH, temp)
               Pkg.activate("$act_proj"; io=devnull)
               println("      done with aux")
             end
@@ -267,7 +271,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       Main.REPL.activate(Main)
       Pkg.activate("$act_proj"; io=devnull)
       cd(curdir)
-      copy!(LOAD_PATH, Base.DEFAULT_LOAD_PATH)
+      copy!(LOAD_PATH, old_load_path)
     end
     nothing
   end
