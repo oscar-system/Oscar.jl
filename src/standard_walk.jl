@@ -104,9 +104,13 @@ function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
 
   E = exponent_vectors(f)
   WE = dot.(Ref(w), Vector{ZZRingElem}.(E))
-  maxw = maximum(WE)
+  maxw = -inf
 
   for (e, c, we) in zip(E, coefficients(f), WE)
+    if we > maxw
+      finish(ctx)
+      maxw = we
+    end
     if we == maxw
       push_term!(ctx, c, e)
     end
@@ -136,11 +140,14 @@ as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Lit
 """
 function next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Vector{ZZRingElem})
   V = bounding_vectors(G)
-  tmin = minimum(c//(c-t) for (c,t) in zip(dot.(Ref(current), V), dot.(Ref(target), V)) if t<0; init=1)
+  C = dot.(Ref(current), V)
+  T = dot.(Ref(target), V)
+
+  tmin = minimum(c//(c-t) for (c,t) in zip(C,T) if t<0; init=1)
 
   @vprintln :groebner_walk 3 (QQ.(current) + tmin * QQ.(target-current))
 
-  return QQ.(current) + tmin * QQ.(target-current) |> convert_bounding_vector
+  return convert_bounding_vector(QQ.(current) + tmin * QQ.(target-current))
 end
 
 @doc raw"""
@@ -148,20 +155,17 @@ end
 
 Returns a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
 "exponent vector of leading monomial" and "exponent vector of tail monomial".
-The bounding vectors form an H-description of the Gröbner cone. (cf. "Using algebraic geometry", pg. 437 (CLO, 2005)) TODO: consistent citations, compare with OSCAR
+The bounding vectors form an H-description of the Gröbner cone. 
+(cf. "Using algebraic geometry", pg. 437 (CLO, 2005)) TODO: consistent citations, compare with OSCAR
 """
 function bounding_vectors(I::Oscar.IdealGens)
-  # TODO: rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
   # TODO: Marked Gröbner basis
-
-  # i_of_lead = index_of_leading_term.(I, Ref(ordering(I)))
-
-  lead_exp = leading_monomial.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
-  # TODO: are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
-  # tail_exps = zip(gens(I) .|> exponent_vectors, lead_exp) .|> splat((e, lead) -> filter(!=(lead), e))
-  tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
+  gens_by_terms = terms.(I; ordering=ordering(I))
   
-  v = zip(lead_exp, tail_exps) .|> splat((l, t) -> Ref(l).-t)
+  v = [
+    [leading_exponent_vector(lead) - leading_exponent_vector(t) for t in tail]
+    for (lead, tail) in Iterators.peel.(gens_by_terms)
+  ]
 
   return unique!(reduce(vcat, v))
 end
@@ -203,13 +207,9 @@ function lift(
   H::Oscar.IdealGens, # soll GB von initial forms sein
   target::MonomialOrdering,
 )
-  
-
   G = Oscar.IdealGens(
     [
-      gen - Oscar.IdealGens(
-        [reduce(gen, gens(G); ordering=current, complete_reduction=true)], target
-      )[1] for gen in gens(H)
+      gen - reduce(gen, gens(G); ordering=current, complete_reduction=true) for gen in gens(H)
     ],
     target;
     isGB=true,
