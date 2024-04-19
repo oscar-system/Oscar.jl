@@ -3,6 +3,7 @@ using Oscar
 
 exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
 
+include("generic_walk.jl")
 include("walk.jl")
 
 
