@@ -76,9 +76,9 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
 
-  # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
-  # q, mq = maximal_abelian_quotient(PcGroup, G)
-  # @test length(Oscar.RepPc.brueckner(mq)) == 24
+  G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
+  q, mq = maximal_abelian_quotient(PcGroup, G)
+  @test length(Oscar.RepPc.brueckner(mq)) == 2
 end
 
 @testset "Experimental LocalH2" begin
