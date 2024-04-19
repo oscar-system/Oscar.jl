@@ -36,9 +36,11 @@ function new_divides_walk(p::MPolyRingElem, lm::MPolyRingElem)
   return div, newpoly
 end
 
-#Given a polynomial p and a markedGB MG 
-#compute the normal form of p w.r.t MG2 (orderings are not necessary, it is sufficient to know the markings)
-#NB: This only works if G is a reduced Marked Gröbner basis 
+@doc raw"""
+    normal_form(p::MPolyRingElem, MG::markedGB)
+
+Computes the normal form of `p` with respect to the marked reduced Gröbner basis `MG`.
+"""
 function normal_form(p::MPolyRingElem, MG::markedGB)
   #queue = Set(terms(p))
   nf = zero(parent(p))
@@ -66,7 +68,8 @@ function normal_form(p::MPolyRingElem, MG::markedGB)
   return nf
 end
 
-
+# Calculates whether the monomial x^g divides x^f
+divides(f::Vector{Int}, g::Vector{Int}) = all(g .<= f)
 
 #Given a markedGB MG, reduce it by replacing each g with its normal form w.r.t G\{g} 
 #NB: only works if MG is inclusion minimal
