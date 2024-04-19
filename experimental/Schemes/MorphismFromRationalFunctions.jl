@@ -1029,6 +1029,7 @@ function _pushforward_prime_divisor(
   )
   loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(phi, I; domain_chart, codomain_charts)
   loc_map === nothing && return nothing
+  U_sub = domain(loc_map)
   J = preimage(pullback(loc_map), I(U_sub))
   JJ = ideal(OO(cod_chart), gens(J))
   return PrimeIdealSheafFromChart(codomain(phi), cod_chart, JJ)
