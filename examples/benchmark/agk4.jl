@@ -1,5 +1,6 @@
 using Oscar
 using GroebnerWalk
+using BenchmarkTools
 
 R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
 
@@ -12,7 +13,6 @@ I1 = ideal([
     -2 + 2*u^2 + 6*v - 3*u^2*v^2 - z
 ])
 
-set_verbosity_level(:groebner_walk, 1)
 t_standard = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:standard)
 # t_generic = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:generic)
 # t_perturbed = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:perturbed)
