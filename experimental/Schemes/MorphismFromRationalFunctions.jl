@@ -884,7 +884,7 @@ function _prepare_pushforward_prime_divisor(
   Y = codomain(phi)
 
   # try cheap realizations first
-  sorted_charts = codomain_charts
+  sorted_charts = copy(codomain_charts)
   if has_decomposition_info(default_covering(Y))
     info = decomposition_info(default_covering(Y))
     sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
