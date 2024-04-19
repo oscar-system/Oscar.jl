@@ -1582,7 +1582,9 @@ end
 summands(I::SumIdealSheaf) = I.summands
 
 function produce_object(I::SumIdealSheaf, U::AbsAffineScheme)
-  return sum([a(U) for a in summands(I)]; init=ideal(OO(U), elem_type(OO(U))[]))
+  result = sum([a(U) for a in summands(I)]; init=ideal(OO(U), elem_type(OO(U))[]))
+  # We need to eliminate zeroes manually
+  return ideal(OO(U), filter!(!is_zero, gens(result)))
 end
 
 ### ProductIdealSheaf
@@ -1596,7 +1598,8 @@ end
 original_ideal_sheaf(I::SimplifiedIdealSheaf) = I.orig
 
 function produce_object(I::SimplifiedIdealSheaf, U::AbsAffineScheme)
-  return ideal(OO(U), small_generating_set(saturated_ideal(original_ideal_sheaf(I)(U))))
+  g = OO(U).(small_generating_set(saturated_ideal(original_ideal_sheaf(I)(U))))
+  return ideal(OO(U), filter!(!is_zero, g))
 end
 
 ### PullbackIdealSheaf
