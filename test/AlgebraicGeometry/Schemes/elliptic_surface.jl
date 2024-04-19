@@ -146,3 +146,43 @@ end
   g6,_ = two_neighbor_step(X2, fibers_in_X2[6])  # the non-torsion case
 end
 =#
+
+@testset "translation on elliptic surfaces" begin
+  P, t = GF(113)[:t]
+  kt = fraction_field(P)
+
+  R, (x, y) = kt[:x, :y]
+
+  f = y^2 - (x^3 + (37*t^8 + 56*t^7 + 102*t^6 + 97*t^5 + 21*t^4 + 14*t^3 + 24*t^2 + 23*t + 59)*x + 18*t^12 + 111*t^11 + 17*t^10 + 25*t^9 + 108*t^8 + 91*t^7 + 90*t^6 + 21*t^5 + 68*t^4 + 8*t^3 + 92*t^2 + 66*t + 31)
+
+  E = elliptic_curve(f, x, y)
+
+  P = E([(10*t^6 + 23*t^5 + 94*t^4 + 32*t^3 + t^2 + 40*t + 52)//(t^2 + 77*t + 98), (22*t^9 + 40*t^8 + 63*t^7 + 42*t^6 + 34*t^5 + 48*t^4 + 72*t^3 + 92*t^2 + 85*t + 91)//(t^3 + 59*t^2 + 68*t + 44)])
+
+  X = elliptic_surface(E, 2, [P])
+
+  set_verbose_level(:EllipticSurface, 5)
+
+  D_P = Oscar._section(X, P)
+
+  II = first(components(D_P))
+
+  trans = Oscar.translation_morphism(X, P; divisor=D_P)
+
+  JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
+
+  # We have little chance to get through with the computations on all charts. 
+  # But it suffices to compare the result on the weierstrass charts.
+  IIS = Oscar._section_on_weierstrass_ambient_space(X, 2*P)
+
+  for f in X.ambient_blowups
+    IIS = total_transform(f, IIS)
+  end
+
+  IIX = pullback(X.inc_Y, IIS);
+
+  weier = weierstrass_chart_on_minimal_model(X)
+
+  @test IIX(weier) == JJ(weier)
+end
+
