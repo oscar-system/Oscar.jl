@@ -11,7 +11,7 @@ end
 Base.show(io::IO, R::GaussianRing) = print("Multivariate polynomial ring over "*string(base_ring(R.ring))*" in "*string(ngens(R.ring))*" variables", "\n", chop(string(gens(R.ring)), head = 16, tail = 1))
 
 
-# todo
+# 
 function ring(R::GaussianRing)
 
     R.ring
@@ -32,7 +32,7 @@ function covariance_matrix(R::GaussianRing)
 end
 
 
-# todo
+
 function var_index(x)
 
     str = string(x)
@@ -83,17 +83,29 @@ end
 # creates matrix of parameters which correspond to the directed edges of a digraph
 function directed_edges_matrix(M::GraphicalModel{Directed, GaussianRing})
 
-    #todo
+    G = graph(M)
+    l = M.param_gens
+    L = matrix(M.param_ring, [[has_edge(G, i, j) ? l[i,j] : 0 for j in 1:n_vertices(G)] for i in 1:n_vertices(G)])
 end
 
+
+S = gaussian_ring(3)
+G = graph_from_edges(Directed, [[1,2],[2,3]])
+M = graphical_model(G, S)
+
+directed_edges_matrix(M)
+  
 
 
 # creates matrix of parameters which correspond to the directed edges of a digraph
 # creates the parameterization of the model as a ring map
 function parameterization(M::GraphicalModel{Directed, GaussianRing})
 
+    L = directed_edges_matrix(M)
+    S = M.ring
+    R = M.param_ring
 
-    # make the parameterization with the directed edges matrix
+    
 end
 
 
