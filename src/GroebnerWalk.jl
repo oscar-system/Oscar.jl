@@ -3,9 +3,9 @@ using Oscar
 
 exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
 
+include("markedGB.jl")
 include("generic_walk.jl")
 include("walk.jl")
-
 
 import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix, IdealGens
 import Oscar.Orderings: MatrixOrdering, _support_indices

@@ -1,5 +1,3 @@
-using Oscar 
-
 #constructs a "markedGB" consisting of two lists 
 #gens, a vector of generators of a Gröbner basis
 #markings, a vector "Markings" of G, corresponding to leading terms w.r.t some monomial ordering

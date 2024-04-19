@@ -178,27 +178,27 @@ end
 # Generic-version of the Groebner Walk.
 ###############################################################
 
-function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
-  Lm = leading_term.(G; ordering=start)
-  V = next_gamma(G, Lm, zeros(ZZRingElem, 1), start, target)
+# function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
+#   Lm = leading_term.(G; ordering=start)
+#   V = next_gamma(G, Lm, zeros(ZZRingElem, 1), start, target)
 
-  @vprintln :groebner_walk "Results for generic_walk"
-  @vprintln :groebner_walk "Facets crossed for: "
+#   @vprintln :groebner_walk "Results for generic_walk"
+#   @vprintln :groebner_walk "Facets crossed for: "
 
-  while !isempty(V)
-    G, Lm = generic_step(G, Lm, V, target)
+#   while !isempty(V)
+#     G, Lm = generic_step(G, Lm, V, target)
     
-    # TODO: increase step_counter here
-    @vprintln :groebner_walk V
-    @vprintln :groebner_walk 2 G
+#     # TODO: increase step_counter here
+#     @vprintln :groebner_walk V
+#     @vprintln :groebner_walk 2 G
 
-    G = IdealGens(G, target)
-    V = next_gamma(G, Lm, V, start, target)
-  end
+#     G = IdealGens(G, target)
+#     V = next_gamma(G, Lm, V, start, target)
+#   end
 
-  return G
-end
-generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}) = generic_walk(G, monomial_ordering(base_ring(G), S), monomial_ordering(base_ring(G), T))
+#   return G
+# end
+# generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}) = generic_walk(G, monomial_ordering(base_ring(G), S), monomial_ordering(base_ring(G), T))
 
 function generic_step(
   G::Oscar.IdealGens, Lm::Vector{T}, v::Vector{ZZRingElem}, ord::MonomialOrdering
