@@ -1,10 +1,5 @@
-using Documenter
-
-#
-# This module only exists to "host" a doctest used by the test suite.
-#
-module AuxDocTest_labeled_matrix_formatted
-@doc raw"""
+Oscar.@_AuxDocTest "show and print formatted matrices", (fix = false),
+raw"""
 create the test matrix
 
 ```jldoctest labeled_matrix_formatted.test
@@ -528,11 +523,3 @@ $\begin{array}{r|r}
 $
 ```
 """
-function dummy_placeholder end
-
-end
-
-@testset "show and print formatted matrices" begin
-  Oscar._run_AuxDocTest(AuxDocTest_labeled_matrix_formatted)
-  # Oscar._run_AuxDocTest(AuxDocTest_labeled_matrix_formatted; fix=true)
-end
