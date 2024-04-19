@@ -2116,8 +2116,7 @@ function morphism_from_section(
 
   # For the zero section we can not use the Weierstrass chart
   if P.is_infinite
-    error("not implemented for the zero section")
-    U = _find_good_representative_chart(II)
+    return identity_map(X)
   end
   @assert !is_one(II(U))
 
