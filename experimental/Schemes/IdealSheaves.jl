@@ -1493,7 +1493,7 @@ function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
 
   # Otherwise, construct the object generically from the affine charts.
   V = __find_chart(U, default_covering(X))
-  return OO(X)(V, U)(I(V))
+  return OO(X)(V, U)(F(V))
 end
 
 ### PrimeIdealSheafFromChart
