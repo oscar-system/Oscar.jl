@@ -13,7 +13,7 @@ import Hecke: data
 #   second tries to conjugate down to k
 
 import Oscar: _vec, gmodule, GAPWrap
-import Oscar.GrpCoh: MultGrp, MultGrpElem
+import Oscar: MultGrp, MultGrpElem, CoChain
 
 import AbstractAlgebra: Group, Module
 import Base: parent
@@ -408,6 +408,38 @@ function irreducible_modules(::Type{AbsSimpleNumField}, G::Oscar.GAPGroup; minim
   end
 end
 
+function local_schur_indices(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+  k, m = _character_field(V)
+  u = m(k[1])
+  K = base_ring(V)
+  A, mA = automorphism_group(PermGroup, K)
+  U, mU = sub(A, [a for a = A if mA(a)(u) == u])
+  c = factor_set(V, mU*mA)
+  return local_schur_indices(c, mU*mA; torsion = torsion_units_order(k))
+end
+
+function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGrup, c.C.M.data); torsion::Int = 0)
+  K = c.C.M.data
+
+  li = []
+  for p = prime_divisors(gcd(torsion, order(c.C.G)))
+    P = prime_ideals_over(maximal_order(K), p)[1]
+    i = Oscar.GaloisCohomology_Mod.local_index(c, P, mG; index_only = true)
+    if order(i) > 1
+      push!(li, p=>order(i))
+    end
+  end
+  emb = complex_embeddings(K)
+  if length(emb) > 0
+    i = Oscar.GaloisCohomology_Mod.local_index(c, emb[1], mG; index_only = true)
+    if order(i) > 1
+      push!(li, -1 => order(i))
+    end
+  end
+  return li
+end
+
+
 function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k, m = _character_field(V)
   chi = character(V)
@@ -417,28 +449,203 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
   end
   if d !== nothing && d*degree(k) == degree(base_ring(V))
     return V
-  elseif d == 1
-    @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))"
+  elseif d == -1
+    @vprint :MinField 1 "Going from $(degree(base_ring(V))) to $(degree(k))\n"
     Vmin = gmodule_over(m, V)
     return Vmin
   else
-    if d === nothing
-      d = 1 # only a lower bound is known
-    end
+    #= Complicated situation, possibly very much so.
+       Operating under no schur indices from character, so need cochain.
+
+       K EF
+       |/|
+       E F   not clear if in general this works
+       |/
+       k char field
+       |
+       Q
+     
+    So: V is given as G -> GL(n, K)
+    This is represented by
+      sigma: Gal(K/k)^2 -> K a 2-chain
+    E is the smallest subfield of K affording V
+    F is, via Grunwald-Wang a minimal degree field affording V
+
+    Step 1:
+      find X: Gal(K/k) -> GL(n, K) s.th
+        X_f V = V^f X_f
+    Step 2:
+      find sigma(f, g) s.th. X_f^g X_fg^-1 X_g = sigma(f, g) I_n
+    Step 3:
+      find local Schur indices from sigma
+    Step 4:
+      find minima field affording them (local degree of E/k is a multiple
+      of the local Schur index. Local degree can be read off prime ideals)
+    Step 5:
+      restrict sigma to Gal(K/E) and obtain a 1-boundary d
+    Step 6:
+      Y = X restriced to K/E * d is a 1-chain in GL(n, K)
+      split by A in GL(n, K)
+      Now, technically, A V A^-1 has values in Gl(n, E)
+    Step 7:
+      Replacing V -> A V A^-1 changes 
+                X_g -> A^g X A^-1
+      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normlized (mult. by
+      scalar in K) to be in Gl(n, E)
+    Step 8: Find F using Grunwald Wang
+      The Galois group FF/k is the direct product, so
+      inflate the "new" X and (re)-compute sigma
+    Step 9: is_coboundary and new transformatio matrix
+    =#
+
+
+    k, m = _character_field(V)
+    u = m(k[1])
+    K = base_ring(V)
+    A, mA = automorphism_group(PermGroup, K)
+    U, mU = sub(A, [a for a = A if mA(a)(u) == u])
+    mA = mU*mA
+    c, X = _two_cocycle(mA, V, two_cycle = true, GL_chain = true)
+
+    ld = local_schur_indices(c, mA)
+    d = reduce(lcm, [x[2] for x = ld], init = 1)
     s = subfields(base_ring(V))
     s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
     for (m, mm) in s
-      if m == base_ring(V)
+      if m == base_ring(V) || degree(m) == degree(base_ring(V))
         @vprint :MinField 1 "no smaller field possible\n"
         return V
       end
-      @vprint :MinField 1 "trying descent to $m...\n"
-      Vmin = gmodule_over(mm, V, do_error = false)
-      if Vmin !== nothing
-        @vprint :MinField 1 "...success\n"
-        return Vmin
+      @vprint :MinField 1 "testing local degrees \n"
+      ok = true
+      lr = Vector{Pair{Int, Int}}[]
+      for (p,d) = ld
+        if p == -1
+          @assert d == 2
+          if signature(m)[1] != 0
+            ok = false
+            break
+          end
+        else
+          P = prime_decomposition_type(maximal_order(k), p)[1]
+          for q = prime_decomposition_type(maximal_order(m), p)
+            if divexact(q[1]*q[2], P[1]*P[2]) % d != 0
+              ok = false
+              break
+            end
+          end
+          ok || break
+        end
       end
+      ok || continue
+      @vprint :MinField 1 "descending to $m...\n"
+      pe = mm(m[1])
+      U, mU = sub(domain(mA), [a for a = domain(mA) if mA(a)(pe) == pe])
+      cc = restrict(c, mU)
+      fl, b = Oscar.is_coboundary(cc)
+      @assert fl
+      Y = Dict( a=> X[mU(a)]*b((mU(a),)).data for a = U)
+      @vtime :MinField 2 AA, AAi = hilbert90_generic(Y, mA)
+      c = content_ideal(AA)
+      sd = Hecke.short_elem(inv(c))
+      AA *= sd
+      AAi *= inv(sd)
+      if d == divexact(degree(m), degree(k))
+        ac = [AA*matrix(x)*AAi for x = action(V)]
+        ac = [map_entries(pseudo_inv(mm), x) for x = ac]
+        f = free_module(m, dim(V))
+        return gmodule(V.G, [hom(F, F, x) for x = ac])
+      end
+
+      #we need Gal(E/k) as the quotient of A/U
+      q, mq = quo(domain(mA), U)
+      X = Dict( g => map_entries(mA(preimage(mq, g)), AA) * X[preimage(mq, g)] * AAi for g = q)
+      for (g, x) = X  
+        lf = findfirst(!iszero, x)
+        x *= inv(x[lf])
+        X[g] = map_entries(pseudo_inv(mm), x)
+      end
+      #now W = A*V*Ai should be defined over E and
+      #    X_g W^g = W X or so...
+      #need to  change mA
+      B, mB = automorphism_group(PermGroup, m)
+      h = hom(q, B, [[b for b = B if mm(mB(b)(m[1])) == mA(preimage(mq, x))(mm(m[1]))][1] for x = gens(q)])
+      if get_assertion_level(:MinField) > 0
+        f = free_module(m, dim(V))
+        W = gmodule(V.G, [hom(f, f, map_entries(pseudo_inv(mm), AA*matrix(x)*AAi)) for x = V.ac])
+        _c, _X = _two_cocycle(mB, W, two_cycle = true, GL_chain = true)
+        #so _X[h(b)] = l*X[b], hopefully
+        for b = q
+          l = _X[h(b)]
+          lf = findfirst(!iszero, l)
+          @assert l*X[b][lf] == X[b]*l[lf]
+        end
+      end
+      s = Dict{NTuple{2, elem_type(B)}, AbsSimpleNumFieldElem}()
+      for f = q
+        for g = q
+          if isone(f) || isone(g)
+            s[(h(f),h(g))] = one(m)
+          else
+            lf = findfirst(!iszero, X[g])
+            s[(h(f), h(g))] = (X[f*g][lf]//(map_entries(mB(h(g)), X[f])*X[g])[lf])
+          end
+        end
+      end
+      #Grunwald-Wang...
+      LD = Dict{AbsSimpleNumFieldOrderIdeal, Int}()
+      LI = Dict{AbsSimpleNumFieldEmbedding, Int}()
+      for (p, d) = ld
+        if p == -1 
+          @assert d == 2
+          if signature(k)[2] == 0
+            for e = real_embeddings(k)
+              LI[e] = 2
+            end
+          end
+        else
+          for P = prime_ideals_over(maximal_order(k), p)
+            LD[P] = d
+          end
+        end
+      end
+      E = m
+      CF = grunwald_wang(LD, LI) #ext of k
+      F, mF = absolute_simple_field(number_field(CF))
+      EF, mE_EF, mF_EF = compositum(E, F)
+      #need to find Gal(EF) -> q to inflate s
+      #then recognize it as a co boundary
+      #and get on with the programme.
+      C, mC = automorphism_group(PermGroup, EF)
+      gE = mE_EF(E[1])
+      hBC = hom(C, B, [[b for b = B if mC(c)(gE) == mE_EF(mB(b)(E[1]))][1] for c = gens(C)])
+      gF = mF_EF(F[1])    
+      U, mU = sub(C, [c for c = C if mC(c)(gF) == gF])    
+      MEF = MultGrp(EF)
+      #inflate
+      s = Dict{NTuple{2, elem_type(U)}, elem_type(MEF)}((f, g) => MEF(mE_EF(s[(hBC(f), hBC(g))])) for f = U for g = U)
+
+          
+      D = gmodule(U, [hom(MEF, MEF, mC(mU(x))) for x = gens(U)])
+      Sigma = CoChain{2,PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}(D, s)
+
+      fl, mu = Oscar.GaloisCohomology_Mod.is_coboundary(Sigma)
+      @assert fl
+      #inflate X
+      X = Dict( g => map_entries(mE_EF, X[preimage(h, hBC(mU(g)))]) *mu(g).data for g = U)
+      @hassert :MinField 1 isone_cochain(X, mU*mC)  
+      @vtime :MinField 2 BB, BBi = hilbert90_generic(X, mU*mC)
+      c = content_ideal(BB)
+      sd = Hecke.short_elem(inv(c))
+      BB *= sd
+      BBi *= inv(sd)
+      ac = [AA*matrix(x)*AAi for x = action(V)]
+      ac = [map_entries(mE_EF, map_entries(pseudo_inv(mm), x)) for x = ac]
+      ac = [BB*x*BBi for x = ac]
+      ac = [map_entries(pseudo_inv(mF_EF), x) for x = ac]
+      f = free_module(F, dim(V))
+      return gmodule(V.G, [hom(f, f, x) for x = ac])
     end
   end
 end
@@ -548,9 +755,6 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
       push!(chr, (c, K(n)))
       continue
     end
-    #use T = action(C, r) instead? Trying this, seems to work.
-    # p = preimage(phi, r)
-    # T = map_word(p, ac; genimgs_inv = iac)
     T = action(C,r)
     push!(chr, (c, trace(matrix(T))))
   end
@@ -839,7 +1043,7 @@ function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFie
   return c
 end
 
-function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true, two_cycle::Bool = false)
+function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}; do_error::Bool = true, two_cycle::Bool = false, GL_chain::Bool = false)
   G = domain(mA)
   K = base_ring(C)
 
@@ -902,11 +1106,15 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
 
   @vprint :MinField 1 "test for co-boundary\n"
   D = gmodule(G, [hom(MK, MK, mA(x)) for x = gens(G)])
-  Sigma = Oscar.GrpCoh.CoChain{2,PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
+  Sigma = CoChain{2,PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}(D, Dict(k=>MK(v) for (k,v) = sigma))
   if two_cycle
-    return Sigma
+    if GL_chain
+      return Sigma, X
+    else
+      return Sigma
+    end
   end
-  @vtime :MinField 2 fl, cb = Oscar.GrpCoh.is_coboundary(Sigma)
+  @vtime :MinField 2 fl, cb = Oscar.is_coboundary(Sigma)
 
   if !fl
     do_error || return nothing
@@ -920,10 +1128,6 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
     end
   end
 
-  if !fl
-    do_error || return nothing
-    error("field too small")
-  end
   for g = G
     X[g] *= (cb(g).data)
   end
@@ -951,6 +1155,7 @@ function isone_cochain(X::Dict{<:GAPGroupElem, <:MatElem{AbsSimpleNumFieldElem}}
       @assert X[g*h] == map_entries(mA(h), X[g])*X[h]
     end
   end
+  return true
 end
 
 function isone_cochain(X::Dict{<:GAPGroupElem, AbsSimpleNumFieldElem}, mA)
@@ -960,6 +1165,7 @@ function isone_cochain(X::Dict{<:GAPGroupElem, AbsSimpleNumFieldElem}, mA)
       @assert X[g*h] == mA(h)(X[g])*X[h]
     end
   end
+  return true
 end
 
 function istwo_cocycle(X::Dict, mA, op = *)
@@ -981,6 +1187,7 @@ function istwo_cocycle(X::Dict, mA, op = *)
       end
     end
   end
+  return true
 end
 
 """
@@ -1017,6 +1224,31 @@ function hilbert90_generic(X::Dict, mA)
     fl && return S, Si
   end
 end
+
+function Oscar.is_coboundary(c::CoChain{1,PermGroupElem,MultGrpElem{AbsSimpleNumFieldElem}})
+  mK = parent(first(values(c.d)))
+  K = parent(first(values(c.d)).data)
+  A, mA = automorphism_group(PermGroup, K)
+  G = c.C.G
+  fl, emb = is_subgroup(G, A)
+  @assert fl
+  cnt = 0
+  while true
+    local Y
+    while true 
+      Y = rand(K, -5:5)
+      iszero(Y) || break
+    end
+    cnt += 1
+    S = sum(mA(emb(g))(Y)*c((g,)).data for g = G)
+      is_zero(S) || return true, mK(S)
+    if cnt > 10 
+      error("should not happen")
+    end
+  end
+end
+
+
 
 """
 Norm of A wrt. s. s acts on the entries of A, this computes
@@ -1241,7 +1473,7 @@ function hom_base(C::T, D::T) where T <: GModule{<:Any, <:Generic.FreeModule{<:A
   if l != Df
     D1 = gmodule(K, D1)
   end
-  h = Oscar.GModuleFromGap.hom_base(C1, D1)
+  h = hom_base(C1, D1)
   if length(h) == 0
     return h
   end
@@ -1499,6 +1731,16 @@ function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:ncols(k)]
 end
 
+function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}) where T
+  @assert base_ring(A) == base_ring(B)
+  @assert group(A) === group(B)
+  l = length(hom_base(A, B))
+  if l > 1
+    error("modules need to be abs. irreducible")
+  end
+  return l == 1
+end
+
 function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where T
 
   h = hom_base(gmodule(QQ, A), gmodule(QQ, B))
@@ -1580,7 +1822,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
- # global last_f = f
+ global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
