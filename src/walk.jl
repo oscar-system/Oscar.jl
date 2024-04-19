@@ -1,10 +1,4 @@
 
-global infoLevel = 0
-
-###############################################################
-# Implementation of different variants of the Groebner Walk.
-# The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
-###############################################################
 @doc raw"""
     groebner_walk(
         I::MPolyIdeal; 
@@ -26,7 +20,7 @@ The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
 One can choose a strategy of:
 - Standard Walk (:standard) computes the Walk like as presented in Cox, Little & O´Shea (2005).
 - Generic Walk (:generic) computes the Walk as presented in Fukuda, Jensen, Lauritzen & Thomas (2005).
-- Perturbed Walk (:perturbed, with p = degree of the perturbation) computes the Walk ass presented in Amrhein, Gloor & Küchlin (1997).
+- Perturbed Walk (:perturbed, with p = degree of the perturbation) computes the Walk as presented in Amrhein, Gloor & Küchlin (1997).
 - Tran's Walk (:tran) computes the Walk like as presented in Tran (2000).
 - Fractal Walk (:fractalcombined) computes the Walk like as presented in Amrhein & Gloor (1998) with multiple extensions. The target monomial order has to be lex. This version uses the Buchberger algorithm to skip weight vectors with entries bigger than Int32.
 - Fractal Walk (:fractal) computes the Walk as presented in Amrhein & Gloor (1998). Perturbs only the target vector.
@@ -59,28 +53,29 @@ Gröbner basis with elements
 with respect to the ordering
 lex([x, y])
 
-julia> groebner_walk(I, degrevlex(R), lex(R), :perturbed, 2)
+julia> groebner_walk(I, lex(R); algorithm=:perturbed)
 Gröbner basis with elements
-1 -> y^16
-2 -> x + y^12 - y^8 + y^4
+1 -> x + y^12 - y^8 + y^4
+2 -> y^16
 with respect to the ordering
-matrix_ordering([x, y], [1 0; 0 1])
+lex([x, y])
 
-julia> groebnerwalk(I, [1 1; 0 -1], [1 0; 0 1], :standard)
-standard_walk results
+julia> julia> set_verbosity_level(:groebner_walk, 1);
+julia> groebner_walk(I, lex(R))
+Results for standard_walk
 Crossed Cones in: 
-[4, 3]
-[4, 1]
-[12, 1]
-[1, 0]
+ZZRingElem[4, 3]
+ZZRingElem[4, 1]
+ZZRingElem[12, 1]
+ZZRingElem[1, 0]
 Cones crossed: 4
 Gröbner basis with elements
-1 -> y^16
-2 -> x + y^12 - y^8 + y^4
+1 -> x + y^12 - y^8 + y^4
+2 -> y^16
 with respect to the ordering
-matrix_ordering([x, y], [1 0; 0 1])
+lex([x, y])
 
-julia> groebnerwalk(I, [1 1; 0 -1], [1 0; 0 1], :perturbed, 2)
+julia> groebner_walk(I, lex(R); algorithm=:perturbed)
 perturbed_walk results
 Crossed Cones in: 
 [4, 3]
