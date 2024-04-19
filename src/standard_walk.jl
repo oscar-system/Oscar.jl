@@ -153,12 +153,67 @@ The bounding vectors form an H-description of the Gröbner cone. (cf. "Using alg
 function bounding_vectors(I::Oscar.IdealGens)
   # TODO: rename this to "BoundingVectors" or something similar (as in M2 implementation/master's thesis)
   # TODO: Marked Gröbner basis
-  lead_exp = leading_term.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
+
+  # i_of_lead = index_of_leading_term.(I, Ref(ordering(I)))
+
+  lead_exp = leading_monomial.(I; ordering=ordering(I)) .|> exponent_vectors .|> first
   # TODO: are leading terms being computed twice? (Once in leadexpv, once in tailexpvs) One instead could simply subtract leading terms, no? 
-  tail_exps = zip(gens(I) .|> exponent_vectors, lead_exp) .|> splat((e, lead) -> filter(!=(lead), e))
-  # tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
+  # tail_exps = zip(gens(I) .|> exponent_vectors, lead_exp) .|> splat((e, lead) -> filter(!=(lead), e))
+  tail_exps = tail.(I; ordering=ordering(I)) .|> exponent_vectors
   
   v = zip(lead_exp, tail_exps) .|> splat((l, t) -> Ref(l).-t)
 
   return unique!(reduce(vcat, v))
+end
+
+# TODO: Actual docstring
+#= Lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
+  
+  Input:  - G , the reduced G.B of I w.r.t current
+          - current, the current monomial order
+          - H, the reduced G.B of inw(I) w.r.t the next weight vector w 
+          - target, the next monomial order 
+  
+  Output: - an inclusion minimal G.B of target obtained by subtracting normal forms
+
+  QUESTION: why do we need "target" in Oscar.IdealGens(...)? 
+
+  COMMENT: I think "target" is inappropriately named. It is rather "next_ordering" (i.e the target order, refined by w)
+=#
+@doc raw"""
+    lift(
+      G::Oscar.IdealGens, # momentane GB
+      current::MonomialOrdering,
+      H::Oscar.IdealGens, # soll GB von initial forms sein
+      target::MonomialOrdering,
+    )
+
+Computes an inclusion minimal Gröbner basis with respect to `target` according to the
+lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
+
+# Arguments
+- `G::Oscar.IdealGens`: The reduced Gröbner basis of I
+- `current::MonomialOrdering`: The current monomial order (TODO: Do we need that)
+- `H::Oscar.IdealGens`: A Gröbner basis of initial forms of (TODO: what) with respect to (TODO: what)
+- `target::MonomialOrdering`: The ordering for which the output is a Gröbner basis.
+"""
+function lift(
+  G::Oscar.IdealGens, # momentane GB
+  current::MonomialOrdering,
+  H::Oscar.IdealGens, # soll GB von initial forms sein
+  target::MonomialOrdering,
+)
+  
+
+  G = Oscar.IdealGens(
+    [
+      gen - Oscar.IdealGens(
+        [reduce(gen, gens(G); ordering=current, complete_reduction=true)], target
+      )[1] for gen in gens(H)
+    ],
+    target;
+    isGB=true,
+  )
+
+  return G
 end

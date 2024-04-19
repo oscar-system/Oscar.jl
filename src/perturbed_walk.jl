@@ -18,6 +18,10 @@ function perturbed_walk(
   current_weight = perturbed_vector(G, S, p)
 
   while !same_cone(G, target)
+    # @v_do :groebner_walk steps += 1
+    @vprintln :groebner_walk current_weight
+    @vprintln :groebner_walk 2 G
+
     target_weight = perturbed_vector(G, T, p)
     next_target = matrix_ordering(R, add_weight_vector(target_weight, T))
     G = standard_walk(G, next_target, current_weight, target_weight)
@@ -38,10 +42,11 @@ function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
   rows = [M[i, :] for i in 1:p]
 
   m = maximum.(Ref(abs), rows)
-  m_sum = sum(m)
+  m_sum = sum(m[2:end])
   max_deg = maximum(total_degree.(G)) # TODO: I think this is total degree
 
   e = max_deg * m_sum + 1
+
   w = M[1, :] * e^(p - 1)
   for i in 2:p
     w += e^(p - i) * M[i, :]

@@ -7,6 +7,10 @@ include("markedGB.jl")
 include("generic_walk.jl")
 include("walk.jl")
 
+include("standard_walk.jl")
+include("perturbed_walk.jl")
+include("fractal_walk.jl")
+
 import Oscar: weight_ordering, ZZRingElem, MonomialOrdering, ZZMatrix, IdealGens
 import Oscar.Orderings: MatrixOrdering, _support_indices
 
