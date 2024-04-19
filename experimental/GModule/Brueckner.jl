@@ -44,7 +44,6 @@ function reps(K, G::Oscar.GAPGroup)
   @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
 
   for i=length(gG)-1:-1:1
-    @show i, length(R)
     h = gG[i]
     ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
@@ -99,7 +98,6 @@ function reps(K, G::Oscar.GAPGroup)
           end
         else #need to extend dim
           n = dim(r)
-          @show :dim_now, n, p
           F = free_module(K, dim(r)*p)
 
           # a block permutation matrix for the element `h`
@@ -144,7 +142,6 @@ function reps(K, G::Oscar.GAPGroup)
                 todo[k] = false
               end
             end
-            @show todo
           end
 
           push!(new_R, gmodule(F, ns, md))
@@ -165,7 +162,7 @@ Brueckner Chap 1.3.1
 Given
   mp: G ->> Q
 
-Find a set of primes such that are any irreducible F_p module M
+Find a set of primes such that if there is any irreducible F_p module M
 s.th. there is an epimorphism of G onto the extension of Q by M,
 the p is in the set.
 """
@@ -235,7 +232,6 @@ Implements the SQ-Algorithm by Brueckner, Chap 1.3
 If necessary, the prime(s) p that can be used are computed as well.
 """
 function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit::Int = typemax(Int))
-  @show :start_b
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
@@ -267,7 +263,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       @vprint :BruecknerSQ 2 "... lift...\n"
       #TODO: why do we need the module over GF(p)???
       iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
-      @show iii.G, typeof(iii.G)
       @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
       #TODO: in Plesken p119 has more comments what not to do
@@ -304,8 +299,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  @show C
-  @show G
   R = relators(G)
   M = C.M
 
@@ -398,7 +391,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       q, mq = quo(k, kk)
       do_ext = dim(q)/length(Oscar.GModuleFromGap.hom_base(C, C)) > 1
       #should indicate if part c is applicable
-      @show q, length(Oscar.GModuleFromGap.hom_base(C, C))
       k = q
       mk = pseudo_inv(mq)*mk
     end
