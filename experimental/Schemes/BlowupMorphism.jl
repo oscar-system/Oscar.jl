@@ -950,3 +950,14 @@ function is_prime(I::StrictTransformIdealSheaf)
   return is_prime(original_ideal_sheaf(I))
 end
 
+function cheap_sub_ideal(I::StrictTransformIdealSheaf, U::AbsAffineScheme)
+  II = pullback_ideal_sheaf(I)
+  return cheap_sub_ideal(II, U)
+end
+
+@attr PullbackIdealSheaf function pullback_ideal_sheaf(I::StrictTransformIdealSheaf)
+  f = morphism(I)
+  J = original_ideal_sheaf(I)
+  return PullbackIdealSheaf(f, J)
+end
+
