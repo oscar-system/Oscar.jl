@@ -44,6 +44,7 @@ function reps(K, G::Oscar.GAPGroup)
   @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(R[1])
 
   for i=length(gG)-1:-1:1
+    @show i, length(R)
     h = gG[i]
     ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
@@ -98,6 +99,7 @@ function reps(K, G::Oscar.GAPGroup)
           end
         else #need to extend dim
           n = dim(r)
+          @show :dim_now, n, p
           F = free_module(K, dim(r)*p)
 
           # a block permutation matrix for the element `h`
@@ -136,14 +138,13 @@ function reps(K, G::Oscar.GAPGroup)
           # we do not induce the representations equivalent to the
           # other conjugates.
           for j in 2:p
+            Gj = gmodule(M, s, conjreps[j])
             for k in (pos+1):length(R)
-              @show base_ring(R[k]), base_ring(M)
-              if length(Oscar.GModuleFromGap.hom_base(
-                          gmodule(M, s, conjreps[j]), R[k])) > 0
+              if is_isomorphic(Gj, R[k]) > 0
                 todo[k] = false
-                continue
               end
             end
+            @show todo
           end
 
           push!(new_R, gmodule(F, ns, md))
@@ -164,7 +165,7 @@ Brueckner Chap 1.3.1
 Given
   mp: G ->> Q
 
-Find a set of primes suth that are any irreducible F_p module M
+Find a set of primes such that are any irreducible F_p module M
 s.th. there is an epimorphism of G onto the extension of Q by M,
 the p is in the set.
 """
@@ -174,8 +175,12 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   if order(Q) == 1
     F = free_module(ZZ, 1)
     I = [gmodule(F, Q, [hom(F, F, [F[1]]) for x in gens(Q)])]
-  else
-    I = irreducible_modules(ZZ, Q)
+  else #TODO: repsn, reps offer choice
+#    I = irreducible_modules(ZZ, Q)
+    I = reps(abelian_closure(QQ)[1], Q)
+    #Brueckner, p35: irreducible here is not neccessary, so the 
+    #  expensive find minimal field step can be omitted.
+    I = [gmodule(ZZ, gmodule(QQ, gmodule(CyclotomicField, x))) for x = I]
   end
   lp = Set(collect(keys(factor(order(Q)).fac)))
   for i = I
@@ -230,6 +235,7 @@ Implements the SQ-Algorithm by Brueckner, Chap 1.3
 If necessary, the prime(s) p that can be used are computed as well.
 """
 function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit::Int = typemax(Int))
+  @show :start_b
   Q = codomain(mQ)
   G = domain(mQ)
   @vprint :BruecknerSQ 1 "lifting $mQ using SQ\n"
@@ -259,9 +265,12 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
       @vprint :BruecknerSQ 2 "... transfer over min. field\n"
       @vtime :BruecknerSQ 2 ii = Oscar.GModuleFromGap.gmodule_minimal_field(i)
       @vprint :BruecknerSQ 2 "... lift...\n"
+      #TODO: why do we need the module over GF(p)???
       iii = Oscar.GModuleFromGap.gmodule(GF(Int(p)), ii)
+      @show iii.G, typeof(iii.G)
       @vtime :BruecknerSQ 2 l = lift(iii, mQ; limit = limit - length(allR))
       @vprint :BruecknerSQ 2 "found $(length(l)) many\n"
+      #TODO: in Plesken p119 has more comments what not to do
       append!(allR, [x for x in l])# if is_surjective(x)])
       if length(allR) >= limit
         return allR
@@ -269,6 +278,16 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[], limit:
     end
   end
   return allR
+end
+
+function trivial_chain(C::GModule, n::Int)
+  #TODO: do for other n as well...(or change the name)
+  @assert n == 2
+  G = C.G
+  c = Dict((one(G), one(G)) => zero(C.M))
+  S = elem_type(C.G)
+  T = elem_type(C.M)
+  return Oscar.GrpCoh.CoChain{2, S, T}(C, c, x->zero(C.M))
 end
 
 """
@@ -286,12 +305,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   @assert codomain(mp) == N
 
   @show C
-  @time H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
-  @show H2
-  global last_in = C
+  @show G
   R = relators(G)
   M = C.M
-  D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
 
   #=
     G    -->> N
@@ -308,15 +324,16 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
    this needs to be "collected"
   =#
 
+  D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
   K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
   S = relators(N)
   if length(S) != 0
     X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
-  allG = []
-  
-  for h = H2
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
+
+  function _process(mu; is_trivial::Bool = false, limit::Int)
+    allG = []
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
     gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
@@ -363,8 +380,10 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
 
     k, mk = kernel(s)
+    #TODO factor by scalars or inner autos or whatever. All of k is too much
 
-    if is_zero(h) && length(S) > 0 #Satz 15 in Brueckner, parts a and b
+    do_ext = false
+    if is_trivial && length(S) > 0 #Satz 15 in Brueckner, parts a and b
       u = [preimage(mp, x) for x = gens(N)] 
       ss = elem_type(X)[]
       sss = elem_type(D)[]
@@ -377,6 +396,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       sss = hom(D, D, sss)
       kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1]) 
       q, mq = quo(k, kk)
+      do_ext = dim(q)/length(Oscar.GModuleFromGap.hom_base(C, C)) > 1
+      #should indicate if part c is applicable
+      @show q, length(Oscar.GModuleFromGap.hom_base(C, C))
       k = q
       mk = pseudo_inv(mq)*mk
     end
@@ -388,23 +410,59 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     end
     if !fl
       @show :no_sol
-      continue
+      return allG
     end
 
+    @show k, is_trivial
     for x = k
-      if is_zero(h) && is_zero(x)
+      if is_trivial && is_zero(x)
         @show :skip, dim(k)
         continue
       end
       hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
       if is_surjective(hm)
-        push!(allG, hm)
+        if do_ext
+          @show :recurse
+          #TODO: can we do this non-recursively? Use the other solutions
+          #      and a suitable direct product of modules?
+          #      Plesken hints at YES
+          CC = gmodule(GG, [action(C, GGpro(x)) for x = gens(GG)])
+          allH = _process(trivial_chain(CC, 2); is_trivial, limit = 1)
+          if length(allH) == 0
+            push!(allG, hm)
+          else
+            append!(allG, allH)
+          end
+        else
+          @show :new_no_rec
+          push!(allG, hm)
+        end
         if length(allG) >= limit
           return allG
         end
       else #should not be possible any more
         @show :not_sur
       end
+    end
+    return allG
+  end
+  
+  allG = []
+
+  mu = trivial_chain(C, 2)
+  allG = _process(mu; is_trivial = true, limit)
+  if length(allG) >= limit || gcd(order(C.G), order(C.M)) == 1 #trivial H^2
+    return allG
+  end
+
+  @time H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  @show H2
+
+  for h = H2
+    is_zero(h) && continue
+    append!(allG, _process(z(h); is_trivial = false, limit = limit - length(allG)))
+    if length(allG) >= limit
+      return allG
     end
   end
 
