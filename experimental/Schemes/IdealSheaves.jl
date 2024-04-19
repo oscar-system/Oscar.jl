@@ -555,6 +555,10 @@ function is_one(I::PrimeIdealSheafFromChart; covering::Covering=default_covering
   return false
 end
 
+function dim(I::PrimeIdealSheafFromChart)
+  return dim(I(original_chart(I)))
+end
+
 function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
   return get_attribute!(I, :is_one) do
     for U in keys(object_cache(I))

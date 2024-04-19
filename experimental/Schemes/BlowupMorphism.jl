@@ -945,3 +945,8 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   return result
 end
 
+function is_prime(I::StrictTransformIdealSheaf)
+  is_subset(original_ideal_sheaf(I), radical(center(morphism(I)))) && return false # It's the unit ideal sheaf in this case
+  return is_prime(original_ideal_sheaf(I))
+end
+

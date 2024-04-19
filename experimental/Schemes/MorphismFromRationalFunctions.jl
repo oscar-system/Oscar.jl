@@ -1019,7 +1019,7 @@ function _prepare_pushforward_prime_divisor(
 
   # The preselection of charts in the codomain via the optional argument 
   # may lead to that there is no result in the end. 
-  return nothing, domain_chart(phi), codomain_chart(phi)
+  return nothing, Oscar.domain_chart(phi), codomain_chart(phi)
 end
 
 function _pushforward_prime_divisor(
