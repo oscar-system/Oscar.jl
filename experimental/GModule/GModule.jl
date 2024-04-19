@@ -1208,16 +1208,24 @@ function hilbert90_generic(X::Dict, mA)
   K = domain(mA(one(G))) #can map parent do this better?
   n = nrows(first(values(X)))
   cnt = 0
+  rnd = div(n^2, 10)+1
   while true
     local Y
     while true #TODO: choose Y more sparse
       #Glasby shows that this approach, over a finite field,
       #has a high success probability.
-      Y = matrix(K, n, n, [rand(K, -5:5) for i=1:n*n])
+      #a sparse matrix yields better (smaller) transformations...
+      Y = zero_matrix(K, n, n)
+      for i=1:rnd
+        Y[rand(1:n), rand(1:n)] = rand(K, -5:5)
+      end
+      rnd = min(ceil(Int, rnd*1.2)+1, n^2)
+
+#      Y = matrix(K, n, n, [rand(K, -5:5) for i=1:n*n])
       fl = is_invertible(Y)
       fl && break
       cnt += 1
-      if cnt > 10 error("s.th. weird") end
+      if cnt > 20 error("s.th. weird") end
     end
     S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
     fl, Si = is_invertible_with_inverse(S)
@@ -1822,7 +1830,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
- global last_f = f
+# global last_f = f
  @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
