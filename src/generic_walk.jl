@@ -17,19 +17,6 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
   return Oscar.IdealGens(MG.gens, target; isGB = true)
 end
 
-
-function markedGB_generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
-  Lm = leading_term.(G, ordering = start)
-  MG = markedGB(gens(G), Lm)
-  v = markedGB_next_gamma(MG, ZZ.([0]), start, target)
-
-  while !isempty(v)
-    MG = markedGB_generic_step(MG, v, target)
-    v = markedGB_next_gamma(MG, v, start, target)
-  end
-  return Oscar.IdealGens(MG.gens, target; isGB = true)
-end
-
 #Given the "old markedGB" GB and the newly computed facet normal v 
 #compute the next markedGB by taking G.B of initial forms H w.r.t less 
 #and lifting it with markedGB_lift_generic. Subsequently reduce 
@@ -78,7 +65,7 @@ exponent_vectors = f->exponent_vector.(monomials(f), Ref(1)) #returns exponent v
 #returns a list of integer vectors of the form a - b
 # (where a is a leading exponent and b is in the tail of some g in MG) 
 function markedGB_difference_lead_tail(MG::markedGB)
-    (G,Lm) = MG.gens, MG.markings 
+  (G,Lm) = MG.gens, MG.markings 
   lead_exp = Lm .|> exponent_vectors .|> first
   
   v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)

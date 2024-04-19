@@ -1,19 +1,12 @@
 
 @doc raw"""
     groebner_walk(
-        I::MPolyIdeal; 
-        targetOrder::Symbol = lex(base_ring(I)), 
-        startOrder::MonomialOrdering = default_ordering(base_ring(I));
-        walktype::Symbol = :standard, 
-        perturbationDegree::Int = 2
+      I::MPolyIdeal, 
+      target::MonomialOrdering = lex(base_ring(I)),
+      start::MonomialOrdering = default_ordering(base_ring(I));
+      perturbation_degree = 2,
+      algorithm::Symbol = :standard
     )
-    groebner_walk(
-        G::Oscar.IdealGens,
-        targetOrder::Union{Matrix{N}, MatElem{N}},
-        startOrder::Union{Matrix{N}, MatElem{N}},
-        walktype::Symbol = :standard,
-        perturbationDegree::Int = 2
-    ) where N
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk.
 The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
@@ -27,17 +20,16 @@ One can choose a strategy of:
 
 # Arguments
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
-- `G::Oscar.IdealGens`: generators of an ideal one wants to compute a Groebner basis for.
 - `target::MonomialOrdering=:lex`: monomial order one wants to compute a Groebner basis for.
 - `start::MonomialOrdering=:degrevlex`: monomial order to begin the conversion.
-- `walktype::Symbol=standard`: strategy of the Groebner Walk. One can choose a strategy of:
+- `perturbationDegree::Int=2`: perturbationdegree for the perturbed Walk.
+- `algorithm::Symbol=standard`: strategy of the Groebner Walk. One can choose a strategy of:
     - `standard`: Standard Walk,
+    - `generic`: Generic Walk,
     - `perturbed`: Perturbed Walk,
     - `tran`: Tran´s Walk,
-    - `generic`: Generic Walk,
     - `fractal`: standard-version of the Fractal Walk,
     - `fractalcombined`: combined Version of the Fractal Walk. Target monomial order needs to be lex,
-- `perturbationDegree::Int=2`: perturbationdegree for the perturbed Walk.
 
 # Examples
 
@@ -104,8 +96,8 @@ function groebner_walk(
     walk = (x) -> generic_walk(x, start, target)
   elseif algorithm == :perturbed
     walk = (x) -> perturbed_walk(x, start, target, perturbation_degree)
-  elseif walktype == :fractal
-    walk = (x) -> fractal_walk(x, start, target)
+  # elseif walktype == :fractal
+  #   walk = (x) -> fractal_walk(x, start, target)
   else
     throw(NotImplementedError(:groebner_walk, algorithm))
   end
@@ -114,46 +106,6 @@ function groebner_walk(
   Gb = walk(Gb)
 
   return Oscar.IdealGens(gens(Gb), target; isGB=true)
-end
-
-function groebner_walk(
-  G::Union{Oscar.IdealGens,MPolyIdeal},
-  T::Union{Matrix{N},MatElem{N}},
-  S::Union{Matrix{N},MatElem{N}},
-  walktype::Symbol=:standard,
-  p::Int=2,
-) where {N}
-  if walktype == :standard
-    walk = (x) -> standard_walk(x, S, T)
-  elseif walktype == :generic
-    walk = (x) -> generic_walk(x, S, T)
-  elseif walktype == :perturbed
-    walk = (x) -> perturbed_walk(x, S, T, p)
-  elseif walktype == :fractal
-    walk = (x) -> fractal_walk(x, S, T)
-  elseif walktype == :fractal_start_order
-    walk = (x) -> fractal_walk_start_order(x, S, T)
-    #    elseif walktype == :fractal_lex
-    #       walk = (x) -> fractal_walk_lex(x, S, T)
-    #   elseif walktype == :fractal_look_ahead
-    #       walk = (x) -> fractal_walk_look_ahead(x, S, T)
-  elseif walktype == :tran
-    walk = (x) -> tran_walk(x, S, T)
-  elseif walktype == :fractal_combined
-    walk = (x) -> fractal_walk_combined(x, S, T)
-  end
-  delete_step_counter()
-  S = Matrix{Int}(S)
-  T = Matrix{Int}(T)
-  # Make sure G is a fully reduced Groebner Basis
-  Gb = groebner_basis(
-    ideal(gens(G)); ordering=matrix_ordering(base_ring(G), S), complete_reduction=true
-  )
-  Gb = walk(Gb)
-
-  @vprintln :groebner_walk "Cones crossed: " 
-  delete_step_counter()
-  return Oscar.IdealGens(gens(Gb), matrix_ordering(base_ring(G), T); isGB=true)
 end
 
 ###########################################
@@ -177,28 +129,6 @@ end
 ###############################################################
 # Generic-version of the Groebner Walk.
 ###############################################################
-
-# function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
-#   Lm = leading_term.(G; ordering=start)
-#   V = next_gamma(G, Lm, zeros(ZZRingElem, 1), start, target)
-
-#   @vprintln :groebner_walk "Results for generic_walk"
-#   @vprintln :groebner_walk "Facets crossed for: "
-
-#   while !isempty(V)
-#     G, Lm = generic_step(G, Lm, V, target)
-    
-#     # TODO: increase step_counter here
-#     @vprintln :groebner_walk V
-#     @vprintln :groebner_walk 2 G
-
-#     G = IdealGens(G, target)
-#     V = next_gamma(G, Lm, V, start, target)
-#   end
-
-#   return G
-# end
-# generic_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}) = generic_walk(G, monomial_ordering(base_ring(G), S), monomial_ordering(base_ring(G), T))
 
 function generic_step(
   G::Oscar.IdealGens, Lm::Vector{T}, v::Vector{ZZRingElem}, ord::MonomialOrdering
@@ -756,260 +686,6 @@ function inCone(G::Oscar.IdealGens, T::Matrix{Int}, pvecs::Vector{Vector{Int}}, 
     end
   end
   return true
-end
-
-#################################################################
-# Procedures of the generic walk.
-# The generic walk is proposed by Fukuda, Lauritzen & Thomas (2005).
-#################################################################
-
-# returns the initials of the polynomials w.r.t. the vector v.
-function facet_initials(
-  G::Oscar.IdealGens, lm::Vector{<:MPolyRingElem}, v::Vector{ZZRingElem}
-)
-  initials = Vector{MPolyRingElem}()
-
-  # TODO: this really wants marked Gröbner bases
-  ctx = MPolyBuildCtx(base_ring(G))
-  for (g,el) in zip(G, exponent_vectors.(lm) .|> first)
-    for (c,e) in zip(coefficients(g), exponent_vectors(g))
-      if el == e || is_parallel(ZZ.(el - e), v)
-        push_term!(ctx, c, e)
-      end
-    end
-
-    push!(initials, finish(ctx))
-  end
-
-  return initials
-end
-
-# returns the differences of the exponent vectors of the leading terms and the polynomials of the generators of I.
-#Comment: I shouldn't need the ordering T here. (Lm already consists of monomials)
-
-function bounding_vectors(
-  G::Oscar.IdealGens, Lm::Vector{L}, T::MonomialOrdering
-) where {L<:MPolyRingElem}
-  lead_exp = leading_term.(Lm; ordering=T) .|> exponent_vectors .|> first
-  
-  v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
-
-  return unique!(reduce(vcat, v))
-end
-
-bounding_vectors(::Type{ZZRingElem}, G::Oscar.IdealGens, Lm::Vector{<:MPolyRingElem}, T::MonomialOrdering) = Vector{ZZRingElem}.(bounding_vectors(G, Lm, T))
-
-# function difference_lead_tail(
-#   G::Oscar.IdealGens, Lm::Vector{L}, T::Union{Matrix{N},MatElem{N}}
-# ) where {L<:MPolyRingElem,N}
-#   v = Vector{Int}[]
-#   for i in 1:length(G)
-#     ltu = collect(
-#       AbstractAlgebra.exponent_vectors(
-#         leading_term(Lm[i]; ordering=matrix_ordering(base_ring(G), T))
-#       ),
-#     )[1]
-#     for e in AbstractAlgebra.exponent_vectors(G[i])
-#       if ltu != e
-#         push!(v, ltu .- e)
-#       end
-#     end
-#   end
-#   return unique!(v)
-# end
-
-# returns true if the vector u is parallel to the vector v.
-function is_parallel(u::Vector{T}, v::Vector{T}) where T
-  count = 1
-  x = 0
-  for i in 1:length(u)
-    if u[i] == 0
-      if v[count] == 0
-        count += +1
-      else
-        return false
-      end
-    else
-      x = v[count]//u[i]
-      count += 1
-      break
-    end
-  end
-  if count > length(v)
-    return true
-  end
-  for i in count:length(v)
-    @inbounds if v[i] != x * u[i]
-      return false
-    end
-  end
-  return true
-end
-
-# performs the lifting in the generic Walk like it´s proposed by Fukuda et al. (2005).
-function lift_generic(
-  G::Vector{T}, Lm::Vector{T}, H::Vector{T}, ord::MonomialOrdering
-) where {T<:MPolyRingElem}
-  R = parent(first(G))
-  Newlm = Array{elem_type(R),1}(undef, 0)
-  liftPolys = Array{elem_type(R),1}(undef, 0)
-  for g in H
-    push!(Newlm, leading_term(g; ordering=ord))
-    push!(liftPolys, g - reduce_walk(g, G, Lm, ord))
-  end
-  return liftPolys, Newlm
-end
-
-# returns all v \in V if v<0 w.r.t. the ordering represented by T and v>0 w.r.t the ordering represented by S.
-function filter_by_ordering(S::ZZMatrix, T::ZZMatrix, V::Vector{Vector{ZZRingElem}})
-  pred = v->(
-    less_than_zero(T, v) && 
-    greater_than_zero(S, v)
-  )
-  return unique!(filter(pred, V))
-end
-
-# function filter_by_ordering(S::Matrix{Int}, T::Matrix{Int}, V::Vector{Vector{Int}})
-#   btz = Set{Vector{Int}}()
-#   for v in V
-#     if less_than_zero(T, v) && greater_than_zero(S, v)
-#       push!(btz, v)
-#     end
-#   end
-#   return btz
-# end
-
-# returns all v \in V if w<v w.r.t. the facet-preorder.
-# function filter_lf(w::Vector{Int}, S::Matrix{Int}, T::Matrix{Int}, V::Set{Vector{Int}})
-#   btz = Set{Vector{Int}}()
-#   for v in V
-#     if less_facet(w, v, S, T)
-#       push!(btz, v)
-#     end
-#   end
-#   return btz
-# end
-
-function filter_lf(w::Vector{ZZRingElem}, start::ZZMatrix, target::ZZMatrix, V::Vector{Vector{ZZRingElem}})
-  pred = v->less_facet(w, v, start, target)
-
-  return unique!(filter(pred, V))
-end
-
-# computes the next vector in the generic walk.
-function next_gamma(
-  G::Oscar.IdealGens, 
-  Lm::Vector{<:MPolyRingElem}, 
-  w::Vector{ZZRingElem}, 
-  start::MonomialOrdering, 
-  target::MonomialOrdering
-)
-  S = canonical_matrix(start)
-  T = canonical_matrix(target)
-  
-  V = filter_by_ordering(S, T, bounding_vectors(ZZRingElem, G, Lm, target))
-
-  if (w != zeros(ZZRingElem, 1))
-    V = filter_lf(w, S, T, V) #TODO
-  end
-
-  if isempty(V)
-    return V
-  end
-
-  op = (minV,v) ->
-    if less_facet(v, minV, S, T)
-      return v
-    else return minV
-  end
-
-  return foldl(op, V; init=first(V))
-end
-
-# tests if v>0 w.r.t. the ordering M.
-# TODO What is the definition?
-# This should be the ordering on Q^n induced by M: ( u <_M v iff Mu <_lex Mv)?  
-function greater_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
-  nrows, _ = size(M)
-
-  for i in 1:nrows
-    d = dot(M[i,:], v)
-
-    if d != 0
-      return d > 0
-    end
-  end
-
-  return false
-end
-
-# tests if v<0 w.r.t. the ordering M.
-# less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem}) = new_less_than_zero(M, v)
-function less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
-  nrows, _ = size(M)
-
-  for i in 1:nrows
-    d = dot(M[i,:], v)
-
-    if d != 0
-      return d < 0
-    end
-  end
-
-  return false
-end
-
-# tests if u<v w.r.t. the facet-preorder represented by the matrices S and T.
-function less_facet(u::Vector{ZZRingElem}, v::Vector{ZZRingElem}, S::ZZMatrix, T::ZZMatrix)
-  for i in 1:size(T, 1)
-    for j in 1:size(S, 1)
-      @inbounds Tuv = dot(T[i, :], u) * dot(S[j, :], v)
-      @inbounds Tvu = dot(T[i, :], v) * dot(S[j, :], u)
-      if Tuv != Tvu
-        return Tuv < Tvu
-      end
-    end
-  end
-  return false
-end
-
-# returns the multiple m for all terms q in p with lm * m = q.
-function divides_walk(p::MPolyRingElem, lm::MPolyRingElem, S::MPolyRing)
-  div = false
-  newpoly = MPolyBuildCtx(S)
-  for term in terms(p)
-    (b, c) = divides(term, lm)
-    if b
-      push_term!(
-        newpoly, first(coefficients(c)), first(AbstractAlgebra.exponent_vectors(c))
-      )
-      div = true
-    end
-  end
-  return finish(newpoly), div
-end
-
-# returns p reduced by the Groebner basis G w.r.t. the leading terms Lm.
-function reduce_walk(
-  p::MPolyRingElem, G::Vector{T}, Lm::Vector{T}, ord::MonomialOrdering
-) where {T<:MPolyRingElem}
-  for i in 1:length(G)
-    (q, b) = divides_walk(p, Lm[i], parent(p))
-    if b
-      return reduce_walk(p - (q * G[i]), G, Lm, ord)
-    end
-  end
-  return p
-end
-
-# this function interreduces the Groebner basis G w.r.t. the leading terms Lm with tail-reduction.
-function interreduce(
-  G::Vector{T}, Lm::Vector{T}, ord::MonomialOrdering
-) where {T<:MPolyRingElem}
-  for i in 1:Singular.length(G)
-    G[i] = reduce_walk(G[i], G[1:end .!= i], Lm[1:end .!= i], ord)
-  end
-  return G
 end
 
 ###############################################################
