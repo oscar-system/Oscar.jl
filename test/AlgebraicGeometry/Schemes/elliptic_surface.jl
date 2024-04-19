@@ -177,7 +177,7 @@ end
   weier = weierstrass_chart_on_minimal_model(X)
   @test IIX(weier) == JJ(weier)
 
-  lat = algebraic_lattice(X)
+  lat = algebraic_lattice(X)[1]
   A = [intersect(a, b) for a in lat, b in lat]
 
   ll = Oscar._pushforward_lattice_along_isomorphism(trans)
