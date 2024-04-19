@@ -265,8 +265,6 @@ function dummy_placeholder end
 end
 
 @testset "Print Young Tableaux" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_young_tableau_printing])
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
+  Oscar._run_AuxDocTest(AuxDocTest_young_tableau_printing)
+  # Oscar._run_AuxDocTest(AuxDocTest_young_tableau_printing; fix=true)
 end

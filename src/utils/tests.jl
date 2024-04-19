@@ -92,6 +92,18 @@ _setactiveproject(s::String) = @static if VERSION >= v"1.8"
                                  Base.ACTIVE_PROJECT[] = s
                                end
 
+
+function _run_AuxDocTest(AuxDocTestModule::Module; fix::Bool=false)
+  if !isdefined(Main, :Documenter)
+    error("you need to do `using Documenter` first")
+  end
+  Documenter = Main.Documenter
+  # temporarily disable GC logging to avoid glitches in the doctests
+  VERSION >= v"1.8.0" && GC.enable_logging(false)
+  Documenter.doctest(nothing, [AuxDocTestModule]; fix)
+  VERSION >= v"1.8.0" && GC.enable_logging(true)
+end
+
 @doc raw"""
     test_module(path::AbstractString; new::Bool = true, timed::Bool=false, ignore=[])
 
