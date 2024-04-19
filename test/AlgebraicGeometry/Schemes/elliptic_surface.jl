@@ -165,24 +165,23 @@ end
 
   D_P = Oscar._section(X, P)
 
-  II = first(components(D_P))
+  II = first(components(D_P));
 
   trans = Oscar.translation_morphism(X, P; divisor=D_P)
 
   JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
 
+  IIX = first(components(Oscar._section(X, 2*P)));
   # We have little chance to get through with the computations on all charts. 
   # But it suffices to compare the result on the weierstrass charts.
-  IIS = Oscar._section_on_weierstrass_ambient_space(X, 2*P)
-
-  for f in X.ambient_blowups
-    IIS = total_transform(f, IIS)
-  end
-
-  IIX = pullback(X.inc_Y, IIS);
-
   weier = weierstrass_chart_on_minimal_model(X)
-
   @test IIX(weier) == JJ(weier)
+
+  lat = algebraic_lattice(X)
+  A = [intersect(a, b) for a in lat, b in lat]
+
+  ll = Oscar._pushforward_lattice_along_isomorphism(trans)
+  B = [intersect(a, b) for a in ll, b in ll]
+  @test A == B
 end
 
