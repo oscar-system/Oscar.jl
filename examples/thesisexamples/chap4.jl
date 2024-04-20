@@ -1,5 +1,5 @@
 using Oscar 
-using Oscar.GroebnerWalk
+using GroebnerWalk
 R, (x,y,z) = polynomial_ring(QQ, ["x","y","z"])
 
 I = ideal([6 + 3*x^3+16*x^2*z+14*x^2*y^3, 6+y^3*z+17*x^2*z^2+7*x*y^2*z^2+13*x^3*z^2])
@@ -9,15 +9,15 @@ I = ideal([6 + 3*x^3+16*x^2*z+14*x^2*y^3, 6+y^3*z+17*x^2*z^2+7*x*y^2*z^2+13*x^3*
 # standard Gröbner Walk takes ~12s
 # generic Gröbner Walk takes ~2s 
 
-groebner_basis(I, ordering = lex(R)) 
+t_buchberger = @elapsed groebner_basis(I, ordering = lex(R)) 
 #this takes longer than 30 mins in OSCAR, compared with ~90s in M2
 #Is this to be expected? 
 
 
-groebner_walk(I, degrevlex(R), lex(R)) 
+t_standardwalk = @elapsed groebner_walk(I, lex(R), algorithm =:standard) 
 
 
-groebner_walk(I, degrevlex(R), lex(R), :generic)
+t_generic = @elapsed groebner_walk(I, degrevlex(R), lex(R), algorithm =:generic) #takes more than 1hr...
 
 #the line above terminates in a few secs 
 

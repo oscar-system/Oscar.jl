@@ -130,6 +130,7 @@ end
 # Generic-version of the Groebner Walk.
 ###############################################################
 
+#= 
 function generic_step(
   G::Oscar.IdealGens, Lm::Vector{T}, v::Vector{ZZRingElem}, ord::MonomialOrdering
 ) where {T<:MPolyRingElem}
@@ -141,7 +142,7 @@ function generic_step(
   G = interreduce(H, Lm, ord)
   return G, Lm
 end
-
+=# 
 ###############################################################
 # The Fractal Walk
 ###############################################################

@@ -22,13 +22,13 @@ end
 #and lifting it with markedGB_lift_generic. Subsequently reduce 
 
 function markedGB_generic_step(MG::markedGB, v::Vector{ZZRingElem}, ord::MonomialOrdering)
-facet_Generators = markedGB_facet_initials(MG, v)
-H = groebner_basis(
-  ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger
-)
-newGB = markedGB_lift_generic(MG, gens(H), ord)
-newGB = reductionalg(newGB)
-return newGB
+  facet_Generators = markedGB_facet_initials(MG, v)
+  H = groebner_basis(
+  ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger)
+  H = markedGB(gens(H), leading_term.(H, ordering = ord))
+  H = markedGB_lift_generic(MG, H)
+  H = reductionalg(H)
+    return H
 end
 
 
@@ -125,15 +125,11 @@ function markedGB_facet_initials(MG::markedGB, v::Vector{ZZRingElem})
 
 #Given a markedGB MG, a reduced GB of initial forms H w.r.t ord, and a monomial order 
 #"lift" H to a markedGB of I (ordering unknown!) by subtracting initial forms according to Fukuda, 2007
-function markedGB_lift_generic(MG::markedGB, H::Vector{<:MPolyRingElem}, ord::MonomialOrdering)
-    R = parent(first(MG.gens))
-    Newlm = Array{elem_type(R),1}(undef, 0)
-    liftPolys = Array{elem_type(R),1}(undef, 0)
-    for g in H
-      push!(Newlm, leading_term(g; ordering=ord))
-      push!(liftPolys, g - normal_form(g, MG))
+function markedGB_lift_generic(MG::markedGB, H::markedGB)
+  for i in 1:length(H.gens)
+    H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
     end
-    return markedGB(liftPolys, Newlm)
+  return H
   end
   
 
