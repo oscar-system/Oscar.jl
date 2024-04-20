@@ -69,7 +69,7 @@ function normal_form(p::MPolyRingElem, MG::markedGB)
 end
 
 # Calculates whether the monomial x^g divides x^f
-#divides(f::Vector{Int}, g::Vector{Int}) = all(g .<= f)
+# divides(f::Vector{Int}, g::Vector{Int}) = all(g .<= f)
 
 #Given a markedGB MG, reduce it by replacing each g with its normal form w.r.t G\{g} 
 #NB: only works if MG is inclusion minimal

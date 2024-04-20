@@ -1,7 +1,7 @@
 module GroebnerWalk
 using Oscar
 
-exponent_vectors = f->exponent_vector.(monomials(f), Ref(1))
+exponent_vectors = f->leading_exponent_vector.(monomials(f))
 
 include("markedGB.jl")
 include("generic_walk.jl")

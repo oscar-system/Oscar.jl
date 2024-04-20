@@ -14,7 +14,7 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
     @vprintln :groebner_walk v
     @vprintln :groebner_walk 2 G
   end
-  return Oscar.IdealGens(MG.gens, target; isGB = true)
+  return Oscar.IdealGens(MG.gens, target) #; isGB = true)
 end
 
 #Given the "old markedGB" GB and the newly computed facet normal v 
