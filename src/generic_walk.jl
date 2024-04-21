@@ -73,9 +73,9 @@ function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG) 
   lead_exp = leading_exponent_vector.(Lm)
   
-  v = zip(lead_exp, dropfirst.(exponent_vectors.(G))) .|> splat((l, t) -> Ref(l).-t)
+  v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
   
-  return [ZZ.(v) for v in unique!(reduce(vcat, v))]
+  return [ZZ.(v)./ZZ(gcd(v)) for v in unique!(reduce(vcat, v)) if !iszero(v)]
 end
 
 @doc raw"""
