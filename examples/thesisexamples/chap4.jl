@@ -14,9 +14,9 @@ t_buchberger = @elapsed groebner_basis(I, ordering = lex(R))
 #Is this to be expected? 
 
 
-t_standardwalk = @elapsed groebner_walk(I, lex(R), algorithm =:standard) 
+t_standardwalk = @elapsed groebner_walk(I, lex(R); algorithm =:standard) 
 
-t_generic = @elapsed groebner_walk(I, lex(R), degrevlex(R), algorithm =:generic) #takes more than 1hr...
+t_generic = @elapsed groebner_walk(I, lex(R); algorithm =:generic) #takes more than 1hr...
 
 
 #the line above terminates in a few secs 

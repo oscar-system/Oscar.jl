@@ -14,5 +14,5 @@ I1 = ideal([
 ])
 
 t_standard = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:standard)
-# t_generic = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:generic)
+t_generic = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:generic)
 # t_perturbed = @elapsed G = groebner_walk(I1, o2, o1; algorithm=:perturbed)
