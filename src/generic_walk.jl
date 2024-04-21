@@ -4,11 +4,11 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
 
   Lm = leading_term.(G, ordering = start)
   MG = MarkedGroebnerBasis(gens(G), Lm)
-  v = markedGB_next_gamma(MG, ZZ.([0]), start, target)
+  v = next_gamma(MG, ZZ.([0]), start, target)
 
   while !isempty(v)
     MG = generic_step(MG, v, target)
-    v = markedGB_next_gamma(MG, v, start, target)
+    v = next_gamma(MG, v, start, target)
 
     # TODO: increase step_counter here
     @vprintln :groebner_walk v
@@ -63,29 +63,33 @@ markedGB_generic_walk(G, o_s, o_t)
 
 #------next_gamma (Goal: Get next facet normal along generic path)
 
-exponent_vectors = f->exponent_vector.(monomials(f), Ref(1)) #returns exponent vectors of all terms in f 
+dropfirst(V::AbstractVector) = Iterators.drop(V, 1)
+@doc raw"""
+    difference_lead_tail(MG::MarkedGroebnerBasis)
 
-
-
-#returns a list of integer vectors of the form a - b
-# (where a is a leading exponent and b is in the tail of some g in MG) 
-function markedGB_difference_lead_tail(MG::MarkedGroebnerBasis)
-  (G,Lm) = MG.gens, MG.markings 
-  lead_exp = Lm .|> exponent_vectors .|> first
+Computes $a - b$ for $a$ a leading exponent and $b$ in the tail of some $g\in MG$. 
+"""
+function difference_lead_tail(MG::MarkedGroebnerBasis)
+  (G,Lm) = gens_and_markings(MG)
+  lead_exp = Lm .|> leading_exponent_vector
   
-  v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
+  v = zip(lead_exp, dropfirst.(exponent_vectors.(G))) .|> splat((l, t) -> Ref(l).-t)
 
-  return [ZZ.(v) for v in unique!(reduce(vcat, v))[2:end]] #temporary solution: the first element is always the zero vector? 
+  return [ZZ.(v) for v in unique!(reduce(vcat, v))]
 end
 
-#given a marked GB, the previous weight vector w and monomial orderings
-#returns the "next" facet normal
-#i.e. the bounding vector v fulfilling w<v w.r.t facet preorder which is minimal (w.r.t facet preorder)
+@doc raw"""
+    next_gamma(
+      MG::MarkedGroebnerBasis, w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering
+    )
 
-function markedGB_next_gamma(
+Given a marked Gröbner basis `MG`, a weight vector `w` and monomial orderings `start` and `target`,
+returns the "next" facet normal, i.e. the bounding vector $v$ fulfilling $w<v$ and being minimal with respect to the facet preorder $<$.
+"""
+function next_gamma(
     MG::MarkedGroebnerBasis, w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering
   )
-    V = new_filter_by_ordering(start, target, markedGB_difference_lead_tail(MG))
+    V = filter_by_ordering(start, target, difference_lead_tail(MG))
     if w != ZZ.([0]) 
         V = new_filter_lf(w, start, target, V)
     end
@@ -155,26 +159,29 @@ function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
 # <_{lex} is the lexicographic ordering on Q^n
 #with the notation from my thesis, this is equivalent to v <_M 0
 function new_less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
-    if is_zero(v)
-        return false
-    else
+  if is_zero(v)
+    return false
+  else
     i = 1
-    end
-    while dot(M[i, :], v) == 0
-        i += 1
-    end
-    return dot(M[i, :], v) < 0
   end
+  while dot(M[i, :], v) == 0
+    i += 1
+  end
+  return dot(M[i, :], v) < 0
+end
   
+  
+@doc raw"""
+    filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
 
-#given two monomial orderings start and target and a vector of integer vectors V
-#return all elements v of V with 0 <_T v and v <_S 0  
-function new_filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
-    pred = v->(
-      new_less_than_zero(canonical_matrix(target), ZZ.(v)) && !new_less_than_zero(canonical_matrix(start), ZZ.(v))
-    )
-    return unique!(filter(pred, V))
-  end
+Computes all elements $v\in V$ with $0 <_{\texttt{target}} v$ and $v <_{\texttt{start}} 0$
+"""
+function filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
+  pred = v -> (
+    new_less_than_zero(canonical_matrix(target), ZZ.(v)) && !new_less_than_zero(canonical_matrix(start), ZZ.(v))
+  )
+  return unique!(filter(pred, V))
+end
   
 
 #returns true if v <_M w , false otherwise  
@@ -199,10 +206,16 @@ function new_facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v:
 end
 
 #returns all elements of V smaller than w w.r.t the facet preorder
+
+@doc raw"""
+    filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
+
+Returns all elements of `V` smaller than `w` with respect to the facet preorder.
+"""
 function new_filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
     btz = Vector{Vector{ZZRingElem}}()
     for v in V
-      if new_facet_less_than(canonical_matrix(start),canonical_matrix(target),w,v) &&  !(v in btz)
+      if new_facet_less_than(canonical_matrix(start),canonical_matrix(target),w,v) && !(v in btz)
         push!(btz, v)
       end
     end

@@ -29,7 +29,7 @@ length(G::MarkedGroebnerBasis) = length(gens(G))
 
 gens(G::MarkedGroebnerBasis) = G.gens
 markings(G::MarkedGroebnerBasis) = G.markings
-gens_with_markings(G::MarkedGroebnerBasis) = zip(gens(G), markings(G))
+gens_and_markings(G::MarkedGroebnerBasis) = zip(gens(G), markings(G))
 
 # getindex(G::MarkedGroebnerBasis, i::Int) = (G.gens[i], G.markings[i])
 # function setindex!(G::MarkedGroebnerBasis, (f,m)::MarkedPolynomial, i::Int) 
@@ -114,7 +114,7 @@ function autoreduce(MG::MarkedGroebnerBasis)
     newlm = Vector{MPolyRingElem}()
     n = length(MG)
 
-    for (i, (g, mark)) in enumerate(gens_with_markings(MG))
+    for (i, (g, mark)) in enumerate(gens_and_markings(MG))
         rest = some_gens_with_markings(MG, 1:n .!= i)
         nf = _normal_form(g, rest...)
 
