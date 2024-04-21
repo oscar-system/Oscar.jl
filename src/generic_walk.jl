@@ -3,11 +3,11 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
   @vprintln :groebner_walk "Facets crossed for: "
 
   Lm = leading_term.(G, ordering = start)
-  MG = markedGB(gens(G), Lm)
+  MG = MarkedGroebnerBasis(gens(G), Lm)
   v = markedGB_next_gamma(MG, ZZ.([0]), start, target)
 
   while !isempty(v)
-    MG = markedGB_generic_step(MG, v, target)
+    MG = generic_step(MG, v, target)
     v = markedGB_next_gamma(MG, v, start, target)
 
     # TODO: increase step_counter here
@@ -17,18 +17,23 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
   return Oscar.IdealGens(MG.gens, target) #; isGB = true)
 end
 
-#Given the "old markedGB" GB and the newly computed facet normal v 
-#compute the next markedGB by taking G.B of initial forms H w.r.t less 
-#and lifting it with markedGB_lift_generic. Subsequently reduce 
+@doc raw"""
+    generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::MonomialOrdering)
 
-function markedGB_generic_step(MG::markedGB, v::Vector{ZZRingElem}, ord::MonomialOrdering)
-  facet_Generators = markedGB_facet_initials(MG, v)
+Given the marked Gröbner basis `MG` and a facet normal vector `v`, compute the next marked Gröbner basis.
+"""
+function generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::MonomialOrdering)
+  facet_Generators = facet_initials(MG, v)
   H = groebner_basis(
-  ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger)
-  H = markedGB(gens(H), leading_term.(H, ordering = ord))
+    ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger
+  )
+
+  H = MarkedGroebnerBasis(gens(H), leading_term.(H, ordering = ord))
   H = markedGB_lift_generic(MG, H)
-  H = reductionalg(H)
-    return H
+
+  autoreduce!(H)
+
+  return H
 end
 
 
@@ -64,7 +69,7 @@ exponent_vectors = f->exponent_vector.(monomials(f), Ref(1)) #returns exponent v
 
 #returns a list of integer vectors of the form a - b
 # (where a is a leading exponent and b is in the tail of some g in MG) 
-function markedGB_difference_lead_tail(MG::markedGB)
+function markedGB_difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = MG.gens, MG.markings 
   lead_exp = Lm .|> exponent_vectors .|> first
   
@@ -78,7 +83,7 @@ end
 #i.e. the bounding vector v fulfilling w<v w.r.t facet preorder which is minimal (w.r.t facet preorder)
 
 function markedGB_next_gamma(
-    MG::markedGB, w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering
+    MG::MarkedGroebnerBasis, w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering
   )
     V = new_filter_by_ordering(start, target, markedGB_difference_lead_tail(MG))
     if w != ZZ.([0]) 
@@ -96,15 +101,16 @@ function markedGB_next_gamma(
     return minV 
 end
 
-#----------------------------
+@doc raw"""
+    facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
 
-#------- facet initials 
-
-#Given a markedGB MG and a facet normal v 
-#Return corresponding G.B of initial forms by truncating to all bounding vectors parallel to v
-function markedGB_facet_initials(MG::markedGB, v::Vector{ZZRingElem})
+Given a marked Gröbner basis `MG` and a facet normal `v`, computes the Gröbner basis of initial forms 
+of `MG` by truncating to all bounding vectors parallel to `v`.
+"""
+function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
     inwG = copy(MG.markings)
     gens = copy(MG.gens)
+
     R = parent(first(gens))
     for i in 1:length(MG.markings)
       a = first(exponent_vector.(monomials(MG.markings[i]), Ref(1))) 
