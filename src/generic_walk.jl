@@ -29,7 +29,7 @@ function generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::Monom
   )
 
   H = MarkedGroebnerBasis(gens(H), leading_term.(H, ordering = ord))
-  H = markedGB_lift_generic(MG, H)
+  H = lift_generic(MG, H)
 
   autoreduce!(H)
 
@@ -108,30 +108,33 @@ Given a marked Gröbner basis `MG` and a facet normal `v`, computes the Gröbner
 of `MG` by truncating to all bounding vectors parallel to `v`.
 """
 function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
-    inwG = copy(MG.markings)
-    gens = copy(MG.gens)
+  R = base_ring(MG)
+  inwG = Vector{MPolyRingElem}()
 
-    R = parent(first(gens))
-    for i in 1:length(MG.markings)
-      a = first(exponent_vector.(monomials(MG.markings[i]), Ref(1))) 
-      for (b, coeff) in zip(exponent_vectors(gens[i]),
-         [leading_coefficient(term) for term in terms(gens[i])])
-        if new_is_parallel(ZZ.(a-b), v)
-          inwG[i] += coeff*monomial(R,b)
-        end
+  ctx = MPolyBuildCtx(R)
+  for (i, (g, m)) in gens_and_markings(MG) |> enumerate
+    c, a = leading_coefficient_and_exponent(m)
+    push_term!(ctx, c, a)
+
+    for (d, b) in coefficients_and_exponents(g)
+      if new_is_parallel(ZZ.(a - b), v)
+        push_term!(ctx, d, b)
       end
     end
-    return inwG
+
+    push!(inwG, finish(ctx))
   end
 
+  return inwG
+end
 
-#----------------------------
+@doc raw"""
+    lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
 
-#------ lifting step 
-
-#Given a markedGB MG, a reduced GB of initial forms H w.r.t ord, and a monomial order 
-#"lift" H to a markedGB of I (ordering unknown!) by subtracting initial forms according to Fukuda, 2007
-function markedGB_lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
+Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked Gröbner basis `H` of initial forms,
+lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
+"""
+function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
   for i in 1:length(H.gens)
     H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
     end
