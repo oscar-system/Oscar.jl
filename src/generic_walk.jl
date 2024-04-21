@@ -131,7 +131,7 @@ function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
 
 #Given a markedGB MG, a reduced GB of initial forms H w.r.t ord, and a monomial order 
 #"lift" H to a markedGB of I (ordering unknown!) by subtracting initial forms according to Fukuda, 2007
-function markedGB_lift_generic(MG::markedGB, H::markedGB)
+function markedGB_lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
   for i in 1:length(H.gens)
     H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
     end
