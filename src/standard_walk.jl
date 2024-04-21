@@ -147,7 +147,12 @@ function next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Ve
 
   @vprintln :groebner_walk 3 (QQ.(current) + tmin * QQ.(target-current))
 
-  return convert_bounding_vector(QQ.(current) + tmin * QQ.(target-current))
+  result = QQ.(current) + tmin * QQ.(target-current)
+  if !iszero(result)
+    return convert_bounding_vector(QQ.(current) + tmin * QQ.(target-current))
+  else
+    return zeros(ZZRingElem, length(result))
+  end
 end
 
 @doc raw"""

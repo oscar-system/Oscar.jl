@@ -660,14 +660,7 @@ function liftGW2(
 end
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
-function convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}}
-  c = gcd(w)
-  if c != 0
-    return ZZ.(floor.(w//c))
-  else
-    w
-  end
-end
+convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
 # returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
 create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} = weight_ordering(cw, matrix_ordering(R, T))
