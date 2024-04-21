@@ -70,11 +70,11 @@ dropfirst(V::AbstractVector) = Iterators.drop(V, 1)
 Computes $a - b$ for $a$ a leading exponent and $b$ in the tail of some $g\in MG$. 
 """
 function difference_lead_tail(MG::MarkedGroebnerBasis)
-  (G,Lm) = gens_and_markings(MG)
-  lead_exp = Lm .|> leading_exponent_vector
+  (G,Lm) = gens(MG), markings(MG) 
+  lead_exp = leading_exponent_vector.(Lm)
   
   v = zip(lead_exp, dropfirst.(exponent_vectors.(G))) .|> splat((l, t) -> Ref(l).-t)
-
+  
   return [ZZ.(v) for v in unique!(reduce(vcat, v))]
 end
 
@@ -182,12 +182,14 @@ function filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V
   )
   return unique!(filter(pred, V))
 end
-  
 
-#returns true if v <_M w , false otherwise  
-#i.e elements of the vectors Mv and Mw are compared until a tie is broken
+@doc raw"""
+    matrix_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
 
-function matrix_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
+Returns true if $Mv < Mw$ lexicographically, false otherwise.
+"""
+# matrix_lexicographic_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem}) = all(i -> dot(M[i, :], v) < dot(M[i, :], w), 1:size(M,1))
+function matrix_lexicographic_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
     i = 1
     while dot(M[i, :], v) == dot(M[i, :], w) && i != number_of_rows(M) 
         i += 1 
@@ -206,7 +208,7 @@ function facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vec
     while dot(T[i,:], u)v == dot(T[i,:], v)u && i != number_of_rows(T)
         i += 1
     end
-    return matrix_less_than(S, dot(T[i,:], u)v, dot(T[i,:], v)u) 
+    return matrix_lexicographic_less_than(S, dot(T[i,:], u)v, dot(T[i,:], v)u) 
 end
 
 #returns all elements of V smaller than w w.r.t the facet preorder
