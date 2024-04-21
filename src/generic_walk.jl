@@ -98,7 +98,7 @@ function next_gamma(
     end
     minV = first(V)
     for v in V 
-        if new_facet_less_than(canonical_matrix(start), canonical_matrix(target),v, minV)
+        if facet_less_than(canonical_matrix(start), canonical_matrix(target),v, minV)
             minV = v
         end
     end
@@ -195,9 +195,13 @@ function matrix_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingEl
     return dot(M[i, :], v) < dot(M[i, :], w)
 end
 
-#returns true if u < v w.r.t the Facet preorder (cf. "The generic Gröbner walk" (Fukuda et a;. 2007), pg. 10)
 #Comment: It may make more sense to have the monomial orderings as inputs.
-function new_facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
+@doc raw"""
+    facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
+
+Returns true if $u < v$with respect to the facet preorder $<$. (cf. "The generic Gröbner walk" (Fukuda et a;. 2007), pg. 10)
+"""
+function facet_less_than(S::ZZMatrix, T::ZZMatrix, u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
     i = 1
     while dot(T[i,:], u)v == dot(T[i,:], v)u && i != number_of_rows(T)
         i += 1
@@ -215,7 +219,7 @@ Returns all elements of `V` smaller than `w` with respect to the facet preorder.
 function new_filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
     btz = Vector{Vector{ZZRingElem}}()
     for v in V
-      if new_facet_less_than(canonical_matrix(start),canonical_matrix(target),w,v) && !(v in btz)
+      if facet_less_than(canonical_matrix(start),canonical_matrix(target),w,v) && !(v in btz)
         push!(btz, v)
       end
     end
