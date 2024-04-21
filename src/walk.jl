@@ -659,32 +659,6 @@ function liftGW2(
   return Oscar.IdealGens(filter(!iszero, H), ordering)
 end
 
-# divisionalgorithm that returns q with q_1*f_1 + ... + q_s *f_s=p.
-function division_algorithm(p::T, f::Vector{T}, R::MPolyRing) where {T<:MPolyRingElem}
-  q = Array{Singular.elem_type(R),1}(undef, length(f))
-  for i in 1:length(f)
-    q[i] = R(0)
-  end
-  while !isequal(p, R(0))
-    i = 1
-    div = false
-    while (div == false && i <= length(f))
-      b, m = divides(leading_term(p), leading_term(f[i]))
-      if b
-        q[i] = q[i] + m
-        p = p - (m * f[i])
-        div = true
-      else
-        i = i + 1
-      end
-    end
-    if div == false
-      p = p - leading_term(p)
-    end
-  end
-  return q
-end
-
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
 function convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}}
   c = gcd(w)
