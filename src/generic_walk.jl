@@ -6,14 +6,18 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
   MG = MarkedGroebnerBasis(gens(G), Lm)
   v = next_gamma(MG, ZZ.([0]), start, target)
 
+  @v_do :groebner_walk steps = 0
   while !isempty(v)
     MG = generic_step(MG, v, target)
     v = next_gamma(MG, v, start, target)
 
-    # TODO: increase step_counter here
+    @v_do :groebner_walk steps += 1
     @vprintln :groebner_walk v
     @vprintln :groebner_walk 2 G
   end
+
+  @vprint :groebner_walk "Cones crossed: "
+  @vprintln :groebner_walk steps
   return Oscar.IdealGens(MG.gens, target) #; isGB = true)
 end
 
