@@ -117,6 +117,7 @@ macro _AuxDocTest(data::Expr)
   @assert docstring.head == :macrocall
   @assert docstring.args[1] == Symbol("@raw_str")
   module_name = Symbol("AuxDocTest_", lstrip(string(gensym()), '#'))
+  logging_flag_var = Symbol("logging_flag_", gensym())
   result = Expr(
     :toplevel,
     :(import Documenter),
@@ -125,12 +126,51 @@ macro _AuxDocTest(data::Expr)
       @doc $(docstring) function dummy_placeholder end
       end # module
     ),
-    esc(quote
-      # temporarily disable GC logging to avoid glitches in the doctests
-      VERSION >= v"1.8.0" && GC.enable_logging(false)
-      Documenter.doctest(nothing, [$(module_name)]; fix=$(fix), testset=$(testset))
-      VERSION >= v"1.8.0" && GC.enable_logging(true)
-    end),
+    # temporarily disable GC logging to avoid glitches in the doctests
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          $(logging_flag_var) = GC.logging_enabled()
+          GC.enable_logging(false)
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(false)))
+      end
+    )
+    else
+      nothing
+    end,
+    esc(
+      quote
+        Documenter.doctest(
+          nothing,
+          [$(module_name)];
+          fix=$(fix),
+          testset=$(testset),
+          doctestfilters=[
+            r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
+          ],
+        )
+      end,
+    ),
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          GC.enable_logging($(logging_flag_var))
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(true)))
+      end
+    )
+    else
+      nothing
+    end,
   )
   Meta.replace_sourceloc!(__source__, result)
   return result
