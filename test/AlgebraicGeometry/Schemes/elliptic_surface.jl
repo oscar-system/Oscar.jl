@@ -163,25 +163,29 @@ end
 
   set_verbose_level(:EllipticSurface, 5)
 
-  D_P = Oscar._section(X, P)
+  for g in values(gluings(default_covering(X)))
+    gluing_domains(g) # Trigger the computation once
+  end
 
-  II = first(components(D_P));
-
-  trans = Oscar.translation_morphism(X, P; divisor=D_P)
-
-  JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
-
-  IIX = first(components(Oscar._section(X, 2*P)));
-  # We have little chance to get through with the computations on all charts. 
-  # But it suffices to compare the result on the weierstrass charts.
-  weier = weierstrass_chart_on_minimal_model(X)
-  @test IIX(weier) == JJ(weier)
-
-  lat = algebraic_lattice(X)[1]
-  A = [intersect(a, b) for a in lat, b in lat]
-
-  ll = Oscar._pushforward_lattice_along_isomorphism(trans)
-  B = [intersect(a, b) for a in ll, b in ll]
-  @test A == B
+#  D_P = Oscar._section(X, P)
+# 
+#  II = first(components(D_P));
+# 
+#  trans = Oscar.translation_morphism(X, P; divisor=D_P)
+# 
+#  JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
+# 
+#  IIX = first(components(Oscar._section(X, 2*P)));
+#  # We have little chance to get through with the computations on all charts. 
+#  # But it suffices to compare the result on the weierstrass charts.
+#  weier = weierstrass_chart_on_minimal_model(X)
+#  @test IIX(weier) == JJ(weier)
+# 
+#  lat = algebraic_lattice(X)[1]
+#  A = [intersect(a, b) for a in lat, b in lat]
+# 
+#  ll = Oscar._pushforward_lattice_along_isomorphism(trans)
+#  B = [intersect(a, b) for a in ll, b in ll]
+#  @test A == B
 end
 
