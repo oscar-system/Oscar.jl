@@ -1,5 +1,8 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = quote
+  using Oscar
+end
 ```
 
 # Caching parent objects in OSCAR
