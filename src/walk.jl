@@ -105,7 +105,7 @@ function groebner_walk(
   Gb = groebner_basis(I; ordering=start, complete_reduction=true)
   Gb = walk(Gb)
 
-  return Oscar.IdealGens(gens(Gb), target; isGB=true)
+  return Oscar.IdealGens(Gb, target; isGB=true)
 end
 
 ###########################################
