@@ -542,6 +542,19 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
          f = GAP.Globals.GroupHomomorphismByImages(G.X, GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
          GAP.Globals.SetIsBijective(f, true)
        else
+         # The computations are easy if `Ggens` is a pcgs,
+         # otherwise GAP will call `CoKernel`.
+         if GAP.Globals.HasFamilyPcgs(G.X)
+           pcgs = GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X)
+           if pcgs == Ggens
+             # `pcgs` fits *and* is an object in `GAP.Globals.IsPcgs`,
+             # for which a special `GAPWrap.IsomorphismFpGroupByGenerators`
+             # method is applicable.
+             # (Currently the alternative is a cokernel computation.
+             # It might be useful to improve this on the GAP side.)
+             Ggens = pcgs
+           end
+         end
          f = GAPWrap.IsomorphismFpGroupByGenerators(G.X, Ggens)
        end
      else
