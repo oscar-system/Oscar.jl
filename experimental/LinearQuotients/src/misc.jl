@@ -8,7 +8,7 @@ Return `true` if `g` is a pseudo-reflection, `false` otherwise. By a
 pseudo-reflection, we mean a matrix with fixed space of codimension 1.
 """
 function is_pseudo_reflection(g::MatrixGroupElem)
-  return rank(g.elm - one(parent(g)).elm) == 1
+  return rank(matrix(g) - matrix(one(parent(g)))) == 1
 end
 
 @doc raw"""
@@ -56,7 +56,7 @@ function _powers_of_root_of_unity(zeta::FieldElem, l::Int)
 end
 
 function is_subgroup_of_sl(G::MatrixGroup)
-  return all(g -> is_one(det(g.elm)), gens(G))
+  return all(g -> is_one(det(matrix(g))), gens(G))
 end
 
 # Mostly stolen from mpoly-graded.jl .
