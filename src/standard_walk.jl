@@ -59,7 +59,7 @@ function standard_walk(
   @vprint :groebner_walk "Cones crossed: "
   @vprintln :groebner_walk steps
 
-  return G
+  return gens(G)
 end
 
 ###############################################################
