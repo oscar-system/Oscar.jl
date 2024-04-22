@@ -244,8 +244,6 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
 
    if sym === :X
       x.X = map_entries(_ring_iso(x.parent), x.elm)
-   elseif sym == :elm
-      x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
    end
    return getfield(x,sym)
 end
@@ -436,7 +434,12 @@ parent(x::MatrixGroupElem) = x.parent
 
 Return the underlying matrix of `x`.
 """
-matrix(x::MatrixGroupElem) = x.elm
+function matrix(x::MatrixGroupElem)
+  if !isdefined(x, :elm)
+    x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
+  end
+  return x.elm
+end
 
 Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = matrix(x)[i,j]
 
