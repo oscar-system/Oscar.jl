@@ -18,7 +18,7 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
 
   @vprint :groebner_walk "Cones crossed: "
   @vprintln :groebner_walk steps
-  return Oscar.IdealGens(MG.gens, target) #; isGB = true)
+  return gens(MG)
 end
 
 @doc raw"""
@@ -95,7 +95,7 @@ function next_gamma(
   )
     V = filter_by_ordering(start, target, difference_lead_tail(MG))
     if w != ZZ.([0]) 
-        V = new_filter_lf(w, start, target, V)
+        V = filter_lf(w, start, target, V)
     end
     if isempty(V)
         return V
@@ -125,7 +125,7 @@ function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
     push_term!(ctx, c, a)
 
     for (d, b) in coefficients_and_exponents(g)
-      if new_is_parallel(ZZ.(a - b), v)
+      if is_parallel(ZZ.(a - b), v)
         push_term!(ctx, d, b)
       end
     end
@@ -222,45 +222,27 @@ end
 
 Returns all elements of `V` smaller than `w` with respect to the facet preorder.
 """
-function new_filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
-    btz = Vector{Vector{ZZRingElem}}()
-    for v in V
-      if facet_less_than(canonical_matrix(start),canonical_matrix(target),w,v) && !(v in btz)
-        push!(btz, v)
-      end
-    end
-    return btz
+function filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
+    skip_indices = facet_less_than.(
+      Ref(canonical_matrix(start)),
+      Ref(canonical_matrix(target)),
+      Ref(w),
+      V
+    )
+    
+    return unique!(V[skip_indices])
 end
 
 
 #returns true if u is a non-zero integer multiple of v
 
-function new_is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
-    count = 1
-    x = 0
-    for i = 1:length(u)
-        if u[i] == 0
-            if v[count] == 0
-                count += +1
-            else
-                return false
-            end
-        else
-            x = v[count] // u[i]
-            count += 1
-            break
-        end
-    end
-    if count > length(v)
-        return true
-    end
-    for i = count:length(v)
-        @inbounds if v[i] != x * u[i]
-            return false
-        end
-    end
-    return true
-  
-  end
+@doc raw"""
+    is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
+
+Determines whether $u$ and $v$ are non-zero integer multiples of each other.
+"""
+function is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
+  return !iszero(v) && !iszero(u) && u./gcd(u) == v./gcd(v)
+end
 
 #TODO: add tests 
