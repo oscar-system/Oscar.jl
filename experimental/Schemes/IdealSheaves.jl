@@ -1847,6 +1847,7 @@ original_ideal_sheaf(rad::RadicalOfIdealSheaf) = rad.orig
 
 function produce_object(rad::RadicalOfIdealSheaf, U::AbsAffineScheme)
   result = radical(original_ideal_sheaf(rad))
+  set_attribute!(result, :is_radical=>true) # Necessary? Or should the radical computation take care of this?
   return result
 end
 
@@ -1867,6 +1868,10 @@ function is_subset(I::PrimeIdealSheafFromChart, rad::RadicalOfIdealSheaf)
 end
 
 function radical(I::AbsIdealSheaf)
-  return RadicalOfIdealSheaf(I)
+  result = RadicalOfIdealSheaf(I)
+  set_attribute!(result, :is_radical=>true) # Some methods might be blind to is_radical and only want to check `is_known_to_be_radical` via attributes. Setting this makes sure they get it. 
+  return result
 end
+
+is_radical(rad::RadicalOfIdealSheaf) = true
 
