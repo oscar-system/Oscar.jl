@@ -100,7 +100,7 @@ function fractal_recursion_step(
     end
     #H = liftGW2(G, R, Gw, H, Rn)
     H = lift_fractal_walk(G, H, ordNew)
-    G = interreduce_walk(H)
+    G = autoreduce(H)
     ordAlt = ordNew
     current_weight = w
   end

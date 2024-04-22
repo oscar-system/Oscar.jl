@@ -88,7 +88,7 @@ function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::Monomi
   @vprintln :groebner_walk 3 Gw
   @vprintln :groebner_walk 3 H
 
-  return interreduce_walk(H)
+  return autoreduce(H)
 end
 standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_ordering(base_ring(G), w, T))
 

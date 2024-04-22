@@ -278,7 +278,7 @@ function fractal_walk_combined(
     end
     #H = liftGW2(G, ordAlt, Gw,H, ordNew)
     H = lift_fractal_walk(G, H, ordNew)
-    G = interreduce_walk(H)
+    G = autoreduce(H)
     ordAlt = ordNew
     currweight = w
   end
@@ -402,7 +402,7 @@ function fractal_walk_recursive_startorder(
     end
     #H = liftGW2(G, R, Gw, H, Rn)
     H = lift_fractal_walk(G, H, ordNew)
-    G = interreduce_walk(H)
+    G = autoreduce(H)
     ordAlt = ordNew
     currweight = w
   end
@@ -471,7 +471,7 @@ function standard_step_without_int32_check(
   )
   #H = liftGW2(G, R, Gw, H, Rn)
   H = lift(G, ordAlt, H, ordNew)
-  return interreduce_walk(H)
+  return autoreduce(H)
 end
 
 #################################################################
@@ -669,7 +669,7 @@ create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} =
 # each element of G is replaced by its normal form w.r.t the other elements of G and the current monomial order 
 # TODO reference, docstring
 # interreduces the Groebner basis G.
-function interreduce_walk(G::Oscar.IdealGens)
+function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 
   I = 0
