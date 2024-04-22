@@ -285,22 +285,30 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-   if f.descr == :quadratic f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   elseif f.descr == :symmetric || f.descr == :alternating f.X = GAP.Globals.BilinearFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   elseif f.descr == :hermitian f.X = GAP.Globals.HermitianFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   else error("unsupported description")
-   end
+  if f.descr == :quadratic
+    f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  elseif f.descr == :symmetric || f.descr == :alternating
+    f.X = GAP.Globals.BilinearFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  elseif f.descr == :hermitian
+    f.X = GAP.Globals.HermitianFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  else
+    error("unsupported description")
+  end
 end
 
+
+function _ring_iso(f::SesquilinearForm)
+  if !isdefined(f, :ring_iso)
+      f.ring_iso = iso_oscar_gap(base_ring(f))
+  end
+  return f.ring_iso
+end
 
 function Base.getproperty(f::SesquilinearForm, sym::Symbol)
 
    if isdefined(f,sym) return getfield(f,sym) end
 
-   if sym === :ring_iso
-      f.ring_iso = iso_oscar_gap(base_ring(f))
-
-   elseif sym == :X
+   if sym == :X
       if !isdefined(f, :X)
          assign_from_description(f)
       end
@@ -385,7 +393,7 @@ function radical(f::SesquilinearForm{T}) where T
    GAPWrap.Dimension(R) == 0 && return sub(V, [])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]
    for l in GAP.Globals.GeneratorsOfVectorSpace(R)
-      v = V([preimage(f.ring_iso, t) for t in l])
+      v = V([preimage(_ring_iso(f), t) for t in l])
       push!(L,v)
    end
    return sub(V,L)

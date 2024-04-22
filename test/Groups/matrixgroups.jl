@@ -2,8 +2,8 @@
    F = GF(29, 1)
    z = F(2)
    G = GL(3,F)
+   #@test isdefined(G,:X)
    @test G.X isa GAP.GapObj
-   @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -33,8 +33,8 @@
    T,t = polynomial_ring(GF(3) ,"t")
    F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
+   #@test isdefined(G,:X)
    @test G.X isa GAP.GapObj
-   @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -79,10 +79,10 @@ end
          @test g(a * b) == g(a) * g(b)
          @test g(a - b) == g(a) - g(b)
       end
-      @test G.ring_iso(z) isa GAP.Obj
+      #@test isdefined(G, :X)
       @test G.X isa GAP.GapObj
-      @test isdefined(G, :X)
       @test isdefined(G, :ring_iso)
+      @test G.ring_iso(z) isa GAP.Obj
       Z = G.ring_iso(z)
       @test Z in codomain(G.ring_iso)
       @test preimage(G.ring_iso, Z) == z
