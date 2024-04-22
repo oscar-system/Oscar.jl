@@ -873,8 +873,8 @@ end
 
 # TODO: add caching
 @doc raw"""
-  tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
-  ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
 construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.
