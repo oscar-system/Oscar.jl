@@ -2,6 +2,11 @@ using Oscar
 using GroebnerWalk
 using BenchmarkTools
 
+include("cyclic.jl")
+include("katsura.jl")
+include("tran3.3.jl")
+include("newellp1.jl")
+
 function benchmark(
   io,
   name::String,
@@ -9,64 +14,39 @@ function benchmark(
   target::MonomialOrdering,
   start::MonomialOrdering
 )
-  print(io, name, ",")
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:standard)
-  print(io, t, ",")
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic)
-  print(io, t, ",")
-  t = @belapsed groebner_basis($I; ordering=$target)
-  println(io, t)
+  print(io, name, ","); flush(io)
+  t = @belapsed groebner_walk($I, $target, $start; algorithm=:standard) seconds=20000 samples=5
+  print(io, t, ","); flush(io)
+  t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic) seconds=20000 samples=5
+  print(io, t, ","); flush(io)
+  t = @belapsed groebner_basis($I; ordering=$target) seconds=20000 samples=5
+  println(io, t); flush(io)
 end
 
 p = 11863279
-k = GF(p)
+Fp = GF(p)
 open("results.csv", "a") do io
   R, (x, y) = QQ[:x, :y]
   I = ideal([y^4 + x^3 - x^2 + x, x^4])
   benchmark(io, "simple", I, lex(R), default_ordering(R))
+  
+  benchmark(io, "cyclic5-QQ", cyclic5(QQ)...)
+  benchmark(io, "cyclic5-Fp", cyclic5(Fp)...)
 
-  R, (z0, z1, z2, z3, z4, z5, z6) = QQ[:z0, :z1, :z2, :z3, :z4, :z5, :z6]
-  F = [
-    z0 + z1 + z2 + z3 + z4 + z5 + z6,
-    z0 * z1 + z1 * z2 + z2 * z3 + z3 * z4 + z4 * z5 + z5 * z6 + z6 * z0,
-    z0 * z1 * z2 + z1 * z2 * z3 + z2 * z3 * z4 + z3 * z4 * z5 + z4 * z5 * z6 + z5 * z6 * z0 + z6 * z0 * z1,
-    z0 * z1 * z2 * z3 + z1 * z2 * z3 * z4 + z2 * z3 * z4 * z5 + z3 * z4 * z5 * z6 + z4 * z5 * z6 * z0
-    + z5 * z6 * z0 * z1 + z6 * z0 * z1 * z2,
-    z0 * z1 * z2 * z3 * z4 + z1 * z2 * z3 * z4 * z5 + z2 * z3 * z4 * z5 * z6 + z3 * z4 * z5 * z6 * z0
-    + z4 * z5 * z6 * z0 * z1 + z5 * z6 * z0 * z1 * z2 + z6 * z0 * z1 * z2 * z3,
-    z0 * z1 * z2 * z3 * z4 * z5 + z1 * z2 * z3 * z4 * z5 * z6 + z2 * z3 * z4 * z5 * z6 * z0 + z3 * z4 * z5 * z6 * z0 * z1
-    + z4 * z5 * z6 * z0 * z1 * z2 + z5 * z6 * z0 * z1 * z2 * z3 + z6 * z0 * z1 * z2 * z3 * z4,
-    z0 * z1 * z2 * z3 * z4 * z5 * z6 - 1
-  ]
-  benchmark(io, "cyclic7-QQ", ideal(R, F), lex(R), default_ordering(R))
+  benchmark(io, "cyclic6-QQ", cyclic6(QQ)...)
+  benchmark(io, "cyclic6-Fp", cyclic6(Fp)...)
 
-  R, (z0, z1, z2, z3, z4, z5, z6) = k[:z0, :z1, :z2, :z3, :z4, :z5, :z6]
-  F = [
-    z0 + z1 + z2 + z3 + z4 + z5 + z6,
-    z0 * z1 + z1 * z2 + z2 * z3 + z3 * z4 + z4 * z5 + z5 * z6 + z6 * z0,
-    z0 * z1 * z2 + z1 * z2 * z3 + z2 * z3 * z4 + z3 * z4 * z5 + z4 * z5 * z6 + z5 * z6 * z0 + z6 * z0 * z1,
-    z0 * z1 * z2 * z3 + z1 * z2 * z3 * z4 + z2 * z3 * z4 * z5 + z3 * z4 * z5 * z6 + z4 * z5 * z6 * z0
-    + z5 * z6 * z0 * z1 + z6 * z0 * z1 * z2,
-    z0 * z1 * z2 * z3 * z4 + z1 * z2 * z3 * z4 * z5 + z2 * z3 * z4 * z5 * z6 + z3 * z4 * z5 * z6 * z0
-    + z4 * z5 * z6 * z0 * z1 + z5 * z6 * z0 * z1 * z2 + z6 * z0 * z1 * z2 * z3,
-    z0 * z1 * z2 * z3 * z4 * z5 + z1 * z2 * z3 * z4 * z5 * z6 + z2 * z3 * z4 * z5 * z6 * z0 + z3 * z4 * z5 * z6 * z0 * z1
-    + z4 * z5 * z6 * z0 * z1 * z2 + z5 * z6 * z0 * z1 * z2 * z3 + z6 * z0 * z1 * z2 * z3 * z4,
-    z0 * z1 * z2 * z3 * z4 * z5 * z6 - 1
-  ]
-  benchmark(io, "cyclic7-Fp", ideal(R, F), lex(R), default_ordering(R))
+  benchmark(io, "cyclic7-QQ", cyclic7(QQ)...)
+  benchmark(io, "cyclic7-Fp", cyclic7(Fp)...)
 
-  # k = GF(11863279)
-  # R, (x1, x2, x3, x4, x5, x6, x7) = k[:x1, :x2, :x3, :x4, :x5, :x6, :x7]
-  # F = [
-  #     1*x1+2*x2+2*x3+2*x4+2*x5+2*x6+2*x7-1,
-  #     2*x4*x3+2*x5*x2+2*x6*x1+2*x7*x2-1*x6,
-  #     1*x3^2+2*x4*x2+2*x5*x1+2*x6*x2+2*x7*x3-1*x5,
-  #     2*x3*x2+2*x4*x1+2*x5*x2+2*x6*x3+2*x7*x4-1*x4,
-  #     1*x2^2+2*x3*x1+2*x4*x2+2*x5*x3+2*x6*x4+2*x7*x5-1*x3,
-  #     2*x2*x1+2*x3*x2+2*x4*x3+2*x5*x4+2*x6*x5+2*x7*x6-1*x2,
-  #     1*x1^2+2*x2^2+2*x3^2+2*x4^2+2*x5^2+2*x6^2+2*x7^2-1*x1
-  # ];
-  # benchmark(io, "katsura6-Fp", ideal(R, F), lex(R), default_ordering(R))
+  benchmark(io, "katsura6-QQ", katsura6(QQ)...)
+  benchmark(io, "katsura6-Fp", katsura6(Fp)...)
+
+  benchmark(io, "tran3.3-QQ", tran33(QQ)...)
+  benchmark(io, "tran3.3-Fp", tran33(Fp)...)
+
+  benchmark(io, "newellp1-QQ", newellp1(QQ)...)
+  benchmark(io, "newellp1-Fp", newellp1(Fp)...)
 
   # R, (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25, x26, x27, x28, x29, x30, x31, x32) = QQ[
   #   :x1, :x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9, :x10, :x11, :x12, :x13, :x14, :x15, :x16, :x17, :x18, :x19, :x20, :x21, :x22, :x23, :x24, :x25, :x26, :x27, :x28, :x29, :x30, :x31, :x32
