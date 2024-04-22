@@ -1032,7 +1032,7 @@ function subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyRingEle
   @req !isempty(v) "Input vector must not be empty"
   @req all(x -> parent(x) === R, v) "The polynomials must have the same parent"
 
-  S, _ = polynomial_ring(coefficient_ring(R), length(v), "t")
+  S, _ = polynomial_ring(coefficient_ring(R), length(v), "t"; cached=false)
   phi = hom(S, R, v)
   return has_preimage_with_preimage(phi, f)
 end
@@ -1072,7 +1072,7 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
   # truncated Gröbner basis
 
-  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v))
+  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v); cached=false)
 
   RtoT = hom(R, T, gens(T)[1:ngens(R)])
 
@@ -1095,7 +1095,7 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   nf = GJ.Ox(K.gens.S[1])
   ###
 
-  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
+  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
 
   # f is in the subalgebra iff nf does not involve the variables
@@ -1147,7 +1147,7 @@ end
     is_algebraically_independent_with_relations(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring,
-return `(true, ideal(0))` if the elements of `V` are algebraically independent over `K`.
+return `(true, Ideal (0))` if the elements of `V` are algebraically independent over `K`.
 Otherwise, return `false` together with the ideal of `K`-algebra relations.
 
 # Examples
@@ -1197,6 +1197,8 @@ the same subalgebra as all elements in `V`.
 If `check` is `true` (default), the conditions on `V` and the given ring are
 checked.
 
+See also [`minimal_subalgebra_generators_with_relations`](@ref).
+
 # Examples
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
@@ -1214,10 +1216,49 @@ julia> minimal_subalgebra_generators(V)
 ```
 """
 function minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
-  @req !isempty(V) "Input vector must not be empty"
-  I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
-  return _minimal_subalgebra_generators_with_relations(V, I, check = check)[1]
+  return minimal_subalgebra_generators_with_relations(V; check=check)[1]
 end
+
+@doc raw"""
+    minimal_subalgebra_generators_with_relations(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+
+Given a vector `V` of homogeneous elements of a positively graded multivariate
+polynomial ring, or of a quotient of such a ring, return a minimal subset `W` of
+the elements in `V` which, in the given ring, generate the same subalgebra as all
+elements in `V`.
+Further, return a vector `rels` representating the elements of `V` in the minimal
+generators in `W`, that is, we have `V[i] = rels[i](W...)` for `i = 1:length(V)`.
+
+If `check` is `true` (default), the conditions on `V` and the given ring are
+checked.
+
+See also [`minimal_subalgebra_generators`](@ref).
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> V = [x, y, x^2+y^2]
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ y
+ x^2 + y^2
+
+julia> W, rels = Oscar.minimal_subalgebra_generators_with_relations(V);
+
+julia> W
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ y
+
+julia> rels
+3-element Vector{QQMPolyRingElem}:
+ t1
+ t2
+ t1^2 + t2^2
+```
+"""
+minimal_subalgebra_generators_with_relations
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyDecRingElem}; check::Bool = true)
   @req !isempty(V) "Input vector must not be empty"
@@ -1227,7 +1268,9 @@ end
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyQuoRingElem{T}}; check::Bool = true) where T <: MPolyDecRingElem
   @req !isempty(V) "Input vector must not be empty"
-  return _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(parent(V[1])), check = check)
+  Q = parent(V[1])
+  min_gens, rels = _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(Q), check = check)
+  return map(Q, min_gens), rels
 end
 
 function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true, start::Int = 0) where PolyRingElemT <: MPolyDecRingElem
@@ -1244,7 +1287,7 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
   K = coefficient_ring(R)
 
   # Use S to keep track of relations
-  S, _ = polynomial_ring(K, length(V), "t")
+  S, _ = polynomial_ring(K, length(V), "t"; cached=false)
   rels = Vector{elem_type(S)}(undef, length(V))
 
   # If start > 0, we assume that the polynomials V[1:start] are known to be part
@@ -1275,16 +1318,16 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
       rels[start + sp[i]] = t(gens(S)[1:length(res)]...)
     else
       # f is a new generator
-      rels[start + sp[i]] = gen(S, start + i)
       push!(res, f)
+      rels[start + sp[i]] = gen(S, length(res))
     end
   end
 
   # S might have too many variables
   if length(V) > length(res)
-    S2, _ = polynomial_ring(K, length(res), "t")
+    S2, _ = polynomial_ring(K, length(res), "t"; cached=false)
     t = append!(gens(S2), [ zero(S2) for i in 1:ngens(S) - ngens(S2) ])
-    rels = [ f(t...) for f in rels ]
+    rels = elem_type(S2)[ f(t...) for f in rels ]
   end
 
   return res, rels
