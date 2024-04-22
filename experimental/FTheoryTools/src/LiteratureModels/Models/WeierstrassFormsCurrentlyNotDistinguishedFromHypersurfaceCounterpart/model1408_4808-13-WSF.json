@@ -56,7 +56,7 @@
             [0, 1, -1, -2, 0]
         ],
         "zero_section": ["0", "0", "1"],
-        "generating_sections": [
+        "torsion_sections": [
             ["1//12*(s6^2 - 4*s2*s9)", "0", "1"]
         ]
     },
