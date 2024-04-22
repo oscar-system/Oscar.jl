@@ -1,60 +1,145 @@
-## Warnung: show auf desingMor geht noch nicht!!!
 export _desing_curve
 export  find_refinement_with_local_system_of_params
+
+##############################################################################
+## Concrete Type for normalization
+## very similar to CoveredSchemeMorphism, but allowing disjoint handling
+## of disjoint components
+##############################################################################
+@attributes mutable struct NormalizationMorphism{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphsimType
+   } <:AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 Nothing,
+                                 NormalizationMorphism,
+                                }
+
+  X::DomainType
+  Y::CodomainType
+  f::CoveringMorphism
+  inclusions::Vector{CoveredSchemeMorphism}
+
+  function NormalizationMorphism(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, BaseMorType},
+      inclusions::Vector{<:CoveredSchemeMorphism};
+      check::Bool=true
+    ) where {
+             DomainType<:AbsCoveredScheme,
+             CodomainType<:AbsCoveredScheme,
+             BaseMorType
+            }
+    @check is_refinement(domain(f), default_covering(X)) "covering not found in domain"
+    @check is_refinement(codomain(f), default_covering(Y)) "covering not found in codomain"
+    @check is_normal(X) "not a normalization morphism"
+    @check all(Xi->is_subset(codomain(Xi), X), inclusions) "decomposition does not match"
+    ret_value = new{DomainType,CodomainType, BaseMorType}(X,Y,f)
+    ret_value.inclusions = inclusions
+    return ret_value    
+  end
+
+  function NormalizationMorphism(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
+      check::Bool=true
+    ) where {
+             DomainType<:AbsCoveredScheme,
+             CodomainType<:AbsCoveredScheme,
+             BaseMorType
+            }
+    @check is_refinement(domain(f), default_covering(X)) "covering not found in domain"
+    @check is_refinement(codomain(f), default_covering(Y)) "covering not found in codomain"
+    @check is_normal(X) "not a normalization morphism"
+    ret_value = new{DomainType,CodomainType, BaseMorType}(X,Y,f)
+    ret_value.inclusions = [identity_map(X)]
+    return ret_value    
+  end
+
+end
 
 #####################################################################################################
 # Desingularization morphism: birational map between covered schemes with smooth domain
 #####################################################################################################
 
-# Fehlt: NormalizationMorphism fuer Schemata -- muessten wir haben, sobald wir Lipman machen wollen
-#
-#@attributes mutable struct LipmanStyleSequence{
-#    DomainType<:AbsCoveredScheme,
-#    CodomainType<:AbsCoveredScheme
-#   } <: AbsDesingMor{
-#                                 DomainType,
-#                                 CodomainType,
-#                    }
-#  maps::Vector{:<union{BlowupMorphism,NormalizationMorphism}}        # count right to left:
-#                                                 # original scheme is codomain of map 1
-#  # boolean flags
-#  resolves_sing::Bool                            # domain not smooth yet?
-#  is_trivial::Bool                               # codomain already smooth?
-#
-#  # fields for caching, may be filled during computation
-#  ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
-                                                  # in domain(maps[end])
-#
-#  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
-#  composed_map::AbsCoveredSchemeMorphism        
-#  exceptional_divisor::WeilDivisor          
-#
-#  function LipmanStyleSequence(maps::Vector{<:AbsCoveredSchemeMorphism})
-#    n = length(maps)
-#    for i in 1:n-1
-#      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
-#    end
-#    return new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
-#  end
-#end
+@attributes mutable struct MixedBlowUpSequence{
+                                                DomainType<:AbsCoveredScheme,
+                                                CodomainType<:AbsCoveredScheme
+                                              }<:AbsDesingMor{  DomainType,
+                                                                CodomainType, 
+                                                                MixedBlowUpSequence{DomainType, CodomainType}
+                                              }
+  maps::Vector{<:AbsCoveredSchemeMorphism}       # count right to left:
+                                                 # original scheme is codomain of map 1
+  # boolean flags
+  resolves_sing::Bool                            # domain not smooth yet?
+  is_trivial::Bool                               # codomain already smooth?
+
+  # fields for caching, to be filled during desingularization
+  ex_div::Vector{Union{<:EffectiveCartierDivisor, <:AbsIdealSheaf}}      # list of exc. divisors arising from individual steps
+                                                 # in domain(maps[end]) -- at least in the end
+  normal_steps::Vector{Int}                      # index of parts of preimage of singular locus 
+                                                 # not arising from blow-ups
+  ## CAUTION: ex_div[normal_steps[i]] need not even be of pure codim 1, i.e. a divisor, 
+  ##                                  as long as resolves_sing == false
+  ##          lower dimensional components of it belong to future centers of blow ups 
+
+
+  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
+  underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
+  exceptional_divisor::WeilDivisor          
+
+  function MixedBlowUpSequence(maps::Vector{<:AbsCoveredSchemeMorphism})
+    n = length(maps)
+    for i in 1:n
+      @assert all(x->((x isa BlowupMorphism) || (x isa NormalizationMorphism)), maps) "only blow-ups and normalizations allowed"
+    end
+    for i in 1:n-1
+      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
+    end
+    resi = new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
+    resi.normal_steps = [i for i in 1:n if maps[i] isa NormalizationMorphism]
+    return resi
+  end
+
+end
 
 
 ##################################################################################################
 # getters
 ##################################################################################################
+domain(phi::NormalizationMorphism) = phi.X
+codomain(phi::NormalizationMorphism) = phi.Y
+underlying_morphism(phi::NormalizationMorphism) = phi
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = copy(phi.maps[i])
 last_map(phi::AbsDesingMor) = phi.maps[end]
-exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div  ## derzeit Liste von Eff. Cartier Div.
+
+exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div
+
+## entries of ex_div corresponding to normalization steps are only exceptional divisors at the very end
+## so only return them at the very end or on specific demand 
+function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=false)
+  phi.resolves_sing || seq_unclean || error("only available for completed resolution")
+  return phi.ex_div
+end
+
+normal_steps(phi::MixedBlowUpSequence) = phi.normal_steps
+ 
 embeddings(phi::BlowUpSequence) = phi.embeddings
 
-## do not use!!! (for forwarding and certain emergenies)
+## do not use!!! (for forwarding and certain emergencies)
 function underlying_morphism(phi::AbsDesingMor)
   if !isdefined(phi, :underlying_morphism)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
   end
   return phi.underlying_morphism
 end
+
 
 ##################################################################################################
 # setting values in DesingMors -- Watch out: only place with direct access to fields!!!
@@ -67,13 +152,30 @@ function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   return f
 end
 
-function initialize_blow_up_sequence(phi::BlowupMorphism)
-  f = BlowUpSequence([phi])
-  f.ex_div = [exceptional_divisor(phi)]
-  f.is_trivial = is_one(center(phi))
-  f.resolves_sing = false                                # we have no information, wether we are done
-                                                         # without further computation
-  f.is_embedded = false
+function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
+  push!(f.maps, phi)
+  ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
+  push!(ex_div, exceptional_divisor(phi))
+  f.ex_div = ex_div
+  return f
+end
+
+function _transform_helper(E::EffectiveCartierDivisor, phi::NormalizationMorphism)
+  temp = pullback(phi)(E)
+@show temp  
+end
+
+function _transform_helper(E::IdealSheaf, phi::NormalizationMorphism)
+  return pullback(phi)(E)
+end
+
+function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
+  push!(f.maps, phi)
+  sl = ideal_sheaf_of_singular_locus(codomain(phi))
+  ex_div = [_transform_helper(E,phi) for E in exceptional_divisorlist(f,true)]
+  push!(ex_div,pullback(phi, sl))
+  f.ex_div = ex_div
+  push!(f.normal_steps,length(f.maps))
   return f
 end
 
@@ -97,7 +199,30 @@ function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
   return f
 end
 
-function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredClosedEmbedding)
+function initialize_blow_up_sequence(phi::BlowupMorphism)
+  f = BlowUpSequence([phi])
+  f.ex_div = [exceptional_divisor(phi)]
+  f.is_trivial = is_one(center(phi))
+  f.resolves_sing = false                                # we have no information, wether we are done
+                                                         # without further computation
+  f.is_embedded = false
+  return f
+end
+
+function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::IdealSheaf)
+  f = MixedBlowUpSequence([phi])
+  f.ex_div = [pullback(phi,I)]
+  f.is_trivial = is_one(I)
+  f.resolves_sing = false                                 # we have no information, wether we are done
+                                                         # without further computation
+  return f
+end
+
+function initialize_mixed_blow_up_sequence(phi::BlowupMorphism)
+  return mixed_blow_up_sequence(initialize_blow_up_sequence(phi))
+end
+
+function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredSchemeMorphism)
   f = BlowUpSequence([phi])
   f.ex_div = [exceptional_divisor(phi)]
   f.is_embedded = true
@@ -141,6 +266,25 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealShe
     f.resolves_sing = false
   end
   return f
+end
+
+function forget_embedding(f::BlowUpSequence)
+## create new BlowUpSequence, where maps contains maps between the domains of f
+## - set is_embedded to false
+## - inherit resolves_sing, is_trivial
+## - new ex_div is induced divisor arising from f.ex_div on domain(f.maps[end])
+## forget last blow-ups arising after the X has become smooth
+  error("not implemented yet")
+end
+
+function mixed_blow_up_sequence(f::BlowUpSequence)
+  phi = MixedBlowUpSequence(morphisms(f))
+  phi.resolves_sing = f.resolves_sing
+  phi.is_trivial = f.is_trivial
+  phi.ex_div = f.ex_div
+  phi.normal_steps = Vector{Int}[]
+## how can I inherit f.composed_map and f.exceptional_divisor, if they are set?
+  return phi
 end
 
 
@@ -191,25 +335,35 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
     return_value = BlowUpSequence(maps)
     return_value.resolves_sing = true
     return_value.is_trivial = true
-    return return_value
+    return mixed_blow_up_sequence(return_value)
   end
 
+@show X
+@show I_sl
   ## I_sl non-empty, we need to do something 
 # here the keyword algorithm ensures that the desired method is called
   dimX = dim(X)
   if dimX == 1
-    return _desing_curve(X, I_sl)
+@show "curve"
+    return_value = _desing_curve(X, I_sl)
+  elseif ((dimX == 2) && (algorithm==:Lipman))
+@show "Lipman"
+    return_value = _desing_lipman(X, I_sl)
+  elseif ((dimX == 2) && (algorithm==:Jung))
+@show "jung"
+    error("not implemented yet")
+    return_value = _desing_jung(X)
+  else
+@show "default"
+    error("not implemented yet")
+    return_value = forget_embedding(_desing_BEV(X))
+  end       
+  
+# make return_value type-stable
+  if return_value isa BlowUpSequence
+    return_value = mixed_blow_up_sequence(return_value)
   end
-#  if ((dimX == 2) && (algorithm==:Lipman))
-#    error("not implemented yet")
-#    return_value = _desing_lipman(X, I_sl)
-#    return return_value
-#  end
-#  if ((dimX == 2) && (algorithm==:Jung))
-#    error("not implemented yet")
-#    return_value = _desing_jung(X)
-#   end       
-  error("not implemented yet")    
+  return return_value
 end
 
 function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
@@ -239,6 +393,45 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
 
   phi.resolves_sing = true
   return phi
+end
+
+function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
+  dim(X) == 2 || error("Lipman's algorithm is not applicable")
+
+  if dim(I_sl) == 1
+    Xnorm, phi = normalization(X)
+    incs = phi.inclusions
+    f = initialize_mixed_blow_up_sequence(phi,I_sl)
+    f_initialized = true
+  end    
+  
+  I_sl_temp = ideal_sheaf_of_singular_locus(Xnorm)
+  decomp = maximal_associated_points(I_sl_temp)
+
+  while !is_one(I_sl_temp)
+    while length(decomp) > 0
+      I = small_generating_set(pop!(decomp))
+      if !f_initialized
+        phi = blow_up(I)
+        f = initialize_mixed_blow_up_sequence(phi)::MixedBlowUpSequence
+        f_initialized = true
+      else
+        f = _do_blow_up!(f,I)
+        if length(decomp)>0 
+          decomp = [strict_transform(last_map(f),J) for J in decomp]
+        end
+      end
+    end
+    I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
+    if dim(I_sl_temp) == 1
+      f = _do_normalization!(f)
+      I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
+    end
+    decomp = maximal_associated_points(I_sl_temp)
+  end
+
+  f.resolves_sing = true
+  return f
 end
 
 function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
@@ -318,7 +511,6 @@ function _ensure_ncr!(f::AbsDesingMor)
   return f
 end
 
-
 function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
   old_sequence = morphisms(f)
   X = domain(old_sequence[end])
@@ -328,6 +520,12 @@ function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
   return(f)
 end
 
+function _do_normalization!(f::MixedBlowUpSequence)
+  Xnorm, phi, incs = normalization(domain(last_map(f)))
+  add_map!(f,phi)
+  return f
+end
+  
 function _do_blow_up_embedded!(phi::AbsDesingMor,cent::AbsIdealSheaf)
   old_sequence = morphisms(phi)
   X = domain(old_sequence[end])

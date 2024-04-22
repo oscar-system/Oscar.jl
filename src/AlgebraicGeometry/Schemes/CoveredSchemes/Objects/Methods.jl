@@ -250,8 +250,8 @@ function normalization(X::AbsCoveredScheme; check::Bool=true)
   pr_dict = empty(first(pr_dicts))
   merge!(pr_dict, pr_dicts...)
   pr_covering_mor = CoveringMorphism(default_covering(Y), default_covering(X), pr_dict; check=false)
-  pr_mor = CoveredSchemeMorphism(Y, X, pr_covering_mor; check=false)
-  return Y, pr_mor, injs
+  pr_mor = Oscar.NormalizationMorphism(Y, X, pr_covering_mor,injs; check=false)
+  return Y, pr_mor
 end
 
 function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)

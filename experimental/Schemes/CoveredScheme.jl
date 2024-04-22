@@ -633,13 +633,13 @@ codomain(f::CompositeCoveredSchemeMorphism) = codomain(f.maps[end])
 ### Forwarding essential functionality (to be avoided!)
 function underlying_morphism(f::CompositeCoveredSchemeMorphism)
   if !isdefined(f, :composed_map)
-    result = underlying_morphism(first(maps(f)))::CoveredSchemeMorphism
+    result = underlying_morphism(first(maps(f)))::AbsCoveredSchemeMorphism
     for i in 2:length(maps(f))
-      result = compose(result, underlying_morphism(maps(f)[i]))::CoveredSchemeMorphism
+      result = compose(result, underlying_morphism(maps(f)[i]))::AbsCoveredSchemeMorphism
     end
     f.composed_map = result
   end
-  return f.composed_map::CoveredSchemeMorphism
+  return f.composed_map::AbsCoveredSchemeMorphism
 end
 
 ### Specialized functionality
