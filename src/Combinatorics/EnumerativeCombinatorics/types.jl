@@ -72,6 +72,34 @@ end
 
 ################################################################################
 #
+#  Ascending composition
+#
+################################################################################
+
+# Iterator type: all ascending compositions of n
+struct AscendingCompositions{T<:IntegerUnion}
+  n::T
+
+  function AscendingCompositions(n::T) where T<:IntegerUnion
+    @req n >= 0 "n >= 0 required"
+    return new{T}(n)
+  end
+end
+
+# Internal type: state of the iterator
+mutable struct AscendingCompositionsState{T<:IntegerUnion}
+  a::Vector{T}
+  x::T
+  y::T
+  k::Int
+
+  function AscendingCompositionsState{T}() where {T<:IntegerUnion}
+    return new{T}()
+  end
+end
+
+################################################################################
+#
 #  Partition
 #
 ################################################################################

@@ -247,6 +247,7 @@ export archimedean_solid
 export arithmetic_genus
 export as_dictionary
 export as_gset
+export ascending_compositions
 export associahedron
 export atlas_description
 export atlas_group

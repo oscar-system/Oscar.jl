@@ -181,7 +181,7 @@ end
 
 ################################################################################
 #
-# Generating all compositions
+#  Generating all compositions
 #
 ################################################################################
 
@@ -263,4 +263,114 @@ function iterate(C::Compositions{T}, state::Tuple{CompositionsFixedNumParts{T}, 
       return next[1], (Ck, next[2])
     end
   end
+end
+
+################################################################################
+#
+#  Ascending compositions
+#
+################################################################################
+
+@doc raw"""
+    ascending_compositions(n::IntegerUnion)
+
+Return an iterator over all ascending compositions of a non-negative integer `n`.
+
+By a ascending composition of `n` we mean a non-decreasing sequence of positive
+integers whose sum is `n`.
+
+The implemented algorithm is "AccelAsc" (Algorithm 4.1) in [KO14](@cite).
+
+# Examples
+```jldoctest
+julia> C = ascending_compositions(4)
+Iterator over the ascending compositions of 4
+
+julia> collect(C)
+5-element Vector{Oscar.Composition{Int64}}:
+ [1, 1, 1, 1]
+ [1, 1, 2]
+ [1, 3]
+ [2, 2]
+ [4]
+```
+"""
+function ascending_compositions(n::IntegerUnion)
+  return AscendingCompositions(n)
+end
+
+base(C::AscendingCompositions) = C.n
+
+Base.eltype(C::AscendingCompositions{T}) where T = Composition{T}
+
+function Base.show(io::IO, C::AscendingCompositions)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the ascending compositions of $(base(C))")
+  end
+end
+
+# Ascending compositions are basically partitions turned around
+Base.length(C::AscendingCompositions) = BigInt(number_of_partitions(base(C)))
+
+# Algorithm 4.1 in KO14
+function iterate(C::AscendingCompositions{T}, state::Union{Nothing,AscendingCompositionsState{T}}=nothing) where T
+  n = base(C)
+
+  if isnothing(state)
+    state = AscendingCompositionsState{T}()
+    state.a = zeros(T, Int(n))
+    state.k = 2
+    state.y = n - 1
+    state.x = T(0)
+    if n == 0
+      state.k = 1
+      return composition(T[]; check=false), state
+    elseif n == 1
+      state.k = 1
+      return composition([T(1)]; check=false), state
+    end
+  end
+
+  a = state.a
+  k = state.k
+  y = state.y
+  x = state.x
+
+  if x == 0
+    if k == 1
+      return nothing
+    end
+
+    k -= 1
+    x = a[k] + 1
+
+    while 2*x <= y
+      a[k] = x
+      y -= x
+      k += 1
+    end
+  end
+
+  l = k + 1
+  if x <= y
+    a[k] = x
+    a[l] = y
+    x += 1
+    y -= 1
+    state.a = a
+    state.x = x
+    state.y = y
+    state.k = k
+    return composition(a[1:l]; check=false), state
+  end
+  y += x - 1
+  a[k] = y + 1
+  state.a = a
+  state.x = T(0)
+  state.y = y
+  state.k = k
+  return composition(a[1:k]; check=false), state
 end

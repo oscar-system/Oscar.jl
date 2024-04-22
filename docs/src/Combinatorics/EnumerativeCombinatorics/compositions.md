@@ -29,3 +29,9 @@ number_of_compositions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
 weak_compositions
 number_of_weak_compositions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
 ```
+
+### Ascending compositions
+```@docs
+ascending_compositions
+```
+The number of ascending compositions of $n$ coincides with the number of partitions of $n$.

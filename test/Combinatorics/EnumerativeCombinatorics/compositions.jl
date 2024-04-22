@@ -45,3 +45,15 @@
     @test Set(allcomps) == Set(allcomps2)
   end
 end
+
+@testset "Ascending compositions" begin
+  for n in 0:20
+    C = collect(ascending_compositions(n))
+    @test length(C) == number_of_partitions(n)
+    @test C == unique(C)
+    for lambda in C
+      @test sum(lambda) == n
+      @test all(i -> lambda[i] <= lambda[i + 1], 1:length(lambda) - 1)
+    end
+  end
+end
