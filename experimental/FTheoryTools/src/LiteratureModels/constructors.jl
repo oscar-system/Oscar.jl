@@ -17,7 +17,7 @@ struct QSMModel
   # is provided by the big integer estimated_number_oftriangulations. This estimate is exact if triang_quick = true.
   triang_quick::Bool
   max_lattice_pts_in_facet::Int
-  estimated_number_of_triangulations::BigInt
+  estimated_number_of_triangulations::Int
 
   # We select one of the many triangulations, construct a 3d toric base B3 and thereby the hypersurface model in question,
   # that is then the key object of study of this F-theory construction.
@@ -354,7 +354,10 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     # Collect information about the fine regular star triangulations of said polytope (more details in struct QSMModel).
     triang_quick = detailed_data_dict[index_in_data_base]["TriangQuick"]
     max_lattice_pts_in_facet = detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"]
-    estimated_number_of_triangulations = round(BigInt, detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    println(detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    str = string(detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    estimated_number_of_triangulations = round(Int, eval(Meta.parse(str)))
+
 
     # Construct the hypersurface model
     rays = [[parse(Int, a) for a in b] for b in detailed_data_dict[index_in_data_base]["RayGeneratorsOfB3"]]
@@ -370,6 +373,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     h11 = detailed_data_dict[index_in_data_base]["h11"]
     h12 = detailed_data_dict[index_in_data_base]["h12"]
 
+    h12 = h12 isa String ? parse(Int, h12) : h12
 
     h13 = detailed_data_dict[index_in_data_base]["h13"]
     h22 = detailed_data_dict[index_in_data_base]["h22"]
@@ -413,30 +417,56 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     simplified_dual_graph = graph_from_edges(simplified_edge_list)
 
     # Collect all of this information in the struct QSMModel, which we can then use for serialization.
+    println("***")
+    println(typeof(vertices))
+    println(typeof(poly_index))
+    println(typeof(triang_quick))
+    println(typeof(max_lattice_pts_in_facet))
+    println(typeof(estimated_number_of_triangulations))
+    println(typeof(hs_model))
+    println(typeof(Kbar3))
+    println(typeof(h11))
+    println(typeof(h12))
+    println(typeof(h13))
+    println(typeof(h22))
+    println(typeof(genus_ci))
+    println(typeof(degree_of_Kbar_of_tv_restricted_to_ci))
+    println(typeof(intersection_number_among_ci_cj))
+    println(typeof(index_facet_interior_divisors))
+    println(typeof(intersection_number_among_nontrivial_ci_cj))
+    println(typeof(dual_graph))
+    println(typeof(components_of_dual_graph))
+    println(typeof(degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph))
+    println(typeof(genus_of_components_of_dual_graph))
+    println(typeof(simplified_dual_graph))
+    println(typeof(components_of_simplified_dual_graph))
+    println(typeof(degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph))
+    println(typeof(genus_of_components_of_simplified_dual_graph))
+    println("***")
     qsm_model = QSMModel(vertices,
-                          poly_index,
-                          triang_quick,
-                          max_lattice_pts_in_facet,
-                          estimated_number_of_triangulations,
-                          hs_model,
-                          Kbar3,
-                          h11,
-                          h12,
-                          h13,
-                          h22,
-                          genus_ci,
-                          degree_of_Kbar_of_tv_restricted_to_ci,
-                          intersection_number_among_ci_cj,
-                          index_facet_interior_divisors,
-                          intersection_number_among_nontrivial_ci_cj,
-                          dual_graph,
-                          components_of_dual_graph,
-                          degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
-                          genus_of_components_of_dual_graph,
-                          simplified_dual_graph,
-                          components_of_simplified_dual_graph,
-                          degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
-                          genus_of_components_of_simplified_dual_graph)
+                         poly_index,
+                         triang_quick,
+                         max_lattice_pts_in_facet,
+                         estimated_number_of_triangulations,
+                         hs_model,
+                         Kbar3,
+                         h11,
+                         h12,
+                         h13,
+                         h22,
+                         genus_ci,
+                         degree_of_Kbar_of_tv_restricted_to_ci,
+                         intersection_number_among_ci_cj,
+                         index_facet_interior_divisors,
+                         intersection_number_among_nontrivial_ci_cj,
+                         dual_graph,
+                         components_of_dual_graph,
+                         degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph,
+                         genus_of_components_of_dual_graph,
+                         simplified_dual_graph,
+                         components_of_simplified_dual_graph,
+                         degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph,
+                         genus_of_components_of_simplified_dual_graph)
     
     # TODO: Antony, please notice that the serialization of hs_model (as well as Tate and Weierstrass_model) involves a
     # a hack to serialize a dicts. Maybe this can be fixed in this PR? Maybe even must?
