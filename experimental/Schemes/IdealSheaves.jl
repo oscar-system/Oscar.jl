@@ -1846,7 +1846,7 @@ underlying_presheaf(rad::RadicalOfIdealSheaf) = rad.Ipre
 original_ideal_sheaf(rad::RadicalOfIdealSheaf) = rad.orig
 
 function produce_object(rad::RadicalOfIdealSheaf, U::AbsAffineScheme)
-  result = radical(original_ideal_sheaf(rad))
+  result = radical(original_ideal_sheaf(rad)(U))
   set_attribute!(result, :is_radical=>true) # Necessary? Or should the radical computation take care of this?
   return result
 end
