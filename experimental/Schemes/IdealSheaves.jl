@@ -1049,17 +1049,6 @@ function complement_of_prime_ideal(P::MPolyLocalizedIdeal)
   return complement_of_prime_ideal(saturated_ideal(P))
 end
 
-@attr AbsIdealSheaf function radical(II::AbsIdealSheaf)
-  X = scheme(II)
-  # If there is a simplified covering, do the calculations there.
-  covering = (has_attribute(X, :simplified_covering) ? simplified_covering(X) : default_covering(X))
-  ID = IdDict{AbsAffineScheme, Ideal}()
-  for U in patches(covering)
-    ID[U] = radical(II(U))
-  end
-  return IdealSheaf(X, ID, check=false)
-end
-
 radical(I::PrimeIdealSheafFromChart) = I
 
 # TODO: This function should be removed for ideal sheaves! 
@@ -1849,4 +1838,35 @@ function sub(I::AbsIdealSheaf)
   return domain(inc), inc
 end
 
+########################################################################
+# Radicals of ideal sheaves                                            #
+########################################################################
+
+underlying_presheaf(rad::RadicalOfIdealSheaf) = rad.Ipre
+original_ideal_sheaf(rad::RadicalOfIdealSheaf) = rad.orig
+
+function produce_object(rad::RadicalOfIdealSheaf, U::AbsAffineScheme)
+  result = radical(original_ideal_sheaf(rad))
+  return result
+end
+
+function is_subset(I::AbsIdealSheaf, rad::RadicalOfIdealSheaf)
+  X = scheme(rad)
+  @assert X === scheme(I) "ideal sheaves do not live on the same scheme"
+  for U in affine_charts(X)
+    all(g->radical_membership(g, rad(U)), gens(I(U))) && return false
+  end
+  return true
+end
+
+function is_subset(I::PrimeIdealSheafFromChart, rad::RadicalOfIdealSheaf)
+  X = scheme(rad)
+  @assert X === scheme(I) "ideal sheaves do not live on the same scheme"
+  U = original_chart(I)
+  return all(g->radical_membership(g, rad(U)), gens(I(U)))
+end
+
+function radical(I::AbsIdealSheaf)
+  return RadicalOfIdealSheaf(I)
+end
 
