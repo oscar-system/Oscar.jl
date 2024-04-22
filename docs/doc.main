@@ -264,6 +264,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
+    "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
