@@ -205,11 +205,10 @@ function _ring_iso(G::MatrixGroup{T}) where T
       entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
       # construct a number field over which all matrices are already defined
       nf, nf_to_QQBar = number_field(QQ, entries)
-      psi = pseudo_inv(nf_to_QQBar)
       iso = iso_oscar_gap(nf)
       G.ring_iso = MapFromFunc(G.ring, codomain(iso),
                                x -> iso(preimage(nf_to_QQBar, x)),
-                               y -> preimage(iso,nf_to_QQBar(y))
+                               y -> nf_to_QQBar(preimage(iso, y))
                                )
     else
       G.ring_iso = iso_oscar_gap(G.ring)
