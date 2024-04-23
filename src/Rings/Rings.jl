@@ -10,8 +10,6 @@ include("solving.jl")
 include("MPolyQuo.jl")
 include("FractionalIdeal.jl")
 
-include("mpoly-affine-algebras.jl")
-
 include("special_ideals.jl")
 
 include("MPolyMap/MPolyAnyMap.jl")
@@ -20,6 +18,7 @@ include("MPolyMap/MPolyQuo.jl")
 include("MPolyMap/AffineAlgebras.jl")
 include("MPolyMap/base_change.jl")
 
+include("mpoly-affine-algebras.jl")
 include("mpoly-local.jl")
 include("localization_interface.jl")
 include("mpoly-localization_types.jl")
