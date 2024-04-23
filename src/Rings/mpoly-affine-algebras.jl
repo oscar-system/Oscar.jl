@@ -1084,16 +1084,9 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
   # of f suffices to check containment of f in J
   GJ = _groebner_basis(J, Int(degree(f)[1]), ordering = o)
 
-  ###
-  # This computes the normal form of f w.r.t. the truncated Gröbner basis GJ.
-  # Since we have a product ordering, we cannot use divrem, and since GJ is
-  # "not really" a Gröbner basis, we cannot use normal_form...
-  SR = singular_polynomial_ring(GJ)
-  I = Singular.Ideal(SR, SR(RtoT(f)))
-  K = ideal(T, reduce(I, singular_generators(GJ, GJ.ord)))
-  @assert is_one(ngens(K.gens.S))
-  nf = GJ.Ox(K.gens.S[1])
-  ###
+  FF = IdealGens(T, [RtoT(f)], o)
+  nf = reduce(FF, GJ, ordering = o)[1]
+  #nf = reduce(RtoT(f), GJ, ordering = o) # Needs #3640
 
   S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
