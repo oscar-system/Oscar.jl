@@ -1069,6 +1069,20 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
     @req all(is_homogeneous, v) "The input must be homogeneous"
   end
 
+  # We split this up into two functions: the first one construct the ideal
+  # and degree truncated Gröbner basis, the second one does the actual check.
+  # This way, one may reuse the Gröbner basis in calling functions.
+  #
+  # The basic idea is [GP09, p. 86, Solution 2], but we only compute a degree
+  # truncated Gröbner basis
+  RtoT, TtoS, GJ = _subalgebra_membership_homogeneous_precomp(Int(degree(f)[1]), v, I)
+  return _subalgebra_membership_homogeneous_internal(f, RtoT, TtoS, GJ)
+end
+
+# Precomputation for the membership test
+function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}) where PolyRingElemT <: MPolyDecRingElem
+  R = base_ring(I)
+
   # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
   # truncated Gröbner basis
 
@@ -1082,14 +1096,24 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
 
   # Everything is homogeneous, so a truncated Gröbner basis up to the degree
   # of f suffices to check containment of f in J
-  GJ = _groebner_basis(J, Int(degree(f)[1]), ordering = o)
+  GJ = _groebner_basis(J, d, ordering = o)
+
+  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
+  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+
+  return RtoT, TtoS, GJ
+end
+
+# The actual membership test, using the output of _subalgebra_membership_homogeneous_precomp
+function _subalgebra_membership_homogeneous_internal(f::MPolyDecRingElem, RtoT::MPolyAnyMap, TtoS::MPolyAnyMap, GJ::IdealGens)
+  T = codomain(RtoT)
+  R = domain(RtoT)
+  S = codomain(TtoS)
+  o = ordering(GJ)
 
   FF = IdealGens(T, [RtoT(f)], o)
   nf = reduce(FF, GJ, ordering = o)[1]
   #nf = reduce(RtoT(f), GJ, ordering = o) # Needs #3640
-
-  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
-  TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
 
   # f is in the subalgebra iff nf does not involve the variables
   # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
@@ -1303,9 +1327,19 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
     rels[sp[1]] = gen(S, 1)
   end
 
-  for i in 1:length(W)
+  current_length = length(res)
+  current_degree = Int(degree(res[1])[1])
+  precomp = _subalgebra_membership_homogeneous_precomp(current_degree, res, I)
+  for i in 2:length(W)
     f = W[i]
-    fl, t = _subalgebra_membership_homogeneous(f, res, I, check = false)
+    if length(res) != current_length || Int(degree(f)[1]) != current_degree
+      # We either added a new element or the degree increased since the last
+      # iteration, so we need to redo the precomputation
+      current_length = length(res)
+      current_degree = Int(degree(f)[1])
+      precomp = _subalgebra_membership_homogeneous_precomp(current_degree, res, I)
+    end
+    fl, t = _subalgebra_membership_homogeneous_internal(f, precomp...)
     if fl
       # f is in the span of the generators so far
       rels[start + sp[i]] = t(gens(S)[1:length(res)]...)
