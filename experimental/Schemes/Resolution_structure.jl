@@ -73,14 +73,14 @@ end
                                                                 CodomainType, 
                                                                 MixedBlowUpSequence{DomainType, CodomainType}
                                               }
-  maps::Vector{<:AbsCoveredSchemeMorphism}       # count right to left:
+  maps::Vector{Union{<:BlowupMorphism,<:NormalizationMorphism}}       # count right to left:
                                                  # original scheme is codomain of map 1
   # boolean flags
   resolves_sing::Bool                            # domain not smooth yet?
   is_trivial::Bool                               # codomain already smooth?
 
   # fields for caching, to be filled during desingularization
-  ex_div::Vector{Union{<:EffectiveCartierDivisor, <:AbsIdealSheaf}}      # list of exc. divisors arising from individual steps
+  ex_div::Vector{AbsIdealSheaf}                  # list of exc. divisors arising from individual steps
                                                  # in domain(maps[end]) -- at least in the end
   normal_steps::Vector{Int}                      # index of parts of preimage of singular locus 
                                                  # not arising from blow-ups
@@ -112,9 +112,9 @@ end
 ##################################################################################################
 # getters
 ##################################################################################################
+underlying_morphism(phi::NormalizationMorphism) = CoveredSchemeMorphism(phi.X,phi.Y,phi.f)
 domain(phi::NormalizationMorphism) = phi.X
 codomain(phi::NormalizationMorphism) = phi.Y
-underlying_morphism(phi::NormalizationMorphism) = phi
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = copy(phi.maps[i])
 last_map(phi::AbsDesingMor) = phi.maps[end]
@@ -140,7 +140,6 @@ function underlying_morphism(phi::AbsDesingMor)
   return phi.underlying_morphism
 end
 
-
 ##################################################################################################
 # setting values in DesingMors -- Watch out: only place with direct access to fields!!!
 ##################################################################################################
@@ -154,25 +153,16 @@ end
 
 function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
-  ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
-  push!(ex_div, exceptional_divisor(phi))
+  ex_div = [strict_transform(phi,E) for E in f.ex_div]
+  push!(ex_div, ideal_sheaf(exceptional_divisor(phi)))
   f.ex_div = ex_div
   return f
-end
-
-function _transform_helper(E::EffectiveCartierDivisor, phi::NormalizationMorphism)
-  temp = pullback(phi)(E)
-@show temp  
-end
-
-function _transform_helper(E::IdealSheaf, phi::NormalizationMorphism)
-  return pullback(phi)(E)
 end
 
 function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(f.maps, phi)
   sl = ideal_sheaf_of_singular_locus(codomain(phi))
-  ex_div = [_transform_helper(E,phi) for E in exceptional_divisorlist(f,true)]
+  ex_div = [pullback(phi,E) for E in exceptional_divisorlist(f,true)]
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
   push!(f.normal_steps,length(f.maps))
@@ -213,7 +203,7 @@ function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::IdealS
   f = MixedBlowUpSequence([phi])
   f.ex_div = [pullback(phi,I)]
   f.is_trivial = is_one(I)
-  f.resolves_sing = false                                 # we have no information, wether we are done
+  f.resolves_sing = false                                # we have no information, wether we are done
                                                          # without further computation
   return f
 end
@@ -281,7 +271,7 @@ function mixed_blow_up_sequence(f::BlowUpSequence)
   phi = MixedBlowUpSequence(morphisms(f))
   phi.resolves_sing = f.resolves_sing
   phi.is_trivial = f.is_trivial
-  phi.ex_div = f.ex_div
+  phi.ex_div = [ideal_sheaf(E) for E in f.ex_div]
   phi.normal_steps = Vector{Int}[]
 ## how can I inherit f.composed_map and f.exceptional_divisor, if they are set?
   return phi
