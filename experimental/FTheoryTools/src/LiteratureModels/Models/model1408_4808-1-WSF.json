@@ -1,5 +1,5 @@
 {
-    "model_index": "",
+    "model_index": "13",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -40,7 +40,7 @@
     },
     "model_descriptors": {
         "type": "weierstrass",
-        "description": "F-theory hypersurface model with fiber ambient space F_1",
+        "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_1",
         "gauge_algebra": ["0"],
         "discrete_factors": ["Z3"]
     },

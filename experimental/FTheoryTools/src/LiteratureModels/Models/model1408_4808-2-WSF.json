@@ -1,5 +1,5 @@
 {
-    "model_index": "16",
+    "model_index": "15",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -39,8 +39,8 @@
         "buzzwords": ["Mordell-Weil","reflexive polyhedra","toric varieties","elliptic fibrations"]
     },
     "model_descriptors": {
-        "type": "hypersurface",
-        "description": "F-theory hypersurface model with fiber ambient space F_2",
+        "type": "weierstrass",
+        "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_2",
         "gauge_algebra": ["u1"],
         "discrete_factors": ["Z2"]
     },
@@ -48,35 +48,30 @@
         "base_dim": 3,
         "model_sections": ["b7","b9"],
         "base_coordinates": ["b7","b9","b1","b2","b3","b5","b6","b8","b10"],
+        "f": "1//48*(-(-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))^2 + 24*(-b6*(b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9) + 2*(b10*(b1*b5*b7 + b2^2*b8 + b3*(b5^2 - 4*b1*b8) + b1*b2*b9) + b7*(b1*b7*b8 + b2*b5*b9) + b3*(b5*b7*b8 + b2*b8*b9 + b1*b9^2))))",
+        "g": "1//864*((-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))^3 - 36*(-4*b1*b10 + b6^2 - 4*(b5*b7 + b3*b8 + b2*b9))*(-b6*(b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9) + 2*(b10*(b1*b5*b7 + b2^2*b8 + b3*(b5^2 - 4*b1*b8) + b1*b2*b9) + b7*(b1*b7*b8 + b2*b5*b9) + b3*(b5*b7*b8 + b2*b8*b9 + b1*b9^2))) + 216*((b10*b2*b5 + b2*b7*b8 + b3*b5*b9 + b1*b7*b9)^2 - 4*(b2*b3*b5*b7*b8*b9 + b1^2*b10*(-4*b10*b3*b8 + b7^2*b8 + b3*b9^2) + b10*(b3^2*b5^2*b8 + b2^2*b5*b7*b8 + b2*b3*(-b5*b6*b8 + b2*b8^2 + b5^2*b9)) + b1*(b10^2*(b3*b5^2 + b2^2*b8) + b2*b7^2*b8*b9 + b3^2*b8*b9^2 + b3*b7*(b7*b8^2 - b6*b8*b9 + b5*b9^2) + b10*(-4*b3^2*b8^2 + b3*b6*(b6*b8 - b5*b9) + b2*b7*(-b6*b8 + b5*b9))))))",
         "auxiliary_base_grading": [
             [0, 0,  3,  2,  1,  2, 1,  1, -1],
             [1, 0, -1,  0,  1, -1, 0, -1,  1],
             [0, 1, -1, -1, -1,  0, 0,  1,  1]
-        ],
-        "fiber_ambient_space_rays": [[1, 0], [0, -1], [-1, 0], [0, 1]],
-        "fiber_ambient_space_max_cones": [[1, 2], [2, 3], [3, 4], [1, 4]],
-        "fiber_ambient_space_coordinates": ["t", "s", "x", "y"],
-        "fiber_ambient_space_name": "P^{F_2}",
-        "D1": [1, 0, -1],
-        "D2": [1, -1, 0],
-        "hypersurface_equation": "(b1*y^2 + b2*s*y + b3*s^2)*x^2 + (b5*y^2 + b6*s*y + b7*s^2)*x*t + (b8*y^2 + b9*s*y + b10*s^2)*t^2"
+        ]
     },
     "associated_models": [
-        "model1408_4808-1.json",
-        "model1408_4808-3.json",
-        "model1408_4808-4.json",
-        "model1408_4808-5.json",
-        "model1408_4808-6.json",
-        "model1408_4808-7.json",
-        "model1408_4808-8.json",
-        "model1408_4808-9.json",
-        "model1408_4808-10.json",
-        "model1408_4808-11.json",
-        "model1408_4808-12.json",
-        "model1408_4808-13.json",
-        "model1408_4808-14.json",
-        "model1408_4808-15.json",
-        "model1408_4808-16.json"
+        "model1408_4808-1-WSF.json",
+        "model1408_4808-3-WSF.json",
+        "model1408_4808-4-WSF.json",
+        "model1408_4808-5-WSF.json",
+        "model1408_4808-6-WSF.json",
+        "model1408_4808-7-WSF.json",
+        "model1408_4808-8-WSF.json",
+        "model1408_4808-9-WSF.json",
+        "model1408_4808-10-WSF.json",
+        "model1408_4808-11-WSF.json",
+        "model1408_4808-12-WSF.json",
+        "model1408_4808-13-WSF.json",
+        "model1408_4808-14-WSF.json",
+        "model1408_4808-15-WSF.json",
+        "model1408_4808-16-WSF.json"
     ],
-    "related_models": ["model1408_4808-2-WSF.json"]
+    "related_models": ["model1408_4808-2.json"]
 }
