@@ -116,7 +116,7 @@ underlying_morphism(phi::NormalizationMorphism) = CoveredSchemeMorphism(phi.X,ph
 domain(phi::NormalizationMorphism) = phi.X
 codomain(phi::NormalizationMorphism) = phi.Y
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
-morphism(phi::AbsDesingMor,i::Int) = copy(phi.maps[i])
+morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]
 
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div
@@ -212,7 +212,7 @@ function initialize_mixed_blow_up_sequence(phi::BlowupMorphism)
   return mixed_blow_up_sequence(initialize_blow_up_sequence(phi))
 end
 
-function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredSchemeMorphism)
+function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredClosedEmbedding)
   f = BlowUpSequence([phi])
   f.ex_div = [exceptional_divisor(phi)]
   f.is_embedded = true
@@ -328,23 +328,18 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
     return mixed_blow_up_sequence(return_value)
   end
 
-@show X
-@show I_sl
+
   ## I_sl non-empty, we need to do something 
 # here the keyword algorithm ensures that the desired method is called
   dimX = dim(X)
   if dimX == 1
-@show "curve"
     return_value = _desing_curve(X, I_sl)
   elseif ((dimX == 2) && (algorithm==:Lipman))
-@show "Lipman"
     return_value = _desing_lipman(X, I_sl)
   elseif ((dimX == 2) && (algorithm==:Jung))
-@show "jung"
     error("not implemented yet")
     return_value = _desing_jung(X)
   else
-@show "default"
     error("not implemented yet")
     return_value = forget_embedding(_desing_BEV(X))
   end       
@@ -935,18 +930,26 @@ end
 # The following two methods will be ambiguous in general
 # so we need to repeat the procedure for the specific types 
 # of the second argument.
-function strict_transform(phi::BlowUpSequence, a::Any)
-  for psi in morhpisms(phi)
+function strict_transform(phi::Union{BlowUpSequence,MixedBlowUpSequence}, a::Any)
+  for psi in morphisms(phi)
     a = strict_transform(psi, a)
   end
   return a
 end
 
-function total_transform(phi::BlowUpSequence, a::Any)
+function total_transform(phi::Union{BlowUpSequence,MixedBlowUpSequence}, a::Any)
   for psi in morphisms(phi)
     a = total_transform(psi, a)
   end
   return a
+end
+
+function total_transform(phi::NormalizationMorphism, a::Any)
+  return pullback(phi,a)
+end
+
+function strict_transform(phi::NormalizationMorphism, a::Any)
+  return pullback(phi,a)
 end
 
 function strict_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
@@ -963,7 +966,12 @@ function total_transform(phi::BlowUpSequence, a::AbsIdealSheaf)
   return a
 end
 
-function center(phi::BlowUpSequence)
+function last_center(phi::BlowUpSequence)
   return center(last_map(phi))
 end
 
+function last_center(phi::MixedBlowUpSequence)
+  lm = last_map(phi)
+  lm isa BlowupMorphism || return unit_ideal_sheaf(codomain(lm))
+  return center(lm)
+end

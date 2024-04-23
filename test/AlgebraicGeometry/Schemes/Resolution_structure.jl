@@ -30,7 +30,7 @@ end
   phi = Oscar.desingularization(X)
   H = IdealSheaf(U, ideal(OO(U), x + 3*y), covered_scheme=X)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
-  center(phi)
+  @test dim(Oscar.last_center(phi)) == 0
   @test length(phi.ex_div) == 2
   aff_charts = affine_charts(domain(phi))
   sl1,_ = singular_locus(aff_charts[1])
@@ -39,6 +39,26 @@ end
   @test is_one(modulus(OO(sl1)))
   @test is_one(modulus(OO(sl2)))
   @test is_one(modulus(OO(sl3)))
+end
+
+@testset "non-embedded desingularization Lipman (dim=2)" begin
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  I=ideal(R,[(x^2-y^5)*(x^2+y^2+z^4)])
+  W = AffineScheme(R)
+  IS = IdealSheaf(W,I)
+  X = subscheme(IS)
+  U = first(affine_charts(X))
+  phi = Oscar.desingularization(X)
+  @test morphism(phi,1) isa NormalizationMorphism
+  @test morphism(phi,2) isa BlowupMorphism
+  @test morphism(phi,3) isa BlowupMorphism
+  aff_charts = affine_charts(domain(phi))
+  sl1,_ = singular_locus(aff_charts[1])
+  @test is_one(modulus(OO(sl1)))
+  sl5,_ = singular_locus(aff_charts[5])
+  @test is_one(modulus(OO(sl5)))
+  sl6,_ = singular_locus(aff_charts[6])
+  @test is_one(modulus(OO(sl6)))
 end
 
 @testset "order of an ideal" begin
