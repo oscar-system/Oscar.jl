@@ -3,19 +3,20 @@
 # This function implements the group operation on Z2 x Z2 and is subsequently 
 # used to check the condition given in the computation of the Fourier
 # coordinates and to calculate the sum of the leaves beneath a given edge. 
-function group_sum(pm::PhylogeneticModel, states::Vector{Int})
-    group = group_model(pm)
-  
-    if (length(states) == 1)
-      return(group[states[1]])
-    end
-  
-    return sum(group[states]).%2
+
+function group_sum(pm::GroupBasedPhylogeneticModel, states::Vector{Int})
+  group = group_of_model(pm)
+  return sum(group[states]).%2
+end
+
+function is_zero_group_sum(pm::GroupBasedPhylogeneticModel, states::Vector{Int})
+  ng = length(states)
+  return group_sum(pm, [states[1]]) == group_sum(pm, states[2:ng])
 end
   
-function which_group_element(pm::PhylogeneticModel, elem::Vector{Int64})
+function which_group_element(pm::GroupBasedPhylogeneticModel, elem::Vector{Int64})
 #function which_group_element(pm::PhylogeneticModel, elem::Vector{Vector{Int64}})
-    group = group_model(pm)
+    group = group_of_model(pm)
     return findall([all(group[i].==elem) for i in 1:length(group)])[1]
 end
 
@@ -39,7 +40,7 @@ function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
     outn = outneighbors(gr, v)
   
     if v in lvs
-      return([v])
+      return [v]
     end
   
     innodes = setdiff(outn, lvs)
@@ -49,10 +50,10 @@ function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
         for i in innodes
             d = vertex_descendants(i, gr, d)
         end
-        return(d)
+        return d 
     end
   
-    return(d)
+    return d
 end
 
 function cherries(graph::Graph)
@@ -68,7 +69,7 @@ function cherries(graph::Graph)
       end
   end
   
-  return(unique(cherry))
+  return unique(cherry)
 end
 
 
