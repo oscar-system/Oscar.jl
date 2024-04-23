@@ -1,0 +1,86 @@
+{
+    "model_index": "",
+    "arxiv_data": {
+        "id": "1408.4808v2",
+        "doi": "10.48550/arXiv.1408.4808",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1408.4808v2",
+        "model_location": {
+            "section": "3",
+            "equation": "3.142",
+            "page": "67"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1007/JHEP01(2015)142",
+        "report_numbers": ["UPR-1264-T", "CERN-PH-TH-2014-171", "BONN-TH-2014-13"],
+        "journal": "JHEP",
+        "volume": "01",
+        "pages": "142",
+        "year": "2015",
+        "link": "https://link.springer.com/article/10.1007/JHEP01(2015)142",
+        "model_location": {
+            "section": "3",
+            "equation": "3.141",
+            "page": "67"
+        }
+    },
+    "paper_metadata": {
+        "authors": [
+            "Denis Klevers",
+            "Damián Kaloni Mayorga Peña",
+            "Paul-Konstantin Oehlmann",
+            "Hernan Piragua",
+            "Jonas Reuter"
+        ],
+        "title": "F-Theory on all Toric Hypersurface Fibrations and its Higgs Branches",
+        "description": "All Calabi-Yau manifolds with a genus-one fiber associated to the 16 reflexive 2D polyhedra F_i",
+        "buzzwords": ["Mordell-Weil", "reflexive polyhedra", "toric varieties", "elliptic fibrations"]
+    },
+    "model_descriptors": {
+        "type": "hypersurface",
+        "description": "F-theory hypersurface model with fiber ambient space F_11",
+        "gauge_algebra": ["su3","su2","u1"],
+        "global_gauge_quotients": [["Z3", [1, 3]], ["Z2", [2, 3]]]
+    },
+    "model_data": {
+        "base_dim": 3,
+        "model_sections": ["s5", "s9"],
+        "base_coordinates": ["s5", "s9", "s1", "s2", "s3", "s6"],
+        "auxiliary_base_grading": [
+            [0, 0,  1,  2,  3, 1],
+            [1, 0,  1,  0, -1, 0],
+            [0, 1, -1, -1, -1, 0]
+        ],
+        "fiber_ambient_space_rays": [[-1, 1], [0, -1], [1, 0], [0, 1], [-1, 0], [-1, -1], [-1, 2]],
+        "fiber_ambient_space_max_cones": [[1, 7], [4, 7], [3, 4], [2, 3], [2, 6], [5, 6], [1, 5]],
+        "fiber_ambient_space_coordinates": ["u", "v", "w", "e1", "e2", "e3", "e4"],
+        "fiber_ambient_space_name": "P^{F_11}",
+        "D1": [-1, 0, 1],
+        "D2": [-2, 1, 1],
+        "hypersurface_equation": "s1*e1^2*e2^2*e3*e4^4*u^3 + s2*e1*e2^2*e3^2*e4^2*u^2*v + s3*e2^2*e3^2*u*v^2 + s5*e1^2*e2*e4^3*u^2*w + s6*e1*e2*e3*e4*u*v*w + s9*e1*v*w^2",
+        "zero_section": ["1", "0", "s5", "1", "1", "-s5", "1"],
+        "generating_sections": [
+            ["s9", "1", "1", "-s3", "1", "1", "0"]
+        ]
+    },
+    "associated_models": [
+        "model1408_4808-1.json",
+        "model1408_4808-2.json",
+        "model1408_4808-3.json",
+        "model1408_4808-4.json",
+        "model1408_4808-5.json",
+        "model1408_4808-6.json",
+        "model1408_4808-7.json",
+        "model1408_4808-8.json",
+        "model1408_4808-9.json",
+        "model1408_4808-10.json",
+        "model1408_4808-12.json",
+        "model1408_4808-13.json",
+        "model1408_4808-14.json",
+        "model1408_4808-15.json",
+        "model1408_4808-16.json"
+    ],
+    "related_models": ["model1408_4808-11-WSF.json"]
+}
