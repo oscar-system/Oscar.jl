@@ -49,10 +49,10 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
             group: 'short'
-            os: macOS-14
+            os: [macOS, RPTU]
           - julia-version: '1.10'
             group: 'long'
-            os: macOS-latest
+            os: [macOS, RPTU]
           - julia-version: '1.10'
             group: 'book'
             os: ubuntu-latest
@@ -85,6 +85,11 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+      - name: "Use multiple threads for self-hosted runners"
+        if: runner.os == 'macOS' && runner.environment == 'self-hosted'
+        # runner.environment is supposed to be a valid property : https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
+        env:
+          NUMPROCS: '5'
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
