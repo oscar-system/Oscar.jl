@@ -178,7 +178,7 @@ function kimura2_model(graph::Graph{Directed})
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
+    [list_x[i,1], list_x[i,3], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
   
   group = [[0,0], [0,1], [1,0], [1,1]]
 

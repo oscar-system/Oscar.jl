@@ -93,13 +93,15 @@ end
 
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
 
-function hadamardmatrix()
-  H = [1 1 1 1
-       1 1 -1 -1 
-       1 -1 1 -1
-       1 -1 -1 1]
-  return H
-end
+# function hadamardmatrix()
+#   # H = [1 1 1 1
+#   #      1 1 -1 -1 
+#   #      1 -1 1 -1
+#   #      1 -1 -1 1]
+#   H = [1 1 
+#        1 -1]
+#   return H
+# end
 
 # TODO: line 138 mutates f_equivclasses, i.e. an object from outside the function.
 # This makes the function a !-function. We do not want f_equivclasses to be changed, 
@@ -107,6 +109,7 @@ end
 # We should find out whether there is a better way to do this.
 function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   R = probability_ring(pm)
+  ns = number_states(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
@@ -127,7 +130,7 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
   end
   sort!(f_equivclasses_sorted)
 
-  H = hadamardmatrix()
+  H = R.(hadamard(matrix_space(ZZ, ns, ns)))
 
   specialized_ft_matrix = R.(Int.(zeros(nq, np)))
   for i in 1:nq
@@ -144,6 +147,7 @@ end
 
 function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   R = probability_ring(pm)
+  ns = number_states(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
   delete!(f_equivclasses, class0)
@@ -164,8 +168,8 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
   end
   sort!(f_equivclasses_sorted)
 
-  H = hadamardmatrix()
-  Hinv = 1//4 * H 
+  H = R.(hadamard(matrix_space(ZZ, ns, ns)))
+  Hinv = 1//ns * H 
 
   inverse_spec_ft_matrix = R.(Int.(zeros(np, nq)))
   for i in 1:np
