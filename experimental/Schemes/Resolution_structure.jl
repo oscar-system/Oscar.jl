@@ -511,7 +511,7 @@ function _do_blow_up!(f::AbsDesingMor, cent::AbsIdealSheaf)
 end
 
 function _do_normalization!(f::MixedBlowUpSequence)
-  Xnorm, phi, incs = normalization(domain(last_map(f)))
+  Xnorm, phi = normalization(domain(last_map(f)))
   add_map!(f,phi)
   return f
 end
