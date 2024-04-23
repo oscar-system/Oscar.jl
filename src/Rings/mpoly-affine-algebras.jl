@@ -1330,7 +1330,7 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
   current_length = length(res)
   current_degree = Int(degree(res[1])[1])
   precomp = _subalgebra_membership_homogeneous_precomp(current_degree, res, I)
-  for i in 2:length(W)
+  for i in 1:length(W)
     f = W[i]
     if length(res) != current_length || Int(degree(f)[1]) != current_degree
       # We either added a new element or the degree increased since the last
