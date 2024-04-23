@@ -13,7 +13,21 @@ For ``U = D(f) ⊆ X`` a principal open subset of ``X`` this returns ``X``.
 This is not to be confused with the ambient affine space ``X ⊆ 𝔸 ⁿ``.
 """
 ambient_scheme(U::PrincipalOpenSubset) = U.X
-complement_equation(U::PrincipalOpenSubset) = U.f::elem_type(OO(ambient_scheme(U)))
+
+function complement_equation(U::PrincipalOpenSubset) 
+  if !isdefined(U, :h)
+    U.h = prod(OO(U).(U.f); init=one(OO(U)))
+  end
+  return U.h::elem_type(OO(ambient_scheme(U)))
+end
+
+# An internal getter to get factors of polynomial representatives of the complement equation's numerator.
+function poly_complement_equations(U::PrincipalOpenSubset)
+  if !isdefined(U, :f)
+    U.f = lifted_numerator.(complement_equation(U))
+  end
+  return U.f::Vector{elem_type(ambient_coordinate_ring(U))}
+end
 
 ### assure compatibility with AffineSchemeOpenSubscheme
 complement_equations(U::PrincipalOpenSubset) = [lifted_numerator(complement_equation(U))]
