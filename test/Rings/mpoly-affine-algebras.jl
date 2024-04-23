@@ -176,7 +176,7 @@ end
   end
 end
 
-@testset "algebraicaic independence" begin
+@testset "algebraic independence" begin
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   V = [x, y]
   fl, I = is_algebraically_independent_with_relations(V)
