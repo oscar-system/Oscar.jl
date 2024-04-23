@@ -93,15 +93,6 @@ end
 
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
 
-# function hadamardmatrix()
-#   # H = [1 1 1 1
-#   #      1 1 -1 -1 
-#   #      1 -1 1 -1
-#   #      1 -1 -1 1]
-#   H = [1 1 
-#        1 -1]
-#   return H
-# end
 
 # TODO: line 138 mutates f_equivclasses, i.e. an object from outside the function.
 # This makes the function a !-function. We do not want f_equivclasses to be changed, 
@@ -111,23 +102,16 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
   R = probability_ring(pm)
   ns = number_states(pm)
 
-  class0 = findall(x -> x ==0, f_equivclasses)[1]
-  delete!(f_equivclasses, class0)
-
   np = length(p_equivclasses)
-  nq = length(f_equivclasses)
+  nq = length(f_equivclasses) - 1
 
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
   p_equivclasses_sorted = collect(keys(p_equivclasses))
-  for p_eqclass in p_equivclasses_sorted
-    sort!(p_eqclass)
-  end
+  [sort!(p_eqclass) for p_eqclass in p_equivclasses_sorted]
   sort!(p_equivclasses_sorted)
 
-  f_equivclasses_sorted = collect(keys(f_equivclasses))
-  for f_eqclass in f_equivclasses_sorted
-    sort!(f_eqclass)
-  end
+  f_equivclasses_sorted = collect(keys(filter(x -> !is_zero(x.second), f_equivclasses)))
+  [sort!(f_eqclass) for f_eqclass in f_equivclasses_sorted]
   sort!(f_equivclasses_sorted)
 
   H = R.(hadamard(matrix_space(ZZ, ns, ns)))
@@ -141,7 +125,6 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
       specialized_ft_matrix[i,j] = R.(1//(length(current_prob_classes)*length(current_fourier_classes))*sum(current_entriesin_M))
     end
   end
-  get!(f_equivclasses, class0, R(0))
   return specialized_ft_matrix
 end
 
@@ -149,23 +132,16 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
   R = probability_ring(pm)
   ns = number_states(pm)
 
-  class0 = findall(x -> x ==0, f_equivclasses)[1]
-  delete!(f_equivclasses, class0)
-
   np = length(p_equivclasses)
-  nq = length(f_equivclasses)
+  nq = length(f_equivclasses) - 1
 
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
   p_equivclasses_sorted = collect(keys(p_equivclasses))
-  for p_eqclass in p_equivclasses_sorted
-    sort!(p_eqclass)
-  end
+  [sort!(p_eqclass) for p_eqclass in p_equivclasses_sorted]
   sort!(p_equivclasses_sorted)
 
-  f_equivclasses_sorted = collect(keys(f_equivclasses))
-  for f_eqclass in f_equivclasses_sorted
-    sort!(f_eqclass)
-  end
+  f_equivclasses_sorted = collect(keys(filter(x -> !is_zero(x.second), f_equivclasses)))
+  [sort!(f_eqclass) for f_eqclass in f_equivclasses_sorted]
   sort!(f_equivclasses_sorted)
 
   H = R.(hadamard(matrix_space(ZZ, ns, ns)))
@@ -180,6 +156,5 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
       inverse_spec_ft_matrix[i,j] = R.(sum(current_entriesin_Minv))
     end
   end
-  get!(f_equivclasses, class0, R(0))
   return inverse_spec_ft_matrix
 end
