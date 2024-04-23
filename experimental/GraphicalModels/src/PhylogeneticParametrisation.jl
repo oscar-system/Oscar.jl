@@ -1,6 +1,6 @@
 #### PARAMETRISATION IN PROBABLITY COORDINATES #### 
 
-# Missing add the root and the distribution π for the GMM
+#TODO: Missing add the root and the distribution π for the GMM
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
   tr_mat = transition_matrices(pm)
@@ -43,12 +43,12 @@ end
  
 
 function probability_map(pm::PhylogeneticModel)
-    lvs_nodes = leaves(graph(pm))
-    n_states = number_states(pm)
-  
-    leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-    probability_coordinates = Dict(leaves_states => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
-    return probability_coordinates
+  lvs_nodes = leaves(graph(pm))
+  n_states = number_states(pm)
+
+  leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
+  probability_coordinates = Dict(leaves_states => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  return probability_coordinates
 end
 function probability_map(pm::GroupBasedPhylogeneticModel)
   probability_map(phylogenetic_model(pm))
@@ -59,36 +59,35 @@ end
   
 
 function monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})
-    gr = graph(pm)
-    param = fourier_parameters(pm)
-    monomial = 1
-    for edge in edges(gr)
-      dsc = vertex_descendants(dst(edge), gr, [])
-      elem = group_sum(pm, leaves_states[dsc])
-      monomial = monomial * param[edge][which_group_element(pm, elem)]
-    end
-  
-    return monomial
+  gr = graph(pm)
+  param = fourier_parameters(pm)
+  monomial = 1
+  for edge in edges(gr)
+    dsc = vertex_descendants(dst(edge), gr, [])
+    elem = group_sum(pm, leaves_states[dsc])
+    monomial = monomial * param[edge][which_group_element(pm, elem)]
+  end
+  return monomial
 end
   
 function fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})
-    S = fourier_ring(pm)
-    if is_zero_group_sum(pm, leaves_states) 
-      poly = monomial_fourier(pm, leaves_states)
-    else 
-      poly = S(0)
-    end
-  
-    return poly
+  S = fourier_ring(pm)
+  if is_zero_group_sum(pm, leaves_states) 
+    poly = monomial_fourier(pm, leaves_states)
+  else 
+    poly = S(0)
+  end
+
+  return poly
 end 
   
 function fourier_map(pm::GroupBasedPhylogeneticModel)
-    lvs_nodes = leaves(graph(pm))
-    n_states = number_states(pm)
-  
-    leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-    fourier_coordinates = Dict(leaves_states => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
-    return fourier_coordinates
+  lvs_nodes = leaves(graph(pm))
+  n_states = number_states(pm)
+
+  leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
+  fourier_coordinates = Dict(leaves_states => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  return fourier_coordinates
 end
 
 
@@ -106,7 +105,7 @@ end
 # This makes the function a !-function. We do not want f_equivclasses to be changed, 
 # so I add the missing equivalence class again in line 175. 
 # We should find out whether there is a better way to do this.
-function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   R = probability_ring(pm)
 
   class0 = findall(x -> x ==0, f_equivclasses)[1]
@@ -118,13 +117,13 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
   p_equivclasses_sorted = collect(keys(p_equivclasses))
   for p_eqclass in p_equivclasses_sorted
-      sort!(p_eqclass)
+    sort!(p_eqclass)
   end
   sort!(p_equivclasses_sorted)
 
   f_equivclasses_sorted = collect(keys(f_equivclasses))
   for f_eqclass in f_equivclasses_sorted
-      sort!(f_eqclass)
+    sort!(f_eqclass)
   end
   sort!(f_equivclasses_sorted)
 
@@ -132,12 +131,12 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
 
   specialized_ft_matrix = R.(Int.(zeros(nq, np)))
   for i in 1:nq
-      current_fourier_classes = f_equivclasses_sorted[i]
-      for j in 1:np
-          current_prob_classes = p_equivclasses_sorted[j]
-          current_entriesin_M = [prod([H[y,x] for (x,y) in zip(p,q)]) for p in current_prob_classes, q in current_fourier_classes]
-          specialized_ft_matrix[i,j] = R.(1//(length(current_prob_classes)*length(current_fourier_classes))*sum(current_entriesin_M))
-      end
+    current_fourier_classes = f_equivclasses_sorted[i]
+    for j in 1:np
+      current_prob_classes = p_equivclasses_sorted[j]
+      current_entriesin_M = [prod([H[y,x] for (x,y) in zip(p,q)]) for p in current_prob_classes, q in current_fourier_classes]
+      specialized_ft_matrix[i,j] = R.(1//(length(current_prob_classes)*length(current_fourier_classes))*sum(current_entriesin_M))
+    end
   end
   get!(f_equivclasses, class0, R(0))
   return specialized_ft_matrix
@@ -155,13 +154,13 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
   p_equivclasses_sorted = collect(keys(p_equivclasses))
   for p_eqclass in p_equivclasses_sorted
-      sort!(p_eqclass)
+    sort!(p_eqclass)
   end
   sort!(p_equivclasses_sorted)
 
   f_equivclasses_sorted = collect(keys(f_equivclasses))
   for f_eqclass in f_equivclasses_sorted
-      sort!(f_eqclass)
+    sort!(f_eqclass)
   end
   sort!(f_equivclasses_sorted)
 
@@ -170,12 +169,12 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
 
   inverse_spec_ft_matrix = R.(Int.(zeros(np, nq)))
   for i in 1:np
-      current_prob_class = p_equivclasses_sorted[i]
-      for j in 1:nq
-          current_fourier_class = f_equivclasses_sorted[j]
-          current_entriesin_Minv = [prod([Hinv[x,y] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
-          inverse_spec_ft_matrix[i,j] = R.(sum(current_entriesin_Minv))
-      end
+    current_prob_class = p_equivclasses_sorted[i]
+    for j in 1:nq
+      current_fourier_class = f_equivclasses_sorted[j]
+      current_entriesin_Minv = [prod([Hinv[x,y] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
+      inverse_spec_ft_matrix[i,j] = R.(sum(current_entriesin_Minv))
+    end
   end
   get!(f_equivclasses, class0, R(0))
   return inverse_spec_ft_matrix
