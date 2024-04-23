@@ -1,5 +1,5 @@
 {
-    "model_index": "",
+    "model_index": "23",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -8,13 +8,13 @@
         "link": "https://arxiv.org/abs/1408.4808v2",
         "model_location": {
             "section": "3",
-            "equation": "3.17",
-            "page": "22"
+            "equation": "3.82",
+            "page": "46"
         }
     },
     "journal_data": {
         "doi": "10.1007/JHEP01(2015)142",
-        "report_numbers": ["UPR-1264-T","CERN-PH-TH-2014-171","BONN-TH-2014-13"],
+        "report_numbers": ["UPR-1264-T", "CERN-PH-TH-2014-171", "BONN-TH-2014-13"],
         "journal": "JHEP",
         "volume": "01",
         "pages": "142",
@@ -22,8 +22,8 @@
         "link": "https://link.springer.com/article/10.1007/JHEP01(2015)142",
         "model_location": {
             "section": "3",
-            "equation": "3.17",
-            "page": "22"
+            "equation": "3.81",
+            "page": "46"
         }
     },
     "paper_metadata": {
@@ -36,32 +36,40 @@
         ],
         "title": "F-Theory on all Toric Hypersurface Fibrations and its Higgs Branches",
         "description": "All Calabi-Yau manifolds with a genus-one fiber associated to the 16 reflexive 2D polyhedra F_i",
-        "buzzwords": ["Mordell-Weil","reflexive polyhedra","toric varieties","elliptic fibrations"]
+        "buzzwords": ["Mordell-Weil", "reflexive polyhedra", "toric varieties", "elliptic fibrations"]
     },
     "model_descriptors": {
         "type": "weierstrass",
-        "description": "F-theory hypersurface model with fiber ambient space F_4",
-        "gauge_algebra": ["su2"],
-        "discrete_factors": ["Z4"]
+        "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_6",
+        "gauge_algebra": ["su2", "u1"],
+        "global_gauge_quotients": [["Z2", [1, 2]]]
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["d8","d4"],
-        "base_coordinates": ["d8","d4","d1","d2","d3","d5","d6","d7","d9"],
-        "f": "1//48*(-24*d9*(-2*d5*d6^2 + d4*d6*d7 - 2*d3*d6*d8 + d2*d7*d8 - 2*d1*d8^2 - 2*d2*d4*d9 + 8*d1*d5*d9) - (d7^2 - 4*(d6*d8 + d3*d9))^2)",
-        "g": "1//864*(36*d9*(-2*d5*d6^2 + d4*d6*d7 - 2*d3*d6*d8 + d2*d7*d8 - 2*d1*d8^2 - 2*d2*d4*d9 + 8*d1*d5*d9)*(d7^2 - 4*(d6*d8 + d3*d9)) + (d7^2 - 4*(d6*d8 + d3*d9))^3 + 216*d9^2*(4*d2*d5*d6*d7 - 4*d1*d5*d7^2 + d2^2*d8^2 + d4*(-2*d2*d6*d8 + 4*d1*d7*d8) - 4*d2^2*d5*d9 + d4^2*(d6^2 - 4*d1*d9) - 4*d3*(d5*d6^2 + d1*d8^2 - 4*d1*d5*d9)))",
+        "model_sections": ["s7", "s4"],
+        "base_coordinates": ["s7", "s4", "s1", "s2", "s3", "s5", "s6", "s8"],
+        "f": "1//48*(48*s2*s4*s8^2 - 24*s6*(s2*s7*s8 + s4*s5*s8) - ( - s6^2 + 4*s3*s8 + 4*s5*s7)^2 + 48*s1*s7^2*s8 + 48*s3*s5*s7*s8)",
+        "g": "1//864*(216*(s2*s7*s8 + s4*s5*s8)^2 - ( - s6^2 + 4*s3*s8 + 4*s5*s7)^3 + ( - 36*s6^2 + 144*s3*s8 + 144*s5*s7)*(2*s2*s4*s8^2 - s6*(s2*s7*s8 + s4*s5*s8) + 2*s1*s7^2*s8 + 2*s3*s5*s7*s8) - 864*s1*s4^2*s8^3 + 864*s4*s7*s8*(s1*s6*s8 - s2*s5*s8) - 864*s1*s3*s7^2*s8^2)",
         "auxiliary_base_grading": [
-            [0, 0,  3,  2,  1, -1,  2,  1,  1],
-            [1, 0, -3, -2, -1,  1, -1,  0,  1],
-            [0, 1,  1,  1,  1,  1,  0,  0, -1]
+            [0, 0,  3,  2,  1,  2, 1,  1],
+            [1, 0, -3, -2, -1, -1, 0,  1],
+            [0, 1,  1,  1,  1,  0, 0, -1]
+        ],
+        "zero_section": ["0", "0", "1"],
+        "generating_sections": [
+            [
+                "1//12*(s8^4*(12*s4^2*s8^2 - s7^2*( - s6^2 + 4*s5*s7) + s7*s8*(8*s3*s7 - 12*s4*s6)))",
+                "1//2*( - s8^7*(2*s4^3*s8^2 + s7^3*(s2*s7 - s3*s6) + s4*s7^2*(s6^2 + 2*s3*s8 - s5*s7) - 3*s4^2*s6*s7*s8))",
+                "s7*s8^2"
+            ]
         ]
     },
     "associated_models": [
         "model1408_4808-1-WSF.json",
         "model1408_4808-2-WSF.json",
         "model1408_4808-3-WSF.json",
+        "model1408_4808-4-WSF.json",
         "model1408_4808-5-WSF.json",
-        "model1408_4808-6-WSF.json",
         "model1408_4808-7-WSF.json",
         "model1408_4808-8-WSF.json",
         "model1408_4808-9-WSF.json",
@@ -73,5 +81,5 @@
         "model1408_4808-15-WSF.json",
         "model1408_4808-16-WSF.json"
     ],
-    "related_models": ["model1408_4808-4.json"]
+    "related_models": ["model1408_4808-6.json"]
 }

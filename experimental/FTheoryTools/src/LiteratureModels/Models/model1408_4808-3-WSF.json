@@ -1,5 +1,5 @@
 {
-    "model_index": "",
+    "model_index": "17",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -39,8 +39,8 @@
         "buzzwords": ["Mordell-Weil", "reflexive polyhedra", "toric varieties", "elliptic fibrations"]
     },
     "model_descriptors": {
-        "type": "hypersurface",
-        "description": "F-theory hypersurface model with fiber ambient space F_3",
+        "type": "weierstrass",
+        "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_3",
         "gauge_algebra": ["u1"]
     },
     "model_data": {

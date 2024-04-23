@@ -1,5 +1,5 @@
 {
-    "model_index": "",
+    "model_index": "31",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -8,8 +8,8 @@
         "link": "https://arxiv.org/abs/1408.4808v2",
         "model_location": {
             "section": "3",
-            "equation": "3.168",
-            "page": "75"
+            "equation": "3.130",
+            "page": "62"
         }
     },
     "journal_data": {
@@ -22,8 +22,8 @@
         "link": "https://link.springer.com/article/10.1007/JHEP01(2015)142",
         "model_location": {
             "section": "3",
-            "equation": "3.167",
-            "page": "75"
+            "equation": "3.129",
+            "page": "62"
         }
     },
     "paper_metadata": {
@@ -40,29 +40,21 @@
     },
     "model_descriptors": {
         "type": "weierstrass",
-        "description": "F-theory hypersurface model with fiber ambient space F_14",
-        "gauge_algebra": ["su3","su2","su2","u1"],
-        "global_gauge_quotients": [["Z3", [1, 4]], ["Z2", [2, 3, 4]]]
+        "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10",
+        "gauge_algebra": ["su2","su3"]
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["s7", "s9"],
-        "base_coordinates": ["s7", "s9", "s1", "s5", "s6"],
-        "f": "1//48*(- ( - s6^2 + 4*s5*s7)^2 - 24*s1*s6*s7*s9)",
-        "g": "1//864*(216*s1^2*s7^2*s9^2 - ( - s6^2 + 4*s5*s7)^3 - s1*s6*s7*s9*( - 36*s6^2 + 144*s5*s7))",
+        "model_sections": ["s5", "s2"],
+        "base_coordinates": ["s5", "s2", "s1", "s3", "s4", "s6", "s8"],
+        "f": "1//48*(48*s2*s4*s8^2 - ( - s6^2 + 4*s3*s8)^2 - 24*s4*s5*s6*s8)",
+        "g": "1//864*((2*s2*s4*s8^2 - s4*s5*s6*s8)*( - 36*s6^2 + 144*s3*s8) - ( - s6^2 + 4*s3*s8)^3 - 864*s1*s4^2*s8^3 + 216*s4^2*s5^2*s8^2)",
         "auxiliary_base_grading": [
-            [0, 0,  3,  2, 1],
-            [1, 0, -1, -1, 0],
-            [0, 1, -1,  0, 0]
+            [0, 0, -1,  1,  2, 1,  1],
+            [1, 0,  1, -1, -2, 0,  1],
+            [0, 1,  1,  1,  1, 0, -1]
         ],
-        "zero_section": ["0", "0", "1"],
-        "generating_sections": [
-            [
-                "1//12*(12*s1^2*s9^6 - s5^2*s9^4*( - s6^2 + 4*s5*s7) - 12*s1*s5*s6*s9^5)", 
-                "1//2*(2*s1^3*s9^9 - s1*s5^2*s9^7*( - s6^2 + s5*s7) - 3*s1^2*s5*s6*s9^8)", 
-                "s5*s9^2"
-            ]
-        ]
+        "zero_section": ["0", "0", "1"]
     },
     "associated_models": [
         "model1408_4808-1-WSF.json",
@@ -74,12 +66,12 @@
         "model1408_4808-7-WSF.json",
         "model1408_4808-8-WSF.json",
         "model1408_4808-9-WSF.json",
-        "model1408_4808-10-WSF.json",
         "model1408_4808-11-WSF.json",
         "model1408_4808-12-WSF.json",
         "model1408_4808-13-WSF.json",
+        "model1408_4808-14-WSF.json",
         "model1408_4808-15-WSF.json",
         "model1408_4808-16-WSF.json"
     ],
-    "related_models": ["model1408_4808-14.json"]
+    "related_models": ["model1408_4808-10.json"]
 }
