@@ -126,7 +126,23 @@ function simplify_light(S::MPolyPowersOfElement)
   end
 
   new_denom = elem_type(R)[a for a in unique!(new_denom) if !is_unit(a)]
+  fac_denom = elem_type(R)[]
 
+  # Try to factor the denominators if this is deemed possible
+  for a in new_denom
+    if total_degree(a) > 50 || length(a) > 10000
+      push!(fac_denom, a)
+    else
+      for (b, _) in factor(a)
+        push!(fac_denom, b)
+      end
+    end
+  end
+
+  new_denom = fac_denom
+
+  # Otherwise, it is still possible to play one denominator against another 
+  # with gcd to get more factors in a relatively efficient way.
   simplified = true
   while simplified
     new_denom = elem_type(R)[a for a in unique!(new_denom) if !is_unit(a)]
