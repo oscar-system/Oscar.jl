@@ -4,6 +4,7 @@ using BenchmarkTools
 
 include("cyclic.jl")
 include("katsura.jl")
+include("agk.jl")
 include("tran3.3.jl")
 include("newellp1.jl")
 
@@ -30,14 +31,17 @@ open("results.csv", "a") do io
   I = ideal([y^4 + x^3 - x^2 + x, x^4])
   benchmark(io, "simple", I, lex(R), default_ordering(R))
   
-  benchmark(io, "cyclic5-QQ", cyclic5(QQ)...)
-  benchmark(io, "cyclic5-Fp", cyclic5(Fp)...)
+  # benchmark(io, "cyclic5-QQ", cyclic5(QQ)...)
+  # benchmark(io, "cyclic5-Fp", cyclic5(Fp)...)
 
-  benchmark(io, "cyclic6-QQ", cyclic6(QQ)...)
-  benchmark(io, "cyclic6-Fp", cyclic6(Fp)...)
+  # benchmark(io, "cyclic6-QQ", cyclic6(QQ)...)
+  # benchmark(io, "cyclic6-Fp", cyclic6(Fp)...)
 
-  benchmark(io, "cyclic7-QQ", cyclic7(QQ)...)
-  benchmark(io, "cyclic7-Fp", cyclic7(Fp)...)
+  # benchmark(io, "cyclic7-QQ", cyclic7(QQ)...)
+  # benchmark(io, "cyclic7-Fp", cyclic7(Fp)...)
+
+  benchmark(io, "agk4-QQ", agk4(QQ)...)
+  benchmark(io, "agk4-Fp", agk4(Fp)...)
 
   benchmark(io, "katsura6-QQ", katsura6(QQ)...)
   benchmark(io, "katsura6-Fp", katsura6(Fp)...)
