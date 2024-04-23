@@ -416,9 +416,9 @@ is not absolutely irreducible.
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_bilinear_form(G::MatrixGroup)
-   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
-   return preimage_matrix(G.ring_iso, B)
+   return preimage_matrix(_ring_iso(G), B)
 end
 
 """
@@ -434,9 +434,9 @@ of odd degree over the prime field.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
-   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
-   return preimage_matrix(G.ring_iso, B)
+   return preimage_matrix(_ring_iso(G), B)
 end
 
 """
@@ -451,9 +451,9 @@ is not absolutely irreducible.
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
-      V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+      V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(_ring_iso(G)))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
-      return _upper_triangular_version(preimage_matrix(G.ring_iso, B))
+      return _upper_triangular_version(preimage_matrix(_ring_iso(G), B))
    else
       m = invariant_bilinear_form(G)
       for i in 1:degree(G), j in i+1:degree(G)
@@ -478,9 +478,9 @@ function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    L = GAP.Globals.PreservedQuadraticForms(G.X)
    R = SesquilinearForm{S}[]
    for f_gap in L
-      f = quadratic_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+      f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
-      f.ring_iso = G.ring_iso
+      f.ring_iso = _ring_iso(G)
       push!(R,f)
    end
    return R
@@ -499,11 +499,11 @@ function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    R = SesquilinearForm{S}[]
    for f_gap in L
       if GAPWrap.IsHermitianForm(f_gap)
-         f = hermitian_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = hermitian_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       elseif GAPWrap.IsSymmetricForm(f_gap)
-         f = symmetric_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = symmetric_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       elseif GAPWrap.IsAlternatingForm(f_gap)
-         f = alternating_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = alternating_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       else
          error("Invalid form")
       end
@@ -618,11 +618,11 @@ function isometry_group(f::SesquilinearForm{T}) where T
          e = -1
       end
    end
-   Xf = is_congruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+   Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
    if Xf === nothing && isodd(r)
-      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
    end
 
 

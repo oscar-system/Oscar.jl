@@ -65,7 +65,7 @@ end
 
 function _as_subgroup_bare(G::MatrixGroup, H::GapObj)
   H1 = typeof(G)(base_ring(G), degree(G))
-  H1.ring_iso = G.ring_iso
+  H1.ring_iso = _ring_iso(G)
   H1.X = H
   return H1
 end
@@ -150,7 +150,7 @@ Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, x.elm
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
 function assign_from_description(G::MatrixGroup)
-   F = codomain(G.ring_iso)
+   F = codomain(_ring_iso(G))
    if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
    elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
@@ -198,28 +198,31 @@ function assign_from_description(G::MatrixGroup)
    end
 end
 
+function _ring_iso(G::MatrixGroup{T}) where T
+  if !isdefined(G, :ring_iso)
+    if T === QQBarFieldElem
+      # get all matrix entries into one vector
+      entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
+      # construct a number field over which all matrices are already defined
+      nf, nf_to_QQBar = number_field(QQ, entries)
+      iso = iso_oscar_gap(nf)
+      G.ring_iso = MapFromFunc(G.ring, codomain(iso),
+                               x -> iso(preimage(nf_to_QQBar, x)),
+                               y -> nf_to_QQBar(preimage(iso, y))
+                               )
+    else
+      G.ring_iso = iso_oscar_gap(G.ring)
+    end
+  end
+  return G.ring_iso
+end
+
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
 function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
    isdefined(G,sym) && return getfield(G,sym)
 
-   if sym === :ring_iso
-      if T === QQBarFieldElem
-         # get all matrix entries into one vector
-         entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
-         # construct a number field over which all matrices are already defined
-         nf, nf_to_QQBar = number_field(QQ, entries)
-         psi = pseudo_inv(nf_to_QQBar)
-         iso = iso_oscar_gap(nf)
-         G.ring_iso = MapFromFunc(G.ring, codomain(iso),
-                                  x -> iso(preimage(nf_to_QQBar, x)),
-                                  y -> preimage(iso,nf_to_QQBar(y))
-                                  )
-      else
-         G.ring_iso = iso_oscar_gap(G.ring)
-      end
-
-   elseif sym === :X
+   if sym === :X
       if isdefined(G,:descr)
          assign_from_description(G)
       elseif isdefined(G,:gens)
@@ -240,9 +243,9 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    isdefined(x,sym) && return getfield(x,sym)
 
    if sym === :X
-      x.X = map_entries(x.parent.ring_iso, x.elm)
+      x.X = map_entries(_ring_iso(x.parent), x.elm)
    elseif sym == :elm
-      x.elm = preimage_matrix(x.parent.ring_iso, x.X)
+      x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
    end
    return getfield(x,sym)
 end
@@ -294,7 +297,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    elseif isdefined(G,:descr) && G.descr === :SL
       return det(x)==1, x_gap
    elseif x_gap === nothing
-      x_gap = map_entries(G.ring_iso, x)
+      x_gap = map_entries(_ring_iso(G), x)
    end
    return (x_gap in G.X), x_gap
 end
