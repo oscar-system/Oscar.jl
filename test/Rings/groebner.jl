@@ -21,15 +21,22 @@
     G = groebner_basis(I)
     J = ideal(R, y)
     @test reduce(J.gens, G) == [y]
+    @test reduce(y, G) == y
     J = ideal(R, x*y^2)
     matrix, res = reduce_with_quotients(J.gens, G)
     @test matrix * gens(G) + res == gens(J)
+    matrix, res = reduce_with_quotients(x*y^2, G)
+    @test matrix * gens(G) + [res] == [x*y^2]
     units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
+    unit, quots, res = reduce_with_quotients_and_unit(x*y^2, G)
+    @test matrix * gens(G) + [res] == units * [x*y^2]
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce(y^3, elem_type(R)[]) == y^3
+    @test reduce(y^3, Oscar.IdealGens(R, elem_type(R)[])) == y^3
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
     @test reduce([y^3], elem_type(R)[]) == [y^3]
+    @test reduce([y^3], Oscar.IdealGens(R, elem_type(R)[])) == [y^3]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     f = x+y^3
     g = x
@@ -41,17 +48,25 @@
     @test q * F + [r] == [f]
     q, r = reduce_with_quotients(f, elem_type(R)[])
     @test q * elem_type(R)[] + [r] == [f]
+    q, r = reduce_with_quotients(f, Oscar.IdealGens(R, elem_type(R)[]))
+    @test q * elem_type(R)[] + [r] == [f]
     q, r = reduce_with_quotients([f], F)
     @test q * F + r == [f]
     q, r = reduce_with_quotients([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == [f]
+    q, r = reduce_with_quotients([f], Oscar.IdealGens(R, elem_type(R)[]))
     @test q * elem_type(R)[] + r == [f]
     u, q, r = reduce_with_quotients_and_unit(f, F)
     @test q * F + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit(f, elem_type(R)[])
     @test q * elem_type(R)[] + [r] == u * [f]
+    u, q, r = reduce_with_quotients_and_unit(f, Oscar.IdealGens(R, elem_type(R)[]))
+    @test q * elem_type(R)[] + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], F)
     @test q * F + r == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == u * [f]
+    u, q, r = reduce_with_quotients_and_unit([f], Oscar.IdealGens(R, elem_type(R)[]))
     @test q * elem_type(R)[] + r == u * [f]
     f = x
     F = [1-x]
