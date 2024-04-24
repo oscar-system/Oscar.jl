@@ -804,8 +804,8 @@ Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec
 """
 function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
   # The following would reroute to a more high-brow method with cleaner code.
-  # However, it seems that it is not as performant as the more hacky implementation below.
-  # has_decomposition_info(covering) && return _maximal_associated_points(I; covering)
+  # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
+  # return _maximal_associated_points(I; covering, use_decomposition_info=false)
   !isone(I) || return typeof(I)[]
   X = scheme(I)
   OOX = OO(X)
@@ -871,7 +871,7 @@ function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
 end
 
 # Proof of concept method but seemingly slower than the above
-function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
+function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)), use_decomposition_info::Bool=true)
   X = scheme(I)
   comps = AbsIdealSheaf[]
   dec_inf = decomposition_info(covering)
@@ -879,7 +879,7 @@ function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(
     # A list of equations which indicate the locus in this chart 
     # which is *not* visible in "previous" charts. 
     loc_dec = elem_type(OO(U))[OO(U)(a) for a in dec_inf[U]]
-    if has_decomposition_info(covering)
+    if use_decomposition_info && has_decomposition_info(covering)
       # If the following holds, everything is visible in other charts already.
       is_one(I(U) + ideal(OO(U), loc_dec)) && continue
     else
@@ -890,7 +890,7 @@ function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(
     loc_primes = minimal_primes(I(U))
 
     # Take only those not visible in other charts 
-    has_decomposition_info(covering) && filter!(p->all(g->g in p, loc_dec), loc_primes) 
+    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(g->g in p, loc_dec), loc_primes) 
     for p in loc_primes
       P = PrimeIdealSheafFromChart(X, U, p)
       P in comps && continue
@@ -899,6 +899,18 @@ function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(
       push!(comps, P)
     end
   end
+
+  # Manually fill up the cache
+  if !use_decomposition_info # We can only do this if all we treated all components on all charts.
+    for U in patches(covering)
+      I_one = ideal(OO(U), one(OO(U)))
+      for P in comps
+        haskey(object_cache(P), U) && continue
+        object_cache(P)[U] = I_one
+      end
+    end
+  end
+
   return comps
 end
 
