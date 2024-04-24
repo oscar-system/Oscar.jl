@@ -2025,11 +2025,11 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   n = length(lat_X)
   mwr = rank(mordell_weil_lattice(X))
   for (i, D) in enumerate(lat_X)
-    @vprint :EllipticSurface 2 (i, D, pre_select[D])
+    @vprint :EllipticSurface 2 "$((i, D, pre_select[D]))\n"
     # D is a non-section
     Q = pre_select[D]
     I = first(components(D))
-    @vprint :EllipticSurface 2 typeof(I)
+    @vprint :EllipticSurface 2 "$(typeof(I))\n"
     dom_chart = _find_good_representative_chart(I)
     if i > n - mwr # if this is a section
       dom_chart = weierstrass_chart_on_minimal_model(X)
@@ -2048,8 +2048,8 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
 
         # collect all charts
         codomain_charts = AbsAffineScheme[]
-        if is_empty(comps) # The fiber over infinity is smooth
-          codomain_charts = affine_charts(Y)
+        if is_empty(comps) # The fiber over infinity
+          codomain_charts = affine_charts(Y) # TODO: How can we restrict the charts then?
         else
           codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
         end
@@ -2087,7 +2087,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
           res = _pushforward_section(step, pt; divisor=D, codomain_charts)
           result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
         else
-          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
+          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
           loc_map === nothing && error("preparation for pushforward did not succeed")
           match = i
 
