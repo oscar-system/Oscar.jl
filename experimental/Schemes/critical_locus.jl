@@ -49,4 +49,3 @@ function _degeneracy_locus(df::MatrixElem{T}, r::Int) where {T<:MPolyQuoLocRingE
   return ideal(L, minors(M, s))
 end
 
-dim(L::MPolyQuoLocRing) = dim(modulus(L))
