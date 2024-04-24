@@ -33,48 +33,20 @@ function generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::Monom
   )
 
   H = MarkedGroebnerBasis(gens(H), leading_term.(H, ordering = ord))
-  H = lift_generic(MG, H)
 
+  lift_generic!(H, MG)
   autoreduce!(H)
 
   return H
 end
 
-
-#= 
-
------ thesis example (chap3) 
-R, (x,y,z) = polynomial_ring(QQ, ["x","y","z"])
-
-o_s = lex(R)
-
-o_t= weight_ordering([1,3,0], deglex(R))
-S = canonical_matrix(o_s)
-T = canonical_matrix(o_t)
-
-I = ideal([x^2 + y*z, x*y + z^2])
-G = groebner_basis(I, ordering = o_s, complete_reduction = true)
-
-markedGB_generic_walk(G, o_s, o_t)
-
-
-=#
-
-
-#Auxiliary functions for the generic Gröbner walk, ordered by subroutine
-#----------------------------------
-
-
-#------next_gamma (Goal: Get next facet normal along generic path)
-
-dropfirst(V::AbstractVector) = Iterators.drop(V, 1)
 @doc raw"""
     difference_lead_tail(MG::MarkedGroebnerBasis)
 
 Computes $a - b$ for $a$ a leading exponent and $b$ in the tail of some $g\in MG$. 
 """
 function difference_lead_tail(MG::MarkedGroebnerBasis)
-  (G,Lm) = gens(MG), markings(MG) 
+  (G,Lm) = gens(MG), markings(MG)
   lead_exp = leading_exponent_vector.(Lm)
   
   v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
@@ -120,7 +92,7 @@ function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
   inwG = Vector{MPolyRingElem}()
 
   ctx = MPolyBuildCtx(R)
-  for (i, (g, m)) in gens_and_markings(MG) |> enumerate
+  for (g, m) in gens_and_markings(MG)
     c, a = leading_coefficient_and_exponent(m)
     push_term!(ctx, c, a)
 
@@ -147,7 +119,14 @@ function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
     H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
     end
   return H
-  end
+end
+
+function lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
+  for i in 1:length(H.gens)
+    H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
+    end
+  return H
+end
   
 
 
@@ -229,7 +208,7 @@ function filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::Monom
       Ref(w),
       V
     )
-    
+
     return unique!(V[skip_indices])
 end
 

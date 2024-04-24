@@ -42,8 +42,4 @@ o_s = matrix_ordering(R, [
 1 1 1 1 1 1 1 1 1 0 0;
 1 1 1 1 1 1 1 1 1 1 0])
 
-Ginit = groebner_basis(I, ordering = o_s)
-
-tg = @elapsed Gg = groebner_walk(I, o_t, o_s, algorithm =:generic) #>1hr
-ts = @elapsed Gs = groebner_walk(I, o_t, o_s, algorithm =:standard)
-tb = @elapsed Gb = groebner_basis(I, ordering = o_t, complete_reduction = true) #139s
+groebner_walk(I, o_t, o_s, algorithm =:generic) #>1hr
