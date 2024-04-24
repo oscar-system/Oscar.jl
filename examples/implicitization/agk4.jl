@@ -1,9 +1,8 @@
-#implicitization of Bezier surface
-
-
+#=
+    Implicitization of Bezier surface. Example taken from Amrhein, Gloor, Küchlin. "On the walk" (2004)
+=#
 using Oscar
 using GroebnerWalk
-using BenchmarkTools
 
 R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
 
@@ -17,7 +16,4 @@ I = ideal([
 ])
 set_verbosity_level(:groebner_walk, 1)
 
-G = groebner_basis(I, ordering = o2 )
-t_standard = @elapsed G = groebner_walk(I, o1, o2; algorithm=:standard)
-# t_generic = @elapsed G = groebner_walk(I, o2, o1; algorithm=:generic)
-# t_perturbed = @elapsed G = groebner_walk(I, o2, o1; algorithm=:perturbed)
+G = groebner_walk(I, o1, o2; algorithm=:standard)

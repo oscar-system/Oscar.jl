@@ -1,6 +1,7 @@
-#Example 3.3 from Tran
-# This is an example 3.3 from "A fast algorithm for Gröbner basis conversion and its applications"  ( Tran 2000)
-# 1-dimensional ideal (application not given)
+#= 
+   Example 3.3 from Tran. "A fast algorithm for Gröbner basis conversion and its applications" (2000)
+   A 1-dimensional ideal (application not given)
+=#
 using Oscar 
 using GroebnerWalk
 R, (x,y,z) = polynomial_ring(QQ, ["x","y","z"])

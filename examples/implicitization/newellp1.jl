@@ -1,7 +1,8 @@
-#Newell's teapot, patch 1
-#a 2 dimensional ideal from tran 2004
+#=
+    Newell's teapot, patch 1
+    A 2-dimensional ideal from Tran. "Efficient Groebner walk conversion for implicitization of geometric objects" (2004)
+=#
 using Oscar
-
 using GroebnerWalk 
 
 R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
@@ -11,12 +12,11 @@ I = ideal([
     -y + 63//125 * v^2 - 294//125 * v + 56//125 * v^3 - 819//1000 * u^2 * v + 42//125 * u^3 * v - 3//50 * u * v^3 + 351//2000 * u^2 * v^2 + 39//250 * u^2 * v^3 - 9//125 * u^3 * v^2 - 8//125 * u^3 * v^3,
     -z + 12//5 - 63//160 * u^2 + 63//160 * u
 ])
+
 Ginit = groebner_basis(I)
-#"optimal" choice of orderings, as stated in Tran 2004
+# "Optimal" choice of orderings, as stated in Tran 2004
 o1 = matrix_ordering(R, [1 1 1 0 0; 0 0 0 1 1; 0 0 0 1 0; 1 1 0 0 0; 1 0 0 0 0])
 o2 = matrix_ordering(R, [0 0 0 1 1; 1 1 1 0 0; 1 1 0 0 0; 1 0 0 0 0; 0 0 0 1 0])
+
 set_verbosity_level(:groebner_walk, 1)
-t_s = @elapsed Gs = groebner_walk(I, o2, o1; algorithm=:standard) #144s
-t_g = @elapsed Gg = groebner_walk(I, o2, o1; algorithm=:generic) #hangs (30+ minutes) after ~20 iterations.
-t_p = @elapsed Gp = groebner_walk(I, o2, o1; algorithm=:perturbed)
-t_b = @elapsed Gb = groebner_basis(I, ordering = o2) #20000s
+G = groebner_walk(I, o2, o1; algorithm=:standard)
