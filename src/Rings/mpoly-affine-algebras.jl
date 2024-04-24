@@ -1111,9 +1111,7 @@ function _subalgebra_membership_homogeneous_internal(f::MPolyDecRingElem, RtoT::
   S = codomain(TtoS)
   o = ordering(GJ)
 
-  FF = IdealGens(T, [RtoT(f)], o)
-  nf = reduce(FF, GJ, ordering = o)[1]
-  #nf = reduce(RtoT(f), GJ, ordering = o) # Needs #3640
+  nf = reduce(RtoT(f), GJ, ordering = o)
 
   # f is in the subalgebra iff nf does not involve the variables
   # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
