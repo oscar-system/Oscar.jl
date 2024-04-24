@@ -24,8 +24,7 @@ groebner_walk(I, lex(R)) # compute the Groebner basis
 
 ## Status
 This repository represents the status of the code as a submission for MEGA 2024.
-At the moment, the standard walk (TODO: reference) and the generic walk (TODO: references)
-are implemented.
+At the moment, the standard walk by Collart, Kalkbrener and Mall (1997) and the generic walk by Fukuda et al. are implemented.
 It is slated for inclusion into OSCAR as experimental package.
 
 ## Contacts
@@ -34,3 +33,8 @@ The library is maintained by Kamillo Ferry (kafe (at) kafe (dot) dev) and France
 ## Acknowledgement
 The current implementation is based on an implementation by Jordi Welp. We thank him for 
 laying the groundwork for this package.
+
+## References
+- Collart, S., M. Kalkbrener, and D. Mall. ‘Converting Bases with the Gröbner Walk’. Journal of Symbolic Computation 24, no. 3–4 (September 1997): 465–69. https://doi.org/10.1006/jsco.1996.0145.
+- Fukuda, K., A. N. Jensen, N. Lauritzen, and R. Thomas. ‘The Generic Gröbner Walk’. Journal of Symbolic Computation 42, no. 3 (1 March 2007): 298–312. https://doi.org/10.1016/j.jsc.2006.09.004.
+
