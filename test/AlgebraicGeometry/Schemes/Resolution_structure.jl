@@ -49,7 +49,7 @@ end
   X = subscheme(IS)
   U = first(affine_charts(X))
   phi = Oscar.desingularization(X)
-  @test morphism(phi,1) isa NormalizationMorphism
+  @test morphism(phi,1) isa Oscar.NormalizationMorphism
   @test morphism(phi,2) isa BlowupMorphism
   @test morphism(phi,3) isa BlowupMorphism
   aff_charts = affine_charts(domain(phi))

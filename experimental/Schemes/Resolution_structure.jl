@@ -8,8 +8,7 @@ export  find_refinement_with_local_system_of_params
 ##############################################################################
 @attributes mutable struct NormalizationMorphism{
     DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme,
-    BaseMorphsimType
+    CodomainType<:AbsCoveredScheme
    } <:AbsCoveredSchemeMorphism{
                                  DomainType,
                                  CodomainType,
@@ -17,46 +16,32 @@ export  find_refinement_with_local_system_of_params
                                  NormalizationMorphism,
                                 }
 
-  X::DomainType
-  Y::CodomainType
-  f::CoveringMorphism
-  inclusions::Vector{CoveredSchemeMorphism}
+  underlying_morphism::CoveredSchemeMorphism
+  inclusions::Vector{<:AbsCoveredSchemeMorphism}
 
   function NormalizationMorphism(
-      X::DomainType,
-      Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, BaseMorType},
-      inclusions::Vector{<:CoveredSchemeMorphism};
+      f::CoveredSchemeMorphism,
+      inclusions::Vector{<:AbsCoveredSchemeMorphism};
       check::Bool=true
     ) where {
              DomainType<:AbsCoveredScheme,
-             CodomainType<:AbsCoveredScheme,
-             BaseMorType
+             CodomainType<:AbsCoveredScheme
             }
-    @check is_refinement(domain(f), default_covering(X)) "covering not found in domain"
-    @check is_refinement(codomain(f), default_covering(Y)) "covering not found in codomain"
     @check is_normal(X) "not a normalization morphism"
-    @check all(Xi->is_subset(codomain(Xi), X), inclusions) "decomposition does not match"
-    ret_value = new{DomainType,CodomainType, BaseMorType}(X,Y,f)
-    ret_value.inclusions = inclusions
+    @check all(inc->codomain(inc) === domain(f), inclusions) "domains and codomains do not match"
+    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,inclusions)
     return ret_value    
   end
 
   function NormalizationMorphism(
-      X::DomainType,
-      Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, BaseMorType};
+      f::CoveredSchemeMorphism{DomainType, CodomainType, Nothing};
       check::Bool=true
     ) where {
              DomainType<:AbsCoveredScheme,
-             CodomainType<:AbsCoveredScheme,
-             BaseMorType
+             CodomainType<:AbsCoveredScheme
             }
-    @check is_refinement(domain(f), default_covering(X)) "covering not found in domain"
-    @check is_refinement(codomain(f), default_covering(Y)) "covering not found in codomain"
     @check is_normal(X) "not a normalization morphism"
-    ret_value = new{DomainType,CodomainType, BaseMorType}(X,Y,f)
-    ret_value.inclusions = [identity_map(X)]
+    ret_value = new{DomainType,CodomainType}(f,[identity_map(X)])
     return ret_value    
   end
 
@@ -80,11 +65,11 @@ end
   is_trivial::Bool                               # codomain already smooth?
 
   # fields for caching, to be filled during desingularization
-  ex_div::Vector{AbsIdealSheaf}                  # list of exc. divisors arising from individual steps
+  ex_div::Vector{<:AbsIdealSheaf}                # list of exc. divisors arising from individual steps
                                                  # in domain(maps[end]) -- at least in the end
-  normal_steps::Vector{Int}                      # index of parts of preimage of singular locus 
+  normalization_steps::Vector{Int}               # index of parts of preimage of singular locus
                                                  # not arising from blow-ups
-  ## CAUTION: ex_div[normal_steps[i]] need not even be of pure codim 1, i.e. a divisor, 
+  ## CAUTION: ex_div[normalization_steps[i]] need not even be of pure codim 1, i.e. a divisor,
   ##                                  as long as resolves_sing == false
   ##          lower dimensional components of it belong to future centers of blow ups 
 
@@ -102,7 +87,7 @@ end
       @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
     end
     resi = new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
-    resi.normal_steps = [i for i in 1:n if maps[i] isa NormalizationMorphism]
+    resi.normalization_steps = [i for i in 1:n if maps[i] isa NormalizationMorphism]
     return resi
   end
 
@@ -112,9 +97,7 @@ end
 ##################################################################################################
 # getters
 ##################################################################################################
-underlying_morphism(phi::NormalizationMorphism) = CoveredSchemeMorphism(phi.X,phi.Y,phi.f)
-domain(phi::NormalizationMorphism) = phi.X
-codomain(phi::NormalizationMorphism) = phi.Y
+underlying_morphism(phi::NormalizationMorphism) = phi.underlying_morphism
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]
@@ -128,11 +111,10 @@ function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=fa
   return phi.ex_div
 end
 
-normal_steps(phi::MixedBlowUpSequence) = phi.normal_steps
+normalization_steps(phi::MixedBlowUpSequence) = phi.normalization_steps
  
 embeddings(phi::BlowUpSequence) = phi.embeddings
 
-## do not use!!! (for forwarding and certain emergencies)
 function underlying_morphism(phi::AbsDesingMor)
   if !isdefined(phi, :underlying_morphism)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
@@ -165,7 +147,7 @@ function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   ex_div = [pullback(phi,E) for E in exceptional_divisorlist(f,true)]
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
-  push!(f.normal_steps,length(f.maps))
+  push!(f.normalization_steps,length(f.maps))
   return f
 end
 
@@ -272,7 +254,7 @@ function mixed_blow_up_sequence(f::BlowUpSequence)
   phi.resolves_sing = f.resolves_sing
   phi.is_trivial = f.is_trivial
   phi.ex_div = [ideal_sheaf(E) for E in f.ex_div]
-  phi.normal_steps = Vector{Int}[]
+  phi.normalization_steps = Vector{Int}[]
 ## how can I inherit f.composed_map and f.exceptional_divisor, if they are set?
   return phi
 end
