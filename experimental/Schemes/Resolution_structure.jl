@@ -23,10 +23,7 @@ export  find_refinement_with_local_system_of_params
       f::CoveredSchemeMorphism,
       inclusions::Vector{<:AbsCoveredSchemeMorphism};
       check::Bool=true
-    ) where {
-             DomainType<:AbsCoveredScheme,
-             CodomainType<:AbsCoveredScheme
-            }
+    ) 
     @check is_normal(X) "not a normalization morphism"
     @check all(inc->codomain(inc) === domain(f), inclusions) "domains and codomains do not match"
     ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,inclusions)
@@ -34,14 +31,11 @@ export  find_refinement_with_local_system_of_params
   end
 
   function NormalizationMorphism(
-      f::CoveredSchemeMorphism{DomainType, CodomainType, Nothing};
+      f::CoveredSchemeMorphism;
       check::Bool=true
-    ) where {
-             DomainType<:AbsCoveredScheme,
-             CodomainType<:AbsCoveredScheme
-            }
+    )
     @check is_normal(X) "not a normalization morphism"
-    ret_value = new{DomainType,CodomainType}(f,[identity_map(X)])
+    ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,[identity_map(X)])
     return ret_value    
   end
 
