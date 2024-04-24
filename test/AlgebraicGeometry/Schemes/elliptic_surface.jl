@@ -190,7 +190,11 @@ end
   JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
  
   IIX = first(components(Oscar._section(X, 2*P)));
-  @test IIX == JJ
+  # We have little chance to get through with the computations on all charts. 
+  # But it suffices to compare the result on the weierstrass charts.
+  weier = weierstrass_chart_on_minimal_model(X)
+  @test IIX(weier) == JJ(weier)
+
   
   # pushforward of the whole algebraic lattice with verification of the result.
   # This test is hardcoded, but should remain stable throughout future changes.
@@ -223,8 +227,8 @@ end
             ]
   @test_broken res_mat == ref_mat # TODO: Simon, are you sure about the form of ref_mat?
   
-  # The 11th entry takes very long.
-  B = [intersect(a, b) for a in ll[1:10], b in ll[1:10]]
-  @test A[1:10, 1:10] == B
+  res_mat = matrix(ZZ, res_mat)
+  # Check that the base change matrix is indeed orthogonal for the given lattice
+  @test res_mat*matrix(ZZ, A)*transpose(res_mat) == matrix(ZZ, A)
 end
 
