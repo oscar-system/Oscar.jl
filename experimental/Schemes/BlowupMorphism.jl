@@ -937,6 +937,7 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   E = exceptional_divisor(f)
   IE = ideal_sheaf(E)
   # We assume that the covering morphism has the default_covering of X as its domain.
+  @assert domain(covering_morphism(f)) === default_covering(X) "not implemented for this covering"
   f_loc = covering_morphism(f)[U]
   V = codomain(f_loc)
   IE_loc = IE(U)
@@ -945,7 +946,7 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   return result
 end
 
-function is_prime(I::StrictTransformIdealSheaf)
+@attr Bool function is_prime(I::StrictTransformIdealSheaf)
   is_subset(original_ideal_sheaf(I), radical(center(morphism(I)))) && return false # It's the unit ideal sheaf in this case
   return is_prime(original_ideal_sheaf(I))
 end

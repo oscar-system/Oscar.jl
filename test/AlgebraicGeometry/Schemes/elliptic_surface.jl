@@ -127,7 +127,7 @@ end
   E = elliptic_curve(Ktf, [0, -t^3, 0, t^3, 0])
   P = E([t^3, t^3])
   X2 = elliptic_surface(E, 2, [P]);
-  KX2 = function_field(X2)
+  KX2 = function_field(X2; check=false)
   U = weierstrass_chart(X2)
   (xx, yy, tt) = ambient_coordinates(U)
   u4 = KX2(yy, xx*tt)
@@ -181,7 +181,7 @@ end
     gluing_domains(g) # Trigger the computation once
   end
 
-  D_P = Oscar._section(X, P)
+  D_P = section(X, P)
  
   II = first(components(D_P));
  
@@ -189,7 +189,7 @@ end
  
   JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
  
-  IIX = first(components(Oscar._section(X, 2*P)));
+  IIX = first(components(section(X, 2*P)));
   # We have little chance to get through with the computations on all charts. 
   # But it suffices to compare the result on the weierstrass charts.
   weier = weierstrass_chart_on_minimal_model(X)
@@ -197,38 +197,14 @@ end
 
   
   # pushforward of the whole algebraic lattice with verification of the result.
-  # This test is hardcoded, but should remain stable throughout future changes.
-  # Details can be found in a forthcoming paper on Oguiso's automorphism 
-  # by Simon Brandhorst and Matthias Zach
-  lat = algebraic_lattice(X)[1]
-  A = [intersect(a, b) for a in lat, b in lat]
+  lat, _, A = algebraic_lattice(X)
+  A = gram_matrix(A)
  
   ll = Oscar._pushforward_lattice_along_isomorphism(trans)
   res_mat = [Oscar.basis_representation(X, d) for d in ll]
-  ref_mat = [
-             [ 1,  0,   0,   0,   0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 7,  3,  -1,  -1,  -2,  -1,  -1,  -1,  -1,  -2,  1,   0,  0,  -1,  -1,  -1,   0,   0],
-             [ 1,  0,  -1,  -1,  -1,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   0,   1,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   1,   0,   0,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   0,   0,   0,   1,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   0,   0,   1,   0,   0,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   0,   0,   0,   0,   0,   1,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 0,  0,   0,   0,   0,   0,   0,   1,   0,   0,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 1,  0,   0,   0,   0,   0,   0,  -1,  -1,  -1,  0,   0,  0,   0,   0,   0,   0,   0],
-             [ 9,  4,  -1,  -2,  -3,  -2,  -2,  -2,  -2,  -2,  0,   0,  0,  -1,  -1,  -1,   0,   0],
-             [ 4,  2,   0,   0,  -1,  -1,  -1,   0,   0,  -1,  1,   0,  0,   0,  -1,  -1,   0,   0],
-             [ 6,  2,  -1,  -1,  -1,  -1,  -1,   0,  -1,  -2,  1,  -1,  1,   0,  -1,  -1,   0,   0],
-             [ 6,  2,   0,  -1,  -2,  -1,  -1,  -1,  -1,  -1,  1,   1,  0,  -1,  -1,  -1,   0,   0],
-             [11,  4,  -1,  -2,  -3,  -2,  -2,  -1,  -1,  -2,  1,   0,  0,  -1,  -1,  -2,   0,   0],
-             [11,  4,  -1,  -2,  -3,  -2,  -2,  -1,  -1,  -2,  1,   0,  0,  -1,  -2,  -1,   0,   0],
-             [11,  4,  -1,  -1,  -2,  -2,  -2,  -2,  -2,  -2,  1,   0,  0,  -1,  -1,  -1,  -1,   0],
-             [10,  4,  -1,  -2,  -3,  -2,  -2,  -1,  -1,  -2,  1,   0,  0,  -1,  -1,  -1,   0,  -1]
-            ]
-  @test_broken res_mat == ref_mat # TODO: Simon, are you sure about the form of ref_mat?
   
-  res_mat = matrix(ZZ, res_mat)
+  res_mat = matrix(QQ, res_mat)
   # Check that the base change matrix is indeed orthogonal for the given lattice
-  @test res_mat*matrix(ZZ, A)*transpose(res_mat) == matrix(ZZ, A)
+  @test res_mat*A*transpose(res_mat) == A
 end
 

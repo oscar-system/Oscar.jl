@@ -846,6 +846,8 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
   end
 
   # fill the gaps arising from a support not meeting a patch
+  # Warning: This relies on the current implementation of `==` for 
+  # `PrimeIdealSheafFromChart`s which cache intermediate results.
   for U in affine_charts(X)
     I_one = ideal(OOX(U),one(OOX(U)))
     for i in 1:length(associated_primes_temp)
@@ -870,7 +872,7 @@ function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
   return radical_membership(lifted_numerator(x), saturated_ideal(I))
 end
 
-# Proof of concept method but seemingly slower than the above
+# Proof of concept method
 function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)), use_decomposition_info::Bool=true)
   X = scheme(I)
   comps = AbsIdealSheaf[]
