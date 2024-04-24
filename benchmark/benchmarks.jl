@@ -16,11 +16,14 @@ function benchmark(
   start::MonomialOrdering
 )
   print(io, name, ","); flush(io)
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:standard) seconds=20000 samples=5
+  # t = @belapsed groebner_walk($I, $target, $start; algorithm=:standard) seconds=20000 samples=5
+  t = @elapsed groebner_walk(I, target, start; algorithm=:standard)
   print(io, t, ","); flush(io)
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic) seconds=20000 samples=5
+  # t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic) seconds=20000 samples=5
+  t = @elapsed groebner_walk(I, target, start; algorithm=:generic)
   print(io, t, ","); flush(io)
-  t = @belapsed groebner_basis($I; ordering=$target) seconds=20000 samples=5
+  # t = @belapsed groebner_basis($I; ordering=$target) seconds=20000 samples=5
+  t = @elapsed groebner_basis(I; ordering=target)
   println(io, t); flush(io)
 end
 
@@ -43,8 +46,8 @@ open("results.csv", "a") do io
   benchmark(io, "agk4-QQ", agk4(QQ)...)
   benchmark(io, "agk4-Fp", agk4(Fp)...)
 
-  benchmark(io, "katsura6-QQ", katsura6(QQ)...)
-  benchmark(io, "katsura6-Fp", katsura6(Fp)...)
+  # benchmark(io, "katsura6-QQ", katsura6(QQ)...)
+  # benchmark(io, "katsura6-Fp", katsura6(Fp)...)
 
   benchmark(io, "tran3.3-QQ", tran33(QQ)...)
   benchmark(io, "tran3.3-Fp", tran33(Fp)...)
