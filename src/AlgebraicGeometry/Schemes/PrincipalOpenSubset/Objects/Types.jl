@@ -4,20 +4,21 @@
 @attributes mutable struct PrincipalOpenSubset{BRT, RT<:Ring, AmbientType} <: AbsAffineScheme{BRT, RT}
   X::AmbientType
   U::AffineScheme{BRT, RT}
-  f::RingElem
+  f::Vector{<:MPolyRingElem} # factors of a representative of the complement equation
+  h::RingElem # The equation in the ambient scheme defining the complement of this
   inc::AbsAffineSchemeMor # A PrincipalOpenInclusion, really; but this can not be
                   # said here because of the inclusion order.
 
   function PrincipalOpenSubset(X::AbsAffineScheme, f::RingElem)
     parent(f) == OO(X) || error("element does not belong to the correct ring")
     U = hypersurface_complement(X, [f])
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, [lifted_numerator(f)], f)
   end
 
   function PrincipalOpenSubset(X::AbsAffineScheme, f::Vector{<:RingElem})
     all(x->(parent(x) == OO(X)), f) || return PrincipalOpenSubset(X, OO(X).(f))
     U = hypersurface_complement(X, f)
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, (length(f)>0 ? OO(X)(prod(lifted_numerator.(f))) : one(OO(X))))
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, lifted_numerator.(f), (length(f)>0 ? OO(X)(prod(lifted_numerator.(f))) : one(OO(X))))
   end
 
   # The following constructors allow to pass a ring as an extra argument.
@@ -27,13 +28,13 @@
     )
     U = spec(R)
     @check U == hypersurface_complement(X, f) "scheme is not isomorphic to the anticipated open subset"
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, f)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, lifted_numerator.(f))
   end
   function PrincipalOpenSubset(X::AbsAffineScheme, R::Ring, f::Vector{T};
       check::Bool=true
     ) where {T<:RingElem}
     d = prod(length(f) > 0 ? f : one(OO(X)))
-    return PrincipalOpenSubset(X, R, d, check=check)
+    return PrincipalOpenSubset(X, R, lifted_numerator.(f), d, check=check)
   end
 end
 

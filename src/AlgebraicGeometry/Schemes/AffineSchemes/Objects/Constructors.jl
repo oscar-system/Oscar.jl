@@ -445,6 +445,7 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -456,6 +457,7 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -466,6 +468,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -476,6 +479,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -524,6 +528,7 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -535,6 +540,7 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -545,6 +551,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -555,6 +562,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)

@@ -127,7 +127,7 @@ end
   E = elliptic_curve(Ktf, [0, -t^3, 0, t^3, 0])
   P = E([t^3, t^3])
   X2 = elliptic_surface(E, 2, [P]);
-  KX2 = function_field(X2)
+  KX2 = function_field(X2; check=false)
   U = weierstrass_chart(X2)
   (xx, yy, tt) = ambient_coordinates(U)
   u4 = KX2(yy, xx*tt)
@@ -144,5 +144,70 @@ end
   g4,_ = two_neighbor_step(X2, fibers_in_X2[4])  # this should be the 2-torsion case
   g5,_ = two_neighbor_step(X2, fibers_in_X2[5])  # the non-torsion case
   g6,_ = two_neighbor_step(X2, fibers_in_X2[6])  # the non-torsion case
+end
+=#
+
+#=
+# The following tests take roughly 10 minutes which is too much for the CI testsuite.
+# We keep them for long running tests to be checked every now and then.
+@testset "translation on elliptic surfaces" begin
+  P, t = GF(113)[:t]
+  kt = fraction_field(P)
+
+  R, (x, y) = kt[:x, :y]
+
+  f = y^2 - (x^3 + (37*t^8 + 56*t^7 + 102*t^6 + 97*t^5 + 21*t^4 + 14*t^3 + 24*t^2 + 23*t + 59)*x + 18*t^12 + 111*t^11 + 17*t^10 + 25*t^9 + 108*t^8 + 91*t^7 + 90*t^6 + 21*t^5 + 68*t^4 + 8*t^3 + 92*t^2 + 66*t + 31)
+
+  E = elliptic_curve(f, x, y)
+
+  P = E([(10*t^6 + 23*t^5 + 94*t^4 + 32*t^3 + t^2 + 40*t + 52)//(t^2 + 77*t + 98), (22*t^9 + 40*t^8 + 63*t^7 + 42*t^6 + 34*t^5 + 48*t^4 + 72*t^3 + 92*t^2 + 85*t + 91)//(t^3 + 59*t^2 + 68*t + 44)])
+  
+  pts = E.([
+  [111*t^4 + 94*t^3 + 57*t^2 + 55*t + 31, 106*t^6 + 2*t^5 + 61*t^4 + 92*t^3 + 105*t^2 + 42*t + 24],   
+  [26*t^3 + 32*t^2 + 41*t + 95, 73*t^6 + 101*t^5 + 83*t^4 + 45*t^3 + 53*t^2 + 97], 
+  [23*t^4 + 35*t^3 + 27*t^2 + 106*t + 40, 43*t^6 + 103*t^5 + 15*t^4 + 44*t^3 + 34*t^2 + 30*t + 88],
+  [109*t^4 + 49*t^3 + 82*t^2 + 69*t + 80, 22*t^6 + 51*t^5 + 27*t^4 + 5*t^3 + 27*t^2 + 80*t + 62],
+  [103*t^4 + 27*t^3 + 44*t^2 + 111*t + 1, 2*t^6 + 72*t^5 + 37*t^4 + 59*t^3 + 55*t^2 + 106*t + 59],
+  [6*t^4 + 48*t^3 + 70*t^2 + 112*t + 61, 111*t^6 + 41*t^5 + 76*t^4 + 54*t^3 + 58*t^2 + 7*t + 54],
+  [42*t^4 + 7*t^3 + 106*t^2 + 112*t + 69, 96*t^6 + 100*t^5 + 48*t^4 + 34*t^3 + 112*t^2 + 83*t + 74],
+  [59*t^4 + 55*t^3 + 50*t^2 + 36*t + 8, 15*t^6 + 23*t^5 + 92*t^4 + 64*t^3 + 103*t^2 + 17*t + 87]
+  ])
+
+  X = elliptic_surface(E, 2, pts)
+
+  #set_verbose_level(:EllipticSurface, 5)
+
+  # The following should not take more than at most two minutes.
+  # But it broke the tests at some point leading to timeout, 
+  # so we put it here to indicate regression.
+  for (i, g) in enumerate(values(gluings(default_covering(X))))
+    gluing_domains(g) # Trigger the computation once
+  end
+
+  D_P = section(X, P)
+ 
+  II = first(components(D_P));
+ 
+  trans = Oscar.translation_morphism(X, P; divisor=D_P)
+ 
+  JJ = Oscar._pushforward_section(trans, P; divisor=D_P)
+ 
+  IIX = first(components(section(X, 2*P)));
+  # We have little chance to get through with the computations on all charts. 
+  # But it suffices to compare the result on the weierstrass charts.
+  weier = weierstrass_chart_on_minimal_model(X)
+  @test IIX(weier) == JJ(weier)
+
+  
+  # pushforward of the whole algebraic lattice with verification of the result.
+  lat, _, A = algebraic_lattice(X)
+  A = gram_matrix(ambient_space(A))
+ 
+  ll = Oscar._pushforward_lattice_along_isomorphism(trans)
+  res_mat = [Oscar.basis_representation(X, d) for d in ll]
+  
+  res_mat = matrix(QQ, res_mat)
+  # Check that the base change matrix is indeed orthogonal for the given lattice
+  @test res_mat*A*transpose(res_mat) == A
 end
 =#
