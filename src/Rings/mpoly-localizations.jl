@@ -85,11 +85,18 @@ end
 ### simplification. 
 # Replaces each element d by its list of square free prime divisors.
 function simplify!(S::MPolyPowersOfElement)
+  S.is_simplified && return S
   S.a = denominators(simplify(S))
+  S.is_simplified = true
   return S
 end
 
 function simplify(S::MPolyPowersOfElement)
+  if S.is_simplified 
+    result = MPolyPowersOfElement(ring(S), denominators(S))
+    result.is_simplified = true
+    return result
+  end
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
@@ -102,11 +109,18 @@ function simplify(S::MPolyPowersOfElement)
 end
 
 function simplify_light!(S::MPolyPowersOfElement)
+  (S.is_simplified || S.is_lightly_simplified) && return S
   S.a = denominators(simplify_light(S))
   return S
 end
 
 function simplify_light(S::MPolyPowersOfElement)
+  if S.is_simplified || S.is_lightly_simplified
+    result = MPolyPowersOfElement(ring(S), denominators(S))
+    result.is_lightly_simplified = true
+    return result
+  end
+    
   # TODO: replace this by coprime_base once this has a method for multivariate polynomial rings.
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
@@ -160,6 +174,7 @@ function simplify_light(S::MPolyPowersOfElement)
   end
 
   result = MPolyPowersOfElement(R, new_denom)
+  result.is_lightly_simplified = true
   return result
 end
 
