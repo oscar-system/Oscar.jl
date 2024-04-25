@@ -147,6 +147,9 @@ end
 end
 =#
 
+#=
+# The following tests take roughly 10 minutes which is too much for the CI testsuite.
+# We keep them for long running tests to be checked every now and then.
 @testset "translation on elliptic surfaces" begin
   P, t = GF(113)[:t]
   kt = fraction_field(P)
@@ -207,4 +210,4 @@ end
   # Check that the base change matrix is indeed orthogonal for the given lattice
   @test res_mat*A*transpose(res_mat) == A
 end
-
+=#
