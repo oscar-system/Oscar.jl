@@ -96,17 +96,11 @@ Computes the normal form of `p` with respect to the marked reduced Gröbner basi
 """
 normal_form(p::MPolyRingElem, MG::MarkedGroebnerBasis) = _normal_form(p, gens(MG), markings(MG))
 
-# Calculates whether the monomial x^g divides x^f
-# divides(f::Vector{Int}, g::Vector{Int}) = all(g .<= f)
-
-#Given a markedGB MG, reduce it by replacing each g with its normal form w.r.t G\{g} 
-#NB: only works if MG is inclusion minimal
-#In this case upon reduction, the markings are preserved
-#Question: Can I eliminate the 'if' condition? probably
 @doc raw"""
     autoreduce(MG::MarkedGroebnerBasis)
 
 Given a marked Gröbner basis $MG$, reduce it by replacing each $g\in MG$ with its normal form $g^G$. 
+This method requires `MG` to be a inclusion-minimal Gröbner basis. 
 """
 function autoreduce(MG::MarkedGroebnerBasis)
     newgens = Vector{MPolyRingElem}()
@@ -117,10 +111,11 @@ function autoreduce(MG::MarkedGroebnerBasis)
         rest = some_gens_with_markings(MG, 1:n .!= i)
         nf = _normal_form(g, rest...)
 
-        if !iszero(nf)
+        #Question: Can we eliminate the 'if' condition?
+        # if !iszero(nf)
           push!(newgens, nf)
           push!(newlm, mark)
-        end 
+        # end 
     end
     return MarkedGroebnerBasis(newgens, newlm) 
 end
@@ -136,9 +131,9 @@ function autoreduce!(MG::MarkedGroebnerBasis)
     rest = some_gens_with_markings(MG, 1:n .!= i)
     nf = _normal_form(g, rest...)
 
-    if !iszero(nf)
+    # if !iszero(nf)
       MG.gens[i] = nf
-    end
+    # end
   end
 end
     
