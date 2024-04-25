@@ -65,8 +65,7 @@ function divides_walk(p::MPolyRingElem, lm::MPolyRingElem)
 end
 
 function _normal_form(p::MPolyRingElem, G::AbstractVector{<:MPolyRingElem}, mark::AbstractVector{<:MPolyRingElem})
-  #queue = Set(terms(p))
-  nf = zero(parent(p))
+  nf = MPolyBuildCtx(parent(p))
   MG = zip(G, mark)
 
   while !iszero(p)
@@ -82,12 +81,12 @@ function _normal_form(p::MPolyRingElem, G::AbstractVector{<:MPolyRingElem}, mark
     end
 
     if !div
-      nf += m
+      push_term!(nf, leading_coefficient_and_exponent(m)...)
       p -= m
     end
   end
 
-  return nf
+  return finish(nf)
 end
 
 @doc raw"""
