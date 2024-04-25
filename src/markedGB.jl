@@ -136,34 +136,3 @@ function autoreduce!(MG::MarkedGroebnerBasis)
     # end
   end
 end
-    
-#=
-
-tests
-
-R, (x,y) = polynomial_ring(QQ, ["x","y"])
-
-G = [x^3 + y^4 + y^6 + x*y^7, y^2 + 4*x^5 + x^2*y^7]
-LM  = [x*y^7, 4*x^5]
-MG = markedGB(G, LM)
-reductionalg(MG)
-normal_form(x^5, MG)
-
-R, (x,y,z,w) = polynomial_ring(QQ, ["x","y","z","w"])
-G = [x-2*y-z-w, z+3*w]
-lm = [x, z]
-MG = markedGB(G, lm)
-p = w
-normal_form(p, MG)
-normal_form(x, MG)
-
-
-KK = GF(19)
-R, (x,y) = polynomial_ring(KK, ["x", "y"])
-G = [x^2 + y^2, y]
-Lm = [x^2, y]
-MG = markedGB(G, Lm)
-MG = reductionalg(MG)
-normal_form(x^3 - 1, MG)
-=#
-

@@ -127,21 +127,13 @@ function lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
     end
   return H
 end
-  
 
+@doc raw"""
+    less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
 
-#--------------------------
-
-
-
-
-#helper functions 
-
-
-#returns 'true' if Mv <_{lex} 0 , 'false' otherwise 
-# <_{lex} is the lexicographic ordering on Q^n
-#with the notation from my thesis, this is equivalent to v <_M 0
-function new_less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
+Checks whether  $Mv <_{\mathrm{lex}} 0$.
+"""
+function less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
   if is_zero(v)
     return false
   else
@@ -161,7 +153,7 @@ Computes all elements $v\in V$ with $0 <_{\texttt{target}} v$ and $v <_{\texttt{
 """
 function filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
   pred = v -> (
-    new_less_than_zero(canonical_matrix(target), ZZ.(v)) && !new_less_than_zero(canonical_matrix(start), ZZ.(v))
+    less_than_zero(canonical_matrix(target), ZZ.(v)) && !less_than_zero(canonical_matrix(start), ZZ.(v))
   )
   return unique!(filter(pred, V))
 end
