@@ -194,11 +194,11 @@ function fp_group_with_isomorphism(C::GModule)
       X = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X), GAP.julia_to_gap("a"))
 
       C.F = FPGroup(GAPWrap.Range(X))
-      C.mF = GAPGroupHomomorphism(C.F, G, GAP.Globals.InverseGeneralMapping(X))
+      C.mF = GAPGroupHomomorphism(G, C.F, X)
       return C.F, C.mF
     else
       C.F, C.mF = fp_group_with_isomorphism(gens(G))
-      C.mF = GAPGroupHomomorphism(C.F, group(C), GAP.Globals.InverseGeneralMapping(C.mF.map))
+#      C.mF = GAPGroupHomomorphism(C.F, group(C), GAP.Globals.InverseGeneralMapping(C.mF.map))
     end
   end
   return C.F, C.mF
@@ -293,9 +293,9 @@ function action(C::GModule, g)
 #    return map_word(g, ac, genimgs_inv = iac, init = h)
 #  end
   F, mF = fp_group_with_isomorphism(C)
-  return map_word(preimage(mF, g), ac, genimgs_inv = iac, init = h)
+  return map_word(mF(g), ac, genimgs_inv = iac, init = h)
 
-  for i = word(preimage(mF, g))
+  for i = word(mF((g))
     if i > 0
       h = h*ac[i]
 #      v = map(ac[i], v)
