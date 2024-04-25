@@ -1915,7 +1915,6 @@ end
 
 function radical(I::AbsIdealSheaf)
   result = RadicalOfIdealSheaf(I)
-  set_attribute!(result, :is_radical=>true) # Some methods might be blind to is_radical and only want to check `is_known_to_be_radical` via attributes. Setting this makes sure they get it. 
   return result
 end
 

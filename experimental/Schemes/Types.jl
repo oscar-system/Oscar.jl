@@ -443,6 +443,7 @@ end
                       is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
                      )
     I = new{typeof(X), AbsAffineScheme, Ideal, Map}(orig, Ipre)
+    set_attribute!(I, :is_radical=>true) # Some methods might be blind to is_radical and only want to check `is_known_to_be_radical` via attributes. Setting this makes sure they get it. 
     return I
   end
 end

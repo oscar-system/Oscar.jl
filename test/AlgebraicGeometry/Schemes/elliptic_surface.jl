@@ -198,7 +198,7 @@ end
   
   # pushforward of the whole algebraic lattice with verification of the result.
   lat, _, A = algebraic_lattice(X)
-  A = gram_matrix(A)
+  A = gram_matrix(ambient_space(A))
  
   ll = Oscar._pushforward_lattice_along_isomorphism(trans)
   res_mat = [Oscar.basis_representation(X, d) for d in ll]
