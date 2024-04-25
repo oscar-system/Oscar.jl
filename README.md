@@ -1,6 +1,6 @@
 # Gröbner walk
 
-![https://zenodo.org/badge/DOI/10.5281/zenodo.11065978.svg](https://doi.org/10.5281/zenodo.11065978)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11065978.svg)](https://doi.org/10.5281/zenodo.11065978)
 
 GroebnerWalk.jl is a Julia package providing implementations of Gröbner walk algorithms
 for computing Gröbner bases over fields on top of Oscar.jl.
