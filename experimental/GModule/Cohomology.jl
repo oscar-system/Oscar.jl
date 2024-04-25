@@ -295,7 +295,7 @@ function action(C::GModule, g)
   F, mF = fp_group_with_isomorphism(C)
   return map_word(mF(g), ac, genimgs_inv = iac, init = h)
 
-  for i = word(mF((g))
+  for i = word(mF(g))
     if i > 0
       h = h*ac[i]
 #      v = map(ac[i], v)
