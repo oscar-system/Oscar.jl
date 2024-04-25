@@ -25,9 +25,9 @@ groebner_walk(I, lex(R)) # compute the Groebner basis
 ```
 
 ## Status
-This repository represents the status of the code as a submission for MEGA 2024.
+This repository represents the status of the code as a submission for MEGA 2024. It is slated for inclusion into OSCAR as experimental package.
+
 At the moment, the standard walk by Collart, Kalkbrener and Mall (1997) and the generic walk by Fukuda et al. are implemented.
-It is slated for inclusion into OSCAR as experimental package.
 
 ## Contacts
 The library is maintained by Kamillo Ferry (kafe (at) kafe (dot) dev) and Francesco Nowell (francesconowell (at) gmail (dot) com).
