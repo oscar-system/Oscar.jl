@@ -66,16 +66,6 @@ end
 # The standard step is used for the strategies standard and perturbed.
 ###############################################################
 
-@doc raw"""
-    standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)
-
-TODO
-
-# Arguments
-- `G::Oscar.IdealGens`: Groebner basis of an ideal.
-- `w::Vector{ZZRingElem}`: TODO
-- `target::MonomialOrdering`: TODO
-"""
 function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::MonomialOrdering)
   current_ordering = ordering(G)
   next = weight_ordering(w, target)
@@ -175,20 +165,6 @@ function bounding_vectors(I::Oscar.IdealGens)
   return unique!(reduce(vcat, v))
 end
 
-# TODO: Actual docstring
-#= Lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
-  
-  Input:  - G , the reduced G.B of I w.r.t current
-          - current, the current monomial order
-          - H, the reduced G.B of inw(I) w.r.t the next weight vector w 
-          - target, the next monomial order 
-  
-  Output: - an inclusion minimal G.B of target obtained by subtracting normal forms
-
-  QUESTION: why do we need "target" in Oscar.IdealGens(...)? 
-
-  COMMENT: I think "target" is inappropriately named. It is rather "next_ordering" (i.e the target order, refined by w)
-=#
 @doc raw"""
     lift(
       G::Oscar.IdealGens, # momentane GB
