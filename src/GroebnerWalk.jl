@@ -20,21 +20,7 @@ function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
     return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
 end
 
-#weight_ordering(w::Vector{Int}, o::MonomialOrdering) = weight_ordering(ZZ.(w), o)
-
-
 export groebner_walk
-export standard_walk
-
-export initial_form
-export initial_forms
-
-
-
-export standard_step
-export next_weight
-export lift2
-export difference_lead_tail
 
 function __init__()
     add_verbosity_scope(:groebner_walk)
