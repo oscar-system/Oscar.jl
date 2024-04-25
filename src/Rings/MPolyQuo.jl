@@ -1826,13 +1826,18 @@ julia> small_generating_set(a)
 
 ```
 """
-function small_generating_set(I::MPolyQuoIdeal)
-  # For non-homogeneous ideals, we do not have a notion of minimal generating
-  # set, but Singular.mstd still provides a good heuristic to find a small
-  # generating set.
-  Q = base_ring(I)
-  # Temporary workaround, see #3499
-  return unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I)))))
+function small_generating_set(
+    I::MPolyQuoIdeal; 
+    algorithm::Symbol=:simple
+  )
+  return get_attribute!(I, :small_generating_set) do
+    # For non-homogeneous ideals, we do not have a notion of minimal generating
+    # set, but Singular.mstd still provides a good heuristic to find a small
+    # generating set.
+    Q = base_ring(I)
+    # Temporary workaround, see #3499
+    unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I); algorithm))))
+  end::Vector{elem_type(base_ring(I))}
 
   @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
 

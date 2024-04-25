@@ -292,7 +292,7 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
 
   R = G.ring
-  iso = G.ring_iso
+  iso = _ring_iso(G)
   GAPWrap.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
 
   M = matrix_group(R, d)

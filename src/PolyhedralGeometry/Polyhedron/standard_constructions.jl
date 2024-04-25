@@ -257,6 +257,8 @@ Construct the `i`-th proper Johnson solid.
 
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+
+See also [`is_johnson_solid`](@ref).
 """
 function johnson_solid(index::Int)
   if index in _johnson_indexes_from_oscar
@@ -717,8 +719,10 @@ cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 Construct a Platonic solid with the name given by String `s` from the list
 below.
 
+See also [`is_platonic_solid`](@ref).
+
 # Arguments
-- `s::String`: The name of the desired Archimedean solid.
+- `s::String`: The name of the desired Platonic solid.
     Possible values:
     - "tetrahedron" : Tetrahedron.
           Regular polytope with four triangular facets.
@@ -746,8 +750,10 @@ platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below.  The polytopes are realized with floating point numbers and thus not
-exact; Vertex-facet-incidences are correct in all cases.
+below. Some of these polytopes are realized with floating point numbers and
+thus not exact; Vertex-facet-incidences are correct in all cases.
+
+See also [`is_archimedean_solid`](@ref).
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -806,9 +812,9 @@ archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s)
 @doc raw"""
     catalan_solid(s::String)
 
-Construct a Catalan solid with the name `s` from the list
-below.  The polytopes are realized with floating point coordinates and thus are not
-exact. However, vertex-facet-incidences are correct in all cases.
+Construct a Catalan solid with the name `s` from the list below. Some of these
+polytopes are realized with floating point coordinates and thus are not exact.
+However, vertex-facet-incidences are correct in all cases.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.

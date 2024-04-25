@@ -121,6 +121,13 @@ julia> n_vertices(torus())
 n_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
 @doc raw"""
+     n_facets(K::SimplicialComplex)
+
+Return the number of facets of the abstract simplicial complex `K`.
+"""
+n_facets(K::SimplicialComplex) = pm_object(K).N_FACETS::Int
+
+@doc raw"""
     facets(K::SimplicialComplex)
 
 Return the maximal (by inclusion) faces of the abstract simplicial complex `K`.
@@ -623,4 +630,64 @@ julia> facets(K_with_deletion)
 function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
   zero_based = Polymake.to_zero_based_indexing(face)
   return SimplicialComplex(Polymake.topaz.deletion(pm_object(K), zero_based))
+end
+
+@doc raw"""
+    automorphism_group(K::SimplicialComplex; action=:on_vertices)
+
+Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
+The group can be returned as a subgroup of the permutation group of the vertices
+by passing `:on_vertices` to the `action` keyword argument or on the facets
+ by passing `:on_facets`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> automorphism_group(K)
+Permutation group of degree 4
+```
+"""
+function automorphism_group(K::SimplicialComplex; action=:on_vertices)
+  pm_K = Oscar.pm_object(K)
+  Polymake.topaz.combinatorial_symmetries(pm_K)
+  if action == :on_vertices
+    gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.RAYS_ACTION.GENERATORS)
+    n = n_vertices(K)
+    return permutation_group(n, cperm.(gens_G))
+  elseif action == :on_facets
+    gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.FACETS_ACTION.GENERATORS)
+    n = n_facets(K)
+    return permutation_group(n, cperm.(gens_G))
+  else
+    error("unsupported keyword passed to action")
+  end
+end
+
+@doc raw"""
+    on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+
+Given a simplicial complex `K` return the simplicial complex corresponding
+to a permutation on it's vertices given by `g`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> G = automorphism_group(K)
+Permutation group of degree 4
+
+julia> g = collect(G)[2]
+(1,2)(3,4)
+
+julia> on_simplicial_complex(K, g)
+Abstract simplicial complex of dimension 2 on 4 vertices
+```
+"""
+function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+  @req degree(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
+  new_facets = on_sets_sets(Set(facets(K)), g)
+  simplicial_complex(collect(new_facets))
 end

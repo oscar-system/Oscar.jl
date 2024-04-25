@@ -68,10 +68,14 @@ julia> affine_algebra(IR)
 (Quotient of multivariate polynomial ring by ideal (9*y1^6 + y1^3*y2^3 - 6*y1^3*y2*y3 + 3*y1^3*y4 - y2*y3*y4 + y3^3 + y4^2), Hom: quotient of multivariate polynomial ring -> graded multivariate polynomial ring)
 ```
 """
-function affine_algebra(IR::FinGroupInvarRing; algo_gens::Symbol = :default, algo_rels::Symbol = :groebner_basis)
+function affine_algebra(
+  IR::FinGroupInvarRing; algo_gens::Symbol=:default, algo_rels::Symbol=:groebner_basis
+)
   if !isdefined(IR, :presentation)
     if algo_gens == :king && algo_rels == :linear_algebra
-      error("Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible")
+      error(
+        "Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible",
+      )
     end
 
     if algo_rels == :groebner_basis
@@ -91,7 +95,9 @@ end
 #
 ################################################################################
 
-function relations_via_groebner_basis(RG::FinGroupInvarRing, algo_fundamental::Symbol = :default)
+function relations_via_groebner_basis(
+  RG::FinGroupInvarRing, algo_fundamental::Symbol=:default
+)
   R = polynomial_ring(RG)
   fund_invars = fundamental_invariants(RG, algo_fundamental)
 
@@ -112,7 +118,7 @@ function relations_via_linear_algebra(RG::FinGroupInvarRing)
   T = base_ring(Q)
   S = RG.fundamental.S
 
-  TtoS = hom(T, S, [ RG.fundamental.toS[QtoR(gen(Q, i))] for i = 1:ngens(T) ])
+  TtoS = hom(T, S, [RG.fundamental.toS[QtoR(gen(Q, i))] for i in 1:ngens(T)])
 
   I = TtoS(modulus(Q))
 
@@ -128,14 +134,14 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
   R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
-  p_invars = [ f.f for f in primary_invariants(RG) ]
-  s_invars = [ f.f for f in secondary_invariants(RG) ]
-  is_invars = [ f.f for f in irreducible_secondary_invariants(RG) ]
+  p_invars = [f.f for f in primary_invariants(RG)]
+  s_invars = [f.f for f in secondary_invariants(RG)]
+  is_invars = [f.f for f in irreducible_secondary_invariants(RG)]
   s_invars_cache = RG.secondary
 
   np = length(p_invars)
 
-  w = append!([ total_degree(f) for f in p_invars ], [ total_degree(f) for f in is_invars ])
+  w = append!([total_degree(f) for f in p_invars], [total_degree(f) for f in is_invars])
   S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w)
 
   if isempty(is_invars)
@@ -146,10 +152,10 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
   end
 
   RtoS = Vector{elem_type(S)}(undef, np + length(s_invars))
-  for i = 1:np
+  for i in 1:np
     RtoS[i] = t[i]
   end
-  for i = 1:length(s_invars)
+  for i in 1:length(s_invars)
     exps = append!(zeros(Int, np), s_invars_cache.sec_in_irred[i])
     g = set_exponent_vector!(one(S), 1, exps)
     RtoS[np + i] = g
@@ -160,23 +166,23 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
 
   # Assumes that s_invars and is_invars are sorted by degree
   maxd = total_degree(s_invars[end]) + total_degree(is_invars[end])
-  products_sorted = Vector{Vector{Tuple{elem_type(R), elem_type(S)}}}(undef, maxd)
-  for d = 1:maxd
-    products_sorted[d] = Vector{Tuple{elem_type(R), elem_type(S)}}()
+  products_sorted = Vector{Vector{Tuple{elem_type(R),elem_type(S)}}}(undef, maxd)
+  for d in 1:maxd
+    products_sorted[d] = Vector{Tuple{elem_type(R),elem_type(S)}}()
   end
-  for i = 1:length(s_invars)
-    for j = 1:length(s_invars)
+  for i in 1:length(s_invars)
+    for j in 1:length(s_invars)
       if !s_invars_cache.is_irreducible[j]
         continue
       end
       if s_invars_cache.is_irreducible[i] && i > j
         continue
       end
-      m = RtoS[np + i]*RtoS[np + j]
+      m = RtoS[np + i] * RtoS[np + j]
       if m in RtoS
         continue
       end
-      f = s_invars[i]*s_invars[j]
+      f = s_invars[i] * s_invars[j]
       push!(products_sorted[total_degree(f)], (f, m))
     end
   end
@@ -187,7 +193,7 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
 
   rels = elem_type(S)[]
   C = PowerProductCache(R, p_invars)
-  for d = 1:maxd
+  for d in 1:maxd
     if isempty(products_sorted[d])
       continue
     end
@@ -196,22 +202,22 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
 
     monomial_to_column = enumerate_monomials(gensd)
 
-    M = polys_to_smat(gensd, monomial_to_column, copy = false)
+    M = polys_to_smat(gensd, monomial_to_column; copy=false)
 
-    N = polys_to_smat([ t[1] for t in products_sorted[d] ], monomial_to_column, copy = false)
+    N = polys_to_smat([t[1] for t in products_sorted[d]], monomial_to_column; copy=false)
     N.c = M.c
 
     # Write the products (in N) in the basis of K[V]^G_d given by the secondary
     # invariants (in M)
-    x = solve(M, N, side = :left)
+    x = solve(M, N; side=:left)
 
     # Translate the relations to the free algebra S
-    for i = 1:nrows(x)
+    for i in 1:nrows(x)
       s = -products_sorted[d][i][2]
-      for j = 1:length(x.rows[i])
+      for j in 1:length(x.rows[i])
         m = S(x.rows[i].values[j])
         e = expsd[gensd[x.rows[i].pos[j]]]
-        for k = 1:np + length(s_invars)
+        for k in 1:(np + length(s_invars))
           if iszero(e[k])
             continue
           end
@@ -232,7 +238,7 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
       f = S()
       for (i, c) in coordinates(x)
         cS = c(gens_np...)
-        f += cS*RtoS[np + i]
+        f += cS * RtoS[np + i]
       end
       push!(rels, f)
     end
@@ -240,7 +246,12 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
 
   I = ideal(S, rels)
   Q, StoQ = quo(S, I)
-  QtoR = hom(Q, Rgraded, append!(primary_invariants(RG), irreducible_secondary_invariants(RG)), check = false)
+  QtoR = hom(
+    Q,
+    Rgraded,
+    append!(primary_invariants(RG), irreducible_secondary_invariants(RG));
+    check=false,
+  )
 
   return Q, QtoR
 end
@@ -282,8 +293,9 @@ function module_syzygies(RG::FinGroupInvarRing)
   # This is the same as generators of the vector space R/I by Nakayama.
   r_gens = map(x -> forget_grading(Rgraded(x)), _kbase(quo(Rgraded, I)[1]))
 
-  S, t = graded_polynomial_ring(K, length(p_invars), "t",
-                                [ total_degree(f) for f in p_invars ])
+  S, t = graded_polynomial_ring(
+    K, length(p_invars), "t", [total_degree(f) for f in p_invars]
+  )
   F = free_module(S, length(r_gens)) # isomorphic to R as an S-module
 
   # Represent the secondary invariants as elements of F
@@ -307,21 +319,21 @@ function module_syzygies(RG::FinGroupInvarRing)
     monomial_to_column = enumerate_monomials(gens_d)
     M = polys_to_smat(gens_d, monomial_to_column)
     N = polys_to_smat(s_invars_d, monomial_to_column)
-    sol = solve(M, N, side = :left)
+    sol = solve(M, N; side=:left)
 
     for i in 1:length(s_invars_d)
       a = F()
       for (j, c) in sol[i]
         # Translate gens_d[j] to an element of F via exps_d[gens_d[j]]
         # The first "half" of indices corresponds to the primary invariants
-        f = S([ c ], [ exps_d[gens_d[j]][1:length(p_invars)] ])
+        f = S([c], [exps_d[gens_d[j]][1:length(p_invars)]])
         # The second "half" of indices corresponds to r_gens
         g = F()
         for l in 1:rank(F)
           is_zero(exps_d[gens_d[j]][l + length(p_invars)]) && continue
           g += F[l]
         end
-        a += f*g
+        a += f * g
       end
       push!(s_invars_in_F, a)
     end
@@ -339,11 +351,11 @@ function module_syzygies(RG::FinGroupInvarRing)
 
   # A bit cheated; this is not just the map from Q to R, but also from M to R,
   # to allow us to map the relations of Q back to R.
-  function QtoR(x::Union{FreeModElem, SubquoModuleElem})
+  function QtoR(x::Union{FreeModElem,SubquoModuleElem})
     @assert parent(x) === M || parent(x) === Q
     f = zero(Rgraded)
     for (i, c) in coordinates(x)
-      f += StoR(c)*Rgraded(s_invars[i])
+      f += StoR(c) * Rgraded(s_invars[i])
     end
     return f
   end

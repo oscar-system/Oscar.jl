@@ -19,7 +19,6 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
-using Preferences
 using LazyArtifacts
 
 include("imports.jl")
@@ -59,7 +58,7 @@ function __init__()
   # initialize random seed
   set_seed!(rand(UInt32))
 
-  if isinteractive() && Base.JLOptions().banner != 0
+  if AbstractAlgebra.should_show_banner()
     _print_banner()
   end
 
@@ -147,6 +146,8 @@ function __init__()
 
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
+  
+  add_assertion_scope(:IdealSheaves)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
@@ -245,6 +246,9 @@ include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+
+include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")

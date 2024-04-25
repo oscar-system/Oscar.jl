@@ -1,0 +1,85 @@
+{
+    "model_index": "",
+    "arxiv_data": {
+        "id": "1408.4808v2",
+        "doi": "10.48550/arXiv.1408.4808",
+        "version": "2",
+        "discipline": "hep-th",
+        "link": "https://arxiv.org/abs/1408.4808v2",
+        "model_location": {
+            "section": "3",
+            "equation": "3.142",
+            "page": "67"
+        }
+    },
+    "journal_data": {
+        "doi": "10.1007/JHEP01(2015)142",
+        "report_numbers": ["UPR-1264-T", "CERN-PH-TH-2014-171", "BONN-TH-2014-13"],
+        "journal": "JHEP",
+        "volume": "01",
+        "pages": "142",
+        "year": "2015",
+        "link": "https://link.springer.com/article/10.1007/JHEP01(2015)142",
+        "model_location": {
+            "section": "3",
+            "equation": "3.141",
+            "page": "67"
+        }
+    },
+    "paper_metadata": {
+        "authors": [
+            "Denis Klevers",
+            "Damián Kaloni Mayorga Peña",
+            "Paul-Konstantin Oehlmann",
+            "Hernan Piragua",
+            "Jonas Reuter"
+        ],
+        "title": "F-Theory on all Toric Hypersurface Fibrations and its Higgs Branches",
+        "description": "All Calabi-Yau manifolds with a genus-one fiber associated to the 16 reflexive 2D polyhedra F_i",
+        "buzzwords": ["Mordell-Weil", "reflexive polyhedra", "toric varieties", "elliptic fibrations"]
+    },
+    "model_descriptors": {
+        "type": "weierstrass",
+        "description": "F-theory hypersurface model with fiber ambient space F_11",
+        "gauge_algebra": ["su3","su2","u1"],
+        "global_gauge_quotients": [["Z3", [1, 3]], ["Z2", [2, 3]]]
+    },
+    "model_data": {
+        "base_dim": 3,
+        "model_sections": ["s5", "s9"],
+        "base_coordinates": ["s5", "s9", "s1", "s2", "s3", "s6"],
+        "f": "1//48*(48*s1*s3*s9^2 - ( - s6^2 + 4*s2*s9)^2 - 24*s3*s5*s6*s9)",
+        "g": "1//864*((2*s1*s3*s9^2 - s3*s5*s6*s9)*( - 36*s6^2 + 144*s2*s9) - ( - s6^2 + 4*s2*s9)^3 + 216*s3^2*s5^2*s9^2)",
+        "auxiliary_base_grading": [
+            [0, 0,  1,  2,  3, 1],
+            [1, 0,  1,  0, -1, 0],
+            [0, 1, -1, -1, -1, 0]
+        ],
+        "zero_section": ["0", "0", "1"],
+        "generating_sections": [
+            [
+                "1//12*(12*s1^2*s9^6 + s9^5*(8*s2*s5^2 - 12*s1*s6*s5) + s5^2*s6^2*s9^4)", 
+                "1//2*(2*s1^3*s9^9 + s1*s9^8*(2*s2*s5^2 - 3*s1*s6*s5) + s5^2*s9^7*(s3*s5^2 - s2*s5*s6 + s1*s6^2))", 
+                "s5*s9^2"
+            ]
+        ]
+    },
+    "associated_models": [
+        "model1408_4808-1-WSF.json",
+        "model1408_4808-2-WSF.json",
+        "model1408_4808-3-WSF.json",
+        "model1408_4808-4-WSF.json",
+        "model1408_4808-5-WSF.json",
+        "model1408_4808-6-WSF.json",
+        "model1408_4808-7-WSF.json",
+        "model1408_4808-8-WSF.json",
+        "model1408_4808-9-WSF.json",
+        "model1408_4808-10-WSF.json",
+        "model1408_4808-12-WSF.json",
+        "model1408_4808-13-WSF.json",
+        "model1408_4808-14-WSF.json",
+        "model1408_4808-15-WSF.json",
+        "model1408_4808-16-WSF.json"
+    ],
+    "related_models": ["model1408_4808-11.json"]
+}

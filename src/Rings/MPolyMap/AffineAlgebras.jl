@@ -29,7 +29,8 @@ affine_algebra_morphism_type(R::S, U::T) where {S <: Ring, T} = affine_algebra_m
 
 @attr Any _singular_ring_codomain(f::MPolyAnyMap) = singular_poly_ring(codomain(f))
 
-@attr Any function _singular_algebra_morphism(f::MPolyAnyMap)
+@attr Any function _singular_algebra_morphism(f::MPolyAnyMap{<:MPolyRing, <:Union{MPolyRing, MPolyQuoRing}, Nothing})
+  @assert coefficient_ring(domain(f)) === coefficient_ring(codomain(f))  "singular does not handle coefficient maps"
   DS = _singular_ring_domain(f)
   CS = _singular_ring_codomain(f)
   CSimgs = CS.(_images(f))
@@ -212,11 +213,22 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 end
 
 @doc raw"""
-    preimage(F::AffAlgHom, I::U) where U <: Union{MPolyIdeal, MPolyQuoIdeal}
+    preimage(F::MPolyAnyMap, I::Ideal)
 
 Return the preimage of the ideal `I` under `F`.
 """
-function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
+function preimage(F::MPolyAnyMap, I::Ideal)
+  # This generic routine does not work for maps where the domain is a quotient ring. 
+  # error message: _singular_algebra_morphism(...) does not have a method for this.
+  # Hence it has been split into two specialized methods below.
+  error("not implemented")
+end
+
+function preimage(
+    f::MPolyAnyMap{<:MPolyRing{T}, CT}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
   @req base_ring(I) === codomain(f) "Parent mismatch"
   D = domain(f)
   salghom = _singular_algebra_morphism(f)
@@ -225,6 +237,19 @@ function preimage(f::AffAlgHom, I::Union{MPolyIdeal, MPolyQuoIdeal})
   Ix = Singular.Ideal(CS, CS.(V))
   prIx = Singular.preimage(salghom, Ix)
   return ideal(D, D.(gens(prIx)))
+end
+
+function preimage(
+    f::MPolyAnyMap{<:MPolyQuoRing, CT}, 
+    I::Union{MPolyIdeal, MPolyQuoIdeal}
+  ) where {T <: RingElem,
+           CT <: Union{MPolyRing{T}, MPolyQuoRing{<:MPolyRingElem{T}}}}
+  @req base_ring(I) === codomain(f) "Parent mismatch"
+  R = base_ring(domain(f))
+  help_map = hom(R, domain(f), gens(domain(f)); check=false)
+  g = compose(help_map, f)
+  K = preimage(g, I)
+  return ideal(domain(f), help_map.(gens(K)))
 end
 
 # Let F: K[x]/I_1 -> K[y]/I_2, x_i \mapsto f_i .

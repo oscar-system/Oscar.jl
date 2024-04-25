@@ -1,0 +1,27 @@
+julia> using TropicalImplicitization, Oscar;
+
+julia> R, (t,) = polynomial_ring(QQ,["t"]);
+
+julia> f1 = 11*t^2 + 5*t^3 - 1*t^4;
+
+julia> f2 = 11 + 11*t + 7*t^8;
+
+julia> Q1 = newton_polytope(f1);
+
+julia> Q2 = newton_polytope(f2);
+
+julia> newton_pols = [Q1, Q2];
+
+julia> cone_list, weight_list = get_tropical_cycle(newton_pols);
+
+julia> Delta = get_polytope_from_cycle(cone_list, weight_list);
+
+julia> B = lattice_points(Delta);
+
+julia> n_samples = length(B)-1;
+
+julia> P = sample([f1,f2], n_samples);
+
+julia> M_BP = get_vandermonde_matrix(B,P);
+
+julia> coeffs_F = nullspace(M_BP)[2];

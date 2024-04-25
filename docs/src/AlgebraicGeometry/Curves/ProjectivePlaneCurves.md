@@ -8,7 +8,7 @@ ProjectivePlaneCurve
 
 Projective plane curves are modeled in Oscar as projective
 algebraic sets. See `AbsProjectiveAlgebraicSet`(@ref).
-In addition to the methods for algebraic sets
+In addition to the methods for algebraic sets and curves
 the following methods special to plane curves are available.
 
 ```@docs
@@ -19,8 +19,6 @@ multiplicity(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
 tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
 intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
-arithmetic_genus(C::ProjectivePlaneCurve)
-geometric_genus(C::AbsProjectiveCurve)
 ```
 
 # Rational Parametrizations of Rational Plane Curves
@@ -94,7 +92,7 @@ parametrization(C::ProjectivePlaneCurve{QQField})
 
 Please direct questions about this part of OSCAR to the following people:
 * [Janko Böhm](https://www.mathematik.uni-kl.de/~boehm/),
-* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker/seite).
+* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

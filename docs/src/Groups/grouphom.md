@@ -157,7 +157,7 @@ isomorphism(G::GAPGroup, H::GAPGroup)
 ```
 
 ```@docs
-isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
