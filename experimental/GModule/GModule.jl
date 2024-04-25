@@ -415,14 +415,44 @@ function local_schur_indices(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPMo
   A, mA = automorphism_group(PermGroup, K)
   U, mU = sub(A, [a for a = A if mA(a)(u) == u])
   c = factor_set(V, mU*mA)
-  return local_schur_indices(c, mU*mA; torsion = torsion_units_order(k))
+  return local_schur_indices(c, mU*mA, primes = prime_divisors(order(V.G)))
 end
 
-function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGrup, c.C.M.data); torsion::Int = 0)
+#TODO/XXX: if the 2-chain comes from a group, then the indices depend only
+#          on the prime numbers (2 step: all ideals conjugate over the same
+#          prime ideal of the character field have the same local index,
+#          all such primes behave the same and the local degree of the character
+#          field should be 1)
+#          However, for generalcentral simple algebras this is not true,
+#          here prime ideals are independent
+function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}, mG::Map = automorphism_group(PermGroup, c.C.M.data)[2]; primes::Vector{<:Any}= [])
+
   K = c.C.M.data
 
+  if length(primes) == 0
+    zk = maximal_order(parent(first(values(c.d)).data))
+
+    I = prime_divisors(discriminant(zk))
+    for x = keys(c)
+      v = c(x)
+      if !isone(v.data)
+        N, D = integral_split(v.data * zk)
+        n = minimum(N)
+        d = minimum(D)
+        n in I || push!(I, n)
+        d in I || push!(I, d)
+      end
+    end
+    cp = coprime_base(I)
+    primes = vcat([prime_divisors(x) for x = cp]...)
+  end
+
+
+  fl, mU = is_subgroup(c.C.G, domain(mG))
+  @assert fl
+  mG = mU*mG
   li = []
-  for p = prime_divisors(gcd(torsion, order(c.C.G)))
+  for p = primes
     P = prime_ideals_over(maximal_order(K), p)[1]
     i = Oscar.GaloisCohomology_Mod.local_index(c, P, mG; index_only = true)
     if order(i) > 1
@@ -438,7 +468,6 @@ function local_schur_indices(c::CoChain{2, PermGroupElem, MultGrpElem{AbsSimpleN
   end
   return li
 end
-
 
 function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   k, m = _character_field(V)
@@ -696,7 +725,19 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   M = map_entries(CyclotomicField, map(matrix, action(C)))
   K = base_ring(M[1])
   F = free_module(K, dim(C))
-  return gmodule(F, group(C), [hom(F, F, x) for x = M])
+
+  D = gmodule(F, group(C), [hom(F, F, x) for x = M])
+
+  c = get_attribute(C, :_character)
+  if c !== nothing
+    set_attribute!(D, :_character => [(x[1], K(x[2].data)) for x = c])
+  end
+  c = get_attribute(C, :_character_field)
+  if c !== nothing
+    set_attribute!(D, :_character_field => c)
+  end
+
+  return D
 end
 
 function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbElem})
@@ -739,7 +780,7 @@ end
 
 gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
-function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
+@attr function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
   ac = Oscar.GrpCoh.action(C)
@@ -755,7 +796,7 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
       push!(chr, (c, K(n)))
       continue
     end
-    T = action(C,r)
+    T = action(C, r)
     push!(chr, (c, trace(matrix(T))))
   end
   return chr
@@ -790,7 +831,7 @@ end
 
 Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}) = QQ
 
-function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+@attr function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
   return k, mkK
@@ -1034,7 +1075,7 @@ function factor_set(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFie
     A, mA = automorphism_group(PermGroup, K)
     if degree(k) > 1
       gk = mkK(gen(k))
-      s, ms = sub(A, [g for g = A if g(gk) == gk])
+      s, ms = sub(A, [g for g = A if mA(g)(gk) == gk])
       mA = ms*mA
     end
   end
@@ -1347,6 +1388,14 @@ end
 function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   G = Gap(C)
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
+end
+
+function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbElem{AbsSimpleNumFieldElem}}}})
+  return length(hom_base(C, C)) == 1
+end
+
+function Oscar.is_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbElem{AbsSimpleNumFieldElem}}}})
+  return is_irreducible(character(C))
 end
 
 function Oscar.splitting_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
@@ -1798,11 +1847,23 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi))
-  return gmodule(group(chi), [hom(F, F, x) for x = z])
+  M = gmodule(group(chi), [hom(F, F, x) for x = z])
+  c = conjugacy_classes(chi.table)
+  set_attribute!(M, :_character => [(c[i], chi.values[i]) for i=1:length(c)])
+  return M
 end
 
 function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}}, chi::Oscar.GAPGroupClassFunction)
-  return gmodule(T, gmodule(chi))
+  M = gmodule(chi)
+  N = gmodule(T, M)
+  c = get_attribute(M, :_character)
+  if c !== nothing
+    set_attribute!(N, :_character => c)
+  end
+  c = get_attribute(M, :_character_field)
+  if c !== nothing
+    set_attribute!(N, :_character_field => c)
+  end
 end
 
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, AbstractAlgebra.FPModule{fqPolyRepFieldElem}}) where {T <: Oscar.GAPGroup}
@@ -1917,3 +1978,15 @@ export gmodule_minimal_field
 export gmodule_over
 
 include("Brueckner.jl")
+
+
+#=
+G = SL(2, 5)
+T = character_table(G)
+R = gmodule(T[end])
+S = gmodule(CyclotomicField, R)
+k = radical_extension(2, base_ring(S)(7))[1]
+k, mk = absolute_simple_field(k)
+S = extension_of_scalars(S, hom(base_ring(S), k, preimage(mk, codomain(mk)((base_field(codomain(mk))[1])))))
+_minimize(S)
+=#

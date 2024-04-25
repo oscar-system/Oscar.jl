@@ -185,16 +185,16 @@ end
 
 function fp_group_with_isomorphism(C::GModule)
   #TODO: better for PcGroup!!!
+  G = group(C)
   if !isdefined(C, :F)
-    G = group(C)
     if (!isa(G, FPGroup)) && is_trivial(G)
       C.F = free_group(0)
       C.mF = hom(G, C.F, elem_type(G)[], elem_type(C.F)[])
-    elseif isa(group(C), PcGroup)
-      X = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.InducedPcgsWrtFamilyPcgs(group(C).X), GAP.julia_to_gap("a"))
+    elseif isa(group(C), PcGroup) && GAP.Globals.GeneratorsOfGroup(G.X) == GAP.Globals.Pcgs(G.X)
+      X = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X), GAP.julia_to_gap("a"))
 
       C.F = FPGroup(GAPWrap.Range(X))
-      C.mF = GAPGroupHomomorphism(C.F, group(C), GAP.Globals.InverseGeneralMapping(X))
+      C.mF = GAPGroupHomomorphism(C.F, G, GAP.Globals.InverseGeneralMapping(X))
       return C.F, C.mF
     else
       C.F, C.mF = fp_group_with_isomorphism(gens(G))
@@ -321,7 +321,7 @@ The induced module is returned as a product of copies of C. it also returns
 homomorphism. I this case a Z[G] linear map to the induced module
 is returned.
 """
-function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing, mDC = nothing)
+function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing)
   U = domain(h)
   G = codomain(h)
   @assert U == C.G
@@ -350,10 +350,10 @@ function induce(C::GModule{<:Oscar.GAPGroup, FinGenAbGroup}, h::Map, D = nothing
                     = cu_i otimes g_j
   =#
 
-  @assert isdefined(C.M, :hnf)
+#  @assert isdefined(C.M, :hnf)
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
-  @assert isdefined(indC, :hnf)
-  AbstractAlgebra.set_attribute!(indC, :induce => (h, g))
+#  @assert isdefined(indC, :hnf)
+#  AbstractAlgebra.set_attribute!(indC, :induce => (h, g))
   ac = []
   iac = []
   for s = gens(G)
@@ -522,7 +522,7 @@ export split_extension, extension_with_abelian_kernel
 export CoChain, MultGrp, MultGrpElem
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
-_rank(M) = rank(M)
+_rank(M) = dim(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -748,6 +748,7 @@ function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
   if haskey(C.d, (g,h))
     return C.d[(g,h)]
   end
+  @assert isdefined(C, :D)
   return C.d[(g,h)] = C.D((g, h))
 end
 (C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
@@ -2357,7 +2358,6 @@ end
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
-  global last_C = C
   if gcd(order(C.M), order(C.G)) == 1
     return [split_extension(C)]
   end
@@ -2365,11 +2365,9 @@ function all_extensions(C::GModule)
   if order(H2) == 1
     return [extension(mH2(zero(H2)))]
   end
-  @time T, mT = compatible_pairs(C)
+  T, mT = compatible_pairs(C)
   G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
-  @show G
-  global last_G = G
-  @time O = orbits(G)
+  O = orbits(G)
   all_G = []
   for o = O
     push!(all_G, extension(mH2(representative(o)))[1])
