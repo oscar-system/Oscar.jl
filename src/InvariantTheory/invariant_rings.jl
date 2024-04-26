@@ -181,7 +181,8 @@ end
 right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
 right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} = right_action(f, matrix(M))
+right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+  right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
   n = nvars(R)
