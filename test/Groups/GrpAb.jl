@@ -27,7 +27,9 @@ end
 @testset "group functions for finite FinGenAbGroup" begin
   @testset for para in [ [2, 3, 4], Int[], [2, 4] ]
     G1 = abelian_group(FinGenAbGroup, para)
-    iso = isomorphism(PcGroup, G1)
+#TODO: As soon as we can create isomorphism(PcGroup, G1), add these tests.
+#   iso = isomorphism(PcGroup, G1)
+    iso = isomorphism(SubPcGroup, G1)
     G2 = codomain(iso)
     primes = [p for (p, e) in collect(factor(order(G1)))]
 

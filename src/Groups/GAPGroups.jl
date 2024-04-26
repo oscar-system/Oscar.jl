@@ -245,7 +245,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
 ==(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
-==(x::T, y::T) where T <: BasicGAPGroupElem = GapObj(x) == GapObj(y)
+==(x::BasicGAPGroupElem, y::BasicGAPGroupElem ) = GapObj(x) == GapObj(y)
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -848,9 +848,10 @@ julia> maximal_subgroup_classes(G)
 """
 @gapattribute function maximal_subgroup_classes(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(GapObj(G))::GapObj)
-  T = typeof(G)
+  TG = typeof(G)
+  TS = sub_type(TG)
   LL = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
-  return Vector{GAPGroupConjClass{T, T}}(LL)
+  return Vector{GAPGroupConjClass{TG, TS}}(LL)
 end
 
 """
@@ -1158,7 +1159,7 @@ Return `N, f`, where `N` is the normalizer of `H` in `G`,
 i.e., the largest subgroup of `G` in which `H` is normal,
 and `f` is the embedding morphism of `N` into `G`.
 """
-normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Normalizer(GapObj(G), GapObj(H)))
+normalizer(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.Normalizer(GapObj(G), GapObj(H)))
 
 """
     normalizer(G::Group, x::GAPGroupElem)
@@ -2275,7 +2276,12 @@ function describe(G::FPGroup)
 
    if !has_is_finite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
-      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
+#TODO: With GAP 4.13.0, the prescribed bound 100000 will cause a test failure.
+#      This regression will hopefully be fixed in GAP 4.13.1,
+#      see https://github.com/gap-system/gap/issues/5697
+#      and https://github.com/gap-system/gap/pull/5698.
+#     iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
+      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G))::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAPWrap.Range(iso)))
    elseif is_finite(G)
       return describe(PermGroup(G))

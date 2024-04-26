@@ -155,6 +155,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubPcGroup
+export SubPcGroupElem
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule

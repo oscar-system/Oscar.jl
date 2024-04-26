@@ -8,7 +8,7 @@ and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
-   H::T                    # subgroup
+   H::GAPGroup             # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
    X::GapObj               # GapObj(H*repr)
@@ -73,8 +73,6 @@ Right coset of Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-#  @assert elem_type(H) == typeof(g)
-# no! the IsSubset test is enough!
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
@@ -103,7 +101,6 @@ Left coset of Sym(3)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
 end
@@ -394,10 +391,12 @@ julia> collect(T)
  (1,4,3)
 ```
 """
-function right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-#T _check_compatible(G, H) ?
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :right,
+function right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(G.X, H.X) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :right,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
 
@@ -432,10 +431,12 @@ julia> collect(T)
  (1,3,4)
 ```
 """
-function left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-#T _check_compatible(G, H) ?
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :left,
+function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(G.X, H.X) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :left,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
 
@@ -459,8 +460,8 @@ Two double cosets are equal if, and only if, they contain the same elements.
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
    G::T
-   H::T
-   K::T
+   H::GAPGroup
+   K::GAPGroup
    repr::S
    X::GapObj
 end
@@ -556,7 +557,7 @@ julia> double_cosets(G,H,K)
  Double coset of H and K with representative (1,4,3)
 ```
 """
-function double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
+function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
    if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else

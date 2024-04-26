@@ -182,19 +182,9 @@ pc_group(G::GapObj) = PcGroup(G)
 
 # Return `true` if the generators of `G` fit to those of its pc presentation.
 function _is_full_pc_group(G::GapObj)
-  GAPWrap.IsPcGroup(G) && return GAPWrap.GeneratorsOfGroup(G) != GAP.Globals.FamilyPcgs(G)
-  GAP.Globals.IsPcpGroup(G)::Bool || return false
-  x = GAP.Globals.One(G)::GapObj
-  C = GAP.getbangproperty(x, :collector)::GapObj
-  n = GAP.getbangindex(C, GAP.Globals.PC_NUMBER_OF_GENERATORS)::Int
-  Ggens = GAPWrap.GeneratorsOfGroup(G)
-  length(Ggens) == n || return false
-  for i in 1:n
-    w = GAP.getbangproperty(Ggens[i], :word)::GapObj
-    (length(w) == 2 && w[1] == i && w[2] == 1) || return false
-  end
-  return true
+  return GAP.Globals.GroupGeneratorsDefinePresentation(G)::Bool
 end
+#T the code for PcpGroups is too expensive!
 
 
 """
@@ -242,7 +232,7 @@ return groups of type `SubPcGroup`.
 @attributes mutable struct SubPcGroup <: GAPGroup
   X::GapObj
   full_group::PcGroup
-#T no, create embedding!
+#T better create an embedding!
 
   function SubPcGroup(G::GapObj)
     @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)::Bool
@@ -354,8 +344,26 @@ end
 # Construct an Oscar group wrapping the GAP group `obj`
 # *and* compatible with a given Oscar group `G`.
 
+const _sub_types = Dict{Type, Type}()
+
+_sub_types[PcGroup] = SubPcGroup
+
+function sub_type(T::Type)
+  haskey(_sub_types, T) && return _sub_types[T]
+  return T
+end
+
+sub_type(G::GAPGroup) = sub_type(typeof(G))
+
+# _oscar_group is used to create the subgroup of `G`
+# that is described by the GAP group `obj`;
 # default: ignore `G`
-_oscar_group(obj::GapObj, G::GAPGroup ) = T(obj)
+function _oscar_group(obj::GapObj, G::GAPGroup)
+  S = sub_type(G)(obj)
+  @assert GAP.Globals.FamilyObj(S.X) === GAP.Globals.FamilyObj(G.X)
+  return S
+end
+#T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
 function _oscar_group(obj::GapObj, G::PermGroup)
@@ -379,12 +387,6 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   M.ring = R
   M.ring_iso = iso
   return M
-end
-
-# `PcGroup`: switch to `SubPcGroup`
-# Note that `_oscar_group` is used to create *subgroups* of `G`.
-function _oscar_group(obj::GapObj, G::PcGroup)
-  return sub_pc_group(obj)
 end
 
 
@@ -554,6 +556,9 @@ parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
  
 const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
+# important:
+# The function returned by _get_type is not allowed to
+# create a new GAP group (pc group or fp group)
 function _get_type(G::GapObj)
   for pair in _gap_group_types
     if pair[1](G)
@@ -576,6 +581,13 @@ function _get_type(G::GapObj)
                  return AutomorphismGroup(A, actdom_oscar)
                end
       else
+        # The result will be used as a constructor for an Oscar group,
+        # in order to wrap `G`.
+        # Thus we have to switch to the appropriate subgroup type
+        # if and only if `G` is not the full group.
+        if pair[2] === PcGroup
+          return _is_full_pc_group(G) ? pair[2] : SubPcGroup
+        end
         return pair[2]
       end
     end
@@ -592,27 +604,15 @@ end
 # and check their *contexts*
 # (in case of f.p. and p.c. groups and matrix groups)
 
+# The underlying GAP groups must belong to the same family.
 function _check_compatible(G1::GAPGroup, G2::GAPGroup; error::Bool = true)
+  GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
   error && throw(ArgumentError("G1 and G2 are not compatible"))
   return false
 end
 
 # Any two permutation groups are compatible.
 _check_compatible(G1::PermGroup, G2::PermGroup; error::Bool = true) = true
-
-# The underlying GAP groups must belong to the same family.
-function _check_compatible(G1::Union{PcGroup, SubPcGroup}, G2::Union{PcGroup, SubPcGroup}; error::Bool = true)
-  GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
-  error && throw(ArgumentError("G1 and G2 belong to different presentations"))
-  return false
-end
-
-# # The underlying GAP groups must belong to the same family.
-# function _check_compatible(G1::Union{FPGroup, SubFPGroup}, G2::Union{FPGroup, SubFPGroup}; error::Bool = true)
-#   GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
-#   error && throw(ArgumentError("G1 and G2 belong to different presentations"))
-#   return false
-# end
 
 # The groups must have the same dimension and the same base ring.
 function _check_compatible(G1::MatrixGroup, G2::MatrixGroup; error::Bool = true)

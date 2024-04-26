@@ -165,8 +165,8 @@ end
    @test_throws ArgumentError right_transversal(H, G)
    @test_throws ArgumentError left_transversal(H, G)
 
+   G = symmetric_group(5)
    @testset "set comparison for cosets in PermGroup" begin
-      G=symmetric_group(5)
       x = G(cperm([1,2,3]))
       y = G(cperm([1,4,5]))
       z = G(cperm([1,2],[3,4]))

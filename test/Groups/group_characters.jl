@@ -1182,7 +1182,8 @@ end
 @testset "character functions for FinGenAbGroup" begin
   @testset for para in [ Int[], [2, 3, 4], [2, 4] ]
     G1 = abelian_group(FinGenAbGroup, para)
-    iso = isomorphism(PcGroup, G1)
+#   iso = isomorphism(PcGroup, G1)
+    iso = isomorphism(SubPcGroup, G1)
     G2 = codomain(iso)
     n = Int(order(G1))
 

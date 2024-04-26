@@ -139,7 +139,8 @@ end
 
 @testset "Small groups" begin
    L = all_small_groups(8)
-   LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+#  LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+   LG = [abelian_group(SubPcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
    @test length(L)==5
    @testset for G in LG
       arr = [i for i in 1:5 if is_isomorphic(L[i],G)]

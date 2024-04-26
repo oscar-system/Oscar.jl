@@ -491,14 +491,15 @@ _get_iso_function(::Type{SubPcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 
 """
-    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, SubPcGroup, PermGroup}
-    isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T = FPGroup
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T <: Union{PcGroup, FPGroup}
 
 Return an isomorphism from `G` to a group `H` of type `T`.
 An exception is thrown if no such isomorphism exists.
 
 If `on_gens` is `true` then `gens(G)` is guaranteed to correspond to
-`gens(H)`.
+`gens(H)`;
+an exception is thrown if this is not possible.
 
 Isomorphisms are cached in `G`, subsequent calls of `isomorphism` with the
 same `T` (and the same value of `on_gens`) yield identical results.
@@ -576,29 +577,50 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
 end
 
 # If `G` is not a full pc group then switch to a full pc group in Oscar.
-function isomorphism(T::Type{PcGroup}, G::GAPGroup)
+function isomorphism(T::Type{PcGroup}, G::GAPGroup; on_gens::Bool=false)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Type, Any}, G, :isomorphisms)::Dict{Type, Any}
-   return get!(isos, T) do
-     fun = _get_iso_function(T)
-     f = fun(G.X)::GapObj
-     @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
-     # The codomain of `f` can be a *subgroup* of a full pc group.
-     # In this situation, we have to switch to a full pc group.
-     C = GAP.Globals.Range(f)::GapObj
-     if !_is_full_pc_group(C)
-       @assert GAPWrap.IsPcGroup(C) || GAP.Globals.IsPcpGroup(C)::Bool
-       if GAPWrap.IsPcGroup(C)::Bool
-         Cpcgs = GAP.Globals.Pcgs(C)::GapObj
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, false)) do
+     if on_gens
+       # Throw an exception if `gens(G)` is not a polycyclic sequence for `G`.
+       # Create a group in `IsPcGroup` if `G` is finite,
+       # and a group in `IsPcpGroup` otherwise.
+       if is_finite(G)
+         fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(G.X))::GapObj
+         Ggens = GapObj([x.X for x in gens(G)])::GapObj
+         Cpcgs = GAP.Globals.PcgsByPcSequence(fam, Ggens)::GapObj
          CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
          CCpcgs = GAP.Globals.FamilyPcgs(CC)::GapObj
+         f = GAP.Globals.GroupHomomorphismByImages(G, CC, Cpcgs, CCpcgs)::GapObj
+         return GAPGroupHomomorphism(G, T(CC), f)
        else
-         Cpcgs = GAP.Globals.Pcp(C)::GapObj
-         CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
-         CCpcgs = GAP.Globals.Pcp(CC)::GapObj
+         f = GAP.Globals.IsomorphismPcpGroup(G.X)::GapObj
+#T how to create a pcp that consists of the images of `gens(G)`,
+#T or get `fail`?
+error("do not know how to create a pcp group on given generators in GAP")
        end
-       switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
-       f = GAP.Globals.CompositionMapping(switch, f)::GapObj
+     else
+       fun = _get_iso_function(T)
+#T change this: use IsomorphismPcpGroup if G is infinite!
+       f = fun(G.X)::GapObj
+       @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
+       # The codomain of `f` can be a *subgroup* of a full pc group.
+       # In this situation, we have to switch to a full pc group.
+       C = GAP.Globals.Range(f)::GapObj
+       if !_is_full_pc_group(C)
+         @assert GAPWrap.IsPcGroup(C) || GAP.Globals.IsPcpGroup(C)::Bool
+         if GAPWrap.IsPcGroup(C)::Bool
+           Cpcgs = GAP.Globals.Pcgs(C)::GapObj
+           CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
+           CCpcgs = GAP.Globals.FamilyPcgs(CC)::GapObj
+         else
+           Cpcgs = GAP.Globals.Pcp(C)::GapObj
+           CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
+           CCpcgs = GAP.Globals.Pcp(CC)::GapObj
+         end
+         switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
+         f = GAP.Globals.CompositionMapping(switch, f)::GapObj
+       end
      end
      H = T(GAP.Globals.ImagesSource(f)::GapObj)
      return GAPGroupHomomorphism(G, H, f)
