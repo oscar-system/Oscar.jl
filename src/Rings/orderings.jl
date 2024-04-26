@@ -1400,9 +1400,37 @@ function canonical_matrix(M::MonomialOrdering)
   return M.canonical_matrix
 end
 
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+
+# Generic fall back
+function is_obviously_equal(M::AbsOrdering, N::AbsOrdering)
+  return false
+end
+
+function is_obviously_equal(M::SymbOrdering{S}, N::SymbOrdering{S}) where {S}
+  return M.vars == N.vars
+end
+
+function is_obviously_equal(M::WSymbOrdering{S}, N::WSymbOrdering{S}) where {S}
+  return M.vars == N.vars && M.weights == N.weights
+end
+
+function is_obviously_equal(M::MatrixOrdering, N::MatrixOrdering)
+  return M.vars == N.vars && M.matrix == N.matrix
+end
+
+function is_obviously_equal(M::ProdOrdering, N::ProdOrdering)
+  return is_obviously_equal(M.a, N.a) && is_obviously_equal(M.b, N.b)
+end
+
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-   return M === N || canonical_matrix(M) == canonical_matrix(N)
+  if M === N || is_obviously_equal(M.o, N.o)
+    return true
+  end
+  return canonical_matrix(M) == canonical_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
@@ -1792,7 +1820,24 @@ function canonical_matrix(o::ModuleOrdering)
   return o.canonical_matrix
 end
 
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+# The generic fall back is_obviously_equal(::AbsOrdering, ::AbsOrdering) = false
+# is defined above.
+
+function is_obviously_equal(o1::ModOrdering{T}, o2::ModOrdering{T}) where {T}
+  return o1.gens == o2.gens && o1.ord == o2.ord
+end
+
+function is_obviously_equal(o1::ModProdOrdering, o2::ModProdOrdering)
+  return is_obviously_equal(o1.a, o2.a) && is_obviously_equal(o1.b, o2.b)
+end
+
 function Base.:(==)(o1::ModuleOrdering, o2::ModuleOrdering)
+  if o1 === o2 || is_obviously_equal(o1.o, o2.o)
+    return true
+  end
   return canonical_matrix(o1) == canonical_matrix(o2)
 end
 
