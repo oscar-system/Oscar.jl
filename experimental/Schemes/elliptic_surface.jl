@@ -2229,3 +2229,77 @@ function _pushforward_section(
   return JJ
 end
 
+function find_moebius_transformation(
+    orig_pts::Vector{<:Vector{<:FieldElem}}, 
+    new_pts::Vector{<:Vector{<:FieldElem}}
+  )
+  kk = parent(first(orig_pts))
+  a = [a[1] for a in orig_pts]
+  b = [b[1] for b in new_pts]
+  @assert all(a->isone(a[2]), orig_pts) "not implemented for non-normalized or infinite points"
+  @assert all(a->isone(a[2]), new_pts) "not implemented for non-normalized or infinite points"
+  return find_moebius_transformation(a, b)
+end
+
+function find_moebius_transformation(
+    orig_pts::Vector{<:FieldElem},
+    new_pts::Vector{<:FieldElem}
+  )
+  length(orig_pts) == 3 || error("exactly three points are needed")
+  @assert length(orig_pts) == length(new_pts) "number of points must coincide"
+  kk = parent(first(orig_pts))
+  a = orig_pts
+  b = new_pts
+  
+  # Set up the matrix mapping the first three points to 0, 1, ∞
+  A = kk[(a[2] - a[3]) (-a[1]*(a[2] - a[3])); (a[2] - a[1]) (-a[3]*(a[2] - a[1]))]
+
+  # Set up the matrix mapping the second three points to 0, 1, ∞
+  B = kk[(b[2] - b[3]) (-b[1]*(b[2] - b[3])); (b[2] - b[1]) (-b[3]*(b[2] - b[1]))]
+
+  C = inv(B)*A
+  return x->(C[1,1]*x + C[1, 2], C[2,1]*x + C[2,2])
+end
+
+function lift_moebius_transformation(X::EllipticSurface, trafo::Any)
+  kkt = base_field(generic_fiber(X))
+  WX = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(WX)
+  F = fraction_field(R)
+  (x, y, t) = gens(R)
+  p, q = trafo(t)
+  img_gens = F.([x, y, p//q])
+  return morphism_from_rational_functions(X, X, WX, WX, img_gens, check=true) 
+end
+
+function isomorphism_from_generic_fibers(
+    X::EllipticSurface, Y::EllipticSurface;
+    base_change=x->x
+  )
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+  is_isomorphic(EX, EY) || error("generic fibers are not isomorphic")
+  iso_ell = isomorphism(EX, EY)
+  a, b, _ = rational_maps(iso_ell)
+  kt = base_field(EX)
+  t = gen(kt)
+
+  # Make sure we got something reasonable
+  h2 = equation(EY)
+  pb_h2 = evaluate(h2, [a, b])
+  @assert divides(pb_h2, equation(parent(pb_h2), EX))[1]
+
+  WX = weierstrass_chart_on_minimal_model(X)
+  RX = ambient_coordinate_ring(WX)
+  FRX = fraction_field(RX)
+  WY = weierstrass_chart_on_minimal_model(Y)
+  RY = ambient_coordinate_ring(WY)
+  FRY = fraction_field(RY)
+
+  kkTxy = parent(a)
+  to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
+  A = to_FRX(a)
+  B = to_FRX(b)
+  img_gens = [A, B, base_change(FRX(RX[3]))]
+  return morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
+end
