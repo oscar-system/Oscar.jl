@@ -2280,6 +2280,10 @@ end
 # normalize the associated elliptic curve so that the usual constructor 
 # for elliptic surfaces digests it, and then return it, together with the 
 # transformation on the algebraic side. 
+#
+# The transformation is a morphism from the fraction field of the 
+# parent of g to the fraction field of the `ambient_coordinate_ring` 
+# of the `weierstrass_chart` of the resulting surface.
 function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem})
   x, y = gens(parent(g))
   E = elliptic_curve(g, x, y)
@@ -2300,13 +2304,22 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
 
   @assert is_isomorphic(E, E2)
   a, b, _ = rational_maps(isomorphism(E, E2))
+  cod = parent(a)::MPolyRing
 
-  R = parent(g)
-  F = fraction_field(R)
+  #phi = hom(R, cod, cod.([a, b]))
+  #Phi = extend_domain_to_fraction_field(phi)
+  
+  result = elliptic_surface(E2, 2)
+  W = weierstrass_chart(result)
+  R = ambient_coordinate_ring(W)
+  FR = fraction_field(R)
 
-  phi = hom(R, parent(a), [a, b])
-  Phi = extend_domain_to_fraction_field(phi)
-  return elliptic_surface(E2, 2), Phi
+  help_map = hom(cod, FR, t->evaluate(t, FR(R[3])), FR.([R[1], R[2]]))
+  A = help_map(a)
+  B = help_map(b)
+
+  res_map = hom(parent(g), FR, t->evaluate(t, FR(R[3])), [A, B])
+  return result, extend_domain_to_fraction_field(res_map)
 end
 
 # Given two abstractly isomorphic elliptic surfaces X and Y over ℙ¹, 
