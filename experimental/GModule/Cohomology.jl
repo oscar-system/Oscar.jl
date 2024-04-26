@@ -2159,7 +2159,7 @@ end
 function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
   G = GL(dim(F), base_ring(F))
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
-                         x->hom(F, F, x.elm),
+                         x->hom(F, F, matrix(x)),
                          y->G(matrix(y)))
 end
 

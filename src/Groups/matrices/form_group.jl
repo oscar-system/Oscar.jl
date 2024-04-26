@@ -58,7 +58,7 @@ function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    n = degree(G)
    M = T[]
    for mat in gens(G)
-      mmat = map(y->frobenius(y,div(degree(F),2)),(mat.elm)^-1)
+      mmat = map(y->frobenius(y,div(degree(F),2)),matrix(mat)^-1)
       MM = zero_matrix(F,n^2,n^2)
       for i in 1:n, j in 1:n, k in 1:n
          MM[n*(i-1)+j,n*(k-1)+j] += mat[i,k]
@@ -647,7 +647,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
       L = dense_matrix_type(elem_type(F))[]
       for i in 1:ngens(G)
          temp = deepcopy(Idn)
-         temp[1:r,1:r] = Xfn*(G[i].elm)*Xf
+         temp[1:r,1:r] = Xfn*matrix(G[i])*Xf
          push!(L, An*temp*A)
       end
       for g in _gens_for_GL(n-r,F)

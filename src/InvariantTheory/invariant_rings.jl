@@ -115,12 +115,12 @@ Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)
-  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action)
 end
 
 function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
-  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action, R)
 end
 
@@ -178,10 +178,11 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   return MapFromFunc(R, R, right_action_by_M)
 end
 
-right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, M.elm)
+right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
 right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} = right_action(f, M.elm)
+right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+  right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
   n = nvars(R)
@@ -578,7 +579,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   for c in C
     g = representative(c)
     if g isa MatrixGroupElem
-      f = charpoly(Kt, g.elm)
+      f = charpoly(Kt, matrix(g))
     elseif g isa PermGroupElem
       f = charpoly(Kt, permutation_matrix(K, g))
     else

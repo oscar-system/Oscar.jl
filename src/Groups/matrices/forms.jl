@@ -354,7 +354,7 @@ function Base.:^(f::SesquilinearForm{T}, x::MatElem{T}; check=false) where T <: 
    return SesquilinearForm(m, f.descr)
 end
 
-Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^x.elm
+Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    @req f.descr!=:quadratic "Quadratic forms requires only one argument"

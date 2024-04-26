@@ -28,9 +28,9 @@ function matrix_group(F::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) w
 # TODO: this part of code from here
          if isdefined(V[i],:elm)
             if isdefined(V[i],:X)
-               L[i] = MatrixGroupElem(G,V[i].elm,V[i].X)
+               L[i] = MatrixGroupElem(G,matrix(V[i]),V[i].X)
             else
-               L[i] = MatrixGroupElem(G,V[i].elm)
+               L[i] = MatrixGroupElem(G,matrix(V[i]))
             end
          else
             L[i] = MatrixGroupElem(G,V[i].X)
@@ -90,13 +90,13 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   if isdefined(x, :X)
     X = Base.deepcopy_internal(x.X, dict)
     if isdefined(x, :elm)
-      elm = Base.deepcopy_internal(x.elm, dict)
+      elm = Base.deepcopy_internal(matrix(x), dict)
       return MatrixGroupElem(x.parent, elm, X)
     else
       return MatrixGroupElem(x.parent, X)
     end
   elseif isdefined(x, :elm)
-    elm = Base.deepcopy_internal(x.elm, dict)
+    elm = Base.deepcopy_internal(matrix(x), dict)
     return MatrixGroupElem(x.parent, elm)
   end
   error("$x has neither :X nor :elm")
@@ -144,8 +144,8 @@ function Base.show(io::IO, x::MatrixGroup)
   end
 end
 
-Base.show(io::IO, x::MatrixGroupElem) = show(io, x.elm)
-Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, x.elm)
+Base.show(io::IO, x::MatrixGroupElem) = show(io, matrix(x))
+Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, matrix(x))
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
@@ -244,8 +244,6 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
 
    if sym === :X
       x.X = map_entries(_ring_iso(x.parent), x.elm)
-   elseif sym == :elm
-      x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
    end
    return getfield(x,sym)
 end
@@ -287,7 +285,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
       for g in gens(G)
-         if x==g.elm
+         if x==matrix(g)
             return true, x_gap
          end
       end
@@ -305,8 +303,8 @@ end
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
-   isdefined(x,:X) && return lies_in(x.elm,G,x.X)[1]
-   _is_true, x_gap = lies_in(x.elm,G,nothing)
+   isdefined(x,:X) && return lies_in(matrix(x),G,x.X)[1]
+   _is_true, x_gap = lies_in(matrix(x),G,nothing)
    if x_gap !== nothing
       x.X = x_gap
    end
@@ -334,20 +332,20 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    end
    if isdefined(x,:X)
       if isdefined(x,:elm)
-         _is_true = lies_in(x.elm,G,x.X)[1]
+         _is_true = lies_in(matrix(x),G,x.X)[1]
          @req _is_true "Element not in the group"
-         return MatrixGroupElem(G,x.elm,x.X)
+         return MatrixGroupElem(G,matrix(x),x.X)
       else
          @req x.X in G.X "Element not in the group"
          return MatrixGroupElem(G,x.X)
       end
    else
-      _is_true, x_gap = lies_in(x.elm,G,nothing)
+      _is_true, x_gap = lies_in(matrix(x),G,nothing)
       @req _is_true "Element not in the group"
       if x_gap === nothing
-        return MatrixGroupElem(G,x.elm)
+        return MatrixGroupElem(G,matrix(x))
       end
-      return MatrixGroupElem(G,x.elm,x_gap)
+      return MatrixGroupElem(G,matrix(x),x_gap)
    end
 end
 
@@ -367,7 +365,7 @@ end
 # we are not currently keeping track of the parent; two elements coincide iff their matrices coincide
 function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    if isdefined(x,:X) && isdefined(y,:X) return x.X==y.X
-   else return x.elm==y.elm
+   else return matrix(x)==matrix(y)
    end
 end
 
@@ -390,18 +388,18 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return T(G, x.X*y.X)
    else
-      return T(G, x.elm*y.elm)
+      return T(G, matrix(x)*matrix(y))
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = x.elm*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*y.elm
+Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
+Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
 
-Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
+Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x)^n)
 
-Base.isone(x::MatrixGroupElem) = isone(x.elm)
+Base.isone(x::MatrixGroupElem) = isone(matrix(x))
 
-Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(x.elm))
+Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(matrix(x)))
 
 # if the parents are different, the parent of the output is set as GL(n,q)
 function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
@@ -409,7 +407,7 @@ function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return MatrixGroupElem(G, inv(y.X)*x.X*y.X)
    else
-      return MatrixGroupElem(G,inv(y.elm)*x.elm*y.elm)
+      return MatrixGroupElem(G,inv(matrix(y))*matrix(x)*matrix(y))
    end
 end
 
@@ -436,9 +434,14 @@ parent(x::MatrixGroupElem) = x.parent
 
 Return the underlying matrix of `x`.
 """
-matrix(x::MatrixGroupElem) = x.elm
+function matrix(x::MatrixGroupElem)
+  if !isdefined(x, :elm)
+    x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
+  end
+  return x.elm
+end
 
-Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
+Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = matrix(x)[i,j]
 
 """
     number_of_rows(x::MatrixGroupElem)
@@ -467,10 +470,10 @@ tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
-frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in x.elm]))
+frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in matrix(x)]))
 frobenius(x::MatrixGroupElem) = frobenius(x,1)
 
-transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
+transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
 =#
 
 ########################################################################
@@ -946,7 +949,7 @@ function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    K,f = _as_subgroup(G, H)
    L = Vector{elem_type(K)}(undef, length(elements))
    for i in 1:length(L)
-      L[i] = MatrixGroupElem(K, elements[i].elm, elements[i].X)
+      L[i] = MatrixGroupElem(K, matrix(elements[i]), elements[i].X)
    end
    K.gens = L
    return K,f
