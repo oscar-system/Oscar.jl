@@ -1565,7 +1565,7 @@ end
 
 
 @doc raw"""
-    elliptic_surface(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
+    elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
 degree at most ``4`` to Weierstrass form and return the corresponding
