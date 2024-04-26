@@ -149,8 +149,10 @@ Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, matri
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
+# Compute and store the component `G.X` if this is possible.
 function assign_from_description(G::MatrixGroup)
    F = codomain(_ring_iso(G))
+   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GAP.GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
    if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
    elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
@@ -622,14 +624,14 @@ end
 
 Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field or a residue ring or `ZZ`.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = general_linear_group(2,F)
+julia> H = general_linear_group(2, F)
 GL(2,7)
 
 julia> gens(H)
@@ -637,6 +639,8 @@ julia> gens(H)
  [3 0; 0 1]
  [6 1; 6 0]
 
+julia> order(general_linear_group(2, residue_ring(ZZ, 6)[1]))
+288
 ```
 """
 function general_linear_group(n::Int, R::Ring)
@@ -656,14 +660,14 @@ end
 
 Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field or a residue ring or `ZZ`.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = special_linear_group(2,F)
+julia> H = special_linear_group(2, F)
 SL(2,7)
 
 julia> gens(H)
@@ -671,6 +675,8 @@ julia> gens(H)
  [3 0; 0 5]
  [6 1; 6 0]
 
+julia> order(special_linear_group(2, residue_ring(ZZ, 6)[1]))
+144
 ```
 """
 function special_linear_group(n::Int, R::Ring)
@@ -691,14 +697,15 @@ end
 Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = symplectic_group(2,F)
+julia> H = symplectic_group(2, F)
 Sp(2,7)
 
 julia> gens(H)
@@ -706,6 +713,8 @@ julia> gens(H)
  [3 0; 0 5]
  [6 1; 6 0]
 
+julia> order(symplectic_group(2, residue_ring(ZZ, 4)[1]))
+48
 ```
 """
 function symplectic_group(n::Int, R::Ring)
@@ -728,21 +737,24 @@ Return the orthogonal group of dimension `n` over the ring `R` respectively the
 field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = symplectic_group(2,F)
-Sp(2,7)
+julia> H = orthogonal_group(1, 2, F)
+GO+(2,7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
  [3 0; 0 5]
- [6 1; 6 0]
+ [0 1; 1 0]
 
+julia> order(orthogonal_group(-1, 2, residue_ring(ZZ, 9)[1]))
+24
 ```
 """
 function orthogonal_group(e::Int, n::Int, R::Ring)
@@ -780,14 +792,15 @@ Return the special orthogonal group of dimension `n` over the ring `R` respectiv
 the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = special_orthogonal_group(1,2,F)
+julia> H = special_orthogonal_group(1, 2, F)
 SO+(2,7)
 
 julia> gens(H)
@@ -796,6 +809,8 @@ julia> gens(H)
  [5 0; 0 3]
  [1 0; 0 1]
 
+julia> order(special_orthogonal_group(-1, 2, residue_ring(ZZ, 9)[1]))
+12
 ```
 """
 function special_orthogonal_group(e::Int, n::Int, R::Ring)
@@ -833,20 +848,23 @@ Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = omega_group(1,2,F)
+julia> H = omega_group(1, 2, F)
 Omega+(2,7)
 
 julia> gens(H)
 1-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
  [2 0; 0 4]
 
+julia> order(omega_group(0, 3, residue_ring(ZZ, 9)[1]))
+324
 ```
 """
 function omega_group(e::Int, n::Int, R::Ring)

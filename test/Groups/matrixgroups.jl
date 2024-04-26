@@ -168,6 +168,51 @@ end
 
 end
 
+@testset "Classical groups over rings that are not supported by GAP" begin
+   G = GL(2, QQ)
+   @test_throws ErrorException G[1]
+   G = GL(2, ZZ)
+   @test nrows(G[1]) == 2
+   G = GL(2, residue_ring(ZZ, 6)[1])
+   @test nrows(G[1]) == 2
+
+   G = SL(2, QQ)
+   @test_throws ErrorException G[1]
+   G = SL(2, ZZ)
+   @test nrows(G[1]) == 2
+   G = SL(2, residue_ring(ZZ, 6)[1])
+   @test nrows(G[1]) == 2
+
+   G = Sp(2, QQ)
+   @test_throws ErrorException G[1]
+   G = Sp(2, ZZ)
+   @test_throws ErrorException G[1]
+   G = Sp(2, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = Sp(2, residue_ring(ZZ, 4)[1])
+   @test nrows(G[1]) == 2
+   G = Sp(2, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 2
+
+   G = GO(3, QQ)
+   @test_throws ErrorException G[1]
+   G = GO(3, ZZ)
+   @test_throws ErrorException G[1]
+   G = GO(3, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = GO(3, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 3
+
+   G = SO(3, QQ)
+   @test_throws ErrorException G[1]
+   G = SO(3, ZZ)
+   @test_throws ErrorException G[1]
+   G = SO(3, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = SO(3, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 3
+end
+
 @testset "Type operations" begin
    G = GL(5,5)
    x = rand(G)
