@@ -2306,9 +2306,7 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
   a, b, _ = rational_maps(isomorphism(E2, E))
 
   eq_E = equation(E)
-  @show eq_E
   eq_E2 = equation(E2)
-  @show eq_E2
 
   h = evaluate(eq_E, [a, b])
   @assert divides(h, eq_E2)[1]
