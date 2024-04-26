@@ -108,6 +108,7 @@ GAP.@wrap HasSize(x::Any)::Bool
 GAP.@wrap Identity(x::GapObj)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
+GAP.@wrap ImagesRepresentative(x::GapObj, y::Any)::GAP.Obj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
 GAP.@wrap Indeterminate(x::GapObj)::GapObj
