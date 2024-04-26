@@ -447,7 +447,7 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldE
       b = similar(a)
       OK = true
       for x = eachindex(a)
-        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
+        y = Hecke.force_coerce_cyclo(K, a[x], Val(false))
         if y === nothing
           OK = false
         else
