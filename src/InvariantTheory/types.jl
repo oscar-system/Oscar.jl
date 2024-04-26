@@ -232,7 +232,7 @@ end
 
 struct MSetPartitions{T}
   M::MSet{T}
-  num_to_key::Vector{Int}
+  num_to_key::Vector{T}
   key_to_num::Dict{T,Int}
 
   function MSetPartitions(M::MSet{T}) where {T}

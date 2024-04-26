@@ -204,7 +204,6 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 
   T, inc, pr, J = _groebner_data(F)
   o = induce(gens(T)[1:n], default_ordering(S))*induce(gens(T)[n + 1:end], default_ordering(R))
-  gb = groebner_basis(J, ordering = o)
   nf = normal_form(inc(lift(f)), J, ordering = o)
   if isone(cmp(o, gen(T, n), leading_monomial(nf, ordering = o)))
     return true, pr(nf)
