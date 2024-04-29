@@ -18,6 +18,16 @@ function monomial_parametrization(pm::GroupBasedPhylogeneticModel, states::Dict{
   monomial_parametrization(phylogenetic_model(pm), states)
 end
 
+@doc raw"""
+    probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})
+
+Create a 
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})
   gr = graph(pm)
   int_nodes = interior_nodes(gr)
