@@ -2032,7 +2032,7 @@ function primary_decomposition(
     algorithm::Symbol=:GTZ, cache::Bool=true
   )
   if has_attribute(I, :primary_decomposition)
-    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+    return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
   end
   Q = base_ring(I)
   R = base_ring(Q)
