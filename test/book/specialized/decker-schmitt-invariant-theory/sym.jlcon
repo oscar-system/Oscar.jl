@@ -1,0 +1,26 @@
+julia> RS4 = invariant_ring(GF(2), symmetric_group(4))
+Invariant ring
+  of Sym(4)
+
+julia> L = fundamental_invariants(RS4)
+4-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
+ x[1] + x[2] + x[3] + x[4]
+ x[1]*x[2] + x[1]*x[3] + x[2]*x[3] + x[1]*x[4] + x[2]*x[4] + x[3]*x[4]
+ x[1]*x[2]*x[3] + x[1]*x[2]*x[4] + x[1]*x[3]*x[4] + x[2]*x[3]*x[4]
+ x[1]*x[2]*x[3]*x[4]
+
+julia> is_algebraically_independent(L)
+true
+
+julia> RS3 = invariant_ring(QQ, symmetric_group(3));
+
+julia> R = polynomial_ring(RS3)
+Multivariate polynomial ring in 3 variables over QQ graded by
+  x[1] -> [1]
+  x[2] -> [1]
+  x[3] -> [1]
+
+julia> x = gens(R);
+
+julia> reynolds_operator(RS3, x[1]^2)
+1//3*x[1]^2 + 1//3*x[2]^2 + 1//3*x[3]^2

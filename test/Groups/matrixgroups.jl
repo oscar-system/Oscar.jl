@@ -2,8 +2,8 @@
    F = GF(29, 1)
    z = F(2)
    G = GL(3,F)
+   #@test isdefined(G,:X)
    @test G.X isa GAP.GapObj
-   @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -33,8 +33,8 @@
    T,t = polynomial_ring(GF(3) ,"t")
    F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
+   #@test isdefined(G,:X)
    @test G.X isa GAP.GapObj
-   @test isdefined(G,:X)
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -79,10 +79,10 @@ end
          @test g(a * b) == g(a) * g(b)
          @test g(a - b) == g(a) - g(b)
       end
-      @test G.ring_iso(z) isa GAP.Obj
+      #@test isdefined(G, :X)
       @test G.X isa GAP.GapObj
-      @test isdefined(G, :X)
       @test isdefined(G, :ring_iso)
+      @test G.ring_iso(z) isa GAP.Obj
       Z = G.ring_iso(z)
       @test Z in codomain(G.ring_iso)
       @test preimage(G.ring_iso, Z) == z
@@ -166,6 +166,51 @@ end
    orb = orbit(G, *, p)
    @test length(orb) == 5
 
+end
+
+@testset "Classical groups over rings that are not supported by GAP" begin
+   G = GL(2, QQ)
+   @test_throws ErrorException G[1]
+   G = GL(2, ZZ)
+   @test nrows(G[1]) == 2
+   G = GL(2, residue_ring(ZZ, 6)[1])
+   @test nrows(G[1]) == 2
+
+   G = SL(2, QQ)
+   @test_throws ErrorException G[1]
+   G = SL(2, ZZ)
+   @test nrows(G[1]) == 2
+   G = SL(2, residue_ring(ZZ, 6)[1])
+   @test nrows(G[1]) == 2
+
+   G = Sp(2, QQ)
+   @test_throws ErrorException G[1]
+   G = Sp(2, ZZ)
+   @test_throws ErrorException G[1]
+   G = Sp(2, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = Sp(2, residue_ring(ZZ, 4)[1])
+   @test nrows(G[1]) == 2
+   G = Sp(2, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 2
+
+   G = GO(3, QQ)
+   @test_throws ErrorException G[1]
+   G = GO(3, ZZ)
+   @test_throws ErrorException G[1]
+   G = GO(3, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = GO(3, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 3
+
+   G = SO(3, QQ)
+   @test_throws ErrorException G[1]
+   G = SO(3, ZZ)
+   @test_throws ErrorException G[1]
+   G = SO(3, residue_ring(ZZ, 6)[1])
+   @test_throws ErrorException G[1]
+   G = SO(3, residue_ring(ZZ, 9)[1])
+   @test nrows(G[1]) == 3
 end
 
 @testset "Type operations" begin

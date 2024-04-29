@@ -39,7 +39,9 @@ Passing `detect_type=false` will skip the detection of the root system type.
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
   R = RootSystem(cartan_matrix)
-  detect_type && is_finite(weyl_group(R)) && set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+  detect_type &&
+    is_finite(weyl_group(R)) &&
+    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
   return R
 end
 
@@ -801,7 +803,7 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
 
   # reversing word means it is in short revlex normal form
   # and it is the element taking w to wt
-  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
+  return wt, weyl_group(R)(reverse!(word); normalize=false)
 end
 
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)

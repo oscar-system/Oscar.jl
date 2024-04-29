@@ -21,7 +21,7 @@ julia> x, y, z = gens(S);
 
 julia> I = ideal_sheaf(P2, ideal([x*y]))
 Sheaf of ideals
-  on normal toric variety
+  on normal, smooth toric variety
 with restrictions
   1: Ideal (x_1_1*x_2_1)
   2: Ideal (x_2_2)

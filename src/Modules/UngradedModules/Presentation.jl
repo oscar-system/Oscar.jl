@@ -521,6 +521,13 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   pm = presentation(M)
   pres_map = map(pm, 1)
   krnel = SubquoModule(pm[0], pres_map.(gens(pm[1]))) # Create the image of pres_map without the inclusion map
+
+  # work around if we're passing the zero module to singular, see
+  # https://github.com/oscar-system/Singular.jl/issues/796
+  if iszero(krnel)
+    return M, identity_map(M)
+  end
+  
   s_fmod  = Oscar.singular_module(ambient_free_module(krnel))
   s_mod = Singular.Module(base_ring(s_fmod),
                           [s_fmod(repres(g)) for g in gens(krnel)]...)

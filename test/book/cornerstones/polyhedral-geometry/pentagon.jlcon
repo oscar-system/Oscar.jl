@@ -1,0 +1,30 @@
+julia> points = [1 0; 1 1; 0 1; -1 0; -1 -1];
+
+julia> P = convex_hull(points)
+Polyhedron in ambient dimension 2
+
+julia> facets(P)
+5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
+-x_1 <= 1
+-x_1 + x_2 <= 1
+x_1 - 2*x_2 <= 1
+x_1 <= 1
+x_2 <= 1
+
+
+julia> f_vector(P)
+2-element Vector{ZZRingElem}:
+ 5
+ 5
+
+julia> volume(P)
+5//2
+
+julia> lattice_points(P)
+6-element SubObjectIterator{PointVector{ZZRingElem}}:
+ [-1, -1]
+ [-1, 0]
+ [0, 0]
+ [0, 1]
+ [1, 0]
+ [1, 1]

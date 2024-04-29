@@ -1,0 +1,11 @@
+julia> full_graph = Graph{Undirected}(length(maxcones));
+
+julia> [add_edge!(full_graph, e...) for e in full_edges];
+
+julia> visualize(full_graph)
+
+julia> orbit_graph = Graph{Undirected}(length(hash_list));
+
+julia> [add_edge!(orbit_graph, e...) for e in edges];
+
+julia> visualize(orbit_graph)

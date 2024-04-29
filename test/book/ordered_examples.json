@@ -1,0 +1,301 @@
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.0.0"
+    ]
+  },
+  "_type": {
+    "name": "Dict",
+    "params": {
+      "key_type": "String",
+      "specialized/boehm-breuer-git-fans": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/markwig-ristau-schleis-faithful-tropicalization": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/holt-ren-tropical-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/bies-turner-string-theory-applications": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/aga-boehm-hoffmann-markwig-traore": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/joswig-kastner-lorenz-confirmable-workflows": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/number-theory": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/groups": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "introduction/introduction": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/eder-mohr-ideal-theoretic": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/kuehne-schroeter-matroids": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/polyhedral-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/rose-sturmfels-telen-tropical-implicitization": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/fang-fourier-monomial-bases": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/brandhorst-zach-fibration-hopping": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/breuer-nebe-parker-orthogonal-discriminants": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/algebraic-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/decker-schmitt-invariant-theory": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/bies-kastner-toric-geometry": {
+        "name": "Vector",
+        "params": "String"
+      }
+    }
+  },
+  "data": {
+    "specialized/boehm-breuer-git-fans": [
+      "explG25_1.jlcon",
+      "explG25_2.jlcon",
+      "explG25_2A.jlcon",
+      "explG25_3.jlcon",
+      "explG25_3A.jlcon",
+      "explG25_4.jlcon",
+      "explG25_5.jlcon",
+      "explG25_6.jlcon",
+      "explG25_7.jlcon",
+      "explG25_8.jlcon"
+    ],
+    "specialized/markwig-ristau-schleis-faithful-tropicalization": [
+      "draw_hypersurface.jlcon",
+      "vertices_P2.jlcon",
+      "vertices_P1.jlcon",
+      "eliminate_xz.jlcon",
+      "eliminate_yz.jlcon"
+    ],
+    "specialized/holt-ren-tropical-geometry": [
+      "semiring.jlcon",
+      "matrixAndPoly.jlcon",
+      "det.jlcon",
+      "semiringMaps1.jlcon",
+      "semiringMaps2.jlcon",
+      "semiringMaps3.jlcon",
+      "groebner.jlcon",
+      "variety.jlcon",
+      "hypersurface1.jlcon",
+      "hypersurface2.jlcon",
+      "hypersurface3.jlcon",
+      "linearSpace1.jlcon",
+      "linearSpace2.jlcon",
+      "linearSpace3.jlcon",
+      "curve1.jlcon",
+      "curve2.jlcon",
+      "intersection.jlcon",
+      "grc.jlcon"
+    ],
+    "specialized/bies-turner-string-theory-applications": [
+      "SU5.jlcon",
+      "SU5-2.jlcon"
+    ],
+    "specialized/aga-boehm-hoffmann-markwig-traore": [
+      "graphname.jlcon",
+      "Caterpillar3.jlcon"
+    ],
+    "specialized/joswig-kastner-lorenz-confirmable-workflows": [
+      "versioninfo.jlcon",
+      "polynomial-load.jlcon",
+      "snf.jlcon"
+    ],
+    "cornerstones/number-theory": [
+      "intro.jlcon",
+      "intro_plot_lattice.jlcon",
+      "unit_plot.jlcon",
+      "unit_log_plot.jl",
+      "general.jlcon",
+      "embeddings.jlcon",
+      "intro4.jlcon",
+      "sym.jlcon",
+      "sym_1.jl",
+      "cohenlenstra.jlcon",
+      "galoismod.jlcon",
+      "galoismod_1.jl",
+      "galoismod_2.jl"
+    ],
+    "cornerstones/groups": [
+      "intro.jlcon",
+      "actions.jlcon",
+      "explSL25.jlcon",
+      "chars.jlcon",
+      "extensions.jlcon",
+      "cohomology.jlcon",
+      "reps.jlcon",
+      "genchar.jlcon"
+    ],
+    "introduction/introduction": [
+      "julia.jlcon",
+      "julia-jit.jlcon",
+      "julia2.jlcon",
+      "julia3.jlcon"
+    ],
+    "specialized/eder-mohr-ideal-theoretic": [
+      "hilbert.jlcon",
+      "gbeliminate.jlcon",
+      "fglm.jlcon",
+      "realsols.jlcon",
+      "nonproper.jlcon",
+      "whitney.jlcon",
+      "combinatorics.jlcon",
+      "lcis.jlcon"
+    ],
+    "specialized/kuehne-schroeter-matroids": [
+      "basics.jlcon",
+      "realization_space.jlcon",
+      "ChowRings.jlcon"
+    ],
+    "cornerstones/polyhedral-geometry": [
+      "pentagon.jlcon",
+      "lp.jlcon",
+      "tetrahedron.jlcon",
+      "platonic.jlcon",
+      "dodecahedron.jlcon",
+      "johnson-orbits.jl",
+      "johnson-orbits.jlcon",
+      "perm3.jlcon",
+      "not-pointed.jlcon",
+      "simple_polyhedral_fan.jlcon",
+      "g-vector-example.jlcon",
+      "g-vectors.jl",
+      "g-vectors-upper-bound.jlcon",
+      "GelfandTsetlinEx.jlcon",
+      "generalized_gelfand_tsetlin.jlcon",
+      "GT_character.jlcon",
+      "D222Computation.jlcon",
+      "hyperdeterminant.jlcon",
+      "SecondaryPolytope.jlcon",
+      "Explosion.jlcon",
+      "GKZ_orbits.jlcon",
+      "ch-benchmark.jlcon"
+    ],
+    "specialized/rose-sturmfels-telen-tropical-implicitization": [
+      "gen_impl.jlcon",
+      "hyperdet.jlcon",
+      "get_hyperdet.jlcon",
+      "pol_from_surface.jlcon",
+      "coeffs_fin.jlcon",
+      "triang.jlcon",
+      "chow_fan.jlcon",
+      "chow_transl.jlcon"
+    ],
+    "specialized/fang-fourier-monomial-bases": [
+      "get-operators.jlcon",
+      "basis.jlcon",
+      "fflv.jlcon",
+      "string.jlcon",
+      "lusztig.jlcon",
+      "nz.jlcon"
+    ],
+    "specialized/brandhorst-zach-fibration-hopping": [
+      "vinberg_1.jlcon",
+      "vinberg_2.jlcon",
+      "vinberg_3.jlcon"
+    ],
+    "specialized/breuer-nebe-parker-orthogonal-discriminants": [
+      "expl_order.jlcon",
+      "expl_ev.jlcon",
+      "expl_specht.jlcon",
+      "expl_syl.jlcon",
+      "expl_G23_tbl.jlcon",
+      "expl_G23_info.jlcon",
+      "expl_ray_class.jlcon",
+      "expl_nongalois.jlcon",
+      "expl_od_odd.jlcon",
+      "expl_plusminus.jlcon"
+    ],
+    "cornerstones/algebraic-geometry": [
+      "ex11.jlcon",
+      "ex11dist.jlcon",
+      "default.jlcon",
+      "ex-primdec.jlcon",
+      "ex-dim.jlcon",
+      "circlepar.jlcon",
+      "twocusps.jlcon",
+      "delta.jlcon",
+      "ex21.jlcon",
+      "ex21a.jlcon",
+      "ex21b.jlcon",
+      "ex23.jlcon",
+      "ex23a.jlcon",
+      "param.jlcon",
+      "ex32.jlcon",
+      "exres.jlcon",
+      "hilbert-polynomial.jlcon",
+      "exres2.jlcon",
+      "ex314.jlcon",
+      "char3-surface-1.jlcon",
+      "char3-surface-2.jlcon",
+      "alexander-surface.jlcon",
+      "dual_curve_function.jlcon",
+      "dualcurve.jlcon",
+      "monodromy.jlcon",
+      "canonicalimage.jlcon",
+      "deformation.jlcon",
+      "zariski.jlcon"
+    ],
+    "specialized/decker-schmitt-invariant-theory": [
+      "sym.jlcon",
+      "H3.jlcon",
+      "bertin.jlcon",
+      "klein.jlcon",
+      "gleason.jlcon",
+      "nakajima.jlcon",
+      "LR-inv.jlcon",
+      "cox_ring.jlcon"
+    ],
+    "specialized/bies-kastner-toric-geometry": [
+      "cyclic.jlcon",
+      "normal_fan_square.jlcon",
+      "cube.jlcon",
+      "p2.jlcon",
+      "chow_ring.jlcon",
+      "polyhedral_fan.jlcon",
+      "p1xp1_cohomologies.jlcon",
+      "p1xp1_vanishing_sets.jlcon",
+      "glsm.jlcon",
+      "starsubdivision.jlcon"
+    ]
+  }
+}

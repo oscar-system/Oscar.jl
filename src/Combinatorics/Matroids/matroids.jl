@@ -387,6 +387,118 @@ See `bond_matroid`.
 """
 cocycle_matroid(g::Graph) = bond_matroid(g::Graph)
 
+function bases_from_prime_ideal(P::MPolyIdeal)
+  gs = gens(base_ring(P))
+  rk = dim(P)
+  bases = Vector{typeof(gs)}()
+  for set in subsets(gs, rk)
+    S = eliminate(P, collect(setdiff(gs, set)))
+    if is_zero(S)
+      push!(bases, set);
+    end
+  end
+  return bases
+end
+
+@doc raw"""
+    matroid_from_prime_ideal(P::MPolyIdeal; check::Bool=true)
+
+A prime ideal `P` in a multivariate polynomial ring over a field `K`
+defines a field extension of `K` (the fraction field of the coordinate
+ring of `P`). This function constructs the associated algebraic
+matroid whose ground set is the set of generators of `ring(P)`.
+
+See Section 6.7 of [Oxl11](@cite).
+
+# Examples
+```jldoctest
+julia> R,(x,y,s,t,Δ) = polynomial_ring(QQ, ["x","y","s","t","Δ"]);
+
+julia> I = ideal(R, [y^2 - x^3 - s*x - t, Δ + 16*(4*s^3 + 27*t^2)]);
+
+julia> M = matroid_from_prime_ideal(I)
+Matroid of rank 3 on 5 elements
+
+julia> nonbases(M)
+1-element Vector{Vector{QQMPolyRingElem}}:
+ [s, t, Δ]
+```
+"""
+function matroid_from_prime_ideal(P::MPolyIdeal; check::Bool=true)
+  if check && !is_prime(P)
+    error("The ideal of an algebraic matroid must be prime")
+  end
+  return matroid_from_bases(bases_from_prime_ideal(P), gens(base_ring(P)); check=check)
+end
+
+@doc raw"""
+    algebraic_matroid(G::Vector; check::Bool=true)
+
+Given a list `G` of elements in an affine algebra (or its fraction
+field) over a field, construct the algebraic matroid on ground set
+`G` whose independent sets are the subsets of `G` which are
+algebraically independent.
+
+See Section 6.7 of [Oxl11](@cite).
+
+# Examples
+This is the algebraic matroid pictured in Figure 6.27 of [Oxl11](@cite):
+```jldoctest
+julia> R,v = polynomial_ring(GF(2), ["x","y","z"]);
+
+julia> F = fraction_field(R);
+
+julia> x,y,z = [F(v) for v in v];
+
+julia> M = algebraic_matroid([x,y,z,x*y,x*z,x*y*z, x*z+y^2, y^3/(x^2*z^2)])
+Matroid of rank 3 on 8 elements
+
+julia> nonbases(M)
+13-element Vector{Vector{AbstractAlgebra.Generic.FracFieldElem{FqMPolyRingElem}}}:
+ [x, y, x*y]
+ [x, z, x*z]
+ [y, x*z, x*y*z]
+ [y, x*z, x*z + y^2]
+ [y, x*z, y^3//(x^2*z^2)]
+ [y, x*y*z, x*z + y^2]
+ [y, x*y*z, y^3//(x^2*z^2)]
+ [y, x*z + y^2, y^3//(x^2*z^2)]
+ [z, x*y, x*y*z]
+ [x*z, x*y*z, x*z + y^2]
+ [x*z, x*y*z, y^3//(x^2*z^2)]
+ [x*z, x*z + y^2, y^3//(x^2*z^2)]
+ [x*y*z, x*z + y^2, y^3//(x^2*z^2)]
+```
+"""
+function algebraic_matroid(G::Vector; check::Bool=true)
+  @req !isempty(G) "Input vector must not be empty"
+  F = parent(G[1])
+  R = F isa FracField ? base_ring(F) : F
+  @req coefficient_ring(R) isa Field "The coefficient ring must be a field"
+  @req all(x -> parent(x) === F, G) "The elements must have the same parent"
+
+  # Implicitize the rational map t[i] -> G[i]. Since the G can have
+  # denominators, we can't at the moment use kernel(hom(F, ...)).
+  C = coefficient_ring(R)
+  S, t, x = polynomial_ring(C, "t" => 1:length(G), [string(x) for x in gens(R)]; cached=false)
+  phi = hom(R, S, x)
+  I = F isa FracField ?
+    ideal(S, [phi(R(numerator(g))) - t*phi(R(denominator(g))) for (g,t) in zip(G,t)]) :
+    ideal(S, [phi(g) - t for (g,t) in zip(G,t)])
+  P = eliminate(I, x)
+
+  # If we feed P into bases_from_prime_ideal, the variables x will be
+  # treated as coloops. We have to remove them from the ambient ring.
+  S2, t2 = polynomial_ring(coefficient_ring(S), [string(x) for x in G]; cached=false)
+  restr = hom(S, S2, [t2..., [0 for x in x]...])
+
+  # Get bases from the ideal P then make a matroid whose ground set is
+  # the actual list G.
+  d = Dict(zip(t2, G))
+  bases = bases_from_prime_ideal(restr(P))
+  bases = [[d[b] for b in B] for B in bases]
+  return matroid_from_bases(bases, G; check=check)
+end
 
 @doc raw"""
     dual_matroid(M::Matroid)

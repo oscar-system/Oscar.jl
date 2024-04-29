@@ -598,11 +598,51 @@
 
 end
 
-@testset "Johnson solids" begin
+@testset "Regular solids" begin
   
   for i in Oscar._johnson_indexes_from_oscar
     j = johnson_solid(i)
     @test j isa Polyhedron{<:EmbeddedNumFieldElem}
     @test Polymake.polytope.isomorphic(Oscar.pm_object(j), Polymake.polytope.johnson_solid(i))
   end
+
+  let p = platonic_solid("dodecahedron")
+    @test is_platonic_solid(p)
+    @test !is_archimedean_solid(p)
+    @test !is_johnson_solid(p)
+    @test is_vertex_transitive(p)
+  end
+
+  let a = archimedean_solid("rhombicuboctahedron")
+    @test !is_platonic_solid(a)
+    @test is_archimedean_solid(a)
+    @test !is_johnson_solid(a)
+    @test is_vertex_transitive(a)
+    @test !Oscar._is_prismic_or_antiprismic(a)
+  end
+
+  let j = johnson_solid(69)
+    @test !is_platonic_solid(j)
+    @test !is_archimedean_solid(j)
+    @test is_johnson_solid(j)
+    @test !is_vertex_transitive(j)
+  end
+  
+  K = algebraic_closure(QQ)
+  e = one(K)
+  s, c = sinpi(2*e/7), cospi(2*e/7)
+  mat_rot = matrix([ c -s ; s c ])
+  mat_sigma1 = matrix(K, [ -1 0 ; 0 1 ])
+  G_mat = matrix_group(mat_rot, mat_sigma1)
+  p = K.([0,1])  # coordinates of vertex 1, expressed over K
+  orb = orbit(G_mat, *, p)
+  pts = collect(orb)
+  len = sqrt(dot(pts[1]-pts[2],pts[1]-pts[2])) / 2
+  ngon = convex_hull(pts)
+  prism = polyhedron(Polymake.polytope.prism(Oscar.pm_object(ngon),len))
+  @test Oscar._is_prismic_or_antiprismic(prism)
+  @test !is_archimedean_solid(prism)
+  @test !is_johnson_solid(prism)
+
+  
 end

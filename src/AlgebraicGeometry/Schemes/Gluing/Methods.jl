@@ -119,7 +119,8 @@ function compose(G::Gluing, H::Gluing)
   V_new = intersect(codomain(f), domain(g))
   return Gluing(X, Z, 
              compose(restrict(f, U_new, V_new), restrict(g, V_new, W_new)),
-             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new))
+             compose(restrict(g_inv, W_new, V_new), restrict(f_inv, V_new, U_new));
+             check=false
          )
 end
 
@@ -140,7 +141,7 @@ function maximal_extension(G::Gluing)
   is_subscheme(domain(g_ext), V_new) || error("extension failed")
   f_ext = restrict(f_ext, U_new, V_new)
   g_ext = restrict(g_ext, V_new, U_new)
-  return Gluing(X, Y, f_ext, g_ext)
+  return Gluing(X, Y, f_ext, g_ext; check=false)
 end
 
 function compose(G::SimpleGluing, H::SimpleGluing)
@@ -222,7 +223,7 @@ function _compute_gluing_base_change(gd::BaseChangeGluingData)
   _, ff, _ = base_change(phi, f, domain_map=map_U, codomain_map=map_V)
   _, gg, _ = base_change(phi, g, domain_map=map_V, codomain_map=map_U)
 
-  return Gluing(XX, YY, ff, gg)
+  return Gluing(XX, YY, ff, gg; check=false)
 end
 
 function base_change(phi::Any, G::AbsGluing;

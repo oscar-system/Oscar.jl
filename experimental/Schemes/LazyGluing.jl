@@ -90,7 +90,7 @@ end
 
 function _compute_domains(GD::RestrictionDataClosedEmbedding)
   if isdefined(GD, :UX) && isdefined(GD, :VY)
-    return GD.UX, GD.UY
+    return GD.UX, GD.VY
   end
   (U, V) = gluing_domains(GD.G)
   if U isa PrincipalOpenSubset

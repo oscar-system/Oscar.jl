@@ -27,6 +27,7 @@ export AbsMultSet
 export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
+export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
 export AbstractAlgebra
 export AffineAlgebraicSet
@@ -207,6 +208,7 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
+export algebraic_matroid
 export algebraic_pluecker_vector
 export algebraic_polynomial
 export algebraic_set
@@ -717,6 +719,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_archimedean_solid
 export is_ball
 export is_basepoint_free
 export is_bicoset
@@ -789,6 +792,7 @@ export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, s
 export is_isomorphic_with_map
 export is_isomorphic_with_permutation
 export is_isomorphism
+export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
@@ -813,6 +817,7 @@ export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
+export is_platonic_solid
 export is_pointed
 export is_positively_graded
 export is_primary
@@ -862,6 +867,7 @@ export is_unit
 export is_unital
 export is_vertical_k_separation
 export is_very_ample
+export is_vertex_transitive
 export is_weakly_connected
 export is_welldefined
 export is_z_graded
@@ -959,6 +965,7 @@ export matroid_from_hyperplanes
 export matroid_from_matrix_columns
 export matroid_from_matrix_rows
 export matroid_from_nonbases
+export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export max_GC_rank_polytope
@@ -999,7 +1006,6 @@ export monomials_of_degree
 export mori_cone
 export morphism
 export morphism_from_cox_variety
-export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1085,6 +1091,7 @@ export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_small_groups, has_number_of_small_groups
 export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
+export number_of_weak_compositions
 export numerator
 export objective_function
 export omega_group
@@ -1092,6 +1099,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_simplicial_complex
 export on_subgroups
 export on_tuples
 export one!
@@ -1368,6 +1376,7 @@ export src
 export stable_intersection
 export stable_set_polytope
 export standard_basis
+export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
 export standard_tableaux
 export stanley_reisner_ideal
@@ -1480,6 +1489,8 @@ export volume_map
 export walls
 export wdeglex
 export wdegrevlex
+export weak_composition
+export weak_compositions
 export weakly_connected_components
 export wedge
 export wedge_generator_decompose_function

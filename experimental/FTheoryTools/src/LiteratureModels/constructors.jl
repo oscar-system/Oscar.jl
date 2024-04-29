@@ -32,6 +32,16 @@ Some literature models require additional parameters to specified to single out
 a model from a family of models. Such models can be provided using the optional
 argument `model_parameters`, which should be a dictionary such as `Dict("k" => 5)`.
 
+Notice that most F-theory models require the specification of sections of line
+bundles. Oftentimes, these sections appear in the singular loci of the models.
+Hence, generic sections also mean complicated singular loci. In case those loci
+are supposed to be blown up, then taking generic sections results in the most
+complicated situation with regard to singularity resolution. With that being said,
+we default to simple section consisting of a single monomial unless the optional
+argument `generic` is set to `true`. In other words, if you add
+`generic = true` to the argument list of `literature_model`, generic sections are
+used in the construction and subsequently resolution of the F-theory model in question.
+
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -125,17 +135,17 @@ julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  model_dict = _find_model(doi, arxiv_id, version, equation)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, generic::Bool = false)
+  model_dict = _find_model(doi, arxiv_id, version, equation, type)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check, generic = generic)
 end
 
-function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, generic::Bool = false)
   model_dict = _find_model(k)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check, generic = generic)
 end
 
-function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, generic::Bool = false)
   #return model_dict
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
@@ -175,7 +185,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     end
     
     # Construct the model
-    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
+    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check, generic)
     @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   # (2b) Construct the model over generic base
@@ -195,7 +205,7 @@ end
 # 2. Helper function to find the specified model
 #######################################################
 
-function _find_model(doi::String, arxiv_id::String, version::String, equation::String)
+function _find_model(doi::String, arxiv_id::String, version::String, equation::String, type::String)
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
@@ -203,7 +213,8 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
     if all([doi == "" || get(file_index[k], "journal_doi", nothing) == doi,
         arxiv_id == "" || get(file_index[k], "arxiv_id", nothing) == arxiv_id,
         version == "" || get(file_index[k], "arxiv_version", nothing) == version,
-        equation == "" || get(file_index[k], "arxiv_equation", nothing) == equation])
+        equation == "" || get(file_index[k], "arxiv_equation", nothing) == equation,
+        type == "" || get(file_index[k], "type", nothing) == type])
       push!(candidate_files, string(file_index[k]["file"]))
     end
   end
@@ -231,7 +242,8 @@ function _process_candidates(candidate_files::Vector{String})
       ids = map(d -> get(d["arxiv_data"], "id", nothing), dicts)
       versions = map(d -> get(d["arxiv_data"], "version", nothing), dicts)
       equations = map(d -> get(d["arxiv_data"]["model_location"], "equation", nothing), dicts)
-      strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i])" for i in 1:length(dicts)]
+      types = map(d -> get(d["model_descriptors"], "type", nothing), dicts)
+      strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i]), type: $(types[i])" for i in 1:length(dicts)]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))
@@ -245,7 +257,7 @@ end
 #######################################################
 
 # Constructs literature model over concrete base
-function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool)
+function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool, generic::Bool)
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
   @req ((model_dict["model_descriptors"]["type"] == "tate") || (model_dict["model_descriptors"]["type"] == "weierstrass") || (model_dict["model_descriptors"]["type"] == "hypersurface")) "Model is not a Tate or Weierstrass model"
@@ -269,9 +281,11 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
   for (key, value) in model_sections
     @req is_effective(toric_divisor_class(value)) "Encountered a non-effective model section"
-    explicit_model_sections[key] = generic_section(toric_line_bundle(value))
-    # Lead to error when computing singular loci - currently only monomials allowed...
-    #explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+    if generic
+      explicit_model_sections[key] = generic_section(toric_line_bundle(value))
+    else
+      explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+    end
   end
   for (key, value) in internal_model_sections
     @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) model section"

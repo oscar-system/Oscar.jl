@@ -23,6 +23,8 @@
   end
 end
 
+generator_degrees(S::MPolyDecRing) = S.d
+
 @doc raw"""
     grading_group(R::MPolyDecRing)
 
@@ -2394,3 +2396,4 @@ julia> degree(I)
   A, _ = quo(base_ring(I), I)
   return degree(A)
 end
+

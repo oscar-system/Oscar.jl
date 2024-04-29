@@ -574,7 +574,8 @@ function restrict(
     U::PrincipalOpenSubset;
     check::Bool=true
   )
-  parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  #parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  parent(a) === OO(ambient_scheme(U)) || return convert(OO(U), fraction(a))
   return OO(U)(a, check=check)
 end
 

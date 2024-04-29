@@ -380,3 +380,21 @@ end
   WS = Oscar.relative_cotangent_module(S)
 end
 
+@testset "arithmetic and geometric genus" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  f = x^3 + y^3 + z^3
+
+  X, inc = sub(IP2, f)
+
+  @test isone(genus(X))
+  @test isone(arithmetic_genus(X))
+
+  g = x^3 + x*y^2
+  Y, _ = sub(IP2, g)
+
+  @test isone(arithmetic_genus(Y))
+  @test arithmetic_genus(Y) isa Int64
+  @test genus(Y) == -2
+end
