@@ -255,17 +255,10 @@ end
     phi_loc = Oscar.cheap_realization(phi, W, U)
     @test all(iszero(pullback(phi_loc)(lifted_numerator(g))) for g in gens(modulus(OO(U))))
   end
-
-  # Do something reasonable to see whether this is really working
-  lat, _, L = algebraic_lattice(X)
-  A = gram_matrix(ambient_space(L))
- 
-  ll = Oscar._pushforward_lattice_along_isomorphism(phi)
-  res_mat = [Oscar.basis_representation(X, d) for d in ll]
   
-  res_mat = matrix(QQ, res_mat)
-  # Check that the base change matrix is indeed orthogonal for the given lattice
-  @test res_mat*A*transpose(res_mat) == A
+  phi_star = Oscar.pushforward_on_algebraic_lattices(phi)
+  # Check that the pushforward preserves the numerical lattice of X
+  @test phi_star(algebraic_lattice(X))==algebraic_lattice(X)
   
 end
 
