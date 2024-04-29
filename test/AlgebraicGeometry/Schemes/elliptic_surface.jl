@@ -21,9 +21,6 @@
   triv = trivial_lattice(X)
   @test det(triv[2])==-3
   
-  @testset "translation" begin
-    
-  end
   
   # This test takes about 1 minute
   @testset "mordel weil lattices" begin
