@@ -2485,9 +2485,23 @@ function isomorphism_from_generic_fibers(
   return isomorphism_from_generic_fibers(X, Y, iso_ell)
 end
 
-function pushforward_matrix(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+
+"""
+    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
+    
+Return the pushforward `f_*: V_1 -> V_2` where `V_i` is the ambient quadratic space of the `algebraic_lattice`.
+
+This assumes that the image `f_*(V_1)` is contained in `V_2`. If this is not the case, you will get  
+``f_*`` composed with the orthogonal projection to `V_2`. 
+"""
+function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   imgs_divs = _pushforward_lattice_along_isomorphism(f)
-  return matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  M =  matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  V1 = algebraic_lattice(domain(f))[3]
+  V2 = algebraic_lattice(codomain(f))[3]
+  # keep the check on since it is simple compared to all the other computations done here
+  fstar = hom(V1,V2, M; check=true)
+  return fstar
 end
 
 # Given an irreducible divisor D on an elliptic surface X, try to extract a point 
