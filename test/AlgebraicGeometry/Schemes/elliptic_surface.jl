@@ -257,5 +257,9 @@ end
   res_mat = matrix(QQ, res_mat)
   # Check that the base change matrix is indeed orthogonal for the given lattice
   @test res_mat*A*transpose(res_mat) == A
+  
+  for D in ll[11:end] # the pushforward of the sections
+    P = Oscar.point_on_generic_fiber_from_divisor(D)
+  end
 end
 

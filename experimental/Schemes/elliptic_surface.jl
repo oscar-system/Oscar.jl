@@ -2487,3 +2487,61 @@ function isomorphism_from_generic_fibers(
   return morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
 end
 
+function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
+  X = scheme(D)
+  E = generic_fiber(X)
+  ex, pt, F = irreducible_fiber(X)
+  WF = weil_divisor(F)
+  # TODO: Also cover this case by considering the class of a reducible fiber?
+  !ex && error("no irreducible fiber exists on this algebraic surface")
+  @assert length(components(D)) == 1 "divisor must be irreducible"
+  @check is_one(intersect(D, WF)) "intersection number with irreducible fiber is not one"
+  I = first(components(D))
+  fib = fibration(X)
+  @check begin
+    J = pushforward(fib, I)
+    is_one(dim(J))
+  end "given divisor can not be a section"
+  WX = weierstrass_chart_on_minimal_model(X)
+  IWX = I(WX)
+  is_one(IWX) && return infinity(E) # Point must be the zero section
+  R = ambient_coordinate_ring(WX)
+  (x, y, t) = gens(R)
+  g = gens(groebner_basis(saturated_ideal(IWX), ordering=lex(gens(R))))
+
+  # extract the coefficients for the section
+  kkt = base_field(E)
+
+  # First extract the y-coordinate
+  i = findfirst(f->(is_zero(degree(f, 1)) && is_one(degree(f, 2))), g)
+  i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  y_coord = one(kkt)
+  ev_vals = [zero(kkt), one(kkt), gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 2) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 2) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  y_coord = num//den
+
+  # Now extract the x-coordinate
+  i = findfirst(f->(is_one(degree(f, 1))), g)
+  i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  x_coord = one(kkt)
+  ev_vals = [one(kkt), y_coord, gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 1) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 1) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  x_coord = num//den
+
+  @assert is_zero(evaluate(equation(E), [x_coord, y_coord])) "esteemed point does not lie on the curve" 
+  P = E([x_coord, y_coord])
+  return P
+end
+
