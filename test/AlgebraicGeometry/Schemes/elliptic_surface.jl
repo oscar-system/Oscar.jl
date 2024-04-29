@@ -44,7 +44,6 @@
     X1 = elliptic_surface(short_weierstrass_model(E)[1],2)
     Oscar.isomorphism_from_generic_fibers(X,X1)
   end
-  =#
   #=
   # this test is quite expensive
   # probably because it is over QQ
