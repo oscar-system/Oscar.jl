@@ -122,6 +122,13 @@
     @test_throws ArgumentError standard_basis_highest_corner(I)
 end
 
+@testset "normal form graded" begin
+    R, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"])
+    I = ideal([a^2+b^2, c^3])
+    # verify normal form of inhomogeneous polynomial work
+    @test normal_form(a^2+b, I) == -b^2+b
+end
+
 @testset "groebner leading ideal" begin
    R, (t, x, y, z) = polynomial_ring(QQ, ["t", "x", "y", "z"])
 

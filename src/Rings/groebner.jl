@@ -1157,11 +1157,13 @@ julia> Oscar._normal_form_singular(A, J, default_ordering(base_ring(J)))
 ```
 """
 function _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
-  SR = singular_poly_ring(base_ring(J), ordering)
-  IS = Singular.Ideal(SR, [SR(x) for x in A])
   GS = singular_groebner_generators(J, ordering)
-  K  = ideal(base_ring(J), reduce(IS, GS))
-  return [J.gens.Ox(x) for x = gens(K.gens.S)]
+  SR = base_ring(GS)
+  tmp = map(SR, A)
+  IS = Singular.Ideal(SR, tmp)
+  K = reduce(IS, GS)
+  OR = base_ring(J)
+  return map(OR, gens(K))
 end
 
 @doc raw"""
