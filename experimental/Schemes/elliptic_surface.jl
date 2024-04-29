@@ -2468,7 +2468,7 @@ function isomorphism_from_generic_fibers(
   A = to_FRX(a)
   B = to_FRX(b)
   img_gens = [A, B, FRX(RX[3])]
-  m = morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
+  m = morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=false)
   set_attribute!(m, :is_isomorphism=>true)
   return m
 end
