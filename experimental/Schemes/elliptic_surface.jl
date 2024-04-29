@@ -2526,65 +2526,8 @@ function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface
   R = ambient_coordinate_ring(WX)
   (x, y, t) = gens(R)
   
-  if !is_one(intersect(D, WF))
-    # We have a multisection in this case. 
-    # To get a section from it, apply arXiv:2103.15101, Algorithm 1.
-
-    # Build up a helper ring
-    kkt = base_field(generic_fiber(X))
-    f = equation(generic_fiber(X))
-    kktXY = parent(f)
-    (xx, yy) = gens(kktXY)
-    for (c, e) in zip(coefficients(f), exponents(f))
-      if e == [0, 2]
-        @assert is_one(c) "polynomial is not normalized"
-      end
-    end
-    f = yy^2 - f # prepare the f from the Lemma
-    #kktXY, (xx, yy) = polynomial_ring(kkt, [:X, :Y]; cached=false)
-
-    @assert coefficient_ring(R) === coefficient_ring(base_ring(kkt))
-    help_map = hom(R, kktXY, [xx, yy, kktXY(gen(kkt))])
-
-    J = ideal(kktXY, help_map.(gens(saturated_ideal(IWX))))
-
-    J_gens = gens(groebner_basis(J, ordering=lex([yy, xx])))
-    i = findfirst(f->degree(f, 2) == 0, J_gens)
-    i === nothing && error("assertion of Lemma could not be verified")
-    g = J_gens[i]
-    i = findfirst(f->degree(f, 2) == 1, J_gens)
-    i === nothing && error("assertion of Lemma could not be verified")
-    h = J_gens[i]
-    c = zero(kkt)
-    for t in terms(h)
-      if degree(t, 2) == 1 
-        c = c + evaluate(t, [zero(kkt), one(kkt)])
-      end
-    end
-    !isone(c) && (h = inv(c)*h)
-    h = yy - h
-    @assert J == ideal(kktXY, [g, yy-h])
-    ff = equation(kktXY, generic_fiber(X))
-    @assert parent(ff) === parent(f)
-    @assert ff == yy^2 - f
-    while total_degree(g) > 1
-      g = divexact(h^2 - f, g)
-      p, q = divrem(h, g)
-      h = q
-    end
-
-    F = fraction_field(R)
-    help_map_back = hom(kktXY, F, u->evaluate(u, F(R[3])), F.([R[1], R[2]]))
-    new_gens = [help_map_back(g), help_map_back(yy - h)]
-    sec_ideal = ideal(OO(WX), numerator.(new_gens))
-    @assert dim(sec_ideal) == 1
-    @assert is_prime(sec_ideal)
-
-    # overwrite the local variables
-    I = PrimeIdealSheafFromChart(X, WX, sec_ideal)
-    D = weil_divisor(I)
-    IWX = sec_ideal
-  end
+  # In case of a multisection do some extra preparation; see below.
+  !is_one(intersect(D, WF)) && return point_on_generic_fiber_from_divisor(_prepare_section(D))
 
   g = gens(groebner_basis(saturated_ideal(IWX), ordering=lex(gens(R))))
 
@@ -2648,4 +2591,69 @@ function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:Ellipti
   end
   return points, divisors
 end
+
+function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
+  X = scheme(D)
+  WX = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(WX)
+  I = first(components(D))
+  IWX = I(WX)
+  # We have a multisection in this case. 
+  # To get a section from it, apply arXiv:2103.15101, Algorithm 1.
+
+  # Build up a helper ring
+  kkt = base_field(generic_fiber(X))
+  f = equation(generic_fiber(X))
+  kktXY = parent(f)
+  (xx, yy) = gens(kktXY)
+  for (c, e) in zip(coefficients(f), exponents(f))
+    if e == [0, 2]
+      @assert is_one(c) "polynomial is not normalized"
+    end
+  end
+  f = yy^2 - f # prepare the f from the Lemma
+  #kktXY, (xx, yy) = polynomial_ring(kkt, [:X, :Y]; cached=false)
+
+  @assert coefficient_ring(R) === coefficient_ring(base_ring(kkt))
+  help_map = hom(R, kktXY, [xx, yy, kktXY(gen(kkt))])
+
+  J = ideal(kktXY, help_map.(gens(saturated_ideal(IWX))))
+
+  J_gens = gens(groebner_basis(J, ordering=lex([yy, xx])))
+  i = findfirst(f->degree(f, 2) == 0, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  g = J_gens[i]
+  i = findfirst(f->degree(f, 2) == 1, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  h = J_gens[i]
+  c = zero(kkt)
+  for t in terms(h)
+    if degree(t, 2) == 1 
+      c = c + evaluate(t, [zero(kkt), one(kkt)])
+    end
+  end
+  !isone(c) && (h = inv(c)*h)
+  h = yy - h
+  @assert J == ideal(kktXY, [g, yy-h])
+  ff = equation(kktXY, generic_fiber(X))
+  @assert parent(ff) === parent(f)
+  @assert ff == yy^2 - f
+  while total_degree(g) > 1
+    g = divexact(h^2 - f, g)
+    p, q = divrem(h, g)
+    h = q
+  end
+
+  F = fraction_field(R)
+  help_map_back = hom(kktXY, F, u->evaluate(u, F(R[3])), F.([R[1], R[2]]))
+  new_gens = [help_map_back(g), help_map_back(yy - h)]
+  sec_ideal = ideal(OO(WX), numerator.(new_gens))
+  @assert dim(sec_ideal) == 1
+  @assert is_prime(sec_ideal)
+
+  # overwrite the local variables
+  I = PrimeIdealSheafFromChart(X, WX, sec_ideal)
+  return weil_divisor(I)
+end
+
 
