@@ -258,8 +258,7 @@ end
   # Check that the base change matrix is indeed orthogonal for the given lattice
   @test res_mat*A*transpose(res_mat) == A
   
-  for D in ll[11:end] # the pushforward of the sections
-    P = Oscar.point_on_generic_fiber_from_divisor(D)
-  end
+  P, D = Oscar.extract_mordell_weil_basis(phi)
+  @test length(P) == 9
 end
 

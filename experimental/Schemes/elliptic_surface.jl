@@ -2487,6 +2487,8 @@ function isomorphism_from_generic_fibers(
   return morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
 end
 
+# Given an irreducible divisor D on an elliptic surface X, try to extract a point 
+# on the generic fiber from it. The return value is `nothing` in case this does not succeed.
 function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
   X = scheme(D)
   E = generic_fiber(X)
@@ -2495,13 +2497,19 @@ function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface
   # TODO: Also cover this case by considering the class of a reducible fiber?
   !ex && error("no irreducible fiber exists on this algebraic surface")
   @assert length(components(D)) == 1 "divisor must be irreducible"
-  @check is_one(intersect(D, WF)) "intersection number with irreducible fiber is not one"
+  is_one(intersect(D, WF)) || return nothing
+  #@check is_one(intersect(D, WF)) "intersection number with irreducible fiber is not one"
   I = first(components(D))
   fib = fibration(X)
-  @check begin
-    J = pushforward(fib, I)
-    is_one(dim(J))
-  end "given divisor can not be a section"
+
+  # Check a necessary criterion for being a section
+  J = pushforward(fib, I)
+  is_one(dim(J)) || return nothing
+# @check begin
+#   J = pushforward(fib, I)
+#   is_one(dim(J))
+# end "given divisor can not be a section"
+
   WX = weierstrass_chart_on_minimal_model(X)
   IWX = I(WX)
   is_one(IWX) && return infinity(E) # Point must be the zero section
@@ -2514,7 +2522,8 @@ function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface
 
   # First extract the y-coordinate
   i = findfirst(f->(is_zero(degree(f, 1)) && is_one(degree(f, 2))), g)
-  i === nothing && error("no suitable polynomial found to read off point coordinates")
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
   f = g[i]
   y_coord = one(kkt)
   ev_vals = [zero(kkt), one(kkt), gen(kkt)]
@@ -2528,7 +2537,8 @@ function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface
 
   # Now extract the x-coordinate
   i = findfirst(f->(is_one(degree(f, 1))), g)
-  i === nothing && error("no suitable polynomial found to read off point coordinates")
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
   f = g[i]
   x_coord = one(kkt)
   ev_vals = [one(kkt), y_coord, gen(kkt)]
@@ -2540,8 +2550,31 @@ function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface
   end
   x_coord = num//den
 
-  @assert is_zero(evaluate(equation(E), [x_coord, y_coord])) "esteemed point does not lie on the curve" 
+  is_zero(evaluate(equation(E), [x_coord, y_coord])) || return nothing
+  #@assert is_zero(evaluate(equation(E), [x_coord, y_coord])) "esteemed point does not lie on the curve" 
   P = E([x_coord, y_coord])
   return P
+end
+
+# Given an isomorphism phi : X -> Y of elliptic surfaces and a full algebraic lattice L on X, 
+# push forward the divisors D from L to Y and try to extract points on the generic fiber from 
+# them. 
+#
+# This returns a pair `(points, divisors)` consisting of the points on the generic fiber 
+# found and their corresponding Weil divisors.
+function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  X = domain(phi)
+  Y = codomain(phi)
+  is_isomorphism(phi) || error("morphism must be an isomorphism")
+  pf_lat = _pushforward_lattice_along_isomorphism(phi)
+  points = EllipticCurvePoint[]
+  divisors = AbsWeilDivisor[]
+  for D in pf_lat
+    P = point_on_generic_fiber_from_divisor(D)
+    P === nothing && continue
+    push!(points, P)
+    push!(divisors, D)
+  end
+  return points, divisors
 end
 
