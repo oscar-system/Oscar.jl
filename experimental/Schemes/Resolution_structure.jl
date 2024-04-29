@@ -92,6 +92,7 @@ end
 # getters
 ##################################################################################################
 underlying_morphism(phi::NormalizationMorphism) = phi.underlying_morphism
+inclusion_morphisms(phi::NormalizationMorphism) = phi.inclusions
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]

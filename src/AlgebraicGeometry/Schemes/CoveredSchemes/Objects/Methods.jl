@@ -192,7 +192,7 @@ with default covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> Y, pr_mor, injs = normalization(X);
+julia> Y, pr_mor = normalization(X);
 
 julia> Y
 Scheme
@@ -230,7 +230,7 @@ given by the pullback functions
     (x//z) -> x
     (y//z) -> y
 
-julia> injs
+julia> inclusion_morphisms(pr_mor)
 1-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
  Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 3 patches
 ```
