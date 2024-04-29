@@ -21,7 +21,7 @@ This package provides functionality for two basic structures: `PhylogeneticModel
   graph(pm::PhylogeneticModel)
   transition_matrices(pm::PhylogeneticModel)
   number_states(pm::PhylogeneticModel)
-  probabilities_ring(pm::PhylogeneticModel)
+  probability_ring(pm::PhylogeneticModel)
   fourier_ring(pm::PhylogeneticModel)
   fourier_parameters(pm::PhylogeneticModel)
   group_model(pm::PhylogeneticModel)

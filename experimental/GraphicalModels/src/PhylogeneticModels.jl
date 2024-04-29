@@ -91,7 +91,42 @@ group_of_model(pm::GroupBasedPhylogeneticModel) = pm.group
 
 
 #define group-based models
+@doc raw"""
+  cavender_farris_neyman_model(graph::Graph{Directed})
 
+Creates a `PhylogeneticModel` based on `graph` whose transition matrices are of type Cavender-Farris-Neyman. 
+
+# Examples
+```jldoctest
+julia> pm = cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+julia> graph(pm)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+julia> number_states(pm)
+2
+julia> probability_ring(pm)
+Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
+julia> root_distribution(pm)
+2-element Vector{Any}:
+ 1//2
+ 1//2
+julia> transition_matrices(pm)
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [a[1] b[1]; b[1] a[1]]
+  Edge(4, 2) => [a[2] b[2]; b[2] a[2]]
+  Edge(4, 3) => [a[3] b[3]; b[3] a[3]]
+julia> fourier_ring(pm)
+Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
+julia> fourier_parameters(pm)
+Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [x[1, 1], x[1, 2]]
+  Edge(4, 2) => [x[2, 1], x[2, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2]]
+julia> group_model(pm)
+???
+```
+"""
 function cavender_farris_neyman_model(graph::Graph{Directed})
   ns = 2
   ne = n_edges(graph)
@@ -121,22 +156,35 @@ Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Juk
 
 # Examples
 ```jldoctest
-julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
-```
-We can recover the information of `pm`
-```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
 julia> graph(pm)
 Directed graph with 4 nodes and the following edges:
 (4, 1)(4, 2)(4, 3)
-
 julia> number_states(pm)
 4
-
-julia> prob_ring(pm)
-fourier_ring(pm)
-trans_matrices(pm)
-fourier_params(pm)
-group(pm)
+julia> probability_ring(pm)
+Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
+julia> root_distribution(pm)
+4-element Vector{Any}:
+ 1//4
+ 1//4
+ 1//4
+ 1//4
+julia> transition_matrices(pm)
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
+  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
+  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
+julia> fourier_ring(pm)
+Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
+julia> fourier_parameters(pm)
+Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
+julia> group_model(pm)
+???
 ```
 """
 function jukes_cantor_model(graph::Graph{Directed})
@@ -163,6 +211,44 @@ function jukes_cantor_model(graph::Graph{Directed})
 end
 
 # Kimura 2
+@doc raw"""
+    kimura2_model(graph::Graph{Directed})
+
+Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 2-parameter matrices. 
+
+# Examples
+```jldoctest
+julia> pm = kimura2_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+julia> graph(pm)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+julia> number_states(pm)
+4
+julia> probability_ring(pm)
+Multivariate polynomial ring in 9 variables a[1], a[2], a[3], b[1], ..., c[3] over rational field
+julia> root_distribution(pm)
+4-element Vector{Any}:
+ 1//4
+ 1//4
+ 1//4
+ 1//4
+julia> transition_matrices(pm)
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [a[1] b[1] c[1] b[1]; b[1] a[1] b[1] c[1]; c[1] b[1] a[1] b[1]; b[1] c[1] b[1] a[1]]
+  Edge(4, 2) => [a[2] b[2] c[2] b[2]; b[2] a[2] b[2] c[2]; c[2] b[2] a[2] b[2]; b[2] c[2] b[2] a[2]]
+  Edge(4, 3) => [a[3] b[3] c[3] b[3]; b[3] a[3] b[3] c[3]; c[3] b[3] a[3] b[3]; b[3] c[3] b[3] a[3]]
+julia> fourier_ring(pm)
+Multivariate polynomial ring in 9 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 3] over rational field
+julia> fourier_parameters(pm)
+Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
+julia> group_model(pm)
+???
+```
+"""
 function kimura2_model(graph::Graph{Directed})
   ns = 4
   ne = n_edges(graph)
@@ -187,6 +273,44 @@ function kimura2_model(graph::Graph{Directed})
 end
 
 # Kimura 3
+@doc raw"""
+    kimura3_model(graph::Graph{Directed})
+
+Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kimura 3-parameter matrices. 
+
+# Examples
+```jldoctest
+julia> pm = kimura3_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+julia> graph(pm)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+julia> number_states(pm)
+4
+julia> probability_ring(pm)
+Multivariate polynomial ring in 12 variables a[1], a[2], a[3], b[1], ..., d[3] over rational field
+julia> root_distribution(pm)
+4-element Vector{Any}:
+ 1//4
+ 1//4
+ 1//4
+ 1//4
+julia> transition_matrices(pm)
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [a[1] b[1] c[1] d[1]; b[1] a[1] d[1] c[1]; c[1] d[1] a[1] b[1]; d[1] c[1] b[1] a[1]]
+  Edge(4, 2) => [a[2] b[2] c[2] d[2]; b[2] a[2] d[2] c[2]; c[2] d[2] a[2] b[2]; d[2] c[2] b[2] a[2]]
+  Edge(4, 3) => [a[3] b[3] c[3] d[3]; b[3] a[3] d[3] c[3]; c[3] d[3] a[3] b[3]; d[3] c[3] b[3] a[3]]
+julia> fourier_ring(pm)
+Multivariate polynomial ring in 12 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 4] over rational field
+julia> fourier_parameters(pm)
+Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 3], x[1, 4]]
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 3], x[2, 4]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 3], x[3, 4]]
+julia> group_model(pm)
+???
+```
+"""
 function kimura3_model(graph::Graph{Directed})
   ns = 4
   ne = n_edges(graph)
@@ -211,6 +335,35 @@ function kimura3_model(graph::Graph{Directed})
 end
 
 # general Markov model
+@doc raw"""
+    general_markov_model(graph::Graph{Directed})
+
+Creates a `PhylogeneticModel` based on `graph` whose transition matrices are stochastic with no further constraints. 
+
+# Examples
+```jldoctest
+julia> pm = general_markov_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+Phylogenetic model on a tree with 3 leaves and 3 edges
+julia> graph(pm)
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+julia> number_states(pm)
+4
+julia> probability_ring(pm)
+Multivariate polynomial ring in 148 variables π[1], π[2], π[3], π[4], ..., m[9, 16] over rational field
+julia> root_distribution(pm)
+4-element Vector{Any}:
+ π[1]
+ π[2]
+ π[3]
+ π[4]
+julia> transition_matrices(pm)
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 1) => [m[1, 1] m[1, 2] m[1, 3] m[1, 4]; m[1, 5] m[1, 6] m[1, 7] m[1, 8]; m[1, 9] m[1, 10] m[1, 11] m[1, 12]; m[1, 13] m[1, 14] m[1, 15] m[1, 16]]
+  Edge(4, 2) => [m[2, 1] m[2, 2] m[2, 3] m[2, 4]; m[2, 5] m[2, 6] m[2, 7] m[2, 8]; m[2, 9] m[2, 10] m[2, 11] m[2, 12]; m[2, 13] m[2, 14] m[2, 15] m[2, 16]]
+  Edge(4, 3) => [m[3, 1] m[3, 2] m[3, 3] m[3, 4]; m[3, 5] m[3, 6] m[3, 7] m[3, 8]; m[3, 9] m[3, 10] m[3, 11] m[3, 12]; m[3, 13] m[3, 14] m[3, 15] m[3, 16]]
+```
+"""
 function general_markov_model(graph::Graph{Directed}; number_states = 4)
   ns = number_states
   ne = n_edges(graph)
