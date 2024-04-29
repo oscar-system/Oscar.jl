@@ -1048,6 +1048,8 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
   W =  WeilDivisor(PY, check=false)
   set_attribute!(W, :is_prime=>true)
+  I = first(components(W))
+  set_attribute!(I, :is_prime=>true)
   return W
 end
 
@@ -2006,6 +2008,11 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
 
   lat_X = algebraic_lattice(X)[1]
+  if !is_prime(lat_X[1])
+    ex, pt, F = irreducible_fiber(X)
+    ex || error("no irreducible fiber found; case not implemented")
+    lat_X[1] = weil_divisor(F)
+  end
 
   # We first estimate for every element in the lattic of X whether its image 
   # will be a fiber component, or a (multi-)section.
@@ -2014,6 +2021,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   for D in lat_X
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
+    @assert is_prime(I)
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
