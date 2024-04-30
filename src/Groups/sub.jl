@@ -188,13 +188,13 @@ julia> normal_subgroups(symmetric_group(5))
  Permutation group of degree 5 and order 1
 
 julia> normal_subgroups(quaternion_group(8))
-6-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
- Pc group of order 2
- Pc group of order 1
+6-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 ```
 """
 @gapattribute normal_subgroups(G::GAPGroup) =
@@ -214,10 +214,10 @@ julia> maximal_normal_subgroups(symmetric_group(4))
  Alt(4)
 
 julia> maximal_normal_subgroups(quaternion_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 4
- Pc group of order 4
- Pc group of order 4
+3-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 4
 ```
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
@@ -259,10 +259,10 @@ julia> characteristic_subgroups(symmetric_group(3))
  Permutation group of degree 3 and order 1
 
 julia> characteristic_subgroups(quaternion_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 2
- Pc group of order 1
+3-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 ```
 """
 @gapattribute characteristic_subgroups(G::GAPGroup) =
@@ -281,7 +281,7 @@ julia> center(symmetric_group(3))
 (Permutation group of degree 3 and order 1, Hom: permutation group -> Sym(3))
 
 julia> center(quaternion_group(8))
-(Pc group of order 2, Hom: pc group -> pc group)
+(Subgroup of pc group of order 2, Hom: subgroup of pc group -> pc group)
 ```
 """
 @gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(GapObj(G)))
@@ -334,11 +334,11 @@ julia> chief_series(alternating_group(4))
  Permutation group of degree 4 and order 1
 
 julia> chief_series(quaternion_group(8))
-4-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 4
- Pc group of order 2
- Pc group of order 1
+4-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 ```
 """
 @gapattribute chief_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.ChiefSeries(GapObj(G)))
@@ -363,11 +363,11 @@ julia> composition_series(alternating_group(4))
  Permutation group of degree 4 and order 1
 
 julia> composition_series(quaternion_group(8))
-4-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 4
- Pc group of order 2
- Pc group of order 1
+4-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 ```
 """
 @gapattribute composition_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.CompositionSeries(GapObj(G)))
@@ -384,12 +384,12 @@ An exception is thrown if $G$ is not a $p$-group.
 # Examples
 ```jldoctest
 julia> jennings_series(dihedral_group(16))
-5-element Vector{PcGroup}:
- Pc group of order 16
- Pc group of order 4
- Pc group of order 2
- Pc group of order 2
- Pc group of order 1
+5-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 16
+ Subgroup of pc group of order 4
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 
 julia> jennings_series(dihedral_group(10))
 ERROR: ArgumentError: group must be a p-group
@@ -445,15 +445,15 @@ See also [`upper_central_series`](@ref) and [`nilpotency_class`](@ref).
 # Examples
 ```jldoctest
 julia> lower_central_series(dihedral_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 2
- Pc group of order 1
+3-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 
 julia> lower_central_series(dihedral_group(12))
-2-element Vector{PcGroup}:
- Pc group of order 12
- Pc group of order 3
+2-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 12
+ Subgroup of pc group of order 3
 
 julia> lower_central_series(symmetric_group(4))
 2-element Vector{PermGroup}:
@@ -481,15 +481,15 @@ See also [`lower_central_series`](@ref) and [`nilpotency_class`](@ref).
 # Examples
 ```jldoctest
 julia> upper_central_series(dihedral_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 2
- Pc group of order 1
+3-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 
 julia> upper_central_series(dihedral_group(12))
-2-element Vector{PcGroup}:
- Pc group of order 2
- Pc group of order 1
+2-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 
 julia> upper_central_series(symmetric_group(4))
 1-element Vector{PermGroup}:
@@ -1085,10 +1085,10 @@ julia> derived_series(symmetric_group(5))
  Alt(5)
 
 julia> derived_series(dihedral_group(8))
-3-element Vector{PcGroup}:
- Pc group of order 8
- Pc group of order 2
- Pc group of order 1
+3-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 8
+ Subgroup of pc group of order 2
+ Subgroup of pc group of order 1
 ```
 """
 @gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeriesOfGroup(GapObj(G)))

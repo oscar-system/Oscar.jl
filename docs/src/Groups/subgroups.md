@@ -72,7 +72,7 @@ Usually it is more efficient to work with (representatives of) the
 underlying conjugacy classes of subgroups instead.
 
 ```@docs
-complements(G::T, N::T) where T <: GAPGroup
+complements(G::GAPGroup, N::GAPGroup) where T <: GAPGroup
 hall_subgroups
 low_index_subgroups
 maximal_subgroups

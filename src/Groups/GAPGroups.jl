@@ -494,7 +494,7 @@ in general the length of this vector is not minimal.
 
 # Examples
 ```jldoctest
-julia> length(small_generating_set(abelian_group(PcGroup, [2,3,4])))
+julia> length(small_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
 julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
@@ -517,7 +517,7 @@ Return a vector of minimal length of elements in `G` that generate `G`.
 
 # Examples
 ```jldoctest
-julia> length(minimal_generating_set(abelian_group(PcGroup, [2,3,4])))
+julia> length(minimal_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
 julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
@@ -1368,7 +1368,7 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc raw"""
-    complement_classes(G::T, N::T) where T <: GAPGroup
+    complement_classes(G::GAPGroup, N::GAPGroup)
 
 Return a vector of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
@@ -1393,17 +1393,17 @@ julia> complement_classes(G, center(G)[1])
 GAPGroupConjClass{PcGroup, PcGroup}[]
 ```
 """
-function complement_classes(G::T, N::T) where T <: GAPGroup
+function complement_classes(G::T, N::GAPGroup) where T <: GAPGroup
    res_gap = GAP.Globals.ComplementClassesRepresentatives(GapObj(G), GapObj(N))::GapObj
    if length(res_gap) == 0
-     return GAPGroupConjClass{T, T}[]
+     return GAPGroupConjClass{T, sub_type(T)}[]
    else
      return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
    end
 end
 
 @doc raw"""
-    complements(G::T, N::T) where T <: GAPGroup
+    complements(G::GAPGroup, N::GAPGroup)
 
 Return an iterator over the complements of the normal subgroup `N` in `G`.
 Very likely it is better to use [`complement_classes`](@ref) instead.
@@ -1416,7 +1416,7 @@ julia> describe(first(complements(G, derived_subgroup(G)[1])))
 "C2"
 ```
 """
-complements(G::T, N::T) where T <: GAPGroup = Iterators.flatten(complement_classes(G, N))
+complements(G::GAPGroup, N::GAPGroup) = Iterators.flatten(complement_classes(G, N))
 
 @doc raw"""
     complement_system(G::Group)
