@@ -57,7 +57,7 @@ function probability_map(pm::PhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  probability_coordinates = Dict(leaves_states => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  probability_coordinates = Dict(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
   return probability_coordinates
 end
 function probability_map(pm::GroupBasedPhylogeneticModel)
@@ -107,7 +107,7 @@ function fourier_map(pm::GroupBasedPhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  fourier_coordinates = Dict(leaves_states => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  fourier_coordinates = Dict(Tuple(leaves_states) => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
   return fourier_coordinates
 end
 
