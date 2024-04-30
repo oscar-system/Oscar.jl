@@ -338,12 +338,12 @@ printing in Oscar](@ref).
 
 Sometimes it is necessary to rename a function or otherwise change it. To allow
 for backwards compatibility, please then introduce a new line in the file
-`src/deprecations.jl`. The syntax is as follows:
+`src/deprecations.jl`. If the interface did not change, it is enough to write:
 ```
 # Deprecated after CURRENT_RELEASE_VERSION
-@deprecate old_function(args) new_function(args)
+@deprecate old_function new_function
 ```
-It is possible to transform the `args` too, if the syntax has changed. If this
+It is possible to transform the arguments too, if the syntax has changed. If this
 process needs an auxiliary function, which otherwise is unnecessary, please add
 it above:
 ```
@@ -352,11 +352,24 @@ function transform_args_for_new_function(args)
     # Do something
     return new_args
 end
-@deprecate old_function(args) new_function(transform_args_for_new_function(args))
+@deprecate old_function(arg1::Type1, arg2::Type2, ...) new_function(transform_args_for_new_function(args))
 ```
+In simple cases (like changing the order of arguments), you don't need an
+auxiliary function:
+```
+@deprecate old_function(arg1::Type1, arg2::Type2) new_function(arg2, arg1)
+```
+
 The comment about the version number is only necessary if you are the first one
 adding to `deprecations.jl` after a release, otherwise please add to the
 existing block.
+
+If you renamed a type and want to deprecate the old one, please add a line like
+```
+Base.@deprecate_type OldType NewType
+```
+This makes it still possible to use OldType in signatures and type annotations,
+but it will throw a deprecation warning (if they are enabled).
 
 !!! note
     Please make sure to change to the new function everywhere in the existing

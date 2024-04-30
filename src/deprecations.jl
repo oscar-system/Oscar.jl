@@ -1,3 +1,24 @@
+#=
+Short explanation of the different ways to deprecate things in julia:
+1. Rename a type.
+   You only need a single deprecation, but this needs to be a `@deprecate_binding` to be able to use OldType in signatures and type annotations.
+
+Base.@deprecate_binding OldType NewType
+
+2. Rename a function from `old_func` to `new_func` and deprecate `old_func` while the interface stays the same.
+   You only need to add one single deprecation that takes care of deprecating and redirecting all methods.
+
+@deprecate old_func new_func
+
+3. Rename a function from `old_func` to `new_func` and deprecate `old_func` while the interface changes.
+   For each removed method of `old_func` you need to add a deprecation. As an example, consider a change in the argument order.
+
+@deprecate old_func(a::SomeType, b::SomeOtherType) new_func(b, a)
+
+4. More complex function deprecations.
+   Add a method for `old_func` with the old interface that first calls `Base.depwarn` and then calls `new_func` with the new interface.
+=#
+
 # Deprecated after 0.14.*
 @deprecate is_isomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
 @deprecate has_is_isomorphic_with_symmetric_group has_is_isomorphic_to_symmetric_group
