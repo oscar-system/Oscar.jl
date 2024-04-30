@@ -2574,22 +2574,19 @@ end
 # push forward the divisors D from L to Y and try to extract points on the generic fiber from 
 # them. 
 #
-# This returns a pair `(points, divisors)` consisting of the points on the generic fiber 
-# found and their corresponding Weil divisors.
+# This returns a list consisting of the points on the generic fiber.
 function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   X = domain(phi)
   Y = codomain(phi)
   is_isomorphism(phi) || error("morphism must be an isomorphism")
   pf_lat = _pushforward_lattice_along_isomorphism(phi)
   points = EllipticCurvePoint[]
-  divisors = AbsWeilDivisor[]
   for D in pf_lat
     P = point_on_generic_fiber_from_divisor(D)
     P === nothing && continue
     push!(points, P)
-    push!(divisors, D)
   end
-  return points, divisors
+  return points
 end
 
 function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})

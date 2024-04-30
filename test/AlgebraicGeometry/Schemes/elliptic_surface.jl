@@ -258,7 +258,7 @@ end
   # Check that the base change matrix is indeed orthogonal for the given lattice
   @test res_mat*A*transpose(res_mat) == A
   
-  P, D = Oscar.extract_mordell_weil_basis(phi)
+  P = Oscar.extract_mordell_weil_basis(phi)
   @test length(P) == 9
 end
 
