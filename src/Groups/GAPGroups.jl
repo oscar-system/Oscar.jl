@@ -550,6 +550,8 @@ end
    end
 end
 
+GAP.julia_to_gap(obj::GAPGroupConjClass) = obj.CC
+
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S
 
 Base.hash(x::GAPGroupConjClass, h::UInt) = h # FIXME

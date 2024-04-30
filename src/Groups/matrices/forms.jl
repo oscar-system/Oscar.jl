@@ -304,6 +304,13 @@ function _ring_iso(f::SesquilinearForm)
   return f.ring_iso
 end
 
+function GAP.julia_to_gap(f::SesquilinearForm)
+  if !isdefined(f, :X)
+    assign_from_description(f)
+  end
+  return f.X
+end
+
 function Base.getproperty(f::SesquilinearForm, sym::Symbol)
 
    if isdefined(f,sym) return getfield(f,sym) end

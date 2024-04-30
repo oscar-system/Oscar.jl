@@ -219,6 +219,27 @@ function _ring_iso(G::MatrixGroup{T}) where T
   return G.ring_iso
 end
 
+function GAP.julia_to_gap(G::MatrixGroup)
+  if !isdefined(G, :X)
+    if isdefined(G, :descr)
+      assign_from_description(G)
+    elseif isdefined(G, :gens)
+      V = GapObj(gens(G); recursive=true)
+      G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
+    else
+      error("Cannot determine underlying GAP object")
+    end
+  end
+  return G.X
+end
+
+function GAP.julia_to_gap(x::MatrixGroupElem)
+  if !isdefined(x, :X)
+    x.X = map_entries(_ring_iso(x.parent), x.elm)
+  end
+  return x.X
+end
+
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
 function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
