@@ -2110,14 +2110,53 @@ end
 
 
 @doc raw"""
+    linear_characters(G::Union{GAPGroup, FinGenAbGroup})
+
+Return the array of linear characters of `G`,
+that is, the characters of degree `1`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(3);
+
+julia> length(linear_characters(G))
+2
+```
+"""
+linear_characters(G::Union{GAPGroup, FinGenAbGroup}) = linear_characters(character_table(G))
+
+
+@doc raw"""
+    linear_characters(tbl::GAPGroupCharacterTable)
+
+Return the array of linear characters of `tbl`,
+that is, the characters of degree `1`.
+
+# Examples
+```jldoctest
+julia> tbl = character_table(symmetric_group(3));
+
+julia> length(linear_characters(tbl))
+2
+```
+"""
+function linear_characters(tbl::GAPGroupCharacterTable)
+    return [class_function(tbl, chi) for chi in GAPWrap.LinearCharacters(GAPTable(tbl))]
+end
+
+
+@doc raw"""
+    induce(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup})
     induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable[, fusion::Vector{Int}])
 
-Return the class function of `tbl` that is induced from `chi`,
-which is a class function of a subgroup of the group of `tbl`.
+Return the class function of `G` or `tbl` that is induced from `chi`,
+which is a class function of a subgroup of `G` or the group of `tbl`.
 The default for the class fusion `fus` is given either by the fusion of the
 conjugacy classes of the two character tables (if groups are stored in the
-tables) or by the class fusion given by `known_class_fusion` for the two
-tables.
+tables) or by the class fusion given by [`known_class_fusion`](@ref)
+for the two tables.
+
+The syntax `chi^tbl` and `chi^G` is also supported.
 
 # Examples
 ```jldoctest
@@ -2177,6 +2216,8 @@ function _induce(chi::GAPGroupClassFunction,
   return induce(chi, tbl, fus)
 end
 
+induce(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup}) = induce(chi, character_table(G))
+
 
 @doc raw"""
     induced_cyclic(tbl::GAPGroupCharacterTable, classes::AbstractVector{Int} = 1:nrows(tbl))
@@ -2201,10 +2242,11 @@ function induced_cyclic(tbl::GAPGroupCharacterTable, classes::AbstractVector{Int
 end
 
 """
+    restrict(chi::GAPGroupClassFunction, H::Union{GAPGroup, FinGenAbGroup})
     restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable[, fusion::Vector{Int}])
 
-Return the class function of `subtbl` that is the restriction of `chi`,
-which is a class function of a supergroup of the group of `subtbl`.
+Return the class function of `H` or `subtbl` that is the restriction of `chi`,
+which is a class function of a supergroup of `H` or the group of `subtbl`.
 The default for the class fusion `fus` is given either by the fusion of the
 conjugacy classes of the two character tables (if groups are stored in the
 tables) or by the class fusion given by `known_class_fusion` for the two
@@ -2268,6 +2310,8 @@ function _restrict(chi::GAPGroupClassFunction,
   fus = [findfirst(x -> x == y, Greps) for y in Hreps]
   return restrict(chi, subtbl, fus)
 end
+
+restrict(chi::GAPGroupClassFunction, H::Union{GAPGroup, FinGenAbGroup}) = restrict(chi, character_table(H))
 
 
 Base.length(chi::GAPGroupClassFunction) = length(chi.values)
@@ -2450,6 +2494,10 @@ end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     return induce(chi, tbl)
+end
+
+function Base.:^(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup})
+    return induce(chi, G)
 end
 
 function Base.:^(chi::GAPGroupClassFunction, g::Union{GAPGroupElem, FinGenAbGroupElem})

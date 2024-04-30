@@ -925,6 +925,7 @@ export lifted_denominator
 export lifted_numerator
 export lineality_dim
 export lineality_space
+export linear_characters
 export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
