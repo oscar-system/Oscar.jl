@@ -865,11 +865,29 @@ end
 
 function _find_good_representative_chart(I::AbsIdealSheaf)
   # We assume that I is prime
+  # TODO: Make this an hassert?
+  @assert is_prime(I)
   X = scheme(I)
+
+  # Some heuristics to choose a reasonably "easy" chart
+  cand = AbsAffineScheme[]
   for U in keys(object_cache(I))
     any(x->x===U, affine_charts(X)) || continue
-    !is_one(I(U)) && return U
+    !is_one(I(U)) && push!(cand, U)
   end
+
+  function complexity(U::AbsAffineScheme)
+    g = lifted_numerator.(gens(I(U)))
+    return maximum(total_degree(f) for f in g; init=0)
+  end
+
+  if !is_empty(cand)
+    c = complexity.(cand)
+    m = minimum(c)
+    i = findfirst(x->x==m, c)
+    return cand[i]
+  end
+
   for U in affine_charts(X)
     !is_one(I(U)) && return U
   end

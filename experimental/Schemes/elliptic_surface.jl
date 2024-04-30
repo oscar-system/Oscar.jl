@@ -1048,6 +1048,8 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
   W =  WeilDivisor(PY, check=false)
   set_attribute!(W, :is_prime=>true)
+  I = first(components(W))
+  set_attribute!(I, :is_prime=>true)
   return W
 end
 
@@ -2006,6 +2008,11 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
 
   lat_X = algebraic_lattice(X)[1]
+  if !is_prime(lat_X[1])
+    ex, pt, F = irreducible_fiber(X)
+    ex || error("no irreducible fiber found; case not implemented")
+    lat_X[1] = weil_divisor(F)
+  end
 
   # We first estimate for every element in the lattic of X whether its image 
   # will be a fiber component, or a (multi-)section.
@@ -2014,6 +2021,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   for D in lat_X
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
+    @assert is_prime(I)
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
@@ -2486,4 +2494,163 @@ function isomorphism_from_generic_fibers(
   img_gens = [A, B, FRX(RX[3])]
   return morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
 end
+
+# Given an irreducible divisor D on an elliptic surface X, try to extract a point 
+# on the generic fiber from it. The return value is `nothing` in case this does not succeed.
+function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
+  X = scheme(D)
+  E = generic_fiber(X)
+  ex, pt, F = irreducible_fiber(X)
+  WF = weil_divisor(F)
+  # TODO: Also cover this case by considering the class of a reducible fiber?
+  !ex && error("no irreducible fiber exists on this algebraic surface")
+  @assert length(components(D)) == 1 "divisor must be irreducible"
+  
+  I = first(components(D))
+  fib = fibration(X)
+
+  # Check a necessary criterion for being a section
+  # J = pushforward(fib, I)
+  # is_one(dim(J)) || return nothing
+  is_zero(intersect(D, WF)) && return nothing
+# @check begin
+#   J = pushforward(fib, I)
+#   is_one(dim(J))
+# end "given divisor can not be a section"
+
+  #@check is_one(intersect(D, WF)) "intersection number with irreducible fiber is not one"
+
+  WX = weierstrass_chart_on_minimal_model(X)
+  IWX = I(WX)
+  is_one(IWX) && return infinity(E) # Point must be the zero section
+  R = ambient_coordinate_ring(WX)
+  (x, y, t) = gens(R)
+  
+  # In case of a multisection do some extra preparation; see below.
+  !is_one(intersect(D, WF)) && return point_on_generic_fiber_from_divisor(_prepare_section(D))
+
+  g = gens(groebner_basis(saturated_ideal(IWX), ordering=lex(gens(R))))
+
+  # extract the coefficients for the section
+  kkt = base_field(E)
+
+  # First extract the y-coordinate
+  i = findfirst(f->(is_zero(degree(f, 1)) && is_one(degree(f, 2))), g)
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  y_coord = one(kkt)
+  ev_vals = [zero(kkt), one(kkt), gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 2) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 2) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  y_coord = num//den
+
+  # Now extract the x-coordinate
+  i = findfirst(f->(is_one(degree(f, 1))), g)
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  x_coord = one(kkt)
+  ev_vals = [one(kkt), y_coord, gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 1) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 1) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  x_coord = num//den
+
+  is_zero(evaluate(equation(E), [x_coord, y_coord])) || return nothing
+  #@assert is_zero(evaluate(equation(E), [x_coord, y_coord])) "esteemed point does not lie on the curve" 
+  P = E([x_coord, y_coord])
+  return P
+end
+
+# Given an isomorphism phi : X -> Y of elliptic surfaces and a full algebraic lattice L on X, 
+# push forward the divisors D from L to Y and try to extract points on the generic fiber from 
+# them. 
+#
+# This returns a list consisting of the points on the generic fiber.
+function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  X = domain(phi)
+  Y = codomain(phi)
+  is_isomorphism(phi) || error("morphism must be an isomorphism")
+  pf_lat = _pushforward_lattice_along_isomorphism(phi)
+  points = EllipticCurvePoint[]
+  for D in pf_lat
+    P = point_on_generic_fiber_from_divisor(D)
+    P === nothing && continue
+    push!(points, P)
+  end
+  return points
+end
+
+function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
+  X = scheme(D)
+  WX = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(WX)
+  I = first(components(D))
+  IWX = I(WX)
+  # We have a multisection in this case. 
+  # To get a section from it, apply arXiv:2103.15101, Algorithm 1.
+
+  # Build up a helper ring
+  kkt = base_field(generic_fiber(X))
+  f = equation(generic_fiber(X))
+  kktXY = parent(f)
+  (xx, yy) = gens(kktXY)
+  for (c, e) in zip(coefficients(f), exponents(f))
+    if e == [0, 2]
+      @assert is_one(c) "polynomial is not normalized"
+    end
+  end
+  f = yy^2 - f # prepare the f from the Lemma
+  #kktXY, (xx, yy) = polynomial_ring(kkt, [:X, :Y]; cached=false)
+
+  @assert coefficient_ring(R) === coefficient_ring(base_ring(kkt))
+  help_map = hom(R, kktXY, [xx, yy, kktXY(gen(kkt))])
+
+  J = ideal(kktXY, help_map.(gens(saturated_ideal(IWX))))
+
+  J_gens = gens(groebner_basis(J, ordering=lex([yy, xx])))
+  i = findfirst(f->degree(f, 2) == 0, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  g = J_gens[i]
+  i = findfirst(f->degree(f, 2) == 1, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  h = J_gens[i]
+  c = zero(kkt)
+  for t in terms(h)
+    if degree(t, 2) == 1 
+      c = c + evaluate(t, [zero(kkt), one(kkt)])
+    end
+  end
+  !isone(c) && (h = inv(c)*h)
+  h = yy - h
+  @assert J == ideal(kktXY, [g, yy-h])
+  ff = equation(kktXY, generic_fiber(X))
+  @assert parent(ff) === parent(f)
+  @assert ff == yy^2 - f
+  while total_degree(g) > 1
+    g = divexact(h^2 - f, g)
+    p, q = divrem(h, g)
+    h = q
+  end
+
+  F = fraction_field(R)
+  help_map_back = hom(kktXY, F, u->evaluate(u, F(R[3])), F.([R[1], R[2]]))
+  new_gens = [help_map_back(g), help_map_back(yy - h)]
+  sec_ideal = ideal(OO(WX), numerator.(new_gens))
+  @assert dim(sec_ideal) == 1
+  @assert is_prime(sec_ideal)
+
+  # overwrite the local variables
+  I = PrimeIdealSheafFromChart(X, WX, sec_ideal)
+  return weil_divisor(I)
+end
+
 
