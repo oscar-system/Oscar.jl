@@ -754,7 +754,7 @@ end
 Return the quotient group `G/N`, together with the projection `G` -> `G/N`,
 where `N` is the normal closure of `elements` in `G`.
 
-See [`quo(G::T, N::T) where T <: GAPGroup`](@ref)
+See [`quo(G::GAPGroup, N::GAPGroup)`](@ref)
 for information about the type of `G/N`.
 """
 function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
