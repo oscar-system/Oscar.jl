@@ -745,10 +745,6 @@ function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing)
     @show gens(mixed_ring_xy)
     new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(mat_[i,j]) for i in 1:n, j in 1:n])
 
-    #GROEBNER BASIS COMPUTATION - DO I DO IT HERE? 
-    #G = groebner_basis(I)
-    #II = ideal(G)
-
     answer_vector = Vector{Vector{elem_type(mixed_ring_xy)}}()
     for degree in V
         push!(answer_vector, no_reynolds_basis(degree, new_rep_mat,I))
@@ -769,6 +765,7 @@ function no_reynolds_basis(d::Int, mat_::MatElem, II::MPolyIdeal)
 
     for i in 1:length(H)
         p = evaluate(H[i], vcat(new_vars, [0 for i in 1: n+m])) - H[i]
+        @show p
         push!(V, normal_form(p, II))
     end
 
