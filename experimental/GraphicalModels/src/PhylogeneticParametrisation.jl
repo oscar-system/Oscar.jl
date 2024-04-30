@@ -18,16 +18,6 @@ function monomial_parametrization(pm::GroupBasedPhylogeneticModel, states::Dict{
   monomial_parametrization(phylogenetic_model(pm), states)
 end
 
-@doc raw"""
-    probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})
-
-Create a 
-
-# Examples
-```jldoctest
-julia>
-```
-"""
 function probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})
   gr = graph(pm)
   int_nodes = interior_nodes(gr)
@@ -51,7 +41,17 @@ function probability_parametrization(pm::GroupBasedPhylogeneticModel, leaves_sta
   probability_parametrization(phylogenetic_model(pm), leaves_states)
 end
  
+@doc raw"""
+    probability_map(pm::PhylogeneticModel)    
 
+Create a parametrization for a `PhylogeneticModel` of type `Dictionary`.
+Iterates through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Returns a dictionary of polynomials indexed by the states. Uses auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function probability_map(pm::PhylogeneticModel)
   lvs_nodes = leaves(graph(pm))
   n_states = number_states(pm)
@@ -90,7 +90,19 @@ function fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states:
 
   return poly
 end 
-  
+
+
+@doc raw"""
+    fourier(pm::GroupBasedPhylogeneticModel)    
+
+Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary`.
+Iterates through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Returns a dictionary of polynomials indexed by the states. Uses auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function fourier_map(pm::GroupBasedPhylogeneticModel)
   lvs_nodes = leaves(graph(pm))
   n_states = number_states(pm)
@@ -108,6 +120,16 @@ end
 # This makes the function a !-function. We do not want f_equivclasses to be changed, 
 # so I add the missing equivalence class again in line 175. 
 # We should find out whether there is a better way to do this.
+@doc raw"""
+    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})    
+
+Reparametrize between a model specification in terms of probability and Fourier cooordinates.
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   R = probability_ring(pm)
   ns = number_states(pm)
@@ -138,6 +160,16 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
   return specialized_ft_matrix
 end
 
+@doc raw"""
+    inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})    
+
+Reparametrize between a model specification in terms of Fourier and probability cooordinates.
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   R = probability_ring(pm)
   ns = number_states(pm)
