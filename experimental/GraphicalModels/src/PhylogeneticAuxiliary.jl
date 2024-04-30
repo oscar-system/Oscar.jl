@@ -77,6 +77,16 @@ end
 # Given the dictionary of parametrization, the functions below compute 
 # the equivalence classes, one time as is, the second one as in the format 
 # on the website: every polynomial is multiplied by 0.25 times the size of the equivalence class. 
+@doc raw"""
+    compute_equivalent_classes(parametrization::Dict)  
+
+Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries and return equivalence classes of states which are attached the same probabilities.
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function compute_equivalent_classes(parametrization)
   polys = unique(collect(values(parametrization)))
   
@@ -90,7 +100,16 @@ function compute_equivalent_classes(parametrization)
   return equivalenceclass_dictionary
 end
 
+@doc raw"""
+    sum_equivalent_classes(pm::PhylogeneticModel, equivalent_classes::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})  
 
+Take the output of the function `compute_equivalent_classes` and multiply by a factor to obtain probabilities as specified on the original small trees database.
+
+# Examples
+```jldoctest
+julia>
+```
+"""
 function sum_equivalent_classes(pm::PhylogeneticModel, equivalent_classes::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
   return Dict(key => equivalent_classes[key]*size(key,1) for key in keys(equivalent_classes))
 end
