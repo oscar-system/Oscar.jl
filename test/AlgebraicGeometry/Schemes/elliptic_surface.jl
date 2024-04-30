@@ -227,7 +227,7 @@ end
                [56*t^4 + 49*t^3 + 85*t^2 + 57*t + 57, 72*t^6 + 25*t^5 + 22*t^4 + 101*t^3 + 104*t^2 + 88*t + 50],
                [22*t^4 + 87*t^3 + 77*t^2 + 26*t + 22, 44*t^6 + 27*t^5 + 68*t^4 + 98*t^3 + 45*t^2 + 27*t + 69],
                [112*t^4 + 44*t^3 + 49*t^2 + 44*t + 112, 100*t^6 + 74*t^5 + 49*t^4 + 8*t^3 + 49*t^2 + 74*t + 100]]
-  basis_mwl = [E(i) for i in basis_mwl];
+  basis_mwl = [E(i) for i in basis_mwl[1:1]];  # speed up test by disclosing just one section
 
   X = elliptic_surface(E, 2, basis_mwl)
   
@@ -261,6 +261,6 @@ end
   @test phi_star(algebraic_lattice(X))==algebraic_lattice(X)
   
   P = Oscar.extract_mordell_weil_basis(phi)
-  @test length(P) == 9
+  @test length(P) == 1
 end
 

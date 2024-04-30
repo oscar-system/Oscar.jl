@@ -2496,9 +2496,9 @@ This assumes that the image `f_*(V_1)` is contained in `V_2`. If this is not the
 """
 function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   imgs_divs = _pushforward_lattice_along_isomorphism(f)
-  M =  matrix([basis_representation(codomain(f),i) for i in imgs_divs])
-  V1 = algebraic_lattice(domain(f))[3]
-  V2 = algebraic_lattice(codomain(f))[3]
+  M = matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  V1 = ambient_space(algebraic_lattice(domain(f))[3])
+  V2 = ambient_space(algebraic_lattice(codomain(f))[3])
   # keep the check on since it is simple compared to all the other computations done here
   fstar = hom(V1,V2, M; check=true)
   return fstar
