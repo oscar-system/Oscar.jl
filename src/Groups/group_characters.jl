@@ -179,9 +179,8 @@ end
 #   an isomorphism to a `PcGroup` .
 #
 function isomorphism_to_GAP_group(G::GAPGroup)
-    f = function(x) return x.X; end
     finv = function(x::GAP.Obj) return group_element(G, x); end
-    return MapFromFunc(G, G.X, f, finv)
+    return MapFromFunc(G, G.X, GapObj, finv)
 end
 
 function isomorphism_to_GAP_group(G::FinGenAbGroup)
