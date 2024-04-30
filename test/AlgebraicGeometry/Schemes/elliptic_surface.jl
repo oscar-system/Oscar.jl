@@ -1,7 +1,4 @@
 @testset "elliptic surfaces" begin
-  #=
-  # The tests in this file are quite expensive
-  # hence this one is disabled
   k = GF(29)
   # The generic fiber of the elliptic fibration
   # as an elliptic curve over k(t)
@@ -22,10 +19,13 @@
   E = elliptic_curve(kP1, [0,0,0,1,t^10])
   X = elliptic_surface(E, 2)
   triv = trivial_lattice(X)
-  =#
-
-  #=
-  # This test takes about 5 minutes
+  @test det(triv[2])==-3
+  
+  @testset "translation" begin
+    
+  end
+  
+  # This test takes about 1 minute
   @testset "mordel weil lattices" begin
     k = GF(29,2)
     # The generic fiber of the elliptic fibration
@@ -43,11 +43,15 @@
     alg = algebraic_lattice(X)
     @test det(alg[3]) == -192
     @test det(mordell_weil_lattice(X)) == 3
+    
+    X1 = elliptic_surface(short_weierstrass_model(E)[1],2)
+    Oscar.isomorphism_from_generic_fibers(X,X1)
   end
   =#
   #=
   # this test is quite expensive
   # probably because it is over QQ
+  # ... and because there are loads of complicated singular fibers
   Qt, t = polynomial_ring(QQ, :t)
   Qtf = fraction_field(Qt)
   E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
@@ -76,15 +80,11 @@
     g, phi = two_neighbor_step(X, ff)
 
 
-    #=
-    # takes far too long
     mwl_gens_new = vcat([mwl_basis[1] + mwl_basis[2], mwl_basis[1] - mwl_basis[2]])
     set_mordell_weil_basis!(X, mwl_gens_new)
-    @test det(algebraic_lattice(X)[3])==-96
-    algebraic_lattice_primitive_closure!(X)
-    @test det(algebraic_lattice(X)[3])==-24
-    =#
-
+    @test det(algebraic_lattice(X)[3])==96
+    Oscar.algebraic_lattice_primitive_closure!(X)
+    @test det(algebraic_lattice(X)[3])==24
 
   end
 end
@@ -115,11 +115,16 @@ end
   f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4*t^8
   f_trans, trans = Oscar.transform_to_weierstrass(f, x, y, kt.([0, 2*t^4]))
   @test f_trans == x^3 + (-3//8*t^8 + 49//128)//t^16*x^2 + 7//8//t^8*x*y + (-1//4*t^24 + 9//256*t^16 - 147//2048*t^8 + 2401//65536)//t^32*x - y^2 + (5//16*t^16 - 21//128*t^8 + 343//2048)//t^24*y
+  
+  R, (x, y) = polynomial_ring(kt, [:x, :y])
+  f = y^2 - 4*x^4 + 5*x^3 - 3*x^2 + 7*x - 4*t^8
+  Y,trafo = elliptic_surface(f, kt.([0, 2*t^4]))
 end
 
 
 #=
-# These tests are disabled, because they take too long. But one can run them if in doubt.
+# These tests are disabled, because they take too long, about 5 minutes. But one can run them if in doubt.
+# most of the time is spent in decomposing the fibers
 @testset "two neighbor steps" begin
   K = GF(7)
   Kt, t = polynomial_ring(K, :t)
@@ -229,7 +234,15 @@ end
   basis_mwl = [E(i) for i in basis_mwl];
 
   X = elliptic_surface(E, 2, basis_mwl)
+  
+  # test translation
+  P = Oscar.mordell_weil_torsion(X)[1]
+  tors = Oscar.translation_morphism(X, P)
+  tors_of_P = pushforward(tors,zero_section(X)) 
+  Psect = section(X, P)
+  @test tors_ofP == Psect
 
+  
   moeb = Oscar.admissible_moebius_transformations(X, X)
 
   @test length(moeb) == 16 # This must really be the number for this particular surface.
