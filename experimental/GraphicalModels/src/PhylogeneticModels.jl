@@ -366,9 +366,9 @@ Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
 function general_markov_model(graph::Graph{Directed}; number_states = 4)
   ns = number_states
   ne = n_edges(graph)
-  R, root_distr, list_m = polynomial_ring(QQ, :π => 1:ns, :m => (1:(ne^2),1:(ns^2)); cached=false)
+  R, root_distr, list_m = polynomial_ring(QQ, :π => 1:ns, :m => (1:(ne^2),1:(ns),1:(ns)); cached=false)
 
-  matrices = Dict{Edge, MatElem}(e => matrix(R, transpose(reshape(list_m[i,:], ns, ns))) for (i,e) in zip(1:ne, edges(graph)))
-  
+  matrices = Dict{Edge, MatElem}(e => matrix(R, reshape(list_m[i,:,:], ns, ns)) for (i,e) in zip(1:ne, edges(graph)))
+
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
 end
