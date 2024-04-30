@@ -774,5 +774,10 @@ function no_reynolds_basis(d::Int, mat_::MatElem, II::MPolyIdeal)
 
     M1 = matrix(mixed_ring, length(H), 1, [V[i] for i in 1:length(H)])
     M2 = zeros(mixed_ring, length(H),1)
-    @show can_solve_with_solution(M1,M2)
+    
+    #this only gives a single solution. We need a basis of a solution space.
+    boo, sol = can_solve_with_solution(M1,M2)
+    @assert boo == true
+    
+
 end
