@@ -177,7 +177,7 @@ Base.:^(x::GAPGroupElem,f::GAPGroupHomomorphism) = image(f,x)
 Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
-  return group_element(codomain(f), GAPWrap.Image(f.map,x.X))
+  return group_element(codomain(f), GAPWrap.ImagesRepresentative(f.map, x.X))
 end
 
 """
@@ -1109,7 +1109,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   if check
     @assert A.G == G || x.X in A.G.X "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
-  return typeof(x)(G, GAPWrap.Image(f.X,x.X))
+  return typeof(x)(G, GAPWrap.ImagesRepresentative(f.X, x.X))
 end
 
 Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
