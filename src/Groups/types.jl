@@ -344,15 +344,8 @@ end
 # Construct an Oscar group wrapping the GAP group `obj`
 # *and* compatible with a given Oscar group `G`.
 
-const _sub_types = Dict{Type, Type}()
-
-_sub_types[PcGroup] = SubPcGroup
-
-function sub_type(T::Type)
-  haskey(_sub_types, T) && return _sub_types[T]
-  return T
-end
-
+sub_type(T::Type) = T
+sub_type(::Type{PcGroup}) = SubPcGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
 # _oscar_group is used to create the subgroup of `G`
