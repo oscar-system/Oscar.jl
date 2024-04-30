@@ -72,6 +72,11 @@ function cherries(graph::Graph)
   return unique(cherry)
 end
 
+function root(graph::Graph)
+  n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
+  return findall(x -> x == 0, n_parents)[1]
+end
+
 
 ## COMPUTE EQUIVALENCE CLASSES ##
 # Given the dictionary of parametrization, the functions below compute 
@@ -87,6 +92,7 @@ Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries
 julia>
 ```
 """
+#TODO: add the type of parametrization
 function compute_equivalent_classes(parametrization)
   polys = unique(collect(values(parametrization)))
   

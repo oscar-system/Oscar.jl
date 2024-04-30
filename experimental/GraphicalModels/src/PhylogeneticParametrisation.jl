@@ -4,8 +4,10 @@
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
   tr_mat = transition_matrices(pm)
+  root_dist = root_distribution(pm)
 
-  monomial = 1
+  r = root(gr)
+  monomial = root_dist[states[r]]
   for edge in edges(gr)
     stateParent = states[src(edge)]
     stateChild = states[dst(edge)]
