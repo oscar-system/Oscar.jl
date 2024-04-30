@@ -103,7 +103,6 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
     b a]) for (a,b,e) in zip(list_a, list_b, edges(graph))
   )
   
-
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))

@@ -57,7 +57,6 @@ end
 
 #### FOURIER PARAMETRISATION #### 
   
-
 function monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})
   gr = graph(pm)
   param = fourier_parameters(pm)
