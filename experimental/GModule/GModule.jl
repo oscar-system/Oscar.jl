@@ -333,10 +333,10 @@ end
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
   h = Oscar.iso_oscar_gap(k)
   hi = inv(h)
-  im = GAP.Globals.IrreducibleRepresentations(G.X, codomain(h))
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G), codomain(h))
   IM = GModule[]
   for m in im
-    z = map(x->matrix(map(y->map(hi, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(hi, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(k, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -350,11 +350,11 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
-  im = GAP.Globals.IrreducibleRepresentations(G.X)
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
   IM = GModule[]
   K = abelian_closure(QQ)[1]
   for m in im
-    z = map(x->matrix(map(y->map(K, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(K, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(K, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -1530,7 +1530,7 @@ end
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
   K = abelian_closure(QQ)[1]
-  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(group(chi).X), f)
+  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi))
   return gmodule(group(chi), [hom(F, F, x) for x = z])

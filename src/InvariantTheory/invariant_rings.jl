@@ -599,7 +599,7 @@ function _molien_series_nonmodular_via_gap(
   @assert !is_modular(I)
   G = group(I)
   @assert G isa MatrixGroup || G isa PermGroup
-  t = GAP.Globals.CharacterTable(G.X)
+  t = GAP.Globals.CharacterTable(GapObj(G))
   if G isa MatrixGroup
     if is_zero(characteristic(coefficient_ring(I)))
       psi = natural_character(G).values

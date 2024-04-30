@@ -525,7 +525,7 @@ end
 The relations defining 'F' as an array of pairs.
 """
 function _relations_by_generators(G::Oscar.GAPGroup)
-   f = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GAPWrap.GeneratorsOfGroup(G.X))
+   f = GAPWrap.IsomorphismFpGroupByGenerators(GapObj(G), GAPWrap.GeneratorsOfGroup(GapObj(G)))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    return relations(H)
@@ -546,8 +546,8 @@ end
 
 function Oscar.relations(G::PcGroup)
    # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
-   Ggens = GAPWrap.GeneratorsOfGroup(G.X)
-   Gpcgs = GAPWrap.Pcgs(G.X)
+   Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+   Gpcgs = GAPWrap.Pcgs(GapObj(G))
    Ggens == Gpcgs || return _relations_by_generators(G)
    f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GAP.Obj("g"))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
@@ -891,14 +891,14 @@ end
 function confluent_fp_group_pc(G::Oscar.GAPGroup)
    g = isomorphism(PcGroup, G)
    P = codomain(g)
-   f = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(P.X), GAP.Obj("g"))
+   f = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.FamilyPcgs(GapObj(P)), GAP.Obj("g"))
    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
    H = FPGroup(GAPWrap.Image(f))
    R = relations(H)
    ru = Vector{Tuple{Vector{Int}, Vector{Int}}}()
    for r = R
-     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(r[1].X)),
-                map(Int, GAP.Globals.LetterRepAssocWord(r[2].X))))
+     push!(ru, (map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[1]))),
+                map(Int, GAP.Globals.LetterRepAssocWord(GapObj(r[2])))))
   end
   i = 0
   ex = []
@@ -932,7 +932,7 @@ relations given as pairs of words.
 Return the new group, the isomorphism and the confluent relations.
 """
 function confluent_fp_group(G::Oscar.GAPGroup)
-  C = GAP.Globals.ConfluentMonoidPresentationForGroup(G.X)
+  C = GAP.Globals.ConfluentMonoidPresentationForGroup(GapObj(G))
   #has different generators than G! So the action will have to
   #be adjusted to those words. I do not know if a RWS (Confluent) can
   #just be changed...
@@ -1822,7 +1822,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     set_power!(C, i, r)
   end
   B = pc_group(C)
-  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
+  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
 
   Julia_to_gap = function(a::FinGenAbGroupElem)
     r = ZZRingElem[]
@@ -1851,7 +1851,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
   return B, MapFromFunc(
     codomain(mM), B,
     y->PcGroupElem(B, Julia_to_gap(preimage(mM, y))),
-    x->image(mM, gap_to_julia(x.X)))
+    x->image(mM, gap_to_julia(GapObj(x))))
 end
 
 function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = true)
@@ -1860,9 +1860,9 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
 
   G = free_group(degree(k)*dim(M))
 
-  C = GAP.Globals.CombinatorialCollector(G.X,
+  C = GAP.Globals.CombinatorialCollector(GapObj(G),
                   GAP.Obj([p for i=1:ngens(G)], recursive = true))
-  F = GAP.Globals.FamilyObj(GAP.Globals.Identity(G.X))
+  F = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(G)))
 
   # Note that we have specified all relative orders as `p`.
   # Missing commutator and power relators are interpreted as trivial,
@@ -1871,7 +1871,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   @assert is_abelian(B)
   @assert order(B) == order(M)
 
-  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(B.X))
+  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
 
   function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
     F = base_ring(parent(a))
@@ -1922,12 +1922,12 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   return B, MapFromFunc(
     M, B,
     y->PcGroupElem(B, Julia_to_gap(y)),
-    x->gap_to_julia(x.X))
+    x->gap_to_julia(GapObj(x)))
 end
 
 
 function underlying_word(g::FPGroupElem)
-  return FPGroupElem(free_group(parent(g)), GAPWrap.UnderlyingElement(g.X))
+  return FPGroupElem(free_group(parent(g)), GAPWrap.UnderlyingElement(GapObj(g)))
 end
 
 """
@@ -2007,18 +2007,18 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   fM, mfM = pc_group_with_isomorphism(M)
 
   N = free_group(ngens(G) + ngens(fM))
-  Gp = GAP.Globals.Pcgs(G.X)
+  Gp = GAP.Globals.Pcgs(GapObj(G))
   @assert length(Gp) == ngens(G)
-#  @assert all(x->Gp[x] == gen(G, x).X, 1:ngens(G))
+#  @assert all(x->Gp[x] == GapObj(gen(G, x)), 1:ngens(G))
   Go = GAP.Globals.RelativeOrders(Gp)
 
-  Mp = GAP.Globals.Pcgs(fM.X)
+  Mp = GAP.Globals.Pcgs(GapObj(fM))
   @assert length(Mp) == ngens(fM) == ngens(M)
-#  @assert all(x->Mp[x] == gen(fM, x).X, 1:ngens(M))
+#  @assert all(x->Mp[x] == GapObj(gen(fM, x)), 1:ngens(M))
   Mo = GAP.Globals.RelativeOrders(Mp)
 
-  CN = GAP.Globals.SingleCollector(N.X, GAP.Globals.Concatenation(Go, Mo))
-  FN = GAP.Globals.FamilyObj(N[1].X)
+  CN = GAP.Globals.SingleCollector(GapObj(N), GAP.Globals.Concatenation(Go, Mo))
+  FN = GAP.Globals.FamilyObj(GapObj(N[1]))
 
   for i=1:ngens(fM)
     lp = deepcopy(GAPWrap.ExtRepOfObj(Mp[i]^Mo[i]))
@@ -2039,7 +2039,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   end
 
   fMtoN = function(x)
-    lp = deepcopy(GAPWrap.ExtRepOfObj(x.X))
+    lp = deepcopy(GAPWrap.ExtRepOfObj(GapObj(x)))
     for k=1:2:length(lp)
       @assert lp[k] > 0
       lp[k] += ngens(G)
@@ -2110,7 +2110,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 #  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
 #  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
-  fQ = GAP.Globals.FamilyObj(one(Q).X)
+  fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
   mQ = hom(N, Q, gens(N), gens(Q))
 
   @assert ngens(Q) == ngens(N)
@@ -2125,7 +2125,7 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
   mffM = epimorphism_from_free_group(fM)
 
   function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(preimage(mffM, mfM(m)).X))
+    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
     for i=1:2:length(wm)
       push!(wg, wm[i]+ngens(G))
       push!(wg, wm[i+1])
@@ -2260,10 +2260,10 @@ end
 
 function all_extensions(M::FinGenAbGroup, G::PermGroup) #the cohomology wants it
   A = automorphism_group(M)
-  l = GAP.Globals.AllHomomorphismClasses(G.X, A.X)
+  l = GAP.Globals.AllHomomorphismClasses(GapObj(G), GapObj(A))
   all_G = []
   for i = l
-    C = gmodule(G, [hom(A(i(g.X))) for g = gens(G)])
+    C = gmodule(G, [hom(A(i(GapObj(g)))) for g = gens(G)])
     append!(all_G, all_extensions(C))
   end
   return all_G

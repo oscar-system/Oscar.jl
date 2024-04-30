@@ -4,11 +4,11 @@
 
 Base.isfinite(G::PermGroup) = true
 
-==(x::PermGroup, y::PermGroup) = x.deg == y.deg && x.X == y.X
+==(x::PermGroup, y::PermGroup) = x.deg == y.deg && GapObj(x) == GapObj(y)
 
-==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && x.X == y.X
+==(x::PermGroupElem, y::PermGroupElem) = degree(x) == degree(y) && GapObj(x) == GapObj(y)
 
-Base.:<(x::PermGroupElem, y::PermGroupElem) = x.X < y.X
+Base.:<(x::PermGroupElem, y::PermGroupElem) = GapObj(x) < GapObj(y)
 
 Base.isless(x::PermGroupElem, y::PermGroupElem) = x<y
 
@@ -80,7 +80,7 @@ julia> length(moved_points(gen(s, 1)))
 3
 ```
 """
-@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(x.X))
+@gapattribute moved_points(x::Union{PermGroupElem,PermGroup}) = Vector{Int}(GAP.Globals.MovedPoints(GapObj(x)))
 
 @doc raw"""
     number_of_moved_points(x::PermGroupElem) -> Int
@@ -100,7 +100,7 @@ julia> number_of_moved_points(gen(s, 1))
 3
 ```
 """
-@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(x.X)::Int
+@gapattribute number_of_moved_points(x::Union{PermGroupElem,PermGroup}) = GAP.Globals.NrMovedPoints(GapObj(x))::Int
 
 @doc raw"""
     perm(L::AbstractVector{<:IntegerUnion})
@@ -163,7 +163,7 @@ true
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
    x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
    @req x !== GAP.Globals.fail "the list does not describe a permutation"
-   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
@@ -171,7 +171,7 @@ perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
    x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
-   @req (length(L) <= degree(g) && x in g.X) "the element does not embed in the group"
+   @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end
 
@@ -299,7 +299,7 @@ end
 
 function cperm(g::PermGroup, L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
   x = prod(y -> GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y])), [L1, L...])
-  @req x in g.X "the element does not embed in the group"
+  @req x in GapObj(g) "the element does not embed in the group"
   return PermGroupElem(g, x)
 end
 
@@ -348,9 +348,9 @@ Base.Vector(x::PermGroupElem, n::Int = x.parent.deg) = Vector{Int}(x,n)
 #evaluation function
 (x::PermGroupElem)(n::IntegerUnion) = n^x
 
-^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^x.X)
+^(n::T, x::PermGroupElem) where T <: IntegerUnion = T(GAP.Obj(n)^GapObj(x))
 
-^(n::Int, x::PermGroupElem) = (n^x.X)::Int
+^(n::Int, x::PermGroupElem) = (n^GapObj(x))::Int
 
 
 @doc raw"""
@@ -370,10 +370,10 @@ julia> sign(cperm(1:3))
 1
 ```
 """
-Base.sign(g::PermGroupElem) = GAPWrap.SignPerm(g.X)
+Base.sign(g::PermGroupElem) = GAPWrap.SignPerm(GapObj(g))
 
 # TODO: document the following?
-Base.sign(G::PermGroup) = GAPWrap.SignPermGroup(G.X)
+Base.sign(G::PermGroup) = GAPWrap.SignPermGroup(GapObj(G))
 
 
 @doc raw"""
@@ -601,7 +601,7 @@ julia> cycle_structure(g)
 ```
 """
 function cycle_structure(g::PermGroupElem)
-    c = GAPWrap.CycleStructurePerm(g.X)
+    c = GAPWrap.CycleStructurePerm(GapObj(g))
     # TODO: use SortedDict from DataStructures.jl ?
     ct = Pair{Int, Int}[ i+1 => c[i] for i in 1:length(c) if GAP.Globals.ISB_LIST(c, i) ]
     s = degree(CycleType(ct, sorted = true))

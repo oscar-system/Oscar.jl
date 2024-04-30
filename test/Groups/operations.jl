@@ -26,7 +26,7 @@
       @test parent(x)==G
       @test parent(z)==G
       @test x/y == x*y^-1
-      @test (x*y).X == x.X*y.X
+      @test GapObj(x*y) == GapObj(x)*GapObj(y)
       @test x^2 == x*x
       @test x*one(G)==x
       @test oz==i
