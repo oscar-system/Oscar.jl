@@ -236,7 +236,7 @@ end
   tors = Oscar.translation_morphism(X, P)
   tors_of_P = pushforward(tors,zero_section(X)) 
   Psect = section(X, P)
-  @test tors_ofP == Psect
+  @test tors_of_P == Psect
 
   
   moeb = Oscar.admissible_moebius_transformations(X, X)
