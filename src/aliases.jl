@@ -1,24 +1,6 @@
-include(joinpath(pathof(AbstractAlgebra), "..", "Aliases.jl"))
-
-# HACK/FIXME: remove these aliases once we have them in AA/Nemo/Hecke
+# HACK/FIXME: remove these aliases once https://github.com/Nemocas/AbstractAlgebra.jl/pull/1696 is available
 @alias characteristic_polynomial charpoly  # FIXME
 @alias minimal_polynomial minpoly  # FIXME
-
-import Nemo: is_cyclo_type
-import Nemo: is_maxreal_type
-import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: FpField  # FIXME: remove if/once Nemo exports this
-import Nemo: fpField  # FIXME: remove if/once Nemo exports this
-include(joinpath(pathof(Nemo), "..", "Aliases.jl"))
-
-#import Hecke: quadratic_genera
-#import Hecke: has_algebra
-#import Hecke: has_embedding
-#import Hecke: has_matrix_action
-#import Hecke: has_root
-#import Hecke: ...
-#include(joinpath(pathof(Hecke), "..", "Aliases.jl"))
 
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
