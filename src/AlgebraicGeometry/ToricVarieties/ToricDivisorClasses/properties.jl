@@ -25,4 +25,4 @@ julia> is_effective(tdc2)
 false
 ```
 """
-@attr Bool is_effective(tdc::ToricDivisorClass) = is_effective(toric_divisor(tdc))
+@attr Bool is_effective(tdc::ToricDivisorClass) = (length(basis_of_global_sections(toric_line_bundle(tdc))) > 0)
