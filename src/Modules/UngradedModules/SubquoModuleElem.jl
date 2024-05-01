@@ -962,7 +962,9 @@ number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 Given an `R`-module `M`, return `R`.
 """
-base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M.F)
+base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M)
+
+base_ring_type(::Type{SubquoModule{T}}) where {T} = base_ring_type(FreeMod{T})
 
 @doc raw"""
     zero(M::SubquoModule)

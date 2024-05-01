@@ -188,6 +188,8 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
+base_ring_type(::Type{MonomialOrdering{S}}) where {S} = S
+
 @doc raw"""
     support(o::MonomialOrdering)
 
@@ -1769,6 +1771,8 @@ mutable struct ModuleOrdering{S}
 end
 
 base_ring(a::ModuleOrdering) = a.M
+
+base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
 
 mutable struct ModProdOrdering <: AbsModOrdering
   a::AbsOrdering

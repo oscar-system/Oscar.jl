@@ -208,6 +208,8 @@ end
 
 base_ring(I::LaurentMPolyIdeal{T}) where {T} = I.R::parent_type(T)
 
+base_ring_type(::Type{LaurentMPolyIdeal{T}}) where {T} = parent_type(T)
+
 gens(I::LaurentMPolyIdeal) = I.gens
 
 @enable_all_show_via_expressify LaurentMPolyIdeal

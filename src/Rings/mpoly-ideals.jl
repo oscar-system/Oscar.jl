@@ -1651,6 +1651,8 @@ function base_ring(I::MPolyIdeal{S}) where {S}
   return I.gens.Ox::parent_type(S)
 end
 
+base_ring_type(::Type{MPolyIdeal{S}}) where {S} = parent_type(S)
+
 #######################################################
 @doc raw"""
     coefficient_ring(I::MPolyIdeal)

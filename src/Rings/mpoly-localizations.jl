@@ -900,6 +900,7 @@ end
 
 ### required getter functions 
 base_ring(W::MPolyLocRing) = W.R
+base_ring_type(::Type{MPolyLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
@@ -1308,6 +1309,7 @@ end
 gens(I::MPolyLocalizedIdeal) = copy(I.gens)
 gen(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyLocalizedIdeal) = I.W
+base_ring_type(::Type{MPolyLocalizedIdeal{LRT, LRET}}) where {LRT, LRET} = LRT
 
 ### type getters
 ideal_type(::Type{MPolyLocalizedRingType}) where {MPolyLocalizedRingType<:MPolyLocRing} = MPolyLocalizedIdeal{MPolyLocalizedRingType, elem_type(MPolyLocalizedRingType)}

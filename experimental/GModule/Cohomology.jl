@@ -492,6 +492,7 @@ _rank(M) = rank(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
+Oscar.base_ring_type(::Type{GModule{gT, mT}}) where {gT, mT} = base_ring_type(mT)
 Oscar.group(C::GModule) = C.G
 
 ###########################################################

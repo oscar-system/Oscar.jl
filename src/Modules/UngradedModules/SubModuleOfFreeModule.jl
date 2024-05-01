@@ -125,6 +125,9 @@ function base_ring(M::SubModuleOfFreeModule)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{SubModuleOfFreeModule{T}}) where {T} = base_ring_type(FreeMod{T})
+
+
 @doc raw"""
     ambient_free_module(M::SubModuleOfFreeModule)
 
