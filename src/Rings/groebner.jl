@@ -1060,7 +1060,7 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
-  if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
+  if ordering == degrevlex(base_ring(J)) && typeof(base_ring(J)) == FqField && absolute_degree(base_ring(J)) == 1
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
