@@ -78,10 +78,8 @@ using .Orderings
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-function default_ordering(R::MPolyRing)
-  return get_attribute!(R, :default_ordering) do
-    degrevlex(R)
-  end
+@attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyRing}
+  return degrevlex(R)
 end
 
 
