@@ -848,6 +848,10 @@ end
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
   @test coordinates(re) == degree.(t)
+  lin = @inferred linear_characters(g)
+  @test length(lin) == 2
+  lin = @inferred linear_characters(t)
+  @test length(lin) == 2
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
@@ -950,10 +954,10 @@ end
   t = character_table(g)
 
   # `induced_cyclic`: no group is needed
-  indcyc = induced_cyclic(t)
+  indcyc = @inferred induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
-  @test indcyc == induced_cyclic(t, 1:nrows(t))
+  @test indcyc == @inferred induced_cyclic(t, 1:nrows(t))
 
   # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
@@ -1222,6 +1226,7 @@ end
     @test length(chi) == n
     @test 1 in chi
     @test [chi(representative(c)) for c in conjugacy_classes(tbl1)] == values(chi)
+    @test all(x -> degree(x) == 1, linear_characters(G1))
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
@@ -1245,10 +1250,12 @@ end
     subtbl = character_table(H)
     ind = [chi^tbl1 for chi in subtbl]
     @test all(chi -> degree(chi) == index(G1, H), ind)
+    @test ind == [chi^G1 for chi in subtbl]
 
     # restricted characters
     rest = [restrict(psi, subtbl) for psi in ind]
     @test all(chi -> degree(chi) == index(G1, H), rest)
+    @test rest == [restrict(psi, H) for psi in ind]
 
     # conjugate characters
     H, _ = pcore(G1, 2)
