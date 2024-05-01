@@ -13,11 +13,13 @@ struct WeakCompositions{T<:IntegerUnion}
   n::T
   k::Int # This is the length of the vectors, so cannot be larger than an Int
          # and there is no performance benefit from making it an Int8 (for example)
+  inplace::Bool # Whether all generated compositions share the same array in
+                # memory
 
-  function WeakCompositions(n::T, k::Int) where T<:IntegerUnion
+  function WeakCompositions(n::T, k::Int, inplace::Bool = false) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
     @req k >= 0 "k >= 0 required"
-    return new{T}(n, k)
+    return new{T}(n, k, inplace)
   end
 end
 
