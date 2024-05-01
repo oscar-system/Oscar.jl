@@ -354,7 +354,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     # Collect information about the fine regular star triangulations of said polytope (more details in struct QSMModel).
     triang_quick = detailed_data_dict[index_in_data_base]["TriangQuick"]
     max_lattice_pts_in_facet = detailed_data_dict[index_in_data_base]["MaxLatticePtsInFacet"]
-    println(detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
+    #println(detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
     str = string(detailed_data_dict[index_in_data_base]["TriangulationEstimate"])
     estimated_number_of_triangulations = round(Int, eval(Meta.parse(str)))
 
@@ -417,6 +417,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     simplified_dual_graph = graph_from_edges(simplified_edge_list)
 
     # Collect all of this information in the struct QSMModel, which we can then use for serialization.
+    #=
     println("***")
     println(typeof(vertices))
     println(typeof(poly_index))
@@ -443,6 +444,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     println(typeof(degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph))
     println(typeof(genus_of_components_of_simplified_dual_graph))
     println("***")
+    =#
     qsm_model = QSMModel(vertices,
                          poly_index,
                          triang_quick,
