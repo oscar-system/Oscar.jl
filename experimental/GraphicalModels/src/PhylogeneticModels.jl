@@ -8,11 +8,17 @@ end
 
 function Base.show(io::IO, pm::PhylogeneticModel)
   gr = graph(pm)
+  ns = number_states(pm)
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
-  x = gens(probability_ring(pm))
-  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(nl) edges")
-  #print(io, " with transition matrices of the form ")
+  root_dist = join(Oscar.root_distribution(pm), ", " )
+  M = collect(values(transition_matrices(pm)))[1]
+  print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)] \n")
+  print(io, " and transition matrix associated to edge i of the form \n ")
+  #print_matrix(io, M, ns)
+  idx = string(split(string(M[1,1]), "[")[2][1])
+  print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
+  print(io, ". ")
 end
 
 struct GroupBasedPhylogeneticModel
@@ -25,12 +31,19 @@ end
 function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   gr = graph(pm)
   nl = length(leaves(gr))
-  edgs = collect(edges(gr))
-  ne = length(edgs)
-  x = gens(probability_ring(pm))
-  # M = pm.phylo_model.trans_matrices[edges[1]]
-  print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges")
-  #print(io, " with transition matrices of the form ")
+  ne = length(collect(edges(gr)))
+  root_dist = join(Oscar.root_distribution(pm), ", " )
+  M = collect(values(transition_matrices(pm)))[1]
+  idx = string(split(string(M[1,1]), "[")[2][1])
+  
+  print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)]. \n")
+  print(io, " The transition matrix associated to edge i is of the form \n ")
+  #print_matrix(io, M, ns)
+  print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
+  print(io, ", \n and the Fourier parameters are ")
+  fp = transpose(collect(values(Oscar.fourier_parameters(pm)))[1])
+  fp = replace(string(fp), "QQMPolyRingElem" => "")
+  print(io, replace(replace(replace(string(fp), "["*idx => "[i"), ";" => ";\n "), "]]" => "]]."))
 end
 
 phylogenetic_model(pm::GroupBasedPhylogeneticModel) =  pm.phylo_model
@@ -372,3 +385,28 @@ function general_markov_model(graph::Graph{Directed}; number_states = 4)
 
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
 end
+
+
+function affine_phylogenetic_model(pm::PhylogeneticModel)
+  gr = graph(pm)
+  ns = number_states(pm)
+  trans_mat = transition_matrices(pm)
+  for e in edges(gr)
+    [trans_mat[e][i,i] = 1 - (sum(trans_mat[e][i,:]) - trans_mat[e][i,i]) for i in 1:ns]
+  end
+  r = root_distribution(pm)
+  r[1] = 1 - sum(r[2:ns])
+  return PhylogeneticModel(gr, ns, probability_ring(pm), root_distribution(pm), trans_mat)
+end
+
+function affine_phylogenetic_model(pm::GroupBasedPhylogeneticModel)
+  gr = graph(pm)
+  affine_pm = affine_phylogenetic_model(pm.phylo_model)
+  fourier_param = fourier_parameters(pm)
+  S = fourier_ring(pm)
+  for e in edges(gr)
+    fourier_param[e][1] = S(1)
+  end
+  return GroupBasedPhylogeneticModel(affine_pm, S, fourier_param, group_of_model(pm))
+end
+    

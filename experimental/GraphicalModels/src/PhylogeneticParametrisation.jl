@@ -1,6 +1,5 @@
 #### PARAMETRISATION IN PROBABLITY COORDINATES #### 
 
-#TODO: Missing add the root and the distribution π for the GMM
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
   tr_mat = transition_matrices(pm)
@@ -117,10 +116,6 @@ end
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
 
 
-# TODO: line 138 mutates f_equivclasses, i.e. an object from outside the function.
-# This makes the function a !-function. We do not want f_equivclasses to be changed, 
-# so I add the missing equivalence class again in line 175. 
-# We should find out whether there is a better way to do this.
 @doc raw"""
     specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})    
 

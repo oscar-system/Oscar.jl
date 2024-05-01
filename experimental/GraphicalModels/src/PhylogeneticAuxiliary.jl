@@ -124,3 +124,8 @@ function sum_equivalent_classes(pm::GroupBasedPhylogeneticModel, equivalent_clas
   ns = number_states(pm)
   return Dict(key => 1//ns*equivalent_classes[key]*size(key,1) for key in keys(equivalent_classes))
 end
+
+
+############
+
+
