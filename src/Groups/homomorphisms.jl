@@ -681,18 +681,32 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
        A2, A2_to_A = snf(A)
      end
      A_to_A2 = inv(A2_to_A)
-     # the isomorphic gap group
-     G = abelian_group(T, exponents)
-     # `GAPWrap.GeneratorsOfGroup(GapObj(G))` consists of independent elements
+     # Create an isomorphic GAP group whose `GAPWrap.GeneratorsOfGroup`
+     # consists of independent elements of the orders in `exponents`.
+     # (We cannot guarantee that these generators form a pcgs in the case
+     # `T == PcGroup`, hence we cannot call `abelian_group(T, exponents)`.)
+     if T == PcGroup
+       if 0 in exponents
+         GapG = GAP.Globals.AbelianPcpGroup(length(exponents), GAP.GapObj(exponents, recursive=true))
+       else
+         GapG = GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GAP.GapObj(exponents, recursive=true))
+       end
+       G = PcGroup(GAP.Globals.SubgroupNC(GapG, GAP.Globals.FamilyPcgs(GapG)))
+     else
+       G = abelian_group(T, exponents)
+       GapG = GapObj(G)
+     end
+
+     # `GAPWrap.GeneratorsOfGroup(GapG)` consists of independent elements
      # of the orders in `exponents`.
-     # `GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapObj(G))` chooses generators
+     # `GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapG)` chooses generators
      # that may differ from these generators,
      # and that belong to the exponent vectors returned by
-     # `GAPWrap.IndependentGeneratorExponents(GapObj(G), g)`.
-     # `GAPWrap.GeneratorsOfGroup(GapObj(G))` corresponds to `gens(A2)`,
+     # `GAPWrap.IndependentGeneratorExponents(GapG, g)`.
+     # `GAPWrap.GeneratorsOfGroup(GapG)` corresponds to `gens(A2)`,
      # we let `hom` compute elements in `A2` that correspond to
-     # `GAP.Globals.IndependentGenerators(GapObj(G))`.
-     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapObj(G))::GapObj)
+     # `GAP.Globals.IndependentGenerators(GapG)`.
+     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapG)::GapObj)
      if length(Ggens) < length(exponents)
        # It may happen that GAP omits the generators of order 1. Insert them.
        @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
@@ -710,17 +724,16 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
        end
        Ggens = newGgens
      end
-     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapObj(G))::GapObj
+     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapG)::GapObj
      Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
-
-     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapObj(G), a)) for a in Ggens]
+     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapG, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
      n = length(exponents)
 
      f = function(a::elem_type(FinGenAbGroup))
        exp = A_to_A2(a)
-       img = GAP.Globals.One(GapObj(G))
+       img = GAP.Globals.One(GapG)
        for i in 1:n
          img = img * Ggens[i]^GAP.Obj(exp[i])
        end
@@ -728,7 +741,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      end
 
      finv = function(g)
-       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapObj(G), GapObj(g)))
+       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapG, GapObj(g)))
        return Aindep_to_A(Aindep(exp))
      end
 
