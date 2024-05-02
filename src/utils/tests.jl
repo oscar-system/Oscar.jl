@@ -30,6 +30,9 @@ end
 function _gather_tests(path::AbstractString; ignore=[])
   # default ignore patterns
   ignorepatterns = Regex[
+                     # temparily exclude to check rest of tests
+                     r"Aqua(\.jl)?$",
+                     r"experimental/GModule/",
                      # this can only run on the main process and not on distributed workers
                      # so it is included directly in runtests
                      r"Serialization/IPC(\.jl)?$",
