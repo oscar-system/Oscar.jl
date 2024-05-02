@@ -1323,7 +1323,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
-      d = F2 - _vec(tor)
+      d = F1 - _vec(tor)
       if all(isone(denominator(i)) for i in d)
         found = true
         T0 = mordell_weil_torsion(X)[i]
@@ -1570,24 +1570,17 @@ end
     elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
-degree at most ``4`` to Weierstrass form and return the corresponding
-elliptic surface as well as the coordinate transformation.
+degree at most ``4`` to Weierstrass form, apply Tate's algorithm and 
+return the corresponding relatively minimal elliptic surface 
+as well as the coordinate transformation.
 """
 function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  E2 = elliptic_curve(g2, x, y);
-  t2 = gen(base_field(E2));
-  Y2 = elliptic_surface(E2, 2)
-
-  W = weierstrass_chart(Y2)
-  RW = ambient_coordinate_ring(W); FRW = fraction_field(RW);
-  (x, y, t) = gens(RW) # Output of phi2 lives in (k(t))(x, y), so we need to convert
-  psi = hom(base_ring(codomain(phi2)), FRW, f->evaluate(f, t), FRW.([x,y])); # a helper function
-  psi_ext = extend_domain_to_fraction_field(psi)
-  return Y2, phi2 * psi_ext
+  Y2, phi1 = _elliptic_surface_with_trafo(g2)
+  return Y2, phi2 * phi1  
 end
 
 @doc raw"""
@@ -1601,22 +1594,6 @@ on the curve defined by `g`, i.e. `g(P) == 0`.
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   F = fraction_field(R)
-
-  # In case of variables in the wrong order, switch and transform the result.
-  if x == R[2] && y == R[1]
-    switch = hom(R, R, reverse(gens(R)))
-    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
-    new_trans = MapFromFunc(F, F, f->begin
-                                switch_num = switch(numerator(f))
-                                switch_den = switch(denominator(f))
-                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
-                                num = numerator(interm_res)
-                                den = denominator(interm_res)
-                                switch(num)//switch(den)
-                            end
-                           )
-    return switch(g_trans), new_trans
-  end
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
   @assert y in gens(R) "third argument must be a variable of the parent of the first"
@@ -2462,15 +2439,14 @@ function check_isomorphism_on_generic_fibers(phi::MorphismFromRationalFunctions{
   return divides(hX, numerator(hh))[1]
 end
 
-# Given two elliptic surfaces X and Y with abstractly isomorphic generic 
-# fibers, construct the corresponding isomorphism X -> Y.
 function isomorphism_from_generic_fibers(
-    X::EllipticSurface, Y::EllipticSurface
+    X::EllipticSurface, Y::EllipticSurface, f::Hecke.EllCrvIso
   )
   EX = generic_fiber(X)
   EY = generic_fiber(Y)
-  is_isomorphic(EX, EY) || error("generic fibers are not isomorphic")
-  iso_ell = isomorphism(EX, EY)
+  iso_ell = f
+  @req domain(f) == EX "must be an isomorphism of the generic fibers"
+  @req codomain(f) == EY "must be an isomorphism of the generic fibers"
   a, b, _ = rational_maps(iso_ell)
   kt = base_field(EX)
   t = gen(kt)
@@ -2492,7 +2468,40 @@ function isomorphism_from_generic_fibers(
   A = to_FRX(a)
   B = to_FRX(b)
   img_gens = [A, B, FRX(RX[3])]
-  return morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=true)
+  m = morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=false)
+  set_attribute!(m, :is_isomorphism=>true)
+  return m
+end
+
+# Given two elliptic surfaces X and Y with abstractly isomorphic generic 
+# fibers, construct the corresponding isomorphism X -> Y.
+function isomorphism_from_generic_fibers(
+    X::EllipticSurface, Y::EllipticSurface
+  )
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+  is_isomorphic(EX, EY) || error("generic fibers are not isomorphic")
+  iso_ell = isomorphism(EX, EY)
+  return isomorphism_from_generic_fibers(X, Y, iso_ell)
+end
+
+
+"""
+    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
+    
+Return the pushforward `f_*: V_1 -> V_2` where `V_i` is the ambient quadratic space of the `algebraic_lattice`.
+
+This assumes that the image `f_*(V_1)` is contained in `V_2`. If this is not the case, you will get  
+``f_*`` composed with the orthogonal projection to `V_2`. 
+"""
+function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  imgs_divs = _pushforward_lattice_along_isomorphism(f)
+  M = matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  V1 = ambient_space(algebraic_lattice(domain(f))[3])
+  V2 = ambient_space(algebraic_lattice(codomain(f))[3])
+  # keep the check on since it is simple compared to all the other computations done here
+  fstar = hom(V1,V2, M; check=true)
+  return fstar
 end
 
 # Given an irreducible divisor D on an elliptic surface X, try to extract a point 
