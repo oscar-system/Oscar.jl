@@ -76,7 +76,7 @@ Completeness is an expensive check. Therefore, we provide an optional argument w
  demonstrate this:
 ```@docs
 hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
-hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}; completeness_check::Bool = true)
 ```
 
 ### A (covered) scheme as base space
@@ -88,8 +88,9 @@ This functionality does not yet exist.
 This method constructs a hypersurface model over a base space, where
 this base space is not (fully) specified. We currently provide the following constructors:
 ```@docs
-hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64}, p::MPolyRingElem)
+hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_grading::Matrix{Int64}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{Vector{Int64}}, p::MPolyRingElem)
 ```
+For convenience, the fiber_twist_divisor_classes can also be provided as `ZZMatrix`.
 
 ### Standard constructions
 
