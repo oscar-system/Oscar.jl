@@ -311,7 +311,7 @@ julia> R, (x,y,z) = QQ["x", "y", "z"];
 
 julia> Oscar.empty_covered_projective_scheme(R)
 Relative projective scheme
-  over empty covered scheme over multivariate polynomial ring
+  over empty covered scheme over R
 covered with 0 projective patches
 ```
 """
