@@ -160,22 +160,24 @@ by calling functions probability_map and fourier_map on the model=#
 @doc raw"""
     specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
 
-Reparametrize between a model specification in terms of probability and Fourier cooordinates.
+Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional.
 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> specialized_fourier_transform(pm)
-
-
+5×5 Matrix{QQMPolyRingElem}:
+ 1  1      1      1      1
+ 1  -1//3  -1//3  1      -1//3
+ 1  -1//3  1      -1//3  -1//3
+ 1  1      -1//3  -1//3  -1//3
+ 1  -1//3  -1//3  -1//3  1//3
 ```
 """
-function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{}, f_equivclasses::Dict{})
   R = probability_ring(pm)
   ns = number_states(pm)
-
-  p_equivclasses = probability_map(pm)
-  f_equivclasses = fourier_map(pm)
 
   np = length(p_equivclasses)
   nq = length(f_equivclasses) - 1
@@ -203,6 +205,15 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   return specialized_ft_matrix
 end
 
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+  p_equivclasses = compute_equivalent_classes(probability_map(pm))
+  f_equivclasses = compute_equivalent_classes(fourier_map(pm))
+  specialized_fourier_transform(pm, p_equivclasses,f_equivclasses)
+end
+
+
+
+
 @doc raw"""
     inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
 
@@ -211,17 +222,19 @@ Reparametrize between a model specification in terms of Fourier and probability 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> inverse_specialized_fourier_transform(pm)
-
-
+5×5 Matrix{QQMPolyRingElem}:
+ 1//16  3//16   3//16   3//16   3//8
+ 3//16  -3//16  -3//16  9//16   -3//8
+ 3//16  -3//16  9//16   -3//16  -3//8
+ 3//16  9//16   -3//16  -3//16  -3//8
+ 3//8   -3//8   -3//8   -3//8   3//4
 ```
 """
-function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{}, f_equivclasses::Dict{})
   R = probability_ring(pm)
   ns = number_states(pm)
-
-  p_equivclasses = probability_map(pm)
-  f_equivclasses = fourier_map(pm)
 
   np = length(p_equivclasses)
   nq = length(f_equivclasses) - 1
@@ -248,4 +261,9 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
     end
   end
   return inverse_spec_ft_matrix
+end
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+  p_equivclasses = compute_equivalent_classes(probability_map(pm))
+  f_equivclasses = compute_equivalent_classes(fourier_map(pm))
+  inverse_specialized_fourier_transform(pm, p_equivclasses,f_equivclasses)
 end

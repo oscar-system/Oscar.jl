@@ -13,9 +13,9 @@ function Base.show(io::IO, pm::PhylogeneticModel)
   ne = length(collect(edges(gr)))
   root_dist = join(Oscar.root_distribution(pm), ", " )
   M = collect(values(transition_matrices(pm)))[1]
+  
   print(io, "Phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)] \n")
   print(io, " and transition matrix associated to edge i of the form \n ")
-  #print_matrix(io, M, ns)
   idx = string(split(string(M[1,1]), "[")[2][1])
   print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
   print(io, ". ")
@@ -38,7 +38,6 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   
   print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)]. \n")
   print(io, " The transition matrix associated to edge i is of the form \n ")
-  #print_matrix(io, M, ns)
   print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
   print(io, ", \n and the Fourier parameters are ")
   fp = transpose(collect(values(Oscar.fourier_parameters(pm)))[1])

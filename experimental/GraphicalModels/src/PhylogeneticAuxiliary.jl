@@ -100,8 +100,8 @@ Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
   [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, … => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 ```
 """
-function compute_equivalent_classes(pm::GroupBasedPhylogeneticModel)
-  parametrization = probability_map(pm)
+function compute_equivalent_classes(parametrization::Dict{})
+  #parametrization = probability_map(pm)
   polys = unique(collect(values(parametrization)))
   
   equivalent_keys = []
@@ -132,17 +132,11 @@ Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
   [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, 4), (4, 4, 1… => 3*a[1]*a[2]*b[3] + 3*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
 ```
 """
-function sum_equivalent_classes(pm::GroupBasedPhylogeneticModel)
-  equivalent_classes = compute_equivalent_classes(pm)
-  return Dict(key => equivalent_classes[key]*size(key,1) for key in keys(equivalent_classes))
-end
-#TODO: add the 1//ns in the parametrization (root distribution), not here! The two methods should be the same
-function sum_equivalent_classes(pm::GroupBasedPhylogeneticModel, equivalent_classes::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
-  ns = number_states(pm)
-  return Dict(key => 1//ns*equivalent_classes[key]*size(key,1) for key in keys(equivalent_classes))
+function sum_equivalent_classes(equivalent_classes::Dict{})
+  #TODO: This is wrong when there's a single element in some of the keys
+  #equivalent_classes = compute_equivalent_classes(pm)
+  return Dict(key => equivalent_classes[key]*length(key) for key in keys(equivalent_classes))
 end
 
-
-############
 
 
