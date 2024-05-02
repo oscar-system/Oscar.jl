@@ -48,7 +48,7 @@
         "a3": "b3*ζ0^(k + 1)",
         "a4": "b4*ζ0^(k + 1)",
         "a6": "0",
-        "auxiliary_base_grading": [
+        "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
             [1, 2, 3, 4],
             [-1, -1, "-(k + 1)", "-(k + 1)"]
         ],
