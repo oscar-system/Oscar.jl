@@ -78,7 +78,7 @@ Return (`true`,`f`) if `H` is a subgroup of `G`, where `f` is the embedding
 homomorphism of `H` into `G`, otherwise return (`false`,`nothing`).
 
 If you do not need the embedding then better call
-[`is_subset(H::T, G::T) where T <: GAPGroup`](@ref).
+[`is_subset(H::GAPGroup, G::GAPGroup)`](@ref).
 """
 function is_subgroup(H::GAPGroup, G::GAPGroup)
    if !is_subset(H, G)
