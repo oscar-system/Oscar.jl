@@ -1390,7 +1390,7 @@ julia> G = dihedral_group(8)
 Pc group of order 8
 
 julia> complement_classes(G, center(G)[1])
-GAPGroupConjClass{PcGroup, PcGroup}[]
+GAPGroupConjClass{PcGroup, SubPcGroup}[]
 ```
 """
 function complement_classes(G::T, N::GAPGroup) where T <: GAPGroup

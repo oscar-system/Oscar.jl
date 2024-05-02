@@ -237,8 +237,8 @@ julia> minimal_normal_subgroups(symmetric_group(4))
  Permutation group of degree 4 and order 4
 
 julia> minimal_normal_subgroups(quaternion_group(8))
-1-element Vector{PcGroup}:
- Pc group of order 2
+1-element Vector{SubPcGroup}:
+ Subgroup of pc group of order 2
 ```
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
