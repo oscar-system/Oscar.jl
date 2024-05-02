@@ -1045,6 +1045,18 @@ function _prepare_pushforward_prime_divisor(
 end
 
 function _pushforward_prime_divisor(
+    phi::MorphismFromRationalFunctions, D::AbsWeilDivisor
+  )
+  R = coefficient_ring(D)
+  div_dict = IdDict{AbsIdealSheaf, elem_type(R)}()
+  for I in components(D)
+    div_dict[_pushforward_prime_divisor(phi, I)] = D[I]
+  end
+  return WeilDivisor(AlgebraicCycle(domain(phi), R, div_dict; check=false); check=false)
+end
+
+
+function _pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
     domain_chart::AbsAffineScheme=_find_good_representative_chart(I),
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
