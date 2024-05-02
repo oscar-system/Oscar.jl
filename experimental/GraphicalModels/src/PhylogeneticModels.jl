@@ -50,94 +50,163 @@ phylogenetic_model(pm::GroupBasedPhylogeneticModel) =  pm.phylo_model
 
 # calling elements of the structure
 @doc raw"""
-  graph(pm::PhylogeneticModel)
+    graph(pm::PhylogeneticModel)
 
 Return the graph of a PhylogeneticModel `pm`.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> graph(pm)
+
+Directed graph with 4 nodes and the following edges:
+(4, 1)(4, 2)(4, 3)
+```
 """
 graph(pm::PhylogeneticModel) = pm.graph
 graph(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.graph
 
 @doc raw"""
-  number_states(pm::PhylogeneticModel)
+    number_states(pm::PhylogeneticModel)
 
 Return the number of states of the PhylogeneticModel `pm`.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> number_states(pm)
+
+4
+```
 """
 number_states(pm::PhylogeneticModel) = pm.n_states
 number_states(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.n_states
 
 @doc raw"""
-  transition_matrices(pm::PhylogeneticModel)
+    transition_matrices(pm::PhylogeneticModel)
 
 Returns a dictionary between the edges of the tree specifying a PhylogeneticModel `pm` and attached transition matrices.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> transition_matrices(pm)
+
+Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
+  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
+  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
+```
 """
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
 transition_matrices(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.trans_matrices
 
 @doc raw"""
-  probability_ring(pm::PhylogeneticModel)
+    probability_ring(pm::PhylogeneticModel)
 
 Returns the ring of probability coordinates of the PhylogeneticModel `pm`.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> probability_ring(pm)
+
+Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
+```
 """
 probability_ring(pm::PhylogeneticModel) = pm.prob_ring
 probability_ring(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.prob_ring
 
+@doc raw"""
+    root_distribution(pm::PhylogeneticModel)
 
+Returns the distribution of the random variable at the root of the PhylogeneticModel `pm`.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> root_distribution(pm)
+
+4-element Vector{Any}:
+ 1//4
+ 1//4
+ 1//4
+ 1//4
+```
+"""
 root_distribution(pm::PhylogeneticModel) = pm.root_distr
 root_distribution(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.root_distr
 
 
 @doc raw"""
-  fourier_param(pm::GroupBasedPhylogeneticModel)
+    fourier_parameters(pm::GroupBasedPhylogeneticModel)
 
 Return the Fourier parameters of the GroupBasedPhylogeneticModel `pm` as a vector of eigenvalues of the transition matrices.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> fourier_parameters(pm)
+
+Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
+```
 """
 fourier_parameters(pm::GroupBasedPhylogeneticModel) = pm.fourier_params
 
 @doc raw"""
-  fourier_ring(pm::GroupBasedPhylogeneticModel)
+    fourier_ring(pm::GroupBasedPhylogeneticModel)
 
   Returns the ring of Fourier coordinates of the PhylogeneticModel `pm`.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> fourier_ring(pm)
+
+Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
+```
 """
 fourier_ring(pm::GroupBasedPhylogeneticModel) = pm.fourier_ring
 
+@doc raw"""
+    group_of_model(pm::GroupBasedPhylogeneticModel)
+
+  Returns the group a `GroupBasedPhylogeneticModel` `pm` is based on.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> group_of_model(pm)
+
+4-element Vector{Vector{Int64}}:
+ [0, 0]
+ [0, 1]
+ [1, 0]
+ [1, 1]
+```
+"""
 group_of_model(pm::GroupBasedPhylogeneticModel) = pm.group
 
 
 #define group-based models
 @doc raw"""
-  cavender_farris_neyman_model(graph::Graph{Directed})
+    cavender_farris_neyman_model(graph::Graph{Directed})
 
 Creates a `PhylogeneticModel` based on `graph` whose transition matrices are of type Cavender-Farris-Neyman. 
 
 # Examples
 ```jldoctest
-julia> pm = cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges
-julia> graph(pm)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-julia> number_states(pm)
-2
-julia> probability_ring(pm)
-Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
-julia> root_distribution(pm)
-2-element Vector{Any}:
- 1//2
- 1//2
-julia> transition_matrices(pm)
-Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [a[1] b[1]; b[1] a[1]]
-  Edge(4, 2) => [a[2] b[2]; b[2] a[2]]
-  Edge(4, 3) => [a[3] b[3]; b[3] a[3]]
-julia> fourier_ring(pm)
-Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
-julia> fourier_parameters(pm)
-Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [x[1, 1], x[1, 2]]
-  Edge(4, 2) => [x[2, 1], x[2, 2]]
-  Edge(4, 3) => [x[3, 1], x[3, 2]]
-julia> group_model(pm)
-???
+julia> cavender_farris_neyman_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with distribution at the root [1//2, 1//2]. 
+The transition matrix associated to edge i is of the form 
+ [a[i] b[i];
+  b[i] a[i]], 
+and the Fourier parameters are [x[i, 1] x[i, 2]].
 ```
 """
 function cavender_farris_neyman_model(graph::Graph{Directed})
@@ -162,41 +231,22 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
 end
 
 @doc raw"""
-  jukes_cantor_model(graph::Graph{Directed})
+    jukes_cantor_model(graph::Graph{Directed})
 
 Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Jukes Cantor matrices. 
 
 # Examples
 ```jldoctest
-julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges
-julia> graph(pm)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-julia> number_states(pm)
-4
-julia> probability_ring(pm)
-Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
-julia> root_distribution(pm)
-4-element Vector{Any}:
- 1//4
- 1//4
- 1//4
- 1//4
-julia> transition_matrices(pm)
-Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
-  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
-  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
-julia> fourier_ring(pm)
-Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
-julia> fourier_parameters(pm)
-Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
-  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
-  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
-julia> group_model(pm)
-???
+julia> jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with distribution at the root [1//4, 1//4, 1//4, 1//4]. 
+The transition matrix associated to edge i is of the form 
+ [a[i] b[i] b[i] b[i];
+  b[i] a[i] b[i] b[i];
+  b[i] b[i] a[i] b[i];
+  b[i] b[i] b[i] a[i]], 
+and the Fourier parameters are [x[i, 1] x[i, 2] x[i, 2] x[i, 2]].
 ```
 """
 function jukes_cantor_model(graph::Graph{Directed})
@@ -230,35 +280,15 @@ Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kim
 
 # Examples
 ```jldoctest
-julia> pm = kimura2_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges
-julia> graph(pm)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-julia> number_states(pm)
-4
-julia> probability_ring(pm)
-Multivariate polynomial ring in 9 variables a[1], a[2], a[3], b[1], ..., c[3] over rational field
-julia> root_distribution(pm)
-4-element Vector{Any}:
- 1//4
- 1//4
- 1//4
- 1//4
-julia> transition_matrices(pm)
-Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [a[1] b[1] c[1] b[1]; b[1] a[1] b[1] c[1]; c[1] b[1] a[1] b[1]; b[1] c[1] b[1] a[1]]
-  Edge(4, 2) => [a[2] b[2] c[2] b[2]; b[2] a[2] b[2] c[2]; c[2] b[2] a[2] b[2]; b[2] c[2] b[2] a[2]]
-  Edge(4, 3) => [a[3] b[3] c[3] b[3]; b[3] a[3] b[3] c[3]; c[3] b[3] a[3] b[3]; b[3] c[3] b[3] a[3]]
-julia> fourier_ring(pm)
-Multivariate polynomial ring in 9 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 3] over rational field
-julia> fourier_parameters(pm)
-Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
-  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
-  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
-julia> group_model(pm)
-???
+julia> kimura2_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges  with distribution at the root [1//4, 1//4, 1//4, 1//4]. 
+The transition matrix associated to edge i is of the form 
+ [a[i] b[i] c[i] b[i];
+  b[i] a[i] b[i] c[i];
+  c[i] b[i] a[i] b[i];
+  b[i] c[i] b[i] a[i]], 
+and the Fourier parameters are [x[i, 1] x[i, 3] x[i, 2] x[i, 2]].
 ```
 """
 function kimura2_model(graph::Graph{Directed})
@@ -292,35 +322,16 @@ Creates a `PhylogeneticModel` based on `graph` whose transition matrices are Kim
 
 # Examples
 ```jldoctest
-julia> pm = kimura3_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges
-julia> graph(pm)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-julia> number_states(pm)
-4
-julia> probability_ring(pm)
-Multivariate polynomial ring in 12 variables a[1], a[2], a[3], b[1], ..., d[3] over rational field
-julia> root_distribution(pm)
-4-element Vector{Any}:
- 1//4
- 1//4
- 1//4
- 1//4
-julia> transition_matrices(pm)
-Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [a[1] b[1] c[1] d[1]; b[1] a[1] d[1] c[1]; c[1] d[1] a[1] b[1]; d[1] c[1] b[1] a[1]]
-  Edge(4, 2) => [a[2] b[2] c[2] d[2]; b[2] a[2] d[2] c[2]; c[2] d[2] a[2] b[2]; d[2] c[2] b[2] a[2]]
-  Edge(4, 3) => [a[3] b[3] c[3] d[3]; b[3] a[3] d[3] c[3]; c[3] d[3] a[3] b[3]; d[3] c[3] b[3] a[3]]
-julia> fourier_ring(pm)
-Multivariate polynomial ring in 12 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 4] over rational field
-julia> fourier_parameters(pm)
-Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 3], x[1, 4]]
-  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 3], x[2, 4]]
-  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 3], x[3, 4]]
-julia> group_model(pm)
-???
+julia> kimura3_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with distribution at the root [1//4, 1//4, 1//4, 1//4]. 
+The transition matrix associated to edge i is of the form 
+ [a[i] b[i] c[i] d[i];
+  b[i] a[i] d[i] c[i];
+  c[i] d[i] a[i] b[i];
+  d[i] c[i] b[i] a[i]], 
+and the Fourier parameters are [x[i, 1] x[i, 2] x[i, 3] x[i, 4]].
 ```
 """
 function kimura3_model(graph::Graph{Directed})
@@ -354,26 +365,15 @@ Creates a `PhylogeneticModel` based on `graph` whose transition matrices are sto
 
 # Examples
 ```jldoctest
-julia> pm = general_markov_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
-Phylogenetic model on a tree with 3 leaves and 3 edges
-julia> graph(pm)
-Directed graph with 4 nodes and the following edges:
-(4, 1)(4, 2)(4, 3)
-julia> number_states(pm)
-4
-julia> probability_ring(pm)
-Multivariate polynomial ring in 148 variables π[1], π[2], π[3], π[4], ..., m[9, 16] over rational field
-julia> root_distribution(pm)
-4-element Vector{Any}:
- π[1]
- π[2]
- π[3]
- π[4]
-julia> transition_matrices(pm)
-Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [m[1, 1] m[1, 2] m[1, 3] m[1, 4]; m[1, 5] m[1, 6] m[1, 7] m[1, 8]; m[1, 9] m[1, 10] m[1, 11] m[1, 12]; m[1, 13] m[1, 14] m[1, 15] m[1, 16]]
-  Edge(4, 2) => [m[2, 1] m[2, 2] m[2, 3] m[2, 4]; m[2, 5] m[2, 6] m[2, 7] m[2, 8]; m[2, 9] m[2, 10] m[2, 11] m[2, 12]; m[2, 13] m[2, 14] m[2, 15] m[2, 16]]
-  Edge(4, 3) => [m[3, 1] m[3, 2] m[3, 3] m[3, 4]; m[3, 5] m[3, 6] m[3, 7] m[3, 8]; m[3, 9] m[3, 10] m[3, 11] m[3, 12]; m[3, 13] m[3, 14] m[3, 15] m[3, 16]]
+julia> general_markov_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]))
+
+Phylogenetic model on a tree with 3 leaves and 3 edges 
+with distribution at the root [π[1], π[2], π[3], π[4]] 
+and transition matrix associated to edge i of the form 
+ [m[i, 1, 1] m[i, 1, 2] m[i, 1, 3] m[i, 1, 4];
+  m[i, 2, 1] m[i, 2, 2] m[i, 2, 3] m[i, 2, 4];
+  m[i, 3, 1] m[i, 3, 2] m[i, 3, 3] m[i, 3, 4];
+  m[i, 4, 1] m[i, 4, 2] m[i, 4, 3] m[i, 4, 4]].
 ```
 """
 function general_markov_model(graph::Graph{Directed}; number_states = 4)
@@ -386,7 +386,26 @@ function general_markov_model(graph::Graph{Directed}; number_states = 4)
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
 end
 
+@doc raw"""
+   affine_phylogenetic_model(pm::PhylogeneticModel)
 
+Moves a `PhylogeneticModel` or `GroupBasedPhylogeneticModel` from projective into affine space.
+
+# Examples
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> affine_phylogenetic_model(pm)
+
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
+with distribution at the root [1//4, 1//4, 1//4, 1//4]. 
+The transition matrix associated to edge i is of the form 
+ [-3*b[i]+1 b[i] b[i] b[i];
+  b[i] -3*b[i]+1 b[i] b[i];
+  b[i] b[i] -3*b[i]+1 b[i];
+  b[i] b[i] b[i] -3*b[i]+1], 
+and the Fourier parameters are [1 x[i, 2] x[i, 2] x[i, 2]].
+```
+"""
 function affine_phylogenetic_model(pm::PhylogeneticModel)
   gr = graph(pm)
   ns = number_states(pm)

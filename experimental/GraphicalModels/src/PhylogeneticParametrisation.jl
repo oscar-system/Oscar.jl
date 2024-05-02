@@ -50,7 +50,26 @@ Iterates through all possible states of the leaf random variables and calculates
 
 # Examples
 ```jldoctest
-julia>
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> probability_map(pm)
+
+Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 64 entries:
+  (1, 2, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (3, 1, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+  (3, 2, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (3, 2, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+  (2, 1, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
+  (1, 3, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (1, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (4, 3, 4) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+  (2, 2, 1) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+  (4, 4, 4) => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
+  (3, 3, 2) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+  (3, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (4, 3, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
+  (4, 4, 3) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+  (1, 3, 1) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+  ⋮         => ⋮
 ```
 """
 function probability_map(pm::PhylogeneticModel)
@@ -93,14 +112,33 @@ end
 
 
 @doc raw"""
-    fourier(pm::GroupBasedPhylogeneticModel)    
+    fourier_map(pm::GroupBasedPhylogeneticModel)    
 
 Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary`.
 Iterates through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Returns a dictionary of polynomials indexed by the states. Uses auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
 ```jldoctest
-julia>
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> fourier_map(pm)
+
+Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 64 entries:
+  (1, 2, 3) => 0
+  (3, 1, 3) => x[2, 1]*x[1, 2]*x[3, 2]
+  (3, 2, 4) => x[1, 2]*x[2, 2]*x[3, 2]
+  (3, 2, 3) => 0
+  (2, 1, 1) => 0
+  (1, 3, 2) => 0
+  (1, 4, 2) => 0
+  (4, 3, 4) => 0
+  (2, 2, 1) => x[3, 1]*x[1, 2]*x[2, 2]
+  (4, 4, 4) => 0
+  (3, 3, 2) => 0
+  (3, 4, 2) => x[1, 2]*x[2, 2]*x[3, 2]
+  (4, 3, 3) => 0
+  (4, 4, 3) => 0
+  (1, 3, 1) => 0
+  ⋮         => ⋮
 ```
 """
 function fourier_map(pm::GroupBasedPhylogeneticModel)
@@ -115,20 +153,29 @@ end
 
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
 
-
+#=replaced arguments
+p_equivclasses::Dict{Vector{Vector{Int64}}QQMPolyRingElem}
+f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}
+by calling functions probability_map and fourier_map on the model=#
 @doc raw"""
-    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})    
+    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
 
 Reparametrize between a model specification in terms of probability and Fourier cooordinates.
 
 # Examples
 ```jldoctest
-julia>
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> specialized_fourier_transform(pm)
+
+
 ```
 """
-function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   R = probability_ring(pm)
   ns = number_states(pm)
+
+  p_equivclasses = probability_map(pm)
+  f_equivclasses = fourier_map(pm)
 
   np = length(p_equivclasses)
   nq = length(f_equivclasses) - 1
@@ -157,18 +204,24 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivc
 end
 
 @doc raw"""
-    inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})    
+    inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
 
 Reparametrize between a model specification in terms of Fourier and probability cooordinates.
 
 # Examples
 ```jldoctest
-julia>
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> inverse_specialized_fourier_transform(pm)
+
+
 ```
 """
-function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem},f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem})
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   R = probability_ring(pm)
   ns = number_states(pm)
+
+  p_equivclasses = probability_map(pm)
+  f_equivclasses = fourier_map(pm)
 
   np = length(p_equivclasses)
   nq = length(f_equivclasses) - 1
