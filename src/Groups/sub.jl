@@ -819,8 +819,7 @@ function quo(G::GAPGroup, N::GAPGroup)
   GAP.Globals.UseSubsetRelation(GapObj(G), GapObj(N))
   cod = GAP.Globals.ImagesSource(mp)::GapObj
   S = elem_type(G)
-  S1 = _get_type(cod)
-  codom = S1(cod)
+  codom = _oscar_group(cod)
   return codom, GAPGroupHomomorphism(G, codom, mp)
 end
 
@@ -873,8 +872,7 @@ PermGroup
 function maximal_abelian_quotient(G::GAPGroup)
   map = GAP.Globals.MaximalAbelianQuotient(GapObj(G))::GapObj
   F = GAPWrap.Range(map)::GapObj
-  S1 = _get_type(F)
-  F = S1(F)
+  F = _oscar_group(F)
   return F, GAPGroupHomomorphism(G, F, map)
 end
 

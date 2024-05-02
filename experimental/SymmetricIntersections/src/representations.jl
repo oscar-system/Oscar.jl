@@ -1070,8 +1070,8 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
     fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
     E_gap = fff_gap(H_gap)::GAP.GapObj
   end
-  E = Oscar._get_type(E_gap)(E_gap)
-  H = Oscar._get_type(H_gap)(H_gap)
+  E = Oscar._oscar_group(E_gap)
+  H = Oscar._oscar_group(H_gap)
   fff = inv(GAPGroupHomomorphism(H, E, fff_gap))
   f = GAPGroupHomomorphism(H, G, f_gap)
   pschur = compose(fff, f)

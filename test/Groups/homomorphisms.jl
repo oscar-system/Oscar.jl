@@ -699,8 +699,7 @@ end
    # Create an Oscar group from a group of automorphisms in GAP.
    G = alternating_group(6)
    A = automorphism_group(G)
-   fun = Oscar._get_type(A.X)
-   B = fun(A.X)
+   B = Oscar._oscar_group(A.X)
    @test B == A
    @test B !== A
    @test B.X === A.X

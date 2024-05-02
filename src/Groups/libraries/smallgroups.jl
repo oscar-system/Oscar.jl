@@ -89,8 +89,7 @@ end
 
 function small_group(n::IntegerUnion, m::IntegerUnion)
   G = _small_group(n, m)
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function _small_group(n::IntegerUnion, m::IntegerUnion)
@@ -210,7 +209,7 @@ function all_small_groups(L...)
 
    # TODO: perhaps add an option so that ids are returned instead of groups,
    # by calling GAP.Globals.IdsOfAllSmallGroups
-   return [_get_type(x)(x) for x in K]
+   return [_oscar_group(x) for x in K]
 end
 
 #T problem:

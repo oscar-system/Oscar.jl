@@ -361,7 +361,7 @@ sub_type(T::Type) = T
 sub_type(::Type{PcGroup}) = SubPcGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
-# _oscar_group is used to create the subgroup of `G`
+# `_oscar_group(obj, G)` is used to create the subgroup of `G`
 # that is described by the GAP group `obj`;
 # default: ignore `G`
 function _oscar_group(obj::GapObj, G::GAPGroup)
@@ -559,56 +559,47 @@ parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 # X is a GAP filter such as IsPermGroup, and Y is a corresponding
 # Julia type such as `PermGroup`.
 #
- 
 const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
-# important:
-# The function returned by _get_type is not allowed to
-# create a new GAP group (pc group or fp group)
-function _get_type(G::GapObj)
+# `_oscar_group(G)` wraps the GAP group `G` into a suitable Oscar group `OG`,
+# such that `GapObj(OG)` is equal to `G`.
+# The function is not allowed to create an independent new GAP group object;
+# this would be fatal at least for pc groups and fp groups.
+function _oscar_group(G::GapObj)
   for pair in _gap_group_types
     if pair[1](G)
       if pair[2] == MatrixGroup
 #T HACK: We need more information in the case of matrix groups.
 #T (Usually we should not need to guess the Oscar side of a GAP group.)
-        return function(dom::GAP.GapObj)
-                 deg = GAP.Globals.DimensionOfMatrixGroup(dom)
-                 iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(dom))
-                 ring = codomain(iso)
-                 matgrp = matrix_group(ring, deg)
-                 matgrp.ring_iso = inv(iso)
-                 matgrp.X = dom
-                 return matgrp
-               end
+        deg = GAP.Globals.DimensionOfMatrixGroup(G)
+        iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(G))
+        ring = codomain(iso)
+        matgrp = matrix_group(ring, deg)
+        matgrp.ring_iso = inv(iso)
+        matgrp.X = G
+        return matgrp
       elseif pair[2] == AutomorphismGroup
-        return function(A::GAP.GapObj)
-                 actdom_gap = GAP.Globals.AutomorphismDomain(A)
-                 actdom_oscar = _get_type(actdom_gap)(actdom_gap)
-                 return AutomorphismGroup(A, actdom_oscar)
-               end
-      else
-        # The result will be used as a constructor for an Oscar group,
-        # in order to wrap `G`.
-        # Thus we have to switch to the appropriate subgroup type
+        actdom_gap = GAP.Globals.AutomorphismDomain(G)
+        actdom_oscar = _oscar_group(actdom_gap)
+        return AutomorphismGroup(G, actdom_oscar)
+      elseif pair[2] === PcGroup && !_is_full_pc_group(G)
+        # We have to switch to the appropriate subgroup type
         # if and only if `G` is not the full group.
-        if pair[2] === PcGroup
-          return _is_full_pc_group(G) ? pair[2] : SubPcGroup
-        end
-        return pair[2]
+        return SubPcGroup(G)
+      else
+        return pair[2](G)
       end
     end
   end
   error("Not a known type of group")
 end
 
+
 # Check the compatibility of two groups in the sense that an element in the
 # first group can be multiplied with an element in the second.
 #T To which group does the product belong?
 #T In which functions is this used?
-# The group *types* can be different,
-
-# and check their *contexts*
-# (in case of f.p. and p.c. groups and matrix groups)
+# The group *types* can be different.
 
 # The underlying GAP groups must belong to the same family.
 function _check_compatible(G1::GAPGroup, G2::GAPGroup; error::Bool = true)
@@ -627,4 +618,5 @@ function _check_compatible(G1::MatrixGroup, G2::MatrixGroup; error::Bool = true)
   return false
 end
 
-#T FinGenAbGroup: how do they behave?
+#TODO FinGenAbGroup: How do they behave?
+#     And does this question arise, since embeddings are used throughout?
