@@ -41,7 +41,7 @@
         "base_dim": 2,
         "divisors_user_must_specify": ["b"],
         "divisors_parametrized_by_user_specified_divisors": ["c0", "c1", "c2", "c3"],
-        "auxiliary_base_grading": [
+        "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
             [4, 3, 2, 1],
             [-2, -1, 0, 1]
         ],
