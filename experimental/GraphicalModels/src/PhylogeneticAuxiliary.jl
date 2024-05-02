@@ -133,9 +133,7 @@ Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
 ```
 """
 function sum_equivalent_classes(equivalent_classes::Dict{})
-  #TODO: This is wrong when there's a single element in some of the keys
-  #equivalent_classes = compute_equivalent_classes(pm)
-  return Dict(key => equivalent_classes[key]*length(key) for key in keys(equivalent_classes))
+  return Dict(key => equivalent_classes[key]*length(vcat([key]...)) for key in keys(equivalent_classes))
 end
 
 
