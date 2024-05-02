@@ -597,13 +597,16 @@ function radical(
     factor_generators::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   get_attribute!(I, :radical) do
+    is_one(I) && return I
     R = base_ring(I)
     J = ideal(R, zero(R))
     if factor_generators
       # In practice this will often lead to significant speedup due to reduction of degrees.
       # TODO:  is the following faster? radical(ab,c) = intersect(radical(a,c),radical(b,c)) 
       for g in gens(I)
+        is_zero(g) && continue
         fact = factor(g)
+        is_empty(fact) && continue
         h = one(g)
         for (x, k) in fact
           h = h*x
@@ -618,6 +621,7 @@ function radical(
     I_flat_rad = radical(I_flat)
     Irad = iso(I_flat_rad)
     set_attribute!(Irad, :is_radical => true)
+    @hassert :IdealSheaves 2 !is_one(Irad)
     Irad
   end::MPolyIdeal{T}
 end
