@@ -257,57 +257,54 @@ end
 #######################################################
 
 # Constructs literature model over concrete base
-function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool, generic::Bool)
+function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, user_spec_divs::Dict{String,ToricDivisor}, completeness_check::Bool, generic::Bool)
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
   @req haskey(model_dict["model_data"], "divisors_parametrized_by_user_specified_divisors") "No base coordinates specified for model"
   vars = vcat([string.(model_dict["model_data"]["divisors_user_must_specify"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
-  auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
+  auxiliary_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Make list of divisor classes which express the internal model sections.
-  model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 1:length(model_sections)])
+  lusd = length(user_spec_divs)
+  user_specified_divisors = vcat([anticanonical_divisor(base_space)], [user_spec_divs[vars[k]] for k in 1:lusd])
 
   # Find divisor classes of the internal model sections
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors"]]...)))
-  auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  internal_model_sections = Dict{String, ToricDivisor}()
-  for k in 1+length(model_sections):ngens(auxiliary_base_ring)
-    divisor = sum([auxiliary_base_grading[l,k - length(model_sections)] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
-    internal_model_sections[vars[k]] = divisor
-  end
+  paras = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors"]]...)))
+  paras = vcat([[Int(k) for k in paras[i:i,:]] for i in 1:nrows(paras)]...)
+  parametrized_divisors = Dict(vars[k] => sum(paras[l, k - lusd] * user_specified_divisors[l] for l in 1:nrows(paras)) for k in 1+lusd:length(vars))
 
   # Next, generate random values for all involved sections.
-  explicit_model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-  for (key, value) in model_sections
-    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective model section"
+  model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
+  for (key, value) in user_spec_divs
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective divisor class"
     if generic
-      explicit_model_sections[key] = generic_section(toric_line_bundle(value))
+      model_sections[key] = generic_section(toric_line_bundle(value))
     else
-      explicit_model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
+      model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
     end
   end
-  for (key, value) in internal_model_sections
-    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) model section"
-    explicit_model_sections[key] = generic_section(toric_line_bundle(value))
+  for (key, value) in parametrized_divisors
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) divisor class"
+    model_sections[key] = generic_section(toric_line_bundle(value))
   end
 
   # Construct the model
-  map = hom(auxiliary_base_ring, cox_ring(base_space), [explicit_model_sections[k] for k in vars])
+  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in vars])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
-    a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_base_ring)
-    a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_base_ring)
-    a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_base_ring)
-    a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_base_ring)
-    a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_base_ring)
+    a1 = eval_poly(get(model_dict["model_data"], "a1", "0"), auxiliary_ring)
+    a2 = eval_poly(get(model_dict["model_data"], "a2", "0"), auxiliary_ring)
+    a3 = eval_poly(get(model_dict["model_data"], "a3", "0"), auxiliary_ring)
+    a4 = eval_poly(get(model_dict["model_data"], "a4", "0"), auxiliary_ring)
+    a6 = eval_poly(get(model_dict["model_data"], "a6", "0"), auxiliary_ring)
 
-    # Complete explicit_model_sections
-    explicit_model_sections["a1"] = map(a1)
-    explicit_model_sections["a2"] = map(a2)
-    explicit_model_sections["a3"] = map(a3)
-    explicit_model_sections["a4"] = map(a4)
-    explicit_model_sections["a6"] = map(a6)
+    # Compute defining model sections
+    model_sections["a1"] = map(a1)
+    model_sections["a2"] = map(a2)
+    model_sections["a3"] = map(a3)
+    model_sections["a4"] = map(a4)
+    model_sections["a6"] = map(a6)
 
     # Find defining_section_parametrization
     defining_section_parametrization = Dict{String, MPolyRingElem}()
@@ -328,17 +325,18 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     end
 
     # Create the model
-    model = global_tate_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
+    model = global_tate_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
+    set_attribute!(model, :explicit_model_sections => model_sections)
 
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
     # Compute Weierstrass sections
-    f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_base_ring)
-    g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_base_ring)
+    f = eval_poly(get(model_dict["model_data"], "f", "0"), auxiliary_ring)
+    g = eval_poly(get(model_dict["model_data"], "g", "0"), auxiliary_ring)
 
-    # Complete explicit_model_sections
-    explicit_model_sections["f"] = map(f)
-    explicit_model_sections["g"] = map(g)
+    # Compute defining model sections
+    model_sections["f"] = map(f)
+    model_sections["g"] = map(g)
 
     # Find defining_section_parametrization
     defining_section_parametrization = Dict{String, MPolyRingElem}()
@@ -350,8 +348,9 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     end
 
     # Create the model
-    model = weierstrass_model(base_space, explicit_model_sections, defining_section_parametrization; completeness_check = completeness_check)
-  
+    model = weierstrass_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
+    set_attribute!(model, :explicit_model_sections => model_sections)
+
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 
     # Extract fiber ambient space
@@ -363,15 +362,15 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Extract the divisor classes of the first two classes of the fiber...
     D1 = [a for a in model_dict["model_data"]["D1"]]
-    D1_dc = toric_divisor_class(sum([D1[l] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)]))
+    D1_dc = toric_divisor_class(sum([D1[l] * user_specified_divisors[l] for l in 1:length(D1)]))
     D2 = [a for a in model_dict["model_data"]["D2"]]
-    D2_dc = toric_divisor_class(sum([D2[l] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)]))
+    D2_dc = toric_divisor_class(sum([D2[l] * user_specified_divisors[l] for l in 1:length(D2)]))
 
     # Create the model
     model = hypersurface_model(base_space, fas, D1_dc, D2_dc; completeness_check = completeness_check)
 
     # Remember explicit model sections
-    model.explicit_model_sections = explicit_model_sections
+    model.explicit_model_sections = model_sections
 
     # Remember hypersurface_parametrization
     auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars, fiber_amb_coordinates), cached=false)
@@ -379,19 +378,16 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
 
     # Set explicit hypersurface equation
-    images1 = [eval_poly(string(explicit_model_sections[k]), cox_ring(ambient_space(model))) for k in vars]
+    images1 = [eval_poly(string(model_sections[k]), cox_ring(ambient_space(model))) for k in vars]
     images2 = [eval_poly(string(k), cox_ring(ambient_space(model))) for k in fiber_amb_coordinates]
-    map = hom(parent(parametrized_hypersurface_equation), cox_ring(ambient_space(model)), vcat(images1, images2))
+    map = hom(auxiliary_ambient_ring, cox_ring(ambient_space(model)), vcat(images1, images2))
     model.hypersurface_equation = map(parametrized_hypersurface_equation)
 
   else
-
     @req false "Model is not a Tate, Weierstrass or hypersurface model"
-
   end
 
   # Return the model
-  set_attribute!(model, :explicit_model_sections => explicit_model_sections)
   return model
 end
 
