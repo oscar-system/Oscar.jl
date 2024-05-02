@@ -167,18 +167,24 @@ Functions that compute subgroups of `G` return groups of type `SubPcGroup`.
   X::GapObj
 
   function PcGroup(G::GapObj)
-    _is_full_pc_group(G) && return new(G)
-    # Switch to a full pcp or pc group.
-    if GAP.Globals.IsPcpGroup(G)::Bool
-      return new(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
-    elseif GAPWrap.IsPcGroup(G)::Bool
-      return new(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
-    end
-    throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
+    # The constructor is not allowed to replace the given GAP group.
+    # (The function `pc_group` may do this.)
+    @assert _is_full_pc_group(G)
+    return new(G)
   end
 end
 
-pc_group(G::GapObj) = PcGroup(G)
+function pc_group(G::GapObj)
+  _is_full_pc_group(G) && return PcGroup(G)
+
+  # Switch to a full pcp or pc group.
+  if GAP.Globals.IsPcpGroup(G)::Bool
+    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
+  elseif GAPWrap.IsPcGroup(G)
+    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
+  end
+  throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
+end
 
 # Return `true` if the generators of `G` fit to those of its pc presentation.
 function _is_full_pc_group(G::GapObj)
