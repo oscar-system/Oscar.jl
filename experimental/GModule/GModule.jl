@@ -543,7 +543,7 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
 end
 
 """
-Returns Z[G] and a function f that, when applied to a G-module M will return
+Return Z[G] and a function f that, when applied to a G-module M will return
 a map representing the action of Z[G] on M:
 
 f(C) yields the extension of g -> action(C, g)

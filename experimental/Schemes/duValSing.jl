@@ -219,7 +219,7 @@ end
 @doc raw"""
     _check_du_val_at_point(IX:Ideal,Ipt::Ideal)
 
-Returns a tuple `T` with the following data:
+Return a tuple `T` with the following data:
 - `T[1]::Bool` returns whether `V(IX)` has at most a du Val singularity at `V(Ipt)`
 - `T[2]::Tuple` Type of du Val singularity at `V(Ipt)`
 

@@ -223,7 +223,7 @@ end
 @doc raw"""
     realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
-Returns a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such 
+Return a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such
 that the restriction of `Phi` to `U'` is `f`. Note that `U'` need not be maximal 
 with this property!
 """
