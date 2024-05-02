@@ -70,9 +70,7 @@ modulus(Q::MPolyQuoRing) = Q.I
 oscar_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return oscar_generators(Q.I.gb[Q.ordering])
 singular_quotient_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && return Q.SQRGB
 singular_origin_groebner_basis(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.I.gb[Q.ordering].gensBiPolyArray.S
-singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR
-singular_poly_ring(Q::MPolyQuoRing; keep_ordering::Bool = false) = singular_quotient_ring(Q)
-singular_poly_ring(Q::MPolyQuoRing, ordering::MonomialOrdering) = singular_quotient_ring(Q)
+singular_quotient_ring(Q::MPolyQuoRing) = _groebner_basis(Q) && Q.SQR   # FIXME: get rid of this eventually???
 singular_origin_ring(Q::MPolyQuoRing) = base_ring(singular_origin_groebner_basis(Q))
 oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
@@ -244,7 +242,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
   gb::IdealGens{T}
 
   function MPolyQuoIdeal(Ox::MPolyQuoRing{T}, si::Singular.sideal) where T <: MPolyRingElem
-   @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"
+   @req singular_quotient_ring(Ox) == base_ring(si) "base rings must match"  # FIXME: replace this constructor???
    r = new{T}(IdealGens(Ox, si), nothing)
    R = base_ring(Ox)
    r.gens.gensBiPolyArray.O = [R(g) for g in gens(r.gens.gensBiPolyArray.S)]

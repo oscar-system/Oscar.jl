@@ -434,9 +434,10 @@ julia> A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))
 function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = true) where T
   n = nvars(r)
   nrows(rel) == n && ncols(rel) == n || error("oops")
-  scr = singular_coeff_ring(coefficient_ring(r))
+  iso = iso_oscar_singular_coeff_ring(coefficient_ring(r)) # FIXME: store this somewhere?
+  scr = codomain(iso)
   S = elem_type(scr)
-  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord), cached = false)
+  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord), cached = false)  # FIXME: use iso_oscar_singular_poly_ring(R) ??
   sr::Singular.PolyRing{S}
   s, gs, srel = _g_algebra_internal(sr, rel)
   if check && !is_zero(Singular.LibNctools.ndcond(s))

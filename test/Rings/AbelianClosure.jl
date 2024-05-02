@@ -430,9 +430,10 @@
 
   @testset "Singular ring" begin
     K, z = abelian_closure(QQ)
-    L = Oscar.singular_coeff_ring(K)
+    iso = Oscar.iso_oscar_singular_coeff_ring(K)
+    L = codomain(iso)
     a = z(4)
-    @test K(L(a)) == a
+    @test preimage(iso, iso(a)) == a
   end
 
   K, z = abelian_closure(QQ)

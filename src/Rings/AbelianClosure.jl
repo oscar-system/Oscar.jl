@@ -397,16 +397,6 @@ Oscar.@enable_all_show_via_expressify QQAbFieldElem
 
 ################################################################################
 #
-#  Singular ring
-#
-################################################################################
-
-function Oscar.singular_coeff_ring(F::QQAbField)
-  return Singular.CoefficientRing(F)
-end
-
-################################################################################
-#
 #  Coercion between cyclotomic fields
 #
 ################################################################################

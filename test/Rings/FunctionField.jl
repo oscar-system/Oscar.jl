@@ -21,7 +21,6 @@
       F2, (a2,) = Singular.FunctionField(kk, vcat(symb, ["b"])) # one more gen
       F3, (a3,) = Singular.FunctionField(Singular.Fp(5), symb) # different char
 
-      # @test singular_coeff_ring(F) === F1
       @test F(a1) == a
       @test F1(a) == a1
 

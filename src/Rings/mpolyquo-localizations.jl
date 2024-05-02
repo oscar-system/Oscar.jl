@@ -1459,7 +1459,8 @@ function is_isomorphism(
   C, j1, B_vars = _add_variables_first(A, symbols(B))
   j2 = hom(B, C, B_vars, check=false)
   G = ideal(C, [j1(gen(A, i)) - j2(imagesB[i]) for i in 1:ngens(A)]) + ideal(C, j2.(gens(J))) + ideal(C, j1.(gens(I)))
-  singC, _ = Singular.polynomial_ring(Oscar.singular_coeff_ring(base_ring(C)), 
+  iso = iso_oscar_singular_coeff_ring(base_ring(C)) # FIXME: store this somewhere?
+  singC, _ = Singular.polynomial_ring(codomain(iso), 
             symbols(C),
             ordering=Singular.ordering_dp(1)
                     *Singular.ordering_dp(nvars(B)-1)

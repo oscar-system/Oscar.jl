@@ -177,9 +177,10 @@
   @testset "Singular ring for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     p = characteristic(F1)
     K = algebraic_closure(F1)
-    L = Oscar.singular_coeff_ring(K)
+    iso = Oscar.iso_oscar_singular_coeff_ring(K)
+    L = codomain(iso)
     a = K(gen(F1))
-    @test K(L(a)) == a
+    @test preimage(iso, iso(a)) == a
   end
 
   R = algebraic_closure(GF(3,1))
