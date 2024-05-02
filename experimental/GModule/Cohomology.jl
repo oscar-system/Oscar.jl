@@ -353,7 +353,9 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
 #  @assert isdefined(C.M, :hnf)
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
 #  @assert isdefined(indC, :hnf)
-#  AbstractAlgebra.set_attribute!(indC, :induce => (h, g))
+  if hasfield(indC, :__attrs)
+    set_attribute!(indC, :induce => (h, g))
+  end
   ac = []
   iac = []
   for s = gens(G)
@@ -1169,7 +1171,6 @@ function H_two(C::GModule; force_rws::Bool = false, redo::Bool = false, lazy::Bo
     use_pc = true
   else
     @vprint :GroupCohomology 2 "using generic rws ...\n"
-    FF, mFF, R = confluent_fp_group_pc(G) #mFF: FF -> G
     FF, mFF, R = confluent_fp_group(G) #mFF: FF -> G
     use_pc = false
   end
@@ -2361,13 +2362,14 @@ function all_extensions(C::GModule)
   if gcd(order(C.M), order(C.G)) == 1
     return [split_extension(C)]
   end
-  H2, mH2, _ = cohomology_group(C, 2)
+  H2, mH2, _ = H_two(C, lazy = true)
   if order(H2) == 1
     return [extension(mH2(zero(H2)))]
   end
   T, mT = compatible_pairs(C)
   G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
   O = orbits(G)
+  @show length(O)
   all_G = []
   for o = O
     push!(all_G, extension(mH2(representative(o)))[1])
