@@ -360,14 +360,14 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     fiber_amb_coordinates = string.(model_dict["model_data"]["fiber_ambient_space_coordinates"])
     set_coordinate_names(fas, fiber_amb_coordinates)
 
-    # Extract the divisor classes of the first two classes of the fiber...
-    D1 = [a for a in model_dict["model_data"]["D1"]]
-    D1_dc = toric_divisor_class(sum([D1[l] * user_specified_divisors[l] for l in 1:length(D1)]))
-    D2 = [a for a in model_dict["model_data"]["D2"]]
-    D2_dc = toric_divisor_class(sum([D2[l] * user_specified_divisors[l] for l in 1:length(D2)]))
+    # Extract the base divisor classes of the fiber coordinates
+    fiber_twist_matrix = transpose(matrix(ZZ, (hcat(model_dict["model_data"]["fiber_twist_matrix"]...))))
+    @req ncols(fiber_twist_matrix) == length(fiber_amb_coordinates) "Number of fiber coordinate names does not match number of provided fiber gradings"
+    @req ncols(fiber_twist_matrix) == n_rays(fas) "Number of rays does not match number of provided fiber gradings"
+    fiber_twist_divisor_classes = [toric_divisor_class(sum([fiber_twist_matrix[l, k] * user_specified_divisors[l] for l in 1:nrows(fiber_twist_matrix)])) for k in 1:ncols(fiber_twist_matrix)]
 
     # Create the model
-    model = hypersurface_model(base_space, fas, D1_dc, D2_dc; completeness_check = completeness_check)
+    model = hypersurface_model(base_space, fas, fiber_twist_divisor_classes; completeness_check = completeness_check)
 
     # Remember explicit model sections
     model.explicit_model_sections = model_sections
@@ -442,16 +442,17 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
     fiber_amb_coordinates = string.(model_dict["model_data"]["fiber_ambient_space_coordinates"])
     set_coordinate_names(fas, fiber_amb_coordinates)
 
-    # Extract the divisor classes of the first two classes of the fiber...
-    D1 = [a for a in model_dict["model_data"]["D1"]]
-    D2 = [a for a in model_dict["model_data"]["D2"]]
+    # Extract the base divisor classes of the fiber coordinates
+    fiber_twist_matrix = transpose(matrix(ZZ, (hcat(model_dict["model_data"]["fiber_twist_matrix"]...))))
+    @req ncols(fiber_twist_matrix) == length(fiber_amb_coordinates) "Number of fiber coordinate names does not match number of provided fiber gradings"
+    @req ncols(fiber_twist_matrix) == n_rays(fas) "Number of rays does not match number of provided fiber gradings"
 
     # Extract the hypersurface equation
     ambient_ring, _ = polynomial_ring(QQ, vcat(auxiliary_base_vars, fiber_amb_coordinates), cached = false)
     p = eval_poly(model_dict["model_data"]["hypersurface_equation"], ambient_ring)
     
     # Create the model
-    model = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, base_dim, fas, D1, D2, p)
+    model = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, base_dim, fas, fiber_twist_matrix, p)
 
   else
 

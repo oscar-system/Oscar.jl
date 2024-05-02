@@ -57,8 +57,13 @@
         "fiber_ambient_space_max_cones": [[1, 2], [2, 3], [3, 1]],
         "fiber_ambient_space_coordinates": ["u", "v", "w"],
         "fiber_ambient_space_name": "P2",
-        "D1": [3, 2, 1, 1, 1],
-        "D2": [1, 1, 0, 0, 0],
+        "fiber_twist_matrix": [
+            [3, 1, 0],
+            [2, 1, 0],
+            [1, 0, 0],
+            [1, 0, 0],
+            [1, 0, 0]
+        ],
         "hypersurface_equation": "u*(s1*u^2 + s2*u*v + s3*v^2 + s5*u*w + s6*v*w + s8*w^2) + (a1*v + b1*w) * (a2*v + b2*w) * (a3*v + b3*w)",
         "zero_section": ["0", "-b1", "a1"],
         "generating_sections": [
