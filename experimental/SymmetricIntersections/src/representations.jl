@@ -630,7 +630,7 @@ function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T
   E = group(parent(chi))::T
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
-  Z = center(chi)[1]::T
+  Z = center(chi)[1]
   Q = kernel(p)[1]
   return Q.X == Z.X
 end
