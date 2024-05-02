@@ -222,6 +222,12 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
   return lp
 end
 
+#TODO: redo, sensible strategy:
+# - do not search for primes always, only if after some extension the process
+#   stopped
+# - possibly extend the reps by inflation to see if we actually need new ones
+# - if we do this, then don't compute/ use reps that are the result of
+#   inflation
 """
 Given
     mQ: G ->> Q
@@ -418,6 +424,9 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
           #TODO: can we do this non-recursively? Use the other solutions
           #      and a suitable direct product of modules?
           #      Plesken hints at YES
+          #  - extend the module to a direct sum of it
+          #  - build a chain from the different (classes of) solutions
+          #  - use this
           CC = gmodule(GG, [action(C, GGpro(x)) for x = gens(GG)])
           allH = _process(trivial_chain(CC, 2); is_trivial, limit = 1)
           if length(allH) == 0
