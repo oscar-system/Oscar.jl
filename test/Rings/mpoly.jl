@@ -555,7 +555,15 @@ end
 @testset "default ordering" begin
   R, _ = QQ["x", "y", "z"]
   S, _ = grade(R, [2, 1, 2])
-  # test type stability
-  @inferred default_ordering(R)
-  @inferred default_ordering(S)
+  for T in [R, S]
+    x, y, z = gens(T)
+    f = x + y^2
+    I = ideal(T, [y^2 - z, x - z])
+    old_default = @inferred default_ordering(T)
+    f = with_ordering(T, invlex(T)) do
+          normal_form(f, I)
+        end
+    @test f == normal_form(f, I, ordering = invlex(T))
+    @test default_ordering(T) == old_default
+  end
 end
