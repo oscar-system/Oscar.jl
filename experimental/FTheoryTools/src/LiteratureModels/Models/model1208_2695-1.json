@@ -40,7 +40,7 @@
     "model_data": {
         "base_dim": 2,
         "divisors_user_must_specify": ["b"],
-        "base_coordinates": ["c0", "c1", "c2", "c3"],
+        "divisors_parametrized_by_user_specified_divisors": ["c0", "c1", "c2", "c3"],
         "auxiliary_base_grading": [
             [4, 3, 2, 1],
             [-2, -1, 0, 1]
