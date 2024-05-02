@@ -563,10 +563,6 @@ function Oscar.singular_coeff_ring(F::AbstractAlgebra.Ring)
   return Singular.CoefficientRing(F)
 end
 
-#??? needs to coerce into b? assert parent?
-function (b::AbstractAlgebra.Ring)(a::Singular.n_unknown)
-  Singular.libSingular.julia(Singular.libSingular.cast_number_to_void(a.ptr))::elem_type(b)
-end
 
 ##############################################################################
 #
