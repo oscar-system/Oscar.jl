@@ -1970,3 +1970,13 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
   return !is_one(Q(U)) && P(U) == Q(U)
 end
 
+function _pullback_along_base_change(f::AbsCoveredSchemeMorphism, D::AbsWeilDivisor)
+  scheme(D) === codomain(f) || error("divisor must live on the codomain of the map")
+  comp_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
+  for I in components(D)
+    comp_dict[pullback(f, I)] = D[I]
+  end
+  return WeilDivisor(AlgebraicCycle(domain(f), coefficient_ring(D), comp_dict; check=false); check=false)
+end
+
+
