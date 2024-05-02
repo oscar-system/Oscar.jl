@@ -1989,4 +1989,41 @@ k = radical_extension(2, base_ring(S)(7))[1]
 k, mk = absolute_simple_field(k)
 S = extension_of_scalars(S, hom(base_ring(S), k, preimage(mk, codomain(mk)((base_field(codomain(mk))[1])))))
 _minimize(S)
+
+#Magma example: dives group with Schur index 6
+F = free_group([:x, :y])
+x = F[1]; y = F[2]
+G1, _ = quo(F, [x^36, y^7, y^x * y^-3])
+f = Oscar.RepPc.solvable_quotient(G1)
+@time ff = Oscar.RepPc.sq(f, [2, 3, 7])
+x = ff(G1[1])
+y = ff(G1[2])
+C = sub(codomain(ff), [x^6, y])
+z = character_table(C[1])
+[x for x = character_table(C[1]) if is_faithful(x)][1]
+l = ans
+gmodule(l)
+induce(ans, C[2])
+z = ans[1]
+zz = gmodule(CyclotomicField, z)
+
+#Brueckner, Heinecken:
+F = free_group([:a, :b, :c])
+a = F[1]; b = F[2]; c = F[3]
+G, m = quo(F, [comm(a, comm(a, b))*inv(c), comm(b, comm(b, c))*inv(a), comm(c, comm(c, a))*inv(b)])
+G = sub(G, map(m, [b*inv(a), c*inv(a), a^2*b*inv(c)*inv(a), a^2*c, a*b* a]))[1]
+G = fp_group(G)
+f = Oscar.RepPc.solvable_quotient(G)
+#primes 2, 3, 5
+
+f = Oscar.RepPc.sq(f, [3])
+l2 = [f]
+for i=1:10 push!(l2, Oscar.RepPc.brueckner(l2[end], primes = [2], limit = 1)[1]); end
+rr2 = Oscar.RepPc.reps(GF(3, 4), codomain(l2[5]));
+z = rr2[end]
+all_extensions(z)
+
+
+
+
 =#
