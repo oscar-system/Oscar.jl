@@ -46,7 +46,7 @@
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["s7", "s2"],
+        "divisors_user_must_specify": ["s7", "s2"],
         "base_coordinates": ["s1", "s3", "s5", "s6", "s8"],
         "auxiliary_base_grading": [
             [1, -1,  2, 1,  3],
