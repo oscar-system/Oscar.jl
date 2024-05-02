@@ -175,7 +175,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     for (key, value) in model_sections
       @req value isa ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
     end
-    
+
     # Are all model sections specified?
     @req all(k->haskey(model_sections, k), model_dict["model_data"]["model_sections"]) "Not all model sections are specified"
     
@@ -260,10 +260,9 @@ end
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, model_sections::Dict{String,ToricDivisor}, completeness_check::Bool, generic::Bool)
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
-  @req ((model_dict["model_descriptors"]["type"] == "tate") || (model_dict["model_descriptors"]["type"] == "weierstrass") || (model_dict["model_descriptors"]["type"] == "hypersurface")) "Model is not a Tate or Weierstrass model"
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
-  vars = [string(g) for g in gens(auxiliary_base_ring)]
+  vars = vcat([string.(model_dict["model_data"]["model_sections"]), string.(model_dict["model_data"]["base_coordinates"])]...)
+  auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Make list of divisor classes which express the internal model sections.
   model_sections_divisor_list = vcat([anticanonical_divisor(base_space)], [model_sections[vars[k]] for k in 1:length(model_sections)])
@@ -273,7 +272,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   internal_model_sections = Dict{String, ToricDivisor}()
   for k in 1+length(model_sections):ngens(auxiliary_base_ring)
-    divisor = sum([auxiliary_base_grading[l,k] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
+    divisor = sum([auxiliary_base_grading[l,k - length(model_sections)] * model_sections_divisor_list[l] for l in 1:nrows(auxiliary_base_grading)])
     internal_model_sections[vars[k]] = divisor
   end
 
@@ -404,12 +403,18 @@ end
 
 # Constructs literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
+  # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "base_coordinates") "No base coordinates specified for model"
-  auxiliary_base_ring, _ = polynomial_ring(QQ, string.(model_dict["model_data"]["base_coordinates"]), cached=false)
+  vars = vcat([string.(model_dict["model_data"]["model_sections"]), string.(model_dict["model_data"]["base_coordinates"])]...)
+  auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
+  # Construct the grading of the base ring
   @req haskey(model_dict["model_data"], "auxiliary_base_grading") "Database does not specify auxiliary_base_grading, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["auxiliary_base_grading"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
+  n_model_sections = length(model_dict["model_data"]["model_sections"])
+  additional_columns = hcat([[i == k+1 ? 1 : 0 for i in 1:nrows(auxiliary_base_grading)] for k in 1:n_model_sections]...)
+  auxiliary_base_grading = hcat([additional_columns, auxiliary_base_grading]...)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
 

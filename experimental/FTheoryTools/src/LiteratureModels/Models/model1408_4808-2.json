@@ -47,11 +47,11 @@
     "model_data": {
         "base_dim": 3,
         "model_sections": ["b7","b9"],
-        "base_coordinates": ["b7","b9","b1","b2","b3","b5","b6","b8","b10"],
+        "base_coordinates": ["b1","b2","b3","b5","b6","b8","b10"],
         "auxiliary_base_grading": [
-            [0, 0,  3,  2,  1,  2, 1,  1, -1],
-            [1, 0, -1,  0,  1, -1, 0, -1,  1],
-            [0, 1, -1, -1, -1,  0, 0,  1,  1]
+            [3,  2,  1,  2, 1,  1, -1],
+            [-1,  0,  1, -1, 0, -1,  1],
+            [-1, -1, -1,  0, 0,  1,  1]
         ],
         "fiber_ambient_space_rays": [[1, 0], [0, -1], [-1, 0], [0, 1]],
         "fiber_ambient_space_max_cones": [[1, 2], [2, 3], [3, 4], [1, 4]],
