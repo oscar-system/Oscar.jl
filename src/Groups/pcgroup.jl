@@ -260,7 +260,7 @@ end
 # Create a new GAP collector using `GAP.Globals.SingleCollector`.
 function _GAP_single_collector(c::GAP_Collector)
   G = free_group(c.ngens; eltype = :syllable)
-  cGAP = GAP.Globals.SingleCollector(G.X, GapObj(c.relorders, recursive = true))::GapObj
+  cGAP = GAP.Globals.SingleCollector(GapObj(G), GapObj(c.relorders, recursive = true))::GapObj
   for i in 1:c.ngens
     GAP.Globals.SetPower(cGAP, i, G(c.powers[i]).X)
   end

@@ -75,6 +75,7 @@ export GL
 export GO
 export GSet
 export GU
+export GapObj
 export Gluing
 export Graph
 export GroupConjClass

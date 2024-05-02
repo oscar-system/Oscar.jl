@@ -304,6 +304,13 @@ function _ring_iso(f::SesquilinearForm)
   return f.ring_iso
 end
 
+function GAP.julia_to_gap(f::SesquilinearForm)
+  if !isdefined(f, :X)
+    assign_from_description(f)
+  end
+  return f.X
+end
+
 function Base.getproperty(f::SesquilinearForm, sym::Symbol)
 
    if isdefined(f,sym) return getfield(f,sym) end
@@ -389,7 +396,7 @@ The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
 """
 function radical(f::SesquilinearForm{T}) where T
    V = vector_space(base_ring(f), nrows(gram_matrix(f)) )
-   R = GAP.Globals.RadicalOfForm(f.X)
+   R = GAP.Globals.RadicalOfForm(GapObj(f))
    GAPWrap.Dimension(R) == 0 && return sub(V, [])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]
    for l in GAP.Globals.GeneratorsOfVectorSpace(R)
@@ -405,7 +412,7 @@ end
 Return the Witt index of the form induced by `f` on `V/Rad(f)`.
 The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
 """
-witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
+witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(GapObj(f))
 
 """
     is_degenerate(f::SesquilinearForm{T})
@@ -425,6 +432,6 @@ For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero r
 """
 function is_singular(f::SesquilinearForm{T}) where T
    @req f.descr == :quadratic "The form is not quadratic"
-   return GAPWrap.IsSingularForm(f.X)
+   return GAPWrap.IsSingularForm(GapObj(f))
 end
 

@@ -219,6 +219,27 @@ function _ring_iso(G::MatrixGroup{T}) where T
   return G.ring_iso
 end
 
+function GAP.julia_to_gap(G::MatrixGroup)
+  if !isdefined(G, :X)
+    if isdefined(G, :descr)
+      assign_from_description(G)
+    elseif isdefined(G, :gens)
+      V = GapObj(gens(G); recursive=true)
+      G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
+    else
+      error("Cannot determine underlying GAP object")
+    end
+  end
+  return G.X
+end
+
+function GAP.julia_to_gap(x::MatrixGroupElem)
+  if !isdefined(x, :X)
+    x.X = map_entries(_ring_iso(x.parent), x.elm)
+  end
+  return x.X
+end
+
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
 function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
@@ -252,7 +273,7 @@ end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
   GAPWrap.IsDoneIterator(state) && return nothing
@@ -276,7 +297,7 @@ function ==(G::MatrixGroup,H::MatrixGroup)
    if isdefined(G, :gens) && isdefined(H, :gens)
       gens(G)==gens(H) && return true
    end
-   return G.X==H.X
+   return GapObj(G)==GapObj(H)
 end
 
 
@@ -299,13 +320,13 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    elseif x_gap === nothing
       x_gap = map_entries(_ring_iso(G), x)
    end
-   return (x_gap in G.X), x_gap
+   return (x_gap in GapObj(G)), x_gap
 end
 
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
-   isdefined(x,:X) && return lies_in(matrix(x),G,x.X)[1]
+   isdefined(x,:X) && return lies_in(matrix(x),G,GapObj(x))[1]
    _is_true, x_gap = lies_in(matrix(x),G,nothing)
    if x_gap !== nothing
       x.X = x_gap
@@ -334,12 +355,12 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    end
    if isdefined(x,:X)
       if isdefined(x,:elm)
-         _is_true = lies_in(matrix(x),G,x.X)[1]
+         _is_true = lies_in(matrix(x),G,GapObj(x))[1]
          @req _is_true "Element not in the group"
-         return MatrixGroupElem(G,matrix(x),x.X)
+         return MatrixGroupElem(G,matrix(x),GapObj(x))
       else
-         @req x.X in G.X "Element not in the group"
-         return MatrixGroupElem(G,x.X)
+         @req GapObj(x) in GapObj(G) "Element not in the group"
+         return MatrixGroupElem(G,GapObj(x))
       end
    else
       _is_true, x_gap = lies_in(matrix(x),G,nothing)
@@ -386,7 +407,7 @@ function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    # if the underlying GAP matrices are both defined, but not both Oscar matrices,
    # then use the GAP matrices.
    # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
-   # by the Base.getproperty(::MatrixGroupElem, ::Symbol) method .
+   # by the matrix(::MatrixGroupElem) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return T(G, x.X*y.X)
    else

@@ -167,13 +167,6 @@ function group(tbl::GAPGroupCharacterTable)
   return tbl.group
 end
 
-# backwards compatibility:
-# return `group(tbl)` when one accesses `tbl.GAPGroup`
-function Base.getproperty(tbl::GAPGroupCharacterTable, sym::Symbol)
-   sym === :GAPGroup && return group(tbl)
-   return getfield(tbl, sym)
-end
-
 
 # If the character table stores an Oscar group `G` then
 # an isomorphism from `G` to a GAP group is stored in the field `isomorphism`.
@@ -186,9 +179,8 @@ end
 #   an isomorphism to a `PcGroup` .
 #
 function isomorphism_to_GAP_group(G::GAPGroup)
-    f = function(x) return x.X; end
     finv = function(x::GAP.Obj) return group_element(G, x); end
-    return MapFromFunc(G, G.X, f, finv)
+    return MapFromFunc(G, G.X, GapObj, finv)
 end
 
 function isomorphism_to_GAP_group(G::FinGenAbGroup)

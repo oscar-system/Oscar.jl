@@ -10,7 +10,7 @@ end
 
 function _as_subgroup(G::GAPGroup, H::GapObj)
   H1 = _as_subgroup_bare(G, H)
-  return H1, hom(H1, G, x -> group_element(G, x.X), x -> group_element(H1, x.X); is_known_to_be_bijective = false)
+  return H1, hom(H1, G, x -> group_element(G, GapObj(x)), x -> group_element(H1, GapObj(x)); is_known_to_be_bijective = false)
 end
 
 """
@@ -38,8 +38,8 @@ function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
-  elems_in_GAP = GapObj([x.X for x in gens])
-  H = GAP.Globals.SubgroupNC(G.X, elems_in_GAP)::GapObj
+  elems_in_GAP = GapObj(gens; recursive=true)
+  H = GAP.Globals.SubgroupNC(GapObj(G), elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
 
@@ -85,8 +85,8 @@ function is_subgroup(H::T, G::T) where T <: GAPGroup
    else
       # We do not call `_as_subgroup` because we want to store `H`.
       return (true, hom(H, G,
-                        x -> group_element(G, x.X),
-                        x -> group_element(H, x.X);
+                        x -> group_element(G, GapObj(x)),
+                        x -> group_element(H, GapObj(x));
                         is_known_to_be_bijective = false))
    end
 end
@@ -115,7 +115,7 @@ julia> trivial_subgroup(symmetric_group(5))
 (Permutation group of degree 5 and order 1, Hom: permutation group -> Sym(5))
 ```
 """
-@gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(G.X)::GapObj)
+@gapattribute trivial_subgroup(G::GAPGroup) = _as_subgroup(G, GAP.Globals.TrivialSubgroup(GapObj(G))::GapObj)
 
 
 ###############################################################################
@@ -140,7 +140,7 @@ julia> index(G,H)
 index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup} = index(ZZRingElem, G, H)
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GAPGroup
-   i = GAP.Globals.Index(G.X, H.X)::GapInt
+   i = GAP.Globals.Index(GapObj(G), GapObj(H))::GapInt
    @req (i !== GAP.Globals.infinity) "index() not supported for subgroup of infinite index, use is_finite()"
    return I(i)
 end
@@ -185,7 +185,7 @@ julia> normal_subgroups(quaternion_group(8))
 ```
 """
 @gapattribute normal_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.NormalSubgroups(G.X))
+  _as_subgroups(G, GAP.Globals.NormalSubgroups(GapObj(G)))
 
 """
     maximal_normal_subgroups(G::Group)
@@ -208,7 +208,7 @@ julia> maximal_normal_subgroups(quaternion_group(8))
 ```
 """
 @gapattribute maximal_normal_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(G.X))
+  _as_subgroups(G, GAP.Globals.MaximalNormalSubgroups(GapObj(G)))
 
 """
     minimal_normal_subgroups(G::Group)
@@ -229,7 +229,7 @@ julia> minimal_normal_subgroups(quaternion_group(8))
 ```
 """
 @gapattribute minimal_normal_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(G.X))
+  _as_subgroups(G, GAP.Globals.MinimalNormalSubgroups(GapObj(G)))
 
 """
     characteristic_subgroups(G::Group)
@@ -253,7 +253,7 @@ julia> characteristic_subgroups(quaternion_group(8))
 ```
 """
 @gapattribute characteristic_subgroups(G::GAPGroup) =
-  _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(G.X))
+  _as_subgroups(G, GAP.Globals.CharacteristicSubgroups(GapObj(G)))
 
 @doc raw"""
     center(G::Group)
@@ -271,7 +271,7 @@ julia> center(quaternion_group(8))
 (Pc group of order 2, Hom: pc group -> pc group)
 ```
 """
-@gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(G.X))
+@gapattribute center(G::GAPGroup) = _as_subgroup(G, GAP.Globals.Centre(GapObj(G)))
 
 @doc raw"""
     centralizer(G::Group, H::Group)
@@ -281,7 +281,7 @@ the subgroup of all $g$ in `G` such that $g h$ equals $h g$ for every $h$
 in `H`, together with its embedding morphism into `G`.
 """
 function centralizer(G::T, H::T) where T <: GAPGroup
-  return _as_subgroup(G, GAP.Globals.Centralizer(G.X, H.X))
+  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(H)))
 end
 
 @doc raw"""
@@ -292,7 +292,7 @@ the subgroup of all $g$ in `G` such that $g$ `x` equals `x` $g$,
 together with its embedding morphism into `G`.
 """
 function centralizer(G::GAPGroup, x::GAPGroupElem)
-  return _as_subgroup(G, GAP.Globals.Centralizer(G.X, x.X))
+  return _as_subgroup(G, GAP.Globals.Centralizer(GapObj(G), GapObj(x)))
 end
 
 ################################################################################
@@ -327,7 +327,7 @@ julia> chief_series(quaternion_group(8))
  Pc group of order 1
 ```
 """
-@gapattribute chief_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.ChiefSeries(G.X))
+@gapattribute chief_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.ChiefSeries(GapObj(G)))
 
 @doc raw"""
     composition_series(G::GAPGroup)
@@ -356,7 +356,7 @@ julia> composition_series(quaternion_group(8))
  Pc group of order 1
 ```
 """
-@gapattribute composition_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.CompositionSeries(G.X))
+@gapattribute composition_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.CompositionSeries(GapObj(G)))
 
 @doc raw"""
     jennings_series(G::GAPGroup)
@@ -383,7 +383,7 @@ ERROR: ArgumentError: group must be a p-group
 """
 @gapattribute function jennings_series(G::GAPGroup)
   @req is_pgroup(G) "group must be a p-group"
-  return _as_subgroups(G, GAP.Globals.JenningsSeries(G.X))
+  return _as_subgroups(G, GAP.Globals.JenningsSeries(GapObj(G)))
 end
 
 @doc raw"""
@@ -411,7 +411,7 @@ ERROR: ArgumentError: p must be a prime
 """
 function p_central_series(G::GAPGroup, p::IntegerUnion)
   @req is_prime(p) "p must be a prime"
-  return _as_subgroups(G, GAP.Globals.PCentralSeries(G.X, GAP.Obj(p)))
+  return _as_subgroups(G, GAP.Globals.PCentralSeries(GapObj(G), GAP.Obj(p)))
 end
 
 @doc raw"""
@@ -447,7 +447,7 @@ julia> lower_central_series(symmetric_group(4))
  Alt(4)
 ```
 """
-@gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(G.X))
+@gapattribute lower_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.LowerCentralSeriesOfGroup(GapObj(G)))
 
 @doc raw"""
     upper_central_series(G::GAPGroup)
@@ -482,7 +482,7 @@ julia> upper_central_series(symmetric_group(4))
  Permutation group of degree 4 and order 1
 ```
 """
-@gapattribute upper_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.UpperCentralSeriesOfGroup(G.X))
+@gapattribute upper_central_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.UpperCentralSeriesOfGroup(GapObj(G)))
 
 @doc raw"""
     nilpotency_class(G::GAPGroup) -> Int
@@ -507,7 +507,7 @@ ERROR: ArgumentError: The group is not nilpotent.
 """
 @gapattribute function nilpotency_class(G::GAPGroup)
    @req is_nilpotent(G) "The group is not nilpotent."
-   return GAP.Globals.NilpotencyClassOfGroup(G.X)::Int
+   return GAP.Globals.NilpotencyClassOfGroup(GapObj(G))::Int
 end
 
 
@@ -586,7 +586,7 @@ julia> is_normalized_by(derived_subgroup(G)[1], sylow_subgroup(G, 2)[1])
 true
 ```
 """
-is_normalized_by(H::T, G::T) where T <: GAPGroup = GAPWrap.IsNormal(G.X, H.X)
+is_normalized_by(H::T, G::T) where T <: GAPGroup = GAPWrap.IsNormal(GapObj(G), GapObj(H))
 
 """
     is_normal_subgroup(H::T, G::T) where T <: GAPGroup
@@ -643,7 +643,7 @@ function is_characteristic_subgroup(H::T, G::T; check::Bool = true) where T <: G
   if check
     @req is_subset(H, G) "H is not a subgroup of G"
   end
-  return GAPWrap.IsCharacteristicSubgroup(G.X, H.X)
+  return GAPWrap.IsCharacteristicSubgroup(GapObj(G), GapObj(H))
 end
 
 """
@@ -665,7 +665,7 @@ julia> is_solvable(symmetric_group(5))
 false
 ```
 """
-@gapattribute is_solvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(G.X)::Bool
+@gapattribute is_solvable(G::GAPGroup) = GAP.Globals.IsSolvableGroup(GapObj(G))::Bool
 
 """
     is_nilpotent(G::GAPGroup)
@@ -683,7 +683,7 @@ julia> is_nilpotent(dihedral_group(10))
 false
 ```
 """
-@gapattribute is_nilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(G.X)::Bool
+@gapattribute is_nilpotent(G::GAPGroup) = GAP.Globals.IsNilpotentGroup(GapObj(G))::Bool
 
 """
     is_supersolvable(G::GAPGroup)
@@ -703,7 +703,7 @@ julia> is_supersolvable(symmetric_group(5))
 false
 ```
 """
-@gapattribute is_supersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(G.X)::Bool
+@gapattribute is_supersolvable(G::GAPGroup) = GAP.Globals.IsSupersolvableGroup(GapObj(G))::Bool
 
 ################################################################################
 #
@@ -713,13 +713,13 @@ false
 
 function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
-  if GAP.Globals.HasIsWholeFamily(G.X) && GAPWrap.IsWholeFamily(G.X)
+  if GAP.Globals.HasIsWholeFamily(GapObj(G)) && GAPWrap.IsWholeFamily(GapObj(G))
     # For a *full* free or f.p. group, GAP can handle this via its `\/'.
-    elems_in_gap = GapObj([x.X for x in elements])
-    Q = FPGroup((G.X)/elems_in_gap)
+    elems_in_gap = GapObj(elements; recursive=true)
+    Q = FPGroup(GapObj(G)/elems_in_gap)
     function proj(x::FPGroupElem)
-      return group_element(Q,GAP.Globals.MappedWord(x.X,
-               GAPWrap.GeneratorsOfGroup(G.X), GAPWrap.GeneratorsOfGroup(Q.X)))
+      return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
+               GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
     end
     return Q, hom(G,Q,proj)
   else
@@ -744,9 +744,9 @@ function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
   if length(elements) == 0
     H1 = trivial_subgroup(G)[1]
   else
-    elems_in_gap = GapObj([x.X for x in elements])
-    H = GAP.Globals.NormalClosure(G.X,GAP.Globals.Group(elems_in_gap))::GapObj
-    @assert GAPWrap.IsNormal(G.X, H)
+    elems_in_gap = GapObj(elements; recursive=true)
+    H = GAP.Globals.NormalClosure(GapObj(G),GAP.Globals.Group(elems_in_gap))::GapObj
+    @assert GAPWrap.IsNormal(GapObj(G), H)
     H1 = _as_subgroup_bare(G, H)
   end
   return quo(G, H1)
@@ -793,11 +793,11 @@ PermGroup
 ```
 """
 function quo(G::T, N::T) where T <: GAPGroup
-  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(G.X, N.X)::GapObj
-  # The call may have found out new information about `G.X`,
-  # for example that `G.X` is finite.
+  mp = GAP.Globals.NaturalHomomorphismByNormalSubgroup(GapObj(G), GapObj(N))::GapObj
+  # The call may have found out new information about `GapObj(G)`,
+  # for example that `GapObj(G)` is finite.
 #FIXME: The GAP function should deal with this situation.
-  GAP.Globals.UseSubsetRelation(G.X, N.X)
+  GAP.Globals.UseSubsetRelation(GapObj(G), GapObj(N))
   cod = GAP.Globals.ImagesSource(mp)::GapObj
   S = elem_type(G)
   S1 = _get_type(cod)
@@ -852,7 +852,7 @@ PermGroup
 ```
 """
 function maximal_abelian_quotient(G::GAPGroup)
-  map = GAP.Globals.MaximalAbelianQuotient(G.X)::GapObj
+  map = GAP.Globals.MaximalAbelianQuotient(GapObj(G))::GapObj
   F = GAPWrap.Range(map)::GapObj
   S1 = _get_type(F)
   F = S1(F)
@@ -869,15 +869,15 @@ function maximal_abelian_quotient(::Type{Q}, G::GAPGroup) where Q <: Union{GAPGr
   return F, epi
 end
 
-has_maximal_abelian_quotient(G::GAPGroup) = GAPWrap.HasMaximalAbelianQuotient(G.X)
+has_maximal_abelian_quotient(G::GAPGroup) = GAPWrap.HasMaximalAbelianQuotient(GapObj(G))
 
 function set_maximal_abelian_quotient(G::T, val::Tuple{GAPGroup, GAPGroupHomomorphism{T}}) where T <: GAPGroup
-  return GAPWrap.SetMaximalAbelianQuotient(G.X, val[2].map)
+  return GAPWrap.SetMaximalAbelianQuotient(GapObj(G), val[2].map)
 end
 
 
 # see `prime_of_pgroup` why we introduce `_abelian_invariants`
-@gapattribute _abelian_invariants(G::GAPGroup) = GAP.Globals.AbelianInvariants(G.X)
+@gapattribute _abelian_invariants(G::GAPGroup) = GAP.Globals.AbelianInvariants(GapObj(G))
 
 """
     abelian_invariants(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
@@ -911,7 +911,7 @@ abelian_invariants(::Type{T}, G::GAPGroup) where T <: IntegerUnion =
 
 
 # see `prime_of_pgroup` why we introduce `_abelian_invariants_schur_multiplier`
-@gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(G.X)
+@gapattribute _abelian_invariants_schur_multiplier(G::GAPGroup) = GAP.Globals.AbelianInvariantsMultiplier(GapObj(G))
 
 """
     abelian_invariants_schur_multiplier(::Type{T} = ZZRingElem, G::Union{GAPGroup, FinGenAbGroup}) where T <: IntegerUnion
@@ -981,7 +981,7 @@ end
 
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
-    el = GAPWrap.Image(mp, x.X)
+    el = GAPWrap.Image(mp, GapObj(x))
     return group_element(codom, el)
   end
   return mp_julia
@@ -1016,9 +1016,9 @@ julia> map_word(w, gens(G))
 ```
 """
 function epimorphism_from_free_group(G::GAPGroup)
-  mfG = GAP.Globals.EpimorphismFromFreeGroup(G.X)
+  mfG = GAP.Globals.EpimorphismFromFreeGroup(GapObj(G))
   fG = FPGroup(GAPWrap.Source(mfG))
-  GAP.Globals.RankOfFreeGroup(fG.X)  # force rank computation
+  GAP.Globals.RankOfFreeGroup(GapObj(fG))  # force rank computation
   return Oscar.GAPGroupHomomorphism(fG, G, mfG)
 end
 
@@ -1042,7 +1042,7 @@ julia> derived_subgroup(symmetric_group(5))
 ```
 """
 @gapattribute derived_subgroup(G::GAPGroup) =
-  _as_subgroup(G, GAP.Globals.DerivedSubgroup(G.X))
+  _as_subgroup(G, GAP.Globals.DerivedSubgroup(GapObj(G)))
 
 @doc raw"""
     derived_series(G::GAPGroup)
@@ -1072,7 +1072,7 @@ julia> derived_series(dihedral_group(8))
  Pc group of order 1
 ```
 """
-@gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeriesOfGroup(G.X))
+@gapattribute derived_series(G::GAPGroup) = _as_subgroups(G, GAP.Globals.DerivedSeriesOfGroup(GapObj(G)))
 
 @doc raw"""
     derived_length(G::GAPGroup)
@@ -1092,7 +1092,7 @@ julia> derived_length(dihedral_group(8))
 2
 ```
 """
-@gapattribute derived_length(G::GAPGroup) = GAP.Globals.DerivedLength(G.X)::Int
+@gapattribute derived_length(G::GAPGroup) = GAP.Globals.DerivedLength(GapObj(G))::Int
 
 
 ################################################################################
@@ -1114,7 +1114,7 @@ function intersect(G1::T, V::T...) where T<:GAPGroup
 end
 
 function intersect(V::AbstractVector{T}) where T<:GAPGroup
-   L = GapObj([G.X for G in V])
+   L = GapObj(V; recursive=true)
    K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]
