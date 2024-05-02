@@ -46,7 +46,7 @@
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["s7", "s9"],
+        "divisors_user_must_specify": ["s7", "s9"],
         "base_coordinates": ["s1", "s6"],
         "f": "1//48*(-s6^4 - 24*s1*s7*s9*s6)",
         "g": "1//864*(216*s1^2*s7^2*s9^2 + 36*s1*s6^3*s7*s9 + s6^6)",
