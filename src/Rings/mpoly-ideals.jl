@@ -1125,6 +1125,7 @@ function minimal_primes(
     res_simp = minimal_primes(modulus(W); algorithm, factor_generators, simplify_ring=false)
     result = [I + ideal(R, lift.(id_inv.(W.(gens(j))))) for j in res_simp]
     for p in result
+      set_attribute!(p, :is_prime=>true)
     end
     return result
   end
