@@ -41,14 +41,23 @@ if Sys.iswindows()
   windows_error()
 end
 
-function _print_banner()
-  if displaysize(stdout)[2] >= 79
+function _print_banner(;is_dev = Oscar.is_dev)
+  # lets assemble a version string for the banner
+  version_string = string(VERSION_NUMBER)
+  if is_dev
+    gitinfo = _get_oscar_git_info()
+    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+  else
+    version_string = "Version " * version_string
+  end
+  
+  if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
              / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
             | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
             | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
