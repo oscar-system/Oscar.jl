@@ -151,3 +151,74 @@ end
 end
 
 
+########################################################################
+# Abstract type for rational maps of projective varieties
+########################################################################
+abstract type AbsRationalMap{
+    DomainType<:AbsProjectiveScheme,
+    CodomainType<:AbsProjectiveScheme,
+    SelfType, # The concrete type itself as required by the generic `Map` implementation
+  } <: SchemeMor{DomainType, CodomainType,
+                 SelfType,
+                 Nothing
+                }
+end
+
+########################################################################
+# Concrete rational maps of projective varieties                       #
+########################################################################
+@doc raw"""
+    RationalMap
+
+A rational map of projective varieties over a field 𝕜
+```
+     ℙˢ     ℙʳ
+     ∪      ∪
+     P  →   Q
+```
+given by means of a commutative diagram of homomorphisms of
+their `homogeneous_coordinate_rings` 
+```
+    𝕜[u₀,…,uₛ]/I ← 𝕜[v₀,…,vᵣ]/J
+```
+"""
+@attributes mutable struct RationalMap{
+    DomainType<:AbsProjectiveScheme,
+    CodomainType<:AbsProjectiveScheme,
+    PullbackType<:Map,
+  } <: AbsRationalMap{
+                      DomainType, CodomainType,
+                      RationalMap
+                     }
+  domain::DomainType
+  codomain::CodomainType
+  pullback::PullbackType
+
+  # Fields for caching
+  graph_ring::Tuple{<:MPolyQuoRing, <:Map, <:Map}
+
+  ### Simple morphism of projective schemes over the same base scheme
+  function RationalMap(
+      P::DomainType,
+      Q::CodomainType,
+      f::PullbackType;
+      check::Bool=true
+    ) where {DomainType<:AbsProjectiveScheme,
+             CodomainType<:AbsProjectiveScheme,
+             PullbackType<:Map
+            }
+    T = homogeneous_coordinate_ring(P)
+    S = homogeneous_coordinate_ring(Q)
+    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
+    @check begin
+      is_irreducible(P) || error("domain must be irreducible")
+      is_irreducible(Q) || error("codomain must be irreducible")
+      is_reduced(P) || error("domain must be reduced")
+      is_reduced(Q) || error("codomain must be reduced")
+      true
+    end
+    return new{DomainType, CodomainType, PullbackType}(P, Q, f)
+  end
+end
+
+
