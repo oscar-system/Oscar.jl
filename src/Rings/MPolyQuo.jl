@@ -1894,11 +1894,8 @@ symbols(A::MPolyQuoRing) = symbols(base_ring(A))
 function tensor_product(A::MPolyRing, B::MPolyRing)
   kk = coefficient_ring(A)
   @assert kk === coefficient_ring(B) "coefficient rings do not coincide"
-  all_symb = vcat(symbols(A), symbols(B))
-  r = ngens(A)
-  s = ngens(B)
-  res, _ = polynomial_ring(kk, all_symb, cached=false)
-  return res, hom(A, res, gens(res)[1:r]), hom(B, res, gens(res)[r+1:r+s])
+  res, a, b = polynomial_ring(kk, symbols(A), symbols(B); cached=false)
+  return res, hom(A, res, a), hom(B, res, b)
 end
 
 function tensor_product(A::MPolyRing, B::MPolyQuoRing)
