@@ -78,10 +78,8 @@ using .Orderings
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-function default_ordering(R::MPolyRing)
-  return get_attribute!(R, :default_ordering) do
-    degrevlex(R)
-  end
+@attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyRing}
+  return degrevlex(R)
 end
 
 
@@ -560,7 +558,7 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
               ordering = ord,

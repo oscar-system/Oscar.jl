@@ -135,8 +135,8 @@ julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, generic::Bool = false)
-  model_dict = _find_model(doi, arxiv_id, version, equation)
+function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true, generic::Bool = false)
+  model_dict = _find_model(doi, arxiv_id, version, equation, type)
   return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check, generic = generic)
 end
 
@@ -205,7 +205,7 @@ end
 # 2. Helper function to find the specified model
 #######################################################
 
-function _find_model(doi::String, arxiv_id::String, version::String, equation::String)
+function _find_model(doi::String, arxiv_id::String, version::String, equation::String, type::String)
   @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
@@ -213,7 +213,8 @@ function _find_model(doi::String, arxiv_id::String, version::String, equation::S
     if all([doi == "" || get(file_index[k], "journal_doi", nothing) == doi,
         arxiv_id == "" || get(file_index[k], "arxiv_id", nothing) == arxiv_id,
         version == "" || get(file_index[k], "arxiv_version", nothing) == version,
-        equation == "" || get(file_index[k], "arxiv_equation", nothing) == equation])
+        equation == "" || get(file_index[k], "arxiv_equation", nothing) == equation,
+        type == "" || get(file_index[k], "type", nothing) == type])
       push!(candidate_files, string(file_index[k]["file"]))
     end
   end
@@ -241,7 +242,8 @@ function _process_candidates(candidate_files::Vector{String})
       ids = map(d -> get(d["arxiv_data"], "id", nothing), dicts)
       versions = map(d -> get(d["arxiv_data"], "version", nothing), dicts)
       equations = map(d -> get(d["arxiv_data"]["model_location"], "equation", nothing), dicts)
-      strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i])" for i in 1:length(dicts)]
+      types = map(d -> get(d["model_descriptors"], "type", nothing), dicts)
+      strings = ["doi: $(dois[i]), arxiv_id: $(ids[i]), version: $(versions[i]), equation: $(equations[i]), type: $(types[i])" for i in 1:length(dicts)]
       "We could not uniquely identify the model. The matched models have the following data:\n$(reduce((s1, s2) -> s1 * "\n" * s2, strings))"
     end)
   model_dict = JSON.parsefile(joinpath(@__DIR__, "Models/" * candidate_files[1]))

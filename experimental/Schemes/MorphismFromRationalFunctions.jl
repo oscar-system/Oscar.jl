@@ -184,11 +184,12 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
   a = [b[U] for b in A]
   #a = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in a]
   list_for_V = _extend(U, a)
+  @assert !is_empty(list_for_V) "list must not be empty"
   Psi = [morphism(W, ambient_space(V), b, check=Phi.run_internal_checks) for (W, b) in list_for_V]
   # Up to now we have maps to the ambient space of V. 
   # But V might be a hypersurface complement in there and we 
   # might need to restrict our domain of definition accordingly. 
-  Psi_res = [_restrict_properly(psi, V) for psi in Psi]
+  Psi_res = AffineSchemeMor[_restrict_properly(psi, V; check=Phi.run_internal_checks) for psi in Psi]
   @assert all(phi->codomain(phi) === V, Psi_res)
   append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi_res])
   while !isone(ideal(OO(U), complement_equations))
@@ -210,7 +211,7 @@ function realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme
     #total_rat_lift = [lift(simplify(OO(U)(numerator(b))))//lift(simplify(OO(U)(denominator(b)))) for b in total_rat_lift]
     list_for_V_next = _extend(U, total_rat_lift)
     Psi = [morphism(W, ambient_space(V_next), b, check=Phi.run_internal_checks) for (W, b) in list_for_V_next]
-    Psi = [_restrict_properly(psi, V_next) for psi in Psi]
+    Psi = [_restrict_properly(psi, V_next; check=Phi.run_internal_checks) for psi in Psi]
     append!(Psi_res, Psi)
     append!(complement_equations, [OO(U)(lifted_numerator(complement_equation(domain(psi)))) for psi in Psi])
     push!(covered_codomain_patches, V_next)
@@ -222,7 +223,7 @@ end
 @doc raw"""
     realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
 
-Returns a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such 
+Return a morphism `f : U' → V` from some `PrincipalOpenSubset` of `U` to `V` such
 that the restriction of `Phi` to `U'` is `f`. Note that `U'` need not be maximal 
 with this property!
 """
@@ -236,18 +237,18 @@ function realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffine
   if !any(x->x===V, patches(Y)) 
     VV = _find_chart(V, default_covering(Y))
   end
-  y = function_field(Y).(gens(OO(V)))
+  y = function_field(Y; check=false).(gens(OO(V)))
   dom_rep = domain_chart(Phi)
   cod_rep = codomain_chart(Phi)
   y_cod = [a[cod_rep] for a in y]::Vector{<:FieldElem}
   x_dom = [evaluate(a, coordinate_images(Phi)) for a in y_cod]::Vector{<:FieldElem}
-  x = function_field(X).(x_dom)
+  x = function_field(X; check=false).(x_dom)
   img_gens_frac = [a[U] for a in x]
   dens = [denominator(a) for a in img_gens_frac]
   U_sub = PrincipalOpenSubset(U, OO(U).(dens))
   img_gens = [OO(U_sub)(numerator(a), denominator(a)) for a in img_gens_frac]
   prelim = morphism(U_sub, ambient_space(V), img_gens, check=Phi.run_internal_checks) # TODO: Set to false
-  return _restrict_properly(prelim, V)
+  return _restrict_properly(prelim, V; check=Phi.run_internal_checks)
 end
 
 @doc raw"""
@@ -271,12 +272,12 @@ function realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineSch
   if !any(x->x===V, patches(Y)) 
     VV = _find_chart(V, default_covering(Y))
   end
-  y = function_field(Y).(gens(OO(V)))
+  y = function_field(Y; check=false).(gens(OO(V)))
   dom_rep = domain_chart(Phi)
   cod_rep = codomain_chart(Phi)
   y_cod = [a[cod_rep] for a in y]::Vector{<:FieldElem}
   x_dom = [evaluate(a, coordinate_images(Phi)) for a in y_cod]::Vector{<:FieldElem}
-  x = function_field(X).(x_dom; check=true)
+  x = function_field(X; check=false).(x_dom; check=true)
   img_gens_frac = [a[U] for a in x]
   realization_previews(Phi)[(U, V)] = img_gens_frac
   return img_gens_frac
@@ -527,16 +528,17 @@ end
 # as regular functions on U' and a morphism U' → A to the `ambient_space` 
 # of V can be realized, V might be so small that we need a proper restriction 
 # of the domain. The methods below take care of that. 
-function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing})
-  return restrict(f, domain(f), V, check=false)
+function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyRing}; check::Bool=true)
+  return restrict(f, domain(f), V; check)
 end
 
-function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
-  return restrict(f, domain(f), V, check=false)
+function _restrict_properly(f::AbsAffineSchemeMor, V::AbsAffineScheme{<:Ring, <:MPolyQuoRing}; check::Bool=true)
+  return restrict(f, domain(f), V; check)
 end
 
 function _restrict_properly(
-    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT};
+    check::Bool=true
   ) where {RT<:MPolyLocRing{<:Ring, <:RingElem, 
                             <:MPolyRing, <:MPolyRingElem, 
                             <:MPolyPowersOfElement}
@@ -546,11 +548,12 @@ function _restrict_properly(
   U = domain(f)
   W = ambient_scheme(U)
   UU = PrincipalOpenSubset(W, push!(OO(W).(lifted_numerator.(pbh)), complement_equation(U)))
-  return restrict(f, UU, V, check=false)
+  return restrict(f, UU, V; check)
 end
 
 function _restrict_properly(
-    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT}
+    f::AbsAffineSchemeMor{<:PrincipalOpenSubset}, V::AbsAffineScheme{<:Ring, <:RT};
+    check::Bool=true
   ) where {RT<:MPolyQuoLocRing{<:Ring, <:RingElem, 
                             <:MPolyRing, <:MPolyRingElem, 
                             <:MPolyPowersOfElement}
@@ -560,7 +563,7 @@ function _restrict_properly(
   U = domain(f)
   W = ambient_scheme(U)
   UU = PrincipalOpenSubset(W, push!(OO(W).(lifted_numerator.(pbh)), complement_equation(U)))
-  return restrict(f, UU, V, check=false)
+  return restrict(f, UU, V; check)
 end
 
 ### The natural mathematical way to deal with algebraic cycles. However, since 
@@ -862,11 +865,29 @@ end
 
 function _find_good_representative_chart(I::AbsIdealSheaf)
   # We assume that I is prime
+  # TODO: Make this an hassert?
+  @assert is_prime(I)
   X = scheme(I)
+
+  # Some heuristics to choose a reasonably "easy" chart
+  cand = AbsAffineScheme[]
   for U in keys(object_cache(I))
     any(x->x===U, affine_charts(X)) || continue
-    !is_one(I(U)) && return U
+    !is_one(I(U)) && push!(cand, U)
   end
+
+  function complexity(U::AbsAffineScheme)
+    g = lifted_numerator.(gens(I(U)))
+    return maximum(total_degree(f) for f in g; init=0)
+  end
+
+  if !is_empty(cand)
+    c = complexity.(cand)
+    m = minimum(c)
+    i = findfirst(x->x==m, c)
+    return cand[i]
+  end
+
   for U in affine_charts(X)
     !is_one(I(U)) && return U
   end
@@ -883,7 +904,7 @@ function _prepare_pushforward_prime_divisor(
   Y = codomain(phi)
 
   # try cheap realizations first
-  sorted_charts = codomain_charts
+  sorted_charts = copy(codomain_charts)
   if has_decomposition_info(default_covering(Y))
     info = decomposition_info(default_covering(Y))
     sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
@@ -1018,16 +1039,16 @@ function _prepare_pushforward_prime_divisor(
 
   # The preselection of charts in the codomain via the optional argument 
   # may lead to that there is no result in the end. 
-  return nothing, domain_chart(phi), codomain_chart(phi)
+  return nothing, Oscar.domain_chart(phi), codomain_chart(phi)
 end
 
 function _pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;
+    domain_chart::AbsAffineScheme=_find_good_representative_chart(I),
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
-  loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(phi, I; codomain_charts)
+  loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(phi, I; domain_chart, codomain_charts)
   loc_map === nothing && return nothing
-  
   U_sub = domain(loc_map)
   J = preimage(pullback(loc_map), I(U_sub))
   JJ = ideal(OO(cod_chart), gens(J))

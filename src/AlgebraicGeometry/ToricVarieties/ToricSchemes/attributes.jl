@@ -5,7 +5,7 @@
 @doc raw"""
     forget_toric_structure(X::AffineNormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
+Return a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples
@@ -32,7 +32,7 @@ end
 @doc raw"""
     forget_toric_structure(X::NormalToricVariety)
 
-Returns a pair `(Y, iso)` where `Y` is a scheme without toric structure,
+Return a pair `(Y, iso)` where `Y` is a scheme without toric structure,
 together with an isomorphism `iso : Y → X`.
 
 # Examples

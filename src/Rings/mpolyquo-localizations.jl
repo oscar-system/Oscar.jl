@@ -1119,7 +1119,7 @@ end
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
-  b = simplify(a)
+  b = a #simplify(a)
   return codomain(f)(restricted_map(f)(lifted_numerator(b)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(b))))
 end
 
@@ -2032,7 +2032,7 @@ function primary_decomposition(
     algorithm::Symbol=:GTZ, cache::Bool=true
   )
   if has_attribute(I, :primary_decomposition)
-    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+    return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
   end
   Q = base_ring(I)
   R = base_ring(Q)

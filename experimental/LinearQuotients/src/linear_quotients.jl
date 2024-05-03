@@ -117,7 +117,7 @@ function age(g::MatrixGroupElem{T}, zeta::Tuple{T,Int}) where {T}
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
 
   powers_of_zeta = _powers_of_root_of_unity(zeta[1]^q, order(Int, g))
-  eig = eigenvalues_with_multiplicities(g.elm)
+  eig = eigenvalues_with_multiplicities(matrix(g))
   return ZZRingElem(sum(m * powers_of_zeta[e] for (e, m) in eig))//order(g)
 end
 
@@ -148,10 +148,10 @@ function weights_of_action(
   powers_of_zeta = _powers_of_root_of_unity(zetaq, order(Int, g))
 
   K = coefficient_ring(R)
-  eig = eigenspaces(g.elm; side=:left)
+  eig = eigenspaces(matrix(g); side=:left)
 
   weights = Int[]
-  V = zero_matrix(K, 0, ncols(g.elm))
+  V = zero_matrix(K, 0, ncols(matrix(g)))
   for (e, v) in eig
     for i in 1:nrows(v)
       push!(weights, powers_of_zeta[e])

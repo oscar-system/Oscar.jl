@@ -191,7 +191,7 @@ end
 ### Some helper functions
 function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
   @check is_subscheme(D, domain(f)) "domain incompatible"
   return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
@@ -206,19 +206,19 @@ function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f)
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
     return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=false)
   end
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
   return morphism(domain(f), D, [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
   return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 

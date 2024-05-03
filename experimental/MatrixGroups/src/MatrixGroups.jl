@@ -58,7 +58,7 @@ function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) whe
      G, G_to_fin_pres, F, OtoFq = Oscar._isomorphic_group_over_finite_field(matrices, check = check)
 
      # Map the generating matrices over `F` to GAP matrices, create a GAP group.
-     matrices_Fq = [x.elm for x in gens(G)]  # Oscar matrices over F
+     matrices_Fq = [matrix(x) for x in gens(G)]  # Oscar matrices over F
      iso = Oscar.iso_oscar_gap(base_ring(matrices_Fq[1]))
      gap_matrices_Fq = [map_entries(iso, m) for m in matrices_Fq]
      G2 = GAP.Globals.Group(GapObj(gap_matrices_Fq))
