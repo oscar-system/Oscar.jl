@@ -135,10 +135,10 @@ julia> C = compositions(4, 2)
 Iterator over the compositions of 4 into 2 parts
 
 julia> collect(C)
-3-element Vector{Composition{Int64}}:
-[1, 3]
-[2, 2]
-[3, 1]
+3-element Vector{Oscar.Composition{Int64}}:
+ [3, 1]
+ [2, 2]
+ [1, 3]
 ```
 """
 function compositions(n::IntegerUnion, k::IntegerUnion)
@@ -198,7 +198,7 @@ julia> C = compositions(4)
 Iterator over the compositions of 4
 
 julia> collect(C)
-8-element Vector{Composition{Int64}}:
+8-element Vector{Oscar.Composition{Int64}}:
  [4]
  [3, 1]
  [2, 2]
