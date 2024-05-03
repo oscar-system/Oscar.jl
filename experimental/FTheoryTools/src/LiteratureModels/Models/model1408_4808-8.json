@@ -46,21 +46,21 @@
     },
     "model_data": {
         "base_dim": 3,
-        "divisors_user_must_specify": ["s7", "s2"],
-        "divisors_parametrized_by_user_specified_divisors": ["s1", "s3", "s5", "s6", "s8"],
+        "divisors_user_must_specify": ["s7", "s9"],
+        "divisors_parametrized_by_user_specified_divisors": ["s1", "s2", "s3", "s5", "s6", "s8"],
         "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
-            [1, -1,  2, 1,  3],
-            [-1,  1, -1, 0, -1],
-            [1,  1,  0, 0, -1]
+            [ 3,  2,  1,  2, 1,  1],
+            [-1,  0,  1, -1, 0, -1],
+            [-1, -1, -1,  0, 0,  1]
         ],
         "fiber_ambient_space_rays": [[0, 1], [-1, -1], [1, 0], [-1, 0], [-1, 1], [1, 1]],
         "fiber_ambient_space_max_cones": [[1, 6], [3, 6], [2, 3], [2, 4], [4, 5], [1, 5]],
         "fiber_ambient_space_coordinates": ["u", "v", "w", "e1", "e2", "e3"],
         "fiber_ambient_space_name": "P^{F_8}",
         "fiber_twist_matrix": [
-            [1, 2, 0, 0, 0, 0],
-            [0, -1, 0, 0, 0, 0],
-            [-1, -1, 0, 0, 0, 0]
+            [ 1,  0, 0, 0, 0, 0],
+            [ 0, -1, 0, 0, 0, 0],
+            [-1,  1, 0, 0, 0, 0]
         ],
         "hypersurface_equation": "s1*e1^2*e2^4*e3^2*u^3 + s2*e1^2*e2^3*e3*u^2*v + s3*e1^2*e2^2*u*v^2 + s5*e1*e2^2*e3^2*u^2*w + s6*e1*e2*e3*u*v*w +  s7*e1*v^2*w + s8*e3^2*u*w^2",
         "zero_section": ["s7", "1", "1", "-s8", "0", "1"],
