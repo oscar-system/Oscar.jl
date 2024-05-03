@@ -1528,7 +1528,7 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
-  f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
+  f = GAP.Globals.IrreducibleAffordingRepresentation(GapObj(chi))
   K = abelian_closure(QQ)[1]
   g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))

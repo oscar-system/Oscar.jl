@@ -602,7 +602,7 @@ function _molien_series_nonmodular_via_gap(
   t = GAP.Globals.CharacterTable(GapObj(G))
   if G isa MatrixGroup
     if is_zero(characteristic(coefficient_ring(I)))
-      psi = natural_character(G).values
+      psi = GapObj(natural_character(G))
     else
       psi = [
         GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c)) for
@@ -617,10 +617,10 @@ function _molien_series_nonmodular_via_gap(
     ]
   end
   if chi === nothing
-    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t, GAP.GapObj(psi)))
+    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t, GapObj(psi)))
   else
     info = GAP.Globals.MolienSeriesInfo(
-      GAP.Globals.MolienSeries(t, GAP.GapObj(psi), chi.values)
+      GAP.Globals.MolienSeries(t, GapObj(psi), GapObj(chi))
     )
   end
   num = S(

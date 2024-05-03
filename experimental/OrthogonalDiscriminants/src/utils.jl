@@ -216,11 +216,11 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
           if cand != nothing
             extcand = []
             for pi in cand
-              pi = GAP.Globals.CompositionMaps(pi.values,
+              pi = GAP.Globals.CompositionMaps(GapObj(pi),
                        GAP.Globals.InverseMap(GapObj(fus)))
               union!(extcand, [Oscar.class_function(tbl, x) for x in
                                 GAP.Globals.PermChars(Oscar.GAPTable(tbl),
-                                  GAP.GapObj(Dict(:torso => pi), true))])
+                                  GapObj(Dict(:torso => pi), true))])
             end
             if candlist == nothing
               candlist = extcand

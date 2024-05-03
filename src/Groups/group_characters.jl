@@ -1859,6 +1859,8 @@ struct GAPGroupClassFunction <: GroupClassFunction
     values::GapObj
 end
 
+GapObj(chi::GAPGroupClassFunction) = chi.values
+
 parent(chi::GAPGroupClassFunction) = chi.table
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
@@ -1866,7 +1868,7 @@ function Base.show(io::IO, chi::GAPGroupClassFunction)
 end
 
 function values(chi::GAPGroupClassFunction)
-    gapvalues = GAPWrap.ValuesOfClassFunction(chi.values)
+    gapvalues = GAPWrap.ValuesOfClassFunction(GapObj(chi))
     return [QQAbElem(x) for x in gapvalues]
 end
 
@@ -2173,7 +2175,7 @@ function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
     ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(subtbl),
-          GAPTable(tbl), GapObj([chi.values]), GapObj(fus))
+          GAPTable(tbl), GapObj([GapObj(chi)]), GapObj(fus))
     return GAPGroupClassFunction(tbl, ind[1])
   else
     # Dispatch on the types of the stored groups.
@@ -2183,13 +2185,13 @@ end
 
 function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, fusion::Vector{Int})
   ind = GAPWrap.InducedClassFunctionsByFusionMap(GAPTable(parent(chi)),
-          GAPTable(tbl), GapObj([chi.values]), GapObj(fusion))
+          GAPTable(tbl), GapObj([GapObj(chi)]), GapObj(fusion))
   return GAPGroupClassFunction(tbl, ind[1])
 end
 
 # If `GAPGroup` groups are stored then we let GAP try to find the result.
 function _induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, G_chi::GAPGroup, G_tbl::GAPGroup)
-  ind = GAPWrap.InducedClassFunction(chi.values, GAPTable(tbl))
+  ind = GAPWrap.InducedClassFunction(GapObj(chi), GAPTable(tbl))
   return GAPGroupClassFunction(tbl, ind)
 end
 
@@ -2264,7 +2266,7 @@ function restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
     # If there is no stored group then let GAP try to find the result.
     fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
-    rest = GAPWrap.ELMS_LIST(chi.values, GapObj(fus))
+    rest = GAPWrap.ELMS_LIST(GapObj(chi), GapObj(fus))
     rest = GAPWrap.ClassFunction(GAPTable(subtbl), rest)
     return GAPGroupClassFunction(subtbl, rest)
   else
@@ -2274,7 +2276,7 @@ function restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable)
 end
 
 function restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable, fusion::Vector{Int})
-  rest = GAPWrap.ELMS_LIST(chi.values, GapObj(fusion))
+  rest = GAPWrap.ELMS_LIST(GapObj(chi), GapObj(fusion))
   rest = GAPWrap.ClassFunction(GAPTable(subtbl), rest)
   return GAPGroupClassFunction(subtbl, rest)
 end
@@ -2283,7 +2285,7 @@ end
 function _restrict(chi::GAPGroupClassFunction, subtbl::GAPGroupCharacterTable, G_chi::GAPGroup, G_tbl::GAPGroup)
   tbl = parent(chi)
   fus = GAPWrap.FusionConjugacyClasses(GAPTable(subtbl), GAPTable(tbl))
-  rest = GAPWrap.ELMS_LIST(chi.values, GapObj(fus))
+  rest = GAPWrap.ELMS_LIST(GapObj(chi), GapObj(fus))
   rest = GAPWrap.ClassFunction(GAPTable(subtbl), rest)
   return GAPGroupClassFunction(subtbl, rest)
 end
@@ -2303,9 +2305,9 @@ end
 restrict(chi::GAPGroupClassFunction, H::Union{GAPGroup, FinGenAbGroup}) = restrict(chi, character_table(H))
 
 
-Base.length(chi::GAPGroupClassFunction) = length(chi.values)
+Base.length(chi::GAPGroupClassFunction) = length(GapObj(chi))
 
-Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(chi.values) ? nothing : (chi[state], state+1)
+Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(GapObj(chi)) ? nothing : (chi[state], state+1)
 
 @doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
@@ -2325,7 +2327,7 @@ Nemo.degree(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion = T(N
 
 # access character values by position
 function Base.getindex(chi::GAPGroupClassFunction, i::Int)
-  vals = GAPWrap.ValuesOfClassFunction(chi.values)
+  vals = GAPWrap.ValuesOfClassFunction(GapObj(chi))
   return QQAbElem(vals[i])
 end
 
@@ -2339,7 +2341,7 @@ end
 # arithmetic with class functions
 function Base.:(==)(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     @req parent(chi) === parent(psi) "character tables must be identical"
-    return chi.values == psi.values
+    return GapObj(chi) == GapObj(psi)
 end
 
 # Currently we cannot implement a `hash` method based on the values,
@@ -2350,19 +2352,19 @@ end
 
 function Base.:+(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     @req parent(chi) === parent(psi) "character tables must be identical"
-    return GAPGroupClassFunction(parent(chi), chi.values + psi.values)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) + GapObj(psi))
 end
 
-Base.:-(chi::GAPGroupClassFunction) = GAPGroupClassFunction(parent(chi), - chi.values)
+Base.:-(chi::GAPGroupClassFunction) = GAPGroupClassFunction(parent(chi), -GapObj(chi))
 
 function Base.:-(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     @req parent(chi) === parent(psi) "character tables must be identical"
-    return GAPGroupClassFunction(parent(chi), chi.values - psi.values)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) - GapObj(psi))
 end
 
 function Base.:*(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     @req parent(chi) === parent(psi) "character tables must be identical"
-    return GAPGroupClassFunction(parent(chi), chi.values * psi.values)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) * GapObj(psi))
 end
 
 function Base.zero(chi::GAPGroupClassFunction)
@@ -2389,7 +2391,7 @@ scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = scalar_
 
 function scalar_product(::Type{T}, chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) where T <: Union{Integer, ZZRingElem, QQFieldElem, QQAbElem}
     @req parent(chi) === parent(psi) "character tables must be identical"
-    return T(GAPWrap.ScalarProduct(GAPTable(parent(chi)), chi.values, psi.values))::T
+    return T(GAPWrap.ScalarProduct(GAPTable(parent(chi)), GapObj(chi), GapObj(psi)))::T
 end
 
 
@@ -2435,10 +2437,10 @@ function coordinates(::Type{T}, chi::GAPGroupClassFunction) where T <: Union{Int
     GAPt = GAPTable(t)
     if characteristic(t) == 0
       # use scalar products for an ordinary character
-      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([chi.values]))
+      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([GapObj(chi)]))
     else
       # decompose a Brauer character
-      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([chi.values]), GapObj("nonnegative"))
+      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([GapObj(chi)]), GapObj("nonnegative"))
     end
     return Vector{T}(c[1])::Vector{T}
 end
@@ -2467,18 +2469,18 @@ julia> println(multiplicities_eigenvalues(chi, 5))
 ```
 """
 function multiplicities_eigenvalues(::Type{T}, chi::GAPGroupClassFunction, i::Int) where T <: IntegerUnion
-    return Vector{T}(GAPWrap.EigenvaluesChar(chi.values, i))
+    return Vector{T}(GAPWrap.EigenvaluesChar(GapObj(chi), i))
 end
 
 multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_eigenvalues(Int, chi, i)
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), n * chi.values)
+    return GAPGroupClassFunction(parent(chi), n * GapObj(chi))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(parent(chi), chi.values ^ n)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ n)
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2512,7 +2514,7 @@ julia> println([findfirst(y -> y == conj(x), tbl) for x in tbl])
 ```
 """
 function conj(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(chi.values, -1))
+    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(GapObj(chi), -1))
 end
 
 @doc raw"""
@@ -2522,7 +2524,7 @@ Return the class function whose values are the images of the values of `chi`
 under `sigma`.
 """
 function (sigma::QQAbAutomorphism)(chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(chi.values, sigma.exp))
+    return GAPGroupClassFunction(parent(chi), GAPWrap.GaloisCyc(GapObj(chi), sigma.exp))
 end
 
 Base.:^(chi::GAPGroupClassFunction, sigma::QQAbAutomorphism) = sigma(chi)
@@ -2569,7 +2571,7 @@ false
 ```
 """
 function is_irreducible(chi::GAPGroupClassFunction)
-    return GAPWrap.IsIrreducibleCharacter(chi.values)
+    return GAPWrap.IsIrreducibleCharacter(GapObj(chi))
 end
 
 @doc raw"""
@@ -2649,7 +2651,7 @@ julia> C, f = kernel(chi);  order(C)
 function kernel(chi::GAPGroupClassFunction)
     tbl = parent(chi)
     iso = isomorphism_to_GAP_group(tbl)
-    GAP_K = GAPWrap.KernelOfCharacter(GAPTable(tbl), chi.values)
+    GAP_K = GAPWrap.KernelOfCharacter(GAPTable(tbl), GapObj(chi))
     return preimages(iso, GAP_K)
 end
 
@@ -2666,7 +2668,7 @@ julia> println(class_positions_of_center(character_table("2.A5")[2]))
 ```
 """
 function class_positions_of_center(chi::GAPGroupClassFunction)
-    return Vector{Int}(GAPWrap.ClassPositionsOfCentre(chi.values))
+    return Vector{Int}(GAPWrap.ClassPositionsOfCentre(GapObj(chi)))
 end
 
 @doc raw"""
@@ -2691,7 +2693,7 @@ julia> C, f = center(chi);  order(C)
 function center(chi::GAPGroupClassFunction)
     tbl = parent(chi)
     iso = isomorphism_to_GAP_group(tbl)
-    C = GAPWrap.CentreOfCharacter(GAPTable(tbl), chi.values)
+    C = GAPWrap.CentreOfCharacter(GAPTable(tbl), GapObj(chi))
     return preimages(iso, C)
 end
 
@@ -2711,7 +2713,7 @@ true
 ```
 """
 function det(chi::GAPGroupClassFunction)
-    values = GAPWrap.DeterminantOfCharacter(chi.values)
+    values = GAPWrap.DeterminantOfCharacter(GapObj(chi))
     return GAPGroupClassFunction(parent(chi), values)
 end
 
@@ -2733,7 +2735,7 @@ ZZRingElem[2, 1, 2, 2, 1]
 order(chi::GAPGroupClassFunction) = order(ZZRingElem, chi)::ZZRingElem
 
 function order(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
-    return T(GAPWrap.Order(det(chi).values))::T
+    return T(GAPWrap.Order(GapObj(det(chi))))::T
 end
 
 @doc raw"""
@@ -2759,7 +2761,7 @@ function indicator(chi::GAPGroupClassFunction, n::Int = 2)
     tbl = parent(chi)
     if characteristic(tbl) == 0
       # The indicator can be computed for any character.
-      ind = GAPWrap.Indicator(GAPTable(tbl), GapObj([chi.values]), n)
+      ind = GAPWrap.Indicator(GAPTable(tbl), GapObj([GapObj(chi)]), n)
       return ind[1]::Int
     else
       # The indicator is defined only for `n = 2` and irreducible characters.
@@ -2809,7 +2811,7 @@ function character_field(chi::GAPGroupClassFunction)
       return (F, identity_map(F))
     end
 
-    values = chi.values  # a list of GAP cyclotomics
+    values = GapObj(chi)  # a list of GAP cyclotomics
     gapfield = GAPWrap.Field(values)
     N = GAPWrap.Conductor(gapfield)
     FF, _ = abelian_closure(QQ)
@@ -2880,7 +2882,7 @@ function order_field_of_definition(::Type{T}, chi::GAPGroupClassFunction) where
   T <: IntegerUnion
     p = characteristic(chi)
     @req p != 0 "the character must be a Brauer character"
-    return T(GAPWrap.SizeOfFieldOfDefinition(chi.values, p))
+    return T(GAPWrap.SizeOfFieldOfDefinition(GapObj(chi), p))
 end
 
 
@@ -2902,7 +2904,7 @@ ZZRingElem[1, 5, 5, 1, 1]
 conductor(chi::GAPGroupClassFunction) = conductor(ZZRingElem, chi)
 
 function conductor(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnion
-    return T(GAPWrap.Conductor(chi.values))
+    return T(GAPWrap.Conductor(GapObj(chi)))
 end
 
 
@@ -2930,7 +2932,7 @@ function schur_index(chi::GAPGroupClassFunction, recurse::Bool = true)
     indicator(chi) == -1 && return 2
 
     # The character field contains an `m`-th root of unity.
-    values = chi.values
+    values = GapObj(chi)
     if conj(chi) == chi
       bound = ZZRingElem(2)
     else
@@ -3028,7 +3030,7 @@ function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.Symmetrizations(GAPTable(tbl),
-                         GAP.GapObj([chi.values for chi in characters]), n)]
+                         GapObj([GapObj(chi) for chi in characters]), n)]
 end
 
 @doc raw"""
@@ -3043,7 +3045,7 @@ function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymmetricParts(GAPTable(tbl),
-                         GAP.GapObj([chi.values for chi in characters]), n)]
+                         GapObj([GapObj(chi) for chi in characters]), n)]
 end
 
 @doc raw"""
@@ -3058,7 +3060,7 @@ function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.AntiSymmetricParts(GAPTable(tbl),
-                         GAP.GapObj([chi.values for chi in characters]), n)]
+                         GapObj([GapObj(chi) for chi in characters]), n)]
 end
 
 @doc raw"""
@@ -3075,7 +3077,7 @@ function exterior_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `ExteriorPower` method becomes available then use it
     tbl = parent(chi)
     return class_function(tbl,
-      GAPWrap.AntiSymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
+      GAPWrap.AntiSymmetricParts(GAPTable(tbl), GAP.Obj([GapObj(chi)]), n)[1])
 end
 
 @doc raw"""
@@ -3092,7 +3094,7 @@ function symmetric_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `SymmetricPower` method becomes available then use it
     tbl = parent(chi)
     return class_function(tbl,
-      GAPWrap.SymmetricParts(GAPTable(tbl), GAP.Obj([chi.values]), n)[1])
+      GAPWrap.SymmetricParts(GAPTable(tbl), GAP.Obj([GapObj(chi)]), n)[1])
 end
 
 @doc raw"""
@@ -3110,7 +3112,7 @@ function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.OrthogonalComponents(GAPTable(tbl),
-                         GAP.GapObj([chi.values for chi in characters]), n)]
+                         GapObj([GapObj(chi) for chi in characters]), n)]
 end
 
 @doc raw"""
@@ -3128,7 +3130,7 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymplecticComponents(GAPTable(tbl),
-                         GAP.GapObj([chi.values for chi in characters]), n)]
+                         GapObj([GapObj(chi) for chi in characters]), n)]
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
