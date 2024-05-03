@@ -53,6 +53,7 @@ Return the arithmetic genus of a general hyperplane section of `X`.
 # Examples
 ```jldoctest
 julia> X = bordiga()
+[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -92,6 +93,7 @@ Return `true` if `X` is linearly normal, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> X = bordiga()
+[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -177,6 +179,7 @@ julia> degrees_of_generators(Omega)
 
 ```jldoctest
 julia> X = bordiga()
+[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -189,16 +192,8 @@ julia> codim(X)
 
 julia> Omega = canonical_bundle(X);
 
-julia> FOmega = free_resolution(Omega, algorithm = :mres);
-
-julia> betti_table(FOmega)
-       0  1  2
---------------
-1    : 3  4  -
-2    : -  -  -
-3    : -  -  1
---------------
-total: 3  4  1
+julia> typeof(Omega)
+SubquoModule{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}
 ```
 """
 function canonical_bundle(X::AbsProjectiveVariety)
@@ -251,6 +246,7 @@ which are obtained by blowing down the exceptional $(-1)$-lines on $X^{(i)}$.
 # Examples
 ```jldoctest
 julia> X = bordiga()
+[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -266,7 +262,7 @@ julia> L = adjunction_process(X);
 
 julia> L[1]
 2-element Vector{NTuple{4, ZZRingElem}}:
- (4, 6, 3, -1)
+ (4, 6, 3, 0)
  (2, 1, 0, 10)
 
 julia> L[4]
@@ -288,6 +284,7 @@ julia> degree(L[3][1])
 
 ```
 julia> X = rational_d9_pi7();
+[ Info: upgrading serialized data....
 
 julia> L = adjunction_process(X);
 
