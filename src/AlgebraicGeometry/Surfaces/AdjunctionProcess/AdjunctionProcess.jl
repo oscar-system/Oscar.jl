@@ -1,4 +1,3 @@
-export sectional_genus, canonical_bundle, adjunction_process, is_linearly_normal
 
 ##############################################################################
 #
