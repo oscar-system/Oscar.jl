@@ -1,6 +1,6 @@
 include("PhylogeneticModels.jl")
 include("PhylogeneticAuxiliary.jl")
-include("PhylogeneticParametrisation.jl")
+include("PhylogeneticParametrization.jl")
 
 #export models
 export cavender_farris_neyman_model 

@@ -1,4 +1,4 @@
-#### PARAMETRISATION IN PROBABLITY COORDINATES #### 
+#### PARAMETRIZATION IN PROBABLITY COORDINATES #### 
 
 function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
   gr = graph(pm)
@@ -46,30 +46,31 @@ end
     probability_map(pm::PhylogeneticModel)    
 
 Create a parametrization for a `PhylogeneticModel` of type `Dictionary`.
-Iterates through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Returns a dictionary of polynomials indexed by the states. Uses auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
+
+Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
-julia> probability_map(pm)
 
+julia> probability_map(pm)
 Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 64 entries:
-  (1, 2, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (3, 1, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  (3, 2, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (3, 2, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  (2, 1, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  (1, 3, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (1, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (4, 3, 4) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  (2, 2, 1) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (4, 4, 4) => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
-  (3, 3, 2) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (3, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (4, 3, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  (4, 4, 3) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (1, 3, 1) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  ⋮         => ⋮
+ (1, 2, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ (3, 1, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+ (3, 2, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ (3, 2, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+ (2, 1, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
+ (1, 3, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ (1, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ (4, 3, 4) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+ (2, 2, 1) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+ (4, 4, 4) => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
+ (3, 3, 2) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+ (3, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ (4, 3, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
+ (4, 4, 3) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+ (1, 3, 1) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+ ⋮         => ⋮
 ```
 """
 function probability_map(pm::PhylogeneticModel)
@@ -115,30 +116,31 @@ end
     fourier_map(pm::GroupBasedPhylogeneticModel)    
 
 Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary`.
-Iterates through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Returns a dictionary of polynomials indexed by the states. Uses auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
+
+Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
-julia> fourier_map(pm)
 
+julia> fourier_map(pm)
 Dict{Tuple{Int64, Int64, Int64}, QQMPolyRingElem} with 64 entries:
-  (1, 2, 3) => 0
-  (3, 1, 3) => x[2, 1]*x[1, 2]*x[3, 2]
-  (3, 2, 4) => x[1, 2]*x[2, 2]*x[3, 2]
-  (3, 2, 3) => 0
-  (2, 1, 1) => 0
-  (1, 3, 2) => 0
-  (1, 4, 2) => 0
-  (4, 3, 4) => 0
-  (2, 2, 1) => x[3, 1]*x[1, 2]*x[2, 2]
-  (4, 4, 4) => 0
-  (3, 3, 2) => 0
-  (3, 4, 2) => x[1, 2]*x[2, 2]*x[3, 2]
-  (4, 3, 3) => 0
-  (4, 4, 3) => 0
-  (1, 3, 1) => 0
-  ⋮         => ⋮
+ (1, 2, 3) => 0
+ (3, 1, 3) => x[2, 1]*x[1, 2]*x[3, 2]
+ (3, 2, 4) => x[1, 2]*x[2, 2]*x[3, 2]
+ (3, 2, 3) => 0
+ (2, 1, 1) => 0
+ (1, 3, 2) => 0
+ (1, 4, 2) => 0
+ (4, 3, 4) => 0
+ (2, 2, 1) => x[3, 1]*x[1, 2]*x[2, 2]
+ (4, 4, 4) => 0
+ (3, 3, 2) => 0
+ (3, 4, 2) => x[1, 2]*x[2, 2]*x[3, 2]
+ (4, 3, 3) => 0
+ (4, 4, 3) => 0
+ (1, 3, 1) => 0
+ ⋮         => ⋮
 ```
 """
 function fourier_map(pm::GroupBasedPhylogeneticModel)
@@ -153,10 +155,6 @@ end
 
 #### SPECIALIZED FOURIER TRANSFORM MATRIX ####
 
-#=replaced arguments
-p_equivclasses::Dict{Vector{Vector{Int64}}QQMPolyRingElem}
-f_equivclasses::Dict{Vector{Vector{Int64}}, QQMPolyRingElem}
-by calling functions probability_map and fourier_map on the model=#
 @doc raw"""
     specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
 
@@ -210,9 +208,6 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   f_equivclasses = compute_equivalent_classes(fourier_map(pm))
   specialized_fourier_transform(pm, p_equivclasses,f_equivclasses)
 end
-
-
-
 
 @doc raw"""
     inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)    
