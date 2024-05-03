@@ -15,7 +15,6 @@ function is_zero_group_sum(pm::GroupBasedPhylogeneticModel, states::Vector{Int})
 end
   
 function which_group_element(pm::GroupBasedPhylogeneticModel, elem::Vector{Int64})
-  #function which_group_element(pm::PhylogeneticModel, elem::Vector{Vector{Int64}})
   group = group_of_model(pm)
   return findall([all(group[i].==elem) for i in 1:length(group)])[1]
 end
@@ -58,8 +57,6 @@ end
 
 function cherries(graph::Graph)
   lvs = leaves(graph)
-  #cherr = unique([outneighbors(graph, inneighbors(graph,l)[1]) for l in lvs])
-  #cherr = cherr[findall(x -> length(intersect(x, lvs)) ==2, cherr)]
   cherry = []
   for l in lvs
     in_node = inneighbors(graph,l)[1]
@@ -90,18 +87,17 @@ Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
-julia> compute_equivalent_classes(pm)
 
+julia> compute_equivalent_classes(pm)
 Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
-  [(1, 2, 3), (3, 2, 4), (1, 3, 2), (1, 4, 2), (3, 4, 2), (3, 1, 2), (3, 4, … => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  [(2, 1, 1), (4, 3, 3), (1, 2, 2), (3, 2, 2), (2, 4, 4), (2, 3, 3), (3, 1, … => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  [(4, 4, 4), (1, 1, 1), (3, 3, 3), (2, 2, 2)]                                => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
-  [(3, 1, 3), (3, 2, 3), (4, 3, 4), (1, 3, 1), (1, 4, 1), (4, 1, 4), (4, 2, … => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, … => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
+ [(1, 2, 3), (3, 2, 4), (1, 3, 2), (1, 4, 2), (3, 4, 2), (3, 1, 2), (3, 4, … => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+ [(2, 1, 1), (4, 3, 3), (1, 2, 2), (3, 2, 2), (2, 4, 4), (2, 3, 3), (3, 1, … => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
+ [(4, 4, 4), (1, 1, 1), (3, 3, 3), (2, 2, 2)]                                => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
+ [(3, 1, 3), (3, 2, 3), (4, 3, 4), (1, 3, 1), (1, 4, 1), (4, 1, 4), (4, 2, … => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
+ [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, … => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 ```
 """
 function compute_equivalent_classes(parametrization::Dict{})
-  #parametrization = probability_map(pm)
   polys = unique(collect(values(parametrization)))
   
   equivalent_keys = []
@@ -122,14 +118,14 @@ Take the output of the function `compute_equivalent_classes` for `PhylogeneticMo
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
-julia> sum_equivalent_classes(pm)
 
+julia> sum_equivalent_classes(pm)
 Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
-  [(1, 2, 3), (3, 2, 4), (1, 3, 2), (1, 4, 2), (3, 4, 2), (3, 1, 2), (3, 4, 1), (4, 1, 3… => 6*a[1]*b[2]*b[3] + 6*a[2]*b[1]*b[3] + 6*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
-  [(2, 1, 1), (4, 3, 3), (1, 2, 2), (3, 2, 2), (2, 4, 4), (2, 3, 3), (3, 1, 1), (4, 2, 2… => 3*a[1]*b[2]*b[3] + 3*a[2]*a[3]*b[1] + 6*b[1]*b[2]*b[3]
-  [(4, 4, 4), (1, 1, 1), (3, 3, 3), (2, 2, 2)]                                            => a[1]*a[2]*a[3] + 3*b[1]*b[2]*b[3]
-  [(3, 1, 3), (3, 2, 3), (4, 3, 4), (1, 3, 1), (1, 4, 1), (4, 1, 4), (4, 2, 4), (1, 2, 1… => 3*a[1]*a[3]*b[2] + 3*a[2]*b[1]*b[3] + 6*b[1]*b[2]*b[3]
-  [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, 4), (4, 4, 1… => 3*a[1]*a[2]*b[3] + 3*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
+ [(1, 2, 3), (3, 2, 4), (1, 3, 2), (1, 4, 2), (3, 4, 2), (3, 1, 2), (3, 4, 1), (4, 1, 3… => 6*a[1]*b[2]*b[3] + 6*a[2]*b[1]*b[3] + 6*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
+ [(2, 1, 1), (4, 3, 3), (1, 2, 2), (3, 2, 2), (2, 4, 4), (2, 3, 3), (3, 1, 1), (4, 2, 2… => 3*a[1]*b[2]*b[3] + 3*a[2]*a[3]*b[1] + 6*b[1]*b[2]*b[3]
+ [(4, 4, 4), (1, 1, 1), (3, 3, 3), (2, 2, 2)]                                            => a[1]*a[2]*a[3] + 3*b[1]*b[2]*b[3]
+ [(3, 1, 3), (3, 2, 3), (4, 3, 4), (1, 3, 1), (1, 4, 1), (4, 1, 4), (4, 2, 4), (1, 2, 1… => 3*a[1]*a[3]*b[2] + 3*a[2]*b[1]*b[3] + 6*b[1]*b[2]*b[3]
+ [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, 4), (4, 4, 1… => 3*a[1]*a[2]*b[3] + 3*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
 ```
 """
 function sum_equivalent_classes(equivalent_classes::Dict{})
