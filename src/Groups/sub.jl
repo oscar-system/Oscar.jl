@@ -790,7 +790,7 @@ and an exception is thrown if not.
 
 If `Q` is not given then the type of `G/N` is not determined by the type of `G`.
 - `G/N` may have the same type as `G` (which is reasonable if `N` is trivial),
-- `G/N` may have type `PcGroup` (which is reasonable if `G/N` is finite and solvable), or
+- `G/N` may have type `PcGroup` or `SubPcGroup` (which is reasonable if `G/N` is finite and solvable), or
 - `G/N` may have type `PermGroup` (which is reasonable if `G/N` is finite and non-solvable).
 - `G/N` may have type `FPGroup` (which is reasonable if `G/N` is infinite).
 
@@ -817,7 +817,13 @@ function quo(G::GAPGroup, N::GAPGroup)
   # for example that `GapObj(G)` is finite.
 #FIXME: The GAP function should deal with this situation.
   GAP.Globals.UseSubsetRelation(GapObj(G), GapObj(N))
-  cod = GAP.Globals.ImagesSource(mp)::GapObj
+#T HACK: In order to avoid `SubPcGroup`s as return values of `quo`
+#T       where possible, take the *full* pc group if the range is a pc group
+#T       and if the GAP mapping is surjective.
+  cod = GAP.Globals.Range(mp)::GapObj
+  if !(GAP.Globals.IsPcGroup(cod) && GAP.Globals.IsSurjective(mp))
+    cod = GAP.Globals.ImagesSource(mp)::GapObj
+  end
   S = elem_type(G)
   codom = _oscar_group(cod)
   return codom, GAPGroupHomomorphism(G, codom, mp)
