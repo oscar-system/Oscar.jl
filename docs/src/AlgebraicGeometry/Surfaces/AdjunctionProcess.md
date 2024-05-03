@@ -13,7 +13,7 @@ is called a *minimal model* of a surface $X$ if $X_{\text{min}}$ is minimal and 
 by repeatedly blowing up a point. Each surface $X$ has a minimal model which is unique if $X$ has non-negative Kodaira dimension.
 The Enriques-Kodaira classification classifies surfaces according to their minimal models. See ... for more on this.
 
-Given a surface, we may apply the *adjunction process* of Van de Ven and Sommese \cite{SV87} to discover a minimal model.
+Given a surface, we may apply the *adjunction process* of Van de Ven and Sommese [SV-D-V87](@cite) to discover a minimal model.
 To describe this process, consider a surface $X \subset \mathbb P^{n}$ of codimension $c$. Let $S$ and $S_{X}$
 denote the homogeneous coordinate rings of $\mathbb P^{n}$ and $X$, respectively. Consider $\omega_{X}=\text{Ext}^{c}_{S}(S_{X},S(-n-1)),$
 the graded *dualizing module* of $S_{X}$. A basis of the graded piece $(\omega_{X})_{{1}}$ corresponds to the linear system $|K_X +H|$, where $K_X$ is a canonical
@@ -24,7 +24,7 @@ As shown by Van de Ven and Sommese, in the exceptional cases,
 - ``X`` is a linearly or quadratically embedded $ \mathbb P^{2}$ or $X$ is ruled by lines, in which case $|K_X+H| = \emptyset$,
 - ``X`` is an anti-canonically embedded del Pezzo surface, in which case $\varphi_{|K_X+H|}$ maps $X$ to a point,
 - ``X`` is a conic bundle, in which case  $\varphi_{|K_{X}+H|}\colon X \to B$ maps $X$ to a curve $B$ such that the fibers of $\varphi_{|K_{X}+H|}$ are the conics, or
-- ``X`` is a surface in one of four explicit families identified by Sommese and Van de Ven \cite{SV87}, and $\varphi_{|K_X+H|}\colon X \to X'$ is not birational, but finite to one.
+- ``X`` is a surface in one of four explicit families identified by Sommese and Van de Ven, and $\varphi_{|K_X+H|}\colon X \to X'$ is not birational, but finite to one.
 
 If we are not in one of these cases, a $(-1)$-conic $C$ in $X$ is mapped to a $(-1)$-line in $X'$ since $(K_X+H)\;\!. \;\! C=-1+2=1$.
 Thus, the *adjunction process*, which  consists of applying the *adjunction maps* $\varphi_{|K_X+H|}$, $\varphi_{|K_{X'}+H'|}$ and so on, yields finitely many surfaces
