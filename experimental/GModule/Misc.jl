@@ -247,27 +247,6 @@ Hecke.extend(::Hecke.QQEmb, mp::MapFromFunc{QQField, AbsSimpleNumField}) = compl
 
 Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AbsSimpleNumField}) = complex_embeddings(QQ)[1]
 
-"""
-    hom(G::FinGenAbGroup, H::FinGenAbGroup, V::Vector{<:Map{FinGenAbGroup, FinGenAbGroup}})
-
-For groups `G = prod G_i` and `H = prod H_i` as well as maps `V_i: G_i -> H_i`,
-build the induced map from `G -> H`.
-"""
-function Oscar.hom(G::FinGenAbGroup, H::FinGenAbGroup, V::Vector{<:Map{FinGenAbGroup, FinGenAbGroup}})
-  dG = get_attribute(G, :direct_product)
-  dH = get_attribute(H, :direct_product)
-
-  if dG === nothing || dH === nothing
-    error("both groups need to be direct products")
-  end
-  @assert length(V) == length(dG) == length(dH)
-
-  @assert all(i -> domain(V[i]) == dG[i] && codomain(V[i]) == dH[i], 1:length(V))
-  h = hom(G, H, cat([matrix(V[i]) for i=1:length(V)]..., dims=(1,2)), check = !true)
-  return h
-
-end
-
 #XXX: have a type for an implicit field - in Hecke?
 #     add all(?) the other functions to it
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})

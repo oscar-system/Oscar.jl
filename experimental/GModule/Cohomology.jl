@@ -380,8 +380,8 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   @assert all(x->x.G == G, C)
   mM, pro, inj = direct_product([x.M for x = C]..., task = :both)
 
-  mC = gmodule(G, [hom(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
-  mC.iac = [hom(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
+  mC = gmodule(G, [hom_direct_sum(mM, mM, [action(C[i], g) for i=1:length(C)]) for g = gens(G)])
+  mC.iac = [hom_direct_sum(mM, mM, [action(C[i], inv(g)) for i=1:length(C)]) for g = gens(G)]
 
   if task == :none
     return mC
@@ -403,7 +403,7 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   @assert all(x->x.G == C[1].G, C)
 
   T, mT = Oscar.tensor_product([x.M for x = C]...; task = :map)
-  TT = gmodule(T, C[1].G, [hom(T, T, [action(C[i], g) for i=1:length(C)]) for g = gens(C[1].G)])
+  TT = gmodule(T, C[1].G, [hom_tensor(T, T, [action(C[i], g) for i=1:length(C)]) for g = gens(C[1].G)])
   if task == :map
     return TT, mT
   else
