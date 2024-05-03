@@ -32,7 +32,7 @@ affine_scheme(kk::Ring, R::Ring) = AffineScheme(kk, R)
 @doc raw"""
     spec(R::MPolyRing, I::MPolyIdeal)
 
-Constructs the affine scheme of the ideal ``I`` in the ring ``R``.
+Construct the affine scheme of the ideal ``I`` in the ring ``R``.
 This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
@@ -184,7 +184,7 @@ end
 @doc raw"""
     affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 
-Creates the ``n``-dimensional affine space over a ring ``kk``,
+Create the ``n``-dimensional affine space over a ring ``kk``,
 but allows more flexibility in the choice of variable names.
 The following example demonstrates this.
 

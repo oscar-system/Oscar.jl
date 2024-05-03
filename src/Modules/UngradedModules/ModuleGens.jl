@@ -235,7 +235,7 @@ end
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
 function singular_module(F::FreeMod, ordering::ModuleOrdering)
-  Sx = singular_ring(base_ring(F), singular(ordering))
+  Sx = singular_poly_ring(base_ring(F), singular(ordering))
   return Singular.FreeModule(Sx, dim(F))
 end
 

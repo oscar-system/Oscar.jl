@@ -181,7 +181,7 @@ end
 @doc raw"""
     can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if the entry `D[i, j]` is known or `D` knows how to compute it.
+Return `true` if the entry `D[i, j]` is known or `D` knows how to compute it.
 """
 function can_compute_index(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
   can_compute_index(D, (i, j))
@@ -211,7 +211,7 @@ has_horizontal_map(dc::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(dc, 1, t
 @doc raw"""
     can_compute_horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if `dc` can compute the horizontal morphism `dc[i, j] → dc[i ± 1, j]`, 
+Return `true` if `dc` can compute the horizontal morphism `dc[i, j] → dc[i ± 1, j]`,
 the sign depending on the `horizontal_direction` of `dc`, and `false` otherwise.
 """
 can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 1, (i, j))
@@ -220,7 +220,7 @@ can_compute_horizontal_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = can_compu
 @doc raw"""
     vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`). 
+Return the morphism ``dc[i, j] → dc[i, j ± 1]`` (the sign depending on the `vertical_direction` of `dc`).
 """
 vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = map(C, 2, (i, j))
 vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = map(C, 2, t)
@@ -240,7 +240,7 @@ has_vertical_map(C::AbsDoubleComplexOfMorphisms, t::Tuple) = has_map(C, 2, t)
 @doc raw"""
     can_compute_vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 
-Returns `true` if `dc` can compute the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
+Return `true` if `dc` can compute the vertical morphism `dc[i, j] → dc[i, j ± 1]`, 
 the sign depending on the `vertical_direction` of `dc`, and `false` otherwise.
 """
 can_compute_vertical_map(C::AbsDoubleComplexOfMorphisms, i::Int, j::Int) = can_compute_map(C, 2, (i, j))
@@ -278,7 +278,7 @@ is_bounded(dc::AbsDoubleComplexOfMorphisms) = is_horizontally_bounded(dc) && is_
 @doc raw"""
     has_right_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``i ≤ B`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``i ≤ B`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_right_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 1)
@@ -286,7 +286,7 @@ has_right_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 1)
 @doc raw"""
     has_left_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``B ≤ i`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``B ≤ i`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_left_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 1)
@@ -294,7 +294,7 @@ has_left_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 1)
 @doc raw"""
     has_upper_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``j ≤ B`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``j ≤ B`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_upper_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 2)
@@ -302,7 +302,7 @@ has_upper_bound(C::AbsDoubleComplexOfMorphisms) = has_upper_bound(C, 2)
 @doc raw"""
     has_lower_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if a universal upper bound ``B ≤ j`` for non-zero `D[i, j]` 
+Return `true` if a universal upper bound ``B ≤ j`` for non-zero `D[i, j]`
 is known; `false` otherwise.
 """
 has_lower_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 2)
@@ -310,7 +310,7 @@ has_lower_bound(C::AbsDoubleComplexOfMorphisms) = has_lower_bound(C, 2)
 @doc raw"""
     right_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``i > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -319,7 +319,7 @@ right_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 1)
 @doc raw"""
     left_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``i < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -328,7 +328,7 @@ left_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 1)
 @doc raw"""
     upper_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero 
 for ``j > B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -337,7 +337,7 @@ upper_bound(C::AbsDoubleComplexOfMorphisms) = upper_bound(C, 2)
 @doc raw"""
     lower_bound(D::AbsDoubleComplexOfMorphisms)
 
-Returns a bound ``B`` such that `D[i, j]` can be assumed to be zero 
+Return a bound ``B`` such that `D[i, j]` can be assumed to be zero
 for ``j < B``. Whether or not requests for `D[i, j]` beyond that bound are 
 legitimate can be checked using `can_compute_index`.
 """
@@ -346,7 +346,7 @@ lower_bound(C::AbsDoubleComplexOfMorphisms) = lower_bound(C, 2)
 @doc raw"""
     is_complete(dc::AbsDoubleComplexOfMorphisms)
 
-Returns `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and 
+Return `true` if for all indices `(i, j)` with `has_index(dc, i, j) = true` and
 `dc[i, j]` non-zero, the vertex `(i, j)` is lying on an "island" of non-zero entries 
 in the grid of the double complex, which is bounded by either zero entries or 
 entries for indices `(i', j')` where `can_compute_index(dc, i', j') = false`.

@@ -1,38 +1,59 @@
+#=
+Short explanation of the different ways to deprecate things in julia:
+1. Rename a type.
+   You only need a single deprecation, but this needs to be a `@deprecate_binding` to be able to use OldType in signatures and type annotations.
+
+Base.@deprecate_binding OldType NewType
+
+2. Rename a function from `old_func` to `new_func` and deprecate `old_func` while the interface stays the same.
+   You only need to add one single deprecation that takes care of deprecating and redirecting all methods.
+
+@deprecate old_func new_func
+
+3. Rename a function from `old_func` to `new_func` and deprecate `old_func` while the interface changes.
+   For each removed method of `old_func` you need to add a deprecation. As an example, consider a change in the argument order.
+
+@deprecate old_func(a::SomeType, b::SomeOtherType) new_func(b, a)
+
+4. More complex function deprecations.
+   Add a method for `old_func` with the old interface that first calls `Base.depwarn` and then calls `new_func` with the new interface.
+=#
+
 # Deprecated after 0.14.*
-Base.@deprecate_binding is_isomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
-Base.@deprecate_binding has_is_isomorphic_with_symmetric_group has_is_isomorphic_to_symmetric_group
-Base.@deprecate_binding set_is_isomorphic_with_symmetric_group set_is_isomorphic_to_symmetric_group
+@deprecate is_isomorphic_with_symmetric_group is_isomorphic_to_symmetric_group
+@deprecate has_is_isomorphic_with_symmetric_group has_is_isomorphic_to_symmetric_group
+@deprecate set_is_isomorphic_with_symmetric_group set_is_isomorphic_to_symmetric_group
 
-Base.@deprecate_binding is_isomorphic_with_alternating_group is_isomorphic_to_alternating_group
-Base.@deprecate_binding has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
-Base.@deprecate_binding set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
+@deprecate is_isomorphic_with_alternating_group is_isomorphic_to_alternating_group
+@deprecate has_is_isomorphic_with_alternating_group has_is_isomorphic_to_alternating_group
+@deprecate set_is_isomorphic_with_alternating_group set_is_isomorphic_to_alternating_group
 
-Base.@deprecate_binding proj_space projective_space
+@deprecate proj_space projective_space
 
-Base.@deprecate_binding are_algebraically_independent is_algebraically_independent_with_relations
+@deprecate are_algebraically_independent is_algebraically_independent_with_relations
 
-Base.@deprecate ambient_ring(U::AbsMultSet) ring(U)
+@deprecate ambient_ring(U::AbsMultSet) ring(U)
 
-# Deprecated after 0.15
-Base.@deprecate_binding _compute_glueing_base_change _compute_gluing_base_change
-Base.@deprecate_binding _compute_toric_glueing _compute_toric_gluing
-Base.@deprecate_binding add_glueing! add_gluing!
-Base.@deprecate_binding glueing_domains gluing_domains
-Base.@deprecate_binding glueing_graph gluing_graph
-Base.@deprecate_binding glueing_morphisms gluing_morphisms
-Base.@deprecate_binding glueings gluings
-Base.@deprecate_binding is_connected_glueing is_connected_gluing
-Base.@deprecate_binding pruned_glueing_graph pruned_gluing_graph
-Base.@deprecate_binding underlying_glueing underlying_gluing
-Base.@deprecate_binding update_glueing_graph update_gluing_graph
+# Deprecated for 1.0
+@deprecate _compute_glueing_base_change _compute_gluing_base_change
+@deprecate _compute_toric_glueing _compute_toric_gluing
+@deprecate add_glueing! add_gluing!
+@deprecate glueing_domains gluing_domains
+@deprecate glueing_graph gluing_graph
+@deprecate glueing_morphisms gluing_morphisms
+@deprecate glueings gluings
+@deprecate is_connected_glueing is_connected_gluing
+@deprecate pruned_glueing_graph pruned_gluing_graph
+@deprecate underlying_glueing underlying_gluing
+@deprecate update_glueing_graph update_gluing_graph
 Base.@deprecate_binding AbsGlueing AbsGluing
 Base.@deprecate_binding BaseChangeGlueingData BaseChangeGluingData
 Base.@deprecate_binding Glueing Gluing
 Base.@deprecate_binding SimpleGlueing SimpleGluing
 Base.@deprecate_binding ToricGlueingData ToricGluingData
 
-Base.@deprecate_binding jacobi_matrix jacobian_matrix
-Base.@deprecate_binding jacobi_ideal jacobian_ideal
+@deprecate jacobi_matrix jacobian_matrix
+@deprecate jacobi_ideal jacobian_ideal
 
 @deprecate embedding(G::DirectProductGroup, j::Int) canonical_injection(G, j)
 @deprecate projection(G::DirectProductGroup, j::Int) canonical_projection(G, j)
@@ -85,17 +106,19 @@ end
 
 @deprecate labelled_matrix_formatted labeled_matrix_formatted
 
-@deprecate Spec AffineScheme
+Base.@deprecate_binding Spec AffineScheme
 @deprecate proj(E::ToricLineBundle...) projectivization
 @deprecate proj(E::ToricDivisor...) projectivization
-@deprecate AbsSpec AbsAffineScheme
-@deprecate SpecMor AffineSchemeMor
-@deprecate AbsSpecMor AbsAffineSchemeMor
-@deprecate SimplifiedSpec SimplifiedAffineScheme
-@deprecate SpecOpen AffineSchemeOpenSubscheme
-@deprecate SpecOpenMor AffineSchemeOpenSubschemeMor
-@deprecate SpecOpenRing AffineSchemeOpenSubschemeRing
-@deprecate SpecOpenRingElem AffineSchemeOpenSubschemeRingElem
-@deprecate SpecSubset AffineSchemeSubset
-@deprecate StdSpec StdAffineScheme
+Base.@deprecate_binding AbsSpec AbsAffineScheme
+Base.@deprecate_binding SpecMor AffineSchemeMor
+Base.@deprecate_binding AbsSpecMor AbsAffineSchemeMor
+Base.@deprecate_binding SimplifiedSpec SimplifiedAffineScheme
+Base.@deprecate_binding SpecOpen AffineSchemeOpenSubscheme
+Base.@deprecate_binding SpecOpenMor AffineSchemeOpenSubschemeMor
+Base.@deprecate_binding SpecOpenRing AffineSchemeOpenSubschemeRing
+Base.@deprecate_binding SpecOpenRingElem AffineSchemeOpenSubschemeRingElem
+Base.@deprecate_binding SpecSubset AffineSchemeSubset
+Base.@deprecate_binding StdSpec StdAffineScheme
+
+# deprecated for 1.1
 @deprecate morphism_of_projective_schemes morphism

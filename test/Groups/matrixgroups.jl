@@ -3,7 +3,7 @@
    z = F(2)
    G = GL(3,F)
    #@test isdefined(G,:X)
-   @test G.X isa GAP.GapObj
+   @test GapObj(G) isa GapObj
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -18,13 +18,13 @@
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-#   xg = Vector{GAP.GapObj}(undef, 3)
+#   xg = Vector{GapObj}(undef, 3)
 #   for i in 1:3
-#      xg[i] = GAP.GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
+#      xg[i] = GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
 #   end
 #   xg=GAP.Obj(xg)
 
-   xg = GAP.GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
@@ -34,7 +34,7 @@
    F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
    #@test isdefined(G,:X)
-   @test G.X isa GAP.GapObj
+   @test GapObj(G) isa GapObj
    @test isdefined(G, :ring_iso)
    @test G.ring_iso(z) isa GAP.FFE
    Z = G.ring_iso(z)
@@ -54,7 +54,7 @@
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
    xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
-   xg = Vector{GAP.GapObj}(undef, 3)
+   xg = Vector{GapObj}(undef, 3)
    for i in 1:3
       xg[i] = GAP.Obj([G.ring_iso(xo[i,j]) for j in 1:3])
    end
@@ -80,7 +80,7 @@ end
          @test g(a - b) == g(a) - g(b)
       end
       #@test isdefined(G, :X)
-      @test G.X isa GAP.GapObj
+      @test GapObj(G) isa GapObj
       @test isdefined(G, :ring_iso)
       @test G.ring_iso(z) isa GAP.Obj
       Z = G.ring_iso(z)
@@ -93,7 +93,7 @@ end
       @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
 
       xo = matrix(F, 3, 3, [0, 1, 0, 0, 1, z, 0, 0, z])
-      xg = GAP.GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
+      xg = GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
       @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.IdentityMat(3)) == matrix(one(G))
@@ -134,7 +134,7 @@ end
      end
 
      H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive=true))
-     f = GAP.Globals.GroupHomomorphismByImages(G.X, H)
+     f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
    end
@@ -219,7 +219,7 @@ end
    @test ring_elem_type(typeof(G))==typeof(one(base_ring(G)))
    @test mat_elem_type(typeof(G))==typeof(matrix(x))
    @test elem_type(typeof(G))==typeof(x)
-   @test Oscar._gap_filter(typeof(G))(G.X)
+   @test Oscar._gap_filter(typeof(G))(GapObj(G))
 end
 
 #FIXME : this may change in future. It can be easily skipped.
@@ -249,7 +249,7 @@ end
    x = matrix(F,2,2,[1,0,0,1])
    x = G(x)
    @test !isdefined(x,:X)
-   @test x.X isa GAP.GapObj
+   @test GapObj(x) isa GapObj
    x = matrix(G[1])
    x = G(x)
    @test !isdefined(x,:X)
@@ -272,8 +272,8 @@ end
    @test parent(f(H[1]))==G
 
    K1 = matrix_group(x,y,x*y)
-   @test K1.X isa GAP.GapObj
-   @test K1.X==H.X
+   @test GapObj(K1) isa GapObj
+   @test GapObj(K1)==GapObj(H)
 
    K = matrix_group(x,x^2,y)
    @test isdefined(K, :gens)
@@ -297,10 +297,10 @@ end
    @test order(x)==8
 
    G = matrix_group(F, 4)
-   @test_throws ErrorException G.X
+   @test_throws ErrorException GapObj(G)
    setfield!(G,:descr,:GX)
    @test isdefined(G,:descr)
-   @test_throws ErrorException G.X
+   @test_throws ErrorException GapObj(G)
 end
 
 
@@ -494,7 +494,7 @@ end
    @test S(x; check=false)==G(x)
    @test S(G(x); check=false)==G(x)
    x = G(x)
-   y = MatrixGroupElem(G,x.X)
+   y = MatrixGroupElem(G,GapObj(x))
    @test_throws ArgumentError S(y)
    @test G(y) isa MatrixGroupElem
    @test G(y*y)==G(y)*G(y)
@@ -556,8 +556,8 @@ end
    @test G(x*matrix(y))==x*y
    @test matrix(x)==x.elm
 
-   xg = GAP.Globals.Random(G.X)
-   yg = GAP.Globals.Random(G.X)
+   xg = GAP.Globals.Random(GapObj(G))
+   yg = GAP.Globals.Random(GapObj(G))
    pg = MatrixGroupElem(G, xg*yg)
    @test pg == MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, xg))*MatrixGroupElem(G, Oscar.preimage_matrix(G.ring_iso, yg))
 
@@ -756,7 +756,7 @@ end
    c = deepcopy(m);
    @test isdefined(c, :X)
    @test ! isdefined(c, :elm)
-   @test c.X == m.X
+   @test GapObj(c) == GapObj(m)
 
    m = MatrixGroupElem(g, matrix(gen(g, 1)), gen(g, 1).X)
    @test isdefined(m, :X)
@@ -764,7 +764,7 @@ end
    c = deepcopy(m);
    @test isdefined(c, :X)
    @test isdefined(c, :elm)
-   @test c.X == m.X
+   @test GapObj(c) == GapObj(m)
    @test matrix(c) == matrix(m)
 
    m = MatrixGroupElem(g, matrix(gen(g, 1)))

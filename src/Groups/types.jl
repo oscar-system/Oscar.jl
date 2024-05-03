@@ -46,7 +46,7 @@ struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 end
 
 function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
-  X = Base.deepcopy_internal(x.X, dict)
+  X = Base.deepcopy_internal(GapObj(x), dict)
   return BasicGAPGroupElem(x.parent, X)
 end
 
@@ -306,7 +306,7 @@ end
 #
 # "Coerce" an Oscar group `G` to one that is compatible with
 # the given Oscar group `S`.
-compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
+compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(GapObj(G), S)
 
 
 ################################################################################

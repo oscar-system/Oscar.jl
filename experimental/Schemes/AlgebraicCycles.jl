@@ -446,7 +446,7 @@ end
 @doc raw"""
     irreducible_decomposition(D::AbsAlgebraicCycle)
 
-Returns a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
+Return a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
 where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)

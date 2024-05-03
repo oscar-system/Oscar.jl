@@ -12,9 +12,9 @@ function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   end
   return reverse(l)
 
-  l = GAP.Globals.AscendingChain(G.X,U.X)
+  l = GAP.Globals.AscendingChain(GapObj(G),GapObj(U))
   map(GAP.Globals.MaximalSubgroupClassReps, l)
-  ll = GAP.Globals.RefinedChain(G.X,l)
+  ll = GAP.Globals.RefinedChain(GapObj(G),l)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 

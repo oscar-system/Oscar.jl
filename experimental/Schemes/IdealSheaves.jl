@@ -1901,7 +1901,7 @@ function is_subset(I::AbsIdealSheaf, rad::RadicalOfIdealSheaf)
   X = scheme(rad)
   @assert X === scheme(I) "ideal sheaves do not live on the same scheme"
   for U in affine_charts(X)
-    all(g->radical_membership(g, rad(U)), gens(I(U))) && return false
+    all(radical_membership(g, rad(U)) for g in gens(I(U))) || return false
   end
   return true
 end

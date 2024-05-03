@@ -452,6 +452,6 @@ function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFie
       set_attribute!(H, :order => ZZRingElem(card))
       return H, nothing          # do not return the embedding of the centralizer into G to do not compute G.X
    end
-   C = GAP.Globals.Centralizer(G.X, x.X)
+   C = GAP.Globals.Centralizer(GapObj(G), GapObj(x))
    return _as_subgroup(G, C)
 end

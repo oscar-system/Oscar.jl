@@ -23,6 +23,10 @@ using LazyArtifacts
 
 include("imports.jl")
 
+AbstractAlgebra.@include_deprecated_bindings()
+Nemo.@include_deprecated_bindings()
+Hecke.@include_deprecated_bindings()
+
 include("utils/utils.jl")
 
 # More helpful error message for users on Windows.

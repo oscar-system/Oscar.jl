@@ -24,7 +24,7 @@
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test is_hermitian(f)
-   @test f.X isa GAP.GapObj
+   @test GAP.Obj(f) isa GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
    @test_throws ArgumentError corresponding_quadratic_form(f)

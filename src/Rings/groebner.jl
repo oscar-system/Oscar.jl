@@ -1060,7 +1060,7 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
-  if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
+  if ordering == degrevlex(base_ring(J)) && typeof(base_ring(J)) == FqField && absolute_degree(base_ring(J)) == 1
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
@@ -1157,11 +1157,13 @@ julia> Oscar._normal_form_singular(A, J, default_ordering(base_ring(J)))
 ```
 """
 function _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
-  SR = singular_poly_ring(base_ring(J), ordering)
-  IS = Singular.Ideal(SR, [SR(x) for x in A])
   GS = singular_groebner_generators(J, ordering)
-  K  = ideal(base_ring(J), reduce(IS, GS))
-  return [J.gens.Ox(x) for x = gens(K.gens.S)]
+  SR = base_ring(GS)
+  tmp = map(SR, A)
+  IS = Singular.Ideal(SR, tmp)
+  K = reduce(IS, GS)
+  OR = base_ring(J)
+  return map(OR, gens(K))
 end
 
 @doc raw"""

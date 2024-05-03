@@ -11,6 +11,13 @@
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+    # issue 3665
+    kt,t = polynomial_ring(GF(2),:t)
+    Ft = fraction_field(kt)
+    P,(x,y) = polynomial_ring(Ft,[:x,:y])
+    I = ideal(P,[x,y])
+    @test normal_form([x], I) == [0]
+
     R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
     I = ideal(R, [x])
     gb = groebner_basis(I)
@@ -18,6 +25,7 @@
     @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
     @test Oscar._normal_form_f4([y], I) == [y]
     @test normal_form(y, I) == y
+
     G = groebner_basis(I)
     J = ideal(R, y)
     @test reduce(J.gens, G) == [y]
@@ -112,6 +120,13 @@
     standard_basis_highest_corner(I, ordering=negdeglex(R))
     @test elements(I.gb[negdeglex(R)]) == H
     @test_throws ArgumentError standard_basis_highest_corner(I)
+end
+
+@testset "normal form graded" begin
+    R, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"])
+    I = ideal([a^2+b^2, c^3])
+    # verify normal form of inhomogeneous polynomial work
+    @test normal_form(a^2+b, I) == -b^2+b
 end
 
 @testset "groebner leading ideal" begin
