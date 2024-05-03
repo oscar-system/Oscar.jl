@@ -409,6 +409,7 @@ end
   S, a, b = Oscar.graph_ring(phi)
 
   C, _ = sub(IP2, ideal(homogeneous_coordinate_ring(IP2), y^2-x*z))
+  img_gens = [s^2, s*t, t^2]
   phi = rational_map(IP1, C, img_gens)
 
   IP3 = projective_space(QQ, [:u, :v, :w, :x])
