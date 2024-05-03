@@ -1357,7 +1357,7 @@ end
 @doc raw"""
     simplify(M::MonomialOrdering) -> MonomialOrdering
 
-Returns a matrix ordering with a unique weight matrix.
+Return a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
   w = canonical_matrix(M)
