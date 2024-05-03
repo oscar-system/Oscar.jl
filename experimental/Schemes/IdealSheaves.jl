@@ -804,7 +804,7 @@ Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec
 """
 function maximal_associated_points(I::AbsIdealSheaf; 
     covering=default_covering(scheme(I)),
-    algorithm::Symbol=:GTZ
+    algorithm::Symbol=:charSets
   )
   # The following would reroute to a more high-brow method with cleaner code.
   # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
