@@ -183,7 +183,6 @@ image_ideal(f::ProjectiveClosedEmbedding) = f.ideal_of_image
 domain(f::AbsRationalMap) = domain(underlying_rational_map(f))
 codomain(f::AbsRationalMap) = codomain(underlying_rational_map(f))
 pullback(f::AbsRationalMap) = pullback(underlying_rational_map(f))
-map_on_affine_cones(f::AbsRationalMap) = map_on_affine_cones(underlying_rational_map(f))
 graph_ring(f::AbsRationalMap) = graph_ring(underlying_rational_map(f))
 
 underlying_rational_map(f::AbsRationalMap) = error("no underlying rational map for rational map of type $(typeof(f))")
