@@ -234,7 +234,7 @@ end
 Given a class function `chi` on a group `G`, return whether `chi` defines a
 character of `G` (over its codomain).
 """
-is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GAPTable(parent(chi)), GapObj(chi))::Bool
+is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GapObj(parent(chi)), GapObj(chi))::Bool
 
 @doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
