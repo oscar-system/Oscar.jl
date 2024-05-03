@@ -2,7 +2,7 @@
 # TODOs:
 # * how to check e.g. collect(values(compute_equivalent_classes(probability_map(model)))) against something hardcoded? (Marina)
 # * Markov model: root distribution, transition matricies, question: why 148 gens of ring?
-# * @testset affine 
+# * fourier parametrisation: missing comparison of second index of vector (especially Kimura3!)
 # * specialized (inverse) fourier transform,two fuctions still as comments (Christiane)
 
 @testset "Graphical Models tests" begin
