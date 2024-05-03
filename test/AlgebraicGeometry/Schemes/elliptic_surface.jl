@@ -1,3 +1,9 @@
+# The tests for elliptic surfaces have lead to random failure of the CI-tests, 
+# see issue no. 3676. 
+#
+# They are now disabled, also because in general they tend to take quite long.
+# We keep them, however, to allow for running them locally.
+#=
 @testset "elliptic surfaces" begin
   #=
   # The tests in this file are quite expensive
@@ -261,4 +267,4 @@ end
   P = Oscar.extract_mordell_weil_basis(phi)
   @test length(P) == 9
 end
-
+=#
