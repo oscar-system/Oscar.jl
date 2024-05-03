@@ -2497,6 +2497,12 @@ end
 
 # Given an irreducible divisor D on an elliptic surface X, try to extract a point 
 # on the generic fiber from it. The return value is `nothing` in case this does not succeed.
+function point_on_generic_fiber_from_divisor(I::AbsIdealSheaf{<:EllipticSurface}; check::Bool=true)
+  X = scheme(I)
+  @check dim(I) == 1 "ideal sheaf must be of dimension one"
+  return point_on_generic_fiber_from_divisor(WeilDivisor(X, I; check=false); check)
+end
+
 function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
   X = scheme(D)
   E = generic_fiber(X)
