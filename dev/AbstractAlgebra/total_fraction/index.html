@@ -3,7 +3,7 @@
 (Univariate polynomial ring in x over integers, x)
 
 julia&gt; S = total_ring_of_fractions(R)
-Total ring of fractions of Univariate polynomial ring in x over integers
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; f = S()
 0
@@ -22,7 +22,7 @@ x + 1</code></pre><h2 id="Fraction-constructors"><a class="docs-heading-anchor" 
 (Univariate polynomial ring in x over rationals, x)
 
 julia&gt; S = total_ring_of_fractions(R)
-Total ring of fractions of Univariate polynomial ring in x over rationals
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; f = S(x + 1)
 x + 1
@@ -39,7 +39,7 @@ base_ring(a::TotFrac)</code></pre><p>Return the base ring of which the total rin
 (Univariate polynomial ring in x over rationals, x)
 
 julia&gt; S = total_ring_of_fractions(R)
-Total ring of fractions of Univariate polynomial ring in x over rationals
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; f = S(x + 1)
 x + 1
@@ -51,7 +51,7 @@ julia&gt; V = base_ring(f)
 Univariate polynomial ring in x over rationals
 
 julia&gt; T = parent(f)
-Total ring of fractions of Univariate polynomial ring in x over rationals
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; m = characteristic(S)
 0</code></pre><h2 id="Total-ring-of-fractions-functions"><a class="docs-heading-anchor" href="#Total-ring-of-fractions-functions">Total ring of fractions functions</a><a id="Total-ring-of-fractions-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Total-ring-of-fractions-functions" title="Permalink"></a></h2><h3 id="Basic-functions"><a class="docs-heading-anchor" href="#Basic-functions">Basic functions</a><a id="Basic-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-functions" title="Permalink"></a></h3><p>Total rings of fractions implement the Ring interface.</p><pre><code class="language-julia hljs">zero(R::TotFracRing)
@@ -62,7 +62,7 @@ denominator(a::TotFrac)</code></pre><p><strong>Examples</strong></p><pre><code c
 (Univariate polynomial ring in x over rationals, x)
 
 julia&gt; S = total_ring_of_fractions(R)
-Total ring of fractions of Univariate polynomial ring in x over rationals
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; f = S(x + 1)
 x + 1
@@ -92,7 +92,7 @@ julia&gt; d = denominator(g)
 x^3 + 3*x + 1</code></pre><h3 id="Random-generation"><a class="docs-heading-anchor" href="#Random-generation">Random generation</a><a id="Random-generation-1"></a><a class="docs-heading-anchor-permalink" href="#Random-generation" title="Permalink"></a></h3><p>Random fractions can be generated using <code>rand</code>. The parameters passed after the total ring of fractions tell <code>rand</code> how to generate random elements of the base ring.</p><pre><code class="language-julia hljs">rand(R::TotFracRing, v...)</code></pre><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, = residue_ring(ZZ, 12);
 
 julia&gt; K = total_ring_of_fractions(R)
-Total ring of fractions of Residue ring of integers modulo 12
+Total ring of fractions of residue ring
 
 julia&gt; f = rand(K, 0:11)
 7//5
@@ -101,7 +101,7 @@ julia&gt; R, x = polynomial_ring(ZZ, &quot;x&quot;)
 (Univariate polynomial ring in x over integers, x)
 
 julia&gt; S = total_ring_of_fractions(R)
-Total ring of fractions of Univariate polynomial ring in x over integers
+Total ring of fractions of univariate polynomial ring
 
 julia&gt; g = rand(S, -1:3, -10:10)
-(4*x + 4)//(-4*x^2 - x + 4)</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Thursday 2 May 2024 09:19">Thursday 2 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+(4*x + 4)//(-4*x^2 - x + 4)</code></pre></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Saturday 4 May 2024 10:17">Saturday 4 May 2024</span>. Using Julia version 1.10.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
