@@ -48,7 +48,8 @@ end
 @doc raw"""
     sectional_genus(X::AbsProjectiveVariety)
 
-Return the arithmetic genus of a general hyperplane section of `X`.
+Given a subvariety `X` of some $\mathbb P^n$, return the arithmetic genus of the intersection of `X`
+with a general linear subspace of $\mathbb P^n$ of dimension $c+1$.
 
 # Examples
 ```jldoctest
@@ -74,11 +75,12 @@ julia> sectional_genus(X)
 function sectional_genus(X::AbsProjectiveVariety)
    I = defining_ideal(X)
    S = base_ring(I)
-   rd = _random_vector(S, 1, 1)
+   nl = length(gens(S))-codim(I)-2
+   rd = _random_vector(S, nl, 1)
    J = ideal(S, rd)+I
    dd = dim(J)
    while !(dd == 2)
-      rd = _random_vector(S, 1, 1)
+      rd = _random_vector(S, nl, 1)
       J = ideal(S, rd)+I
       dd = dim(J)
    end
