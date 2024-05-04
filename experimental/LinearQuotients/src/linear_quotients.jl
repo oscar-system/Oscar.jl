@@ -22,6 +22,7 @@ end
 
 group(L::LinearQuotient) = L.group
 base_ring(L::LinearQuotient) = base_ring(group(L))
+base_ring_type(::Type{LinearQuotient{S,T}}) where {S,T} = base_ring_type(MatrixGroup{S,T})
 
 function fixed_root_of_unity(L::LinearQuotient)
   if isdefined(L, :root_of_unity)

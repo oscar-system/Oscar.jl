@@ -63,7 +63,7 @@ julia> pts = collect(orb)
 julia> visualize(convex_hull(pts))
 
 julia> R2 = free_module(K, 2) # the "euclidean" plane over K
-Vector space of dimension 2 over field of algebraic numbers
+Vector space of dimension 2 over QQBar
 
 julia> A = R2([0,1])
 (Root 0 of x, Root 1.00000 of x - 1)
@@ -72,8 +72,8 @@ julia> pts = [A*mat_rot^i for i in 0:4];
 
 julia> sigma_1 = hom(R2, R2, [-R2[1], R2[2]])
 Module homomorphism
-  from vector space of dimension 2 over field of algebraic numbers
-  to vector space of dimension 2 over field of algebraic numbers
+  from vector space of dimension 2 over QQBar
+  to vector space of dimension 2 over QQBar
 
 julia> rot = hom(R2, R2, mat_rot);
 

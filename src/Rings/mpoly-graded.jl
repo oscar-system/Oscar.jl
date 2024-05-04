@@ -1169,6 +1169,7 @@ function homogeneous_component(a::MPolyDecRingElem, g::Vector{<:IntegerUnion})
 end
 
 base_ring(W::MPolyDecRing) = base_ring(forget_decoration(W))
+base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))

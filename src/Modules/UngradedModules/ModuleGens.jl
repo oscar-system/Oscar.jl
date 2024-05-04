@@ -88,6 +88,8 @@ function base_ring(M::ModuleGens)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     singular_generators(M::ModuleGens)
 

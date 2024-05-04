@@ -188,6 +188,8 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
+base_ring_type(::Type{MonomialOrdering{S}}) where {S} = S
+
 @doc raw"""
     support(o::MonomialOrdering)
 
@@ -1569,7 +1571,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1
@@ -1770,6 +1772,8 @@ end
 
 base_ring(a::ModuleOrdering) = a.M
 
+base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
+
 mutable struct ModProdOrdering <: AbsModOrdering
   a::AbsOrdering
   b::AbsOrdering
@@ -1927,7 +1931,7 @@ Return the ring ordering induced by `ord`.
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
+Free module of rank 3 over R
 
 julia> o = invlex(gens(F))*degrevlex(R)
 invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])

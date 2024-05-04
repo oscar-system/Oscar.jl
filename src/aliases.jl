@@ -1,7 +1,3 @@
-# HACK/FIXME: remove these aliases once https://github.com/Nemocas/AbstractAlgebra.jl/pull/1696 is available
-@alias characteristic_polynomial charpoly  # FIXME
-@alias minimal_polynomial minpoly  # FIXME
-
 # make some Julia names compatible with our naming conventions
 @alias is_subset issubset
 @alias is_valid isvalid

@@ -37,7 +37,7 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> x*FR[1]
 x*e[1]
@@ -49,7 +49,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
+Free module of rank 2 over Localization of R at complement of prime ideal (x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]

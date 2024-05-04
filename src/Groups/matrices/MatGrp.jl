@@ -450,6 +450,8 @@ Return the base ring of the underlying matrix of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
+base_ring_type(::Type{<:MatrixGroupElem{RE}}) where {RE} = parent_type(RE)
+
 parent(x::MatrixGroupElem) = x.parent
 
 """
@@ -511,6 +513,8 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
 Return the base ring of the matrix group `G`.
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
+
+base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 
 """
     degree(G::MatrixGroup)

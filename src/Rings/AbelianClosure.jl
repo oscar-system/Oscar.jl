@@ -34,7 +34,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
+import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
@@ -150,6 +150,9 @@ parent(::QQAbElem{AbsSimpleNumFieldElem}) = _QQAb
 elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbElem{AbsNonSimpleNumFieldElem}
 parent_type(::Type{QQAbElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
 parent(::QQAbElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
+
+base_ring(::QQAbField) = Union{}
+base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
 
 ################################################################################
 #

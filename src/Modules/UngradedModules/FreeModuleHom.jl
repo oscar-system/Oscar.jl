@@ -42,10 +42,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -101,10 +101,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -116,10 +116,10 @@ julia> a = hom(F, G, V)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> a(F[2])
 x*e[1] + y*e[2]
@@ -133,10 +133,10 @@ julia> b = hom(F, G, B)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> a == b
 true
@@ -325,10 +325,10 @@ that converts elements from $S$ into morphisms $F \to G$.
 julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> F2 = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
@@ -337,10 +337,10 @@ julia> f(V[1])
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 ```
 
@@ -414,10 +414,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -434,7 +434,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
+Free module of rank 3 over R)
 ```
 
 ```jldoctest
@@ -546,10 +546,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -570,7 +570,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+Free module of rank 2 over R)
 ```
 
 ```jldoctest

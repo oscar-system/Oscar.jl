@@ -122,7 +122,6 @@ coefficient_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) whe
 coefficient_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_elem_type(typeof(L))
 
 base_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(L))
 base_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
 base_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_elem_type(typeof(L))
 
@@ -1711,6 +1710,7 @@ end
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
 gen(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
+base_ring_type(::Type{MPolyQuoLocalizedIdeal{LRT, LET, MPT}}) where {LRT, LET, MPT} = LRT
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring

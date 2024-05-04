@@ -96,6 +96,7 @@ function Base.show(io::IO, w::MPolyRingElemLoc)
 end
 
 base_ring(R::MPolyRingLoc) = R.base_ring
+base_ring_type(::Type{MPolyRingLoc{T}}) where {T} = MPolyRing{T}
 symbols(R::MPolyRingLoc) = symbols(base_ring(R))
 number_of_variables(R::MPolyRingLoc) = number_of_variables(base_ring(R))
 parent(f::MPolyRingElemLoc) = f.parent
