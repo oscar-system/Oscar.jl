@@ -51,7 +51,7 @@ end
 function Base.show(io::IO, Q::MPolyQuoRing)
   @show_name(io, Q)
   @show_special(io, Q)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     # no nested printing
     print(io, "Quotient of multivariate polynomial ring")
   else

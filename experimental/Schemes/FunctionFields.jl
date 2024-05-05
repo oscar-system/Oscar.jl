@@ -384,7 +384,7 @@ canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface tha
 
 function Base.show(io::IO, KK::VarietyFunctionField)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Field of rational functions")
   else
     print(io, "Field of rational functions on ", Lowercase(), variety(KK))
@@ -415,7 +415,7 @@ function Base.show(io::IO, f::VarietyFunctionFieldElem)
     cov = Oscar._covering_for_printing(io, X)
     k = get(io, :offset, 0)
     _show_semi_compact(io, f, cov, k)
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Rational function")
   else
     print(io, "Rational function on ", Lowercase(), variety(parent(f)))

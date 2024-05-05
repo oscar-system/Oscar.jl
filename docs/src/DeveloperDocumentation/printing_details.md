@@ -7,13 +7,13 @@ found in the [Developer Style Guide](@ref).
 
 ## Implementing `show` functions
 
-Here is the translation between `:detail`, `one line` and `:supercompact`,
+Here is the translation between `:detail`, `one line` and `terse`,
 where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
 
 ```
 show(io, MIME"text/plain"(), x)                # detailed printing
 print(io, x)                                   # one line printing
-print(IOContext(io, :supercompact => true), x) # supercompact printing
+print(terse(io), x)                            # terse printing
 ```
 
 For reference, string interpolation `"$(x)"` uses one line printing via `print(io, x)`,
@@ -49,16 +49,16 @@ function Base.show(io::IO, ::MIME"text/plain", R::NewRing)
 end
 ```
 
-The following is a template for `one line` and `:supercompact` printing.
+The following is a template for `one line` and `terse` printing.
 ```julia
 function Base.show(io::IO, R::NewRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     # no nested printing
-    print(io, "supercompact printing of newring ")
+    print(io, "terse printing of newring ")
   else
-    # nested printing allowed, preferably supercompact
+    # nested printing allowed, preferably terse
     print(io, "one line printing of newring with ")
-    print(IOContext(io, :supercompact => true), "supercompact ", base_ring(R))
+    print(terse(io), "terse ", base_ring(R))
   end
 end
 ```
@@ -71,8 +71,8 @@ QQ
 
 julia> [R,R]
 2-element Vector{NewRing}:
- one line printing of newring with supercompact QQ
- one line printing of newring with supercompact QQ
+ one line printing of newring with terse QQ
+ one line printing of newring with terse QQ
 
 ```
 
@@ -81,7 +81,7 @@ julia> [R,R]
 This version needs to be used in case the detailed
 printing does not contain newlines.
 Then detailed and one line printing agree.
-The `if` clause takes care of supercompact printing as well.
+The `if` clause takes care of terse printing as well.
 
 ```julia
 struct NewRing2
@@ -91,13 +91,13 @@ end
 base_ring(R::NewRing2) = R.base_ring
 
 function Base.show(io::IO, R::NewRing2)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     # no nested printing
-    print(io, "supercompact printing of newring")
+    print(io, "terse printing of newring")
   else
-    # nested printing allowed, preferably supercompact
+    # nested printing allowed, preferably terse
     print(io, "I am a new ring and always print in one line " )
-    print(IOContext(io, :supercompact => true), base_ring(R))
+    print(terse(io), base_ring(R))
   end
 end
 ```
@@ -111,11 +111,11 @@ julia> [R,R]
  I am a new ring and always print in one line Rational Field
  I am a new ring and always print in one line Rational Field
 
-julia> print(IOContext(Base.stdout, :supercompact => true) ,R)
-supercompact printing of newring
+julia> print(terse(Base.stdout) ,R)
+terse printing of newring
 ```
 
-The `supercompact` printing uses an `IOContext` (see [IOContext](https://docs.julialang.org/en/v1/base/io-network/#Base.IOContext) from
+The `terse` printing uses an `IOContext` (see [IOContext](https://docs.julialang.org/en/v1/base/io-network/#Base.IOContext) from
 the Julia documentation) to pass information to other `show` methods invoked
 recursively (for example in nested printings). The same mechanism can be used to
 pass other context data. For instance, this is used by the `Scheme` code in
@@ -140,11 +140,11 @@ It will be used for `print(io, R::NewRing)` though.
 
 ```julia
 function Base.show(io::IO, R::NewRing)
-  if get(io, :supercompact, false)
-    print(io, "supercompact printing of newring")
+  if is_terse(io)
+    print(io, "terse printing of newring")
   else # this is what we call one line
     print(io, "one line printing of newring with ")
-    print(IOContext(io, :supercompact => true), "supercompact ", R.base_ring)
+    print(terse(io), "terse ", R.base_ring)
   end
 end
 ```
@@ -161,7 +161,7 @@ julia> [R,R]  # one line printing is ignored
  I am a new ring with a detailed printing of one line
 
 julia> print(Base.stdout, R)
-one line printing of newring with supercompact QQ
+one line printing of newring with terse QQ
 ```
 
 ## Advanced printing functionality
@@ -306,7 +306,7 @@ Here is an example with and without output using Unicode:
 - All `show` methods for parent objects such as rings or modules should use the `@show_name`
   macro. This macro ensures that if the object has a name (including one derived from
   the name of a Julia REPL variable to which the object is currently assigned) then in
-  a `compact` or `supercompact` io context it is printed using that name.
+  a `compact` or `terse` io context it is printed using that name.
   Here is an example illustrating this:
   ```
   julia> vector_space(GF(2), 2)

@@ -289,10 +289,10 @@ function Base.show(io::IO, ::MIME"text/plain", C::Covering)
 end
 
 function Base.show(io::IO, C::Covering)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Covering")
   else
-    print(io,  "Covering with ", ItemQuantity(n_patches(C), "patch"))
+    print(io, "Covering with ", ItemQuantity(n_patches(C), "patch"))
   end
 end
 

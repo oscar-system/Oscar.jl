@@ -82,7 +82,7 @@ _images(f::MPolyAnyMap) = f.img_gens
 ################################################################################
 function Base.show(io::IO, ::MIME"text/plain", f::MPolyAnyMap)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), f)
+  println(terse(io), f)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(f))
   println(io, "to ", Lowercase(), codomain(f))
@@ -104,14 +104,12 @@ end
 
 function Base.show(io::IO, f::MPolyAnyMap)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    # no nested printing
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
-    # nested printing allowed, preferably supercompact
     print(io, "Hom: ")
-    print(IOContext(io, :supercompact => true), Lowercase(), domain(f), " -> ")
-    print(IOContext(io, :supercompact => true), Lowercase(), codomain(f))
+    print(terse(io), Lowercase(), domain(f), " -> ")
+    print(terse(io), Lowercase(), codomain(f))
   end
 end
 

@@ -1,10 +1,10 @@
 function Base.show(io::IO, x::GAPGroupHomomorphism)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Group homomorphism")
   else
     io = pretty(io)
     print(io, "Hom: ")
-    print(IOContext(io, :supercompact => true), Lowercase(), domain(x), " -> ", Lowercase(), codomain(x))
+    print(terse(io), Lowercase(), domain(x), " -> ", Lowercase(), codomain(x))
   end
 end
 

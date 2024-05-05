@@ -138,12 +138,12 @@ function Base.show(io::IO, ::MIME"text/plain", RG::FinGroupInvarRing)
 end
 
 function Base.show(io::IO, RG::FinGroupInvarRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Invariant ring")
   else
     io = pretty(io)
     print(io, "Invariant ring of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), group(RG))
+    print(terse(io), Lowercase(), group(RG))
   end
 end
 

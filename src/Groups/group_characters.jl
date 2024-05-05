@@ -625,17 +625,14 @@ function matrix_of_strings(tbl::GAPGroupCharacterTable; alphabet::String = "", r
   return (m, legend)
 end
 
-# supercompact and one-line printing
 function Base.show(io::IO, tbl::GAPGroupCharacterTable)
-  if get(io, :supercompact, false)
-    # no nested printing
+  if is_terse(io)
     if characteristic(tbl) == 0
       print(io, "character table of a group")
     else
       print(io, "$(characteristic(tbl))-modular Brauer table of a group")
     end
   else
-    # nested printing allowed, preferably supercompact
     if isdefined(tbl, :group)
       if characteristic(tbl) == 0
         print(io, "character table of ")
@@ -643,7 +640,7 @@ function Base.show(io::IO, tbl::GAPGroupCharacterTable)
         print(io, "$(characteristic(tbl))-modular Brauer table of ")
       end
       io = pretty(io)
-      print(IOContext(io, :supercompact => true), Lowercase(), group(tbl))
+      print(terse(io), Lowercase(), group(tbl))
     elseif characteristic(tbl) == 0
       print(io, "character table of ", identifier(tbl))
     else

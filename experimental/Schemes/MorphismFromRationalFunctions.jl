@@ -92,7 +92,7 @@ morphism_from_rational_functions(
      ) = MorphismFromRationalFunctions(X, Y, U, V, a; check, domain_covering, codomain_covering)
 
 function Base.show(io::IOContext, Phi::MorphismFromRationalFunctions)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print("Morphism from rational functions")
   else
     io = pretty(io)

@@ -50,18 +50,18 @@ julia> show([t_a5_2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
-supercompact printing
+terse printing
 ```jldoctest group_characters.test
-julia> print(IOContext(stdout, :supercompact => true), t_a4)
+julia> print(AbstractAlgebra.terse(stdout), t_a4)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5)
+julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
 2-modular Brauer table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
 2-modular Brauer table of a group
 ```
 

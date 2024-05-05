@@ -85,15 +85,13 @@ function Base.show(io::IO, W::MPolyDecRing)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    # no nested printing
+  if is_terse(io)
     if is_filtered(W)
       print(io, "Filtered multivariate polynomial ring")
     else
       print(io, "Graded multivariate polynomial ring")
     end
   else
-    # nested printing allowed, preferably supercompact
     R = forget_decoration(W)
     if is_filtered(W)
       print(io, "Filtered ", Lowercase(), R)

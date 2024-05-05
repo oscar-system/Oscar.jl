@@ -43,7 +43,7 @@ end
 function Base.show(io::IO, X::AbsAffineScheme)
   if has_attribute(X, :name)
     print(io, name(X))
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine scheme")

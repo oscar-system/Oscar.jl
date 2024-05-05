@@ -264,7 +264,7 @@ function Base.show(io::IO, CPS::CoveredProjectiveScheme)
   io = pretty(io)
   n = length(projective_patches(CPS))
   K = base_ring(base_scheme(CPS))
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Relative projective scheme")
   else
     if length(projective_patches(CPS)) == 0
