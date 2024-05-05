@@ -362,14 +362,10 @@ end
   X = variety(I, check = false, is_radical = false);
 
   function canonical_bundle(X::AbsProjectiveVariety)
-    Pn = ambient_coordinate_ring(X)
     n = ngens(Pn)-1
-    I = defining_ideal(X)
-    c = codim(I)
-    A, _ = quo(Pn, I)
-    res = free_resolution(A, algorithm = :fres)
-    C = Oscar.SimpleComplexWrapper(res.C[0:first(range(res.C))])
-    C_simp = simplify(C);
+    c = codim(X)
+    res = free_resolution(Oscar.SimpleFreeResolution, homogeneous_coordinate_ring(X))
+    C_simp = simplify(res);
     C_shift = shift(C_simp, c);
     OmegaPn = graded_free_module(Pn, [n+1])
     D = hom(C_shift, OmegaPn);
