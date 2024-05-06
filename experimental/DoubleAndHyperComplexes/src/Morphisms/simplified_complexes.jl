@@ -658,8 +658,8 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
     return K, inc
   end
 
-  psi = map_to_original(simp)[i]
-  phi = map(c, p, i)
+  psi = map_to_original_complex(simp)[i]
+  phi = map(original_complex(simp), p, i)
   K, inc = kernel(compose(psi, phi))
   c.kernel_cache[(i, p)] = inc
   return K, inc
