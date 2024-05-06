@@ -46,14 +46,14 @@
     },
     "model_data": {
         "base_dim": 3,
-        "divisors_user_must_specify": ["s5", "s9"],
-        "divisors_parametrized_by_user_specified_divisors": ["s1", "s2", "s3", "s6"],
+        "divisors_user_must_specify": ["s7", "s9"],
+        "divisors_parametrized_by_user_specified_divisors": ["s1", "s2", "s3", "s5", "s6"],
         "f": "1//48*(48*s1*s3*s9^2 - ( - s6^2 + 4*s2*s9)^2 - 24*s3*s5*s6*s9)",
         "g": "1//864*((2*s1*s3*s9^2 - s3*s5*s6*s9)*( - 36*s6^2 + 144*s2*s9) - ( - s6^2 + 4*s2*s9)^3 + 216*s3^2*s5^2*s9^2)",
         "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
-            [1,  2,  3, 1],
-            [1,  0, -1, 0],
-            [-1, -1, -1, 0]
+            [ 3,  2,  1,  2, 1],
+            [-1,  0,  1, -1, 0],
+            [-1, -1, -1,  0, 0]
         ],
         "zero_section": ["0", "0", "1"],
         "generating_sections": [
