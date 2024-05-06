@@ -4,6 +4,14 @@
 #
 ################################################################################
 
+@doc raw"""
+    WeakComposition{T<:IntegerUnion} <: AbstractVector{T}
+
+A weak composition consisting of integers of type `T`.
+This is a wrapper around `Vector{T}`.
+
+See [`weak_composition`](@ref) for the user-facing constructor and an example.
+"""
 struct WeakComposition{T<:IntegerUnion} <: AbstractVector{T}
   c::Vector{T}
 end
@@ -29,6 +37,14 @@ end
 #
 ################################################################################
 
+@doc raw"""
+    Composition{T<:IntegerUnion} <: AbstractVector{T}
+
+A composition consisting of integers of type `T`.
+This is a wrapper around `Vector{T}`.
+
+See [`composition`](@ref) for the user-facing constructor and an example.
+"""
 struct Composition{T<:IntegerUnion} <: AbstractVector{T}
   c::Vector{T}
 end
@@ -106,6 +122,14 @@ end
 #
 ################################################################################
 
+@doc raw"""
+    Partition{T<:IntegerUnion} <: AbstractVector{T}
+
+A partition consisting of integers of type `T`.
+This is a wrapper around `Vector{T}`.
+
+See [`partition`](@ref) for the user-facing constructor and an example.
+"""
 struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
@@ -116,6 +140,14 @@ end
 #
 ################################################################################
 
-struct YoungTableau{T} <: AbstractVector{AbstractVector{T}}
+@doc raw"""
+    YoungTableau{T<:IntegerUnion} <: AbstractVector{AbstractVector{T}}
+
+A Young tableau filled with integers of type `T`.
+This is a wrapper around `Vector{Vector{T}}`.
+
+See [`young_tableau`](@ref) for the user-facing constructor and an example.
+"""
+struct YoungTableau{T<:IntegerUnion} <: AbstractVector{AbstractVector{T}}
   t::Vector{Vector{T}}
 end

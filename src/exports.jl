@@ -48,6 +48,7 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Composition
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -170,6 +171,7 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export WeakComposition
 export WreathProductGroup
 export YoungTableau
 export ZZ

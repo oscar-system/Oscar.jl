@@ -135,7 +135,7 @@ julia> C = compositions(4, 2)
 Iterator over the compositions of 4 into 2 parts
 
 julia> collect(C)
-3-element Vector{Oscar.Composition{Int64}}:
+3-element Vector{Composition{Int64}}:
  [3, 1]
  [2, 2]
  [1, 3]
@@ -198,7 +198,7 @@ julia> C = compositions(4)
 Iterator over the compositions of 4
 
 julia> collect(C)
-8-element Vector{Oscar.Composition{Int64}}:
+8-element Vector{Composition{Int64}}:
  [4]
  [3, 1]
  [2, 2]
@@ -287,7 +287,7 @@ julia> C = ascending_compositions(4)
 Iterator over the ascending compositions of 4
 
 julia> collect(C)
-5-element Vector{Oscar.Composition{Int64}}:
+5-element Vector{Composition{Int64}}:
  [1, 1, 1, 1]
  [1, 1, 2]
  [1, 3]

@@ -86,7 +86,7 @@ julia> length(W)
 4
 
 julia> collect(W)
-4-element Vector{Oscar.WeakComposition{Int64}}:
+4-element Vector{WeakComposition{Int64}}:
  [3, 0]
  [2, 1]
  [1, 2]
