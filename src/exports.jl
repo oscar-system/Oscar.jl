@@ -190,6 +190,7 @@ export add_vertices!
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
+export adjunction_process
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -797,6 +798,7 @@ export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
+export is_linearly_normal
 export is_local
 export is_loopless
 export is_manifold
@@ -1317,6 +1319,7 @@ export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
+export sectional_genus
 export semi_invariants
 export semidirect_product
 export semistandard_tableaux
